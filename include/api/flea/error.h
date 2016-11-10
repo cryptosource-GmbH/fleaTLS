@@ -1,0 +1,104 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
+#ifndef __flea_error_H_
+#define __flea_error_H_
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+
+typedef enum
+{
+  FLEA_ERR_FINE                                       = 0x0000,
+  FLEA_ERR_INT_ERR                                    = 0x0001,
+  FLEA_ERR_INV_STATE                                  = 0x0002,
+  FLEA_ERR_FAILED_TEST                                = 0x0003,
+  FLEA_ERR_INTEGRITY_FAILURE                          = 0x0004,
+
+  /**
+   * The cryptographic verification of the signature failed
+   */
+  FLEA_ERR_INV_SIGNATURE                              = 0x0005,
+  FLEA_ERR_INV_ARG                                    = 0x0006,
+  FLEA_ERR_INV_ALGORITHM                              = 0x0008,
+  FLEA_ERR_INV_MAC                                    = 0x0009,
+  FLEA_ERR_POINT_NOT_ON_CURVE                         = 0x000A,
+  FLEA_ERR_INV_ECC_DP                                 = 0x000B,
+  FLEA_ERR_INV_KEY_SIZE                               = 0x000C,
+  FLEA_ERR_ZERO_POINT_AFF_TRF                         = 0x0020,
+
+  /** 
+   * invalid reverence to a builtin domain parameter set, for example via an invalid or
+   * unsupported OID of a "named curve" in an X.509 certificate.
+   */
+  FLEA_ERR_ECC_INV_BUILTIN_DP_ID                      = 0x0021,
+  FLEA_ERR_BUFF_TOO_SMALL                             = 0x00A0,
+  FLEA_ERR_DECODING_FAILURE                           = 0x00A1,
+  FLEA_ERR_ASN1_DER_DEC_ERR                           = 0x00A3,
+  FLEA_ERR_ASN1_DER_UNEXP_TAG                         = 0x00A4,
+  FLEA_ERR_ASN1_DER_EXCSS_LEN                         = 0x00A5,
+  FLEA_ERR_ASN1_DER_EXCSS_NST                         = 0x00A6,
+  FLEA_ERR_ASN1_DEC_TRGT_BUF_TOO_SMALL                = 0x00A7,
+  FLEA_ERR_ASN1_DER_CALL_SEQ_ERR                      = 0x00A8,
+  FLEA_ERR_ASN1_DER_CST_LEN_LIMIT_EXCEEDED            = 0x00A9,
+  FLEA_ERR_FAILED_STREAM_READ                         = 0x00AD,
+  FLEA_ERR_FAILED_STREAM_WRITE                        = 0x00AE,
+  FLEA_ERR_PRNG_NVM_WRITE_ERROR                       = 0x00B1,
+  FLEA_ERR_RNG_NOT_SEEDED                             = 0x00B2,
+  FLEA_ERR_X509_VERSION_ERROR                         = 0x00C0,
+  FLEA_ERR_X509_DN_ERROR                              = 0x00C1,
+  FLEA_ERR_X509_ERR_UNSUP_CRIT_EXT                    = 0x00C2,
+  FLEA_ERR_X509_KU_DEC_ERR                            = 0x00C3,
+  FLEA_ERR_X509_SAN_DEC_ERR                           = 0x00C4,
+  FLEA_ERR_X509_NEG_INT                               = 0x00C5,
+  FLEA_ERR_X509_BC_EXCSS_PATH_LEN                     = 0x00C6,
+  FLEA_ERR_X509_ERR_UNSUP_CRIT_NAME_CONSTRAINTS_EXT   = 0x00C7,
+  FLEA_ERR_X509_ERR_UNSUP_CRIT_POLICY_CONSTRAINTS_EXT = 0x00C8,
+  FLEA_ERR_X509_EKU_VAL_ERR                           = 0x00C9,
+  FLEA_ERR_X509_SIG_ALG_ERR                           = 0x00CA,
+  FLEA_ERR_X509_UNSUPP_PRIMITIVE                      = 0x00CB,
+  FLEA_ERR_X509_BIT_STR_ERR                           = 0x00CC,
+
+  
+  /**
+   * The hash function indicated by the encoding in an OID is not recognized.
+   * This error is to be distinguished from INV_ALGORITHM, can indicate
+   * that the support for an algorithm is not configured in flea
+   */
+  FLEA_ERR_X509_UNRECOG_HASH_FUNCTION                 = 0x00CD,
+
+  /**
+   * For a supported primitive the specified variant in an OID is not supported
+   * or known.
+   */
+  FLEA_ERR_X509_UNSUPP_ALGO_VARIANT                   = 0x00CE,
+
+  /**
+   * Error with the decoded public ECC parameters.
+   */
+  FLEA_ERR_X509_INV_ECC_KEY_PARAMS                    = 0x00CF,
+  FLEA_ERR_X509_INV_ECC_FIELD_TYPE                    = 0x00D0,
+
+  /**
+   * Error with the ECC point format, e.g. invalid length or unknown/unsupported
+   * encoding.
+   */
+  FLEA_ERR_X509_INV_ECC_POINT_ENCODING                = 0x00D1,
+
+	FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS									= 0x00E0,
+	FLEA_ERR_CERT_PATH_NOT_FOUND 												= 0x00E1,
+  FLEA_ERR_CERT_NOT_YET_VALID                         = 0x00E2,
+  FLEA_ERR_CERT_NO_MORE_VALID                         = 0x00E3,
+  FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED              = 0x00E4,
+  FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT               = 0x00E5,
+
+  FLEA_ERR_OUT_OF_MEM                                 = 0x00FF,
+
+} flea_err_t;
+
+#ifdef __cplusplus
+}
+#endif
+
+#endif /* h-guard */

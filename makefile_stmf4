@@ -1,0 +1,87 @@
+
+#BINPATH=~/sat/bin
+
+CC=arm-none-eabi-gcc
+AR=arm-none-eabi-ar
+
+###################################################
+
+# Check for valid float argument
+ifneq ($(FLOAT_TYPE), hard)
+ifneq ($(FLOAT_TYPE), soft)
+#override FLOAT_TYPE = hard
+override FLOAT_TYPE = soft
+endif
+endif
+
+###################################################
+
+INCLUDES = -Iinclude -Iinclude/api -Itest/include
+
+vpath %.c src/common src/common/math src/common/hash src/common/hash src/common/pk_enc src/user
+
+CFLAGS  = -O3 -g -Wall -std=c99
+
+#-g 
+CFLAGS += $(INCLUDES) -DFLEA_PLTF_ARM_32BIT
+
+CFLAGS += -mlittle-endian -mthumb -mthumb-interwork -mcpu=cortex-m4
+
+# allow discarding of unused code during linking:
+CFLAGS += -fdata-sections -ffunction-sections
+
+ifeq ($(FLOAT_TYPE), hard)
+CFLAGS += -fsingle-precision-constant -Wdouble-promotion
+CFLAGS += -mfpu=fpv4-sp-d16 -mfloat-abi=hard
+#CFLAGS += -mfpu=fpv4-sp-d16 -mfloat-abi=softfp
+else
+CFLAGS += -msoft-float
+endif
+
+CFLAGS += -ffreestanding -nostdlib
+CFLAGS += -Iinc -Iinc/core -Iinc/peripherals
+
+
+SRC_DIR = src
+
+SRC_DIRS = src/common src/common/hash src/common/math src/common/pk_enc src/user
+
+
+SRCS := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
+#$(info $$SRCS is [${SRCS}])
+
+OBJDIR = build/stm32f4
+OBJS_RAW = $(SRCS:.c=.o)
+
+OBJS = $(addprefix $(OBJDIR)/, $(OBJS_RAW))
+
+DEPS_RAW = $(SRCS:.c=.d)
+
+DEPS = $(addprefix $(OBJDIR)/, $(DEPS_RAW))
+
+
+	
+.PHONY: libflea_stm32f4.a
+
+all: libflea_stm32f4.a test
+
+# $< = "prerequisite": right hand side in target def
+# $@ = left hand side of the target def
+
+$(OBJDIR)/%.o : %.c
+	$(CC) -MMD $(CFLAGS) -c $< -o $@ 
+  
+libflea_stm32f4.a: $(OBJS)
+	$(AR) -r $@ $(OBJS)
+
+test: libflea_stm32f4.a
+	@echo "making test"
+	$(MAKE) -C test FLOAT_TYPE=$(FLOAT_TYPE)
+
+clean:
+	find $(OBJDIR) -name "*.d" | xargs -n1 trash-put
+	rm -f $(OBJS)  libflea_stm32f4.a 
+	$(MAKE) clean -C test
+
+-include $(DEPS)
+

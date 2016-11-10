@@ -1,0 +1,4 @@
+openssl ecparam -name secp224r1 -genkey -noout -out key.pem
+openssl ecparam -name secp256k1 -genkey -noout -out key.pem -param_enc explicit
+# interactive creation of cert
+openssl req -x509 -key sec224r1_key.pem -out cert.pem -days 365 -new
