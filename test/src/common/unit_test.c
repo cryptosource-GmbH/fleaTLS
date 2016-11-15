@@ -39,6 +39,7 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
     FLEA_PRINTF_1_SWITCHED("error with lib init, tests aborted\n");
     return 1;
   }
+  CALL_TEST(test_tls());return 0; // CHANGE THIS LINE BACK
   for(i = 0; i < nb_reps; i++)
   {
     // TODO: put back in
