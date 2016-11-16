@@ -14,6 +14,7 @@
 #include "flea/ecc.h"
 #include "flea/ec_key.h"
 #include "flea/ecc_named_curves.h"
+#include "flea/pubkey.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
 
@@ -159,79 +160,6 @@ static flea_err_t THR_flea_x509_parse_rsa_public_key(const flea_der_ref_t *publi
 }
 
 #ifdef FLEA_HAVE_ECC
-static flea_err_t THR_flea_x509_parse_ecc_public_params(const flea_der_ref_t *encoded_parameters__pt, flea_ec_gfp_dom_par_t *dom_par__pt)
-{
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
-  FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
-  flea_data_source_mem_help_t hlp__t;
-  flea_bool_t found__b;
-  FLEA_THR_BEG_FUNC();
-
-
-  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, encoded_parameters__pt->data__pcu8, encoded_parameters__pt->len__dtl, &hlp__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0));
-FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONSTRUCTED, FLEA_ASN1_SEQUENCE ), &found__b));
- if(found__b)
- {
-    flea_u32_t version__u32;
-    //flea_dtl_t len__dtl;
-    flea_der_ref_t oid_ref__t;
-
-    const flea_u8_t prime_field_oid__acu8[] = { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x01, 0x01 };
-
-    FLEA_CCALL(THR_flea_ber_dec_t__decode_integer_u32(&dec__t, FLEA_ASN1_INT, &version__u32));
-   if(version__u32 != 1)
-   {
-    FLEA_THROW("invalid version in ECC parameters", FLEA_ERR_X509_INV_ECC_KEY_PARAMS); 
-   }
-   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
-   FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_oid(&dec__t, &oid_ref__t));
-   if(oid_ref__t.len__dtl != sizeof(prime_field_oid__acu8) || memcmp(oid_ref__t.data__pcu8, prime_field_oid__acu8, sizeof(prime_field_oid__acu8)))
-   {
-    FLEA_THROW("unsupported field type in ECC parameters", FLEA_ERR_X509_INV_ECC_FIELD_TYPE); 
-   }
-   FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_positive_int_wo_lead_zeroes(&dec__t, &dom_par__pt->p__ru8));
-   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
-   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
-   // TODO: MAKE FUNCTION FOR DECODING OCTET STRING 
-   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, FLEA_ASN1_OCTET_STRING), &dom_par__pt->a__ru8));
-   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, FLEA_ASN1_OCTET_STRING), &dom_par__pt->b__ru8));
-   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, FLEA_ASN1_BIT_STRING), &oid_ref__t, &found__b));
-   /* close the curve: */
-   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
-   /* the public point */
-   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, FLEA_ASN1_OCTET_STRING), &oid_ref__t));
-   FLEA_CCALL(THR_flea_ec_key__decode_uncompressed_point(&oid_ref__t, &dom_par__pt->gx__ru8, &dom_par__pt->gy__ru8));
-
-   //FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, FLEA_ASN1_OCTET_STRING), &dom_par__pt->n__ru8));
-   FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_positive_int_wo_lead_zeroes(&dec__t, &dom_par__pt->n__ru8));
-// TODO: restrict cofactor size to new BC var MAX_COFACTOR_BIT_SIZE bits:
-   FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_positive_int_wo_lead_zeroes_optional(&dec__t, &dom_par__pt->h__ru8));
-   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
- }
-else
-{
-  flea_der_ref_t named_curve_oid__t;
-  flea_bool_t dummy;
-  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, FLEA_ASN1_OID), &named_curve_oid__t, &dummy));
-  if(!FLEA_DER_REF_IS_ABSENT(&named_curve_oid__t))
-  {
-     FLEA_CCALL(THR_flea_ecc_gfp_dom_par_t__set_by_named_curve_oid(dom_par__pt, named_curve_oid__t.data__pcu8, named_curve_oid__t.len__dtl));
-  }
-  else
-  {
-  /* TODO: check for implict CA*/
-  FLEA_THROW("no explicit or named ECC domain parameters provided", FLEA_ERR_X509_INV_ECC_KEY_PARAMS);
-
-  }
-      
-}
-
-  FLEA_THR_FIN_SEC(
-      flea_data_source_t__dtor(&source__t); 
-      flea_ber_dec_t__dtor(&dec__t);
-      );
-}
 
 #if 0
 static flea_err_t THR_flea_x509_parse_ecc_public_key(const flea_der_ref_t *encoded_public_key_value__pt, flea_ecc_pub_key_t * key_to_set__pt)

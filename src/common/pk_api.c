@@ -162,7 +162,7 @@ static flea_al_u16_t flea_pk_get_primitive_max_input_len (flea_pk_scheme_id_t id
 }*/
 
 #ifdef FLEA_HAVE_ECC
-static flea_al_u8_t determine_ec_key_bit_len (const flea_ec_gfp_dom_par_t *dom_par__pt)
+static flea_al_u8_t determine_ec_key_bit_len (const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
 {
   //flea_al_u8_t len__alu8;
   //const flea_u8_t* n__pcu8 = flea_ec_dom_par__get_ptr_to_elem(params__pcu8, flea_dp__n);
@@ -183,7 +183,7 @@ static flea_err_t THR_flea_pk_signer_t__final (flea_pk_signer_t* signer__pt, fle
   flea_al_u16_t digest_len__alu16;
   flea_al_u16_t key_bit_size__alu16 = 0; // avoid warning
   flea_al_u16_t primitive_input_len__alu16;
-  //flea_ec_gfp_dom_par_t
+  //flea_ec_gfp_dom_par_ref_t
 
   FLEA_DECL_BUF(primitive_input__bu8, flea_u8_t, FLEA_MAX(FLEA_PK_MAX_PRIMITIVE_INPUT_LEN, FLEA_MAX_HASH_OUT_LEN));
 

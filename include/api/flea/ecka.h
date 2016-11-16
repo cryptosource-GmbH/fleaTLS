@@ -31,7 +31,7 @@ extern "C" {
  *
  */
 //flea_err_t THR_flea_ecka__compute_raw(const flea_u8_t* public_point_enc, flea_al_u8_t public_point_enc_len, const flea_u8_t* secret_key, flea_al_u8_t secret_key_len, const flea_u8_t* enc_dp, flea_u8_t* result, flea_al_u8_t* result_len);
-flea_err_t THR_flea_ecka__compute_raw (const flea_u8_t* public_point_enc__pcu8, flea_al_u8_t public_point_enc_len__alu8, const flea_u8_t* secret_key__pcu8, flea_al_u8_t secret_key_len__alu8,  /*const flea_u8_t* enc_dp__pcu8,*/ flea_u8_t* result__pu8, flea_al_u8_t* result_len__palu8, const flea_ec_gfp_dom_par_t *dom_par__pt);
+flea_err_t THR_flea_ecka__compute_raw (const flea_u8_t* public_point_enc__pcu8, flea_al_u8_t public_point_enc_len__alu8, const flea_u8_t* secret_key__pcu8, flea_al_u8_t secret_key_len__alu8,  /*const flea_u8_t* enc_dp__pcu8,*/ flea_u8_t* result__pu8, flea_al_u8_t* result_len__palu8, const flea_ec_gfp_dom_par_ref_t *dom_par__pt);
 
 /**
  * Carry out the EC key agreement operation using ANSI X9.63 key derivation
@@ -55,7 +55,7 @@ flea_err_t THR_flea_ecka__compute_raw (const flea_u8_t* public_point_enc__pcu8, 
  * @return flea error code
  *
  */
-flea_err_t THR_flea_ecka__compute_kdf_ansi_x9_63 (flea_hash_id_t hash_id__t, const flea_u8_t* public_point_enc__pcu8, flea_al_u8_t public_point_enc_len__alu8, const flea_u8_t* secret_key__pcu8, flea_al_u8_t secret_key_len__alu8, /*const flea_u8_t* enc_dp__pcu8,*/ const flea_u8_t* shared_info__pcu8, flea_al_u16_t shared_info_len__alu16, flea_u8_t* result__pu8, flea_al_u16_t result_len__alu16, const flea_ec_gfp_dom_par_t *dom_par__pt);
+flea_err_t THR_flea_ecka__compute_kdf_ansi_x9_63 (flea_hash_id_t hash_id__t, const flea_u8_t* public_point_enc__pcu8, flea_al_u8_t public_point_enc_len__alu8, const flea_u8_t* secret_key__pcu8, flea_al_u8_t secret_key_len__alu8, /*const flea_u8_t* enc_dp__pcu8,*/ const flea_u8_t* shared_info__pcu8, flea_al_u16_t shared_info_len__alu16, flea_u8_t* result__pu8, flea_al_u16_t result_len__alu16, const flea_ec_gfp_dom_par_ref_t *dom_par__pt);
 //flea_err_t THR_flea_ecka__compute_kdf_ansi_x9_63(flea_hash_id_t hash_id, const flea_u8_t* public_point_enc, flea_al_u8_t public_point_enc_len, const flea_u8_t* secret_key, flea_al_u8_t secret_key_len, const flea_u8_t* enc_dp, const flea_u8_t* shared_info, flea_al_u16_t shared_info_len, flea_u8_t* result, flea_al_u16_t result_len);
 
 #ifdef __cplusplus

@@ -190,7 +190,7 @@ flea_err_t THR_flea_test_pk_signer_sign_verify ()
   else
   {
     flea_pub_key_param_u param__u;
-    FLEA_CCALL(THR_flea_ec_gfp_dom_par_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_brainpoolP224r1));
+    FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_brainpoolP224r1));
     FLEA_CCALL(THR_flea_test_pk_signer_sign_verify_inner(flea_ecdsa_emsa1, flea_sha224, &param__u));
   }
 #endif

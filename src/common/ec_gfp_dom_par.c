@@ -528,7 +528,7 @@ static void flea_ec_dom_par__set_ru8_from_internal_format(flea_ref_u8_t *result_
  
 }*/
 
-flea_err_t THR_flea_ec_gfp_dom_par_t__set_by_builtin_id(flea_ec_gfp_dom_par_t *dp_to_set__pt, flea_ec_dom_par_id_t id)
+flea_err_t THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(flea_ec_gfp_dom_par_ref_t *dp_to_set__pt, flea_ec_dom_par_id_t id)
 {
   const flea_u8_t* enc_dp__pcu8;
  FLEA_THR_BEG_FUNC();

@@ -22,7 +22,7 @@
 
 #ifdef FLEA_HAVE_ECKA
 
-flea_err_t THR_flea_ecka__compute_kdf_ansi_x9_63 (flea_hash_id_t hash_id__t, const flea_u8_t* public_point_enc__pcu8, flea_al_u8_t public_point_enc_len__alu8, const flea_u8_t* secret_key__pcu8, flea_al_u8_t secret_key_len__alu8, /*const flea_u8_t* enc_dp__pcu8,*/ const flea_u8_t* shared_info__pcu8, flea_al_u16_t shared_info_len__alu16, flea_u8_t* result__pu8, flea_al_u16_t result_len__alu16, const flea_ec_gfp_dom_par_t *dom_par__pt)
+flea_err_t THR_flea_ecka__compute_kdf_ansi_x9_63 (flea_hash_id_t hash_id__t, const flea_u8_t* public_point_enc__pcu8, flea_al_u8_t public_point_enc_len__alu8, const flea_u8_t* secret_key__pcu8, flea_al_u8_t secret_key_len__alu8, /*const flea_u8_t* enc_dp__pcu8,*/ const flea_u8_t* shared_info__pcu8, flea_al_u16_t shared_info_len__alu16, flea_u8_t* result__pu8, flea_al_u16_t result_len__alu16, const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
 {
   FLEA_DECL_BUF(shared_x__bu8, flea_u8_t, FLEA_ECC_MAX_MOD_BYTE_SIZE);
   flea_al_u8_t shared_x_len__alu8 = 0;
@@ -46,7 +46,7 @@ flea_err_t THR_flea_ecka__compute_kdf_ansi_x9_63 (flea_hash_id_t hash_id__t, con
     );
 }
 
-flea_err_t THR_flea_ecka__compute_raw (const flea_u8_t* public_point_enc__pcu8, flea_al_u8_t public_point_enc_len__alu8, const flea_u8_t* secret_key__pcu8, flea_al_u8_t secret_key_len__alu8,  /*const flea_u8_t* enc_dp__pcu8,*/ flea_u8_t* result__pu8, flea_al_u8_t* result_len__palu8, const flea_ec_gfp_dom_par_t *dom_par__pt)
+flea_err_t THR_flea_ecka__compute_raw (const flea_u8_t* public_point_enc__pcu8, flea_al_u8_t public_point_enc_len__alu8, const flea_u8_t* secret_key__pcu8, flea_al_u8_t secret_key_len__alu8,  /*const flea_u8_t* enc_dp__pcu8,*/ flea_u8_t* result__pu8, flea_al_u8_t* result_len__palu8, const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
 {
   flea_mpi_t d, l, n;
   const flea_al_u8_t sign_mpi_ws_count = 4;

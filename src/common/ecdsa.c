@@ -19,7 +19,7 @@
 #include "internal/common/ecc_int.h"
 
 #ifdef FLEA_HAVE_ECDSA
-flea_err_t THR_flea_ecdsa__raw_verify (const flea_u8_t* enc_r, flea_al_u8_t enc_r_len, const flea_u8_t* enc_s, flea_al_u8_t enc_s_len, const flea_u8_t* message, flea_al_u8_t message_len, const flea_u8_t* pub_point_enc,  flea_al_u8_t pub_point_enc_len, const flea_ec_gfp_dom_par_t *dom_par__pt)
+flea_err_t THR_flea_ecdsa__raw_verify (const flea_u8_t* enc_r, flea_al_u8_t enc_r_len, const flea_u8_t* enc_s, flea_al_u8_t enc_s_len, const flea_u8_t* message, flea_al_u8_t message_len, const flea_u8_t* pub_point_enc,  flea_al_u8_t pub_point_enc_len, const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
 {
 
   flea_mpi_t n, s, s_inv, double_sized_field_elem;
@@ -175,7 +175,7 @@ flea_err_t THR_flea_ecdsa__raw_verify (const flea_u8_t* enc_r, flea_al_u8_t enc_
     );
 }
 
-flea_err_t THR_flea_ecdsa__raw_sign (flea_u8_t* res_r_arr, flea_al_u8_t* res_r_arr_len, flea_u8_t* res_s_arr, flea_al_u8_t* res_s_arr_len, const flea_u8_t* message, flea_al_u8_t message_len, /*const flea_u8_t* p_dp,*/ const flea_u8_t* priv_key_enc_arr, flea_al_u8_t priv_key_enc_arr_len, const flea_ec_gfp_dom_par_t *dom_par__pt)
+flea_err_t THR_flea_ecdsa__raw_sign (flea_u8_t* res_r_arr, flea_al_u8_t* res_r_arr_len, flea_u8_t* res_s_arr, flea_al_u8_t* res_s_arr_len, const flea_u8_t* message, flea_al_u8_t message_len, /*const flea_u8_t* p_dp,*/ const flea_u8_t* priv_key_enc_arr, flea_al_u8_t priv_key_enc_arr_len, const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
 {
 
   flea_mpi_t n, k, k_inv, r, s;

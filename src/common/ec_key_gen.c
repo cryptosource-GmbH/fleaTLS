@@ -18,7 +18,7 @@
 #include "internal/common/ecc_int.h"
 
 #ifdef FLEA_HAVE_ECC
-flea_err_t THR_flea_generate_ecc_key (flea_u8_t* result_public__p_u8, flea_al_u8_t* result_public_len__p_al_u8, flea_u8_t* result_private__p_u8, flea_al_u8_t* result_private_len__p_al_u8, const flea_ec_gfp_dom_par_t *dom_par__pt)
+flea_err_t THR_flea_generate_ecc_key (flea_u8_t* result_public__p_u8, flea_al_u8_t* result_public_len__p_al_u8, flea_u8_t* result_private__p_u8, flea_al_u8_t* result_private_len__p_al_u8, const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
 {
   flea_curve_gfp_t curve;
   flea_point_gfp_t pub_point;
