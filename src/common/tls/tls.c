@@ -12,34 +12,6 @@
 #include <sys/socket.h>
 #include <arpa/inet.h> //inet_addr
 
-/*
-   enum {
-       hello_request(0), client_hello(1), server_hello(2),
-       certificate(11), server_key_exchange (12),
-       certificate_request(13), server_hello_done(14),
-       certificate_verify(15), client_key_exchange(16),
-       finished(20)
-       (255)
-   } HandshakeType;
-
-   struct {
-       HandshakeType msg_type;
-       uint24 length;
-       select (HandshakeType) {
-           case hello_request:       HelloRequest;
-           case client_hello:        ClientHello;
-           case server_hello:        ServerHello;
-           case certificate:         Certificate;
-           case server_key_exchange: ServerKeyExchange;
-           case certificate_request: CertificateRequest;
-           case server_hello_done:   ServerHelloDone;
-           case certificate_verify:  CertificateVerify;
-           case client_key_exchange: ClientKeyExchange;
-           case finished:            Finished;
-       } body;
-   } Handshake;
-*/
-
 typedef enum {
 	HANDSHAKE_TYPE_HELLO_REQUEST = 0,
 	HANDSHAKE_TYPE_CLIENT_HELLO = 1,
@@ -125,15 +97,56 @@ typedef struct {
 	flea_u8_t* extensions;	// 2^16 bytes
 } ServerHello;
 
+typedef struct {
+	flea_u8_t* certificate_list;
+	flea_u8_t certificate_list_length;
+} Certificate;
+
+typedef enum { //dhe_dss, dhe_rsa, dh_anon,
+	 KEY_EXCHANGE_ALGORITHM_RSA //,
+	 //dh_dss, dh_rsa
+ } KeyExchangeAlgorithm;
 
 
+typedef struct {
+	KeyExchangeAlgorithm algorithm;
+	/**
+	struct {
+          ProtocolVersion client_version;
+          opaque random[46];
+      } PreMasterSecret;
+
+      client_version
+         The latest (newest) version supported by the client.  This is
+         used to detect version rollback attacks.
+
+      random
+         46 securely-generated random bytes.
+
+      struct {
+          public-key-encrypted PreMasterSecret pre_master_secret;
+      } EncryptedPreMasterSecret;
+	*/
+	flea_u8_t EncryptedPreMasterSecret[48];
+	flea_u8_t* ClientDiffieHellmanPublic;
+} ClientKeyExchange;
+
+typedef enum {CHANGE_CIPHER_SPEC_TYPE_CHANGE_CIPHER_SPEC = 1} CHANGE_CIPHER_SPEC_TYPE;
+
+typedef struct {
+	CHANGE_CIPHER_SPEC_TYPE change_cipher_spec;
+} ChangeCipherSpec;
+
+/**
+	ServerHelloDone: no content, no struct needed
+*/
 
 /**
 	TODO: Expected to take exactly one record layer message. One TCP packet can contain several record layer messages. need to handle this.
 	TODO: Could also be fragmented!
 	=> leave this function as is but add a function that takes care of this before passing values on to this function
 */
-void read_record_message(flea_u8_t* bytes, flea_u8_t length, Record* record, RecordType record_type) {
+void read_record_message(flea_u8_t* bytes, flea_u32_t length, Record* record, RecordType record_type) {
 
 
 	if (record_type == RECORD_TYPE_PLAINTEXT)
@@ -175,16 +188,13 @@ void read_record_message(flea_u8_t* bytes, flea_u8_t length, Record* record, Rec
 	}
 }
 
-void read_handshake_message(Record* record, HandshakeMessage* handshake_msg, HandshakeType expected_type) {
+void read_handshake_message(Record* record, HandshakeMessage* handshake_msg) {
 	if (record->length < 4)
 	{
 		return; // TODO: error handling
 	}
 
 	handshake_msg->type = record->data[0];
-	if (handshake_msg->type != expected_type) {
-		return; // TODO: error handling
-	}
 
 	flea_u8_t *p = (flea_u8_t*)&handshake_msg->length;
 	p[2] = record->data[1];
@@ -274,6 +284,16 @@ void read_server_hello(HandshakeMessage* handshake_msg, ServerHello* server_hell
 	// for now simply ignore them
 }
 
+void read_certificate(HandshakeMessage* handshake_msg, Certificate* client_message)
+{
+	client_message->certificate_list_length = handshake_msg->length;
+
+	if (handshake_msg->length > 0)
+	{
+		client_message->certificate_list = calloc(handshake_msg->length, sizeof(flea_u8_t));
+	}
+}
+
 
 /**
 Variable-length vectors are defined by specifying a subrange of legal
@@ -357,6 +377,11 @@ flea_u32_t get_size_of_first_record(flea_u8_t* bytes, flea_u8_t length) {
 	if (length < 5) {
 		return; // TODO: error handling
 	}
+	if (bytes[0] != 16 && bytes[1] != 3 && bytes[2] != 3)
+	{
+		printf("ERROR in get_size_of_first_record: first 3 bytes(%02x, %02x, %02x) ", bytes[0], bytes[1], bytes[2]);
+		// TODO: error handling
+	}
 	flea_u16_t size;
 	flea_u8_t *p = (flea_u8_t*) &size;
 	p[0] = bytes[4];
@@ -390,10 +415,32 @@ void record_to_bytes(Record record, flea_u8_t *bytes, flea_u8_t *length)
 	*length = i;
 }
 
+void handshake_to_bytes(HandshakeMessage handshake, flea_u8_t *bytes, flea_u8_t *length)
+{
+	flea_u16_t i=0;
+	bytes[i++] = handshake.type;
+
+	// TODO check if correct (byte order?)
+	flea_u8_t *p = (flea_u8_t*)&handshake.length;
+	bytes[i++] = p[2];
+	bytes[i++] = p[1];
+	bytes[i++] = p[0];
+
+
+	memcpy(bytes+i, handshake.data, handshake.length);
+	i += handshake.length;
+
+	*length = i;
+}
+
+void change_cipher_spec_to_bytes(ChangeCipherSpec ccs, flea_u8_t* bytes)
+{
+	bytes[0] = ccs.change_cipher_spec;
+}
 
 void print_client_hello(ClientHello hello)
 {
-	printf("\nPrinting Hello Struct\n");
+	printf("\nPrinting ClientHello Struct\n");
 	printf("Protocol Version major, minor: %i, %i\n", hello.client_version.major, hello.client_version.minor);
 
 	printf("Random: \n");
@@ -424,7 +471,7 @@ void print_client_hello(ClientHello hello)
 
 void print_server_hello(ServerHello hello)
 {
-	printf("\nPrinting Hello Struct\n");
+	printf("\nPrinting ServerHello Struct\n");
 	printf("Protocol Version major, minor: %i, %i\n", hello.server_version.major, hello.server_version.minor);
 
 	printf("Random: \n");
@@ -447,12 +494,46 @@ void print_server_hello(ServerHello hello)
 	printf("%02x ", hello.compression_method);
 }
 
+/**
+	TODO: real randomness
+
+   Implementation note: Public-key-encrypted data is represented as an
+   opaque vector <0..2^16-1> (see Section 4.7).  Thus, the RSA-encrypted
+   PreMasterSecret in a ClientKeyExchange is preceded by two length
+   bytes.
+
+   These bytes are redundant in the case of RSA because the
+   EncryptedPreMasterSecret is the only data in the ClientKeyExchange
+   and its length can therefore be unambiguously determined
+*/
+ClientKeyExchange create_client_key_exchange()
+{
+	ClientKeyExchange key_ex;
+
+	key_ex.algorithm = KEY_EXCHANGE_ALGORITHM_RSA;
+	key_ex.EncryptedPreMasterSecret[0] = 3;
+	key_ex.EncryptedPreMasterSecret[1] = 3;
+
+	for (flea_u8_t i=2; i<48; i++)
+	{
+		key_ex.EncryptedPreMasterSecret[i] = i;
+	}
+}
+
+void client_key_exchange_to_bytes(ClientKeyExchange* key_ex, flea_u8_t *bytes)
+{
+	for (flea_u8_t i=0; i<48; i++)
+	{
+		bytes[i] = key_ex->EncryptedPreMasterSecret[i];
+	}
+}
+
 ClientHello create_hello_message()	{
 	flea_u8_t random_bytes[28] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B};
 
 	flea_u8_t gmt_unix_time[4] = {0x00, 0x01, 0x02, 0x03};
 	flea_u8_t TLS_RSA_WITH_AES_256_CBC_SHA256[] = { 0x00, 0x3D };
-	flea_u8_t* cipher_suites = malloc(2);	// TODO deallocate
+	flea_u8_t* cipher_suites = calloc(2, sizeof(flea_u8_t));	// TODO deallocate
 
 	ClientHello hello;
 	memset(&hello, 0, sizeof(ClientHello));
@@ -486,6 +567,46 @@ int create_socket() {
         printf("Could not create socket");
     }
 	return socket_fd;
+}
+
+
+void create_handshake(HandshakeMessage* handshake, flea_u8_t* data, flea_u32_t length, HandshakeType type) {
+	handshake->type = type;
+	handshake->length = length;
+
+	handshake->data = calloc(length, sizeof(flea_u8_t));
+	memcpy(handshake->data, data, length);
+}
+
+void create_record(Record* record, flea_u8_t* data, flea_u32_t length, ContentType content_type, RecordType record_type) {
+	record->content_type = content_type;
+	record->record_type = record_type;
+	record->version.major = 3;
+	record->version.minor = 3;
+	record->length = length;
+
+	record->data = calloc(length, sizeof(flea_u8_t));
+	memcpy(record->data, data, length);
+}
+
+/**
+      P_hash(secret, seed) = HMAC_hash(secret, A(1) + seed) +
+                             HMAC_hash(secret, A(2) + seed) +
+                             HMAC_hash(secret, A(3) + seed) + ...
+
+   where + indicates concatenation.
+
+   A() is defined as:
+      A(0) = seed
+      A(i) = HMAC_hash(secret, A(i-1))
+
+
+      PRF(secret, label, seed) = P_<hash>(secret, label + seed)
+
+	  P_Hash is Sha256 for all ciphers defined in RFC5246
+*/
+void PRF() {
+
 }
 
 
@@ -538,33 +659,15 @@ int flea_tls_handshake(int socket_fd)
 
 
 	printf("sending HelloClient ...\n");
-
-
-	/*flea_u8_t test_send[] = {0x16, 0x03, 0x03, 0x00, 0x5f, 0x01, 0x00, 0x00, 0x5b, 0x03, 0x03, 0x54, 0x9a, 0xab, 0x72, 0x98,
-0x65, 0x11, 0x2f, 0xda, 0x9e, 0xcf, 0xc9, 0xdb, 0x6c, 0xbd, 0x4b, 0x4c, 0x56, 0x4b, 0x0c, 0xa5,
-0x68, 0x2b, 0xaa, 0x60, 0x1f, 0x38, 0x66, 0xe7, 0x87, 0x46, 0xb2, 0x00, 0x00, 0x2e, 0x00, 0x39,
-0x00, 0x38, 0x00, 0x35, 0x00, 0x16, 0x00, 0x13, 0x00, 0x0a, 0x00, 0x33, 0x00, 0x32, 0x00, 0x2f,
-0x00, 0x9a, 0x00, 0x99, 0x00, 0x96, 0x00, 0x05, 0x00, 0x04, 0x00, 0x15, 0x00, 0x12, 0x00, 0x09,
-0x00, 0x14, 0x00, 0x11, 0x00, 0x08, 0x00, 0x06, 0x00, 0x03, 0x00, 0xff, 0x01, 0x00, 0x00, 0x04,
-0x00, 0x23, 0x00, 0x00};
-	printf("Test Message %i:\n", sizeof(test_send));
-	for (flea_u16_t i=0; i<sizeof(test_send); i++)
-	{
-		printf("%02x ", test_send[i]);
-	}
-	printf("\n\n");
-
-	if (send(socket_fd, test_send, sizeof(test_send), 0) < 0)
-		printf("send failed\n");
-*/
 	if (send(socket_fd, record_message, record_length, 0) < 0)
 		printf("send failed\n");
 
 	printf("receiving ...\n");
 
 	flea_u32_t recv_bytes;
-	//while(1)
-	//{
+	int handshake_initiated=0;
+	while(!handshake_initiated)
+	{
 		recv_bytes = recv(socket_fd, reply, 16384, 0);
 		if (recv_bytes < 0)
 			printf("recv failed\n");
@@ -576,18 +679,91 @@ int flea_tls_handshake(int socket_fd)
 		}
 		printf("\n");
 
-		printf("Parsing ServerHello Message:\n");
-		Record server_hello_record;
-		HandshakeMessage handshake_message_server_hello;
+		printf("Parsing Message:\n");
+		Record record_message;
+		HandshakeMessage handshake_message;
 		ServerHello server_hello_message;
+		Certificate certificate_message;
 
-		flea_u32_t first_record_size = get_size_of_first_record(reply, recv_bytes);
+		flea_u32_t reply_index = 0;
+		while (reply_index != recv_bytes)
+		{
+			memset(&record_message, 0, sizeof(Record));
+			memset(&handshake_message, 0, sizeof(HandshakeMessage));
 
-		read_record_message(reply, first_record_size, &server_hello_record, RECORD_TYPE_PLAINTEXT);
-		read_handshake_message(&server_hello_record, &handshake_message_server_hello, HANDSHAKE_TYPE_SERVER_HELLO);
-		read_server_hello(&handshake_message_server_hello, &server_hello_message);
-		print_server_hello(server_hello_message);
-	//}
+			flea_u32_t first_record_size = get_size_of_first_record(reply+reply_index, recv_bytes-reply_index);
+			printf("\n\nrecord size %i\n\n", first_record_size);
+
+			printf("Reading Record ...\n");
+			read_record_message(reply+reply_index, first_record_size, &record_message, RECORD_TYPE_PLAINTEXT);
+
+			printf("Reading HandshakeMessage ...\n");
+			read_handshake_message(&record_message, &handshake_message);
+
+			printf("Reading HandshakeMessage content...\n");
+			printf("handshake_message.type: %i\n", handshake_message.type);
+			if (handshake_message.type == HANDSHAKE_TYPE_SERVER_HELLO)
+			{
+				read_server_hello(&handshake_message, &server_hello_message);
+				printf("Parsed ServerHello:\n");
+				print_server_hello(server_hello_message);
+			}
+			else if(handshake_message.type == HANDSHAKE_TYPE_CERTIFICATE)
+			{
+				printf("Parsed Certificate Message:\n");
+				read_certificate(&handshake_message, &certificate_message);
+			}
+			else if(handshake_message.type == HANDSHAKE_TYPE_SERVER_HELLO_DONE)
+			{
+				printf("Parsed ServerHelloDone:\n");
+				if (handshake_message.length != 0)
+				{
+					// ERROR
+				}
+				printf("sending ClientKeyExchange ...\n");
+
+				flea_u8_t client_key_ex_bytes[48];
+				ClientKeyExchange client_key_ex = create_client_key_exchange();
+				client_key_exchange_to_bytes(&client_key_ex, client_key_ex_bytes);
+				Record client_key_ex_record;
+				HandshakeMessage client_key_ex_handshake;
+
+				create_handshake(&client_key_ex_handshake, client_key_ex_bytes, 48, HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE);
+				flea_u8_t client_key_ex_handshake_bytes[16384];
+				flea_u16_t client_key_ex_handshake_length;
+				handshake_to_bytes(client_key_ex_handshake, client_key_ex_handshake_bytes, &client_key_ex_handshake_length);
+
+				create_record(&client_key_ex_record, client_key_ex_handshake_bytes, client_key_ex_handshake.length, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_PLAINTEXT);
+				flea_u8_t client_key_ex_record_bytes[16384];
+				flea_u16_t client_key_ex_record_length;
+				record_to_bytes(client_key_ex_record, client_key_ex_record_bytes, &client_key_ex_record_length);
+
+					if (send(socket_fd, client_key_ex_record_bytes, client_key_ex_record_length, 0) < 0)
+					printf("send failed\n");
+
+				printf("sending ChangeCipherSpec ...\n");
+				Record change_cipher_spec_record;
+
+				flea_u8_t change_cipher_spec_bytes[1] = {1};
+				create_record(&change_cipher_spec_record, change_cipher_spec_bytes, 1, CONTENT_TYPE_CHANGE_CIPHER_SPEC, RECORD_TYPE_PLAINTEXT);
+
+				flea_u8_t change_cipher_spec_record_bytes[16384];
+				flea_u16_t change_cipher_spec_record_length;
+				record_to_bytes(change_cipher_spec_record, change_cipher_spec_record_bytes, &change_cipher_spec_record_length);
+
+				if (send(socket_fd, change_cipher_spec_record_bytes, change_cipher_spec_record_length, 0) < 0)
+					printf("send failed\n");
+
+			}
+			else
+			{
+				printf("Message not recognized\n");
+				exit(-1);
+			}
+			reply_index += first_record_size;
+
+		}
+	}
 }
 
 
@@ -609,8 +785,12 @@ int flea_tls_connection()
 
     if (connect(socket_fd , (struct sockaddr *)&addr , sizeof(addr)) < 0)
     {
-        printf("connect error\n");
-        return 1;
+		addr.sin_port = htons(4445);
+		if (connect(socket_fd , (struct sockaddr *)&addr , sizeof(addr)) < 0)
+		{
+        	printf("connect error\n");
+        	return 1;
+		}
     }
 
 	flea_tls_handshake(socket_fd);
