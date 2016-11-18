@@ -72,17 +72,28 @@ memset(result__pu8 + insert_offs, 0, diff);
 
 // TODO: call this function first with key's encoded params, then with the
 // inherited params
-static flea_err_t THR_flea_public_key_t__create_ecdsa_key(flea_ec_pubkey_val_t *ecc_key__pt, const flea_ref_cu8_t *key_as_bit_string_contents__prcu8, const flea_ref_cu8_t *encoded_params__prcu8)
+static flea_err_t THR_flea_public_key_t__create_ecdsa_key(flea_ec_pubkey_val_t *ecc_key__pt, const flea_ref_cu8_t *key_as_bit_string_contents__prcu8, const flea_ref_cu8_t *encoded_params__prcu8, const flea_ref_cu8_t *inherited_params_mbn__cprcu8, flea_bool_t *are_keys_params_implicit)
 {
   FLEA_THR_BEG_FUNC();
   flea_al_u8_t i; 
   flea_ec_gfp_dom_par_ref_t ref__t;
   //flea_ref_cu8_t enc_point_ref;
   flea_al_u16_t max_dp_concat_len;
+  flea_err_t parse_err;
   flea_u8_t * write_pos__pu8;
   flea_ref_cu8_t *src__arcu8[7] = {&ref__t.p__ru8, &ref__t.a__ru8, &ref__t.b__ru8, &ref__t.gx__ru8, &ref__t.gy__ru8, &ref__t.n__ru8, &ref__t.h__ru8};
   flea_ref_cu8_t *trgt__arcu8[7] = {&ecc_key__pt->dp__t.p__ru8, &ecc_key__pt->dp__t.a__ru8, &ecc_key__pt->dp__t.b__ru8, &ecc_key__pt->dp__t.gx__ru8, &ecc_key__pt->dp__t.gy__ru8, &ecc_key__pt->dp__t.n__ru8, &ecc_key__pt->dp__t.h__ru8};
-  FLEA_CCALL(THR_flea_x509_parse_ecc_public_params(encoded_params__prcu8, &ref__t));
+  parse_err = THR_flea_x509_parse_ecc_public_params(encoded_params__prcu8, &ref__t);
+  *are_keys_params_implicit = FLEA_FALSE;
+  if((parse_err == FLEA_ERR_X509_IMPLICT_ECC_KEY_PARAMS) && inherited_params_mbn__cprcu8)
+  {
+    *are_keys_params_implicit = FLEA_TRUE;
+    FLEA_CCALL(THR_flea_x509_parse_ecc_public_params(inherited_params_mbn__cprcu8, &ref__t));
+  }
+  else if(parse_err != FLEA_ERR_FINE)
+  {
+    FLEA_THROW("rethrowing ecc parse error", parse_err);
+  }
 #ifdef FLEA_USE_STACK_BUF
  max_dp_concat_len = sizeof(ecc_key__pt->dp_mem__bu8);
 #else
@@ -258,6 +269,12 @@ static flea_err_t THR_flea_public_key_t__create_rsa_key(flea_rsa_pubkey_val_t *k
  */
 flea_err_t THR_flea_public_key_t__ctor(flea_public_key_t* key__pt, flea_pk_key_type_t key_type, const flea_ref_cu8_t *key_as_bit_string_tlv__prcu8, const flea_ref_cu8_t *encoded_params__prcu8)
 {
+flea_bool_t dummy;
+return THR_flea_public_key_t__ctor_inherited_params(key__pt, key_type, key_as_bit_string_tlv__prcu8, encoded_params__prcu8, NULL, &dummy);
+}
+
+flea_err_t THR_flea_public_key_t__ctor_inherited_params(flea_public_key_t* key__pt, flea_pk_key_type_t key_type, const flea_ref_cu8_t *key_as_bit_string_tlv__prcu8, const flea_ref_cu8_t *encoded_params__prcu8, const flea_ref_cu8_t *inherited_params_mbn__cprcu8, flea_bool_t *are_keys_params_implicit__pb)
+{
 
   FLEA_DECL_OBJ(key_dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(source__t, flea_data_source_t);
@@ -277,7 +294,8 @@ flea_err_t THR_flea_public_key_t__ctor(flea_public_key_t* key__pt, flea_pk_key_t
 #ifdef FLEA_HAVE_ECC
   if(key_type == flea_ecc_key)
   {
-    FLEA_CCALL(THR_flea_public_key_t__create_ecdsa_key(&key__pt->pubkey_with_params__u.ec_public_val__t, &public_key_value__t, encoded_params__prcu8));
+    FLEA_CCALL(THR_flea_public_key_t__create_ecdsa_key(&key__pt->pubkey_with_params__u.ec_public_val__t, &public_key_value__t, encoded_params__prcu8, inherited_params_mbn__cprcu8, are_keys_params_implicit__pb));
+
     key__pt->key_bit_size__u16 = flea__get_BE_int_bit_len(key__pt->pubkey_with_params__u.ec_public_val__t.dp__t.n__ru8.data__pcu8, key__pt->pubkey_with_params__u.ec_public_val__t.dp__t.n__ru8.len__dtl);
   }
   else 
@@ -363,6 +381,17 @@ flea_err_t THR_flea_public_key_t__verify_signature(const flea_public_key_t *key_
     );
       );
 }
+
+/*flea_err_t THR_flea_public_key_t__set_params(flea_public_key_t *key__pt, flea_ref_cu8_t encoded_params__prcu8)
+{
+  FLEA_THR_BEG_FUNC();
+  if(key__pt->key_type__t == flea_ecc_key)
+  {
+  FLEA_CCALL(THR_flea_x509_parse_ecc_public_params(encoded_params__prcu8, &key__pt->pubkey_with_params__u.ec_public_val__t.));
+  }
+  FLEA_THR_FIN_SEC_empty();
+
+}*/
 
 void flea_public_key_t__dtor(flea_public_key_t *key__pt)
 {

@@ -58,6 +58,10 @@ FLEA_CCALL(THR_flea_x509_verify_cert_ref_signature(&subj_ref__t, &iss_ref__t));
 }
 
 flea_err_t THR_flea_x509_verify_cert_ref_signature(const flea_x509_cert_ref_t *subject_cert_ref__pt, const flea_x509_cert_ref_t *issuer_cert_ref__t)
+{
+ return THR_flea_x509_verify_cert_ref_signature_inherited_params(subject_cert_ref__pt, issuer_cert_ref__t, NULL, NULL);
+}
+flea_err_t THR_flea_x509_verify_cert_ref_signature_inherited_params(const flea_x509_cert_ref_t *subject_cert_ref__pt, const flea_x509_cert_ref_t *issuer_cert_ref__t, flea_ref_cu8_t *returned_verifiers_pub_key_params_mbn__prcu8,  const flea_ref_cu8_t *inherited_params_mbn__cprcu8  )
 { 
   flea_der_ref_t sig_content__t;
  FLEA_THR_BEG_FUNC();
@@ -68,7 +72,9 @@ FLEA_CCALL( THR_flea_x509_verify_signature( // TODO: NEED TO RECOGNIZE SIGN OF M
       &subject_cert_ref__pt->tbs_sig_algid__t, 
       &issuer_cert_ref__t->subject_public_key_info__t,
       &subject_cert_ref__pt->tbs_ref__t,
-      &sig_content__t 
+      &sig_content__t,
+      returned_verifiers_pub_key_params_mbn__prcu8,
+      inherited_params_mbn__cprcu8
       ));
        
  FLEA_THR_FIN_SEC_empty(); 
@@ -181,7 +187,7 @@ static flea_err_t THR_flea_x509_verify_ecdsa_signature(const flea_der_ref_t *oid
 #endif /* #ifdef FLEA_HAVE_ECC */
 
 
-flea_err_t THR_flea_x509_verify_signature(const flea_x509_algid_ref_t *alg_id__pt, const flea_x509_public_key_info_t *public_key_info__pt, const flea_der_ref_t* tbs_data__pt, const flea_der_ref_t *signature__pt  )
+flea_err_t THR_flea_x509_verify_signature(const flea_x509_algid_ref_t *alg_id__pt, const flea_x509_public_key_info_t *public_key_info__pt, const flea_der_ref_t* tbs_data__pt, const flea_der_ref_t *signature__pt, flea_ref_cu8_t *returned_verifiers_pub_key_params_mbn__prcu8,  const flea_ref_cu8_t *inherited_params_mbn__cprcu8  )
 {
   const flea_der_ref_t *oid_ref__pt = &alg_id__pt->oid_ref__t;
   /*FLEA_DECL_OBJ(key_dec__t, flea_ber_dec_t);
@@ -205,6 +211,11 @@ flea_public_key_t ver_key__t = flea_publick_key_t__INIT_VALUE;
 
   //FLEA_CCALL(THR_flea_public_key_t__ctor(&ver_key__t, flea_ecc, &public_key_info__pt->public_key_as_tlv__t, &public_key_info__pt->algid__t.params_ref_as_tlv__t));
     // TODO: IFDEF RSA
+  
+    if(returned_verifiers_pub_key_params_mbn__prcu8)
+    {
+      *returned_verifiers_pub_key_params_mbn__prcu8 = alg_id__pt->params_ref_as_tlv__t;
+    }
   if(((oid_ref__pt->len__dtl == sizeof(pkcs1_oid_prefix__cau8) + 1)) && !memcmp(oid_ref__pt->data__pcu8, pkcs1_oid_prefix__cau8, sizeof(pkcs1_oid_prefix__cau8)))
   {
     //flea_pub_key_param_u pk_par__u;
@@ -236,7 +247,14 @@ flea_public_key_t ver_key__t = flea_publick_key_t__INIT_VALUE;
 #ifdef FLEA_HAVE_ECC
   else if(oid_ref__pt->len__dtl == sizeof(ecdsa_oid_prefix__acu8) + 2 && !memcmp(oid_ref__pt->data__pcu8, ecdsa_oid_prefix__acu8, sizeof(ecdsa_oid_prefix__acu8)))
   {
-    FLEA_CCALL(THR_flea_public_key_t__ctor(&ver_key__t, flea_ecc_key, &public_key_info__pt->public_key_as_tlv__t, &public_key_info__pt->algid__t.params_ref_as_tlv__t));
+flea_bool_t are_keys_params_implicit__b;
+    //const flea_ref_cu8_t *params_to_use__prcu8 = (inherited_params_mbn__cprcu8 != NULL) ? inherited_params_mbn__cprcu8 : &public_key_info__pt->algid__t.params_ref_as_tlv__t;
+    FLEA_CCALL(THR_flea_public_key_t__ctor_inherited_params(&ver_key__t, flea_ecc_key, &public_key_info__pt->public_key_as_tlv__t, &public_key_info__pt->algid__t.params_ref_as_tlv__t, inherited_params_mbn__cprcu8, &are_keys_params_implicit__b));
+    if(are_keys_params_implicit__b && returned_verifiers_pub_key_params_mbn__prcu8)
+    {
+      returned_verifiers_pub_key_params_mbn__prcu8->data__pcu8 = NULL;
+      returned_verifiers_pub_key_params_mbn__prcu8->len__dtl = 0;
+    }
     FLEA_CCALL(THR_flea_x509_verify_ecdsa_signature(oid_ref__pt, &ver_key__t, /*public_key_info__pt, &public_key_value__t,*/ signature__pt, tbs_data__pt ));
   }
 #endif /* #ifdef FLEA_HAVE_ECC */

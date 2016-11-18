@@ -117,6 +117,7 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
   flea_s32_t i;
   flea_al_u16_t chain_len__alu16 =  cert_chain__pt->chain_pos__u16 + 1;
   flea_al_u16_t m_path__u16 = chain_len__alu16;
+  flea_ref_cu8_t inherited_params__rcu8;
   FLEA_THR_BEG_FUNC();
   if(chain_len__alu16 == 0)
   {
@@ -199,12 +200,21 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
   }
   // verify signature from target to TA
   // TODO: INVERT ORDER AND IMPLEMENT PARAMETER INHERITANCE
-  for(i = 0; i < (flea_s32_t)(chain_len__alu16 - 1); i++)
+  inherited_params__rcu8.data__pcu8 = NULL;
+  inherited_params__rcu8.len__dtl = 0;
+  for(i = (flea_s32_t)(chain_len__alu16 - 2); i > 0; i--)
+  //for(i = 0; i < (flea_s32_t)(chain_len__alu16 - 1); i++)
   {
-    if(i != (flea_s32_t)(chain_len__alu16 -  1))
+    flea_ref_cu8_t returned_params__rcu8;
+    //if(i != (flea_s32_t)(chain_len__alu16 -  1))
     {
+      flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
       // verify against subsequent certificate
-      FLEA_CCALL(THR_flea_x509_verify_cert_ref_signature(&cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i]], &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i+1]]));
+      FLEA_CCALL(THR_flea_x509_verify_cert_ref_signature_inherited_params(&cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i]], &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i+1]], &returned_params__rcu8, inherited_params_to_use__prcu8));
+      if(returned_params__rcu8.len__dtl)
+      {
+        inherited_params__rcu8 = returned_params__rcu8;
+      }
       //printf("validated signature OK\n");
     }
   }
