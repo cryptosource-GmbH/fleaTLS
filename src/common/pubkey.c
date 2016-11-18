@@ -240,7 +240,7 @@ flea_err_t THR_flea_public_key_t__ctor(flea_public_key_t* key__pt, flea_pk_key_t
 void flea_public_key_t__dtor(flea_public_key_t *key__pt)
 {
 #ifdef FLEA_USE_HEAP_BUF
-  if(key
-  FLEA_FREE_MEM_CHK_SET_NULL(key_pt->
+  /*if(key
+  FLEA_FREE_MEM_CHK_SET_NULL(key_pt->*/
 #endif 
 }
