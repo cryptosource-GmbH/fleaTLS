@@ -6,6 +6,7 @@
 #include "internal/common/default.h"
 #include "flea/types.h"
 #include "flea/hash.h"
+#include "flea/x509.h"
 //#include "internal/common/pk_api_int.h"
 #include "flea/ec_gfp_dom_par.h"
 
@@ -91,6 +92,7 @@ typedef struct
   flea_pk_key_type_t key_type__t;
   flea_u16_t key_bit_size__u16;
   flea_public_key_val_with_params_u pubkey_with_params__u;
+  //flea_hash_id_t hash_id__t; 
 
 } flea_public_key_t;
 
@@ -104,6 +106,7 @@ flea_err_t THR_flea_x509_parse_rsa_public_key(const flea_ref_cu8_t *public_key_v
 
 flea_err_t THR_flea_public_key_t__ctor(flea_public_key_t* key__pt, flea_pk_key_type_t key_type, const flea_ref_cu8_t *key_as_bit_string_tlv__prcu8, const flea_ref_cu8_t *encoded_params__prcu8);
 
+flea_err_t THR_flea_public_key_t__ctor_cert_inherited_params(flea_public_key_t* key__pt, const flea_x509_cert_ref_t *cert_ref__pt, const flea_ref_cu8_t *inherited_params_mbn__cprcu8, flea_bool_t *are_keys_params_implicit__pb);
 flea_err_t THR_flea_public_key_t__ctor_inherited_params(flea_public_key_t* key__pt, flea_pk_key_type_t key_type, const flea_ref_cu8_t *key_as_bit_string_tlv__prcu8, const flea_ref_cu8_t *encoded_params__prcu8, const flea_ref_cu8_t *inherited_params_mbn__cprcu8, flea_bool_t *are_keys_params_implicit__pb);
 
 flea_err_t THR_flea_public_key_t__verify_signature(const flea_public_key_t *key__pt, flea_pk_scheme_id_t pk_scheme_id__t, const flea_ref_cu8_t *message__prcu8, const flea_ref_cu8_t * signature__prcu8,  flea_hash_id_t hash_id__t );
