@@ -98,7 +98,7 @@ int flea_memcmp_wsize(const void* mem1__pv, flea_dtl_t len_mem1__dtl, const void
 
 int flea_rcu8_cmp(const flea_ref_cu8_t *a, const flea_ref_cu8_t *b);
 
-void flea_copy_rcu8_use_mem(flea_ref_cu8_t *trgt__prcu8, flea_u8_t* trgt_mem, flea_ref_cu8_t *src__prcu8);
+void flea_copy_rcu8_use_mem(flea_ref_cu8_t *trgt__prcu8, flea_u8_t* trgt_mem, const flea_ref_cu8_t *src__prcu8);
 
 #ifdef __cplusplus
 }

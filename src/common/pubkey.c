@@ -9,6 +9,7 @@
 #include "flea/x509.h"
 #include "flea/ec_key.h"
 #include "flea/util.h"
+#include "flea/bin_utils.h"
 #include "flea/pk_api.h"
 #include "flea/ecc_named_curves.h"
 
@@ -115,10 +116,12 @@ static flea_err_t THR_flea_public_key_t__create_ecdsa_key(flea_ec_pubkey_val_t *
 #ifdef FLEA_USE_HEAP_BUF
  FLEA_ALLOC_MEM_ARR(ecc_key__pt->pub_point__mem__bu8, key_as_bit_string_contents__prcu8->len__dtl);
 #endif
+ 
  // MAKE FUNCTION TO COPY AND SET REF TOGETHER
- memcpy(ecc_key__pt->pub_point__mem__bu8, key_as_bit_string_contents__prcu8->data__pcu8, key_as_bit_string_contents__prcu8->len__dtl);
+ /*memcpy(ecc_key__pt->pub_point__mem__bu8, key_as_bit_string_contents__prcu8->data__pcu8, key_as_bit_string_contents__prcu8->len__dtl);
  ecc_key__pt->public_point_encoded__rcu8.data__pcu8 = ecc_key__pt->pub_point__mem__bu8;
- ecc_key__pt->public_point_encoded__rcu8.len__dtl = key_as_bit_string_contents__prcu8->len__dtl;
+ ecc_key__pt->public_point_encoded__rcu8.len__dtl = key_as_bit_string_contents__prcu8->len__dtl;*/
+ flea_copy_rcu8_use_mem(&ecc_key__pt->public_point_encoded__rcu8, ecc_key__pt->pub_point__mem__bu8, key_as_bit_string_contents__prcu8);
  FLEA_THR_FIN_SEC_empty(); 
 }
 #endif
@@ -273,6 +276,7 @@ flea_err_t THR_flea_public_key_t__ctor(flea_public_key_t* key__pt, flea_pk_key_t
   if(key_type == flea_ecc_key)
   {
     FLEA_CCALL(THR_flea_public_key_t__create_ecdsa_key(&key__pt->pubkey_with_params__u.ec_public_val__t, &public_key_value__t, encoded_params__prcu8));
+    key__pt->key_bit_size__u16 = flea__get_BE_int_bit_len(key__pt->pubkey_with_params__u.ec_public_val__t.dp__t.n__ru8.data__pcu8, key__pt->pubkey_with_params__u.ec_public_val__t.dp__t.n__ru8.len__dtl);
   }
   else 
 #endif
@@ -280,6 +284,7 @@ flea_err_t THR_flea_public_key_t__ctor(flea_public_key_t* key__pt, flea_pk_key_t
     if(key_type == flea_rsa_key)
     {
       FLEA_CCALL(THR_flea_public_key_t__create_rsa_key(&key__pt->pubkey_with_params__u.rsa_public_val__t, &public_key_value__t));
+      key__pt->key_bit_size__u16 = flea__get_BE_int_bit_len(key__pt->pubkey_with_params__u.rsa_public_val__t.mod__rcu8.data__pcu8, key__pt->pubkey_with_params__u.rsa_public_val__t.mod__rcu8.len__dtl);
     }
     else
 #endif
@@ -361,7 +366,7 @@ void flea_public_key_t__dtor(flea_public_key_t *key__pt)
     else
     {
       mem_to_free_1 = &key__pt->pubkey_with_params__u.rsa_public_val__t.mod_mem__bu8;
-      mem_to_free_1 = &key__pt->pubkey_with_params__u.rsa_public_val__t.exp_mem__bu8;
+      mem_to_free_2 = &key__pt->pubkey_with_params__u.rsa_public_val__t.exp_mem__bu8;
     }
     FLEA_FREE_MEM_CHK_SET_NULL(*mem_to_free_1);
     FLEA_FREE_MEM_CHK_SET_NULL(*mem_to_free_2);

@@ -19,7 +19,7 @@ int flea_rcu8_cmp(const flea_ref_cu8_t *a, const flea_ref_cu8_t *b)
  return flea_memcmp_wsize(a->data__pcu8, a->len__dtl, b->data__pcu8, b->len__dtl);
 }
 
-void flea_copy_rcu8_use_mem(flea_ref_cu8_t *trgt__prcu8, flea_u8_t* trgt_mem, flea_ref_cu8_t *src__prcu8)
+void flea_copy_rcu8_use_mem(flea_ref_cu8_t *trgt__prcu8, flea_u8_t* trgt_mem, const flea_ref_cu8_t *src__prcu8)
 {
   memcpy(trgt_mem, src__prcu8->data__pcu8, src__prcu8->len__dtl);
   trgt__prcu8->data__pcu8 = trgt_mem;
@@ -38,3 +38,10 @@ int flea_memcmp_wsize(const void* mem1__pv, flea_dtl_t len_mem1__dtl, const void
   }
   return memcmp(mem1__pv, mem2__pv, len_mem1__dtl);
 }
+
+/*flea_dtl_t flea_determine_be_bit_size(const flea_u8_t *a__pcu8, flea_dtl_t a_len__dtl)
+{
+  flea_al_u8_t bits;
+  while(*(a__pcu8++) == 0 && a_len__dtl--);
+   
+}*/

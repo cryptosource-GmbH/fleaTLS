@@ -187,11 +187,11 @@ flea_err_t THR_flea_x509_verify_signature(const flea_x509_algid_ref_t *alg_id__p
   /*FLEA_DECL_OBJ(key_dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(source__t, flea_data_source_t);*/
   //flea_data_source_mem_help_t hlp__t;
-flea_public_key_t ver_key__t;
+flea_public_key_t ver_key__t = flea_publick_key_t__INIT_VALUE;
   //flea_der_ref_t public_key_value__t; /* actual representation of the public key */
   //flea_der_ref_t public_key_as_bitstr__t;
   // TODO: MAKE SIMPLE VERIFY FUNCTION:
-  FLEA_DECL_OBJ(verifier__t, flea_pk_signer_t);
+  //FLEA_DECL_OBJ(verifier__t, flea_pk_signer_t);
   FLEA_THR_BEG_FUNC();
 #if 0
   FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, public_key_info__pt->public_key_as_tlv__t.data__pcu8, public_key_info__pt->public_key_as_tlv__t.len__dtl, &hlp__t));
@@ -246,7 +246,8 @@ flea_public_key_t ver_key__t;
   }
 
   FLEA_THR_FIN_SEC(
-      flea_pk_signer_t__dtor(&verifier__t);
+      //flea_pk_signer_t__dtor(&verifier__t);
+      flea_public_key_t__dtor(&ver_key__t);
 /*      flea_data_source_t__dtor(&source__t); 
       flea_ber_dec_t__dtor(&key_dec__t);*/
       ); 

@@ -26,7 +26,7 @@ SET(CMAKE_CXX_FLAGS "-std=c++11 -pedantic")
 ADD_DEFINITIONS( 
   #        -finline-functions -O3  -fomit-frame-pointer  -momit-leaf-frame-pointer 
       -fstrict-aliasing
-     -W -Wall  -Wno-long-long
+      -W -Wall -Wextra -Wno-long-long
      -Wno-sign-compare -Wno-unused-parameter -Wno-unused-label -Wno-cast-qual
      -Wno-char-subscripts 
      -Wunused-function   -Wunused-value -Wunused-variable
