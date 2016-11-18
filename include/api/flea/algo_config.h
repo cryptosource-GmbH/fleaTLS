@@ -22,6 +22,7 @@
 #define FLEA_MAX_HASH_OUT_LEN __FLEA_COMPUTED_MAX_HASH_OUT_LEN
 
 /**
+ *TODO: this only refers to the internal format
  * Maximal size of an encoded public key.
  */
 #define FLEA_PK_MAX_PUBKEY_LEN __FLEA_COMPUTED_MAX_PUBKEY_LEN

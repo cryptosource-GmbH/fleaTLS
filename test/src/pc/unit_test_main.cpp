@@ -18,10 +18,17 @@ int main (int argc, const char** argv)
   flea_u32_t rnd = 0;
   const char* cert_path_prefix = NULL;
   std::string cert_path_prefix_str;
+  const char* func_prefix = NULL;
+  std::string func_prefix_str;
   if(cmdl_args.have_index("cert_path_prefix"))
   {
     cert_path_prefix_str = cmdl_args.get_property_as_string("cert_path_prefix");
     cert_path_prefix = cert_path_prefix_str.c_str();
+  }
+  if(cmdl_args.have_index("func_prefix"))
+  {
+    func_prefix_str = cmdl_args.get_property_as_string("func_prefix");
+    func_prefix = func_prefix_str.c_str();
   }
   if(cmdl_args.have_index("random"))
     {
@@ -45,5 +52,5 @@ std::cerr << "DEBUG EXIT" << std::endl;
     //=======
   
 
- return flea_unit_tests(rnd, reps, cert_path_prefix);
+ return flea_unit_tests(rnd, reps, cert_path_prefix, func_prefix);
 }

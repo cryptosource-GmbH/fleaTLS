@@ -26,6 +26,7 @@ typedef enum
   FLEA_ERR_POINT_NOT_ON_CURVE                         = 0x000A,
   FLEA_ERR_INV_ECC_DP                                 = 0x000B,
   FLEA_ERR_INV_KEY_SIZE                               = 0x000C,
+  FLEA_ERR_UNSUPP_KEY_SIZE                            = 0x000D,
   FLEA_ERR_ZERO_POINT_AFF_TRF                         = 0x0020,
 
   /** 
@@ -79,12 +80,13 @@ typedef enum
    */
   FLEA_ERR_X509_INV_ECC_KEY_PARAMS                    = 0x00CF,
   FLEA_ERR_X509_INV_ECC_FIELD_TYPE                    = 0x00D0,
+  FLEA_ERR_X509_IMPLICT_ECC_KEY_PARAMS                = 0x00D1,
 
   /**
    * Error with the ECC point format, e.g. invalid length or unknown/unsupported
    * encoding.
    */
-  FLEA_ERR_X509_INV_ECC_POINT_ENCODING                = 0x00D1,
+  FLEA_ERR_X509_INV_ECC_POINT_ENCODING                = 0x00D2,
 
 	FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS									= 0x00E0,
 	FLEA_ERR_CERT_PATH_NOT_FOUND 												= 0x00E1,

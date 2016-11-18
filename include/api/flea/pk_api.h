@@ -51,7 +51,7 @@ typedef enum { flea_rsa_key, flea_ecc_key } flea_pub_key_type_t;
 // AND make setter for RSA at least
 typedef union
 {
- flea_ref_u8_t rsa_public_exp__ru8;
+ flea_ref_cu8_t rsa_public_exp__ru8;
 
 #ifdef FLEA_HAVE_ECC
  flea_ec_gfp_dom_par_ref_t ecc_dom_par__t;

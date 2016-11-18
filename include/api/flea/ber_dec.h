@@ -57,7 +57,7 @@ extern "C" {
 } flea_der_ref_t; // TODO: rename to memory ref
 */
 
-  typedef flea_ref_u8_t flea_der_ref_t ; 
+  typedef flea_ref_cu8_t flea_der_ref_t ; 
 #define FLEA_DER_REF_SET_ABSENT(__p) (__p)->data__pcu8 = NULL; (__p)->len__dtl = 0
 #define FLEA_DER_REF_IS_ABSENT(__p) ((__p)->data__pcu8 ==  0) 
 

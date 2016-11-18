@@ -298,7 +298,7 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain( flea_cert_chain_t *
 
         if((*chain_pos__pu16) == 0)
         {
-          // directly trusted cert no valid
+          // directly trusted cert not valid
           FLEA_THROW("no valid certificate path found", FLEA_ERR_CERT_PATH_NOT_FOUND); 
         }
         (*chain_pos__pu16)--; // look for next candidate above me
@@ -311,7 +311,7 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain( flea_cert_chain_t *
       } 
       // no trusted cert yet found. can only enlarge the chain if it has
       // capacitiy left.
-    else if(*chain_pos__pu16 + 1 < FLEA_MAX_CERT_CHAIN_DEPTH ) // else is new
+    else if(*chain_pos__pu16 + 1 < FLEA_MAX_CERT_CHAIN_DEPTH ) 
     {
       flea_al_u16_t start_offs = chain__bu16[(*chain_pos__pu16) + 1];
     //printf("looking for issuer starting from position %u within collection\n", start_offs); 
