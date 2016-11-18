@@ -12,6 +12,8 @@
 #include <string.h>
 
 #ifdef FLEA_HAVE_ASYM_SIG
+
+#ifdef FLEA_HAVE_RSA
 flea_err_t THR_flea_test_cert_verify_rsa()
 {
 
@@ -22,8 +24,9 @@ flea_err_t THR_flea_test_cert_verify_rsa()
   FLEA_THR_FIN_SEC_empty();
    
 }
+#endif
 
-
+#ifdef FLEA_HAVE_ECDSA
 flea_err_t THR_flea_test_cert_verify_ecdsa()
 {
   FLEA_THR_BEG_FUNC();
@@ -33,6 +36,7 @@ flea_err_t THR_flea_test_cert_verify_ecdsa()
   FLEA_THR_FIN_SEC_empty();
    
 }
+#endif
 
 
 #endif /* #ifdef FLEA_HAVE_ASYM_SIG */

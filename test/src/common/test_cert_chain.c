@@ -12,7 +12,7 @@
 
 #include <string.h>
 
-#ifdef FLEA_HAVE_ASYM_SIG
+#ifdef FLEA_HAVE_RSA
 flea_err_t THR_flea_test_cert_chain_correct_chain_of_two()
 {
   FLEA_DECL_OBJ(cert_chain__t, flea_cert_chain_t);
@@ -29,7 +29,7 @@ FLEA_CCALL(THR_flea_cert_chain_t__ctor(&cert_chain__t, &subject));
 FLEA_CCALL(THR_flea_cert_chain_t__add_trust_anchor_cert(&cert_chain__t, &issuer));
 FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) -1, &time__t));
  err = THR_flea_cert_chain__build_and_verify_cert_chain(&cert_chain__t, &time__t);
-#if defined FLEA_HAVE_RSA && (defined FLEA_USE_HEAP_BUF || FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
+#if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
  if(err)
  {
   FLEA_THROW("error when verifying RSA signed cert chain", err);
@@ -46,4 +46,4 @@ FLEA_THR_FIN_SEC(
 
 }
 
-#endif /*  #ifdef FLEA_HAVE_ASYM_SIG */
+#endif /*  #ifdef FLEA_HAVE_RSA*/

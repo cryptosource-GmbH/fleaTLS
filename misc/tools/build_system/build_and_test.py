@@ -187,7 +187,7 @@ def call_make():
   
 
 def call_test():
-  p = subprocess.Popen('valgrind --error-exitcode=10 ./build/unit_test random 1', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=make_cwd_str)
+  p = subprocess.Popen('valgrind --error-exitcode=10 ./build/unit_test --random', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=make_cwd_str)
   #print("Test OUTPUT:")
   test_output = []
   for line in p.stdout.readlines():

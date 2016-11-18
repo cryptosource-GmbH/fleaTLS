@@ -144,10 +144,12 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
       CALL_TEST(THR_flea_test_dec_tls_server_cert_broken());
       CALL_TEST(THR_flea_test_dec_tls_server_issuer_cert());
 
-#ifdef FLEA_HAVE_ASYM_SIG
+#ifdef FLEA_HAVE_RSA
       CALL_TEST(THR_flea_test_cert_verify_rsa()); 
-      CALL_TEST(THR_flea_test_cert_verify_ecdsa());
       CALL_TEST(THR_flea_test_cert_chain_correct_chain_of_two());
+#endif
+#ifdef FLEA_HAVE_ECDSA
+      CALL_TEST(THR_flea_test_cert_verify_ecdsa());
 #endif
 
       CALL_TEST(THR_flea_test_asn1_date());
@@ -159,7 +161,7 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
     }
     // TODO: REMOVE THIS ONCE ALL REQUIREMENTS ARE REFLECTED BY THE TEST CASE'S
     // INI FILE
-#if defined FLEA_HAVE_RSA && (defined FLEA_USE_HEAP_BUF || FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
+#if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
     CALL_TEST(THR_flea_test_path_validation_file_based(cert_path_prefix));
 #endif
     if(i == 0)

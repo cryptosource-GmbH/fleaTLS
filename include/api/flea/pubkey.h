@@ -51,7 +51,7 @@ typedef struct
   flea_ref_cu8_t public_point_encoded__rcu8; 
   flea_ec_gfp_dom_par_ref_t dp__t;
 #ifdef FLEA_USE_STACK_BUF
-  flea_u8_t dp__mem__bu8[FLEA_ECC_MAX_DP_CONCAT_BYTE_SIZE];
+  flea_u8_t dp_mem__bu8[FLEA_ECC_MAX_DP_CONCAT_BYTE_SIZE];
   flea_u8_t pub_point__mem__bu8[FLEA_ECC_MAX_PUBKEY_LEN];
 #else
   flea_u8_t *dp_mem__bu8;
@@ -65,10 +65,9 @@ typedef struct
 {
   flea_ref_cu8_t mod__rcu8;
   flea_ref_cu8_t pub_exp__rcu8;
-  flea_ec_gfp_dom_par_ref_t dp__t;
 #ifdef FLEA_USE_STACK_BUF
-  flea_u8_t mod__mem__bu8[FLEA_RSA_MAX_MOD_BYTE_LEN];
-  flea_u8_t exp__mem__bu8[FLEA_RSA_MAX_PUB_EXP_BYTE_LEN];
+  flea_u8_t mod_mem__bu8[FLEA_RSA_MAX_MOD_BYTE_LEN];
+  flea_u8_t exp_mem__bu8[FLEA_RSA_MAX_PUB_EXP_BYTE_LEN];
 #else
   flea_u8_t *mod_mem__bu8;
   flea_u8_t *exp_mem__bu8;

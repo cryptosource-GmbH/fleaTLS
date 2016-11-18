@@ -199,7 +199,7 @@ flea_err_t THR_flea_test_pk_signer_sign_verify ()
   flea_err_t err_code = THR_flea_test_pk_signer_sign_verify_inner(flea_rsa_pkcs1_v1_5_sign, flea_sha256, NULL);
   if(err_code != FLEA_ERR_INV_KEY_SIZE && err_code != FLEA_ERR_BUFF_TOO_SMALL )
   {
-    printf("error code = %02x\n", err_code);
+    //printf("error code = %02x\n", err_code);
     FLEA_THROW("wrong return value for invalid key size", FLEA_ERR_FAILED_TEST);
   }
 #   else

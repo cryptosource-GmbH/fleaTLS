@@ -124,7 +124,6 @@ static flea_err_t THR_flea_public_key_t__create_ecdsa_key(flea_ec_pubkey_val_t *
  flea_copy_rcu8_use_mem(&ecc_key__pt->public_point_encoded__rcu8, ecc_key__pt->pub_point__mem__bu8, key_as_bit_string_contents__prcu8);
  FLEA_THR_FIN_SEC_empty(); 
 }
-#endif
 
 flea_err_t THR_flea_x509_parse_ecc_public_params(const flea_ref_cu8_t *encoded_parameters__pt, flea_ec_gfp_dom_par_ref_t *dom_par__pt)
 {
@@ -206,6 +205,8 @@ else
       );
 }
 
+#endif
+
 flea_err_t THR_flea_x509_parse_rsa_public_key(const flea_ref_cu8_t *public_key_value__pt, flea_ref_cu8_t *modulus__pt, flea_der_ref_t *pub_exp__pt)
 {
 
@@ -228,8 +229,8 @@ flea_err_t THR_flea_x509_parse_rsa_public_key(const flea_ref_cu8_t *public_key_v
       flea_ber_dec_t__dtor(&dec__t);
       );
 }
-
-flea_err_t THR_flea_public_key_t__create_rsa_key(flea_rsa_pubkey_val_t *key__pt, flea_ref_cu8_t *key_as_bit_string_contents__prcu8)
+#ifdef FLEA_HAVE_RSA
+static flea_err_t THR_flea_public_key_t__create_rsa_key(flea_rsa_pubkey_val_t *key__pt, flea_ref_cu8_t *key_as_bit_string_contents__prcu8)
 {
   FLEA_THR_BEG_FUNC();
   flea_ref_cu8_t mod__rcu8, exp__rcu8;
@@ -250,6 +251,7 @@ flea_err_t THR_flea_public_key_t__create_rsa_key(flea_rsa_pubkey_val_t *key__pt,
 
   FLEA_THR_FIN_SEC_empty();
 }
+#endif
 /**
  * Expects the public key as a bit string.
  *
@@ -303,14 +305,18 @@ flea_err_t THR_flea_public_key_t__ctor(flea_public_key_t* key__pt, flea_pk_key_t
 // TODO: MAKE WRAPPER WHICH PARSES THE ALGOID TO DERIVE HASH FUCNTION
 flea_err_t THR_flea_public_key_t__verify_signature(const flea_public_key_t *key__pt, flea_pk_scheme_id_t pk_scheme_id__t, const flea_ref_cu8_t *message__prcu8, const flea_ref_cu8_t * signature__prcu8,  flea_hash_id_t hash_id__t )
 {
+#ifdef FLEA_HAVE_ECDSA
   FLEA_DECL_BUF(concat_sig__bu8, flea_u8_t, FLEA_ECDSA_MAX_SIG_LEN);
-  flea_der_ref_t concat_sig_ref__t;
-  flea_al_u16_t concat_sig_len__alu16;
+#endif
   flea_pub_key_param_u pk_par__u;
   FLEA_THR_BEG_FUNC();
+
+#ifdef FLEA_HAVE_ECDSA
   if((key__pt->key_type__t == flea_ecc_key) && (pk_scheme_id__t == flea_ecdsa_emsa1))
   {
     
+  flea_der_ref_t concat_sig_ref__t;
+  flea_al_u16_t concat_sig_len__alu16;
   FLEA_ALLOC_BUF(concat_sig__bu8, signature__prcu8->len__dtl);
   FLEA_CCALL(THR_flea_x509_decode_ecdsa_signature(concat_sig__bu8, &concat_sig_len__alu16, signature__prcu8)); 
   concat_sig_ref__t.data__pcu8 = concat_sig__bu8;
@@ -329,7 +335,10 @@ flea_err_t THR_flea_public_key_t__verify_signature(const flea_public_key_t *key_
         //&ver_key__t.pubkey_with_params__u.ec_public_val__t.dp_mem__bu8
         ));
   }
-  else if((key__pt->key_type__t == flea_rsa_key) && (pk_scheme_id__t == flea_rsa_pkcs1_v1_5_sign))
+  else 
+#endif
+#ifdef FLEA_HAVE_RSA
+    if((key__pt->key_type__t == flea_rsa_key) && (pk_scheme_id__t == flea_rsa_pkcs1_v1_5_sign))
   {
     pk_par__u.rsa_public_exp__ru8 = key__pt->pubkey_with_params__u.rsa_public_val__t.pub_exp__rcu8;
     FLEA_CCALL(THR_flea_pk_api__verify_signature(
@@ -344,11 +353,14 @@ flea_err_t THR_flea_public_key_t__verify_signature(const flea_public_key_t *key_
           ));
   }
   else
+#endif
   {
     FLEA_THROW("unsupported primitive", FLEA_ERR_X509_UNSUPP_PRIMITIVE);
   }
   FLEA_THR_FIN_SEC(
+    FLEA_DO_IF_HAVE_ECDSA(
       FLEA_FREE_BUF_FINAL(concat_sig__bu8);
+    );
       );
 }
 
@@ -358,18 +370,24 @@ void flea_public_key_t__dtor(flea_public_key_t *key__pt)
   if(key__pt->key_bit_size__u16)
   {
     flea_u8_t **mem_to_free_1, **mem_to_free_2;
+#ifdef FLEA_HAVE_ECC
     if(key__pt->key_type__t == flea_ecc_key)
     {
       mem_to_free_1 = &key__pt->pubkey_with_params__u.ec_public_val__t.dp_mem__bu8;
       mem_to_free_2 = &key__pt->pubkey_with_params__u.ec_public_val__t.pub_point__mem__bu8;
     }
     else
+#endif
+#ifdef FLEA_HAVE_RSA
     {
       mem_to_free_1 = &key__pt->pubkey_with_params__u.rsa_public_val__t.mod_mem__bu8;
       mem_to_free_2 = &key__pt->pubkey_with_params__u.rsa_public_val__t.exp_mem__bu8;
     }
+#endif
+#if defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECC
     FLEA_FREE_MEM_CHK_SET_NULL(*mem_to_free_1);
     FLEA_FREE_MEM_CHK_SET_NULL(*mem_to_free_2);
+#endif
   }
 #endif 
 }

@@ -4,6 +4,11 @@
 #ifndef _flea_build_config_util__H_
 #define _flea_build_config_util__H_
 
+#if defined FLEA_HAVE_ECDSA 
+#define FLEA_DO_IF_HAVE_ECDSA(x) x
+#else
+#define FLEA_DO_IF_HAVE_ECDSA(x) 
+#endif
 
 #if defined FLEA_HAVE_ECDSA || defined FLEA_HAVE_ECKA
 #define FLEA_HAVE_ECC

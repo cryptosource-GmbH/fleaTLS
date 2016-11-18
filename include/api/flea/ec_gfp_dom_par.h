@@ -7,7 +7,7 @@
 #include "flea/types.h"
 #include "flea/util.h"
 
-#ifdef FLEA_HAVE_ECC
+//#ifdef FLEA_HAVE_ECC
 
 #ifdef __cplusplus
 extern "C" {
@@ -129,6 +129,6 @@ flea_err_t THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(flea_ec_gfp_dom_par_
 #endif
 
 
-#endif /* #ifdef FLEA_HAVE_ECC */
+//#endif /* #ifdef FLEA_HAVE_ECC */
 
 #endif /* h-guard */
