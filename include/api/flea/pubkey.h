@@ -67,6 +67,9 @@ typedef struct
 
 } flea_public_key_t;
 
+#define flea_publick_key_t__INIT_VALUE {.key_bit_size__u16 = 0 }
+
+void flea_public_key_t__dtor(flea_public_key_t *key__pt);
 
 flea_err_t THR_flea_x509_parse_ecc_public_params(const flea_ref_cu8_t *encoded_parameters__pt, flea_ec_gfp_dom_par_ref_t *dom_par__pt);
 
@@ -74,7 +77,6 @@ flea_err_t THR_flea_x509_parse_rsa_public_key(const flea_ref_cu8_t *public_key_v
 
 flea_err_t THR_flea_public_key_t__ctor(flea_public_key_t* key__pt, flea_pk_key_type_t key_type, const flea_ref_cu8_t *key_as_bit_string_tlv__prcu8, const flea_ref_cu8_t *encoded_params__prcu8);
 
-#define flea_publick_key_t__INIT_VALUE {.key_bit_size__u16 = 0 }
 
 #endif /* h-guard */
 

@@ -240,7 +240,21 @@ flea_err_t THR_flea_public_key_t__ctor(flea_public_key_t* key__pt, flea_pk_key_t
 void flea_public_key_t__dtor(flea_public_key_t *key__pt)
 {
 #ifdef FLEA_USE_HEAP_BUF
-  /*if(key
-  FLEA_FREE_MEM_CHK_SET_NULL(key_pt->*/
+  if(key__pt->key_bit_size__u16)
+  {
+    flea_u8_t **mem_to_free_1, **mem_to_free_2;
+    if(key__pt->key_type__t == flea_ecc)
+    {
+      mem_to_free_1 = &key__pt->pubkey_with_params__u.ec_public_val__t.dp_mem__bu8;
+      mem_to_free_2 = &key__pt->pubkey_with_params__u.ec_public_val__t.pub_point__mem__bu8;
+    }
+    else
+    {
+      mem_to_free_1 = &key__pt->pubkey_with_params__u.rsa_public_val__t.mod_mem__bu8;
+      mem_to_free_1 = &key__pt->pubkey_with_params__u.rsa_public_val__t.exp_mem__bu8;
+    }
+    FLEA_FREE_MEM_CHK_SET_NULL(*mem_to_free_1);
+    FLEA_FREE_MEM_CHK_SET_NULL(*mem_to_free_2);
+  }
 #endif 
 }
