@@ -13,7 +13,35 @@
 extern "C" {
 #endif
 
-  typedef enum { flea_ecc, flea_rsa } flea_pk_key_type_t;
+#define FLEA_PK_ID_OFFS_PRIMITIVE 4
+/**
+ * Supported encryption and signature public key primitives.
+ */
+typedef enum
+{
+  flea_rsa_sign = 0 << FLEA_PK_ID_OFFS_PRIMITIVE,
+  flea_rsa_encr = 1 << FLEA_PK_ID_OFFS_PRIMITIVE,
+  flea_ecdsa = 2 << FLEA_PK_ID_OFFS_PRIMITIVE
+} flea_pk_primitive_id_t;
+
+/**
+ * Supported public key encoding schemes.
+ */
+typedef enum { flea_emsa1 = 0, flea_pkcs1_v1_5 = 1, flea_oaep = 2 } flea_pk_encoding_id_t;
+
+/**
+ * Supported public key encryption and signature configurations.
+ */
+typedef enum
+{
+  flea_ecdsa_emsa1 = flea_ecdsa | flea_emsa1,
+  flea_rsa_oaep_encr = flea_rsa_encr | flea_oaep,
+  flea_rsa_pkcs1_v1_5_encr = flea_rsa_encr | flea_pkcs1_v1_5,
+  flea_rsa_pkcs1_v1_5_sign = flea_rsa_sign | flea_pkcs1_v1_5,
+} flea_pk_scheme_id_t;
+
+//typedef enum { flea_rsa_key, flea_ecc_key } flea_pub_key_type_t;
+  typedef enum { flea_ecc_key, flea_rsa_key } flea_pk_key_type_t;
 
   // TODO: make internal:
 #ifdef FLEA_HAVE_ECC
@@ -77,6 +105,7 @@ flea_err_t THR_flea_x509_parse_rsa_public_key(const flea_ref_cu8_t *public_key_v
 
 flea_err_t THR_flea_public_key_t__ctor(flea_public_key_t* key__pt, flea_pk_key_type_t key_type, const flea_ref_cu8_t *key_as_bit_string_tlv__prcu8, const flea_ref_cu8_t *encoded_params__prcu8);
 
+flea_err_t THR_flea_public_key_t__verify_signature(const flea_public_key_t *key__pt, flea_pk_scheme_id_t pk_scheme_id__t, const flea_ref_cu8_t *message__prcu8, const flea_ref_cu8_t * signature__prcu8,  flea_hash_id_t hash_id__t );
 
 #endif /* h-guard */
 

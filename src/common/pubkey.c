@@ -9,9 +9,66 @@
 #include "flea/x509.h"
 #include "flea/ec_key.h"
 #include "flea/util.h"
+#include "flea/pk_api.h"
 #include "flea/ecc_named_curves.h"
 
 #ifdef FLEA_HAVE_ECC
+
+/* assumes that result__pu8 has sufficient length allocated */
+static flea_err_t THR_flea_x509_decode_ecdsa_signature(flea_u8_t *result__pu8, flea_al_u16_t *result_len__palu16, const flea_der_ref_t *x509_enc_sig__pt  )
+{
+  flea_der_ref_t ref_r__t;
+  flea_der_ref_t ref_s__t;
+  flea_al_u16_t r_offs, s_offs, diff, insert_offs;
+  FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
+  FLEA_DECL_OBJ(source__t, flea_data_source_t);
+  flea_data_source_mem_help_t hlp__t;
+FLEA_THR_BEG_FUNC();
+  
+  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, x509_enc_sig__pt->data__pcu8, x509_enc_sig__pt->len__dtl, &hlp__t));
+  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0)); // TODO: SET LIMIT (ALSO ELSEWHERE)
+FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
+FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_positive_int_wo_lead_zeroes(&dec__t, &ref_r__t));
+FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_positive_int_wo_lead_zeroes(&dec__t, &ref_s__t));
+FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
+if(ref_r__t.len__dtl > ref_s__t.len__dtl)
+{
+  diff = ref_r__t.len__dtl - ref_s__t.len__dtl;
+  r_offs = 0;
+  s_offs = ref_r__t.len__dtl + diff;
+  insert_offs = ref_r__t.len__dtl;
+}
+else if (ref_r__t.len__dtl < ref_s__t.len__dtl)
+{
+  diff = ref_s__t.len__dtl - ref_r__t.len__dtl;
+  r_offs = diff;
+  s_offs = ref_s__t.len__dtl;
+  insert_offs = 0;
+}
+else
+{
+ diff = 0;
+ r_offs = 0;
+ s_offs = ref_r__t.len__dtl;
+ insert_offs = 0; /* irrelevant */
+}
+memcpy(result__pu8 + r_offs, ref_r__t.data__pcu8, ref_r__t.len__dtl);
+memcpy(result__pu8 + s_offs, ref_s__t.data__pcu8, ref_s__t.len__dtl);
+memset(result__pu8 + insert_offs, 0, diff);
+*result_len__palu16 = ref_r__t.len__dtl + ref_s__t.len__dtl + diff;
+//first_len__alu16 = ref__t.len__dtl;
+//memcpy(result__pu8, ref__t.data__pcu8, first_len__alu16); 
+
+
+
+ FLEA_THR_FIN_SEC(
+      flea_data_source_t__dtor(&source__t); 
+      flea_ber_dec_t__dtor(&dec__t);
+    
+    );
+}
+
+
 // TODO: call this function first with key's encoded params, then with the
 // inherited params
 static flea_err_t THR_flea_public_key_t__create_ecdsa_key(flea_ec_pubkey_val_t *ecc_key__pt, const flea_ref_cu8_t *key_as_bit_string_contents__prcu8, const flea_ref_cu8_t *encoded_params__prcu8)
@@ -213,14 +270,14 @@ flea_err_t THR_flea_public_key_t__ctor(flea_public_key_t* key__pt, flea_pk_key_t
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&key_dec__t, FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, FLEA_ASN1_BIT_STRING), &public_key_as_bitstr__t));
   FLEA_CCALL(THR_flea_ber_dec__get_ref_to_bit_string_content_no_unused_bits(&public_key_as_bitstr__t, &public_key_value__t));
 #ifdef FLEA_HAVE_ECC
-  if(key_type == flea_ecc)
+  if(key_type == flea_ecc_key)
   {
     FLEA_CCALL(THR_flea_public_key_t__create_ecdsa_key(&key__pt->pubkey_with_params__u.ec_public_val__t, &public_key_value__t, encoded_params__prcu8));
   }
   else 
 #endif
 #ifdef FLEA_HAVE_RSA
-    if(key_type == flea_rsa)
+    if(key_type == flea_rsa_key)
     {
       FLEA_CCALL(THR_flea_public_key_t__create_rsa_key(&key__pt->pubkey_with_params__u.rsa_public_val__t, &public_key_value__t));
     }
@@ -237,13 +294,66 @@ flea_err_t THR_flea_public_key_t__ctor(flea_public_key_t* key__pt, flea_pk_key_t
       ); 
 }
 
+// TODO: TAKE ENCODED SIGNATURE
+// TODO: MAKE WRAPPER WHICH PARSES THE ALGOID TO DERIVE HASH FUCNTION
+flea_err_t THR_flea_public_key_t__verify_signature(const flea_public_key_t *key__pt, flea_pk_scheme_id_t pk_scheme_id__t, const flea_ref_cu8_t *message__prcu8, const flea_ref_cu8_t * signature__prcu8,  flea_hash_id_t hash_id__t )
+{
+  FLEA_DECL_BUF(concat_sig__bu8, flea_u8_t, FLEA_ECDSA_MAX_SIG_LEN);
+  flea_der_ref_t concat_sig_ref__t;
+  flea_al_u16_t concat_sig_len__alu16;
+  flea_pub_key_param_u pk_par__u;
+  FLEA_THR_BEG_FUNC();
+  if((key__pt->key_type__t == flea_ecc_key) && (pk_scheme_id__t == flea_ecdsa_emsa1))
+  {
+    
+  FLEA_ALLOC_BUF(concat_sig__bu8, signature__prcu8->len__dtl);
+  FLEA_CCALL(THR_flea_x509_decode_ecdsa_signature(concat_sig__bu8, &concat_sig_len__alu16, signature__prcu8)); 
+  concat_sig_ref__t.data__pcu8 = concat_sig__bu8;
+  concat_sig_ref__t.len__dtl = concat_sig_len__alu16; 
+
+  pk_par__u.ecc_dom_par__t = key__pt->pubkey_with_params__u.ec_public_val__t.dp__t;
+  FLEA_CCALL(THR_flea_pk_api__verify_signature(
+        message__prcu8,
+        &concat_sig_ref__t,
+        //public_key_value__pt,
+        &key__pt->pubkey_with_params__u.ec_public_val__t.public_point_encoded__rcu8,
+        flea_ecdsa_emsa1, // TODO: GENERALIZE
+        hash_id__t,
+        &pk_par__u
+        //&key__pt->pubkey_with_params__u.ec_public_val__t.dp__t
+        //&ver_key__t.pubkey_with_params__u.ec_public_val__t.dp_mem__bu8
+        ));
+  }
+  else if((key__pt->key_type__t == flea_rsa_key) && (pk_scheme_id__t == flea_rsa_pkcs1_v1_5_sign))
+  {
+    pk_par__u.rsa_public_exp__ru8 = key__pt->pubkey_with_params__u.rsa_public_val__t.pub_exp__rcu8;
+    FLEA_CCALL(THR_flea_pk_api__verify_signature(
+          message__prcu8,
+          signature__prcu8,
+          //&public_mod__t,
+         &key__pt->pubkey_with_params__u.rsa_public_val__t.mod__rcu8,
+          flea_rsa_pkcs1_v1_5_sign, // TODO: GENERALIZE
+          hash_id__t,
+          &pk_par__u
+        //&key__pt->pubkey_with_params__u.rsa_public_val__t.pub_exp__rcu8
+          ));
+  }
+  else
+  {
+    FLEA_THROW("unsupported primitive", FLEA_ERR_X509_UNSUPP_PRIMITIVE);
+  }
+  FLEA_THR_FIN_SEC(
+      FLEA_FREE_BUF_FINAL(concat_sig__bu8);
+      );
+}
+
 void flea_public_key_t__dtor(flea_public_key_t *key__pt)
 {
 #ifdef FLEA_USE_HEAP_BUF
   if(key__pt->key_bit_size__u16)
   {
     flea_u8_t **mem_to_free_1, **mem_to_free_2;
-    if(key__pt->key_type__t == flea_ecc)
+    if(key__pt->key_type__t == flea_ecc_key)
     {
       mem_to_free_1 = &key__pt->pubkey_with_params__u.ec_public_val__t.dp_mem__bu8;
       mem_to_free_2 = &key__pt->pubkey_with_params__u.ec_public_val__t.pub_point__mem__bu8;
