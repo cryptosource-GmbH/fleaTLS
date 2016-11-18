@@ -112,7 +112,7 @@ static flea_bool_t is_cert_self_issued(const flea_x509_cert_ref_t *cert__pt)
   return FLEA_FALSE;
 }
 
-static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *compare_time__pt/*, flea_public_key_t *key_to_construct_mbn__pt*/)
+static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *compare_time__pt, flea_public_key_t *key_to_construct_mbn__pt)
 {
   flea_s32_t i;
   flea_al_u16_t chain_len__alu16 =  cert_chain__pt->chain_pos__u16 + 1;
@@ -218,15 +218,22 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
       //printf("validated signature OK\n");
     }
   }
-  /*if(key_to_construct_mbn__pt)
+  if(key_to_construct_mbn__pt)
   {
-    FLEA_CCALL(THR_flea_public_key_t__ctor_cert_inherited_params(key_to_construct__pt, key_type, cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[0]].subject_public_key_info__t.public_key_as_tlv__t
-  }*/
+    flea_bool_t dummy;
+      flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
+    FLEA_CCALL(THR_flea_public_key_t__ctor_cert_inherited_params(key_to_construct_mbn__pt, &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[0]], inherited_params_to_use__prcu8, &dummy));
+  }
 
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time__pt/*,flea_public_key_t *key_to_construct__pt*/)
+
+flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time__pt)
+{
+  return THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key(cert_chain__pt, time__pt, NULL);
+}
+flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time__pt, flea_public_key_t *key_to_construct_mbn__pt)
 {
   flea_u16_t *chain_pos__pu16 = &cert_chain__pt->chain_pos__u16;
   flea_x509_cert_ref_t *cert_collection__pt = cert_chain__pt->cert_collection__pt;
@@ -303,7 +310,7 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain( flea_cert_chain_t *
           printf("\n");
 
         }*/
-          flea_err_t validation_error = THR_validate_cert_path(cert_chain__pt, time__pt/*, key_to_construct__pt*/);
+          flea_err_t validation_error = THR_validate_cert_path(cert_chain__pt, time__pt, key_to_construct_mbn__pt);
           if(validation_error == FLEA_ERR_FINE)
           {
             return FLEA_ERR_FINE;
