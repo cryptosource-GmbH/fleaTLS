@@ -532,10 +532,7 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, co
   flea_bool_t found_tag__b;
   flea_x509_algid_ref_t outer_sig_algid__t;
 
-
-  //flea_asn1_utctime utctime1__t, utctime2__t;
   FLEA_THR_BEG_FUNC();
-
 
   FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source_tbs__t, der_encoded_cert__pu8, der_encoded_cert_len__x5l, &hlp_tbs__t));
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec_tbs__t, &source_tbs__t, 0));

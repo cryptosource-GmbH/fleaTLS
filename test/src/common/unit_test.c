@@ -154,6 +154,7 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
 
       CALL_TEST(THR_flea_test_asn1_date());
 
+      CALL_TEST(THR_flea_test_tls_cert_chain());
 
 #if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_MOD_BIT_SIZE >= 224
       CALL_TEST(THR_test_ecdsa_self_signed_certs_file_based());
