@@ -12,6 +12,20 @@
 #include <sys/socket.h>
 #include <arpa/inet.h> //inet_addr
 
+#include "flea/pubkey.h"
+#include "flea/asn1_date.h"
+#include "flea/cert_chain.h"
+#include "flea/ber_dec.h"
+#include "flea/mac.h"
+#include "flea/rng.h"
+
+
+const char finished_label_client[] = "client_finished";
+const char finished_label_server[] = "server_finished";
+
+typedef enum { FINISHED_LABEL_CLIENT, FINISHED_LABEL_SERVER } FinishedLabel;
+
+
 typedef enum {
 	HANDSHAKE_TYPE_HELLO_REQUEST = 0,
 	HANDSHAKE_TYPE_CLIENT_HELLO = 1,
@@ -137,6 +151,12 @@ typedef struct {
 	CHANGE_CIPHER_SPEC_TYPE change_cipher_spec;
 } ChangeCipherSpec;
 
+
+typedef struct {
+  flea_u8_t* verify_data;
+  flea_u16_t verify_data_length;	// 12 for all cipher suites defined in TLS 1.2 - RFC 5246
+} Finished;
+
 /**
 	ServerHelloDone: no content, no struct needed
 */
@@ -187,6 +207,8 @@ void read_record_message(flea_u8_t* bytes, flea_u32_t length, Record* record, Re
 		memcpy(record->data, bytes+5, sizeof(flea_u8_t)*length);
 	}
 }
+
+
 
 void read_handshake_message(Record* record, HandshakeMessage* handshake_msg) {
 	if (record->length < 4)
@@ -284,14 +306,21 @@ void read_server_hello(HandshakeMessage* handshake_msg, ServerHello* server_hell
 	// for now simply ignore them
 }
 
-void read_certificate(HandshakeMessage* handshake_msg, Certificate* client_message)
+void read_certificate(HandshakeMessage* handshake_msg, Certificate* cert_message, flea_public_key_t* pubkey)
 {
-	client_message->certificate_list_length = handshake_msg->length;
+	cert_message->certificate_list_length = handshake_msg->length;
 
 	if (handshake_msg->length > 0)
 	{
-		client_message->certificate_list = calloc(handshake_msg->length, sizeof(flea_u8_t));
+		cert_message->certificate_list = calloc(handshake_msg->length, sizeof(flea_u8_t));
+		memcpy(cert_message->certificate_list, handshake_msg->data, handshake_msg->length);
 	}
+
+	/**
+
+	test_cert_chain.c hat beispielcode zum decoden von certificate content
+
+	*/
 }
 
 
@@ -495,6 +524,20 @@ void print_server_hello(ServerHello hello)
 }
 
 /**
+handshake_messages
+         All of the data from all messages in this handshake (not
+         including any HelloRequest messages) up to, but not including,
+         this message.  This is only data visible at the handshake layer
+         and does not include record layer headers.  This is the
+         concatenation of all the Handshake structures as defined in
+         Section 7.4, exchanged thus far.
+*/
+Finished create_finished(flea_u8_t* handshake_messages, flea_u8_t handshake_messages_len, flea_u8_t master_secret[48], HandshakeMessage *finished_message) {
+
+}
+
+
+/**
 	TODO: real randomness
 
    Implementation note: Public-key-encrypted data is represented as an
@@ -506,17 +549,21 @@ void print_server_hello(ServerHello hello)
    EncryptedPreMasterSecret is the only data in the ClientKeyExchange
    and its length can therefore be unambiguously determined
 */
-ClientKeyExchange create_client_key_exchange()
+ClientKeyExchange create_client_key_exchange(flea_public_key_t* pubkey)
 {
 	ClientKeyExchange key_ex;
+	flea_u8_t premaster_secret[48];
 
+	premaster_secret[0] = 3;
+	premaster_secret[1] = 3;
 	key_ex.algorithm = KEY_EXCHANGE_ALGORITHM_RSA;
-	key_ex.EncryptedPreMasterSecret[0] = 3;
-	key_ex.EncryptedPreMasterSecret[1] = 3;
 
-	for (flea_u8_t i=2; i<48; i++)
+	// random 46 bit
+	flea_rng__randomize(premaster_secret+2, 46);
+
+	for (flea_u8_t i=0; i<48; i++)
 	{
-		key_ex.EncryptedPreMasterSecret[i] = i;
+		key_ex.EncryptedPreMasterSecret[i] = premaster_secret[i];
 	}
 }
 
@@ -589,6 +636,49 @@ void create_record(Record* record, flea_u8_t* data, flea_u32_t length, ContentTy
 	memcpy(record->data, data, length);
 }
 
+
+
+P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u8_t seed_length, flea_u16_t length, flea_u8_t* data_out)
+{
+	flea_mac_ctx_t mac_ctx;
+	flea_u8_t A[32];
+	flea_u8_t A2[32];
+	flea_u8_t tmp_input[32 + seed_length];
+	flea_u8_t tmp_output[32];
+
+	// A(0) = seed
+	memcpy(A, seed, 32);
+
+	// expand to length bytes
+	flea_u16_t current_length = 0;
+	flea_al_u8_t len;
+	while (current_length < length)
+	{
+		// A(i) = HMAC_hash(secret, A(i-1))
+		THR_flea_mac_ctx_t__ctor(&mac_ctx, flea_hmac_sha256, A, 32);
+  		THR_flea_mac_ctx_t__update(&mac_ctx, secret, secret_length);
+		THR_flea_mac_ctx_t__final_compute(&mac_ctx, A2, &len);
+		flea_hash_ctx_t__dtor(&mac_ctx);
+		memcpy(A, A2, 32);
+
+		// calculate A(i) + seed
+		memcpy(tmp_input, A, 32);
+		memcpy(tmp_input+32, seed, seed_length);
+
+		// + HMAC_hash(secret, A(i) + seed)
+		THR_flea_mac_ctx_t__ctor(&mac_ctx, flea_sha256, tmp_input, 32);
+		THR_flea_mac_ctx_t__update(&mac_ctx, secret, secret_length);
+		// concatenate to the result
+		if (current_length+32 < length)
+		{
+			THR_flea_mac_ctx_t__final_compute(&mac_ctx, data_out+current_length, &len);
+		}
+		else {
+			THR_flea_mac_ctx_t__final_compute(&mac_ctx, data_out+, &len);
+		}
+		current_length += 32; 	// sha256 -> 32 bytes
+	}
+}
 /**
       P_hash(secret, seed) = HMAC_hash(secret, A(1) + seed) +
                              HMAC_hash(secret, A(2) + seed) +
@@ -604,14 +694,39 @@ void create_record(Record* record, flea_u8_t* data, flea_u32_t length, ContentTy
       PRF(secret, label, seed) = P_<hash>(secret, label + seed)
 
 	  P_Hash is Sha256 for all ciphers defined in RFC5246
+
+
+	  FinishedMessage:
+	  verify_data
+	           PRF(master_secret, finished_label, Hash(handshake_messages))
+	              [0..verify_data_length-1];
 */
-void PRF() {
+// length: how long should the output be. 12 Octets = 96 Bits
+void PRF(flea_u8_t* secret, flea_u8_t secret_length, FinishedLabel label, flea_u8_t seed[32], flea_u16_t length, flea_u8_t* result) {
+	/**
+		TODO: no fixed sha256
+	*/
+
+	flea_u8_t result[96];
+	flea_u8_t client_finished[] = {99, 108, 105, 101, 110, 116, 032, 102, 105, 110, 105, 115, 104, 101, 100};
+
+	switch (label) {
+		case FINISHED_LABEL_CLIENT: P_Hash(secret, secret_length, client_finished, sizeof(client_finished), length, result); break;
+	}
+
+
 
 }
 
 
 int flea_tls_handshake(int socket_fd)
 {
+	flea_u8_t secret[] = "test";
+	flea_u8_t seed[32];
+	flea_u8_t result[96]
+	PRF(secret, sizeof(secret), FINISHED_LABEL_CLIENT, seed, 96, result);
+	/**
+	*/
 	flea_u8_t reply[16384];
 
 	ClientHello hello = create_hello_message();
@@ -684,6 +799,7 @@ int flea_tls_handshake(int socket_fd)
 		HandshakeMessage handshake_message;
 		ServerHello server_hello_message;
 		Certificate certificate_message;
+		flea_public_key_t pubkey;
 
 		flea_u32_t reply_index = 0;
 		while (reply_index != recv_bytes)
@@ -710,8 +826,9 @@ int flea_tls_handshake(int socket_fd)
 			}
 			else if(handshake_message.type == HANDSHAKE_TYPE_CERTIFICATE)
 			{
-				printf("Parsed Certificate Message:\n");
-				read_certificate(&handshake_message, &certificate_message);
+
+				read_certificate(&handshake_message, &certificate_message, &pubkey);
+				printf("\nParsed Certificate Message:\n");
 			}
 			else if(handshake_message.type == HANDSHAKE_TYPE_SERVER_HELLO_DONE)
 			{
@@ -723,7 +840,7 @@ int flea_tls_handshake(int socket_fd)
 				printf("sending ClientKeyExchange ...\n");
 
 				flea_u8_t client_key_ex_bytes[48];
-				ClientKeyExchange client_key_ex = create_client_key_exchange();
+				ClientKeyExchange client_key_ex = create_client_key_exchange(&pubkey);
 				client_key_exchange_to_bytes(&client_key_ex, client_key_ex_bytes);
 				Record client_key_ex_record;
 				HandshakeMessage client_key_ex_handshake;
@@ -776,12 +893,12 @@ int flea_tls_connection()
 	socket_fd = create_socket();
 
 	memset(&addr, 0, sizeof(addr));
-    /*addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+    addr.sin_addr.s_addr = inet_addr("127.0.0.1");
     addr.sin_family = AF_INET;
-    addr.sin_port = htons( 4444 );*/
-    addr.sin_addr.s_addr = inet_addr("31.15.64.162");
+    addr.sin_port = htons( 4444 );
+    /*addr.sin_addr.s_addr = inet_addr("31.15.64.162");
     addr.sin_family = AF_INET;
-    addr.sin_port = htons( 443 );
+    addr.sin_port = htons( 443 );*/
 
     if (connect(socket_fd , (struct sockaddr *)&addr , sizeof(addr)) < 0)
     {
