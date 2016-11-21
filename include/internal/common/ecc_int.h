@@ -1,4 +1,3 @@
-
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_ecc_int__H_

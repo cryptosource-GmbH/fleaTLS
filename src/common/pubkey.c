@@ -553,12 +553,24 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(const flea_publ
 
 }*/
 
+flea_err_t THR_flea_public_key_t__encrypt_message(const flea_public_key_t *key__pt, flea_pk_scheme_id_t pk_scheme_id__t, flea_hash_id_t hash_id__t, const flea_u8_t* message__pcu8, flea_al_u16_t message_len__alu16, flea_u8_t* result__pu8, flea_al_u16_t* result_len__palu16)
+{
+  FLEA_THR_BEG_FUNC();
+#ifdef FLEA_HAVE_RSA
+ FLEA_CCALL(THR_flea_pk_api__encrypt_message(pk_scheme_id__t, hash_id__t, message__pcu8, message_len__alu16, result__pu8, result_len__palu16, key__pt->pubkey_with_params__u.rsa_public_val__t.mod__rcu8.data__pcu8,  key__pt->pubkey_with_params__u.rsa_public_val__t.mod__rcu8.len__dtl, key__pt->pubkey_with_params__u.rsa_public_val__t.pub_exp__rcu8.data__pcu8, key__pt->pubkey_with_params__u.rsa_public_val__t.pub_exp__rcu8.len__dtl));
+#else
+ FLEA_THROW("no publick key encryption scheme (RSA) supported", FLEA_ERR_X509_UNSUPP_PRIMITIVE);
+#endif
+ FLEA_THR_FIN_SEC_empty();
+}
 void flea_public_key_t__dtor(flea_public_key_t *key__pt)
 {
 #ifdef FLEA_USE_HEAP_BUF
   if(key__pt->key_bit_size__u16)
   {
+#if defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECC
     flea_u8_t **mem_to_free_1, **mem_to_free_2;
+#endif 
 #ifdef FLEA_HAVE_ECC
     if(key__pt->key_type__t == flea_ecc_key)
     {
@@ -579,7 +591,4 @@ void flea_public_key_t__dtor(flea_public_key_t *key__pt)
 #endif
   }
 #endif 
-
-//flea_pk_key_type_t flea_public_key__get_p
-
 }
