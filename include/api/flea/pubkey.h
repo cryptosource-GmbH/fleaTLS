@@ -7,7 +7,6 @@
 #include "flea/types.h"
 #include "flea/hash.h"
 #include "flea/x509.h"
-//#include "internal/common/pk_api_int.h"
 #include "flea/ec_gfp_dom_par.h"
 
 #ifdef __cplusplus
@@ -41,7 +40,6 @@ typedef enum
   flea_rsa_pkcs1_v1_5_sign = flea_rsa_sign | flea_pkcs1_v1_5,
 } flea_pk_scheme_id_t;
 
-//typedef enum { flea_rsa_key, flea_ecc_key } flea_pub_key_type_t;
   typedef enum { flea_ecc_key, flea_rsa_key } flea_pk_key_type_t;
 
   // TODO: make internal:
@@ -92,9 +90,9 @@ typedef struct
   flea_pk_key_type_t key_type__t;
   flea_u16_t key_bit_size__u16;
   flea_public_key_val_with_params_u pubkey_with_params__u;
-  //flea_hash_id_t hash_id__t; 
 
 } flea_public_key_t;
+
 
 #define flea_publick_key_t__INIT_VALUE {.key_bit_size__u16 = 0 }
 
@@ -114,6 +112,7 @@ flea_err_t THR_flea_public_key_t__verify_signature(const flea_public_key_t *key_
 
 flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(const flea_public_key_t *public_key__pt, const flea_x509_algid_ref_t *sigalg_id__t, const flea_der_ref_t* tbs_data__pt, const flea_der_ref_t *signature__pt );
 
+flea_err_t THR_flea_public_key_t__encrypt_message(const flea_public_key_t *key__pt, flea_pk_scheme_id_t pk_scheme_id__t, flea_hash_id_t hash_id__t, const flea_u8_t* message__pcu8, flea_al_u16_t message_len__alu16, flea_u8_t* result__pu8, flea_al_u16_t* result_len__palu16);
 #endif /* h-guard */
 
 

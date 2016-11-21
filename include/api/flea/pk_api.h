@@ -120,6 +120,7 @@ flea_err_t THR_flea_pk_api__verify_signature(const flea_ref_cu8_t *message__prcu
  * @param id the ID of the signature scheme to use
  * @param key pointer to the private key to be used in the operation
  * @param key_len the length of key
+ * TODO:UPDATE (also elsewhere)
  * @param params the parameters to be used for the public key operation
  *    in case of ECDSA, a pointer to the domain parameters in flea's internal
  *    format must be provided. in case of RSA, the public exponent must be
@@ -131,7 +132,6 @@ flea_err_t THR_flea_pk_api__verify_signature(const flea_ref_cu8_t *message__prcu
  * of the pointer target will be updated to the number of actual signature bytes written.
  * @return flea error code
  */
-//flea_err_t THR_flea_pk_signer_t__final_sign(flea_pk_signer_t* signer, flea_pk_scheme_id_t id, const flea_u8_t* key, flea_al_u16_t key_len, const flea_u8_t* params, flea_al_u16_t params_len, flea_u8_t* signature, flea_al_u16_t* signature_len);
 flea_err_t THR_flea_pk_signer_t__final_sign (flea_pk_signer_t* signer__pt, flea_pk_scheme_id_t id__t, const flea_u8_t* key__pcu8, flea_al_u16_t key_len__alu16, flea_u8_t* signature__pu8, flea_al_u16_t* signature_len__palu16, const flea_pub_key_param_u *param__pu);
 
 /**
