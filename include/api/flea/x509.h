@@ -185,4 +185,7 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, co
 
 flea_bool_t flea_x509_has_key_usages(flea_x509_cert_ref_t *cert_ref__pt, flea_u16_t check_usages__u16);
 
+flea_err_t THR_flea_x509__parse_algid_ref(flea_x509_algid_ref_t *algid_ref__pt, flea_ber_dec_t *dec__pt);
+
+flea_err_t THR_flea_x509__parse_dn(flea_x509_dn_ref_t *dn_ref__pt, flea_ber_dec_t *dec__pt);
 #endif /* h-guard */

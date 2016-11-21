@@ -548,32 +548,41 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_string(flea_ber_dec_t *dec__pt, flea_a
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_ber_dec_t__get_ref_to_date(flea_ber_dec_t *dec__pt, flea_asn1_time_type_t *time_type__pt, flea_u8_t const** raw__cppu8, flea_dtl_t * len__pdtl)
+flea_err_t THR_flea_ber_dec_t__get_ref_to_date_opt(flea_ber_dec_t *dec__pt, flea_asn1_time_type_t *time_type__pt, flea_u8_t const** raw__cppu8, flea_dtl_t * len__pdtl, flea_bool_t *optional_found__pb)
 {
   
-  flea_bool_t optional_found__b = FLEA_TRUE; 
+  flea_bool_t optional_found__b = *optional_found__pb; 
   FLEA_THR_BEG_FUNC();
-  // TODO: make function
-  // THR_flea_ber_dec_t__get_ref_to_raw_optional_universal_primitive
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional(dec__pt, FLEA_ASN1_GENERALIZED_TIME, FLEA_ASN1_UNIVERSAL_PRIMITIVE, raw__cppu8, len__pdtl, &optional_found__b));
   if(optional_found__b == FLEA_TRUE)
   {
     *time_type__pt = flea_asn1_generalized_time;
+    *optional_found__pb = FLEA_TRUE;
     FLEA_THR_RETURN();
   }
-  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw(dec__pt, FLEA_ASN1_UTC_TIME, FLEA_ASN1_UNIVERSAL_PRIMITIVE, raw__cppu8, len__pdtl));
-  *time_type__pt = flea_asn1_utc_time;
-
-
+  optional_found__b = *optional_found__pb;
+  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional(dec__pt, FLEA_ASN1_UTC_TIME, FLEA_ASN1_UNIVERSAL_PRIMITIVE, raw__cppu8, len__pdtl, &optional_found__b));
+  if(optional_found__b == FLEA_TRUE)
+  {
+    *time_type__pt = flea_asn1_utc_time;
+    *optional_found__pb = FLEA_TRUE;
+    FLEA_THR_RETURN();
+  }
+  if(!*optional_found__pb)
+  {
+    FLEA_THROW("non-optional date not present", FLEA_ERR_ASN1_DER_DEC_ERR);
+  } 
+  *optional_found__pb = FLEA_FALSE;
   FLEA_THR_FIN_SEC_empty();
 }
 
-/*flea_err_t THR_flea_ber_dec_t__share_ref_to_next_tlv(flea_ber_dec_t *dec__pt, flea_der_ref_t *ref__pt)
+/*
+flea_err_t THR_flea_ber_dec_t__get_ref_to_date(flea_ber_dec_t *dec__pt, flea_asn1_time_type_t *time_type__pt, flea_u8_t const** raw__cppu8, flea_dtl_t * len__pdtl)
 {
-  FLEA_THR_BEG_FUNC();
-   
-  FLEA_THR_FIN_SEC_empty();
-}*/
+  flea_bool_t optional__b = FLEA_FALSE;
+  return THR_flea_ber_dec_t__get_ref_to_date_opt(dec__pt, time_type__pt, raw__cppu8, len__pdtl, &optional__b); 
+}
+*/
 
 flea_err_t THR_flea_ber_dec_t__read_value_raw(flea_ber_dec_t *dec__pt, flea_asn1_tag_t type__t, flea_al_u8_t class_form__alu8, flea_u8_t *out_mem__pu8, flea_dtl_t *out_mem_len__pdtl)
 {
@@ -732,6 +741,18 @@ static flea_err_t THR_flea_ber_dec_t__decode_integer_u32_opt(flea_ber_dec_t * de
     result__u32 |= enc_int__au8[i];
   } 
   *result__pu32 = result__u32;
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_ber_dec_t__decode_integer_u32_default(flea_ber_dec_t * dec__pt, flea_asn1_tag_t cft, flea_u32_t * result__pu32, flea_u32_t default__u32)
+{
+  FLEA_THR_BEG_FUNC();
+  flea_bool_t found__b;
+  FLEA_CCALL(THR_flea_ber_dec_t__decode_integer_u32_optional(dec__pt, cft, result__pu32, &found__b));
+  if(!found__b)
+  {
+    *result__pu32 = default__u32;
+  }
   FLEA_THR_FIN_SEC_empty();
 }
 

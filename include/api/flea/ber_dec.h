@@ -49,14 +49,6 @@ extern "C" {
 
   typedef enum { flea_asn1_utc_time, flea_asn1_generalized_time } flea_asn1_time_type_t;
 
-/*typedef struct
-{
-  //flea_x509_len_t offs__x5l; // TO/DO: USE POINTERS! OFFSET CALC. INCURS CODE AT CALL SITE! AND ELSEWHERE!
-  const flea_u8_t *data__pcu8;
-  flea_dtl_t len__dtl;
-} flea_der_ref_t; // TODO: rename to memory ref
-*/
-
   typedef flea_ref_cu8_t flea_der_ref_t ; 
 #define FLEA_DER_REF_SET_ABSENT(__p) (__p)->data__pcu8 = NULL; (__p)->len__dtl = 0
 #define FLEA_DER_REF_IS_ABSENT(__p) ((__p)->data__pcu8 ==  0) 
@@ -195,6 +187,8 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(flea_ber_dec_t *dec__
 // other two)
 flea_err_t THR_flea_ber_dec_t__decode_integer_u32_optional(flea_ber_dec_t * dec__pt, flea_asn1_tag_t cft, flea_u32_t * result__pu32, flea_bool_t *found__pb);
 
+flea_err_t THR_flea_ber_dec_t__decode_integer_u32_default(flea_ber_dec_t * dec__pt, flea_asn1_tag_t cft, flea_u32_t * result__pu32, flea_u32_t default__u32);
+
 flea_err_t THR_flea_ber_dec_t__decode_integer_u32(flea_ber_dec_t * dec__pt, flea_asn1_tag_t cft, flea_u32_t * result__pu32);
 
 flea_err_t THR_flea_ber_dec_t__get_der_ref_to_int(flea_ber_dec_t *dec__pt, flea_der_ref_t *der_ref__pt);
@@ -216,6 +210,7 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_string(flea_ber_dec_t *dec__pt, flea_a
 
 flea_err_t THR_flea_ber_dec_t__get_ref_to_date(flea_ber_dec_t *dec__pt, flea_asn1_time_type_t *time_type__pt, flea_u8_t const** raw__cppu8, flea_dtl_t * len__pdtl);
 
+flea_err_t THR_flea_ber_dec_t__get_ref_to_date_opt(flea_ber_dec_t *dec__pt, flea_asn1_time_type_t *time_type__pt, flea_u8_t const** raw__cppu8, flea_dtl_t * len__pdtl, flea_bool_t *optional_found__pb);
 
 flea_err_t THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional(flea_ber_dec_t *dec__pt, flea_al_u8_t outer_tag__alu8, flea_asn1_tag_t encap_type__t, flea_der_ref_t  *ref__pt);
 

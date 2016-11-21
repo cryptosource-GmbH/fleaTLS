@@ -116,7 +116,7 @@ flea_err_t THR_flea_mac_ctx_t__final_verify(flea_mac_ctx_t* ctx, const flea_u8_t
  *
  * @return flea error code
  */
-flea_err_t THR_flea_mac__compute_mac(flea_mac_mode_id_t id, const flea_u8_t* key, flea_al_u16_t key_len, const flea_u8_t* dta, flea_dtl_t dta_len, flea_u8_t* result, flea_al_u8_t* result_len);
+flea_err_t THR_flea_mac__compute_mac(flea_mac_id_t id, const flea_u8_t* key, flea_al_u16_t key_len, const flea_u8_t* dta, flea_dtl_t dta_len, flea_u8_t* result, flea_al_u8_t* result_len);
 
 /**
  * Verify a MAC over a data string.
@@ -131,7 +131,7 @@ flea_err_t THR_flea_mac__compute_mac(flea_mac_mode_id_t id, const flea_u8_t* key
  *
  * @return flea error code: FLEA_ERR_FINE if the verification succeeded, FLEA_ERR_INV_MAC if it failed
  */
-flea_err_t THR_flea_mac__verify_mac(flea_mac_mode_id_t id, const flea_u8_t* key, flea_al_u16_t key_len, const flea_u8_t* dta, flea_dtl_t dta_len, const flea_u8_t* mac, flea_al_u8_t mac_len);
+flea_err_t THR_flea_mac__verify_mac(flea_mac_id_t id, const flea_u8_t* key, flea_al_u16_t key_len, const flea_u8_t* dta, flea_dtl_t dta_len, const flea_u8_t* mac, flea_al_u8_t mac_len);
 
 #ifdef __cplusplus
 }
