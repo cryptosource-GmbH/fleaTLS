@@ -79,7 +79,11 @@ extern "C" {
   } flea_ref_cu8_t;
 
   // TODO: define correctly as non-const
-  typedef flea_ref_cu8_t flea_ref_u8_t;
+  typedef struct
+  {
+    flea_u8_t *data__pcu8;
+    flea_dtl_t len__dtl;
+  } flea_ref_u8_t;
 
 /**
  * Overwrite potentially sensitive data. The function is implemented in such way
@@ -93,6 +97,8 @@ void flea_memzero_secure(flea_u8_t* memory, flea_dtl_t mem_len);
 int flea_memcmp_wsize(const void* mem1__pv, flea_dtl_t len_mem1__dtl, const void*mem2__pv, flea_dtl_t len_mem2__dtl);
 
 int flea_rcu8_cmp(const flea_ref_cu8_t *a, const flea_ref_cu8_t *b);
+
+void flea_copy_rcu8_use_mem(flea_ref_cu8_t *trgt__prcu8, flea_u8_t* trgt_mem, const flea_ref_cu8_t *src__prcu8);
 
 #ifdef __cplusplus
 }

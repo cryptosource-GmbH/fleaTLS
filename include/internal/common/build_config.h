@@ -9,7 +9,7 @@
  */
 #define FLEA_DO_PRINTF_TEST_OUTPUT
 /**
- * When set, print error messages with printf (for debugging purposes)
+ * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which trigger exceptions.
  */
 //#define FLEA_DO_PRINTF_ERRS
 

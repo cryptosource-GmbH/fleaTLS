@@ -4,6 +4,7 @@
 #define _flea_cert_chain__H_
 
 #include "flea/x509.h"
+#include "flea/pubkey.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -56,6 +57,8 @@ flea_err_t THR_flea_cert_chain_t__add_cert_without_trust_status(flea_cert_chain_
 flea_err_t THR_flea_cert_chain_t__add_trust_anchor_cert(flea_cert_chain_t* chain__pt, const flea_x509_cert_ref_t * cert_ref__pt);
 
 flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time__pt);
+
+flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time__pt, flea_public_key_t *key_to_construct_mbn__pt);
 #ifdef __cplusplus
 }
 #endif

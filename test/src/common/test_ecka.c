@@ -18,7 +18,7 @@
 
 #ifdef FLEA_HAVE_ECKA
 //static flea_err_t THR_flea_test_ecka_raw_basic_inner (const flea_u8_t* dp__pcu8)
-static flea_err_t THR_flea_test_ecka_raw_basic_inner (const flea_ec_gfp_dom_par_t *dom_par__pt)
+static flea_err_t THR_flea_test_ecka_raw_basic_inner (const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
 {
   FLEA_DECL_BUF(res_a_arr__bu8, flea_u8_t, FLEA_ECC_MAX_MOD_BYTE_SIZE);
   FLEA_DECL_BUF(res_b_arr__bu8, flea_u8_t, FLEA_ECC_MAX_MOD_BYTE_SIZE);
@@ -96,8 +96,8 @@ flea_err_t THR_flea_test_ecka_raw_basic ()
     }
     FLEA_CCALL(THR_flea_test_ecka_raw_basic_inner(ec_dp));*/
 
-    flea_ec_gfp_dom_par_t dom_par__t;
-    flea_err_t err__t = THR_flea_ec_gfp_dom_par_t__set_by_builtin_id(&dom_par__t, i);
+    flea_ec_gfp_dom_par_ref_t dom_par__t;
+    flea_err_t err__t = THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&dom_par__t, i);
     if(err__t)
     {
       if(err__t == FLEA_ERR_ECC_INV_BUILTIN_DP_ID)

@@ -17,7 +17,7 @@ const flea_u8_t P256_oid[] = { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x01, 0x07 };
 
 
 //const flea_ec_dom_par_id_t flea_get_builtin_par_from_dp_oid(const flea_al_u8_t *oid__pcu8, flea_al_u8_t oid_len__alu8)
-flea_err_t THR_flea_ecc_gfp_dom_par_t__set_by_named_curve_oid(flea_ec_gfp_dom_par_t *dp_to_set__pt, const flea_u8_t* oid__pcu8, flea_al_u8_t oid_len__alu8)
+flea_err_t THR_flea_ecc_gfp_dom_par_t__set_by_named_curve_oid(flea_ec_gfp_dom_par_ref_t *dp_to_set__pt, const flea_u8_t* oid__pcu8, flea_al_u8_t oid_len__alu8)
 {
   flea_ec_dom_par_id_t result_id;
 
@@ -72,7 +72,7 @@ flea_err_t THR_flea_ecc_gfp_dom_par_t__set_by_named_curve_oid(flea_ec_gfp_dom_pa
   {
     FLEA_THROW("invalid/unkonwn named curve OID", FLEA_ERR_ECC_INV_BUILTIN_DP_ID);
   }
-  FLEA_CCALL(THR_flea_ec_gfp_dom_par_t__set_by_builtin_id(dp_to_set__pt, result_id));
+  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(dp_to_set__pt, result_id));
   FLEA_THR_FIN_SEC_empty();
 }
 

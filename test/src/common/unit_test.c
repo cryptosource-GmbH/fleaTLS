@@ -12,21 +12,44 @@
 #include "internal/common/alloc_dbg_int.h"
 #include "flea/error_handling.h"
 
+static flea_bool_t is_prefix_of(const char* prefix, const char* s)
+{
+ flea_u16_t prefix_len = strlen(prefix);
+ flea_u16_t s_len = strlen(s);
+ if(prefix_len > s_len)
+ {
+   return FLEA_FALSE;
+ }
+ if(0 == memcmp(prefix, s, prefix_len))
+ {
+   return FLEA_TRUE;
+ }
+ return FLEA_FALSE;
+}
+#define __STRINGIFY(s) #s
+#define STRINGIFY(s) __STRINGIFY(s)
+
 #ifdef FLEA_USE_BUF_DBG_CANARIES
 static unsigned canary_errors = 0;
 #define CHECK_DBG_CANARIES_FLAG_SWITCHED(__f) \
+  do { \
   if(FLEA_IS_DBG_CANARY_ERROR_SIGNALLED()) { FLEA_PRINTF_TEST_OUTP_2_SWITCHED("canary error in test %s\n", # __f); canary_errors++; } \
-  FLEA_CLEAR_DBG_CANARY_ERROR()
+  FLEA_CLEAR_DBG_CANARY_ERROR(); \
+  } while(0)
 #else
 #define CHECK_DBG_CANARIES_FLAG_SWITCHED(__f)
 #endif
  
 #define CALL_TEST(__f) \
+do { \
+  if(!func_prefix || is_prefix_of(func_prefix, # __f )) { \
   nb_exec_tests++; \
   if((rv = __f)) { FLEA_PRINTF_TEST_OUTP_3_SWITCHED("FAILED TEST: error %x in test %s\n", rv, # __f); failed_tests++; } \
-  CHECK_DBG_CANARIES_FLAG_SWITCHED(__f)
+  CHECK_DBG_CANARIES_FLAG_SWITCHED(__f);\
+  } \
+} while(0)
 
-int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_prefix)
+int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_prefix, const char* func_prefix)
 {
 
   unsigned nb_exec_tests = 0;
@@ -122,10 +145,12 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
       CALL_TEST(THR_flea_test_dec_tls_server_cert_broken());
       CALL_TEST(THR_flea_test_dec_tls_server_issuer_cert());
 
-#ifdef FLEA_HAVE_ASYM_SIG
+#ifdef FLEA_HAVE_RSA
       CALL_TEST(THR_flea_test_cert_verify_rsa()); 
-      CALL_TEST(THR_flea_test_cert_verify_ecdsa());
       CALL_TEST(THR_flea_test_cert_chain_correct_chain_of_two());
+#endif
+#ifdef FLEA_HAVE_ECDSA
+      CALL_TEST(THR_flea_test_cert_verify_ecdsa());
 #endif
 
       CALL_TEST(THR_flea_test_asn1_date());
@@ -137,7 +162,7 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
     }
     // TODO: REMOVE THIS ONCE ALL REQUIREMENTS ARE REFLECTED BY THE TEST CASE'S
     // INI FILE
-#if defined FLEA_HAVE_RSA && (defined FLEA_USE_HEAP_BUF || FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
+#if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
     CALL_TEST(THR_flea_test_path_validation_file_based(cert_path_prefix));
 #endif
     if(i == 0)

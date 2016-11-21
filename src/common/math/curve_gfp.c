@@ -12,7 +12,7 @@
 extern "C" {
 #endif
 
-flea_err_t THR_flea_curve_gfp_t__init_dp_array (flea_curve_gfp_t* p_curve, const flea_ec_gfp_dom_par_t *dp__pt, flea_uword_t* memory, flea_al_u16_t memory_word_len)
+flea_err_t THR_flea_curve_gfp_t__init_dp_array (flea_curve_gfp_t* p_curve, const flea_ec_gfp_dom_par_ref_t *dp__pt, flea_uword_t* memory, flea_al_u16_t memory_word_len)
 {
   FLEA_THR_BEG_FUNC();
   //flea_al_u8_t enc_field_len = flea_ec_dom_par__get_elem_len(enc_dp, flea_dp__p);

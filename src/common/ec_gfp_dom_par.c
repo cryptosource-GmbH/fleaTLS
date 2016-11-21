@@ -504,7 +504,7 @@ flea_al_u16_t flea_ec_dom_par__get_predefined_dp_len (flea_ec_dom_par_id_t dp_id
   return 0;
 }
 
-static void flea_ec_dom_par__set_ru8_from_internal_format(flea_ref_u8_t *result__pru8, const flea_u8_t *enc_dp__pcu8, flea_ec_dom_par_element_id_t dp_id)
+static void flea_ec_dom_par__set_ru8_from_internal_format(flea_ref_cu8_t *result__pru8, const flea_u8_t *enc_dp__pcu8, flea_ec_dom_par_element_id_t dp_id)
 {
   result__pru8->data__pcu8 = flea_ec_dom_par__get_ptr_to_elem(enc_dp__pcu8, dp_id);
   result__pru8->len__dtl = flea_ec_dom_par__get_elem_len(enc_dp__pcu8, dp_id);
@@ -528,7 +528,7 @@ static void flea_ec_dom_par__set_ru8_from_internal_format(flea_ref_u8_t *result_
  
 }*/
 
-flea_err_t THR_flea_ec_gfp_dom_par_t__set_by_builtin_id(flea_ec_gfp_dom_par_t *dp_to_set__pt, flea_ec_dom_par_id_t id)
+flea_err_t THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(flea_ec_gfp_dom_par_ref_t *dp_to_set__pt, flea_ec_dom_par_id_t id)
 {
   const flea_u8_t* enc_dp__pcu8;
  FLEA_THR_BEG_FUNC();

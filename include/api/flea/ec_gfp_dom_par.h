@@ -7,7 +7,7 @@
 #include "flea/types.h"
 #include "flea/util.h"
 
-#ifdef FLEA_HAVE_ECC
+//#ifdef FLEA_HAVE_ECC
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,10 +26,10 @@ extern "C" {
       flea_ref_cu8_t n__ru8;
       flea_ref_cu8_t h__ru8;
 
-  } flea_ec_gfp_dom_par_t;
+  } flea_ec_gfp_dom_par_ref_t;
 
-#define flea_ec_gfp_dom_par_t__INIT_VALUE { .p__ru8 = {.data__pcu8 = NULL, .len__pdtl = 0} }
-#define flea_ec_gfp_dom_par_t__dtor(__p) 
+#define flea_ec_gfp_dom_par_ref_t__INIT_VALUE { .p__ru8 = {.data__pcu8 = NULL, .len__pdtl = 0} }
+#define flea_ec_gfp_dom_par_ref_t__dtor(__p) 
 
 
 
@@ -123,12 +123,12 @@ flea_al_u16_t flea_ec_dom_par__get_predefined_dp_len(flea_ec_dom_par_id_t dp_id)
 //void flea_ec_gfp_dom_par_t__set_from_internal_format(flea_ec_gfp_dom_par_t * result__pt, const flea_u8_t *enc_dp__pcu8);
 
 
-flea_err_t THR_flea_ec_gfp_dom_par_t__set_by_builtin_id(flea_ec_gfp_dom_par_t *dp_to_set__pt, flea_ec_dom_par_id_t id);
+flea_err_t THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(flea_ec_gfp_dom_par_ref_t *dp_to_set__pt, flea_ec_dom_par_id_t id);
 #ifdef __cplusplus
 }
 #endif
 
 
-#endif /* #ifdef FLEA_HAVE_ECC */
+//#endif /* #ifdef FLEA_HAVE_ECC */
 
 #endif /* h-guard */

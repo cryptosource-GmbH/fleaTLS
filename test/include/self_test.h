@@ -190,7 +190,7 @@ flea_err_t THR_flea_test_cert_path_generic(
 
 flea_err_t THR_flea_test_path_validation_file_based(const char* cert_path_prefix);
 
-int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_prefix);
+int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_prefix, const char* func_prefix);
 
 
 #ifdef __cplusplus

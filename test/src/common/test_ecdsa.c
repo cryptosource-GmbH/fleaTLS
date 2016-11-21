@@ -53,12 +53,12 @@ flea_err_t THR_flea_test_cvc_sig_ver ()
   };
 
   flea_err_t err_code;
-  //flea_ec_gfp_dom_par_t dp__t;
+  //flea_ec_gfp_dom_par_ref_t dp__t;
   flea_pub_key_param_u param__u;
   FLEA_THR_BEG_FUNC();
   flea_al_u16_t sig_len__alu16 = sizeof(cvc_signature_rs__acu8);
   FLEA_CCALL(THR_flea_pk_signer_t__ctor(&verifier__t, flea_sha224));
-  FLEA_CCALL(THR_flea_ec_gfp_dom_par_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_brainpoolP224r1));
+  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_brainpoolP224r1));
   FLEA_CCALL(THR_flea_pk_signer_t__update(&verifier__t, sign_data__acu8, sizeof(sign_data__acu8)));
   err_code = THR_flea_pk_signer_t__final_verify(&verifier__t, flea_ecdsa_emsa1, public_key__acu8, sizeof(public_key__acu8), /*flea_ec_dom_par__get_predefined_dp_ptr(flea_brainpoolP224r1), flea_ec_dom_par__get_predefined_dp_len(flea_brainpoolP224r1),*/ (flea_u8_t*)cvc_signature_rs__acu8, sig_len__alu16, &param__u);
   if(err_code != FLEA_ERR_FINE)
@@ -72,7 +72,7 @@ flea_err_t THR_flea_test_cvc_sig_ver ()
   return FLEA_ERR_FINE;
 #endif
 }
-static flea_err_t THR_flea_test_ecdsa_raw_basic_inner (const flea_ec_gfp_dom_par_t* dom_par__pt)
+static flea_err_t THR_flea_test_ecdsa_raw_basic_inner (const flea_ec_gfp_dom_par_ref_t* dom_par__pt)
 {
   flea_u8_t res_r_arr[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
   flea_u8_t res_s_arr[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
@@ -125,8 +125,8 @@ flea_err_t THR_flea_test_ecdsa_raw_basic ()
 
   for(i = 0; i <= flea_gl_ec_dom_par_max_id; i++)
   {
-    flea_ec_gfp_dom_par_t dom_par__t;
-    flea_err_t err__t = THR_flea_ec_gfp_dom_par_t__set_by_builtin_id(&dom_par__t, i);
+    flea_ec_gfp_dom_par_ref_t dom_par__t;
+    flea_err_t err__t = THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&dom_par__t, i);
     //const flea_u8_t* ec_dp = flea_ec_dom_par__get_predefined_dp_ptr(i);
     if(err__t)
     {
@@ -168,10 +168,10 @@ flea_err_t THR_flea_test_ecdsa_256bit_sign_loop (unsigned count)
 
   flea_al_u8_t enc_s_len;
   flea_al_u8_t enc_r_len;
-  flea_ec_gfp_dom_par_t dom_par__t;
+  flea_ec_gfp_dom_par_ref_t dom_par__t;
   FLEA_THR_BEG_FUNC();
   //p_dp = flea_ec_dom_par__get_predefined_dp_ptr(flea_brainpoolP256r1);
-  FLEA_CCALL(THR_flea_ec_gfp_dom_par_t__set_by_builtin_id(&dom_par__t,  flea_brainpoolP256r1));
+  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&dom_par__t,  flea_brainpoolP256r1));
   //enc_r_len = enc_s_len = flea_ec_dom_par__get_elem_len(p_dp, flea_dp__n);
   enc_r_len = enc_s_len = dom_par__t.n__ru8.len__dtl;
   FLEA_ALLOC_BUF(pub_point_enc__b_u8, pub_point_enc_len__al_u8);

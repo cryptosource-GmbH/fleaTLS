@@ -591,7 +591,7 @@ flea_err_t THR_flea_point_gfp_t__mul_multi (flea_point_gfp_t* p_point_in_out, co
 
     }
     // now the first row and first column are finished, and the remaining points
-    // have already there p1 contribution.
+    // have already their p1 contribution.
     // add the p2 contribution:
     for(i = 1; i < line_col_size; i++)
     {

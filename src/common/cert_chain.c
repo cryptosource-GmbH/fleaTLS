@@ -112,11 +112,12 @@ static flea_bool_t is_cert_self_issued(const flea_x509_cert_ref_t *cert__pt)
   return FLEA_FALSE;
 }
 
-static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *compare_time__pt)
+static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *compare_time__pt, flea_public_key_t *key_to_construct_mbn__pt)
 {
   flea_s32_t i;
   flea_al_u16_t chain_len__alu16 =  cert_chain__pt->chain_pos__u16 + 1;
   flea_al_u16_t m_path__u16 = chain_len__alu16;
+  flea_ref_cu8_t inherited_params__rcu8;
   FLEA_THR_BEG_FUNC();
   if(chain_len__alu16 == 0)
   {
@@ -199,20 +200,40 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
   }
   // verify signature from target to TA
   // TODO: INVERT ORDER AND IMPLEMENT PARAMETER INHERITANCE
-  for(i = 0; i < (flea_s32_t)(chain_len__alu16 - 1); i++)
+  inherited_params__rcu8.data__pcu8 = NULL;
+  inherited_params__rcu8.len__dtl = 0;
+  for(i = (flea_s32_t)(chain_len__alu16 - 2); i > 0; i--)
+  //for(i = 0; i < (flea_s32_t)(chain_len__alu16 - 1); i++)
   {
-    if(i != (flea_s32_t)(chain_len__alu16 -  1))
+    flea_ref_cu8_t returned_params__rcu8;
+    //if(i != (flea_s32_t)(chain_len__alu16 -  1))
     {
+      flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
       // verify against subsequent certificate
-      FLEA_CCALL(THR_flea_x509_verify_cert_ref_signature(&cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i]], &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i+1]]));
+      FLEA_CCALL(THR_flea_x509_verify_cert_ref_signature_inherited_params(&cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i]], &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i+1]], &returned_params__rcu8, inherited_params_to_use__prcu8));
+      if(returned_params__rcu8.len__dtl)
+      {
+        inherited_params__rcu8 = returned_params__rcu8;
+      }
       //printf("validated signature OK\n");
     }
+  }
+  if(key_to_construct_mbn__pt)
+  {
+    flea_bool_t dummy;
+      flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
+    FLEA_CCALL(THR_flea_public_key_t__ctor_cert_inherited_params(key_to_construct_mbn__pt, &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[0]], inherited_params_to_use__prcu8, &dummy));
   }
 
   FLEA_THR_FIN_SEC_empty();
 }
 
+
 flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time__pt)
+{
+  return THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key(cert_chain__pt, time__pt, NULL);
+}
+flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time__pt, flea_public_key_t *key_to_construct_mbn__pt)
 {
   flea_u16_t *chain_pos__pu16 = &cert_chain__pt->chain_pos__u16;
   flea_x509_cert_ref_t *cert_collection__pt = cert_chain__pt->cert_collection__pt;
@@ -289,7 +310,7 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain( flea_cert_chain_t *
           printf("\n");
 
         }*/
-          flea_err_t validation_error = THR_validate_cert_path(cert_chain__pt, time__pt);
+          flea_err_t validation_error = THR_validate_cert_path(cert_chain__pt, time__pt, key_to_construct_mbn__pt);
           if(validation_error == FLEA_ERR_FINE)
           {
             return FLEA_ERR_FINE;
@@ -298,7 +319,7 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain( flea_cert_chain_t *
 
         if((*chain_pos__pu16) == 0)
         {
-          // directly trusted cert no valid
+          // directly trusted cert not valid
           FLEA_THROW("no valid certificate path found", FLEA_ERR_CERT_PATH_NOT_FOUND); 
         }
         (*chain_pos__pu16)--; // look for next candidate above me
@@ -311,7 +332,7 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain( flea_cert_chain_t *
       } 
       // no trusted cert yet found. can only enlarge the chain if it has
       // capacitiy left.
-    else if(*chain_pos__pu16 + 1 < FLEA_MAX_CERT_CHAIN_DEPTH ) // else is new
+    else if(*chain_pos__pu16 + 1 < FLEA_MAX_CERT_CHAIN_DEPTH ) 
     {
       flea_al_u16_t start_offs = chain__bu16[(*chain_pos__pu16) + 1];
     //printf("looking for issuer starting from position %u within collection\n", start_offs); 

@@ -190,7 +190,7 @@ flea_err_t THR_flea_test_pk_signer_sign_verify ()
   else
   {
     flea_pub_key_param_u param__u;
-    FLEA_CCALL(THR_flea_ec_gfp_dom_par_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_brainpoolP224r1));
+    FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_brainpoolP224r1));
     FLEA_CCALL(THR_flea_test_pk_signer_sign_verify_inner(flea_ecdsa_emsa1, flea_sha224, &param__u));
   }
 #endif
@@ -199,7 +199,7 @@ flea_err_t THR_flea_test_pk_signer_sign_verify ()
   flea_err_t err_code = THR_flea_test_pk_signer_sign_verify_inner(flea_rsa_pkcs1_v1_5_sign, flea_sha256, NULL);
   if(err_code != FLEA_ERR_INV_KEY_SIZE && err_code != FLEA_ERR_BUFF_TOO_SMALL )
   {
-    printf("error code = %02x\n", err_code);
+    //printf("error code = %02x\n", err_code);
     FLEA_THROW("wrong return value for invalid key size", FLEA_ERR_FAILED_TEST);
   }
 #   else

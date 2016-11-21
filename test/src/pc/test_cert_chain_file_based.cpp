@@ -14,7 +14,8 @@
 using namespace std;
 
 
-#if defined FLEA_HAVE_RSA && (defined FLEA_USE_HEAP_BUF || FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
+// TODO: EVALUATE KEY LEN REQ IN TESTS
+#if defined FLEA_HAVE_RSA && ( FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
 static flea_err_t THR_flea_execute_path_test_case_for_properties(std::string const& dir_path, property_set_t const& prop)
 {
 
@@ -107,8 +108,10 @@ flea_err_t THR_flea_test_path_validation_file_based(const char* cert_path_prefix
   FLEA_THR_BEG_FUNC();
   std::string path_test_main_dir = "misc/testdata/cert_paths/";
   std::vector<std::string> test_cases;
+  flea_u32_t nb_test_execution_repetitions_due_randomized_cert_order = 5;
   if(cert_path_prefix != nullptr)
   {
+    nb_test_execution_repetitions_due_randomized_cert_order = 1;
     test_cases = get_entries_of_dir(path_test_main_dir, dir_entries_with_path, "" /*postfix*/, cert_path_prefix);
   }
   else
@@ -119,7 +122,6 @@ flea_err_t THR_flea_test_path_validation_file_based(const char* cert_path_prefix
   for(string test: test_cases)
   {
     //const flea_u32_t nb_test_execution_repetitions_due_randomized_cert_order = 20;
-    const flea_u32_t nb_test_execution_repetitions_due_randomized_cert_order = 5;
     for(flea_u32_t i = 0; i < nb_test_execution_repetitions_due_randomized_cert_order; i++)
     {
       if(THR_flea_execute_path_test_case(test))
