@@ -652,13 +652,11 @@ P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u8_t s
 	// expand to length bytes
 	flea_u16_t current_length = 0;
 	flea_al_u8_t len;
+	flea_err_t err;
 	while (current_length < length)
 	{
 		// A(i) = HMAC_hash(secret, A(i-1))
-		THR_flea_mac_ctx_t__ctor(&mac_ctx, flea_hmac_sha256, A, 32);
-  		THR_flea_mac_ctx_t__update(&mac_ctx, secret, secret_length);
-		THR_flea_mac_ctx_t__final_compute(&mac_ctx, A2, &len);
-		flea_hash_ctx_t__dtor(&mac_ctx);
+		err = THR_flea_mac__compute_mac(flea_hmac_sha256, A, 32, secret, secret_length, A2, &len);
 		memcpy(A, A2, 32);
 
 		// calculate A(i) + seed
@@ -666,15 +664,15 @@ P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u8_t s
 		memcpy(tmp_input+32, seed, seed_length);
 
 		// + HMAC_hash(secret, A(i) + seed)
-		THR_flea_mac_ctx_t__ctor(&mac_ctx, flea_sha256, tmp_input, 32);
-		THR_flea_mac_ctx_t__update(&mac_ctx, secret, secret_length);
 		// concatenate to the result
+		err = THR_flea_mac__compute_mac(flea_hmac_sha256, tmp_input, 32, secret, secret_length, tmp_output, &len);
 		if (current_length+32 < length)
 		{
-			THR_flea_mac_ctx_t__final_compute(&mac_ctx, data_out+current_length, &len);
+			memcpy(data_out+current_length, tmp_output, 32);
 		}
-		else {
-			THR_flea_mac_ctx_t__final_compute(&mac_ctx, data_out+, &len);
+		else
+		{
+			memcpy(data_out+current_length, tmp_output, length - current_length);
 		}
 		current_length += 32; 	// sha256 -> 32 bytes
 	}
@@ -706,8 +704,6 @@ void PRF(flea_u8_t* secret, flea_u8_t secret_length, FinishedLabel label, flea_u
 	/**
 		TODO: no fixed sha256
 	*/
-
-	flea_u8_t result[96];
 	flea_u8_t client_finished[] = {99, 108, 105, 101, 110, 116, 032, 102, 105, 110, 105, 115, 104, 101, 100};
 
 	switch (label) {
@@ -723,7 +719,7 @@ int flea_tls_handshake(int socket_fd)
 {
 	flea_u8_t secret[] = "test";
 	flea_u8_t seed[32];
-	flea_u8_t result[96]
+	flea_u8_t result[96];
 	PRF(secret, sizeof(secret), FINISHED_LABEL_CLIENT, seed, 96, result);
 	/**
 	*/
