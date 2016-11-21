@@ -18,15 +18,32 @@ const int ASN1_TYPE_GeneralizedTime = 24;
 
 
 
+flea_err_t THR_flea_asn1_parse_gmt_time_optional(flea_ber_dec_t *dec__t, flea_gmt_time_t *utctime__pt, flea_bool_t *found__pb)
+{
 
-// TODO(Falko): move to ber_dec.c/.h as ..._decode_date     _tmp entfernen
-flea_err_t THR_flea_asn1_parse_date_tmp(flea_ber_dec_t *dec__t, flea_gmt_time_t *utctime__pt)
+	flea_x509_date_ref_t date_ref__t;
+  flea_bool_t optional_found__b = FLEA_TRUE;
+
+	FLEA_THR_BEG_FUNC();
+	FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_date_opt(dec__t, &date_ref__t.time_type__t, &date_ref__t.data__pcu8, &date_ref__t.len__dtl, &optional_found__b));
+  if(!optional_found__b)
+  {
+    *found__pb = FLEA_FALSE;
+  }
+	FLEA_CCALL(THR_flea_asn1_parse_date(date_ref__t.time_type__t, date_ref__t.data__pcu8, date_ref__t.len__dtl, utctime__pt));
+  *found__pb = FLEA_TRUE;
+	FLEA_THR_FIN_SEC_empty();
+}
+
+// TODO(Falko): move to ber_dec.c/.h as ..._decode_date     
+flea_err_t THR_flea_asn1_parse_gmt_time(flea_ber_dec_t *dec__t, flea_gmt_time_t *utctime__pt)
 {
 	FLEA_THR_BEG_FUNC();
 
 	flea_x509_date_ref_t date_ref__t;
-
-	FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_date(dec__t, &date_ref__t.time_type__t, &date_ref__t.data__pcu8, &date_ref__t.len__dtl));
+  flea_bool_t optional_found__b = FLEA_FALSE;
+  
+	FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_date_opt(dec__t, &date_ref__t.time_type__t, &date_ref__t.data__pcu8, &date_ref__t.len__dtl, &optional_found__b));
 
 	FLEA_CCALL(THR_flea_asn1_parse_date(date_ref__t.time_type__t, date_ref__t.data__pcu8, date_ref__t.len__dtl, utctime__pt));
 	

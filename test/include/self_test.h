@@ -173,6 +173,8 @@ flea_err_t THR_test_ecdsa_self_signed_certs_file_based();
 
 flea_err_t THR_flea_test_asn1_date();
 
+flea_err_t THR_flea_test_tls_cert_chain();
+
 flea_err_t THR_flea_test_cert_chain_correct_chain_of_two();
 
 flea_err_t THR_flea_test_cert_path_generic(

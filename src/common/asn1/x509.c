@@ -188,7 +188,7 @@ static flea_err_t THR_flea_x509_cert__parse_key_usage(flea_ber_dec_t *cont_dec__
   FLEA_THR_FIN_SEC_empty();
 }
 
-static flea_err_t THR_flea_x509_cert_ref_t__parse_algid(flea_x509_algid_ref_t *algid_ref__pt, flea_ber_dec_t *dec__pt)
+flea_err_t THR_flea_x509__parse_algid_ref(flea_x509_algid_ref_t *algid_ref__pt, flea_ber_dec_t *dec__pt)
 {
   FLEA_THR_BEG_FUNC();
   //printf("staring parsing algid\n");
@@ -438,7 +438,7 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(flea_x509_ext_ref_
 }
 
 
-static flea_err_t THR_flea_x509_cert_ref__t__parse_dn(flea_x509_dn_ref_t *dn_ref__pt, flea_ber_dec_t *dec__pt)
+flea_err_t THR_flea_x509__parse_dn(flea_x509_dn_ref_t *dn_ref__pt, flea_ber_dec_t *dec__pt)
 {
 
   FLEA_DECL_OBJ(source__t, flea_data_source_t);
@@ -532,16 +532,12 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, co
   flea_bool_t found_tag__b;
   flea_x509_algid_ref_t outer_sig_algid__t;
 
-
-  //flea_asn1_utctime utctime1__t, utctime2__t;
   FLEA_THR_BEG_FUNC();
-
 
   FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source_tbs__t, der_encoded_cert__pu8, der_encoded_cert_len__x5l, &hlp_tbs__t));
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec_tbs__t, &source_tbs__t, 0));
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec_tbs__t));
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&dec_tbs__t, &cert_ref__pt->tbs_ref__t));
-  //printf("taking length of TBS cert = %u\n", cert_ref__pt->tbs_ref__t.len__dtl);
 
 
   FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, der_encoded_cert__pu8, der_encoded_cert_len__x5l, &hlp__t));
@@ -554,8 +550,6 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, co
   {
     flea_dtl_t version_len__dtl = 1;
     flea_u8_t version__u8;
-    // TODO: MAKE FUNKTION READ_VALUE_RAW_UNIVERSAL => AT LEAST FOR GET_REF...
-    // WHICH WILL BE USED MORE OFTEN
     FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw(&dec__t, FLEA_ASN1_INT, 0, &version__u8, &version_len__dtl));
     if(version_len__dtl == 0)
     {
@@ -568,50 +562,34 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, co
   {
     cert_ref__pt->version__u8 = 1;
   } 
-  //printf("calling decode int for serial\n");
   FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_int(&dec__t, &cert_ref__pt->serial_number__t));
 
-  //printf("decoding sigalg...\n");
   
- FLEA_CCALL(THR_flea_x509_cert_ref_t__parse_algid(&cert_ref__pt->tbs_sig_algid__t, &dec__t));
-  /*FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_oid(&dec__t, &cert_ref__pt->tbs_sig_alg_oid__t.data__pcu8, &cert_ref__pt->tbs_sig_alg_oid__t.len__dtl));
-  // TODO: DECODE PARAMETERS
-  FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(&dec__t));*/
-  FLEA_CCALL(THR_flea_x509_cert_ref__t__parse_dn(&cert_ref__pt->issuer__t, &dec__t));
+ FLEA_CCALL(THR_flea_x509__parse_algid_ref(&cert_ref__pt->tbs_sig_algid__t, &dec__t));
+  FLEA_CCALL(THR_flea_x509__parse_dn(&cert_ref__pt->issuer__t, &dec__t));
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
-  //FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_date(&dec__t, &cert_ref__pt->not_before__t.time_type__t, &cert_ref__pt->not_before__t.data__pcu8, &cert_ref__pt->not_before__t.len__dtl));
-  //FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_date(&dec__t, &cert_ref__pt->not_after__t.time_type__t, &cert_ref__pt->not_after__t.data__pcu8, &cert_ref__pt->not_after__t.len__dtl));
 	
-  FLEA_CCALL(THR_flea_asn1_parse_date_tmp(&dec__t, &cert_ref__pt->not_before__t));
-  FLEA_CCALL(THR_flea_asn1_parse_date_tmp(&dec__t, &cert_ref__pt->not_after__t));
-  //printf("going to close validity sequence\n");
+  FLEA_CCALL(THR_flea_asn1_parse_gmt_time(&dec__t, &cert_ref__pt->not_before__t));
+  FLEA_CCALL(THR_flea_asn1_parse_gmt_time(&dec__t, &cert_ref__pt->not_after__t));
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
  
- //printf("before parsing subject DN\n"); 
-  FLEA_CCALL(THR_flea_x509_cert_ref__t__parse_dn(&cert_ref__pt->subject__t, &dec__t));
- //printf("after parsing subject DN\n"); 
+  FLEA_CCALL(THR_flea_x509__parse_dn(&cert_ref__pt->subject__t, &dec__t));
 
 /* enter subject public key info */
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
- FLEA_CCALL(THR_flea_x509_cert_ref_t__parse_algid(&cert_ref__pt->subject_public_key_info__t.algid__t, &dec__t));
+   FLEA_CCALL(THR_flea_x509__parse_algid_ref(&cert_ref__pt->subject_public_key_info__t.algid__t, &dec__t));
  
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&dec__t, &cert_ref__pt->subject_public_key_info__t.public_key_as_tlv__t));
  
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
-  //printf("after subject_public_key_info_value_as_bitstr__t closing seq\n");
-
-  //printf("before issuer unique id\n");
 FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(&dec__t, 1, FLEA_ASN1_BIT_STRING, &cert_ref__pt->issuer_unique_id_as_bitstr__t));
-  //printf("before subject unique id\n");
 FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(&dec__t, 2, FLEA_ASN1_BIT_STRING, &cert_ref__pt->subject_unique_id_as_bitstr__t));
-  //printf("before extensions\n");
 FLEA_CCALL(THR_flea_x509_cert_ref__t__parse_extensions(&cert_ref__pt->extensions__t, &dec__t));
 
 /* closing the tbs */
 FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
 
-FLEA_CCALL(THR_flea_x509_cert_ref_t__parse_algid(&outer_sig_algid__t, &dec__t));
+FLEA_CCALL(THR_flea_x509__parse_algid_ref(&outer_sig_algid__t, &dec__t));
 FLEA_CCALL(THR_flea_x509_cert_ref__process_alg_ids(&cert_ref__pt->tbs_sig_algid__t, &outer_sig_algid__t));
 FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, BIT_STRING), &cert_ref__pt->cert_signature_as_bit_string__t));    
   FLEA_THR_FIN_SEC(
