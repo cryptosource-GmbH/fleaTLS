@@ -50,6 +50,8 @@ flea_err_t THR_flea_cert_chain_t__ctor(flea_cert_chain_t *chain__pt, flea_x509_c
 
 void flea_cert_chain_t__disable_revocation_checking(flea_cert_chain_t *cert_chain__pt);
 
+flea_err_t THR_flea_cert_chain_t__add_crl(flea_cert_chain_t* chain__pt, const flea_ref_cu8_t *crl_der__cprcu8);
+
 flea_err_t THR_flea_cert_chain_t__add_cert_without_trust_status(flea_cert_chain_t* chain__pt, const flea_x509_cert_ref_t * cert_ref__pt);
 
 flea_err_t THR_flea_cert_chain_t__add_trust_anchor_cert(flea_cert_chain_t* chain__pt, const flea_x509_cert_ref_t * cert_ref__pt);

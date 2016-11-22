@@ -443,14 +443,14 @@ flea_err_t THR_flea_cert_chain_t__ctor(flea_cert_chain_t *chain__pt, flea_x509_c
   FLEA_THR_FIN_SEC_empty(); 
 }
 
-flea_err_t THR_flea_cert_chain_t__add_crl(flea_cert_chain_t* chain__pt, const flea_ref_cu8_t crl_der__cprcu8)
+flea_err_t THR_flea_cert_chain_t__add_crl(flea_cert_chain_t* chain__pt, const flea_ref_cu8_t *crl_der__cprcu8)
 {
   FLEA_THR_BEG_FUNC();
   if(chain__pt->nb_crls__u16 == chain__pt->crl_collection_allocated__u16) 
   {
     FLEA_THROW("crl capacity exceeded", FLEA_ERR_BUFF_TOO_SMALL);
   }
-  chain__pt->crl_collection__rcu8[chain__pt->nb_crls__u16] = crl_der__cprcu8;
+  chain__pt->crl_collection__rcu8[chain__pt->nb_crls__u16] = *crl_der__cprcu8;
   chain__pt->nb_crls__u16++;
   FLEA_THR_FIN_SEC_empty(); 
 }

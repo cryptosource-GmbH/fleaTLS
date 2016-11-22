@@ -186,8 +186,12 @@ flea_err_t THR_flea_test_cert_path_generic(
     flea_u8_t **cert_ptrs,
     flea_u32_t *cert_lens,
     flea_u32_t nb_certs,
-    const flea_u8_t *validation_date_utctime,
-    flea_al_u16_t validation_date_utctime_len
+    flea_u8_t **crl_ptrs,
+    flea_u32_t *crl_lens,
+    flea_u32_t nb_crls,
+    const flea_u8_t* validation_date_utctime, 
+    flea_al_u16_t validation_date_utctime_len,
+    flea_bool_t disable_revocation_checking
     );
 
 flea_err_t THR_flea_test_path_validation_file_based(const char* cert_path_prefix);

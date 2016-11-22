@@ -69,6 +69,8 @@ std::vector<flea_u8_t> parse_line(const char* name, flea_u16_t result_size, std:
 
 std::vector<unsigned char> read_bin_file(std::string const& filename);
 
+bool is_dir_existent(std::string const& dir_name);
+
 std::vector<std::string> get_entries_of_dir(std::string const& dir_name, dir_entry_extract_mode_t extr_mode, std::string const& postfix = "", std::string const& prefix = "");
 
 flea_u32_t string_to_u32bit(std::string const& str);

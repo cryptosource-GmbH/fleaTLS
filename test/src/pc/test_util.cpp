@@ -191,8 +191,17 @@ std::vector<unsigned char> read_bin_file(std::string const& filename)
     return result;
   }
 
-
-
+bool is_dir_existent(std::string const& dir_name)
+{
+  DIR* dir = opendir(dir_name.c_str());
+  if (dir)
+  {
+    /* Directory exists. */
+    closedir(dir);
+    return true;
+  }
+  return false;
+}
 std::vector<std::string> get_entries_of_dir(std::string const& dir_name, dir_entry_extract_mode_t extr_mode, std::string const& postfix, std::string const& prefix)
 {
   std::vector<std::string> result;
