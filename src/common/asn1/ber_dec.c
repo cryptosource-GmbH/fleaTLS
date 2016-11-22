@@ -524,7 +524,7 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(flea_ber_dec_t *dec__
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(dec__pt, cft, &der_ref__pt->data__pcu8, &der_ref__pt->len__dtl, &optional_found__b, extr_ref_to_v));
   if(!optional_found__b)
   {
-    FLEA_DER_REF_SET_ABSENT(der_ref__pt);
+    //FLEA_DER_REF_SET_ABSENT(der_ref__pt);
   }
   *found__pb = optional_found__b;
   FLEA_THR_FIN_SEC_empty();
@@ -601,7 +601,14 @@ flea_err_t THR_flea_ber_dec_t__read_value_raw_cft_opt(flea_ber_dec_t *dec__pt, f
 return THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(dec__pt, cft, (const flea_u8_t**) &out_mem_local__pu8, out_mem_len__pdtl, optional_found__pb, extr_read_v);
 
 }
+
 flea_err_t THR_flea_ber_dec_t__decode_boolean_default_false(flea_ber_dec_t *dec__pt, flea_bool_t* result__p)
+{
+  *result__p = FLEA_FALSE;
+  return THR_flea_ber_dec_t__decode_boolean_default(dec__pt, result__p);
+}
+
+flea_err_t THR_flea_ber_dec_t__decode_boolean_default(flea_ber_dec_t *dec__pt, flea_bool_t* result__p)
 {
   const flea_u8_t *data__pcu8;
   flea_dtl_t len__dtl = 1;
@@ -617,10 +624,10 @@ if(optional_found__b)
   }
   *result__p = data__pcu8[0] ? FLEA_TRUE : FLEA_FALSE;
 }
-else
+/*else
 {
-  *result__p = FLEA_FALSE;
-}
+  *result__p = default__b;
+}*/
 
 
  FLEA_THR_FIN_SEC_empty();
@@ -669,6 +676,60 @@ void flea_ber_dec_t__dtor(flea_ber_dec_t *dec__pt)
 #ifdef FLEA_USE_HEAP_BUF
    FLEA_FREE_MEM_CHK_SET_NULL(dec__pt->allo_open_cons__bdtl);
 #endif
+}
+
+static flea_err_t THR_flea_ber_dec_t__decode_short_bit_str_to_u32_opt(flea_ber_dec_t *dec__pt, flea_u32_t *val__pu32, flea_al_u8_t *nb_bits__palu8, flea_bool_t *optional_found__pb)
+{
+  flea_al_u8_t nb_bits__alu8;
+  flea_u32_t val__u32 = 0;
+  flea_u8_t enc__au8[5];
+  flea_dtl_t enc_len__dtl = sizeof(enc__au8);
+  flea_bool_t optional_found__b = *optional_found__pb;
+  flea_al_u8_t unused__alu8;
+  flea_al_u8_t i;
+  flea_asn1_tag_t cft = FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, BIT_STRING);
+  FLEA_THR_BEG_FUNC();
+   
+  FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw_cft_opt(dec__pt, cft, enc__au8, &enc_len__dtl, &optional_found__b ));
+  if(!optional_found__b)
+  {
+    *optional_found__pb = FLEA_FALSE;
+    FLEA_THR_RETURN();
+  }
+  if(enc_len__dtl <= 1)
+  {
+    *nb_bits__palu8 = 0;
+    FLEA_THR_RETURN();
+  }
+  // at least one content octet from here on
+  unused__alu8 = enc__au8[0]; 
+  if(unused__alu8 > 8)
+  {
+    unused__alu8 = 8;
+  }
+  /*if(unused__alu8 && enc_len__dtl < 2)
+  {
+     
+  }*/
+  for(i = 1; i < enc_len__dtl; i++)
+  {
+    val__u32 |= (enc__au8[i] << (i * 8));
+  }
+  nb_bits__alu8 = (enc_len__dtl - 1)*8 - unused__alu8;
+
+  *val__pu32 = val__u32;
+  *nb_bits__palu8 = nb_bits__alu8;
+ FLEA_THR_FIN_SEC_empty(); 
+}
+
+flea_err_t THR_flea_ber_dec_t__decode_short_bit_str_to_u32_optional(flea_ber_dec_t *dec__pt, flea_u32_t *val__pu32, flea_al_u8_t *nb_bits__palu8, flea_bool_t *found__pb)
+{
+  FLEA_THR_BEG_FUNC();
+ flea_bool_t optional__b = FLEA_TRUE;
+ FLEA_CCALL(THR_flea_ber_dec_t__decode_short_bit_str_to_u32_opt(dec__pt, val__pu32, nb_bits__palu8, &optional__b));
+ *found__pb = optional__b;
+ 
+ FLEA_THR_FIN_SEC_empty(); 
 }
 
 flea_al_u8_t flea_ber_dec_t__get_nb_bits_from_bit_string(const flea_der_ref_t * bit_string__pt)
@@ -766,7 +827,7 @@ flea_err_t THR_flea_ber_dec_t__decode_integer_u32(flea_ber_dec_t * dec__pt, flea
   flea_bool_t optional__b = FLEA_FALSE;
   return THR_flea_ber_dec_t__decode_integer_u32_opt(dec__pt, cft, result__pu32, &optional__b);
 }
-flea_bool_t flea_ber_dec__are_der_refs_equal(flea_der_ref_t *a__pt, flea_der_ref_t *b__pt)
+flea_bool_t flea_ber_dec__are_der_refs_equal(const flea_der_ref_t *a__pt, const flea_der_ref_t *b__pt)
 {
   if(a__pt->len__dtl != b__pt->len__dtl)
   {

@@ -177,8 +177,18 @@ flea_err_t THR_flea_ber_dec_t__read_value_raw(flea_ber_dec_t *dec__pt, flea_asn1
  */
 flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_optional(flea_ber_dec_t *dec__pt, flea_asn1_tag_t type__t, flea_al_u8_t class_form__alu8, flea_u8_t const** raw__cppu8, flea_dtl_t * len__pdtl, flea_bool_t *found_ptr);
 
-// TODO: GET RID OF BOOLEAN RESULT
-flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(flea_ber_dec_t *dec__pt, flea_asn1_tag_t cft, flea_der_ref_t *der_ref__t, flea_bool_t *optional__pb);
+/**
+ * Get a reference to an optional value.
+ *
+ * @param dec__pt [in]
+ * @param cft [in]
+ * @param der_ref_t [out] object to receive the reference. if the object is not found
+ * in the encoded data, then this value remains untouched.
+ * @param found__pb [out] receives FLEA_TRUE if the object was found, FLEA_FALSE
+ * otherwise
+ *
+ */
+flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(flea_ber_dec_t *dec__pt, flea_asn1_tag_t cft, flea_der_ref_t *der_ref__t, flea_bool_t *found__pb);
 
 // TODO: MAKE 3 TYPES OF FUNCTION FOR INT AND OTHER TYPES: 
 // OPTIONAL WITH DEFAULT TAG
@@ -221,6 +231,15 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(flea_ber_dec_t *dec__pt, 
 flea_err_t THR_flea_ber_dec_t__get_ref_to_next_tlv_raw_optional(flea_ber_dec_t *dec__pt, flea_der_ref_t *ref__pt);
 
 /**
+ * This function allows to
+ * initialize the result value to its default value prior to calling it.
+ * @param dec__pt
+ * @param result__pb receives the result if the boolean is encoded. Otherwise,
+ * the value pointed to is left unchanged. 
+ */
+flea_err_t THR_flea_ber_dec_t__decode_boolean_default(flea_ber_dec_t *dec__pt, flea_bool_t* result__pb);
+
+/**
  * Decode an optional boolean value which defaults to false.
  */
 flea_err_t THR_flea_ber_dec_t__decode_boolean_default_false(flea_ber_dec_t *dec__pt, flea_bool_t* result__p);
@@ -234,10 +253,27 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_cft(flea_ber_dec_t *dec__pt, flea_
 
 
 
-flea_bool_t flea_ber_dec__are_der_refs_equal(flea_der_ref_t *a__pt, flea_der_ref_t *b__pt);
+flea_bool_t flea_ber_dec__are_der_refs_equal(const flea_der_ref_t *a__pt, const flea_der_ref_t *b__pt);
+
+/**
+ * Decode a bit string of no more than 32 bits into a u32 type. Decoding is
+ * optional, and if the object is not found, then no changes are
+ * made to the output values.
+ *
+ * @param val__pu32 [out] receives the decoded result. The LSBit/LSByte of the u32 is
+ * the first bit/byte of the bits string.
+ * @param nb_bits__palu8 [out] receives the number of encoded bits in the bit string
+ * @param optional_found__pb [in/out] On input, the pointer target deterimes whether the
+ * decoding is optional. On function return, it tells whether the object was found (FLEA_TRUE) or not (FLEA_FALSE). 
+ *
+ */
+flea_err_t THR_flea_ber_dec_t__decode_short_bit_str_to_u32_optional(flea_ber_dec_t *dec__pt, flea_u32_t *val__pu32, flea_al_u8_t *nb_bits__palu8, flea_bool_t *optional_found__pb);
 
 flea_al_u8_t flea_ber_dec_t__get_nb_bits_from_bit_string(const flea_der_ref_t * bit_string__pt);
 
+/**
+ * throws if there are unused bits
+ */
 flea_err_t THR_flea_ber_dec__get_ref_to_bit_string_content_no_unused_bits(const flea_der_ref_t *raw_bit_str__pt, flea_der_ref_t *content__pt);
 
 flea_bool_t flea_ber_dec__is_tlv_null(flea_der_ref_t *ref__pt);
