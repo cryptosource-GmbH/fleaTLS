@@ -26,7 +26,7 @@ flea_err_t THR_flea_test_cert_path_generic(
     )
 {
 
-  flea_public_key_t target_pubkey__t = flea_publick_key_t__INIT_VALUE;
+  flea_public_key_t target_pubkey__t = flea_public_key_t__INIT_VALUE;
   const flea_bool_t is_valid_chain = FLEA_TRUE;
   flea_x509_cert_ref_t cert_refs[20] = { {.is_trusted__b = 0 } }; // TODO: THIS WILL CHANGE
   flea_u32_t cert_ref_pos = 0;

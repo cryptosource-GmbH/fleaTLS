@@ -110,10 +110,16 @@ typedef enum
    * At least one of the issuer DNs of the CRL and the checked certificate does not match the 
    * subject DN of the issuer of both.
    */
-  FLEA_ERR_X509_CRL_NAMES_DONT_MATCH             = 0x00D7,
+  FLEA_ERR_X509_CRL_NAMES_DONT_MATCH                  = 0x00D7,
   
   FLEA_ERR_X509_CRL_NEXT_UPDATE_PASSED                = 0x00D8,
   FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN                = 0x00D9,
+
+  /**
+   * The CRL is issued for the wrong type of certificate according to the
+   * Issuing Distribution Point CRL Extension.
+   */
+  FLEA_ERR_X509_UNSUITABLE_CRL                        = 0x00DA,
 
 	FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS									= 0x00E0,
 	FLEA_ERR_CERT_PATH_NOT_FOUND 												= 0x00E1,
