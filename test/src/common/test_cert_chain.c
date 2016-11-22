@@ -307,7 +307,7 @@ FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) -1, &time__t)
  {
   FLEA_THROW("error when verifying RSA signed cert chain", err);
  }
-#else 
+#else
  if(!err)
  {
    // TODO: not yet consistent that this must cause an error
@@ -315,7 +315,7 @@ FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) -1, &time__t)
  }
 #endif
 FLEA_THR_FIN_SEC(
-   flea_cert_chain_t__dtor(&cert_chain__t); 
+   flea_cert_chain_t__dtor(&cert_chain__t);
     );
 
 }
@@ -370,7 +370,7 @@ FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) -1, &time__t)
  }
 
 FLEA_THR_FIN_SEC(
-   flea_cert_chain_t__dtor(&cert_chain__t); 
+   flea_cert_chain_t__dtor(&cert_chain__t);
     );
 
 }
