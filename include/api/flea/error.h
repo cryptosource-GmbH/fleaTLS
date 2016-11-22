@@ -87,6 +87,33 @@ typedef enum
    * encoding.
    */
   FLEA_ERR_X509_INV_ECC_POINT_ENCODING                = 0x00D2,
+  /**
+   * An unsupported critical CRL extension was encountered.
+   */
+  FLEA_ERR_X509_UNSUPP_CRIT_CRL_EXT                   = 0x00D3,
+  /**
+   * A Delta CRL, which is not supported by flea, was encountered.
+   */
+  FLEA_ERR_X509_UNSUPP_DELTA_CRL                      = 0x00D4,
+  /**
+   * An indirect CRL, which is not supported by flea, was encountered.
+   */
+  FLEA_ERR_X509_UNSUPP_INDIR_CRL                      = 0x00D5,
+
+  /**
+   * In the Issuing Distribution Point CRL Extension, onlySomeReasons was
+   * specified and did not include all reasons. This is not supported by flea.
+   */
+  FLEA_ERR_X509_CRL_INCOMPL_REASONS                   = 0x00D6,
+
+  /**
+   * At least one of the issuer DNs of the CRL and the checked certificate does not match the 
+   * subject DN of the issuer of both.
+   */
+  FLEA_ERR_X509_CRL_NAMES_DONT_MATCH             = 0x00D7,
+  
+  FLEA_ERR_X509_CRL_NEXT_UPDATE_PASSED                = 0x00D8,
+  FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN                = 0x00D9,
 
 	FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS									= 0x00E0,
 	FLEA_ERR_CERT_PATH_NOT_FOUND 												= 0x00E1,

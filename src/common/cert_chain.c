@@ -211,8 +211,10 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
       flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
       // verify against subsequent certificate
       FLEA_CCALL(THR_flea_x509_verify_cert_ref_signature_inherited_params(&cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i]], &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i+1]], &returned_params__rcu8, inherited_params_to_use__prcu8));
+      // TODO: check revocation. current "inherited params" are for the issuer
       if(returned_params__rcu8.len__dtl)
       {
+        // these are the params for the subject cert
         inherited_params__rcu8 = returned_params__rcu8;
       }
       //printf("validated signature OK\n");

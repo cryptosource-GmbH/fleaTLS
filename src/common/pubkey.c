@@ -375,6 +375,9 @@ flea_bool_t dummy;
 return THR_flea_public_key_t__ctor_inherited_params(key__pt, key_type, key_as_bit_string_tlv__prcu8, encoded_params__prcu8, NULL, &dummy);
 }
 
+// TODO: MAKE BOOL RESULT ARG optional (i.e. two versions of the function)
+// Better: make this a field of the resulting key! ?? (not real relevant for key
+// once constructed)
 flea_err_t THR_flea_public_key_t__ctor_cert_inherited_params(flea_public_key_t* key__pt, const flea_x509_cert_ref_t *cert_ref__pt, const flea_ref_cu8_t *inherited_params_mbn__cprcu8, flea_bool_t *are_keys_params_implicit__pb)
 {
 

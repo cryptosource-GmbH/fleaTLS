@@ -80,7 +80,8 @@ flea_err_t THR_flea_mac_ctx_t__update(flea_mac_ctx_t* ctx, const flea_u8_t* dta,
  * Finalize a MAC computation.
  *
  * @param ctx pointer to the context object to use
- * @param result pointer to the memory area where to store the MAC value
+ * @param result pointer to the memory area where to store the MAC value, needs
+ * to have at least FLEA_MAC_MAX_OUTPUT_LENGTH bytes allocated
  * @param result_len the caller must provide a pointer to a value representing
  * the available length of result, upon function return this value will be
  * updated to the number of bytes written to result
@@ -109,7 +110,8 @@ flea_err_t THR_flea_mac_ctx_t__final_verify(flea_mac_ctx_t* ctx, const flea_u8_t
  * @param key_len length of key
  * @param dta pointer to the data to be authenticated
  * @param dta_len length of dta
- * @param result pointer to the memory area where to store the MAC value
+ * @param result pointer to the memory area where to store the MAC value, needs
+ * to have at least FLEA_MAC_MAX_OUTPUT_LENGTH bytes allocated
  * @param result_len the caller must provide a pointer to a value representing
  * the available length of result, upon function return this value will be
  * updated to the number of bytes written to result

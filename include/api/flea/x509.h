@@ -8,7 +8,6 @@
 #include "flea/ber_dec.h"
 
 
-// TODO: RENAME FROM BITP TO MASK!
 #define FLEA_ASN1_KEY_USAGE_MASK_digital_signature (1 << 15)
 #define FLEA_ASN1_KEY_USAGE_MASK_content_commitment (1 << 14)  /* aka nonRepudiation */
 #define FLEA_ASN1_KEY_USAGE_MASK_key_encipherment (1 << 13)
@@ -188,4 +187,6 @@ flea_bool_t flea_x509_has_key_usages(flea_x509_cert_ref_t *cert_ref__pt, flea_u1
 flea_err_t THR_flea_x509__parse_algid_ref(flea_x509_algid_ref_t *algid_ref__pt, flea_ber_dec_t *dec__pt);
 
 flea_err_t THR_flea_x509__parse_dn(flea_x509_dn_ref_t *dn_ref__pt, flea_ber_dec_t *dec__pt);
+
+flea_err_t THR_flea_x509__process_alg_ids(flea_x509_algid_ref_t* tbs_ref__pt, const flea_x509_algid_ref_t* outer_ref__pt);
 #endif /* h-guard */
