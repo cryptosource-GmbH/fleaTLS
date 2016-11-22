@@ -120,6 +120,8 @@ typedef enum
    * Issuing Distribution Point CRL Extension.
    */
   FLEA_ERR_X509_UNSUITABLE_CRL                        = 0x00DA,
+  FLEA_ERR_X509_CERT_REV_STAT_UNDET                   = 0x00DB,
+  FLEA_ERR_X509_CERT_REVOKED                          = 0x00DC,
 
 	FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS									= 0x00E0,
 	FLEA_ERR_CERT_PATH_NOT_FOUND 												= 0x00E1,

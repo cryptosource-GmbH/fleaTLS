@@ -85,7 +85,7 @@ flea_err_t THR_flea_test_cert_path_generic(
 
   }
   FLEA_CCALL(THR_flea_asn1_parse_utc_time(validation_date_utctime, validation_date_utctime_len, &time__t));
-
+  flea_cert_chain_t__disable_revocation_checking(&cert_chain__t);
   err = THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key(&cert_chain__t, &time__t, &target_pubkey__t);
   if(is_valid_chain)
   {

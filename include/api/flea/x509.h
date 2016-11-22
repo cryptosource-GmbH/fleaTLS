@@ -47,9 +47,9 @@ typedef struct
   flea_u8_t hours;
   flea_u8_t minutes;
   flea_u8_t seconds;
-  char offset;
+  /*char offset;
   flea_u8_t hours_offset;
-  flea_u8_t minutes_offest;
+  flea_u8_t minutes_offest;*/
 } flea_gmt_time_t;
 
 

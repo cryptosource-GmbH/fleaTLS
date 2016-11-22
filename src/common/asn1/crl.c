@@ -120,7 +120,7 @@ static flea_err_t THR_flea_crl__parse_extensions(flea_ber_dec_t *dec__pt, flea_b
       );
 }
 
-flea_err_t THR_flea_crl__check_revocation_status(const flea_x509_cert_ref_t *subject__pt, const flea_x509_cert_ref_t *issuer__pt, const flea_u8_t *crl_der__pcu8, flea_dtl_t crl_der_len__dtl, const flea_gmt_time_t *verification_date__pt, flea_bool_t is_ca_cert__b, const flea_ref_cu8_t *inherited_params_mbn__cprcu8)
+static flea_err_t THR_flea_crl__update_revocation_status_from_crl(const flea_x509_cert_ref_t *subject__pt, const flea_x509_cert_ref_t *issuer__pt, const flea_u8_t *crl_der__pcu8, flea_dtl_t crl_der_len__dtl, const flea_gmt_time_t *verification_date__pt, flea_bool_t is_ca_cert__b, const flea_ref_cu8_t *inherited_params_mbn__cprcu8, flea_revocation_status_e *rev_stat__pe, flea_gmt_time_t *latest_this_update__pt)
 {
 
   FLEA_DECL_OBJ(source__t, flea_data_source_t);
@@ -161,9 +161,24 @@ flea_err_t THR_flea_crl__check_revocation_status(const flea_x509_cert_ref_t *sub
   FLEA_CCALL(THR_flea_asn1_parse_gmt_time(&dec__t, &this_update__t));
   FLEA_CCALL(THR_flea_asn1_parse_gmt_time(&dec__t, &next_update__t));
 
-  if(1 == flea_asn1_cmp_utc_time(verification_date__pt, &next_update__t))
+  if(flea_rcu8_cmp(&crl_issuer_ref__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t) ||
+      flea_rcu8_cmp(&subject__pt->issuer__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t))
   {
-    FLEA_THROW("CRL is not current", FLEA_ERR_X509_CRL_NEXT_UPDATE_PASSED);
+    FLEA_THROW("DN's in subject/issuer/crl do not match as required", FLEA_ERR_X509_CRL_NAMES_DONT_MATCH); 
+  }
+  if(issuer__pt->extensions__t.key_usage__t.is_present__u8)
+  {
+    if(!(issuer__pt->extensions__t.key_usage__t.purposes__u16 & FLEA_ASN1_KEY_USAGE_MASK_crl_sign))
+    {
+      FLEA_THROW("CRL issuer has key usage extension without the CRLSign bit set", FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN);
+    }
+  }
+  if((1 == flea_asn1_cmp_utc_time(verification_date__pt, &next_update__t)) ||
+    (1 == flea_asn1_cmp_utc_time(latest_this_update__pt, &this_update__t)))
+  {
+    /* outdated revocation information is not used, no change to revocation status */
+    FLEA_THR_RETURN(); 
+    //FLEA_THROW("CRL is not current", FLEA_ERR_X509_CRL_NEXT_UPDATE_PASSED);
   }
   
   FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_UNIVERSAL, FLEA_ASN1_SEQUENCE), &have_revoked_certs__b)); // revoked certs seq
@@ -201,23 +216,11 @@ flea_err_t THR_flea_crl__check_revocation_status(const flea_x509_cert_ref_t *sub
   /* closing the tbs */
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
 
-  if(flea_rcu8_cmp(&crl_issuer_ref__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t) ||
-      flea_rcu8_cmp(&subject__pt->issuer__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t))
-  {
-    FLEA_THROW("DN's in subject/issuer/crl do not match as required", FLEA_ERR_X509_CRL_NAMES_DONT_MATCH); 
-  }
-  if(issuer__pt->extensions__t.key_usage__t.is_present__u8)
-  {
-    if(!(issuer__pt->extensions__t.key_usage__t.purposes__u16 & FLEA_ASN1_KEY_USAGE_MASK_crl_sign))
-    {
-      FLEA_THROW("CRL issuer has key usage extension without the CRLSign bit set", FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN);
-    }
-  }
-  
-FLEA_CCALL(THR_flea_x509__parse_algid_ref(&algid_ref_2__t, &dec__t));
-FLEA_CCALL(THR_flea_x509__process_alg_ids(&algid_ref_1__t, &algid_ref_2__t));
-FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, BIT_STRING), &crl_signature_as_bit_string__rcu8));    
-FLEA_CCALL(THR_flea_public_key_t__ctor_cert_inherited_params(&pubkey__t, issuer__pt, inherited_params_mbn__cprcu8, &dummy__b));
+
+  FLEA_CCALL(THR_flea_x509__parse_algid_ref(&algid_ref_2__t, &dec__t));
+  FLEA_CCALL(THR_flea_x509__process_alg_ids(&algid_ref_1__t, &algid_ref_2__t));
+  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, BIT_STRING), &crl_signature_as_bit_string__rcu8));    
+  FLEA_CCALL(THR_flea_public_key_t__ctor_cert_inherited_params(&pubkey__t, issuer__pt, inherited_params_mbn__cprcu8, &dummy__b));
 
   FLEA_CCALL(THR_flea_ber_dec__get_ref_to_bit_string_content_no_unused_bits(&crl_signature_as_bit_string__rcu8, &sig_content__rcu8));
   FLEA_CCALL( THR_flea_public_key_t__verify_signature_use_sigalg_id(
@@ -226,6 +229,17 @@ FLEA_CCALL(THR_flea_public_key_t__ctor_cert_inherited_params(&pubkey__t, issuer_
         &tbs__rcu8,
         &sig_content__rcu8
         ));
+  
+  *latest_this_update__pt = this_update__t;
+  /* begin nothrowing section */
+  if(is_cert_revoked)
+  {
+    *rev_stat__pe = flea_revstat_revoked;
+  }
+  else
+  {
+    *rev_stat__pe = flea_revstat_good;
+  }
 
 
  FLEA_THR_FIN_SEC(
@@ -234,4 +248,31 @@ FLEA_CCALL(THR_flea_public_key_t__ctor_cert_inherited_params(&pubkey__t, issuer_
       flea_public_key_t__dtor(&pubkey__t);
      );
 
+}
+
+flea_err_t THR_flea_crl__check_revocation_status(const flea_x509_cert_ref_t *subject__pt, const flea_x509_cert_ref_t *issuer__pt, const flea_ref_cu8_t *crl_der__cprcu8, flea_al_u16_t nb_crls__alu16,  const flea_gmt_time_t *verification_date__pt, flea_bool_t is_ca_cert__b, const flea_ref_cu8_t *inherited_params_mbn__cprcu8)
+{
+  flea_al_u16_t i;
+  flea_revocation_status_e revstat = flea_revstat_undetermined;
+  const flea_u8_t indet_date[] = "000000000000Z";
+  flea_gmt_time_t latest_this_update__t;
+
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_asn1_parse_date(flea_asn1_utc_time, indet_date, sizeof(indet_date)-1, &latest_this_update__t));
+  for(i = 0; i < nb_crls__alu16; i++)
+  {
+    THR_flea_crl__update_revocation_status_from_crl(subject__pt, issuer__pt, crl_der__cprcu8[i].data__pcu8,  crl_der__cprcu8[i].len__dtl, verification_date__pt, is_ca_cert__b, inherited_params_mbn__cprcu8, &revstat, &latest_this_update__t);
+    /* ignore potential errors. called function does not modify the status values in
+     * this case */
+  }
+  if(revstat == flea_revstat_revoked)
+  {
+    FLEA_THROW("certificate revoked", FLEA_ERR_X509_CERT_REVOKED);
+  }
+  else if(revstat == flea_revstat_undetermined)
+  {
+    FLEA_THROW("certificate's revocation status cannot be determined", FLEA_ERR_X509_CERT_REV_STAT_UNDET);
+  }
+  // TODO: INVOKE CALLBACK WITH CERTS DP-URL AND PERFORM ONE MORE CALL TO UPDATE_REV_STAT 
+  FLEA_THR_FIN_SEC_empty();
 }
