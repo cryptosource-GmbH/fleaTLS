@@ -106,6 +106,10 @@ static flea_err_t THR_flea_crl__parse_extensions(flea_ber_dec_t *dec__pt, flea_b
       }
       FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&cont_dec__t)); // TODO: REMOVE?
     }
+    else if(critical__b)
+    {
+      FLEA_THROW("unsupported critical CRL extension", FLEA_ERR_X509_UNSUPP_CRIT_CRL_EXT);
+    }
 
     flea_ber_dec_t__dtor(&cont_dec__t); 
     flea_data_source_t__dtor(&source__t);
@@ -174,14 +178,16 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(const flea_x50
     }
   }
   if((1 == flea_asn1_cmp_utc_time(verification_date__pt, &next_update__t)) ||
-    (1 == flea_asn1_cmp_utc_time(latest_this_update__pt, &this_update__t)))
+    (-1 == flea_asn1_cmp_utc_time(verification_date__pt, &this_update__t)) ||
+    (1 == flea_asn1_cmp_utc_time(latest_this_update__pt, &this_update__t))
+    )
   {
-    /* outdated revocation information is not used, no change to revocation status */
+    /* outdated (or not yet valid) revocation information is not used, no change to revocation status */
     FLEA_THR_RETURN(); 
     //FLEA_THROW("CRL is not current", FLEA_ERR_X509_CRL_NEXT_UPDATE_PASSED);
   }
-  
-  FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_UNIVERSAL, FLEA_ASN1_SEQUENCE), &have_revoked_certs__b)); // revoked certs seq
+ // TODO: CHECK WHY ERROR WHEN "| UNIVERSAL" in 1st MAKE_CFT arg
+  FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONSTRUCTED, FLEA_ASN1_SEQUENCE), &have_revoked_certs__b)); // revoked certs seq
   if(have_revoked_certs__b)
   {
     while(flea_ber_dec_t__has_current_more_data(&dec__t))
@@ -205,7 +211,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(const flea_x50
     /* close revokedCertificates */
     FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(&dec__t));
   } 
-  FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional(&dec__t, 3, FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC, &have_extensions__b));
+  FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional(&dec__t, 0, FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC, &have_extensions__b));
   if(have_extensions__b)
   {
     FLEA_CCALL(THR_flea_crl__parse_extensions(&dec__t, is_ca_cert__b));
