@@ -250,7 +250,9 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(const flea_x50
 
  FLEA_THR_FIN_SEC(
       flea_data_source_t__dtor(&source__t); 
+      flea_data_source_t__dtor(&source_tbs__t); 
       flea_ber_dec_t__dtor(&dec__t);
+      flea_ber_dec_t__dtor(&dec_tbs__t);
       flea_public_key_t__dtor(&pubkey__t);
      );
 
