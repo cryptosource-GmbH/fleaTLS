@@ -94,7 +94,7 @@ typedef struct
 } flea_public_key_t;
 
 
-#define flea_publick_key_t__INIT_VALUE {.key_bit_size__u16 = 0 }
+#define flea_public_key_t__INIT_VALUE {.key_bit_size__u16 = 0 }
 
 void flea_public_key_t__dtor(flea_public_key_t *key__pt);
 

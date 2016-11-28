@@ -11,6 +11,7 @@
 #include "flea/error_handling.h"
 #include "flea/ber_dec.h"
 #include "flea/x509.h"
+#include "flea/crl.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
 #define END_OF_COLL 0xFFFF
@@ -176,8 +177,6 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
       {
         m_path__u16 = FLEA_MIN(basic_constraints__pt->path_len__u16, m_path__u16);
       }
-      // TODO: PARAMETER INHERITANCE FROM PREVIOUS
-      // HERE, ENSURE THAT SUBJECT PUBLIC KEY ALGO MATCHES TO THE PREVIOUS IN CHAIN
     }
 
     /** flea does not check the TA to be a CA **/
@@ -202,23 +201,32 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
   // TODO: INVERT ORDER AND IMPLEMENT PARAMETER INHERITANCE
   inherited_params__rcu8.data__pcu8 = NULL;
   inherited_params__rcu8.len__dtl = 0;
-  for(i = (flea_s32_t)(chain_len__alu16 - 2); i > 0; i--)
+  for(i = (flea_s32_t)(chain_len__alu16 - 2); i >= 0; i--)
   //for(i = 0; i < (flea_s32_t)(chain_len__alu16 - 1); i++)
   {
+
+    flea_bool_t is_ca_cert__b = (i != 0) ? FLEA_TRUE : FLEA_FALSE;
+    flea_x509_cert_ref_t *subject__pt = &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i]];
+    flea_x509_cert_ref_t *issuer__pt = &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i+1]];
     flea_ref_cu8_t returned_params__rcu8;
-    //if(i != (flea_s32_t)(chain_len__alu16 -  1))
+    flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
+
+    // verify against subsequent certificate
+    FLEA_CCALL(THR_flea_x509_verify_cert_ref_signature_inherited_params(subject__pt, issuer__pt, &returned_params__rcu8, inherited_params_to_use__prcu8));
+    /* check revocation. current "inherited params" are for the issuer */
+    if(cert_chain__pt->perform_revocation_checking__b)
     {
-      flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
-      // verify against subsequent certificate
-      FLEA_CCALL(THR_flea_x509_verify_cert_ref_signature_inherited_params(&cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i]], &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i+1]], &returned_params__rcu8, inherited_params_to_use__prcu8));
-      // TODO: check revocation. current "inherited params" are for the issuer
-      if(returned_params__rcu8.len__dtl)
-      {
-        // these are the params for the subject cert
-        inherited_params__rcu8 = returned_params__rcu8;
-      }
-      //printf("validated signature OK\n");
+      FLEA_CCALL(THR_flea_crl__check_revocation_status(subject__pt, issuer__pt, cert_chain__pt->crl_collection__rcu8, cert_chain__pt->nb_crls__u16, compare_time__pt,  is_ca_cert__b, inherited_params_to_use__prcu8)); 
     }
+    if(returned_params__rcu8.len__dtl)
+    {
+      // these are the params for the subject cert
+      inherited_params__rcu8 = returned_params__rcu8;
+      // TODO: 
+      // HERE, ENSURE THAT SUBJECT PUBLIC KEY ALGO MATCHES TO THE PREVIOUS IN CHAIN IF PARAMETER INHERITANCE ACUTALLY OCCURS
+    }
+    //printf("validated signature OK\n");
+
   }
   if(key_to_construct_mbn__pt)
   {
@@ -230,8 +238,12 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
   FLEA_THR_FIN_SEC_empty();
 }
 
+void flea_cert_chain_t__disable_revocation_checking(flea_cert_chain_t *cert_chain__pt)
+{
+  cert_chain__pt->perform_revocation_checking__b = FLEA_FALSE;
+}
 
-flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time__pt)
+flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain(flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time__pt)
 {
   return THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key(cert_chain__pt, time__pt, NULL);
 }
@@ -424,8 +436,22 @@ flea_err_t THR_flea_cert_chain_t__ctor(flea_cert_chain_t *chain__pt, flea_x509_c
   //FLEA_ALLOC_MEM(chain__pt->cert_collection__pt, FLEA_MAX_CERT_COLL...);
   FLEA_ALLOC_MEM_ARR(chain__pt->chain__bu16, FLEA_MAX_CERT_CHAIN_DEPTH);
 #endif
-
+  chain__pt->nb_crls__u16 = 0;
+  chain__pt->crl_collection_allocated__u16 = FLEA_MAX_CERT_COLLECTION_NB_CRLS;
+  chain__pt->perform_revocation_checking__b = FLEA_TRUE;
   FLEA_CCALL(THR_flea_cert_chain_t__add_cert_without_trust_status(chain__pt, target_cert__pt));
+  FLEA_THR_FIN_SEC_empty(); 
+}
+
+flea_err_t THR_flea_cert_chain_t__add_crl(flea_cert_chain_t* chain__pt, const flea_ref_cu8_t *crl_der__cprcu8)
+{
+  FLEA_THR_BEG_FUNC();
+  if(chain__pt->nb_crls__u16 == chain__pt->crl_collection_allocated__u16) 
+  {
+    FLEA_THROW("crl capacity exceeded", FLEA_ERR_BUFF_TOO_SMALL);
+  }
+  chain__pt->crl_collection__rcu8[chain__pt->nb_crls__u16] = *crl_der__cprcu8;
+  chain__pt->nb_crls__u16++;
   FLEA_THR_FIN_SEC_empty(); 
 }
 

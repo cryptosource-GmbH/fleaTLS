@@ -11,15 +11,7 @@ extern "C" {
 #endif
 
 #define FLEA_MAX_CERT_COLLECTION_SIZE 20
-/*
-typedef struct 
-{
- flea_x509_cert_ref_t* current__pt; 
- flea_x509_cert_ref_t* issuer__pt;
- flea_x509_cert_ref_t* issued__pt;
-  
-} flea_cert_chain_element_t;
-*/
+#define FLEA_MAX_CERT_COLLECTION_NB_CRLS 20
 
 // TODO: CERT COLLECTION AS EXTRA TYPE WHICH IS CONSTRUCTED BY THE USER
 // HE NEVER NEEDS TO SEE CERT CHAIN
@@ -29,7 +21,11 @@ typedef struct
 {
   // TODO: cert_collection of type encapsulating cert_ref, having trusted__b,
   // valid/invalid issuer_sigs
-   
+  // TODO: IMPLEMENT DYNAMIC ALLOCATION FOR HEAP MODE
+  flea_ref_cu8_t crl_collection__rcu8[FLEA_MAX_CERT_COLLECTION_NB_CRLS]; 
+  flea_u16_t nb_crls__u16;
+  flea_bool_t perform_revocation_checking__b;
+  flea_u16_t crl_collection_allocated__u16;
   flea_x509_cert_ref_t cert_collection__pt[FLEA_MAX_CERT_COLLECTION_SIZE];
   flea_u16_t cert_collection_size__u16;
   flea_u16_t allocated_chain_len__u16;
@@ -51,6 +47,10 @@ void flea_cert_chain_t__dtor(flea_cert_chain_t *chain__pt);
 //void flea_cert_chain_element_t__dtor(flea_cert_chain_element_t *element__pt);
 
 flea_err_t THR_flea_cert_chain_t__ctor(flea_cert_chain_t *chain__pt, flea_x509_cert_ref_t *target_cert__pt);
+
+void flea_cert_chain_t__disable_revocation_checking(flea_cert_chain_t *cert_chain__pt);
+
+flea_err_t THR_flea_cert_chain_t__add_crl(flea_cert_chain_t* chain__pt, const flea_ref_cu8_t *crl_der__cprcu8);
 
 flea_err_t THR_flea_cert_chain_t__add_cert_without_trust_status(flea_cert_chain_t* chain__pt, const flea_x509_cert_ref_t * cert_ref__pt);
 

@@ -301,6 +301,7 @@ FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&issuer, flea_test_cert_issuer_of_tls_
 FLEA_CCALL(THR_flea_cert_chain_t__ctor(&cert_chain__t, &subject));
 FLEA_CCALL(THR_flea_cert_chain_t__add_trust_anchor_cert(&cert_chain__t, &issuer));
 FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) -1, &time__t));
+flea_cert_chain_t__disable_revocation_checking(&cert_chain__t);
  err = THR_flea_cert_chain__build_and_verify_cert_chain(&cert_chain__t, &time__t);
 #if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
  if(err)

@@ -17,6 +17,7 @@ extern "C" {
   // TODO: MAKE THIS INTERNAL AS LONG AS THE API IS NOT STABLE
 #define FLEA_ASN1_UNIVERSAL_PRIMITIVE 0x00
 #define FLEA_ASN1_CONTEXT_SPECIFIC    0x80
+  // TODO: application and universal are switched!!!
 #define FLEA_ASN1_UNIVERSAL           0x40
 #define FLEA_ASN1_APPLICATION         0x00
 #define FLEA_ASN1_CONSTRUCTED         0x20

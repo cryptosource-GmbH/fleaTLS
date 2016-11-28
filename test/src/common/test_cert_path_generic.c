@@ -21,12 +21,16 @@ flea_err_t THR_flea_test_cert_path_generic(
     flea_u8_t **cert_ptrs,
     flea_u32_t *cert_lens,
     flea_u32_t nb_certs,
+    flea_u8_t **crl_ptrs,
+    flea_u32_t *crl_lens,
+    flea_u32_t nb_crls,
     const flea_u8_t* validation_date_utctime, 
-    flea_al_u16_t validation_date_utctime_len
+    flea_al_u16_t validation_date_utctime_len,
+    flea_bool_t disable_revocation_checking
     )
 {
 
-  flea_public_key_t target_pubkey__t = flea_publick_key_t__INIT_VALUE;
+  flea_public_key_t target_pubkey__t = flea_public_key_t__INIT_VALUE;
   const flea_bool_t is_valid_chain = FLEA_TRUE;
   flea_x509_cert_ref_t cert_refs[20] = { {.is_trusted__b = 0 } }; // TODO: THIS WILL CHANGE
   flea_u32_t cert_ref_pos = 0;
@@ -84,8 +88,23 @@ flea_err_t THR_flea_test_cert_path_generic(
 
 
   }
-  FLEA_CCALL(THR_flea_asn1_parse_utc_time(validation_date_utctime, validation_date_utctime_len, &time__t));
+  while(nb_crls)
+  {
+    flea_u32_t i;
+    flea_rng__randomize((flea_u8_t*)&i, sizeof(i));
+    i %= nb_crls;
+    flea_ref_cu8_t crl_ref = {crl_ptrs[i], crl_lens[i] };
+    FLEA_CCALL(THR_flea_cert_chain_t__add_crl(&cert_chain__t, &crl_ref));
 
+      crl_ptrs[i] = crl_ptrs[nb_crls - 1];
+      crl_lens[i] = crl_lens[nb_crls - 1];
+      nb_crls--;
+  }
+  FLEA_CCALL(THR_flea_asn1_parse_utc_time(validation_date_utctime, validation_date_utctime_len, &time__t));
+  if(disable_revocation_checking)
+  {
+    flea_cert_chain_t__disable_revocation_checking(&cert_chain__t);
+  }
   err = THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key(&cert_chain__t, &time__t, &target_pubkey__t);
   if(is_valid_chain)
   {

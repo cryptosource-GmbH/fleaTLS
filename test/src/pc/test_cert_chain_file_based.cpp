@@ -23,6 +23,13 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(std::string con
   std::vector<std::string> trust_anchor_files = get_entries_of_dir(dir_path + "/trust_anchors", dir_entries_with_path);
   std::vector<std::string> cert_files = get_entries_of_dir(dir_path + "/certs", dir_entries_with_path);
   std::vector<std::string> target_cert_files = get_entries_of_dir(dir_path + "/target_cert", dir_entries_with_path);
+  flea_bool_t disable_revocation_checking = (false == is_dir_existent(dir_path + "/crls")) ? FLEA_TRUE : FLEA_FALSE;
+  std::vector<std::string> crl_files;
+  if(!disable_revocation_checking)
+  {
+    crl_files = get_entries_of_dir(dir_path + "/crls", dir_entries_with_path);
+  }
+
   //property_set_t prop(dir_path + "/test.ini"); 
   FLEA_PRINTF_2_SWITCHED("using ini file %s\n", prop.get_filename().c_str());
   if(target_cert_files.size() != 1)
@@ -31,10 +38,13 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(std::string con
   }
   vector<vector<flea_u8_t>> anchors;
   vector<vector<flea_u8_t>> certs;
+  vector<vector<flea_u8_t>> crls;
   std::vector<flea_u8_t*> anchor_ptrs;
   std::vector<flea_u8_t*> cert_ptrs;
+  std::vector<flea_u8_t*> crl_ptrs;
   std::vector<flea_u32_t> anchor_lens;
   std::vector<flea_u32_t> cert_lens;
+  std::vector<flea_u32_t> crl_lens;
   // the others may well be empty
   vector<unsigned char> target_cert = read_bin_file(target_cert_files[0]);
   flea_err_t err;
@@ -52,12 +62,21 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(std::string con
     cert_ptrs.push_back(&certs[certs.size() - 1][0]);
     cert_lens.push_back(certs[certs.size() - 1].size());
   }
+  for(string crl_file: crl_files)
+  {
+    vector<unsigned char> crl = read_bin_file(crl_file);
+    crls.push_back(crl);
+    crl_ptrs.push_back(&crls[crls.size() - 1][0]);
+    crl_lens.push_back(crls[crls.size() - 1].size());
+  }
   string time_str = prop.get_property_as_string("date");
   err = THR_flea_test_cert_path_generic(
       &target_cert[0], target_cert.size(),
       &anchor_ptrs[0], &anchor_lens[0], anchor_ptrs.size(),
       &cert_ptrs[0], &cert_lens[0], cert_ptrs.size(),
-      (const flea_u8_t*)time_str.c_str(), time_str.size()
+      &crl_ptrs[0], &crl_lens[0], crl_ptrs.size(),
+      (const flea_u8_t*)time_str.c_str(), time_str.size(),
+      disable_revocation_checking
       ); 
   bool valid = prop.get_as_bool_default_true("valid");
   if(valid && err)
