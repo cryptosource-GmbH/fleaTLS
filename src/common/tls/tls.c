@@ -21,6 +21,9 @@
 #include "flea/hash.h"
 #include "flea/block_cipher.h"
 
+
+#include <stdio.h>
+
 flea_u8_t key_block[128]; // size for key block for aes256+sha256. will be moved from global scope into tls_context struct or something
 
 flea_u8_t trust_anchor[] = {0x30, 0x82, 0x03, 0x7f, 0x30, 0x82, 0x02, 0x67, 0xa0, 0x03, 0x02, 0x01, 0x02, 0x02, 0x09, 0x00, 0xfe, 0x12, 0x36, 0x42, 0xa1, 0xb6, 0xf7, 0x11, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b, 0x05, 0x00, 0x30, 0x56, 0x31, 0x0b, 0x30, 0x09, 0x06, 0x03, 0x55, 0x04, 0x06, 0x13, 0x02, 0x41, 0x55, 0x31, 0x13, 0x30, 0x11, 0x06, 0x03, 0x55, 0x04, 0x08, 0x0c, 0x0a, 0x53, 0x6f, 0x6d, 0x65, 0x2d, 0x53, 0x74, 0x61, 0x74, 0x65, 0x31, 0x21, 0x30, 0x1f, 0x06, 0x03, 0x55, 0x04, 0x0a, 0x0c, 0x18, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74, 0x20, 0x57, 0x69, 0x64, 0x67, 0x69, 0x74, 0x73, 0x20, 0x50, 0x74, 0x79, 0x20, 0x4c, 0x74, 0x64, 0x31, 0x0f, 0x30, 0x0d, 0x06, 0x03, 0x55, 0x04, 0x03, 0x0c, 0x06, 0x72, 0x6f, 0x6f, 0x74, 0x43, 0x41, 0x30, 0x1e, 0x17, 0x0d, 0x31, 0x36, 0x31, 0x31, 0x30, 0x31, 0x30, 0x38, 0x33, 0x39, 0x31, 0x33, 0x5a, 0x17, 0x0d, 0x31, 0x39, 0x30, 0x38, 0x32, 0x32, 0x30, 0x38, 0x33, 0x39, 0x31, 0x33, 0x5a, 0x30, 0x56, 0x31, 0x0b, 0x30, 0x09, 0x06, 0x03, 0x55, 0x04, 0x06, 0x13, 0x02, 0x41, 0x55, 0x31, 0x13, 0x30, 0x11, 0x06, 0x03, 0x55, 0x04, 0x08, 0x0c, 0x0a, 0x53, 0x6f, 0x6d, 0x65, 0x2d, 0x53, 0x74, 0x61, 0x74, 0x65, 0x31, 0x21, 0x30, 0x1f, 0x06, 0x03, 0x55, 0x04, 0x0a, 0x0c, 0x18, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74, 0x20, 0x57, 0x69, 0x64, 0x67, 0x69, 0x74, 0x73, 0x20, 0x50, 0x74, 0x79, 0x20, 0x4c, 0x74, 0x64, 0x31, 0x0f, 0x30, 0x0d, 0x06, 0x03, 0x55, 0x04, 0x03, 0x0c, 0x06, 0x72, 0x6f, 0x6f, 0x74, 0x43, 0x41, 0x30, 0x82, 0x01, 0x22, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01, 0x05, 0x00, 0x03, 0x82, 0x01, 0x0f, 0x00, 0x30, 0x82, 0x01, 0x0a, 0x02, 0x82, 0x01, 0x01, 0x00, 0xcf, 0xa5, 0x70, 0x42, 0x71, 0x64, 0xdf, 0xfa, 0x98, 0x43, 0x8a, 0x13, 0x5f, 0xe3, 0x7d, 0xed, 0x27, 0xff, 0x52, 0x3a, 0x6b, 0x7f, 0x0f, 0xd6, 0x80, 0xaa, 0xfd, 0x2e, 0xf9, 0xb7, 0xcf, 0x6b, 0x46, 0x72, 0x91, 0x95, 0x39, 0x44, 0xc1, 0xbf, 0x69, 0x9e, 0x65, 0xab, 0xbd, 0xa7, 0xe6, 0x3c, 0xfd, 0x12, 0x09, 0xa6, 0xda, 0x1e, 0xf4, 0x12, 0x9b, 0x0d, 0xd6, 0x5c, 0x6c, 0xdf, 0x64, 0x77, 0xfe, 0x35, 0x2d, 0xd9, 0xad, 0x99, 0xc1, 0x47, 0x31, 0xef, 0x95, 0x23, 0x38, 0x48, 0xd7, 0xa6, 0x84, 0x69, 0x6c, 0x4d, 0x37, 0xe8, 0x29, 0xd3, 0xb4, 0x68, 0x03, 0x19, 0xdc, 0xb1, 0xd1, 0xfd, 0xfb, 0x97, 0x61, 0x50, 0xe7, 0x2a, 0xa0, 0xfd, 0x7c, 0x8f, 0x51, 0x88, 0x0b, 0x5d, 0x74, 0xce, 0xb6, 0xa5, 0x65, 0x53, 0xb2, 0x0d, 0xdf, 0xb5, 0x7a, 0xe1, 0x3c, 0x98, 0x6e, 0x29, 0xa7, 0x90, 0x75, 0x13, 0xac, 0x22, 0x92, 0xdb, 0xe6, 0x8c, 0x6f, 0x32, 0xa7, 0x42, 0xa4, 0xa4, 0x5c, 0x04, 0xdb, 0x04, 0x95, 0x34, 0x13, 0xe0, 0xa1, 0x47, 0x00, 0x21, 0xf6, 0xa1, 0xa7, 0xaa, 0x0e, 0x97, 0xc5, 0x2b, 0x64, 0x00, 0x74, 0xdd, 0x57, 0xe3, 0x03, 0xe0, 0xb8, 0xc5, 0x4e, 0xe3, 0x3e, 0xf0, 0x33, 0x7d, 0x5e, 0x82, 0xda, 0xaa, 0x04, 0x0d, 0xdc, 0x80, 0x14, 0xaf, 0x30, 0x10, 0x9c, 0x5b, 0xb8, 0xd2, 0xb6, 0x76, 0x6c, 0x10, 0x27, 0xfd, 0x6e, 0xaa, 0xc2, 0x70, 0x7e, 0x0d, 0x37, 0x2c, 0x28, 0x81, 0x26, 0xc8, 0xeb, 0x7c, 0x4b, 0x8f, 0xda, 0x7b, 0x02, 0xb0, 0x51, 0x92, 0x3d, 0x3d, 0x5e, 0x53, 0xfa, 0xcb, 0x43, 0x4f, 0xef, 0x1e, 0x61, 0xe5, 0xb9, 0x2c, 0x08, 0x77, 0xff, 0x65, 0x77, 0x13, 0x4d, 0xd4, 0xcb, 0x2e, 0x7f, 0x9d, 0xe2, 0x1a, 0xc3, 0x19, 0x84, 0xb1, 0x52, 0x9d, 0x02, 0x03, 0x01, 0x00, 0x01, 0xa3, 0x50, 0x30, 0x4e, 0x30, 0x1d, 0x06, 0x03, 0x55, 0x1d, 0x0e, 0x04, 0x16, 0x04, 0x14, 0xb7, 0x52, 0x9d, 0x67, 0xd2, 0x32, 0x3f, 0x0c, 0x4d, 0xe3, 0xa2, 0xe8, 0x95, 0xfe, 0x23, 0x83, 0xbf, 0xaa, 0x17, 0x66, 0x30, 0x1f, 0x06, 0x03, 0x55, 0x1d, 0x23, 0x04, 0x18, 0x30, 0x16, 0x80, 0x14, 0xb7, 0x52, 0x9d, 0x67, 0xd2, 0x32, 0x3f, 0x0c, 0x4d, 0xe3, 0xa2, 0xe8, 0x95, 0xfe, 0x23, 0x83, 0xbf, 0xaa, 0x17, 0x66, 0x30, 0x0c, 0x06, 0x03, 0x55, 0x1d, 0x13, 0x04, 0x05, 0x30, 0x03, 0x01, 0x01, 0xff, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b, 0x05, 0x00, 0x03, 0x82, 0x01, 0x01, 0x00, 0x7b, 0x18, 0xad, 0x25, 0x86, 0x17, 0x93, 0x93, 0xcb, 0x01, 0xe1, 0x07, 0xce, 0xfa, 0x37, 0x96, 0x5f, 0x17, 0x95, 0x1d, 0x76, 0xf3, 0x04, 0x36, 0x81, 0x64, 0x78, 0x2a, 0xc2, 0xcc, 0xbd, 0x77, 0xf7, 0x59, 0xeb, 0x9a, 0xf7, 0xb3, 0xfc, 0x1a, 0x30, 0xfe, 0x6f, 0x6e, 0x02, 0xc6, 0x2d, 0x4d, 0x79, 0x25, 0xaf, 0x98, 0xb4, 0xab, 0x3e, 0x25, 0xfc, 0xef, 0x98, 0x26, 0x0f, 0x6a, 0x0a, 0x74, 0x5b, 0x4f, 0x3a, 0x6c, 0xd6, 0x42, 0x56, 0xd9, 0x25, 0x0a, 0x1e, 0x3a, 0x4c, 0x74, 0xe9, 0x28, 0xcf, 0x7d, 0xe9, 0x48, 0xdc, 0xd6, 0xf4, 0x23, 0xf7, 0x2e, 0xc9, 0x50, 0xb7, 0xad, 0x22, 0x9b, 0xdf, 0x60, 0xcf, 0x2f, 0x4b, 0x98, 0x79, 0x3d, 0x56, 0xf0, 0x03, 0xfd, 0xe1, 0x61, 0x12, 0xed, 0x44, 0xe8, 0x22, 0xce, 0x4d, 0x41, 0xe7, 0xd4, 0x9c, 0xf9, 0x12, 0x57, 0x12, 0xb0, 0x20, 0xb3, 0xfa, 0xf5, 0x09, 0x8b, 0xc6, 0x38, 0xc2, 0x31, 0x41, 0xe8, 0xf3, 0x1c, 0x9a, 0xb7, 0x87, 0x73, 0x64, 0x29, 0xc5, 0x0f, 0x8e, 0x2d, 0x80, 0xbd, 0x54, 0x16, 0x6d, 0xc2, 0xcd, 0x5f, 0x0c, 0x12, 0xe0, 0xd2, 0x6b, 0xce, 0x99, 0x53, 0x7b, 0xa8, 0x38, 0x4e, 0x17, 0xea, 0xc1, 0x70, 0x9b, 0x33, 0x39, 0xc2, 0x83, 0x11, 0xba, 0xbd, 0x9b, 0x79, 0x09, 0xc5, 0x01, 0xea, 0x2d, 0xc6, 0x56, 0xf2, 0x9a, 0x14, 0x68, 0x37, 0xb2, 0x28, 0xb0, 0x60, 0xf0, 0xc6, 0xf4, 0xa6, 0x1e, 0xeb, 0x2b, 0x1d, 0x0e, 0xa0, 0x58, 0xfc, 0xd8, 0x2c, 0x01, 0xa3, 0xcf, 0xae, 0xa8, 0x3b, 0x49, 0x9e, 0xad, 0x51, 0xe7, 0x08, 0x65, 0x8c, 0x5c, 0x33, 0x54, 0x04, 0x14, 0x48, 0xf1, 0x79, 0xab, 0x33, 0xf5, 0xd4, 0xe0, 0xef, 0x1a, 0x62, 0x13, 0x48, 0xda, 0x52, 0x3e, 0x02, 0x8f, 0x64, 0xba, 0x8e, 0xf1, 0x88};
@@ -143,11 +146,10 @@ typedef struct {
           public-key-encrypted PreMasterSecret pre_master_secret;
       } EncryptedPreMasterSecret;
 	*/
-	flea_u8_t premaster_secret[48];
+	flea_u8_t premaster_secret[256];
 	flea_u8_t* encrypted_premaster_secret;
-	flea_u8_t encrypted_premaster_secret_length;
+	flea_u16_t encrypted_premaster_secret_length;
 	flea_u8_t* ClientDiffieHellmanPublic;
-	flea_u16_t length;
 } ClientKeyExchange;
 
 typedef enum {CHANGE_CIPHER_SPEC_TYPE_CHANGE_CIPHER_SPEC = 1} CHANGE_CIPHER_SPEC_TYPE;
@@ -168,6 +170,120 @@ typedef struct {
 
 
 
+void P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u16_t seed_length, flea_u16_t res_length, flea_u8_t* data_out)
+{
+	flea_u16_t hash_len = 32;
+	flea_u16_t A_len;
+	if (seed_length > hash_len)
+	{
+		A_len = seed_length;
+	}
+	else
+	{
+		A_len = hash_len;
+	}
+	flea_u8_t A[A_len];
+	flea_u8_t A2[A_len];
+	flea_u8_t tmp_input[hash_len + seed_length];	//* TODO: check if this is ok. In C99 yes but can I rely on variable length arrays? */
+	flea_u8_t tmp_output[hash_len];
+
+	// A(0) = seed
+	memcpy(A, seed, seed_length);
+
+	// expand to length bytes
+	flea_u16_t current_length = 0;
+	flea_al_u8_t len = hash_len;
+	flea_err_t err;
+	flea_bool_t first = FLEA_TRUE;
+	while (current_length < res_length)
+	{
+		// A(i) = HMAC_hash(secret, A(i-1))
+		if (first)
+		{
+			err = THR_flea_mac__compute_mac(flea_hmac_sha256, A, A_len, secret, secret_length, A2, &len);
+		}
+		else
+		{
+			err = THR_flea_mac__compute_mac(flea_hmac_sha256, A, seed_length, secret, secret_length, A2, &len);
+		}
+
+		memcpy(A, A2, hash_len);
+
+		// calculate A(i) + seed
+		memcpy(tmp_input, A, hash_len);
+		memcpy(tmp_input+hash_len, seed, seed_length);
+
+		// + HMAC_hash(secret, A(i) + seed)
+		// concatenate to the result
+		err = THR_flea_mac__compute_mac(flea_hmac_sha256, tmp_input, hash_len+seed_length, secret, secret_length, tmp_output, &len);
+		if (current_length+hash_len < res_length)
+		{
+			memcpy(data_out+current_length, tmp_output, hash_len);
+		}
+		else
+		{
+			memcpy(data_out+current_length, tmp_output, res_length - current_length);
+		}
+		current_length += hash_len; 	// sha256 -> 32 bytes
+	}
+}
+/**
+      P_hash(secret, seed) = HMAC_hash(secret, A(1) + seed) +
+                             HMAC_hash(secret, A(2) + seed) +
+                             HMAC_hash(secret, A(3) + seed) + ...
+
+   where + indicates concatenation.
+
+   A() is defined as:
+      A(0) = seed
+      A(i) = HMAC_hash(secret, A(i-1))
+
+
+      PRF(secret, label, seed) = P_<hash>(secret, label + seed)
+
+	  P_Hash is Sha256 for all ciphers defined in RFC5246
+
+
+	  FinishedMessage:
+	  verify_data
+	           PRF(master_secret, finished_label, Hash(handshake_messages))
+	              [0..verify_data_length-1];
+*/
+// length: how long should the output be. 12 Octets = 96 Bits
+void PRF(flea_u8_t* secret, flea_u8_t secret_length, PRFLabel label, flea_u8_t* seed, flea_u16_t seed_length, flea_u16_t result_length, flea_u8_t* result) {
+	/**
+		TODO: no fixed sha256
+	*/
+	flea_u8_t client_finished[] = {99, 108, 105, 101, 110, 116, 032, 102, 105, 110, 105, 115, 104, 101, 100};
+	flea_u8_t master_secret[] = {109, 97, 115, 116, 101, 114, 32, 115, 101, 99, 114, 101, 116};
+	flea_u8_t key_expansion[] = {107, 101, 121, 32, 101, 120, 112, 97, 110, 115, 105, 111, 110};
+	flea_u8_t p_hash_seed[500];	// arbitrarily chosen: TODO change
+	flea_u16_t p_hash_seed_length;
+
+	switch (label) {
+		case PRF_LABEL_CLIENT_FINISHED:
+			memcpy(p_hash_seed, client_finished, sizeof(client_finished));
+			memcpy(p_hash_seed+sizeof(client_finished), seed, seed_length);
+			p_hash_seed_length = sizeof(client_finished) + seed_length;
+			break;
+		case PRF_LABEL_MASTER_SECRET:
+			memcpy(p_hash_seed, master_secret, sizeof(master_secret));
+			memcpy(p_hash_seed+sizeof(master_secret), seed, seed_length);
+			p_hash_seed_length = sizeof(master_secret) + seed_length;
+			break;
+		case PRF_LABEL_KEY_EXPANSION:
+			memcpy(p_hash_seed, key_expansion, sizeof(key_expansion));
+			memcpy(p_hash_seed+sizeof(key_expansion), seed, seed_length);
+			p_hash_seed_length = sizeof(key_expansion) + seed_length;
+			break;
+		case PRF_LABEL_SERVER_FINISHED: break;
+	}
+	P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result_length, result);
+}
+
+
+
+
 /*
 key_block = PRF(SecurityParameters.master_secret,
 				  "key expansion",
@@ -180,6 +296,7 @@ void generate_key_block(flea_u8_t* master_secret, flea_u8_t* client_random, flea
 	memcpy(seed+28, server_random, 28);
 
 	PRF(master_secret, 48, PRF_LABEL_KEY_EXPANSION, seed, 56, 128, key_block);
+
 }
 
 
@@ -503,7 +620,7 @@ void create_handshake_message(HandshakeType type, flea_u8_t *in, flea_u32_t leng
 
 flea_u32_t get_size_of_first_record(flea_u8_t* bytes, flea_u8_t length) {
 	if (length < 5) {
-		return; // TODO: error handling
+		return -1; // TODO: error handling
 	}
 	if (bytes[0] != 16 && bytes[1] != 3 && bytes[2] != 3)
 	{
@@ -518,14 +635,14 @@ flea_u32_t get_size_of_first_record(flea_u8_t* bytes, flea_u8_t length) {
 	return size+5;
 }
 
-void record_to_bytes(Record record, flea_u8_t *bytes, flea_u8_t *length)
+void record_to_bytes(Record record, flea_u8_t *bytes, flea_u16_t *length)
 {
 	flea_u16_t i=0;
 	bytes[i++] = record.content_type;
 	bytes[i++] = record.version.major;
 	bytes[i++] = record.version.minor;
 
-	if (record.length <= 256)
+	if (record.length < 256)
 	{
 		bytes[i++] = 0;
 		bytes[i++] = record.length;
@@ -533,8 +650,11 @@ void record_to_bytes(Record record, flea_u8_t *bytes, flea_u8_t *length)
 	else
 	{
 		// TODO check if correct (byte order?)
-		memcpy(bytes+i, &record.length, 2);
-		i += 2;
+
+		flea_u8_t *p = (flea_u8_t*)&record.length;
+		bytes[i++] = p[1];
+		bytes[i++] = p[0];
+
 	}
 
 	memcpy(bytes+i, record.data, record.length);
@@ -640,8 +760,6 @@ ClientKeyExchange create_client_key_exchange(flea_public_key_t* pubkey)
 	ClientKeyExchange key_ex;
 	flea_u8_t premaster_secret[48];
 
-	key_ex.length = 48;
-
 	premaster_secret[0] = 3;
 	premaster_secret[1] = 3;
 	key_ex.algorithm = KEY_EXCHANGE_ALGORITHM_RSA;
@@ -657,10 +775,10 @@ ClientKeyExchange create_client_key_exchange(flea_public_key_t* pubkey)
 	*/
 
 	// pubkey->key_bit_size__u16
-	flea_al_u16_t result_len = 2000;
-	flea_u8_t buf[2000];
+	flea_al_u16_t result_len = 256;
+	flea_u8_t buf[256];
 	//THR_flea_public_key_t__encrypt_message(*key__pt, pk_scheme_id__t, hash_id__t, message__pcu8, message_len__alu16, result__pu8, result_len__palu16);
-	flea_err_t err = THR_flea_public_key_t__encrypt_message(pubkey, flea_rsa_pkcs1_v1_5_encr, 0, &premaster_secret, sizeof(premaster_secret), buf, &result_len);
+	flea_err_t err = THR_flea_public_key_t__encrypt_message(pubkey, flea_rsa_pkcs1_v1_5_encr, 0, premaster_secret, sizeof(premaster_secret), buf, &result_len);
 
 	key_ex.encrypted_premaster_secret = calloc(result_len, sizeof(flea_u8_t));
 	memcpy(key_ex.encrypted_premaster_secret, buf, result_len);
@@ -668,14 +786,14 @@ ClientKeyExchange create_client_key_exchange(flea_public_key_t* pubkey)
 	return key_ex;
 }
 
-void client_key_exchange_to_bytes(ClientKeyExchange* key_ex, flea_u8_t *bytes, flea_u16_t* length)
+void client_key_exchange_to_bytes(ClientKeyExchange* key_ex, flea_u8_t *bytes, flea_u32_t* length)
 {
 	flea_u16_t i = 0;
-	flea_u8_t *p = (flea_u8_t*) &key_ex->length;
+	flea_u8_t *p = (flea_u8_t*) &key_ex->encrypted_premaster_secret_length;
 	bytes[i++] = p[1];
 	bytes[i++] = p[0];
 
-	for (flea_u8_t j=0; j<48; j++)
+	for (flea_u16_t j=0; j<key_ex->encrypted_premaster_secret_length; j++)
 	{
 		bytes[i++] = key_ex->encrypted_premaster_secret[j];
 	}
@@ -706,7 +824,7 @@ ClientHello create_hello_message()	{
 	flea_u8_t gmt_unix_time[4] = {0x00, 0x01, 0x02, 0x03};
 
 	flea_u8_t TLS_RSA_WITH_AES_256_CBC_SHA256[] = { 0x00, 0x3D };
-	flea_u8_t TLS_RSA_WITH_NULL_SHA256[] = { 0x00,0x3B };
+	//flea_u8_t TLS_RSA_WITH_NULL_SHA256[] = { 0x00,0x3B };
 	flea_u8_t* cipher_suites = calloc(2, sizeof(flea_u8_t));	// TODO deallocate
 
 	ClientHello hello;
@@ -754,11 +872,6 @@ void create_handshake(HandshakeMessage* handshake, flea_u8_t* data, flea_u32_t l
 
 
 
-
-void mac_then_encrypt_record_data(flea_u8_t* data_in, flea_u16_t data_in_len, flea_u8_t* data_out, flea_u16_t* data_out_len)
-{
-
-}
 
 /**
 struct {
@@ -850,8 +963,15 @@ void create_record(Record* record, flea_u8_t* data, flea_u32_t length, ContentTy
 		memcpy(client_write_key, key_block+64, 32);
 		memcpy(server_write_key, key_block+96, 32);
 
+		printf("CLIENT WRITE MAC KEY: ");
+		for (flea_u8_t k=0; k<32; k++)
+		{
+			printf("%02x ", client_write_mac_key[k]);
+		}
+		printf("\n");
+
 		// compute mac
-		flea_err_t err = THR_flea_mac__compute_mac(flea_hmac_sha256, client_write_mac_key, 32, data, length, mac, &mac_length);
+		flea_err_t err = THR_flea_mac__compute_mac(flea_hmac_sha256, client_write_mac_key, 32, data, length, mac, (flea_al_u8_t*)(&mac_length));
 		// compute IV ... TODO: xor with last plaintext block?
 		flea_rng__randomize(iv, iv_length);
 
@@ -874,135 +994,33 @@ void create_record(Record* record, flea_u8_t* data, flea_u32_t length, ContentTy
 
 		record->length = input_output_len;
 		record->data = calloc(input_output_len, sizeof(flea_u8_t));
-		memcpy(record->data, data, length);
+		memcpy(record->data, encrypted, record->length);
+		err = 0;	//DUMMY LINE FOR DEBUG
 	}
 
 }
 
 
-P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u16_t seed_length, flea_u16_t res_length, flea_u8_t* data_out)
-{
-	flea_mac_ctx_t mac_ctx;
-	flea_u16_t hash_len = 32;
-	flea_u16_t A_len;
-	if (seed_length > hash_len)
-	{
-		A_len = seed_length;
-	}
-	else
-	{
-		A_len = hash_len;
-	}
-	flea_u8_t A[A_len];
-	flea_u8_t A2[A_len];
-	flea_u8_t tmp_input[hash_len + seed_length];	//* TODO: check if this is ok. In C99 yes but can I rely on variable length arrays? */
-	flea_u8_t tmp_output[hash_len];
 
-	// A(0) = seed
-	memcpy(A, seed, seed_length);
-
-	// expand to length bytes
-	flea_u16_t current_length = 0;
-	flea_al_u8_t len;
-	flea_err_t err;
-	flea_bool_t first = FLEA_TRUE;
-	while (current_length < res_length)
-	{
-		// A(i) = HMAC_hash(secret, A(i-1))
-		if (first)
-		{
-			err = THR_flea_mac__compute_mac(flea_hmac_sha256, A, A_len, secret, secret_length, A2, &len);
-		}
-		else
-		{
-			err = THR_flea_mac__compute_mac(flea_hmac_sha256, A, seed_length, secret, secret_length, A2, &len);
-		}
-
-		memcpy(A, A2, hash_len);
-
-		// calculate A(i) + seed
-		memcpy(tmp_input, A, hash_len);
-		memcpy(tmp_input+hash_len, seed, seed_length);
-
-		// + HMAC_hash(secret, A(i) + seed)
-		// concatenate to the result
-		err = THR_flea_mac__compute_mac(flea_hmac_sha256, tmp_input, hash_len+seed_length, secret, secret_length, tmp_output, &len);
-		if (current_length+hash_len < res_length)
-		{
-			memcpy(data_out+current_length, tmp_output, hash_len);
-		}
-		else
-		{
-			memcpy(data_out+current_length, tmp_output, res_length - current_length);
-		}
-		current_length += hash_len; 	// sha256 -> 32 bytes
-	}
-}
-/**
-      P_hash(secret, seed) = HMAC_hash(secret, A(1) + seed) +
-                             HMAC_hash(secret, A(2) + seed) +
-                             HMAC_hash(secret, A(3) + seed) + ...
-
-   where + indicates concatenation.
-
-   A() is defined as:
-      A(0) = seed
-      A(i) = HMAC_hash(secret, A(i-1))
-
-
-      PRF(secret, label, seed) = P_<hash>(secret, label + seed)
-
-	  P_Hash is Sha256 for all ciphers defined in RFC5246
-
-
-	  FinishedMessage:
-	  verify_data
-	           PRF(master_secret, finished_label, Hash(handshake_messages))
-	              [0..verify_data_length-1];
-*/
-// length: how long should the output be. 12 Octets = 96 Bits
-void PRF(flea_u8_t* secret, flea_u8_t secret_length, PRFLabel label, flea_u8_t* seed, flea_u16_t seed_length, flea_u16_t result_length, flea_u8_t* result) {
-	/**
-		TODO: no fixed sha256
-	*/
-	flea_u8_t client_finished[] = {99, 108, 105, 101, 110, 116, 032, 102, 105, 110, 105, 115, 104, 101, 100};
-	flea_u8_t master_secret[] = {109, 97, 115, 116, 101, 114, 32, 115, 101, 99, 114, 101, 116};
-	flea_u8_t key_expansion[] = {107, 101, 121, 32, 101, 120, 112, 97, 110, 115, 105, 111, 110};
-	flea_u8_t p_hash_seed[500];	// arbitrarily chosen: TODO change
-	flea_u16_t p_hash_seed_length;
-
-	switch (label) {
-		case PRF_LABEL_CLIENT_FINISHED:
-			memcpy(p_hash_seed, client_finished, sizeof(client_finished));
-			memcpy(p_hash_seed+sizeof(client_finished), seed, seed_length);
-			p_hash_seed_length = sizeof(client_finished) + seed_length;
-			break;
-		case PRF_LABEL_MASTER_SECRET:
-			memcpy(p_hash_seed, master_secret, sizeof(master_secret));
-			memcpy(p_hash_seed+sizeof(master_secret), seed, seed_length);
-			p_hash_seed_length = sizeof(master_secret) + seed_length;
-			break;
-		case PRF_LABEL_KEY_EXPANSION:
-			memcpy(p_hash_seed, key_expansion, sizeof(key_expansion));
-			memcpy(p_hash_seed+sizeof(key_expansion), seed, seed_length);
-			p_hash_seed_length = sizeof(key_expansion) + seed_length;
-			break;
-	}
-	P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result_length, result);
-}
 
 /** master_secret = PRF(pre_master_secret, "master secret",
 		  ClientHello.random + ServerHello.random)
 		  [0..47];
 */
-create_master_secret(flea_u8_t* client_hello_random, flea_u8_t* server_hello_random, flea_u8_t* pre_master_secret, flea_u8_t* master_secret_res)
+void create_master_secret(Random client_hello_random, Random server_hello_random, flea_u8_t* pre_master_secret, flea_u8_t* master_secret_res)
 {
-	flea_u8_t random_seed[56];
-	memcpy(random_seed, client_hello_random, 28);
-	memcpy(random_seed+28, server_hello_random, 28);
+	flea_u8_t random_seed[64];
+	memcpy(random_seed, &client_hello_random.gmt_unix_time, 4);
+	memcpy(random_seed+4, &client_hello_random.random_bytes, 28);
+	memcpy(random_seed+32, &server_hello_random.gmt_unix_time, 4);
+	memcpy(random_seed+36, &server_hello_random.random_bytes, 28);
+	/*memcpy(random_seed, &server_hello_random.gmt_unix_time, 4);
+	memcpy(random_seed+4, &server_hello_random.random_bytes, 28);
+	memcpy(random_seed+32, &client_hello_random.gmt_unix_time, 4);
+	memcpy(random_seed+36, &client_hello_random.random_bytes, 28);*/
 
 	// pre_master_secret is 48 bytes, master_secret is desired to be 48 bytes
-	PRF(pre_master_secret, 48, PRF_LABEL_MASTER_SECRET, random_seed, 56, 48, master_secret_res);
+	PRF(pre_master_secret, 48, PRF_LABEL_MASTER_SECRET, random_seed, 64, 48, master_secret_res);
 }
 
 /*
@@ -1014,12 +1032,12 @@ typedef struct {
 PRF(master_secret, finished_label, Hash(handshake_messages))
 		[0..verify_data_length-1];
 */
-create_finished(flea_u8_t* handshake_messages, flea_u32_t handshake_messages_len, flea_u8_t master_secret[48], Finished *finished_message) {
+void create_finished(flea_u8_t* handshake_messages, flea_u32_t handshake_messages_len, flea_u8_t master_secret[48], Finished *finished_message) {
 	finished_message->verify_data_length = 12;	// 12 octets for all cipher suites defined in RFC 5246
 	finished_message->verify_data = calloc(finished_message->verify_data_length, sizeof(flea_u8_t));
 
 	flea_u8_t messages_hash[32];
-	THR_flea_compute_hash(flea_sha256, handshake_messages, handshake_messages_len, messages_hash, 32);
+	flea_err_t err = THR_flea_compute_hash(flea_sha256, handshake_messages, handshake_messages_len, messages_hash, 32);
 	PRF(master_secret, 48, PRF_LABEL_CLIENT_FINISHED, messages_hash, 32, finished_message->verify_data_length, finished_message->verify_data);
 }
 
@@ -1067,7 +1085,7 @@ int flea_tls_handshake(int socket_fd)
 	hello_record.data = handshake_message;
 
 	flea_u8_t record_message[16384];
-	flea_u8_t record_length = 0;
+	flea_u16_t record_length = 0;
 	record_to_bytes(hello_record, record_message, &record_length);
 
 
@@ -1085,7 +1103,7 @@ int flea_tls_handshake(int socket_fd)
 
 	printf("receiving ...\n");
 
-	flea_u32_t recv_bytes;
+	flea_s32_t recv_bytes;
 	int handshake_initiated=0;
 	while(!handshake_initiated)
 	{
@@ -1152,7 +1170,7 @@ int flea_tls_handshake(int socket_fd)
 				printf("sending ClientKeyExchange ...\n");
 
 				flea_u8_t client_key_ex_bytes[16384];
-				flea_u16_t client_key_ex_bytes_length;
+				flea_u32_t client_key_ex_bytes_length;
 				ClientKeyExchange client_key_ex = create_client_key_exchange(&pubkey);
 				client_key_exchange_to_bytes(&client_key_ex, client_key_ex_bytes, &client_key_ex_bytes_length);
 				Record client_key_ex_record;
@@ -1160,7 +1178,7 @@ int flea_tls_handshake(int socket_fd)
 
 				create_handshake(&client_key_ex_handshake, client_key_ex_bytes, client_key_ex_bytes_length, HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE);
 				flea_u8_t client_key_ex_handshake_bytes[16384];
-				flea_u16_t client_key_ex_handshake_length;
+				flea_u32_t client_key_ex_handshake_length;
 				handshake_to_bytes(client_key_ex_handshake, client_key_ex_handshake_bytes, &client_key_ex_handshake_length);
 
 				create_record(&client_key_ex_record, client_key_ex_handshake_bytes, client_key_ex_handshake_length, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_PLAINTEXT);
@@ -1168,8 +1186,9 @@ int flea_tls_handshake(int socket_fd)
 				flea_u16_t client_key_ex_record_length;
 				record_to_bytes(client_key_ex_record, client_key_ex_record_bytes, &client_key_ex_record_length);
 
-					if (send(socket_fd, client_key_ex_record_bytes, client_key_ex_record_length, 0) < 0)
+				if (send(socket_fd, client_key_ex_record_bytes, client_key_ex_record_length, 0) < 0) {
 					printf("send failed\n");
+				}
 
 				memcpy(handshake_messages_concat + handshake_messages_concat_index, client_key_ex_handshake_bytes, client_key_ex_handshake_length);
 				handshake_messages_concat_index += client_key_ex_handshake_length;
@@ -1188,15 +1207,16 @@ int flea_tls_handshake(int socket_fd)
 				create_record(&change_cipher_spec_record, change_cipher_spec_bytes, 1, CONTENT_TYPE_CHANGE_CIPHER_SPEC, RECORD_TYPE_PLAINTEXT);
 
 				flea_u8_t change_cipher_spec_record_bytes[16384];
-				flea_u16_t change_cipher_spec_record_length;
+				flea_u16_t change_cipher_spec_record_length=0;
 				record_to_bytes(change_cipher_spec_record, change_cipher_spec_record_bytes, &change_cipher_spec_record_length);
 
-				if (send(socket_fd, change_cipher_spec_record_bytes, change_cipher_spec_record_length, 0) < 0)
+				if (send(socket_fd, change_cipher_spec_record_bytes, change_cipher_spec_record_length, 0) < 0) {
 					printf("send failed\n");
+				}
 
 				// calculate the master secret
 				flea_u8_t master_secret[48];
-				create_master_secret(hello.random.random_bytes, server_hello_message.random.random_bytes, client_key_ex.premaster_secret, master_secret);
+				create_master_secret(hello.random, server_hello_message.random, client_key_ex.premaster_secret, master_secret);
 				// calculate key_block
 				generate_key_block(master_secret, hello.random.random_bytes, server_hello_message.random.random_bytes);
 
@@ -1213,23 +1233,26 @@ int flea_tls_handshake(int socket_fd)
 				Record encrypted_finished_record;
 				create_record(&encrypted_finished_record, finished_message_bytes, finished_message_bytes_length, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_CIPHERTEXT);
 				flea_u8_t finished_record_bytes[16384];
-				flea_u16_t finished_record_bytes_length;
+				flea_u16_t finished_record_bytes_length=0;
 				record_to_bytes(encrypted_finished_record, finished_record_bytes, &finished_record_bytes_length);
 
 				printf("sending finished message ...\n");
-				if (send(socket_fd, finished_record_bytes, finished_record_bytes_length, 0) < 0)
+				if (send(socket_fd, finished_record_bytes, finished_record_bytes_length, 0) < 0) {
 					printf("send failed\n");
+				}
 
 			}
 			else
 			{
-				printf("Message not recognized\n");
+				printf("Message not recognized or Alert\n");
 				exit(-1);
 			}
 			reply_index += first_record_size;
 
 		}
 	}
+
+	return 0;
 }
 
 
