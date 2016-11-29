@@ -184,9 +184,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(const flea_x50
   {
     /* outdated (or not yet valid) revocation information is not used, no change to revocation status */
     FLEA_THR_RETURN(); 
-    //FLEA_THROW("CRL is not current", FLEA_ERR_X509_CRL_NEXT_UPDATE_PASSED);
   }
- // TODO: CHECK WHY ERROR WHEN "| UNIVERSAL" in 1st MAKE_CFT arg
   FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONSTRUCTED, FLEA_ASN1_SEQUENCE), &have_revoked_certs__b)); // revoked certs seq
   if(have_revoked_certs__b)
   {
