@@ -87,6 +87,9 @@ static flea_err_t THR_flea_crl__parse_extensions(flea_ber_dec_t *dec__pt, flea_b
       }
       if((nb_reason_bits__alu8 != complete_reasons_cnt__alu8) || ((only_some_reasons__u32 & complete_reasons__u32) != complete_reasons__u32))
       {
+        // TODO: in this case, the cert may still be found to be revoked, which
+        // should have priority over the exception (which causes the status
+        // indeterminate
         FLEA_THROW("insufficient CRL reasons", FLEA_ERR_X509_CRL_INCOMPL_REASONS);
       }
       if(is_ca_cert__b)
