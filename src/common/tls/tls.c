@@ -200,11 +200,13 @@ void P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u
 		// A(i) = HMAC_hash(secret, A(i-1))
 		if (first)
 		{
-			err = THR_flea_mac__compute_mac(flea_hmac_sha256, A, A_len, secret, secret_length, A2, &len);
+			// p THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, A, 8, A2, &len)
+			err = THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, A, seed_length, A2, &len);
+			first = FLEA_FALSE;
 		}
 		else
 		{
-			err = THR_flea_mac__compute_mac(flea_hmac_sha256, A, seed_length, secret, secret_length, A2, &len);
+			err = THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, A, hash_len, A2, &len);
 		}
 
 		memcpy(A, A2, hash_len);
@@ -215,7 +217,7 @@ void P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u
 
 		// + HMAC_hash(secret, A(i) + seed)
 		// concatenate to the result
-		err = THR_flea_mac__compute_mac(flea_hmac_sha256, tmp_input, hash_len+seed_length, secret, secret_length, tmp_output, &len);
+		err = THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, tmp_input, hash_len+seed_length, tmp_output, &len);
 		if (current_length+hash_len < res_length)
 		{
 			memcpy(data_out+current_length, tmp_output, hash_len);
@@ -224,7 +226,7 @@ void P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u
 		{
 			memcpy(data_out+current_length, tmp_output, res_length - current_length);
 		}
-		current_length += hash_len; 	// sha256 -> 32 bytes
+		current_length += hash_len;
 	}
 }
 /**
@@ -257,6 +259,10 @@ void PRF(flea_u8_t* secret, flea_u8_t secret_length, PRFLabel label, flea_u8_t* 
 	flea_u8_t client_finished[] = {99, 108, 105, 101, 110, 116, 032, 102, 105, 110, 105, 115, 104, 101, 100};
 	flea_u8_t master_secret[] = {109, 97, 115, 116, 101, 114, 32, 115, 101, 99, 114, 101, 116};
 	flea_u8_t key_expansion[] = {107, 101, 121, 32, 101, 120, 112, 97, 110, 115, 105, 111, 110};
+
+	/**/
+	flea_u8_t test_label[] = {0x05, 0x06, 0x07, 0x08};
+	/**/
 	flea_u8_t p_hash_seed[500];	// arbitrarily chosen: TODO change
 	flea_u16_t p_hash_seed_length;
 
@@ -276,6 +282,11 @@ void PRF(flea_u8_t* secret, flea_u8_t secret_length, PRFLabel label, flea_u8_t* 
 			memcpy(p_hash_seed+sizeof(key_expansion), seed, seed_length);
 			p_hash_seed_length = sizeof(key_expansion) + seed_length;
 			break;
+		case 99:	/** TEST ONLY */
+			memcpy(p_hash_seed, test_label, sizeof(test_label));
+			memcpy(p_hash_seed+sizeof(test_label), seed, seed_length);
+			p_hash_seed_length = sizeof(test_label) + seed_length;
+			break;
 		case PRF_LABEL_SERVER_FINISHED: break;
 	}
 	P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result_length, result);
@@ -290,12 +301,14 @@ key_block = PRF(SecurityParameters.master_secret,
 				  SecurityParameters.server_random +
 				  SecurityParameters.client_random);
 */
-void generate_key_block(flea_u8_t* master_secret, flea_u8_t* client_random, flea_u8_t* server_random) {
-	flea_u8_t seed[56];
-	memcpy(seed, client_random, 28);
-	memcpy(seed+28, server_random, 28);
+void generate_key_block(flea_u8_t* master_secret, Random client_random, Random server_random) {
+	flea_u8_t seed[64];
+	memcpy(seed, &server_random.gmt_unix_time, 4);
+	memcpy(seed+4, &server_random.random_bytes, 28);
+	memcpy(seed+32, &client_random.gmt_unix_time, 4);
+	memcpy(seed+36, &client_random.random_bytes, 28);
 
-	PRF(master_secret, 48, PRF_LABEL_KEY_EXPANSION, seed, 56, 128, key_block);
+	PRF(master_secret, 48, PRF_LABEL_KEY_EXPANSION, seed, sizeof(seed), 128, key_block);
 
 }
 
@@ -926,7 +939,7 @@ IV Size
          SecurityParameters.block_size.
 
 */
-void create_record(Record* record, flea_u8_t* data, flea_u32_t length, ContentType content_type, RecordType record_type) {
+void create_record(Record* record, flea_u8_t* data, flea_u16_t length, ContentType content_type, RecordType record_type) {
 	record->content_type = content_type;
 	record->record_type = record_type;
 	record->version.major = 3;
@@ -951,6 +964,7 @@ void create_record(Record* record, flea_u8_t* data, flea_u32_t length, ContentTy
 		flea_u8_t mac[mac_length];
 		flea_u8_t iv[iv_length];
 		flea_u8_t block_length = 16;
+		flea_u64_t sequence_number = 0;	/** HARD CODED!!!! only true for finished message message */
 
 		// create keys
 		flea_u8_t client_write_mac_key[32]; // for aes256/Sha256
@@ -971,7 +985,41 @@ void create_record(Record* record, flea_u8_t* data, flea_u32_t length, ContentTy
 		printf("\n");
 
 		// compute mac
-		flea_err_t err = THR_flea_mac__compute_mac(flea_hmac_sha256, client_write_mac_key, 32, data, length, mac, (flea_al_u8_t*)(&mac_length));
+		/*
+			MAC(MAC_write_key, seq_num +
+                            TLSCompressed.type +
+                            TLSCompressed.version +
+                            TLSCompressed.length +
+                            TLSCompressed.fragment);
+		*/
+		// 4 + 1 + (1+1) + 2 + length
+		flea_u8_t mac_data_length = 9+length;
+		flea_u8_t mac_data[mac_data_length];
+		memcpy(mac_data, &sequence_number, 4);
+		mac_data[4] = CONTENT_TYPE_HANDSHAKE;
+		mac_data[5] = 0x03;
+		mac_data[6] = 0x03;
+		mac_data[7] = 0x00;
+		mac_data[8] = length;	// length is < 256 in this case but have to generalize it
+		memcpy(mac_data+9, data, length);
+
+		/**
+
+		Das hier das letzte mal angeguckt in Botan:
+
+		p assoc_data_with_len(plaintext_length)
+$72 = std::vector of length 13, capacity 13 = {0 '\000', 0 '\000', 0 '\000',
+  0 '\000', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 22 '\026', 3 '\003',
+  3 '\003', 0 '\000', 15 '\017'}
+
+
+	es scheint alles richtig berechnet zu werden außer die MAC? evtl ist die nachricht irgendwo fehlerhaft.
+
+		*/
+
+		flea_err_t err = THR_flea_mac__compute_mac(flea_hmac_sha256, client_write_mac_key, 32, mac_data, mac_data_length, mac, (flea_al_u8_t*)(&mac_length));
+
+
 		// compute IV ... TODO: xor with last plaintext block?
 		flea_rng__randomize(iv, iv_length);
 
@@ -992,9 +1040,10 @@ void create_record(Record* record, flea_u8_t* data, flea_u32_t length, ContentTy
 		flea_u8_t encrypted[input_output_len];
 		err = THR_flea_cbc_mode__encrypt_data(flea_aes256, client_write_key, 32, iv, iv_length, encrypted, padded_data, input_output_len);
 
-		record->length = input_output_len;
-		record->data = calloc(input_output_len, sizeof(flea_u8_t));
-		memcpy(record->data, encrypted, record->length);
+		record->length = input_output_len+iv_length;
+		record->data = calloc(input_output_len+iv_length, sizeof(flea_u8_t));
+		memcpy(record->data, iv, iv_length);
+		memcpy(record->data+iv_length, encrypted, record->length);
 		err = 0;	//DUMMY LINE FOR DEBUG
 	}
 
@@ -1021,6 +1070,23 @@ void create_master_secret(Random client_hello_random, Random server_hello_random
 
 	// pre_master_secret is 48 bytes, master_secret is desired to be 48 bytes
 	PRF(pre_master_secret, 48, PRF_LABEL_MASTER_SECRET, random_seed, 64, 48, master_secret_res);
+
+
+	/* For testing purposes */
+	flea_u8_t random_seed2[64];
+	flea_u8_t master_secret_res2[48];
+	memcpy(random_seed2, &server_hello_random.gmt_unix_time, 4);
+	memcpy(random_seed2+4, &server_hello_random.random_bytes, 28);
+	memcpy(random_seed2+32, &client_hello_random.gmt_unix_time, 4);
+	memcpy(random_seed2+36, &client_hello_random.random_bytes, 28);
+	PRF(pre_master_secret, 48, PRF_LABEL_MASTER_SECRET, random_seed2, 64, 48, master_secret_res2);
+
+	flea_u8_t random_seed3[] = {0x01, 0x02, 0x03, 0x04};
+	flea_u8_t master_secret_res3[48];
+	flea_u8_t test_premaster[48] = {0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06};
+	PRF(test_premaster, 48, 99, random_seed3, 4, 48, master_secret_res3);
+
+	int x; // dummy op
 }
 
 /*
@@ -1218,7 +1284,7 @@ int flea_tls_handshake(int socket_fd)
 				flea_u8_t master_secret[48];
 				create_master_secret(hello.random, server_hello_message.random, client_key_ex.premaster_secret, master_secret);
 				// calculate key_block
-				generate_key_block(master_secret, hello.random.random_bytes, server_hello_message.random.random_bytes);
+				generate_key_block(master_secret, hello.random, server_hello_message.random);
 
 				// create the finished message
 				printf("Creating finished message ...\n");
@@ -1228,6 +1294,11 @@ int flea_tls_handshake(int socket_fd)
 				flea_u32_t finished_message_bytes_length;
 				finished_to_bytes(&finished_message, finished_message_bytes, &finished_message_bytes_length);
 
+				printf("\n Finished Message unencrypted: \n");
+				for (flea_u32_t k = 0; k<finished_message_bytes_length; k++) {
+					printf("%02x ", finished_message_bytes[k]);
+				}
+
 				// need to send finished message encrypted already
 				printf("Creating finished record (encrypted) ...\n");
 				Record encrypted_finished_record;
@@ -1235,6 +1306,11 @@ int flea_tls_handshake(int socket_fd)
 				flea_u8_t finished_record_bytes[16384];
 				flea_u16_t finished_record_bytes_length=0;
 				record_to_bytes(encrypted_finished_record, finished_record_bytes, &finished_record_bytes_length);
+
+				printf("\n Finished Message encrypted: \n");
+				for (flea_u32_t k = 0; k<finished_record_bytes_length; k++) {
+					printf("%02x ", finished_record_bytes[k]);
+				}
 
 				printf("sending finished message ...\n");
 				if (send(socket_fd, finished_record_bytes, finished_record_bytes_length, 0) < 0) {
