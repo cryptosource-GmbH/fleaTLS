@@ -998,19 +998,6 @@ void create_record(Record* record, flea_u8_t* data, flea_u16_t length, ContentTy
 		mac_data[12] = length;	// length is < 256 in this case but have to generalize it
 		memcpy(mac_data+13, data, length);
 
-		/**
-
-		Das hier das letzte mal angeguckt in Botan:
-
-		p assoc_data_with_len(plaintext_length)
-$72 = std::vector of length 13, capacity 13 = {0 '\000', 0 '\000', 0 '\000',
-  0 '\000', 0 '\000', 0 '\000', 0 '\000', 0 '\000', 22 '\026', 3 '\003',
-  3 '\003', 0 '\000', 15 '\017'}
-
-
-	es scheint alles richtig berechnet zu werden außer die MAC? evtl ist die nachricht irgendwo fehlerhaft.
-
-		*/
 
 		flea_err_t err = THR_flea_mac__compute_mac(flea_hmac_sha256, client_write_mac_key, 32, mac_data, mac_data_length, mac, (flea_al_u8_t*)(&mac_length));
 
@@ -1039,11 +1026,84 @@ $72 = std::vector of length 13, capacity 13 = {0 '\000', 0 '\000', 0 '\000',
 		record->data = calloc(input_output_len+iv_length, sizeof(flea_u8_t));
 		memcpy(record->data, iv, iv_length);
 		memcpy(record->data+iv_length, encrypted, record->length);
-		err = 0;	//DUMMY LINE FOR DEBUG
 	}
-
 }
 
+void read_finished(HandshakeMessage* handshake_message, Finished* finished, flea_u8_t* messages_hash, flea_u8_t* messages_hash_len)
+{
+	/* basically copy pasted from create_record
+		-> TODO need to make it generic when software architecture is clear
+	*/
+
+	/**
+		HARDCODED FOR AES256 SHA256 CBC
+	*/
+	flea_u8_t iv_length = 16;	// AES always has 16 byte IV / block size
+	flea_u8_t mac_length = 32; 	// sha256
+	flea_u8_t mac[mac_length];
+	flea_u8_t iv[iv_length];
+	flea_u8_t block_length = 16;
+	flea_u64_t sequence_number = 0;	/** HARD CODED!!!! only true for finished message message */
+
+	// create keys
+	flea_u8_t client_write_mac_key[32]; // for aes256/Sha256
+	flea_u8_t server_write_mac_key[32]; // for aes256/Sha256
+	flea_u8_t client_write_key[32]; // for aes256/Sha256
+	flea_u8_t server_write_key[32]; // for aes256/Sha256
+
+	memcpy(client_write_mac_key, key_block, 32);
+	memcpy(server_write_mac_key, key_block+32, 32);
+	memcpy(client_write_key, key_block+64, 32);
+	memcpy(server_write_key, key_block+96, 32);
+
+	// compute mac
+	/*
+		MAC(MAC_write_key, seq_num +
+						TLSCompressed.type +
+						TLSCompressed.version +
+						TLSCompressed.length +
+						TLSCompressed.fragment);
+	*/
+	// 8 + 1 + (1+1) + 2 + length
+	/*flea_u8_t mac_data_length = 13+length;
+	flea_u8_t mac_data[mac_data_length];
+	memcpy(mac_data, &sequence_number, 8);
+	mac_data[8] = CONTENT_TYPE_HANDSHAKE;
+	mac_data[9] = 0x03;
+	mac_data[10] = 0x03;
+	mac_data[11] = 0x00;
+	mac_data[12] = length;	// length is < 256 in this case but have to generalize it
+	memcpy(mac_data+13, data, length);
+
+
+	flea_err_t err = THR_flea_mac__compute_mac(flea_hmac_sha256, client_write_mac_key, 32, mac_data, mac_data_length, mac, (flea_al_u8_t*)(&mac_length));
+
+
+	// compute IV ... TODO: xor with last plaintext block?
+	flea_rng__randomize(iv, iv_length);
+
+	// compute padding
+	flea_u8_t padding_length = (block_length - (length + mac_length + 1) % block_length) % block_length + 1;	// +1 for padding_length entry
+	flea_u8_t padding[padding_length];
+	flea_dtl_t input_output_len = length + padding_length + mac_length;
+	flea_u8_t padded_data[input_output_len];
+	for (flea_u8_t k=0; k<padding_length; k++)
+	{
+		padding[k] = padding_length - 1;	// account for padding_length entry again
+	}
+	memcpy(padded_data, data, length);
+	memcpy(padded_data+length, mac, mac_length);
+	memcpy(padded_data+length+mac_length, padding, padding_length);
+
+	// compute encryption
+	flea_u8_t encrypted[input_output_len];
+	err = THR_flea_cbc_mode__encrypt_data(flea_aes256, client_write_key, 32, iv, iv_length, encrypted, padded_data, input_output_len);
+
+	record->length = input_output_len+iv_length;
+	record->data = calloc(input_output_len+iv_length, sizeof(flea_u8_t));
+	memcpy(record->data, iv, iv_length);
+	memcpy(record->data+iv_length, encrypted, record->length);*/
+}
 
 
 
@@ -1175,10 +1235,12 @@ int flea_tls_handshake(int socket_fd)
 		HandshakeMessage handshake_message;
 		ServerHello server_hello_message;
 		Certificate certificate_message;
+		Finished server_finished;
 		flea_public_key_t pubkey;
 		flea_u8_t handshake_messages_concat_tmp_bytes[16384];
 		flea_u32_t handshake_messages_concat_tmp_length;
-
+		flea_bool_t expect_change_cipher_spec = FLEA_FALSE;
+		flea_bool_t handshake_finished = FLEA_FALSE;
 		flea_u32_t reply_index = 0;
 		while (reply_index != recv_bytes)
 		{
@@ -1191,8 +1253,18 @@ int flea_tls_handshake(int socket_fd)
 			printf("Reading Record ...\n");
 			read_record_message(reply+reply_index, first_record_size, &record_message, RECORD_TYPE_PLAINTEXT);
 
-			printf("Reading HandshakeMessage ...\n");
-			read_handshake_message(&record_message, &handshake_message);
+			// differentiate between change cipher spec and handshake message
+			if (expect_change_cipher_spec == FLEA_FALSE)
+			{
+				printf("Reading HandshakeMessage ...\n");
+				read_handshake_message(&record_message, &handshake_message);
+			}
+			else
+			{
+				// do nothing
+				printf("Change Cipher Spec received\n");
+				expect_change_cipher_spec = FLEA_FALSE;
+			}
 
 			handshake_to_bytes(handshake_message, handshake_messages_concat_tmp_bytes, &handshake_messages_concat_tmp_length);
 			memcpy(handshake_messages_concat + handshake_messages_concat_index, handshake_messages_concat_tmp_bytes, handshake_messages_concat_tmp_length);
@@ -1312,6 +1384,13 @@ int flea_tls_handshake(int socket_fd)
 					printf("send failed\n");
 					exit(-1);
 				}
+
+				// expect CHANGE_CIPHER_SPEC and finished message now
+				expect_change_cipher_spec = FLEA_TRUE;
+			}
+			else if(handshake_message.type == HANDSHAKE_TYPE_FINISHED)
+			{
+				//read_finished(&handshake_message, &server_finished);
 			}
 			else
 			{
