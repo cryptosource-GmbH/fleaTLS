@@ -136,6 +136,7 @@ static flea_err_t THR_flea_x509_cert__parse_subj_alt_name(flea_ber_dec_t *cont_d
   // FOLLLOWING CODE
   while(flea_ber_dec_t__has_current_more_data(cont_dec__pt))
   {
+    // TODO: PREVENT INIFITE LOOP => https://internal.cryptosource.de/redmine/issues/153
     // given MULTIPLE OCCURENCES of elements, the last one
     // takes precedence 
      /*GeneralName ::= CHOICE {

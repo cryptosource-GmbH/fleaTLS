@@ -132,6 +132,10 @@ flea_err_t THR_flea_test_path_validation_file_based(const char* cert_path_prefix
   {
     nb_test_execution_repetitions_due_randomized_cert_order = 1;
     test_cases = get_entries_of_dir(path_test_main_dir, dir_entries_with_path, "" /*postfix*/, cert_path_prefix);
+    if(test_cases.size() == 0)
+    {
+      throw test_utils_exceptn_t("no matching cert path test for the specified prefix");
+    }
   }
   else
   {

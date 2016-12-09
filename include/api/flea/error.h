@@ -123,6 +123,15 @@ typedef enum
   FLEA_ERR_X509_CERT_REV_STAT_UNDET                   = 0x00DB,
   FLEA_ERR_X509_CERT_REVOKED                          = 0x00DC,
 
+  /** 
+   * There is a mismatch between the CRL Distribution Points extension in 
+   * the certificate and the Issuing Distribution Point extension (IDP) in the 
+   * CRL. Possible errors are:
+   *  - a certificate doesn't have the CDP, 
+   *  but the CRL has an IDP which contains a DP name
+   */
+  FLEA_ERR_X509_CRL_CDP_IDP_MISMATCH                  = 0x00DD,
+
 	FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS									= 0x00E0,
 	FLEA_ERR_CERT_PATH_NOT_FOUND 												= 0x00E1,
   FLEA_ERR_CERT_NOT_YET_VALID                         = 0x00E2,
