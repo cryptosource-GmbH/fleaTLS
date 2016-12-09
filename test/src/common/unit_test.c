@@ -55,6 +55,7 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
   unsigned nb_exec_tests = 0;
   unsigned failed_tests = 0;
   unsigned i;
+  flea_u32_t nb_cert_path_tests = 0;
   flea_err_t rv = 0;
 
   if(THR_flea_lib__init() || THR_flea_rng__reseed_volatile((flea_u8_t*)&rnd, sizeof(rnd)))
@@ -163,7 +164,9 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
     // TODO: REMOVE THIS ONCE ALL REQUIREMENTS ARE REFLECTED BY THE TEST CASE'S
     // INI FILE
 #if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
-    CALL_TEST(THR_flea_test_path_validation_file_based(cert_path_prefix));
+    CALL_TEST(THR_flea_test_path_validation_file_based(cert_path_prefix, &nb_cert_path_tests));
+    nb_exec_tests -= 1; // correct the counting of the dispatcher
+    nb_exec_tests += nb_cert_path_tests;
 #endif
     if(i == 0)
     {

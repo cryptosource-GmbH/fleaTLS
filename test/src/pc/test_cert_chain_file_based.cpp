@@ -87,8 +87,11 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(std::string con
      */
     if(!(prop.get_property_as_u32_default("required_chainlen", 10) > FLEA_MAX_CERT_CHAIN_DEPTH))
     {
-      std::cout << "test '" << prop.get_filename() << "': unsuccessful verification of correct cert chain, error code = " << std::hex << err << std::dec << std::endl;
-      FLEA_THROW("unsuccessful validation of valid cert path", FLEA_ERR_FAILED_TEST);
+      if(!prop.get_as_bool_default_false("suppress_validation_error"))
+      {
+        std::cout << "test '" << prop.get_filename() << "': unsuccessful verification of correct cert chain, error code = " << std::hex << err << std::dec << std::endl;
+       FLEA_THROW("unsuccessful validation of valid cert path", FLEA_ERR_FAILED_TEST);
+      }
     }
     else
     {
@@ -122,7 +125,7 @@ static flea_err_t THR_flea_execute_path_test_case(std::string const& dir_path)
   }
   FLEA_THR_FIN_SEC_empty();
 }
-flea_err_t THR_flea_test_path_validation_file_based(const char* cert_path_prefix )
+flea_err_t THR_flea_test_path_validation_file_based(const char* cert_path_prefix, flea_u32_t *nb_exec_tests_pu32 )
 {
   FLEA_THR_BEG_FUNC();
   std::string path_test_main_dir = "misc/testdata/cert_paths/";
@@ -141,6 +144,7 @@ flea_err_t THR_flea_test_path_validation_file_based(const char* cert_path_prefix
   {
     test_cases = get_entries_of_dir(path_test_main_dir, dir_entries_with_path);
   }
+  *nb_exec_tests_pu32 = test_cases.size();
   flea_u32_t err_count = 0;
   for(string test: test_cases)
   {
