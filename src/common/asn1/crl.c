@@ -30,6 +30,7 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(const flea_x509_c
   while(flea_ber_dec_t__has_current_more_data(&dec__t))
   {
     flea_bool_t distrib_point_name_found__b;
+    flea_bool_t found_match__b = FLEA_FALSE;
     /* decode next DistributionPoint */
 
     /* open this DP's sequence */
@@ -49,8 +50,7 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(const flea_x509_c
     FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional_cft(&dec__t, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC, 0), &full_name_present__b));
     if(!relative_to_issuer__b && full_name_present__b)
     {
-      //FLEA_CCALL(THR_flea_crl__idp_compare_general_name(dec__pt, subject__pt);
-      flea_ref_cu8_t raw_tlv__rcu8;
+      flea_ref_cu8_t raw_tlv__rcu8 = {NULL, 0};
 
       while(flea_ber_dec_t__has_current_more_data(&dec__t))
       {
@@ -58,7 +58,8 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(const flea_x509_c
         FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw_optional(&dec__t, &raw_tlv__rcu8));
         if(!flea_rcu8_cmp(&raw_tlv__rcu8, dp_name_raw__cprcu8)) 
         {
-          *result_update__pb = FLEA_TRUE; 
+          //*result_update__pb = FLEA_TRUE; 
+          found_match__b = FLEA_TRUE; 
         // TODO: CHECK REASONS
         }
       }
@@ -77,10 +78,31 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(const flea_x509_c
 
       if(!flea_rcu8_cmp(&raw_tlv__rcu8, dp_name_raw__cprcu8)) 
       {
-        *result_update__pb = FLEA_TRUE; 
+          found_match__b = FLEA_TRUE; 
+        //*result_update__pb = FLEA_TRUE; 
         // TODO: CHECK REASONS
       }
     }
+    if(found_match__b)
+    {
+      /* check the CDP reasons */
+      flea_bool_t reasons_found__b;
+      const flea_u32_t complete_reasons__u32 = 0x1FE;
+      const flea_al_u8_t complete_reasons_cnt__alu8 = 9;
+      flea_u32_t only_some_reasons__u32 = complete_reasons__u32;
+      flea_al_u8_t nb_reason_bits__alu8 = complete_reasons_cnt__alu8;
+        FLEA_CCALL(THR_flea_ber_dec_t__decode_short_bit_str_to_u32_optional(&dec__t, &only_some_reasons__u32, &nb_reason_bits__alu8, &reasons_found__b));
+
+      if((nb_reason_bits__alu8 != complete_reasons_cnt__alu8) || ((only_some_reasons__u32 & complete_reasons__u32) != complete_reasons__u32))
+      {
+        // TODO: in this case, the cert may still be found to be revoked, which
+        // should have priority over the exception (which causes the status
+        // indeterminate
+        FLEA_THROW("insufficient CRL reasons", FLEA_ERR_X509_CRL_INCOMPL_REASONS);
+      }
+      *result_update__pb = FLEA_TRUE; 
+    }
+    
     /* close this DP (element of Distribution Points) */ 
       FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(&dec__t));
     /* else (i.e. no DP (name)) there is nothing to do */

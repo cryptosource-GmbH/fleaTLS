@@ -259,7 +259,7 @@ flea_bool_t flea_ber_dec__are_der_refs_equal(const flea_der_ref_t *a__pt, const 
 /**
  * Decode a bit string of no more than 32 bits into a u32 type. Decoding is
  * optional, and if the object is not found, then no changes are
- * made to the output values.
+ * made to the output values val__pu32 and nb_bits__palu8.
  *
  * @param val__pu32 [out] receives the decoded result. The LSBit/LSByte of the u32 is
  * the first bit/byte of the bits string.
