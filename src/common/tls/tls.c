@@ -1424,7 +1424,6 @@ flea_err_t flea_tls_handshake(int socket_fd)
 				FLEA_THROW("Unrecognized / Unhandled message", FLEA_ERR_TLS_GENERIC);
 			}
 			reply_index += first_record_size;
-
 		}
 	}
 
