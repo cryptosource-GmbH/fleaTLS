@@ -407,7 +407,7 @@ flea_err_t read_server_hello(HandshakeMessage* handshake_msg, ServerHello* serve
 	FLEA_THR_BEG_FUNC();
 	if (handshake_msg->length < 41) // min ServerHello length
 	{
-		return; // TODO: error handling
+		FLEA_THROW("length too small", FLEA_ERR_TLS_GENERIC);
 	}
 
 	// keep track of length
@@ -643,12 +643,12 @@ void create_handshake_message(HandshakeType type, flea_u8_t *in, flea_u32_t leng
 
 flea_u32_t get_size_of_first_record(flea_u8_t* bytes, flea_u8_t length) {
 	if (length < 5) {
-		return -1; // TODO: error handling
+		return -1;
 	}
 	if (bytes[0] != 16 && bytes[1] != 3 && bytes[2] != 3)
 	{
 		printf("ERROR in get_size_of_first_record: first 3 bytes(%02x, %02x, %02x) ", bytes[0], bytes[1], bytes[2]);
-		// TODO: error handling
+		return -2;
 	}
 	flea_u16_t size;
 	flea_u8_t *p = (flea_u8_t*) &size;
@@ -1168,7 +1168,7 @@ flea_err_t create_finished(flea_u8_t* handshake_messages, flea_u32_t handshake_m
 }
 
 
-int flea_tls_handshake(int socket_fd)
+flea_err_t flea_tls_handshake(int socket_fd)
 {
 	FLEA_THR_BEG_FUNC();
 	flea_u8_t reply[16384];
@@ -1271,6 +1271,9 @@ int flea_tls_handshake(int socket_fd)
 			memset(&handshake_message, 0, sizeof(HandshakeMessage));
 
 			flea_u32_t first_record_size = get_size_of_first_record(reply+reply_index, recv_bytes-reply_index);
+			if (first_record_size < 0) {
+				FLEA_THROW("Could not read record message", FLEA_ERR_TLS_GENERIC);
+			}
 			printf("\n\nrecord size %i\n\n", first_record_size);
 
 			printf("Reading Record ...\n");
@@ -1426,7 +1429,6 @@ int flea_tls_handshake(int socket_fd)
 	}
 
 	FLEA_THR_FIN_SEC_empty();
-	return 0;
 }
 
 
@@ -1455,9 +1457,12 @@ int flea_tls_connection()
         	return 1;
 		}
     }
-
-	flea_tls_handshake(socket_fd);
+	FLEA_THR_BEG_FUNC();
+	flea_err_t err = flea_tls_handshake(socket_fd);
+	if (err != FLEA_ERR_FINE) {
+		FLEA_THROW("Something went wrong!", FLEA_ERR_TLS_GENERIC);
+	}
 
 	close (socket_fd);
-    return 0;
+    FLEA_THR_FIN_SEC_empty();
 }
