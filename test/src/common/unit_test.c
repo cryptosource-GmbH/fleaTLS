@@ -152,6 +152,7 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
 #ifdef FLEA_HAVE_ECDSA
       CALL_TEST(THR_flea_test_cert_verify_ecdsa());
 #endif
+      CALL_TEST(THR_flea_test_gmt_time());
 
       CALL_TEST(THR_flea_test_asn1_date());
 
