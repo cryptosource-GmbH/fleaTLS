@@ -1237,13 +1237,13 @@ flea_err_t flea_tls_handshake(int socket_fd)
 		recv_bytes = recv(socket_fd, reply, 16384, 0);
 		if (recv_bytes < 0) {
 			printf("recv failed\n");
-			exit(-1);
+			FLEA_THROW("Recv failed!", FLEA_ERR_TLS_GENERIC);
 		}
 		if (recv_bytes == 0)
 		{
 			// connection closed
 			printf("Peer closed connection\n");
-			return 0;
+			return FLEA_ERR_FINE;
 		}
 
 		printf("received message of length %i:\n", recv_bytes);
@@ -1362,7 +1362,7 @@ flea_err_t flea_tls_handshake(int socket_fd)
 
 				if (send(socket_fd, change_cipher_spec_record_bytes, change_cipher_spec_record_length, 0) < 0) {
 					printf("send failed\n");
-					exit(-1);
+					FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
 				}
 
 				// calculate the master secret
@@ -1408,7 +1408,7 @@ flea_err_t flea_tls_handshake(int socket_fd)
 				printf("sending finished message ...\n");
 				if (send(socket_fd, finished_record_bytes, finished_record_bytes_length, 0) < 0) {
 					printf("send failed\n");
-					exit(-1);
+					FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
 				}
 
 				// expect CHANGE_CIPHER_SPEC and finished message now
@@ -1421,7 +1421,7 @@ flea_err_t flea_tls_handshake(int socket_fd)
 			else
 			{
 				printf("Message not recognized or Alert\n");
-				exit(-1);
+				FLEA_THROW("Unrecognized / Unhandled message", FLEA_ERR_TLS_GENERIC);
 			}
 			reply_index += first_record_size;
 
@@ -1448,16 +1448,17 @@ int flea_tls_connection()
     addr.sin_family = AF_INET;
     addr.sin_port = htons( 443 );*/
 
+	FLEA_THR_BEG_FUNC();
+
     if (connect(socket_fd , (struct sockaddr *)&addr , sizeof(addr)) < 0)
     {
 		addr.sin_port = htons(4445);
 		if (connect(socket_fd , (struct sockaddr *)&addr , sizeof(addr)) < 0)
 		{
         	printf("connect error\n");
-        	return 1;
+        	FLEA_THROW("Something went wrong!", FLEA_ERR_TLS_GENERIC);
 		}
     }
-	FLEA_THR_BEG_FUNC();
 	flea_err_t err = flea_tls_handshake(socket_fd);
 	if (err != FLEA_ERR_FINE) {
 		FLEA_THROW("Something went wrong!", FLEA_ERR_TLS_GENERIC);
