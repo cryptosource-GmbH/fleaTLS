@@ -361,25 +361,44 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(const flea_x50
   {
     while(flea_ber_dec_t__has_current_more_data(&dec__t))
     {
+      flea_gmt_time_t revocation_date__t;
       flea_ref_cu8_t serial_number__rcu8;
+      flea_bool_t have_entry_extensions__b;
       //flea_gmt_time_t rev_date__t;
       FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t)); // entry seq
       FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_int(&dec__t, &serial_number__rcu8));
-      // TODO: check for critical unsupp extensions
-      FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(&dec__t));
+      FLEA_CCALL(THR_flea_asn1_parse_gmt_time(&dec__t, &revocation_date__t));
+      FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONSTRUCTED, FLEA_ASN1_SEQUENCE), &have_entry_extensions__b)); 
+      if(have_entry_extensions__b)
+      {
+        while(flea_ber_dec_t__has_current_more_data(&dec__t))
+        {
+          flea_ref_cu8_t oid__rcu8;
+          flea_bool_t critical__b;
+
+          FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t)); // this entry ext seq
+          FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_oid(&dec__t, &oid__rcu8));
+          FLEA_CCALL(THR_flea_ber_dec_t__decode_boolean_default_false(&dec__t, &critical__b));
+          if(critical__b)
+          {
+            FLEA_THROW("unsupported critical CRL entry extension", FLEA_ERR_X509_UNSUPP_CRIT_CRL_EXT);
+          }
+          /* close entry extension, skip the extension value */
+          FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(&dec__t));
+        }
+        /* close entry extensions */
+        FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
+      }
+      /* close entry seq */
+      FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
       if(!flea_rcu8_cmp(&serial_number__rcu8, &subject__pt->serial_number__t))
       {
         is_cert_revoked = FLEA_TRUE;
-        break;
+        //break;
       }
-      /*FLEA_CCALL(THR_flea_asn1_parse_gmt_time(&dec__t, &rev_date__t));
-      if(enc_version__u32 == 0)
-      {
-        break;
-      } */
     }
     /* close revokedCertificates */
-    FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(&dec__t));
+    FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
   } 
   FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional(&dec__t, 0, FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC, &have_extensions__b));
   if(have_extensions__b)

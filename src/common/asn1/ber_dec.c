@@ -305,14 +305,21 @@ flea_err_t THR_flea_ber_dec_t__open_constructed(flea_ber_dec_t *dec__pt, flea_as
 }
 flea_err_t THR_flea_ber_dec_t__close_constructed_skip_remaining(flea_ber_dec_t *dec__pt)
 {
+  flea_dtl_t remaining__dtl;
   FLEA_THR_BEG_FUNC();
+
   if(!dec__pt->level__alu8)
   {
     FLEA_THROW("trying to close constructed at outmost level", FLEA_ERR_ASN1_DER_CALL_SEQ_ERR);
   }
     //printf("THR_flea_ber_dec_t__close_constructed_skip_remaining: before skipping: rem len of level %u = %u\n", dec__pt->level__alu8, dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8]);
-
-  FLEA_CCALL(THR_flea_data_source_t__skip(dec__pt->source__pt, dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8]));
+  remaining__dtl = dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8];
+  if(remaining__dtl)
+  {
+    /* if a tag was cached, we loose it now */
+    dec__pt->stored_tag_nb_bytes__u8 = 0;
+    FLEA_CCALL(THR_flea_data_source_t__skip(dec__pt->source__pt, remaining__dtl));
+  }
   dec__pt->level__alu8--;
 
     //printf("THR_flea_ber_dec_t__close_constructed_skip_remaining: after skipping: rem len of level %u = %u\n", dec__pt->level__alu8, dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8]);
@@ -322,7 +329,7 @@ flea_err_t THR_flea_ber_dec_t__close_constructed_skip_remaining(flea_ber_dec_t *
 flea_err_t THR_flea_ber_dec_t__close_constructed_at_end(flea_ber_dec_t *dec__pt)
 {
   FLEA_THR_BEG_FUNC();
-  if(dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8] != 0)
+  if((dec__pt->stored_tag_nb_bytes__u8 != 0) || (dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8] != 0))
   {
     //printf("rem len of level %u = %u\n", dec__pt->level__alu8, dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8]);
     FLEA_THROW("trying to close constructed which has remaining data", FLEA_ERR_ASN1_DER_DEC_ERR);
