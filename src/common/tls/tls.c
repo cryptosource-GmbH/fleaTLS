@@ -61,6 +61,24 @@ typedef enum {
 } RecordType;
 
 typedef struct {
+	flea_u8_t gmt_unix_time[4];
+	flea_u8_t random_bytes[28];
+} Random;
+
+
+typedef struct {
+	flea_u8_t* allowed_cipher_suites;			/* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
+	flea_u32_t allowed_cipher_suites_length;
+	flea_u8_t selected_cipher_suite[2];
+
+	Random client_random;
+	Random server_random;
+	/*
+	mac algorithm, mac keys / length, compression algorithm, block length, iv length, ...
+	*/
+} flea_tls_ctx_t;
+
+typedef struct {
 	flea_u8_t major;
 	flea_u8_t minor;
 } ProtocolVersion;
@@ -72,12 +90,6 @@ typedef struct {
 	flea_u16_t length;
 	flea_u8_t *data;
 } Record;
-
-
-typedef struct {
-	flea_u32_t gmt_unix_time;
-	flea_u8_t random_bytes[28];
-} Random;
 
 typedef enum {
 	NO_COMPRESSION=0,
@@ -422,7 +434,7 @@ flea_err_t read_server_hello(HandshakeMessage* handshake_msg, ServerHello* serve
 	}
 
 	// read random
-	flea_u8_t* p = (flea_u8_t*)&server_hello_msg->random.gmt_unix_time;
+	flea_u8_t* p = (flea_u8_t*)server_hello_msg->random.gmt_unix_time;
 	for (flea_u8_t i=0; i<4; i++)
 	{
 		p[i] = handshake_msg->data[length++];
@@ -578,7 +590,7 @@ void client_hello_to_bytes(ClientHello hello, flea_u8_t* bytes, flea_u16_t* leng
 	memcpy(bytes+i, &hello.client_version.minor, sizeof(flea_u8_t));
 	i += sizeof(flea_u8_t);
 
-	memcpy(bytes+i, &hello.random.gmt_unix_time, sizeof(flea_u32_t));
+	memcpy(bytes+i, hello.random.gmt_unix_time, sizeof(flea_u32_t));
 	i += sizeof(flea_u32_t);
 	memcpy(bytes+i, hello.random.random_bytes, 28);
 	i += 28;
@@ -714,7 +726,11 @@ void print_client_hello(ClientHello hello)
 	printf("Protocol Version major, minor: %i, %i\n", hello.client_version.major, hello.client_version.minor);
 
 	printf("Random: \n");
-	printf("\tUnix Time %i", hello.random.gmt_unix_time);
+	printf("\n\tUnix time ");
+	for (int i=0; i<4; i++)
+	{
+		printf("%02x ", hello.random.gmt_unix_time[i]);
+	}
 	printf("\n\trandom bytes ");
 	for (int i=0; i<28; i++)
 	{
@@ -745,7 +761,11 @@ void print_server_hello(ServerHello hello)
 	printf("Protocol Version major, minor: %i, %i\n", hello.server_version.major, hello.server_version.minor);
 
 	printf("Random: \n");
-	printf("\tUnix Time %i", hello.random.gmt_unix_time);
+	printf("\n\tUnix time ");
+	for (int i=0; i<4; i++)
+	{
+		printf("%02x ", hello.random.gmt_unix_time[i]);
+	}
 	printf("\n\trandom bytes ");
 	for (int i=0; i<28; i++)
 	{
@@ -842,14 +862,10 @@ void finished_to_bytes(Finished* finished, flea_u8_t* bytes, flea_u32_t* length)
 }
 
 
-ClientHello create_hello_message()	{
-	flea_u8_t random_bytes[28] = {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x0A, 0x0B, 0x0C, 0x0D, 0x0E, 0x0F, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x1A, 0x1B};
-
-	flea_u8_t gmt_unix_time[4] = {0x00, 0x01, 0x02, 0x03};
-
+ClientHello create_hello_message(flea_tls_ctx_t* tls_ctx)	{
 	flea_u8_t TLS_RSA_WITH_AES_256_CBC_SHA256[] = { 0x00, 0x3D };
 	//flea_u8_t TLS_RSA_WITH_NULL_SHA256[] = { 0x00,0x3B };
-	flea_u8_t* cipher_suites = calloc(2, sizeof(flea_u8_t));	// TODO deallocate
+	//flea_u8_t* cipher_suites = calloc(2, sizeof(flea_u8_t));	// TODO deallocate
 
 	ClientHello hello;
 	memset(&hello, 0, sizeof(ClientHello));
@@ -857,15 +873,14 @@ ClientHello create_hello_message()	{
 	hello.client_version.major = 3;
 	hello.client_version.minor = 3;
 
-	// session ID empty => no resumption. TODO is 4 zero bytes == empty?
+	// session ID empty => no resumption (new handshake negotiation)
 	hello.session_id = 0;
 
-	memcpy(&hello.random.gmt_unix_time, gmt_unix_time, sizeof(gmt_unix_time));
-	memcpy(hello.random.random_bytes, random_bytes, sizeof(random_bytes));
+	memcpy(hello.random.gmt_unix_time, tls_ctx->client_random.gmt_unix_time, sizeof(tls_ctx->client_random.gmt_unix_time));	// QUESTION: sizeof durch variablen (#define) ersetzen?
+	memcpy(hello.random.random_bytes, tls_ctx->client_random.random_bytes, sizeof(tls_ctx->client_random.random_bytes));
 
-	memcpy(cipher_suites, TLS_RSA_WITH_AES_256_CBC_SHA256, sizeof(TLS_RSA_WITH_AES_256_CBC_SHA256));
-	hello.cipher_suites = cipher_suites;
-	hello.cipher_suites_length = 2;
+	hello.cipher_suites = tls_ctx->allowed_cipher_suites;
+	hello.cipher_suites_length = tls_ctx->allowed_cipher_suites_length;
 
 	hello.compression_methods = calloc(1, sizeof(flea_u8_t));
 	hello.compression_methods_length = 1;
@@ -1134,7 +1149,7 @@ flea_err_t create_master_secret(Random client_hello_random, Random server_hello_
 	FLEA_THR_BEG_FUNC();
 	flea_u8_t random_seed[64];
 	memcpy(random_seed, &client_hello_random.gmt_unix_time, 4);
-	memcpy(random_seed+4, &client_hello_random.random_bytes, 28);
+	memcpy(random_seed+4, &client_hello_random.random_bytes, 28);	// TODO: this works?!?!?!?! pointer on pointer?
 	memcpy(random_seed+32, &server_hello_random.gmt_unix_time, 4);
 	memcpy(random_seed+36, &server_hello_random.random_bytes, 28);
 	/*memcpy(random_seed, &server_hello_random.gmt_unix_time, 4);
@@ -1165,16 +1180,43 @@ flea_err_t create_finished(flea_u8_t* messages_hash , flea_u8_t master_secret[48
 	FLEA_THR_FIN_SEC_empty();
 }
 
+// TODO: configurable parameters
+void flea_tls_ctx_t__ctor(flea_tls_ctx_t* ctx) {
+	/**
+		set cipher suite values
+	*/
+	flea_u8_t TLS_RSA_WITH_AES_256_CBC_SHA256[] = { 0x00, 0x3D };
+
+	ctx->allowed_cipher_suites = calloc(2, sizeof(flea_u8_t));
+	memcpy(ctx->allowed_cipher_suites, TLS_RSA_WITH_AES_256_CBC_SHA256, 2);
+	ctx->allowed_cipher_suites_length = 2;
+
+    // CipherSuite TLS_NULL_WITH_NULL_NULL = { 0x00,0x00 };
+	ctx->selected_cipher_suite[0] = 0x00;
+	ctx->selected_cipher_suite[1] = 0x00;
+
+	/*
+		set client_random
+	*/
+	flea_rng__randomize(ctx->client_random.gmt_unix_time, 4);	// TODO: check RFC for correct implementation - actual time?
+	flea_rng__randomize(ctx->client_random.random_bytes, 28);
+
+}
 
 flea_err_t flea_tls_handshake(int socket_fd)
 {
 	FLEA_THR_BEG_FUNC();
-	flea_u8_t reply[16384];
+
+	flea_tls_ctx_t tls_ctx;
+	flea_tls_ctx_t__ctor(&tls_ctx);
 
 	flea_hash_ctx_t hash_ctx;
 	THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256);
 
-	ClientHello hello = create_hello_message();
+	flea_u8_t reply[16384];
+
+
+	ClientHello hello = create_hello_message(&tls_ctx);
 	print_client_hello(hello);
 
 	flea_u8_t hello_message[16384];
