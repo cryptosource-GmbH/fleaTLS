@@ -1156,13 +1156,11 @@ typedef struct {
 PRF(master_secret, finished_label, Hash(handshake_messages))
 		[0..verify_data_length-1];
 */
-flea_err_t create_finished(flea_u8_t* handshake_messages, flea_u32_t handshake_messages_len, flea_u8_t master_secret[48], Finished *finished_message) {
+flea_err_t create_finished(flea_u8_t* messages_hash , flea_u8_t master_secret[48], Finished *finished_message) {
 	FLEA_THR_BEG_FUNC();
 	finished_message->verify_data_length = 12;	// 12 octets for all cipher suites defined in RFC 5246
 	finished_message->verify_data = calloc(finished_message->verify_data_length, sizeof(flea_u8_t));
 
-	flea_u8_t messages_hash[32];
-	flea_err_t err = THR_flea_compute_hash(flea_sha256, handshake_messages, handshake_messages_len, messages_hash, 32);
 	FLEA_CCALL(PRF(master_secret, 48, PRF_LABEL_CLIENT_FINISHED, messages_hash, 32, finished_message->verify_data_length, finished_message->verify_data));
 	FLEA_THR_FIN_SEC_empty();
 }
@@ -1173,8 +1171,8 @@ flea_err_t flea_tls_handshake(int socket_fd)
 	FLEA_THR_BEG_FUNC();
 	flea_u8_t reply[16384];
 
-	flea_u8_t handshake_messages_concat[100000];
-	flea_u32_t handshake_messages_concat_index = 0;
+	flea_hash_ctx_t hash_ctx;
+	THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256);
 
 	ClientHello hello = create_hello_message();
 	print_client_hello(hello);
@@ -1192,8 +1190,8 @@ flea_err_t flea_tls_handshake(int socket_fd)
 	flea_u8_t handshake_message[16384];
 	flea_u32_t handshake_length;	// 24 bit
 	create_handshake_message(HANDSHAKE_TYPE_CLIENT_HELLO, hello_message, length, handshake_message, &handshake_length);
-	memcpy(handshake_messages_concat + handshake_messages_concat_index, handshake_message, handshake_length);
-	handshake_messages_concat_index += handshake_length;
+
+	FLEA_CCALL(THR_flea_hash_ctx_t__update(&hash_ctx, handshake_message, handshake_length));
 
 	printf("Created Handshake Message of length %i:\n", handshake_length);
 	for (flea_u16_t i=0; i<handshake_length; i++)
@@ -1260,8 +1258,6 @@ flea_err_t flea_tls_handshake(int socket_fd)
 		Certificate certificate_message;
 		Finished server_finished;
 		flea_public_key_t pubkey;
-		flea_u8_t handshake_messages_concat_tmp_bytes[16384];
-		flea_u32_t handshake_messages_concat_tmp_length;
 		flea_bool_t expect_change_cipher_spec = FLEA_FALSE;
 		flea_bool_t handshake_finished = FLEA_FALSE;
 		flea_u32_t reply_index = 0;
@@ -1292,9 +1288,7 @@ flea_err_t flea_tls_handshake(int socket_fd)
 				expect_change_cipher_spec = FLEA_FALSE;
 			}
 
-			handshake_to_bytes(handshake_message, handshake_messages_concat_tmp_bytes, &handshake_messages_concat_tmp_length);
-			memcpy(handshake_messages_concat + handshake_messages_concat_index, handshake_messages_concat_tmp_bytes, handshake_messages_concat_tmp_length);
-			handshake_messages_concat_index += handshake_messages_concat_tmp_length;
+			FLEA_CCALL(THR_flea_hash_ctx_t__update(&hash_ctx, record_message.data, record_message.length));
 
 			printf("Reading HandshakeMessage content...\n");
 			printf("handshake_message.type: %i\n", handshake_message.type);
@@ -1340,15 +1334,7 @@ flea_err_t flea_tls_handshake(int socket_fd)
 					printf("send failed\n");
 				}
 
-				memcpy(handshake_messages_concat + handshake_messages_concat_index, client_key_ex_handshake_bytes, client_key_ex_handshake_length);
-				handshake_messages_concat_index += client_key_ex_handshake_length;
-
-				/** All Handshake Messages received/sent: now can compute hash */
-				printf("\n CONCAT: \n");
-				for (flea_u32_t k = 0; k<handshake_messages_concat_index; k++) {
-					printf("%02x ", handshake_messages_concat[k]);
-				}
-				printf("\n");
+				FLEA_CCALL(THR_flea_hash_ctx_t__update(&hash_ctx, client_key_ex_handshake_bytes, client_key_ex_handshake_length));
 
 				printf("sending ChangeCipherSpec ...\n");
 				Record change_cipher_spec_record;
@@ -1377,7 +1363,12 @@ flea_err_t flea_tls_handshake(int socket_fd)
 				Finished finished_message;
 				flea_u8_t finished_message_handshake_bytes[16384];
 				flea_u16_t finished_message_handshake_bytes_length;
-				FLEA_CCALL(create_finished(handshake_messages_concat, handshake_messages_concat_index, master_secret, &finished_message));
+
+
+				// compute hash over handshake messages so far
+				flea_u8_t messages_hash[32];
+				FLEA_CCALL(THR_flea_hash_ctx_t__final(&hash_ctx, messages_hash));
+				FLEA_CCALL(create_finished(messages_hash, master_secret, &finished_message));
 				flea_u8_t finished_message_bytes[16384];
 				flea_u32_t finished_message_bytes_length;
 				finished_to_bytes(&finished_message, finished_message_bytes, &finished_message_bytes_length);
