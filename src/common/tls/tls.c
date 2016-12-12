@@ -196,7 +196,7 @@ flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, 
 	}
 	flea_u8_t A[A_len];
 	flea_u8_t A2[A_len];
-	flea_u8_t tmp_input[hash_len];	//* TODO: check if this is ok. In C99 yes but can I rely on variable length arrays? */
+	flea_u8_t tmp_input[hash_len];
 	flea_u8_t tmp_output[hash_len];
 
 	// A(0) = seed
