@@ -12,6 +12,7 @@
 #include "flea/ber_dec.h"
 #include "flea/x509.h"
 #include "flea/crl.h"
+#include "internal/pltf_if/time.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
 #define END_OF_COLL 0xFFFF
@@ -113,13 +114,23 @@ static flea_bool_t is_cert_self_issued(const flea_x509_cert_ref_t *cert__pt)
   return FLEA_FALSE;
 }
 
-static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *compare_time__pt, flea_public_key_t *key_to_construct_mbn__pt)
+static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *arg_compare_time_mbn__pt, flea_public_key_t *key_to_construct_mbn__pt)
 {
   flea_s32_t i;
   flea_al_u16_t chain_len__alu16 =  cert_chain__pt->chain_pos__u16 + 1;
   flea_al_u16_t m_path__u16 = chain_len__alu16;
   flea_ref_cu8_t inherited_params__rcu8;
+  flea_gmt_time_t compare_time__t;
   FLEA_THR_BEG_FUNC();
+
+  if(arg_compare_time_mbn__pt)
+  {
+    compare_time__t = *arg_compare_time_mbn__pt;
+  }
+  else
+  {
+    FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&compare_time__t));
+  }
   if(chain_len__alu16 == 0)
   {
     FLEA_THROW("attempted to verify an empty certificate path", FLEA_ERR_INV_ARG);
@@ -139,11 +150,11 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
     key_usage__pt = & current__pt->extensions__t.key_usage__t;
     basic_constraints__pt = &current__pt->extensions__t.basic_constraints__t;
     // verify validity date
-    if(1 == flea_asn1_cmp_utc_time(&current__pt->not_before__t, compare_time__pt))
+    if(1 == flea_asn1_cmp_utc_time(&current__pt->not_before__t, &compare_time__t))
     {
       FLEA_THROW("certificate not yet valid", FLEA_ERR_CERT_NOT_YET_VALID); 
     }
-    if(-1 == flea_asn1_cmp_utc_time(&current__pt->not_after__t, compare_time__pt))
+    if(-1 == flea_asn1_cmp_utc_time(&current__pt->not_after__t, &compare_time__t))
     {
       FLEA_THROW("certificate not yet valid", FLEA_ERR_CERT_NOT_YET_VALID); 
     }
@@ -216,14 +227,13 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
     /* check revocation. current "inherited params" are for the issuer */
     if(cert_chain__pt->perform_revocation_checking__b)
     {
-      FLEA_CCALL(THR_flea_crl__check_revocation_status(subject__pt, issuer__pt, cert_chain__pt->crl_collection__rcu8, cert_chain__pt->nb_crls__u16, compare_time__pt,  is_ca_cert__b, inherited_params_to_use__prcu8)); 
+      FLEA_CCALL(THR_flea_crl__check_revocation_status(subject__pt, issuer__pt, cert_chain__pt->crl_collection__rcu8, cert_chain__pt->nb_crls__u16, &compare_time__t,  is_ca_cert__b, inherited_params_to_use__prcu8)); 
     }
     if(returned_params__rcu8.len__dtl)
     {
       // these are the params for the subject cert
       inherited_params__rcu8 = returned_params__rcu8;
-      // TODO: 
-      // HERE, ENSURE THAT SUBJECT PUBLIC KEY ALGO MATCHES TO THE PREVIOUS IN CHAIN IF PARAMETER INHERITANCE ACUTALLY OCCURS
+      // TODO: REMOVE PARAMETER INHERITANCE
     }
     //printf("validated signature OK\n");
 
@@ -231,6 +241,7 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
   if(key_to_construct_mbn__pt)
   {
     flea_bool_t dummy;
+      // TODO: REMOVE PARAMETER INHERITANCE
       flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
     FLEA_CCALL(THR_flea_public_key_t__ctor_cert_inherited_params(key_to_construct_mbn__pt, &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[0]], inherited_params_to_use__prcu8, &dummy));
   }
@@ -243,11 +254,11 @@ void flea_cert_chain_t__disable_revocation_checking(flea_cert_chain_t *cert_chai
   cert_chain__pt->perform_revocation_checking__b = FLEA_FALSE;
 }
 
-flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain(flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time__pt)
+flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain(flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time_mbn__pt)
 {
-  return THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key(cert_chain__pt, time__pt, NULL);
+  return THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key(cert_chain__pt, time_mbn__pt, NULL);
 }
-flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time__pt, flea_public_key_t *key_to_construct_mbn__pt)
+flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time_mbn__pt, flea_public_key_t *key_to_construct_mbn__pt)
 {
   flea_u16_t *chain_pos__pu16 = &cert_chain__pt->chain_pos__u16;
   flea_x509_cert_ref_t *cert_collection__pt = cert_chain__pt->cert_collection__pt;
@@ -324,7 +335,7 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( 
           printf("\n");
 
         }*/
-          flea_err_t validation_error = THR_validate_cert_path(cert_chain__pt, time__pt, key_to_construct_mbn__pt);
+          flea_err_t validation_error = THR_validate_cert_path(cert_chain__pt, time_mbn__pt, key_to_construct_mbn__pt);
           if(validation_error == FLEA_ERR_FINE)
           {
             return FLEA_ERR_FINE;
