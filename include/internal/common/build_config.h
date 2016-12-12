@@ -95,9 +95,15 @@
  */
 #define FLEA_HAVE_DTL_32BIT // FBFLAGS_DTL_32_BIT_ON_OFF
 
-// include must remain at the very end:
-#include "internal/common/build_config_util.h"
+/**
+ * set this value to use the user-provided implementation of the function
+ * used by flea to determine the current time.
+ */
+//#define FLEA_USE_USER_CURR_TIME
 
+
+/* include must remain at the very end: */
+#include "internal/common/build_config_util.h"
 
 
 #endif /* h-guard */

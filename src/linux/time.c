@@ -20,6 +20,5 @@ flea_err_t flea_pltfif_time__get_current_time(flea_gmt_time_t *time__t)
   time__t->hours = ts->tm_hour;
   time__t->seconds = ts->tm_sec % 60;
   time__t->minutes = ts->tm_min;
-
   FLEA_THR_FIN_SEC_empty(); 
 }

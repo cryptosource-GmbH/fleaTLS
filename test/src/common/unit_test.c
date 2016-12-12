@@ -165,9 +165,12 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
     // TODO: REMOVE THIS ONCE ALL REQUIREMENTS ARE REFLECTED BY THE TEST CASE'S
     // INI FILE
 #if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
-    CALL_TEST(THR_flea_test_path_validation_file_based(cert_path_prefix, &nb_cert_path_tests));
-    nb_exec_tests -= 1; // correct the counting of the dispatcher
-    nb_exec_tests += nb_cert_path_tests;
+    if(!func_prefix)
+    {
+      CALL_TEST(THR_flea_test_path_validation_file_based(cert_path_prefix, &nb_cert_path_tests));
+      nb_exec_tests -= 1; // correct the counting of the dispatcher
+      nb_exec_tests += nb_cert_path_tests;
+    }
 #endif
     if(i == 0)
     {
