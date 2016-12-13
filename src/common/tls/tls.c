@@ -477,7 +477,9 @@ flea_err_t read_server_hello(flea_tls_ctx_t* tls_ctx, HandshakeMessage* handshak
 	// read version
 	server_hello_msg->server_version.major = handshake_msg->data[length++];
 	server_hello_msg->server_version.minor = handshake_msg->data[length++];
-	if (server_hello_msg->server_version.major != 0x03 || server_hello_msg->server_version.minor != 0x03)
+
+	// TODO: in this part the client has to decide if he accepts the server's TLS version - implement negotiation
+	if (server_hello_msg->server_version.major != tls_ctx->version.major || server_hello_msg->server_version.minor != tls_ctx->version.minor)
 	{
 		FLEA_THROW("version mismatch", FLEA_ERR_TLS_GENERIC);
 	}
@@ -733,7 +735,7 @@ void record_to_bytes(Record record, flea_u8_t *bytes, flea_u16_t *length)
 	}
 	else
 	{
-		// TODO check if correct (byte order?)
+		// TODO replace with function in bin_utils.c
 
 		flea_u8_t *p = (flea_u8_t*)&record.length;
 		bytes[i++] = p[1];
@@ -752,7 +754,7 @@ void handshake_to_bytes(HandshakeMessage handshake, flea_u8_t *bytes, flea_u32_t
 	flea_u16_t i=0;
 	bytes[i++] = handshake.type;
 
-	// TODO check if correct (byte order?)
+	// TODO replace with function in bin_utils.c
 	flea_u8_t *p = (flea_u8_t*)&handshake.length;
 	bytes[i++] = p[2];
 	bytes[i++] = p[1];
@@ -1009,11 +1011,11 @@ IV Size
          SecurityParameters.block_size.
 
 */
-void create_record(Record* record, flea_u8_t* data, flea_u16_t length, ContentType content_type, RecordType record_type) {
+void create_record(flea_tls_ctx_t* tls_ctx, Record* record, flea_u8_t* data, flea_u16_t length, ContentType content_type, RecordType record_type) {
 	record->content_type = content_type;
 	record->record_type = record_type;
-	record->version.major = 3;
-	record->version.minor = 3;
+	record->version.major = tls_ctx->major;
+	record->version.minor = tls_ctx->minor;
 
 	// TODO: have to implement compression ??? TLS Ciphertext is based on Compressed
 	// TODO: length max 2^14
