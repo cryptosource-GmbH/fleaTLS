@@ -9,6 +9,7 @@
 #include "flea/ber_dec.h"
 #include "flea/x509.h"
 #include "test_data_x509_certs.h"
+#include "flea/hostn_ver.h"
 
 #include <string.h>
 
@@ -47,20 +48,45 @@ flea_err_t THR_flea_test_dec_tls_server_issuer_cert()
 }
 flea_err_t THR_flea_test_dec_tls_server_cert()
 {
-  const flea_u8_t url__cau8 [] = "internal.cryptosource.de";
+  const char *hostname__cs = "internal.cryptosource.de";
+  const char *wrong_hostname__cs = "internal.cryptosource.dd";
+  const char *wrong_hostname2__cs = "jnternal.cryptosource.de";
+
+  flea_u8_t ipaddr__acu8 [] = {94,16,81,15};
+  flea_u8_t wrong_ipaddr__acu8 [] = {94,16,81,14};
+  flea_ref_cu8_t ipaddr__rcu8 = {ipaddr__acu8, sizeof(ipaddr__acu8)};
+  flea_ref_cu8_t wrong_ipaddr__rcu8 = {wrong_ipaddr__acu8, sizeof(wrong_ipaddr__acu8)};
 
   FLEA_DECL_OBJ(cert_ref__t, flea_x509_cert_ref_t);
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&cert_ref__t, test_cert_tls_server_1, sizeof(test_cert_tls_server_1)));
-  if(cert_ref__t.extensions__t.san__t.ip_address_in_netw_byte_order__t.len__dtl != 4)
+
+  FLEA_CCALL(THR_flea_x509__verify_tls_server_id_cstr(hostname__cs, flea_host_dnsname, &cert_ref__t));
+  FLEA_CCALL(THR_flea_x509__verify_tls_server_id(&ipaddr__rcu8, flea_host_ipaddr, &cert_ref__t));
+  
+  if(FLEA_ERR_X509_TLS_SERVER_ID_NO_MATCH !=  THR_flea_x509__verify_tls_server_id_cstr(wrong_hostname__cs, flea_host_dnsname, &cert_ref__t))
+  {
+    FLEA_THROW("wrong server id accepted", FLEA_ERR_FAILED_TEST);
+  }
+  if(FLEA_ERR_X509_TLS_SERVER_ID_NO_MATCH !=  THR_flea_x509__verify_tls_server_id_cstr(wrong_hostname2__cs, flea_host_dnsname, &cert_ref__t))
+  {
+    FLEA_THROW("wrong server id accepted", FLEA_ERR_FAILED_TEST);
+  }
+  if(FLEA_ERR_X509_TLS_SERVER_ID_NO_MATCH != THR_flea_x509__verify_tls_server_id(&wrong_ipaddr__rcu8, flea_host_ipaddr, &cert_ref__t))
+  {
+    FLEA_THROW("wrong server id accepted", FLEA_ERR_FAILED_TEST);
+  }
+
+
+  /*if(cert_ref__t.extensions__t.san__t.ip_address_in_netw_byte_order__t.len__dtl != 4)
   {
     FLEA_THROW("error with parsed ip address in SAN", FLEA_ERR_FAILED_TEST);
-  }
-  if(flea_memcmp_wsize(url__cau8, sizeof(url__cau8) - 1, cert_ref__t.extensions__t.san__t.dns_name_as_ia5str__t.data__pcu8, cert_ref__t.extensions__t.san__t.dns_name_as_ia5str__t.len__dtl))
+  }*/
+  /*if(flea_memcmp_wsize(url__cau8, sizeof(url__cau8) - 1, cert_ref__t.extensions__t.san__t.dns_name_as_ia5str__t.data__pcu8, cert_ref__t.extensions__t.san__t.dns_name_as_ia5str__t.len__dtl))
   {
     //printf("exp len = %u, found len = %u\n", sizeof(url__cau8) - 1, cert_ref__t.extensions__t.san__t.dns_name_as_ia5str__t.len__dtl);
     FLEA_THROW("error with decoded SAN dns name", FLEA_ERR_FAILED_TEST);
-  }
+  }*/
   if(cert_ref__t.extensions__t.basic_constraints__t.has_path_len__b || cert_ref__t.extensions__t.basic_constraints__t.is_ca__b)
   {
    FLEA_THROW("error decoding empty basic_constraints extensions", FLEA_ERR_FAILED_TEST);

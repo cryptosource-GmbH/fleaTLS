@@ -96,11 +96,24 @@
 #define FLEA_HAVE_DTL_32BIT // FBFLAGS_DTL_32_BIT_ON_OFF
 
 /**
+ * set this value if flea runs on a linux platform and the os' interface shall
+ * be used for various purposes.
+ */
+#define FLEA_ON_LINUX_PLTF
+
+/**
  * set this value to use the user-provided implementation of the function
  * used by flea to determine the current time.
  */
 //#define FLEA_USE_USER_CURR_TIME
 
+/**
+ * This value defines the maximal accepted length of name components (e.g. in
+ * the Subject Alternative Name X.509 certificate extension). In stack mode,
+ * this determines allocated buffer sizes.
+ * Must not exceed 0xFFFF.
+ */
+#define FLEA_X509_NAME_COMPONENT_MAX_BYTE_LEN 256
 
 /* include must remain at the very end: */
 #include "internal/common/build_config_util.h"

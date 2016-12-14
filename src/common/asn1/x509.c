@@ -15,27 +15,27 @@
 
 /** id-ce **/
 #define ID_CE_INDIC                (0x0100)
-#define ID_CE_OID_AKI              (0x0100 | 35)
-#define ID_CE_OID_POLICIES         (0x0100 | 32)
-#define ID_CE_OID_KEY_USAGE        (0x0100 | 15)
-#define ID_CE_OID_SUBJ_KEY_ID      (0x0100 | 14)
-#define ID_CE_OID_SUBJ_ALT_NAME    (0x0100 | 17)
-#define ID_CE_OID_ISS_ALT_NAME     (0x0100 | 18)
-#define ID_CE_OID_BASIC_CONSTR     (0x0100 | 19)
-#define ID_CE_OID_NAME_CONSTR      (0x0100 | 30)
-#define ID_CE_OID_POLICY_CONSTR    (0x0100 | 36)
-#define ID_CE_OID_EXT_KEY_USAGE    (0x0100 | 37)
-#define ID_CE_OID_CRL_DISTR_POINT  (0x0100 | 31)
-#define ID_CE_OID_INHIB_ANY_POLICY (0x0100 | 54)
-#define ID_CE_OID_FRESHEST_CRL     (0x0100 | 46)
+#define ID_CE_OID_AKI              (ID_CE_INDIC | 35)
+#define ID_CE_OID_POLICIES         (ID_CE_INDIC | 32)
+#define ID_CE_OID_KEY_USAGE        (ID_CE_INDIC | 15)
+#define ID_CE_OID_SUBJ_KEY_ID      (ID_CE_INDIC | 14)
+#define ID_CE_OID_SUBJ_ALT_NAME    (ID_CE_INDIC | 17)
+#define ID_CE_OID_ISS_ALT_NAME     (ID_CE_INDIC | 18)
+#define ID_CE_OID_BASIC_CONSTR     (ID_CE_INDIC | 19)
+#define ID_CE_OID_NAME_CONSTR      (ID_CE_INDIC | 30)
+#define ID_CE_OID_POLICY_CONSTR    (ID_CE_INDIC | 36)
+#define ID_CE_OID_EXT_KEY_USAGE    (ID_CE_INDIC | 37)
+#define ID_CE_OID_CRL_DISTR_POINT  (ID_CE_INDIC | 31)
+#define ID_CE_OID_INHIB_ANY_POLICY (ID_CE_INDIC | 54)
+#define ID_CE_OID_FRESHEST_CRL     (ID_CE_INDIC | 46)
 
 /** id-pe**/
 #define ID_PE_INDIC            (0x0200)
-#define ID_PE_OID_AUTH_INF_ACC (0x0200 | 1)
-#define ID_PE_OID_SUBJ_INF_ACC (0x0200 | 11)
+#define ID_PE_OID_AUTH_INF_ACC (ID_PE_INDIC | 1)
+#define ID_PE_OID_SUBJ_INF_ACC (ID_PE_INDIC | 11)
 
 // TODO: TO GLOBAL CONFIG?
-#define FLEA_MAX_NB_CRL_DISTR_POINTS 5
+//#define FLEA_MAX_NB_CRL_DISTR_POINTS 5
 
 const flea_u8_t id_pe__cau8 [7] = { 0x2B, 0x06, 0x01, 0x05, 0x05, 0x07, 0x01 };
 
@@ -123,7 +123,7 @@ static flea_err_t THR_flea_x509_cert__parse_eku(flea_ber_dec_t *cont_dec__pt, fl
   ext_key_usage__pt->purposes__u16 = purposes__u16;
   FLEA_THR_FIN_SEC_empty();
 }
-
+#if 0
 static flea_err_t THR_flea_x509_cert__parse_subj_alt_name(flea_ber_dec_t *cont_dec__pt, flea_x509_subj_alt_names_t *san__pt )
 { 
 
@@ -131,48 +131,9 @@ static flea_err_t THR_flea_x509_cert__parse_subj_alt_name(flea_ber_dec_t *cont_d
   flea_bool_t found__b;
   FLEA_THR_BEG_FUNC();
   /*GeneralNames ::= SEQUENCE SIZE (1..MAX) OF GeneralName*/
-  FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(cont_dec__pt));
-  // TODO: MAKE FUNCTION WHICH TAKES A LIST OF DECODING ACTIONS TO SHORTEN THE
-  // FOLLLOWING CODE
-  while(flea_ber_dec_t__has_current_more_data(cont_dec__pt))
-  {
-    // TODO: PREVENT INIFITE LOOP => https://internal.cryptosource.de/redmine/issues/153
-    // given MULTIPLE OCCURENCES of elements, the last one
-    // takes precedence 
-     /*GeneralName ::= CHOICE {
-      otherName                 [0]  AnotherName,*/
-    FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(cont_dec__pt, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 0), &bit_str_ref__t, &found__b));
-    /*rfc822Name                [1]  IA5String, */
-    FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(cont_dec__pt, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 1), &bit_str_ref__t, &found__b));
-    /*dNSName                   [2]  IA5String,         supported */
-    // TODO: MAKE TEST FOR THIS!
-    FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(cont_dec__pt, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 2), &san__pt->dns_name_as_ia5str__t, &found__b));
-    /*    x400Address               [3]  ORAddress, */
-    FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(cont_dec__pt, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 3), &bit_str_ref__t, &found__b));
-    /* directoryName             [4]  Name,              binary only*/
-    // TODO: THIS DOES NOT YET WORK, ITS A CONSTRUCTED
-    //FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(cont_dec__pt, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC | FLEA_ASN1_CONSTRUCTED, 4), &san__pt->directory_name_as_name__t, &found__b));
-    FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional(cont_dec__pt,  4, /*dummy*/ 0, &san__pt->directory_name_as_name__t));
-    /*ediPartyName              [5]  EDIPartyName,*/
-    FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(cont_dec__pt, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 5), &bit_str_ref__t, &found__b));
-    /*uniformResourceIdentifier [6]  IA5String,         binary only */
-    // TODO: MAKE TEST FOR THIS!
-    FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(cont_dec__pt, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 6), &san__pt->uniform_resource_identifier_as_ia5str__t, &found__b));
-    /* iPAddress                 [7]  OCTET STRING,      supported */
-    // TODO: MAKE TEST FOR THIS!
-    FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(cont_dec__pt, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 7), &san__pt->ip_address_in_netw_byte_order__t, &found__b));
-    if(found__b && (san__pt->ip_address_in_netw_byte_order__t.len__dtl != 4) && (san__pt->ip_address_in_netw_byte_order__t.len__dtl != 16))
-    {
-      // TODO: this should be done in another place to have permissive decoding?
-      FLEA_THROW("invalid ip address format", FLEA_ERR_X509_SAN_DEC_ERR);
-    }
-    /* registeredID              [8]  OBJECT IDENTIFIER  supported */
-    FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(cont_dec__pt, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 7), &san__pt->registered_id_as_oid__t, &found__b));
-    /*}*/
-  }
-  FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(cont_dec__pt));
   FLEA_THR_FIN_SEC_empty();
 }
+#endif
 static flea_err_t THR_flea_x509_cert__parse_key_usage(flea_ber_dec_t *cont_dec__pt, flea_key_usage_t * key_usage__pt )
 {
   flea_der_ref_t bit_str_ref__t;
@@ -340,7 +301,9 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(flea_x509_ext_ref_
         }
         case ID_CE_OID_SUBJ_ALT_NAME:
         {
-          FLEA_CCALL(THR_flea_x509_cert__parse_subj_alt_name(&cont_dec__t, &ext_ref__pt->san__t));
+          //FLEA_CCALL(THR_flea_x509_cert__parse_subj_alt_name(&cont_dec__t, &ext_ref__pt->san__t));
+          ext_ref__pt->san__t.is_present__u8 = FLEA_TRUE;
+          FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&cont_dec__t, &ext_ref__pt->san__t.san_raw__t));
           break; 
         }
         

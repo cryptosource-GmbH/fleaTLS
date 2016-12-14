@@ -5,6 +5,7 @@
 #include "flea/error_handling.h"
 #include <time.h>
 
+#ifdef FLEA_ON_LINUX_PLTF
 flea_err_t THR_flea_pltfif_time__get_current_time(flea_gmt_time_t *time__t)
 {
 
@@ -22,3 +23,5 @@ flea_err_t THR_flea_pltfif_time__get_current_time(flea_gmt_time_t *time__t)
   time__t->minutes = ts->tm_min;
   FLEA_THR_FIN_SEC_empty(); 
 }
+
+#endif

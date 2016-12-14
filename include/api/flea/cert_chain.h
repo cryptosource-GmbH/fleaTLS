@@ -5,6 +5,8 @@
 
 #include "flea/x509.h"
 #include "flea/pubkey.h"
+#include "flea/hostn_ver.h"
+
 
 #ifdef __cplusplus
 extern "C" {
@@ -69,6 +71,9 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain( flea_cert_chain_t *
  * function determines the current time itself.
  */
 flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time_mbn__pt, flea_public_key_t *key_to_construct_mbn__pt);
+
+
+flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_hostid_and_create_pub_key( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time_mbn__pt, const flea_ref_cu8_t *host_id__pcrcu8, flea_host_id_type_e host_id_type, flea_public_key_t *key_to_construct_mbn__pt);
 #ifdef __cplusplus
 }
 #endif

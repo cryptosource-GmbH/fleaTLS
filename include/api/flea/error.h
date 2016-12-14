@@ -139,8 +139,20 @@ typedef enum
   FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED              = 0x00E4,
   FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT               = 0x00E5,
 
+
   FLEA_ERR_OUT_OF_MEM                                 = 0x00FF,
 
+ /**
+  * The user provided hostname for the verification of the server
+  * identity, e.g. in TLS, is of an invalid form.
+  */ 
+  FLEA_ERR_X509_INVALID_USER_HOSTN                    = 0x0100,
+  
+  /**
+   * The user provided ID (DNS name, URI or IP address) of the TLS server 
+   * could not be matched in the server certificate.
+   */
+  FLEA_ERR_X509_TLS_SERVER_ID_NO_MATCH                = 0x0110,
 } flea_err_t;
 
 #ifdef __cplusplus

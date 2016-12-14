@@ -10,6 +10,7 @@
 #include "flea/pubkey.h"
 #include "test_data_x509_certs.h"
 #include "flea/rng.h"
+#include "flea/hostn_ver.h"
 
 #if defined FLEA_HAVE_RSA && (defined FLEA_USE_HEAP_BUF || FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
 flea_err_t THR_flea_test_cert_path_generic(
@@ -26,7 +27,9 @@ flea_err_t THR_flea_test_cert_path_generic(
     flea_u32_t nb_crls,
     const flea_u8_t* validation_date_utctime, 
     flea_al_u16_t validation_date_utctime_len,
-    flea_bool_t disable_revocation_checking
+    flea_bool_t disable_revocation_checking,
+    const flea_ref_cu8_t *host_id_mbn__pcrcu8,
+    flea_host_id_type_e host_id_type
     )
 {
 
@@ -105,7 +108,14 @@ flea_err_t THR_flea_test_cert_path_generic(
   {
     flea_cert_chain_t__disable_revocation_checking(&cert_chain__t);
   }
-  err = THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key(&cert_chain__t, &time__t, &target_pubkey__t);
+  if(host_id_mbn__pcrcu8)
+  {
+    err = THR_flea_cert_chain__build_and_verify_cert_chain_and_hostid_and_create_pub_key(&cert_chain__t, &time__t, host_id_mbn__pcrcu8, host_id_type, &target_pubkey__t);
+  }
+  else
+  {
+    err = THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key(&cert_chain__t, &time__t, &target_pubkey__t);
+  }
   if(is_valid_chain)
   {
     if(err)

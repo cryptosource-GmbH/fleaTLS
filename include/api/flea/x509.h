@@ -117,12 +117,13 @@ typedef struct
 
 typedef struct 
 {
-  flea_der_ref_t san_raw__t;
-  flea_der_ref_t dns_name_as_ia5str__t;
+  flea_ref_cu8_t san_raw__t;
+  flea_u8_t is_present__u8;
+  /*flea_der_ref_t dns_name_as_ia5str__t;
   flea_der_ref_t directory_name_as_name__t;
   flea_der_ref_t uniform_resource_identifier_as_ia5str__t;
   flea_der_ref_t ip_address_in_netw_byte_order__t;
-  flea_der_ref_t registered_id_as_oid__t;
+  flea_der_ref_t registered_id_as_oid__t;*/
 } flea_x509_subj_alt_names_t;
 
 typedef struct

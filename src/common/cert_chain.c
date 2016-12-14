@@ -13,6 +13,7 @@
 #include "flea/x509.h"
 #include "flea/crl.h"
 #include "internal/pltf_if/time.h"
+#include "flea/hostn_ver.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
 #define END_OF_COLL 0xFFFF
@@ -208,12 +209,11 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
       }
     }
   }
-  // verify signature from target to TA
-  // TODO: INVERT ORDER AND IMPLEMENT PARAMETER INHERITANCE
+  /* verify signature from target to TA */
+      // TODO: REMOVE PARAMETER INHERITANCE
   inherited_params__rcu8.data__pcu8 = NULL;
   inherited_params__rcu8.len__dtl = 0;
   for(i = (flea_s32_t)(chain_len__alu16 - 2); i >= 0; i--)
-  //for(i = 0; i < (flea_s32_t)(chain_len__alu16 - 1); i++)
   {
 
     flea_bool_t is_ca_cert__b = (i != 0) ? FLEA_TRUE : FLEA_FALSE;
@@ -258,6 +258,16 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain(flea_cert_chain_t *c
 {
   return THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key(cert_chain__pt, time_mbn__pt, NULL);
 }
+
+
+flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_hostid_and_create_pub_key( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time_mbn__pt, const flea_ref_cu8_t *host_id__pcrcu8, flea_host_id_type_e host_id_type, flea_public_key_t *key_to_construct_mbn__pt)
+{
+  FLEA_THR_BEG_FUNC();
+FLEA_CCALL(THR_flea_x509__verify_tls_server_id(host_id__pcrcu8, host_id_type, &cert_chain__pt->cert_collection__pt[0]));
+FLEA_CCALL(THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key(cert_chain__pt, time_mbn__pt, key_to_construct_mbn__pt));
+ FLEA_THR_FIN_SEC_empty(); 
+}
+
 flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time_mbn__pt, flea_public_key_t *key_to_construct_mbn__pt)
 {
   flea_u16_t *chain_pos__pu16 = &cert_chain__pt->chain_pos__u16;
