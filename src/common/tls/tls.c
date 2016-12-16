@@ -299,7 +299,7 @@ typedef struct {
 } flea_tls_ctx_t;
 
 
-
+/* Falko: use "const" for input data*/
 flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u16_t seed_length, flea_u16_t res_length, flea_u8_t* data_out)
 {
 	flea_u16_t hash_len = 32;
@@ -312,8 +312,8 @@ flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, 
 	{
 		A_len = hash_len;
 	}
-	flea_u8_t A[A_len];
-	flea_u8_t A2[A_len];
+	flea_u8_t A[A_len]; /* Falko: dynamically-sized stack buffers may not be used */
+	flea_u8_t A2[A_len]; 
 	flea_u8_t tmp_input[hash_len];
 	flea_u8_t tmp_output[hash_len];
 
@@ -332,14 +332,16 @@ flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, 
 		// A(i) = HMAC_hash(secret, A(i-1))
 		if (first)
 		{
+      /* Falko: use CCALL */
 			err = THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, A, seed_length, A2, &len);
 			first = FLEA_FALSE;
 		}
 		else
 		{
 			err = THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, A, hash_len, A2, &len);
+      // Ausgabe direkt nach tmp_input scheint am einfachsten
 		}
-
+// Falko A2 => A => tmp_input ? kann hier nicht ein Schritt gespart werden?
 		memcpy(A, A2, hash_len);
 
 		// calculate A(i) + seed
@@ -348,7 +350,11 @@ flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, 
 
 		// + HMAC_hash(secret, A(i) + seed)
 		// concatenate to the result
+    // Falko: das kann direkt nach data_out geschrieben werden, mit entsprechend
+    // angepasster Ausgabelaenge:
 		FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, tmp_input, hash_len+seed_length, tmp_output, &len));
+    /* Falko: dann unoetig ( davon abgesehen sollte nur ein Aufruf mit
+     * entsprechend berechneter Laenge erfolgen ): */
 		if (current_length+hash_len < res_length)
 		{
 			memcpy(data_out+current_length, tmp_output, hash_len);
