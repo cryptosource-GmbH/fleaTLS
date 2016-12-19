@@ -1521,21 +1521,16 @@ flea_err_t flea_tls_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx)
 		flea_public_key_t pubkey;
 		flea_bool_t expect_change_cipher_spec = FLEA_FALSE;
 		flea_bool_t handshake_finished = FLEA_FALSE;
-		flea_u32_t reply_index = 0;
-		flea_u32_t bytes_left;
-		while (reply_index != recv_bytes)
+		flea_u32_t bytes_left = recv_bytes;
+		while (bytes_left > 0)
 		{
 			memset(&record_message, 0, sizeof(Record));
 			memset(&handshake_message, 0, sizeof(HandshakeMessage));
 
-			flea_u32_t first_record_size = get_size_of_first_record(reply+reply_index, recv_bytes-reply_index);
-			if (first_record_size < 0) {
-				FLEA_THROW("Could not read record message", FLEA_ERR_TLS_GENERIC);
-			}
-			printf("\n\nrecord size %i\n\n", first_record_size);
-
 			printf("Reading Record ...\n");
-			FLEA_CCALL(THR_flea_tls__read_record(tls_ctx, reply+reply_index, first_record_size, &record_message, RECORD_TYPE_PLAINTEXT, &bytes_left));
+			//flea_err_t THR_flea_tls__read_record(flea_tls_ctx_t* tls_ctx, flea_u8_t* bytes, flea_u32_t length, Record* record, RecordType record_type, flea_u32_t* bytes_left) {
+
+			FLEA_CCALL(THR_flea_tls__read_record(tls_ctx, reply + ((flea_u32_t)recv_bytes - bytes_left), recv_bytes, &record_message, RECORD_TYPE_PLAINTEXT, &bytes_left));
 
 			// differentiate between change cipher spec and handshake message
 			if (expect_change_cipher_spec == FLEA_FALSE)
@@ -1676,7 +1671,6 @@ flea_err_t flea_tls_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx)
 				printf("Message not recognized or Alert\n");
 				FLEA_THROW("Unrecognized / Unhandled message", FLEA_ERR_TLS_GENERIC);
 			}
-			reply_index += first_record_size;
 		}
 	}
 
