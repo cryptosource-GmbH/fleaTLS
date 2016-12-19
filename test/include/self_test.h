@@ -63,7 +63,7 @@ flea_err_t THR_flea_test_mpi_shift_left_small(void);
 
 flea_err_t THR_flea_test_mpi_shift_right(void);
 
-flea_err_t THR_flea_test_mpi_invert_odd_mod(void);
+flea_err_t THR_flea_test_mpi_invert_odd_mod_1(void);
 flea_err_t THR_flea_test_mpi_invert_odd_mod_2(void);
 
 flea_err_t THR_flea_test_arithm(void);

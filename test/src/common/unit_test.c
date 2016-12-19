@@ -92,7 +92,7 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
       CALL_TEST(THR_flea_test_mpi_shift_right());
       CALL_TEST(THR_flea_test_mpi_subtract_2());
       CALL_TEST(THR_flea_test_mpi_subtract_3());
-      CALL_TEST(THR_flea_test_mpi_invert_odd_mod());
+      CALL_TEST(THR_flea_test_mpi_invert_odd_mod_1());
       CALL_TEST(THR_flea_test_mpi_invert_odd_mod_2());
       CALL_TEST(THR_flea_test_arithm());
 #if defined FLEA_HAVE_ECC && FLEA_ECC_MAX_MOD_BIT_SIZE >= 160

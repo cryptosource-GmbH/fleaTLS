@@ -738,7 +738,13 @@ void flea_mpi_t__print (const flea_mpi_t* p_mpi)
   }
   for(i = p_mpi->m_nb_used_words - 1; i >= 0; i--)
   {
+#if FLEA_WORD_BIT_SIZE == 32
     FLEA_PRINTF_2_SWITCHED("%08X", p_mpi->m_words[i]);
+#elif FLEA_WORD_BIT_SIZE == 16
+    FLEA_PRINTF_2_SWITCHED("%04X", p_mpi->m_words[i]);
+#elif FLEA_WORD_BIT_SIZE == 8
+    FLEA_PRINTF_2_SWITCHED("%02X", p_mpi->m_words[i]);
+#endif
   }
   FLEA_PRINTF_2_SWITCHED(" (%u words)", p_mpi->m_nb_used_words);
   FLEA_PRINTF_1_SWITCHED("\n");
@@ -1222,11 +1228,13 @@ void flea_mpi_t__shift_right (flea_mpi_t * p_mpi, flea_al_u16_t shift)
     flea_mpi_t__set_to_word_value(p_mpi, 0);
     return;
   }
-  memmove(&p_mpi->m_words[0], &p_mpi->m_words[shift_words], shift_words * sizeof(flea_uword_t));
+
+
+  memmove(&p_mpi->m_words[0], &p_mpi->m_words[shift_words], (p_mpi->m_nb_used_words - shift_words) * sizeof(flea_uword_t));
   p_mpi->m_nb_used_words -= shift_words;
 
   flea_al_u8_t shift_left = FLEA_WORD_BIT_SIZE - shift_in_word;
-  flea_uword_t low_mask = (1 << shift_in_word) - 1;
+  flea_uword_t low_mask = (((flea_uword_t)1) << shift_in_word) - 1;
   for(i = p_mpi->m_nb_used_words - 1; i >= 0; i--)
   {
     flea_uword_t this_word = p_mpi->m_words[i];
@@ -1359,8 +1367,11 @@ flea_err_t THR_flea_mpi_t__invert_odd_mod (flea_mpi_t* p_result, const flea_mpi_
   while(!flea_mpi_t__is_zero(u))
   {
     flea_al_u16_t i;
+
+
     flea_mpi_ulen_t trailing_zeroes = flea_mpi_t__nb_trailing_zero_bits(u);
     flea_mpi_t__shift_right(u, trailing_zeroes);
+
     for(i = 0; i < trailing_zeroes; i++)
     {
       if(flea_mpi_t__get_bit(B, 0)) // if odd
@@ -1370,6 +1381,7 @@ flea_err_t THR_flea_mpi_t__invert_odd_mod (flea_mpi_t* p_result, const flea_mpi_
       }
       flea_mpi_t__shift_right(B, 1);
     }
+
     trailing_zeroes = flea_mpi_t__nb_trailing_zero_bits(v);
     flea_mpi_t__shift_right(v, trailing_zeroes);
 
@@ -1383,7 +1395,6 @@ flea_err_t THR_flea_mpi_t__invert_odd_mod (flea_mpi_t* p_result, const flea_mpi_
       flea_mpi_t__shift_right(D, 1);
 
     }
-
 
     if(0 <= flea_mpi_t__compare(u, v)) // if u >= v
     {
