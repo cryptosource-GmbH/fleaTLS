@@ -32,6 +32,13 @@ typedef enum { PRF_LABEL_CLIENT_FINISHED, PRF_LABEL_SERVER_FINISHED, PRF_LABEL_M
 
 
 typedef enum {
+	TLS_NULL_WITH_NULL_NULL				= 0x0000,
+	TLS_RSA_WITH_AES_256_CBC_SHA256 	= 0x003D
+} flea_tls__cipher_suite_id_t;
+
+
+
+typedef enum {
 	HANDSHAKE_TYPE_HELLO_REQUEST = 0,
 	HANDSHAKE_TYPE_CLIENT_HELLO = 1,
 	HANDSHAKE_TYPE_SERVER_HELLO = 2,
@@ -192,26 +199,46 @@ typedef enum {
 } flea_tls__cipher_type_t;
 
 
+typedef enum {
+	FLEA_TLS_PRF_SHA256
+} flea_tls__prf_algorithm_t;
+
+// TODO: finish this
+typedef struct {
+	flea_tls__cipher_suite_id_t id;
+
+	flea_block_cipher_id_t cipher;	// flea_des_single, flea_tdes_2key, flea_tdes_3key, flea_desx, flea_aes128, flea_aes192, flea_aes256;
+
+	flea_u8_t block_size;	// RFC: 8 bits => flea_block_cipher__get_block_size
+	flea_u8_t iv_size;		// RFC: 8 bits
+	flea_u8_t enc_key_size;	// RFC: 8 bits => flea_block_cipher__get_key_size
+	flea_u8_t mac_length;	// RFC: 8 bits
+
+	flea_mac_id_t 	mac_algorithm;	// default: flea_hmac_sha256
+	flea_hash_id_t	hash_algorithm; // default: flea_sha256
+
+	flea_tls__prf_algorithm_t prf_algorithm;
+	// TODO: need flea_tls__cipher_type_t ??
+} flea_tls__cipher_suite_t;
+
+
 typedef struct {
 	/*
 		RFC 5246 6.1.  Connection States
 	*/
+	// TODO:
+	//flea_tls__cipher_suite_t cipher_suite;
+
 
 	/* cipher and mac state / keys  */
-	flea_u8_t* client_write_mac_key;
-	flea_u8_t client_write_mac_key_len;	// SecurityParameters.mac_key_length
-	flea_u8_t* server_write_mac_key;
-	flea_u8_t server_write_mac_key_len;	// SecurityParameters.mac_key_length
+	flea_u8_t* mac_key;
+	flea_u8_t mac_key_len;	// SecurityParameters.mac_key_length
 
-	flea_u8_t* client_write_enc_key;
-	flea_u8_t client_write_enc_key_len;		// SecurityParameters.enc_key_length
-	flea_u8_t* server_write_enc_key;
-	flea_u8_t server_write_enc_key_len; 	// SecurityParameters.enc_key_length
+	flea_u8_t* enc_key;
+	flea_u8_t key_len;		// SecurityParameters.enc_key_length
 
-	flea_u8_t* server_write_iv;
-	flea_u8_t server_write_iv_len; 	// fixed_iv_length
-	flea_u8_t* client_write_iv;
-	flea_u8_t client_write_iv_len;	// fixed_iv_length
+	flea_u8_t* iv;
+	flea_u8_t iv_len; 	// fixed_iv_length
 
 	/* compression state */
 	CompressionMethod compression_method;
@@ -224,9 +251,6 @@ typedef struct {
 } flea_tls__connection_state_t;
 
 
-typedef enum {
-	FLEA_TLS_PRF_SHA256
-} flea_tls__prf_algorithm_t;
 /**
 	Security Parameters
 
@@ -277,8 +301,10 @@ typedef struct {
 			record processed.
 
 	*/
-	flea_tls__connection_state_t* active_connection_state;	/* Swap active and pending after a ChangeCipherSpec message */
-	flea_tls__connection_state_t* pending_connection_state; /* and reinitialized pending */
+	flea_tls__connection_state_t* active_write_connection_state;	/* Swap active and pending after a ChangeCipherSpec message */
+	flea_tls__connection_state_t* active_read_connection_state;		/* and reinitialized pending */
+	flea_tls__connection_state_t* pending_write_connection_state;
+	flea_tls__connection_state_t* pending_read_connection_state;
 
 	/*
 		Other information or configuration
@@ -313,7 +339,7 @@ flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, 
 		A_len = hash_len;
 	}
 	flea_u8_t A[A_len]; /* Falko: dynamically-sized stack buffers may not be used */
-	flea_u8_t A2[A_len]; 
+	flea_u8_t A2[A_len];
 	flea_u8_t tmp_input[hash_len];
 	flea_u8_t tmp_output[hash_len];
 
@@ -323,7 +349,6 @@ flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, 
 	// expand to length bytes
 	flea_u16_t current_length = 0;
 	flea_al_u8_t len = hash_len;
-	flea_err_t err;
 	flea_bool_t first = FLEA_TRUE;
 
 	FLEA_THR_BEG_FUNC();
@@ -333,12 +358,12 @@ flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, 
 		if (first)
 		{
       /* Falko: use CCALL */
-			err = THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, A, seed_length, A2, &len);
+			FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, A, seed_length, A2, &len));
 			first = FLEA_FALSE;
 		}
 		else
 		{
-			err = THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, A, hash_len, A2, &len);
+			FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, A, hash_len, A2, &len));
       // Ausgabe direkt nach tmp_input scheint am einfachsten
 		}
 // Falko A2 => A => tmp_input ? kann hier nicht ein Schritt gespart werden?
