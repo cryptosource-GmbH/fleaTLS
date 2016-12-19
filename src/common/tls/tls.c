@@ -1362,12 +1362,11 @@ void flea_tls_ctx_t__ctor(flea_tls_ctx_t* ctx, flea_u8_t* session_id, flea_u8_t 
 	ctx->security_parameters->compression_methods_len = 1;
 }
 
-flea_err_t flea_tls_handshake(int socket_fd)
+flea_err_t flea_tls_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx)
 {
 	FLEA_THR_BEG_FUNC();
 
-	flea_tls_ctx_t tls_ctx;
-	flea_tls_ctx_t__ctor(&tls_ctx, NULL, 0);
+
 
 	flea_hash_ctx_t hash_ctx;
 	THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256);
@@ -1375,7 +1374,7 @@ flea_err_t flea_tls_handshake(int socket_fd)
 	flea_u8_t reply[16384];
 
 
-	ClientHello hello = create_hello_message(&tls_ctx);
+	ClientHello hello = create_hello_message(tls_ctx);
 	print_client_hello(hello);
 
 	flea_u8_t hello_message[16384];
@@ -1474,7 +1473,7 @@ flea_err_t flea_tls_handshake(int socket_fd)
 			printf("\n\nrecord size %i\n\n", first_record_size);
 
 			printf("Reading Record ...\n");
-			FLEA_CCALL(read_record_message(&tls_ctx, reply+reply_index, first_record_size, &record_message, RECORD_TYPE_PLAINTEXT));
+			FLEA_CCALL(read_record_message(tls_ctx, reply+reply_index, first_record_size, &record_message, RECORD_TYPE_PLAINTEXT));
 
 			// differentiate between change cipher spec and handshake message
 			if (expect_change_cipher_spec == FLEA_FALSE)
@@ -1495,7 +1494,7 @@ flea_err_t flea_tls_handshake(int socket_fd)
 			printf("handshake_message.type: %i\n", handshake_message.type);
 			if (handshake_message.type == HANDSHAKE_TYPE_SERVER_HELLO)
 			{
-				FLEA_CCALL(read_server_hello(&tls_ctx, &handshake_message, &server_hello_message));
+				FLEA_CCALL(read_server_hello(tls_ctx, &handshake_message, &server_hello_message));
 				printf("Parsed ServerHello:\n");
 				print_server_hello(server_hello_message);
 			}
@@ -1526,7 +1525,7 @@ flea_err_t flea_tls_handshake(int socket_fd)
 				flea_u32_t client_key_ex_handshake_length;
 				handshake_to_bytes(client_key_ex_handshake, client_key_ex_handshake_bytes, &client_key_ex_handshake_length);
 
-				create_record(&tls_ctx, &client_key_ex_record, client_key_ex_handshake_bytes, client_key_ex_handshake_length, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_PLAINTEXT);
+				create_record(tls_ctx, &client_key_ex_record, client_key_ex_handshake_bytes, client_key_ex_handshake_length, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_PLAINTEXT);
 				flea_u8_t client_key_ex_record_bytes[16384];
 				flea_u16_t client_key_ex_record_length;
 				record_to_bytes(client_key_ex_record, client_key_ex_record_bytes, &client_key_ex_record_length);
@@ -1541,7 +1540,7 @@ flea_err_t flea_tls_handshake(int socket_fd)
 				Record change_cipher_spec_record;
 
 				flea_u8_t change_cipher_spec_bytes[1] = {1};
-				create_record(&tls_ctx, &change_cipher_spec_record, change_cipher_spec_bytes, 1, CONTENT_TYPE_CHANGE_CIPHER_SPEC, RECORD_TYPE_PLAINTEXT);
+				create_record(tls_ctx, &change_cipher_spec_record, change_cipher_spec_bytes, 1, CONTENT_TYPE_CHANGE_CIPHER_SPEC, RECORD_TYPE_PLAINTEXT);
 
 				flea_u8_t change_cipher_spec_record_bytes[16384];
 				flea_u16_t change_cipher_spec_record_length=0;
@@ -1586,7 +1585,7 @@ flea_err_t flea_tls_handshake(int socket_fd)
 				// need to send finished message encrypted already
 				printf("Creating finished record (encrypted) ...\n");
 				Record encrypted_finished_record;
-				create_record(&tls_ctx, &encrypted_finished_record, finished_message_handshake_bytes, finished_message_handshake_bytes_length, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_CIPHERTEXT);
+				create_record(tls_ctx, &encrypted_finished_record, finished_message_handshake_bytes, finished_message_handshake_bytes_length, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_CIPHERTEXT);
 				flea_u8_t finished_record_bytes[16384];
 				flea_u16_t finished_record_bytes_length=0;
 				record_to_bytes(encrypted_finished_record, finished_record_bytes, &finished_record_bytes_length);
@@ -1650,7 +1649,14 @@ int flea_tls_connection()
         	FLEA_THROW("Something went wrong!", FLEA_ERR_TLS_GENERIC);
 		}
     }
-	flea_err_t err = flea_tls_handshake(socket_fd);
+
+	flea_tls_ctx_t tls_ctx;
+	flea_tls_ctx_t__ctor(&tls_ctx, NULL, 0);
+
+	flea_err_t err = flea_tls_handshake(socket_fd, &tls_ctx);
+
+	// TODO: dtor
+
 	if (err != FLEA_ERR_FINE) {
 		FLEA_THROW("Something went wrong!", FLEA_ERR_TLS_GENERIC);
 	}
