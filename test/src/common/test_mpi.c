@@ -1100,20 +1100,20 @@ flea_err_t THR_flea_test_mpi_shift_left_small ()
   flea_u8_t a_enc[] = { 0xAB, 0xCC, 0x3F, 0xDB };
 
   //flea_uword_t a_arr[1];
-  FLEA_DECL_BUF(a_arr, flea_uword_t, 2);
-  FLEA_DECL_BUF(four_arr, flea_uword_t, 1);
-  FLEA_DECL_BUF(a_mul_arr, flea_uword_t, 2);
+  FLEA_DECL_BUF(a_arr, flea_uword_t, (32/FLEA_WORD_BIT_SIZE)* 2);
+  FLEA_DECL_BUF(four_arr, flea_uword_t,(32/FLEA_WORD_BIT_SIZE) );
+  FLEA_DECL_BUF(a_mul_arr, flea_uword_t,(32/FLEA_WORD_BIT_SIZE)*  2);
   flea_mpi_t four;
   flea_mpi_t a;
   flea_mpi_t a_mul;
   FLEA_THR_BEG_FUNC();
-  FLEA_ALLOC_BUF(a_arr, 2);
-  FLEA_ALLOC_BUF(four_arr, 1);
-  FLEA_ALLOC_BUF(a_mul_arr, 2);
+  FLEA_ALLOC_BUF(a_arr, (32/FLEA_WORD_BIT_SIZE)*2);
+  FLEA_ALLOC_BUF(four_arr, (32/FLEA_WORD_BIT_SIZE)*1);
+  FLEA_ALLOC_BUF(a_mul_arr, (32/FLEA_WORD_BIT_SIZE)*2);
 
-  flea_mpi_t__init(&a, a_arr, 2);
-  flea_mpi_t__init(&four, four_arr, 1);
-  flea_mpi_t__init(&a_mul, a_mul_arr, 2);
+  flea_mpi_t__init(&a, a_arr, (32/FLEA_WORD_BIT_SIZE)*2);
+  flea_mpi_t__init(&four, four_arr, (32/FLEA_WORD_BIT_SIZE)*1);
+  flea_mpi_t__init(&a_mul, a_mul_arr, (32/FLEA_WORD_BIT_SIZE)*2);
 
   FLEA_CCALL(THR_flea_mpi_t__decode(&a, a_enc, sizeof(a_enc)));
   flea_mpi_t__set_to_word_value(&four, 4);
@@ -1139,17 +1139,17 @@ flea_err_t THR_flea_test_mpi_shift_right ()
   flea_u8_t exp_enc[] = { 0x41, 0x01, 0x82, 0x00 };
 
   //flea_uword_t a_arr[1];
-  FLEA_DECL_BUF(a_arr, flea_uword_t, 2);
+  FLEA_DECL_BUF(a_arr, flea_uword_t, (32/FLEA_WORD_BIT_SIZE)*2);
   //FLEA_DECL_BUF(four_arr, flea_uword_t, 1);
-  FLEA_DECL_BUF(exp_arr, flea_uword_t, 2);
+  FLEA_DECL_BUF(exp_arr, flea_uword_t, (32/FLEA_WORD_BIT_SIZE)*2);
   flea_mpi_t a;
   flea_mpi_t exp;
   FLEA_THR_BEG_FUNC();
-  FLEA_ALLOC_BUF(a_arr, 2);
-  FLEA_ALLOC_BUF(exp_arr, 2);
+  FLEA_ALLOC_BUF(a_arr, (32/FLEA_WORD_BIT_SIZE)*2);
+  FLEA_ALLOC_BUF(exp_arr, (32/FLEA_WORD_BIT_SIZE)*2);
 
-  flea_mpi_t__init(&a, a_arr, 2);
-  flea_mpi_t__init(&exp, exp_arr, 2);
+  flea_mpi_t__init(&a, a_arr, (32/FLEA_WORD_BIT_SIZE)*2);
+  flea_mpi_t__init(&exp, exp_arr, (32/FLEA_WORD_BIT_SIZE)*2);
 
   FLEA_CCALL(THR_flea_mpi_t__decode(&a, a_enc, sizeof(a_enc)));
   FLEA_CCALL(THR_flea_mpi_t__decode(&exp, exp_enc, sizeof(exp_enc)));

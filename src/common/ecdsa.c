@@ -63,7 +63,7 @@ flea_err_t THR_flea_ecdsa__raw_verify (const flea_u8_t* enc_r, flea_al_u8_t enc_
   enc_field_len = dom_par__pt->p__ru8.len__dtl;
   enc_order_len = dom_par__pt->n__ru8.len__dtl;
   prime_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN( enc_field_len );
-  order_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN( enc_order_len ) + 1;
+  order_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN( enc_order_len ) + 4/sizeof(flea_uword_t);
 
   G_arr_word_len = 2 * prime_word_len;
   curve_word_arr_word_len = 3 * prime_word_len;
@@ -220,8 +220,9 @@ flea_err_t THR_flea_ecdsa__raw_sign (flea_u8_t* res_r_arr, flea_al_u8_t* res_r_a
   prime_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN( enc_field_len );
   order_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN( enc_order_len ) + 1;
 // TODO: if + 1 is missing, then computing this value based on the real order byte len causes mpi 'too small alloc' error in invert_odd_mod. When that is covered directly by +1 words for worksp-mpis, other size-related errors happen => find out the actual requirements. 
+// TODO: also for stack mode ^
 
-  k_arr_word_len = 2 * order_word_len + 1;
+  k_arr_word_len = 2 * order_word_len + 32/sizeof(flea_uword_t);
   G_arr_word_len = 2 * prime_word_len;
   curve_word_arr_word_len = 3 * prime_word_len;
   ecc_ws_mpi_arrs_word_len = order_word_len; 

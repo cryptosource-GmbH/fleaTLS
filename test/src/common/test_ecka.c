@@ -86,7 +86,7 @@ static flea_err_t THR_flea_test_ecka_raw_basic_inner (const flea_ec_gfp_dom_par_
 flea_err_t THR_flea_test_ecka_raw_basic ()
 {
   FLEA_THR_BEG_FUNC();
-  flea_al_u8_t i;
+  flea_ec_dom_par_id_t i;
   for(i = 0; i <= flea_gl_ec_dom_par_max_id; i++)
   {
     /*const flea_u8_t* ec_dp = flea_ec_dom_par__get_predefined_dp_ptr(i);
@@ -108,8 +108,8 @@ flea_err_t THR_flea_test_ecka_raw_basic ()
       {
         FLEA_THROW("an unexpected error occured", FLEA_ERR_FAILED_TEST);
       }
-      FLEA_CCALL(THR_flea_test_ecka_raw_basic_inner(&dom_par__t));
     }
+    FLEA_CCALL(THR_flea_test_ecka_raw_basic_inner(&dom_par__t));
   }
   FLEA_THR_FIN_SEC_empty();
 }

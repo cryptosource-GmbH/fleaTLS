@@ -217,9 +217,9 @@ flea_uword_t flea_montgomery_compute_n_prime (flea_uword_t lowest_word_of_n)
   }
   if(t0 < 0)
   {
-    t0 += (FLEA_UWORD_MAX + 1);
+    t0 += ((flea_dbl_sword_t)FLEA_UWORD_MAX + 1);
   }
-  return ((FLEA_UWORD_MAX)-t0) + 1;
+  return (((flea_dbl_sword_t)FLEA_UWORD_MAX)-t0) + 1;
 }
 
 /**
@@ -578,15 +578,15 @@ flea_err_t THR_flea_mpi_t__divide (flea_mpi_t* p_quotient, flea_mpi_t* p_remaind
   {
     vn[i] =
       (FLEA_GET_HLF_UWORD(v, i) << s) |
-      (FLEA_GET_HLF_UWORD(v, i - 1) >> (16 - s));
+      (FLEA_GET_HLF_UWORD(v, i - 1) >> ((FLEA_WORD_BIT_SIZE/2) - s)); // TODO: "16" hardcoded for 32 bit words, also further down
   }
   vn[0] = FLEA_GET_HLF_UWORD(v, 0) << s;
 
-  un[m] = FLEA_GET_HLF_UWORD(u, m - 1) >> (16 - s);
+  un[m] = FLEA_GET_HLF_UWORD(u, m - 1) >> ((FLEA_WORD_BIT_SIZE/2) - s);
 
   for(i = m - 1; i > 0; i--)
   {
-    un[i] = (FLEA_GET_HLF_UWORD(u, i) << s) | (FLEA_GET_HLF_UWORD(u, i - 1) >> (16 - s));
+    un[i] = (FLEA_GET_HLF_UWORD(u, i) << s) | (FLEA_GET_HLF_UWORD(u, i - 1) >> ((FLEA_WORD_BIT_SIZE/2) - s));
   }
   un[0] = (FLEA_GET_HLF_UWORD(u, 0) << s);
   for(j = m - n; j >= 0; j--)
@@ -610,7 +610,7 @@ flea_err_t THR_flea_mpi_t__divide (flea_mpi_t* p_quotient, flea_mpi_t* p_remaind
       p = qhat * vn[i];
       t = un[i + j] - k - (p & FLEA_HLF_UWORD_MAX);
       un[i + j] = t;
-      k = (p >> 16) - (t >> 16);
+      k = (p >> (FLEA_WORD_BIT_SIZE/2)) - (t >> (FLEA_WORD_BIT_SIZE/2));
     }
     t = un[j + n] - k;
     un[j + n] = t;
@@ -632,7 +632,7 @@ flea_err_t THR_flea_mpi_t__divide (flea_mpi_t* p_quotient, flea_mpi_t* p_remaind
       {
         t = un[i + j] + vn[i] + k;
         un[i + j] = t;
-        k = t >> 16;
+        k = t >> (FLEA_WORD_BIT_SIZE/2);
       }
       un[j + n] = un[j + n] + k;
     }
@@ -641,7 +641,7 @@ flea_err_t THR_flea_mpi_t__divide (flea_mpi_t* p_quotient, flea_mpi_t* p_remaind
   {
     for(i = 0; i < n; i++)
     {
-      flea_hlf_uword_t r_i = (un[i] >> s) | un[i + 1] << (16 - s);
+      flea_hlf_uword_t r_i = (un[i] >> s) | un[i + 1] << ((FLEA_WORD_BIT_SIZE/2) - s);
       FLEA_SET_HLF_UWORD(p_remainder->m_words, i, r_i);
       flea_mpi_t__set_used_words(p_remainder);
     }
@@ -932,19 +932,20 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, &one, &mm_ctx));
   FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
   FLEA_THR_FIN_SEC(
-    FLEA_DO_IF_RSA_CRT_WINDOW_SIZE_GREATER_ONE(FLEA_DO_IF_USE_HEAP_BUF(
-                                                 if(precomp_arrs)
-                                                 {
-                                                   for(i = 0; i < precomp_dynamic_size; i++)
-                                                   {
-                                                     FLEA_FREE_MEM_CHK_NULL(precomp_arrs[i]);
-                                                   }
-                                                 }
-                                                 FLEA_FREE_BUF_FINAL(precomp_arrs);
-                                                 );
-                                               );
-    FLEA_DO_IF_RSA_CRT_WINDOW_SIZE_GREATER_ONE(
-      FLEA_FREE_BUF_FINAL(precomp);
+      FLEA_DO_IF_RSA_CRT_WINDOW_SIZE_GREATER_ONE(
+        FLEA_DO_IF_USE_HEAP_BUF(
+          if(precomp_arrs)
+          {
+          for(i = 0; i < precomp_dynamic_size; i++)
+          {
+          FLEA_FREE_MEM_CHK_NULL(precomp_arrs[i]);
+          }
+          }
+          FLEA_FREE_BUF_FINAL(precomp_arrs);
+          );
+        );
+      FLEA_DO_IF_RSA_CRT_WINDOW_SIZE_GREATER_ONE(
+        FLEA_FREE_BUF_FINAL(precomp);
       );
     FLEA_FREE_BUF_FINAL(R_arr);
     );

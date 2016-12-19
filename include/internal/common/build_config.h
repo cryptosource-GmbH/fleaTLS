@@ -88,7 +88,9 @@
 /**
  * Don't change this.
  */
-#define FLEA_HAVE_32BIT_WORD // NOT CONFIGURABLE
+//#define FLEA_HAVE_32BIT_WORD // NOT CONFIGURABLE
+
+#define FLEA_WORD_BIT_SIZE 32
 
 /**
  * Don't change this.

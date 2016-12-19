@@ -2,6 +2,7 @@
 
 
 
+#include "internal/common/default.h"
 #include <string>
 #include <cstring>
 #include <fstream>

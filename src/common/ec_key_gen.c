@@ -1,7 +1,7 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
-#include "flea/ec_key_gen.h"
 #include "internal/common/default.h"
+#include "flea/ec_key_gen.h"
 #include "flea/error_handling.h"
 #include <stdlib.h>
 #include <string.h>

@@ -60,23 +60,24 @@ flea_err_t THR_flea_ecka__compute_raw (const flea_u8_t* public_point_enc__pcu8, 
   flea_mpi_ulen_t prime_word_len;
 #endif
 #ifdef FLEA_USE_STACK_BUF
-  flea_uword_t ecc_ws_mpi_arrs [sign_mpi_ws_count][FLEA_ECC_MAX_ORDER_WORD_SIZE];
+  flea_uword_t ecc_ws_mpi_arrs [sign_mpi_ws_count][FLEA_ECC_MAX_ORDER_WORD_SIZE+ 32/sizeof(flea_uword_t)];
 #else
   flea_uword_t* ecc_ws_mpi_arrs [sign_mpi_ws_count];
 #endif
-  FLEA_DECL_BUF(vn, flea_hlf_uword_t, FLEA_MPI_DIV_VN_HLFW_LEN_FROM_DIVISOR_W_LEN(FLEA_ECC_MAX_ORDER_WORD_SIZE));
+  FLEA_DECL_BUF(vn, flea_hlf_uword_t, FLEA_MPI_DIV_VN_HLFW_LEN_FROM_DIVISOR_W_LEN(FLEA_ECC_MAX_ORDER_WORD_SIZE+ 32/sizeof(flea_uword_t)));
   FLEA_DECL_BUF(un, flea_hlf_uword_t, FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(2 * (FLEA_ECC_MAX_MOD_WORD_SIZE + 1)));
 
-  FLEA_DECL_BUF(n_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE);
-  FLEA_DECL_BUF(d_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE);
-  FLEA_DECL_BUF(l_arr, flea_uword_t, 2 * FLEA_ECC_MAX_ORDER_WORD_SIZE); // must be able to hold intermediate result multiplication result
-  FLEA_DECL_BUF(Q_arr, flea_uword_t, 2 * FLEA_ECC_MAX_MOD_WORD_SIZE);
-  FLEA_DECL_BUF(curve_word_arr, flea_uword_t, 3 * FLEA_ECC_MAX_MOD_WORD_SIZE);
+  FLEA_DECL_BUF(n_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE+ 32/sizeof(flea_uword_t));
+  FLEA_DECL_BUF(d_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE+ 32/sizeof(flea_uword_t));
+  FLEA_DECL_BUF(l_arr, flea_uword_t, 2 * (FLEA_ECC_MAX_ORDER_WORD_SIZE+ 32/sizeof(flea_uword_t))); // must be able to hold intermediate result multiplication result
+  FLEA_DECL_BUF(Q_arr, flea_uword_t, (2 * FLEA_ECC_MAX_MOD_WORD_SIZE)+ 32/sizeof(flea_uword_t));
+  FLEA_DECL_BUF(curve_word_arr, flea_uword_t, (3 * FLEA_ECC_MAX_MOD_WORD_SIZE)+ 32/sizeof(flea_uword_t));
   flea_mpi_ulen_t curve_word_arr_word_len = FLEA_NB_STACK_BUF_ENTRIES(curve_word_arr);
   flea_mpi_ulen_t Q_arr_word_len = FLEA_NB_STACK_BUF_ENTRIES(Q_arr);
   flea_mpi_ulen_t vn_len = FLEA_NB_STACK_BUF_ENTRIES(vn); // overridden for heap-version
   flea_mpi_ulen_t un_len = FLEA_NB_STACK_BUF_ENTRIES(un); // overridden for heap-version
-  flea_mpi_ulen_t order_word_len = FLEA_ECC_MAX_ORDER_WORD_SIZE;
+  flea_mpi_ulen_t order_word_len = FLEA_ECC_MAX_ORDER_WORD_SIZE + 32/sizeof(flea_uword_t);
+// TODO: if + 1 is missing, then computing this value based on the real order byte len causes mpi 'too small alloc' error in invert_odd_mod. When that is covered directly by +1 words for worksp-mpis, other size-related errors happen => find out the actual requirements. 
 
   flea_mpi_div_ctx_t div_ctx;
   flea_al_u8_t i;
@@ -91,7 +92,7 @@ flea_err_t THR_flea_ecka__compute_raw (const flea_u8_t* public_point_enc__pcu8, 
   enc_field_len = dom_par__pt->p__ru8.len__dtl;
 
   prime_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN( enc_field_len );
-  order_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN( enc_order_len );
+  order_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN( enc_order_len )+ 32/sizeof(flea_uword_t);
 
   Q_arr_word_len = 2 * prime_word_len;
   curve_word_arr_word_len = 3 * prime_word_len;

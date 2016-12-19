@@ -1,7 +1,7 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 
-#include "internal/common/build_config.h"
+#include "internal/common/default.h"
 #include "internal/common/hash/sha512.h"
 #include <string.h>
 #include "flea/error.h"

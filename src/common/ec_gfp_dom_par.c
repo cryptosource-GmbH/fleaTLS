@@ -11,7 +11,7 @@
 
 typedef struct
 {
-  flea_u8_t dp_id;
+  flea_ec_dom_par_id_t dp_id;
   const flea_u8_t* dp_ptr;
   flea_u16_t dp_len__u16;
 } dp_id_ptr_entry_t;
@@ -388,6 +388,7 @@ static const dp_id_ptr_entry_t dp_id_entry_table [] =
   { flea_secp160r2,				flea_ec_gfp_secp160r2_domain_params,			 sizeof(flea_ec_gfp_secp160r2_domain_params)										},
 #endif
 #if FLEA_ECC_MAX_MOD_BIT_SIZE >= 192
+
   { flea_secp192r1,				flea_ec_gfp_secp192r1_domain_params,			 sizeof(flea_ec_gfp_secp192r1_domain_params)										},
 #endif
 #if FLEA_ECC_MAX_MOD_BIT_SIZE >= 224

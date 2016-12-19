@@ -51,7 +51,6 @@ flea_err_t THR_flea_test_ber_dec_basic()
 
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
   // decode integer serial number
-  //printf("before open seq around version\n");
   FLEA_CCALL(THR_flea_ber_dec_t__open_constructed(&dec__t, 0, FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC));
 
   FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE3(0, 0, FLEA_ASN1_INT), version_buf__bu8, &version_len__dtl));

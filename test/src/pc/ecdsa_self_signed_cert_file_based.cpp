@@ -53,7 +53,6 @@ static flea_err_t THR_iterate_files(std::string const &dir_name)
 	}
 	if(err_count)
 	{
-    FLEA_PRINTF_TEST_OUTP_2_SWITCHED("there were %u test errors\n", err_count);
 		return FLEA_ERR_FAILED_TEST;
 	}
 	else
