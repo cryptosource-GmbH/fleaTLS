@@ -1379,6 +1379,7 @@ flea_err_t flea_tls_ctx_t__ctor(flea_tls_ctx_t* ctx, flea_u8_t* session_id, flea
 
 	ctx->resumption = FLEA_FALSE;
 
+	/* TODO: check again. if not 256 (but 48) something fails. should not be the case as it's only 48 bytes long? */
 	ctx->premaster_secret = calloc(256, sizeof(flea_u8_t));
 
 	FLEA_THR_FIN_SEC_empty();
