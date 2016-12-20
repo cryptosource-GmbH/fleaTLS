@@ -7,10 +7,9 @@
 #include "internal/common/default.h"
 #include "flea/types.h"
 
-// TODO: THIS NEEDS TO BE INCLUDED CONDITIONALLY ON COMPILE FLAGS
-extern flea_u8_t flea_dbg_canaries_flag;
 
 #ifdef FLEA_USE_BUF_DBG_CANARIES
+extern flea_u8_t flea_dbg_canaries_flag;
 #define __FLEA_SIGNAL_DBG_CANARY_ERROR() do { flea_dbg_canaries_flag = 1; } while(0)
 
 #define FLEA_CLEAR_DBG_CANARY_ERROR() do { flea_dbg_canaries_flag = 0; } while(0)

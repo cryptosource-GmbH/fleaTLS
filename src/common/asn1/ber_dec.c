@@ -306,7 +306,7 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(flea_ber_dec_t *dec
   flea_bool_t optional_found__b = *optional__pb;
   flea_tag_verify_mode_t tag_verify_mode__t = (ref_extract_mode__t == extr_ref_to_tlv) ? flea_accept_any_tag : flea_be_strict_about_tag;
   FLEA_THR_BEG_FUNC();
-  if(!flea_ber_dec_t__has_current_more_data(dec__pt)) // TODO: NEEDED?
+  if(!flea_ber_dec_t__has_current_more_data(dec__pt)) 
   {
     if(!*optional__pb)
     {
@@ -315,7 +315,7 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(flea_ber_dec_t *dec
     *optional__pb = FLEA_FALSE;
     FLEA_THR_RETURN();
   }
-  if(ref_extract_mode__t == extr_ref_to_tlv) // TODO: CHECK IF OTHERS NEED THAT TREATMENT TOO
+  if(ref_extract_mode__t == extr_ref_to_tlv) 
   {
     *raw__ppu8 = flea_data_source_t__get_memory_pointer_to_current(dec__pt->source__pt);
     if(!*raw__ppu8)
@@ -334,6 +334,7 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(flea_ber_dec_t *dec
   if(ref_extract_mode__t == extr_ref_to_v || ref_extract_mode__t == extr_ref_to_tlv)
   {
     p__pu8 = flea_data_source_t__get_memory_pointer_to_current(dec__pt->source__pt);
+
     if(ref_extract_mode__t != extr_ref_to_tlv) 
     {
       *raw__ppu8 = p__pu8;

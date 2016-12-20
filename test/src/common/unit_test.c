@@ -65,10 +65,8 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
   }
   for(i = 0; i < nb_reps; i++)
   {
-    // TODO: put back in
     if(!cert_path_prefix)
     {
-      //#if 0 
       CALL_TEST(THR_flea_test_dbg_canaries());
       CALL_TEST(THR_flea_test_mpi_square());
       CALL_TEST(THR_flea_test_montgm_mul_comp_n_prime());
@@ -131,8 +129,8 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
       CALL_TEST(THR_flea_test_ctr_mode_parts());
       CALL_TEST(THR_flea_test_ctr_mode_prng());
       CALL_TEST(THR_flea_test_crc16());
-      CALL_TEST(THR_test_enc_BE_bitlen()); // TODO: NAMING
-      CALL_TEST(THR_test_incr_enc_BE_int()); // TODO: NAMING
+      CALL_TEST(THR_flea_test_enc_BE_bitlen()); 
+      CALL_TEST(THR_flea_test_incr_enc_BE_int()); 
       //#endif
 
       CALL_TEST(THR_flea_test_data_source_mem());

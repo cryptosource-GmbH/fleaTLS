@@ -127,7 +127,7 @@ static flea_al_u16_t flea_pk_get_primitive_max_input_len (flea_pk_scheme_id_t id
   // correct for both ECDSA and RSA
   if(id__t == flea_ecdsa_emsa1 && dir__t == flea_verify)
   {
-    if(key_len__alu16 > FLEA_ECC_MAX_PUBKEY_LEN )
+    if(key_len__alu16 > FLEA_ECC_MAX_ENCODED_POINT_LEN )
     {
       return 0;
     }

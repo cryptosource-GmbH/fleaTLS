@@ -68,8 +68,8 @@ static flea_err_t THR_flea_test_pk_signer_sign_verify_inner (flea_pk_scheme_id_t
   FLEA_DECL_OBJ(verifier__t, flea_pk_signer_t);
   FLEA_DECL_OBJ(verifier2__t, flea_pk_signer_t);
   FLEA_DECL_BUF(sig_buf__b_u8, flea_u8_t, FLEA_PK_MAX_SIGNATURE_LEN);
-  FLEA_DECL_BUF(pub_key__b_u8, flea_u8_t, FLEA_PK_MAX_PUBKEY_LEN);
-  FLEA_DECL_BUF(priv_key__b_u8, flea_u8_t, FLEA_ECC_MAX_PUBKEY_LEN );  // only used ECDSA, not for RSA
+  FLEA_DECL_BUF(pub_key__b_u8, flea_u8_t, FLEA_PK_MAX_INTERNAL_FORMAT_PUBKEY_LEN);
+  FLEA_DECL_BUF(priv_key__b_u8, flea_u8_t, FLEA_ECC_MAX_ENCODED_POINT_LEN );  // only used ECDSA, not for RSA
   const flea_u8_t* priv_key_alias__p_u8;
   const flea_u8_t* pub_key_alias__p_u8;
   flea_al_u16_t sig_len__al_u16;
@@ -83,7 +83,7 @@ static flea_err_t THR_flea_test_pk_signer_sign_verify_inner (flea_pk_scheme_id_t
   flea_pub_key_param_u rsa_param__u;
   FLEA_THR_BEG_FUNC();
 
-  pub_key_len__al_u16 = FLEA_PK_MAX_PUBKEY_LEN;
+  pub_key_len__al_u16 = FLEA_PK_MAX_INTERNAL_FORMAT_PUBKEY_LEN;
   priv_key_len__al_u16 = FLEA_PK_MAX_PRIVKEY_LEN;
   sig_len__al_u16 = 2048/8;
 

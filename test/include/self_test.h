@@ -85,9 +85,9 @@ flea_err_t THR_flea_test_oaep(void);
 
 flea_err_t THR_flea_test_pk_signer_sign_verify(void);
 
-flea_err_t THR_test_enc_BE_bitlen();
+flea_err_t THR_flea_test_enc_BE_bitlen();
 
-flea_err_t THR_test_incr_enc_BE_int();
+flea_err_t THR_flea_test_incr_enc_BE_int();
 
 flea_err_t THR_flea_test_pk_encryption(void);
 /**

@@ -208,7 +208,7 @@ static flea_err_t THR_flea_public_key_t__create_ecdsa_key(flea_ec_pubkey_val_t *
     max_dp_concat_len -= src->len__dtl;
   }
 
-  if(key_as_bit_string_contents__prcu8->len__dtl > FLEA_ECC_MAX_PUBKEY_LEN)
+  if(key_as_bit_string_contents__prcu8->len__dtl > FLEA_ECC_MAX_ENCODED_POINT_LEN)
   {
     FLEA_THROW("excessive size of public point", FLEA_ERR_INV_KEY_SIZE);
   } 

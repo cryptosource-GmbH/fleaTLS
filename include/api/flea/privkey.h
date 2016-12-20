@@ -34,7 +34,7 @@ typedef struct
    flea_ref_cu8_t d2__rcu8;
    flea_ref_cu8_t c__rcu8;
 #ifdef FLEA_USE_STACK_BUF
-   flea_u8_t priv_key_mem__bu8 [FLEA_RSA_CRT_KEY_INTERNAL_FORMAT_MAX_SIZE];
+   flea_u8_t priv_key_mem__bu8 [FLEA_RSA_CRT_KEY_INTERNAL_FORMAT_MAX_BYTE_SIZE];
 #else
    flea_u8_t *priv_key_mem__bu8;
 #endif

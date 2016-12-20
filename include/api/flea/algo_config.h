@@ -9,8 +9,7 @@
 /**
  * Maximal size of the
  */
-// TODO: RENAME TO ...BYTE_SIZE
-#define FLEA_RSA_CRT_KEY_INTERNAL_FORMAT_MAX_SIZE (((((FLEA_RSA_MAX_KEY_BIT_SIZE)+7) / 8)+ FLEA_RSA_CRT_PQ_BIT_DIFF) * 5)
+#define FLEA_RSA_CRT_KEY_INTERNAL_FORMAT_MAX_BYTE_SIZE (((((FLEA_RSA_MAX_KEY_BIT_SIZE)+7) / 8)+ FLEA_RSA_CRT_PQ_BIT_DIFF) * 5)
 
 /**
  * Maximal length of the ECDSA signature in simple concatenation format
@@ -23,10 +22,9 @@
 #define FLEA_MAX_HASH_OUT_LEN __FLEA_COMPUTED_MAX_HASH_OUT_LEN
 
 /**
- *TODO: this only refers to the internal format
  * Maximal size of an encoded public key.
  */
-#define FLEA_PK_MAX_PUBKEY_LEN __FLEA_COMPUTED_MAX_PUBKEY_LEN
+#define FLEA_PK_MAX_INTERNAL_FORMAT_PUBKEY_LEN __FLEA_COMPUTED_MAX_INTERNAL_FORMAT_PUBKEY_LEN
 
 /**
  * Maximal length of a private key of a public key scheme

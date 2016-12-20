@@ -85,10 +85,8 @@
 #define FLEA_ECC_MAX_COFACTOR_BIT_SIZE 32
 
 /**
- * Don't change this.
+ * Can be either 16 or 32
  */
-//#define FLEA_HAVE_32BIT_WORD // NOT CONFIGURABLE
-
 #define FLEA_WORD_BIT_SIZE 32 // FBFLAGS__INT_LIST 16 32
 
 /**

@@ -50,7 +50,7 @@ typedef struct
   flea_ec_gfp_dom_par_ref_t dp__t;
 #ifdef FLEA_USE_STACK_BUF
   flea_u8_t dp_mem__bu8[FLEA_ECC_MAX_DP_CONCAT_BYTE_SIZE];
-  flea_u8_t pub_point__mem__bu8[FLEA_ECC_MAX_PUBKEY_LEN];
+  flea_u8_t pub_point__mem__bu8[FLEA_ECC_MAX_ENCODED_POINT_LEN];
 #else
   flea_u8_t *dp_mem__bu8;
   flea_u8_t *pub_point__mem__bu8;
