@@ -578,7 +578,7 @@ flea_err_t THR_flea_mpi_t__divide (flea_mpi_t* p_quotient, flea_mpi_t* p_remaind
   {
     vn[i] =
       (FLEA_GET_HLF_UWORD(v, i) << s) |
-      (FLEA_GET_HLF_UWORD(v, i - 1) >> ((FLEA_WORD_BIT_SIZE/2) - s)); // TODO: "16" hardcoded for 32 bit words, also further down
+      (FLEA_GET_HLF_UWORD(v, i - 1) >> ((FLEA_WORD_BIT_SIZE/2) - s)); 
   }
   vn[0] = FLEA_GET_HLF_UWORD(v, 0) << s;
 
