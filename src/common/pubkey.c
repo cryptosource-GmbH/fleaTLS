@@ -534,7 +534,7 @@ void flea_public_key_t__dtor(flea_public_key_t *key__pt)
   if(key__pt->key_bit_size__u16)
   {
 #if defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECC
-    flea_u8_t **mem_to_free_1, **mem_to_free_2;
+    flea_u8_t **mem_to_free_1 = NULL, **mem_to_free_2 = NULL;
 #endif 
 #ifdef FLEA_HAVE_ECC
     if(key__pt->key_type__t == flea_ecc_key)
