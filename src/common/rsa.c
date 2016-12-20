@@ -286,8 +286,6 @@ flea_err_t THR_flea_rsa_raw_operation (flea_u8_t* result_enc, const flea_u8_t * 
   FLEA_CCALL(THR_flea_mpi_t__decode(&mod, modulus_enc, modulus_length));
   FLEA_CCALL(THR_flea_mpi_t__decode(&exponent, exponent_enc, exponent_length ));
   FLEA_CCALL(THR_flea_mpi_t__decode(&base, base_enc, base_length));
-  // need to use window size 1 because window heap/stack allocations only
-  // account for CRT-RSA
   FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&result, &exponent, &base, &mod, &large_tmp, &div_ctx, &ws_trf_base, &ws_q, 1));
   FLEA_CCALL(THR_flea_mpi_t__encode(result_enc, modulus_length, &result));
 

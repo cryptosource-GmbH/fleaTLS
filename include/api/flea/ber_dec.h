@@ -14,10 +14,8 @@
 extern "C" {
 #endif
 
-  // TODO: MAKE THIS INTERNAL AS LONG AS THE API IS NOT STABLE
 #define FLEA_ASN1_UNIVERSAL_PRIMITIVE 0x00
 #define FLEA_ASN1_CONTEXT_SPECIFIC    0x80
-  // TODO: application and universal are switched!!!
 #define FLEA_ASN1_UNIVERSAL           0x40
 #define FLEA_ASN1_APPLICATION         0x00
 #define FLEA_ASN1_CONSTRUCTED         0x20
@@ -54,15 +52,10 @@ extern "C" {
 #define FLEA_DER_REF_SET_ABSENT(__p) (__p)->data__pcu8 = NULL; (__p)->len__dtl = 0
 #define FLEA_DER_REF_IS_ABSENT(__p) ((__p)->data__pcu8 ==  0) 
 
-  /**
-   * TODO: document: Restriction: does not support indefinite length form
-   * TODO: RENAME TO DER_DEC!
-   *
-   */
  struct struct_flea_ber_dec_t
  {
    flea_data_source_t *source__pt;
-   flea_al_u8_t level__alu8;  // TODO: MAKE CHECK FOR CORRESPONDING MAX NESTING DEPTH
+   flea_al_u8_t level__alu8;  
    flea_al_u8_t alloc_levels__alu8;
 #ifdef FLEA_USE_HEAP_BUF
   flea_dtl_t* allo_open_cons__bdtl;
@@ -163,15 +156,6 @@ flea_err_t THR_flea_ber_dec_t__close_constructed_skip_remaining(flea_ber_dec_t *
 flea_err_t THR_flea_ber_dec_t__read_value_raw(flea_ber_dec_t *dec__pt, flea_asn1_tag_t type_t, flea_al_u8_t class_form__alu8, flea_u8_t *out_mem__pu8, flea_dtl_t *out_mem_len__pdtl);
 
 /**
- * Get a reference to the next TLV.
- * This function works only for a decoder constructed with a memory data source,
- * not with generic data sources.
- */
-//flea_err_t THR_flea_ber_dec_t__get_ref_to_raw(flea_ber_dec_t *dec__pt, flea_asn1_tag_t type_t, flea_al_u8_t class_form__alu8, flea_u8_t const** raw__ppu8, flea_dtl_t * len__pdtl);
-
-//flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_optional(flea_ber_dec_t *dec__pt, flea_asn1_tag_t type__t, flea_al_u8_t class_form__alu8, flea_u8_t const** raw__ppu8, flea_dtl_t * len__pdtl);
-//
-/**
  * DEPRECATED
  * @param found_ptr [out] receives FLEA_TRUE if the specified tag was found and FLEA_FALSE otherwise
  * 
@@ -191,11 +175,6 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_optional(flea_ber_dec_t *dec__pt, 
  */
 flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(flea_ber_dec_t *dec__pt, flea_asn1_tag_t cft, flea_der_ref_t *der_ref__t, flea_bool_t *found__pb);
 
-// TODO: MAKE 3 TYPES OF FUNCTION FOR INT AND OTHER TYPES: 
-// OPTIONAL WITH DEFAULT TAG
-// NON-OPTIONAL WITH DEFAULT TAG
-// FULLY CONTROLLED WHETHER OPTIONAL AND CUSTOM TAG (this one is called by the
-// other two)
 flea_err_t THR_flea_ber_dec_t__decode_integer_u32_optional(flea_ber_dec_t * dec__pt, flea_asn1_tag_t cft, flea_u32_t * result__pu32, flea_bool_t *found__pb);
 
 flea_err_t THR_flea_ber_dec_t__decode_integer_u32_default(flea_ber_dec_t * dec__pt, flea_asn1_tag_t cft, flea_u32_t * result__pu32, flea_u32_t default__u32);
@@ -208,7 +187,6 @@ flea_err_t THR_flea_ber_dec_t__get_der_ref_to_positive_int_wo_lead_zeroes(flea_b
 
 flea_err_t THR_flea_ber_dec_t__get_der_ref_to_positive_int_wo_lead_zeroes_optional(flea_ber_dec_t *dec__pt, flea_der_ref_t *der_ref__pt);
 
-//flea_err_t THR_flea_ber_dec_t__get_ref_to_oid(flea_ber_dec_t *dec__pt, flea_u8_t const** raw__cppu8, flea_dtl_t * len__pdtl);
 flea_err_t THR_flea_ber_dec_t__get_der_ref_to_oid(flea_ber_dec_t *dec__pt, flea_der_ref_t *ref__pt);
 
 /**

@@ -60,11 +60,9 @@ flea_err_t THR_flea_test_ber_dec_basic()
   } 
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(&dec__t));
-  //printf("before open seq around oid\n");
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
   // decode the OID
   version_len__dtl = 10;
-  //FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw(&dec__t, FLEA_ASN1_OID, 0, version_buf__bu8, &version_len__dtl));
 FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(0, FLEA_ASN1_OID), &oid_ref__t));
   if(oid_ref__t.len__dtl != 9)
   {
@@ -72,9 +70,6 @@ FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(0
   } 
   if(oid_ref__t.data__pcu8[0] != 0x2A || oid_ref__t.data__pcu8[8] != 0x0B)
   {
-    //printf("oid__pu8[0] = %02x\n", oid__pu8[0]);
-    //printf("oid__pu8[1] = %02x\n", oid__pu8[1]);
-    //printf("oid__pu8[2] = %02x\n", oid__pu8[2]);
     FLEA_THROW("invalid decoded OID", FLEA_ERR_FAILED_TEST);
   }
   if(FLEA_ERR_ASN1_DER_DEC_ERR != THR_flea_ber_dec_t__close_constructed_at_end(&dec__t))

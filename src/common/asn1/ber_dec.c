@@ -7,17 +7,14 @@
 #include "flea/array_util.h"
 #include "flea/namespace_asn1.h"
 
-// TODO: THROW EXCEPTION FOR INDEFINITE LENGTH
-
 #define FLEA_BER_DEC_LEVELS_PRE_ALLOC 5
 
-// TODO: will produce zero called on outermost level (level 0) ?
 #define FLEA_BER_DEC_CURR_REM_LEN(dec__pt) dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8]
 
 
-  typedef enum { flea_accept_any_tag, flea_be_strict_about_tag } flea_tag_verify_mode_t;
+typedef enum { flea_accept_any_tag, flea_be_strict_about_tag } flea_tag_verify_mode_t;
 
-  typedef enum { extr_ref_to_tlv, extr_ref_to_v, /*extr_read_tlv,*/ extr_read_v} access_mode_t;
+typedef enum { extr_ref_to_tlv, extr_ref_to_v, extr_read_v} access_mode_t;
 
 
 flea_err_t THR_flea_ber_dec_t__ctor(flea_ber_dec_t* dec__pt, flea_data_source_t *source__pt, flea_dtl_t length_limit__dtl  )
@@ -26,33 +23,26 @@ flea_err_t THR_flea_ber_dec_t__ctor(flea_ber_dec_t* dec__pt, flea_data_source_t 
   dec__pt->level__alu8 = 0;
   dec__pt->source__pt = source__pt;
 #ifdef FLEA_USE_HEAP_BUF
- FLEA_ALLOC_MEM_ARR(dec__pt->allo_open_cons__bdtl, FLEA_BER_DEC_LEVELS_PRE_ALLOC);
+  FLEA_ALLOC_MEM_ARR(dec__pt->allo_open_cons__bdtl, FLEA_BER_DEC_LEVELS_PRE_ALLOC);
   dec__pt->alloc_levels__alu8 =  FLEA_BER_DEC_LEVELS_PRE_ALLOC;
   FLEA_SET_ARR(dec__pt->allo_open_cons__bdtl, 0, FLEA_BER_DEC_LEVELS_PRE_ALLOC);
 #else
   dec__pt->alloc_levels__alu8 =  FLEA_NB_ARRAY_ENTRIES(dec__pt->allo_open_cons__bdtl);
 #endif
-   dec__pt->length_limit__dtl = length_limit__dtl;
-   dec__pt->stored_tag_nb_bytes__u8 = 0;
- FLEA_THR_FIN_SEC_empty(); 
+  dec__pt->length_limit__dtl = length_limit__dtl;
+  dec__pt->stored_tag_nb_bytes__u8 = 0;
+  FLEA_THR_FIN_SEC_empty(); 
 }
 
 static flea_err_t THR_flea_ber_dec_t__consume_current_length(flea_ber_dec_t *dec__pt, flea_dtl_t length__dtl)
 {
   FLEA_THR_BEG_FUNC();
-  //printf("THR_flea_ber_dec_t__consume_current_length: current rem len before = %u, trying to consume = %u\n", dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8], length__dtl);
-
-  /*printf(" level = %u\n", dec__pt->level__alu8);
-  { unsigned i; printf(" level array = ");
-  for(i = 0; i <= dec__pt->level__alu8; i++) printf("%02x ", dec__pt->allo_open_cons__bdtl[i]);
-  printf("\n");
-  }*/
 
   if(dec__pt->level__alu8 && (dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8] < length__dtl))
   {
     FLEA_THROW("inner length exceeding outer length", FLEA_ERR_ASN1_DER_DEC_ERR);
   } 
-  dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8] -= length__dtl; // TODO: THIS IS CURRENTLY EXECUTED ON UNINIT LEVEL 0
+  dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8] -= length__dtl; 
   FLEA_THR_FIN_SEC_empty();
 }
 static flea_err_t THR_flea_ber_dec_t__read_byte_and_consume_length(flea_ber_dec_t *dec__pt, flea_u8_t *out_mem__pu8)
@@ -113,7 +103,6 @@ static flea_err_t THR_flea_ber_dec_t__verify_next_tag_opt(flea_ber_dec_t* dec__p
   }
   if(tag_verify_mode__t == flea_be_strict_about_tag && (found_type != type__t || found_class_form != class_form__alu8))
   {
-    //printf("found_type = %02x, exp_type = %02x, found_class = %02x, exp_class = %02x\n", found_type, type__t, found_class_form, class_form__alu8);
     if(!dec__pt->stored_tag_nb_bytes__u8)
     {
       dec__pt->stored_tag_nb_bytes__u8 = count + 1;
@@ -128,15 +117,12 @@ static flea_err_t THR_flea_ber_dec_t__verify_next_tag_opt(flea_ber_dec_t* dec__p
     {
       *optional_found__pb = FLEA_FALSE;
     }
-    
+
   }
   else // found matching tag
   {
     dec__pt->stored_tag_nb_bytes__u8 = 0;
-    //if(*optional_found__pb)
-    {
-      *optional_found__pb = FLEA_TRUE;
-    }
+    *optional_found__pb = FLEA_TRUE;
   }
   FLEA_THR_FIN_SEC_empty();
 }
@@ -144,31 +130,16 @@ static flea_err_t THR_flea_ber_dec_t__verify_next_tag_opt(flea_ber_dec_t* dec__p
 static flea_err_t THR_flea_ber_dec_t__verify_next_tag(flea_ber_dec_t* dec__pt, flea_asn1_tag_t type__t, flea_al_u8_t class_form__alu8)
 {
   flea_bool_t b = FLEA_FALSE;
- return THR_flea_ber_dec_t__verify_next_tag_opt(dec__pt, type__t, class_form__alu8, &b, flea_be_strict_about_tag);
+  return THR_flea_ber_dec_t__verify_next_tag_opt(dec__pt, type__t, class_form__alu8, &b, flea_be_strict_about_tag);
 }
-// TODO: NEED TEST FOR LONG FORM TAG (CVC?)
-//
 #ifdef FLEA_USE_HEAP_BUF
 static flea_err_t THR_flea_ber_dec_t__grow_levels(flea_ber_dec_t *dec__pt, flea_al_u8_t new_size)
 {
   flea_dtl_t * tmp__pdtl;
   FLEA_THR_BEG_FUNC();
 
-  /*{ unsigned i; printf("level array before cp = ");
-  for(i = 0; i <= dec__pt->level__alu8; i++) printf("%02x ", dec__pt->allo_open_cons__bdtl[i]);
-  printf("\n");
-  }*/
-
-
   FLEA_ALLOC_MEM_ARR(tmp__pdtl, new_size); 
   FLEA_CP_ARR(tmp__pdtl, dec__pt->allo_open_cons__bdtl, dec__pt->level__alu8+1);
-
-  
-  /*{ unsigned i; printf("new level array after cp = ");
-  for(i = 0; i <= dec__pt->level__alu8; i++) printf("%02x ", tmp__pdtl[i]);
-  printf("\n");
-  }*/
-
 
   FLEA_FREE_MEM(dec__pt->allo_open_cons__bdtl);
   dec__pt->allo_open_cons__bdtl = tmp__pdtl;
@@ -182,7 +153,6 @@ static flea_err_t THR_flea_ber_dec_t__decode_length(flea_ber_dec_t *dec__pt, fle
   flea_u8_t first_byte;
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_ber_dec_t__read_byte_and_consume_length(dec__pt, &first_byte));
-  //printf("decode len: first byte = %02x\n", first_byte);
   if(first_byte <= 127)
   {
     // short definite length
@@ -198,7 +168,6 @@ static flea_err_t THR_flea_ber_dec_t__decode_length(flea_ber_dec_t *dec__pt, fle
     {
       flea_u8_t next_byte;
       FLEA_CCALL(THR_flea_ber_dec_t__read_byte_and_consume_length(dec__pt, &next_byte));
-      //printf(" decode len: next byte = %02x\n", next_byte);
       length__dtl = (length__dtl << 8) | next_byte;
       /* check if the MSB is already populated and there is one more to go */
       if((i != next_byte - 1) && (length__dtl & (((flea_dtl_t)0xFF) << ((sizeof(length__dtl)-1) * 8))))
@@ -206,7 +175,7 @@ static flea_err_t THR_flea_ber_dec_t__decode_length(flea_ber_dec_t *dec__pt, fle
         FLEA_THROW("long definite length overflows flea_dtl_t", FLEA_ERR_ASN1_DER_EXCSS_LEN);
       }
     }
-   *length__pdtl = length__dtl;
+    *length__pdtl = length__dtl;
   }
   FLEA_THR_FIN_SEC_empty();
 }
@@ -226,18 +195,10 @@ flea_err_t THR_flea_ber_dec_t__open_set(flea_ber_dec_t *dec__pt)
   return THR_flea_ber_dec_t__open_constructed(dec__pt, FLEA_ASN1_SET, FLEA_ASN1_CONSTRUCTED);
 }
 
-// TODO: 
 static flea_err_t THR_flea_ber_dec_t__open_constructed_opt(flea_ber_dec_t *dec__pt, flea_asn1_tag_t type__t, flea_al_u8_t class_form__alu8, flea_bool_t * optional_found__pb)
 {
   flea_dtl_t length__dtl;
-  //flea_bool_t optional_found__b = FLEA_FALSE;
   FLEA_THR_BEG_FUNC();
-
-  /*{ unsigned i; printf("open_constructed: level array = ");
-  for(i = 0; i <= dec__pt->level__alu8; i++) printf("%02x ", dec__pt->allo_open_cons__bdtl[i]);
-  printf("\n");
-  }*/
-
 
   if(*optional_found__pb)
   {
@@ -264,8 +225,6 @@ static flea_err_t THR_flea_ber_dec_t__open_constructed_opt(flea_ber_dec_t *dec__
   /* substract expected length from current (in this respect outer)
    * length. The tag and length octets of the newly opened constructed have
    * already been substracted */
-  // TODO: LEVEL 0 CURRENTLY UNUSED IT SEEMS
-  //printf("THR_flea_ber_dec_t__open_constructed_opt: length to consume = %u\n", length__dtl);
   FLEA_CCALL(THR_flea_ber_dec_t__consume_current_length(dec__pt, length__dtl));
   /* switch to new level */
   if(dec__pt->length_limit__dtl && length__dtl > dec__pt->length_limit__dtl)
@@ -283,19 +242,18 @@ flea_err_t THR_flea_ber_dec_t__open_constructed_optional_cft(flea_ber_dec_t *dec
   flea_asn1_tag_t type__t = CFT_GET_T(cft);
   flea_al_u8_t class_form__alu8 = CFT_GET_CF(cft);
   FLEA_THR_BEG_FUNC();
- FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_opt(dec__pt, type__t, class_form__alu8, &optional_found__b));
+  FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_opt(dec__pt, type__t, class_form__alu8, &optional_found__b));
   *found__pb = optional_found__b;
- FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC_empty();
 }
 
-// TODO: REMOVE THIS
 flea_err_t THR_flea_ber_dec_t__open_constructed_optional(flea_ber_dec_t *dec__pt, flea_asn1_tag_t type__t, flea_al_u8_t class_form__alu8, flea_bool_t * found__pb)
 {
   flea_bool_t optional_found__b = FLEA_TRUE;
   FLEA_THR_BEG_FUNC();
- FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_opt(dec__pt, type__t, class_form__alu8, &optional_found__b));
+  FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_opt(dec__pt, type__t, class_form__alu8, &optional_found__b));
   *found__pb = optional_found__b;
- FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC_empty();
 }
 
 flea_err_t THR_flea_ber_dec_t__open_constructed(flea_ber_dec_t *dec__pt, flea_asn1_tag_t type__t, flea_al_u8_t class_form__alu8)
@@ -312,7 +270,6 @@ flea_err_t THR_flea_ber_dec_t__close_constructed_skip_remaining(flea_ber_dec_t *
   {
     FLEA_THROW("trying to close constructed at outmost level", FLEA_ERR_ASN1_DER_CALL_SEQ_ERR);
   }
-    //printf("THR_flea_ber_dec_t__close_constructed_skip_remaining: before skipping: rem len of level %u = %u\n", dec__pt->level__alu8, dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8]);
   remaining__dtl = dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8];
   if(remaining__dtl)
   {
@@ -322,7 +279,6 @@ flea_err_t THR_flea_ber_dec_t__close_constructed_skip_remaining(flea_ber_dec_t *
   }
   dec__pt->level__alu8--;
 
-    //printf("THR_flea_ber_dec_t__close_constructed_skip_remaining: after skipping: rem len of level %u = %u\n", dec__pt->level__alu8, dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8]);
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -331,7 +287,6 @@ flea_err_t THR_flea_ber_dec_t__close_constructed_at_end(flea_ber_dec_t *dec__pt)
   FLEA_THR_BEG_FUNC();
   if((dec__pt->stored_tag_nb_bytes__u8 != 0) || (dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8] != 0))
   {
-    //printf("rem len of level %u = %u\n", dec__pt->level__alu8, dec__pt->allo_open_cons__bdtl[dec__pt->level__alu8]);
     FLEA_THROW("trying to close constructed which has remaining data", FLEA_ERR_ASN1_DER_DEC_ERR);
   }
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(dec__pt));
@@ -339,64 +294,46 @@ flea_err_t THR_flea_ber_dec_t__close_constructed_at_end(flea_ber_dec_t *dec__pt)
 }
 
 
-/*static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_inner(flea_ber_dec_t *dec__pt, flea_asn1_tag_t type_t, flea_al_u8_t class_form__alu8, flea_u8_t ** raw__ppu8, flea_dtl_t * len__pdtl)
-{
-  flea_dtl_t length__dtl;
-  //flea_dtl_t did_read__dtl;
-  FLEA_THR_BEG_FUNC();
-  //memcpy(out_mem__pu8,  
-
-}*/
-
 /**
  * return zero length in len__pdtl if there was a tag but it did not match
- * TODO: this seems to be errononeous for "tlv reference extraction" if due to previous optional decoding a tag is
- * buffered => make a test for this
  */
 static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(flea_ber_dec_t *dec__pt, flea_asn1_tag_t cft, flea_u8_t const** raw__ppu8, flea_dtl_t * raw_len__pdtl, flea_bool_t* optional__pb, access_mode_t ref_extract_mode__t)
 {
   flea_asn1_tag_t type__t = CFT_GET_T(cft);
   flea_al_u8_t class_form__alu8 = CFT_GET_CF(cft);
-  //flea_dtl_t len__dtl = *raw_len__pdtl;
-  //printf("get_ref_to_raw_opt: type = %x, cf = %x\n", type__t, class_form__alu8);
   const flea_u8_t * p__pu8;
   flea_dtl_t length__dtl;
   flea_bool_t optional_found__b = *optional__pb;
   flea_tag_verify_mode_t tag_verify_mode__t = (ref_extract_mode__t == extr_ref_to_tlv) ? flea_accept_any_tag : flea_be_strict_about_tag;
-    FLEA_THR_BEG_FUNC();
-      //printf("remaining in current = %u\n", FLEA_BER_DEC_CURR_REM_LEN(dec__pt));
-      //printf("current level = %u\n", dec__pt->level__alu8);
-    if(!flea_ber_dec_t__has_current_more_data(dec__pt)) // TODO: NEEDED?
+  FLEA_THR_BEG_FUNC();
+  if(!flea_ber_dec_t__has_current_more_data(dec__pt)) // TODO: NEEDED?
+  {
+    if(!*optional__pb)
     {
-      if(!*optional__pb)
-      {
-        FLEA_THROW("current level has no more data", FLEA_ERR_ASN1_DER_DEC_ERR);  
-      }
-      *optional__pb = FLEA_FALSE;
-      FLEA_THR_RETURN();
+      FLEA_THROW("current level has no more data", FLEA_ERR_ASN1_DER_DEC_ERR);  
     }
+    *optional__pb = FLEA_FALSE;
+    FLEA_THR_RETURN();
+  }
   if(ref_extract_mode__t == extr_ref_to_tlv) // TODO: CHECK IF OTHERS NEED THAT TREATMENT TOO
   {
     *raw__ppu8 = flea_data_source_t__get_memory_pointer_to_current(dec__pt->source__pt);
-   if(!*raw__ppu8)
-   {
-     FLEA_THROW("trying to get pointer reference to ber obj even though the underlying data source is not of type 'memory'", FLEA_ERR_INV_ARG);
-   }
-    
+    if(!*raw__ppu8)
+    {
+      FLEA_THROW("trying to get pointer reference to ber obj even though the underlying data source is not of type 'memory'", FLEA_ERR_INV_ARG);
+    }
+
   }
   FLEA_CCALL(THR_flea_ber_dec_t__verify_next_tag_opt(dec__pt, type__t, class_form__alu8, &optional_found__b, tag_verify_mode__t));
   if(*optional__pb && !optional_found__b)
   {
     *optional__pb = FLEA_FALSE;
-    /**raw__ppu8 = NULL;
-    *len__pdtl = 0; */
     FLEA_THR_RETURN();
   }
   FLEA_CCALL(THR_flea_ber_dec_t__decode_length(dec__pt, &length__dtl));
   if(ref_extract_mode__t == extr_ref_to_v || ref_extract_mode__t == extr_ref_to_tlv)
   {
     p__pu8 = flea_data_source_t__get_memory_pointer_to_current(dec__pt->source__pt);
-    //if(!ref_to_tlv__b) 
     if(ref_extract_mode__t != extr_ref_to_tlv) 
     {
       *raw__ppu8 = p__pu8;
@@ -405,10 +342,8 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(flea_ber_dec_t *dec
     else // ref to whole tlv
     {
       *raw_len__pdtl = p__pu8 - *raw__ppu8 + length__dtl;
-      //printf("ref_to_whole_tlv: decoded len = %u, computed len = %u\n", length__dtl, *raw_len__pdtl);
     }
   }
-  //printf("THR_flea_ber_dec_t__get_ref_to_raw_opt_cft: calling consume for length = %u\n", length__dtl);
   FLEA_CCALL(THR_flea_ber_dec_t__consume_current_length(dec__pt, length__dtl));   
   if(ref_extract_mode__t == extr_ref_to_v || ref_extract_mode__t == extr_ref_to_tlv)
   {
@@ -421,8 +356,8 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(flea_ber_dec_t *dec
     {
       FLEA_THROW("target memory area for ASN.1 decoding output too small", FLEA_ERR_ASN1_DEC_TRGT_BUF_TOO_SMALL);
     } 
-  FLEA_CCALL(THR_flea_data_source_t__force_read(dec__pt->source__pt, length__dtl, (flea_u8_t*)*raw__ppu8));
-  *raw_len__pdtl = length__dtl; 
+    FLEA_CCALL(THR_flea_data_source_t__force_read(dec__pt->source__pt, length__dtl, (flea_u8_t*)*raw__ppu8));
+    *raw_len__pdtl = length__dtl; 
   }
 
   FLEA_THR_FIN_SEC_empty();
@@ -434,8 +369,6 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(flea_ber_dec_t *dec__pt, 
   return THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(dec__pt, /*unspec cft */ 0 , &ref__pt->data__pcu8, &ref__pt->len__dtl, &optional__b, extr_ref_to_tlv);
 }
 
-// TODO: NO NEED TO RETURN BOOL IN OPTIONALS. HERE IT IS CORRECT. MAKE LIKE THIS
-// EVERYWHERE
 flea_err_t THR_flea_ber_dec_t__get_ref_to_next_tlv_raw_optional(flea_ber_dec_t *dec__pt, flea_der_ref_t *ref__pt)
 {
   flea_bool_t optional__b = FLEA_TRUE;
@@ -445,7 +378,6 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_next_tlv_raw_optional(flea_ber_dec_t *
 
 }
 
-// TODO: REMOVE
 static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw(flea_ber_dec_t *dec__pt, flea_asn1_tag_t type__t, flea_al_u8_t class_form__alu8, flea_u8_t const** raw__ppu8, flea_dtl_t * len__pdtl)
 {
   flea_bool_t optional__b = FLEA_FALSE; 
@@ -489,26 +421,14 @@ flea_err_t THR_flea_ber_dec_t__get_der_ref_to_positive_int_wo_lead_zeroes_option
 }
 flea_err_t THR_flea_ber_dec_t__get_der_ref_to_int(flea_ber_dec_t *dec__pt, flea_der_ref_t *der_ref__pt)
 {
-  //flea_bool_t optional_found__b = FLEA_FALSE;
   return THR_flea_ber_dec_t__get_ref_to_raw(dec__pt, FLEA_ASN1_INT, 0, &der_ref__pt->data__pcu8, &der_ref__pt->len__dtl);
 }
 
-// TODO: GET RID OF ALL FUNCTION WITHOUT XREF
-/*flea_err_t THR_flea_ber_dec_t__get_ref_to_oid(flea_ber_dec_t *dec__pt, flea_u8_t const** raw__cppu8, flea_dtl_t * len__pdtl)
-{
-  return THR_flea_ber_dec_t__get_ref_to_raw(dec__pt, FLEA_ASN1_OID, 0, raw__cppu8, len__pdtl);
-}*/
-
-/*flea_err_t THR_flea_ber_dec_t__get_dref_to_oid(flea_ber_dec_t *dec__pt, flea_der_ref_t *ref__t)
-{
-  return THR_flea_ber_dec_t__get_ref_to_raw(dec__pt, FLEA_ASN1_OID, 0, &ref__t->data__pcu8, &ref__t->len__dtl);
-}*/
 flea_err_t THR_flea_ber_dec_t__get_der_ref_to_oid(flea_ber_dec_t *dec__pt, flea_der_ref_t *ref__pt)
 {
   return THR_flea_ber_dec_t__get_ref_to_raw(dec__pt, FLEA_ASN1_OID, 0, &ref__pt->data__pcu8, &ref__pt->len__dtl);
 }
 
-// TODO: REMOVE THE BOOLEAN RESULT
 flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_optional(flea_ber_dec_t *dec__pt, flea_asn1_tag_t type__t, flea_al_u8_t class_form__alu8, flea_u8_t const** raw__cppu8, flea_dtl_t * len__pdtl, flea_bool_t *found__pb)
 {
   flea_der_ref_t der_ref__t;
@@ -520,26 +440,18 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_optional(flea_ber_dec_t *dec__pt, 
   FLEA_THR_FIN_SEC_empty();
 }
 
-// TODO: protect the core decoding/read function from constructed form tags to
-// save implementers from errors with implicitly tagged types
 flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(flea_ber_dec_t *dec__pt, flea_asn1_tag_t cft, flea_der_ref_t *der_ref__pt, flea_bool_t *found__pb)
 {
   flea_bool_t optional_found__b = FLEA_TRUE;
-  /*flea_asn1_tag_t type__t = CFT_GET_T(cft);
-  flea_al_u8_t class_form__alu8 = CFT_GET_CF(cft);*/
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(dec__pt, cft, &der_ref__pt->data__pcu8, &der_ref__pt->len__dtl, &optional_found__b, extr_ref_to_v));
-  if(!optional_found__b)
-  {
-    //FLEA_DER_REF_SET_ABSENT(der_ref__pt);
-  }
   *found__pb = optional_found__b;
   FLEA_THR_FIN_SEC_empty();
 }
 
 flea_err_t THR_flea_ber_dec_t__get_ref_to_string(flea_ber_dec_t *dec__pt, flea_asn1_str_type_t *str_type__pt, flea_u8_t const** raw__cppu8, flea_dtl_t * len__pdtl)
 {
-  
+
   flea_bool_t optional_found__b = FLEA_TRUE; 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional(dec__pt, FLEA_ASN1_PRINTABLE_STR, FLEA_ASN1_UNIVERSAL_PRIMITIVE, raw__cppu8, len__pdtl, &optional_found__b));
@@ -557,7 +469,7 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_string(flea_ber_dec_t *dec__pt, flea_a
 
 flea_err_t THR_flea_ber_dec_t__get_ref_to_date_opt(flea_ber_dec_t *dec__pt, flea_asn1_time_type_t *time_type__pt, flea_u8_t const** raw__cppu8, flea_dtl_t * len__pdtl, flea_bool_t *optional_found__pb)
 {
-  
+
   flea_bool_t optional_found__b = *optional_found__pb; 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional(dec__pt, FLEA_ASN1_GENERALIZED_TIME, FLEA_ASN1_UNIVERSAL_PRIMITIVE, raw__cppu8, len__pdtl, &optional_found__b));
@@ -583,17 +495,9 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_date_opt(flea_ber_dec_t *dec__pt, flea
   FLEA_THR_FIN_SEC_empty();
 }
 
-/*
-flea_err_t THR_flea_ber_dec_t__get_ref_to_date(flea_ber_dec_t *dec__pt, flea_asn1_time_type_t *time_type__pt, flea_u8_t const** raw__cppu8, flea_dtl_t * len__pdtl)
-{
-  flea_bool_t optional__b = FLEA_FALSE;
-  return THR_flea_ber_dec_t__get_ref_to_date_opt(dec__pt, time_type__pt, raw__cppu8, len__pdtl, &optional__b); 
-}
-*/
-
 flea_err_t THR_flea_ber_dec_t__read_value_raw(flea_ber_dec_t *dec__pt, flea_asn1_tag_t type__t, flea_al_u8_t class_form__alu8, flea_u8_t *out_mem__pu8, flea_dtl_t *out_mem_len__pdtl)
 {
- return THR_flea_ber_dec_t__read_value_raw_cft(dec__pt, FLEA_ASN1_CFT_MAKE2(class_form__alu8, type__t), out_mem__pu8, out_mem_len__pdtl);
+  return THR_flea_ber_dec_t__read_value_raw_cft(dec__pt, FLEA_ASN1_CFT_MAKE2(class_form__alu8, type__t), out_mem__pu8, out_mem_len__pdtl);
 }
 
 flea_err_t THR_flea_ber_dec_t__read_value_raw_cft(flea_ber_dec_t *dec__pt, flea_asn1_tag_t cft, flea_u8_t *out_mem__pu8, flea_dtl_t *out_mem_len__pdtl)
@@ -605,7 +509,7 @@ flea_err_t THR_flea_ber_dec_t__read_value_raw_cft_opt(flea_ber_dec_t *dec__pt, f
 {
 
   flea_u8_t *out_mem_local__pu8 = out_mem__pu8;
-return THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(dec__pt, cft, (const flea_u8_t**) &out_mem_local__pu8, out_mem_len__pdtl, optional_found__pb, extr_read_v);
+  return THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(dec__pt, cft, (const flea_u8_t**) &out_mem_local__pu8, out_mem_len__pdtl, optional_found__pb, extr_read_v);
 
 }
 
@@ -620,68 +524,58 @@ flea_err_t THR_flea_ber_dec_t__decode_boolean_default(flea_ber_dec_t *dec__pt, f
   const flea_u8_t *data__pcu8;
   flea_dtl_t len__dtl = 1;
   flea_bool_t optional_found__b = FLEA_TRUE;
- FLEA_THR_BEG_FUNC();
- // TODO: USE READ FUNCTION, THAT IS MORE GENERAL
-FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(dec__pt, FLEA_ASN1_BOOL, &data__pcu8, &len__dtl, &optional_found__b, extr_ref_to_v));
-if(optional_found__b)
-{
-  if(len__dtl != 1 || (data__pcu8[0] != 0 && data__pcu8[0] != 0xFF)) // TODO: could also allow BER
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(dec__pt, FLEA_ASN1_BOOL, &data__pcu8, &len__dtl, &optional_found__b, extr_ref_to_v));
+  if(optional_found__b)
   {
-    FLEA_THROW("error decoding boolean", FLEA_ERR_ASN1_DER_DEC_ERR);
+    if(len__dtl != 1 || (data__pcu8[0] != 0 && data__pcu8[0] != 0xFF)) 
+    {
+      FLEA_THROW("error decoding boolean", FLEA_ERR_ASN1_DER_DEC_ERR);
+    }
+    *result__p = data__pcu8[0] ? FLEA_TRUE : FLEA_FALSE;
   }
-  *result__p = data__pcu8[0] ? FLEA_TRUE : FLEA_FALSE;
-}
-/*else
-{
-  *result__p = default__b;
-}*/
 
 
- FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC_empty();
 }
 
 static flea_err_t THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner_toggled(flea_ber_dec_t *dec__pt, flea_al_u8_t outer_tag__alu8, flea_asn1_tag_t encap_type__t, flea_der_ref_t  *ref__pt, flea_bool_t with_inner__b)
 {
-flea_bool_t is_present__b;
-FLEA_THR_BEG_FUNC();
- //FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional(dec__pt, outer_tag__alu8, FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_SEQUENCE, &is_present__b));
- FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional(dec__pt, outer_tag__alu8, FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC, &is_present__b));
- if(is_present__b)
- {
-   if(with_inner__b)
-   {
-     //printf("implict_opt: optional present\n");
-     FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw(dec__pt, encap_type__t, FLEA_ASN1_UNIVERSAL_PRIMITIVE, &ref__pt->data__pcu8, &ref__pt->len__dtl));
-   }
+  flea_bool_t is_present__b;
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional(dec__pt, outer_tag__alu8, FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC, &is_present__b));
+  if(is_present__b)
+  {
+    if(with_inner__b)
+    {
+      FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw(dec__pt, encap_type__t, FLEA_ASN1_UNIVERSAL_PRIMITIVE, &ref__pt->data__pcu8, &ref__pt->len__dtl));
+    }
+    else
+    {
+      FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(dec__pt, ref__pt));
+    }
+    FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
+  }
   else
   {
-      FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(dec__pt, ref__pt));
+    FLEA_DER_REF_SET_ABSENT( ref__pt);
   }
-  FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
- }
- else
- {
-   //printf("implict_opt: optional not present\n");
-   FLEA_DER_REF_SET_ABSENT( ref__pt);
- }
- FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC_empty();
 }
 
 flea_err_t THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(flea_ber_dec_t *dec__pt, flea_al_u8_t outer_tag__alu8, flea_asn1_tag_t encap_type__t, flea_der_ref_t  *ref__pt)
 {
-return THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner_toggled(dec__pt, outer_tag__alu8, encap_type__t, ref__pt, FLEA_TRUE);
+  return THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner_toggled(dec__pt, outer_tag__alu8, encap_type__t, ref__pt, FLEA_TRUE);
 }
 
-// TODO: REMOVE ENCAP TYPE, NOT USED!
 flea_err_t THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional(flea_ber_dec_t *dec__pt, flea_al_u8_t outer_tag__alu8, flea_asn1_tag_t encap_type__t, flea_der_ref_t  *ref__pt)
 {
-return THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner_toggled(dec__pt, outer_tag__alu8, encap_type__t, ref__pt, FLEA_FALSE);
+  return THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner_toggled(dec__pt, outer_tag__alu8, encap_type__t, ref__pt, FLEA_FALSE);
 }
 void flea_ber_dec_t__dtor(flea_ber_dec_t *dec__pt)
 {
-  // TODO: do clean? MAYBE MAKE A FLAG FOR IT
 #ifdef FLEA_USE_HEAP_BUF
-   FLEA_FREE_MEM_CHK_SET_NULL(dec__pt->allo_open_cons__bdtl);
+  FLEA_FREE_MEM_CHK_SET_NULL(dec__pt->allo_open_cons__bdtl);
 #endif
 }
 
@@ -696,7 +590,7 @@ static flea_err_t THR_flea_ber_dec_t__decode_short_bit_str_to_u32_opt(flea_ber_d
   flea_al_u8_t i;
   flea_asn1_tag_t cft = FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, BIT_STRING);
   FLEA_THR_BEG_FUNC();
-   
+
   FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw_cft_opt(dec__pt, cft, enc__au8, &enc_len__dtl, &optional_found__b ));
   if(!optional_found__b)
   {
@@ -714,10 +608,6 @@ static flea_err_t THR_flea_ber_dec_t__decode_short_bit_str_to_u32_opt(flea_ber_d
   {
     unused__alu8 = 8;
   }
-  /*if(unused__alu8 && enc_len__dtl < 2)
-  {
-     
-  }*/
   for(i = 1; i < enc_len__dtl; i++)
   {
     val__u32 |= (enc__au8[i] << (i * 8));
@@ -726,17 +616,17 @@ static flea_err_t THR_flea_ber_dec_t__decode_short_bit_str_to_u32_opt(flea_ber_d
 
   *val__pu32 = val__u32;
   *nb_bits__palu8 = nb_bits__alu8;
- FLEA_THR_FIN_SEC_empty(); 
+  FLEA_THR_FIN_SEC_empty(); 
 }
 
 flea_err_t THR_flea_ber_dec_t__decode_short_bit_str_to_u32_optional(flea_ber_dec_t *dec__pt, flea_u32_t *val__pu32, flea_al_u8_t *nb_bits__palu8, flea_bool_t *found__pb)
 {
   FLEA_THR_BEG_FUNC();
- flea_bool_t optional__b = FLEA_TRUE;
- FLEA_CCALL(THR_flea_ber_dec_t__decode_short_bit_str_to_u32_opt(dec__pt, val__pu32, nb_bits__palu8, &optional__b));
- *found__pb = optional__b;
- 
- FLEA_THR_FIN_SEC_empty(); 
+  flea_bool_t optional__b = FLEA_TRUE;
+  FLEA_CCALL(THR_flea_ber_dec_t__decode_short_bit_str_to_u32_opt(dec__pt, val__pu32, nb_bits__palu8, &optional__b));
+  *found__pb = optional__b;
+
+  FLEA_THR_FIN_SEC_empty(); 
 }
 
 flea_al_u8_t flea_ber_dec_t__get_nb_bits_from_bit_string(const flea_der_ref_t * bit_string__pt)
@@ -746,7 +636,7 @@ flea_al_u8_t flea_ber_dec_t__get_nb_bits_from_bit_string(const flea_der_ref_t * 
   {
     return 0;
   }
-   
+
   if(bit_string__pt->data__pcu8[0] > 8)
   {
     unsused__alu8 = 8;
@@ -761,19 +651,19 @@ flea_al_u8_t flea_ber_dec_t__get_nb_bits_from_bit_string(const flea_der_ref_t * 
 
 flea_err_t THR_flea_ber_dec__get_ref_to_bit_string_content_no_unused_bits(const flea_der_ref_t *raw_bit_str__pt, flea_der_ref_t *content__pt)
 {
- FLEA_THR_BEG_FUNC();
- if(raw_bit_str__pt->len__dtl < 1)
- {
-   FLEA_THROW("bit string of zero length", FLEA_ERR_ASN1_DER_DEC_ERR);
- }
- if(raw_bit_str__pt->data__pcu8[0])
- {
-  FLEA_THROW("unused bits in bit string assumed to have none", FLEA_ERR_X509_BIT_STR_ERR);
- }
- content__pt->len__dtl = raw_bit_str__pt->len__dtl - 1;
- content__pt->data__pcu8 = raw_bit_str__pt->data__pcu8 + 1;
+  FLEA_THR_BEG_FUNC();
+  if(raw_bit_str__pt->len__dtl < 1)
+  {
+    FLEA_THROW("bit string of zero length", FLEA_ERR_ASN1_DER_DEC_ERR);
+  }
+  if(raw_bit_str__pt->data__pcu8[0])
+  {
+    FLEA_THROW("unused bits in bit string assumed to have none", FLEA_ERR_X509_BIT_STR_ERR);
+  }
+  content__pt->len__dtl = raw_bit_str__pt->len__dtl - 1;
+  content__pt->data__pcu8 = raw_bit_str__pt->data__pcu8 + 1;
 
-FLEA_THR_FIN_SEC_empty(); 
+  FLEA_THR_FIN_SEC_empty(); 
 }
 
 
@@ -793,8 +683,7 @@ static flea_err_t THR_flea_ber_dec_t__decode_integer_u32_opt(flea_ber_dec_t * de
     FLEA_THR_RETURN();
   }
   *optional_found__pb = optional__b;
-  
-  //*optional_found__pb = found__b;
+
   if(!enc_int_len__dtl)
   { 
     FLEA_THROW("empty asn1 integer", FLEA_ERR_ASN1_DER_DEC_ERR);

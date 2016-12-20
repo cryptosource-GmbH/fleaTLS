@@ -78,7 +78,6 @@ extern "C" {
     flea_dtl_t len__dtl;
   } flea_ref_cu8_t;
 
-  // TODO: define correctly as non-const
   typedef struct
   {
     flea_u8_t *data__pcu8;

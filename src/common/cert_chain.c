@@ -18,30 +18,16 @@
 #ifdef FLEA_HAVE_ASYM_SIG
 #define END_OF_COLL 0xFFFF
 
-/**
- * finds the next cert which is not already part of the the chain
- */
-/*static flea_al_u16_t get_next_candidate(const flea_x509_cert_ref_t *cert_collection__pt, flea_al_u16_t cert_collection_size__alu16, flea_al_u16_t start_pos__alu16, flea_u16_t *used_chain__pu16, flea_al_u16_t used_chain_len)
-{
-  flea_al_u16_t i;
-  for(i = start_pos__alu16; i < cert_collection_size__alu16; i++)
-  {
-    if
-  }
-}*/
 
 static flea_al_u16_t find_cert(const flea_x509_cert_ref_t* cert_to_find__pt, const flea_x509_cert_ref_t *cert_collection__pt, flea_al_u16_t cert_collection_size__alu16, flea_al_u16_t start_pos__alu16) 
 {
   flea_al_u16_t i;
-  //flea_al_u16_t result = END_OF_COLL;
   for(i = start_pos__alu16; i < cert_collection_size__alu16; i++)
   {
     /* compare subject DN's */
     if(!flea_rcu8_cmp(&cert_to_find__pt->subject__t.raw_dn_complete__t, &cert_collection__pt[i].subject__t.raw_dn_complete__t))
     {
       /* compare tbs */
-      // TODO: CACHE TBS HASHES AND COMPARE THESE ? => MAKE FUNCTION FOR CERT
-      // COMPARE WHICH HANDLES ALL POSSIBILITIES*/ 
       if(!flea_rcu8_cmp(&cert_to_find__pt->tbs_ref__t, &cert_collection__pt[i].tbs_ref__t) )
       {
         if(FLEA_DER_REF_IS_ABSENT(&cert_collection__pt[i].cert_signature_as_bit_string__t) || 
@@ -58,17 +44,13 @@ static flea_al_u16_t find_cert(const flea_x509_cert_ref_t* cert_to_find__pt, con
 static flea_al_u16_t find_issuer(const flea_x509_cert_ref_t* cert_to_find_issuer_to__pt, const flea_x509_cert_ref_t *cert_collection__pt, flea_al_u16_t cert_collection_size__alu16, flea_al_u16_t start_pos__alu16, flea_u16_t *used_chain__pu16, flea_al_u16_t used_chain_len__alu16) 
 {
 //  search through collection for matching DN and AKIE
-//
   flea_al_u16_t i;
-  //flea_al_u16_t result = END_OF_COLL;
   for(i = start_pos__alu16; i < cert_collection_size__alu16; i++)
   {
     /* compare subject DN's */
-    // TODO: document binary comparison of issuer/subject
     if(!flea_rcu8_cmp(&cert_to_find_issuer_to__pt->issuer__t.raw_dn_complete__t, &cert_collection__pt[i].subject__t.raw_dn_complete__t))
     {
       flea_bool_t already_used__b = FLEA_FALSE;
-        // TODO: COMPARE AKI IF PRESENT
         //check if that candidate is not yet part of the chain 
         flea_al_u16_t j;
         for(j = 0; j < used_chain_len__alu16; j++)
@@ -99,7 +81,6 @@ void flea_cert_chain_t__dtor(flea_cert_chain_t *chain__pt)
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_SET_NULL(chain__pt->chain__bu16);
 #endif
-  //*(element__pt) = flea_cert_chain_element_t__INIT_VALUE;
 }
 
 static flea_bool_t is_cert_self_issued(const flea_x509_cert_ref_t *cert__pt)
@@ -144,7 +125,6 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
     flea_bool_t is_current_target; 
     is_current_ta = ( i == (flea_s32_t)chain_len__alu16 - 1);
     is_current_target = ( i == 0 );
-    //flea_al_u16_t path_len_constr__alu16;
     flea_basic_constraints_t *basic_constraints__pt;
     flea_key_usage_t *key_usage__pt;
 
@@ -159,30 +139,16 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
     {
       FLEA_THROW("certificate not yet valid", FLEA_ERR_CERT_NOT_YET_VALID); 
     }
-    // TODO: CHECK REVOCATION
-    //if(!is_current_ta)
     if(!is_cert_self_issued(current__pt) && !is_current_target) 
     {
       if(m_path__u16 == 0)
       {
-      // PKITS 4.6.15 triggers this condition when the self-issued cert is
-      // processed
-//#error BUG TO FIX
-      FLEA_THROW("path len constraint exceeded", FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED);
+        FLEA_THROW("path len constraint exceeded", FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED);
       }
 
-      //if(!is_current_target) // && !is_current_ta ??
-      {
-        //printf("cert is not self issued\n");
         m_path__u16 -= 1;
-      }
-      /*else
-      {
-        //printf("cert is not self issued\n");
-      }*/
     }
 
-    //path_len_constr__alu16 = 
     if(basic_constraints__pt->is_present__u8)
     {
       if(basic_constraints__pt->has_path_len__b)
@@ -210,7 +176,6 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
     }
   }
   /* verify signature from target to TA */
-      // TODO: REMOVE PARAMETER INHERITANCE
   inherited_params__rcu8.data__pcu8 = NULL;
   inherited_params__rcu8.len__dtl = 0;
   for(i = (flea_s32_t)(chain_len__alu16 - 2); i >= 0; i--)
@@ -233,15 +198,12 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
     {
       // these are the params for the subject cert
       inherited_params__rcu8 = returned_params__rcu8;
-      // TODO: REMOVE PARAMETER INHERITANCE
     }
-    //printf("validated signature OK\n");
 
   }
   if(key_to_construct_mbn__pt)
   {
     flea_bool_t dummy;
-      // TODO: REMOVE PARAMETER INHERITANCE
       flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
     FLEA_CCALL(THR_flea_public_key_t__ctor_cert_inherited_params(key_to_construct_mbn__pt, &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[0]], inherited_params_to_use__prcu8, &dummy));
   }
@@ -287,7 +249,6 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( 
   {
     FLEA_THROW("no certificate collection provided for path validation", FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS);
   }
-  // TODO: IF TARGET CERT IS TRUSTED THEN NO NEED FOR A SIGNATURE
   if(FLEA_DER_REF_IS_ABSENT(&target_cert__pt->cert_signature_as_bit_string__t))
   {
     FLEA_THROW("target certificate carries no signature", FLEA_ERR_INV_ARG);
@@ -296,9 +257,9 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( 
 #if FLEA_MAX_CERT_CHAIN_DEPTH < 2
 #error FLEA_MAX_CERT_CHAIN_DEPTH < 2
 #endif
-  // COVER THE TARGET CERT APPEARING AS TRUSTED IN THE COLL BY SEARCHING
-  // THROUGH IT, AND SETTING CURRENT AS TRUSTED IF IT IS FOUND AS TRUSTED. AT THE START OF THE CONSTRUCTION LOOP THEN
-  // IT IS CHECKED IF THE CURRENT IS TRUSTED 
+  // cover the target cert appearing as trusted in the coll by searching
+  // through it, and setting current as trusted if it is found as trusted. at the start of the construction loop then
+  // it is checked if the current is trusted 
   while(target_pos != END_OF_COLL)
   {
     target_pos = find_cert(target_cert__pt, &cert_collection__pt[1], cert_collection_size__alu16-1, target_pos); // find by TBS match and possibly signature match (if both signatures are available)
@@ -315,36 +276,15 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( 
       }
   }
   /* try to find a path */
-  // TODO: SUPPLY VOLATILE STOP INDICATOR TO BE CHECKED AS LOOP CONDITION
   while(1)
   {
     flea_x509_cert_ref_t *subject;
     flea_al_u16_t issuer_pos;
     flea_bool_t failed_path = FLEA_FALSE; 
       subject = &cert_collection__pt[chain__bu16[*chain_pos__pu16]];
-
-        /*{
-          unsigned i;
-          printf("\n\nchain when starting loop = ");
-          for(i = 0; i <= *chain_pos__pu16; i++)
-          {
-            printf("%u ", chain__bu16[i]);
-          }
-          printf("\n");
-
-        }*/
+        
       if(is_cert_trusted(subject))
       {
-        /*{
-          unsigned i;
-          printf("at TA, chain when calling validate path = ");
-          for(i = 0; i <= *chain_pos__pu16; i++)
-          {
-            printf("%u ", chain__bu16[i]);
-          }
-          printf("\n");
-
-        }*/
           flea_err_t validation_error = THR_validate_cert_path(cert_chain__pt, time_mbn__pt, key_to_construct_mbn__pt);
           if(validation_error == FLEA_ERR_FINE)
           {
@@ -359,46 +299,24 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( 
         }
         (*chain_pos__pu16)--; // look for next candidate above me
 
-          // TODO: DIFFERENTIATE: 
-          // MEMORY ALLOCATION ERROR => ?
-          // DECODING ERROR => CANCEL A CERT FROM COLL
-          // OTHER VERIFICATION ERROR => CONTINUE PATH CONSTRUCTION WITH NEXT
-          // CERT
       } 
       // no trusted cert yet found. can only enlarge the chain if it has
       // capacitiy left.
     else if(*chain_pos__pu16 + 1 < FLEA_MAX_CERT_CHAIN_DEPTH ) 
     {
       flea_al_u16_t start_offs = chain__bu16[(*chain_pos__pu16) + 1];
-    //printf("looking for issuer starting from position %u within collection\n", start_offs); 
     issuer_pos = find_issuer( subject /* cert to which to find an issuer */, cert_collection__pt, cert_collection_size__alu16, start_offs/* offset where to start the search */, &chain__bu16[0] /* already used certs in terms of their possitions*/, (*chain_pos__pu16)+1 /* number of used certs */);
     }
     else
     {
-      //printf("no potential issuer found\n");
       issuer_pos = END_OF_COLL;
     }
-    // TODO: IN THE ABOVE, THE OCCURENCE OF THE TARGET CERT IN THE COLLECTION
-    // IS NOT COVERED (AS ISN'T THE MULTIPLE OCCURENCE OF ANY CERT)
-    // => offer function which prunes the collection from duplicates (preserving
-    // trusted-quality for resulting instance )
-    if(!failed_path && issuer_pos == END_OF_COLL) // || )
+    if(!failed_path && issuer_pos == END_OF_COLL)
     {
-        //printf("no failed path, no issuer found, backing up\n");
-        /*{
-          unsigned i;
-          //printf("chain before potential backup  = ");
-          for(i = 0; i <= *chain_pos__pu16; i++)
-          {
-            printf("%u ", chain__bu16[i]);
-          }
-          printf("\n");
-
-        }*/
+        
       // back up
       while(((*chain_pos__pu16) + 1 >= FLEA_MAX_CERT_CHAIN_DEPTH) || (chain__bu16[(*chain_pos__pu16) + 1] >= cert_collection_size__alu16))
       {
-        //printf("backing up: \n");
         failed_path = FLEA_FALSE;
         if((*chain_pos__pu16) == 0)
         {
@@ -411,25 +329,12 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( 
         (*chain_pos__pu16)--; 
       }
 
-
-        /*{
-          unsigned i;
-          printf("chain after potential backup  = ");
-          for(i = 0; i <= *chain_pos__pu16; i++)
-          {
-            printf("%u ", chain__bu16[i]);
-          }
-          printf("\n");
-
-        }*/
     }
-    //else if(*chain_pos__pu16 + 1 < FLEA_MAX_CERT_CHAIN_DEPTH )
     else if(!failed_path && (issuer_pos != END_OF_COLL)) // new issuer found 
     {
       /* found a candidate */
         // add untrusted issuer to the chain.
         // capacity was already checked above
-        //printf("placing issuer candidate into chain\n");
         (*chain_pos__pu16)++;
         chain__bu16[(*chain_pos__pu16)] = issuer_pos;
         continue; 
@@ -439,22 +344,17 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( 
     // no issuer new issuer found (backed up or not, maybe stepped down from invalid trust anchor). try the next one at the
     // current level
     chain__bu16[(*chain_pos__pu16) + 1] += 1;
-    //printf("incrementing issuer search position to %u\n", chain__bu16[(*chain_pos__pu16) + 1]);
-
 
   } 
 
-
   FLEA_THR_FIN_SEC(
       );
-
 }
 
 flea_err_t THR_flea_cert_chain_t__ctor(flea_cert_chain_t *chain__pt, flea_x509_cert_ref_t *target_cert__pt)
 {
   FLEA_THR_BEG_FUNC();
 #ifdef FLEA_USE_HEAP_BUF
-  //FLEA_ALLOC_MEM(chain__pt->cert_collection__pt, FLEA_MAX_CERT_COLL...);
   FLEA_ALLOC_MEM_ARR(chain__pt->chain__bu16, FLEA_MAX_CERT_CHAIN_DEPTH);
 #endif
   chain__pt->nb_crls__u16 = 0;

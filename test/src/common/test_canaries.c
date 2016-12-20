@@ -17,7 +17,6 @@ static flea_err_t THR_test_dbg_canaries_write_after_u32 ()
   // this function violates the canary values
 
 
-  // also test correct handling of arrays with type different from u8
   FLEA_DECL_BUF(test_buf_u32, flea_u32_t, 2);
   FLEA_THR_BEG_FUNC();
 
@@ -55,7 +54,6 @@ static flea_err_t THR_test_dbg_canaries_write_after ()
 
   FLEA_DECL_BUF(test_buf, flea_u8_t, 5);
 
-  // also test correct handling of arrays with type different from u8
   FLEA_DECL_BUF(test_buf_u32, flea_u32_t, 2);
   FLEA_THR_BEG_FUNC();
 

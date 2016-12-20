@@ -25,20 +25,16 @@
 #define FLEA_ASN1_EKU_BITP_time_stamping 8 
 #define FLEA_ASN1_EKU_BITP_ocsp_signing 9 
 
-// TODO: for heap usage, ctor allocates the sub-constructs */
-typedef flea_der_ref_t flea_x509_ref_t; // TODO: remove ??
+typedef flea_der_ref_t flea_x509_ref_t; 
 
-//typedef enum {flea_str_t_another_name
 
 typedef struct
 {
-  //flea_x509_len_t offs__x5l; // TO/DO: USE POINTERS! OFFSET CALC. INCURS CODE AT CALL SITE! AND ELSEWHERE!
   const flea_u8_t *data__pcu8;
   flea_dtl_t len__dtl;
   flea_asn1_time_type_t time_type__t;
 } flea_x509_date_ref_t;
 
-// TODO: MOVE TO EXTRA HEADER
 typedef struct
 {
   flea_u16_t year;
@@ -47,9 +43,6 @@ typedef struct
   flea_u8_t hours;
   flea_u8_t minutes;
   flea_u8_t seconds;
-  /*char offset;
-  flea_u8_t hours_offset;
-  flea_u8_t minutes_offest;*/
 } flea_gmt_time_t;
 
 
@@ -83,11 +76,9 @@ typedef struct
 {
   flea_u8_t is_present__u8;
   flea_der_ref_t key_id__t;
-  //flea_der_ref_t auth_cert_issuer__t; // NOT USED
   flea_der_ref_t auth_cert_serial_number__t;
 } flea_x509_auth_key_id_t;
 
-// TODO: MISSING IS_PRESENT (also elsewehere)
 typedef struct
 {
   flea_u8_t is_present__u8;
@@ -119,11 +110,6 @@ typedef struct
 {
   flea_ref_cu8_t san_raw__t;
   flea_u8_t is_present__u8;
-  /*flea_der_ref_t dns_name_as_ia5str__t;
-  flea_der_ref_t directory_name_as_name__t;
-  flea_der_ref_t uniform_resource_identifier_as_ia5str__t;
-  flea_der_ref_t ip_address_in_netw_byte_order__t;
-  flea_der_ref_t registered_id_as_oid__t;*/
 } flea_x509_subj_alt_names_t;
 
 typedef struct
@@ -149,16 +135,13 @@ typedef struct
   flea_u8_t version__u8; 
 
   flea_x509_ref_t serial_number__t;
-  //flea_x509_ref_t tbs_sig_alg_oid__t;
   flea_x509_algid_ref_t tbs_sig_algid__t;
 
   flea_x509_dn_ref_t issuer__t;
 
-/*  flea_x509_date_ref_t not_before__t;
-  flea_x509_date_ref_t not_after__t;*/
 
-  flea_gmt_time_t not_before__t;  //flea_x509_date_ref_t not_before__t;	
-  flea_gmt_time_t not_after__t;  //flea_x509_date_ref_t not_after__t;
+  flea_gmt_time_t not_before__t;
+  flea_gmt_time_t not_after__t;
   flea_x509_dn_ref_t subject__t;
 
   flea_x509_public_key_info_t subject_public_key_info__t;

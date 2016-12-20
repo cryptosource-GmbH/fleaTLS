@@ -120,8 +120,6 @@ const flea_u8_t* flea_ec_dom_par__get_predefined_dp_ptr(flea_ec_dom_par_id_t dp_
  */
 flea_al_u16_t flea_ec_dom_par__get_predefined_dp_len(flea_ec_dom_par_id_t dp_id);
 
-//void flea_ec_gfp_dom_par_t__set_from_internal_format(flea_ec_gfp_dom_par_t * result__pt, const flea_u8_t *enc_dp__pcu8);
-
 
 flea_err_t THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(flea_ec_gfp_dom_par_ref_t *dp_to_set__pt, flea_ec_dom_par_id_t id);
 #ifdef __cplusplus

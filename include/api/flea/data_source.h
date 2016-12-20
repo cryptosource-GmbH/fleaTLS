@@ -45,7 +45,6 @@ flea_err_t THR_flea_data_source_t__force_read(flea_data_source_t* source__pt, fl
 
 flea_err_t THR_flea_data_source_t__skip(flea_data_source_t* source__pt, flea_dtl_t to_skip__dtl);
 
-// TODO: use al_u8 for byte!
 flea_err_t THR_flea_data_source_t__ctor_memory(flea_data_source_t* source__t, const flea_u8_t* source_mem__pcu8, flea_dtl_t source_mem_len__dtl, flea_data_source_mem_help_t* buffer_uninit__pt);
 
 void flea_data_source_t__dtor(flea_data_source_t *source__pt);

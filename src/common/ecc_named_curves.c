@@ -9,14 +9,7 @@ const flea_u8_t brainpool_version_one_oid_prefix[] = { 0x2B, 0x24, 0x03, 0x03, 0
 
 const flea_u8_t nist_secp_curve_prefix[] = { 0x2B, 0x81, 0x04, 0x00 };
 const flea_u8_t P256_oid[] = { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x01, 0x07 };
-/*typedef struct
-{
- const flea_ec_dom_par_id_t internal_id__t;
- const flea_u8_t oid_byte;
-} brainpool_id_mapping_t;*/
 
-
-//const flea_ec_dom_par_id_t flea_get_builtin_par_from_dp_oid(const flea_al_u8_t *oid__pcu8, flea_al_u8_t oid_len__alu8)
 flea_err_t THR_flea_ecc_gfp_dom_par_t__set_by_named_curve_oid(flea_ec_gfp_dom_par_ref_t *dp_to_set__pt, const flea_u8_t* oid__pcu8, flea_al_u8_t oid_len__alu8)
 {
   flea_ec_dom_par_id_t result_id;

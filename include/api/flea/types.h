@@ -11,7 +11,6 @@
 extern "C" {
 #endif
 
-// TODO: MAKE PLATFORM DEPENDENT
 typedef unsigned char flea_u8_t;
 typedef signed char flea_s8_t;
 typedef unsigned short flea_u16_t;
@@ -26,7 +25,7 @@ typedef long long flea_s64_t;
 #if FLEA_WORD_BIT_SIZE == 32
 
 
-typedef flea_u16_t flea_hlf_uword_t; // TODO: MAKE INTERNAL TYPES
+typedef flea_u16_t flea_hlf_uword_t; 
 typedef flea_s16_t flea_hlf_sword_t;
 typedef flea_u32_t flea_uword_t;
 typedef flea_s32_t flea_sword_t;

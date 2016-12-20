@@ -38,10 +38,3 @@ int flea_memcmp_wsize(const void* mem1__pv, flea_dtl_t len_mem1__dtl, const void
   }
   return memcmp(mem1__pv, mem2__pv, len_mem1__dtl);
 }
-
-/*flea_dtl_t flea_determine_be_bit_size(const flea_u8_t *a__pcu8, flea_dtl_t a_len__dtl)
-{
-  flea_al_u8_t bits;
-  while(*(a__pcu8++) == 0 && a_len__dtl--);
-   
-}*/

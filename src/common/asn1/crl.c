@@ -58,9 +58,7 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(const flea_x509_c
         FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw_optional(&dec__t, &raw_tlv__rcu8));
         if(!flea_rcu8_cmp(&raw_tlv__rcu8, dp_name_raw__cprcu8)) 
         {
-          //*result_update__pb = FLEA_TRUE; 
           found_match__b = FLEA_TRUE; 
-        // TODO: CHECK REASONS
         }
       }
       /* close fullName */
@@ -79,8 +77,6 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(const flea_x509_c
       if(!flea_rcu8_cmp(&raw_tlv__rcu8, dp_name_raw__cprcu8)) 
       {
           found_match__b = FLEA_TRUE; 
-        //*result_update__pb = FLEA_TRUE; 
-        // TODO: CHECK REASONS
       }
     }
     if(found_match__b)
@@ -95,9 +91,9 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(const flea_x509_c
 
       if((nb_reason_bits__alu8 != complete_reasons_cnt__alu8) || ((only_some_reasons__u32 & complete_reasons__u32) != complete_reasons__u32))
       {
-        // TODO: in this case, the cert may still be found to be revoked, which
-        // should have priority over the exception (which causes the status
-        // indeterminate
+        /* in this case, in principle, the cert may still be found to be revoked, which
+        * in this implementation does not have priority over this exception (which causes the status
+        * indeterminate) */
         FLEA_THROW("insufficient CRL reasons", FLEA_ERR_X509_CRL_INCOMPL_REASONS);
       }
       *result_update__pb = FLEA_TRUE; 
@@ -177,8 +173,6 @@ static flea_err_t THR_flea_crl__parse_extensions(flea_ber_dec_t *dec__pt, flea_b
   FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(source__t, flea_data_source_t);
   FLEA_THR_BEG_FUNC();
-  /*FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, ostr__t.data__pcu8, ostr__t.len__dtl, &hlp__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &source__t, 0));*/
   /* open extensions */
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
   while(flea_ber_dec_t__has_current_more_data(dec__pt))
@@ -190,16 +184,10 @@ static flea_err_t THR_flea_crl__parse_extensions(flea_ber_dec_t *dec__pt, flea_b
     /* open this extension */
     FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
     FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_oid(dec__pt, &ext_oid_ref__t));
-    //printf("parse_extension: before decode bool\n");
     FLEA_CCALL(THR_flea_ber_dec_t__decode_boolean_default_false(dec__pt, &critical__b));
-    //printf("parse_extension: after decode bool\n");
 
     /* decode the extension value in the octet string */
     FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(dec__pt, FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, FLEA_ASN1_OCTET_STRING), &ostr__t));
-    /*printf("in extension with oid = "); 
-      unsigned i;
-      for(i = 0; i < ext_oid_ref__t.len__dtl; i++) printf("%02x ", ext_oid_ref__t.data__pcu8[i]);
-      printf("\n");*/
 
     FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, ostr__t.data__pcu8, ostr__t.len__dtl, &hlp__t));
     FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &source__t, 0));
@@ -223,9 +211,7 @@ static flea_err_t THR_flea_crl__parse_extensions(flea_ber_dec_t *dec__pt, flea_b
       flea_bool_t only_contains_user_certs__b = FLEA_FALSE;
       flea_bool_t only_contains_ca_certs__b = FLEA_FALSE;
       flea_bool_t only_contains_attrib_certs__b = FLEA_FALSE;
-      //flea_bool_t only_some_reasons = FLEA_FALSE;
       flea_bool_t indirect_crl__b = FLEA_FALSE;
-      //flea_ref_cu8_t only_some_reasons__rcu8 = {NULL, 0};
       const flea_u32_t complete_reasons__u32 = 0x1FE;
       const flea_al_u8_t complete_reasons_cnt__alu8 = 9;
       flea_u32_t only_some_reasons__u32 = complete_reasons__u32;
@@ -234,30 +220,25 @@ static flea_err_t THR_flea_crl__parse_extensions(flea_ber_dec_t *dec__pt, flea_b
 
       FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&cont_dec__t));
 
-      //while(flea_ber_dec_t__has_current_more_data(&cont_dec__t))
-      //{
-        //flea_ref_cu8_t distrib_point_name_ref__rcu8;
-        //FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(&cont_dec__t, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 0), &distrib_point_name_ref__rcu8, &distrib_point_name_found__b));
-        FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional_cft(&cont_dec__t, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC, 0), &distrib_point_name_found__b));
-/* distributionPoint          [0] DistributionPointName OPTIONAL, */
-        if(distrib_point_name_found__b)
-        {
-          FLEA_CCALL(THR_flea_crl__parse_and_check_crl_distribution_point(&cont_dec__t, subject__pt));
-          FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&cont_dec__t));
-        }
-        FLEA_CCALL(THR_flea_ber_dec_t__decode_boolean_default(&cont_dec__t,  &only_contains_user_certs__b));
-        FLEA_CCALL(THR_flea_ber_dec_t__decode_boolean_default(&cont_dec__t,  &only_contains_ca_certs__b));
-        //FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(&cont_dec__t, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 0), &only_some_reasons, &dummy_found__b));
-        FLEA_CCALL(THR_flea_ber_dec_t__decode_short_bit_str_to_u32_optional(&cont_dec__t, &only_some_reasons__u32, &nb_reason_bits__alu8, &dummy_found__b));
-        FLEA_CCALL(THR_flea_ber_dec_t__decode_boolean_default(&cont_dec__t,  &indirect_crl__b));
-        FLEA_CCALL(THR_flea_ber_dec_t__decode_boolean_default(&cont_dec__t,  &only_contains_attrib_certs__b));
 
-      //}
+      FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional_cft(&cont_dec__t, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC, 0), &distrib_point_name_found__b));
+      /* distributionPoint          [0] DistributionPointName OPTIONAL, */
+      if(distrib_point_name_found__b)
+      {
+        FLEA_CCALL(THR_flea_crl__parse_and_check_crl_distribution_point(&cont_dec__t, subject__pt));
+        FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&cont_dec__t));
+      }
+      FLEA_CCALL(THR_flea_ber_dec_t__decode_boolean_default(&cont_dec__t,  &only_contains_user_certs__b));
+      FLEA_CCALL(THR_flea_ber_dec_t__decode_boolean_default(&cont_dec__t,  &only_contains_ca_certs__b));
+      FLEA_CCALL(THR_flea_ber_dec_t__decode_short_bit_str_to_u32_optional(&cont_dec__t, &only_some_reasons__u32, &nb_reason_bits__alu8, &dummy_found__b));
+      FLEA_CCALL(THR_flea_ber_dec_t__decode_boolean_default(&cont_dec__t,  &indirect_crl__b));
+      FLEA_CCALL(THR_flea_ber_dec_t__decode_boolean_default(&cont_dec__t,  &only_contains_attrib_certs__b));
+
       if((nb_reason_bits__alu8 != complete_reasons_cnt__alu8) || ((only_some_reasons__u32 & complete_reasons__u32) != complete_reasons__u32))
       {
-        // TODO: in this case, the cert may still be found to be revoked, which
-        // should have priority over the exception (which causes the status
-        // indeterminate
+        /* in this case, in principle, the cert may still be found to be revoked, which
+        * in this implemenation does not have priority over the exception (which causes the status
+        * indeterminate) */
         FLEA_THROW("insufficient CRL reasons", FLEA_ERR_X509_CRL_INCOMPL_REASONS);
       }
       if(is_ca_cert__b)
@@ -275,7 +256,7 @@ static flea_err_t THR_flea_crl__parse_extensions(flea_ber_dec_t *dec__pt, flea_b
       {
         FLEA_THROW("unsuitable CRL", FLEA_ERR_X509_UNSUPP_INDIR_CRL);
       }
-      FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&cont_dec__t)); // TODO: REMOVE?
+      FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&cont_dec__t));
     }
     else if(critical__b)
     {
@@ -364,7 +345,6 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(const flea_x50
       flea_gmt_time_t revocation_date__t;
       flea_ref_cu8_t serial_number__rcu8;
       flea_bool_t have_entry_extensions__b;
-      //flea_gmt_time_t rev_date__t;
       FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t)); // entry seq
       FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_int(&dec__t, &serial_number__rcu8));
       FLEA_CCALL(THR_flea_asn1_parse_gmt_time(&dec__t, &revocation_date__t));
@@ -470,6 +450,5 @@ flea_err_t THR_flea_crl__check_revocation_status(const flea_x509_cert_ref_t *sub
   {
     FLEA_THROW("certificate's revocation status cannot be determined", FLEA_ERR_X509_CERT_REV_STAT_UNDET);
   }
-  // TODO: INVOKE CALLBACK WITH CERTS DP-URL AND PERFORM ONE MORE CALL TO UPDATE_REV_STAT 
   FLEA_THR_FIN_SEC_empty();
 }

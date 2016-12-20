@@ -17,7 +17,6 @@
 #include "self_test.h"
 
 #ifdef FLEA_HAVE_ECKA
-//static flea_err_t THR_flea_test_ecka_raw_basic_inner (const flea_u8_t* dp__pcu8)
 static flea_err_t THR_flea_test_ecka_raw_basic_inner (const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
 {
   FLEA_DECL_BUF(res_a_arr__bu8, flea_u8_t, FLEA_ECC_MAX_MOD_BYTE_SIZE);
@@ -39,7 +38,6 @@ static flea_err_t THR_flea_test_ecka_raw_basic_inner (const flea_ec_gfp_dom_par_
 
 
   FLEA_THR_BEG_FUNC();
-  //res_a_len__alu8 = res_b_len__alu8 = flea_ec_dom_par__get_elem_len(dp__pcu8, flea_dp__p);
   res_a_len__alu8 = res_b_len__alu8 = dom_par__pt->p__ru8.len__dtl;
   FLEA_ALLOC_BUF(res_a_arr__bu8, res_a_len__alu8);
   FLEA_ALLOC_BUF(res_b_arr__bu8, res_b_len__alu8);
@@ -61,7 +59,6 @@ static flea_err_t THR_flea_test_ecka_raw_basic_inner (const flea_ec_gfp_dom_par_
     FLEA_THROW("ECKA results differ in value", FLEA_ERR_FAILED_TEST);
   }
 #if FLEA_ECC_MAX_MOD_BYTE_SIZE >= (224 / 8)
-  //res_a_len__alu8 = res_b_len__alu8 = flea_ec_dom_par__get_elem_len(dp__pcu8, flea_dp__p);
   res_a_len__alu8 = res_b_len__alu8 = dom_par__pt->p__ru8.len__dtl;
   FLEA_CCALL(THR_flea_ecka__compute_kdf_ansi_x9_63(flea_sha224, pub_point_a_enc__bu8, pub_point_a_enc_len__alu8, sk_b_enc__bu8, sk_b_enc_len__alu8, NULL, 0, res_b_arr__bu8, res_b_len__alu8, dom_par__pt));
   FLEA_CCALL(THR_flea_ecka__compute_kdf_ansi_x9_63(flea_sha224, pub_point_b_enc__bu8, pub_point_b_enc_len__alu8, sk_a_enc__bu8, sk_a_enc_len__alu8, NULL, 0, res_a_arr__bu8, res_a_len__alu8, dom_par__pt));
@@ -89,12 +86,6 @@ flea_err_t THR_flea_test_ecka_raw_basic ()
   flea_ec_dom_par_id_t i;
   for(i = 0; i <= flea_gl_ec_dom_par_max_id; i++)
   {
-    /*const flea_u8_t* ec_dp = flea_ec_dom_par__get_predefined_dp_ptr(i);
-    if(NULL == ec_dp)
-    {
-      continue;
-    }
-    FLEA_CCALL(THR_flea_test_ecka_raw_basic_inner(ec_dp));*/
 
     flea_ec_gfp_dom_par_ref_t dom_par__t;
     flea_err_t err__t = THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&dom_par__t, i);

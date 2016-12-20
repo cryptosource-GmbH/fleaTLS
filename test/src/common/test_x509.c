@@ -77,16 +77,6 @@ flea_err_t THR_flea_test_dec_tls_server_cert()
     FLEA_THROW("wrong server id accepted", FLEA_ERR_FAILED_TEST);
   }
 
-
-  /*if(cert_ref__t.extensions__t.san__t.ip_address_in_netw_byte_order__t.len__dtl != 4)
-  {
-    FLEA_THROW("error with parsed ip address in SAN", FLEA_ERR_FAILED_TEST);
-  }*/
-  /*if(flea_memcmp_wsize(url__cau8, sizeof(url__cau8) - 1, cert_ref__t.extensions__t.san__t.dns_name_as_ia5str__t.data__pcu8, cert_ref__t.extensions__t.san__t.dns_name_as_ia5str__t.len__dtl))
-  {
-    //printf("exp len = %u, found len = %u\n", sizeof(url__cau8) - 1, cert_ref__t.extensions__t.san__t.dns_name_as_ia5str__t.len__dtl);
-    FLEA_THROW("error with decoded SAN dns name", FLEA_ERR_FAILED_TEST);
-  }*/
   if(cert_ref__t.extensions__t.basic_constraints__t.has_path_len__b || cert_ref__t.extensions__t.basic_constraints__t.is_ca__b)
   {
    FLEA_THROW("error decoding empty basic_constraints extensions", FLEA_ERR_FAILED_TEST);
@@ -94,8 +84,7 @@ flea_err_t THR_flea_test_dec_tls_server_cert()
   if((!cert_ref__t.extensions__t.ext_key_usage__t.is_present__u8) || 
     (cert_ref__t.extensions__t.ext_key_usage__t.purposes__u16 != ((1 << FLEA_ASN1_EKU_BITP_server_auth) | (1 << FLEA_ASN1_EKU_BITP_client_auth))))
   {
-   FLEA_THROW("error decoding EKU", FLEA_ERR_FAILED_TEST);
-
+    FLEA_THROW("error decoding EKU", FLEA_ERR_FAILED_TEST);
   }
   FLEA_THR_FIN_SEC(
     flea_x509_cert_ref_t__dtor(&cert_ref__t);
@@ -108,12 +97,10 @@ flea_err_t THR_flea_test_dec_ca_cert()
   FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&cert_ref__t, test_ca_cert_1, sizeof(test_ca_cert_1)));
   if(cert_ref__t.version__u8 != 3)
   {
-    //printf("parsed version number = %u\n", cert_ref__t.version__u8);
     FLEA_THROW("parsed version number is incorrect", FLEA_ERR_FAILED_TEST); 
   }
   if(cert_ref__t.serial_number__t.len__dtl != 1 || cert_ref__t.serial_number__t.data__pcu8[0] != 62)
   {
-    //printf("serial len = %u, serial[0] = %u\n", cert_ref__t.serial_number__t.len__dtl, cert_ref__t.serial_number__t.data__pcu8[0]);
     FLEA_THROW("parsed serial number is incorrect", FLEA_ERR_FAILED_TEST); 
   }
   if(cert_ref__t.tbs_sig_algid__t.oid_ref__t.len__dtl != 9 || cert_ref__t.tbs_sig_algid__t.oid_ref__t.data__pcu8[0] != 0x2A)
@@ -134,7 +121,6 @@ flea_err_t THR_flea_test_dec_ca_cert()
   }
   if(!flea_x509_has_key_usages(&cert_ref__t, FLEA_ASN1_KEY_USAGE_MASK_crl_sign | FLEA_ASN1_KEY_USAGE_MASK_key_cert_sign))
   {
-    //printf("KU = %04x\n", cert_ref__t.extensions__t.key_usage__t.purposes__u16);
     FLEA_THROW("error positive KU", FLEA_ERR_FAILED_TEST);
   }
   if(flea_x509_has_key_usages(&cert_ref__t, FLEA_ASN1_KEY_USAGE_MASK_data_encipherment))
@@ -149,12 +135,3 @@ flea_err_t THR_flea_test_dec_ca_cert()
    flea_x509_cert_ref_t__dtor(&cert_ref__t); 
     );
 }
-
-/*flea_err_t THR_flea_test_x509_basic()
-{
-  FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_test_dec_ca_cert());
-  FLEA_CCALL(THR_flea_test_dec_tls_server_cert_broken());
-  FLEA_CCALL(THR_flea_test_dec_tls_server_cert());
-  FLEA_THR_FIN_SEC_empty();
-}*/

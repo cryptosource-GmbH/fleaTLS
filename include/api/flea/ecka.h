@@ -30,8 +30,7 @@ extern "C" {
  * @return flea error code
  *
  */
-//flea_err_t THR_flea_ecka__compute_raw(const flea_u8_t* public_point_enc, flea_al_u8_t public_point_enc_len, const flea_u8_t* secret_key, flea_al_u8_t secret_key_len, const flea_u8_t* enc_dp, flea_u8_t* result, flea_al_u8_t* result_len);
-flea_err_t THR_flea_ecka__compute_raw (const flea_u8_t* public_point_enc__pcu8, flea_al_u8_t public_point_enc_len__alu8, const flea_u8_t* secret_key__pcu8, flea_al_u8_t secret_key_len__alu8,  /*const flea_u8_t* enc_dp__pcu8,*/ flea_u8_t* result__pu8, flea_al_u8_t* result_len__palu8, const flea_ec_gfp_dom_par_ref_t *dom_par__pt);
+flea_err_t THR_flea_ecka__compute_raw (const flea_u8_t* public_point_enc__pcu8, flea_al_u8_t public_point_enc_len__alu8, const flea_u8_t* secret_key__pcu8, flea_al_u8_t secret_key_len__alu8,  flea_u8_t* result__pu8, flea_al_u8_t* result_len__palu8, const flea_ec_gfp_dom_par_ref_t *dom_par__pt);
 
 /**
  * Carry out the EC key agreement operation using ANSI X9.63 key derivation
@@ -42,7 +41,6 @@ flea_err_t THR_flea_ecka__compute_raw (const flea_u8_t* public_point_enc__pcu8, 
  * @param public_point_enc_len the length of public_point_enc
  * @param secret_key the secret key, big endian encoded
  * @param secret_key_len the length of secret_key
- * @param enc_dp pointer to the domain parameters in flea's internal format
  * @param shared_info shared info value to be used in the key derivation
  * function, may be NULL, then also its length must be 0
  * @param shared_info_len the length of shared_info
@@ -51,12 +49,12 @@ flea_err_t THR_flea_ecka__compute_raw (const flea_u8_t* public_point_enc__pcu8, 
  * @param result_len the caller must provide a pointer to a value which contains
  * the available length of result. when the function returns, *result_len will
  * contain the length of the data set in result
+ * @param dom_par__pt pointer to the associated domain parameters object
  *
  * @return flea error code
  *
  */
-flea_err_t THR_flea_ecka__compute_kdf_ansi_x9_63 (flea_hash_id_t hash_id__t, const flea_u8_t* public_point_enc__pcu8, flea_al_u8_t public_point_enc_len__alu8, const flea_u8_t* secret_key__pcu8, flea_al_u8_t secret_key_len__alu8, /*const flea_u8_t* enc_dp__pcu8,*/ const flea_u8_t* shared_info__pcu8, flea_al_u16_t shared_info_len__alu16, flea_u8_t* result__pu8, flea_al_u16_t result_len__alu16, const flea_ec_gfp_dom_par_ref_t *dom_par__pt);
-//flea_err_t THR_flea_ecka__compute_kdf_ansi_x9_63(flea_hash_id_t hash_id, const flea_u8_t* public_point_enc, flea_al_u8_t public_point_enc_len, const flea_u8_t* secret_key, flea_al_u8_t secret_key_len, const flea_u8_t* enc_dp, const flea_u8_t* shared_info, flea_al_u16_t shared_info_len, flea_u8_t* result, flea_al_u16_t result_len);
+flea_err_t THR_flea_ecka__compute_kdf_ansi_x9_63 (flea_hash_id_t hash_id__t, const flea_u8_t* public_point_enc__pcu8, flea_al_u8_t public_point_enc_len__alu8, const flea_u8_t* secret_key__pcu8, flea_al_u8_t secret_key_len__alu8, const flea_u8_t* shared_info__pcu8, flea_al_u16_t shared_info_len__alu16, flea_u8_t* result__pu8, flea_al_u16_t result_len__alu16, const flea_ec_gfp_dom_par_ref_t *dom_par__pt);
 
 #ifdef __cplusplus
 }

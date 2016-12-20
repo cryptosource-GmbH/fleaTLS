@@ -35,10 +35,8 @@ flea_err_t THR_flea_test_cert_path_generic(
 
   flea_public_key_t target_pubkey__t = flea_public_key_t__INIT_VALUE;
   const flea_bool_t is_valid_chain = FLEA_TRUE;
-  flea_x509_cert_ref_t cert_refs[20] = { {.is_trusted__b = 0 } }; // TODO: THIS WILL CHANGE
+  flea_x509_cert_ref_t cert_refs[20] = { {.is_trusted__b = 0 } }; 
   flea_u32_t cert_ref_pos = 0;
-  //flea_u32_t ta_pos = 0;
-  //flea_u32_t cert_pos = 0;
   flea_err_t err;
   FLEA_DECL_OBJ(cert_chain__t, flea_cert_chain_t);
   FLEA_THR_BEG_FUNC();
@@ -52,7 +50,6 @@ flea_err_t THR_flea_test_cert_path_generic(
     const flea_u8_t use_ta = 1;
     const flea_u8_t use_cert = 2;
     flea_u8_t what_to_use = use_the_one_with_some_left;
-    //printf("nb_trust_anchors = %u, nb_certs = %u\n", nb_trust_anchors, nb_certs);
     flea_u32_t i;
     flea_rng__randomize((flea_u8_t*)&i, sizeof(i));
     if(nb_trust_anchors && nb_certs)

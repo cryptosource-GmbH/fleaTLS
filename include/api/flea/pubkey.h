@@ -42,7 +42,6 @@ typedef enum
 
   typedef enum { flea_ecc_key, flea_rsa_key } flea_pk_key_type_t;
 
-  // TODO: make internal:
 #ifdef FLEA_HAVE_ECC
 typedef struct
 {

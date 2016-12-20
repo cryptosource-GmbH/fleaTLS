@@ -16,8 +16,6 @@ typedef struct
   flea_u16_t dp_len__u16;
 } dp_id_ptr_entry_t;
 
-// TODO: PREDEF PARAMS INTO SEPERATE FILE
-//        WITH ADDITIONAL BUILD CONFIG
 const flea_u8_t flea_ec_gfp_brainpoolP160r1_domain_params [] =
 {
   160 / 8,

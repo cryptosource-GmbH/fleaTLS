@@ -72,7 +72,6 @@ static flea_err_t THR_flea_x509__verify_host_name(const flea_ref_cu8_t *user_hos
   flea_al_u16_t second_label_offset_user = 0; 
   flea_al_u16_t second_label_offset_cert = 0;
   FLEA_THR_BEG_FUNC();
-  //user_len__sz = strlen(user_host_name__cs);
 
   if((user_host_name__pcrcu8->len__dtl > 0xFFFF) || !user_host_name__pcrcu8->len__dtl || !is_ascii_string( user_host_name__pcrcu8->data__pcu8, user_host_name__pcrcu8->len__dtl))
   {

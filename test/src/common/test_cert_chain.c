@@ -311,8 +311,7 @@ flea_cert_chain_t__disable_revocation_checking(&cert_chain__t);
 #else 
  if(!err)
  {
-   // TODO: not yet consistent that this must cause an error
-  //FLEA_THROW("no error when verifying RSA signed cert chain but missing algo / key size support", FLEA_ERR_FAILED_TEST);
+  FLEA_THROW("no error when verifying RSA signed cert chain but missing algo / key size support", FLEA_ERR_FAILED_TEST);
  }
 #endif
 FLEA_THR_FIN_SEC(

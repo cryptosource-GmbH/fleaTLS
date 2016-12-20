@@ -460,7 +460,7 @@ void flea_mpi_t__init (flea_mpi_t* p_result, flea_uword_t* word_array, flea_mpi_
 
 
 // vn must have twice the size of the divisor
-// un must have 2(m+1) words, where m is the size of the dividend
+// un must have 2(m+1) words, where m is the word size of the dividend
 flea_err_t THR_flea_mpi_t__divide (flea_mpi_t* p_quotient, flea_mpi_t* p_remainder, const flea_mpi_t* p_dividend, const flea_mpi_t* p_divisor, flea_mpi_div_ctx_t* p_div_ctx)
 {
   flea_mpi_ulen_t m, n;
@@ -802,7 +802,7 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   const flea_mpi_ulen_t precomp_dynamic_size = (1 << window_size) - 2;
 #endif
 
-  FLEA_DECL_BUF(R_arr, flea_uword_t, ((FLEA_RSA_MAX_KEY_BIT_SIZE / 8) + sizeof(flea_uword_t) - 1) / sizeof(flea_uword_t) + 2); // for RSA (CRT/SF) ; + 1 because R potentially longer than mod and another +1 for p-q diff; this array must account for non CRT usage also!
+  FLEA_DECL_BUF(R_arr, flea_uword_t, ((FLEA_RSA_MAX_KEY_BIT_SIZE / 8) + sizeof(flea_uword_t) - 1) / sizeof(flea_uword_t) + 2); // for RSA (CRT/SF) ; + 1 because R potentially longer than mod and another +1 for p-q diff; this array must account for non CRT usage also
 #if defined FLEA_USE_HEAP_BUF && FLEA_CRT_RSA_WINDOW_SIZE > 1
   FLEA_DECL_BUF(precomp_arrs, flea_uword_t *, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 2);
 #elif FLEA_CRT_RSA_WINDOW_SIZE > 1
@@ -846,8 +846,9 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
 #endif
   flea_mpi_t__init(&R, R_arr, R_dynamic_word_len);
   FLEA_CCALL(THR_flea_mpi_t__set_pow_2(&R, p_mod->m_nb_used_words * FLEA_WORD_BIT_SIZE));
-  // window method precomputations
 
+
+  // window method precomputations
 
   flea_mpi_t__init(&one, one_arr, sizeof(one_arr) / sizeof(flea_uword_t));
   FLEA_CCALL(THR_flea_mpi_t__decode(&one, one_enc, sizeof(one_enc)));
@@ -1456,6 +1457,7 @@ flea_err_t THR_flea_mpi_t__random_integer_no_flush (flea_mpi_t* p_result, const 
   }
   bit_size %= FLEA_BITS_PER_WORD;
   p_result->m_nb_used_words = word_size;
+  
   do
   {
     flea_rng__randomize_no_flush((flea_u8_t*)p_result->m_words, word_size * sizeof(p_result->m_words[0]));
@@ -1465,7 +1467,7 @@ flea_err_t THR_flea_mpi_t__random_integer_no_flush (flea_mpi_t* p_result, const 
       p_result->m_words[p_result->m_nb_used_words - 1] &= FLEA_UWORD_MAX >> (FLEA_BITS_PER_WORD - bit_size);
     }
     flea_mpi_t__set_used_words(p_result);
-  }
-  while(0 <= flea_mpi_t__compare_absolute(p_result, p_limit));
+  } while(0 <= flea_mpi_t__compare_absolute(p_result, p_limit));
+
   FLEA_THR_FIN_SEC_empty();
 }

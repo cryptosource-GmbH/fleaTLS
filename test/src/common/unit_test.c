@@ -49,7 +49,7 @@ do { \
   } \
 } while(0)
 
-int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_prefix, const char* func_prefix)
+int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_prefix, const char* func_prefix, flea_bool_t full__b)
 {
 
   unsigned nb_exec_tests = 0;
@@ -162,8 +162,6 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
       CALL_TEST(THR_test_ecdsa_self_signed_certs_file_based());
 #endif
     }
-    // TODO: REMOVE THIS ONCE ALL REQUIREMENTS ARE REFLECTED BY THE TEST CASE'S
-    // INI FILE
 #if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
     if(!func_prefix)
     {
@@ -171,14 +169,12 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
       nb_exec_tests -= 1; // correct the counting of the dispatcher
       nb_exec_tests += nb_cert_path_tests;
     }
-#endif
-    if(i == 0)
+    if(full__b == FLEA_TRUE)
     {
-      // TODO: FIND FITTING COMPILER FLAGS
-      /*CALL_TEST(THR_flea_test_crt_rsa_raw_file_based());
-
-        CALL_TEST(THR_flea_test_sha256_file_based());*/
+      CALL_TEST(THR_flea_test_crt_rsa_raw_file_based());
+      CALL_TEST(THR_flea_test_sha256_file_based());
     }
+#endif
     if(failed_tests)
     {
       break;
