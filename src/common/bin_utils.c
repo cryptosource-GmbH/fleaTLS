@@ -49,6 +49,13 @@ flea_u32_t flea__decode_U32_BE (const flea_u8_t enc[4])
 
 }
 
+flea_u16_t flea__decode_U16_LE (const flea_u8_t enc[2])
+{
+  return ((flea_u16_t)enc[1] << 8) |
+         ((flea_u16_t)(enc[0] & 0xFF));
+
+}
+
 void flea__increment_encoded_BE_int (flea_u8_t* ctr_block_pu8, flea_al_u8_t ctr_block_length_al_u8)
 {
   flea_al_s8_t i;
