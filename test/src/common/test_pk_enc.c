@@ -72,7 +72,8 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr ()
                                   0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
                                   0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
                                   0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
-                                  0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,0x11  };
+                                  0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
+                                  0x11 };
 
   FLEA_DECL_BUF(extr_message, flea_u8_t, sizeof(message));
   flea_al_u16_t extr_message_len = sizeof(message);
@@ -151,6 +152,7 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr ()
   extr_message_len = sizeof(message);
 
   /* restore correct value in res: */
+  output_size__alu16 = 1536 / 8;
   FLEA_CCALL(THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(res, sizeof(message), &output_size__alu16, 1536, 0));
 
   res[1] = 0x01;
@@ -173,6 +175,7 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr ()
   extr_message_len = sizeof(message);
   
   /* restore correct value in res: */
+  output_size__alu16 = 1536 / 8;
   FLEA_CCALL(THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(res, sizeof(message), &output_size__alu16, 1536, 0));
   
   memset(&res[2], 0xFF, 1536/8 - 2); 

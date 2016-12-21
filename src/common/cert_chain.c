@@ -19,20 +19,20 @@
 #define END_OF_COLL 0xFFFF
 
 
-static flea_al_u16_t find_cert(const flea_x509_cert_ref_t* cert_to_find__pt, const flea_x509_cert_ref_t *cert_collection__pt, flea_al_u16_t cert_collection_size__alu16, flea_al_u16_t start_pos__alu16) 
+static flea_al_u16_t find_cert(const flea_x509_cert_ref_t* cert_to_find__pt, const flea_x509_cert_ref_t *cert_collection__bt, flea_al_u16_t cert_collection_size__alu16, flea_al_u16_t start_pos__alu16) 
 {
   flea_al_u16_t i;
   for(i = start_pos__alu16; i < cert_collection_size__alu16; i++)
   {
     /* compare subject DN's */
-    if(!flea_rcu8_cmp(&cert_to_find__pt->subject__t.raw_dn_complete__t, &cert_collection__pt[i].subject__t.raw_dn_complete__t))
+    if(!flea_rcu8_cmp(&cert_to_find__pt->subject__t.raw_dn_complete__t, &cert_collection__bt[i].subject__t.raw_dn_complete__t))
     {
       /* compare tbs */
-      if(!flea_rcu8_cmp(&cert_to_find__pt->tbs_ref__t, &cert_collection__pt[i].tbs_ref__t) )
+      if(!flea_rcu8_cmp(&cert_to_find__pt->tbs_ref__t, &cert_collection__bt[i].tbs_ref__t) )
       {
-        if(FLEA_DER_REF_IS_ABSENT(&cert_collection__pt[i].cert_signature_as_bit_string__t) || 
+        if(FLEA_DER_REF_IS_ABSENT(&cert_collection__bt[i].cert_signature_as_bit_string__t) || 
             FLEA_DER_REF_IS_ABSENT(&cert_to_find__pt->cert_signature_as_bit_string__t) ||
-            !flea_rcu8_cmp(&cert_to_find__pt->cert_signature_as_bit_string__t, &cert_collection__pt[i].cert_signature_as_bit_string__t))
+            !flea_rcu8_cmp(&cert_to_find__pt->cert_signature_as_bit_string__t, &cert_collection__bt[i].cert_signature_as_bit_string__t))
         return i;        
       }
     }
@@ -41,14 +41,14 @@ static flea_al_u16_t find_cert(const flea_x509_cert_ref_t* cert_to_find__pt, con
   return END_OF_COLL;
 }
 
-static flea_al_u16_t find_issuer(const flea_x509_cert_ref_t* cert_to_find_issuer_to__pt, const flea_x509_cert_ref_t *cert_collection__pt, flea_al_u16_t cert_collection_size__alu16, flea_al_u16_t start_pos__alu16, flea_u16_t *used_chain__pu16, flea_al_u16_t used_chain_len__alu16) 
+static flea_al_u16_t find_issuer(const flea_x509_cert_ref_t* cert_to_find_issuer_to__pt, const flea_x509_cert_ref_t *cert_collection__bt, flea_al_u16_t cert_collection_size__alu16, flea_al_u16_t start_pos__alu16, flea_u16_t *used_chain__pu16, flea_al_u16_t used_chain_len__alu16) 
 {
 //  search through collection for matching DN and AKIE
   flea_al_u16_t i;
   for(i = start_pos__alu16; i < cert_collection_size__alu16; i++)
   {
     /* compare subject DN's */
-    if(!flea_rcu8_cmp(&cert_to_find_issuer_to__pt->issuer__t.raw_dn_complete__t, &cert_collection__pt[i].subject__t.raw_dn_complete__t))
+    if(!flea_rcu8_cmp(&cert_to_find_issuer_to__pt->issuer__t.raw_dn_complete__t, &cert_collection__bt[i].subject__t.raw_dn_complete__t))
     {
       flea_bool_t already_used__b = FLEA_FALSE;
         //check if that candidate is not yet part of the chain 
@@ -80,6 +80,8 @@ void flea_cert_chain_t__dtor(flea_cert_chain_t *chain__pt)
 {
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_SET_NULL(chain__pt->chain__bu16);
+  FLEA_FREE_MEM_CHK_SET_NULL(chain__pt->crl_collection__brcu8);
+  FLEA_FREE_MEM_CHK_SET_NULL(chain__pt->cert_collection__bt);
 #endif
 }
 
@@ -120,7 +122,7 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
 
   for(i = chain_len__alu16 - 1; i >= 0 ; i--)
   {
-    flea_x509_cert_ref_t * current__pt = &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i]];
+    flea_x509_cert_ref_t * current__pt = &cert_chain__pt->cert_collection__bt[cert_chain__pt->chain__bu16[i]];
     flea_bool_t is_current_ta;
     flea_bool_t is_current_target; 
     is_current_ta = ( i == (flea_s32_t)chain_len__alu16 - 1);
@@ -182,8 +184,8 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
   {
 
     flea_bool_t is_ca_cert__b = (i != 0) ? FLEA_TRUE : FLEA_FALSE;
-    flea_x509_cert_ref_t *subject__pt = &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i]];
-    flea_x509_cert_ref_t *issuer__pt = &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[i+1]];
+    flea_x509_cert_ref_t *subject__pt = &cert_chain__pt->cert_collection__bt[cert_chain__pt->chain__bu16[i]];
+    flea_x509_cert_ref_t *issuer__pt = &cert_chain__pt->cert_collection__bt[cert_chain__pt->chain__bu16[i+1]];
     flea_ref_cu8_t returned_params__rcu8;
     flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
 
@@ -192,7 +194,7 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
     /* check revocation. current "inherited params" are for the issuer */
     if(cert_chain__pt->perform_revocation_checking__b)
     {
-      FLEA_CCALL(THR_flea_crl__check_revocation_status(subject__pt, issuer__pt, cert_chain__pt->crl_collection__rcu8, cert_chain__pt->nb_crls__u16, &compare_time__t,  is_ca_cert__b, inherited_params_to_use__prcu8)); 
+      FLEA_CCALL(THR_flea_crl__check_revocation_status(subject__pt, issuer__pt, cert_chain__pt->crl_collection__brcu8, cert_chain__pt->nb_crls__u16, &compare_time__t,  is_ca_cert__b, inherited_params_to_use__prcu8)); 
     }
     if(returned_params__rcu8.len__dtl)
     {
@@ -205,7 +207,7 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
   {
     flea_bool_t dummy;
       flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
-    FLEA_CCALL(THR_flea_public_key_t__ctor_cert_inherited_params(key_to_construct_mbn__pt, &cert_chain__pt->cert_collection__pt[cert_chain__pt->chain__bu16[0]], inherited_params_to_use__prcu8, &dummy));
+    FLEA_CCALL(THR_flea_public_key_t__ctor_cert_inherited_params(key_to_construct_mbn__pt, &cert_chain__pt->cert_collection__bt[cert_chain__pt->chain__bu16[0]], inherited_params_to_use__prcu8, &dummy));
   }
 
   FLEA_THR_FIN_SEC_empty();
@@ -225,7 +227,7 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain(flea_cert_chain_t *c
 flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_hostid_and_create_pub_key( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time_mbn__pt, const flea_ref_cu8_t *host_id__pcrcu8, flea_host_id_type_e host_id_type, flea_public_key_t *key_to_construct_mbn__pt)
 {
   FLEA_THR_BEG_FUNC();
-FLEA_CCALL(THR_flea_x509__verify_tls_server_id(host_id__pcrcu8, host_id_type, &cert_chain__pt->cert_collection__pt[0]));
+FLEA_CCALL(THR_flea_x509__verify_tls_server_id(host_id__pcrcu8, host_id_type, &cert_chain__pt->cert_collection__bt[0]));
 FLEA_CCALL(THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key(cert_chain__pt, time_mbn__pt, key_to_construct_mbn__pt));
  FLEA_THR_FIN_SEC_empty(); 
 }
@@ -233,11 +235,12 @@ FLEA_CCALL(THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key(c
 flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( flea_cert_chain_t *cert_chain__pt, const flea_gmt_time_t *time_mbn__pt, flea_public_key_t *key_to_construct_mbn__pt)
 {
   flea_u16_t *chain_pos__pu16 = &cert_chain__pt->chain_pos__u16;
-  flea_x509_cert_ref_t *cert_collection__pt = cert_chain__pt->cert_collection__pt;
-  flea_x509_cert_ref_t *target_cert__pt = &cert_collection__pt[0];
+  flea_x509_cert_ref_t *cert_collection__bt = cert_chain__pt->cert_collection__bt;
+  flea_x509_cert_ref_t *target_cert__pt = &cert_collection__bt[0];
   flea_al_u16_t target_pos = 0;
   flea_u16_t *chain__bu16 = cert_chain__pt->chain__bu16; 
   flea_al_u16_t cert_collection_size__alu16 = cert_chain__pt->cert_collection_size__u16;
+
   FLEA_THR_BEG_FUNC();
   *chain_pos__pu16 = 0;
   FLEA_SET_ARR(chain__bu16, 0, FLEA_MAX_CERT_CHAIN_DEPTH);
@@ -262,11 +265,11 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( 
   // it is checked if the current is trusted 
   while(target_pos != END_OF_COLL)
   {
-    target_pos = find_cert(target_cert__pt, &cert_collection__pt[1], cert_collection_size__alu16-1, target_pos); // find by TBS match and possibly signature match (if both signatures are available)
+    target_pos = find_cert(target_cert__pt, &cert_collection__bt[1], cert_collection_size__alu16-1, target_pos); // find by TBS match and possibly signature match (if both signatures are available)
 
       if((target_pos != END_OF_COLL))
       {
-        if(is_cert_trusted(&cert_collection__pt[target_pos] ))
+        if(is_cert_trusted(&cert_collection__bt[target_pos] ))
         {
           //return validate_cert_path(); // still have to check for validity times, policy key usage etc.
           target_cert__pt->is_trusted__b = FLEA_TRUE; 
@@ -281,7 +284,7 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( 
     flea_x509_cert_ref_t *subject;
     flea_al_u16_t issuer_pos;
     flea_bool_t failed_path = FLEA_FALSE; 
-      subject = &cert_collection__pt[chain__bu16[*chain_pos__pu16]];
+      subject = &cert_collection__bt[chain__bu16[*chain_pos__pu16]];
         
       if(is_cert_trusted(subject))
       {
@@ -305,7 +308,7 @@ flea_err_t THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key( 
     else if(*chain_pos__pu16 + 1 < FLEA_MAX_CERT_CHAIN_DEPTH ) 
     {
       flea_al_u16_t start_offs = chain__bu16[(*chain_pos__pu16) + 1];
-    issuer_pos = find_issuer( subject /* cert to which to find an issuer */, cert_collection__pt, cert_collection_size__alu16, start_offs/* offset where to start the search */, &chain__bu16[0] /* already used certs in terms of their possitions*/, (*chain_pos__pu16)+1 /* number of used certs */);
+    issuer_pos = find_issuer( subject /* cert to which to find an issuer */, cert_collection__bt, cert_collection_size__alu16, start_offs/* offset where to start the search */, &chain__bu16[0] /* already used certs in terms of their possitions*/, (*chain_pos__pu16)+1 /* number of used certs */);
     }
     else
     {
@@ -356,9 +359,15 @@ flea_err_t THR_flea_cert_chain_t__ctor(flea_cert_chain_t *chain__pt, flea_x509_c
   FLEA_THR_BEG_FUNC();
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM_ARR(chain__pt->chain__bu16, FLEA_MAX_CERT_CHAIN_DEPTH);
+  FLEA_ALLOC_MEM_ARR(chain__pt->crl_collection__brcu8, FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT );
+  FLEA_ALLOC_MEM_ARR(chain__pt->cert_collection__bt, FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT );
+  chain__pt->crl_collection_allocated__u16 = FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT ;
+  chain__pt->cert_collection_allocated__u16 = FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT;
+#else 
+  chain__pt->crl_collection_allocated__u16 = FLEA_MAX_CERT_COLLECTION_NB_CRLS;
+  chain__pt->cert_collection_allocated__u16 = FLEA_MAX_CERT_COLLECTION_SIZE;
 #endif
   chain__pt->nb_crls__u16 = 0;
-  chain__pt->crl_collection_allocated__u16 = FLEA_MAX_CERT_COLLECTION_NB_CRLS;
   chain__pt->perform_revocation_checking__b = FLEA_TRUE;
   FLEA_CCALL(THR_flea_cert_chain_t__add_cert_without_trust_status(chain__pt, target_cert__pt));
   FLEA_THR_FIN_SEC_empty(); 
@@ -369,9 +378,15 @@ flea_err_t THR_flea_cert_chain_t__add_crl(flea_cert_chain_t* chain__pt, const fl
   FLEA_THR_BEG_FUNC();
   if(chain__pt->nb_crls__u16 == chain__pt->crl_collection_allocated__u16) 
   {
+#ifdef FLEA_USE_HEAP_BUF
+  const flea_al_u16_t entry_size = sizeof(chain__pt->crl_collection__brcu8[0]);
+   FLEA_CCALL(THR_flea_alloc__realloc_mem((void**)&chain__pt->crl_collection__brcu8, entry_size * chain__pt->crl_collection_allocated__u16, entry_size * (chain__pt->crl_collection_allocated__u16 + FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT)));
+   chain__pt->crl_collection_allocated__u16 += FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT;
+#else
     FLEA_THROW("crl capacity exceeded", FLEA_ERR_BUFF_TOO_SMALL);
+#endif
   }
-  chain__pt->crl_collection__rcu8[chain__pt->nb_crls__u16] = *crl_der__cprcu8;
+  chain__pt->crl_collection__brcu8[chain__pt->nb_crls__u16] = *crl_der__cprcu8;
   chain__pt->nb_crls__u16++;
   FLEA_THR_FIN_SEC_empty(); 
 }
@@ -379,11 +394,17 @@ flea_err_t THR_flea_cert_chain_t__add_crl(flea_cert_chain_t* chain__pt, const fl
 flea_err_t THR_flea_cert_chain_t__add_cert_without_trust_status(flea_cert_chain_t* chain__pt, const flea_x509_cert_ref_t * cert_ref__pt)
 {
   FLEA_THR_BEG_FUNC();
-  if(chain__pt->cert_collection_size__u16 == FLEA_MAX_CERT_COLLECTION_SIZE)
+  if(chain__pt->cert_collection_size__u16 == chain__pt->cert_collection_allocated__u16)
   {
+#ifdef FLEA_USE_HEAP_BUF
+  const flea_al_u16_t entry_size = sizeof(chain__pt->cert_collection__bt[0]);
+   FLEA_CCALL(THR_flea_alloc__realloc_mem((void**)&chain__pt->cert_collection__bt, entry_size * chain__pt->cert_collection_size__u16, entry_size * (chain__pt->cert_collection_size__u16 + FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT)));
+   chain__pt->cert_collection_allocated__u16 += FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT;
+#else
     FLEA_THROW("cert collection full", FLEA_ERR_BUFF_TOO_SMALL);
+#endif
   }
-  chain__pt->cert_collection__pt[chain__pt->cert_collection_size__u16] = *cert_ref__pt;
+  chain__pt->cert_collection__bt[chain__pt->cert_collection_size__u16] = *cert_ref__pt;
   chain__pt->cert_collection_size__u16++;
   FLEA_THR_FIN_SEC_empty(); 
 }
@@ -392,13 +413,15 @@ flea_err_t THR_flea_cert_chain_t__add_cert_without_trust_status(flea_cert_chain_
 flea_err_t THR_flea_cert_chain_t__add_trust_anchor_cert(flea_cert_chain_t* chain__pt, const flea_x509_cert_ref_t * cert_ref__pt)
 {
   FLEA_THR_BEG_FUNC();
-  if(chain__pt->cert_collection_size__u16 == FLEA_MAX_CERT_COLLECTION_SIZE)
+  FLEA_CCALL(THR_flea_cert_chain_t__add_cert_without_trust_status(chain__pt, cert_ref__pt));
+  /*if(chain__pt->cert_collection_size__u16 == FLEA_MAX_CERT_COLLECTION_SIZE)
   {
     FLEA_THROW("cert collection full", FLEA_ERR_BUFF_TOO_SMALL);
-  }
-  chain__pt->cert_collection__pt[chain__pt->cert_collection_size__u16] = *cert_ref__pt;
-  chain__pt->cert_collection__pt[chain__pt->cert_collection_size__u16].is_trusted__b = FLEA_TRUE;
-  chain__pt->cert_collection_size__u16++;
+  }*/
+  //chain__pt->cert_collection__bt[chain__pt->cert_collection_size__u16-1] = *cert_ref__pt;
+  chain__pt->cert_collection__bt[chain__pt->cert_collection_size__u16-1].is_trusted__b = FLEA_TRUE;
+  //chain__pt->cert_collection_size__u16++;
+
   FLEA_THR_FIN_SEC_empty(); 
 }
 

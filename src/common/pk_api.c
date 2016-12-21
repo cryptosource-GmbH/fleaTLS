@@ -399,7 +399,8 @@ flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5 (const flea_u8_t* encoded
   error__alu16 |= (*encoded__pcu8 ^ 2);
   encoded__pcu8++;
   encoded_len__alu16--;
-  while((*encoded__pcu8 != 0) && encoded_len__alu16)
+
+  while(encoded_len__alu16 && (*encoded__pcu8 != 0))
   {
     encoded__pcu8++;
     encoded_len__alu16--;

@@ -9,7 +9,7 @@
  */
 #define FLEA_DO_PRINTF_TEST_OUTPUT
 /**
- * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which trigger exceptions.
+ * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  */
 //#define FLEA_DO_PRINTF_ERRS
 
@@ -79,6 +79,28 @@
  * Relevant both for heap and stack mode.
  */
 #define FLEA_MAX_CERT_CHAIN_DEPTH 20          // FBFLAGS__INT_LIST 2 3 4 10 20
+
+/* Maximal number of certificates that can set in a any type of 
+ * object storing certificates. Hard limit in case of both stack and heap
+ * mode. In heap mode it can be set to zero to disable any predefined limit.
+ */
+#define FLEA_MAX_CERT_COLLECTION_SIZE 20
+
+/* Maximal number of CRLs that can set in a any type of 
+ * object storing CRLs . Hard limit in case of both stack and heap
+ * mode. In heap mode it can be set to zero to disable any predefined limit.
+ */
+#define FLEA_MAX_CERT_COLLECTION_NB_CRLS 20
+
+/**
+ * Number of certificates or CRLs for which memory is initially allocated in
+ * heap mode in objects storing such data types. This value is also used as the
+ * number of objects for which new memory is allocated when reallocation is
+ * triggered.
+ */
+#define FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT 5  // FBFLAGS__INT_LIST 1 2 3 4 10 20
+
+
 #define FLEA_RSA_MAX_KEY_BIT_SIZE 4096        // FBFLAGS__INT_LIST 1024 1536 2048 4096
 #define FLEA_RSA_MAX_PUB_EXP_BIT_LEN 32 
 #define FLEA_ECC_MAX_MOD_BIT_SIZE 521         // FBFLAGS__INT_LIST 160 192 224 256 320 384 521

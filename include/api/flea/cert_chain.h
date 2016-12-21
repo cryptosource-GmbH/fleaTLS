@@ -3,6 +3,7 @@
 #ifndef _flea_cert_chain__H_
 #define _flea_cert_chain__H_
 
+#include "internal/common/default.h"
 #include "flea/x509.h"
 #include "flea/pubkey.h"
 #include "flea/hostn_ver.h"
@@ -12,30 +13,34 @@
 extern "C" {
 #endif
 
-#define FLEA_MAX_CERT_COLLECTION_SIZE 20
-#define FLEA_MAX_CERT_COLLECTION_NB_CRLS 20
 
 typedef struct
 {
-  flea_ref_cu8_t crl_collection__rcu8[FLEA_MAX_CERT_COLLECTION_NB_CRLS]; 
-  flea_u16_t nb_crls__u16;
-  flea_bool_t perform_revocation_checking__b;
-  flea_u16_t crl_collection_allocated__u16;
-  flea_x509_cert_ref_t cert_collection__pt[FLEA_MAX_CERT_COLLECTION_SIZE];
-  flea_u16_t cert_collection_size__u16;
-  flea_u16_t allocated_chain_len__u16;
-  flea_u16_t chain_pos__u16; // offset to final element, = length - 1
 #ifdef FLEA_USE_HEAP_BUF
-  flea_u16_t * chain__bu16;
+  flea_ref_cu8_t *crl_collection__brcu8;
+  flea_x509_cert_ref_t *cert_collection__bt;
+  //flea_u16_t allocated_chain_len__u16;
+  flea_u16_t *chain__bu16;
 #else
+  flea_ref_cu8_t crl_collection__brcu8[FLEA_MAX_CERT_COLLECTION_NB_CRLS]; 
+  flea_x509_cert_ref_t cert_collection__bt[FLEA_MAX_CERT_COLLECTION_SIZE];
   flea_u16_t chain__bu16[FLEA_MAX_CERT_CHAIN_DEPTH]; // including target and TA
+#endif
+  flea_u16_t crl_collection_allocated__u16;
+  flea_u16_t cert_collection_allocated__u16;
+  flea_u16_t nb_crls__u16;
+  flea_u16_t cert_collection_size__u16;
+  flea_u16_t chain_pos__u16; // offset to final element, = length - 1
+  flea_bool_t perform_revocation_checking__b;
+#ifdef FLEA_USE_HEAP_BUF
+#else
 #endif
   
 } flea_cert_chain_t;
 
 #define flea_cert_chain_t__INIT_VALUE  { .cert_collection_size__u16 = 0 }
 
-#define flea_cert_chain_element_t__INIT_VALUE = {.current__pt = NULL, .issuer__pt = NULL, .issued__pt = NULL }
+//#define flea_cert_chain_element_t__INIT_VALUE = {.current__pt = NULL, .issuer__pt = NULL, .issued__pt = NULL }
 
 void flea_cert_chain_t__dtor(flea_cert_chain_t *chain__pt);
 
