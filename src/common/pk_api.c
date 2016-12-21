@@ -14,6 +14,7 @@
 #include "flea/rng.h"
 #include "flea/ec_gfp_dom_par.h"
 #include "flea/bin_utils.h"
+#include "internal/common/mask.h"
 #include <string.h>
 
 #define FLEA_PK_GET_PRIMITIVE_ID_FROM_SCHEME_ID(x) ((x >> FLEA_PK_ID_OFFS_PRIMITIVE) << FLEA_PK_ID_OFFS_PRIMITIVE)
@@ -375,31 +376,35 @@ FLEA_THR_FIN_SEC(
 
 #endif // #ifdef FLEA_HAVE_ASYM_SIG
 
-flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5 (const flea_u8_t* encoded__pcu8, flea_al_u16_t encoded_len__alu16, flea_u8_t* output_message__pu8, flea_al_u16_t* output_message_len__palu16, flea_al_u16_t bit_size__alu16)
+flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5 (const flea_u8_t* encoded__pcu8, flea_al_u16_t encoded_len__alu16, flea_u8_t* output_message__pu8, flea_al_u16_t* output_message_len__palu16, flea_al_u16_t bit_size__alu16, flea_al_u16_t enforced_decoding_result_len__alu16)
 {
   flea_al_u16_t full_size__alu16 = FLEA_CEIL_BYTE_LEN_FROM_BIT_LEN(bit_size__alu16);
-  flea_al_u8_t error__alu8 = 0;
-
+  flea_al_u16_t error__alu16 = 0;
+  flea_bool_t suppress_padding_error__b = enforced_decoding_result_len__alu16 > 0;
+  const flea_u8_t *encoded_start__pcu8 = encoded__pcu8;
+  flea_al_u16_t encoded_start_len__alu16 = encoded_len__alu16;
   FLEA_THR_BEG_FUNC();
 
   // take care of the case where the leading octet is not encoded:
   if(encoded_len__alu16 == full_size__alu16)
   {
-    if(encoded__pcu8[0] != 0)
+    error__alu16 |= encoded__pcu8[0];
+    /*if(encoded__pcu8[0] != 0)
     {
-      error__alu8 = 1;
-    }
+      error__alu16 = 1;
+    }*/
     encoded__pcu8++;
     encoded_len__alu16--;
   }
   else if(encoded_len__alu16 != full_size__alu16 - 1)
   {
-    error__alu8 = 1;
+    error__alu16 = 1;
   }
-  if(*encoded__pcu8 != 0x02)
+  error__alu16 |= (*encoded__pcu8 ^ 2);
+  /*if(*encoded__pcu8 != 0x02)
   {
-    error__alu8 = 1;
-  }
+    error__alu16 = 1;
+  }*/
   encoded__pcu8++;
   encoded_len__alu16--;
   while((*encoded__pcu8 != 0) && encoded_len__alu16)
@@ -407,13 +412,51 @@ flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5 (const flea_u8_t* encoded
     encoded__pcu8++;
     encoded_len__alu16--;
   }
-  if((encoded_len__alu16 < 1) || error__alu8)
+  if(((!suppress_padding_error__b) && error__alu16))
   {
-    FLEA_THROW("invalid format of PKCS#1 v1.5 message", FLEA_ERR_INV_SIGNATURE);
+    FLEA_THROW("invalid format of PKCS#1 v1.5 message", FLEA_ERR_INV_CIPHERTEXT );
   }
-  // zero byte found, step over it
-  encoded__pcu8++;
-  encoded_len__alu16--;
+  // zero byte found, step over it -- or not found, handle error
+  if(!suppress_padding_error__b)
+  {
+    if(encoded_len__alu16 < 2)
+    {
+      FLEA_THROW("invalid format of PKCS#1 v1.5 message", FLEA_ERR_INV_CIPHERTEXT);
+    }  
+  }
+  else
+  { 
+    const flea_u8_t *new_ptr_if_found_zero =  encoded__pcu8 + 1;
+    flea_al_u8_t zero_not_found_error__alu16;
+    flea_al_u16_t new_len_if_found_zero = encoded_len__alu16 - 1;
+    //error__alu16 |= ~encoded_len__alu16; /* if encoded_len__alu16 is zero, then no zero byte was found (or no message bytes are left behind the zero) and the padding is bad */
+    zero_not_found_error__alu16 = flea_consttime__select_u32_nz_z(0 , 1, encoded_len__alu16);
+    zero_not_found_error__alu16 |= flea_consttime__select_u32_nz_z(0 , 1, encoded_len__alu16 ^ 1);
+    encoded__pcu8 = (const flea_u8_t*) flea_consttime__select_ptr_nz_z((void*) encoded__pcu8, (void*) new_ptr_if_found_zero, zero_not_found_error__alu16);
+    encoded_len__alu16 = flea_consttime__select_u32_nz_z( encoded_len__alu16, new_len_if_found_zero, zero_not_found_error__alu16);
+    error__alu16 |= zero_not_found_error__alu16;
+  }
+  if(suppress_padding_error__b)
+  {
+    const flea_al_u8_t garble_offs__calu8 = 2;
+    if(encoded_start_len__alu16 < garble_offs__calu8 + enforced_decoding_result_len__alu16)
+    {
+      FLEA_THROW("invalid enforced result length for PKCS#1 v1.5 message decoding", FLEA_ERR_BUFF_TOO_SMALL);
+    }
+    encoded_start_len__alu16 -= garble_offs__calu8;
+    encoded_start__pcu8 += garble_offs__calu8;
+    encoded__pcu8 = (const flea_u8_t*) flea_consttime__select_ptr_nz_z((void*) encoded_start__pcu8, (void*) encoded__pcu8, error__alu16);
+    encoded_len__alu16 = flea_consttime__select_u32_nz_z(enforced_decoding_result_len__alu16, encoded_len__alu16, error__alu16);
+  }
+  else 
+  {
+    if(!encoded_len__alu16)
+    {
+      FLEA_THROW("invalid enforced result length for PKCS#1 v1.5 message decoding", FLEA_ERR_BUFF_TOO_SMALL);
+    }
+    encoded__pcu8++;
+    encoded_len__alu16--; 
+  }
   if(encoded_len__alu16 > *output_message_len__palu16)
   {
     FLEA_THROW("output buffer too small for PKCS#1 v1.5 message", FLEA_ERR_BUFF_TOO_SMALL);
@@ -572,7 +615,7 @@ flea_err_t THR_flea_pk_api__encrypt_message (flea_pk_scheme_id_t id__t, flea_has
 #endif // #ifdef FLEA_HAVE_PK_CS
 
 #ifdef FLEA_HAVE_PK_CS
-flea_err_t THR_flea_pk_api__decrypt_message (flea_pk_scheme_id_t id__t, flea_hash_id_t hash_id__t, const flea_u8_t* ciphertext__pcu8, flea_al_u16_t ciphertext_len__alu16, flea_u8_t* result__pu8, flea_al_u16_t* result_len__palu16, const flea_u8_t* key__pcu8, flea_al_u16_t key_len__alu16, const flea_u8_t* params__pcu8, flea_al_u16_t params_len__alu16)
+flea_err_t THR_flea_pk_api__decrypt_message (flea_pk_scheme_id_t id__t, flea_hash_id_t hash_id__t, const flea_u8_t* ciphertext__pcu8, flea_al_u16_t ciphertext_len__alu16, flea_u8_t* result__pu8, flea_al_u16_t* result_len__palu16, const flea_u8_t* key__pcu8, flea_al_u16_t key_len__alu16, flea_al_u16_t enforced_decryption_result_len__alu16)
 {
   FLEA_DECL_BUF(primitive_output__bu8, flea_u8_t, FLEA_PK_MAX_PRIMITIVE_OUTPUT_LEN);
 
@@ -596,7 +639,7 @@ flea_err_t THR_flea_pk_api__decrypt_message (flea_pk_scheme_id_t id__t, flea_has
   FLEA_CCALL(THR_flea_rsa_raw_operation_crt_internal_key_format(primitive_output__bu8, ciphertext__pcu8, ciphertext_len__alu16, mod_len__alu16, key__pcu8, key_len__alu16));
   if(id__t == flea_rsa_pkcs1_v1_5_encr)
   {
-    FLEA_CCALL(THR_flea_pk_api__decode_message__pkcs1_v1_5(primitive_output__bu8, primitive_output_len__alu16, result__pu8, result_len__palu16, 8 * mod_len__alu16));
+    FLEA_CCALL(THR_flea_pk_api__decode_message__pkcs1_v1_5(primitive_output__bu8, primitive_output_len__alu16, result__pu8, result_len__palu16, 8 * mod_len__alu16, enforced_decryption_result_len__alu16));
   }
   else if( id__t == flea_rsa_oaep_encr)
   {

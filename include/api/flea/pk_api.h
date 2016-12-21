@@ -154,10 +154,16 @@ flea_err_t THR_flea_pk_api__encrypt_message( flea_pk_scheme_id_t id, flea_hash_i
  *  number of bytes written to result
  *  @param key the private key to use for the decryption
  *  @param key_len the length of key
- *  @param params public parameters associated with the key
- *  @param params_len the length of params
+ *  @param enforced_pkcs1_v1_5_decryption_result_len This value is only interpreted in case of PKCS#1 v1.5 decryption.
+ *                                            For normal PKCS#1 v1.5 decoding,
+ *                                            this must be set to zero. Set this
+ *                                            value to the expected message
+ *                                            length to achieve timing neutral
+ *                                            fake result generation in case of
+ *                                            a padding error (defense against
+ *                                            Bleichenbacher's attack).
  */
-flea_err_t THR_flea_pk_api__decrypt_message( flea_pk_scheme_id_t id, flea_hash_id_t hash_id, const flea_u8_t* ciphertext, flea_al_u16_t ciphertext_len, flea_u8_t* result, flea_al_u16_t* result_len, const flea_u8_t* key, flea_al_u16_t key_len, const flea_u8_t* params, flea_al_u16_t params_len);
+flea_err_t THR_flea_pk_api__decrypt_message (flea_pk_scheme_id_t id__t, flea_hash_id_t hash_id__t, const flea_u8_t* ciphertext, flea_al_u16_t ciphertext_len, flea_u8_t* result, flea_al_u16_t* result_len, const flea_u8_t* key, flea_al_u16_t key_len, flea_al_u16_t enforced_pkcs1_v1_5_decryption_result_len );
 
 #ifdef __cplusplus
 }

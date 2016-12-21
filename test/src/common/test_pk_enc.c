@@ -37,7 +37,7 @@ static flea_err_t THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct ()
 
   FLEA_ALLOC_BUF(decr__bu8, 2048 / 8);
   // test OAEP decryption
-  FLEA_CCALL(THR_flea_pk_api__decrypt_message(flea_rsa_oaep_encr, flea_sha1, ct_oaep, sizeof(ct_oaep), decr__bu8, &decr_len__alu16, rsa_2048_crt_key_internal_format__acu8, sizeof(rsa_2048_crt_key_internal_format__acu8), NULL, 0));
+  FLEA_CCALL(THR_flea_pk_api__decrypt_message(flea_rsa_oaep_encr, flea_sha1, ct_oaep, sizeof(ct_oaep), decr__bu8, &decr_len__alu16, rsa_2048_crt_key_internal_format__acu8, sizeof(rsa_2048_crt_key_internal_format__acu8), 0));
   if(decr_len__alu16 != sizeof(exp_res__acu8))
   {
     FLEA_THROW("error with RSA-OAEP decrypted reference ct length", FLEA_ERR_FAILED_TEST);
@@ -48,7 +48,7 @@ static flea_err_t THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct ()
   }
   // test PKCS#1 v1.5 decryption
   decr_len__alu16 = 2048 / 8;
-  FLEA_CCALL(THR_flea_pk_api__decrypt_message(flea_rsa_pkcs1_v1_5_encr, flea_sha1, ct_pkcs1_v1_5, sizeof(ct_pkcs1_v1_5), decr__bu8, &decr_len__alu16, rsa_2048_crt_key_internal_format__acu8, sizeof(rsa_2048_crt_key_internal_format__acu8), NULL, 0));
+  FLEA_CCALL(THR_flea_pk_api__decrypt_message(flea_rsa_pkcs1_v1_5_encr, flea_sha1, ct_pkcs1_v1_5, sizeof(ct_pkcs1_v1_5), decr__bu8, &decr_len__alu16, rsa_2048_crt_key_internal_format__acu8, sizeof(rsa_2048_crt_key_internal_format__acu8), 0));
   if(decr_len__alu16 != sizeof(exp_res__acu8))
   {
     FLEA_THROW("error with RSA-PKCS#1 v1.5 decrypted reference ct length", FLEA_ERR_FAILED_TEST);
@@ -108,7 +108,8 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr ()
     }
   }
 
-  FLEA_CCALL(THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, extr_message, &extr_message_len, 1536));
+  /* test decoding of correct ciphertext without Bleichenbacher countermeasure */
+  FLEA_CCALL(THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, extr_message, &extr_message_len, 1536, 0));
   if(extr_message_len != sizeof(message))
   {
     FLEA_THROW("extracted message length of pkcs#1 v1.5 encoding incorrect", FLEA_ERR_FAILED_TEST);
@@ -117,7 +118,103 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr ()
   {
     FLEA_THROW("extracted message content of pkcs#1 v1.5 encoding incorrect", FLEA_ERR_FAILED_TEST);
   }
+  extr_message_len = sizeof(message);
+  /* test decoding of correct ciphertext with Bleichenbacher countermeasure */
+  FLEA_CCALL(THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, extr_message, &extr_message_len, 1536, sizeof(message)));
+  if(extr_message_len != sizeof(message))
+  {
+    FLEA_THROW("extracted message length of pkcs#1 v1.5 encoding incorrect", FLEA_ERR_FAILED_TEST);
+  }
+  if(memcmp(extr_message, message, sizeof(message)))
+  {
+    FLEA_THROW("extracted message content of pkcs#1 v1.5 encoding incorrect", FLEA_ERR_FAILED_TEST);
+  }
+  extr_message_len = sizeof(message);
 
+  res[0] = 0x01;
+  /* test decoding of incorrect ciphertext without Bleichenbacher countermeasure */
+  if(FLEA_ERR_INV_CIPHERTEXT != THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, extr_message, &extr_message_len, 1536, 0))
+  {
+    FLEA_THROW("invalid error code for invalid PKCS#1 v1.5 message", FLEA_ERR_FAILED_TEST);
+  }
+  extr_message_len = sizeof(message);
+  /* test decoding of incorrect ciphertext with Bleichenbacher countermeasure */
+  FLEA_CCALL(THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, extr_message, &extr_message_len, 1536, sizeof(message)));
+  if(extr_message_len != sizeof(message))
+  {
+    FLEA_THROW("extracted message length of pkcs#1 v1.5 encoding incorrect (triggered BB-CM, incorrect ct)", FLEA_ERR_FAILED_TEST);
+  }
+  if(!memcmp(extr_message, message, sizeof(message)))
+  {
+    FLEA_THROW("extracted message content of pkcs#1 v1.5 encoding suprisingly correct (triggered BB-CM, incorrect ct)", FLEA_ERR_FAILED_TEST);
+  }
+  extr_message_len = sizeof(message);
+
+  /* restore correct value in res: */
+  FLEA_CCALL(THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(res, sizeof(message), &output_size__alu16, 1536, 0));
+
+  res[1] = 0x01;
+  /* test decoding of incorrect ciphertext without Bleichenbacher countermeasure */
+  if(FLEA_ERR_INV_CIPHERTEXT != THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, extr_message, &extr_message_len, 1536, 0))
+  {
+    FLEA_THROW("invalid error code for invalid PKCS#1 v1.5 message", FLEA_ERR_FAILED_TEST);
+  }
+  extr_message_len = sizeof(message);
+  /* test decoding of incorrect ciphertext with Bleichenbacher countermeasure */
+  FLEA_CCALL(THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, extr_message, &extr_message_len, 1536, sizeof(message)));
+  if(extr_message_len != sizeof(message))
+  {
+    FLEA_THROW("extracted message length of pkcs#1 v1.5 encoding incorrect (triggered BB-CM, incorrect ct)", FLEA_ERR_FAILED_TEST);
+  }
+  if(!memcmp(extr_message, message, sizeof(message)))
+  {
+    FLEA_THROW("extracted message content of pkcs#1 v1.5 encoding suprisingly correct (triggered BB-CM, incorrect ct)", FLEA_ERR_FAILED_TEST);
+  }
+  extr_message_len = sizeof(message);
+  
+  /* restore correct value in res: */
+  FLEA_CCALL(THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(res, sizeof(message), &output_size__alu16, 1536, 0));
+  
+  memset(&res[2], 0xFF, 1536/8 - 2); 
+  /* test decoding of incorrect ciphertext (this time the zero-separator is not found) without Bleichenbacher countermeasure */
+  if(FLEA_ERR_INV_CIPHERTEXT != THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, extr_message, &extr_message_len, 1536, 0))
+  {
+    FLEA_THROW("invalid error code for invalid PKCS#1 v1.5 message", FLEA_ERR_FAILED_TEST);
+  }
+  extr_message_len = sizeof(message);
+
+  /* test decoding of incorrect ciphertext with Bleichenbacher countermeasure */
+  FLEA_CCALL(THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, extr_message, &extr_message_len, 1536, sizeof(message)));
+  if(extr_message_len != sizeof(message))
+  {
+    FLEA_THROW("extracted message length of pkcs#1 v1.5 encoding incorrect (triggered BB-CM, incorrect ct)", FLEA_ERR_FAILED_TEST);
+  }
+  if(!memcmp(extr_message, message, sizeof(message)))
+  {
+    FLEA_THROW("extracted message content of pkcs#1 v1.5 encoding suprisingly correct (triggered BB-CM, incorrect ct)", FLEA_ERR_FAILED_TEST);
+  }
+  extr_message_len = sizeof(message);
+
+  /* no let the last position be zero, this is also an invalid ciphertext */
+  res[1536/8-1] = 0;
+  /* test decoding of incorrect ciphertext (this time the zero-separator is found at the last position and thus the message size is zero) without Bleichenbacher countermeasure */
+  if(FLEA_ERR_INV_CIPHERTEXT != THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, extr_message, &extr_message_len, 1536, 0))
+  {
+    FLEA_THROW("invalid error code for invalid PKCS#1 v1.5 message", FLEA_ERR_FAILED_TEST);
+  }
+  extr_message_len = sizeof(message);
+
+  /* test decoding of incorrect ciphertext with Bleichenbacher countermeasure */
+  FLEA_CCALL(THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, extr_message, &extr_message_len, 1536, sizeof(message)));
+  if(extr_message_len != sizeof(message))
+  {
+    FLEA_THROW("extracted message length of pkcs#1 v1.5 encoding incorrect (triggered BB-CM, incorrect ct)", FLEA_ERR_FAILED_TEST);
+  }
+  if(!memcmp(extr_message, message, sizeof(message)))
+  {
+    FLEA_THROW("extracted message content of pkcs#1 v1.5 encoding suprisingly correct (triggered BB-CM, incorrect ct)", FLEA_ERR_FAILED_TEST);
+  }
+  extr_message_len = sizeof(message);
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(res);
     FLEA_FREE_BUF_FINAL(extr_message);
@@ -296,7 +393,7 @@ static flea_err_t THR_flea_inner_test_pk_encryption (flea_pk_scheme_id_t id__t, 
 
   FLEA_CCALL(THR_flea_pk_api__encrypt_message(id__t, hash_id__t, message__acu8, sizeof(message__acu8), ciphertext__bu8, &ciphertext_len__alu16, rsa_2048_pub_key_internal_format__acu8, sizeof(rsa_2048_pub_key_internal_format__acu8), rsa_pub_exp__acu8, sizeof(rsa_pub_exp__acu8)));
 
-  FLEA_CCALL(THR_flea_pk_api__decrypt_message(id__t, hash_id__t, ciphertext__bu8, ciphertext_len__alu16, decrypted__bu8, &decrypted_len__alu16, rsa_2048_crt_key_internal_format__acu8, sizeof(rsa_2048_crt_key_internal_format__acu8), NULL, 0));
+  FLEA_CCALL(THR_flea_pk_api__decrypt_message(id__t, hash_id__t, ciphertext__bu8, ciphertext_len__alu16, decrypted__bu8, &decrypted_len__alu16, rsa_2048_crt_key_internal_format__acu8, sizeof(rsa_2048_crt_key_internal_format__acu8), 0));
   if(decrypted_len__alu16 != sizeof(message__acu8))
   {
     FLEA_THROW("decrypted pk message has incorrect length", FLEA_ERR_FAILED_TEST);

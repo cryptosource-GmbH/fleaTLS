@@ -90,7 +90,18 @@
 #define FLEA_WORD_BIT_SIZE 32 // FBFLAGS__INT_LIST 16 32
 
 /**
- * Don't change this.
+ * Has to be set to the platforms natural pointer size,
+ * i.e. to sizeof(void*).
+ * Supported values are 8 (64-bit), 4 (32-bit), and 2 (16-bit).
+ */
+#define FLEA_PTR_BYTE_SIZE 8
+
+/**
+ * Type for the maximal length of data processed by flea in various functions. The effect is that
+ * flea_dtl_t, the type that represents data lengths in various API function
+ * signatures, is defined with a width of 32 bit if the flag is set and with a width of 16 bit if commented out.
+ * Deactivate this flag in order to generate smaller and faster code on 16 and 8
+ * bit architectures.
  */
 #define FLEA_HAVE_DTL_32BIT // FBFLAGS_DTL_32_BIT_ON_OFF
 

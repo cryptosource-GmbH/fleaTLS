@@ -16,10 +16,6 @@ typedef enum
   FLEA_ERR_FAILED_TEST                                = 0x0003,
   FLEA_ERR_INTEGRITY_FAILURE                          = 0x0004,
 
-  /**
-   * The cryptographic verification of the signature failed
-   */
-  FLEA_ERR_INV_SIGNATURE                              = 0x0005,
   FLEA_ERR_INV_ARG                                    = 0x0006,
   FLEA_ERR_INV_ALGORITHM                              = 0x0008,
   FLEA_ERR_INV_MAC                                    = 0x0009,
@@ -35,6 +31,15 @@ typedef enum
    */
   FLEA_ERR_ECC_INV_BUILTIN_DP_ID                      = 0x0021,
 
+  /**
+   * The cryptographic verification of the signature failed
+   */
+  FLEA_ERR_INV_SIGNATURE                              = 0x0022,
+  
+  /**
+   * The invalid ciphertext detected during decryption. 
+   */
+  FLEA_ERR_INV_CIPHERTEXT                             = 0x0023,
 
 
   FLEA_ERR_BUFF_TOO_SMALL                             = 0x00A0,
