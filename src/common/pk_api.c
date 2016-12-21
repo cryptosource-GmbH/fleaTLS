@@ -389,10 +389,6 @@ flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5 (const flea_u8_t* encoded
   if(encoded_len__alu16 == full_size__alu16)
   {
     error__alu16 |= encoded__pcu8[0];
-    /*if(encoded__pcu8[0] != 0)
-    {
-      error__alu16 = 1;
-    }*/
     encoded__pcu8++;
     encoded_len__alu16--;
   }
@@ -401,10 +397,6 @@ flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5 (const flea_u8_t* encoded
     error__alu16 = 1;
   }
   error__alu16 |= (*encoded__pcu8 ^ 2);
-  /*if(*encoded__pcu8 != 0x02)
-  {
-    error__alu16 = 1;
-  }*/
   encoded__pcu8++;
   encoded_len__alu16--;
   while((*encoded__pcu8 != 0) && encoded_len__alu16)
@@ -429,7 +421,6 @@ flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5 (const flea_u8_t* encoded
     const flea_u8_t *new_ptr_if_found_zero =  encoded__pcu8 + 1;
     flea_al_u8_t zero_not_found_error__alu16;
     flea_al_u16_t new_len_if_found_zero = encoded_len__alu16 - 1;
-    //error__alu16 |= ~encoded_len__alu16; /* if encoded_len__alu16 is zero, then no zero byte was found (or no message bytes are left behind the zero) and the padding is bad */
     zero_not_found_error__alu16 = flea_consttime__select_u32_nz_z(0 , 1, encoded_len__alu16);
     zero_not_found_error__alu16 |= flea_consttime__select_u32_nz_z(0 , 1, encoded_len__alu16 ^ 1);
     encoded__pcu8 = (const flea_u8_t*) flea_consttime__select_ptr_nz_z((void*) encoded__pcu8, (void*) new_ptr_if_found_zero, zero_not_found_error__alu16);
