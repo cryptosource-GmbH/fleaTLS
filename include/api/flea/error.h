@@ -42,6 +42,24 @@ typedef enum
   FLEA_ERR_INV_CIPHERTEXT                             = 0x0023,
 
 
+ /**
+  * The user provided hostname for the verification of the server
+  * identity, e.g. in TLS, is of an invalid form.
+  */ 
+  FLEA_ERR_X509_INVALID_USER_HOSTN                    = 0x0040,
+  
+  /**
+   * The user provided ID (DNS name, URI or IP address) of the TLS server 
+   * could not be matched in the server certificate.
+   */
+  FLEA_ERR_X509_TLS_SERVER_ID_NO_MATCH                = 0x0041,
+
+  /**
+   * The key usage or extended key usage extension in the certificate of the peer (server or client to which the
+   * connection is attempted) is not valid for the selected cipher suite.
+   */
+  FLEA_ERR_TLS_PEER_CERT_INVALID_KEY_USAGE            = 0x0043,
+
   FLEA_ERR_BUFF_TOO_SMALL                             = 0x00A0,
   FLEA_ERR_DECODING_FAILURE                           = 0x00A1,
   FLEA_ERR_ASN1_DER_DEC_ERR                           = 0x00A3,
@@ -156,17 +174,6 @@ typedef enum
 
   FLEA_ERR_OUT_OF_MEM                                 = 0x00FF,
 
- /**
-  * The user provided hostname for the verification of the server
-  * identity, e.g. in TLS, is of an invalid form.
-  */ 
-  FLEA_ERR_X509_INVALID_USER_HOSTN                    = 0x0100,
-  
-  /**
-   * The user provided ID (DNS name, URI or IP address) of the TLS server 
-   * could not be matched in the server certificate.
-   */
-  FLEA_ERR_X509_TLS_SERVER_ID_NO_MATCH                = 0x0110,
 } flea_err_t;
 
 #ifdef __cplusplus

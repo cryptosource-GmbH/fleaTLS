@@ -119,11 +119,19 @@ flea_err_t THR_flea_test_dec_ca_cert()
   {
     FLEA_THROW("error decoding null params", FLEA_ERR_FAILED_TEST);
   }
-  if(!flea_x509_has_key_usages(&cert_ref__t, FLEA_ASN1_KEY_USAGE_MASK_crl_sign | FLEA_ASN1_KEY_USAGE_MASK_key_cert_sign))
+  if(!flea_x509_has_key_usages(&cert_ref__t, flea_key_usage_extension, flea_ku_crl_sign | flea_ku_key_cert_sign, flea_key_usage_explicit))
   {
     FLEA_THROW("error positive KU", FLEA_ERR_FAILED_TEST);
   }
-  if(flea_x509_has_key_usages(&cert_ref__t, FLEA_ASN1_KEY_USAGE_MASK_data_encipherment))
+  if(!flea_x509_has_key_usages(&cert_ref__t, flea_key_usage_extension, flea_ku_crl_sign | flea_ku_key_cert_sign, flea_key_usage_implicit))
+  {
+    FLEA_THROW("error positive KU", FLEA_ERR_FAILED_TEST);
+  }
+  if(flea_x509_has_key_usages(&cert_ref__t, flea_key_usage_extension, flea_ku_data_encipherment, flea_key_usage_explicit))
+  {
+    FLEA_THROW("error negative KU", FLEA_ERR_FAILED_TEST);
+  }
+  if(flea_x509_has_key_usages(&cert_ref__t, flea_key_usage_extension, flea_ku_data_encipherment, flea_key_usage_implicit))
   {
     FLEA_THROW("error negative KU", FLEA_ERR_FAILED_TEST);
   }

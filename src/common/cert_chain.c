@@ -171,7 +171,7 @@ static flea_err_t THR_validate_cert_path(flea_cert_chain_t *cert_chain__pt, cons
         FLEA_THROW("basic constraints does not indicate CA", FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT);
       }
       if(key_usage__pt->is_present__u8 &&
-          !(key_usage__pt->purposes__u16 & FLEA_ASN1_KEY_USAGE_MASK_key_cert_sign))
+          !(key_usage__pt->purposes__u16 & flea_ku_key_cert_sign))
       {
         FLEA_THROW("key usage cert sign missing", FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT);
       }

@@ -34,7 +34,8 @@ flea_err_t THR_flea_test_cert_verify_ecdsa()
   FLEA_CCALL(THR_flea_x509_verify_cert_signature(test_self_signed_ecdsa_csca_cert__acu8, sizeof(test_self_signed_ecdsa_csca_cert__acu8), test_self_signed_ecdsa_csca_cert__acu8, sizeof(test_self_signed_ecdsa_csca_cert__acu8)));
 #endif
   FLEA_THR_FIN_SEC_empty();
-   
+  
+  
 }
 #endif
 

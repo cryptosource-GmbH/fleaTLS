@@ -324,7 +324,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(const flea_x50
   }
   if(issuer__pt->extensions__t.key_usage__t.is_present__u8)
   {
-    if(!(issuer__pt->extensions__t.key_usage__t.purposes__u16 & FLEA_ASN1_KEY_USAGE_MASK_crl_sign))
+    if(!(issuer__pt->extensions__t.key_usage__t.purposes__u16 & flea_ku_crl_sign))
     {
       FLEA_THROW("CRL issuer has key usage extension without the CRLSign bit set", FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN);
     }

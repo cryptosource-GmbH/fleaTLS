@@ -62,7 +62,11 @@ flea_err_t THR_flea_cert_chain_t__add_cert_without_trust_status(flea_cert_chain_
 flea_err_t THR_flea_cert_chain_t__add_trust_anchor_cert(flea_cert_chain_t* chain__pt, const flea_x509_cert_ref_t * cert_ref__pt);
 
 /**
- * 
+ * This function tries to build a certificate path from the set target certificate
+ * to one of the set trust anchors. Afterwards, it performs certificate path
+ * validation including revocation checking for all certificates in the path except for the
+ * trust anchor. This function does not check the key usage of the client
+ * certificate, which must be performed seperatly.
  * @param time_mbn__pt the current time in timezon GMT. May be null, then the
  * function determines the current time itself.
  */

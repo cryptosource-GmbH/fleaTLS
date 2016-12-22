@@ -65,7 +65,7 @@ static flea_err_t THR_flea_x509_cert_parse_basic_constraints(flea_ber_dec_t *con
   FLEA_THR_FIN_SEC_empty();
 }
 
-static flea_err_t THR_flea_x509_cert__parse_eku(flea_ber_dec_t *cont_dec__pt, flea_ext_key_usage_t * ext_key_usage__pt )
+static flea_err_t THR_flea_x509_cert__parse_eku(flea_ber_dec_t *cont_dec__pt, flea_key_usage_t * ext_key_usage__pt )
 {   
   const flea_u8_t id_kp__cau8 [] = { 0x2B, 0x06, 0x01, 0x05, 0x05, 0x07, 0x03 };
   flea_der_ref_t oid_ref__t;
@@ -87,6 +87,7 @@ static flea_err_t THR_flea_x509_cert__parse_eku(flea_ber_dec_t *cont_dec__pt, fl
     purposes__u16 |=  (1 << oid_ref__t.data__pcu8[sizeof(id_kp__cau8)]);
   }
   if(purposes__u16 & (flea_u16_t)~(
+        (1 << FLEA_ASN1_EKU_BITP_any_ext_ku       ) |
         (1 << FLEA_ASN1_EKU_BITP_server_auth      ) |
         (1 << FLEA_ASN1_EKU_BITP_client_auth      ) |
         (1 << FLEA_ASN1_EKU_BITP_code_signing     ) |
@@ -490,14 +491,28 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, co
       );
 }
 
-flea_bool_t flea_x509_has_key_usages(flea_x509_cert_ref_t *cert_ref__pt, flea_u16_t check_usages__u16)
+flea_bool_t flea_x509_has_key_usages(const flea_x509_cert_ref_t *cert_ref__pt, flea_key_usage_ext_e ku_type, flea_key_usage_e required_usages__u16, flea_key_usage_exlicitness_e explicitness)
 {
-  flea_u16_t ku_val__u16 = cert_ref__pt->extensions__t.key_usage__t.purposes__u16;
-  if(!cert_ref__pt->extensions__t.key_usage__t.is_present__u8)
+  flea_al_u16_t ku_val__alu16;
+  flea_al_u8_t ku_present_alu8;
+  if(ku_type == flea_key_usage_extension)
   {
-    return FLEA_FALSE;
+    ku_val__alu16 = cert_ref__pt->extensions__t.key_usage__t.purposes__u16;
+    ku_present_alu8 = cert_ref__pt->extensions__t.key_usage__t.is_present__u8;
   }
-  if((ku_val__u16 & check_usages__u16) == check_usages__u16)
+  else
+  {
+    ku_val__alu16 = cert_ref__pt->extensions__t.ext_key_usage__t.purposes__u16;
+    ku_present_alu8 = cert_ref__pt->extensions__t.ext_key_usage__t.is_present__u8;
+  }
+  if(!ku_present_alu8)
+  {
+    if(explicitness == flea_key_usage_explicit)
+    {
+      return FLEA_FALSE;
+    }
+  }
+  if((ku_val__alu16 & required_usages__u16) == required_usages__u16)
   {
     return FLEA_TRUE; 
   }

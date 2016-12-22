@@ -326,52 +326,46 @@ flea_err_t THR_flea_test_tls_cert_chain()
   const flea_u8_t date_str[] = "170228200000Z";
   flea_gmt_time_t time__t;
   flea_bool_t first__b = FLEA_TRUE;
-flea_err_t err;
-const flea_u8_t *ptr = tls_cert_chain__acu8;
-flea_al_u16_t len = sizeof(tls_cert_chain__acu8);
+  flea_err_t err;
+  const flea_u8_t *ptr = tls_cert_chain__acu8;
+  flea_al_u16_t len = sizeof(tls_cert_chain__acu8);
 
-FLEA_THR_BEG_FUNC();
-//FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&subject, test_cert_tls_server_1, sizeof(test_cert_tls_server_1) ));
-//FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&issuer, flea_test_cert_issuer_of_tls_server_1__cau8, sizeof(flea_test_cert_issuer_of_tls_server_1__cau8) ));
-
-//FLEA_CCALL(THR_flea_cert_chain_t__add_trust_anchor_cert(&cert_chain__t, &issuer));
-/*FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) -1, &time__t));
- err = THR_flea_cert_chain__build_and_verify_cert_chain(&cert_chain__t, &time__t);*/
-while(len > 3)
-{
-  FLEA_DECL_OBJ(ref__t, flea_x509_cert_ref_t);
-  flea_u32_t new_len = ((flea_u32_t)ptr[0] << 16) | (ptr[1] << 8) | (ptr[2]);
-  ptr += 3;
-  len -= 3;
-  if(new_len > len)
+  FLEA_THR_BEG_FUNC();
+  while(len > 3)
   {
-    FLEA_THROW("invalid cert chain length", FLEA_ERR_INV_ARG);
+    FLEA_DECL_OBJ(ref__t, flea_x509_cert_ref_t);
+    flea_u32_t new_len = ((flea_u32_t)ptr[0] << 16) | (ptr[1] << 8) | (ptr[2]);
+    ptr += 3;
+    len -= 3;
+    if(new_len > len)
+    {
+      FLEA_THROW("invalid cert chain length", FLEA_ERR_INV_ARG);
+    }
+    FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&ref__t, ptr, new_len));
+    ptr += new_len;
+    len -= new_len;
+    if(first__b)
+    {
+      FLEA_CCALL(THR_flea_cert_chain_t__ctor(&cert_chain__t, &ref__t));
+      first__b = FLEA_FALSE;
+    }
+    else
+    {
+      FLEA_CCALL(THR_flea_cert_chain_t__add_cert_without_trust_status(&cert_chain__t, &ref__t));
+    }
   }
-  FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&ref__t, ptr, new_len));
-  ptr += new_len;
-  len -= new_len;
-  if(first__b)
+
+  FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) -1, &time__t));
+  err = THR_flea_cert_chain__build_and_verify_cert_chain(&cert_chain__t, &time__t);
+
+  if(!err)
   {
-    FLEA_CCALL(THR_flea_cert_chain_t__ctor(&cert_chain__t, &ref__t));
-    first__b = FLEA_FALSE;
+    FLEA_THROW("no error when verifying untrusted cert", FLEA_ERR_FAILED_TEST);
   }
-  else
-  {
-    FLEA_CCALL(THR_flea_cert_chain_t__add_cert_without_trust_status(&cert_chain__t, &ref__t));
-  }
-}
 
-FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) -1, &time__t));
- err = THR_flea_cert_chain__build_and_verify_cert_chain(&cert_chain__t, &time__t);
-
- if(!err)
- {
-  FLEA_THROW("no error when verifying untrusted cert", FLEA_ERR_FAILED_TEST);
- }
-
-FLEA_THR_FIN_SEC(
-   flea_cert_chain_t__dtor(&cert_chain__t); 
-    );
+  FLEA_THR_FIN_SEC(
+      flea_cert_chain_t__dtor(&cert_chain__t); 
+      );
 
 }
 
