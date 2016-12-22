@@ -6,7 +6,7 @@
 #include "flea/alloc.h"
 #include "flea/cert_verify.h"
 #include "flea/array_util.h"
-#include "flea/cert_chain.h"
+#include "flea/cert_path.h"
 #include "flea/asn1_date.h"
 #include "flea/error_handling.h"
 #include "flea/ber_dec.h"

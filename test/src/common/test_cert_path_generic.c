@@ -4,7 +4,7 @@
 #include "flea/error_handling.h"
 #include "flea/error.h"
 #include "flea/alloc.h"
-#include "flea/cert_chain.h"
+#include "flea/cert_path.h"
 #include "flea/asn1_date.h"
 #include "flea/ber_dec.h"
 #include "flea/pubkey.h"

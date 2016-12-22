@@ -10,7 +10,7 @@
 #include <exception>
 #include "pc/test_util.h"
 #include "flea/error_handling.h"
-#include "flea/cert_chain.h"
+#include "flea/cert_path.h"
 
 using namespace std;
 

@@ -6,7 +6,7 @@
 #include "flea/error.h"
 #include "flea/alloc.h"
 #include "flea/asn1_date.h"
-#include "flea/cert_chain.h"
+#include "flea/cert_path.h"
 #include "flea/ber_dec.h"
 #include "test_data_x509_certs.h"
 #include "self_test.h"
@@ -336,7 +336,6 @@ flea_err_t THR_flea_test_tls_cert_chain()
   FLEA_THR_BEG_FUNC();
   while(len > 3)
   {
-    //FLEA_DECL_OBJ(ref__t, flea_x509_cert_ref_t);
     flea_u32_t new_len = ((flea_u32_t)ptr[0] << 16) | (ptr[1] << 8) | (ptr[2]);
     ptr += 3;
     len -= 3;
@@ -344,7 +343,6 @@ flea_err_t THR_flea_test_tls_cert_chain()
     {
       FLEA_THROW("invalid cert chain length", FLEA_ERR_INV_ARG);
     }
-    //FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&ref__t, ptr, new_len));
     if(first__b)
     {
       FLEA_CCALL(THR_flea_cert_path_validator_t__ctor_cert(&cert_chain__t, ptr, new_len));
@@ -352,7 +350,6 @@ flea_err_t THR_flea_test_tls_cert_chain()
     }
     else
     {
-      //FLEA_CCALL(THR_flea_cert_path_validator_t__add_cert_without_trust_status(&cert_chain__t, &ref__t));
       FLEA_CCALL(THR_flea_cert_path_validator_t__add_cert_without_trust_status(&cert_chain__t, ptr, new_len));
     }
     ptr += new_len;
