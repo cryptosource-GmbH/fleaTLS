@@ -101,7 +101,7 @@ typedef flea_u32_t flea_dtl_t;
 typedef flea_u16_t flea_dtl_t;
 #endif
 
-typedef flea_u16_t flea_x509_len_t;
+typedef flea_al_u16_t flea_x509_len_t;
 
 #define FLEA_FALSE 0
 #define FLEA_TRUE 1
