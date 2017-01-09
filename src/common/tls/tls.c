@@ -1581,6 +1581,32 @@ flea_err_t THR_flea_tls__send_client_key_exchange(flea_tls_ctx_t* tls_ctx, flea_
 	FLEA_THR_FIN_SEC_empty();
 }
 
+typedef struct {
+	flea_u8_t* read_buff;
+	flea_u32_t read_buff_len;
+	flea_u32_t bytes_left;
+	flea_u32_t bytes_read;
+} flea_tls__read_state_t;
+
+
+flea_err_t THR_flea_tls__read_next_record(flea_tls_ctx_t* tls_ctx, Record* record, RecordType record_type, int socket_fd, flea_tls__read_state_t* state) {
+	FLEA_THR_BEG_FUNC();
+
+	// When no bytes are left we have to read new data from the network
+	if (state->bytes_left == 0)
+	{
+		FLEA_CCALL(THR_flea_tls__receive(socket_fd, state->read_buff, 16384, &state->read_buff_len));
+		state->bytes_left = state->read_buff_len;
+		state->bytes_read = 0;
+	}
+
+	// else we read the next record
+	FLEA_CCALL(THR_flea_tls__read_record(tls_ctx, state->read_buff+state->bytes_read, state->read_buff_len, record, record_type, &state->bytes_left));
+	state->bytes_read = state->read_buff_len - state->bytes_left;
+
+	FLEA_THR_FIN_SEC_empty();
+}
+
 
 
 typedef struct {
@@ -1590,7 +1616,6 @@ typedef struct {
 	ContentType last_content_type_received;
 	flea_bool_t finished;
 } flea_tls__handshake_state_t;
-
 
 
 flea_err_t flea_tls_handshake_NEW(int socket_fd, flea_tls_ctx_t* tls_ctx)
