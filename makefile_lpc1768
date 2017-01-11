@@ -1,9 +1,12 @@
 
-#BINPATH=~/sat/bin
 
-CC=arm-none-eabi-gcc
-AR=arm-none-eabi-ar
-
+AS      = $(GCC_BIN)arm-none-eabi-as
+CC      = $(GCC_BIN)arm-none-eabi-gcc
+CPP     = $(GCC_BIN)arm-none-eabi-g++
+LD      = $(GCC_BIN)arm-none-eabi-gcc
+OBJCOPY = $(GCC_BIN)arm-none-eabi-objcopy
+OBJDUMP = $(GCC_BIN)arm-none-eabi-objdump
+SIZE    = $(GCC_BIN)arm-none-eabi-size 
 ###################################################
 
 # Check for valid float argument
@@ -25,7 +28,7 @@ CFLAGS  = -O3 -g -Wall -std=c99
 #-g 
 CFLAGS += $(INCLUDES) -DFLEA_PLTF_ARM_32BIT
 
-CFLAGS += -mlittle-endian -mthumb -mthumb-interwork -mcpu=cortex-m4
+CFLAGS += -mthumb -mcpu=cortex-m3
 
 # allow discarding of unused code during linking:
 CFLAGS += -fdata-sections -ffunction-sections
@@ -38,9 +41,12 @@ else
 CFLAGS += -msoft-float
 endif
 
-CFLAGS += -ffreestanding -nostdlib
+#CFLAGS += -ffreestanding -nostdlib -MMD -MP
+CFLAGS += -MMD -MP
 CFLAGS += -Iinc -Iinc/core -Iinc/peripherals
 
+LD_FLAGS =-Wl,--gc-sections -mcpu=cortex-m3 -mthumb 
+LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys
 
 SRC_DIR = src
 
@@ -50,7 +56,7 @@ SRC_DIRS = src/common/asn1 src/common/streams src/common src/common/hash src/com
 SRCS := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 #$(info $$SRCS is [${SRCS}])
 
-OBJDIR = build/stm32f4
+OBJDIR = build/lpc1768
 OBJS_RAW = $(SRCS:.c=.o)
 
 OBJS = $(addprefix $(OBJDIR)/, $(OBJS_RAW))
@@ -61,26 +67,26 @@ DEPS = $(addprefix $(OBJDIR)/, $(DEPS_RAW))
 
 
 	
-.PHONY: libflea_stm32f4.a
+.PHONY: libflea_lpc1768.a
 
-all: libflea_stm32f4.a test
+all: libflea_lpc1768.a test
 
 # $< = "prerequisite": right hand side in target def
 # $@ = left hand side of the target def
 
 $(OBJDIR)/%.o : %.c
-	$(CC) -MMD $(CFLAGS) -c $< -o $@ 
+	$(CC) $(CFLAGS) -c $< -o $@ 
   
-libflea_stm32f4.a: $(OBJS)
+libflea_lpc1768.a: $(OBJS)
 	$(AR) -r $@ $(OBJS)
 
-test: libflea_stm32f4.a
+test: libflea_lpc1768.a
 	@echo "making test"
 	$(MAKE) -C test FLOAT_TYPE=$(FLOAT_TYPE)
 
 clean:
 	find $(OBJDIR) -name "*.d" | xargs -n1 trash-put
-	rm -f $(OBJS)  libflea_stm32f4.a 
+	rm -f $(OBJS)  libflea_lpc1768.a 
 	$(MAKE) clean -C test
 
 -include $(DEPS)

@@ -155,11 +155,18 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
 
       CALL_TEST(THR_flea_test_asn1_date());
 
-
+#ifdef __FLEA_HAVE_LINUX_FILESYSTEM
 #if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_MOD_BIT_SIZE >= 224
       CALL_TEST(THR_test_ecdsa_self_signed_certs_file_based());
 #endif
+      if(full__b == FLEA_TRUE)
+      {
+        CALL_TEST(THR_flea_test_crt_rsa_raw_file_based());
+        CALL_TEST(THR_flea_test_sha256_file_based());
+      }
+#endif /* __FLEA_HAVE_LINUX_FILESYSTEM */
     }
+#ifdef __FLEA_HAVE_LINUX_FILESYSTEM
 #if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
     if(!func_prefix)
     {
@@ -167,12 +174,8 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
       nb_exec_tests -= 1; // correct the counting of the dispatcher
       nb_exec_tests += nb_cert_path_tests;
     }
-    if(full__b == FLEA_TRUE)
-    {
-      CALL_TEST(THR_flea_test_crt_rsa_raw_file_based());
-      CALL_TEST(THR_flea_test_sha256_file_based());
-    }
 #endif
+#endif /* __FLEA_HAVE_LINUX_FILESYSTEM */
     if(failed_tests)
     {
       break;

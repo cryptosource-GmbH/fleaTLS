@@ -4,7 +4,7 @@
 #define _flea_algo_len_int__H_
 
 #include "internal/common/default.h"
-#include "flea/util.h"
+#include "flea/calc_util.h"
 #include "internal/common/ecc_int.h"
 
 /****** begin hash length ******/
