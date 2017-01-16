@@ -39,18 +39,9 @@ int main (int argc, const char** argv)
       printf("rnd = %u\n", rnd);
     }
   reps = cmdl_args.get_property_as_u32_default("repeat", 1);
-  
-    /*std::cerr << "DEBUG EXIT" << std::endl;
-    exit(1);*/
-    
-    //=====
-/*    if(reps != 1)
-    {
-std::cerr << "DEBUG EXIT" << std::endl;
-    exit(1);
-    }*/
-    //=======
+  bool full = cmdl_args.get_as_bool_default_false("full");
+  flea_bool_t full__b =  full ? FLEA_TRUE : FLEA_FALSE;
   
 
- return flea_unit_tests(rnd, reps, cert_path_prefix, func_prefix);
+ return flea_unit_tests(rnd, reps, cert_path_prefix, func_prefix, full__b);
 }

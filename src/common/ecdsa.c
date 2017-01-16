@@ -57,13 +57,11 @@ flea_err_t THR_flea_ecdsa__raw_verify (const flea_u8_t* enc_r, flea_al_u8_t enc_
   FLEA_THR_BEG_FUNC();
 
   memset(ecc_ws_mpi_arrs, 0, sizeof(ecc_ws_mpi_arrs));
-  //enc_field_len = flea_ec_dom_par__get_elem_len(p_dp, flea_dp__p);
-  //enc_order_len = flea_ec_dom_par__get_elem_len(p_dp, flea_dp__n);
 #ifdef FLEA_USE_HEAP_BUF
   enc_field_len = dom_par__pt->p__ru8.len__dtl;
   enc_order_len = dom_par__pt->n__ru8.len__dtl;
   prime_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN( enc_field_len );
-  order_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN( enc_order_len ) + 1;
+  order_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN( enc_order_len ) + 4/sizeof(flea_uword_t);
 
   G_arr_word_len = 2 * prime_word_len;
   curve_word_arr_word_len = 3 * prime_word_len;
@@ -92,12 +90,10 @@ flea_err_t THR_flea_ecdsa__raw_verify (const flea_u8_t* enc_r, flea_al_u8_t enc_
 
   FLEA_CCALL(THR_flea_curve_gfp_t__init_dp_array(
                &curve,
-               //p_dp,
                dom_par__pt,
                curve_word_arr,
                FLEA_HEAP_OR_STACK_CODE(curve_word_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(curve_word_arr))));
 
-  //FLEA_CCALL(THR_flea_point_gfp_t__init(&G, flea_ec_dom_par__get_ptr_to_elem(p_dp, flea_dp__Gx), enc_field_len, flea_ec_dom_par__get_ptr_to_elem(p_dp, flea_dp__Gy), enc_field_len, G_arr, FLEA_HEAP_OR_STACK_CODE(G_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(G_arr))));
   FLEA_CCALL(THR_flea_point_gfp_t__init(&G, dom_par__pt->gx__ru8.data__pcu8, dom_par__pt->gx__ru8.len__dtl, dom_par__pt->gy__ru8.data__pcu8, dom_par__pt->gy__ru8.len__dtl, G_arr, FLEA_HEAP_OR_STACK_CODE(G_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(G_arr))));
   FLEA_CCALL(THR_flea_point_gfp_t__init_decode(&P, pub_point_enc, pub_point_enc_len, P_arr, FLEA_HEAP_OR_STACK_CODE(G_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(P_arr))));
   flea_mpi_t__init(&s_inv, s_inv_arr, FLEA_HEAP_OR_STACK_CODE(order_word_len, FLEA_STACK_BUF_NB_ENTRIES(s_inv_arr)));
@@ -105,7 +101,6 @@ flea_err_t THR_flea_ecdsa__raw_verify (const flea_u8_t* enc_r, flea_al_u8_t enc_
   flea_mpi_t__init(&n, n_arr, FLEA_HEAP_OR_STACK_CODE(order_word_len, FLEA_STACK_BUF_NB_ENTRIES(n_arr)));
   flea_mpi_t__init(&double_sized_field_elem, double_sized_field_elem_arr, FLEA_HEAP_OR_STACK_CODE(double_sized_field_elem_arr_len, FLEA_STACK_BUF_NB_ENTRIES(double_sized_field_elem_arr)));
 
-  //FLEA_CCALL(THR_flea_mpi_t__decode(&n, flea_ec_dom_par__get_ptr_to_elem(p_dp, flea_dp__n), enc_order_len));
   FLEA_CCALL(THR_flea_mpi_t__decode(&n, dom_par__pt->n__ru8.data__pcu8, dom_par__pt->n__ru8.len__dtl));
   FLEA_CCALL(THR_flea_mpi_t__decode(&s, enc_s, enc_s_len));
 
@@ -175,7 +170,7 @@ flea_err_t THR_flea_ecdsa__raw_verify (const flea_u8_t* enc_r, flea_al_u8_t enc_
     );
 }
 
-flea_err_t THR_flea_ecdsa__raw_sign (flea_u8_t* res_r_arr, flea_al_u8_t* res_r_arr_len, flea_u8_t* res_s_arr, flea_al_u8_t* res_s_arr_len, const flea_u8_t* message, flea_al_u8_t message_len, /*const flea_u8_t* p_dp,*/ const flea_u8_t* priv_key_enc_arr, flea_al_u8_t priv_key_enc_arr_len, const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
+flea_err_t THR_flea_ecdsa__raw_sign (flea_u8_t* res_r_arr, flea_al_u8_t* res_r_arr_len, flea_u8_t* res_s_arr, flea_al_u8_t* res_s_arr_len, const flea_u8_t* message, flea_al_u8_t message_len, const flea_u8_t* priv_key_enc_arr, flea_al_u8_t priv_key_enc_arr_len, const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
 {
 
   flea_mpi_t n, k, k_inv, r, s;
@@ -211,17 +206,13 @@ flea_err_t THR_flea_ecdsa__raw_sign (flea_u8_t* res_r_arr, flea_al_u8_t* res_r_a
   flea_al_u8_t i;
   FLEA_THR_BEG_FUNC();
 
-  /*enc_field_len = flea_ec_dom_par__get_elem_len(p_dp, flea_dp__p);
-  enc_order_len = flea_ec_dom_par__get_elem_len(p_dp, flea_dp__n);*/
-
 #ifdef FLEA_USE_HEAP_BUF
   enc_field_len = dom_par__pt->p__ru8.len__dtl;
   enc_order_len = dom_par__pt->n__ru8.len__dtl;
   prime_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN( enc_field_len );
   order_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN( enc_order_len ) + 1;
-// TODO: if + 1 is missing, then computing this value based on the real order byte len causes mpi 'too small alloc' error in invert_odd_mod. When that is covered directly by +1 words for worksp-mpis, other size-related errors happen => find out the actual requirements. 
 
-  k_arr_word_len = 2 * order_word_len + 1;
+  k_arr_word_len = 2 * order_word_len + 32/sizeof(flea_uword_t);
   G_arr_word_len = 2 * prime_word_len;
   curve_word_arr_word_len = 3 * prime_word_len;
   ecc_ws_mpi_arrs_word_len = order_word_len; 
@@ -243,7 +234,6 @@ flea_err_t THR_flea_ecdsa__raw_sign (flea_u8_t* res_r_arr, flea_al_u8_t* res_r_a
                curve_word_arr,
                FLEA_HEAP_OR_STACK_CODE(curve_word_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(curve_word_arr))));
   FLEA_ALLOC_BUF(G_arr, G_arr_word_len);
-  //FLEA_CCALL(THR_flea_point_gfp_t__init(&G, flea_ec_dom_par__get_ptr_to_elem(p_dp, flea_dp__Gx), enc_field_len, flea_ec_dom_par__get_ptr_to_elem(p_dp, flea_dp__Gy), enc_field_len, G_arr, FLEA_HEAP_OR_STACK_CODE(G_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(G_arr))));
   FLEA_CCALL(THR_flea_point_gfp_t__init(&G, dom_par__pt->gx__ru8.data__pcu8, dom_par__pt->gx__ru8.len__dtl, dom_par__pt->gy__ru8.data__pcu8, dom_par__pt->gy__ru8.len__dtl, G_arr, FLEA_HEAP_OR_STACK_CODE(G_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(G_arr))));
 
   FLEA_ALLOC_BUF(vn, vn_len);
@@ -254,7 +244,6 @@ flea_err_t THR_flea_ecdsa__raw_sign (flea_u8_t* res_r_arr, flea_al_u8_t* res_r_a
   div_ctx.un_len = FLEA_HEAP_OR_STACK_CODE(un_len, FLEA_STACK_BUF_NB_ENTRIES(un));
 
   flea_mpi_t__init(&n, n_arr, FLEA_HEAP_OR_STACK_CODE(order_word_len, FLEA_STACK_BUF_NB_ENTRIES(n_arr)));
-  //FLEA_CCALL(THR_flea_mpi_t__decode(&n, flea_ec_dom_par__get_ptr_to_elem(p_dp, flea_dp__h), flea_ec_dom_par__get_elem_len(p_dp, flea_dp__h)));
   // store cofactor in n:
   FLEA_CCALL(THR_flea_mpi_t__decode(&n, dom_par__pt->h__ru8.data__pcu8, dom_par__pt->h__ru8.len__dtl));
   FLEA_CCALL(THR_flea_point_gfp_t__validate_point(&G, &curve, &n, &div_ctx));
@@ -268,7 +257,6 @@ flea_err_t THR_flea_ecdsa__raw_sign (flea_u8_t* res_r_arr, flea_al_u8_t* res_r_a
   flea_mpi_t__init(&s, s_arr, FLEA_HEAP_OR_STACK_CODE(order_word_len, FLEA_STACK_BUF_NB_ENTRIES(s_arr)));
   flea_mpi_t__init(&k_inv, k_inv_arr, FLEA_HEAP_OR_STACK_CODE(order_word_len, FLEA_STACK_BUF_NB_ENTRIES(k_inv_arr)));
 
-  //FLEA_CCALL(THR_flea_mpi_t__decode(&n, flea_ec_dom_par__get_ptr_to_elem(p_dp, flea_dp__n), enc_order_len));
   FLEA_CCALL(THR_flea_mpi_t__decode(&n, dom_par__pt->n__ru8.data__pcu8, dom_par__pt->n__ru8.len__dtl));
 
   while(flea_mpi_t__is_zero(&r) || flea_mpi_t__is_zero(&s)) // while r == 0 && s == 0

@@ -4,32 +4,40 @@ __________________
 ******************
   Cryptography. Security.
 
-flea cryptographic library for embedded systems
-Copyright (C) 2015-2016 cryptosource GmbH
+fleaTLS cryptographic library for embedded systems
+Copyright (C) 2015-2017 cryptosource GmbH
 
+flea license version 2
 
-flea license version 1.0
+1. This source code may be used freely, provided that the following conditions are met:
 
-The source code may be used freely, provided that the following conditions are
-met:
+     a. Redistribution of the source code or the header files is not allowed. 
 
-    1. Redistribution of the source code, including the header files, is not allowed. 
+     b. Redistribution of binary code derived from the source code is allowed,
+        provided that it is not distributed in a form that is explicitly prepared
+        for the purpose of linking other executable code to it in order to create a
+        program that differs from the originally distributed binary code.
 
-    2. Redistribution of binary code is allowed.
+     c. Neither the name under which the source code is distributed nor the name of the 
+        copyright holder may not be used to endorse or promote products derived from 
+        this source code without specific prior written permission.
 
-    3. Neither the name of the copyright holder nor the names of its contributors 
-       may be used to endorse or promote products derived from this software 
-       without specific prior written permission.
+2. The copyright holder grants any recipient of the source code or derived
+   binary code a non-exclusive, worldwide, royalty-free patent license for any
+   patents held by the copyright holder and affecting the originally distributed
+   source code or binary code derived from it. This grant is restricted to the
+   functionality as realized by the originally distributed source code and does not
+   extend to any modifications made to it.
 
-    THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
-    ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
-    WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
-    DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
-    ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
-    (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
-    LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
-    ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
-    (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
-    SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
+3. THIS SOFTWARE IS PROVIDED BY THE COPYRIGHT HOLDERS AND CONTRIBUTORS "AS IS" AND
+   ANY EXPRESS OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED
+   WARRANTIES OF MERCHANTABILITY AND FITNESS FOR A PARTICULAR PURPOSE ARE
+   DISCLAIMED. IN NO EVENT SHALL THE COPYRIGHT HOLDER OR CONTRIBUTORS BE LIABLE FOR
+   ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR CONSEQUENTIAL DAMAGES
+   (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE GOODS OR SERVICES;
+   LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION) HOWEVER CAUSED AND ON
+   ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT LIABILITY, OR TORT
+   (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT OF THE USE OF THIS
+   SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
 
 */

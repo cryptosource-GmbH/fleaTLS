@@ -6,6 +6,7 @@
 #include "flea/hash.h"
 #include "flea/error.h"
 #include "flea/types.h"
+#include "flea/hostn_ver.h"
 
 #ifdef FLEA_DO_PRINTF_TEST_OUTPUT
 #include <stdio.h>
@@ -62,7 +63,7 @@ flea_err_t THR_flea_test_mpi_shift_left_small(void);
 
 flea_err_t THR_flea_test_mpi_shift_right(void);
 
-flea_err_t THR_flea_test_mpi_invert_odd_mod(void);
+flea_err_t THR_flea_test_mpi_invert_odd_mod_1(void);
 flea_err_t THR_flea_test_mpi_invert_odd_mod_2(void);
 
 flea_err_t THR_flea_test_arithm(void);
@@ -84,9 +85,9 @@ flea_err_t THR_flea_test_oaep(void);
 
 flea_err_t THR_flea_test_pk_signer_sign_verify(void);
 
-flea_err_t THR_test_enc_BE_bitlen();
+flea_err_t THR_flea_test_enc_BE_bitlen();
 
-flea_err_t THR_test_incr_enc_BE_int();
+flea_err_t THR_flea_test_incr_enc_BE_int();
 
 flea_err_t THR_flea_test_pk_encryption(void);
 /**
@@ -191,12 +192,16 @@ flea_err_t THR_flea_test_cert_path_generic(
     flea_u32_t nb_crls,
     const flea_u8_t* validation_date_utctime, 
     flea_al_u16_t validation_date_utctime_len,
-    flea_bool_t disable_revocation_checking
+    flea_bool_t disable_revocation_checking,
+    const flea_ref_cu8_t *host_id_mbn__pcrcu8,
+    flea_host_id_type_e host_id_type
     );
 
-flea_err_t THR_flea_test_path_validation_file_based(const char* cert_path_prefix);
+flea_err_t THR_flea_test_path_validation_file_based(const char* cert_path_prefix, flea_u32_t *nb_exec_tests_pu32 );
 
-int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_prefix, const char* func_prefix);
+flea_err_t THR_flea_test_gmt_time();
+
+int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_prefix, const char* func_prefix, flea_bool_t full__b);
 
 
 #ifdef __cplusplus

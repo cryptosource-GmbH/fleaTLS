@@ -20,7 +20,6 @@ static flea_err_t THR_flea_data_source__memory__read(void *custom_obj__pv, flea_
   buffer__pt->len__dtl -= to_read__dtl;
   *nb_bytes_to_read__pdtl = to_read__dtl;
 
-  //printf("data_source_memory read: read %u bytes, offs now = %u\n", to_read__dtl, buffer__pt->offs__dtl);
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -54,7 +53,6 @@ const flea_u8_t* flea_data_source_t__get_memory_pointer_to_current(const flea_da
   {
     return NULL;
   }
-  //printf("data source get mem ptr curr: offs = %u\n", buffer__pt->offs__dtl);
   return &buffer__pt->data__pcu8[buffer__pt->offs__dtl];
 }
 
@@ -70,11 +68,6 @@ flea_err_t THR_flea_data_source_t__ctor_memory(flea_data_source_t* source__t, co
     
   FLEA_THR_FIN_SEC_empty();
 }
-// TODO: LET THIS FUNCTION RETURN END_OF_STREAM ERROR IF THE DATA SOURCE IS
-// FINISHED
-// TODO: CONCEPT: READ MAY READ FEWER BYTES THAN ASKED FOR, BUT IF IT READES
-// ZERO IT WHEN ASKED FOR MORE THAN ZERO, THEN IT ALSO RETURNS AN ERROR!
-// TODO: IMPLEMENT THE ABOVE BEHAVIOUR FOR DATA SOURCE MEMORY
 flea_err_t THR_flea_data_source_t__read(flea_data_source_t* source__pt, flea_dtl_t* nb_bytes_to_read__pdtl, flea_u8_t* target_mem__pu8)
 {
   FLEA_THR_BEG_FUNC();
@@ -106,9 +99,6 @@ flea_err_t THR_flea_data_source_t__read_byte(flea_data_source_t* source__pt, fle
 
 flea_err_t THR_flea_data_source_t__force_read(flea_data_source_t* source__pt, flea_dtl_t nb_bytes_to_read__dtl, flea_u8_t* target_mem__pu8)
 {
-  //flea_dtl_t offs__dtl = 0;
-  //flea_dtl_t rem__dtl = nb_bytes_to_read__dtl;
-  //flea_dtl_t read = 0;
 FLEA_THR_BEG_FUNC();
   while(nb_bytes_to_read__dtl)
   {
@@ -123,5 +113,4 @@ FLEA_THR_FIN_SEC_empty();
 
 void flea_data_source_t__dtor(flea_data_source_t *source__pt)
 {
- // TODO: what is the intended way of realizing empty dtors?
 }

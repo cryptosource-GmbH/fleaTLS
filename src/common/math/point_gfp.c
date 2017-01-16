@@ -140,13 +140,11 @@ flea_err_t THR_flea_point_gfp_t__init_decode (flea_point_gfp_t* p_result, const 
   const flea_u8_t* y_enc__p_u8;
   flea_al_u8_t enc_coord_len__al_u8;
 
-  // TODO: UNITE THIS WITH THE FUNCTION IN ECC_KEY.H
   FLEA_THR_BEG_FUNC();
   enc_coord_len__al_u8 = (enc_point_len__al_u8 - 1) / 2;
   if((enc_point_len__al_u8 < 3) || !(enc_point_len__al_u8 & 1) || enc_point__pc_u8[0] != 0x04 )
   {
-    // TODO: SET APPROPRIATE ERROR CODE
-    FLEA_THROW("invalid encoded point", FLEA_ERR_DECODING_FAILURE);
+    FLEA_THROW("invalid encoded point", FLEA_ERR_X509_INV_ECC_POINT_ENCODING);
   }
   x_enc__p_u8 = &enc_point__pc_u8[1];
   y_enc__p_u8 = &enc_point__pc_u8[1 + enc_coord_len__al_u8];
@@ -259,30 +257,19 @@ flea_err_t THR_flea_point_jac_proj_t__add (flea_point_jac_proj_t* p_point_1, con
   }
 
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&p_workspace_arr[0], &p_point_2->m_z, &p_point_2->m_z, p_mm_ctx));
-  // ws[1] = U1
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&p_workspace_arr[1], &p_point_1->m_x, &p_workspace_arr[0], p_mm_ctx));
-  // ws[2] = intermed rhs.z * rhs_z2
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&p_workspace_arr[2], &p_point_2->m_z, &p_workspace_arr[0], p_mm_ctx));
 
-  // ws[3] = S1
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&p_workspace_arr[3], &p_point_1->m_y, &p_workspace_arr[2], p_mm_ctx));
 
-  // ws[2] = lhs_z2
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&p_workspace_arr[2], &p_point_1->m_z, &p_point_1->m_z, p_mm_ctx));
-  // ws[4] = U2
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&p_workspace_arr[4], &p_point_2->m_x, &p_workspace_arr[2], p_mm_ctx));
 
-  // ws[5] = intermed lhs_z2 * lhs.z
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&p_workspace_arr[5], &p_point_1->m_z, &p_workspace_arr[2], p_mm_ctx));
 
-  // ws[6] = S2
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&p_workspace_arr[6], &p_point_2->m_y, &p_workspace_arr[5], p_mm_ctx));
 
-  // both z2 not needed anymore from here on: ws[0] and ws[2]
-  //
-  // H = ws[0]
   FLEA_CCALL(THR_flea_mpi_t__subtract_mod(&p_workspace_arr[0], &p_workspace_arr[4], &p_workspace_arr[1], p_mm_ctx->p_mod, &p_workspace_arr[7] ));
-  // r = ws[7]
   FLEA_CCALL(THR_flea_mpi_t__subtract_mod(&p_workspace_arr[7], &p_workspace_arr[6], &p_workspace_arr[3], p_mm_ctx->p_mod, &p_workspace_arr[8]));
 
   if(flea_mpi_t__is_zero(&p_workspace_arr[0]))

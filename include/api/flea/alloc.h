@@ -109,5 +109,6 @@
 #error no buf type (heap or stack) defined for flea
 #endif
 
+flea_err_t THR_flea_alloc__realloc_mem(void** mem_in_out__ppv, flea_u32_t orig_size__u32, flea_u32_t new_size__u32);
 
 #endif /* h-guard */

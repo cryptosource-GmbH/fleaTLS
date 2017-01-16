@@ -2,6 +2,7 @@
 
 
 
+#include "internal/common/default.h"
 #include <string>
 #include <cstring>
 #include <fstream>
@@ -9,7 +10,7 @@
 #include <exception>
 #include "pc/test_util.h"
 #include "flea/error_handling.h"
-#include "flea/cert_chain.h"
+#include "flea/cert_path.h"
 
 using namespace std;
 
@@ -70,13 +71,41 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(std::string con
     crl_lens.push_back(crls[crls.size() - 1].size());
   }
   string time_str = prop.get_property_as_string("date");
+
+  string host_id_str = prop.get_property_as_string_default_empty("host_id");
+  flea_host_id_type_e host_id_type = flea_host_dnsname; /* will be overridden */
+  flea_ref_cu8_t host_id__rcu8;
+  flea_ref_cu8_t *host_id_mbn__prcu8 = nullptr;
+  if(host_id_str != "")
+  {
+    string host_id_type_str = prop.get_property_as_string("host_id_type");
+    if(host_id_type_str == "ip_addr")
+    {
+      //host_id_type = flea_host_ipaddr;
+      throw test_utils_exceptn_t("host_id_type 'ip_addr' not yet supported");
+    }
+    else if(host_id_type_str == "dns_name")
+    {
+      host_id_type = flea_host_dnsname;
+    }
+    else
+    {
+      throw test_utils_exceptn_t(std::string("host_id_type '" + host_id_type_str + "' not supported"));
+    }
+    host_id__rcu8.data__pcu8 = reinterpret_cast<const flea_u8_t *>(host_id_str.c_str());
+    host_id__rcu8.len__dtl = std::strlen(host_id_str.c_str());
+    host_id_mbn__prcu8 = &host_id__rcu8;
+  }
+
   err = THR_flea_test_cert_path_generic(
       &target_cert[0], target_cert.size(),
       &anchor_ptrs[0], &anchor_lens[0], anchor_ptrs.size(),
       &cert_ptrs[0], &cert_lens[0], cert_ptrs.size(),
       &crl_ptrs[0], &crl_lens[0], crl_ptrs.size(),
       (const flea_u8_t*)time_str.c_str(), time_str.size(),
-      disable_revocation_checking
+      disable_revocation_checking,
+      host_id_mbn__prcu8,
+      host_id_type
       ); 
   bool valid = prop.get_as_bool_default_true("valid");
   if(valid && err)
@@ -87,8 +116,11 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(std::string con
      */
     if(!(prop.get_property_as_u32_default("required_chainlen", 10) > FLEA_MAX_CERT_CHAIN_DEPTH))
     {
-      std::cout << "test '" << prop.get_filename() << "': unsuccessful verification of correct cert chain, error code = " << std::hex << err << std::dec << std::endl;
-      FLEA_THROW("unsuccessful validation of valid cert path", FLEA_ERR_FAILED_TEST);
+      if(!prop.get_as_bool_default_false("suppress_validation_error"))
+      {
+        std::cout << "test '" << prop.get_filename() << "': unsuccessful verification of correct cert chain, error code = " << std::hex << err << std::dec << std::endl;
+       FLEA_THROW("unsuccessful validation of valid cert path", FLEA_ERR_FAILED_TEST);
+      }
     }
     else
     {
@@ -109,20 +141,35 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(std::string con
       //   flea_cert_chain_t__dtor(&cert_chain__t); 
       );
 }
+static properties_spec_t create_cert_path_ini_file_spec()
+{
+  properties_spec_t spec;
+  spec.insert(std::make_pair("date", ""));
+  spec.insert(std::make_pair("valid", ""));
+  spec.insert(std::make_pair("required_chainlen", ""));
+  spec.insert(std::make_pair("host_id", ""));
+  spec.insert(std::make_pair("host_id_type", ""));
+  spec.insert(std::make_pair("required_chainlen", ""));
+  spec.insert(std::make_pair("reason", ""));
+  spec.insert(std::make_pair("required_rsa_key_len", ""));
+  spec.insert(std::make_pair("suppress_validation_error", ""));
 
+  return spec;
+}
 static flea_err_t THR_flea_execute_path_test_case(std::string const& dir_path)
 {
   FLEA_THR_BEG_FUNC();
+  properties_spec_t spec = create_cert_path_ini_file_spec();
   vector<string> prop_files = get_entries_of_dir(dir_path, dir_entries_with_path, ".ini");
   for(string const& prop_file: prop_files)
   {
     //std::cout << "using property file " << prop_file << std::endl;
-    property_set_t prop(prop_file);
+    property_set_t prop(prop_file, spec);
     FLEA_CCALL(THR_flea_execute_path_test_case_for_properties(dir_path, prop));
   }
   FLEA_THR_FIN_SEC_empty();
 }
-flea_err_t THR_flea_test_path_validation_file_based(const char* cert_path_prefix )
+flea_err_t THR_flea_test_path_validation_file_based(const char* cert_path_prefix, flea_u32_t *nb_exec_tests_pu32 )
 {
   FLEA_THR_BEG_FUNC();
   std::string path_test_main_dir = "misc/testdata/cert_paths/";
@@ -132,11 +179,16 @@ flea_err_t THR_flea_test_path_validation_file_based(const char* cert_path_prefix
   {
     nb_test_execution_repetitions_due_randomized_cert_order = 1;
     test_cases = get_entries_of_dir(path_test_main_dir, dir_entries_with_path, "" /*postfix*/, cert_path_prefix);
+    if(test_cases.size() == 0)
+    {
+      throw test_utils_exceptn_t("no matching cert path test for the specified prefix");
+    }
   }
   else
   {
     test_cases = get_entries_of_dir(path_test_main_dir, dir_entries_with_path);
   }
+  *nb_exec_tests_pu32 = test_cases.size();
   flea_u32_t err_count = 0;
   for(string test: test_cases)
   {

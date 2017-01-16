@@ -25,7 +25,7 @@
 
 #include "flea/pubkey.h"
 #include "flea/asn1_date.h"
-#include "flea/cert_chain.h"
+#include "api/flea/cert_path.h"
 #include "flea/ber_dec.h"
 #include "flea/mac.h"
 #include "flea/rng.h"
@@ -677,7 +677,7 @@ flea_err_t THR_flea_tls__read_server_hello(flea_tls_ctx_t* tls_ctx, HandshakeMes
 
 flea_err_t THR_verify_cert_chain(flea_u8_t* tls_cert_chain__acu8, flea_u32_t length, flea_public_key_t *pubkey__t)
 {
-  FLEA_DECL_OBJ(cert_chain__t, flea_cert_chain_t);
+  FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
   const flea_u8_t date_str[] = "170228200000Z";	// TODO: datumsfunktion aufrufen
   flea_gmt_time_t time__t;
   flea_bool_t first__b = FLEA_TRUE;
@@ -702,12 +702,12 @@ flea_err_t THR_verify_cert_chain(flea_u8_t* tls_cert_chain__acu8, flea_u32_t len
 		len -= new_len;
 		if(first__b)
 		{
-			FLEA_CCALL(THR_flea_cert_chain_t__ctor(&cert_chain__t, &ref__t));
+			FLEA_CCALL(THR_flea_cert_path_validator_t__ctor_cert_ref(&cert_chain__t, &ref__t));
 			first__b = FLEA_FALSE;
 		}
 		else
 		{
-			FLEA_CCALL(THR_flea_cert_chain_t__add_cert_without_trust_status(&cert_chain__t, &ref__t));
+			FLEA_CCALL(THR_flea_cert_path_validator_t__add_cert_ref_without_trust_status(&cert_chain__t, &ref__t));
 		}
 	}
 
@@ -718,11 +718,11 @@ flea_err_t THR_verify_cert_chain(flea_u8_t* tls_cert_chain__acu8, flea_u32_t len
 	// add trust anchor
 	FLEA_DECL_OBJ(trust_ref__t, flea_x509_cert_ref_t);
 	err = THR_flea_x509_cert_ref_t__ctor(&trust_ref__t, trust_anchor, sizeof(trust_anchor));
-	err = THR_flea_cert_chain_t__add_trust_anchor_cert(&cert_chain__t, &trust_ref__t);
+	err = THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(&cert_chain__t, &trust_ref__t);
 
 	/* TODO: check again if all correct */
-	flea_cert_chain_t__disable_revocation_checking(&cert_chain__t);
-	err = THR_flea_cert_chain__build_and_verify_cert_chain_and_create_pub_key(&cert_chain__t, &time__t, pubkey__t);
+	flea_cert_path_validator_t__disable_revocation_checking(&cert_chain__t);
+	err = THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_pub_key(&cert_chain__t, &time__t, pubkey__t);
 
 	if(err)
 	{
@@ -730,7 +730,7 @@ flea_err_t THR_verify_cert_chain(flea_u8_t* tls_cert_chain__acu8, flea_u32_t len
 	}
 
 	FLEA_THR_FIN_SEC(
-	   flea_cert_chain_t__dtor(&cert_chain__t);
+	   flea_cert_path_validator_t__dtor(&cert_chain__t);
 	);
 }
 

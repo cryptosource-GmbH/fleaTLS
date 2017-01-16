@@ -1,5 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
+#include "internal/common/default.h"
 #include "test_data_x509_certs.h"
 
 const flea_u8_t test_cert_tls_server_1[1673] =

@@ -217,9 +217,9 @@ flea_uword_t flea_montgomery_compute_n_prime (flea_uword_t lowest_word_of_n)
   }
   if(t0 < 0)
   {
-    t0 += (FLEA_UWORD_MAX + 1);
+    t0 += ((flea_dbl_sword_t)FLEA_UWORD_MAX + 1);
   }
-  return ((FLEA_UWORD_MAX)-t0) + 1;
+  return (((flea_dbl_sword_t)FLEA_UWORD_MAX)-t0) + 1;
 }
 
 /**
@@ -460,7 +460,7 @@ void flea_mpi_t__init (flea_mpi_t* p_result, flea_uword_t* word_array, flea_mpi_
 
 
 // vn must have twice the size of the divisor
-// un must have 2(m+1) words, where m is the size of the dividend
+// un must have 2(m+1) words, where m is the word size of the dividend
 flea_err_t THR_flea_mpi_t__divide (flea_mpi_t* p_quotient, flea_mpi_t* p_remainder, const flea_mpi_t* p_dividend, const flea_mpi_t* p_divisor, flea_mpi_div_ctx_t* p_div_ctx)
 {
   flea_mpi_ulen_t m, n;
@@ -578,15 +578,15 @@ flea_err_t THR_flea_mpi_t__divide (flea_mpi_t* p_quotient, flea_mpi_t* p_remaind
   {
     vn[i] =
       (FLEA_GET_HLF_UWORD(v, i) << s) |
-      (FLEA_GET_HLF_UWORD(v, i - 1) >> (16 - s));
+      (FLEA_GET_HLF_UWORD(v, i - 1) >> ((FLEA_WORD_BIT_SIZE/2) - s)); 
   }
   vn[0] = FLEA_GET_HLF_UWORD(v, 0) << s;
 
-  un[m] = FLEA_GET_HLF_UWORD(u, m - 1) >> (16 - s);
+  un[m] = FLEA_GET_HLF_UWORD(u, m - 1) >> ((FLEA_WORD_BIT_SIZE/2) - s);
 
   for(i = m - 1; i > 0; i--)
   {
-    un[i] = (FLEA_GET_HLF_UWORD(u, i) << s) | (FLEA_GET_HLF_UWORD(u, i - 1) >> (16 - s));
+    un[i] = (FLEA_GET_HLF_UWORD(u, i) << s) | (FLEA_GET_HLF_UWORD(u, i - 1) >> ((FLEA_WORD_BIT_SIZE/2) - s));
   }
   un[0] = (FLEA_GET_HLF_UWORD(u, 0) << s);
   for(j = m - n; j >= 0; j--)
@@ -610,7 +610,7 @@ flea_err_t THR_flea_mpi_t__divide (flea_mpi_t* p_quotient, flea_mpi_t* p_remaind
       p = qhat * vn[i];
       t = un[i + j] - k - (p & FLEA_HLF_UWORD_MAX);
       un[i + j] = t;
-      k = (p >> 16) - (t >> 16);
+      k = (p >> (FLEA_WORD_BIT_SIZE/2)) - (t >> (FLEA_WORD_BIT_SIZE/2));
     }
     t = un[j + n] - k;
     un[j + n] = t;
@@ -632,7 +632,7 @@ flea_err_t THR_flea_mpi_t__divide (flea_mpi_t* p_quotient, flea_mpi_t* p_remaind
       {
         t = un[i + j] + vn[i] + k;
         un[i + j] = t;
-        k = t >> 16;
+        k = t >> (FLEA_WORD_BIT_SIZE/2);
       }
       un[j + n] = un[j + n] + k;
     }
@@ -641,7 +641,7 @@ flea_err_t THR_flea_mpi_t__divide (flea_mpi_t* p_quotient, flea_mpi_t* p_remaind
   {
     for(i = 0; i < n; i++)
     {
-      flea_hlf_uword_t r_i = (un[i] >> s) | un[i + 1] << (16 - s);
+      flea_hlf_uword_t r_i = (un[i] >> s) | un[i + 1] << ((FLEA_WORD_BIT_SIZE/2) - s);
       FLEA_SET_HLF_UWORD(p_remainder->m_words, i, r_i);
       flea_mpi_t__set_used_words(p_remainder);
     }
@@ -738,7 +738,13 @@ void flea_mpi_t__print (const flea_mpi_t* p_mpi)
   }
   for(i = p_mpi->m_nb_used_words - 1; i >= 0; i--)
   {
+#if FLEA_WORD_BIT_SIZE == 32
     FLEA_PRINTF_2_SWITCHED("%08X", p_mpi->m_words[i]);
+#elif FLEA_WORD_BIT_SIZE == 16
+    FLEA_PRINTF_2_SWITCHED("%04X", p_mpi->m_words[i]);
+#elif FLEA_WORD_BIT_SIZE == 8
+    FLEA_PRINTF_2_SWITCHED("%02X", p_mpi->m_words[i]);
+#endif
   }
   FLEA_PRINTF_2_SWITCHED(" (%u words)", p_mpi->m_nb_used_words);
   FLEA_PRINTF_1_SWITCHED("\n");
@@ -796,7 +802,7 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   const flea_mpi_ulen_t precomp_dynamic_size = (1 << window_size) - 2;
 #endif
 
-  FLEA_DECL_BUF(R_arr, flea_uword_t, ((FLEA_RSA_MAX_KEY_BIT_SIZE / 8) + sizeof(flea_uword_t) - 1) / sizeof(flea_uword_t) + 2); // for RSA (CRT/SF) ; + 1 because R potentially longer than mod and another +1 for p-q diff; this array must account for non CRT usage also!
+  FLEA_DECL_BUF(R_arr, flea_uword_t, ((FLEA_RSA_MAX_KEY_BIT_SIZE / 8) + sizeof(flea_uword_t) - 1) / sizeof(flea_uword_t) + 2); // for RSA (CRT/SF) ; + 1 because R potentially longer than mod and another +1 for p-q diff; this array must account for non CRT usage also
 #if defined FLEA_USE_HEAP_BUF && FLEA_CRT_RSA_WINDOW_SIZE > 1
   FLEA_DECL_BUF(precomp_arrs, flea_uword_t *, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 2);
 #elif FLEA_CRT_RSA_WINDOW_SIZE > 1
@@ -840,8 +846,9 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
 #endif
   flea_mpi_t__init(&R, R_arr, R_dynamic_word_len);
   FLEA_CCALL(THR_flea_mpi_t__set_pow_2(&R, p_mod->m_nb_used_words * FLEA_WORD_BIT_SIZE));
-  // window method precomputations
 
+
+  // window method precomputations
 
   flea_mpi_t__init(&one, one_arr, sizeof(one_arr) / sizeof(flea_uword_t));
   FLEA_CCALL(THR_flea_mpi_t__decode(&one, one_enc, sizeof(one_enc)));
@@ -932,19 +939,20 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, &one, &mm_ctx));
   FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
   FLEA_THR_FIN_SEC(
-    FLEA_DO_IF_RSA_CRT_WINDOW_SIZE_GREATER_ONE(FLEA_DO_IF_USE_HEAP_BUF(
-                                                 if(precomp_arrs)
-                                                 {
-                                                   for(i = 0; i < precomp_dynamic_size; i++)
-                                                   {
-                                                     FLEA_FREE_MEM_CHK_NULL(precomp_arrs[i]);
-                                                   }
-                                                 }
-                                                 FLEA_FREE_BUF_FINAL(precomp_arrs);
-                                                 );
-                                               );
-    FLEA_DO_IF_RSA_CRT_WINDOW_SIZE_GREATER_ONE(
-      FLEA_FREE_BUF_FINAL(precomp);
+      FLEA_DO_IF_RSA_CRT_WINDOW_SIZE_GREATER_ONE(
+        FLEA_DO_IF_USE_HEAP_BUF(
+          if(precomp_arrs)
+          {
+          for(i = 0; i < precomp_dynamic_size; i++)
+          {
+          FLEA_FREE_MEM_CHK_NULL(precomp_arrs[i]);
+          }
+          }
+          FLEA_FREE_BUF_FINAL(precomp_arrs);
+          );
+        );
+      FLEA_DO_IF_RSA_CRT_WINDOW_SIZE_GREATER_ONE(
+        FLEA_FREE_BUF_FINAL(precomp);
       );
     FLEA_FREE_BUF_FINAL(R_arr);
     );
@@ -1221,11 +1229,13 @@ void flea_mpi_t__shift_right (flea_mpi_t * p_mpi, flea_al_u16_t shift)
     flea_mpi_t__set_to_word_value(p_mpi, 0);
     return;
   }
-  memmove(&p_mpi->m_words[0], &p_mpi->m_words[shift_words], shift_words * sizeof(flea_uword_t));
+
+
+  memmove(&p_mpi->m_words[0], &p_mpi->m_words[shift_words], (p_mpi->m_nb_used_words - shift_words) * sizeof(flea_uword_t));
   p_mpi->m_nb_used_words -= shift_words;
 
   flea_al_u8_t shift_left = FLEA_WORD_BIT_SIZE - shift_in_word;
-  flea_uword_t low_mask = (1 << shift_in_word) - 1;
+  flea_uword_t low_mask = (((flea_uword_t)1) << shift_in_word) - 1;
   for(i = p_mpi->m_nb_used_words - 1; i >= 0; i--)
   {
     flea_uword_t this_word = p_mpi->m_words[i];
@@ -1358,8 +1368,11 @@ flea_err_t THR_flea_mpi_t__invert_odd_mod (flea_mpi_t* p_result, const flea_mpi_
   while(!flea_mpi_t__is_zero(u))
   {
     flea_al_u16_t i;
+
+
     flea_mpi_ulen_t trailing_zeroes = flea_mpi_t__nb_trailing_zero_bits(u);
     flea_mpi_t__shift_right(u, trailing_zeroes);
+
     for(i = 0; i < trailing_zeroes; i++)
     {
       if(flea_mpi_t__get_bit(B, 0)) // if odd
@@ -1369,6 +1382,7 @@ flea_err_t THR_flea_mpi_t__invert_odd_mod (flea_mpi_t* p_result, const flea_mpi_
       }
       flea_mpi_t__shift_right(B, 1);
     }
+
     trailing_zeroes = flea_mpi_t__nb_trailing_zero_bits(v);
     flea_mpi_t__shift_right(v, trailing_zeroes);
 
@@ -1382,7 +1396,6 @@ flea_err_t THR_flea_mpi_t__invert_odd_mod (flea_mpi_t* p_result, const flea_mpi_
       flea_mpi_t__shift_right(D, 1);
 
     }
-
 
     if(0 <= flea_mpi_t__compare(u, v)) // if u >= v
     {
@@ -1444,6 +1457,7 @@ flea_err_t THR_flea_mpi_t__random_integer_no_flush (flea_mpi_t* p_result, const 
   }
   bit_size %= FLEA_BITS_PER_WORD;
   p_result->m_nb_used_words = word_size;
+  
   do
   {
     flea_rng__randomize_no_flush((flea_u8_t*)p_result->m_words, word_size * sizeof(p_result->m_words[0]));
@@ -1453,7 +1467,7 @@ flea_err_t THR_flea_mpi_t__random_integer_no_flush (flea_mpi_t* p_result, const 
       p_result->m_words[p_result->m_nb_used_words - 1] &= FLEA_UWORD_MAX >> (FLEA_BITS_PER_WORD - bit_size);
     }
     flea_mpi_t__set_used_words(p_result);
-  }
-  while(0 <= flea_mpi_t__compare_absolute(p_result, p_limit));
+  } while(0 <= flea_mpi_t__compare_absolute(p_result, p_limit));
+
   FLEA_THR_FIN_SEC_empty();
 }

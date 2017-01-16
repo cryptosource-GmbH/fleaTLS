@@ -14,7 +14,6 @@ typedef struct
 } flea_mpi_t;
 
 
-#define FLEA_WORD_BIT_SIZE  (sizeof(flea_uword_t) * 8)
 
 typedef struct
 {

@@ -1,5 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
+#include "internal/common/default.h"
 #include "flea/types.h"
 #include "internal/common/block_cipher/aes.h"
 #include "flea/error.h"

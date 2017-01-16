@@ -13,7 +13,13 @@
 
 flea_err_t THR_flea_test_montgm_mul_comp_n_prime ()
 {
-  flea_uword_t test_vec[] = { 1, 3, 5, 7, 101, 257, 259, 65535, 65537, 3021, 343525, (flea_uword_t)-1, ((flea_uword_t)-1) - 2, ((flea_uword_t)-1) - 4 };
+#if FLEA_WORD_BIT_SIZE == 32
+  flea_uword_t test_vec[] = { 1, 3, 5, 7, 101, 257, 259, 65535, 65537, 3021, 343525, (flea_uword_t)-1, ((flea_uword_t)-1)-2, ((flea_uword_t)-1) - 4 };
+#elif FLEA_WORD_BIT_SIZE == 16
+  flea_uword_t test_vec[] = { 1, 3, 5, 7, 101, 257, 259, 65535,  3021, (flea_uword_t)-1, ((flea_uword_t)-1) - 2, ((flea_uword_t)-1) - 4 };
+#elif FLEA_WORD_BIT_SIZE == 8
+  flea_uword_t test_vec[] = { 1, 3, 5, 7, 101, (flea_uword_t)-1, ((flea_uword_t)-1) - 2, ((flea_uword_t)-1) - 4 };
+#endif
   unsigned i;
   const unsigned nb_test_vecs = sizeof(test_vec) / sizeof(test_vec[0]);
 
@@ -51,11 +57,19 @@ flea_err_t THR_flea_test_montgm_mul_small2 ()
   flea_u8_t mod_enc [] = {
     7
   };
-
+#if FLEA_WORD_BIT_SIZE == 32
   flea_u8_t R_enc [] = {
     0x01,
     0x00,0x00,	0x00,	 0x00
   };
+#elif FLEA_WORD_BIT_SIZE == 16
+  flea_u8_t R_enc [] = {
+    0x01,
+    0x00,	 0x00
+  };
+#endif
+
+
 
   flea_u8_t one_enc[] = { 1 };
   const flea_mpi_ulen_t mod_byte_len = sizeof(mod_enc);
@@ -67,9 +81,9 @@ flea_err_t THR_flea_test_montgm_mul_small2 ()
   flea_uword_t b_trf_arr [mod_word_len];
   flea_uword_t mod_arr [mod_word_len];
   flea_uword_t exp_res_arr [mod_word_len];
-  flea_uword_t R_arr [mod_word_len + 1];
-  flea_uword_t large_tmp_arr[(mod_word_len) * 2 + 1];
-  flea_uword_t q_arr[2 * mod_word_len];
+  flea_uword_t R_arr [(sizeof(R_enc) + sizeof(flea_uword_t) - 1)/sizeof(flea_uword_t)];
+  flea_uword_t large_tmp_arr[sizeof(R_arr) * 2 + 1];
+  flea_uword_t q_arr[sizeof(R_arr)/sizeof(flea_uword_t)];
   flea_uword_t mm_ws_arr[mod_word_len + 1];
   flea_uword_t one_arr[1];
 

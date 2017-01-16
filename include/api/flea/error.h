@@ -16,10 +16,6 @@ typedef enum
   FLEA_ERR_FAILED_TEST                                = 0x0003,
   FLEA_ERR_INTEGRITY_FAILURE                          = 0x0004,
 
-  /**
-   * The cryptographic verification of the signature failed
-   */
-  FLEA_ERR_INV_SIGNATURE                              = 0x0005,
   FLEA_ERR_INV_ARG                                    = 0x0006,
   FLEA_ERR_INV_ALGORITHM                              = 0x0008,
   FLEA_ERR_INV_MAC                                    = 0x0009,
@@ -34,6 +30,36 @@ typedef enum
    * unsupported OID of a "named curve" in an X.509 certificate.
    */
   FLEA_ERR_ECC_INV_BUILTIN_DP_ID                      = 0x0021,
+
+  /**
+   * The cryptographic verification of the signature failed
+   */
+  FLEA_ERR_INV_SIGNATURE                              = 0x0022,
+  
+  /**
+   * The invalid ciphertext detected during decryption. 
+   */
+  FLEA_ERR_INV_CIPHERTEXT                             = 0x0023,
+
+
+ /**
+  * The user provided hostname for the verification of the server
+  * identity, e.g. in TLS, is of an invalid form.
+  */ 
+  FLEA_ERR_X509_INVALID_USER_HOSTN                    = 0x0040,
+  
+  /**
+   * The user provided ID (DNS name, URI or IP address) of the TLS server 
+   * could not be matched in the server certificate.
+   */
+  FLEA_ERR_X509_TLS_SERVER_ID_NO_MATCH                = 0x0041,
+
+  /**
+   * The key usage or extended key usage extension in the certificate of the peer (server or client to which the
+   * connection is attempted) is not valid for the selected cipher suite.
+   */
+  FLEA_ERR_TLS_PEER_CERT_INVALID_KEY_USAGE            = 0x0043,
+
   FLEA_ERR_BUFF_TOO_SMALL                             = 0x00A0,
   FLEA_ERR_DECODING_FAILURE                           = 0x00A1,
   FLEA_ERR_ASN1_DER_DEC_ERR                           = 0x00A3,
@@ -87,41 +113,56 @@ typedef enum
    * encoding.
    */
   FLEA_ERR_X509_INV_ECC_POINT_ENCODING                = 0x00D2,
+
+  /**
+   * An encoded ECC cofactor has size larger than FLEA_ECC_MAX_COFACTOR_BIT_SIZE 
+   */
+  FLEA_ERR_X509_EXCSS_COFACTOR_SIZE                   = 0x00D3,
+
   /**
    * An unsupported critical CRL extension was encountered.
    */
-  FLEA_ERR_X509_UNSUPP_CRIT_CRL_EXT                   = 0x00D3,
+  FLEA_ERR_X509_UNSUPP_CRIT_CRL_EXT                   = 0x00D4,
   /**
    * A Delta CRL, which is not supported by flea, was encountered.
    */
-  FLEA_ERR_X509_UNSUPP_DELTA_CRL                      = 0x00D4,
+  FLEA_ERR_X509_UNSUPP_DELTA_CRL                      = 0x00D5,
   /**
    * An indirect CRL, which is not supported by flea, was encountered.
    */
-  FLEA_ERR_X509_UNSUPP_INDIR_CRL                      = 0x00D5,
+  FLEA_ERR_X509_UNSUPP_INDIR_CRL                      = 0x00D6,
 
   /**
    * In the Issuing Distribution Point CRL Extension, onlySomeReasons was
    * specified and did not include all reasons. This is not supported by flea.
    */
-  FLEA_ERR_X509_CRL_INCOMPL_REASONS                   = 0x00D6,
+  FLEA_ERR_X509_CRL_INCOMPL_REASONS                   = 0x00D7,
 
   /**
    * At least one of the issuer DNs of the CRL and the checked certificate does not match the 
    * subject DN of the issuer of both.
    */
-  FLEA_ERR_X509_CRL_NAMES_DONT_MATCH                  = 0x00D7,
+  FLEA_ERR_X509_CRL_NAMES_DONT_MATCH                  = 0x00D8,
   
-  FLEA_ERR_X509_CRL_NEXT_UPDATE_PASSED                = 0x00D8,
-  FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN                = 0x00D9,
+  FLEA_ERR_X509_CRL_NEXT_UPDATE_PASSED                = 0x00D9,
+  FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN                = 0x00DA,
 
   /**
    * The CRL is issued for the wrong type of certificate according to the
    * Issuing Distribution Point CRL Extension.
    */
-  FLEA_ERR_X509_UNSUITABLE_CRL                        = 0x00DA,
-  FLEA_ERR_X509_CERT_REV_STAT_UNDET                   = 0x00DB,
-  FLEA_ERR_X509_CERT_REVOKED                          = 0x00DC,
+  FLEA_ERR_X509_UNSUITABLE_CRL                        = 0x00DB,
+  FLEA_ERR_X509_CERT_REV_STAT_UNDET                   = 0x00DC,
+  FLEA_ERR_X509_CERT_REVOKED                          = 0x00DD,
+
+  /** 
+   * There is a mismatch between the CRL Distribution Points extension in 
+   * the certificate and the Issuing Distribution Point extension (IDP) in the 
+   * CRL. Possible errors are:
+   *  - a certificate doesn't have the CDP, 
+   *  but the CRL has an IDP which contains a DP name
+   */
+  FLEA_ERR_X509_CRL_CDP_IDP_MISMATCH                  = 0x00DE,
 
 	FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS									= 0x00E0,
 	FLEA_ERR_CERT_PATH_NOT_FOUND 												= 0x00E1,

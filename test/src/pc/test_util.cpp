@@ -1,5 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
+#include "internal/common/default.h"
 #include <string>
 #include <cstring>
 #include <fstream>
@@ -248,7 +249,6 @@ std::vector<std::string> get_entries_of_dir(std::string const& dir_name, dir_ent
 
 void property_set_t::add_index_name_string_with_equation_mark(std::string const& s, property_string_form_t form)
 {
-
     size_t equ_pos = s.find("=");
     std::string value, name;
     if(equ_pos == std::string::npos)
@@ -270,10 +270,19 @@ void property_set_t::add_index_name_string_with_equation_mark(std::string const&
       name = remove_ws(name);
       value = remove_ws(value);
     }
+
+    if(m_spec.size() != 0)
+    {
+      if(m_spec.find(name) == m_spec.end())
+      {
+        throw_exception(std::string("error with unspecified property"), name);
+      }
+    }
     (*this)[name] = value;
 }
 
-property_set_t::property_set_t(int argc, const char** argv)
+property_set_t::property_set_t(int argc, const char** argv, properties_spec_t const& spec )
+  :m_spec(spec)
 {
   for(unsigned i = 1; i < static_cast<unsigned>(argc); i++)
   {
@@ -288,8 +297,9 @@ property_set_t::property_set_t(int argc, const char** argv)
   }
 }
 
-property_set_t::property_set_t(std::string const& filename)
-  :m_filename(filename)
+property_set_t::property_set_t(std::string const& filename, properties_spec_t const& spec )
+  :m_filename(filename),
+  m_spec(spec)
 {
   vector<string> lines = read_file_line_wise(filename);  
   for(string line: lines)
@@ -319,33 +329,64 @@ property_set_t::property_set_t(std::string const& filename)
 
 }
 
+void property_set_t::throw_exception(std::string const& text, std::string const& property) const
+{
+  if(property == "")
+  {
+    throw test_utils_exceptn_t("error in file " + m_filename + ": " + text);
+  }
+  else
+  {
+    std::string value_inf;
+    if(have_index(property))
+    {
+      value_inf = " with value '" + get_property_as_string(property) + "'";
+    }
+    throw test_utils_exceptn_t("error in file " + m_filename + " with property '" + property + "'" + value_inf + ": " + text);
+  }
+}
+
 flea_bool_t property_set_t::get_property_as_bool(std::string const& index, bool *default_val) const
 {
   if(default_val == nullptr) 
   {
     ensure_index(index);
   }
+  else if(!have_index(index))
+  {
+    return *default_val;
+  }
   if(find(index)->second == "true")
   {
     return FLEA_TRUE;
   }
   else if(find(index)->second == "false")
-
   {
     return FLEA_FALSE;
   }
-  else if(default_val != nullptr)
+  /*else //if(default_val != nullptr)
   {
-    return *default_val;
-  }
+    //return *default_val;
+  }*/
   else 
   {
-    throw test_utils_exceptn_t("could not parse property '" + index + "' as boolean in file " + m_filename);
+    //throw test_utils_exceptn_t("could not parse property '" + index + "' as boolean in file " + m_filename);
+    throw_exception(std::string("could not parse propery"), index);
+    return FLEA_FALSE; // to make compiler happy, never reached
   }
 }
 std::string property_set_t::get_property_as_string(std::string const& index) const
 {
   ensure_index(index);
+  return find(index)->second;
+}
+
+std::string property_set_t::get_property_as_string_default_empty(std::string const& index) const
+{
+  if(!have_index(index))
+  {
+    return std::string("");
+  }
   return find(index)->second;
 }
 

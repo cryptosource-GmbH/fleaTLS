@@ -181,14 +181,14 @@ typedef struct
 
 
 
-#ifdef FLEA_HAVE_32BIT_WORD
+#if FLEA_WORD_BIT_SIZE == 32
 #define FLEA_DECL_UW_BUF(a,b) FLEA_DECL_U32_BUF(a, b)
 #define FLEA_DECL_HW_BUF(a,b) FLEA_DECL_U16_BUF(a, b)
 #define FLEA_FREE_UWORD_BUF_SECRET(a) flea_free_u32_buf_secret(a)
 #define FLEA_FREE_HLF_UW_BUF_SECRET(a) flea_free_u16_buf_secret(a)
 typedef flea_u32_buf_t flea_uword_buf_t;
 typedef flea_u16_buf_t flea_hlf_uword_buf_t;
-#elif defined FLEA_HAVE_16BIT_WORD
+#elif FLEA_WORD_BIT_SIZE == 16
 #define FLEA_DECL_UW_BUF(a,b) FLEA_DECL_U16_BUF(a, b)
 #define FLEA_DECL_HW_BUF(a,b) FLEA_DECL_U8_BUF(a, b)
 #define FLEA_FREE_UWORD_BUF_SECRET(a) flea_free_u16_buf_secret(a)
