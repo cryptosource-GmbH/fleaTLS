@@ -1143,7 +1143,7 @@ flea_err_t THR_flea_tls__create_record(flea_tls_ctx_t* tls_ctx, Record* record, 
 		/**
 			HARDCODED FOR AES256 SHA256 CBC
 		*/
-		/*flea_u8_t iv_length = tls_ctx->active_write_connection_state->cipher_suite->iv_size;
+		flea_u8_t iv_length = tls_ctx->active_write_connection_state->cipher_suite->iv_size;
 		flea_u8_t mac_length = tls_ctx->active_write_connection_state->cipher_suite->mac_size;
 		flea_u8_t mac_key_length = tls_ctx->active_write_connection_state->cipher_suite->mac_key_size;
 		flea_u8_t enc_key_length = tls_ctx->active_write_connection_state->cipher_suite->enc_key_size;
@@ -1157,34 +1157,6 @@ flea_err_t THR_flea_tls__create_record(flea_tls_ctx_t* tls_ctx, Record* record, 
 
 		flea_u8_t client_write_key[enc_key_length];
 		memcpy(client_write_key, tls_ctx->active_write_connection_state->enc_key, enc_key_length);
-		*/
-		flea_u8_t* key_block;
-		key_block = tls_ctx->key_block;
-
-		flea_u8_t iv_length = 16;	// AES always has 16 byte IV / block size
-		flea_u8_t mac_length = 32; 	// sha256
-		flea_u8_t mac[mac_length];
-		flea_u8_t iv[iv_length];
-		flea_u8_t block_length = 16;
-		flea_u64_t sequence_number = 0;	/** HARD CODED!!!! only true for finished message message */
-
-		// create keys
-		flea_u8_t client_write_mac_key[32]; // for aes256/Sha256
-		flea_u8_t server_write_mac_key[32]; // for aes256/Sha256
-		flea_u8_t client_write_key[32]; // for aes256/Sha256
-		flea_u8_t server_write_key[32]; // for aes256/Sha256
-
-		memcpy(client_write_mac_key, key_block, 32);
-		memcpy(server_write_mac_key, key_block+32, 32);
-		memcpy(client_write_key, key_block+64, 32);
-		memcpy(server_write_key, key_block+96, 32);
-
-		/*printf("CLIENT WRITE MAC KEY: ");
-		for (flea_u8_t k=0; k<32; k++)
-		{
-			printf("%02x ", client_write_mac_key[k]);
-		}
-		printf("\n");*/
 
 		// compute mac
 		/*
@@ -1206,7 +1178,6 @@ flea_err_t THR_flea_tls__create_record(flea_tls_ctx_t* tls_ctx, Record* record, 
 		memcpy(mac_data+13, data, length);
 
   	FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, client_write_mac_key, 32, mac_data, mac_data_length, mac, (flea_al_u8_t*)(&mac_length)));
-
 
 		// compute IV ... TODO: xor with last plaintext block?
 		flea_rng__randomize(iv, iv_length);
