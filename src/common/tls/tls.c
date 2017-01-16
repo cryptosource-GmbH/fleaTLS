@@ -1275,10 +1275,10 @@ flea_err_t create_master_secret(Random client_hello_random, Random server_hello_
 {
 	FLEA_THR_BEG_FUNC();
 	flea_u8_t random_seed[64];
-	memcpy(random_seed, &client_hello_random.gmt_unix_time, 4);
-	memcpy(random_seed+4, &client_hello_random.random_bytes, 28);	// TODO: this works?!?!?!?! pointer on pointer?
-	memcpy(random_seed+32, &server_hello_random.gmt_unix_time, 4);
-	memcpy(random_seed+36, &server_hello_random.random_bytes, 28);
+	memcpy(random_seed, client_hello_random.gmt_unix_time, 4);
+	memcpy(random_seed+4, client_hello_random.random_bytes, 28);
+	memcpy(random_seed+32, server_hello_random.gmt_unix_time, 4);
+	memcpy(random_seed+36, server_hello_random.random_bytes, 28);
 	/*memcpy(random_seed, &server_hello_random.gmt_unix_time, 4);
 	memcpy(random_seed+4, &server_hello_random.random_bytes, 28);
 	memcpy(random_seed+32, &client_hello_random.gmt_unix_time, 4);
