@@ -956,16 +956,15 @@ void print_server_hello(ServerHello hello)
    EncryptedPreMasterSecret is the only data in the ClientKeyExchange
    and its length can therefore be unambiguously determined
 */
-flea_tls__client_key_ex_t create_client_key_exchange(flea_tls_ctx_t* tls_ctx, flea_public_key_t* pubkey)
+flea_err_t THR_flea_tls__create_client_key_exchange(flea_tls_ctx_t* tls_ctx, flea_public_key_t* pubkey, flea_tls__client_key_ex_t* key_ex)
 {
-	flea_tls__client_key_ex_t key_ex;
 	flea_u8_t premaster_secret[48];
 
-
+	FLEA_THR_BEG_FUNC();
 
 	premaster_secret[0] = 3;
 	premaster_secret[1] = 3;
-	key_ex.algorithm = KEY_EXCHANGE_ALGORITHM_RSA;
+	key_ex->algorithm = KEY_EXCHANGE_ALGORITHM_RSA;
 
 	// random 46 bit
 	flea_rng__randomize(premaster_secret+2, 46);
@@ -975,7 +974,7 @@ flea_tls__client_key_ex_t create_client_key_exchange(flea_tls_ctx_t* tls_ctx, fl
 	//flea_rng__randomize(tls_ctx->premaster_secret+2, 46);
 	memcpy(tls_ctx->premaster_secret+2, premaster_secret+2, 46);
 
-	memcpy(key_ex.premaster_secret, premaster_secret, 48);
+	memcpy(key_ex->premaster_secret, premaster_secret, 48);
 
 	/**
 		   RSA encryption is done using the RSAES-PKCS1-v1_5 encryption scheme
@@ -988,10 +987,11 @@ flea_tls__client_key_ex_t create_client_key_exchange(flea_tls_ctx_t* tls_ctx, fl
 	//THR_flea_public_key_t__encrypt_message(*key__pt, pk_scheme_id__t, hash_id__t, message__pcu8, message_len__alu16, result__pu8, result_len__palu16);
 	flea_err_t err = THR_flea_public_key_t__encrypt_message(pubkey, flea_rsa_pkcs1_v1_5_encr, 0, premaster_secret, sizeof(premaster_secret), buf, &result_len);
 
-	key_ex.encrypted_premaster_secret = calloc(result_len, sizeof(flea_u8_t));
-	memcpy(key_ex.encrypted_premaster_secret, buf, result_len);
-	key_ex.encrypted_premaster_secret_length = result_len;
-	return key_ex;
+	key_ex->encrypted_premaster_secret = calloc(result_len, sizeof(flea_u8_t));
+	memcpy(key_ex->encrypted_premaster_secret, buf, result_len);
+	key_ex->encrypted_premaster_secret_length = result_len;
+
+	FLEA_THR_FIN_SEC_empty();
 }
 
 void client_key_exchange_to_bytes(flea_tls__client_key_ex_t* key_ex, flea_u8_t *bytes, flea_u32_t* length)
@@ -1528,7 +1528,8 @@ flea_err_t THR_flea_tls__send_client_key_exchange(flea_tls_ctx_t* tls_ctx, flea_
 {
 	FLEA_THR_BEG_FUNC();
 
-	flea_tls__client_key_ex_t client_key_ex = create_client_key_exchange(tls_ctx, pubkey);
+	flea_tls__client_key_ex_t client_key_ex;
+	FLEA_CCALL(THR_flea_tls__create_client_key_exchange(tls_ctx, pubkey, &client_key_ex));
 
 	// transform struct to bytes
 	flea_u8_t client_key_ex_bytes[16384];
