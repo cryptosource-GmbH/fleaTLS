@@ -39,7 +39,7 @@ static unsigned canary_errors = 0;
 #else
 #define CHECK_DBG_CANARIES_FLAG_SWITCHED(__f)
 #endif
- 
+
 #define CALL_TEST(__f) \
 do { \
   if(!func_prefix || is_prefix_of(func_prefix, # __f )) { \
@@ -63,6 +63,7 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
     FLEA_PRINTF_1_SWITCHED("error with lib init, tests aborted\n");
     return 1;
   }
+  CALL_TEST(test_tls());return 0; // CHANGE THIS LINE BACK
   for(i = 0; i < nb_reps; i++)
   {
     if(!cert_path_prefix)
@@ -144,7 +145,7 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
       CALL_TEST(THR_flea_test_dec_tls_server_issuer_cert());
 
 #ifdef FLEA_HAVE_RSA
-      CALL_TEST(THR_flea_test_cert_verify_rsa()); 
+      CALL_TEST(THR_flea_test_cert_verify_rsa());
       CALL_TEST(THR_flea_test_cert_chain_correct_chain_of_two());
       CALL_TEST(THR_flea_test_tls_cert_chain());
 #endif

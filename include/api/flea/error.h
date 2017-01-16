@@ -171,6 +171,10 @@ typedef enum
   FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED              = 0x00E4,
   FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT               = 0x00E5,
 
+  /**
+   * TLS Errors
+   */ 
+  FLEA_ERR_TLS_GENERIC                                = 0x0100,
 
   FLEA_ERR_OUT_OF_MEM                                 = 0x00FF,
 
