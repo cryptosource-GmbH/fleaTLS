@@ -1381,6 +1381,7 @@ flea_err_t THR_flea_tls__send(int socket_fd, flea_u8_t* buff, flea_u32_t buff_si
 	FLEA_THR_FIN_SEC_empty();
 }
 
+// TODO: when sending finished, need to init hash_ctx again ? finished calls finalize
 flea_err_t THR_flea_tls__send_handshake_message(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t* hash_ctx, HandshakeType type, flea_u8_t* msg_bytes, flea_u32_t msg_bytes_len, int socket_fd) {
 	FLEA_THR_BEG_FUNC();
 
@@ -1446,24 +1447,8 @@ flea_err_t THR_flea_tls__send_finished(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t*
 	flea_u32_t finished_bytes_len;
 	finished_to_bytes(&finished, finished_bytes, &finished_bytes_len);
 
-	// create handshake message
-	flea_u8_t handshake_bytes[16384]; // TODO: max length for handshake is 2^24 = 16777216
-	flea_u32_t handshake_bytes_len;
-	create_handshake_message(HANDSHAKE_TYPE_FINISHED, finished_bytes, finished_bytes_len, handshake_bytes, &handshake_bytes_len);
+	FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_FINISHED, finished_bytes, finished_bytes_len, socket_fd));
 
-	// create record
-	Record record;
-	flea_u8_t record_bytes[16384];
-	flea_u16_t record_bytes_len;
-	THR_flea_tls__create_record(tls_ctx, &record, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_CIPHERTEXT);	// TODO: can be something else than PLAINTEXT
-	record_to_bytes(&record, record_bytes, &record_bytes_len);
-
-	// send record
-	if (send(socket_fd, record_bytes, record_bytes_len, 0) < 0)
-	{
-		printf("send failed\n");
-		FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
-	}
 
 	// add handshake message to Hash
 	//FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
@@ -1485,13 +1470,12 @@ flea_err_t THR_flea_tls__send_client_hello(flea_tls_ctx_t* tls_ctx, flea_hash_ct
 
 	FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO, client_hello_bytes, client_hello_bytes_len, socket_fd));
 
-
 	// add random to tls_ctx
 	memcpy(tls_ctx->security_parameters->client_random.gmt_unix_time, client_hello.random.gmt_unix_time, sizeof(tls_ctx->security_parameters->client_random.gmt_unix_time));
 	memcpy(tls_ctx->security_parameters->client_random.random_bytes, client_hello.random.random_bytes, sizeof(tls_ctx->security_parameters->client_random.random_bytes));
 
 	// add handshake message to Hash
-	FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
+	//FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
 
 	FLEA_THR_FIN_SEC_empty();
 }
@@ -1510,30 +1494,13 @@ flea_err_t THR_flea_tls__send_client_key_exchange(flea_tls_ctx_t* tls_ctx, flea_
 	flea_u32_t client_key_ex_bytes_len;
 	client_key_exchange_to_bytes(&client_key_ex, client_key_ex_bytes, &client_key_ex_bytes_len);
 
-	// create handshake message
-	flea_u8_t handshake_bytes[16384]; // TODO: max length for handshake is 2^24 = 16777216
-	flea_u32_t handshake_bytes_len;
-	create_handshake_message(HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE, client_key_ex_bytes, client_key_ex_bytes_len, handshake_bytes, &handshake_bytes_len);
-
-	// create record
-	Record record;
-	flea_u8_t record_bytes[16384];
-	flea_u16_t record_bytes_len;
-	THR_flea_tls__create_record(tls_ctx, &record, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_PLAINTEXT);	// TODO: can be something else than PLAINTEXT
-	record_to_bytes(&record, record_bytes, &record_bytes_len);
-
-	// send record
-	if (send(socket_fd, record_bytes, record_bytes_len, 0) < 0)
-	{
-		printf("send failed\n");
-		FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
-	}
+	FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE, client_key_ex_bytes, client_key_ex_bytes_len, socket_fd));
 
 	// add secrets to tls_ctx
 	memcpy(tls_ctx->premaster_secret, client_key_ex.premaster_secret, 256); // TODO: variable size depending on key ex method
 
 	// add handshake message to Hash
-	FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
+	//FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
 
 	FLEA_THR_FIN_SEC_empty();
 }
