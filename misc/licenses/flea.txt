@@ -3,10 +3,10 @@ __________________
 ******************
   Cryptography. Security.
 
-flea cryptographic library for embedded systems
+fleaTLS cryptographic library for embedded systems
 Copyright (C) 2015-2017 cryptosource GmbH
 
-flea license version 2.0
+flea license version 2
 
 1. This source code may be used freely, provided that the following conditions are met:
 
