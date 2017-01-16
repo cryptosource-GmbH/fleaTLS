@@ -279,12 +279,12 @@ flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_
       }
   }
   /* try to find a path */
-  while(1)
+  while(cert_chain__pt->abort_cert_path_finding__vb == FLEA_FALSE)
   {
     flea_x509_cert_ref_t *subject;
     flea_al_u16_t issuer_pos;
     flea_bool_t failed_path = FLEA_FALSE; 
-      subject = &cert_collection__bt[chain__bu16[*chain_pos__pu16]];
+    subject = &cert_collection__bt[chain__bu16[*chain_pos__pu16]];
         
       if(is_cert_trusted(subject))
       {
@@ -349,8 +349,8 @@ flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_
     chain__bu16[(*chain_pos__pu16) + 1] += 1;
 
   } 
-
-  FLEA_THR_FIN_SEC(
+  FLEA_THROW("user cancelled certfication path search",  FLEA_ERR_X509_USER_CANCELLED);
+  FLEA_THR_FIN_SEC_empty(
       );
 }
 
@@ -379,10 +379,15 @@ flea_err_t THR_flea_cert_path_validator_t__ctor_cert_ref(flea_cert_path_validato
 #endif
   chain__pt->nb_crls__u16 = 0;
   chain__pt->perform_revocation_checking__b = FLEA_TRUE;
+  chain__pt->abort_cert_path_finding__vb = FLEA_FALSE;
   FLEA_CCALL(THR_flea_cert_path_validator_t__add_cert_ref_without_trust_status(chain__pt, target_cert__pt));
   FLEA_THR_FIN_SEC_empty(); 
 }
 
+void flea_cert_path_validator_t__abort_cert_path_building(flea_cert_path_validator_t *chain__pt)
+{
+  chain__pt->abort_cert_path_finding__vb = FLEA_TRUE;
+}
 flea_err_t THR_flea_cert_path_validator_t__add_crl(flea_cert_path_validator_t* chain__pt, const flea_ref_cu8_t *crl_der__cprcu8)
 {
   FLEA_THR_BEG_FUNC();
@@ -456,5 +461,6 @@ flea_err_t THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(flea_cert_p
 
   FLEA_THR_FIN_SEC_empty(); 
 }
+
 
 #endif /* #ifdef FLEA_HAVE_ASYM_SIG */

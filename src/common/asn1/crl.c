@@ -254,7 +254,7 @@ static flea_err_t THR_flea_crl__parse_extensions(flea_ber_dec_t *dec__pt, flea_b
       }
       if(indirect_crl__b)
       {
-        FLEA_THROW("unsuitable CRL", FLEA_ERR_X509_UNSUPP_INDIR_CRL);
+        FLEA_THROW("indirect CRL", FLEA_ERR_X509_UNSUPP_INDIR_CRL);
       }
       FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&cont_dec__t));
     }
