@@ -1171,15 +1171,15 @@ flea_err_t THR_flea_tls__create_record(flea_tls_ctx_t* tls_ctx, Record* record, 
 		flea_u8_t mac_data[mac_data_length];
 		memcpy(mac_data, &sequence_number, 8);
 		mac_data[8] = CONTENT_TYPE_HANDSHAKE;
-		mac_data[9] = 0x03;
-		mac_data[10] = 0x03;
-		mac_data[11] = 0x00;
+		mac_data[9] = tls_ctx->version.major;
+		mac_data[10] = tls_ctx->version.minor;
+		mac_data[11] = 0x00;		// TODO: first length byte
 		mac_data[12] = length;	// length is < 256 in this case but have to generalize it
 		memcpy(mac_data+13, data, length);
 
   	FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, client_write_mac_key, 32, mac_data, mac_data_length, mac, (flea_al_u8_t*)(&mac_length)));
 
-		// compute IV ... TODO: xor with last plaintext block?
+		// compute IV ... TODO: xor with last plaintext block? -> RFC
 		flea_rng__randomize(iv, iv_length);
 
 		// compute padding
