@@ -1483,26 +1483,8 @@ flea_err_t THR_flea_tls__send_client_hello(flea_tls_ctx_t* tls_ctx, flea_hash_ct
 	flea_u32_t client_hello_bytes_len;	// 24 bit
 	client_hello_to_bytes(&client_hello, client_hello_bytes, &client_hello_bytes_len);
 
-	//FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO, client_hello_bytes, client_hello_bytes_len, socket_fd));
+	FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO, client_hello_bytes, client_hello_bytes_len, socket_fd));
 
-	// create handshake message
-	flea_u8_t handshake_bytes[16384]; // TODO: max length for handshake is 2^24 = 16777216
-	flea_u32_t handshake_bytes_len;
-	create_handshake_message(HANDSHAKE_TYPE_CLIENT_HELLO, client_hello_bytes, client_hello_bytes_len, handshake_bytes, &handshake_bytes_len);
-
-	// create record
-	Record record;
-	flea_u8_t record_bytes[16384];
-	flea_u16_t record_bytes_len;
-	THR_flea_tls__create_record(tls_ctx, &record, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_PLAINTEXT);	// TODO: can be something else than PLAINTEXT
-	record_to_bytes(&record, record_bytes, &record_bytes_len);
-
-	// send record
-	if (send(socket_fd, record_bytes, record_bytes_len, 0) < 0)
-	{
-		printf("send failed\n");
-		FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
-	}
 
 	// add random to tls_ctx
 	memcpy(tls_ctx->security_parameters->client_random.gmt_unix_time, client_hello.random.gmt_unix_time, sizeof(tls_ctx->security_parameters->client_random.gmt_unix_time));
