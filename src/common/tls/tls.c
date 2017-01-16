@@ -1741,16 +1741,12 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx
 			FLEA_CCALL(create_master_secret(tls_ctx->security_parameters->client_random, tls_ctx->security_parameters->server_random, tls_ctx->premaster_secret, tls_ctx->security_parameters->master_secret));
 			generate_key_block(tls_ctx, tls_ctx->key_block);
 
-			// TODO: key_block_2 != key_block zu diesem zeitpunkt. Später in read_record gibt key_block2 das gleiche Ergebnis
 			THR_flea_tls__create_connection_params(tls_ctx, tls_ctx->pending_write_connection_state, &cipher_suites[1], FLEA_TRUE);
 
 			// make pending state active
 			// TODO: call destructor active write state
 			tls_ctx->active_write_connection_state = tls_ctx->pending_write_connection_state;
 			// TODO: call constructor on pending write state
-
-
-			//FLEA_CCALL(generate_key_block(tls_ctx->security_parameters->master_secret, tls_ctx->security_parameters->client_random, tls_ctx->security_parameters->server_random));
 
 			FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &hash_ctx, socket_fd));
 
