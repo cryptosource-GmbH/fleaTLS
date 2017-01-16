@@ -291,7 +291,7 @@ typedef struct {
 	flea_tls__mac_algorithm_t mac_algorithm;			/* negotiated mac algorithm */
 	/*flea_u8_t mac_length;
 	flea_u8_t mac_key_length;*/
-	flea_u8_t* compression_methods;						/* Pool of compression methods that can be negotiated. Priority (in case of server): Prefer first over second and so on */
+	CompressionMethod* compression_methods;						/* Pool of compression methods that can be negotiated. Priority (in case of server): Prefer first over second and so on */
 	flea_u32_t compression_methods_len;
 	flea_u8_t master_secret[48];						/* symmetric keys are derived from this */
 	Random client_random;								/* random value that the client sends */
@@ -985,7 +985,7 @@ flea_err_t THR_flea_tls__create_client_key_exchange(flea_tls_ctx_t* tls_ctx, fle
 	flea_al_u16_t result_len = 256;
 	flea_u8_t buf[256];
 	//THR_flea_public_key_t__encrypt_message(*key__pt, pk_scheme_id__t, hash_id__t, message__pcu8, message_len__alu16, result__pu8, result_len__palu16);
-	flea_err_t err = THR_flea_public_key_t__encrypt_message(pubkey, flea_rsa_pkcs1_v1_5_encr, 0, premaster_secret, sizeof(premaster_secret), buf, &result_len);
+	FLEA_CCALL(THR_flea_public_key_t__encrypt_message(pubkey, flea_rsa_pkcs1_v1_5_encr, 0, premaster_secret, sizeof(premaster_secret), buf, &result_len));
 
 	key_ex->encrypted_premaster_secret = calloc(result_len, sizeof(flea_u8_t));
 	memcpy(key_ex->encrypted_premaster_secret, buf, result_len);
