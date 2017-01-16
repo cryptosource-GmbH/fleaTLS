@@ -10,7 +10,7 @@ flea license version 2
 
 1. This source code may be used freely, provided that the following conditions are met:
 
-     a. Redistribution of the source code, including the header files, is not allowed. 
+     a. Redistribution of the source code or the header files is not allowed. 
 
      b. Redistribution of binary code derived from the source code is allowed,
         provided that it is not distributed in a form that is explicitly prepared
