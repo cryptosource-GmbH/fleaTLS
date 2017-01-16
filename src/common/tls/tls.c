@@ -956,16 +956,14 @@ void print_server_hello(ServerHello hello)
    EncryptedPreMasterSecret is the only data in the ClientKeyExchange
    and its length can therefore be unambiguously determined
 */
-flea_tls__client_key_ex_t create_client_key_exchange(flea_tls_ctx_t* tls_ctx, flea_public_key_t* pubkey)
+flea_err_t THR_flea_tls__create_client_key_exchange(flea_tls_ctx_t* tls_ctx, flea_public_key_t* pubkey, flea_tls__client_key_ex_t* key_ex)
 {
-	flea_tls__client_key_ex_t key_ex;
+	FLEA_THR_BEG_FUNC();
 	flea_u8_t premaster_secret[48];
-
-
 
 	premaster_secret[0] = 3;
 	premaster_secret[1] = 3;
-	key_ex.algorithm = KEY_EXCHANGE_ALGORITHM_RSA;
+	key_ex->algorithm = KEY_EXCHANGE_ALGORITHM_RSA;
 
 	// random 46 bit
 	flea_rng__randomize(premaster_secret+2, 46);
@@ -975,7 +973,7 @@ flea_tls__client_key_ex_t create_client_key_exchange(flea_tls_ctx_t* tls_ctx, fl
 	//flea_rng__randomize(tls_ctx->premaster_secret+2, 46);
 	memcpy(tls_ctx->premaster_secret+2, premaster_secret+2, 46);
 
-	memcpy(key_ex.premaster_secret, premaster_secret, 48);
+	memcpy(key_ex->premaster_secret, premaster_secret, 48);
 
 	/**
 		   RSA encryption is done using the RSAES-PKCS1-v1_5 encryption scheme
@@ -988,10 +986,10 @@ flea_tls__client_key_ex_t create_client_key_exchange(flea_tls_ctx_t* tls_ctx, fl
 	//THR_flea_public_key_t__encrypt_message(*key__pt, pk_scheme_id__t, hash_id__t, message__pcu8, message_len__alu16, result__pu8, result_len__palu16);
 	flea_err_t err = THR_flea_public_key_t__encrypt_message(pubkey, flea_rsa_pkcs1_v1_5_encr, 0, premaster_secret, sizeof(premaster_secret), buf, &result_len);
 
-	key_ex.encrypted_premaster_secret = calloc(result_len, sizeof(flea_u8_t));
-	memcpy(key_ex.encrypted_premaster_secret, buf, result_len);
-	key_ex.encrypted_premaster_secret_length = result_len;
-	return key_ex;
+	key_ex->encrypted_premaster_secret = calloc(result_len, sizeof(flea_u8_t));
+	memcpy(key_ex->encrypted_premaster_secret, buf, result_len);
+	key_ex->encrypted_premaster_secret_length = result_len;
+	FLEA_THR_FIN_SEC_empty();
 }
 
 void client_key_exchange_to_bytes(flea_tls__client_key_ex_t* key_ex, flea_u8_t *bytes, flea_u32_t* length)
@@ -1122,7 +1120,7 @@ IV Size
          SecurityParameters.block_size.
 
 */
-void create_record(flea_tls_ctx_t* tls_ctx, Record* record, flea_u8_t* data, flea_u16_t length, ContentType content_type, RecordType record_type) {
+void create_record(flea_tls_ctx_t* tls_ctx, Record* record, flea_u8_t* data, flea_u32_t length, ContentType content_type, RecordType record_type) {
 	if (tls_ctx->active_write_connection_state->cipher_suite->id == TLS_NULL_WITH_NULL_NULL)
 	{
 		record->record_type = RECORD_TYPE_PLAINTEXT;
@@ -1401,7 +1399,7 @@ flea_err_t THR_flea_tls__send_handshake_message(flea_tls_ctx_t* tls_ctx, flea_ha
 	// create record
 	Record record;
 	flea_u8_t record_bytes[16384];
-	flea_u32_t record_bytes_len;
+	flea_u16_t record_bytes_len;
 	create_record(tls_ctx, &record, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_PLAINTEXT);	// TODO: can be something else than PLAINTEXT
 	record_to_bytes(&record, record_bytes, &record_bytes_len);
 
@@ -1463,7 +1461,7 @@ flea_err_t THR_flea_tls__send_finished(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t*
 	// create record
 	Record record;
 	flea_u8_t record_bytes[16384];
-	flea_u32_t record_bytes_len;
+	flea_u16_t record_bytes_len;
 	create_record(tls_ctx, &record, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_CIPHERTEXT);	// TODO: can be something else than PLAINTEXT
 	record_to_bytes(&record, record_bytes, &record_bytes_len);
 
@@ -1502,7 +1500,7 @@ flea_err_t THR_flea_tls__send_client_hello(flea_tls_ctx_t* tls_ctx, flea_hash_ct
 	// create record
 	Record record;
 	flea_u8_t record_bytes[16384];
-	flea_u32_t record_bytes_len;
+	flea_u16_t record_bytes_len;
 	create_record(tls_ctx, &record, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_PLAINTEXT);	// TODO: can be something else than PLAINTEXT
 	record_to_bytes(&record, record_bytes, &record_bytes_len);
 
@@ -1528,7 +1526,8 @@ flea_err_t THR_flea_tls__send_client_key_exchange(flea_tls_ctx_t* tls_ctx, flea_
 {
 	FLEA_THR_BEG_FUNC();
 
-	flea_tls__client_key_ex_t client_key_ex = create_client_key_exchange(tls_ctx, pubkey);
+	flea_tls__client_key_ex_t client_key_ex;
+	THR_flea_tls__create_client_key_exchange(tls_ctx, pubkey, &client_key_ex);
 
 	// transform struct to bytes
 	flea_u8_t client_key_ex_bytes[16384];
@@ -1543,7 +1542,7 @@ flea_err_t THR_flea_tls__send_client_key_exchange(flea_tls_ctx_t* tls_ctx, flea_
 	// create record
 	Record record;
 	flea_u8_t record_bytes[16384];
-	flea_u32_t record_bytes_len;
+	flea_u16_t record_bytes_len;
 	create_record(tls_ctx, &record, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_PLAINTEXT);	// TODO: can be something else than PLAINTEXT
 	record_to_bytes(&record, record_bytes, &record_bytes_len);
 
