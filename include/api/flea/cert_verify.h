@@ -3,7 +3,6 @@
 #ifndef _flea_cert_verify__H_
 #define _flea_cert_verify__H_
 
-
 #include "flea/ber_dec.h"
 #include "flea/x509.h"
 #include "flea/types.h"
@@ -27,5 +26,6 @@ flea_err_t THR_flea_x509_verify_cert_ref_signature_inherited_params(const flea_x
 #ifdef __cplusplus
 }
 #endif
+
 #endif /* h-guard */
 

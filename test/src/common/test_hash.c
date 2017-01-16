@@ -22,7 +22,6 @@ static flea_err_t THR_flea_test_hash_init_dtor ()
 }
 static flea_err_t THR_flea_test_hash_mess_result(flea_hash_id_t id__t, const flea_u8_t *m__pcu8, flea_al_u16_t m_len__al_u16, const flea_u8_t* exp_res__pcu8, flea_al_u16_t exp_res_len__alu16)
 {
-  //flea_al_u16_t m_len__al_u16 = sizeof(m__pcu8);
 
   FLEA_DECL_BUF(digest__b_u8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
 

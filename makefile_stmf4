@@ -44,7 +44,7 @@ CFLAGS += -Iinc -Iinc/core -Iinc/peripherals
 
 SRC_DIR = src
 
-SRC_DIRS = src/common src/common/hash src/common/math src/common/pk_enc src/user
+SRC_DIRS = src/common/asn1 src/common/streams src/common src/common/hash src/common/math src/common/pk_enc src/user
 
 
 SRCS := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))

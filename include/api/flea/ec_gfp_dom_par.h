@@ -46,10 +46,6 @@ typedef enum
   flea_brainpoolP384r1 = 6,
   flea_brainpoolP512r1 = 7,
 
-  flea_secp112r1, // TODO: REMOVE CURVES WITH LESS THAN 160 BITS
-  flea_secp112r2,
-  flea_secp128r1,
-  flea_secp128r2,
   flea_secp160r1,
   flea_secp160r2,
   flea_secp192r1, /*NIST FIPS186-3 P-192 */
@@ -66,18 +62,6 @@ extern const flea_ec_dom_par_id_t flea_gl_ec_dom_par_max_id;
  */
 typedef enum { flea_dp__p = 0, flea_dp__a = 1, flea_dp__b = 2, flea_dp__Gx = 3, flea_dp__Gy = 4, flea_dp__n, flea_dp__h } flea_ec_dom_par_element_id_t;
 
-// TODO: REMOVE THE FOLLOWING FROM API:
-
-/**
- *  Get a pointer to an element of the domain parameters in the flea internal
- *  format.
- *
- *  @param enc_dp domain parameters in flea internal format
- *  @param id id of the element to get the pointer to
- *
- *  @return a pointer to the specified element
- */
-const flea_u8_t* flea_ec_dom_par__get_ptr_to_elem(const flea_u8_t* enc_dp, flea_ec_dom_par_element_id_t id);
 
 /**
  * Get the real byte the length of the order n in the domain parameters (in
@@ -119,8 +103,6 @@ const flea_u8_t* flea_ec_dom_par__get_predefined_dp_ptr(flea_ec_dom_par_id_t dp_
  * otherwise the byte length of the domain parameters in the flea internal format
  */
 flea_al_u16_t flea_ec_dom_par__get_predefined_dp_len(flea_ec_dom_par_id_t dp_id);
-
-//void flea_ec_gfp_dom_par_t__set_from_internal_format(flea_ec_gfp_dom_par_t * result__pt, const flea_u8_t *enc_dp__pcu8);
 
 
 flea_err_t THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(flea_ec_gfp_dom_par_ref_t *dp_to_set__pt, flea_ec_dom_par_id_t id);

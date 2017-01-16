@@ -18,15 +18,6 @@
  */
 #define FLEA_ECC_MAX_PRIVATE_KEY_BYTE_SIZE FLEA_ECC_MAX_ORDER_BYTE_SIZE
 
-// TODO: GET RID OF THIS, USE NEW KEY STRUCTURE
-typedef struct
-{
-  // TODO: RENAME TYPE TO CREF!
-flea_ref_u8_t pub_point_uncompr__cru8;
-//flea_ref_u8_t pub_point_y__cru8;
-flea_ec_gfp_dom_par_ref_t dom_par__t;
-} flea_ecc_pub_key_t;
-
 #endif /* #ifdef FLEA_HAVE_ECC */
 
 #endif /* h-guard */

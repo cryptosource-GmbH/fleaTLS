@@ -1,6 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
-#include "internal/common/build_config.h"
+#include "internal/common/default.h"
 #include "flea/rng.h"
 #include "internal/common/rng_int.h"
 #include "flea/ctr_mode_prng.h"
@@ -9,6 +9,7 @@
 #include "flea/alloc.h"
 #include "flea/error_handling.h"
 #include "flea/hash.h"
+#include "flea/types.h"
 #include "string.h"
 
 static flea_ctr_mode_prng_t gl_rng_ctx__t;

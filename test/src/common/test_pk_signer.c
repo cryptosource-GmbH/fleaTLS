@@ -60,7 +60,6 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_signature_reference ()
 
 
 #if defined FLEA_HAVE_ECDSA || defined FLEA_HAVE_RSA
-//static flea_err_t THR_flea_test_pk_signer_sign_verify_inner (flea_pk_scheme_id_t scheme_id__t, flea_hash_id_t hash_id__t, const flea_u8_t* param__pc_u8, flea_al_u16_t param_len__al_u16)
 static flea_err_t THR_flea_test_pk_signer_sign_verify_inner (flea_pk_scheme_id_t scheme_id__t, flea_hash_id_t hash_id__t, const flea_pub_key_param_u *param__pu)
 {
   flea_al_u8_t is_ecdsa = param__pu != NULL;
@@ -69,8 +68,8 @@ static flea_err_t THR_flea_test_pk_signer_sign_verify_inner (flea_pk_scheme_id_t
   FLEA_DECL_OBJ(verifier__t, flea_pk_signer_t);
   FLEA_DECL_OBJ(verifier2__t, flea_pk_signer_t);
   FLEA_DECL_BUF(sig_buf__b_u8, flea_u8_t, FLEA_PK_MAX_SIGNATURE_LEN);
-  FLEA_DECL_BUF(pub_key__b_u8, flea_u8_t, FLEA_PK_MAX_PUBKEY_LEN);
-  FLEA_DECL_BUF(priv_key__b_u8, flea_u8_t, FLEA_ECC_MAX_PUBKEY_LEN );  // only used ECDSA, not for RSA
+  FLEA_DECL_BUF(pub_key__b_u8, flea_u8_t, FLEA_PK_MAX_INTERNAL_FORMAT_PUBKEY_LEN);
+  FLEA_DECL_BUF(priv_key__b_u8, flea_u8_t, FLEA_ECC_MAX_ENCODED_POINT_LEN );  // only used ECDSA, not for RSA
   const flea_u8_t* priv_key_alias__p_u8;
   const flea_u8_t* pub_key_alias__p_u8;
   flea_al_u16_t sig_len__al_u16;
@@ -84,7 +83,7 @@ static flea_err_t THR_flea_test_pk_signer_sign_verify_inner (flea_pk_scheme_id_t
   flea_pub_key_param_u rsa_param__u;
   FLEA_THR_BEG_FUNC();
 
-  pub_key_len__al_u16 = FLEA_PK_MAX_PUBKEY_LEN;
+  pub_key_len__al_u16 = FLEA_PK_MAX_INTERNAL_FORMAT_PUBKEY_LEN;
   priv_key_len__al_u16 = FLEA_PK_MAX_PRIVKEY_LEN;
   sig_len__al_u16 = 2048/8;
 
@@ -92,7 +91,6 @@ static flea_err_t THR_flea_test_pk_signer_sign_verify_inner (flea_pk_scheme_id_t
 
   pub_key_len__al_u8 = pub_key_len__al_u16;
   priv_key_len__al_u8 = pub_key_len__al_u16;
-  //if(param__pc_u8)
   if(is_ecdsa)
   {
 
@@ -110,12 +108,10 @@ static flea_err_t THR_flea_test_pk_signer_sign_verify_inner (flea_pk_scheme_id_t
   else
   {
     // it's an RSA key
-    //param__pc_u8 = rsa_pub_exp__a_u8;
     rsa_param__u.rsa_public_exp__ru8.data__pcu8 = rsa_pub_exp__a_u8;
     rsa_param__u.rsa_public_exp__ru8.len__dtl =  sizeof(rsa_pub_exp__a_u8);
     param__pu = &rsa_param__u;
     priv_key_alias__p_u8 = rsa_2048_crt_key_internal_format__acu8;
-    //param_len__al_u16 = sizeof(rsa_pub_exp__a_u8);
     priv_key_len__al_u16 = sizeof(rsa_2048_crt_key_internal_format__acu8);
     pub_key_alias__p_u8 = rsa_2048_pub_key_internal_format__acu8;
     pub_key_len__al_u16 = sizeof(rsa_2048_pub_key_internal_format__acu8);
@@ -137,15 +133,15 @@ static flea_err_t THR_flea_test_pk_signer_sign_verify_inner (flea_pk_scheme_id_t
     }
     FLEA_CCALL(THR_flea_pk_signer_t__update(&signer__t, &i_u8, 1));
   }
-  FLEA_CCALL(THR_flea_pk_signer_t__final_sign(&signer__t, scheme_id__t, priv_key_alias__p_u8, priv_key_len__al_u16, /*param__pc_u8, param_len__al_u16,*/ sig_buf__b_u8, &sig_len__al_u16, param__pu));
+  FLEA_CCALL(THR_flea_pk_signer_t__final_sign(&signer__t, scheme_id__t, priv_key_alias__p_u8, priv_key_len__al_u16, sig_buf__b_u8, &sig_len__al_u16, param__pu));
 
 
   if(is_ecdsa)
   {
     // ecdsa processing
-    FLEA_CCALL(THR_flea_pk_signer_t__final_verify(&verifier__t, scheme_id__t, pub_key_alias__p_u8, pub_key_len__al_u16, /*param__pc_u8, param_len__al_u16,*/ sig_buf__b_u8, sig_len__al_u16, param__pu));
+    FLEA_CCALL(THR_flea_pk_signer_t__final_verify(&verifier__t, scheme_id__t, pub_key_alias__p_u8, pub_key_len__al_u16, sig_buf__b_u8, sig_len__al_u16, param__pu));
 
-    if(FLEA_ERR_INV_SIGNATURE != THR_flea_pk_signer_t__final_verify(&verifier2__t, scheme_id__t, pub_key_alias__p_u8, pub_key_len__al_u16, /*param__pc_u8, param_len__al_u16,*/ sig_buf__b_u8, sig_len__al_u16, param__pu))
+    if(FLEA_ERR_INV_SIGNATURE != THR_flea_pk_signer_t__final_verify(&verifier2__t, scheme_id__t, pub_key_alias__p_u8, pub_key_len__al_u16,  sig_buf__b_u8, sig_len__al_u16, param__pu))
     {
       FLEA_THROW("error with invalid signature", FLEA_ERR_FAILED_TEST);
     }
@@ -154,9 +150,9 @@ static flea_err_t THR_flea_test_pk_signer_sign_verify_inner (flea_pk_scheme_id_t
   {
     // rsa processing
 
-    FLEA_CCALL(THR_flea_pk_signer_t__final_verify(&verifier__t, scheme_id__t, pub_key_alias__p_u8, pub_key_len__al_u16, /*rsa_pub_exp__a_u8, sizeof(rsa_pub_exp__a_u8),*/ sig_buf__b_u8, sig_len__al_u16, param__pu));
+    FLEA_CCALL(THR_flea_pk_signer_t__final_verify(&verifier__t, scheme_id__t, pub_key_alias__p_u8, pub_key_len__al_u16, sig_buf__b_u8, sig_len__al_u16, param__pu));
 
-    if(FLEA_ERR_INV_SIGNATURE != THR_flea_pk_signer_t__final_verify(&verifier2__t, scheme_id__t, pub_key_alias__p_u8, pub_key_len__al_u16,  /*rsa_pub_exp__a_u8, sizeof(rsa_pub_exp__a_u8),*/ sig_buf__b_u8, sig_len__al_u16, param__pu))
+    if(FLEA_ERR_INV_SIGNATURE != THR_flea_pk_signer_t__final_verify(&verifier2__t, scheme_id__t, pub_key_alias__p_u8, pub_key_len__al_u16, sig_buf__b_u8, sig_len__al_u16, param__pu))
     {
       FLEA_THROW("error with invalid signature", FLEA_ERR_FAILED_TEST);
     }
@@ -199,7 +195,6 @@ flea_err_t THR_flea_test_pk_signer_sign_verify ()
   flea_err_t err_code = THR_flea_test_pk_signer_sign_verify_inner(flea_rsa_pkcs1_v1_5_sign, flea_sha256, NULL);
   if(err_code != FLEA_ERR_INV_KEY_SIZE && err_code != FLEA_ERR_BUFF_TOO_SMALL )
   {
-    //printf("error code = %02x\n", err_code);
     FLEA_THROW("wrong return value for invalid key size", FLEA_ERR_FAILED_TEST);
   }
 #   else

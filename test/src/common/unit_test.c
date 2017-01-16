@@ -49,12 +49,13 @@ do { \
   } \
 } while(0)
 
-int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_prefix, const char* func_prefix)
+int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_prefix, const char* func_prefix, flea_bool_t full__b)
 {
 
   unsigned nb_exec_tests = 0;
   unsigned failed_tests = 0;
   unsigned i;
+  flea_u32_t nb_cert_path_tests = 0;
   flea_err_t rv = 0;
 
   if(THR_flea_lib__init() || THR_flea_rng__reseed_volatile((flea_u8_t*)&rnd, sizeof(rnd)))
@@ -65,10 +66,8 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
   CALL_TEST(test_tls());return 0; // CHANGE THIS LINE BACK
   for(i = 0; i < nb_reps; i++)
   {
-    // TODO: put back in
     if(!cert_path_prefix)
     {
-      //#if 0
       CALL_TEST(THR_flea_test_dbg_canaries());
       CALL_TEST(THR_flea_test_mpi_square());
       CALL_TEST(THR_flea_test_montgm_mul_comp_n_prime());
@@ -92,7 +91,7 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
       CALL_TEST(THR_flea_test_mpi_shift_right());
       CALL_TEST(THR_flea_test_mpi_subtract_2());
       CALL_TEST(THR_flea_test_mpi_subtract_3());
-      CALL_TEST(THR_flea_test_mpi_invert_odd_mod());
+      CALL_TEST(THR_flea_test_mpi_invert_odd_mod_1());
       CALL_TEST(THR_flea_test_mpi_invert_odd_mod_2());
       CALL_TEST(THR_flea_test_arithm());
 #if defined FLEA_HAVE_ECC && FLEA_ECC_MAX_MOD_BIT_SIZE >= 160
@@ -131,8 +130,8 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
       CALL_TEST(THR_flea_test_ctr_mode_parts());
       CALL_TEST(THR_flea_test_ctr_mode_prng());
       CALL_TEST(THR_flea_test_crc16());
-      CALL_TEST(THR_test_enc_BE_bitlen()); // TODO: NAMING
-      CALL_TEST(THR_test_incr_enc_BE_int()); // TODO: NAMING
+      CALL_TEST(THR_flea_test_enc_BE_bitlen()); 
+      CALL_TEST(THR_flea_test_incr_enc_BE_int()); 
       //#endif
 
       CALL_TEST(THR_flea_test_data_source_mem());
@@ -148,31 +147,36 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
 #ifdef FLEA_HAVE_RSA
       CALL_TEST(THR_flea_test_cert_verify_rsa());
       CALL_TEST(THR_flea_test_cert_chain_correct_chain_of_two());
+      CALL_TEST(THR_flea_test_tls_cert_chain());
 #endif
 #ifdef FLEA_HAVE_ECDSA
       CALL_TEST(THR_flea_test_cert_verify_ecdsa());
 #endif
+      CALL_TEST(THR_flea_test_gmt_time());
 
       CALL_TEST(THR_flea_test_asn1_date());
 
-      CALL_TEST(THR_flea_test_tls_cert_chain());
-
+#ifdef __FLEA_HAVE_LINUX_FILESYSTEM
 #if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_MOD_BIT_SIZE >= 224
       CALL_TEST(THR_test_ecdsa_self_signed_certs_file_based());
 #endif
+      if(full__b == FLEA_TRUE)
+      {
+        CALL_TEST(THR_flea_test_crt_rsa_raw_file_based());
+        CALL_TEST(THR_flea_test_sha256_file_based());
+      }
+#endif /* __FLEA_HAVE_LINUX_FILESYSTEM */
     }
-    // TODO: REMOVE THIS ONCE ALL REQUIREMENTS ARE REFLECTED BY THE TEST CASE'S
-    // INI FILE
+#ifdef __FLEA_HAVE_LINUX_FILESYSTEM
 #if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
-    CALL_TEST(THR_flea_test_path_validation_file_based(cert_path_prefix));
-#endif
-    if(i == 0)
+    if(!func_prefix)
     {
-      // TODO: FIND FITTING COMPILER FLAGS
-      /*CALL_TEST(THR_flea_test_crt_rsa_raw_file_based());
-
-        CALL_TEST(THR_flea_test_sha256_file_based());*/
+      CALL_TEST(THR_flea_test_path_validation_file_based(cert_path_prefix, &nb_cert_path_tests));
+      nb_exec_tests -= 1; // correct the counting of the dispatcher
+      nb_exec_tests += nb_cert_path_tests;
     }
+#endif
+#endif /* __FLEA_HAVE_LINUX_FILESYSTEM */
     if(failed_tests)
     {
       break;

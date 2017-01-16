@@ -42,8 +42,6 @@ flea_err_t THR_flea_x509_verify_cert_ref_signature_inherited_params(const flea_x
   flea_public_key_t key__t = flea_public_key_t__INIT_VALUE;
   flea_bool_t are_keys_params_implicit__b;
   FLEA_THR_BEG_FUNC();
-  //if(subject_cert_ref__pt->subject_unique_id_as_bitstr__t.len__dtl < 2)   
-  //if(subject_cert_ref__pt->cert_signature_as_bit_string__t.data__pcu8
   if(returned_verifiers_pub_key_params_mbn__prcu8)
   {
     *returned_verifiers_pub_key_params_mbn__prcu8 = subject_cert_ref__pt->subject_public_key_info__t.algid__t.params_ref_as_tlv__t;

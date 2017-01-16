@@ -1,7 +1,7 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
-#include "internal/common/block_cipher/tdes.h"
 #include "internal/common/default.h"
+#include "internal/common/block_cipher/tdes.h"
 #include "internal/common/block_cipher/des.h"
 #include "flea/alloc.h"
 #include "flea/error_handling.h"

@@ -35,7 +35,6 @@ flea_err_t THR_flea_asn1_parse_gmt_time_optional(flea_ber_dec_t *dec__t, flea_gm
 	FLEA_THR_FIN_SEC_empty();
 }
 
-// TODO(Falko): move to ber_dec.c/.h as ..._decode_date     
 flea_err_t THR_flea_asn1_parse_gmt_time(flea_ber_dec_t *dec__t, flea_gmt_time_t *utctime__pt)
 {
 	FLEA_THR_BEG_FUNC();
@@ -119,17 +118,21 @@ flea_err_t THR_flea_asn1_parse_generalized_time(const flea_u8_t *value_in, size_
 	FLEA_THR_BEG_FUNC();
 
 	if (value_length != 15)
+  {
 		FLEA_THROW("invalid length", FLEA_ERR_ASN1_DER_DEC_ERR);
+  }
 
 	if (v[14] != 'Z')
+  {
 		FLEA_THROW("invalid character", FLEA_ERR_ASN1_DER_DEC_ERR);
+  }
 
-	// sanity check
-	// TODO: check more?
 	for (flea_u8_t i=0; i<14; i++)
 	{
 		if (v[i] > 0x39 || v[i] < 0x30)
+    {
 			FLEA_THROW("invalid character", FLEA_ERR_ASN1_DER_DEC_ERR);
+    }
 	}
 
 	memset(value_out, 0, sizeof(flea_gmt_time_t));
@@ -170,8 +173,6 @@ flea_err_t THR_flea_asn1_parse_utc_time(const flea_u8_t *value_in, size_t value_
 	if (v[12] != 'Z')
 		FLEA_THROW("invalid character", FLEA_ERR_ASN1_DER_DEC_ERR);
 	
-	// sanity check
-	// TODO: check more?
 	for (flea_u8_t i=0; i<12; i++)
 	{
 		if (v[i] > 0x39 || v[i] < 0x30)

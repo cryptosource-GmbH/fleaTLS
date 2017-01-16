@@ -18,13 +18,10 @@ extern "C" {
 
 
 
-// TODO: provide key type parameter for params ( put the union into an outer
-// type with that field) 
-// AND make setter for RSA at least
-// TODO: GET RID OF THIS:
 typedef union
 {
- flea_ref_cu8_t rsa_public_exp__ru8;
+
+  flea_ref_cu8_t rsa_public_exp__ru8;
 
 #ifdef FLEA_HAVE_ECC
  flea_ec_gfp_dom_par_ref_t ecc_dom_par__t;
@@ -107,7 +104,6 @@ flea_err_t THR_flea_pk_signer_t__update(flea_pk_signer_t* signer, const flea_u8_
  * @return flea error code FLEA_ERR_FINE indicates successful verification and FLEA_ERR_INV_SIGNATURE indicates a
  * failed signature verification
  */
-//flea_err_t THR_flea_pk_signer_t__final_verify(flea_pk_signer_t* signer, flea_pk_scheme_id_t id, const flea_u8_t* key, flea_al_u16_t key_len, const flea_u8_t* params, flea_al_u16_t params_len, const flea_u8_t* signature, flea_al_u16_t signature_len);
 flea_err_t THR_flea_pk_signer_t__final_verify (flea_pk_signer_t* signer__pt, flea_pk_scheme_id_t id__t, const flea_u8_t* key__pcu8, flea_al_u16_t key_len__alu16, const flea_u8_t* signature__pu8, flea_al_u16_t signature_len__alu16, const flea_pub_key_param_u *param__pu);
 
 
@@ -120,11 +116,6 @@ flea_err_t THR_flea_pk_api__verify_signature(const flea_ref_cu8_t *message__prcu
  * @param id the ID of the signature scheme to use
  * @param key pointer to the private key to be used in the operation
  * @param key_len the length of key
- * TODO:UPDATE (also elsewhere)
- * @param params the parameters to be used for the public key operation
- *    in case of ECDSA, a pointer to the domain parameters in flea's internal
- *    format must be provided. in case of RSA, the public exponent must be
- *    provided.
  * @param params_len the length of params
  * @param signature pointer to the memory area for the signature. this memory area will receive the generated signature.
  * @param signature_len this pointer must
@@ -163,10 +154,16 @@ flea_err_t THR_flea_pk_api__encrypt_message( flea_pk_scheme_id_t id, flea_hash_i
  *  number of bytes written to result
  *  @param key the private key to use for the decryption
  *  @param key_len the length of key
- *  @param params public parameters associated with the key
- *  @param params_len the length of params
+ *  @param enforced_pkcs1_v1_5_decryption_result_len This value is only interpreted in case of PKCS#1 v1.5 decryption.
+ *                                            For normal PKCS#1 v1.5 decoding,
+ *                                            this must be set to zero. Set this
+ *                                            value to the expected message
+ *                                            length to achieve timing neutral
+ *                                            fake result generation in case of
+ *                                            a padding error (defense against
+ *                                            Bleichenbacher's attack).
  */
-flea_err_t THR_flea_pk_api__decrypt_message( flea_pk_scheme_id_t id, flea_hash_id_t hash_id, const flea_u8_t* ciphertext, flea_al_u16_t ciphertext_len, flea_u8_t* result, flea_al_u16_t* result_len, const flea_u8_t* key, flea_al_u16_t key_len, const flea_u8_t* params, flea_al_u16_t params_len);
+flea_err_t THR_flea_pk_api__decrypt_message (flea_pk_scheme_id_t id__t, flea_hash_id_t hash_id__t, const flea_u8_t* ciphertext, flea_al_u16_t ciphertext_len, flea_u8_t* result, flea_al_u16_t* result_len, const flea_u8_t* key, flea_al_u16_t key_len, flea_al_u16_t enforced_pkcs1_v1_5_decryption_result_len );
 
 #ifdef __cplusplus
 }
