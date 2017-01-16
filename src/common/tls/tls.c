@@ -484,18 +484,6 @@ flea_err_t generate_key_block_2(flea_tls_ctx_t* tls_ctx, flea_u8_t* key_block2)
 	FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t generate_key_block(flea_u8_t* master_secret, Random client_random, Random server_random) {
-	FLEA_THR_BEG_FUNC();
-	flea_u8_t seed[64];
-	memcpy(seed, server_random.gmt_unix_time, 4);
-	memcpy(seed+4, server_random.random_bytes, 28);
-	memcpy(seed+32, client_random.gmt_unix_time, 4);
-	memcpy(seed+36, client_random.random_bytes, 28);
-
-	FLEA_CCALL(PRF(master_secret, 48, PRF_LABEL_KEY_EXPANSION, seed, sizeof(seed), 128, key_block));
-	FLEA_THR_FIN_SEC_empty();
-}
-
 /**
 	TODO: fragmentation
 	Reads in the record - "Header Data" is copied to the struct fields and the data is copied to a new location
@@ -1258,7 +1246,6 @@ flea_err_t THR_flea_tls__create_connection_params(flea_tls_ctx_t* tls_ctx, flea_
 	flea_u8_t key_block2[128];	// max size for key_block in TLS 1.2
 	connection_state->mac_key = calloc(connection_state->cipher_suite->mac_key_size, sizeof(flea_u8_t));
 	connection_state->enc_key = calloc(connection_state->cipher_suite->enc_key_size, sizeof(flea_u8_t));
-	generate_key_block_2(tls_ctx, key_block2);
 
 
 	if (writing_state == FLEA_TRUE)
@@ -1757,8 +1744,8 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx
 			// TODO: call constructor on pending write state
 
 			FLEA_CCALL(create_master_secret(tls_ctx->security_parameters->client_random, tls_ctx->security_parameters->server_random, tls_ctx->premaster_secret, tls_ctx->security_parameters->master_secret));
-			FLEA_CCALL(generate_key_block(tls_ctx->security_parameters->master_secret, tls_ctx->security_parameters->client_random, tls_ctx->security_parameters->server_random));
-
+			//FLEA_CCALL(generate_key_block(tls_ctx->security_parameters->master_secret, tls_ctx->security_parameters->client_random, tls_ctx->security_parameters->server_random));
+			generate_key_block_2(tls_ctx, key_block);
 			FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &hash_ctx, socket_fd));
 
 			printf("sent finished\n");
