@@ -1279,10 +1279,6 @@ flea_err_t create_master_secret(Random client_hello_random, Random server_hello_
 	memcpy(random_seed+4, client_hello_random.random_bytes, 28);
 	memcpy(random_seed+32, server_hello_random.gmt_unix_time, 4);
 	memcpy(random_seed+36, server_hello_random.random_bytes, 28);
-	/*memcpy(random_seed, &server_hello_random.gmt_unix_time, 4);
-	memcpy(random_seed+4, &server_hello_random.random_bytes, 28);
-	memcpy(random_seed+32, &client_hello_random.gmt_unix_time, 4);
-	memcpy(random_seed+36, &client_hello_random.random_bytes, 28);*/
 
 	// pre_master_secret is 48 bytes, master_secret is desired to be 48 bytes
 	FLEA_CCALL(PRF(pre_master_secret, 48, PRF_LABEL_MASTER_SECRET, random_seed, 64, 48, master_secret_res));
