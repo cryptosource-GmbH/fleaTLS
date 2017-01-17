@@ -788,7 +788,6 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   )
 {
   flea_uword_t one_arr[1];
-  flea_u8_t one_enc[] = { 1 };
   flea_u16_t exp_bit_size;
   flea_s32_t i;
   flea_mpi_t one;
@@ -851,7 +850,7 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   // window method precomputations
 
   flea_mpi_t__init(&one, one_arr, sizeof(one_arr) / sizeof(flea_uword_t));
-  FLEA_CCALL(THR_flea_mpi_t__decode(&one, one_enc, sizeof(one_enc)));
+  flea_mpi_t__set_to_word_value(&one, 1);
 
   FLEA_CCALL(THR_flea_mpi_t__mul(p_workspace_double_plus_one_sized, &R, p_base));
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, p_ws_trf_base, p_workspace_double_plus_one_sized, p_mod, p_div_ctx)); //a_bar = a * R mod n
@@ -877,52 +876,30 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   exp_bit_size = flea_mpi_t__get_bit_size(p_exp);
 
   i = exp_bit_size - 1;
-  if(window_size > 1)
+
+  if(i < window_size)
   {
-    while((i + 1) % window_size)
-    {
-      flea_u8_t exp_bit = flea_mpi_t__get_bit(p_exp, i);
-
-      i--;
-      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_result, &mm_ctx)); // NOTE: last arg needs only mod size
-      // copy contents from large ws to result
-      FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
-
-      if(exp_bit == 0x1)
-      {
-        FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_ws_trf_base, &mm_ctx));
-        FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
-      }
-      // p_result is the running variable
-
-    }
+    window_size = 1;
   }
-
-  for(; i >= 0; i -= window_size)
+  while(i >= 0)
   {
     flea_al_u8_t j;
     flea_mpi_t* p_base_power;
-    flea_u8_t exp_bit = flea_mpi_t__get_bit(p_exp, i);
-    for(j = 1; j < window_size; j++)
+    flea_u8_t exp_bit = 0; 
+    for(j = 0; j < window_size; j++)
     {
       exp_bit <<= 1;
       exp_bit |= flea_mpi_t__get_bit(p_exp, i - j);
     }
-    FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_result, &mm_ctx));  // NOTE: last arg needs only mod size
-    // copy contents from large ws to result
-    FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
     // perform the squarings
-    for(j = 1; j < window_size; j++)
+    for(j = 0; j < window_size; j++)
     {
-      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_result, &mm_ctx));  // NOTE: last arg needs only mod size
+      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_result, &mm_ctx));  // last arg needs only mod size
       // copy contents from large ws to result
       FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
     }
-    if(exp_bit == 0)
-    {
-      continue;
-    }
-    else if(exp_bit == 0x1)
+    
+    if(exp_bit == 0x1)
     {
       p_base_power = p_ws_trf_base;
     }
@@ -933,8 +910,22 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
     }
 #endif
 
-    FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_base_power, &mm_ctx));
-    FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
+    if(exp_bit != 0)
+    {
+      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_base_power, &mm_ctx));
+      FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
+    }
+    else
+    {
+      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_ws_trf_base, &mm_ctx));
+      FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_workspace_double_plus_one_sized, p_workspace_double_plus_one_sized));
+    }
+   
+    i -= window_size;
+    if(i < window_size)
+    {
+      window_size = 1;
+    }
   }
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, &one, &mm_ctx));
   FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));

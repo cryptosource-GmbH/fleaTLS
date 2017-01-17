@@ -204,6 +204,7 @@ flea_err_t THR_flea_rsa_raw_operation_crt (
   FLEA_CCALL(THR_flea_mpi_t__add_in_place_ignore_sign(&result, &d1));
 
   FLEA_CCALL(THR_flea_mpi_t__encode(result_enc, modulus_length, &result)); // r
+
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(result_arr);
     FLEA_FREE_BUF_SECRET_ARR(base_arr, FLEA_HEAP_OR_STACK_CODE(base_word_len, FLEA_STACK_BUF_NB_ENTRIES(base_arr)));
@@ -219,6 +220,7 @@ flea_err_t THR_flea_rsa_raw_operation_crt (
     FLEA_FREE_BUF_SECRET_ARR(un, FLEA_HEAP_OR_STACK_CODE(un_len, FLEA_STACK_BUF_NB_ENTRIES(un)));
     );
 }
+
 flea_err_t THR_flea_rsa_raw_operation (flea_u8_t* result_enc, const flea_u8_t * exponent_enc, flea_al_u16_t exponent_length, const flea_u8_t* base_enc, flea_al_u16_t base_length, const flea_u8_t * modulus_enc, flea_al_u16_t modulus_length  )
 {
 

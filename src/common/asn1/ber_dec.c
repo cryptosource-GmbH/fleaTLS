@@ -132,6 +132,7 @@ static flea_err_t THR_flea_ber_dec_t__verify_next_tag(flea_ber_dec_t* dec__pt, f
   flea_bool_t b = FLEA_FALSE;
   return THR_flea_ber_dec_t__verify_next_tag_opt(dec__pt, type__t, class_form__alu8, &b, flea_be_strict_about_tag);
 }
+
 #ifdef FLEA_USE_HEAP_BUF
 static flea_err_t THR_flea_ber_dec_t__grow_levels(flea_ber_dec_t *dec__pt, flea_al_u8_t new_size)
 {
