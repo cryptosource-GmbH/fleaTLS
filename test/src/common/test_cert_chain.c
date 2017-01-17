@@ -327,14 +327,15 @@ flea_err_t THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
   const flea_u8_t date_str[] = "170228200000Z";
   flea_gmt_time_t time__t;
   flea_err_t err;
+  flea_u16_t nb_trusted_certs;
   flea_dtl_t i;
   FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
   FLEA_DECL_OBJ(trusted_store__t, flea_cert_store_t);
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_cert_store_t__ctor(&trusted_store__t));
   FLEA_CCALL(THR_flea_cert_path_validator_t__ctor_cert(&cert_chain__t, test_cert_tls_server_1, sizeof(test_cert_tls_server_1)));
-
-  for( i = 0; i < (FLEA_CERT_STORE_MAX_CAPACITY ? FLEA_CERT_STORE_MAX_CAPACITY : 1); i++)
+  nb_trusted_certs =  (FLEA_MAX_CERT_COLLECTION_SIZE ? (FLEA_MAX_CERT_COLLECTION_SIZE-1) : 1);
+  for( i = 0; i < nb_trusted_certs; i++)
   {
     FLEA_CCALL(THR_flea_cert_store_t__add_trusted_cert(&trusted_store__t, flea_test_cert_issuer_of_tls_server_1__cau8, sizeof(flea_test_cert_issuer_of_tls_server_1__cau8)));
   }
@@ -355,10 +356,13 @@ flea_err_t THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
   }
 #endif
 
-    if(FLEA_ERR_BUF_MAX_CAPACITIY_EXHAUSTED != THR_flea_cert_store_t__add_trusted_cert(&trusted_store__t, flea_test_cert_issuer_of_tls_server_1__cau8, sizeof(flea_test_cert_issuer_of_tls_server_1__cau8)))
-    {
-      FLEA_THROW("max cert store capacity not respected", FLEA_ERR_FAILED_TEST);
-    }
+  /* fill up to the maximal capacity */
+  FLEA_CCALL(THR_flea_cert_store_t__add_trusted_cert(&trusted_store__t, flea_test_cert_issuer_of_tls_server_1__cau8, sizeof(flea_test_cert_issuer_of_tls_server_1__cau8)));
+
+  if(FLEA_MAX_CERT_COLLECTION_SIZE && FLEA_ERR_BUFF_TOO_SMALL != THR_flea_cert_store_t__add_trusted_cert(&trusted_store__t, flea_test_cert_issuer_of_tls_server_1__cau8, sizeof(flea_test_cert_issuer_of_tls_server_1__cau8)))
+  {
+    FLEA_THROW("max cert store capacity not respected", FLEA_ERR_FAILED_TEST);
+  }
   FLEA_THR_FIN_SEC(
       flea_cert_path_validator_t__dtor(&cert_chain__t); 
       flea_cert_store_t__dtor(&trusted_store__t);

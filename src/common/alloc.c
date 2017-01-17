@@ -44,7 +44,7 @@ flea_err_t THR_flea_alloc__ensure_buffer_capacity(void** mem_in_out__ppv, flea_d
   }
   else
   {
-    FLEA_THROW("maximal buffer capacity exhausted", FLEA_ERR_BUF_MAX_CAPACITIY_EXHAUSTED);
+    FLEA_THROW("maximal buffer capacity exhausted", FLEA_ERR_BUFF_TOO_SMALL);
   }
   FLEA_CCALL(THR_flea_alloc__realloc_mem(mem_in_out__ppv, used_units__dtl*unit_byte_size__alu16, (used_units__dtl + to_add__dtl)*unit_byte_size__alu16));
   used_units__dtl += to_add__dtl;

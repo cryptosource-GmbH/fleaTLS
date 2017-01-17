@@ -406,6 +406,17 @@ flea_err_t THR_flea_cert_path_validator_t__add_crl(flea_cert_path_validator_t* c
   FLEA_THR_FIN_SEC_empty(); 
 }
 
+flea_err_t THR_flea_cert_path_validator_t__add_trust_anchor_cert(flea_cert_path_validator_t *cpv__pt, const flea_u8_t *cert__pcu8, flea_al_u16_t cert_len__alu16)
+{
+  flea_x509_cert_ref_t ref__t = flea_x509_cert_ref_t__INIT_VALUE;
+  FLEA_THR_BEG_FUNC();
+FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&ref__t, cert__pcu8, cert_len__alu16));
+FLEA_CCALL(THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(cpv__pt, &ref__t));
+  FLEA_THR_FIN_SEC(
+     flea_x509_cert_ref_t__dtor(&ref__t); 
+      ); 
+}
+
 flea_err_t THR_flea_cert_path_validator_t__add_cert_without_trust_status(flea_cert_path_validator_t *cpv__pt, const flea_u8_t *cert__pcu8, flea_al_u16_t cert_len__alu16)
 {
   flea_x509_cert_ref_t ref__t = flea_x509_cert_ref_t__INIT_VALUE;
@@ -435,17 +446,7 @@ flea_err_t THR_flea_cert_path_validator_t__add_cert_ref_without_trust_status(fle
   cpv__pt->cert_collection_size__u16++;
   FLEA_THR_FIN_SEC_empty(); 
 }
-
-flea_err_t THR_flea_cert_path_validator_t__add_trust_anchor_cert(flea_cert_path_validator_t *cpv__pt, const flea_u8_t *cert__pcu8, flea_al_u16_t cert_len__alu16)
-{
-  flea_x509_cert_ref_t ref__t = flea_x509_cert_ref_t__INIT_VALUE;
-  FLEA_THR_BEG_FUNC();
-FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&ref__t, cert__pcu8, cert_len__alu16));
-FLEA_CCALL(THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(cpv__pt, &ref__t));
-  FLEA_THR_FIN_SEC(
-     flea_x509_cert_ref_t__dtor(&ref__t); 
-      ); 
-}
+ 
 
 flea_err_t THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(flea_cert_path_validator_t* cpv__pt, const flea_x509_cert_ref_t * cert_ref__pt)
 {

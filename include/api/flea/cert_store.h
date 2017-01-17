@@ -15,7 +15,7 @@ extern "C" {
 #ifdef FLEA_USE_HEAP_BUF
     flea_ref_cu8_t * enc_cert_refs__bcu8;
 #else
-    flea_ref_cu8_t enc_cert_refs__bcu8[FLEA_CERT_STORE_MAX_CAPACITY];
+    flea_ref_cu8_t enc_cert_refs__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
 #endif
     flea_dtl_t nb_alloc_certs__dtl;
     flea_u16_t nb_set_certs__u16;
@@ -23,6 +23,8 @@ extern "C" {
 
 #ifdef FLEA_USE_HEAP_BUF
 #define flea_cert_store_t__INIT_VALUE { .enc_cert_refs__bcu8 = 0 }
+#else 
+#define flea_cert_store_t__INIT_VALUE { .enc_cert_refs__bcu8[0] = { 0, 0 } }
 #endif 
 
 void flea_cert_store_t__dtor(flea_cert_store_t *cert_store__pt);

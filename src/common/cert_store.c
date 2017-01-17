@@ -5,6 +5,8 @@
 #include "flea/error.h"
 #include "flea/alloc.h"
 
+#ifdef FLEA_HAVE_ASYM_SIG
+
 flea_err_t THR_flea_cert_store_t__ctor(flea_cert_store_t *cert_store__pt)
 {
   FLEA_THR_BEG_FUNC();
@@ -12,7 +14,7 @@ flea_err_t THR_flea_cert_store_t__ctor(flea_cert_store_t *cert_store__pt)
   FLEA_ALLOC_MEM_ARR(cert_store__pt->enc_cert_refs__bcu8, FLEA_CERT_STORE_PREALLOC);
   cert_store__pt->nb_alloc_certs__dtl= FLEA_CERT_STORE_PREALLOC;
 #else
-  cert_store__pt->nb_alloc_certs__dtl = FLEA_CERT_STORE_MAX_CAPACITY;
+  cert_store__pt->nb_alloc_certs__dtl = FLEA_MAX_CERT_COLLECTION_SIZE;
 #endif
   cert_store__pt->nb_set_certs__u16 = 0;
   FLEA_THR_FIN_SEC_empty();
@@ -23,9 +25,9 @@ flea_err_t THR_flea_cert_store_t__add_trusted_cert(flea_cert_store_t *cert_store
   FLEA_THR_BEG_FUNC();
   /* this type only supports trusted certs */
 #ifdef FLEA_USE_HEAP_BUF
-  FLEA_CCALL(THR_flea_alloc__ensure_buffer_capacity((void**)&cert_store__pt->enc_cert_refs__bcu8, &cert_store__pt->nb_alloc_certs__dtl, cert_store__pt->nb_set_certs__u16, 1, FLEA_CERT_STORE_PREALLOC, FLEA_CERT_STORE_MAX_CAPACITY, sizeof(cert_store__pt->enc_cert_refs__bcu8[0])));
+  FLEA_CCALL(THR_flea_alloc__ensure_buffer_capacity((void**)&cert_store__pt->enc_cert_refs__bcu8, &cert_store__pt->nb_alloc_certs__dtl, cert_store__pt->nb_set_certs__u16, 1, FLEA_CERT_STORE_PREALLOC, FLEA_MAX_CERT_COLLECTION_SIZE, sizeof(cert_store__pt->enc_cert_refs__bcu8[0])));
 #else
-  if(cert_store__pt->nb_set_certs__u16 + 1 > FLEA_CERT_STORE_MAX_CAPACITY)
+  if(cert_store__pt->nb_set_certs__u16 + 1 > FLEA_MAX_CERT_COLLECTION_SIZE)
   {
     FLEA_THROW("cert store buffer capacity exhausted", FLEA_ERR_BUFF_TOO_SMALL);
   }
@@ -58,3 +60,6 @@ void flea_cert_store_t__dtor(flea_cert_store_t *cert_store__pt)
   FLEA_FREE_MEM_CHK_SET_NULL(cert_store__pt->enc_cert_refs__bcu8);
 #endif
 }
+
+
+#endif /* #ifdef FLEA_HAVE_ASYM_SIG */

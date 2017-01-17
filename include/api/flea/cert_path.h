@@ -19,7 +19,6 @@ typedef struct
 #ifdef FLEA_USE_HEAP_BUF
   flea_ref_cu8_t *crl_collection__brcu8;
   flea_x509_cert_ref_t *cert_collection__bt;
-  //flea_u16_t allocated_chain_len__u16;
   flea_u16_t *chain__bu16;
 #else
   flea_ref_cu8_t crl_collection__brcu8[FLEA_MAX_CERT_COLLECTION_NB_CRLS]; 
@@ -41,8 +40,6 @@ typedef struct
 } flea_cert_path_validator_t;
 
 #define flea_cert_path_validator_t__INIT_VALUE  { .cert_collection_size__u16 = 0 }
-
-//#define flea_cert_path_validator_element_t__INIT_VALUE = {.current__pt = NULL, .issuer__pt = NULL, .issued__pt = NULL }
 
 void flea_cert_path_validator_t__dtor(flea_cert_path_validator_t *chain__pt);
 
