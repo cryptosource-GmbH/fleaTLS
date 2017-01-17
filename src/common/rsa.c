@@ -164,12 +164,12 @@ flea_err_t THR_flea_rsa_raw_operation_crt (
   // reduce the base for the first prime
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &base_mod_prime, &base, &p, &div_ctx));
   // result used as workspace here
-  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&j1, &d1, &base_mod_prime, &p, &large_tmp, &div_ctx, &ws_trf_base, &result, FLEA_CRT_RSA_WINDOW_SIZE));
+  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&j1, &d1, &base_mod_prime, &p, &large_tmp, &div_ctx, &result, FLEA_CRT_RSA_WINDOW_SIZE));
 
   // d1 unused from here, used for j2
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &base_mod_prime, &base, &q, &div_ctx));
   // result used as workspace here
-  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&d1, &d2, &base_mod_prime, &q, &large_tmp, &div_ctx, &ws_trf_base, &result, FLEA_CRT_RSA_WINDOW_SIZE));
+  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&d1, &d2, &base_mod_prime, &q, &large_tmp, &div_ctx, &result, FLEA_CRT_RSA_WINDOW_SIZE));
 
 
   // subtract mod cannot be used because d1=j2 may be larger than p
@@ -229,7 +229,6 @@ flea_err_t THR_flea_rsa_raw_operation (flea_u8_t* result_enc, const flea_u8_t * 
   FLEA_DECL_BUF(exponent_arr, flea_uword_t, FLEA_RSA_SF_MAX_MOD_WORD_LEN );
   FLEA_DECL_BUF(mod_arr, flea_uword_t, FLEA_RSA_SF_MAX_MOD_WORD_LEN );
   FLEA_DECL_BUF(large_tmp_arr, flea_uword_t, FLEA_RSA_SF_MAX_MOD_WORD_LEN * 2 + 1);
-  FLEA_DECL_BUF(ws_trf_base_arr, flea_uword_t, FLEA_RSA_SF_MAX_MOD_WORD_LEN );
   FLEA_DECL_BUF(ws_q_arr, flea_uword_t, FLEA_RSA_SF_MAX_MOD_WORD_LEN + 1);
 
 
@@ -240,7 +239,7 @@ flea_err_t THR_flea_rsa_raw_operation (flea_u8_t* result_enc, const flea_u8_t * 
 
   FLEA_DECL_BUF(vn, flea_hlf_uword_t, FLEA_MPI_DIV_VN_HLFW_LEN_FOR_RSA_SF_REDUCTIONS);
   FLEA_DECL_BUF(un, flea_hlf_uword_t,  FLEA_MPI_DIV_UN_HLFW_LEN_FOR_RSA_SF_REDUCTIONS);
-  flea_mpi_t result, exponent, base, mod, large_tmp, ws_q, ws_trf_base;
+  flea_mpi_t result, exponent, base, mod, large_tmp, ws_q;
   flea_mpi_div_ctx_t div_ctx;
   FLEA_THR_BEG_FUNC();
 #ifdef FLEA_USE_STACK_BUF
@@ -264,7 +263,6 @@ flea_err_t THR_flea_rsa_raw_operation (flea_u8_t* result_enc, const flea_u8_t * 
   FLEA_ALLOC_BUF(exponent_arr, mod_word_len);
   FLEA_ALLOC_BUF(mod_arr, mod_word_len);
   FLEA_ALLOC_BUF(large_tmp_arr, large_tmp_word_len);
-  FLEA_ALLOC_BUF(ws_trf_base_arr, mod_word_len);
   FLEA_ALLOC_BUF(ws_q_arr, ws_q_word_len);
 
   FLEA_ALLOC_BUF(vn, vn_len);
@@ -281,14 +279,13 @@ flea_err_t THR_flea_rsa_raw_operation (flea_u8_t* result_enc, const flea_u8_t * 
   flea_mpi_t__init(&exponent, exponent_arr, mod_word_len);
   flea_mpi_t__init(&mod, mod_arr, mod_word_len);
   flea_mpi_t__init(&large_tmp, large_tmp_arr, large_tmp_word_len);
-  flea_mpi_t__init(&ws_trf_base, ws_trf_base_arr, mod_word_len);
   flea_mpi_t__init(&ws_q, ws_q_arr, ws_q_word_len);
 
 
   FLEA_CCALL(THR_flea_mpi_t__decode(&mod, modulus_enc, modulus_length));
   FLEA_CCALL(THR_flea_mpi_t__decode(&exponent, exponent_enc, exponent_length ));
   FLEA_CCALL(THR_flea_mpi_t__decode(&base, base_enc, base_length));
-  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&result, &exponent, &base, &mod, &large_tmp, &div_ctx, &ws_trf_base, &ws_q, 1));
+  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&result, &exponent, &base, &mod, &large_tmp, &div_ctx, &ws_q, 1));
   FLEA_CCALL(THR_flea_mpi_t__encode(result_enc, modulus_length, &result));
 
   FLEA_THR_FIN_SEC(
@@ -297,7 +294,6 @@ flea_err_t THR_flea_rsa_raw_operation (flea_u8_t* result_enc, const flea_u8_t * 
     FLEA_FREE_BUF_FINAL(exponent_arr);
     FLEA_FREE_BUF_FINAL(mod_arr);
     FLEA_FREE_BUF_FINAL(large_tmp_arr);
-    FLEA_FREE_BUF_FINAL(ws_trf_base_arr);
     FLEA_FREE_BUF_FINAL(ws_q_arr);
     FLEA_FREE_BUF_FINAL(vn);
     FLEA_FREE_BUF_FINAL(un);
