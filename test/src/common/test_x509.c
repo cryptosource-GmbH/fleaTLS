@@ -26,21 +26,10 @@ flea_err_t THR_flea_test_dec_tls_server_cert_broken()
 
 flea_err_t THR_flea_test_dec_tls_server_issuer_cert()
 {
-  const flea_u8_t serial__cau8 [] = { 0x00, 0x83, 0x01, 0xC0, 0x9D, 0x7D, 0xF7, 0xC9, 0x7D};
 
   FLEA_DECL_OBJ(cert_ref__t, flea_x509_cert_ref_t);
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&cert_ref__t, flea_test_cert_issuer_of_tls_server_1__cau8, sizeof(flea_test_cert_issuer_of_tls_server_1__cau8)));
-  if(cert_ref__t.extensions__t.auth_key_id__t.auth_cert_serial_number__t.data__pcu8 == NULL)
-  {
-    FLEA_THROW("error with serial from AKI: absent", FLEA_ERR_FAILED_TEST);
-
-  }
-  if(cert_ref__t.extensions__t.auth_key_id__t.auth_cert_serial_number__t.len__dtl != 9 || memcmp(serial__cau8, cert_ref__t.extensions__t.auth_key_id__t.auth_cert_serial_number__t.data__pcu8, sizeof(serial__cau8)))
-  {
-    FLEA_PRINTF_TEST_OUTP_2_SWITCHED("aki serial len = %u\n", cert_ref__t.extensions__t.auth_key_id__t.auth_cert_serial_number__t.len__dtl);
-    FLEA_THROW("error with serial from AKI: len/value", FLEA_ERR_FAILED_TEST);
-  }
 
   FLEA_THR_FIN_SEC(
     flea_x509_cert_ref_t__dtor(&cert_ref__t);

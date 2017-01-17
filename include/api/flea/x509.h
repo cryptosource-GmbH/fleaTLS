@@ -107,7 +107,6 @@ typedef struct
 {
   flea_u8_t is_present__u8;
   flea_der_ref_t key_id__t;
-  flea_der_ref_t auth_cert_serial_number__t;
 } flea_x509_auth_key_id_t;
 
 typedef struct
@@ -134,8 +133,8 @@ typedef struct
 
 typedef struct 
 {
-  flea_ref_cu8_t san_raw__t;
   flea_u8_t is_present__u8;
+  flea_ref_cu8_t san_raw__t;
 } flea_x509_subj_alt_names_t;
 
 typedef struct
