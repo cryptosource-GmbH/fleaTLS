@@ -8,7 +8,7 @@
 
 #define FLEA_X509_ECC_POINT_FORMAT_UNCOMPRESSED 0x04
 
-flea_err_t THR_flea_ec_key__decode_uncompressed_point(const flea_der_ref_t *encoded__pt, flea_der_ref_t *x__pt, flea_der_ref_t *y__pt)
+flea_err_t THR_flea_ec_key__decode_uncompressed_point(const flea_ref_cu8_t *encoded__pt, flea_ref_cu8_t *x__pt, flea_ref_cu8_t *y__pt)
 {
   flea_dtl_t len__dtl;
 FLEA_THR_BEG_FUNC();

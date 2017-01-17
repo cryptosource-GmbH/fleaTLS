@@ -109,7 +109,7 @@ flea_err_t THR_flea_public_key_t__ctor_inherited_params(flea_public_key_t* key__
 
 flea_err_t THR_flea_public_key_t__verify_signature(const flea_public_key_t *key__pt, flea_pk_scheme_id_t pk_scheme_id__t, const flea_ref_cu8_t *message__prcu8, const flea_ref_cu8_t * signature__prcu8,  flea_hash_id_t hash_id__t );
 
-flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(const flea_public_key_t *public_key__pt, const flea_x509_algid_ref_t *sigalg_id__t, const flea_der_ref_t* tbs_data__pt, const flea_der_ref_t *signature__pt );
+flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(const flea_public_key_t *public_key__pt, const flea_x509_algid_ref_t *sigalg_id__t, const flea_ref_cu8_t* tbs_data__pt, const flea_ref_cu8_t *signature__pt );
 
 flea_err_t THR_flea_public_key_t__encrypt_message(const flea_public_key_t *key__pt, flea_pk_scheme_id_t pk_scheme_id__t, flea_hash_id_t hash_id__t, const flea_u8_t* message__pcu8, flea_al_u16_t message_len__alu16, flea_u8_t* result__pu8, flea_al_u16_t* result_len__palu16);
 #endif /* h-guard */

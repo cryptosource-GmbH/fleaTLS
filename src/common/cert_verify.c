@@ -38,7 +38,7 @@ flea_err_t THR_flea_x509_verify_cert_ref_signature(const flea_x509_cert_ref_t *s
 }
 flea_err_t THR_flea_x509_verify_cert_ref_signature_inherited_params(const flea_x509_cert_ref_t *subject_cert_ref__pt, const flea_x509_cert_ref_t *issuer_cert_ref__pt, flea_ref_cu8_t *returned_verifiers_pub_key_params_mbn__prcu8,  const flea_ref_cu8_t *inherited_params_mbn__cprcu8  )
 { 
-  flea_der_ref_t sig_content__t;
+  flea_ref_cu8_t sig_content__t;
   flea_public_key_t key__t = flea_public_key_t__INIT_VALUE;
   flea_bool_t are_keys_params_implicit__b;
   FLEA_THR_BEG_FUNC();

@@ -136,7 +136,7 @@ flea_err_t THR_flea_x509__verify_tls_server_id(const flea_ref_cu8_t *user_id__pc
 
     while(flea_ber_dec_t__has_current_more_data(&cont_dec__t))
     {
-      flea_der_ref_t dummy_ref__t;
+      flea_ref_cu8_t dummy_ref__t;
       flea_bool_t found__b, found_any__b = FLEA_FALSE;
       flea_ref_cu8_t dec_name__rcu8;
       /*GeneralName ::= CHOICE {

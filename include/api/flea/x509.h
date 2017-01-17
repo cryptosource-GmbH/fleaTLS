@@ -56,8 +56,6 @@ typedef enum {
  flea_eku_ocsp_signing     = (1 << FLEA_ASN1_EKU_BITP_ocsp_signing)
 } flea_ext_key_usage_e;
 
-typedef flea_der_ref_t flea_x509_ref_t; 
-
 
 typedef struct
 {
@@ -79,34 +77,34 @@ typedef struct
 
 typedef struct
 {
- flea_der_ref_t oid_ref__t;
- flea_der_ref_t params_ref_as_tlv__t;
+ flea_ref_cu8_t oid_ref__t;
+ flea_ref_cu8_t params_ref_as_tlv__t;
 } flea_x509_algid_ref_t;
 
 typedef struct
 {
   flea_x509_algid_ref_t algid__t;
-  flea_x509_ref_t public_key_as_tlv__t;
+  flea_ref_cu8_t public_key_as_tlv__t;
 } flea_x509_public_key_info_t;
 
 typedef struct
 {
-  flea_x509_ref_t raw_dn_complete__t;
-  flea_x509_ref_t country__t;
-  flea_x509_ref_t org__t;
-  flea_x509_ref_t org_unit__t;
-  flea_x509_ref_t dn_qual__t;
-  flea_x509_ref_t state_or_province_name__t;
-  flea_x509_ref_t locality_name__t;
-  flea_x509_ref_t common_name__t;
-  flea_x509_ref_t serial_number__t;
-  flea_x509_ref_t domain_component_attribute__t;
+  flea_ref_cu8_t raw_dn_complete__t;
+  flea_ref_cu8_t country__t;
+  flea_ref_cu8_t org__t;
+  flea_ref_cu8_t org_unit__t;
+  flea_ref_cu8_t dn_qual__t;
+  flea_ref_cu8_t state_or_province_name__t;
+  flea_ref_cu8_t locality_name__t;
+  flea_ref_cu8_t common_name__t;
+  flea_ref_cu8_t serial_number__t;
+  flea_ref_cu8_t domain_component_attribute__t;
 } flea_x509_dn_ref_t;
 
 typedef struct
 {
   flea_u8_t is_present__u8;
-  flea_der_ref_t key_id__t;
+  flea_ref_cu8_t key_id__t;
 } flea_x509_auth_key_id_t;
 
 typedef struct
@@ -127,7 +125,7 @@ typedef struct
 typedef struct
 {
   flea_u8_t is_present__u8;
-  flea_der_ref_t raw_ref__t;
+  flea_ref_cu8_t raw_ref__t;
 } flea_x509_raw_ext_t;
 
 
@@ -140,7 +138,7 @@ typedef struct
 typedef struct
 {
   flea_x509_auth_key_id_t auth_key_id__t;
-  flea_der_ref_t subj_key_id__t;
+  flea_ref_cu8_t subj_key_id__t;
   flea_key_usage_t key_usage__t;
   flea_key_usage_t ext_key_usage__t;
   flea_x509_subj_alt_names_t san__t;
@@ -153,13 +151,13 @@ typedef struct
 typedef struct
 {
 
-  flea_der_ref_t tbs_ref__t;
+  flea_ref_cu8_t tbs_ref__t;
   /**
    *  the interpreted version number (not the encoded integer)
    */
   flea_u8_t version__u8; 
 
-  flea_x509_ref_t serial_number__t;
+  flea_ref_cu8_t serial_number__t;
   flea_x509_algid_ref_t tbs_sig_algid__t;
 
   flea_x509_dn_ref_t issuer__t;
@@ -171,13 +169,13 @@ typedef struct
 
   flea_x509_public_key_info_t subject_public_key_info__t;
 
-  flea_x509_ref_t issuer_unique_id_as_bitstr__t;
+  flea_ref_cu8_t issuer_unique_id_as_bitstr__t;
 
-  flea_x509_ref_t subject_unique_id_as_bitstr__t;
+  flea_ref_cu8_t subject_unique_id_as_bitstr__t;
 
   flea_x509_ext_ref_t extensions__t;
 
-  flea_der_ref_t cert_signature_as_bit_string__t;
+  flea_ref_cu8_t cert_signature_as_bit_string__t;
 
   flea_bool_t is_trusted__b;
 

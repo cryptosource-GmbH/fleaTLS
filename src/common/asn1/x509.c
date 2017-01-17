@@ -68,7 +68,7 @@ static flea_err_t THR_flea_x509_cert_parse_basic_constraints(flea_ber_dec_t *con
 static flea_err_t THR_flea_x509_cert__parse_eku(flea_ber_dec_t *cont_dec__pt, flea_key_usage_t * ext_key_usage__pt )
 {   
   const flea_u8_t id_kp__cau8 [] = { 0x2B, 0x06, 0x01, 0x05, 0x05, 0x07, 0x03 };
-  flea_der_ref_t oid_ref__t;
+  flea_ref_cu8_t oid_ref__t;
   flea_u16_t purposes__u16 = 0;
   ext_key_usage__pt->is_present__u8 = FLEA_TRUE;
   FLEA_THR_BEG_FUNC();
@@ -105,7 +105,7 @@ static flea_err_t THR_flea_x509_cert__parse_eku(flea_ber_dec_t *cont_dec__pt, fl
 
 static flea_err_t THR_flea_x509_cert__parse_key_usage(flea_ber_dec_t *cont_dec__pt, flea_key_usage_t * key_usage__pt )
 {
-  flea_der_ref_t bit_str_ref__t;
+  flea_ref_cu8_t bit_str_ref__t;
   flea_u16_t ku__u16;
   FLEA_THR_BEG_FUNC();
   key_usage__pt->is_present__u8 = FLEA_TRUE;
@@ -160,7 +160,7 @@ flea_err_t THR_flea_x509__process_alg_ids(flea_x509_algid_ref_t* tbs_ref__pt, co
 static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(flea_x509_ext_ref_t *ext_ref__pt, flea_ber_dec_t *dec__pt)
 {
   flea_bool_t have_extensions__b;
-  flea_der_ref_t ext_oid_ref__t;
+  flea_ref_cu8_t ext_oid_ref__t;
   flea_bool_t critical__b;
   FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(source__t, flea_data_source_t);
@@ -177,7 +177,7 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(flea_x509_ext_ref_
   while(flea_ber_dec_t__has_current_more_data(dec__pt))
   {
     flea_al_u8_t ext_indic_pos__alu8;
-    flea_der_ref_t ostr__t;
+    flea_ref_cu8_t ostr__t;
     flea_al_u16_t oid_indicator__alu16 = 0;
     flea_data_source_mem_help_t hlp__t;
     /* open this extension */
@@ -320,8 +320,8 @@ flea_err_t THR_flea_x509__parse_dn(flea_x509_dn_ref_t *dn_ref__pt, flea_ber_dec_
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
   while(flea_ber_dec_t__has_current_more_data(&dec__t))
   {
-    flea_x509_ref_t *entry_ref__pt = NULL;
-    flea_der_ref_t entry_ref__t;
+    flea_ref_cu8_t *entry_ref__pt = NULL;
+    flea_ref_cu8_t entry_ref__t;
     flea_asn1_str_type_t str_type__t;
     FLEA_CCALL(THR_flea_ber_dec_t__open_set(&dec__t));
     FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));

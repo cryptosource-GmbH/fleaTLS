@@ -179,7 +179,7 @@ static flea_err_t THR_flea_crl__parse_extensions(flea_ber_dec_t *dec__pt, flea_b
   {
     flea_bool_t critical__b = FLEA_FALSE;
     flea_ref_cu8_t ext_oid_ref__t;
-    flea_der_ref_t ostr__t;
+    flea_ref_cu8_t ostr__t;
     flea_data_source_mem_help_t hlp__t;
     /* open this extension */
     FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
