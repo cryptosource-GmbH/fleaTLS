@@ -582,8 +582,6 @@ flea_err_t THR_flea_tls__decrypt_record(flea_tls_ctx_t* tls_ctx, Record* record)
 	tls_ctx->active_read_connection_state->sequence_number++;	// increment after each usage
 
 
-	flea_u16_t curr_len = record->length;
-
 	/*
 		First decrypt
 	*/
@@ -596,19 +594,17 @@ flea_err_t THR_flea_tls__decrypt_record(flea_tls_ctx_t* tls_ctx, Record* record)
 	/*
 		Remove padding
 	*/
-	flea_u8_t padding_len = record->data[curr_len-1];
-	curr_len -= padding_len + 1;	// +1 because the padding byte is not counted as padding itself
+	flea_u8_t padding_len = record->data[record->length-1];
 
 	/*
 		Get IV
 	*/
 	memcpy(iv, record->data, iv_len);
-	curr_len -= iv_len;
 
 	/*
 		Check MAC
 	*/
-	flea_u16_t data_len = curr_len - mac_len;
+	flea_u16_t data_len = record->length - (padding_len + 1) - iv_len - mac_len;
 	FLEA_CCALL(THR_flea_tls__compute_mac(record->data+iv_len, data_len, &tls_ctx->version, tls_ctx->active_read_connection_state->cipher_suite->mac_algorithm,
 																	mac_key, mac_key_len, sequence_number, record->content_type, mac, &mac_len));
 
