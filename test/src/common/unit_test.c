@@ -146,6 +146,8 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
 #ifdef FLEA_HAVE_RSA
       CALL_TEST(THR_flea_test_cert_verify_rsa()); 
       CALL_TEST(THR_flea_test_cert_chain_correct_chain_of_two());
+
+      CALL_TEST(THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store());
       CALL_TEST(THR_flea_test_tls_cert_chain());
 #endif
 #ifdef FLEA_HAVE_ECDSA

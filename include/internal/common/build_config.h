@@ -100,6 +100,18 @@
  */
 #define FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT 5  // FBFLAGS__INT_LIST 1 2 3 4 10 20
 
+/**
+ * The maximal capacity (certificate count) of a cert_store_t object. Applies to
+ * both the heap and the stack mode as the threshold. In heap mode, the
+ * allocated memory may grow up to this threshold.
+ */
+#define FLEA_CERT_STORE_MAX_CAPACITY 20
+
+/** 
+ * The initial allocated size and step size for allocation growth for a
+ * cert_store_t object. Relevant only in heap mode.
+ */
+#define FLEA_CERT_STORE_PREALLOC 5
 
 #define FLEA_RSA_MAX_KEY_BIT_SIZE 4096        // FBFLAGS__INT_LIST 1024 1536 2048 4096
 #define FLEA_RSA_MAX_PUB_EXP_BIT_LEN 32 

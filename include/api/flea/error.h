@@ -60,6 +60,12 @@ typedef enum
    */
   FLEA_ERR_TLS_PEER_CERT_INVALID_KEY_USAGE            = 0x0043,
 
+  /**
+   * Reallocation in heap mode failed because the configured maximal buffer size
+   * was exhausted.
+   */
+  FLEA_ERR_BUF_MAX_CAPACITIY_EXHAUSTED                = 0x0090,
+
   FLEA_ERR_BUFF_TOO_SMALL                             = 0x00A0,
   FLEA_ERR_DECODING_FAILURE                           = 0x00A1,
   FLEA_ERR_ASN1_DER_DEC_ERR                           = 0x00A3,

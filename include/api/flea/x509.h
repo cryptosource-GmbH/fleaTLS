@@ -185,9 +185,11 @@ typedef struct
 } flea_x509_cert_ref_t;
 
 
+#ifdef FLEA_USE_HEAP_BUF
 #define flea_x509_cert_ref_t__INIT_VALUE { .version__u8 = 0 }
 
 #define flea_x509_cert_ref_t__dtor(__p) 
+#endif
 
 flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, const flea_u8_t* der_encoded_cert__pu8, flea_x509_len_t der_encoded_cert_len__x5l);
 

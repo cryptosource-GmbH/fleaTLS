@@ -178,6 +178,8 @@ flea_err_t THR_flea_test_tls_cert_chain();
 
 flea_err_t THR_flea_test_cert_chain_correct_chain_of_two();
 
+flea_err_t THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store();
+
 flea_err_t THR_flea_test_cert_path_generic(
     const flea_u8_t *target_cert_ptr,
     flea_u32_t target_cert_len,

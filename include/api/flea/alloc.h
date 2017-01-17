@@ -111,4 +111,25 @@
 
 flea_err_t THR_flea_alloc__realloc_mem(void** mem_in_out__ppv, flea_u32_t orig_size__u32, flea_u32_t new_size__u32);
 
+/**
+ * Ensure the size of a buffer providing minimal and maximal growth size and the
+ * maximal size of the buffer for reallocation. 
+ *
+ * @param mem_in_out__ppv [in/out] the pointer to the memory array to grow.
+ * @param in_out_alloc_units__pdtl [in/out] pointer tothe number of currently allocated buffer elements;
+ *                                          on function return, the pointer target receives the new size, 
+ *                                          which is at least as large to hold used_units__dtl + min_grow_units__dtl elements.
+ * @param used_units__dtl the number of currently used / set  buffer elements
+ * @param min_grow_units__dtl the minimal number of new units which must additionally fit into the buffer
+ * @param max_grow_units__dtl the maximal number of newly allocated elements
+ * @param max_alloc_units__dtl the absolute maximal value of the buffer which
+ *                             may not be exceeded, in units. If 0 is provided,
+ *                             no limit is applied.
+ * @param unit_byte_size__alu16 the size in bytes of a single unit
+ *
+ * @return flea error code in the case the allocation request cannot be
+ * fullfilled due to exceeding the provided limit or a failing allocation.
+ */
+flea_err_t THR_flea_alloc__ensure_buffer_capacity(void** mem_in_out__ppv, flea_dtl_t *in_out_alloc_units__pdtl, flea_dtl_t used_units__dtl, flea_dtl_t min_grow_units__dtl, flea_dtl_t max_grow_units__dtl, flea_dtl_t max_alloc_units__dtl, flea_al_u16_t unit_byte_size__alu16);
+
 #endif /* h-guard */
