@@ -6,7 +6,7 @@
 #include "flea/error.h"
 #include "flea/alloc.h"
 #include "flea/data_source.h"
-#include "flea/ber_dec.h"
+#include "internal/common/ber_dec.h"
 #include "flea/x509.h"
 #include "test_data_x509_certs.h"
 #include "flea/hostn_ver.h"

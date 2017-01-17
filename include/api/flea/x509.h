@@ -5,7 +5,7 @@
 #define _flea_x509__H_
 
 #include "flea/types.h"
-#include "flea/ber_dec.h"
+#include "internal/common/ber_dec.h"
 #include "flea/asn1_date.h"
 
 /**
@@ -177,7 +177,7 @@ typedef struct
 
 #define flea_x509_cert_ref_t__dtor(__p) 
 
-flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, const flea_u8_t* der_encoded_cert__pu8, flea_x509_len_t der_encoded_cert_len__x5l);
+flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, const flea_u8_t* der_encoded_cert__pu8, flea_al_u16_t der_encoded_cert_len__alu16);
 
 
 flea_bool_t flea_x509_has_key_usages(const flea_x509_cert_ref_t *cert_ref__pt, flea_key_usage_ext_e ku_type, flea_key_usage_e required_usages__u16, flea_key_usage_exlicitness_e explicitness);

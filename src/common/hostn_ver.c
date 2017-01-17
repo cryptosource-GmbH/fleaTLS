@@ -3,7 +3,7 @@
 #include "flea/hostn_ver.h"
 #include "flea/error_handling.h"
 #include "flea/error.h"
-#include "flea/ber_dec.h"
+#include "internal/common/ber_dec.h"
 #include "flea/alloc.h"
 #include "flea/util.h"
 #include "flea/x509.h"

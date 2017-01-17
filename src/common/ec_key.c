@@ -4,7 +4,7 @@
 #include "flea/ec_key.h"
 #include "flea/error_handling.h"
 #include "flea/error.h"
-#include "flea/ber_dec.h"
+#include "internal/common/ber_dec.h"
 
 #define FLEA_X509_ECC_POINT_FORMAT_UNCOMPRESSED 0x04
 

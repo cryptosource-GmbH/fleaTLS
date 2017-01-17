@@ -60,8 +60,8 @@ static flea_err_t THR_flea_test_ecka_raw_basic_inner (const flea_ec_gfp_dom_par_
   }
 #if FLEA_ECC_MAX_MOD_BYTE_SIZE >= (224 / 8)
   res_a_len__alu8 = res_b_len__alu8 = dom_par__pt->p__ru8.len__dtl;
-  FLEA_CCALL(THR_flea_ecka__compute_kdf_ansi_x9_63(flea_sha224, pub_point_a_enc__bu8, pub_point_a_enc_len__alu8, sk_b_enc__bu8, sk_b_enc_len__alu8, NULL, 0, res_b_arr__bu8, res_b_len__alu8, dom_par__pt));
-  FLEA_CCALL(THR_flea_ecka__compute_kdf_ansi_x9_63(flea_sha224, pub_point_b_enc__bu8, pub_point_b_enc_len__alu8, sk_a_enc__bu8, sk_a_enc_len__alu8, NULL, 0, res_a_arr__bu8, res_a_len__alu8, dom_par__pt));
+  FLEA_CCALL(THR_flea_ecka__compute_ecka_with_kdf_ansi_x9_63(flea_sha224, pub_point_a_enc__bu8, pub_point_a_enc_len__alu8, sk_b_enc__bu8, sk_b_enc_len__alu8, NULL, 0, res_b_arr__bu8, res_b_len__alu8, dom_par__pt));
+  FLEA_CCALL(THR_flea_ecka__compute_ecka_with_kdf_ansi_x9_63(flea_sha224, pub_point_b_enc__bu8, pub_point_b_enc_len__alu8, sk_a_enc__bu8, sk_a_enc_len__alu8, NULL, 0, res_a_arr__bu8, res_a_len__alu8, dom_par__pt));
 
   if(memcmp(res_a_arr__bu8, res_b_arr__bu8, res_a_len__alu8))
   {

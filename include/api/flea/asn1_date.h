@@ -5,7 +5,7 @@
 #include "flea/error.h"
 #include "flea/types.h"
 #include <stdlib.h>
-#include "flea/ber_dec.h"
+#include "internal/common/ber_dec.h"
 
 #ifdef __cplusplus
 extern "C" {

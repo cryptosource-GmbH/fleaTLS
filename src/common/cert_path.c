@@ -9,7 +9,7 @@
 #include "flea/cert_path.h"
 #include "flea/asn1_date.h"
 #include "flea/error_handling.h"
-#include "flea/ber_dec.h"
+#include "internal/common/ber_dec.h"
 #include "flea/x509.h"
 #include "flea/crl.h"
 #include "internal/pltf_if/time.h"

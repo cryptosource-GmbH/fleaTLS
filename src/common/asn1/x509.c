@@ -2,7 +2,7 @@
 
 #include "internal/common/default.h"
 #include "flea/error_handling.h"
-#include "flea/ber_dec.h"
+#include "internal/common/ber_dec.h"
 #include "flea/x509.h"
 #include "flea/alloc.h"
 #include "flea/array_util.h"
@@ -376,7 +376,7 @@ flea_err_t THR_flea_x509__parse_dn(flea_x509_dn_ref_t *dn_ref__pt, flea_ber_dec_
       ); 
 }
 
-flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, const flea_u8_t* der_encoded_cert__pu8, flea_x509_len_t der_encoded_cert_len__x5l)
+flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, const flea_u8_t* der_encoded_cert__pu8, flea_al_u16_t der_encoded_cert_len__alu16)
 {
 
   FLEA_DECL_OBJ(source__t, flea_data_source_t);
@@ -390,13 +390,13 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, co
 
   FLEA_THR_BEG_FUNC();
 
-  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source_tbs__t, der_encoded_cert__pu8, der_encoded_cert_len__x5l, &hlp_tbs__t));
+  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source_tbs__t, der_encoded_cert__pu8, der_encoded_cert_len__alu16, &hlp_tbs__t));
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec_tbs__t, &source_tbs__t, 0));
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec_tbs__t));
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&dec_tbs__t, &cert_ref__pt->tbs_ref__t));
 
 
-  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, der_encoded_cert__pu8, der_encoded_cert_len__x5l, &hlp__t));
+  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, der_encoded_cert__pu8, der_encoded_cert_len__alu16, &hlp__t));
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0));
 
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));

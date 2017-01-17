@@ -3,7 +3,7 @@
 #ifndef _flea_cert_verify__H_
 #define _flea_cert_verify__H_
 
-#include "flea/ber_dec.h"
+#include "internal/common/ber_dec.h"
 #include "flea/x509.h"
 #include "flea/types.h"
 #include "flea/pubkey.h"

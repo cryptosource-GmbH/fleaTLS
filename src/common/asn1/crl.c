@@ -2,7 +2,7 @@
 
 #include "internal/common/default.h"
 #include "flea/error_handling.h"
-#include "flea/ber_dec.h"
+#include "internal/common/ber_dec.h"
 #include "flea/crl.h"
 #include "flea/alloc.h"
 #include "flea/array_util.h"
