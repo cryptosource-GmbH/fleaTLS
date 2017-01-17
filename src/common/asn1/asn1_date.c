@@ -8,7 +8,7 @@
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
 #include "flea/asn1_date.h"
-
+#include "flea/x509.h"
 
 const int ASN1_TYPE_utc_time = 23;
 const int ASN1_TYPE_GeneralizedTime = 24;

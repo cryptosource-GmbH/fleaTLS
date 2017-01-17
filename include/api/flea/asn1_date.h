@@ -6,11 +6,20 @@
 #include "flea/types.h"
 #include <stdlib.h>
 #include "flea/ber_dec.h"
-#include "flea/x509.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+typedef struct
+{
+  flea_u16_t year;
+  flea_u8_t month;
+  flea_u8_t day;
+  flea_u8_t hours;
+  flea_u8_t minutes;
+  flea_u8_t seconds;
+} flea_gmt_time_t;
 
 flea_err_t THR_flea_asn1_parse_gmt_time(flea_ber_dec_t *dec__t, flea_gmt_time_t *utctime__pt);
 

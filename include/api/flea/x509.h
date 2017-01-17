@@ -6,6 +6,7 @@
 
 #include "flea/types.h"
 #include "flea/ber_dec.h"
+#include "flea/asn1_date.h"
 
 /**
  * Type to control the checking for specific key usages in key usage extensions (i.e. key usage or
@@ -63,16 +64,6 @@ typedef struct
   flea_dtl_t len__dtl;
   flea_asn1_time_type_t time_type__t;
 } flea_x509_date_ref_t;
-
-typedef struct
-{
-  flea_u16_t year;
-  flea_u8_t month;
-  flea_u8_t day;
-  flea_u8_t hours;
-  flea_u8_t minutes;
-  flea_u8_t seconds;
-} flea_gmt_time_t;
 
 
 typedef struct
