@@ -569,6 +569,8 @@ flea_err_t THR_flea_tls__decrypt_record(flea_tls_ctx_t* tls_ctx, Record* record)
 {
 	FLEA_THR_BEG_FUNC();
 	// TODO: this is for client connection end. need other keys for server connection end
+	flea_u8_t* mac_key = tls_ctx->active_read_connection_state->mac_key;
+	flea_u8_t* enc_key = tls_ctx->active_read_connection_state->enc_key;
 	flea_u8_t iv_len = tls_ctx->active_read_connection_state->cipher_suite->iv_size;
 	flea_u8_t mac_len = tls_ctx->active_read_connection_state->cipher_suite->mac_size;
 	flea_u8_t mac_key_len = tls_ctx->active_read_connection_state->cipher_suite->mac_key_size;
@@ -578,10 +580,8 @@ flea_err_t THR_flea_tls__decrypt_record(flea_tls_ctx_t* tls_ctx, Record* record)
 	//flea_u8_t block_len = tls_ctx->active_read_connection_state->cipher_suite->block_size;
 	flea_u64_t sequence_number = tls_ctx->active_read_connection_state->sequence_number;
 	tls_ctx->active_read_connection_state->sequence_number++;	// increment after each usage
-	flea_u8_t mac_key[FLEA_TLS_MAX_MAC_KEY_SIZE];
-	memcpy(mac_key, tls_ctx->active_read_connection_state->mac_key, mac_key_len);
-	flea_u8_t enc_key[FLEA_TLS_MAX_MAC_KEY_SIZE];
-	memcpy(enc_key, tls_ctx->active_read_connection_state->enc_key, enc_key_len);
+
+
 	flea_u16_t curr_len = record->length;
 
 	/*
@@ -1230,6 +1230,8 @@ flea_err_t THR_flea_tls__encrypt_record(flea_tls_ctx_t* tls_ctx, Record* record,
 	FLEA_THR_BEG_FUNC();
 
 	// TODO: this is for client connection end. need other keys for server connection end
+	flea_u8_t* mac_key = tls_ctx->active_write_connection_state->mac_key;
+	flea_u8_t* enc_key = tls_ctx->active_write_connection_state->enc_key;
 	flea_u8_t iv_len = tls_ctx->active_write_connection_state->cipher_suite->iv_size;
 	flea_u8_t mac_len = tls_ctx->active_write_connection_state->cipher_suite->mac_size;
 	flea_u8_t mac_key_len = tls_ctx->active_write_connection_state->cipher_suite->mac_key_size;
@@ -1239,11 +1241,6 @@ flea_err_t THR_flea_tls__encrypt_record(flea_tls_ctx_t* tls_ctx, Record* record,
 	flea_u8_t block_len = tls_ctx->active_write_connection_state->cipher_suite->block_size;
 	flea_u64_t sequence_number = tls_ctx->active_write_connection_state->sequence_number;
 	tls_ctx->active_write_connection_state->sequence_number++;	// increment after each usage
-	flea_u8_t mac_key[FLEA_TLS_MAX_MAC_KEY_SIZE];
-	memcpy(mac_key, tls_ctx->active_write_connection_state->mac_key, mac_key_len);
-	flea_u8_t enc_key[FLEA_TLS_MAX_MAC_KEY_SIZE];
-	memcpy(enc_key, tls_ctx->active_write_connection_state->enc_key, enc_key_len);
-
 
 	// compute mac
 	FLEA_CCALL(THR_flea_tls__compute_mac(data, data_len, &tls_ctx->version, tls_ctx->active_write_connection_state->cipher_suite->mac_algorithm,
@@ -1892,7 +1889,7 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx
 			{
 				// TODO: process
 				printf("Handshake completed!\n");
-				FLEA_CCALL(THR_flea_tls__send_alert(tls_ctx, FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY, FLEA_TLS_ALERT_LEVEL_WARNING, socket_fd));
+				//FLEA_CCALL(THR_flea_tls__send_alert(tls_ctx, FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY, FLEA_TLS_ALERT_LEVEL_WARNING, socket_fd));
 
 				break;
 			}
