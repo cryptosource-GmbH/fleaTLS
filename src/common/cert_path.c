@@ -271,7 +271,6 @@ flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_
       {
         if(is_cert_trusted(&cert_collection__bt[target_pos] ))
         {
-          //return validate_cert_path(); // still have to check for validity times, policy key usage etc.
           target_cert__pt->is_trusted__b = FLEA_TRUE; 
           break;
         }

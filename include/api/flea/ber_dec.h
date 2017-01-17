@@ -16,8 +16,8 @@ extern "C" {
 
 #define FLEA_ASN1_UNIVERSAL_PRIMITIVE 0x00
 #define FLEA_ASN1_CONTEXT_SPECIFIC    0x80
-#define FLEA_ASN1_UNIVERSAL           0x40
-#define FLEA_ASN1_APPLICATION         0x00
+#define FLEA_ASN1_UNIVERSAL           0x00
+#define FLEA_ASN1_APPLICATION         0x40
 #define FLEA_ASN1_CONSTRUCTED         0x20
 #define FLEA_ASN1_SEQUENCE            0x10
 #define FLEA_ASN1_SET                 0x11
