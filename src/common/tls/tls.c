@@ -182,12 +182,14 @@ typedef struct {
 
 typedef enum {CHANGE_CIPHER_SPEC_TYPE_CHANGE_CIPHER_SPEC = 1} CHANGE_CIPHER_SPEC_TYPE;
 
-typedef struct {
+typedef struct
+{
 	CHANGE_CIPHER_SPEC_TYPE change_cipher_spec;
 } ChangeCipherSpec;
 
 
-typedef struct {
+typedef struct
+{
   flea_u8_t* verify_data;
   flea_u32_t verify_data_length;	// 12 for all cipher suites defined in TLS 1.2 - RFC 5246. is 24 bit!!
 } flea_tls__finished_t;
@@ -196,29 +198,69 @@ typedef struct {
 	ServerHelloDone: no content, no struct needed
 */
 
-typedef enum {
+typedef enum
+{
 	FLEA_TLS_CLIENT,
 	FLEA_TLS_SERVER
 } flea_tls__connection_end_t;
 
-typedef enum {
+typedef enum
+{
 	FLEA_TLS_HMAC_SHA1,
 	FLEA_TLS_HMAC_SHA256
 } flea_tls__mac_algorithm_t;
 
-typedef enum {
+typedef enum
+{
 	FLEA_TLS_BCA_AES,
 	FLEA_TLS_BCA_TRIPLE_DES,
 	FLEA_TLS_BCA_NULL
 } flea_tls__bulk_cipher_alg_t;
 
 
-typedef enum {
+typedef enum
+{
 	FLEA_TLS_CIPHER_TYPE_STREAM,
 	FLEA_TLS_CIPHER_TYPE_BLOCK,
 	FLEA_TLS_CIPHER_TYPE_AEAD
 } flea_tls__cipher_type_t;
 
+
+typedef enum
+{
+	FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY=0,
+	FLEA_TLS_ALERT_DESC_UNEXPECTED_MESSAGE=10,
+	FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC=20,
+	FLEA_TLS_ALERT_DESC_DECRYPTION_FAILED_RESERVED=21,
+	FLEA_TLS_ALERT_DESC_RECORD_OVERFLOW=22,
+	FLEA_TLS_ALERT_DESC_DECOMPRESSION_FAILURE=30,
+	FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE=40,
+	FLEA_TLS_ALERT_DESC_NO_CERTIFICATE_RESERVED=41,
+	FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE=42,
+	FLEA_TLS_ALERT_DESC_UNSUPPORTED_CERTIFICATE=43,
+	FLEA_TLS_ALERT_DESC_CERTIFICATE_REVOKED=44,
+	FLEA_TLS_ALERT_DESC_CERTIFICATE_EXPIRED=45,
+	FLEA_TLS_ALERT_DESC_CERTIFICATE_UNKNOWN=46,
+	FLEA_TLS_ALERT_DESC_ILLEGAL_PARAMETER=47,
+	FLEA_TLS_ALERT_DESC_UNKNOWN_CA=48,
+	FLEA_TLS_ALERT_DESC_ACCESS_DENIED=49,
+	FLEA_TLS_ALERT_DESC_DECODE_ERROR=50,
+	FLEA_TLS_ALERT_DESC_DECRYPT_ERROR=51,
+	FLEA_TLS_ALERT_DESC_EXPORT_RESTRICTION_RESERVED=60,
+	FLEA_TLS_ALERT_DESC_PROTOCOL_VERSION=70,
+	FLEA_TLS_ALERT_DESC_INSUFFICIENT_SECURITY=71,
+	FLEA_TLS_ALERT_DESC_INTERNAL_ERROR=80,
+	FLEA_TLS_ALERT_DESC_USER_CANCELED=90,
+	FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION=100,
+	FLEA_TLS_ALERT_DESC_UNSUPPORTED_EXTENSION=110
+}
+flea_tls__alert_description_t;
+
+typedef enum
+{
+	FLEA_TLS_ALERT_LEVEL_WARNING=1,
+	FLEA_TLS_ALERT_LEVEL_FATAL=2
+} flea_tls__alert_level_t;
 
 typedef enum {
 	FLEA_TLS_PRF_SHA256
@@ -535,6 +577,7 @@ flea_err_t THR_flea_tls__decrypt_record(flea_tls_ctx_t* tls_ctx, Record* record)
 	flea_u8_t iv[FLEA_TLS_MAX_IV_SIZE];
 	//flea_u8_t block_len = tls_ctx->active_read_connection_state->cipher_suite->block_size;
 	flea_u64_t sequence_number = tls_ctx->active_read_connection_state->sequence_number;
+	tls_ctx->active_read_connection_state->sequence_number++;	// increment after each usage
 	flea_u8_t mac_key[FLEA_TLS_MAX_MAC_KEY_SIZE];
 	memcpy(mac_key, tls_ctx->active_read_connection_state->mac_key, mac_key_len);
 	flea_u8_t enc_key[FLEA_TLS_MAX_MAC_KEY_SIZE];
@@ -1195,6 +1238,7 @@ flea_err_t THR_flea_tls__encrypt_record(flea_tls_ctx_t* tls_ctx, Record* record,
 	flea_u8_t iv[FLEA_TLS_MAX_IV_SIZE];
 	flea_u8_t block_len = tls_ctx->active_write_connection_state->cipher_suite->block_size;
 	flea_u64_t sequence_number = tls_ctx->active_write_connection_state->sequence_number;
+	tls_ctx->active_write_connection_state->sequence_number++;	// increment after each usage
 	flea_u8_t mac_key[FLEA_TLS_MAX_MAC_KEY_SIZE];
 	memcpy(mac_key, tls_ctx->active_write_connection_state->mac_key, mac_key_len);
 	flea_u8_t enc_key[FLEA_TLS_MAX_MAC_KEY_SIZE];
@@ -1223,7 +1267,7 @@ flea_err_t THR_flea_tls__encrypt_record(flea_tls_ctx_t* tls_ctx, Record* record,
 
 	// compute encryption
 	flea_u8_t encrypted[FLEA_TLS_MAX_RECORD_DATA_SIZE];
-	FLEA_CCALL(THR_flea_cbc_mode__encrypt_data(tls_ctx->active_write_connection_state->cipher_suite->cipher, enc_key, 32, iv, iv_len, encrypted, padded_data, input_output_len));
+	FLEA_CCALL(THR_flea_cbc_mode__encrypt_data(tls_ctx->active_write_connection_state->cipher_suite->cipher, enc_key, enc_key_len, iv, iv_len, encrypted, padded_data, input_output_len));
 
 	record->length = input_output_len+iv_len;
 	record->data = calloc(input_output_len+iv_len, sizeof(flea_u8_t));
@@ -1443,6 +1487,41 @@ flea_err_t THR_flea_tls__send(int socket_fd, flea_u8_t* buff, flea_u32_t buff_si
 	FLEA_THR_FIN_SEC_empty();
 }
 
+flea_err_t THR_flea_tls__send_record(flea_tls_ctx_t* tls_ctx, flea_u8_t* bytes, flea_u16_t bytes_len, ContentType content_type, int socket_fd) {
+	FLEA_THR_BEG_FUNC();
+
+	// create record
+	Record record;
+	flea_u8_t record_bytes[16384];
+	flea_u16_t record_bytes_len;
+	FLEA_CCALL(THR_flea_tls__create_record(tls_ctx, &record, bytes, bytes_len, content_type));
+	record_to_bytes(&record, record_bytes, &record_bytes_len);
+
+	// send record
+	if (send(socket_fd, record_bytes, record_bytes_len, 0) < 0)
+	{
+		printf("send failed\n");
+		FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
+	}
+
+	FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_tls__send_alert(flea_tls_ctx_t* tls_ctx, flea_tls__alert_description_t description, flea_tls__alert_level_t level, int socket_fd) {
+	FLEA_THR_BEG_FUNC();
+
+	flea_u8_t alert_bytes[2];
+	alert_bytes[0] = level;
+	alert_bytes[1] = description;
+
+	FLEA_CCALL(THR_flea_tls__send_record(tls_ctx, alert_bytes, sizeof(alert_bytes), CONTENT_TYPE_ALERT, socket_fd));
+
+
+	FLEA_THR_FIN_SEC_empty();
+}
+
+
+
 // TODO: when sending finished, need to init hash_ctx again ? finished calls finalize
 flea_err_t THR_flea_tls__send_handshake_message(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t* hash_ctx, HandshakeType type, flea_u8_t* msg_bytes, flea_u32_t msg_bytes_len, int socket_fd) {
 	FLEA_THR_BEG_FUNC();
@@ -1452,19 +1531,9 @@ flea_err_t THR_flea_tls__send_handshake_message(flea_tls_ctx_t* tls_ctx, flea_ha
 	flea_u32_t handshake_bytes_len;
 	create_handshake_message(type, msg_bytes, msg_bytes_len, handshake_bytes, &handshake_bytes_len);
 
-	// create record
-	Record record;
-	flea_u8_t record_bytes[16384];
-	flea_u16_t record_bytes_len;
-	THR_flea_tls__create_record(tls_ctx, &record, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE);
-	record_to_bytes(&record, record_bytes, &record_bytes_len);
-
 	// send record
-	if (send(socket_fd, record_bytes, record_bytes_len, 0) < 0)
-	{
-		printf("send failed\n");
-		FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
-	}
+	FLEA_CCALL(THR_flea_tls__send_record(tls_ctx, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, socket_fd));
+
 
 	// add handshake message to Hash
 	FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
@@ -1823,6 +1892,8 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx
 			{
 				// TODO: process
 				printf("Handshake completed!\n");
+				FLEA_CCALL(THR_flea_tls__send_alert(tls_ctx, FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY, FLEA_TLS_ALERT_LEVEL_WARNING, socket_fd));
+
 				break;
 			}
 			else
