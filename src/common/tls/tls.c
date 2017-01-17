@@ -592,13 +592,9 @@ flea_err_t THR_flea_tls__decrypt_record(flea_tls_ctx_t* tls_ctx, Record* record)
 	memcpy(record->data, tmp, record->length);
 
 	/*
-		Remove padding
+		Remove padding and read IV
 	*/
 	flea_u8_t padding_len = record->data[record->length-1];
-
-	/*
-		Get IV
-	*/
 	memcpy(iv, record->data, iv_len);
 
 	/*
@@ -615,7 +611,7 @@ flea_err_t THR_flea_tls__decrypt_record(flea_tls_ctx_t* tls_ctx, Record* record)
 	}
 
 	/*
-		finalize record
+		adjust record
 	*/
 	flea_u8_t* tmp_data = calloc(data_len, sizeof(flea_u8_t));
 	memcpy(tmp_data, record->data+iv_len, data_len);
