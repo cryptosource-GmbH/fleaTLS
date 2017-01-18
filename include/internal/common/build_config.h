@@ -160,10 +160,10 @@
 #define FLEA_X509_NAME_COMPONENT_MAX_BYTE_LEN 256
 
 /**
- * Use the "double & add always" countermeasure for (window-based) modular exponentiation 
+ * Use the "square & multiply always" algorithm for (window-based) modular exponentiation 
  * as a countermeasure against side-channel attacks.
  */
-#define FLEA_USE_MOD_EXP_ADA // FBFLAGS_MOD_EXP_ADA_ON_OFF
+#define FLEA_USE_RSA_MUL_ALWAYS // FBFLAGS_MOD_EXP_ADA_ON_OFF
 
 
 /* include must remain at the very end: */

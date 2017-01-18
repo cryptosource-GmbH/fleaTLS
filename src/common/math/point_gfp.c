@@ -534,7 +534,6 @@ flea_err_t THR_flea_point_gfp_t__mul_multi (flea_point_gfp_t* p_point_in_out, co
   FLEA_CCALL(THR_flea_mpi_t__mul(&mpi_worksp_arr_double_mod_size[0], &montg_const, &montg_const));
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &montg_const_sq_mod_p, &mpi_worksp_arr_double_mod_size[0], &p_curve->m_p, &div_ctx ));
 
-
   FLEA_CCALL(THR_flea_mpi_t__mul(&mpi_worksp_arr_double_mod_size[0], &montg_const, &p_curve->m_a));
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &aR_mod_p, &mpi_worksp_arr_double_mod_size[0], &p_curve->m_p, &div_ctx ));
 
@@ -587,7 +586,6 @@ flea_err_t THR_flea_point_gfp_t__mul_multi (flea_point_gfp_t* p_point_in_out, co
         FLEA_CCALL(THR_flea_point_jac_proj_t__add(&precomp_points[j * line_col_size + i], &precomp_points[j * line_col_size], &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
       }
     }
-
   }
   else
   {
@@ -610,36 +608,26 @@ flea_err_t THR_flea_point_gfp_t__mul_multi (flea_point_gfp_t* p_point_in_out, co
     i = FLEA_MAX(i, i2);
   }
 
-  if(i < window_size)
-  {
-    window_size = 1;
-  }
   while(i)
   {
     flea_u8_t exp_bit1;
     flea_al_u8_t j;
+
+    while(i < window_size)
+    {
+      window_size--;
+    }
     for(j = 0; j < window_size; j++)
     {
       FLEA_CCALL(THR_flea_point_jac_proj_t__double(&p2, &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
     }
-    exp_bit1 = flea_mpi_t__get_bit(p_scalar, i - 1);
-    for(j = 1; j < window_size; j++)
-    {
-      exp_bit1 <<= 1;
-      exp_bit1 |= flea_mpi_t__get_bit(p_scalar, i - j - 1);
-    }
+    exp_bit1 = flea_mpi_t__get_window(p_scalar, i - window_size, window_size);
     if(p_scalar_2)
     {
       // multi-mul
 
-      flea_al_u8_t j;
       flea_u8_t exp_bit2;
-      exp_bit2 = flea_mpi_t__get_bit(p_scalar_2, i - 1);
-      for(j = 1; j < window_size; j++)
-      {
-        exp_bit2 <<= 1;
-        exp_bit2 |= flea_mpi_t__get_bit(p_scalar_2, i - j - 1);
-      }
+      exp_bit2 = flea_mpi_t__get_window(p_scalar_2, i - window_size, window_size);
       if(exp_bit1 | exp_bit2)
       {
         FLEA_CCALL(THR_flea_point_jac_proj_t__add(&p2, &precomp_points[exp_bit2 + exp_bit1 * line_col_size], &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
@@ -656,10 +644,6 @@ flea_err_t THR_flea_point_gfp_t__mul_multi (flea_point_gfp_t* p_point_in_out, co
       }
     }
     i -= window_size;
-    if(i < window_size)
-    {
-      window_size = 1;
-    }
 
   }
 

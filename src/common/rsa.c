@@ -106,6 +106,12 @@ flea_err_t THR_flea_rsa_raw_operation_crt (
   flea_mpi_ulen_t result_len, base_word_len, vn_len, un_len;
 #endif // #ifdef FLEA_USE_HEAP_BUF
 
+#ifdef FLEA_USE_RSA_MUL_ALWAYS
+  const flea_bool_t do_use_mul_always__b = FLEA_TRUE;
+#else 
+  const flea_bool_t do_use_mul_always__b = FLEA_FALSE;
+#endif
+
   FLEA_THR_BEG_FUNC();
 #ifdef FLEA_USE_HEAP_BUF
   mod_byte_len = p_enc_len + q_enc_len;
@@ -164,12 +170,12 @@ flea_err_t THR_flea_rsa_raw_operation_crt (
   // reduce the base for the first prime
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &base_mod_prime, &base, &p, &div_ctx));
   // result used as workspace here
-  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&j1, &d1, &base_mod_prime, &p, &large_tmp, &div_ctx, &result, FLEA_CRT_RSA_WINDOW_SIZE));
+  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&j1, &d1, &base_mod_prime, &p, &large_tmp, &div_ctx, &result, FLEA_CRT_RSA_WINDOW_SIZE, do_use_mul_always__b));
 
   // d1 unused from here, used for j2
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &base_mod_prime, &base, &q, &div_ctx));
   // result used as workspace here
-  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&d1, &d2, &base_mod_prime, &q, &large_tmp, &div_ctx, &result, FLEA_CRT_RSA_WINDOW_SIZE));
+  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&d1, &d2, &base_mod_prime, &q, &large_tmp, &div_ctx, &result, FLEA_CRT_RSA_WINDOW_SIZE, do_use_mul_always__b));
 
 
   // subtract mod cannot be used because d1=j2 may be larger than p
@@ -285,7 +291,7 @@ flea_err_t THR_flea_rsa_raw_operation (flea_u8_t* result_enc, const flea_u8_t * 
   FLEA_CCALL(THR_flea_mpi_t__decode(&mod, modulus_enc, modulus_length));
   FLEA_CCALL(THR_flea_mpi_t__decode(&exponent, exponent_enc, exponent_length ));
   FLEA_CCALL(THR_flea_mpi_t__decode(&base, base_enc, base_length));
-  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&result, &exponent, &base, &mod, &large_tmp, &div_ctx, &ws_q, 1));
+  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&result, &exponent, &base, &mod, &large_tmp, &div_ctx, &ws_q, 1, FLEA_FALSE));
   FLEA_CCALL(THR_flea_mpi_t__encode(result_enc, modulus_length, &result));
 
   FLEA_THR_FIN_SEC(

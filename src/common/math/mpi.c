@@ -785,7 +785,8 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   flea_mpi_t* p_workspace_double_plus_one_sized,
   flea_mpi_div_ctx_t * p_div_ctx,
   flea_mpi_t* p_quotient_ws,
-  flea_al_u8_t window_size
+  flea_al_u8_t window_size,
+  flea_bool_t mul_always_cm__b
   )
 {
   flea_uword_t one_arr[1];
@@ -869,20 +870,17 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
 
   i = exp_bit_size - 1;
 
-  if(i < window_size)
-  {
-    window_size = 1;
-  }
   while(i >= 0)
   {
     flea_al_u8_t j;
     flea_mpi_t* p_base_power;
-    flea_u8_t exp_bit = 0; 
-    for(j = 0; j < window_size; j++)
+    flea_al_u8_t exp_bit = 0; 
+
+    while(i < window_size && window_size > 1)
     {
-      exp_bit <<= 1;
-      exp_bit |= flea_mpi_t__get_bit(p_exp, i - j);
+      window_size--;
     }
+    exp_bit = flea_mpi_t__get_window(p_exp, i - (window_size - 1), window_size);
     // perform the squarings
     for(j = 0; j < window_size; j++)
     {
@@ -898,19 +896,13 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
       FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_base_power, &mm_ctx));
       FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
     }
-#ifdef FLEA_USE_MOD_EXP_ADA
-    else
+    else if(mul_always_cm__b)
     {
       FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, &precomp[0], &mm_ctx));
       FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_workspace_double_plus_one_sized, &precomp[0]));
     }
-#endif
    
     i -= window_size;
-    if(i < window_size)
-    {
-      window_size = 1;
-    }
   }
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, &one, &mm_ctx));
   FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
@@ -967,6 +959,17 @@ flea_u8_t flea_mpi_t__get_bit (const flea_mpi_t* p_mpi, flea_u16_t bit_pos)
     result = 1;
   }
   return (flea_u8_t)result;
+}
+
+flea_al_u8_t flea_mpi_t__get_window(const flea_mpi_t* p_mpi, flea_mpi_ulen_t low_bit_pos, flea_al_u8_t window_size)
+{
+    flea_mpi_ulen_t j; 
+    flea_al_u8_t result = 0;
+    for(j = 0; j < window_size; j++)
+    {
+      result |= (flea_mpi_t__get_bit(p_mpi, j+low_bit_pos) << j);
+    }
+    return result;
 }
 
 flea_err_t THR_flea_mpi_t__copy_no_realloc (flea_mpi_t* p_target, const flea_mpi_t* p_source)
