@@ -43,7 +43,7 @@ static flea_err_t THR_flea_point_gfp_t__verify_cofactor (const flea_point_gfp_t*
 
   FLEA_CCALL(THR_flea_point_gfp_t__init_copy(&point__t, point__pt, G_arr, G_arr_word_len));
   /* check that hP != 0, called mul function throws if result = O*/
-  FLEA_CCALL(THR_flea_point_gfp_t__mul(&point__t, cofactor__pt, curve__pct));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&point__t, cofactor__pt, curve__pct, FLEA_FALSE));
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(G_arr);
     );
@@ -412,17 +412,17 @@ flea_err_t THR_flea_point_jac_proj_t__double (flea_point_jac_proj_t* p_point, co
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_point_gfp_t__mul (flea_point_gfp_t* p_point_in_out, const flea_mpi_t* p_scalar, const flea_curve_gfp_t* p_curve)
+flea_err_t THR_flea_point_gfp_t__mul (flea_point_gfp_t* p_point_in_out, const flea_mpi_t* p_scalar, const flea_curve_gfp_t* p_curve, flea_bool_t use_add_always__b)
 {
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(p_point_in_out, p_scalar, NULL, NULL, p_curve));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(p_point_in_out, p_scalar, NULL, NULL, p_curve, use_add_always__b));
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_point_gfp_t__mul_multi (flea_point_gfp_t* p_point_in_out, const flea_mpi_t* p_scalar, const flea_point_gfp_t* p_point_2, const flea_mpi_t* p_scalar_2, const flea_curve_gfp_t* p_curve)
+flea_err_t THR_flea_point_gfp_t__mul_multi (flea_point_gfp_t* p_point_in_out, const flea_mpi_t* p_scalar, const flea_point_gfp_t* p_point_2, const flea_mpi_t* p_scalar_2, const flea_curve_gfp_t* p_curve, flea_bool_t use_add_always__b)
 {
 
-  flea_point_jac_proj_t p2;
+  flea_point_jac_proj_t p2, p3;
   flea_mpi_ulen_t i;
   const flea_al_u16_t prime_word_len = FLEA_ECC_MAX_MOD_WORD_SIZE;
 
@@ -456,7 +456,8 @@ flea_err_t THR_flea_point_gfp_t__mul_multi (flea_point_gfp_t* p_point_in_out, co
   FLEA_DECL_BUF(aR_mod_p_word_arr, flea_uword_t, prime_word_len);
   FLEA_DECL_BUF(bR_mod_p_word_arr, flea_uword_t, prime_word_len);
 
-  FLEA_DECL_BUF(proj_point_word_arr_2, flea_uword_t, proj_point_word_arr_word_len);
+  FLEA_DECL_BUF(proj_point_word_arr_2, flea_uword_t, 3 * FLEA_ECC_MAX_MOD_WORD_SIZE);
+  FLEA_DECL_BUF(proj_point_word_arr_3, flea_uword_t, 3 * FLEA_ECC_MAX_MOD_WORD_SIZE);
 
   FLEA_DECL_BUF(precomp_points_word_arr, flea_uword_t, proj_point_word_arr_word_len * precomp_points_count_const);
 
@@ -495,6 +496,7 @@ flea_err_t THR_flea_point_gfp_t__mul_multi (flea_point_gfp_t* p_point_in_out, co
     window_size = FLEA_ECC_MULTI_MUL_MAX_WINDOW_SIZE;
   }
   FLEA_ALLOC_BUF(proj_point_word_arr_2, proj_point_word_arr_word_len);
+  FLEA_ALLOC_BUF(proj_point_word_arr_3, proj_point_word_arr_word_len);
 
   FLEA_ALLOC_BUF(montg_const_word_arr, montg_const_word_arr_word_len );
   FLEA_ALLOC_BUF(montg_const_sq_mod_p_arr, montg_const_sq_mod_p_word_len);
@@ -542,6 +544,7 @@ flea_err_t THR_flea_point_gfp_t__mul_multi (flea_point_gfp_t* p_point_in_out, co
 
   // init as zero directly, use dummy values
   FLEA_CCALL(THR_flea_point_jac_proj_t__init(&p2, p_point_in_out, &montg_const_sq_mod_p, &mod_sized_ws, &mm_ctx, proj_point_word_arr_2, proj_point_word_arr_word_len, &mpi_worksp_arr_double_mod_size[0]));
+  FLEA_CCALL(THR_flea_point_jac_proj_t__init(&p3, p_point_in_out, &montg_const_sq_mod_p, &mod_sized_ws, &mm_ctx, proj_point_word_arr_3, proj_point_word_arr_word_len, &mpi_worksp_arr_double_mod_size[0]));
 
 
   if(p_point_2)
@@ -640,7 +643,10 @@ flea_err_t THR_flea_point_gfp_t__mul_multi (flea_point_gfp_t* p_point_in_out, co
       if(exp_bit1)
       {
         FLEA_CCALL(THR_flea_point_jac_proj_t__add(&p2, &precomp_points[exp_bit1], &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
-
+      }
+      else if(use_add_always__b)
+      {
+        FLEA_CCALL(THR_flea_point_jac_proj_t__add(&p3, &precomp_points[exp_bit1+1], &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
       }
     }
     i -= window_size;
@@ -657,6 +663,7 @@ flea_err_t THR_flea_point_gfp_t__mul_multi (flea_point_gfp_t* p_point_in_out, co
       }
       );
     FLEA_FREE_BUF_FINAL(proj_point_word_arr_2);
+    FLEA_FREE_BUF_FINAL(proj_point_word_arr_3);
     FLEA_FREE_BUF_FINAL(montg_const_word_arr);
     FLEA_FREE_BUF_FINAL(montg_const_sq_mod_p_arr);
     FLEA_FREE_BUF_FINAL(mod_sized_ws_word_arr);

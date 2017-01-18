@@ -43,12 +43,12 @@ flea_err_t THR_flea_point_jac_proj_t__add(flea_point_jac_proj_t * p_point_1, con
 /**
  * does not handle negative scalars (ignores the sign)
  */
-flea_err_t THR_flea_point_gfp_t__mul(flea_point_gfp_t* p_point_in_out, const flea_mpi_t* p_scalar, const flea_curve_gfp_t* p_curve);
+flea_err_t THR_flea_point_gfp_t__mul(flea_point_gfp_t* p_point_in_out, const flea_mpi_t* p_scalar, const flea_curve_gfp_t* p_curve, flea_bool_t use_add_always__b);
 
 /**
  * does not handle negative scalars (ignores the sign)
  */
-flea_err_t THR_flea_point_gfp_t__mul_multi(flea_point_gfp_t* p_point_in_out, const flea_mpi_t* p_scalar, const flea_point_gfp_t* p_point_2, const flea_mpi_t* p_scalar_2, const flea_curve_gfp_t* p_curve);
+flea_err_t THR_flea_point_gfp_t__mul_multi(flea_point_gfp_t* p_point_in_out, const flea_mpi_t* p_scalar, const flea_point_gfp_t* p_point_2, const flea_mpi_t* p_scalar_2, const flea_curve_gfp_t* p_curve, flea_bool_t use_add_always__b);
 
 flea_err_t THR_flea_point_gfp_t__add(flea_point_gfp_t* p_point_1, const flea_point_gfp_t* p_point_2, const flea_curve_gfp_t* p_curve);
 

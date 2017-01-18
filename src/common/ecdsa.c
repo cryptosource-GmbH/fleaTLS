@@ -138,7 +138,7 @@ flea_err_t THR_flea_ecdsa__raw_verify (const flea_u8_t* enc_r, flea_al_u8_t enc_
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &mpi_worksp_arr[1], &double_sized_field_elem, &n, &div_ctx)); // reduced u2
 
 // Q = 0 is detected by this function
-  FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(&P, &mpi_worksp_arr[1], &G, &mpi_worksp_arr[0], &curve));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(&P, &mpi_worksp_arr[1], &G, &mpi_worksp_arr[0], &curve, FLEA_FALSE));
 
 
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &mpi_worksp_arr[1], &P.m_x, &n, &div_ctx));
@@ -181,6 +181,11 @@ flea_err_t THR_flea_ecdsa__raw_sign (flea_u8_t* res_r_arr, flea_al_u8_t* res_r_a
   flea_curve_gfp_t curve;
   flea_point_gfp_t G;
 
+#ifdef FLEA_USE_ECC_ADD_ALWAYS 
+  const flea_bool_t do_use_add_always__b = FLEA_TRUE;
+#else
+  const flea_bool_t do_use_add_always__b = FLEA_FALSE;
+#endif
 #ifdef FLEA_USE_STACK_BUF
   flea_uword_t ecc_ws_mpi_arrs [ECDSA_SIGN_MPI_WS_COUNT][FLEA_ECC_MAX_ORDER_WORD_SIZE];
 #else
@@ -269,7 +274,7 @@ flea_err_t THR_flea_ecdsa__raw_sign (flea_u8_t* res_r_arr, flea_al_u8_t* res_r_a
     while(flea_mpi_t__is_zero(&k));
 
     // mul Q=k*G
-    FLEA_CCALL(THR_flea_point_gfp_t__mul(&G, &k, &curve));
+    FLEA_CCALL(THR_flea_point_gfp_t__mul(&G, &k, &curve, do_use_add_always__b));
 
     FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &r, &G.m_x, &n, &div_ctx));
     if(flea_mpi_t__is_zero(&r))

@@ -796,14 +796,15 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
 
   const flea_al_u16_t precomp_arr_dynamic_word_len = p_mod->m_nb_used_words;
   const flea_al_u16_t R_dynamic_word_len = p_mod->m_nb_used_words + 1; // R is one word longer than mod
-  const flea_mpi_ulen_t precomp_dynamic_size = (1 << window_size) - 1;
+  flea_mpi_ulen_t precomp_dynamic_size;
 
-  FLEA_DECL_BUF(R_arr, flea_uword_t, ((FLEA_RSA_MAX_KEY_BIT_SIZE / 8) + sizeof(flea_uword_t) - 1) / sizeof(flea_uword_t) + 2); // for RSA (CRT/SF) ; + 1 because R potentially longer than mod and another +1 for p-q diff; this array must account for non CRT usage also
+  FLEA_DECL_BUF(R_arr, flea_uword_t, ((FLEA_RSA_MAX_KEY_BIT_SIZE / 8) + (16/sizeof(flea_uword_t)) ) / sizeof(flea_uword_t) + (2*4/sizeof(flea_uword_t))); // for RSA (CRT/SF) ; + 1 because R potentially longer than mod and another +1 for p-q diff; this array must account for non CRT usage also
 #if defined FLEA_USE_HEAP_BUF 
-  FLEA_DECL_BUF(precomp_arrs, flea_uword_t *, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1);
+  FLEA_DECL_BUF(precomp_arrs, flea_uword_t*, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1);
 #else 
-  flea_uword_t precomp_arrs[(1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1][FLEA_RSA_MAX_KEY_BIT_SIZE / 8 / 2 / sizeof(flea_uword_t) + 1]; // plus one because of p-q-diff
+  flea_uword_t precomp_arrs[(1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1][FLEA_RSA_MAX_KEY_BIT_SIZE / 8 / sizeof(flea_uword_t) + 4/sizeof(flea_uword_t)]; // plus one because of p-q-diff
 #endif
+
 
   FLEA_DECL_BUF(precomp, flea_mpi_t, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1);
 
@@ -816,6 +817,7 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   {
     window_size = FLEA_CRT_RSA_WINDOW_SIZE;
   }
+  precomp_dynamic_size = (1 << window_size) - 1;
 
   mm_ctx.mod_prime = flea_montgomery_compute_n_prime(p_mod->m_words[0]);
   mm_ctx.p_mod = p_mod;
@@ -826,7 +828,7 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   FLEA_ALLOC_BUF(precomp_arrs, precomp_dynamic_size);
   FLEA_ALLOC_BUF(precomp, precomp_dynamic_size);
 
-  memset(precomp_arrs, 0, precomp_dynamic_size);
+  FLEA_SET_ARR(precomp_arrs, 0, precomp_dynamic_size);
   for(i = 0; i < precomp_dynamic_size; i++)
   {
     FLEA_ALLOC_MEM_ARR(precomp_arrs[i], precomp_arr_dynamic_word_len);
@@ -834,9 +836,17 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
 #endif
   for(i = 0; i < precomp_dynamic_size; i++)
   {
+#ifdef FLEA_USE_HEAP_BUF
     flea_mpi_t__init(&precomp[i], precomp_arrs[i], precomp_arr_dynamic_word_len);
+#else
+    flea_mpi_t__init(&precomp[i], precomp_arrs[i], sizeof(precomp_arrs[i])/sizeof(flea_uword_t));
+#endif
   }
+#ifdef FLEA_DO_IF_USE_HEAP_BUF
   flea_mpi_t__init(&R, R_arr, R_dynamic_word_len);
+#else
+  flea_mpi_t__init(&R, R_arr, sizeof(R_arr)/sizeof(R_arr[0]);
+#endif
   FLEA_CCALL(THR_flea_mpi_t__set_pow_2(&R, p_mod->m_nb_used_words * FLEA_WORD_BIT_SIZE));
 
 
@@ -846,6 +856,8 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   flea_mpi_t__set_to_word_value(&one, 1);
 
   FLEA_CCALL(THR_flea_mpi_t__mul(p_workspace_double_plus_one_sized, &R, p_base));
+
+
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &precomp[0], p_workspace_double_plus_one_sized, p_mod, p_div_ctx)); //a_bar = a * R mod n
 
 #if FLEA_CRT_RSA_WINDOW_SIZE > 1
