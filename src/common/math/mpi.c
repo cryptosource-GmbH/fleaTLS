@@ -798,11 +798,11 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   const flea_al_u16_t R_dynamic_word_len = p_mod->m_nb_used_words + 1; // R is one word longer than mod
   flea_mpi_ulen_t precomp_dynamic_size;
 
-  FLEA_DECL_BUF(R_arr, flea_uword_t, ((FLEA_RSA_MAX_KEY_BIT_SIZE / 8) + (16/sizeof(flea_uword_t)) ) / sizeof(flea_uword_t) + (2*4/sizeof(flea_uword_t))); // for RSA (CRT/SF) ; + 1 because R potentially longer than mod and another +1 for p-q diff; this array must account for non CRT usage also
+  FLEA_DECL_BUF(R_arr, flea_uword_t, ((FLEA_RSA_MAX_KEY_BIT_SIZE / 8) + 4 ) / sizeof(flea_uword_t) + 1); // for RSA (CRT/SF) ; + 1 because R potentially longer than mod and another +4 for p-q diff; this array must account for non CRT usage also
 #if defined FLEA_USE_HEAP_BUF 
   FLEA_DECL_BUF(precomp_arrs, flea_uword_t*, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1);
 #else 
-  flea_uword_t precomp_arrs[(1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1][FLEA_RSA_MAX_KEY_BIT_SIZE / 8 / sizeof(flea_uword_t) + 4/sizeof(flea_uword_t)]; // plus one because of p-q-diff
+  flea_uword_t precomp_arrs[(1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1][FLEA_RSA_MAX_KEY_BIT_SIZE / 8 / sizeof(flea_uword_t) + 4/sizeof(flea_uword_t)]; // plus 32-bit because of p-q-diff
 #endif
 
 
