@@ -164,13 +164,9 @@ static flea_err_t THR_flea_x509_decode_ecdsa_signature(flea_u8_t *result__pu8, f
 static flea_err_t THR_flea_public_key_t__create_ecdsa_key(flea_ec_pubkey_val_t *ecc_key__pt, const flea_ref_cu8_t *key_as_bit_string_contents__prcu8, const flea_ref_cu8_t *encoded_params__prcu8, const flea_ref_cu8_t *inherited_params_mbn__cprcu8, flea_bool_t *are_keys_params_implicit)
 {
   FLEA_THR_BEG_FUNC();
-  flea_al_u8_t i; 
   flea_ec_gfp_dom_par_ref_t ref__t;
   flea_al_u16_t max_dp_concat_len;
   flea_err_t parse_err;
-  flea_u8_t * write_pos__pu8;
-  flea_ref_cu8_t *src__arcu8[7] = {&ref__t.p__ru8, &ref__t.a__ru8, &ref__t.b__ru8, &ref__t.gx__ru8, &ref__t.gy__ru8, &ref__t.n__ru8, &ref__t.h__ru8};
-  flea_ref_cu8_t *trgt__arcu8[7] = {&ecc_key__pt->dp__t.p__ru8, &ecc_key__pt->dp__t.a__ru8, &ecc_key__pt->dp__t.b__ru8, &ecc_key__pt->dp__t.gx__ru8, &ecc_key__pt->dp__t.gy__ru8, &ecc_key__pt->dp__t.n__ru8, &ecc_key__pt->dp__t.h__ru8};
   parse_err = THR_flea_x509_parse_ecc_public_params(encoded_params__prcu8, &ref__t);
   *are_keys_params_implicit = FLEA_FALSE;
   if((parse_err == FLEA_ERR_X509_IMPLICT_ECC_KEY_PARAMS) && inherited_params_mbn__cprcu8)
@@ -192,21 +188,7 @@ static flea_err_t THR_flea_public_key_t__create_ecdsa_key(flea_ec_pubkey_val_t *
   max_dp_concat_len = FLEA_ECC_DP_CONCAT_BYTE_SIZE_FROM_MOD_BIT_SIZE(8 * ref__t.p__ru8.len__dtl);;
   FLEA_ALLOC_MEM_ARR(ecc_key__pt->dp_mem__bu8, max_dp_concat_len);
 #endif
-  write_pos__pu8 = ecc_key__pt->dp_mem__bu8;
-  for(i = 0; i < 7; i++)
-  {
-    flea_ref_cu8_t *src = src__arcu8[i];
-    flea_ref_cu8_t *trgt  = trgt__arcu8[i];
-    if(src->len__dtl > max_dp_concat_len)
-    {
-      FLEA_THROW("parameters have unexpected size", FLEA_ERR_X509_INV_ECC_KEY_PARAMS);
-    }
-    memcpy(write_pos__pu8, src->data__pcu8, src->len__dtl);
-    trgt->len__dtl = src->len__dtl;
-    trgt->data__pcu8 = write_pos__pu8;
-    write_pos__pu8 += src->len__dtl;
-    max_dp_concat_len -= src->len__dtl;
-  }
+	FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__write_to_concat_array(&ecc_key__pt->dp__t, ecc_key__pt->dp_mem__bu8, max_dp_concat_len, &ref__t));
 
   if(key_as_bit_string_contents__prcu8->len__dtl > FLEA_ECC_MAX_ENCODED_POINT_LEN)
   {
@@ -230,7 +212,7 @@ flea_err_t THR_flea_x509_parse_ecc_public_params(const flea_ref_cu8_t *encoded_p
 
 
   FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, encoded_parameters__pt->data__pcu8, encoded_parameters__pt->len__dtl, &hlp__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0));
+  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, FLEA_ECC_MAX_MOD_BYTE_SIZE*10));
   FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONSTRUCTED, FLEA_ASN1_SEQUENCE ), &found__b));
   if(found__b)
   {

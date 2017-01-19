@@ -7,6 +7,7 @@
 #include  "flea/rsa.h"
 #include "self_test.h"
 #include "flea/alloc.h"
+#include "flea/privkey.h"
 #include <string.h>
 #ifdef FLEA_HAVE_RSA
 const flea_u8_t pub_exp_arr[] = { 0x01, 0x00, 0x01  };
@@ -131,7 +132,7 @@ flea_err_t THR_flea_test_rsa_crt_mass_sig ( flea_u32_t nb_iters)
 {
   const flea_u32_t mod_len = 256;
   const flea_u32_t mod_word_len = 256 / sizeof(flea_uword_t);
-
+  FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
   FLEA_DECL_BUF(mess_arr, flea_u8_t, mod_len);
   FLEA_DECL_BUF(sig_arr, flea_u8_t, mod_len);
 #if !(FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && defined FLEA_USE_STACK_BUF)
@@ -184,7 +185,6 @@ flea_err_t THR_flea_test_rsa_crt_mass_sig ( flea_u32_t nb_iters)
     mess_arr[2] = i >> 16;
     mess_arr[5] = i >> 8;
     mess_arr[8] = i & 0xFF;
-#if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && defined FLEA_USE_STACK_BUF
     flea_err_t err;
     err = THR_flea_rsa_raw_operation_crt(
       sig_arr,
@@ -201,12 +201,18 @@ flea_err_t THR_flea_test_rsa_crt_mass_sig ( flea_u32_t nb_iters)
       sizeof(d2_diff_1),
       q_inv_diff_1,
       sizeof(q_inv_diff_1));
+
+#if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && defined FLEA_USE_STACK_BUF
     if(err != FLEA_ERR_INV_KEY_SIZE && err != FLEA_ERR_BUFF_TOO_SMALL)
     {
       FLEA_THROW("wrong error code for RSA with invalid key size", FLEA_ERR_FAILED_TEST);
     }
 #else
-    FLEA_CCALL(THR_flea_rsa_raw_operation_crt(
+		if(err != FLEA_ERR_FINE)
+		{
+      FLEA_THROW("error during RSA private OP", FLEA_ERR_FAILED_TEST);
+		}
+    /*FLEA_CCALL(THR_flea_rsa_raw_operation_crt(
                  sig_arr,
                  mess_arr,
                  mod_len,
@@ -222,6 +228,7 @@ flea_err_t THR_flea_test_rsa_crt_mass_sig ( flea_u32_t nb_iters)
                  q_inv_diff_1,
                  sizeof(q_inv_diff_1)
                  ));
+								 */
     FLEA_CCALL(THR_flea_rsa_raw_operation(encrypted_arr, pub_exp_arr, sizeof(pub_exp_arr), sig_arr, mod_len, mod_enc, mod_len));
     if(memcmp(encrypted_arr, mess_arr, mod_len))
     {
@@ -240,6 +247,7 @@ flea_err_t THR_flea_test_rsa_crt_mass_sig ( flea_u32_t nb_iters)
     FLEA_FREE_BUF_FINAL(mod_word_arr);
     FLEA_FREE_BUF_FINAL(p_word_arr);
     FLEA_FREE_BUF_FINAL(q_word_arr);
+		flea_private_key_t__dtor(&privkey__t);
     );
 
 }

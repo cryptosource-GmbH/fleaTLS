@@ -22,7 +22,9 @@ typedef enum
   FLEA_ERR_POINT_NOT_ON_CURVE                         = 0x000A,
   FLEA_ERR_INV_ECC_DP                                 = 0x000B,
   FLEA_ERR_INV_KEY_SIZE                               = 0x000C,
-  FLEA_ERR_UNSUPP_KEY_SIZE                            = 0x000D,
+  FLEA_ERR_INV_KEY_COMP_SIZE                          = 0x000D,
+  FLEA_ERR_INV_KEY_TYPE															  = 0x000E,
+  FLEA_ERR_UNSUPP_KEY_SIZE                            = 0x000F,
   FLEA_ERR_ZERO_POINT_AFF_TRF                         = 0x0020,
 
   /** 

@@ -7,7 +7,9 @@
 #include "flea/error_handling.h"
 #include "flea/rsa.h"
 #include "flea/alloc.h"
+#include "flea/privkey.h"
 #include "flea/array_util.h"
+#include "internal/common/privkey_int.h"
 
 /**
  * number of words by which the larger prime in CRT-RSA may become larger than
@@ -28,6 +30,37 @@
 #define FLEA_RSA_SF_MAX_MOD_WORD_LEN ((FLEA_RSA_MAX_KEY_BIT_SIZE + FLEA_WORD_BIT_SIZE - 1) / FLEA_WORD_BIT_SIZE)
 
 #ifdef FLEA_HAVE_RSA
+
+flea_err_t THR_flea_rsa_raw_operation_crt_private_key(
+    const flea_private_key_t * priv_key__pt,
+    flea_u8_t* result_enc,
+    const flea_u8_t* base_enc,
+    flea_al_u16_t base_length)
+{
+  FLEA_THR_BEG_FUNC();
+  if(priv_key__pt->key_type__t != flea_rsa_key)
+  {
+    FLEA_THROW("private key is not an RSA key", FLEA_ERR_INV_KEY_TYPE);
+  }
+  FLEA_CCALL(THR_flea_rsa_raw_operation_crt(
+        result_enc,
+        base_enc,
+        base_length,
+        (priv_key__pt->key_bit_size__u16+7)/8,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_P_IDX].data__pcu8,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_P_IDX].len__dtl,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_Q_IDX].data__pcu8,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_Q_IDX].len__dtl,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_D1_IDX].data__pcu8,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_D1_IDX].len__dtl,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_D2_IDX].data__pcu8,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_D2_IDX].len__dtl,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_C_IDX].data__pcu8,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_C_IDX].len__dtl
+        ));
+  FLEA_THR_FIN_SEC_empty();
+}
+// TODO: REMOVE 
 flea_err_t THR_flea_rsa_raw_operation_crt_internal_key_format (
   flea_u8_t* result_enc,
   const flea_u8_t* base_enc,
