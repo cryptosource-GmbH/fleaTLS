@@ -43,6 +43,7 @@ typedef struct {
 
   flea_pk_key_type_t key_type__t;
   flea_u16_t key_bit_size__u16;
+	flea_u16_t max_primitive_input_len__u16;
   union 
   {
     flea_rsa_privkey_val_t rsa_priv_key_val__t;
@@ -62,6 +63,8 @@ flea_err_t THR_flea_rsa_raw_operation_crt_private_key(
     const flea_u8_t* base_enc,
     flea_al_u16_t base_length);
 
+flea_err_t THR_flea_private_key_t__ctor_rsa_internal_format(flea_private_key_t *key__pt, const flea_ref_cu8_t* priv_key_enc_internal_format__prcu8, flea_al_u16_t key_bit_size__alu16);
+
 flea_err_t THR_flea_private_key_t__ctor_rsa_components(
 		flea_private_key_t *key__pt, 
 		flea_al_u16_t key_bit_size__alu16,
@@ -77,6 +80,7 @@ flea_err_t THR_flea_private_key_t__ctor_rsa_components(
 		flea_al_u16_t c_len__alu16
 		);
 
+flea_err_t THR_flea_private_key_t__ctor_ecc(flea_private_key_t *key__pt, const flea_ref_cu8_t *scalar__cprcu8, const flea_ec_gfp_dom_par_ref_t *dp_ref__pt);
 
 #endif /* h-guard */
 #ifdef __cplusplus

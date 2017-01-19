@@ -23,6 +23,8 @@ flea_err_t THR_flea_private_key_t__ctor_ecc(flea_private_key_t *key__pt, const f
 	FLEA_THR_BEG_FUNC();	
 	key__pt->key_type__t = flea_ecc_key;		
 	key__pt->key_bit_size__u16 = flea__get_BE_int_bit_len(dp_ref__pt->n__ru8.data__pcu8, dp_ref__pt->n__ru8.len__dtl);
+	key__pt->max_primitive_input_len__u16 = (key__pt->key_bit_size__u16+7)/8;
+
 	if(key__pt->key_bit_size__u16 > FLEA_ECC_MAX_ORDER_BIT_SIZE)
 	{
 		FLEA_THROW("ECC order too large", FLEA_ERR_INV_ECC_DP );
@@ -105,6 +107,7 @@ flea_err_t THR_flea_private_key_t__ctor_rsa_components(
 #endif
 	key__pt->key_bit_size__u16 = key_bit_size__alu16;	
 	key__pt->key_type__t = flea_rsa_key;
+	key__pt->max_primitive_input_len__u16 = (key_bit_size__alu16+7)/8;
 
 	if(p_len__alu16 > FLEA_RSA_CRT_KEY_COMPONENT_MAX_BYTE_SIZE
 			|| q_len__alu16 > FLEA_RSA_CRT_KEY_COMPONENT_MAX_BYTE_SIZE
