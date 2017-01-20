@@ -149,7 +149,9 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
 
       CALL_TEST(THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store());
       CALL_TEST(THR_flea_test_tls_cert_chain());
+#if FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048
 			CALL_TEST(flea_test_rsa_pkcs8());
+#endif
 #endif
 #ifdef FLEA_HAVE_ECDSA
       CALL_TEST(THR_flea_test_cert_verify_ecdsa());

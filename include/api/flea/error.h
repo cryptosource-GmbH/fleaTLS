@@ -62,6 +62,11 @@ typedef enum
    */
   FLEA_ERR_TLS_PEER_CERT_INVALID_KEY_USAGE            = 0x0043,
 
+
+  /**
+   * The PKCS#8 key type provided in the algorithm identifier is not supported.
+   */
+  FLEA_ERR_PKCS8_INVALID_KEY_OID                      = 0x0070,
   /**
    * A fixed sized buffer is too small or a reallocation in heap mode failed 
    * because the configured maximal buffer size was exhausted.

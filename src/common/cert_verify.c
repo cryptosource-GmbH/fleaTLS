@@ -32,25 +32,12 @@ flea_err_t THR_flea_x509_verify_cert_signature( const flea_u8_t *enc_subject_cer
       ); 
 }
 
-/*flea_err_t THR_flea_x509_verify_cert_ref_signature(const flea_x509_cert_ref_t *subject_cert_ref__pt, const flea_x509_cert_ref_t *issuer_cert_ref__t)
-{
-  return THR_flea_x509_verify_cert_ref_signature_inherited_params(subject_cert_ref__pt, issuer_cert_ref__t, NULL, NULL);
-}*/
-flea_err_t THR_flea_x509_verify_cert_ref_signature(const flea_x509_cert_ref_t *subject_cert_ref__pt, const flea_x509_cert_ref_t *issuer_cert_ref__pt) //, flea_ref_cu8_t *returned_verifiers_pub_key_params_mbn__prcu8,  const flea_ref_cu8_t *inherited_params_mbn__cprcu8  )
+flea_err_t THR_flea_x509_verify_cert_ref_signature(const flea_x509_cert_ref_t *subject_cert_ref__pt, const flea_x509_cert_ref_t *issuer_cert_ref__pt) 
 { 
   flea_ref_cu8_t sig_content__t;
   flea_public_key_t key__t = flea_public_key_t__INIT_VALUE;
   FLEA_THR_BEG_FUNC();
-  /*if(returned_verifiers_pub_key_params_mbn__prcu8)
-  {
-    *returned_verifiers_pub_key_params_mbn__prcu8 = subject_cert_ref__pt->subject_public_key_info__t.algid__t.params_ref_as_tlv__t;
-  }*/
   FLEA_CCALL(THR_flea_public_key_t__ctor_cert(&key__t, issuer_cert_ref__pt));
-  /*if(are_keys_params_implicit__b && returned_verifiers_pub_key_params_mbn__prcu8)
-  {
-    returned_verifiers_pub_key_params_mbn__prcu8->data__pcu8 = NULL;
-    returned_verifiers_pub_key_params_mbn__prcu8->len__dtl = 0;
-  }*/
   FLEA_CCALL(THR_flea_ber_dec__get_ref_to_bit_string_content_no_unused_bits(&subject_cert_ref__pt->cert_signature_as_bit_string__t, &sig_content__t));
   FLEA_CCALL( THR_flea_public_key_t__verify_signature_use_sigalg_id(
         &key__t, 

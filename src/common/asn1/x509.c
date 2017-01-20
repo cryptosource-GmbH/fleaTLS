@@ -407,9 +407,9 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, co
     flea_dtl_t version_len__dtl = 1;
     flea_u8_t version__u8;
     FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw(&dec__t, FLEA_ASN1_INT, 0, &version__u8, &version_len__dtl));
-    if(version_len__dtl == 0)
+    if(version_len__dtl != 1)
     {
-      FLEA_THROW("x.509 version of length 0", FLEA_ERR_X509_VERSION_ERROR);
+      FLEA_THROW("x.509 version of invalid length", FLEA_ERR_X509_VERSION_ERROR);
     } 
     cert_ref__pt->version__u8 = version__u8 + 1;
     FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
@@ -484,3 +484,4 @@ flea_bool_t flea_x509_has_key_usages(const flea_x509_cert_ref_t *cert_ref__pt, f
   return FLEA_FALSE;
 }
 
+//flea_err_t THR_flea_

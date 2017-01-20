@@ -12,21 +12,8 @@
 #include "flea/bin_utils.h"
 #include "flea/pk_api.h"
 #include "flea/ecc_named_curves.h"
+#include "internal/common/oid.h"
 
-/* ... rsadsi: 1.2.840.113549 */
-//subsequent 2 bytes determine encoding method
-// ...1 => PKCS
-//    ...1 PKCS#1
-const flea_u8_t pkcs1_oid_prefix__cau8[] = { 0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01  };
-//
-//    ...7 OAEP 
-// 
-// the following and last byte determines the hash algorithm:
-//         5 => sha1
-//        14 => sha224
-//        11 => sha256
-//        12 => sha384
-//        13 => sha512
 //
 /* ANSI X9.62 Elliptic Curve Digital Signature Algorithm (ECDSA) algorithm with Secure Hash Algorithm, revision 2 (SHA2)  */
 const flea_u8_t ecdsa_oid_prefix__acu8[] = { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04 };

@@ -398,7 +398,7 @@ static flea_err_t THR_flea_ber_dec__ensure_pos_int_and_remove_leading_zeros(flea
   {
     FLEA_THROW("negative asn1 integer where positive was expected", FLEA_ERR_X509_NEG_INT);
   }
-  while(der_ref__pt->len__dtl && (der_ref__pt->data__pcu8[0] == 0))
+  while((der_ref__pt->len__dtl > 1) && (der_ref__pt->data__pcu8[0] == 0))
   {
     der_ref__pt->len__dtl--;
     der_ref__pt->data__pcu8++;

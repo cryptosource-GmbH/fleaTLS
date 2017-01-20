@@ -3,23 +3,36 @@
 #include "internal/common/default.h"
 #include "flea/error_handling.h"
 #include "flea/error.h"
+#include "flea/privkey.h"
+#include "flea/pkcs8.h"
+#include "flea/pk_api.h"
 #include "internal/common/math/mpi.h"
 #include  "flea/rsa.h"
 #include "self_test.h"
 #include "flea/alloc.h"
 #include <string.h>
-
+#if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048
 static const flea_u8_t pkcs8_rsa_key_2048_crt [] = {
 /*
+ *
+    <30 82 04 BD 02 01 00 30 0D 06 09 2A 86 48 86 F7 0D 01 01 01 05 00 04 82>
    0 1213: SEQUENCE {
+    <02 01 00>
    4    1:   INTEGER 0
+    <30 0D 06 09 2A 86 48 86 F7 0D 01 01 01 05 00>
    7   13:   SEQUENCE {
+    <06 09 2A 86 48 86 F7 0D 01 01 01>
    9    9:     OBJECT IDENTIFIER rsaEncryption (1 2 840 113549 1 1 1)
+    <05 00>
   20    0:     NULL
          :     }
+    <04 82 04 A7 30 82 04 A3 02 01 00 02 82 01 01 00 CE 2E BA 32 EB 19 74 C3>
   22 1191:   OCTET STRING, encapsulates {
+    <30 82 04 A3 02 01 00 02 82 01 01 00 CE 2E BA 32 EB 19 74 C3 D3 A8 EA 59>
   26 1187:     SEQUENCE {
+    <02 01 00>
   30    1:       INTEGER 0
+    <02 82 01 01 00 CE 2E BA 32 EB 19 74 C3 D3 A8 EA 59 A9 9C 60 C6 0D 70 2A>
   33  257:       INTEGER
          :         00 CE 2E BA 32 EB 19 74 C3 D3 A8 EA 59 A9 9C 60
          :         C6 0D 70 2A 88 71 9D 20 D5 00 45 FB ED C2 46 92
@@ -30,7 +43,9 @@ static const flea_u8_t pkcs8_rsa_key_2048_crt [] = {
          :         0D B5 52 C1 1E 5C C4 64 8C F8 94 2E F6 AC A4 F4
          :         4F 78 36 04 B6 2D 7B 6B 07 D9 F6 8A 12 11 E9 DC
          :                 [ Another 129 bytes skipped ]
+    <02 03 01 00 01>
  294    3:       INTEGER 65537
+    <02 82 01 00 35 9F D7 93 A8 AB BD 3F B5 4C 08 6F 7B 7A 8D 7C D5 3F E8 00>
  299  256:       INTEGER
          :         35 9F D7 93 A8 AB BD 3F B5 4C 08 6F 7B 7A 8D 7C
          :         D5 3F E8 00 06 B4 9C 36 69 D4 C9 DA 23 9E 21 51
@@ -41,6 +56,7 @@ static const flea_u8_t pkcs8_rsa_key_2048_crt [] = {
          :         8C E6 52 0D E8 88 B7 B2 26 70 BB EA 32 2A D0 D3
          :         DE 6B 06 3C AF 85 9A E7 B6 DB B5 3B 4F E7 68 0A
          :                 [ Another 128 bytes skipped ]
+    <02 81 81 00 F7 D2 A8 B2 64 79 8C D3 A1 8E 92 2B 7C 17 C9 35 7B D5 E6 52>
  559  129:       INTEGER
          :         00 F7 D2 A8 B2 64 79 8C D3 A1 8E 92 2B 7C 17 C9
          :         35 7B D5 E6 52 BD E9 D9 BB D3 59 FC 0B 69 8A 3D
@@ -51,6 +67,7 @@ static const flea_u8_t pkcs8_rsa_key_2048_crt [] = {
          :         CA FD 6F B2 0C 1B A3 FC EE 40 A2 EC 76 F1 B1 14
          :         DA D2 EB C8 BB 71 FF 70 DE A7 12 FB 2F DF AC CF
          :         5B
+    <02 81 81 00 D4 FC 55 DF 50 56 A5 89 40 29 8A 68 4C 24 9E C0 4C A8 EF 96>
  691  129:       INTEGER
          :         00 D4 FC 55 DF 50 56 A5 89 40 29 8A 68 4C 24 9E
          :         C0 4C A8 EF 96 F7 97 0E EC 05 96 80 00 20 33 24
@@ -61,6 +78,7 @@ static const flea_u8_t pkcs8_rsa_key_2048_crt [] = {
          :         CC D4 0E F7 B0 6A D2 52 E5 44 19 5B ED 2C 29 41
          :         C8 20 76 F2 AE 3C D6 9C BD F6 15 CF 27 CD 66 D1
          :         3B
+    <02 81 81 00 E2 2A AC AE 71 A7 C4 6F F7 87 07 BB 0B BB 21 73 E0 1A 2B E2>
  823  129:       INTEGER
          :         00 E2 2A AC AE 71 A7 C4 6F F7 87 07 BB 0B BB 21
          :         73 E0 1A 2B E2 E3 53 21 D4 9A 64 0A F3 D7 53 C4
@@ -71,6 +89,7 @@ static const flea_u8_t pkcs8_rsa_key_2048_crt [] = {
          :         55 69 C9 9F F2 10 DF AE 1B 39 7D F6 D3 EE 6B 2F
          :         9F 2C D2 E6 14 BB 4A E6 15 2C E0 D3 C0 B3 1F 20
          :         F5
+    <02 81 80 22 8F 17 37 F7 07 38 30 FF 12 3E 7D 11 ED D7 3C 88 B3 D8 BC 7C>
  955  128:       INTEGER
          :         22 8F 17 37 F7 07 38 30 FF 12 3E 7D 11 ED D7 3C
          :         88 B3 D8 BC 7C 4C 2C 85 AB 9A 72 06 93 32 F9 25
@@ -80,6 +99,7 @@ static const flea_u8_t pkcs8_rsa_key_2048_crt [] = {
          :         DD 7C 43 B2 48 97 B9 9F 61 08 82 59 6E 20 B5 FB
          :         3A 65 7B 57 4A DD F9 C9 6D B5 57 AF 32 3D 37 89
          :         4B 8B 41 71 78 39 B2 91 38 3E ED B0 1D AA 13 45
+    <02 81 80 70 81 78 BA 33 78 9C B1 2C AA D9 4F 8B D7 09 F1 DB BC 26 8F A0>
 1086  128:       INTEGER
          :         70 81 78 BA 33 78 9C B1 2C AA D9 4F 8B D7 09 F1
          :         DB BC 26 8F A0 C7 5D 59 11 56 46 B9 78 48 D8 49
@@ -141,5 +161,36 @@ static const flea_u8_t pkcs8_rsa_key_2048_crt [] = {
 
 flea_err_t flea_test_rsa_pkcs8()
 {
- return FLEA_ERR_FINE;
+  flea_hash_id_t hash_id__t = flea_sha256;
+
+  FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
+  FLEA_DECL_OBJ(pubkey__t, flea_public_key_t);
+
+  FLEA_DECL_BUF(sig_buf__b_u8, flea_u8_t, FLEA_PK_MAX_SIGNATURE_LEN);
+  const flea_ref_cu8_t message__rcu8 = 
+  {
+    .data__pcu8 = pkcs8_rsa_key_2048_crt,
+    .len__dtl = sizeof(pkcs8_rsa_key_2048_crt)
+  };
+  flea_ref_u8_t signature__ru8;
+  flea_ref_cu8_t signature__rcu8;
+  FLEA_THR_BEG_FUNC();
+  FLEA_ALLOC_BUF(sig_buf__b_u8, FLEA_PK_MAX_SIGNATURE_LEN);
+  signature__ru8.data__pcu8 = sig_buf__b_u8;
+  signature__ru8.len__dtl = FLEA_PK_MAX_SIGNATURE_LEN;
+  FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&privkey__t, pkcs8_rsa_key_2048_crt, sizeof(pkcs8_rsa_key_2048_crt))); 
+  FLEA_CCALL(THR_flea_public_key_t__ctor_pkcs8(&pubkey__t, pkcs8_rsa_key_2048_crt, sizeof(pkcs8_rsa_key_2048_crt))); 
+  
+  FLEA_CCALL(THR_flea_pk_api__sign(&message__rcu8, &signature__ru8, &privkey__t, flea_rsa_pkcs1_v1_5_sign, hash_id__t));
+  signature__rcu8.data__pcu8 = signature__ru8.data__pcu8;
+  signature__rcu8.len__dtl = signature__ru8.len__dtl;
+  FLEA_CCALL(THR_flea_pk_api__verify_signature(&message__rcu8, &signature__rcu8, &pubkey__t, flea_rsa_pkcs1_v1_5_sign, hash_id__t));
+  FLEA_THR_FIN_SEC(
+      flea_private_key_t__dtor(&privkey__t);
+      flea_public_key_t__dtor(&pubkey__t);
+      FLEA_FREE_BUF_FINAL(sig_buf__b_u8);
+      );
 }
+
+
+#endif /* #if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048 */
