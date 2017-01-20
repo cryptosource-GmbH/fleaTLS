@@ -103,7 +103,7 @@ static flea_err_t THR_validate_cert_path(flea_cert_path_validator_t *cert_cpv__p
   flea_s32_t i;
   flea_al_u16_t chain_len__alu16 =  cert_cpv__pt->chain_pos__u16 + 1;
   flea_al_u16_t m_path__u16 = chain_len__alu16;
-  flea_ref_cu8_t inherited_params__rcu8;
+  //flea_ref_cu8_t inherited_params__rcu8;
   flea_gmt_time_t compare_time__t;
   FLEA_THR_BEG_FUNC();
 
@@ -178,36 +178,34 @@ static flea_err_t THR_validate_cert_path(flea_cert_path_validator_t *cert_cpv__p
     }
   }
   /* verify signature from target to TA */
-  inherited_params__rcu8.data__pcu8 = NULL;
-  inherited_params__rcu8.len__dtl = 0;
+  /*inherited_params__rcu8.data__pcu8 = NULL;
+  inherited_params__rcu8.len__dtl = 0;*/
   for(i = (flea_s32_t)(chain_len__alu16 - 2); i >= 0; i--)
   {
 
     flea_bool_t is_ca_cert__b = (i != 0) ? FLEA_TRUE : FLEA_FALSE;
     flea_x509_cert_ref_t *subject__pt = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i]];
     flea_x509_cert_ref_t *issuer__pt = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i+1]];
-    flea_ref_cu8_t returned_params__rcu8;
-    flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
+    //flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
 
     // verify against subsequent certificate
-    FLEA_CCALL(THR_flea_x509_verify_cert_ref_signature_inherited_params(subject__pt, issuer__pt, &returned_params__rcu8, inherited_params_to_use__prcu8));
+    FLEA_CCALL(THR_flea_x509_verify_cert_ref_signature(subject__pt, issuer__pt));
     /* check revocation. current "inherited params" are for the issuer */
     if(cert_cpv__pt->perform_revocation_checking__b)
     {
-      FLEA_CCALL(THR_flea_crl__check_revocation_status(subject__pt, issuer__pt, cert_cpv__pt->crl_collection__brcu8, cert_cpv__pt->nb_crls__u16, &compare_time__t,  is_ca_cert__b, inherited_params_to_use__prcu8)); 
+      FLEA_CCALL(THR_flea_crl__check_revocation_status(subject__pt, issuer__pt, cert_cpv__pt->crl_collection__brcu8, cert_cpv__pt->nb_crls__u16, &compare_time__t,  is_ca_cert__b)); 
     }
-    if(returned_params__rcu8.len__dtl)
+    /*if(returned_params__rcu8.len__dtl)
     {
       // these are the params for the subject cert
       inherited_params__rcu8 = returned_params__rcu8;
-    }
+    }*/
 
   }
   if(key_to_construct_mbn__pt)
   {
-    flea_bool_t dummy;
-      flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
-    FLEA_CCALL(THR_flea_public_key_t__ctor_cert_inherited_params(key_to_construct_mbn__pt, &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[0]], inherited_params_to_use__prcu8, &dummy));
+      //flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
+    FLEA_CCALL(THR_flea_public_key_t__ctor_cert(key_to_construct_mbn__pt, &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[0]]));
   }
 
   FLEA_THR_FIN_SEC_empty();

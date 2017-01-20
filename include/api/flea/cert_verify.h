@@ -21,7 +21,6 @@ flea_err_t THR_flea_x509_verify_cert_signature( const flea_u8_t *enc_subject_cer
  * parameters are used instead of the one's in the subject's certificate
  */
 flea_err_t THR_flea_x509_verify_cert_ref_signature(const flea_x509_cert_ref_t *subject_cert_ref__pt, const flea_x509_cert_ref_t *issuer_cert_ref__t );
-flea_err_t THR_flea_x509_verify_cert_ref_signature_inherited_params(const flea_x509_cert_ref_t *subject_cert_ref__pt, const flea_x509_cert_ref_t *issuer_cert_ref__t, flea_ref_cu8_t *returned_verifiers_pub_key_params_mbn__prcu8,  const flea_ref_cu8_t *inherited_params_mbn__cprcu8  );
 
 #ifdef __cplusplus
 }

@@ -276,7 +276,7 @@ static flea_err_t THR_flea_crl__parse_extensions(flea_ber_dec_t *dec__pt, flea_b
       );
 }
 
-static flea_err_t THR_flea_crl__update_revocation_status_from_crl(const flea_x509_cert_ref_t *subject__pt, const flea_x509_cert_ref_t *issuer__pt, const flea_u8_t *crl_der__pcu8, flea_dtl_t crl_der_len__dtl, const flea_gmt_time_t *verification_date__pt, flea_bool_t is_ca_cert__b, const flea_ref_cu8_t *inherited_params_mbn__cprcu8, flea_revocation_status_e *rev_stat__pe, flea_gmt_time_t *latest_this_update__pt)
+static flea_err_t THR_flea_crl__update_revocation_status_from_crl(const flea_x509_cert_ref_t *subject__pt, const flea_x509_cert_ref_t *issuer__pt, const flea_u8_t *crl_der__pcu8, flea_dtl_t crl_der_len__dtl, const flea_gmt_time_t *verification_date__pt, flea_bool_t is_ca_cert__b, flea_revocation_status_e *rev_stat__pe, flea_gmt_time_t *latest_this_update__pt)
 {
 
   FLEA_DECL_OBJ(source__t, flea_data_source_t);
@@ -298,7 +298,6 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(const flea_x50
   flea_bool_t have_extensions__b;
   flea_ref_cu8_t crl_signature_as_bit_string__rcu8;
   flea_ref_cu8_t sig_content__rcu8;
-  flea_bool_t dummy__b;
  FLEA_THR_BEG_FUNC();
  
   FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source_tbs__t, crl_der__pcu8, crl_der_len__dtl, &hlp_tbs__t));
@@ -395,7 +394,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(const flea_x50
   FLEA_CCALL(THR_flea_x509__parse_algid_ref(&algid_ref_2__t, &dec__t));
   FLEA_CCALL(THR_flea_x509__process_alg_ids(&algid_ref_1__t, &algid_ref_2__t));
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, BIT_STRING), &crl_signature_as_bit_string__rcu8));    
-  FLEA_CCALL(THR_flea_public_key_t__ctor_cert_inherited_params(&pubkey__t, issuer__pt, inherited_params_mbn__cprcu8, &dummy__b));
+  FLEA_CCALL(THR_flea_public_key_t__ctor_cert(&pubkey__t, issuer__pt));
 
   FLEA_CCALL(THR_flea_ber_dec__get_ref_to_bit_string_content_no_unused_bits(&crl_signature_as_bit_string__rcu8, &sig_content__rcu8));
   FLEA_CCALL( THR_flea_public_key_t__verify_signature_use_sigalg_id(
@@ -427,7 +426,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(const flea_x50
 
 }
 
-flea_err_t THR_flea_crl__check_revocation_status(const flea_x509_cert_ref_t *subject__pt, const flea_x509_cert_ref_t *issuer__pt, const flea_ref_cu8_t *crl_der__cprcu8, flea_al_u16_t nb_crls__alu16,  const flea_gmt_time_t *verification_date__pt, flea_bool_t is_ca_cert__b, const flea_ref_cu8_t *inherited_params_mbn__cprcu8)
+flea_err_t THR_flea_crl__check_revocation_status(const flea_x509_cert_ref_t *subject__pt, const flea_x509_cert_ref_t *issuer__pt, const flea_ref_cu8_t *crl_der__cprcu8, flea_al_u16_t nb_crls__alu16,  const flea_gmt_time_t *verification_date__pt, flea_bool_t is_ca_cert__b)
 {
   flea_al_u16_t i;
   flea_revocation_status_e revstat = flea_revstat_undetermined;
@@ -438,7 +437,7 @@ flea_err_t THR_flea_crl__check_revocation_status(const flea_x509_cert_ref_t *sub
   FLEA_CCALL(THR_flea_asn1_parse_date(flea_asn1_utc_time, indet_date, sizeof(indet_date)-1, &latest_this_update__t));
   for(i = 0; i < nb_crls__alu16; i++)
   {
-    THR_flea_crl__update_revocation_status_from_crl(subject__pt, issuer__pt, crl_der__cprcu8[i].data__pcu8,  crl_der__cprcu8[i].len__dtl, verification_date__pt, is_ca_cert__b, inherited_params_mbn__cprcu8, &revstat, &latest_this_update__t);
+    THR_flea_crl__update_revocation_status_from_crl(subject__pt, issuer__pt, crl_der__cprcu8[i].data__pcu8,  crl_der__cprcu8[i].len__dtl, verification_date__pt, is_ca_cert__b, &revstat, &latest_this_update__t);
     /* ignore potential errors. called function does not modify the status values in
      * this case */
   }
