@@ -11,6 +11,10 @@
 #include "flea/pubkey.h"
 #include "flea/privkey.h"
 
+
+
+#ifdef FLEA_HAVE_ASYM_ALGS
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -172,5 +176,7 @@ flea_err_t THR_flea_pk_api__decrypt_message (flea_pk_scheme_id_t id__t, flea_has
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
 
 #endif /* h-guard */

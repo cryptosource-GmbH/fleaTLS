@@ -10,6 +10,8 @@
 #include "flea/ec_gfp_dom_par.h"
 #include "flea/pubkey.h"
 
+#ifdef FLEA_HAVE_ASYM_ALGS
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -86,3 +88,5 @@ extern "C" {
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */

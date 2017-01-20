@@ -15,6 +15,7 @@
 #include "flea/ecc_named_curves.h"
 #include <string.h>
 
+#ifdef FLEA_HAVE_ASYM_ALGS
 
 #ifdef FLEA_HAVE_ECC
 flea_err_t THR_flea_private_key_t__ctor_ecc(flea_private_key_t *key__pt, const flea_ref_cu8_t *scalar__cprcu8, const flea_ec_gfp_dom_par_ref_t *dp_ref__pt)
@@ -159,3 +160,5 @@ void flea_private_key_t__dtor(flea_private_key_t *privkey__pt)
 #endif 
 #endif
 }
+
+#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */

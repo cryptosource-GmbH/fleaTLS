@@ -12,6 +12,7 @@
 #include "flea/bin_utils.h"
 #include "internal/common/oid.h"
 
+#ifdef FLEA_HAVE_RSA
 static flea_err_t THR_flea_private_key_t__pkcs8_create_rsa_key(flea_private_key_t *privkey_mbn__pt, flea_public_key_t *pubkey_mbn__pt, flea_ber_dec_t *dec__pt)
 {
   flea_ref_cu8_t key_components_arcu8 [9];
@@ -123,3 +124,5 @@ flea_err_t THR_flea_public_key_t__ctor_pkcs8(flea_public_key_t *key__pt, const f
 {
   return THR_flea_create_private_and_or_public_key_from_pkcs8(NULL, key__pt, der_key__pcu8, der_key_len__alu16);
 }
+
+#endif /* #ifdef FLEA_HAVE_RSA */

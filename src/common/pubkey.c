@@ -14,6 +14,7 @@
 #include "flea/ecc_named_curves.h"
 #include "internal/common/oid.h"
 
+#ifdef FLEA_HAVE_ASYM_ALGS
 //
 /* ANSI X9.62 Elliptic Curve Digital Signature Algorithm (ECDSA) algorithm with Secure Hash Algorithm, revision 2 (SHA2)  */
 const flea_u8_t ecdsa_oid_prefix__acu8[] = { 0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04 };
@@ -368,6 +369,7 @@ flea_err_t THR_flea_public_key_t__ctor(flea_public_key_t* key__pt, flea_pk_key_t
       ); 
 }
 
+#ifdef FLEA_HAVE_ECC
 flea_err_t THR_flea_public_key_t__ctor_ecc(flea_public_key_t* key__pt, const flea_ref_cu8_t *public_key_value__pt, const flea_ec_gfp_dom_par_ref_t * dp__pt)
 {
 
@@ -381,7 +383,7 @@ flea_err_t THR_flea_public_key_t__ctor_ecc(flea_public_key_t* key__pt, const fle
 
   FLEA_THR_FIN_SEC_empty(); 
 }
-
+#endif /* #ifdef FLEA_HAVE_ECC */
 
 #ifdef FLEA_HAVE_RSA
 flea_err_t THR_flea_public_key_t__ctor_rsa(flea_public_key_t* key__pt, const flea_ref_cu8_t *mod__pcrcu8, const flea_ref_cu8_t *pub_exp__pcrcu8)
@@ -532,3 +534,5 @@ void flea_public_key_t__dtor(flea_public_key_t *key__pt)
   }
 #endif 
 }
+
+#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */

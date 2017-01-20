@@ -5,6 +5,8 @@
 #include "flea/x509.h"
 #include "flea/cert_path.h"
 
+#ifdef FLEA_HAVE_ASYM_ALGS
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -42,5 +44,7 @@ flea_err_t THR_flea_cert_store_t__add_trusted_to_path_validator(const flea_cert_
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
 
 #endif /* h-guard */

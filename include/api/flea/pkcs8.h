@@ -5,6 +5,7 @@
 #include "flea/types.h"
 #include "flea/privkey.h"
 
+#ifdef FLEA_HAVE_ASYM_ALGS
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,4 +20,7 @@ flea_err_t THR_flea_public_key_t__ctor_pkcs8(flea_public_key_t *key__pt, const f
 }
 #endif
 
+#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
+
 #endif /* h-guard */
+

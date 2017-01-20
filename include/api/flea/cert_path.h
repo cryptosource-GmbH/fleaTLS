@@ -8,6 +8,7 @@
 #include "flea/pubkey.h"
 #include "flea/hostn_ver.h"
 
+#ifdef FLEA_HAVE_ASYM_ALGS
 
 #ifdef __cplusplus
 extern "C" {
@@ -102,4 +103,9 @@ void flea_cert_path_validator_t__abort_cert_path_building(flea_cert_path_validat
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
+
 #endif /* h-guard */
+
+

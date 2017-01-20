@@ -10,6 +10,7 @@
 #include "flea/asn1_date.h"
 #include "flea/pubkey.h"
 
+#ifdef FLEA_HAVE_ASYM_ALGS
 #define DELTA_CRL_INDIC_INDIC      27
 #define ISSUING_DISTR_POINT_INDIC  28
 
@@ -451,3 +452,5 @@ flea_err_t THR_flea_crl__check_revocation_status(const flea_x509_cert_ref_t *sub
   }
   FLEA_THR_FIN_SEC_empty();
 }
+
+#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */

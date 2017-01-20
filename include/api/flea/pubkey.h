@@ -9,6 +9,8 @@
 #include "flea/x509.h"
 #include "flea/ec_gfp_dom_par.h"
 
+#ifdef FLEA_HAVE_ASYM_ALGS
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -115,9 +117,12 @@ flea_err_t THR_flea_public_key_t__encrypt_message(const flea_public_key_t *key__
 flea_err_t THR_flea_public_key_t__ctor_rsa(flea_public_key_t* key__pt, const flea_ref_cu8_t *mod__pcrcu8, const flea_ref_cu8_t *pub_exp__pcrcu8);
 
 flea_err_t THR_flea_public_key_t__ctor_ecc(flea_public_key_t* key__pt, const flea_ref_cu8_t *public_key_value__pt, const flea_ec_gfp_dom_par_ref_t * dp__pt);
-#endif /* h-guard */
 
 
 #ifdef __cplusplus
 }
 #endif
+
+#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
+
+#endif /* h-guard */

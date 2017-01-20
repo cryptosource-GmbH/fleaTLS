@@ -20,6 +20,7 @@
 
 #if defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA
 #define FLEA_HAVE_ASYM_SIG
+#define FLEA_HAVE_ASYM_ALGS 
 #endif
 
 #ifndef FLEA_USE_HEAP_BUF
