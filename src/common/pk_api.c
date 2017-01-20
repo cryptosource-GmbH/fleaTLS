@@ -126,7 +126,6 @@ flea_err_t THR_flea_pk_signer_t__final_sign(flea_pk_signer_t* signer__pt, flea_p
 
   FLEA_DECL_BUF(primitive_input__bu8, flea_u8_t, FLEA_MAX(FLEA_PK_MAX_PRIMITIVE_INPUT_LEN, FLEA_MAX_HASH_OUT_LEN));
 
-  //FLEA_DECL_BUF(digest_for_rsa_ver__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
   FLEA_THR_BEG_FUNC();
   primitive_id__t = FLEA_PK_GET_PRIMITIVE_ID_FROM_SCHEME_ID(id__t);
 	key_bit_size__alu16 = privkey__pt->key_bit_size__u16;
@@ -222,7 +221,6 @@ flea_err_t THR_flea_pk_signer_t__final_sign(flea_pk_signer_t* signer__pt, flea_p
   }
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(primitive_input__bu8);
-    //FLEA_FREE_BUF_FINAL(digest_for_rsa_ver__bu8);
     );
 }
 /**
@@ -247,7 +245,6 @@ flea_err_t THR_flea_pk_signer_t__final_verify(flea_pk_signer_t* signer__pt, flea
   encoding_id__t = FLEA_PK_GET_ENCODING_ID_FROM_SCHEME_ID(id__t);
 
   primitive_input_len__alu16 = pubkey__pt->primitive_input_size__u16;
-    //flea_pk_get_primitive_max_input_len_tmp(id__t, key_len__alu16, direction__t);
   if(primitive_input_len__alu16 == 0)
   {
     FLEA_THROW("invalid key length for signature", FLEA_ERR_INV_KEY_SIZE);
@@ -322,14 +319,6 @@ flea_err_t THR_flea_pk_signer_t__final_verify(flea_pk_signer_t* signer__pt, flea
     FLEA_FREE_BUF_FINAL(digest_for_rsa_ver__bu8);
     );
 }
-/*flea_err_t THR_flea_pk_signer_t__final_sign (flea_pk_signer_t* signer__pt, flea_pk_scheme_id_t id__t, const flea_private_key_t *privkey__pt, flea_u8_t* signature__pu8, flea_al_u16_t* signature_len__palu16)
-{
-  return THR_flea_pk_signer_t__final_sign_(signer__pt, id__t, privkey__pt, signature__pu8, signature_len__palu16);
-}*/
-/*flea_err_t THR_flea_pk_signer_t__final_verify (flea_pk_signer_t* signer__pt, flea_pk_scheme_id_t id__t, const flea_public_key_t *pubkey__pt, const flea_u8_t* signature__pu8, flea_al_u16_t signature_len__alu16 )
-{
-  return THR_flea_pk_signer_t__final_verify_tmp(signer__pt, id__t, pubkey__pt, flea_verify, (flea_u8_t*)signature__pu8, &signature_len__alu16);
-}*/
 
 flea_err_t THR_flea_pk_api__verify_message__pkcs1_v1_5 (const flea_u8_t* encoded__pcu8, flea_al_u16_t encoded_len__alu16, const flea_u8_t* digest__pu8, flea_al_u16_t digest_len__alu16, flea_al_u16_t bit_size__alu16, flea_hash_id_t hash_id__t)
 {
