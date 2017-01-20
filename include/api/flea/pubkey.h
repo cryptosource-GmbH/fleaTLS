@@ -88,6 +88,7 @@ typedef struct
 {
   flea_pk_key_type_t key_type__t;
   flea_u16_t key_bit_size__u16;
+  flea_u16_t primitive_input_size__u16;
   flea_public_key_val_with_params_u pubkey_with_params__u;
 
 } flea_public_key_t;
@@ -112,6 +113,10 @@ flea_err_t THR_flea_public_key_t__verify_signature(const flea_public_key_t *key_
 flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(const flea_public_key_t *public_key__pt, const flea_x509_algid_ref_t *sigalg_id__t, const flea_ref_cu8_t* tbs_data__pt, const flea_ref_cu8_t *signature__pt );
 
 flea_err_t THR_flea_public_key_t__encrypt_message(const flea_public_key_t *key__pt, flea_pk_scheme_id_t pk_scheme_id__t, flea_hash_id_t hash_id__t, const flea_u8_t* message__pcu8, flea_al_u16_t message_len__alu16, flea_u8_t* result__pu8, flea_al_u16_t* result_len__palu16);
+
+flea_err_t THR_flea_public_key_t__ctor_rsa(flea_public_key_t* key__pt, const flea_ref_cu8_t *mod__pcrcu8, const flea_ref_cu8_t *pub_exp__pcrcu8);
+
+flea_err_t THR_flea_public_key_t__ctor_ecc(flea_public_key_t* key__pt, const flea_ref_cu8_t *public_key_value__pt, const flea_ec_gfp_dom_par_ref_t * dp__pt);
 #endif /* h-guard */
 
 

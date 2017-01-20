@@ -28,6 +28,7 @@ flea_err_t THR_flea_test_cvc_sig_ver ()
 
 #if FLEA_ECC_MAX_MOD_BIT_SIZE >= 224
   FLEA_DECL_OBJ(verifier__t, flea_pk_signer_t);
+  FLEA_DECL_OBJ(public_key__t, flea_public_key_t);
   const flea_u8_t sign_data__acu8[] =
   {  0x7f, 0x4e, 0x82, 0x01, 0x43, 0x5f, 0x29, 0x01, 0x00, 0x42, 0x0b, 0x44, 0x45, 0x43, 0x56, 0x43, 0x41, 0x30, 0x30, 0x30, 0x30, 0x31, 0x7f, 0x49, 0x81,
      0xfd, 0x06, 0x0a, 0x04, 0x00, 0x7f, 0x00, 0x07, 0x02, 0x02, 0x02, 0x02, 0x02, 0x81, 0x1c, 0xd7, 0xc1, 0x34, 0xaa, 0x26, 0x43, 0x66, 0x86, 0x2a, 0x18,0x30,	 0x25,	0x75, 0xd1, 0xd7,
@@ -53,19 +54,27 @@ flea_err_t THR_flea_test_cvc_sig_ver ()
   };
 
   flea_err_t err_code;
-  flea_pub_key_param_u param__u;
+  //flea_pub_key_param_u param__u;
+  flea_ref_cu8_t pubpoint__crcu8 = 
+  {
+    .data__pcu8 = public_key__acu8,
+    .len__dtl = sizeof(public_key__acu8)
+  };
+  flea_ec_gfp_dom_par_ref_t ecc_dom_par__t;
   FLEA_THR_BEG_FUNC();
   flea_al_u16_t sig_len__alu16 = sizeof(cvc_signature_rs__acu8);
   FLEA_CCALL(THR_flea_pk_signer_t__ctor(&verifier__t, flea_sha224));
-  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_brainpoolP224r1));
+  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&ecc_dom_par__t, flea_brainpoolP224r1));
   FLEA_CCALL(THR_flea_pk_signer_t__update(&verifier__t, sign_data__acu8, sizeof(sign_data__acu8)));
-  err_code = THR_flea_pk_signer_t__final_verify(&verifier__t, flea_ecdsa_emsa1, public_key__acu8, sizeof(public_key__acu8), (flea_u8_t*)cvc_signature_rs__acu8, sig_len__alu16, &param__u);
+  FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(&public_key__t, &pubpoint__crcu8, &ecc_dom_par__t ));
+  err_code = THR_flea_pk_signer_t__final_verify(&verifier__t, flea_ecdsa_emsa1, &public_key__t, (flea_u8_t*)cvc_signature_rs__acu8, sig_len__alu16);
   if(err_code != FLEA_ERR_FINE)
   {
     FLEA_THROW("verification of reference ECDSA signature failed", FLEA_ERR_FAILED_TEST);
   }
   FLEA_THR_FIN_SEC(
     flea_pk_signer_t__dtor(&verifier__t);
+    flea_public_key_t__dtor(&public_key__t);
     );
 #else
   return FLEA_ERR_FINE;
