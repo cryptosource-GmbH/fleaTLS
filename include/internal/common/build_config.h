@@ -24,7 +24,7 @@
  * Activate this flag to make use of the buffer overwrite detection. Should not
  * be used in productive code due to performance and code size effects.
  */
-//#define FLEA_USE_BUF_DBG_CANARIES // FBFLAGS_CORE_ON_OFF
+#define FLEA_USE_BUF_DBG_CANARIES // FBFLAGS_CORE_ON_OFF
 
 #define FLEA_HAVE_HMAC              // FBFLAGS_MACALGS_ON_OFF
 #define FLEA_HAVE_CMAC              // FBFLAGS_MACALGS_ON_OFF
