@@ -11,7 +11,7 @@
 #include "self_test.h"
 #include "flea/alloc.h"
 #include <string.h>
-#if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048
+#if defined FLEA_HAVE_ASYM_ALGS 
 static const flea_u8_t pkcs8_rsa_key_2048_crt [] = {
 /*
  *
@@ -158,10 +158,144 @@ static const flea_u8_t pkcs8_rsa_key_2048_crt [] = {
 
 };
 
+static const flea_u8_t pkcs8_ecc_key_secp192r1_explicit_params [] = {
 
-flea_err_t flea_test_rsa_pkcs8()
+    /*<30 82 01 30 02 01 00 30 81 D3 06 07 2A 86 48 CE 3D 02 01 30 81 C7 02 01>
+  0 304: SEQUENCE {
+    <02 01 00>
+  4   1:   INTEGER 0
+    <30 81 D3 06 07 2A 86 48 CE 3D 02 01 30 81 C7 02 01 01 30 24 06 07 2A 86>
+  7 211:   SEQUENCE {
+    <06 07 2A 86 48 CE 3D 02 01>
+ 10   7:     OBJECT IDENTIFIER ecPublicKey (1 2 840 10045 2 1)
+    <30 81 C7 02 01 01 30 24 06 07 2A 86 48 CE 3D 01 01 02 19 00 FF FF FF FF>
+ 19 199:     SEQUENCE {
+    <02 01 01>
+ 22   1:       INTEGER 1
+    <30 24 06 07 2A 86 48 CE 3D 01 01 02 19 00 FF FF FF FF FF FF FF FF FF FF>
+ 25  36:       SEQUENCE {
+    <06 07 2A 86 48 CE 3D 01 01>
+ 27   7:         OBJECT IDENTIFIER prime-field (1 2 840 10045 1 1)
+    <02 19 00 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FE FF FF FF FF FF>
+ 36  25:         INTEGER
+       :           00 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF
+       :           FE FF FF FF FF FF FF FF FF
+       :         }
+    <30 4B 04 18 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FE FF FF FF FF>
+ 63  75:       SEQUENCE {
+    <04 18 FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FE FF FF FF FF FF FF>
+ 65  24:         OCTET STRING
+       :           FF FF FF FF FF FF FF FF FF FF FF FF FF FF FF FE
+       :           FF FF FF FF FF FF FF FC
+    <04 18 64 21 05 19 E5 9C 80 E7 0F A7 E9 AB 72 24 30 49 FE B8 DE EC C1 46>
+ 91  24:         OCTET STRING
+       :           64 21 05 19 E5 9C 80 E7 0F A7 E9 AB 72 24 30 49
+       :           FE B8 DE EC C1 46 B9 B1
+    <03 15 00 30 45 AE 6F C8 42 2F 64 ED 57 95 28 D3 81 20 EA E1 21 96 D5>
+117  21:         BIT STRING 30 45 AE 6F C8 42 2F 64 ED 57 95 28 D3 81 20 EA E1 21 96 D5
+       :         }
+    <04 31 04 18 8D A8 0E B0 30 90 F6 7C BF 20 EB 43 A1 88 00 F4 FF 0A FD 82>
+140  49:       OCTET STRING
+       :         04 18 8D A8 0E B0 30 90 F6 7C BF 20 EB 43 A1 88
+       :         00 F4 FF 0A FD 82 FF 10 12 07 19 2B 95 FF C8 DA
+       :         78 63 10 11 ED 6B 24 CD D5 73 F9 77 A1 1E 79 48
+       :         11
+    <02 19 00 FF FF FF FF FF FF FF FF FF FF FF FF 99 DE F8 36 14 6B C9 B1 B4>
+191  25:       INTEGER
+       :         00 FF FF FF FF FF FF FF FF FF FF FF FF 99 DE F8
+       :         36 14 6B C9 B1 B4 D2 28 31
+    <02 01 01>
+218   1:       INTEGER 1
+       :       }
+       :     }
+    <04 55 30 53 02 01 01 04 18 C9 76 4B 06 9A 68 99 FE F5 29 EC F8 7D 2A BC>
+221  85:   OCTET STRING, encapsulates {
+    <30 53 02 01 01 04 18 C9 76 4B 06 9A 68 99 FE F5 29 EC F8 7D 2A BC 76 DB>
+223  83:     SEQUENCE {
+    <02 01 01>
+225   1:       INTEGER 1
+    <04 18 C9 76 4B 06 9A 68 99 FE F5 29 EC F8 7D 2A BC 76 DB 18 25 AA 6D 35>
+228  24:       OCTET STRING
+       :         C9 76 4B 06 9A 68 99 FE F5 29 EC F8 7D 2A BC 76
+       :         DB 18 25 AA 6D 35 CB 0A
+    <A1 34 03 32 00 04 4D 36 CF 5D 62 57 DC 28 6C 2E 7E 29 F3 54 3E E0 09 5B>
+254  52:       [1] {
+    <03 32 00 04 4D 36 CF 5D 62 57 DC 28 6C 2E 7E 29 F3 54 3E E0 09 5B 83 DF>
+256  50:         BIT STRING
+       :           04 4D 36 CF 5D 62 57 DC 28 6C 2E 7E 29 F3 54 3E
+       :           E0 09 5B 83 DF 03 4E 7D 0F D4 3A 54 F0 B3 33 AA
+       :           9E F0 38 F6 56 C7 BF 95 DF 33 B4 57 1E E7 4A 8D
+       :           9A
+       :         }
+       :       }
+       :     }
+       :   }
+       */
+0x30, 0x82, 0x01, 0x30, 0x02, 0x01, 0x00, 0x30, 0x81, 0xd3, 0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01, 0x30, 0x81, 0xc7, 0x02, 0x01, 0x01, 0x30, 0x24, 0x06, 0x07, 0x2a, 
+0x86, 0x48, 0xce, 0x3d, 0x01, 0x01, 0x02, 0x19, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 
+0xff, 0xff, 0xff, 0x30, 0x4b, 0x04, 0x18, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xfe, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 
+0xfc, 0x04, 0x18, 0x64, 0x21, 0x05, 0x19, 0xe5, 0x9c, 0x80, 0xe7, 0x0f, 0xa7, 0xe9, 0xab, 0x72, 0x24, 0x30, 0x49, 0xfe, 0xb8, 0xde, 0xec, 0xc1, 0x46, 0xb9, 0xb1, 0x03, 0x15, 0x00, 
+0x30, 0x45, 0xae, 0x6f, 0xc8, 0x42, 0x2f, 0x64, 0xed, 0x57, 0x95, 0x28, 0xd3, 0x81, 0x20, 0xea, 0xe1, 0x21, 0x96, 0xd5, 0x04, 0x31, 0x04, 0x18, 0x8d, 0xa8, 0x0e, 0xb0, 0x30, 0x90, 
+0xf6, 0x7c, 0xbf, 0x20, 0xeb, 0x43, 0xa1, 0x88, 0x00, 0xf4, 0xff, 0x0a, 0xfd, 0x82, 0xff, 0x10, 0x12, 0x07, 0x19, 0x2b, 0x95, 0xff, 0xc8, 0xda, 0x78, 0x63, 0x10, 0x11, 0xed, 0x6b, 
+0x24, 0xcd, 0xd5, 0x73, 0xf9, 0x77, 0xa1, 0x1e, 0x79, 0x48, 0x11, 0x02, 0x19, 0x00, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x99, 0xde, 0xf8, 0x36, 
+0x14, 0x6b, 0xc9, 0xb1, 0xb4, 0xd2, 0x28, 0x31, 0x02, 0x01, 0x01, 0x04, 0x55, 0x30, 0x53, 0x02, 0x01, 0x01, 0x04, 0x18, 0xc9, 0x76, 0x4b, 0x06, 0x9a, 0x68, 0x99, 0xfe, 0xf5, 0x29, 
+0xec, 0xf8, 0x7d, 0x2a, 0xbc, 0x76, 0xdb, 0x18, 0x25, 0xaa, 0x6d, 0x35, 0xcb, 0x0a, 0xa1, 0x34, 0x03, 0x32, 0x00, 0x04, 0x4d, 0x36, 0xcf, 0x5d, 0x62, 0x57, 0xdc, 0x28, 0x6c, 0x2e, 
+0x7e, 0x29, 0xf3, 0x54, 0x3e, 0xe0, 0x09, 0x5b, 0x83, 0xdf, 0x03, 0x4e, 0x7d, 0x0f, 0xd4, 0x3a, 0x54, 0xf0, 0xb3, 0x33, 0xaa, 0x9e, 0xf0, 0x38, 0xf6, 0x56, 0xc7, 0xbf, 0x95, 0xdf, 
+0x33, 0xb4, 0x57, 0x1e, 0xe7, 0x4a, 0x8d, 0x9a
+};
+
+static const flea_u8_t pkcs8_ecc_key_secp384r1_implicit_params [] = {
+  /*
+   *
+    <30 81 B6 02 01 00 30 10 06 07 2A 86 48 CE 3D 02 01 06 05 2B 81 04 00 22>
+  0 182: SEQUENCE {
+    <02 01 00>
+  3   1:   INTEGER 0
+    <30 10 06 07 2A 86 48 CE 3D 02 01 06 05 2B 81 04 00 22>
+  6  16:   SEQUENCE {
+    <06 07 2A 86 48 CE 3D 02 01>
+  8   7:     OBJECT IDENTIFIER ecPublicKey (1 2 840 10045 2 1)
+    <06 05 2B 81 04 00 22>
+ 17   5:     OBJECT IDENTIFIER secp384r1 (1 3 132 0 34)
+       :     }
+    <04 81 9E 30 81 9B 02 01 01 04 30 EC 35 97 34 18 A2 6A 4B 8F D0 B5 84 3E>
+ 24 158:   OCTET STRING, encapsulates {
+    <30 81 9B 02 01 01 04 30 EC 35 97 34 18 A2 6A 4B 8F D0 B5 84 3E B0 40 6C>
+ 27 155:     SEQUENCE {
+    <02 01 01>
+ 30   1:       INTEGER 1
+    <04 30 EC 35 97 34 18 A2 6A 4B 8F D0 B5 84 3E B0 40 6C 14 1E 21 31 BA F0>
+ 33  48:       OCTET STRING
+       :         EC 35 97 34 18 A2 6A 4B 8F D0 B5 84 3E B0 40 6C
+       :         14 1E 21 31 BA F0 37 10 9C 84 53 80 95 33 6E 62
+       :         EF 62 D1 E3 8D 2C CF A9 8D 7B 45 67 C6 54 CA 57
+    <A1 64 03 62 00 04 84 DF CC 1C 82 E7 52 96 FB 1A 0E 3C BE E4 D2 BE 05 3D>
+ 83 100:       [1] {
+    <03 62 00 04 84 DF CC 1C 82 E7 52 96 FB 1A 0E 3C BE E4 D2 BE 05 3D 92 F2>
+ 85  98:         BIT STRING
+       :           04 84 DF CC 1C 82 E7 52 96 FB 1A 0E 3C BE E4 D2
+       :           BE 05 3D 92 F2 6B EC B2 F1 DA 39 DE 44 FB 49 63
+       :           0D FF 5D A7 0E CD 8C EE C7 4E 5A 0A FD B5 93 74
+       :           4E B7 AA D0 84 9E 51 5C 27 3F 7F F9 97 06 39 31
+       :           AD 9C 75 13 89 16 ED C4 FB B8 98 0F 44 0F 5F AA
+       :           36 05 C3 18 FA B1 11 67 DA 2D 76 FE 7A E3 6F 96
+       :           68
+       :         }
+       :       }
+       :     }
+       :   }
+
+       */
+0x30, 0x81, 0xb6, 0x02, 0x01, 0x00, 0x30, 0x10, 0x06, 0x07, 0x2a, 0x86, 0x48, 0xce, 0x3d, 0x02, 0x01, 0x06, 0x05, 0x2b, 0x81, 0x04, 0x00, 0x22, 0x04, 0x81, 0x9e, 0x30, 0x81, 0x9b, 
+0x02, 0x01, 0x01, 0x04, 0x30, 0xec, 0x35, 0x97, 0x34, 0x18, 0xa2, 0x6a, 0x4b, 0x8f, 0xd0, 0xb5, 0x84, 0x3e, 0xb0, 0x40, 0x6c, 0x14, 0x1e, 0x21, 0x31, 0xba, 0xf0, 0x37, 0x10, 0x9c, 
+0x84, 0x53, 0x80, 0x95, 0x33, 0x6e, 0x62, 0xef, 0x62, 0xd1, 0xe3, 0x8d, 0x2c, 0xcf, 0xa9, 0x8d, 0x7b, 0x45, 0x67, 0xc6, 0x54, 0xca, 0x57, 0xa1, 0x64, 0x03, 0x62, 0x00, 0x04, 0x84, 
+0xdf, 0xcc, 0x1c, 0x82, 0xe7, 0x52, 0x96, 0xfb, 0x1a, 0x0e, 0x3c, 0xbe, 0xe4, 0xd2, 0xbe, 0x05, 0x3d, 0x92, 0xf2, 0x6b, 0xec, 0xb2, 0xf1, 0xda, 0x39, 0xde, 0x44, 0xfb, 0x49, 0x63, 
+0x0d, 0xff, 0x5d, 0xa7, 0x0e, 0xcd, 0x8c, 0xee, 0xc7, 0x4e, 0x5a, 0x0a, 0xfd, 0xb5, 0x93, 0x74, 0x4e, 0xb7, 0xaa, 0xd0, 0x84, 0x9e, 0x51, 0x5c, 0x27, 0x3f, 0x7f, 0xf9, 0x97, 0x06, 
+0x39, 0x31, 0xad, 0x9c, 0x75, 0x13, 0x89, 0x16, 0xed, 0xc4, 0xfb, 0xb8, 0x98, 0x0f, 0x44, 0x0f, 0x5f, 0xaa, 0x36, 0x05, 0xc3, 0x18, 0xfa, 0xb1, 0x11, 0x67, 0xda, 0x2d, 0x76, 0xfe, 
+0x7a, 0xe3, 0x6f, 0x96, 0x68
+};
+static flea_err_t THR_flea_test_pkcs8_inner(const flea_u8_t* pkcs8__pcu8, flea_al_u16_t pkcs8_len__alu16, flea_hash_id_t hash_id__t, flea_pk_scheme_id_t scheme_id__t)
 {
-  flea_hash_id_t hash_id__t = flea_sha256;
 
   FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
   FLEA_DECL_OBJ(pubkey__t, flea_public_key_t);
@@ -178,13 +312,13 @@ flea_err_t flea_test_rsa_pkcs8()
   FLEA_ALLOC_BUF(sig_buf__b_u8, FLEA_PK_MAX_SIGNATURE_LEN);
   signature__ru8.data__pcu8 = sig_buf__b_u8;
   signature__ru8.len__dtl = FLEA_PK_MAX_SIGNATURE_LEN;
-  FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&privkey__t, pkcs8_rsa_key_2048_crt, sizeof(pkcs8_rsa_key_2048_crt))); 
-  FLEA_CCALL(THR_flea_public_key_t__ctor_pkcs8(&pubkey__t, pkcs8_rsa_key_2048_crt, sizeof(pkcs8_rsa_key_2048_crt))); 
+  FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&privkey__t, pkcs8__pcu8, pkcs8_len__alu16)); 
+  FLEA_CCALL(THR_flea_public_key_t__ctor_pkcs8(&pubkey__t, pkcs8__pcu8, pkcs8_len__alu16)); 
   
-  FLEA_CCALL(THR_flea_pk_api__sign(&message__rcu8, &signature__ru8, &privkey__t, flea_rsa_pkcs1_v1_5_sign, hash_id__t));
+  FLEA_CCALL(THR_flea_pk_api__sign(&message__rcu8, &signature__ru8, &privkey__t, scheme_id__t, hash_id__t));
   signature__rcu8.data__pcu8 = signature__ru8.data__pcu8;
   signature__rcu8.len__dtl = signature__ru8.len__dtl;
-  FLEA_CCALL(THR_flea_pk_api__verify_signature(&message__rcu8, &signature__rcu8, &pubkey__t, flea_rsa_pkcs1_v1_5_sign, hash_id__t));
+  FLEA_CCALL(THR_flea_pk_api__verify_signature(&message__rcu8, &signature__rcu8, &pubkey__t, scheme_id__t, hash_id__t));
   FLEA_THR_FIN_SEC(
       flea_private_key_t__dtor(&privkey__t);
       flea_public_key_t__dtor(&pubkey__t);
@@ -192,5 +326,31 @@ flea_err_t flea_test_rsa_pkcs8()
       );
 }
 
+flea_err_t THR_flea_test_pkcs8()
+{
+  flea_err_t err__t;
+FLEA_THR_BEG_FUNC();
+ err__t = THR_flea_test_pkcs8_inner(pkcs8_rsa_key_2048_crt, sizeof(pkcs8_rsa_key_2048_crt), flea_sha256, flea_rsa_pkcs1_v1_5_sign);
+
+#if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048
+ if(err__t) { FLEA_THROW("error in PKCS#8 RSA test", err__t); }
+#else
+ if(!err__t) { FLEA_THROW("no error when expecting one in PKCS#8 RSA test", err__t); }
+#endif 
+ err__t = THR_flea_test_pkcs8_inner(pkcs8_ecc_key_secp192r1_explicit_params, sizeof(pkcs8_ecc_key_secp192r1_explicit_params), flea_sha256, flea_ecdsa_emsa1 );
+#if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 192 
+ if(err__t) { FLEA_THROW("error in PKCS#8 ECC test", err__t); }
+#else
+ if(!err__t) { FLEA_THROW("no error when expecting one in PKCS#8 ECDSA test", err__t); }
+#endif 
+
+ err__t = THR_flea_test_pkcs8_inner(pkcs8_ecc_key_secp384r1_implicit_params, sizeof(pkcs8_ecc_key_secp384r1_implicit_params), flea_sha256, flea_ecdsa_emsa1 );
+#if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 384 
+ if(err__t) { FLEA_THROW("error in PKCS#8 ECC test", err__t); }
+#else
+ if(!err__t) { FLEA_THROW("no error when expecting one in PKCS#8 ECDSA test", err__t); }
+#endif 
+FLEA_THR_FIN_SEC_empty();
+}
 
 #endif /* #if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048 */

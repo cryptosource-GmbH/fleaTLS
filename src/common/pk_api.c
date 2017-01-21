@@ -254,7 +254,7 @@ flea_err_t THR_flea_pk_signer_t__final_verify(flea_pk_signer_t* signer__pt, flea
   // get the final hash value
   if(primitive_id__t == flea_rsa_sign)
   {
-    FLEA_ALLOC_BUF(digest_for_rsa_ver__bu8, primitive_input_len__alu16);
+    FLEA_ALLOC_BUF(digest_for_rsa_ver__bu8, flea_hash_ctx_t__get_output_length(&signer__pt->hash_ctx));
     FLEA_CCALL(THR_flea_hash_ctx_t__final(&signer__pt->hash_ctx, digest_for_rsa_ver__bu8));
   }
   else

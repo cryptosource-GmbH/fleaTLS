@@ -734,7 +734,7 @@ flea_bool_t flea_ber_dec__are_der_refs_equal(const flea_ref_cu8_t *a__pt, const 
   return (0 == memcmp(a__pt->data__pcu8, b__pt->data__pcu8, a__pt->len__dtl));
 }
 
-flea_bool_t flea_ber_dec__is_tlv_null(flea_ref_cu8_t *ref__pt)
+flea_bool_t flea_ber_dec__is_tlv_null(const flea_ref_cu8_t *ref__pt)
 {
   if(ref__pt->len__dtl != 2)
   {

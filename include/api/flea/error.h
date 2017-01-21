@@ -67,6 +67,11 @@ typedef enum
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */
   FLEA_ERR_PKCS8_INVALID_KEY_OID                      = 0x0070,
+
+	/**
+	 * An optional element in a PKCS#8 structure (optional in the ASN.1 specification) is missing which is necessary for the requested operation, e.g. for the creation of a public key.
+	 */
+  FLEA_ERR_PKCS8_MISSING_OPT_ELEMENT								  = 0x0071,
   /**
    * A fixed sized buffer is too small or a reallocation in heap mode failed 
    * because the configured maximal buffer size was exhausted.
@@ -113,7 +118,8 @@ typedef enum
   FLEA_ERR_X509_UNSUPP_ALGO_VARIANT                   = 0x00CE,
 
   /**
-   * Error with the decoded public ECC parameters.
+   * Error with the decoded public ECC parameters. Is also used to 
+	 * indicate missing parameters.
    */
   FLEA_ERR_X509_INV_ECC_KEY_PARAMS                    = 0x00CF,
   FLEA_ERR_X509_INV_ECC_FIELD_TYPE                    = 0x00D0,

@@ -12,6 +12,7 @@
 #include "flea/bin_utils.h"
 #include "internal/common/oid.h"
 
+#ifdef FLEA_HAVE_ASYM_ALGS
 #ifdef FLEA_HAVE_RSA
 static flea_err_t THR_flea_private_key_t__pkcs8_create_rsa_key(flea_private_key_t *privkey_mbn__pt, flea_public_key_t *pubkey_mbn__pt, flea_ber_dec_t *dec__pt)
 {
@@ -62,6 +63,58 @@ static flea_err_t THR_flea_private_key_t__pkcs8_create_rsa_key(flea_private_key_
   }
   FLEA_THR_FIN_SEC_empty();
 }
+#endif /* #ifdef FLEA_HAVE_RSA */
+
+#ifdef FLEA_HAVE_ECC
+static flea_err_t THR_flea_private_key_t__pkcs8_create_ecc_key(flea_private_key_t *privkey_mbn__pt, flea_public_key_t *pubkey_mbn__pt, flea_ber_dec_t *dec__pt, const flea_ref_cu8_t * params_ref_as_tlv__pt)
+{
+  flea_ref_cu8_t ostr__t;
+  flea_ec_gfp_dom_par_ref_t dp_ref__t;
+  flea_dtl_t version_len__dtl = 1;
+  flea_u8_t version__u8;
+  FLEA_THR_BEG_FUNC();
+
+/*ECPrivateKey ::= SEQUENCE {
+     version        INTEGER { ecPrivkeyVer1(1) } (ecPrivkeyVer1),
+     privateKey     OCTET STRING,
+     parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
+     publicKey  [1] BIT STRING OPTIONAL
+   }*/
+  FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw(dec__pt, FLEA_ASN1_INT, 0, &version__u8, &version_len__dtl));
+  if(version_len__dtl != 1 || version__u8 != 1)
+  {
+    FLEA_THROW("PKCS#8 ECC key version invalid", FLEA_ERR_X509_VERSION_ERROR);
+  }
+  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(dec__pt, FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, FLEA_ASN1_OCTET_STRING), &ostr__t));
+  if(!flea_ber_dec__is_tlv_null(params_ref_as_tlv__pt))
+  {
+   FLEA_CCALL(THR_flea_x509_parse_ecc_public_params(params_ref_as_tlv__pt, &dp_ref__t));  
+  }
+  else
+  {
+    FLEA_THROW("no parameters provided in PKCS#8", FLEA_ERR_X509_INV_ECC_KEY_PARAMS); 
+  }
+  if(privkey_mbn__pt)
+  {
+   FLEA_CCALL(THR_flea_private_key_t__ctor_ecc(privkey_mbn__pt, &ostr__t, &dp_ref__t));
+  }
+  if(pubkey_mbn__pt)
+  {
+    flea_bool_t pubkey_found__b;
+    flea_ref_cu8_t public_point_encoded__rcu8;
+  //FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw_cft_opt(dec__pt, FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, 0x 
+    FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional_cft(dec__pt, (flea_asn1_tag_t)FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC, 1), &pubkey_found__b));
+    if(!pubkey_found__b)
+    {
+      FLEA_THROW("missing information in PKCS#8 for ECC public key", FLEA_ERR_PKCS8_MISSING_OPT_ELEMENT);
+    }
+    FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(dec__pt,FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, FLEA_ASN1_BIT_STRING), &ostr__t));
+    FLEA_CCALL(THR_flea_ber_dec__get_ref_to_bit_string_content_no_unused_bits(&ostr__t, &public_point_encoded__rcu8));
+    FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(pubkey_mbn__pt, &public_point_encoded__rcu8, &dp_ref__t));
+  }
+  FLEA_THR_FIN_SEC_empty();
+}
+#endif /* #ifdef FLEA_HAVE_ECC */
 
 static flea_err_t THR_flea_create_private_and_or_public_key_from_pkcs8(flea_private_key_t *privkey_mbn__pt, flea_public_key_t *pubkey_mbn__pt, const flea_u8_t *der_key__pcu8, flea_al_u16_t der_key_len__alu16  )
 {
@@ -69,6 +122,7 @@ static flea_err_t THR_flea_create_private_and_or_public_key_from_pkcs8(flea_priv
   flea_dtl_t version_len__dtl = 1;
   flea_u8_t version__u8;
   flea_ref_cu8_t ostr__t;
+  const flea_u8_t ecc_public_key_oid__acu8 [] = { 0x2A,  0x86,  0x48,  0xCE,  0x3D,  0x02,  0x01 };
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(source__t, flea_data_source_t);
@@ -98,12 +152,22 @@ static flea_err_t THR_flea_create_private_and_or_public_key_from_pkcs8(flea_priv
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &cont_source__t, 0));
 
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&cont_dec__t));
+#ifdef FLEA_HAVE_RSA
   if(algid_ref__t.oid_ref__t.len__dtl == 9 && !memcmp(algid_ref__t.oid_ref__t.data__pcu8, pkcs1_oid_prefix__cau8, 8) && algid_ref__t.oid_ref__t.data__pcu8[8] == 0x01)
   {
     /* RSA key */
-    FLEA_CCALL(THR_flea_private_key_t__pkcs8_create_rsa_key(privkey_mbn__pt, pubkey_mbn__pt, &cont_dec__t));
+    FLEA_CCALL(THR_flea_private_key_t__pkcs8_create_rsa_key(privkey_mbn__pt, pubkey_mbn__pt, &cont_dec__t ));
   } 
   else
+#endif
+#ifdef FLEA_HAVE_ECC
+    if( algid_ref__t.oid_ref__t.len__dtl == sizeof(ecc_public_key_oid__acu8) && !memcmp(algid_ref__t.oid_ref__t.data__pcu8, ecc_public_key_oid__acu8, sizeof(ecc_public_key_oid__acu8)))
+    {
+      /* ECC key */
+      FLEA_CCALL(THR_flea_private_key_t__pkcs8_create_ecc_key(privkey_mbn__pt, pubkey_mbn__pt, &cont_dec__t, &algid_ref__t.params_ref_as_tlv__t));
+    }
+  else
+#endif
   {
     FLEA_THROW("invalid PKCS#8 key type", FLEA_ERR_PKCS8_INVALID_KEY_OID); 
   }
@@ -125,4 +189,5 @@ flea_err_t THR_flea_public_key_t__ctor_pkcs8(flea_public_key_t *key__pt, const f
   return THR_flea_create_private_and_or_public_key_from_pkcs8(NULL, key__pt, der_key__pcu8, der_key_len__alu16);
 }
 
-#endif /* #ifdef FLEA_HAVE_RSA */
+
+#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */

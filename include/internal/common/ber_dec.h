@@ -254,7 +254,7 @@ flea_al_u8_t flea_ber_dec_t__get_nb_bits_from_bit_string(const flea_ref_cu8_t * 
  */
 flea_err_t THR_flea_ber_dec__get_ref_to_bit_string_content_no_unused_bits(const flea_ref_cu8_t *raw_bit_str__pt, flea_ref_cu8_t *content__pt);
 
-flea_bool_t flea_ber_dec__is_tlv_null(flea_ref_cu8_t *ref__pt);
+flea_bool_t flea_ber_dec__is_tlv_null(const flea_ref_cu8_t *ref__pt);
 
 #ifdef __cplusplus
 }

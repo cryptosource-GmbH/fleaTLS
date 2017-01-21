@@ -174,7 +174,7 @@ flea_err_t THR_test_ecdsa_self_signed_certs_file_based();
 
 flea_err_t THR_flea_test_asn1_date();
 
-flea_err_t flea_test_rsa_pkcs8();
+flea_err_t THR_flea_test_pkcs8();
 
 flea_err_t THR_flea_test_tls_cert_chain();
 
