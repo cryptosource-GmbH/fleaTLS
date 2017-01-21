@@ -329,6 +329,8 @@ flea_err_t THR_flea_mpi_t__montgm_mul (flea_mpi_t* p_result, const flea_mpi_t* p
 
   if(borrow == 0)
   {
+    /* dummy operation */
+    FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_ctx->p_ws, p_result ));
   }
   else
   {
@@ -782,36 +784,29 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   flea_mpi_t* p_mod,
   flea_mpi_t* p_workspace_double_plus_one_sized,
   flea_mpi_div_ctx_t * p_div_ctx,
-  flea_mpi_t* p_ws_trf_base,
   flea_mpi_t* p_quotient_ws,
-  flea_al_u8_t window_size
+  flea_al_u8_t window_size,
+  flea_bool_t mul_always_cm__b
   )
 {
   flea_uword_t one_arr[1];
-  flea_u8_t one_enc[] = { 1 };
   flea_u16_t exp_bit_size;
   flea_s32_t i;
   flea_mpi_t one;
 
-#if FLEA_CRT_RSA_WINDOW_SIZE > 1
   const flea_al_u16_t precomp_arr_dynamic_word_len = p_mod->m_nb_used_words;
-#endif
   const flea_al_u16_t R_dynamic_word_len = p_mod->m_nb_used_words + 1; // R is one word longer than mod
+  flea_mpi_ulen_t precomp_dynamic_size;
 
-#if FLEA_CRT_RSA_WINDOW_SIZE > 1
-  const flea_mpi_ulen_t precomp_dynamic_size = (1 << window_size) - 2;
+  FLEA_DECL_BUF(R_arr, flea_uword_t, ((FLEA_RSA_MAX_KEY_BIT_SIZE / 8) + 4 ) / sizeof(flea_uword_t) + 1); // for RSA (CRT/SF) ; + 1 because R potentially longer than mod and another +4 for p-q diff; this array must account for non CRT usage also
+#if defined FLEA_USE_HEAP_BUF 
+  FLEA_DECL_BUF(precomp_arrs, flea_uword_t*, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1);
+#else 
+  flea_uword_t precomp_arrs[(1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1][FLEA_RSA_MAX_KEY_BIT_SIZE / 8 / sizeof(flea_uword_t) + 4/sizeof(flea_uword_t)]; // plus 32-bit because of p-q-diff
 #endif
 
-  FLEA_DECL_BUF(R_arr, flea_uword_t, ((FLEA_RSA_MAX_KEY_BIT_SIZE / 8) + sizeof(flea_uword_t) - 1) / sizeof(flea_uword_t) + 2); // for RSA (CRT/SF) ; + 1 because R potentially longer than mod and another +1 for p-q diff; this array must account for non CRT usage also
-#if defined FLEA_USE_HEAP_BUF && FLEA_CRT_RSA_WINDOW_SIZE > 1
-  FLEA_DECL_BUF(precomp_arrs, flea_uword_t *, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 2);
-#elif FLEA_CRT_RSA_WINDOW_SIZE > 1
-  flea_uword_t precomp_arrs[(1 << FLEA_CRT_RSA_WINDOW_SIZE) - 2][FLEA_RSA_MAX_KEY_BIT_SIZE / 8 / 2 / sizeof(flea_uword_t) + 1]; // plus one because of p-q-diff
-#endif
 
-#if FLEA_CRT_RSA_WINDOW_SIZE > 1
-  FLEA_DECL_BUF(precomp, flea_mpi_t, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 2);
-#endif
+  FLEA_DECL_BUF(precomp, flea_mpi_t, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1);
 
   flea_mpi_t R;
   flea_montgm_mul_ctx_t mm_ctx;
@@ -822,47 +817,56 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   {
     window_size = FLEA_CRT_RSA_WINDOW_SIZE;
   }
+  precomp_dynamic_size = (1 << window_size) - 1;
 
   mm_ctx.mod_prime = flea_montgomery_compute_n_prime(p_mod->m_words[0]);
   mm_ctx.p_mod = p_mod;
   mm_ctx.p_ws = p_quotient_ws;
 
   FLEA_ALLOC_BUF(R_arr, R_dynamic_word_len);
-#if defined FLEA_USE_HEAP_BUF && FLEA_CRT_RSA_WINDOW_SIZE > 1
+#if defined FLEA_USE_HEAP_BUF 
   FLEA_ALLOC_BUF(precomp_arrs, precomp_dynamic_size);
   FLEA_ALLOC_BUF(precomp, precomp_dynamic_size);
 
-  memset(precomp_arrs, 0, precomp_dynamic_size);
+  FLEA_SET_ARR(precomp_arrs, 0, precomp_dynamic_size);
   for(i = 0; i < precomp_dynamic_size; i++)
   {
     FLEA_ALLOC_MEM_ARR(precomp_arrs[i], precomp_arr_dynamic_word_len);
   }
 #endif
-#if FLEA_CRT_RSA_WINDOW_SIZE > 1
   for(i = 0; i < precomp_dynamic_size; i++)
   {
+#ifdef FLEA_USE_HEAP_BUF
     flea_mpi_t__init(&precomp[i], precomp_arrs[i], precomp_arr_dynamic_word_len);
-  }
+#else
+    flea_mpi_t__init(&precomp[i], precomp_arrs[i], sizeof(precomp_arrs[i])/sizeof(flea_uword_t));
 #endif
+  }
+#ifdef FLEA_DO_IF_USE_HEAP_BUF
   flea_mpi_t__init(&R, R_arr, R_dynamic_word_len);
+#else
+  flea_mpi_t__init(&R, R_arr, sizeof(R_arr)/sizeof(R_arr[0]);
+#endif
   FLEA_CCALL(THR_flea_mpi_t__set_pow_2(&R, p_mod->m_nb_used_words * FLEA_WORD_BIT_SIZE));
 
 
   // window method precomputations
 
   flea_mpi_t__init(&one, one_arr, sizeof(one_arr) / sizeof(flea_uword_t));
-  FLEA_CCALL(THR_flea_mpi_t__decode(&one, one_enc, sizeof(one_enc)));
+  flea_mpi_t__set_to_word_value(&one, 1);
 
   FLEA_CCALL(THR_flea_mpi_t__mul(p_workspace_double_plus_one_sized, &R, p_base));
-  FLEA_CCALL(THR_flea_mpi_t__divide(NULL, p_ws_trf_base, p_workspace_double_plus_one_sized, p_mod, p_div_ctx)); //a_bar = a * R mod n
+
+
+  FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &precomp[0], p_workspace_double_plus_one_sized, p_mod, p_div_ctx)); //a_bar = a * R mod n
 
 #if FLEA_CRT_RSA_WINDOW_SIZE > 1
   if(window_size > 1)
   {
-    FLEA_CCALL(THR_flea_mpi_t__precompute_window(&precomp[0],  p_ws_trf_base, p_ws_trf_base, &mm_ctx, p_workspace_double_plus_one_sized ));
-    for(i = 1; i < (1 << window_size) - 2; i++)
+    FLEA_CCALL(THR_flea_mpi_t__precompute_window(&precomp[1],  &precomp[0], &precomp[0], &mm_ctx, p_workspace_double_plus_one_sized ));
+    for(i = 2; i < (1 << window_size) - 1; i++)
     {
-      FLEA_CCALL(THR_flea_mpi_t__precompute_window(&precomp[i],  &precomp[i - 1], p_ws_trf_base, &mm_ctx, p_workspace_double_plus_one_sized));
+      FLEA_CCALL(THR_flea_mpi_t__precompute_window(&precomp[i],  &precomp[i - 1], &precomp[0], &mm_ctx, p_workspace_double_plus_one_sized));
     }
   }
 #endif
@@ -877,69 +881,44 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
   exp_bit_size = flea_mpi_t__get_bit_size(p_exp);
 
   i = exp_bit_size - 1;
-  if(window_size > 1)
-  {
-    while((i + 1) % window_size)
-    {
-      flea_u8_t exp_bit = flea_mpi_t__get_bit(p_exp, i);
 
-      i--;
-      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_result, &mm_ctx)); // NOTE: last arg needs only mod size
-      // copy contents from large ws to result
-      FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
-
-      if(exp_bit == 0x1)
-      {
-        FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_ws_trf_base, &mm_ctx));
-        FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
-      }
-      // p_result is the running variable
-
-    }
-  }
-
-  for(; i >= 0; i -= window_size)
+  while(i >= 0)
   {
     flea_al_u8_t j;
     flea_mpi_t* p_base_power;
-    flea_u8_t exp_bit = flea_mpi_t__get_bit(p_exp, i);
-    for(j = 1; j < window_size; j++)
+    flea_al_u8_t exp_bit = 0; 
+
+    while(i < window_size && window_size > 1)
     {
-      exp_bit <<= 1;
-      exp_bit |= flea_mpi_t__get_bit(p_exp, i - j);
+      window_size--;
     }
-    FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_result, &mm_ctx));  // NOTE: last arg needs only mod size
-    // copy contents from large ws to result
-    FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
+    exp_bit = flea_mpi_t__get_window(p_exp, i - (window_size - 1), window_size);
     // perform the squarings
-    for(j = 1; j < window_size; j++)
+    for(j = 0; j < window_size; j++)
     {
-      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_result, &mm_ctx));  // NOTE: last arg needs only mod size
+      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_result, &mm_ctx));  // last arg needs only mod size
       // copy contents from large ws to result
       FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
     }
-    if(exp_bit == 0)
-    {
-      continue;
-    }
-    else if(exp_bit == 0x1)
-    {
-      p_base_power = p_ws_trf_base;
-    }
-#if FLEA_CRT_RSA_WINDOW_SIZE > 1
-    else
-    {
-      p_base_power = &precomp[exp_bit - 2];
-    }
-#endif
 
-    FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_base_power, &mm_ctx));
-    FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
+    p_base_power = &precomp[exp_bit - 1];
+
+    if(exp_bit != 0)
+    {
+      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_base_power, &mm_ctx));
+      FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
+    }
+    else if(mul_always_cm__b)
+    {
+      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, &precomp[0], &mm_ctx));
+      FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_workspace_double_plus_one_sized, &precomp[0]));
+    }
+   
+    i -= window_size;
   }
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, &one, &mm_ctx));
   FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
   FLEA_THR_FIN_SEC(
-      FLEA_DO_IF_RSA_CRT_WINDOW_SIZE_GREATER_ONE(
         FLEA_DO_IF_USE_HEAP_BUF(
           if(precomp_arrs)
           {
@@ -950,10 +929,7 @@ flea_err_t THR_flea_mpi_t__mod_exp_window (
           }
           FLEA_FREE_BUF_FINAL(precomp_arrs);
           );
-        );
-      FLEA_DO_IF_RSA_CRT_WINDOW_SIZE_GREATER_ONE(
         FLEA_FREE_BUF_FINAL(precomp);
-      );
     FLEA_FREE_BUF_FINAL(R_arr);
     );
 
@@ -995,6 +971,17 @@ flea_u8_t flea_mpi_t__get_bit (const flea_mpi_t* p_mpi, flea_u16_t bit_pos)
     result = 1;
   }
   return (flea_u8_t)result;
+}
+
+flea_al_u8_t flea_mpi_t__get_window(const flea_mpi_t* p_mpi, flea_mpi_ulen_t low_bit_pos, flea_al_u8_t window_size)
+{
+    flea_mpi_ulen_t j; 
+    flea_al_u8_t result = 0;
+    for(j = 0; j < window_size; j++)
+    {
+      result |= (flea_mpi_t__get_bit(p_mpi, j+low_bit_pos) << j);
+    }
+    return result;
 }
 
 flea_err_t THR_flea_mpi_t__copy_no_realloc (flea_mpi_t* p_target, const flea_mpi_t* p_source)
@@ -1113,7 +1100,6 @@ flea_err_t THR_flea_mpi_t__subtract_mod (flea_mpi_t* p_result, const flea_mpi_t*
   if(p_workspace_mod_size->m_sign < 0)
   {
     // result contains absolute value of what is negative to be reduced by p
-
     FLEA_CCALL(THR_flea_mpi_t__subtract_ignore_sign(p_result, p_mod, p_workspace_mod_size));
   }
   else if(0 < flea_mpi_t__compare_absolute(p_workspace_mod_size, p_mod))

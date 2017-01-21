@@ -4,7 +4,7 @@
 #ifndef _flea_namespace_asn1__H_
 #define _flea_namespace_asn1__H_
 
-#include "flea/ber_dec.h"
+#include "internal/common/ber_dec.h"
 
 #define CFT_MAKE3(class_, form_, type_) (FLEA_ASN1_CFT_MAKE3(class_, form_, type_) 
 #define CFT_MAKE2(class_form_, type_) FLEA_ASN1_CFT_MAKE2(class_form_, type_) 

@@ -90,9 +90,12 @@ flea_u16_t flea_mpi_t__get_byte_size(const flea_mpi_t* p_mpi);
 
 flea_u8_t flea_mpi_t__get_bit(const flea_mpi_t* p_mpi, flea_u16_t bit_pos);
 
+flea_al_u8_t flea_mpi_t__get_window(const flea_mpi_t* p_mpi, flea_mpi_ulen_t low_bit_pos, flea_al_u8_t window_size);
+
 flea_err_t THR_flea_mpi_t__copy_no_realloc(flea_mpi_t* p_target, const flea_mpi_t* p_source);
 
-flea_err_t THR_flea_mpi_t__mod_exp_window(flea_mpi_t* p_result, flea_mpi_t* p_exp, flea_mpi_t* p_base, flea_mpi_t* p_mod, flea_mpi_t* p_workspace_double_plus_one_sized, flea_mpi_div_ctx_t* p_div_ctx,  flea_mpi_t* p_ws_trf_base, flea_mpi_t* p_quotient_ws, flea_al_u8_t window_size);
+flea_err_t THR_flea_mpi_t__mod_exp_window(flea_mpi_t* p_result, flea_mpi_t* p_exp, flea_mpi_t* p_base, flea_mpi_t* p_mod, flea_mpi_t* p_workspace_double_plus_one_sized, flea_mpi_div_ctx_t* p_div_ctx, flea_mpi_t* p_quotient_ws, flea_al_u8_t window_size, flea_bool_t mul_always_cm__b);
+  
 
 flea_mpi_ulen_t flea_mpi_t__nb_trailing_zero_bits(flea_mpi_t* p_mpi);
 

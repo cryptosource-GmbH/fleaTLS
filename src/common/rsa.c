@@ -7,7 +7,9 @@
 #include "flea/error_handling.h"
 #include "flea/rsa.h"
 #include "flea/alloc.h"
+#include "flea/privkey.h"
 #include "flea/array_util.h"
+#include "internal/common/privkey_int.h"
 
 /**
  * number of words by which the larger prime in CRT-RSA may become larger than
@@ -28,6 +30,37 @@
 #define FLEA_RSA_SF_MAX_MOD_WORD_LEN ((FLEA_RSA_MAX_KEY_BIT_SIZE + FLEA_WORD_BIT_SIZE - 1) / FLEA_WORD_BIT_SIZE)
 
 #ifdef FLEA_HAVE_RSA
+
+flea_err_t THR_flea_rsa_raw_operation_crt_private_key(
+    const flea_private_key_t * priv_key__pt,
+    flea_u8_t* result_enc,
+    const flea_u8_t* base_enc,
+    flea_al_u16_t base_length)
+{
+  FLEA_THR_BEG_FUNC();
+  if(priv_key__pt->key_type__t != flea_rsa_key)
+  {
+    FLEA_THROW("private key is not an RSA key", FLEA_ERR_INV_KEY_TYPE);
+  }
+  FLEA_CCALL(THR_flea_rsa_raw_operation_crt(
+        result_enc,
+        base_enc,
+        base_length,
+        (priv_key__pt->key_bit_size__u16+7)/8,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_P_IDX].data__pcu8,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_P_IDX].len__dtl,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_Q_IDX].data__pcu8,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_Q_IDX].len__dtl,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_D1_IDX].data__pcu8,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_D1_IDX].len__dtl,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_D2_IDX].data__pcu8,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_D2_IDX].len__dtl,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_C_IDX].data__pcu8,
+        priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_C_IDX].len__dtl
+        ));
+  FLEA_THR_FIN_SEC_empty();
+}
+// TODO: REMOVE 
 flea_err_t THR_flea_rsa_raw_operation_crt_internal_key_format (
   flea_u8_t* result_enc,
   const flea_u8_t* base_enc,
@@ -106,6 +139,12 @@ flea_err_t THR_flea_rsa_raw_operation_crt (
   flea_mpi_ulen_t result_len, base_word_len, vn_len, un_len;
 #endif // #ifdef FLEA_USE_HEAP_BUF
 
+#ifdef FLEA_USE_RSA_MUL_ALWAYS
+  const flea_bool_t do_use_mul_always__b = FLEA_TRUE;
+#else 
+  const flea_bool_t do_use_mul_always__b = FLEA_FALSE;
+#endif
+
   FLEA_THR_BEG_FUNC();
 #ifdef FLEA_USE_HEAP_BUF
   mod_byte_len = p_enc_len + q_enc_len;
@@ -164,12 +203,12 @@ flea_err_t THR_flea_rsa_raw_operation_crt (
   // reduce the base for the first prime
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &base_mod_prime, &base, &p, &div_ctx));
   // result used as workspace here
-  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&j1, &d1, &base_mod_prime, &p, &large_tmp, &div_ctx, &ws_trf_base, &result, FLEA_CRT_RSA_WINDOW_SIZE));
+  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&j1, &d1, &base_mod_prime, &p, &large_tmp, &div_ctx, &result, FLEA_CRT_RSA_WINDOW_SIZE, do_use_mul_always__b));
 
   // d1 unused from here, used for j2
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &base_mod_prime, &base, &q, &div_ctx));
   // result used as workspace here
-  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&d1, &d2, &base_mod_prime, &q, &large_tmp, &div_ctx, &ws_trf_base, &result, FLEA_CRT_RSA_WINDOW_SIZE));
+  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&d1, &d2, &base_mod_prime, &q, &large_tmp, &div_ctx, &result, FLEA_CRT_RSA_WINDOW_SIZE, do_use_mul_always__b));
 
 
   // subtract mod cannot be used because d1=j2 may be larger than p
@@ -204,6 +243,7 @@ flea_err_t THR_flea_rsa_raw_operation_crt (
   FLEA_CCALL(THR_flea_mpi_t__add_in_place_ignore_sign(&result, &d1));
 
   FLEA_CCALL(THR_flea_mpi_t__encode(result_enc, modulus_length, &result)); // r
+
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(result_arr);
     FLEA_FREE_BUF_SECRET_ARR(base_arr, FLEA_HEAP_OR_STACK_CODE(base_word_len, FLEA_STACK_BUF_NB_ENTRIES(base_arr)));
@@ -219,6 +259,7 @@ flea_err_t THR_flea_rsa_raw_operation_crt (
     FLEA_FREE_BUF_SECRET_ARR(un, FLEA_HEAP_OR_STACK_CODE(un_len, FLEA_STACK_BUF_NB_ENTRIES(un)));
     );
 }
+
 flea_err_t THR_flea_rsa_raw_operation (flea_u8_t* result_enc, const flea_u8_t * exponent_enc, flea_al_u16_t exponent_length, const flea_u8_t* base_enc, flea_al_u16_t base_length, const flea_u8_t * modulus_enc, flea_al_u16_t modulus_length  )
 {
 
@@ -227,7 +268,6 @@ flea_err_t THR_flea_rsa_raw_operation (flea_u8_t* result_enc, const flea_u8_t * 
   FLEA_DECL_BUF(exponent_arr, flea_uword_t, FLEA_RSA_SF_MAX_MOD_WORD_LEN );
   FLEA_DECL_BUF(mod_arr, flea_uword_t, FLEA_RSA_SF_MAX_MOD_WORD_LEN );
   FLEA_DECL_BUF(large_tmp_arr, flea_uword_t, FLEA_RSA_SF_MAX_MOD_WORD_LEN * 2 + 1);
-  FLEA_DECL_BUF(ws_trf_base_arr, flea_uword_t, FLEA_RSA_SF_MAX_MOD_WORD_LEN );
   FLEA_DECL_BUF(ws_q_arr, flea_uword_t, FLEA_RSA_SF_MAX_MOD_WORD_LEN + 1);
 
 
@@ -238,7 +278,7 @@ flea_err_t THR_flea_rsa_raw_operation (flea_u8_t* result_enc, const flea_u8_t * 
 
   FLEA_DECL_BUF(vn, flea_hlf_uword_t, FLEA_MPI_DIV_VN_HLFW_LEN_FOR_RSA_SF_REDUCTIONS);
   FLEA_DECL_BUF(un, flea_hlf_uword_t,  FLEA_MPI_DIV_UN_HLFW_LEN_FOR_RSA_SF_REDUCTIONS);
-  flea_mpi_t result, exponent, base, mod, large_tmp, ws_q, ws_trf_base;
+  flea_mpi_t result, exponent, base, mod, large_tmp, ws_q;
   flea_mpi_div_ctx_t div_ctx;
   FLEA_THR_BEG_FUNC();
 #ifdef FLEA_USE_STACK_BUF
@@ -262,7 +302,6 @@ flea_err_t THR_flea_rsa_raw_operation (flea_u8_t* result_enc, const flea_u8_t * 
   FLEA_ALLOC_BUF(exponent_arr, mod_word_len);
   FLEA_ALLOC_BUF(mod_arr, mod_word_len);
   FLEA_ALLOC_BUF(large_tmp_arr, large_tmp_word_len);
-  FLEA_ALLOC_BUF(ws_trf_base_arr, mod_word_len);
   FLEA_ALLOC_BUF(ws_q_arr, ws_q_word_len);
 
   FLEA_ALLOC_BUF(vn, vn_len);
@@ -279,14 +318,13 @@ flea_err_t THR_flea_rsa_raw_operation (flea_u8_t* result_enc, const flea_u8_t * 
   flea_mpi_t__init(&exponent, exponent_arr, mod_word_len);
   flea_mpi_t__init(&mod, mod_arr, mod_word_len);
   flea_mpi_t__init(&large_tmp, large_tmp_arr, large_tmp_word_len);
-  flea_mpi_t__init(&ws_trf_base, ws_trf_base_arr, mod_word_len);
   flea_mpi_t__init(&ws_q, ws_q_arr, ws_q_word_len);
 
 
   FLEA_CCALL(THR_flea_mpi_t__decode(&mod, modulus_enc, modulus_length));
   FLEA_CCALL(THR_flea_mpi_t__decode(&exponent, exponent_enc, exponent_length ));
   FLEA_CCALL(THR_flea_mpi_t__decode(&base, base_enc, base_length));
-  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&result, &exponent, &base, &mod, &large_tmp, &div_ctx, &ws_trf_base, &ws_q, 1));
+  FLEA_CCALL(THR_flea_mpi_t__mod_exp_window(&result, &exponent, &base, &mod, &large_tmp, &div_ctx, &ws_q, 1, FLEA_FALSE));
   FLEA_CCALL(THR_flea_mpi_t__encode(result_enc, modulus_length, &result));
 
   FLEA_THR_FIN_SEC(
@@ -295,7 +333,6 @@ flea_err_t THR_flea_rsa_raw_operation (flea_u8_t* result_enc, const flea_u8_t * 
     FLEA_FREE_BUF_FINAL(exponent_arr);
     FLEA_FREE_BUF_FINAL(mod_arr);
     FLEA_FREE_BUF_FINAL(large_tmp_arr);
-    FLEA_FREE_BUF_FINAL(ws_trf_base_arr);
     FLEA_FREE_BUF_FINAL(ws_q_arr);
     FLEA_FREE_BUF_FINAL(vn);
     FLEA_FREE_BUF_FINAL(un);

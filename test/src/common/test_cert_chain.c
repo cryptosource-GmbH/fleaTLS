@@ -7,7 +7,8 @@
 #include "flea/alloc.h"
 #include "flea/asn1_date.h"
 #include "flea/cert_path.h"
-#include "flea/ber_dec.h"
+#include "internal/common/ber_dec.h"
+#include "flea/cert_store.h"
 #include "test_data_x509_certs.h"
 #include "self_test.h"
 
@@ -293,30 +294,79 @@ flea_err_t THR_flea_test_cert_chain_correct_chain_of_two()
   FLEA_DECL_OBJ(issuer, flea_x509_cert_ref_t);
   const flea_u8_t date_str[] = "170228200000Z";
   flea_gmt_time_t time__t;
-flea_err_t err;
-FLEA_THR_BEG_FUNC();
-FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&subject, test_cert_tls_server_1, sizeof(test_cert_tls_server_1) ));
-FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&issuer, flea_test_cert_issuer_of_tls_server_1__cau8, sizeof(flea_test_cert_issuer_of_tls_server_1__cau8) ));
+  flea_err_t err;
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&subject, test_cert_tls_server_1, sizeof(test_cert_tls_server_1) ));
+  FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&issuer, flea_test_cert_issuer_of_tls_server_1__cau8, sizeof(flea_test_cert_issuer_of_tls_server_1__cau8) ));
 
-FLEA_CCALL(THR_flea_cert_path_validator_t__ctor_cert_ref(&cert_chain__t, &subject));
-FLEA_CCALL(THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(&cert_chain__t, &issuer));
-FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) -1, &time__t));
-flea_cert_path_validator_t__disable_revocation_checking(&cert_chain__t);
- err = THR_flea_cert_path_validator__build_and_verify_cert_chain(&cert_chain__t, &time__t);
+  FLEA_CCALL(THR_flea_cert_path_validator_t__ctor_cert_ref(&cert_chain__t, &subject));
+  FLEA_CCALL(THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(&cert_chain__t, &issuer));
+  FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) -1, &time__t));
+  flea_cert_path_validator_t__disable_revocation_checking(&cert_chain__t);
+  err = THR_flea_cert_path_validator__build_and_verify_cert_chain(&cert_chain__t, &time__t);
 #if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
- if(err)
- {
-  FLEA_THROW("error when verifying RSA signed cert chain", err);
- }
+  if(err)
+  {
+    FLEA_THROW("error when verifying RSA signed cert chain", err);
+  }
 #else 
- if(!err)
- {
-  FLEA_THROW("no error when verifying RSA signed cert chain but missing algo / key size support", FLEA_ERR_FAILED_TEST);
- }
+  if(!err)
+  {
+    FLEA_THROW("no error when verifying RSA signed cert chain but missing algo / key size support", FLEA_ERR_FAILED_TEST);
+  }
 #endif
-FLEA_THR_FIN_SEC(
-   flea_cert_path_validator_t__dtor(&cert_chain__t); 
-    );
+  FLEA_THR_FIN_SEC(
+      flea_cert_path_validator_t__dtor(&cert_chain__t); 
+      );
+
+}
+
+
+flea_err_t THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
+{
+  const flea_u8_t date_str[] = "170228200000Z";
+  flea_gmt_time_t time__t;
+  flea_err_t err;
+  flea_u16_t nb_trusted_certs;
+  flea_dtl_t i;
+  FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
+  FLEA_DECL_OBJ(trusted_store__t, flea_cert_store_t);
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_cert_store_t__ctor(&trusted_store__t));
+  FLEA_CCALL(THR_flea_cert_path_validator_t__ctor_cert(&cert_chain__t, test_cert_tls_server_1, sizeof(test_cert_tls_server_1)));
+  nb_trusted_certs =  (FLEA_MAX_CERT_COLLECTION_SIZE ? (FLEA_MAX_CERT_COLLECTION_SIZE-1) : 1);
+  for( i = 0; i < nb_trusted_certs; i++)
+  {
+    FLEA_CCALL(THR_flea_cert_store_t__add_trusted_cert(&trusted_store__t, flea_test_cert_issuer_of_tls_server_1__cau8, sizeof(flea_test_cert_issuer_of_tls_server_1__cau8)));
+  }
+  FLEA_CCALL(THR_flea_cert_store_t__add_trusted_to_path_validator(&trusted_store__t, &cert_chain__t));
+  FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) -1, &time__t));
+  flea_cert_path_validator_t__disable_revocation_checking(&cert_chain__t);
+
+  err = THR_flea_cert_path_validator__build_and_verify_cert_chain(&cert_chain__t, &time__t);
+#if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
+  if(err)
+  {
+    FLEA_THROW("error when verifying RSA signed cert chain", err);
+  }
+#else 
+  if(!err)
+  {
+    FLEA_THROW("no error when verifying RSA signed cert chain but missing algo / key size support", FLEA_ERR_FAILED_TEST);
+  }
+#endif
+
+  /* fill up to the maximal capacity */
+  FLEA_CCALL(THR_flea_cert_store_t__add_trusted_cert(&trusted_store__t, flea_test_cert_issuer_of_tls_server_1__cau8, sizeof(flea_test_cert_issuer_of_tls_server_1__cau8)));
+
+  if(FLEA_MAX_CERT_COLLECTION_SIZE && FLEA_ERR_BUFF_TOO_SMALL != THR_flea_cert_store_t__add_trusted_cert(&trusted_store__t, flea_test_cert_issuer_of_tls_server_1__cau8, sizeof(flea_test_cert_issuer_of_tls_server_1__cau8)))
+  {
+    FLEA_THROW("max cert store capacity not respected", FLEA_ERR_FAILED_TEST);
+  }
+  FLEA_THR_FIN_SEC(
+      flea_cert_path_validator_t__dtor(&cert_chain__t); 
+      flea_cert_store_t__dtor(&trusted_store__t);
+      );
 
 }
 

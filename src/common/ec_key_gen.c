@@ -25,6 +25,12 @@ flea_err_t THR_flea_generate_ecc_key (flea_u8_t* result_public__p_u8, flea_al_u8
   flea_mpi_t sk_mpi, n;
   flea_al_u8_t private_byte_len__al_u8, order_byte_len__al_u8;
 
+#ifdef FLEA_USE_ECC_ADD_ALWAYS 
+  const flea_bool_t do_use_add_always__b = FLEA_TRUE;
+#else
+  const flea_bool_t do_use_add_always__b = FLEA_FALSE;
+#endif
+
   FLEA_DECL_BUF(pub_point_arr, flea_uword_t, 2 * FLEA_ECC_MAX_MOD_WORD_SIZE + 1);
   FLEA_DECL_BUF(sk_mpi_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE);
   FLEA_DECL_BUF(order_word_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE);
@@ -58,7 +64,7 @@ flea_err_t THR_flea_generate_ecc_key (flea_u8_t* result_public__p_u8, flea_al_u8
 
   FLEA_CCALL(THR_flea_curve_gfp_t__init_dp_array(&curve, dom_par__pt, curve_word_arr, curve_word_arr_word_len));
 
-  FLEA_CCALL(THR_flea_point_gfp_t__mul(&pub_point, &sk_mpi, &curve));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&pub_point, &sk_mpi, &curve, do_use_add_always__b));
   FLEA_CCALL(THR_flea_point_gfp_t__encode(result_public__p_u8, result_public_len__p_al_u8, &pub_point, &curve));
   private_byte_len__al_u8 = flea_mpi_t__get_byte_size(&sk_mpi);
   FLEA_CCALL(THR_flea_mpi_t__encode(result_private__p_u8, private_byte_len__al_u8, &sk_mpi ));

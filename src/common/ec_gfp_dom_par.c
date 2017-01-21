@@ -470,4 +470,40 @@ flea_err_t THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(flea_ec_gfp_dom_par_
 FLEA_THR_FIN_SEC_empty(); 
 }
 
+flea_u32_t flea_ec_gfp_dom_par_ref_t__get_concat_length(const flea_ec_gfp_dom_par_ref_t *dp__pt)
+{
+	return  
+		dp__pt->gx__ru8.len__dtl +
+		dp__pt->gy__ru8.len__dtl +
+		dp__pt->p__ru8.len__dtl +
+		dp__pt->a__ru8.len__dtl +
+		dp__pt->b__ru8.len__dtl +
+		dp__pt->n__ru8.len__dtl +
+		dp__pt->h__ru8.len__dtl;
+}
+
+
+flea_err_t THR_flea_ec_gfp_dom_par_ref_t__write_to_concat_array(flea_ec_gfp_dom_par_ref_t *output__pt, flea_u8_t *trg_mem__pu8, flea_dtl_t trgt_mem_size__dtl,  const flea_ec_gfp_dom_par_ref_t *input__pt)
+{
+	flea_al_u8_t i;
+	const flea_ref_cu8_t *src__arcu8[7] = {&input__pt->p__ru8, &input__pt->a__ru8, &input__pt->b__ru8, &input__pt->gx__ru8, &input__pt->gy__ru8, &input__pt->n__ru8, &input__pt->h__ru8};
+	flea_ref_cu8_t *trgt__arcu8[7] = {&output__pt->p__ru8, &output__pt->a__ru8, &output__pt->b__ru8, &output__pt->gx__ru8, &output__pt->gy__ru8, &output__pt->n__ru8, &output__pt->h__ru8};
+	FLEA_THR_BEG_FUNC();
+	for(i = 0; i < 7; i++)
+	{
+		const flea_ref_cu8_t *src = src__arcu8[i];
+		flea_ref_cu8_t *trgt  = trgt__arcu8[i];
+		if(src->len__dtl > trgt_mem_size__dtl)
+		{
+			FLEA_THROW("parameters have unexpected size", FLEA_ERR_X509_INV_ECC_KEY_PARAMS);
+		}
+		memcpy(trg_mem__pu8, src->data__pcu8, src->len__dtl);
+		trgt->len__dtl = src->len__dtl;
+		trgt->data__pcu8 = trg_mem__pu8;
+		trg_mem__pu8 += src->len__dtl;
+		trgt_mem_size__dtl -= src->len__dtl;
+	}
+	FLEA_THR_FIN_SEC_empty();
+}
+
 #endif /* #ifdef FLEA_HAVE_ECC */

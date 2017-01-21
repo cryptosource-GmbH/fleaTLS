@@ -20,6 +20,7 @@
 
 #if defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA
 #define FLEA_HAVE_ASYM_SIG
+#define FLEA_HAVE_ASYM_ALGS 
 #endif
 
 #ifndef FLEA_USE_HEAP_BUF
@@ -40,6 +41,12 @@
 
 // fixed 32 bit size difference between P and Q is supported
 #define FLEA_RSA_CRT_PQ_BIT_DIFF 32
+#define FLEA_RSA_CRT_PQ_BYTE_DIFF ((FLEA_RSA_CRT_PQ_BIT_DIFF+7)/8)
+#define FLEA_RSA_CRT_KEY_COMPONENT_MAX_BYTE_SIZE ((FLEA_RSA_MAX_KEY_BYTE_SIZE + 1)/2 + FLEA_RSA_CRT_PQ_BYTE_DIFF)
+#define FLEA_RSA_MAX_KEY_BYTE_SIZE ((FLEA_RSA_MAX_KEY_BIT_SIZE + 7)/8)
+
+#define FLEA_ECC_MAX_COFACTOR_BYTE_SIZE ((FLEA_ECC_MAX_COFACTOR_BIT_SIZE+7)/8)
+
 /************ Begin MAC and AE ************/
 
 #ifdef FLEA_HAVE_EAX

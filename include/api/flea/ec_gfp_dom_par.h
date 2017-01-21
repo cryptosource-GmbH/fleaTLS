@@ -106,6 +106,11 @@ flea_al_u16_t flea_ec_dom_par__get_predefined_dp_len(flea_ec_dom_par_id_t dp_id)
 
 
 flea_err_t THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(flea_ec_gfp_dom_par_ref_t *dp_to_set__pt, flea_ec_dom_par_id_t id);
+
+flea_u32_t flea_ec_gfp_dom_par_ref_t__get_concat_length(const flea_ec_gfp_dom_par_ref_t *dp__pt);
+
+flea_err_t THR_flea_ec_gfp_dom_par_ref_t__write_to_concat_array(flea_ec_gfp_dom_par_ref_t *output__pt, flea_u8_t *trg_mem__pu8, flea_dtl_t trgt_mem_size__dtl,  const flea_ec_gfp_dom_par_ref_t *input__pt);
+
 #ifdef __cplusplus
 }
 #endif

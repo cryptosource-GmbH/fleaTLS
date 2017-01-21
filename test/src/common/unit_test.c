@@ -143,9 +143,14 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
       CALL_TEST(THR_flea_test_dec_tls_server_cert_broken());
       CALL_TEST(THR_flea_test_dec_tls_server_issuer_cert());
 
+#if defined FLEA_HAVE_ASYM_ALGS 
+			CALL_TEST(THR_flea_test_pkcs8());
+#endif
 #ifdef FLEA_HAVE_RSA
       CALL_TEST(THR_flea_test_cert_verify_rsa()); 
       CALL_TEST(THR_flea_test_cert_chain_correct_chain_of_two());
+
+      CALL_TEST(THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store());
       CALL_TEST(THR_flea_test_tls_cert_chain());
 #endif
 #ifdef FLEA_HAVE_ECDSA
@@ -158,12 +163,15 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
 #ifdef __FLEA_HAVE_LINUX_FILESYSTEM
 #if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_MOD_BIT_SIZE >= 224
       CALL_TEST(THR_test_ecdsa_self_signed_certs_file_based());
-#endif
       if(full__b == FLEA_TRUE)
       {
+
+#if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048)
         CALL_TEST(THR_flea_test_crt_rsa_raw_file_based());
+#endif
         CALL_TEST(THR_flea_test_sha256_file_based());
       }
+#endif
 #endif /* __FLEA_HAVE_LINUX_FILESYSTEM */
     }
 #ifdef __FLEA_HAVE_LINUX_FILESYSTEM
