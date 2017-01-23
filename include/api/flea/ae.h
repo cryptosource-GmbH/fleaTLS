@@ -17,6 +17,17 @@ extern "C" {
  */
 typedef enum { flea_eax_aes128, flea_eax_aes192, flea_eax_aes256 } flea_ae_id_t;
 
+typedef struct {
+    int mode;               // cipher direction: encrypt/decrypt
+    flea_u64_t len;           // cipher data length processed so far
+    flea_u64_t add_len;       // total add data length
+    flea_u64_t HL[16];        // precalculated lo-half HTable
+    flea_u64_t HH[16];        // precalculated hi-half HTable
+    flea_u8_t base_ectr[16];    // first counter-mode cipher output for tag
+    flea_u8_t y[16];            // the current cipher-input IV|Counter value
+    flea_u8_t buf[16];          // buf working value
+    //aes_context aes_ctx;    // cipher context used
+} flea_ae_gcm_specific_t ;
 
 /**
  * AE context object.
@@ -28,6 +39,7 @@ typedef struct
   union
   {
     flea_ae_eax_specific_t eax;
+    flea_ae_gcm_specific_t gcm;
   } mode_specific__u;
 
 }flea_ae_ctx_t;

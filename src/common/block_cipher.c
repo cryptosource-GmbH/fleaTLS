@@ -24,7 +24,7 @@ const flea_block_cipher_config_entry_t block_cipher_config[] =
     .ext_id__t = flea_aes128,
     .raw_id__t = aes,
     .key_bit_size = 128,
-    .expanded_key_u32_size__al_u16 = 44,
+    .expanded_key_u32_size__u16 = 44,
     .cipher_block_encr_function = flea_aes_encrypt_block,
     .THR_key_sched_encr_function = THR_flea_aes_setup_encr_key,
 #ifdef FLEA_HAVE_AES_BLOCK_DECR
@@ -40,7 +40,7 @@ const flea_block_cipher_config_entry_t block_cipher_config[] =
     .ext_id__t = flea_aes192,
     .raw_id__t = aes,
     .key_bit_size = 192,
-    .expanded_key_u32_size__al_u16 = 52,
+    .expanded_key_u32_size__u16 = 52,
     .cipher_block_encr_function = flea_aes_encrypt_block,
     .THR_key_sched_encr_function = THR_flea_aes_setup_encr_key,
 #ifdef FLEA_HAVE_AES_BLOCK_DECR
@@ -56,7 +56,7 @@ const flea_block_cipher_config_entry_t block_cipher_config[] =
     .ext_id__t = flea_aes256,
     .raw_id__t = aes,
     .key_bit_size = 256,
-    .expanded_key_u32_size__al_u16 = 60,
+    .expanded_key_u32_size__u16 = 60,
     .cipher_block_encr_function = flea_aes_encrypt_block,
     .THR_key_sched_encr_function = THR_flea_aes_setup_encr_key,
 #ifdef FLEA_HAVE_AES_BLOCK_DECR
@@ -73,7 +73,7 @@ const flea_block_cipher_config_entry_t block_cipher_config[] =
     .ext_id__t = flea_des_single,
     .raw_id__t = des,
     .key_bit_size = 64, // 8 bits unused
-    .expanded_key_u32_size__al_u16 = 32,
+    .expanded_key_u32_size__u16 = 32,
     .cipher_block_encr_function = flea_single_des_encrypt_block,
     .THR_key_sched_encr_function = THR_flea_single_des_setup_key,
     .cipher_block_decr_function = flea_single_des_decrypt_block,
@@ -85,7 +85,7 @@ const flea_block_cipher_config_entry_t block_cipher_config[] =
     .ext_id__t = flea_tdes_2key,
     .raw_id__t = des,
     .key_bit_size = 128, // 16 bits unused
-    .expanded_key_u32_size__al_u16 = 64,
+    .expanded_key_u32_size__u16 = 64,
     .cipher_block_encr_function = flea_triple_des_ede_2key_encrypt_block,
     .THR_key_sched_encr_function = THR_flea_triple_des_ede_2key_setup_key,
     .cipher_block_decr_function = flea_triple_des_ede_2key_decrypt_block,
@@ -98,7 +98,7 @@ const flea_block_cipher_config_entry_t block_cipher_config[] =
     .ext_id__t = flea_tdes_3key,
     .raw_id__t = des,
     .key_bit_size = 192, // 16 bits unused
-    .expanded_key_u32_size__al_u16 = 96,
+    .expanded_key_u32_size__u16 = 96,
     .cipher_block_encr_function = flea_triple_des_ede_3key_encrypt_block,
     .THR_key_sched_encr_function = THR_flea_triple_des_ede_3key_setup_key,
     .cipher_block_decr_function = flea_triple_des_ede_3key_decrypt_block,
@@ -111,7 +111,7 @@ const flea_block_cipher_config_entry_t block_cipher_config[] =
     .ext_id__t = flea_desx,
     .raw_id__t = des,
     .key_bit_size = 64 + 2 * 64, // 8 bits unused
-    .expanded_key_u32_size__al_u16 = 32 + 4,
+    .expanded_key_u32_size__u16 = 32 + 4,
     .cipher_block_encr_function = flea_desx_encrypt_block,
     .THR_key_sched_encr_function = THR_flea_desx_setup_key,
     .cipher_block_decr_function = flea_desx_decrypt_block,
@@ -153,7 +153,7 @@ void flea_ecb_mode_ctx_t__dtor (flea_ecb_mode_ctx_t* ctx__pt)
   {
     return;
   }
-  FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->expanded_key__bu8, ctx__pt->config__pt->expanded_key_u32_size__al_u16);
+  FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->expanded_key__bu8, ctx__pt->config__pt->expanded_key_u32_size__u16);
 }
 
 flea_err_t THR_flea_ecb_mode_ctx_t__ctor (flea_ecb_mode_ctx_t* p_ctx, flea_block_cipher_id_t ext_id__t, const flea_u8_t* key, flea_al_u16_t key_byte_length, flea_cipher_dir_t dir)
@@ -186,7 +186,7 @@ flea_err_t THR_flea_ecb_mode_ctx_t__ctor (flea_ecb_mode_ctx_t* p_ctx, flea_block
     FLEA_THROW("trying to create cipher-ctx for unsupported direction", FLEA_ERR_INV_ALGORITHM);
   }
 #ifdef FLEA_USE_HEAP_BUF
-  FLEA_ALLOC_MEM_ARR(p_ctx->expanded_key__bu8, config__p_t->expanded_key_u32_size__al_u16);
+  FLEA_ALLOC_MEM_ARR(p_ctx->expanded_key__bu8, config__p_t->expanded_key_u32_size__u16);
 #endif
   if(dir == flea_encrypt)
   {
@@ -219,7 +219,7 @@ flea_err_t THR_flea_ecb_mode_crypt_data (flea_ecb_mode_ctx_t* ctx__p_t, const fl
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_ctr_mode_ctx_t__ctor (flea_ctr_mode_ctx_t* p_ctx, flea_block_cipher_id_t ext_id__t, const flea_u8_t* key_pu8, flea_al_u8_t key_length_al_u8, const flea_u8_t* nonce_pu8, flea_al_u8_t nonce_length_al_u8 )
+flea_err_t THR_flea_ctr_mode_ctx_t__ctor (flea_ctr_mode_ctx_t* p_ctx, flea_block_cipher_id_t ext_id__t, const flea_u8_t* key_pu8, flea_al_u8_t key_length_al_u8, const flea_u8_t* nonce_pu8, flea_al_u8_t nonce_length_al_u8, flea_al_u8_t ctr_len__alu8 )
 {
   flea_al_u8_t block_length_al_u8;
 
@@ -236,6 +236,10 @@ flea_err_t THR_flea_ctr_mode_ctx_t__ctor (flea_ctr_mode_ctx_t* p_ctx, flea_block
   {
     FLEA_THROW("nonce length greater than block length", FLEA_ERR_INV_ARG);
   }
+  if(ctr_len__alu8 > block_length_al_u8)
+  {
+    FLEA_THROW("nonce length greater than block length", FLEA_ERR_INV_ARG);
+  }
   FLEA_CCALL(THR_flea_ecb_mode_ctx_t__ctor(&p_ctx->cipher_ctx__t, ext_id__t, key_pu8, key_length_al_u8, flea_encrypt));
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM(p_ctx->ctr_block__bu8, block_length_al_u8);
@@ -243,7 +247,7 @@ flea_err_t THR_flea_ctr_mode_ctx_t__ctor (flea_ctr_mode_ctx_t* p_ctx, flea_block
 #endif
   memset(p_ctx->ctr_block__bu8, 0, block_length_al_u8);
   memcpy(p_ctx->ctr_block__bu8, nonce_pu8, nonce_length_al_u8);
-
+  p_ctx->ctr_len__alu8 = ctr_len__alu8;
   p_ctx->pending_offset__alu8 = block_length_al_u8; // no byte pending
 
   p_ctx->config__pt = config__pt;
@@ -295,7 +299,7 @@ void flea_ctr_mode_ctx_t__crypt (flea_ctr_mode_ctx_t* p_ctx, const flea_u8_t* in
   {
     block_function(&p_ctx->cipher_ctx__t, p_ctx->ctr_block__bu8, pending_mask__bu8);
     flea__xor_bytes(output_pu8, input_pu8, pending_mask__bu8, block_length_al_u8);
-    flea__increment_encoded_BE_int(p_ctx->ctr_block__bu8, block_length_al_u8);
+    flea__increment_encoded_BE_int(p_ctx->ctr_block__bu8, p_ctx->ctr_len__alu8);
     output_pu8 += block_length_al_u8;
     input_pu8 += block_length_al_u8;
   }
@@ -305,32 +309,32 @@ void flea_ctr_mode_ctx_t__crypt (flea_ctr_mode_ctx_t* p_ctx, const flea_u8_t* in
     block_function(&p_ctx->cipher_ctx__t, p_ctx->ctr_block__bu8, pending_mask__bu8);
     flea__xor_bytes(output_pu8, input_pu8, pending_mask__bu8, tail_al_u8);
     p_ctx->pending_offset__alu8 = tail_al_u8;
-    flea__increment_encoded_BE_int(p_ctx->ctr_block__bu8, block_length_al_u8);
+    flea__increment_encoded_BE_int(p_ctx->ctr_block__bu8, p_ctx->ctr_len__alu8);
   }
 
 
 }
 
 
-flea_err_t THR_flea_ctr_mode_crypt_data (flea_block_cipher_id_t ext_id__t, const flea_u8_t* key_pu8, flea_al_u16_t key_length_al_u16, const flea_u8_t* nonce__pcu8, flea_al_u8_t nonce_len__alu8, const flea_u8_t* input_pu8, flea_u8_t* output_pu8, flea_dtl_t input_output_length_al_u16)
+flea_err_t THR_flea_ctr_mode_crypt_data (flea_block_cipher_id_t ext_id__t, const flea_u8_t* key_pu8, flea_al_u16_t key_length_al_u16, const flea_u8_t* nonce__pcu8, flea_al_u8_t nonce_len__alu8, const flea_u8_t* input_pu8, flea_u8_t* output_pu8, flea_dtl_t input_output_length_al_u16, flea_al_u8_t ctr_len__alu8 )
 {
   FLEA_DECL_OBJ(ctx, flea_ctr_mode_ctx_t);
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx, ext_id__t, key_pu8, key_length_al_u16, nonce__pcu8, nonce_len__alu8 ));
+  FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx, ext_id__t, key_pu8, key_length_al_u16, nonce__pcu8, nonce_len__alu8, ctr_len__alu8 ));
   flea_ctr_mode_ctx_t__crypt(&ctx, input_pu8, output_pu8, input_output_length_al_u16);
   FLEA_THR_FIN_SEC(
     flea_ctr_mode_ctx_t__dtor(&ctx);
     );
 }
 
-flea_err_t THR_flea_ctr_mode_crypt_data_short_nonce (flea_block_cipher_id_t ext_id__t, const flea_u8_t* key_pu8, flea_al_u16_t key_length_al_u16, flea_u32_t nonce_u32, const flea_u8_t* input_pu8, flea_u8_t* output_pu8, flea_dtl_t input_output_length_al_u16)
+flea_err_t THR_flea_ctr_mode_crypt_data_short_nonce_full_ctr_len (flea_block_cipher_id_t ext_id__t, const flea_u8_t* key_pu8, flea_al_u16_t key_length_al_u16, flea_u32_t nonce_u32, const flea_u8_t* input_pu8, flea_u8_t* output_pu8, flea_dtl_t input_output_length_al_u16)
 {
 
   flea_u8_t enc_nonce[4];
 
   FLEA_THR_BEG_FUNC();
   flea__encode_U32_BE(nonce_u32, enc_nonce);
-  FLEA_CCALL(THR_flea_ctr_mode_crypt_data(ext_id__t, key_pu8, key_length_al_u16, enc_nonce, sizeof(enc_nonce), input_pu8, output_pu8, input_output_length_al_u16));
+  FLEA_CCALL(THR_flea_ctr_mode_crypt_data(ext_id__t, key_pu8, key_length_al_u16, enc_nonce, sizeof(enc_nonce), input_pu8, output_pu8, input_output_length_al_u16, flea_block_cipher__get_block_size(ext_id__t)));
   FLEA_THR_FIN_SEC_empty();
 }
 

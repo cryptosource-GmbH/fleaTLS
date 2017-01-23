@@ -29,14 +29,14 @@ flea_err_t THR_flea_test_ctr_mode_1 ()
 
   FLEA_DECL_OBJ(ctx, flea_ctr_mode_ctx_t);
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx, flea_aes128, key, key_length, nonce, nonce_length));
+  FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx, flea_aes128, key, key_length, nonce, nonce_length, 16));
   flea_ctr_mode_ctx_t__crypt(&ctx, message, encr, message_length);
   if(memcmp(encr, exp_ct, message_length))
   {
     FLEA_THROW("error with encryption result for counter mode with aes", FLEA_ERR_FAILED_TEST);
   }
   flea_ctr_mode_ctx_t__dtor(&ctx);
-  FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx, flea_aes128, key, key_length, nonce, nonce_length));
+  FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx, flea_aes128, key, key_length, nonce, nonce_length, 16));
   flea_ctr_mode_ctx_t__crypt(&ctx, encr, decr, message_length);
   if(memcmp(decr, message, message_length))
   {
@@ -44,14 +44,14 @@ flea_err_t THR_flea_test_ctr_mode_1 ()
   }
 
   memset(encr, 0, sizeof(message));
-  FLEA_CCALL(THR_flea_ctr_mode_crypt_data(flea_aes128, key, key_length, nonce, nonce_length, message, encr, message_length));
+  FLEA_CCALL(THR_flea_ctr_mode_crypt_data(flea_aes128, key, key_length, nonce, nonce_length, message, encr, message_length, 16));
   if(memcmp(encr, exp_ct, message_length))
   {
     FLEA_THROW("error with encryption result for counter mode with aes (convenience function)", FLEA_ERR_FAILED_TEST);
   }
 
   memset(encr, 0, sizeof(message));
-  FLEA_CCALL(THR_flea_ctr_mode_crypt_data_short_nonce(flea_aes128, key, key_length, nonce_int, message, encr, message_length));
+  FLEA_CCALL(THR_flea_ctr_mode_crypt_data_short_nonce_full_ctr_len(flea_aes128, key, key_length, nonce_int, message, encr, message_length));
   if(memcmp(encr, exp_ct, message_length))
   {
     FLEA_THROW("error with encryption result for counter mode with aes (convenience function)", FLEA_ERR_FAILED_TEST);
@@ -88,7 +88,7 @@ flea_err_t THR_flea_test_ctr_mode_parts ()
 
   FLEA_DECL_OBJ(ctx, flea_ctr_mode_ctx_t);
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx, flea_aes128, key, key_length, nonce, nonce_length));
+  FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx, flea_aes128, key, key_length, nonce, nonce_length, 16));
   part_size = 1;
   flea_ctr_mode_ctx_t__crypt(&ctx, message, encr, part_size);
   message_length -= part_size;
@@ -136,7 +136,7 @@ flea_err_t THR_flea_test_ctr_mode_parts ()
     FLEA_THROW("error with encryption result for counter mode with aes", FLEA_ERR_FAILED_TEST);
   }
   flea_ctr_mode_ctx_t__dtor(&ctx);
-  FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx, flea_aes128, key, key_length, nonce, nonce_length));
+  FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx, flea_aes128, key, key_length, nonce, nonce_length, 16));
   message_length = sizeof(message_arr);
   encr = encr_arr;
   part_size = 33;

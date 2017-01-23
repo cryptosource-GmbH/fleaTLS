@@ -22,7 +22,7 @@ struct struct_flea_block_cipher_config_entry_t
   flea_block_cipher_id_t ext_id__t;
   flea_block_cipher_raw_id_t raw_id__t;
   flea_u16_t key_bit_size;
-  flea_u16_t expanded_key_u32_size__al_u16;
+  flea_u16_t expanded_key_u32_size__u16;
 
   flea_cipher_block_processing_f cipher_block_encr_function;
   flea_cipher_block_processing_f cipher_block_decr_function;

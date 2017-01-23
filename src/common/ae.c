@@ -107,7 +107,7 @@ flea_err_t THR_flea_ae_ctx_t__ctor (flea_ae_ctx_t* ctx__pt, flea_ae_id_t id__t, 
     {
       FLEA_THROW("AE: MAC config not found", FLEA_ERR_INV_ALGORITHM);
     }
-    FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx__pt->mode_specific__u.eax.ctr_ctx__t, config__pt->cipher_id__t, key__pcu8, key_len__alu16, nonce__pcu8, nonce_len__alu8));
+    FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx__pt->mode_specific__u.eax.ctr_ctx__t, config__pt->cipher_id__t, key__pcu8, key_len__alu16, nonce__pcu8, nonce_len__alu8, flea_block_cipher__get_block_size(config__pt->cipher_id__t)));
     FLEA_CCALL(THR_flea_mac_ctx_t__ctor_cmac(&ctx__pt->mode_specific__u.eax.cmac_ctx__t, mac_config__pct, key__pcu8, key_len__alu16, &ctx__pt->mode_specific__u.eax.ctr_ctx__t.cipher_ctx__t));
     if(tag_length__alu8 > ctx__pt->mode_specific__u.eax.cmac_ctx__t.output_len__u8)
     {
