@@ -200,7 +200,7 @@ flea_err_t generate_key_block(flea_tls_ctx_t* tls_ctx, flea_u8_t* key_block)
 
 
 flea_err_t THR_flea_tls__compute_mac(flea_u8_t* data, flea_u32_t data_len, flea_tls__protocol_version_t* version, flea_mac_id_t mac_algorithm, flea_u8_t* mac_key, flea_u8_t mac_key_len,
-																			flea_u64_t sequence_number, ContentType content_type, flea_u8_t* mac_out, flea_u8_t* mac_len_out)
+										flea_u64_t sequence_number, ContentType content_type, flea_u8_t* mac_out, flea_u8_t* mac_len_out)
 {
 		FLEA_THR_BEG_FUNC();
 	/*
@@ -1468,7 +1468,12 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx
 
 				// update hash for all incoming handshake messages
 				// TODO: only include messages sent AFTER ClientHello. At the moment it could include HelloRequest received before sending HelloRequest
-				FLEA_CCALL(THR_flea_hash_ctx_t__update(&hash_ctx, recv_record.data, recv_record.length));
+
+				// exclude finished message because we must not have it in our hash computation
+				if (recv_handshake.type != HANDSHAKE_TYPE_FINISHED)
+				{
+					FLEA_CCALL(THR_flea_hash_ctx_t__update(&hash_ctx, recv_record.data, recv_record.length));
+				}
 			}
 			else if (recv_record.content_type == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
 			{
