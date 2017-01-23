@@ -142,6 +142,7 @@ flea_err_t PRF(flea_u8_t* secret, flea_u8_t secret_length, PRFLabel label, flea_
 		TODO: no fixed sha256
 	*/
 	flea_u8_t client_finished[] = {99, 108, 105, 101, 110, 116, 32, 102, 105, 110, 105, 115, 104, 101, 100};
+	flea_u8_t server_finished[] = {115, 101, 114, 118, 101, 114, 032, 102, 105, 110, 105, 115, 104, 101, 100};
 	flea_u8_t master_secret[] = {109, 97, 115, 116, 101, 114, 32, 115, 101, 99, 114, 101, 116};
 	flea_u8_t key_expansion[] = {107, 101, 121, 32, 101, 120, 112, 97, 110, 115, 105, 111, 110};
 
@@ -149,7 +150,8 @@ flea_err_t PRF(flea_u8_t* secret, flea_u8_t secret_length, PRFLabel label, flea_
 	flea_u8_t p_hash_seed[500];	// arbitrarily chosen: TODO change
 	flea_u16_t p_hash_seed_length;
 
-	switch (label) {
+	switch (label)
+	{
 		case PRF_LABEL_CLIENT_FINISHED:
 			memcpy(p_hash_seed, client_finished, sizeof(client_finished));
 			memcpy(p_hash_seed+sizeof(client_finished), seed, seed_length);
@@ -165,7 +167,13 @@ flea_err_t PRF(flea_u8_t* secret, flea_u8_t secret_length, PRFLabel label, flea_
 			memcpy(p_hash_seed+sizeof(key_expansion), seed, seed_length);
 			p_hash_seed_length = sizeof(key_expansion) + seed_length;
 			break;
-		case PRF_LABEL_SERVER_FINISHED: break;
+		case PRF_LABEL_SERVER_FINISHED:
+			memcpy(p_hash_seed, server_finished, sizeof(server_finished));
+			memcpy(p_hash_seed+sizeof(server_finished), seed, seed_length);
+			p_hash_seed_length = sizeof(server_finished) + seed_length;
+			break;
+		default:
+			FLEA_THROW("Invalid label!", FLEA_ERR_TLS_GENERIC);
 	}
 	FLEA_CCALL(P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result_length, result));
 	FLEA_THR_FIN_SEC_empty();
@@ -351,6 +359,14 @@ flea_err_t THR_flea_tls__read_record(flea_tls_ctx_t* tls_ctx, flea_u8_t* buff, f
 	FLEA_THR_FIN_SEC_empty();
 }
 
+
+
+flea_err_t create_finished_data(flea_u8_t* messages_hash, flea_u8_t master_secret[48], PRFLabel label, flea_u8_t* data, flea_u8_t data_len)
+{
+	FLEA_THR_BEG_FUNC();
+	FLEA_CCALL(PRF(master_secret, 48, label, messages_hash, 32, data_len, data));
+	FLEA_THR_FIN_SEC_empty();
+}
 /*
 typedef struct {
   flea_u8_t* verify_data;
@@ -360,14 +376,17 @@ typedef struct {
 PRF(master_secret, finished_label, Hash(handshake_messages))
 		[0..verify_data_length-1];
 */
-flea_err_t create_finished(flea_u8_t* messages_hash , flea_u8_t master_secret[48], PRFLabel label, flea_tls__finished_t *finished_message) {
+flea_err_t create_finished_message(flea_u8_t* messages_hash, flea_u8_t master_secret[48], PRFLabel label, flea_tls__finished_t *finished_message)
+{
 	FLEA_THR_BEG_FUNC();
 	finished_message->verify_data_length = 12;	// 12 octets for all cipher suites defined in RFC 5246
 	finished_message->verify_data = calloc(finished_message->verify_data_length, sizeof(flea_u8_t));
 
-	FLEA_CCALL(PRF(master_secret, 48, PRF_LABEL_CLIENT_FINISHED, messages_hash, 32, finished_message->verify_data_length, finished_message->verify_data));
+	FLEA_CCALL(create_finished_data(messages_hash, master_secret, label, finished_message->verify_data, finished_message->verify_data_length));
 	FLEA_THR_FIN_SEC_empty();
 }
+
+
 
 flea_err_t read_handshake_message(Record* record, HandshakeMessage* handshake_msg) {
 	FLEA_THR_BEG_FUNC();
@@ -497,10 +516,8 @@ flea_err_t THR_flea_tls__read_finished(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t*
 {
 	FLEA_THR_BEG_FUNC();
 
-	// compute hash over handshake messages so far and create struct
-	flea_tls__finished_t finished;
+	// compute hash over handshake messages so far
 	flea_u8_t messages_hash[32];
-
 	FLEA_CCALL(THR_flea_hash_ctx_t__final(hash_ctx, messages_hash));
 
 	PRFLabel label;
@@ -512,13 +529,15 @@ flea_err_t THR_flea_tls__read_finished(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t*
 	{
 		label = PRF_LABEL_CLIENT_FINISHED;
 	}
+	// TODO: need to generalize 12byte ?
+	flea_u8_t finished_len = 12;
+	flea_u8_t* finished = calloc(finished_len, sizeof(flea_u8_t));
 
-	// TODO: split create_finished functionality such that we don't have to create a finished struct for this
-	FLEA_CCALL(create_finished(messages_hash, tls_ctx->security_parameters->master_secret, label, &finished));
+	FLEA_CCALL(create_finished_data(messages_hash, tls_ctx->security_parameters->master_secret, label, finished, finished_len));
 
-	if (finished.verify_data_length == handshake_msg->length)
+	if (finished_len == handshake_msg->length)
 	{
-		if (memcmp(handshake_msg->data, finished.verify_data, finished.verify_data_length) != 0) {
+		if (memcmp(handshake_msg->data, finished, finished_len) != 0) {
 			FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_GENERIC);
 		}
 	}
@@ -871,11 +890,6 @@ void client_key_exchange_to_bytes(flea_tls__client_key_ex_t* key_ex, flea_u8_t *
 void finished_to_bytes(flea_tls__finished_t* finished, flea_u8_t* bytes, flea_u32_t* length)
 {
 	flea_u32_t i = 0;
-	// NOT NEEDED? (according to guys on stackoverflow you have 3 bytes maybe they meant the 3 bytes from the handshake message itself????)
-	/*flea_u8_t *p = (flea_u8_t*)&finished->verify_data_length;
-	bytes[i++] = p[2];
-	bytes[i++] = p[1];
-	bytes[i++] = p[0];*/
 
 	for (flea_u32_t j=0; j<finished->verify_data_length; j++)
 	{
@@ -1253,13 +1267,13 @@ flea_err_t THR_flea_tls__send_finished(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t*
 	PRFLabel label;
 	if (tls_ctx->security_parameters->connection_end == FLEA_TLS_CLIENT)
 	{
-		label = PRF_LABEL_SERVER_FINISHED;
+		label = PRF_LABEL_CLIENT_FINISHED;
 	}
 	else
 	{
-		label = PRF_LABEL_CLIENT_FINISHED;
+		label = PRF_LABEL_SERVER_FINISHED;
 	}
-	FLEA_CCALL(create_finished(messages_hash, tls_ctx->security_parameters->master_secret, label, &finished));
+	FLEA_CCALL(create_finished_message(messages_hash, tls_ctx->security_parameters->master_secret, label, &finished));
 
 	// transform struct to bytes
 	flea_u8_t finished_bytes[16384];
