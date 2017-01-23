@@ -21,6 +21,7 @@
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <arpa/inet.h> //inet_addr
+#include <unistd.h> // for close
 
 #include "flea/pubkey.h"
 #include "flea/asn1_date.h"
@@ -33,8 +34,17 @@
 #include "flea/bin_utils.h"
 
 #include <stdio.h>
-flea_u8_t key_block[128]; // size for key block for aes256+sha256. TODO: move from global scope into tls_context or something
 
+// defines for max sizes to allocate on the stack
+// TODO: cleaner solution?
+#define FLEA_TLS_MAX_MAC_SIZE 32
+#define FLEA_TLS_MAX_MAC_KEY_SIZE 32
+#define FLEA_TLS_MAX_IV_SIZE 32
+#define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
+#define FLEA_TLS_MAX_PADDING_SIZE 255 // each byte must hold the padding value => 255 is max
+
+
+// CA cert to verify the server's certificate
 flea_u8_t trust_anchor[] = {0x30, 0x82, 0x03, 0x7f, 0x30, 0x82, 0x02, 0x67, 0xa0, 0x03, 0x02, 0x01, 0x02, 0x02, 0x09, 0x00, 0xfe, 0x12, 0x36, 0x42, 0xa1, 0xb6, 0xf7, 0x11, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b, 0x05, 0x00, 0x30, 0x56, 0x31, 0x0b, 0x30, 0x09, 0x06, 0x03, 0x55, 0x04, 0x06, 0x13, 0x02, 0x41, 0x55, 0x31, 0x13, 0x30, 0x11, 0x06, 0x03, 0x55, 0x04, 0x08, 0x0c, 0x0a, 0x53, 0x6f, 0x6d, 0x65, 0x2d, 0x53, 0x74, 0x61, 0x74, 0x65, 0x31, 0x21, 0x30, 0x1f, 0x06, 0x03, 0x55, 0x04, 0x0a, 0x0c, 0x18, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74, 0x20, 0x57, 0x69, 0x64, 0x67, 0x69, 0x74, 0x73, 0x20, 0x50, 0x74, 0x79, 0x20, 0x4c, 0x74, 0x64, 0x31, 0x0f, 0x30, 0x0d, 0x06, 0x03, 0x55, 0x04, 0x03, 0x0c, 0x06, 0x72, 0x6f, 0x6f, 0x74, 0x43, 0x41, 0x30, 0x1e, 0x17, 0x0d, 0x31, 0x36, 0x31, 0x31, 0x30, 0x31, 0x30, 0x38, 0x33, 0x39, 0x31, 0x33, 0x5a, 0x17, 0x0d, 0x31, 0x39, 0x30, 0x38, 0x32, 0x32, 0x30, 0x38, 0x33, 0x39, 0x31, 0x33, 0x5a, 0x30, 0x56, 0x31, 0x0b, 0x30, 0x09, 0x06, 0x03, 0x55, 0x04, 0x06, 0x13, 0x02, 0x41, 0x55, 0x31, 0x13, 0x30, 0x11, 0x06, 0x03, 0x55, 0x04, 0x08, 0x0c, 0x0a, 0x53, 0x6f, 0x6d, 0x65, 0x2d, 0x53, 0x74, 0x61, 0x74, 0x65, 0x31, 0x21, 0x30, 0x1f, 0x06, 0x03, 0x55, 0x04, 0x0a, 0x0c, 0x18, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74, 0x20, 0x57, 0x69, 0x64, 0x67, 0x69, 0x74, 0x73, 0x20, 0x50, 0x74, 0x79, 0x20, 0x4c, 0x74, 0x64, 0x31, 0x0f, 0x30, 0x0d, 0x06, 0x03, 0x55, 0x04, 0x03, 0x0c, 0x06, 0x72, 0x6f, 0x6f, 0x74, 0x43, 0x41, 0x30, 0x82, 0x01, 0x22, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01, 0x05, 0x00, 0x03, 0x82, 0x01, 0x0f, 0x00, 0x30, 0x82, 0x01, 0x0a, 0x02, 0x82, 0x01, 0x01, 0x00, 0xcf, 0xa5, 0x70, 0x42, 0x71, 0x64, 0xdf, 0xfa, 0x98, 0x43, 0x8a, 0x13, 0x5f, 0xe3, 0x7d, 0xed, 0x27, 0xff, 0x52, 0x3a, 0x6b, 0x7f, 0x0f, 0xd6, 0x80, 0xaa, 0xfd, 0x2e, 0xf9, 0xb7, 0xcf, 0x6b, 0x46, 0x72, 0x91, 0x95, 0x39, 0x44, 0xc1, 0xbf, 0x69, 0x9e, 0x65, 0xab, 0xbd, 0xa7, 0xe6, 0x3c, 0xfd, 0x12, 0x09, 0xa6, 0xda, 0x1e, 0xf4, 0x12, 0x9b, 0x0d, 0xd6, 0x5c, 0x6c, 0xdf, 0x64, 0x77, 0xfe, 0x35, 0x2d, 0xd9, 0xad, 0x99, 0xc1, 0x47, 0x31, 0xef, 0x95, 0x23, 0x38, 0x48, 0xd7, 0xa6, 0x84, 0x69, 0x6c, 0x4d, 0x37, 0xe8, 0x29, 0xd3, 0xb4, 0x68, 0x03, 0x19, 0xdc, 0xb1, 0xd1, 0xfd, 0xfb, 0x97, 0x61, 0x50, 0xe7, 0x2a, 0xa0, 0xfd, 0x7c, 0x8f, 0x51, 0x88, 0x0b, 0x5d, 0x74, 0xce, 0xb6, 0xa5, 0x65, 0x53, 0xb2, 0x0d, 0xdf, 0xb5, 0x7a, 0xe1, 0x3c, 0x98, 0x6e, 0x29, 0xa7, 0x90, 0x75, 0x13, 0xac, 0x22, 0x92, 0xdb, 0xe6, 0x8c, 0x6f, 0x32, 0xa7, 0x42, 0xa4, 0xa4, 0x5c, 0x04, 0xdb, 0x04, 0x95, 0x34, 0x13, 0xe0, 0xa1, 0x47, 0x00, 0x21, 0xf6, 0xa1, 0xa7, 0xaa, 0x0e, 0x97, 0xc5, 0x2b, 0x64, 0x00, 0x74, 0xdd, 0x57, 0xe3, 0x03, 0xe0, 0xb8, 0xc5, 0x4e, 0xe3, 0x3e, 0xf0, 0x33, 0x7d, 0x5e, 0x82, 0xda, 0xaa, 0x04, 0x0d, 0xdc, 0x80, 0x14, 0xaf, 0x30, 0x10, 0x9c, 0x5b, 0xb8, 0xd2, 0xb6, 0x76, 0x6c, 0x10, 0x27, 0xfd, 0x6e, 0xaa, 0xc2, 0x70, 0x7e, 0x0d, 0x37, 0x2c, 0x28, 0x81, 0x26, 0xc8, 0xeb, 0x7c, 0x4b, 0x8f, 0xda, 0x7b, 0x02, 0xb0, 0x51, 0x92, 0x3d, 0x3d, 0x5e, 0x53, 0xfa, 0xcb, 0x43, 0x4f, 0xef, 0x1e, 0x61, 0xe5, 0xb9, 0x2c, 0x08, 0x77, 0xff, 0x65, 0x77, 0x13, 0x4d, 0xd4, 0xcb, 0x2e, 0x7f, 0x9d, 0xe2, 0x1a, 0xc3, 0x19, 0x84, 0xb1, 0x52, 0x9d, 0x02, 0x03, 0x01, 0x00, 0x01, 0xa3, 0x50, 0x30, 0x4e, 0x30, 0x1d, 0x06, 0x03, 0x55, 0x1d, 0x0e, 0x04, 0x16, 0x04, 0x14, 0xb7, 0x52, 0x9d, 0x67, 0xd2, 0x32, 0x3f, 0x0c, 0x4d, 0xe3, 0xa2, 0xe8, 0x95, 0xfe, 0x23, 0x83, 0xbf, 0xaa, 0x17, 0x66, 0x30, 0x1f, 0x06, 0x03, 0x55, 0x1d, 0x23, 0x04, 0x18, 0x30, 0x16, 0x80, 0x14, 0xb7, 0x52, 0x9d, 0x67, 0xd2, 0x32, 0x3f, 0x0c, 0x4d, 0xe3, 0xa2, 0xe8, 0x95, 0xfe, 0x23, 0x83, 0xbf, 0xaa, 0x17, 0x66, 0x30, 0x0c, 0x06, 0x03, 0x55, 0x1d, 0x13, 0x04, 0x05, 0x30, 0x03, 0x01, 0x01, 0xff, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b, 0x05, 0x00, 0x03, 0x82, 0x01, 0x01, 0x00, 0x7b, 0x18, 0xad, 0x25, 0x86, 0x17, 0x93, 0x93, 0xcb, 0x01, 0xe1, 0x07, 0xce, 0xfa, 0x37, 0x96, 0x5f, 0x17, 0x95, 0x1d, 0x76, 0xf3, 0x04, 0x36, 0x81, 0x64, 0x78, 0x2a, 0xc2, 0xcc, 0xbd, 0x77, 0xf7, 0x59, 0xeb, 0x9a, 0xf7, 0xb3, 0xfc, 0x1a, 0x30, 0xfe, 0x6f, 0x6e, 0x02, 0xc6, 0x2d, 0x4d, 0x79, 0x25, 0xaf, 0x98, 0xb4, 0xab, 0x3e, 0x25, 0xfc, 0xef, 0x98, 0x26, 0x0f, 0x6a, 0x0a, 0x74, 0x5b, 0x4f, 0x3a, 0x6c, 0xd6, 0x42, 0x56, 0xd9, 0x25, 0x0a, 0x1e, 0x3a, 0x4c, 0x74, 0xe9, 0x28, 0xcf, 0x7d, 0xe9, 0x48, 0xdc, 0xd6, 0xf4, 0x23, 0xf7, 0x2e, 0xc9, 0x50, 0xb7, 0xad, 0x22, 0x9b, 0xdf, 0x60, 0xcf, 0x2f, 0x4b, 0x98, 0x79, 0x3d, 0x56, 0xf0, 0x03, 0xfd, 0xe1, 0x61, 0x12, 0xed, 0x44, 0xe8, 0x22, 0xce, 0x4d, 0x41, 0xe7, 0xd4, 0x9c, 0xf9, 0x12, 0x57, 0x12, 0xb0, 0x20, 0xb3, 0xfa, 0xf5, 0x09, 0x8b, 0xc6, 0x38, 0xc2, 0x31, 0x41, 0xe8, 0xf3, 0x1c, 0x9a, 0xb7, 0x87, 0x73, 0x64, 0x29, 0xc5, 0x0f, 0x8e, 0x2d, 0x80, 0xbd, 0x54, 0x16, 0x6d, 0xc2, 0xcd, 0x5f, 0x0c, 0x12, 0xe0, 0xd2, 0x6b, 0xce, 0x99, 0x53, 0x7b, 0xa8, 0x38, 0x4e, 0x17, 0xea, 0xc1, 0x70, 0x9b, 0x33, 0x39, 0xc2, 0x83, 0x11, 0xba, 0xbd, 0x9b, 0x79, 0x09, 0xc5, 0x01, 0xea, 0x2d, 0xc6, 0x56, 0xf2, 0x9a, 0x14, 0x68, 0x37, 0xb2, 0x28, 0xb0, 0x60, 0xf0, 0xc6, 0xf4, 0xa6, 0x1e, 0xeb, 0x2b, 0x1d, 0x0e, 0xa0, 0x58, 0xfc, 0xd8, 0x2c, 0x01, 0xa3, 0xcf, 0xae, 0xa8, 0x3b, 0x49, 0x9e, 0xad, 0x51, 0xe7, 0x08, 0x65, 0x8c, 0x5c, 0x33, 0x54, 0x04, 0x14, 0x48, 0xf1, 0x79, 0xab, 0x33, 0xf5, 0xd4, 0xe0, 0xef, 0x1a, 0x62, 0x13, 0x48, 0xda, 0x52, 0x3e, 0x02, 0x8f, 0x64, 0xba, 0x8e, 0xf1, 0x88};
 
 typedef enum { PRF_LABEL_CLIENT_FINISHED, PRF_LABEL_SERVER_FINISHED, PRF_LABEL_MASTER_SECRET, PRF_LABEL_KEY_EXPANSION } PRFLabel;
@@ -172,12 +182,14 @@ typedef struct {
 
 typedef enum {CHANGE_CIPHER_SPEC_TYPE_CHANGE_CIPHER_SPEC = 1} CHANGE_CIPHER_SPEC_TYPE;
 
-typedef struct {
+typedef struct
+{
 	CHANGE_CIPHER_SPEC_TYPE change_cipher_spec;
 } ChangeCipherSpec;
 
 
-typedef struct {
+typedef struct
+{
   flea_u8_t* verify_data;
   flea_u32_t verify_data_length;	// 12 for all cipher suites defined in TLS 1.2 - RFC 5246. is 24 bit!!
 } flea_tls__finished_t;
@@ -186,29 +198,69 @@ typedef struct {
 	ServerHelloDone: no content, no struct needed
 */
 
-typedef enum {
+typedef enum
+{
 	FLEA_TLS_CLIENT,
 	FLEA_TLS_SERVER
 } flea_tls__connection_end_t;
 
-typedef enum {
+typedef enum
+{
 	FLEA_TLS_HMAC_SHA1,
 	FLEA_TLS_HMAC_SHA256
 } flea_tls__mac_algorithm_t;
 
-typedef enum {
+typedef enum
+{
 	FLEA_TLS_BCA_AES,
 	FLEA_TLS_BCA_TRIPLE_DES,
 	FLEA_TLS_BCA_NULL
 } flea_tls__bulk_cipher_alg_t;
 
 
-typedef enum {
+typedef enum
+{
 	FLEA_TLS_CIPHER_TYPE_STREAM,
 	FLEA_TLS_CIPHER_TYPE_BLOCK,
 	FLEA_TLS_CIPHER_TYPE_AEAD
 } flea_tls__cipher_type_t;
 
+
+typedef enum
+{
+	FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY=0,
+	FLEA_TLS_ALERT_DESC_UNEXPECTED_MESSAGE=10,
+	FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC=20,
+	FLEA_TLS_ALERT_DESC_DECRYPTION_FAILED_RESERVED=21,
+	FLEA_TLS_ALERT_DESC_RECORD_OVERFLOW=22,
+	FLEA_TLS_ALERT_DESC_DECOMPRESSION_FAILURE=30,
+	FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE=40,
+	FLEA_TLS_ALERT_DESC_NO_CERTIFICATE_RESERVED=41,
+	FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE=42,
+	FLEA_TLS_ALERT_DESC_UNSUPPORTED_CERTIFICATE=43,
+	FLEA_TLS_ALERT_DESC_CERTIFICATE_REVOKED=44,
+	FLEA_TLS_ALERT_DESC_CERTIFICATE_EXPIRED=45,
+	FLEA_TLS_ALERT_DESC_CERTIFICATE_UNKNOWN=46,
+	FLEA_TLS_ALERT_DESC_ILLEGAL_PARAMETER=47,
+	FLEA_TLS_ALERT_DESC_UNKNOWN_CA=48,
+	FLEA_TLS_ALERT_DESC_ACCESS_DENIED=49,
+	FLEA_TLS_ALERT_DESC_DECODE_ERROR=50,
+	FLEA_TLS_ALERT_DESC_DECRYPT_ERROR=51,
+	FLEA_TLS_ALERT_DESC_EXPORT_RESTRICTION_RESERVED=60,
+	FLEA_TLS_ALERT_DESC_PROTOCOL_VERSION=70,
+	FLEA_TLS_ALERT_DESC_INSUFFICIENT_SECURITY=71,
+	FLEA_TLS_ALERT_DESC_INTERNAL_ERROR=80,
+	FLEA_TLS_ALERT_DESC_USER_CANCELED=90,
+	FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION=100,
+	FLEA_TLS_ALERT_DESC_UNSUPPORTED_EXTENSION=110
+}
+flea_tls__alert_description_t;
+
+typedef enum
+{
+	FLEA_TLS_ALERT_LEVEL_WARNING=1,
+	FLEA_TLS_ALERT_LEVEL_FATAL=2
+} flea_tls__alert_level_t;
 
 typedef enum {
 	FLEA_TLS_PRF_SHA256
@@ -291,7 +343,7 @@ typedef struct {
 	flea_tls__mac_algorithm_t mac_algorithm;			/* negotiated mac algorithm */
 	/*flea_u8_t mac_length;
 	flea_u8_t mac_key_length;*/
-	flea_u8_t* compression_methods;						/* Pool of compression methods that can be negotiated. Priority (in case of server): Prefer first over second and so on */
+	CompressionMethod* compression_methods;						/* Pool of compression methods that can be negotiated. Priority (in case of server): Prefer first over second and so on */
 	flea_u32_t compression_methods_len;
 	flea_u8_t master_secret[48];						/* symmetric keys are derived from this */
 	Random client_random;								/* random value that the client sends */
@@ -334,6 +386,8 @@ typedef struct {
 
 	flea_u8_t* premaster_secret; // shall be deleted after master_Secret is calculated
 	flea_bool_t resumption;
+
+	flea_u8_t key_block[128]; // size for key block for aes256+sha256 - max size for all ciphersuites in RFC
 
 } flea_tls_ctx_t;
 
@@ -470,7 +524,7 @@ key_block = PRF(SecurityParameters.master_secret,
 				  SecurityParameters.server_random +
 				  SecurityParameters.client_random);
 */
-flea_err_t generate_key_block_2(flea_tls_ctx_t* tls_ctx, flea_u8_t* key_block2)
+flea_err_t generate_key_block(flea_tls_ctx_t* tls_ctx, flea_u8_t* key_block)
 {
 	FLEA_THR_BEG_FUNC();
 	flea_u8_t seed[64];
@@ -479,74 +533,166 @@ flea_err_t generate_key_block_2(flea_tls_ctx_t* tls_ctx, flea_u8_t* key_block2)
 	memcpy(seed+32, tls_ctx->security_parameters->client_random.gmt_unix_time, 4);
 	memcpy(seed+36, tls_ctx->security_parameters->client_random.random_bytes, 28);
 
-	FLEA_CCALL(PRF(tls_ctx->security_parameters->master_secret, 48, PRF_LABEL_KEY_EXPANSION, seed, sizeof(seed), 128, key_block2));
+	FLEA_CCALL(PRF(tls_ctx->security_parameters->master_secret, 48, PRF_LABEL_KEY_EXPANSION, seed, sizeof(seed), 128, key_block));
 	FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t generate_key_block(flea_u8_t* master_secret, Random client_random, Random server_random) {
+
+flea_err_t THR_flea_tls__compute_mac(flea_u8_t* data, flea_u32_t data_len, flea_tls__protocol_version_t* version, flea_mac_id_t mac_algorithm, flea_u8_t* mac_key, flea_u8_t mac_key_len,
+																			flea_u64_t sequence_number, ContentType content_type, flea_u8_t* mac_out, flea_u8_t* mac_len_out)
+{
+		FLEA_THR_BEG_FUNC();
+	/*
+		MAC(MAC_write_key, seq_num +
+													TLSCompressed.type +
+													TLSCompressed.version +
+													TLSCompressed.length +
+													TLSCompressed.fragment);
+	*/
+	// 8 + 1 + (1+1) + 2 + length
+	flea_u32_t mac_data_len = 13+data_len;
+	flea_u8_t mac_data[FLEA_TLS_MAX_RECORD_DATA_SIZE];
+	memcpy(mac_data, &sequence_number, 8);
+	mac_data[8] = content_type;
+	mac_data[9] = version->major;
+	mac_data[10] = version->minor;
+	mac_data[11] = ((flea_u8_t*)&data_len)[1];	// TODO: do properly
+	mac_data[12] = ((flea_u8_t*)&data_len)[0];
+	memcpy(mac_data+13, data, data_len);
+
+	FLEA_CCALL(THR_flea_mac__compute_mac(mac_algorithm, mac_key, mac_key_len, mac_data, mac_data_len, mac_out, (flea_al_u8_t*)(mac_len_out)));
+
+	FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_tls__decrypt_record(flea_tls_ctx_t* tls_ctx, Record* record)
+{
 	FLEA_THR_BEG_FUNC();
-	flea_u8_t seed[64];
-	memcpy(seed, server_random.gmt_unix_time, 4);
-	memcpy(seed+4, server_random.random_bytes, 28);
-	memcpy(seed+32, client_random.gmt_unix_time, 4);
-	memcpy(seed+36, client_random.random_bytes, 28);
+	// TODO: this is for client connection end. need other keys for server connection end
+	flea_u8_t* mac_key = tls_ctx->active_read_connection_state->mac_key;
+	flea_u8_t* enc_key = tls_ctx->active_read_connection_state->enc_key;
+	flea_u8_t iv_len = tls_ctx->active_read_connection_state->cipher_suite->iv_size;
+	flea_u8_t mac_len = tls_ctx->active_read_connection_state->cipher_suite->mac_size;
+	flea_u8_t mac_key_len = tls_ctx->active_read_connection_state->cipher_suite->mac_key_size;
+	flea_u8_t enc_key_len = tls_ctx->active_read_connection_state->cipher_suite->enc_key_size;
+	flea_u8_t mac[FLEA_TLS_MAX_MAC_SIZE];
+	flea_u8_t iv[FLEA_TLS_MAX_IV_SIZE];
+	//flea_u8_t block_len = tls_ctx->active_read_connection_state->cipher_suite->block_size;
+	flea_u64_t sequence_number = tls_ctx->active_read_connection_state->sequence_number;
+	tls_ctx->active_read_connection_state->sequence_number++;	// increment after each usage
 
-	FLEA_CCALL(PRF(master_secret, 48, PRF_LABEL_KEY_EXPANSION, seed, sizeof(seed), 128, key_block));
+
+	/*
+		First decrypt
+	*/
+
+	// TODO: can read and write from/in the same buffer?
+	flea_u8_t tmp[FLEA_TLS_MAX_RECORD_DATA_SIZE];
+	FLEA_CCALL(THR_flea_cbc_mode__decrypt_data(tls_ctx->active_read_connection_state->cipher_suite->cipher, enc_key, enc_key_len, iv, iv_len, tmp, record->data, record->length));
+	memcpy(record->data, tmp, record->length);
+
+	/*
+		Remove padding and read IV
+	*/
+	flea_u8_t padding_len = record->data[record->length-1];
+	memcpy(iv, record->data, iv_len);
+
+	/*
+		Check MAC
+	*/
+	flea_u16_t data_len = record->length - (padding_len + 1) - iv_len - mac_len;
+	FLEA_CCALL(THR_flea_tls__compute_mac(record->data+iv_len, data_len, &tls_ctx->version, tls_ctx->active_read_connection_state->cipher_suite->mac_algorithm,
+																	mac_key, mac_key_len, sequence_number, record->content_type, mac, &mac_len));
+
+  if (memcmp(mac, record->data+iv_len+data_len, mac_len) != 0)
+	{
+		printf("MAC does not match!\n");
+		FLEA_THROW("MAC failure", FLEA_ERR_TLS_GENERIC);
+	}
+
+	/*
+		adjust record
+	*/
+	flea_u8_t* tmp_data = calloc(data_len, sizeof(flea_u8_t));
+	memcpy(tmp_data, record->data+iv_len, data_len);
+	free(record->data);
+	record->data = tmp_data;
+	record->length = data_len;
+
 	FLEA_THR_FIN_SEC_empty();
 }
+
 
 /**
 	TODO: fragmentation
 	Reads in the record - "Header Data" is copied to the struct fields and the data is copied to a new location
 */
-flea_err_t THR_flea_tls__read_record(flea_tls_ctx_t* tls_ctx, flea_u8_t* buff, flea_u32_t buff_len, Record* record, RecordType record_type, flea_u32_t* bytes_left) {
+flea_err_t THR_flea_tls__read_record(flea_tls_ctx_t* tls_ctx, flea_u8_t* buff, flea_u32_t buff_len, Record* record, flea_u32_t* bytes_left)
+{
 	FLEA_THR_BEG_FUNC();
 	flea_u32_t i = 0;
-	record->record_type = record_type;
 
-	if (record_type == RECORD_TYPE_PLAINTEXT)
+	// TODO:_ if we support ciphers without encryption: need to adjust
+	if (tls_ctx->active_read_connection_state->cipher_suite->id == TLS_NULL_WITH_NULL_NULL)
 	{
-		if (buff_len < 5)
-		{
-			printf("Record too short!");
-			FLEA_THROW("record length too short", FLEA_ERR_TLS_GENERIC);
-		}
-
-		record->content_type = buff[i++];
-
-		record->version.major = buff[i++];
-		record->version.minor = buff[i++];
-
-		// TODO: have to allow several TLS versions, maybe use <, <=, >, >= instead of ==, !=
-		if (record->version.minor != tls_ctx->version.minor && record->version.major != tls_ctx->version.major)
-		{
-			printf("Version mismatch!");
-			FLEA_THROW("version mismatch", FLEA_ERR_TLS_GENERIC);
-		}
-
-		flea_u8_t *p = (flea_u8_t*) &record->length;
-		p[1] = buff[i++];
-		p[0] = buff[i++];
-
-
-		// need more data?
-		if (record->length > buff_len - i)
-		{
-			// TODO: READ MORE DATA
-			printf("Record Fragmenting not yet supported!");
-			FLEA_THROW("Not Yet Implemented", FLEA_ERR_TLS_GENERIC);
-		}
-
-		// everything else is the record content
-		record->data = calloc(record->length, sizeof(flea_u8_t));
-		memcpy(record->data, buff+i, sizeof(flea_u8_t)*record->length);
-		i += record->length;
-
-		//*bytes_left = buff_len - i;
-		*bytes_left = *bytes_left - i;
-
-		// TODO: support encrypted / authenticated record messages
+		record->record_type = RECORD_TYPE_PLAINTEXT;
 	}
+	else
+	{
+		record->record_type = RECORD_TYPE_CIPHERTEXT;
+	}
+
+	/*
+		read data into record struct
+	*/
+
+	if (buff_len < 5)
+	{
+		printf("Record too short!\n");
+		FLEA_THROW("record length too short", FLEA_ERR_TLS_GENERIC);
+	}
+
+	record->content_type = buff[i++];
+
+	record->version.major = buff[i++];
+	record->version.minor = buff[i++];
+
+	// TODO: have to allow several TLS versions, maybe use <, <=, >, >= instead of ==, !=
+	if (record->version.minor != tls_ctx->version.minor && record->version.major != tls_ctx->version.major)
+	{
+		printf("Version mismatch!\n");
+		FLEA_THROW("version mismatch", FLEA_ERR_TLS_GENERIC);
+	}
+
+	flea_u8_t *p = (flea_u8_t*) &record->length;
+	p[1] = buff[i++];
+	p[0] = buff[i++];
+
+
+	// need more data?
+	if (record->length > buff_len - i)
+	{
+		// TODO: READ MORE DATA
+		printf("Record Fragmenting not yet supported!\n");
+		FLEA_THROW("Not Yet Implemented", FLEA_ERR_TLS_GENERIC);
+	}
+
+	// everything else is the record content
+	record->data = calloc(record->length, sizeof(flea_u8_t));
+	memcpy(record->data, buff+i, sizeof(flea_u8_t)*record->length);
+	i += record->length;
+
+	//*bytes_left = buff_len - i;
+	*bytes_left = *bytes_left - i;
+
+	/*
+		decrypt data if encrypted
+	*/
+	if (record->record_type == RECORD_TYPE_CIPHERTEXT)
+	{
+		FLEA_CCALL(THR_flea_tls__decrypt_record(tls_ctx, record));
+	}
+
 	FLEA_THR_FIN_SEC_empty();
 }
 
@@ -757,7 +903,7 @@ Variable-length vectors are defined by specifying a subrange of legal
    these are encoded, the actual length precedes the vector's contents
    in the byte stream.
 */
-void client_hello_to_bytes(flea_tls__client_hello_t* hello, flea_u8_t* bytes, flea_u16_t* length)
+void client_hello_to_bytes(flea_tls__client_hello_t* hello, flea_u8_t* bytes, flea_u32_t* length)
 {
 	flea_u16_t i=0;
 
@@ -956,16 +1102,16 @@ void print_server_hello(ServerHello hello)
    EncryptedPreMasterSecret is the only data in the ClientKeyExchange
    and its length can therefore be unambiguously determined
 */
-flea_tls__client_key_ex_t create_client_key_exchange(flea_tls_ctx_t* tls_ctx, flea_public_key_t* pubkey)
+flea_err_t THR_flea_tls__create_client_key_exchange(flea_tls_ctx_t* tls_ctx, flea_public_key_t* pubkey, flea_tls__client_key_ex_t* key_ex)
 {
-	flea_tls__client_key_ex_t key_ex;
+
 	flea_u8_t premaster_secret[48];
 
-
+	FLEA_THR_BEG_FUNC();
 
 	premaster_secret[0] = 3;
 	premaster_secret[1] = 3;
-	key_ex.algorithm = KEY_EXCHANGE_ALGORITHM_RSA;
+	key_ex->algorithm = KEY_EXCHANGE_ALGORITHM_RSA;
 
 	// random 46 bit
 	flea_rng__randomize(premaster_secret+2, 46);
@@ -975,7 +1121,7 @@ flea_tls__client_key_ex_t create_client_key_exchange(flea_tls_ctx_t* tls_ctx, fl
 	//flea_rng__randomize(tls_ctx->premaster_secret+2, 46);
 	memcpy(tls_ctx->premaster_secret+2, premaster_secret+2, 46);
 
-	memcpy(key_ex.premaster_secret, premaster_secret, 48);
+	memcpy(key_ex->premaster_secret, premaster_secret, 48);
 
 	/**
 		   RSA encryption is done using the RSAES-PKCS1-v1_5 encryption scheme
@@ -986,12 +1132,13 @@ flea_tls__client_key_ex_t create_client_key_exchange(flea_tls_ctx_t* tls_ctx, fl
 	flea_al_u16_t result_len = 256;
 	flea_u8_t buf[256];
 	//THR_flea_public_key_t__encrypt_message(*key__pt, pk_scheme_id__t, hash_id__t, message__pcu8, message_len__alu16, result__pu8, result_len__palu16);
-	flea_err_t err = THR_flea_public_key_t__encrypt_message(pubkey, flea_rsa_pkcs1_v1_5_encr, 0, premaster_secret, sizeof(premaster_secret), buf, &result_len);
+	FLEA_CCALL(THR_flea_public_key_t__encrypt_message(pubkey, flea_rsa_pkcs1_v1_5_encr, 0, premaster_secret, sizeof(premaster_secret), buf, &result_len));
 
-	key_ex.encrypted_premaster_secret = calloc(result_len, sizeof(flea_u8_t));
-	memcpy(key_ex.encrypted_premaster_secret, buf, result_len);
-	key_ex.encrypted_premaster_secret_length = result_len;
-	return key_ex;
+	key_ex->encrypted_premaster_secret = calloc(result_len, sizeof(flea_u8_t));
+	memcpy(key_ex->encrypted_premaster_secret, buf, result_len);
+	key_ex->encrypted_premaster_secret_length = result_len;
+
+	FLEA_THR_FIN_SEC_empty();
 }
 
 void client_key_exchange_to_bytes(flea_tls__client_key_ex_t* key_ex, flea_u8_t *bytes, flea_u32_t* length)
@@ -1058,7 +1205,8 @@ int create_socket() {
 }
 
 
-void create_handshake(HandshakeMessage* handshake, flea_u8_t* data, flea_u32_t length, HandshakeType type) {
+void create_handshake(HandshakeMessage* handshake, flea_u8_t* data, flea_u32_t length, HandshakeType type)
+{
 	handshake->type = type;
 	handshake->length = length;
 
@@ -1068,44 +1216,59 @@ void create_handshake(HandshakeMessage* handshake, flea_u8_t* data, flea_u32_t l
 
 
 
+// TODO: check numbers and add checks against overflow etc.
+flea_err_t THR_flea_tls__encrypt_record(flea_tls_ctx_t* tls_ctx, Record* record, flea_u8_t* data, flea_u32_t data_len)
+{
+	FLEA_THR_BEG_FUNC();
 
-/**
-struct {
-   opaque IV[SecurityParameters.record_iv_length];
-   block-ciphered struct {
-	   opaque content[TLSCompressed.length];
-	   opaque MAC[SecurityParameters.mac_length];
-	   uint8 padding[GenericBlockCipher.padding_length];
-	   uint8 padding_length;
-   };
-} GenericBlockCipher;
+	// TODO: this is for client connection end. need other keys for server connection end
+	flea_u8_t* mac_key = tls_ctx->active_write_connection_state->mac_key;
+	flea_u8_t* enc_key = tls_ctx->active_write_connection_state->enc_key;
+	flea_u8_t iv_len = tls_ctx->active_write_connection_state->cipher_suite->iv_size;
+	flea_u8_t mac_len = tls_ctx->active_write_connection_state->cipher_suite->mac_size;
+	flea_u8_t mac_key_len = tls_ctx->active_write_connection_state->cipher_suite->mac_key_size;
+	flea_u8_t enc_key_len = tls_ctx->active_write_connection_state->cipher_suite->enc_key_size;
+	flea_u8_t mac[FLEA_TLS_MAX_MAC_SIZE];
+	flea_u8_t iv[FLEA_TLS_MAX_IV_SIZE];
+	flea_u8_t block_len = tls_ctx->active_write_connection_state->cipher_suite->block_size;
+	flea_u64_t sequence_number = tls_ctx->active_write_connection_state->sequence_number;
+	tls_ctx->active_write_connection_state->sequence_number++;	// increment after each usage
 
-IV Size
-   The amount of data needed to be generated for the initialization
-   vector.  Zero for stream ciphers; equal to the block size for
-   block ciphers (this is equal to
-   SecurityParameters.record_iv_length).
+	// compute mac
+	FLEA_CCALL(THR_flea_tls__compute_mac(data, data_len, &tls_ctx->version, tls_ctx->active_write_connection_state->cipher_suite->mac_algorithm,
+																	mac_key, mac_key_len, sequence_number, record->content_type, mac, &mac_len));
+
+	// compute IV ... TODO: xor with last plaintext block? -> RFC
+	flea_rng__randomize(iv, iv_len);
+
+	// compute padding
+	flea_u8_t padding_len = (block_len - (data_len + mac_len + 1) % block_len) % block_len + 1;	// +1 for padding_length entry
+	flea_u8_t padding[FLEA_TLS_MAX_PADDING_SIZE];
+	flea_dtl_t input_output_len = data_len + padding_len + mac_len;
+	flea_u8_t padded_data[FLEA_TLS_MAX_RECORD_DATA_SIZE];
+	for (flea_u8_t k=0; k<padding_len; k++)
+	{
+		padding[k] = padding_len - 1;	// account for padding_length entry again
+	}
+	memcpy(padded_data, data, data_len);
+	memcpy(padded_data+data_len, mac, mac_len);
+	memcpy(padded_data+data_len+mac_len, padding, padding_len);
+
+	// compute encryption
+	flea_u8_t encrypted[FLEA_TLS_MAX_RECORD_DATA_SIZE];
+	FLEA_CCALL(THR_flea_cbc_mode__encrypt_data(tls_ctx->active_write_connection_state->cipher_suite->cipher, enc_key, enc_key_len, iv, iv_len, encrypted, padded_data, input_output_len));
+
+	record->length = input_output_len+iv_len;
+	record->data = calloc(input_output_len+iv_len, sizeof(flea_u8_t));
+	memcpy(record->data, iv, iv_len);
+	memcpy(record->data+iv_len, encrypted, input_output_len);
+
+	FLEA_THR_FIN_SEC_empty();
+}
 
 
-   To generate the key material, compute
 
-         key_block = PRF(SecurityParameters.master_secret,
-                         "key expansion",
-                         SecurityParameters.server_random +
-                         SecurityParameters.client_random);
-
-      until enough output has been generated.  Then, the key_block is
-      partitioned as follows:
-
-         client_write_MAC_key[SecurityParameters.mac_key_length]
-         server_write_MAC_key[SecurityParameters.mac_key_length]
-         client_write_key[SecurityParameters.enc_key_length]
-         server_write_key[SecurityParameters.enc_key_length]
-         client_write_IV[SecurityParameters.fixed_iv_length]
-         server_write_IV[SecurityParameters.fixed_iv_length]
-
-
-
+/*
 	Initialization Vector (IV)
       When a block cipher is used in CBC mode, the initialization vector
       is exclusive-ORed with the first plaintext block prior to
@@ -1122,7 +1285,10 @@ IV Size
          SecurityParameters.block_size.
 
 */
-void create_record(flea_tls_ctx_t* tls_ctx, Record* record, flea_u8_t* data, flea_u16_t length, ContentType content_type, RecordType record_type) {
+flea_err_t THR_flea_tls__create_record(flea_tls_ctx_t* tls_ctx, Record* record, flea_u8_t* data, flea_u32_t length, ContentType content_type) {
+	FLEA_THR_BEG_FUNC();
+
+	// TODO:_ if we support ciphers without encryption: need to adjust
 	if (tls_ctx->active_write_connection_state->cipher_suite->id == TLS_NULL_WITH_NULL_NULL)
 	{
 		record->record_type = RECORD_TYPE_PLAINTEXT;
@@ -1130,6 +1296,12 @@ void create_record(flea_tls_ctx_t* tls_ctx, Record* record, flea_u8_t* data, fle
 	else
 	{
 		record->record_type = RECORD_TYPE_CIPHERTEXT;
+	}
+
+	if (length > 16384)  // 2^14 is max length for record, +1024 / +2048 for compressed / ciphertext
+	{
+		printf ("Data too large for record: Need to implement fragmentation.\n");
+		FLEA_THROW("record too large", FLEA_ERR_TLS_GENERIC);
 	}
 
 	record->content_type = content_type;
@@ -1147,98 +1319,10 @@ void create_record(flea_tls_ctx_t* tls_ctx, Record* record, flea_u8_t* data, fle
 	// TODO: length max 2^14 + 2048
 	else if (record->record_type == RECORD_TYPE_CIPHERTEXT)
 	{
-		/**
-			HARDCODED FOR AES256 SHA256 CBC
-		*/
-		/*flea_u8_t iv_length = tls_ctx->active_write_connection_state->cipher_suite->iv_size;
-		flea_u8_t mac_length = tls_ctx->active_write_connection_state->cipher_suite->mac_size;
-		flea_u8_t mac_key_length = tls_ctx->active_write_connection_state->cipher_suite->mac_key_size;
-		flea_u8_t enc_key_length = tls_ctx->active_write_connection_state->cipher_suite->enc_key_size;
-		flea_u8_t mac[mac_length];
-		flea_u8_t iv[iv_length];
-		flea_u8_t block_length = tls_ctx->active_write_connection_state->cipher_suite->block_size;
-		flea_u64_t sequence_number = tls_ctx->active_write_connection_state->sequence_number;
-
-		flea_u8_t client_write_mac_key[mac_key_length];
-		memcpy(client_write_mac_key, tls_ctx->active_write_connection_state->mac_key, mac_key_length);
-
-		flea_u8_t client_write_key[enc_key_length];
-		memcpy(client_write_key, tls_ctx->active_write_connection_state->enc_key, enc_key_length);
-		*/
-
-		flea_u8_t iv_length = 16;	// AES always has 16 byte IV / block size
-		flea_u8_t mac_length = 32; 	// sha256
-		flea_u8_t mac[mac_length];
-		flea_u8_t iv[iv_length];
-		flea_u8_t block_length = 16;
-		flea_u64_t sequence_number = 0;	/** HARD CODED!!!! only true for finished message message */
-
-		// create keys
-		flea_u8_t client_write_mac_key[32]; // for aes256/Sha256
-		flea_u8_t server_write_mac_key[32]; // for aes256/Sha256
-		flea_u8_t client_write_key[32]; // for aes256/Sha256
-		flea_u8_t server_write_key[32]; // for aes256/Sha256
-
-		memcpy(client_write_mac_key, key_block, 32);
-		memcpy(server_write_mac_key, key_block+32, 32);
-		memcpy(client_write_key, key_block+64, 32);
-		memcpy(server_write_key, key_block+96, 32);
-
-		/*printf("CLIENT WRITE MAC KEY: ");
-		for (flea_u8_t k=0; k<32; k++)
-		{
-			printf("%02x ", client_write_mac_key[k]);
-		}
-		printf("\n");*/
-
-		// compute mac
-		/*
-			MAC(MAC_write_key, seq_num +
-                            TLSCompressed.type +
-                            TLSCompressed.version +
-                            TLSCompressed.length +
-                            TLSCompressed.fragment);
-		*/
-		// 8 + 1 + (1+1) + 2 + length
-		flea_u8_t mac_data_length = 13+length;
-		flea_u8_t mac_data[mac_data_length];
-		memcpy(mac_data, &sequence_number, 8);
-		mac_data[8] = CONTENT_TYPE_HANDSHAKE;
-		mac_data[9] = 0x03;
-		mac_data[10] = 0x03;
-		mac_data[11] = 0x00;
-		mac_data[12] = length;	// length is < 256 in this case but have to generalize it
-		memcpy(mac_data+13, data, length);
-
-
-		flea_err_t err = THR_flea_mac__compute_mac(flea_hmac_sha256, client_write_mac_key, 32, mac_data, mac_data_length, mac, (flea_al_u8_t*)(&mac_length));
-
-
-		// compute IV ... TODO: xor with last plaintext block?
-		flea_rng__randomize(iv, iv_length);
-
-		// compute padding
-		flea_u8_t padding_length = (block_length - (length + mac_length + 1) % block_length) % block_length + 1;	// +1 for padding_length entry
-		flea_u8_t padding[padding_length];
-		flea_dtl_t input_output_len = length + padding_length + mac_length;
-		flea_u8_t padded_data[input_output_len];
-		for (flea_u8_t k=0; k<padding_length; k++)
-		{
-			padding[k] = padding_length - 1;	// account for padding_length entry again
-		}
-		memcpy(padded_data, data, length);
-		memcpy(padded_data+length, mac, mac_length);
-		memcpy(padded_data+length+mac_length, padding, padding_length);
-
-		// compute encryption
-		flea_u8_t encrypted[input_output_len];
-		err = THR_flea_cbc_mode__encrypt_data(flea_aes256, client_write_key, 32, iv, iv_length, encrypted, padded_data, input_output_len);
-
-		record->length = input_output_len+iv_length;
-		record->data = calloc(input_output_len+iv_length, sizeof(flea_u8_t));
-		memcpy(record->data, iv, iv_length);
-		memcpy(record->data+iv_length, encrypted, input_output_len);
+		FLEA_CCALL(THR_flea_tls__encrypt_record(tls_ctx, record, data, length));
 	}
+
+	FLEA_THR_FIN_SEC_empty();
 }
 
 
@@ -1250,18 +1334,24 @@ flea_err_t THR_flea_tls__create_connection_params(flea_tls_ctx_t* tls_ctx, flea_
 	connection_state->cipher_suite = cipher_suite;
 	connection_state->compression_method = NO_COMPRESSION;
 	connection_state->sequence_number = 0;
-	flea_u8_t key_block2[128];	// max size for key_block in TLS 1.2
+
 	connection_state->mac_key = calloc(connection_state->cipher_suite->mac_key_size, sizeof(flea_u8_t));
 	connection_state->enc_key = calloc(connection_state->cipher_suite->enc_key_size, sizeof(flea_u8_t));
-	generate_key_block_2(tls_ctx, key_block2);
 
 
 	if (writing_state == FLEA_TRUE)
 	{
 	 	if (tls_ctx->security_parameters->connection_end == FLEA_TLS_CLIENT)
 		{
-			memcpy(connection_state->mac_key, key_block2, connection_state->cipher_suite->mac_key_size);
-			memcpy(connection_state->enc_key, key_block2+2*connection_state->cipher_suite->mac_key_size, connection_state->cipher_suite->enc_key_size);
+			memcpy(connection_state->mac_key, tls_ctx->key_block, connection_state->cipher_suite->mac_key_size);
+			memcpy(connection_state->enc_key, tls_ctx->key_block+2*connection_state->cipher_suite->mac_key_size, connection_state->cipher_suite->enc_key_size);
+		}
+	}
+	else if (writing_state == FLEA_FALSE) {
+		if (tls_ctx->security_parameters->connection_end == FLEA_TLS_CLIENT)
+		{
+			memcpy(connection_state->mac_key, tls_ctx->key_block+connection_state->cipher_suite->mac_key_size, connection_state->cipher_suite->mac_key_size);
+			memcpy(connection_state->enc_key, tls_ctx->key_block+2*connection_state->cipher_suite->mac_key_size+connection_state->cipher_suite->enc_key_size, connection_state->cipher_suite->enc_key_size);
 		}
 	}
 	// TODO: !! implement other cases !!
@@ -1280,14 +1370,10 @@ flea_err_t create_master_secret(Random client_hello_random, Random server_hello_
 {
 	FLEA_THR_BEG_FUNC();
 	flea_u8_t random_seed[64];
-	memcpy(random_seed, &client_hello_random.gmt_unix_time, 4);
-	memcpy(random_seed+4, &client_hello_random.random_bytes, 28);	// TODO: this works?!?!?!?! pointer on pointer?
-	memcpy(random_seed+32, &server_hello_random.gmt_unix_time, 4);
-	memcpy(random_seed+36, &server_hello_random.random_bytes, 28);
-	/*memcpy(random_seed, &server_hello_random.gmt_unix_time, 4);
-	memcpy(random_seed+4, &server_hello_random.random_bytes, 28);
-	memcpy(random_seed+32, &client_hello_random.gmt_unix_time, 4);
-	memcpy(random_seed+36, &client_hello_random.random_bytes, 28);*/
+	memcpy(random_seed, client_hello_random.gmt_unix_time, 4);
+	memcpy(random_seed+4, client_hello_random.random_bytes, 28);
+	memcpy(random_seed+32, server_hello_random.gmt_unix_time, 4);
+	memcpy(random_seed+36, server_hello_random.random_bytes, 28);
 
 	// pre_master_secret is 48 bytes, master_secret is desired to be 48 bytes
 	FLEA_CCALL(PRF(pre_master_secret, 48, PRF_LABEL_MASTER_SECRET, random_seed, 64, 48, master_secret_res));
@@ -1390,19 +1476,14 @@ flea_err_t THR_flea_tls__send(int socket_fd, flea_u8_t* buff, flea_u32_t buff_si
 	FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls__send_handshake_message(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t* hash_ctx, HandshakeType type, flea_u8_t* msg_bytes, flea_u32_t msg_bytes_len, int socket_fd) {
+flea_err_t THR_flea_tls__send_record(flea_tls_ctx_t* tls_ctx, flea_u8_t* bytes, flea_u16_t bytes_len, ContentType content_type, int socket_fd) {
 	FLEA_THR_BEG_FUNC();
-
-	// create handshake message
-	flea_u8_t handshake_bytes[16384]; // TODO: max length for handshake is 2^24 = 16777216
-	flea_u32_t handshake_bytes_len;
-	create_handshake_message(type, msg_bytes, msg_bytes_len, handshake_bytes, &handshake_bytes_len);
 
 	// create record
 	Record record;
 	flea_u8_t record_bytes[16384];
-	flea_u32_t record_bytes_len;
-	create_record(tls_ctx, &record, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_PLAINTEXT);	// TODO: can be something else than PLAINTEXT
+	flea_u16_t record_bytes_len;
+	FLEA_CCALL(THR_flea_tls__create_record(tls_ctx, &record, bytes, bytes_len, content_type));
 	record_to_bytes(&record, record_bytes, &record_bytes_len);
 
 	// send record
@@ -1412,6 +1493,37 @@ flea_err_t THR_flea_tls__send_handshake_message(flea_tls_ctx_t* tls_ctx, flea_ha
 		FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
 	}
 
+	FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_tls__send_alert(flea_tls_ctx_t* tls_ctx, flea_tls__alert_description_t description, flea_tls__alert_level_t level, int socket_fd) {
+	FLEA_THR_BEG_FUNC();
+
+	flea_u8_t alert_bytes[2];
+	alert_bytes[0] = level;
+	alert_bytes[1] = description;
+
+	FLEA_CCALL(THR_flea_tls__send_record(tls_ctx, alert_bytes, sizeof(alert_bytes), CONTENT_TYPE_ALERT, socket_fd));
+
+
+	FLEA_THR_FIN_SEC_empty();
+}
+
+
+
+// TODO: when sending finished, need to init hash_ctx again ? finished calls finalize
+flea_err_t THR_flea_tls__send_handshake_message(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t* hash_ctx, HandshakeType type, flea_u8_t* msg_bytes, flea_u32_t msg_bytes_len, int socket_fd) {
+	FLEA_THR_BEG_FUNC();
+
+	// create handshake message
+	flea_u8_t handshake_bytes[16384]; // TODO: max length for handshake is 2^24 = 16777216
+	flea_u32_t handshake_bytes_len;
+	create_handshake_message(type, msg_bytes, msg_bytes_len, handshake_bytes, &handshake_bytes_len);
+
+	// send record
+	FLEA_CCALL(THR_flea_tls__send_record(tls_ctx, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, socket_fd));
+
+
 	// add handshake message to Hash
 	FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
 
@@ -1419,13 +1531,13 @@ flea_err_t THR_flea_tls__send_handshake_message(flea_tls_ctx_t* tls_ctx, flea_ha
 }
 
 
-THR_flea_tls__send_change_cipher_spec(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t* hash_ctx, int socket_fd)
+flea_err_t THR_flea_tls__send_change_cipher_spec(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t* hash_ctx, int socket_fd)
 {
 	FLEA_THR_BEG_FUNC();
 
 	Record change_cipher_spec_record;
 	flea_u8_t change_cipher_spec_bytes[1] = {1};
-	create_record(tls_ctx, &change_cipher_spec_record, change_cipher_spec_bytes, 1, CONTENT_TYPE_CHANGE_CIPHER_SPEC, RECORD_TYPE_PLAINTEXT);
+	THR_flea_tls__create_record(tls_ctx, &change_cipher_spec_record, change_cipher_spec_bytes, 1, CONTENT_TYPE_CHANGE_CIPHER_SPEC);
 
 	flea_u8_t change_cipher_spec_record_bytes[16384];
 	flea_u16_t change_cipher_spec_record_length=0;
@@ -1455,24 +1567,8 @@ flea_err_t THR_flea_tls__send_finished(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t*
 	flea_u32_t finished_bytes_len;
 	finished_to_bytes(&finished, finished_bytes, &finished_bytes_len);
 
-	// create handshake message
-	flea_u8_t handshake_bytes[16384]; // TODO: max length for handshake is 2^24 = 16777216
-	flea_u32_t handshake_bytes_len;
-	create_handshake_message(HANDSHAKE_TYPE_FINISHED, finished_bytes, finished_bytes_len, handshake_bytes, &handshake_bytes_len);
+	FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_FINISHED, finished_bytes, finished_bytes_len, socket_fd));
 
-	// create record
-	Record record;
-	flea_u8_t record_bytes[16384];
-	flea_u32_t record_bytes_len;
-	create_record(tls_ctx, &record, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_CIPHERTEXT);	// TODO: can be something else than PLAINTEXT
-	record_to_bytes(&record, record_bytes, &record_bytes_len);
-
-	// send record
-	if (send(socket_fd, record_bytes, record_bytes_len, 0) < 0)
-	{
-		printf("send failed\n");
-		FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
-	}
 
 	// add handshake message to Hash
 	//FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
@@ -1492,33 +1588,14 @@ flea_err_t THR_flea_tls__send_client_hello(flea_tls_ctx_t* tls_ctx, flea_hash_ct
 	flea_u32_t client_hello_bytes_len;	// 24 bit
 	client_hello_to_bytes(&client_hello, client_hello_bytes, &client_hello_bytes_len);
 
-	//FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO, client_hello_bytes, client_hello_bytes_len, socket_fd));
-
-	// create handshake message
-	flea_u8_t handshake_bytes[16384]; // TODO: max length for handshake is 2^24 = 16777216
-	flea_u32_t handshake_bytes_len;
-	create_handshake_message(HANDSHAKE_TYPE_CLIENT_HELLO, client_hello_bytes, client_hello_bytes_len, handshake_bytes, &handshake_bytes_len);
-
-	// create record
-	Record record;
-	flea_u8_t record_bytes[16384];
-	flea_u32_t record_bytes_len;
-	create_record(tls_ctx, &record, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_PLAINTEXT);	// TODO: can be something else than PLAINTEXT
-	record_to_bytes(&record, record_bytes, &record_bytes_len);
-
-	// send record
-	if (send(socket_fd, record_bytes, record_bytes_len, 0) < 0)
-	{
-		printf("send failed\n");
-		FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
-	}
+	FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO, client_hello_bytes, client_hello_bytes_len, socket_fd));
 
 	// add random to tls_ctx
 	memcpy(tls_ctx->security_parameters->client_random.gmt_unix_time, client_hello.random.gmt_unix_time, sizeof(tls_ctx->security_parameters->client_random.gmt_unix_time));
 	memcpy(tls_ctx->security_parameters->client_random.random_bytes, client_hello.random.random_bytes, sizeof(tls_ctx->security_parameters->client_random.random_bytes));
 
 	// add handshake message to Hash
-	FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
+	//FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
 
 	FLEA_THR_FIN_SEC_empty();
 }
@@ -1528,37 +1605,22 @@ flea_err_t THR_flea_tls__send_client_key_exchange(flea_tls_ctx_t* tls_ctx, flea_
 {
 	FLEA_THR_BEG_FUNC();
 
-	flea_tls__client_key_ex_t client_key_ex = create_client_key_exchange(tls_ctx, pubkey);
+	flea_tls__client_key_ex_t client_key_ex;
+	FLEA_CCALL(THR_flea_tls__create_client_key_exchange(tls_ctx, pubkey, &client_key_ex));
+
 
 	// transform struct to bytes
 	flea_u8_t client_key_ex_bytes[16384];
 	flea_u32_t client_key_ex_bytes_len;
 	client_key_exchange_to_bytes(&client_key_ex, client_key_ex_bytes, &client_key_ex_bytes_len);
 
-	// create handshake message
-	flea_u8_t handshake_bytes[16384]; // TODO: max length for handshake is 2^24 = 16777216
-	flea_u32_t handshake_bytes_len;
-	create_handshake_message(HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE, client_key_ex_bytes, client_key_ex_bytes_len, handshake_bytes, &handshake_bytes_len);
-
-	// create record
-	Record record;
-	flea_u8_t record_bytes[16384];
-	flea_u32_t record_bytes_len;
-	create_record(tls_ctx, &record, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, RECORD_TYPE_PLAINTEXT);	// TODO: can be something else than PLAINTEXT
-	record_to_bytes(&record, record_bytes, &record_bytes_len);
-
-	// send record
-	if (send(socket_fd, record_bytes, record_bytes_len, 0) < 0)
-	{
-		printf("send failed\n");
-		FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
-	}
+	FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE, client_key_ex_bytes, client_key_ex_bytes_len, socket_fd));
 
 	// add secrets to tls_ctx
 	memcpy(tls_ctx->premaster_secret, client_key_ex.premaster_secret, 256); // TODO: variable size depending on key ex method
 
 	// add handshake message to Hash
-	FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
+	//FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
 
 	FLEA_THR_FIN_SEC_empty();
 }
@@ -1596,7 +1658,7 @@ flea_err_t THR_flea_tls__read_next_record(flea_tls_ctx_t* tls_ctx, Record* recor
 	}
 
 	// else we read the next record
-	FLEA_CCALL(THR_flea_tls__read_record(tls_ctx, state->read_buff+state->bytes_read, state->read_buff_len, record, record_type, &state->bytes_left));
+	FLEA_CCALL(THR_flea_tls__read_record(tls_ctx, state->read_buff+state->bytes_read, state->read_buff_len, record, &state->bytes_left));
 	state->bytes_read = state->read_buff_len - state->bytes_left;
 
 	FLEA_THR_FIN_SEC_empty();
@@ -1703,14 +1765,20 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx
 				}
 				else
 				{
-					handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
-					// TODO: verify that change cipher spec message is valid (?)
 
+					// TODO: verify that message is correct?
 					/*
-					 	Enable encryption parameters for server messages
+						Enable encryption for incoming messages
 					*/
 
+					THR_flea_tls__create_connection_params(tls_ctx, tls_ctx->pending_read_connection_state, &cipher_suites[1], FLEA_FALSE);
 
+					// make pending state active
+					// TODO: call destructor on active read state
+					tls_ctx->active_read_connection_state = tls_ctx->pending_read_connection_state;
+					// TODO: call constructor on pending read state
+
+					handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
 
 					continue;
 				}
@@ -1741,16 +1809,15 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx
 				Enable encryption for outgoing messages
 			*/
 
-			// TODO: key_block_2 != key_block zu diesem zeitpunkt. Später in read_record gibt key_block2 das gleiche Ergebnis
+			FLEA_CCALL(create_master_secret(tls_ctx->security_parameters->client_random, tls_ctx->security_parameters->server_random, tls_ctx->premaster_secret, tls_ctx->security_parameters->master_secret));
+			generate_key_block(tls_ctx, tls_ctx->key_block);
+
 			THR_flea_tls__create_connection_params(tls_ctx, tls_ctx->pending_write_connection_state, &cipher_suites[1], FLEA_TRUE);
 
-			// swap active and pending write state
-			flea_tls__connection_state_t* tmp_write = tls_ctx->active_write_connection_state;
+			// make pending state active
+			// TODO: call destructor active write state
 			tls_ctx->active_write_connection_state = tls_ctx->pending_write_connection_state;
-			// TODO: call destructor on tmp_read and write + make new connection states for pending
-
-			FLEA_CCALL(create_master_secret(tls_ctx->security_parameters->client_random, tls_ctx->security_parameters->server_random, tls_ctx->premaster_secret, tls_ctx->security_parameters->master_secret));
-			FLEA_CCALL(generate_key_block(tls_ctx->security_parameters->master_secret, tls_ctx->security_parameters->client_random, tls_ctx->security_parameters->server_random));
+			// TODO: call constructor on pending write state
 
 			FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &hash_ctx, socket_fd));
 
@@ -1808,25 +1875,14 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx
 			}
 		}
 
-		if (handshake_state.expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC)
-		{
-			if (recv_record.content_type == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
-			{
-				// TODO: process
-				handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
-			}
-			else
-			{
-				FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
-			}
-		}
-
 		if (handshake_state.expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED)
 		{
 			if (recv_handshake.type == HANDSHAKE_TYPE_FINISHED)
 			{
 				// TODO: process
 				printf("Handshake completed!\n");
+				//FLEA_CCALL(THR_flea_tls__send_alert(tls_ctx, FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY, FLEA_TLS_ALERT_LEVEL_WARNING, socket_fd));
+
 				break;
 			}
 			else
