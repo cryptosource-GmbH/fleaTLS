@@ -3,7 +3,7 @@
 
 /*
 	TODO: read_next_handshake_message !
-
+	TODO: const for input values
 	TODO:
 		- QUESTION: do we need the structs at all? Simply save the important parts in the tls_ctx (e.g. security_parameters)
 		- Cipher Suites: use new struct and array of supported ciphersuites.
@@ -212,8 +212,9 @@ flea_err_t THR_flea_tls__compute_mac(flea_u8_t* data, flea_u32_t data_len, flea_
 	mac_data[11] = ((flea_u8_t*)&data_len)[1];	// TODO: do properly
 	mac_data[12] = ((flea_u8_t*)&data_len)[0];
 	memcpy(mac_data+13, data, data_len);
+	flea_al_u8_t mac_len_out_al = *mac_len_out;
 
-	FLEA_CCALL(THR_flea_mac__compute_mac(mac_algorithm, mac_key, mac_key_len, mac_data, mac_data_len, mac_out, (flea_al_u8_t*)(mac_len_out)));
+	FLEA_CCALL(THR_flea_mac__compute_mac(mac_algorithm, mac_key, mac_key_len, mac_data, mac_data_len, mac_out, &mac_len_out_al));
 
 	FLEA_THR_FIN_SEC_empty();
 }
@@ -253,9 +254,10 @@ flea_err_t THR_flea_tls__decrypt_record(flea_tls_ctx_t* tls_ctx, Record* record)
 	/*
 		Check MAC
 	*/
+	flea_u8_t in_out_mac_len = mac_len;
 	flea_u16_t data_len = record->length - (padding_len + 1) - iv_len - mac_len;
 	FLEA_CCALL(THR_flea_tls__compute_mac(record->data+iv_len, data_len, &tls_ctx->version, tls_ctx->active_read_connection_state->cipher_suite->mac_algorithm,
-																	mac_key, mac_key_len, sequence_number, record->content_type, mac, &mac_len));
+																	mac_key, mac_key_len, sequence_number, record->content_type, mac, &in_out_mac_len));
 
   if (memcmp(mac, record->data+iv_len+data_len, mac_len) != 0)
 	{
@@ -349,8 +351,23 @@ flea_err_t THR_flea_tls__read_record(flea_tls_ctx_t* tls_ctx, flea_u8_t* buff, f
 	FLEA_THR_FIN_SEC_empty();
 }
 
+/*
+typedef struct {
+  flea_u8_t* verify_data;
+  flea_u16_t verify_data_length;	// 12 for all cipher suites defined in TLS 1.2 - RFC 5246
+} Finished;
 
+PRF(master_secret, finished_label, Hash(handshake_messages))
+		[0..verify_data_length-1];
+*/
+flea_err_t create_finished(flea_u8_t* messages_hash , flea_u8_t master_secret[48], PRFLabel label, flea_tls__finished_t *finished_message) {
+	FLEA_THR_BEG_FUNC();
+	finished_message->verify_data_length = 12;	// 12 octets for all cipher suites defined in RFC 5246
+	finished_message->verify_data = calloc(finished_message->verify_data_length, sizeof(flea_u8_t));
 
+	FLEA_CCALL(PRF(master_secret, 48, PRF_LABEL_CLIENT_FINISHED, messages_hash, 32, finished_message->verify_data_length, finished_message->verify_data));
+	FLEA_THR_FIN_SEC_empty();
+}
 
 flea_err_t read_handshake_message(Record* record, HandshakeMessage* handshake_msg) {
 	FLEA_THR_BEG_FUNC();
@@ -362,6 +379,7 @@ flea_err_t read_handshake_message(Record* record, HandshakeMessage* handshake_ms
 	handshake_msg->type = record->data[0];
 
 	flea_u8_t *p = (flea_u8_t*)&handshake_msg->length;
+	p[3] = 0;
 	p[2] = record->data[1];
 	p[1] = record->data[2];
 	p[0] = record->data[3];
@@ -378,6 +396,7 @@ flea_err_t read_handshake_message(Record* record, HandshakeMessage* handshake_ms
 	memcpy(handshake_msg->data, record->data+4, sizeof(flea_u8_t)*(record->length-4));
 	FLEA_THR_FIN_SEC_empty();
 }
+
 
 /*
 typedef struct {
@@ -469,6 +488,45 @@ flea_err_t THR_flea_tls__read_server_hello(flea_tls_ctx_t* tls_ctx, HandshakeMes
 
 	}
 	memcpy(tls_ctx->session_id, server_hello->session_id, server_hello->session_id_length);
+
+	FLEA_THR_FIN_SEC_empty();
+}
+
+
+flea_err_t THR_flea_tls__read_finished(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t* hash_ctx, HandshakeMessage* handshake_msg)
+{
+	FLEA_THR_BEG_FUNC();
+
+	// compute hash over handshake messages so far and create struct
+	flea_tls__finished_t finished;
+	flea_u8_t messages_hash[32];
+
+	FLEA_CCALL(THR_flea_hash_ctx_t__final(hash_ctx, messages_hash));
+
+	PRFLabel label;
+	if (tls_ctx->security_parameters->connection_end == FLEA_TLS_CLIENT)
+	{
+		label = PRF_LABEL_SERVER_FINISHED;
+	}
+	else
+	{
+		label = PRF_LABEL_CLIENT_FINISHED;
+	}
+
+	// TODO: split create_finished functionality such that we don't have to create a finished struct for this
+	FLEA_CCALL(create_finished(messages_hash, tls_ctx->security_parameters->master_secret, label, &finished));
+
+	if (finished.verify_data_length == handshake_msg->length)
+	{
+		if (memcmp(handshake_msg->data, finished.verify_data, finished.verify_data_length) != 0) {
+			FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_GENERIC);
+		}
+	}
+	else
+	{
+		FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_GENERIC);
+	}
+
 
 	FLEA_THR_FIN_SEC_empty();
 }
@@ -600,9 +658,10 @@ void client_hello_to_bytes(flea_tls__client_hello_t* hello, flea_u8_t* bytes, fl
 		bytes[i++] = hello->cipher_suites[2*j+1];
 	}
 
-	bytes[i++] = hello->compression_methods_length;
-	for (flea_u8_t j=0; j<hello->compression_methods_length;j++) {
-		bytes[i++] = hello->compression_methods[j];
+	flea_u8_t len = hello->compression_methods_length/sizeof(hello->compression_methods[0]);
+	bytes[i++] = len;
+	for (flea_u8_t j=0; j<len;j++) {
+		bytes[i++] = (flea_u8_t)hello->compression_methods[j];	// convert enum (usually 4byte int but only holding values <=255) to byte
 	}
 
 	*length = i;
@@ -841,10 +900,10 @@ void create_hello_message(flea_tls_ctx_t* tls_ctx, flea_tls__client_hello_t* hel
 	hello->cipher_suites = tls_ctx->allowed_cipher_suites;
 	hello->cipher_suites_length = tls_ctx->allowed_cipher_suites_len;
 
-  // TODO: Falko: Übernahme des Pointers UND Kopieren. Was ist denn beabsichtigt? 
+  	// TODO: Falko: Übernahme des Pointers UND Kopieren. Was ist denn beabsichtigt?
 	hello->compression_methods = tls_ctx->security_parameters->compression_methods;
 	hello->compression_methods_length = tls_ctx->security_parameters->compression_methods_len;
-	memcpy(hello->compression_methods, tls_ctx->security_parameters->compression_methods, tls_ctx->security_parameters->compression_methods_len);
+	//memcpy(hello->compression_methods, tls_ctx->security_parameters->compression_methods, tls_ctx->security_parameters->compression_methods_len);
 }
 
 
@@ -1024,24 +1083,6 @@ flea_err_t create_master_secret(Random client_hello_random, Random server_hello_
 	FLEA_THR_FIN_SEC_empty();
 }
 
-/*
-typedef struct {
-  flea_u8_t* verify_data;
-  flea_u16_t verify_data_length;	// 12 for all cipher suites defined in TLS 1.2 - RFC 5246
-} Finished;
-
-PRF(master_secret, finished_label, Hash(handshake_messages))
-		[0..verify_data_length-1];
-*/
-flea_err_t create_finished(flea_u8_t* messages_hash , flea_u8_t master_secret[48], flea_tls__finished_t *finished_message) {
-	FLEA_THR_BEG_FUNC();
-	finished_message->verify_data_length = 12;	// 12 octets for all cipher suites defined in RFC 5246
-	finished_message->verify_data = calloc(finished_message->verify_data_length, sizeof(flea_u8_t));
-
-	FLEA_CCALL(PRF(master_secret, 48, PRF_LABEL_CLIENT_FINISHED, messages_hash, 32, finished_message->verify_data_length, finished_message->verify_data));
-	FLEA_THR_FIN_SEC_empty();
-}
-
 // TODO: configurable parameters
 flea_err_t flea_tls_ctx_t__ctor(flea_tls_ctx_t* ctx, flea_u8_t* session_id, flea_u8_t session_id_len) {
 	FLEA_THR_BEG_FUNC();
@@ -1079,15 +1120,13 @@ flea_err_t flea_tls_ctx_t__ctor(flea_tls_ctx_t* ctx, flea_u8_t* session_id, flea
 	flea_rng__randomize(ctx->security_parameters->client_random.random_bytes, 28);
 
 	/* set compression methods  */
-	ctx->security_parameters->compression_methods = calloc(1, sizeof(ctx->security_parameters->compression_methods));
+	ctx->security_parameters->compression_methods = calloc(1, sizeof(ctx->security_parameters->compression_methods[0]));
 	ctx->security_parameters->compression_methods[0] = NO_COMPRESSION;
-	ctx->security_parameters->compression_methods_len = sizeof(ctx->security_parameters->compression_methods);
+	ctx->security_parameters->compression_methods_len = sizeof(ctx->security_parameters->compression_methods[0]);
 
 	ctx->resumption = FLEA_FALSE;
 
 	ctx->premaster_secret = calloc(256, sizeof(flea_u8_t));
-
-
 
 	ctx->pending_read_connection_state = calloc(1, sizeof(flea_tls__connection_state_t));
 	ctx->pending_write_connection_state = calloc(1, sizeof(flea_tls__connection_state_t));
@@ -1203,8 +1242,24 @@ flea_err_t THR_flea_tls__send_finished(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t*
 	// compute hash over handshake messages so far and create struct
 	flea_tls__finished_t finished;
 	flea_u8_t messages_hash[32];
-	FLEA_CCALL(THR_flea_hash_ctx_t__final(hash_ctx, messages_hash));
-	FLEA_CCALL(create_finished(messages_hash, tls_ctx->security_parameters->master_secret, &finished));
+
+	/*
+		use a copy of hash_ctx for send_finished instead of finalizing the original
+	*/
+	flea_hash_ctx_t hash_ctx_copy;
+	THR_flea_hash_ctx_t__ctor_copy(&hash_ctx_copy, hash_ctx);
+	FLEA_CCALL(THR_flea_hash_ctx_t__final(&hash_ctx_copy, messages_hash));
+
+	PRFLabel label;
+	if (tls_ctx->security_parameters->connection_end == FLEA_TLS_CLIENT)
+	{
+		label = PRF_LABEL_SERVER_FINISHED;
+	}
+	else
+	{
+		label = PRF_LABEL_CLIENT_FINISHED;
+	}
+	FLEA_CCALL(create_finished(messages_hash, tls_ctx->security_parameters->master_secret, label, &finished));
 
 	// transform struct to bytes
 	flea_u8_t finished_bytes[16384];
@@ -1523,7 +1578,7 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx
 		{
 			if (recv_handshake.type == HANDSHAKE_TYPE_FINISHED)
 			{
-				// TODO: process
+				FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &hash_ctx, &recv_handshake));
 				printf("Handshake completed!\n");
 				//FLEA_CCALL(THR_flea_tls__send_alert(tls_ctx, FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY, FLEA_TLS_ALERT_LEVEL_WARNING, socket_fd));
 
@@ -1537,5 +1592,3 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx
 	}
 	FLEA_THR_FIN_SEC_empty();
 }
-
-

@@ -65,6 +65,16 @@ struct struct_flea_hash_ctx_t
  */
 flea_err_t THR_flea_hash_ctx_t__ctor(flea_hash_ctx_t* ctx, flea_hash_id_t id);
 
+
+/**
+ * Copy a hash context object
+ *
+ * @param p_ctx_new pointer to newly created context
+ * @param p_ctx pointer to context where data is copied from
+ *
+*/
+flea_err_t THR_flea_hash_ctx_t__ctor_copy(flea_hash_ctx_t* p_ctx_new, const flea_hash_ctx_t* p_ctx);
+
 /**
  * Destroy a hash context object.
  *
