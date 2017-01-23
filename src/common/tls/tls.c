@@ -841,6 +841,7 @@ void create_hello_message(flea_tls_ctx_t* tls_ctx, flea_tls__client_hello_t* hel
 	hello->cipher_suites = tls_ctx->allowed_cipher_suites;
 	hello->cipher_suites_length = tls_ctx->allowed_cipher_suites_len;
 
+  // TODO: Falko: Übernahme des Pointers UND Kopieren. Was ist denn beabsichtigt? 
 	hello->compression_methods = tls_ctx->security_parameters->compression_methods;
 	hello->compression_methods_length = tls_ctx->security_parameters->compression_methods_len;
 	memcpy(hello->compression_methods, tls_ctx->security_parameters->compression_methods, tls_ctx->security_parameters->compression_methods_len);
@@ -1080,7 +1081,7 @@ flea_err_t flea_tls_ctx_t__ctor(flea_tls_ctx_t* ctx, flea_u8_t* session_id, flea
 	/* set compression methods  */
 	ctx->security_parameters->compression_methods = calloc(1, sizeof(ctx->security_parameters->compression_methods));
 	ctx->security_parameters->compression_methods[0] = NO_COMPRESSION;
-	ctx->security_parameters->compression_methods_len = 1;
+	ctx->security_parameters->compression_methods_len = sizeof(ctx->security_parameters->compression_methods);
 
 	ctx->resumption = FLEA_FALSE;
 
