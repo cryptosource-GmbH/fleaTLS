@@ -4,6 +4,27 @@
 #include "flea/util.h"
 #include <string.h>
 
+flea_bool_t flea_sec_mem_equal (const flea_u8_t* mem1__pcu8, const flea_u8_t* mem2__pcu8, flea_al_u16_t mem_len__alu16)
+{
+  flea_al_u16_t i;
+  flea_u8_t diff__u8 = 0;
+  flea_u8_t tmp__u8 = 0;
+  volatile flea_u8_t* sink__pvu8 = (volatile flea_u8_t*)&tmp__u8;
+
+  for(i = 0; i < mem_len__alu16; i++)
+  {
+    diff__u8 |= mem1__pcu8[i] - mem2__pcu8[i];
+  }
+  *sink__pvu8 = diff__u8;
+  if(*sink__pvu8)
+  {
+    return FLEA_FALSE;
+  }
+  else
+  {
+    return FLEA_TRUE;
+  }
+}
 void flea_memzero_secure (flea_u8_t* memory__pu8, flea_dtl_t mem_len__dtl)
 {
   volatile flea_u8_t* vm__pu8 = (volatile flea_u8_t*)memory__pu8;
