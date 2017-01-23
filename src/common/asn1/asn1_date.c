@@ -8,14 +8,12 @@
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
 #include "flea/asn1_date.h"
-
+#include "flea/x509.h"
 
 const int ASN1_TYPE_utc_time = 23;
 const int ASN1_TYPE_GeneralizedTime = 24;
 
 #define ASCII_NUM_OFFSET 	48
-
-
 
 
 flea_err_t THR_flea_asn1_parse_gmt_time_optional(flea_ber_dec_t *dec__t, flea_gmt_time_t *utctime__pt, flea_bool_t *found__pb)

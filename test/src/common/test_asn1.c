@@ -6,7 +6,7 @@
 #include "flea/error.h"
 #include "flea/alloc.h"
 #include "flea/data_source.h"
-#include "flea/ber_dec.h"
+#include "internal/common/ber_dec.h"
 #include "test_data_x509_certs.h"
 
 #include <string.h>
@@ -18,7 +18,7 @@ flea_err_t THR_flea_test_ber_dec_basic()
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   FLEA_DECL_BUF(version_buf__bu8, flea_u8_t, 10);
   flea_dtl_t version_len__dtl = 10;
-  flea_der_ref_t oid_ref__t;
+  flea_ref_cu8_t oid_ref__t;
   flea_data_source_mem_help_t hlp__t;
   const flea_u8_t *oid__pu8;
   flea_bool_t found_tag__b;

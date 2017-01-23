@@ -9,7 +9,7 @@
 /**
  * Maximal size of the
  */
-#define FLEA_RSA_CRT_KEY_INTERNAL_FORMAT_MAX_BYTE_SIZE (((((FLEA_RSA_MAX_KEY_BIT_SIZE)+7) / 8)+ FLEA_RSA_CRT_PQ_BIT_DIFF) * 5)
+#define FLEA_RSA_CRT_KEY_INTERNAL_FORMAT_MAX_BYTE_SIZE (FLEA_RSA_CRT_KEY_COMPONENT_MAX_BYTE_SIZE * 5)
 
 /**
  * Maximal length of the ECDSA signature in simple concatenation format

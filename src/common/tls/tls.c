@@ -26,7 +26,7 @@
 #include "flea/pubkey.h"
 #include "flea/asn1_date.h"
 #include "api/flea/cert_path.h"
-#include "flea/ber_dec.h"
+#include "internal/common/ber_dec.h"
 #include "flea/rng.h"
 #include "flea/block_cipher.h"
 #include "flea/bin_utils.h"

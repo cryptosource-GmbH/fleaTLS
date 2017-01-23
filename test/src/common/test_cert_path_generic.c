@@ -6,7 +6,7 @@
 #include "flea/alloc.h"
 #include "flea/cert_path.h"
 #include "flea/asn1_date.h"
-#include "flea/ber_dec.h"
+#include "internal/common/ber_dec.h"
 #include "flea/pubkey.h"
 #include "test_data_x509_certs.h"
 #include "flea/rng.h"

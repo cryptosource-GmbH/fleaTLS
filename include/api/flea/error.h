@@ -22,7 +22,9 @@ typedef enum
   FLEA_ERR_POINT_NOT_ON_CURVE                         = 0x000A,
   FLEA_ERR_INV_ECC_DP                                 = 0x000B,
   FLEA_ERR_INV_KEY_SIZE                               = 0x000C,
-  FLEA_ERR_UNSUPP_KEY_SIZE                            = 0x000D,
+  FLEA_ERR_INV_KEY_COMP_SIZE                          = 0x000D,
+  FLEA_ERR_INV_KEY_TYPE															  = 0x000E,
+  FLEA_ERR_UNSUPP_KEY_SIZE                            = 0x000F,
   FLEA_ERR_ZERO_POINT_AFF_TRF                         = 0x0020,
 
   /** 
@@ -60,6 +62,20 @@ typedef enum
    */
   FLEA_ERR_TLS_PEER_CERT_INVALID_KEY_USAGE            = 0x0043,
 
+
+  /**
+   * The PKCS#8 key type provided in the algorithm identifier is not supported.
+   */
+  FLEA_ERR_PKCS8_INVALID_KEY_OID                      = 0x0070,
+
+	/**
+	 * An optional element in a PKCS#8 structure (optional in the ASN.1 specification) is missing which is necessary for the requested operation, e.g. for the creation of a public key.
+	 */
+  FLEA_ERR_PKCS8_MISSING_OPT_ELEMENT								  = 0x0071,
+  /**
+   * A fixed sized buffer is too small or a reallocation in heap mode failed 
+   * because the configured maximal buffer size was exhausted.
+   */
   FLEA_ERR_BUFF_TOO_SMALL                             = 0x00A0,
   FLEA_ERR_DECODING_FAILURE                           = 0x00A1,
   FLEA_ERR_ASN1_DER_DEC_ERR                           = 0x00A3,
@@ -102,7 +118,8 @@ typedef enum
   FLEA_ERR_X509_UNSUPP_ALGO_VARIANT                   = 0x00CE,
 
   /**
-   * Error with the decoded public ECC parameters.
+   * Error with the decoded public ECC parameters. Is also used to 
+	 * indicate missing parameters.
    */
   FLEA_ERR_X509_INV_ECC_KEY_PARAMS                    = 0x00CF,
   FLEA_ERR_X509_INV_ECC_FIELD_TYPE                    = 0x00D0,
@@ -175,6 +192,12 @@ typedef enum
    * TLS Errors
    */ 
   FLEA_ERR_TLS_GENERIC                                = 0x0100,
+   
+  /** The routine for the construction of a valid certification path
+   * was cancelled from another thread.
+   */
+  FLEA_ERR_X509_USER_CANCELLED                        = 0X00E6,
+
 
   FLEA_ERR_OUT_OF_MEM                                 = 0x00FF,
 

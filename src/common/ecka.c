@@ -22,7 +22,7 @@
 
 #ifdef FLEA_HAVE_ECKA
 
-flea_err_t THR_flea_ecka__compute_kdf_ansi_x9_63 (flea_hash_id_t hash_id__t, const flea_u8_t* public_point_enc__pcu8, flea_al_u8_t public_point_enc_len__alu8, const flea_u8_t* secret_key__pcu8, flea_al_u8_t secret_key_len__alu8, const flea_u8_t* shared_info__pcu8, flea_al_u16_t shared_info_len__alu16, flea_u8_t* result__pu8, flea_al_u16_t result_len__alu16, const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
+flea_err_t THR_flea_ecka__compute_ecka_with_kdf_ansi_x9_63 (flea_hash_id_t hash_id__t, const flea_u8_t* public_point_enc__pcu8, flea_al_u8_t public_point_enc_len__alu8, const flea_u8_t* secret_key__pcu8, flea_al_u8_t secret_key_len__alu8, const flea_u8_t* shared_info__pcu8, flea_al_u16_t shared_info_len__alu16, flea_u8_t* result__pu8, flea_al_u16_t result_len__alu16, const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
 {
   FLEA_DECL_BUF(shared_x__bu8, flea_u8_t, FLEA_ECC_MAX_MOD_BYTE_SIZE);
   flea_al_u8_t shared_x_len__alu8 = 0;
@@ -53,6 +53,11 @@ flea_err_t THR_flea_ecka__compute_raw (const flea_u8_t* public_point_enc__pcu8, 
   flea_mpi_t mpi_worksp_arr[sign_mpi_ws_count];
   flea_curve_gfp_t curve;
   flea_point_gfp_t Q;
+#ifdef FLEA_USE_ECC_ADD_ALWAYS 
+  const flea_bool_t do_use_add_always__b = FLEA_TRUE;
+#else
+  const flea_bool_t do_use_add_always__b = FLEA_FALSE;
+#endif
 
 #ifdef FLEA_USE_HEAP_BUF
   flea_al_u8_t enc_order_len;
@@ -121,7 +126,7 @@ flea_err_t THR_flea_ecka__compute_raw (const flea_u8_t* public_point_enc__pcu8, 
   FLEA_CCALL(THR_flea_point_gfp_t__validate_point(&Q, &curve, NULL, &div_ctx));
 
   FLEA_CCALL(THR_flea_mpi_t__decode(&d, dom_par__pt->h__ru8.data__pcu8, dom_par__pt->h__ru8.len__dtl));
-  FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, FLEA_FALSE));
 
   /* l_arr doesn't live in parallel to point multiplication */
   FLEA_ALLOC_BUF(l_arr, 2 * order_word_len);
@@ -156,7 +161,7 @@ flea_err_t THR_flea_ecka__compute_raw (const flea_u8_t* public_point_enc__pcu8, 
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &d, &l, &n, &div_ctx));
   FLEA_FREE_BUF_SECRET_ARR(l_arr, 2 * order_word_len);
   /* zero point conversion detected inside this function: */
-  FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, do_use_add_always__b));
 
   /* now take x-coord of d */
   *result_len__palu8 = flea_mpi_t__get_byte_size(&Q.m_x);
