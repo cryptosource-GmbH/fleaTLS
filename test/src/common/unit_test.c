@@ -49,7 +49,7 @@ do { \
   } \
 } while(0)
 
-int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_prefix, const char* func_prefix, flea_bool_t full__b)
+int flea_unit_tests (flea_u32_t nb_reps, const char* cert_path_prefix, const char* func_prefix, flea_bool_t full__b)
 {
 
   unsigned nb_exec_tests = 0;
@@ -58,12 +58,6 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
   flea_u32_t nb_cert_path_tests = 0;
   flea_err_t rv = 0;
 
-  if(THR_flea_lib__init() || THR_flea_rng__reseed_volatile((flea_u8_t*)&rnd, sizeof(rnd)))
-  {
-    FLEA_PRINTF_1_SWITCHED("error with lib init, tests aborted\n");
-    return 1;
-  }
-  CALL_TEST(test_tls());return 0; // CHANGE THIS LINE BACK
   for(i = 0; i < nb_reps; i++)
   {
     if(!cert_path_prefix)
@@ -75,12 +69,10 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
       CALL_TEST(THR_flea_test_montgm_mul_small());
       CALL_TEST(THR_flea_test_montgm_mul_small2());
       CALL_TEST(THR_flea_test_montgm_mul());
-      //CALL_TEST(THR_flea_test_mod_exp()); // out
       CALL_TEST(THR_flea_test_mpi_subtract());
       CALL_TEST(THR_flea_test_mpi_add());
       CALL_TEST(THR_flea_test_mpi_add_2());
       CALL_TEST(THR_flea_test_mpi_add_sign());
-      //CALL_TEST(THR_flea_test_rsa()); // out, only CRT-RSA active
 #ifdef FLEA_HAVE_RSA
       CALL_TEST(THR_flea_test_rsa_crt());
       CALL_TEST(THR_flea_test_rsa_crt_mass_sig(10));
@@ -166,6 +158,7 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
         CALL_TEST(THR_flea_test_sha256_file_based());
       }
 #endif /* __FLEA_HAVE_LINUX_FILESYSTEM */
+      CALL_TEST(THR_flea_tls_test_basic());
     }
 #ifdef __FLEA_HAVE_LINUX_FILESYSTEM
 #if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
@@ -182,7 +175,6 @@ int flea_unit_tests (flea_u32_t rnd, flea_u32_t nb_reps, const char* cert_path_p
       break;
     }
   }
-  flea_lib__deinit();
   if(!failed_tests
 #ifdef FLEA_USE_BUF_DBG_CANARIES
       && !canary_errors

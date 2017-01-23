@@ -6,8 +6,7 @@
 #include <string.h>
 #include "flea/tls.h"
 
-void test_tls() 
+flea_err_t THR_flea_tls_test_basic() 
 {
-	flea_tls_connection();
-	return;
+	return FLEA_ERR_FINE;
 }
