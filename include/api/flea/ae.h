@@ -6,7 +6,7 @@
 #include "flea/block_cipher.h"
 #include "flea/mac.h"
 #include "internal/common/ae_int.h"
-#include "internal/common/gcm.h"
+#include "internal/common/hash/ghash.h"
 
 #ifdef __cplusplus
 extern "C" {

@@ -4,6 +4,8 @@
 #ifndef _flea_ae_int__H_
 #define _flea_ae_int__H_
 
+#include "internal/common/hash/ghash.h"
+
 typedef struct
 {
   flea_ctr_mode_ctx_t ctr_ctx__t;
@@ -17,6 +19,12 @@ typedef struct
 #endif
 
 } flea_ae_eax_specific_t;
+
+typedef struct
+{
+  flea_ghash_ctx_t ghash_ctx__t;
+  flea_ctr_mode_ctx_t ctr_ctx__t;
+} flea_ae_gcm_specific_t;
 
 /* fwd declaration */
 struct flea_ae_config_entry_t;

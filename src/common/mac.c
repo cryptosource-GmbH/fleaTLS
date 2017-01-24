@@ -306,6 +306,7 @@ flea_err_t THR_flea_mac_ctx_t__update (flea_mac_ctx_t* ctx__pt, const flea_u8_t*
   }
   else
   {
+    // cmac.
     // fill up pending block
     flea_u8_t* block__pu8 = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.prev_ct__bu8;
     flea_al_u8_t block_length__alu8 = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_length__u8;

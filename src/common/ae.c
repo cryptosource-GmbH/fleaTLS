@@ -165,9 +165,11 @@ flea_err_t THR_flea_ae_ctx_t__ctor (flea_ae_ctx_t* ctx__pt, flea_ae_id_t id__t, 
   {
     flea_ctr_mode_ctx_t__INIT(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t);
     
-    FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t, config__pt->cipher_id__t, key__pcu8, key_len__alu16, nonce__pcu8, nonce_len__alu8, 4));
-    FLEA_CCALL(THR_flea_gcm_setkey(&ctx__pt->mode_specific__u.gcm));
-    FLEA_CCALL(THR_flea_gcm_start(&ctx__pt->mode_specific__u.gcm, nonce__pcu8, nonce_len__alu8, header__pcu8, header_len__dtl));
+    FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t, config__pt->cipher_id__t, key__pcu8, key_len__alu16, NULL, 0, 4)); 
+    FLEA_CCALL(THR_flea_gcm_setkey(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, &ctx__pt->mode_specific__u.gcm.ctr_ctx__t.cipher_ctx__t));
+    FLEA_CCALL(THR_flea_gcm_start(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, &ctx__pt->mode_specific__u.gcm.ctr_ctx__t.cipher_ctx__t, nonce__pcu8, nonce_len__alu8, header__pcu8, header_len__dtl));
+    memcpy(ctx__pt->mode_specific__u.gcm.ctr_ctx__t.ctr_block__bu8, ctx__pt->mode_specific__u.gcm.ghash_ctx__t.y, 16);
+    flea__increment_encoded_BE_int(ctx__pt->mode_specific__u.gcm.ctr_ctx__t.ctr_block__bu8 + (16-4), 4);
 
   }
   else
@@ -189,7 +191,8 @@ flea_err_t THR_flea_ae_ctx_t__update_encryption (flea_ae_ctx_t* ctx__pt, const f
   }
   else if(ctx__pt->config__pt->ae_mode__t == flea_gcm)
   {
-    FLEA_CCALL(THR_flea_gcm_update(&ctx__pt->mode_specific__u.gcm, input_output_len__dtl, input__pcu8, output__pu8, ENCRYPT));
+    flea_ctr_mode_ctx_t__crypt(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t, input__pcu8, output__pu8, input_output_len__dtl);
+    FLEA_CCALL(THR_flea_gcm_update(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, input_output_len__dtl, output__pu8));
   }
   FLEA_THR_FIN_SEC_empty();
 }
@@ -233,7 +236,9 @@ static flea_err_t THR_flea_ae_ctx_t__update_decryption_inner (flea_ae_ctx_t* ctx
   }
   else
   {
-    FLEA_CCALL(THR_flea_gcm_update(&ctx__pt->mode_specific__u.gcm, input_len__dtl, input__pcu8, output__pu8, DECRYPT));
+    // gcm 
+    FLEA_CCALL(THR_flea_gcm_update(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, input_len__dtl, input__pcu8));
+    flea_ctr_mode_ctx_t__crypt(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t, input__pcu8, output__pu8, input_len__dtl);
   }
 
     FLEA_THR_FIN_SEC_empty();
@@ -264,11 +269,14 @@ flea_err_t THR_flea_ae_ctx_t__update_decryption (flea_ae_ctx_t* ctx__pt, const f
   if(input_len__dtl >= tag_len__alu8) // implies that the pending buffer is full
   {
     flea_dtl_t process_len__dtl = input_len__dtl - tag_len__alu8;
+
     FLEA_CCALL(THR_flea_ae_ctx_t__update_decryption_inner(ctx__pt, pend_buffer__pu8, tag_len__alu8, output__pu8));
+
     *output_len__pdtl = tag_len__alu8;
     output__pu8 += tag_len__alu8;
 
     FLEA_CCALL(THR_flea_ae_ctx_t__update_decryption_inner(ctx__pt, input__pcu8, process_len__dtl, output__pu8 ));
+
     *output_len__pdtl +=  process_len__dtl;
     input_len__dtl -= process_len__dtl;
     input__pcu8 += process_len__dtl;
@@ -279,6 +287,7 @@ flea_err_t THR_flea_ae_ctx_t__update_decryption (flea_ae_ctx_t* ctx__pt, const f
     // input
     flea_al_u8_t remaining__alu8  = tag_len__alu8 - input_len__dtl;
     FLEA_CCALL(THR_flea_ae_ctx_t__update_decryption_inner(ctx__pt, pend_buffer__pu8, input_len__dtl, output__pu8 ));
+
     *output_len__pdtl = input_len__dtl;
     memmove(pend_buffer__pu8, pend_buffer__pu8 + input_len__dtl, remaining__alu8);
     memcpy(pend_buffer__pu8 + remaining__alu8, input__pcu8, input_len__dtl);
@@ -307,7 +316,7 @@ flea_err_t THR_flea_ae_ctx_t__final_encryption (flea_ae_ctx_t* ctx__pt, flea_u8_
   else
   {
       *tag_len__palu8 = ctx__pt->tag_len__u8;
-      gcm_finish(&ctx__pt->mode_specific__u.gcm, tag__pu8, *tag_len__palu8);
+      flea_ghash_ctx_t__finish(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, tag__pu8, *tag_len__palu8);
   }
 
   FLEA_THR_FIN_SEC_empty();
@@ -332,7 +341,7 @@ flea_err_t THR_flea_ae_ctx_t__final_decryption (flea_ae_ctx_t* ctx__pt)
   }
   else
   {
-    gcm_finish(&ctx__pt->mode_specific__u.gcm, tag__bu8, tag_len__alu8);
+    flea_ghash_ctx_t__finish(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, tag__bu8, tag_len__alu8);
 
     if(!flea_sec_mem_equal(tag__bu8, ctx__pt->buffer__bu8, tag_len__alu8))
     {

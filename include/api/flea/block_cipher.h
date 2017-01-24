@@ -134,7 +134,7 @@ void flea_ecb_mode_ctx_t__dtor(flea_ecb_mode_ctx_t* ctx);
  * @param output the output data, may be equal to input (in-place encryption/decryption), but partial overlapping is not allowed
  * @param input_output_len the length of input and output
  */
-flea_err_t THR_flea_ecb_mode_crypt_data(flea_ecb_mode_ctx_t* ctx, const flea_u8_t* input, flea_u8_t* output, flea_dtl_t input_output_len);
+flea_err_t THR_flea_ecb_mode_crypt_data(const flea_ecb_mode_ctx_t* ctx, const flea_u8_t* input, flea_u8_t* output, flea_dtl_t input_output_len);
 
 /**
  * Create a CTR mode context. Starts with a counter block formed by  (nonce || 0...0) in notation 
