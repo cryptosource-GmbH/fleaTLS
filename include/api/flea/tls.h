@@ -249,6 +249,8 @@ typedef struct {
 	flea_block_cipher_id_t cipher;	// flea_des_single, flea_tdes_2key, flea_tdes_3key, flea_desx, flea_aes128, flea_aes192, flea_aes256;
 
 	flea_u8_t block_size;	// RFC: 8 bits => flea_block_cipher__get_block_size
+
+	// TODO: cipher suite defines length for finished message verify_data (12 byte for all standard cipher suites)
 	flea_u8_t iv_size;		// RFC: 8 bits
 	flea_u8_t enc_key_size;	// RFC: 8 bits => flea_block_cipher__get_key_size
 	flea_u8_t mac_key_size;	// RFC: 8 bits

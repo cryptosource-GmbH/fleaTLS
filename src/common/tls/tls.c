@@ -2,6 +2,7 @@
 
 
 /*
+	TODO: Analyze why finished message does not verify (-> check with botan)
 	TODO: read_next_handshake_message !
 	TODO: const for input values
 	TODO:
@@ -45,6 +46,8 @@ flea_tls__cipher_suite_t cipher_suites[2] =
 	{TLS_RSA_WITH_AES_256_CBC_SHA256, flea_aes256, 16, 16, 32, 32, 32, flea_hmac_sha256, flea_sha256, FLEA_TLS_PRF_SHA256}
 };
 
+
+// TODO: look at botan design: lib/kdf/prf_tls.cpp
 /* Falko: use "const" for input data*/
 flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u16_t seed_length, flea_u16_t res_length, flea_u8_t* data_out)
 {
@@ -77,7 +80,6 @@ flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, 
 		// A(i) = HMAC_hash(secret, A(i-1))
 		if (first)
 		{
-      /* Falko: use CCALL */
 			FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, A, seed_length, A2, &len));
 			first = FLEA_FALSE;
 		}
