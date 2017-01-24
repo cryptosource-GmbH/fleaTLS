@@ -53,26 +53,86 @@ static const flea_u64_t last4[16] = {
  *  'x' and 'output' are seen as elements of GCM's GF(2^128) Galois field.
  *
  ******************************************************************************/
+
+/**
+ * Lshift smaller than shiftwidth 32 
+ */
+#define FLEA_LSHIFT_U64_AU32_SMALL(in, out, shift) \
+do{ \
+  out[1]= (in[1] << shift); \
+  if(shift <= 32) { out[1] |= (in[0] >> (32 - shift));} \
+  out[0] = in[0] << shift; \
+}while(0);
+
+
+#define FLEA_RSHIFT_U64_AU32_SMALL(in, out, shift) \
+do{ \
+  out[0]= (in[0] >> shift); \
+  if(shift <= 32) { out[0] |= (in[1] << (32 - shift));} \
+  out[1] = in[1] >> shift; \
+}while(0);
+
+/**
+ * Lshift greater or equal than 32
+ */
+#define FLEA_LSHIFT_U64_AU32_LARGE(in, out, shift) \
+do{ \
+  out[1]= (in[0] << (32 - ( 64 - shift))); \
+  out[0] = 0; \
+}while(0);
+
+#define FLEA_U64_TO_AU32(u64, au32) \
+do { \
+  au32[0] = u64; \
+  au32[1] = u64 >> 32; \
+}while(0)
+
+#define FLEA_AU32_TO_U64(au32, u64) \
+do { \
+  u64 = au32[0] | ((flea_u64_t) au32[1] << 32); \
+}while(0)
 static void gcm_mult( flea_ghash_ctx_t *ctx__pt,     // pointer to established context
                       const flea_u8_t x[16],    // pointer to 128-bit input vector
                       flea_u8_t output[16] )    // pointer to 128-bit output vector
 {
     int i;
     flea_u8_t lo, hi, rem;
-    flea_u64_t zh, zl;
-
+    flea_u64_t zh, zl, tmp;
+    flea_u32_t zl_a[2];
+    flea_u32_t zh_a[2];
+    flea_u32_t tmp_a[2];
     lo = (flea_u8_t)( x[15] & 0x0f );
     hi = (flea_u8_t)( x[15] >> 4 );
     zh = ctx__pt->HH[lo];
     zl = ctx__pt->HL[lo];
-
+  
+    //flea_u32_t zhl, zhh, zll, zlh;
     for( i = 15; i >= 0; i-- ) {
         lo = (flea_u8_t) ( x[i] & 0x0f );
         hi = (flea_u8_t) ( x[i] >> 4 );
 
         if( i != 15 ) {
             rem = (flea_u8_t) ( zl & 0x0f );
-            zl = ( zh << 60 ) | ( zl >> 4 );
+            //zl = ( zh << 60 ) | ( zl >> 4 );
+            //printf("zl orig = %016llx\n", zl);
+       
+            FLEA_U64_TO_AU32(zl, zl_a); 
+            FLEA_U64_TO_AU32(zh, zh_a); 
+
+            //printf("zl orig shifted = %016llx\n", zl << 60);
+            FLEA_LSHIFT_U64_AU32_LARGE(zh_a, tmp_a, 60);
+            //printf("zl mine shifted = %08lx%08lx\n", zh_a[1], zh_a[0]);
+            FLEA_RSHIFT_U64_AU32_SMALL(zl_a, zl_a, 4);
+            tmp_a[1] |= zl_a[1];
+            tmp_a[0] |= zl_a[0];
+
+            FLEA_AU32_TO_U64(tmp_a, zl);
+            //zl = tmp | ( zl >> 4 );
+            //printf("zl mine = %016llx\n", zl);
+            
+            //zl = (flea_u64_t)zlh << 32 | zll | zl >> 4;
+        
+        
             zh = ( zh >> 4 );
             zh ^= (flea_u64_t) last4[rem] << 48;
             zh ^= ctx__pt->HH[lo];
