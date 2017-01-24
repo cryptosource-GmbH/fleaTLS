@@ -100,7 +100,7 @@ static void gcm_mult( flea_ghash_ctx_t *ctx__pt,     // pointer to established c
  *  and populates the gcm context's pre-calculated HTables.
  *
  ******************************************************************************/
-flea_err_t THR_flea_gcm_setkey( flea_ghash_ctx_t *ctx__pt,   // pointer to caller-provided gcm context
+flea_err_t THR_flea_ghash_ctx_t__setkey( flea_ghash_ctx_t *ctx__pt,   // pointer to caller-provided gcm context
     const flea_ecb_mode_ctx_t *ecb_ctx__pt
                 ) // must be 128, 192 or 256
 {
@@ -176,7 +176,7 @@ flea_err_t THR_flea_gcm_setkey( flea_ghash_ctx_t *ctx__pt,   // pointer to calle
  *  mode, and preprocesses the initialization vector and additional AEAD data.
  *
  ******************************************************************************/
-flea_err_t THR_flea_gcm_start( flea_ghash_ctx_t *ctx,    // pointer to user-provided GCM context
+flea_err_t THR_flea_ghash_ctx_t__start( flea_ghash_ctx_t *ctx,    // pointer to user-provided GCM context
               const flea_ecb_mode_ctx_t * ecb_ctx__pt,
                //int mode,            // GCM_ENCRYPT or GCM_DECRYPT
                const flea_u8_t *iv,     // pointer to initialization vector
@@ -248,7 +248,7 @@ flea_err_t THR_flea_gcm_start( flea_ghash_ctx_t *ctx,    // pointer to user-prov
  *  have a partial block length of < 128 bits.)
  *
  ******************************************************************************/
-flea_err_t THR_flea_gcm_update( flea_ghash_ctx_t *ctx__pt,       // pointer to user-provided GCM context
+flea_err_t THR_flea_ghash_ctx_t__update( flea_ghash_ctx_t *ctx__pt,       // pointer to user-provided GCM context
                 flea_dtl_t input_len__dtl,          // length, in bytes, of data to process
                 const flea_u8_t *input__pcu8     // pointer to source data
                 //flea_u8_t *output,

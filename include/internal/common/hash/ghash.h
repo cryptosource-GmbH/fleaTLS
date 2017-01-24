@@ -29,10 +29,10 @@ typedef struct {
     //aes_context aes_ctx;    // cipher context used
 } flea_ghash_ctx_t;
 
-flea_err_t THR_flea_gcm_setkey( flea_ghash_ctx_t *ctx__pt,   // pointer to caller-provided gcm context
+flea_err_t THR_flea_ghash_ctx_t__setkey( flea_ghash_ctx_t *ctx__pt,   // pointer to caller-provided gcm context
     const flea_ecb_mode_ctx_t *ecb_ctx__pt);
 
-flea_err_t THR_flea_gcm_start( flea_ghash_ctx_t *ctx,    // pointer to user-provided GCM context
+flea_err_t THR_flea_ghash_ctx_t__start( flea_ghash_ctx_t *ctx,    // pointer to user-provided GCM context
               const flea_ecb_mode_ctx_t * ecb_ctx__pt,
                const flea_u8_t *iv,     // pointer to initialization vector
                size_t iv_len,       // IV length in bytes (should == 12)
@@ -40,7 +40,7 @@ flea_err_t THR_flea_gcm_start( flea_ghash_ctx_t *ctx,    // pointer to user-prov
                size_t add_len
     );
 
-flea_err_t THR_flea_gcm_update( flea_ghash_ctx_t *ctx,       // pointer to user-provided GCM context
+flea_err_t THR_flea_ghash_ctx_t__update( flea_ghash_ctx_t *ctx,       // pointer to user-provided GCM context
                 flea_dtl_t length,          // length, in bytes, of data to process
                 const flea_u8_t *input     // pointer to source data
                 //flea_u8_t *output,

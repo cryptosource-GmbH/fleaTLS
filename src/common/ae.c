@@ -166,8 +166,8 @@ flea_err_t THR_flea_ae_ctx_t__ctor (flea_ae_ctx_t* ctx__pt, flea_ae_id_t id__t, 
     flea_ctr_mode_ctx_t__INIT(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t);
     
     FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t, config__pt->cipher_id__t, key__pcu8, key_len__alu16, NULL, 0, 4)); 
-    FLEA_CCALL(THR_flea_gcm_setkey(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, &ctx__pt->mode_specific__u.gcm.ctr_ctx__t.cipher_ctx__t));
-    FLEA_CCALL(THR_flea_gcm_start(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, &ctx__pt->mode_specific__u.gcm.ctr_ctx__t.cipher_ctx__t, nonce__pcu8, nonce_len__alu8, header__pcu8, header_len__dtl));
+    FLEA_CCALL(THR_flea_ghash_ctx_t__setkey(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, &ctx__pt->mode_specific__u.gcm.ctr_ctx__t.cipher_ctx__t));
+    FLEA_CCALL(THR_flea_ghash_ctx_t__start(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, &ctx__pt->mode_specific__u.gcm.ctr_ctx__t.cipher_ctx__t, nonce__pcu8, nonce_len__alu8, header__pcu8, header_len__dtl));
     memcpy(ctx__pt->mode_specific__u.gcm.ctr_ctx__t.ctr_block__bu8, ctx__pt->mode_specific__u.gcm.ghash_ctx__t.y, 16);
     flea__increment_encoded_BE_int(ctx__pt->mode_specific__u.gcm.ctr_ctx__t.ctr_block__bu8 + (16-4), 4);
 
@@ -192,7 +192,7 @@ flea_err_t THR_flea_ae_ctx_t__update_encryption (flea_ae_ctx_t* ctx__pt, const f
   else if(ctx__pt->config__pt->ae_mode__t == flea_gcm)
   {
     flea_ctr_mode_ctx_t__crypt(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t, input__pcu8, output__pu8, input_output_len__dtl);
-    FLEA_CCALL(THR_flea_gcm_update(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, input_output_len__dtl, output__pu8));
+    FLEA_CCALL(THR_flea_ghash_ctx_t__update(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, input_output_len__dtl, output__pu8));
   }
   FLEA_THR_FIN_SEC_empty();
 }
@@ -237,7 +237,7 @@ static flea_err_t THR_flea_ae_ctx_t__update_decryption_inner (flea_ae_ctx_t* ctx
   else
   {
     // gcm 
-    FLEA_CCALL(THR_flea_gcm_update(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, input_len__dtl, input__pcu8));
+    FLEA_CCALL(THR_flea_ghash_ctx_t__update(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, input_len__dtl, input__pcu8));
     flea_ctr_mode_ctx_t__crypt(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t, input__pcu8, output__pu8, input_len__dtl);
   }
 
