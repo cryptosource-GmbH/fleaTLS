@@ -17,7 +17,7 @@
 #include "flea/tls.h"
 #include "pc/test_pc.h"
 
-static int create_socket() 
+static int create_socket()
 {
 	int socket_fd;
     socket_fd = socket(AF_INET , SOCK_STREAM , 0);
