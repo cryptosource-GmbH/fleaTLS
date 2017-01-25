@@ -18,13 +18,13 @@ extern "C" {
     flea_len_ctr_t len_ctr__t;
     flea_u16_t add_len;       
 #ifdef FLEA_USE_HEAP_BUF
-    flea_u32_t *HL;       
-    flea_u32_t *HH;      
+    flea_u32_t *hl__bu32;       
+    flea_u32_t *hh__bu32;      
     flea_u8_t *base_ectr;
     flea_u8_t *buf;    
 #else
-    flea_u32_t HL[32];       
-    flea_u32_t HH[32];      
+    flea_u32_t hl__bu32[32];       
+    flea_u32_t hh__bu32[32];      
     flea_u8_t base_ectr[16];
     flea_u8_t buf[16];    
 #endif

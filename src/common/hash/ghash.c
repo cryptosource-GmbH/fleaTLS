@@ -58,11 +58,11 @@ static void ghash_process_block( flea_ghash_ctx_t *ctx__pt, /*const flea_u8_t x[
   flea_u8_t *x = output;
   lo = (flea_u8_t)( x[15] & 0x0f );
   hi = (flea_u8_t)( x[15] >> 4 );
-  zh_a[0] = ctx__pt->HH[2*lo];
-  zh_a[1] = ctx__pt->HH[2*lo+1];
+  zh_a[0] = ctx__pt->hh__bu32[2*lo];
+  zh_a[1] = ctx__pt->hh__bu32[2*lo+1];
 
-  zl_a[0] = ctx__pt->HL[2*lo];
-  zl_a[1] = ctx__pt->HL[2*lo+1];
+  zl_a[0] = ctx__pt->hl__bu32[2*lo];
+  zl_a[1] = ctx__pt->hl__bu32[2*lo+1];
 
   for( i = 29; i >= -1; i-- ) 
   {
@@ -88,11 +88,11 @@ static void ghash_process_block( flea_ghash_ctx_t *ctx__pt, /*const flea_u8_t x[
     zh_a[1] ^= tmp_a[1];
 
 
-    zh_a[0] ^= ctx__pt->HH[2*hi];
-    zh_a[1] ^= ctx__pt->HH[2*hi+1];
+    zh_a[0] ^= ctx__pt->hh__bu32[2*hi];
+    zh_a[1] ^= ctx__pt->hh__bu32[2*hi+1];
 
-    zl_a[0] ^= ctx__pt->HL[2*hi];
-    zl_a[1] ^= ctx__pt->HL[2*hi+1];
+    zl_a[0] ^= ctx__pt->hl__bu32[2*hi];
+    zl_a[1] ^= ctx__pt->hl__bu32[2*hi+1];
   }
 
 #ifdef FLEA_HAVE_BE_ARCH_OPT
@@ -122,9 +122,9 @@ flea_err_t THR_flea_ghash_ctx_t__ctor( flea_ghash_ctx_t *ctx__pt, const flea_ecb
 
   FLEA_THR_BEG_FUNC();
 #ifdef FLEA_USE_HEAP_BUF
-FLEA_ALLOC_MEM_ARR(ctx__pt->HL, __FLEA_GHASH_STATE_U32_ARR_LEN);
-ctx__pt->HH = ctx__pt->HL + 32;
-ctx__pt->base_ectr = (flea_u8_t *) (ctx__pt->HH + 32);
+FLEA_ALLOC_MEM_ARR(ctx__pt->hl__bu32, __FLEA_GHASH_STATE_U32_ARR_LEN);
+ctx__pt->hh__bu32 = ctx__pt->hl__bu32 + 32;
+ctx__pt->base_ectr = (flea_u8_t *) (ctx__pt->hh__bu32 + 32);
 ctx__pt->buf=  ctx__pt->base_ectr + 16;
 #endif
   memset( h, 0, __FLEA_GHASH_BLOCK_SIZE );                     
@@ -143,17 +143,17 @@ ctx__pt->buf=  ctx__pt->base_ectr + 16;
   vl_a[0] = flea__decode_U32_BE(h+12);
 #endif
 
-  ctx__pt->HL[16] = vl_a[0];                
-  ctx__pt->HL[17] = vl_a[1];               
+  ctx__pt->hl__bu32[16] = vl_a[0];                
+  ctx__pt->hl__bu32[17] = vl_a[1];               
 
-  ctx__pt->HH[16] = vh_a[0];
-  ctx__pt->HH[17] = vh_a[1];
+  ctx__pt->hh__bu32[16] = vh_a[0];
+  ctx__pt->hh__bu32[17] = vh_a[1];
 
-  ctx__pt->HH[0] = 0;                 
-  ctx__pt->HH[1] = 0;                
+  ctx__pt->hh__bu32[0] = 0;                 
+  ctx__pt->hh__bu32[1] = 0;                
 
-  ctx__pt->HL[0] = 0;
-  ctx__pt->HL[1] = 0;
+  ctx__pt->hl__bu32[0] = 0;
+  ctx__pt->hl__bu32[1] = 0;
 
   for( i = 4; i > 0; i >>= 1 ) 
   {
@@ -165,15 +165,15 @@ ctx__pt->buf=  ctx__pt->base_ectr + 16;
     FLEA_RSHIFT_U64_AU32_SMALL(vh_a, vh_a, 1);
     vh_a[1] ^= T;
 
-    ctx__pt->HL[2*i] = vl_a[0];
-    ctx__pt->HL[2*i+1] = vl_a[1];
+    ctx__pt->hl__bu32[2*i] = vl_a[0];
+    ctx__pt->hl__bu32[2*i+1] = vl_a[1];
 
-    ctx__pt->HH[2*i] = vh_a[0];
-    ctx__pt->HH[2*i+1] = vh_a[1];
+    ctx__pt->hh__bu32[2*i] = vh_a[0];
+    ctx__pt->hh__bu32[2*i+1] = vh_a[1];
   }
   for (i = 2; i < 16; i <<= 1 ) {
-    flea_u32_t * HiL_a = ctx__pt->HL + 2*i;
-    flea_u32_t * HiH_a = ctx__pt->HH + 2*i;
+    flea_u32_t * HiL_a = ctx__pt->hl__bu32 + 2*i;
+    flea_u32_t * HiH_a = ctx__pt->hh__bu32 + 2*i;
 
     vh_a[0] = HiH_a[0];
     vh_a[1] = HiH_a[1];
@@ -183,11 +183,11 @@ ctx__pt->buf=  ctx__pt->base_ectr + 16;
 
     for( j = 1; j < i; j++ ) 
     {
-      HiH_a[2*j] = vh_a[0] ^ ctx__pt->HH[2*j];
-      HiH_a[2*j+1] = vh_a[1] ^ ctx__pt->HH[2*j+1];
+      HiH_a[2*j] = vh_a[0] ^ ctx__pt->hh__bu32[2*j];
+      HiH_a[2*j+1] = vh_a[1] ^ ctx__pt->hh__bu32[2*j+1];
 
-      HiL_a[2*j] = vl_a[0] ^ ctx__pt->HL[2*j];
-      HiL_a[2*j+1] = vl_a[1] ^ ctx__pt->HL[2*j+1];
+      HiL_a[2*j] = vl_a[0] ^ ctx__pt->hl__bu32[2*j];
+      HiL_a[2*j+1] = vl_a[1] ^ ctx__pt->hl__bu32[2*j+1];
     }
   }
   FLEA_THR_FIN_SEC_empty();
@@ -316,6 +316,6 @@ void flea_ghash_ctx_t__dtor(flea_ghash_ctx_t *ctx__pt)
 {
   flea_len_ctr_t__dtor(&ctx__pt->len_ctr__t);
 #ifdef FLEA_USE_HEAP_BUF
-   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->HL, __FLEA_GHASH_STATE_U32_ARR_LEN);
+   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->hl__bu32, __FLEA_GHASH_STATE_U32_ARR_LEN);
 #endif
 }
