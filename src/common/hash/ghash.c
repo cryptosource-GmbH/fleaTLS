@@ -241,8 +241,9 @@ flea_err_t THR_flea_ghash_ctx_t__start( flea_ghash_ctx_t *ctx, const flea_ecb_mo
     {
         use_len = ( add_len < __FLEA_GHASH_BLOCK_SIZE ) ? add_len : __FLEA_GHASH_BLOCK_SIZE;
         //for( i = 0; i < use_len; i++ ) ctx->buf[i] ^= p[i];
-        flea__xor_bytes_in_place(ctx->buf, p, use_len);
-        ghash_process_block( ctx, ctx->buf );
+        /*flea__xor_bytes_in_place(ctx->buf, p, use_len);
+        ghash_process_block( ctx, ctx->buf );*/
+        ghash_xor_and_process_block(ctx, ctx->buf, p, use_len);
         add_len -= use_len;
         p += use_len;
     }
