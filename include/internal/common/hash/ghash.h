@@ -23,7 +23,7 @@ typedef struct
     flea_u8_t y[16];       
     flea_u8_t buf[16];    
 //#endif
-    flea_u8_t pend_input__bu8[16];
+    //flea_u8_t pend_input__bu8[16];
     flea_u8_t pend_input_len__u8;
 } flea_ghash_ctx_t;
 

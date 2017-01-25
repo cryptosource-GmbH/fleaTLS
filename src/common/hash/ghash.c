@@ -233,27 +233,24 @@ flea_err_t THR_flea_ghash_ctx_t__start( flea_ghash_ctx_t *ctx, const flea_ecb_mo
 
 flea_err_t THR_flea_ghash_ctx_t__update( flea_ghash_ctx_t *ctx__pt, flea_dtl_t input_len__dtl, const flea_u8_t *input__pcu8 ) 
 {
-  flea_u8_t *pend_block__pu8 = ctx__pt->pend_input__bu8;
 
-  FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_len_ctr_t__add_and_check_len_limit(&ctx__pt->len_ctr__t, input_len__dtl));
   const flea_al_u8_t block_length__calu8  = 16;
   flea_al_u8_t left__alu8, to_copy__alu8, tail_len__alu8;
   flea_dtl_t nb_full_blocks__alu16, i;
   flea_al_u8_t pend_len__alu8 = ctx__pt->pend_input_len__u8;
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_len_ctr_t__add_and_check_len_limit(&ctx__pt->len_ctr__t, input_len__dtl));
   left__alu8 = block_length__calu8 - pend_len__alu8;
   to_copy__alu8 = FLEA_MIN(input_len__dtl, left__alu8);
-  memcpy(pend_block__pu8+ pend_len__alu8, input__pcu8, to_copy__alu8);
+  flea__xor_bytes_in_place(ctx__pt->buf + pend_len__alu8, input__pcu8, to_copy__alu8);
   input__pcu8 += to_copy__alu8;
   input_len__dtl -= to_copy__alu8;
   pend_len__alu8 += to_copy__alu8;
 
   nb_full_blocks__alu16 = input_len__dtl / block_length__calu8;
   tail_len__alu8 = input_len__dtl % block_length__calu8;
-  // TODO: DON'T NEED THE PEND BUF, CAN DIRECTLY XOR TO ->buf
   if(pend_len__alu8 == block_length__calu8)
   {
-    flea__xor_bytes_in_place(ctx__pt->buf, pend_block__pu8, block_length__calu8); 
     ghash_process_block( ctx__pt, ctx__pt->buf, ctx__pt->buf );
     pend_len__alu8 = 0;
   }
@@ -265,7 +262,7 @@ flea_err_t THR_flea_ghash_ctx_t__update( flea_ghash_ctx_t *ctx__pt, flea_dtl_t i
   }
   if(tail_len__alu8 != 0)
   {
-    memcpy(pend_block__pu8, input__pcu8, tail_len__alu8);
+    flea__xor_bytes_in_place(ctx__pt->buf, input__pcu8, tail_len__alu8);
     pend_len__alu8 = tail_len__alu8;
   }
   ctx__pt->pend_input_len__u8 = pend_len__alu8;
@@ -281,7 +278,6 @@ void flea_ghash_ctx_t__finish( flea_ghash_ctx_t *ctx__pt,
   flea_len_ctr_t__counter_byte_lengt_to_bit_length(&ctx__pt->len_ctr__t);
   if(ctx__pt->pend_input_len__u8)
   {
-    flea__xor_bytes_in_place(ctx__pt->buf, ctx__pt->pend_input__bu8, ctx__pt->pend_input_len__u8); 
     ghash_process_block( ctx__pt, ctx__pt->buf, ctx__pt->buf );    
   }
   if( tag_len != 0 ) memcpy( tag, ctx__pt->base_ectr, tag_len );
