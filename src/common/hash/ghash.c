@@ -285,7 +285,6 @@ void flea_ghash_ctx_t__finish( flea_ghash_ctx_t *ctx__pt,
                 size_t tag_len )    
 {
   flea_u8_t work_buf[16];
-  //flea_u64_t orig_len     = ctx__pt->len * 8;
   flea_u32_t orig_add_len__u32 = ctx__pt->add_len * 8;
   flea_len_ctr_t__counter_byte_lengt_to_bit_length(&ctx__pt->len_ctr__t);
   if(ctx__pt->pend_input_len__u8)

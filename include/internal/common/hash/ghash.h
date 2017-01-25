@@ -51,6 +51,10 @@ flea_err_t THR_flea_ghash_ctx_t__update( flea_ghash_ctx_t *ctx,       // pointer
 void flea_ghash_ctx_t__finish( flea_ghash_ctx_t *ctx,   // pointer to user-provided GCM context
                 flea_u8_t *tag,         // pointer to buffer which receives the tag
                 size_t tag_len );    // length, in bytes, of the tag-receiving buf
+
+
+void flea_ghash_ctx_t__dtor(flea_ghash_ctx_t *ctx__pt);
+
 #ifdef __cplusplus
 }
 #endif

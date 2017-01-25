@@ -375,6 +375,8 @@ void flea_ae_ctx_t__dtor (flea_ae_ctx_t* ctx__pt)
   {
     flea_ae_gcm_specific_t* gcm__pt = &ctx__pt->mode_specific__u.gcm;
     flea_ctr_mode_ctx_t__dtor(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t);
+
+    flea_ghash_ctx_t__dtor(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t);
     // TODO: BUFFER CLEARING
   }
 }
