@@ -236,7 +236,6 @@ flea_err_t THR_flea_ghash_ctx_t__update( flea_ghash_ctx_t *ctx__pt, flea_dtl_t i
   flea_u8_t *pend_block__pu8 = ctx__pt->pend_input__bu8;
 
   FLEA_THR_BEG_FUNC();
-  //ctx__pt->len += input_len__dtl; 
   FLEA_CCALL(THR_flea_len_ctr_t__add_and_check_len_limit(&ctx__pt->len_ctr__t, input_len__dtl));
   const flea_al_u8_t block_length__calu8  = 16;
   flea_al_u8_t left__alu8, to_copy__alu8, tail_len__alu8;
