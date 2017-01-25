@@ -174,6 +174,7 @@ void flea_hash_ctx_t__reset (flea_hash_ctx_t* p_ctx)
   p_ctx->p_config->init_func(p_ctx);
   memset(p_ctx->counter__bu32, 0, p_ctx->counter_block_arr_len__u8 * sizeof(p_ctx->counter__bu32[0]));
 }
+
 static flea_err_t THR_flea_hash_ctx_t__add_to_counter_block_and_check_limit (flea_hash_ctx_t* ctx__pt, flea_dtl_t input_len__dtl, flea_al_u8_t limit_exponent__alu8)
 {
   flea_al_s8_t i;
@@ -189,7 +190,7 @@ static flea_err_t THR_flea_hash_ctx_t__add_to_counter_block_and_check_limit (fle
     flea_u32_t tmp__u32;
     flea_u32_t old__u32 = ctr_block__pu32[i];
     tmp__u32 = old__u32 + carry__u32;
-    if((limit_exponent__alu8 != 0) && (i == comp_idx__alu8) && (ctr_block__pu32[i] > comp__u32))
+    if((limit_exponent__alu8 != 0) && (((flea_al_u8_t)i) == comp_idx__alu8) && (ctr_block__pu32[i] > comp__u32))
     {
       FLEA_THROW("maximal hash input length exceeded", FLEA_ERR_INV_STATE);
     }
