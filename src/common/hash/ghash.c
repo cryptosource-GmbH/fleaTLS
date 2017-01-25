@@ -4,7 +4,7 @@
 #include "internal/common/hash/ghash.h"
 #include "flea/error_handling.h"
 
-static const flea_u64_t last4[16] = {
+static const flea_u16_t ghash_lo[16] = {
     0x0000, 0x1c20, 0x3840, 0x2460, 0x7080, 0x6ca0, 0x48c0, 0x54e0,
     0xe100, 0xfd20, 0xd940, 0xc560, 0x9180, 0x8da0, 0xa9c0, 0xb5e0  };
 
@@ -104,61 +104,99 @@ static void gcm_mult( flea_ghash_ctx_t *ctx__pt,     // pointer to established c
 {
     int i;
     flea_u8_t lo, hi, rem;
-    flea_u64_t zh, zl, tmp;
+   // flea_u64_t zh, zl, tmp;
     flea_u32_t zl_a[2];
     flea_u32_t zh_a[2];
     flea_u32_t tmp_a[2];
     lo = (flea_u8_t)( x[15] & 0x0f );
     hi = (flea_u8_t)( x[15] >> 4 );
     //zh = ctx__pt->HH[lo];
-    zh = ctx__pt->HH[2*lo] | (flea_u64_t) ctx__pt->HH[2*lo+1] << 32;
-    printf("from HH: zh = %016llx\n", zh);
+    //zh = ctx__pt->HH[2*lo] | (flea_u64_t) ctx__pt->HH[2*lo+1] << 32;
+    zh_a[0] = ctx__pt->HH[2*lo];
+    zh_a[1] = ctx__pt->HH[2*lo+1];
+
+    //printf("from HH: zh = %016llx\n", zh);
 
     //zl = ctx__pt->HL[lo];
-    zl = ctx__pt->HL[2*lo] |  (flea_u64_t) ctx__pt->HL[2*lo+1] << 32;
-    printf("from HL: zl = %016llx\n", zl);
+    //zl = ctx__pt->HL[2*lo] |  (flea_u64_t) ctx__pt->HL[2*lo+1] << 32;
+    zl_a[0] = ctx__pt->HL[2*lo];
+    zl_a[1] = ctx__pt->HL[2*lo+1];
+    
+    //printf("from HL: zl = %016llx\n", zl);
   
     //flea_u32_t zhl, zhh, zll, zlh;
-    for( i = 15; i >= 0; i-- ) {
+    for( i = 15; i >= 0; i-- ) 
+    {
         lo = (flea_u8_t) ( x[i] & 0x0f );
         hi = (flea_u8_t) ( x[i] >> 4 );
 
-        if( i != 15 ) {
-            rem = (flea_u8_t) ( zl & 0x0f );
+        if( i != 15 ) 
+        {
+            //rem = (flea_u8_t) ( zl & 0x0f );
+            rem = (flea_u8_t) ( zl_a[0] & 0x0f );
             //zl = ( zh << 60 ) | ( zl >> 4 );
-            //printf("zl orig = %016llx\n", zl);
        
-            FLEA_U64_TO_AU32(zl, zl_a); 
-            FLEA_U64_TO_AU32(zh, zh_a); 
+            /*FLEA_U64_TO_AU32(zl, zl_a); 
+            FLEA_U64_TO_AU32(zh, zh_a); */
 
-            //printf("zl orig shifted = %016llx\n", zl << 60);
             FLEA_LSHIFT_U64_AU32_LARGE(zh_a, tmp_a, 60);
-            //printf("zl mine shifted = %08lx%08lx\n", zh_a[1], zh_a[0]);
             FLEA_RSHIFT_U64_AU32_SMALL(zl_a, zl_a, 4);
-            tmp_a[1] |= zl_a[1];
-            tmp_a[0] |= zl_a[0];
+            zl_a[0] |= tmp_a[0];
+            zl_a[1] |= tmp_a[1];
 
-            FLEA_AU32_TO_U64(tmp_a, zl);
-            printf("zl_a[0] = %08x\n", zl_a[0]);
-            printf("zl_a[1] = %08x\n", zl_a[1]);
             
             //zl = tmp | ( zl >> 4 );
-            printf("zl mine = %016llx\n", zl);
             
             //zl = (flea_u64_t)zlh << 32 | zll | zl >> 4;
         
         
-            zh = ( zh >> 4 );
-            zh ^= (flea_u64_t) last4[rem] << 48;
+            //zh = ( zh >> 4 );
+            //FLEA_RSHIFT_U64_AU32_SMALL(zl_a, zl_a, 4);
+            FLEA_RSHIFT_U64_AU32_SMALL(zh_a, zh_a, 4);
+
+            //zh ^= (flea_u64_t) last4[rem] << 48;
+            tmp_a[0] = ghash_lo[rem];
+            tmp_a[1] = 0;
+            FLEA_LSHIFT_U64_AU32_LARGE(tmp_a, tmp_a, 48);
+            zh_a[0] ^= tmp_a[0];
+            zh_a[1] ^= tmp_a[1];
+
+
             //zh ^= ctx__pt->HH[lo];
-            zh ^= ctx__pt->HH[2*lo] | (flea_u64_t) ctx__pt->HH[2*lo+1] << 32;
+            //zh ^= ctx__pt->HH[2*lo] | (flea_u64_t) ctx__pt->HH[2*lo+1] << 32;
+            zh_a[0] ^= ctx__pt->HH[2*lo];
+            zh_a[1] ^= ctx__pt->HH[2*lo+1];
 
             //zl ^= ctx__pt->HL[lo];
-            zl ^= ctx__pt->HL[2*lo] | (flea_u64_t) ctx__pt->HL[2*lo+1] << 32;
-            printf("zl mine after xor = %016llx\n", zl);
+            //zl ^= ctx__pt->HL[2*lo] | (flea_u64_t) ctx__pt->HL[2*lo+1] << 32;
+            zl_a[0] ^= ctx__pt->HL[2*lo];
+            zl_a[1] ^= ctx__pt->HL[2*lo+1];
+
+
         }
-        rem = (flea_u8_t) ( zl & 0x0f );
-        zl = ( zh << 60 ) | ( zl >> 4 );
+        //rem = (flea_u8_t) ( zl & 0x0f );
+        rem = (flea_u8_t) ( zl_a[0] & 0x0f );
+        //zl = ( zh << 60 ) | ( zl >> 4 );
+
+        FLEA_LSHIFT_U64_AU32_LARGE(zh_a, tmp_a, 60);
+        FLEA_RSHIFT_U64_AU32_SMALL(zl_a, zl_a, 4);
+        FLEA_U64_OR_AU32(zl_a, tmp_a);
+//==============
+            FLEA_RSHIFT_U64_AU32_SMALL(zh_a, zh_a, 4);
+
+            tmp_a[0] = ghash_lo[rem];
+            tmp_a[1] = 0;
+            FLEA_LSHIFT_U64_AU32_LARGE(tmp_a, tmp_a, 48);
+            zh_a[0] ^= tmp_a[0];
+            zh_a[1] ^= tmp_a[1];
+
+
+            zh_a[0] ^= ctx__pt->HH[2*hi];
+            zh_a[1] ^= ctx__pt->HH[2*hi+1];
+
+            zl_a[0] ^= ctx__pt->HL[2*hi];
+            zl_a[1] ^= ctx__pt->HL[2*hi+1];
+#if 0
         zh = ( zh >> 4 );
         //printf("rem = %u\n", rem);
         zh ^= (flea_u64_t) last4[rem] << 48;
@@ -168,14 +206,17 @@ static void gcm_mult( flea_ghash_ctx_t *ctx__pt,     // pointer to established c
        
         //zl ^= ctx__pt->HL[hi];
         zl ^= ctx__pt->HL[2*hi] |  (flea_u64_t) ctx__pt->HL[2*hi+1] << 32;
+#endif 
     }
-    PUT_UINT32_BE( zh >> 32, output, 0 );
+/*  PUT_UINT32_BE( zh >> 32, output, 0 );
     PUT_UINT32_BE( zh, output, 4 );
     PUT_UINT32_BE( zl >> 32, output, 8 );
-    PUT_UINT32_BE( zl, output, 12 );
+    PUT_UINT32_BE( zl, output, 12 );*/
+    PUT_UINT32_BE( zh_a[1], output, 0 );
+    PUT_UINT32_BE( zh_a[0], output, 4 );
+    PUT_UINT32_BE( zl_a[1], output, 8 );
+    PUT_UINT32_BE( zl_a[0], output, 12 );
 }
-
-
 /******************************************************************************
  *
  *  GCM_SETKEY
