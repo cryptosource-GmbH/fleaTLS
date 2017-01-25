@@ -125,11 +125,20 @@ static void gcm_mult( flea_ghash_ctx_t *ctx__pt,     // pointer to established c
     //printf("from HL: zl = %016llx\n", zl);
   
     //flea_u32_t zhl, zhh, zll, zlh;
-    for( i = 15; i >= 0; i-- ) 
+    //for( i = 15; i >= 0; i-- ) 
+    for( i = 29; i >= -1; i-- ) 
     {
+#if 0
+      if(i != 15)
+      {
         lo = (flea_u8_t) ( x[i] & 0x0f );
+        //hi = (flea_u8_t) ( x[i] & 0x0f );
+      }
+      //else
+      {
         hi = (flea_u8_t) ( x[i] >> 4 );
-
+        //lo = (flea_u8_t) ( x[i] >> 4 );
+      }
         if( i != 15 ) 
         {
             //rem = (flea_u8_t) ( zl & 0x0f );
@@ -174,6 +183,15 @@ static void gcm_mult( flea_ghash_ctx_t *ctx__pt,     // pointer to established c
 
 
         }
+#endif 
+      if(i & 1)
+      {
+        hi = (flea_u8_t) ( x[(i+1)/2] >> 4 );
+      }
+      else
+      {
+        hi = (flea_u8_t) ( x[(i+1)/2] & 0x0f );
+      }
         //rem = (flea_u8_t) ( zl & 0x0f );
         rem = (flea_u8_t) ( zl_a[0] & 0x0f );
         //zl = ( zh << 60 ) | ( zl >> 4 );
