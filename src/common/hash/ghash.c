@@ -319,8 +319,9 @@ void flea_ghash_ctx_t__finish( flea_ghash_ctx_t *ctx__pt,
     flea__encode_U32_BE(ctx__pt->len_ctr__t.counter__bu32[0], work_buf + 12);
 #endif
 
-    flea__xor_bytes_in_place(ctx__pt->buf, work_buf, __FLEA_GHASH_BLOCK_SIZE);
-    ghash_process_block( ctx__pt, ctx__pt->buf);
+    /*flea__xor_bytes_in_place(ctx__pt->buf, work_buf, __FLEA_GHASH_BLOCK_SIZE);
+    ghash_process_block( ctx__pt, ctx__pt->buf);*/
+    ghash_xor_and_process_block(ctx__pt, ctx__pt->buf, work_buf, __FLEA_GHASH_BLOCK_SIZE);
     flea__xor_bytes_in_place(tag, ctx__pt->buf, tag_len);
   }
 }
