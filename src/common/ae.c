@@ -168,7 +168,6 @@ flea_err_t THR_flea_ae_ctx_t__ctor (flea_ae_ctx_t* ctx__pt, flea_ae_id_t id__t, 
     FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t, config__pt->cipher_id__t, key__pcu8, key_len__alu16, NULL, 0, 4)); 
     FLEA_CCALL(THR_flea_ghash_ctx_t__init(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, &ctx__pt->mode_specific__u.gcm.ctr_ctx__t.cipher_ctx__t));
     FLEA_CCALL(THR_flea_ghash_ctx_t__start(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, &ctx__pt->mode_specific__u.gcm.ctr_ctx__t.cipher_ctx__t, nonce__pcu8, nonce_len__alu8, header__pcu8, header_len__u16, ctx__pt->mode_specific__u.gcm.ctr_ctx__t.ctr_block__bu8));
-    //memcpy(ctx__pt->mode_specific__u.gcm.ctr_ctx__t.ctr_block__bu8, ctx__pt->mode_specific__u.gcm.ghash_ctx__t.y, 16);
     flea__increment_encoded_BE_int(ctx__pt->mode_specific__u.gcm.ctr_ctx__t.ctr_block__bu8 + (16-4), 4);
 
   }
