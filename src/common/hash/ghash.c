@@ -228,9 +228,10 @@ flea_err_t THR_flea_ghash_ctx_t__start( flea_ghash_ctx_t *ctx, const flea_ecb_mo
         {
           ctr_block__pu8[i] ^= work__bu8[i];
         }*/
-        flea__xor_bytes_in_place(ctr_block__pu8,  work__bu8, __FLEA_GHASH_BLOCK_SIZE);
+        /*flea__xor_bytes_in_place(ctr_block__pu8,  work__bu8, __FLEA_GHASH_BLOCK_SIZE);
 
-        ghash_process_block( ctx, ctr_block__pu8);
+        ghash_process_block( ctx, ctr_block__pu8);*/
+        ghash_xor_and_process_block(ctx, ctr_block__pu8, work__bu8, __FLEA_GHASH_BLOCK_SIZE);
     }
     FLEA_CCALL(THR_flea_ecb_mode_crypt_data(ecb_ctx__pt, ctr_block__pu8, ctx->base_ectr, ecb_ctx__pt->block_length__u8));
 
