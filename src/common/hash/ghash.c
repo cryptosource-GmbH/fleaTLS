@@ -106,9 +106,10 @@ static void ghash_process_block( flea_ghash_ctx_t *ctx__pt, /*const flea_u8_t x[
 #endif
 }
 
-static void ghash_xor_and_process_block( flea_ghash_ctx_t *ctx__pt, const flea_u8_t x[__FLEA_GHASH_BLOCK_SIZE], flea_u8_t output[__FLEA_GHASH_BLOCK_SIZE]) 
+static void ghash_xor_and_process_block( flea_ghash_ctx_t *ctx__pt, flea_u8_t output__pu8[__FLEA_GHASH_BLOCK_SIZE], const flea_u8_t * input__pcu8, flea_al_u8_t input_len__alu8) 
 {
-  
+ flea__xor_bytes_in_place(output__pu8, input__pcu8, input_len__alu8);
+ ghash_process_block(ctx__pt, output__pu8);
 }
 flea_err_t THR_flea_ghash_ctx_t__init( flea_ghash_ctx_t *ctx__pt,   
     const flea_ecb_mode_ctx_t *ecb_ctx__pt
@@ -217,8 +218,9 @@ flea_err_t THR_flea_ghash_ctx_t__start( flea_ghash_ctx_t *ctx, const flea_ecb_mo
             {
               ctr_block__pu8[i] ^= p[i];
             }*/
-            flea__xor_bytes_in_place(ctr_block__pu8, p, use_len);
-            ghash_process_block( ctx, ctr_block__pu8);
+            /*flea__xor_bytes_in_place(ctr_block__pu8, p, use_len);
+            ghash_process_block( ctx, ctr_block__pu8);*/
+            ghash_xor_and_process_block(ctx, ctr_block__pu8, p, use_len);
             iv_len -= use_len;
             p += use_len;
         }
