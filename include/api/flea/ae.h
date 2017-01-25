@@ -62,7 +62,7 @@ typedef struct
  *
  * @return flea error code
  * */
-flea_err_t THR_flea_ae_ctx_t__ctor(flea_ae_ctx_t* ctx, flea_ae_id_t id, const flea_u8_t* key, flea_al_u16_t key_len, const flea_u8_t* nonce, flea_al_u8_t nonce_len, const flea_u8_t* header, flea_dtl_t header_len, flea_al_u8_t tag_len);
+flea_err_t THR_flea_ae_ctx_t__ctor (flea_ae_ctx_t* ctx__pt, flea_ae_id_t id__t, const flea_u8_t* key__pcu8, flea_al_u16_t key_len__alu16, const flea_u8_t* nonce__pcu8, flea_al_u8_t nonce_len__alu8, const flea_u8_t* header__pcu8, flea_u16_t header_len__u16, flea_al_u8_t tag_length__alu8);
 
 /**
  * Destroy an AE context object.

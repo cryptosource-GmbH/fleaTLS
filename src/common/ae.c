@@ -107,7 +107,7 @@ static flea_err_t THR_flea_ae__compute_omac_indexed (flea_mac_ctx_t* mac_ctx__t,
  *
  * supports nonce lengths of up to the cipher's block length
  */
-flea_err_t THR_flea_ae_ctx_t__ctor (flea_ae_ctx_t* ctx__pt, flea_ae_id_t id__t, const flea_u8_t* key__pcu8, flea_al_u16_t key_len__alu16, const flea_u8_t* nonce__pcu8, flea_al_u8_t nonce_len__alu8, const flea_u8_t* header__pcu8, flea_dtl_t header_len__dtl, flea_al_u8_t tag_length__alu8)
+flea_err_t THR_flea_ae_ctx_t__ctor (flea_ae_ctx_t* ctx__pt, flea_ae_id_t id__t, const flea_u8_t* key__pcu8, flea_al_u16_t key_len__alu16, const flea_u8_t* nonce__pcu8, flea_al_u8_t nonce_len__alu8, const flea_u8_t* header__pcu8, flea_u16_t header_len__u16, flea_al_u8_t tag_length__alu8)
 {
   FLEA_THR_BEG_FUNC();
 
@@ -154,7 +154,7 @@ flea_err_t THR_flea_ae_ctx_t__ctor (flea_ae_ctx_t* ctx__pt, flea_ae_id_t id__t, 
 #endif
     // use the cmac ctx for the computation of the stored nonce
     FLEA_CCALL(THR_flea_ae__compute_omac_indexed(&ctx__pt->mode_specific__u.eax.cmac_ctx__t, 0, block_len__alu8, nonce__pcu8, nonce_len__alu8, ctx__pt->mode_specific__u.eax.nonce__bu8));
-    FLEA_CCALL(THR_flea_ae__compute_omac_indexed(&ctx__pt->mode_specific__u.eax.cmac_ctx__t, 1, block_len__alu8, header__pcu8, header_len__dtl, ctx__pt->mode_specific__u.eax.header_omac__bu8));
+    FLEA_CCALL(THR_flea_ae__compute_omac_indexed(&ctx__pt->mode_specific__u.eax.cmac_ctx__t, 1, block_len__alu8, header__pcu8, header_len__u16, ctx__pt->mode_specific__u.eax.header_omac__bu8));
     // correct the nonce of the counter-mode-context:
     memcpy(ctx__pt->mode_specific__u.eax.ctr_ctx__t.ctr_block__bu8, ctx__pt->mode_specific__u.eax.nonce__bu8, block_len__alu8);
     // now start the ciphertext MAC computation
@@ -167,7 +167,7 @@ flea_err_t THR_flea_ae_ctx_t__ctor (flea_ae_ctx_t* ctx__pt, flea_ae_id_t id__t, 
     
     FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t, config__pt->cipher_id__t, key__pcu8, key_len__alu16, NULL, 0, 4)); 
     FLEA_CCALL(THR_flea_ghash_ctx_t__init(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, &ctx__pt->mode_specific__u.gcm.ctr_ctx__t.cipher_ctx__t));
-    FLEA_CCALL(THR_flea_ghash_ctx_t__start(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, &ctx__pt->mode_specific__u.gcm.ctr_ctx__t.cipher_ctx__t, nonce__pcu8, nonce_len__alu8, header__pcu8, header_len__dtl));
+    FLEA_CCALL(THR_flea_ghash_ctx_t__start(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, &ctx__pt->mode_specific__u.gcm.ctr_ctx__t.cipher_ctx__t, nonce__pcu8, nonce_len__alu8, header__pcu8, header_len__u16));
     memcpy(ctx__pt->mode_specific__u.gcm.ctr_ctx__t.ctr_block__bu8, ctx__pt->mode_specific__u.gcm.ghash_ctx__t.y, 16);
     flea__increment_encoded_BE_int(ctx__pt->mode_specific__u.gcm.ctr_ctx__t.ctr_block__bu8 + (16-4), 4);
 
