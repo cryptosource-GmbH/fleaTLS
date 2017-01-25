@@ -91,3 +91,19 @@ flea_err_t THR_flea_len_ctr_t__add_and_check_len_limit(flea_len_ctr_t *len_ctr__
       FLEA_FREE_BUF(compare__bu32); 
       );
 }
+
+
+void flea_len_ctr_t__counter_byte_lengt_to_bit_length (flea_len_ctr_t* ctx__pt)
+{
+
+  flea_al_u8_t i;
+  flea_u32_t carry__u32 = 0;
+
+  for(i = 0; i < ctx__pt->counter_block_arr_len__u8 ; i++)
+  {
+    flea_u32_t old__u32 = ctx__pt->counter__bu32[i];
+    flea_u32_t new_carry__u32 = old__u32 >> 29;
+    ctx__pt->counter__bu32[i] = (old__u32 << 3) | carry__u32;
+    carry__u32 = new_carry__u32;
+  }
+}

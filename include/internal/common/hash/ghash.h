@@ -17,7 +17,8 @@ extern "C" {
 // ADD ECB-MODE CRYPT NOTHROW
 typedef struct {
     //int mode;               // cipher direction: encrypt/decrypt
-    flea_u64_t len;           // cipher data length processed so far
+   // flea_u64_t len;           // cipher data length processed so far
+   flea_len_ctr_t len_ctr__t;
     flea_u16_t add_len;       // total add data length
     flea_u32_t HL[32];        // precalculated lo-half HTable
     flea_u32_t HH[32];        // precalculated hi-half HTable

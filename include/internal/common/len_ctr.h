@@ -40,6 +40,8 @@ flea_err_t THR_flea_len_ctr_t__add_and_check_len_limit(flea_len_ctr_t *len_ctr__
 
 void flea_len_ctr_t__reset(flea_len_ctr_t *len_ctr__pt);
 
+void flea_len_ctr_t__counter_byte_lengt_to_bit_length (flea_len_ctr_t* ctx__pt);
+
 #ifdef __cplusplus
 }
 #endif

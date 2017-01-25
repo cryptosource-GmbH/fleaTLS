@@ -114,7 +114,7 @@ flea_err_t THR_flea_ghash_ctx_t__init( flea_ghash_ctx_t *ctx__pt,
 
     FLEA_THR_BEG_FUNC();
     memset( h, 0, 16 );                     
-
+    FLEA_CCALL(THR_flea_len_ctr_t__ctor(&ctx__pt->len_ctr__t, 2, 36, 32));
     FLEA_CCALL(THR_flea_ecb_mode_crypt_data(ecb_ctx__pt, h, h, ecb_ctx__pt->block_length__u8));
 
 #ifdef FLEA_HAVE_BE_ARCH_OPT
@@ -198,7 +198,7 @@ flea_err_t THR_flea_ghash_ctx_t__start( flea_ghash_ctx_t *ctx, const flea_ecb_mo
     FLEA_THR_BEG_FUNC();
     memset( ctx->y,   0x00, sizeof(ctx->y  ) );
     memset( ctx->buf, 0x00, sizeof(ctx->buf) );
-    ctx->len = 0;
+    //ctx->len = 0;
     ctx->add_len = 0;
     ctx->pend_input_len__u8 = 0;
 
@@ -243,7 +243,8 @@ flea_err_t THR_flea_ghash_ctx_t__update( flea_ghash_ctx_t *ctx__pt, flea_dtl_t i
   flea_u8_t *pend_block__pu8 = ctx__pt->pend_input__bu8;
 
   FLEA_THR_BEG_FUNC();
-  ctx__pt->len += input_len__dtl; 
+  //ctx__pt->len += input_len__dtl; 
+  FLEA_CCALL(THR_flea_len_ctr_t__add_and_check_len_limit(&ctx__pt->len_ctr__t, input_len__dtl));
   const flea_al_u8_t block_length__calu8  = 16;
   flea_al_u8_t left__alu8, to_copy__alu8, tail_len__alu8;
   flea_dtl_t nb_full_blocks__alu16, i;
@@ -284,8 +285,9 @@ void flea_ghash_ctx_t__finish( flea_ghash_ctx_t *ctx__pt,
                 size_t tag_len )    
 {
   flea_u8_t work_buf[16];
-  flea_u64_t orig_len     = ctx__pt->len * 8;
+  //flea_u64_t orig_len     = ctx__pt->len * 8;
   flea_u32_t orig_add_len__u32 = ctx__pt->add_len * 8;
+  flea_len_ctr_t__counter_byte_lengt_to_bit_length(&ctx__pt->len_ctr__t);
   if(ctx__pt->pend_input_len__u8)
   {
     flea__xor_bytes_in_place(ctx__pt->buf, ctx__pt->pend_input__bu8, ctx__pt->pend_input_len__u8); 
@@ -293,13 +295,14 @@ void flea_ghash_ctx_t__finish( flea_ghash_ctx_t *ctx__pt,
   }
   if( tag_len != 0 ) memcpy( tag, ctx__pt->base_ectr, tag_len );
 
-  if( orig_len || orig_add_len__u32 ) {
+  if( ctx__pt->len_ctr__t.counter__bu32[0] || ctx__pt->len_ctr__t.counter__bu32[1] || orig_add_len__u32 ) 
+  {
     memset( work_buf, 0x00, 16 );
 
     PUT_UINT32_BE( 0 , work_buf, 0  );
     PUT_UINT32_BE( ( orig_add_len__u32       ), work_buf, 4  );
-    PUT_UINT32_BE( ( orig_len     >> 32 ), work_buf, 8  );
-    PUT_UINT32_BE( ( orig_len           ), work_buf, 12 );
+    PUT_UINT32_BE( ( ctx__pt->len_ctr__t.counter__bu32[1] ), work_buf, 8  );
+    PUT_UINT32_BE( ( ctx__pt->len_ctr__t.counter__bu32[0]), work_buf, 12 );
 
     flea__xor_bytes_in_place(ctx__pt->buf, work_buf, 16);
     ghash_process_block( ctx__pt, ctx__pt->buf, ctx__pt->buf );
@@ -307,3 +310,7 @@ void flea_ghash_ctx_t__finish( flea_ghash_ctx_t *ctx__pt,
   }
 }
 
+void flea_ghash_ctx_t__dtor(flea_ghash_ctx_t *ctx__pt)
+{
+  flea_len_ctr_t__dtor(&ctx__pt->len_ctr__t);
+}
