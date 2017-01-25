@@ -184,15 +184,11 @@ flea_err_t THR_flea_ghash_ctx_t__init( flea_ghash_ctx_t *ctx__pt,
 flea_err_t THR_flea_ghash_ctx_t__start( flea_ghash_ctx_t *ctx, const flea_ecb_mode_ctx_t * ecb_ctx__pt, const flea_u8_t *iv, size_t iv_len, const flea_u8_t *add, flea_al_u16_t add_len, flea_u8_t * ctr_block__pu8)     
 {
   FLEA_DECL_BUF(work__bu8, flea_u8_t, 32);
-    //flea_u8_t work_buf[16]; 
-    //flea_u8_t *y__pu8;
     const flea_u8_t *p;    
     size_t use_len;     
-    size_t i;          
 
     FLEA_THR_BEG_FUNC();
     FLEA_ALLOC_BUF(work__bu8, __FLEA_GHASH_BLOCK_SIZE);
-    //ctr_block__pu8 = work__bu8 + 16;
     memset( ctr_block__pu8,   0, __FLEA_GHASH_BLOCK_SIZE);
     memset( ctx->buf, 0, __FLEA_GHASH_BLOCK_SIZE);
     ctx->add_len = 0;
@@ -212,27 +208,32 @@ flea_err_t THR_flea_ghash_ctx_t__start( flea_ghash_ctx_t *ctx, const flea_ecb_mo
         while( iv_len > 0 ) 
         {
             use_len = ( iv_len < __FLEA_GHASH_BLOCK_SIZE ) ? iv_len : __FLEA_GHASH_BLOCK_SIZE;
-            for( i = 0; i < use_len; i++ ) 
+            /*for( i = 0; i < use_len; i++ ) 
             {
               ctr_block__pu8[i] ^= p[i];
-            }
-            ghash_process_block( ctx, ctr_block__pu8, ctr_block__pu8 );
+            }*/
+            flea__xor_bytes_in_place(ctr_block__pu8, p, use_len);
+            ghash_process_block( ctx, ctr_block__pu8, ctr_block__pu8);
             iv_len -= use_len;
             p += use_len;
         }
-        for( i = 0; i < __FLEA_GHASH_BLOCK_SIZE; i++ ) 
+        /*for( i = 0; i < __FLEA_GHASH_BLOCK_SIZE; i++ ) 
         {
           ctr_block__pu8[i] ^= work__bu8[i];
-        }
+        }*/
+        flea__xor_bytes_in_place(ctr_block__pu8,  work__bu8, __FLEA_GHASH_BLOCK_SIZE);
+
         ghash_process_block( ctx, ctr_block__pu8, ctr_block__pu8 );
     }
     FLEA_CCALL(THR_flea_ecb_mode_crypt_data(ecb_ctx__pt, ctr_block__pu8, ctx->base_ectr, ecb_ctx__pt->block_length__u8));
 
     ctx->add_len = add_len;
     p = add;
-    while( add_len > 0 ) {
+    while( add_len > 0 ) 
+    {
         use_len = ( add_len < __FLEA_GHASH_BLOCK_SIZE ) ? add_len : __FLEA_GHASH_BLOCK_SIZE;
-        for( i = 0; i < use_len; i++ ) ctx->buf[i] ^= p[i];
+        //for( i = 0; i < use_len; i++ ) ctx->buf[i] ^= p[i];
+        flea__xor_bytes_in_place(ctx->buf, p, use_len);
         ghash_process_block( ctx, ctx->buf, ctx->buf );
         add_len -= use_len;
         p += use_len;
