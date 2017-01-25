@@ -117,6 +117,10 @@ flea_err_t THR_flea_ae_ctx_t__ctor (flea_ae_ctx_t* ctx__pt, flea_ae_id_t id__t, 
   {
     FLEA_THROW("AE config not found", FLEA_ERR_INV_ALGORITHM);
   }
+  if(tag_length__alu8 == 0)
+  {
+    FLEA_THROW("AE tag length = 0", FLEA_ERR_INV_ARG);
+  }
 #ifdef FLEA_USE_HEAP_BUF
   ctx__pt->buffer__bu8 = NULL;
   FLEA_ALLOC_MEM_ARR(ctx__pt->buffer__bu8, tag_length__alu8);
@@ -373,10 +377,8 @@ void flea_ae_ctx_t__dtor (flea_ae_ctx_t* ctx__pt)
   else
   {
     flea_ae_gcm_specific_t* gcm__pt = &ctx__pt->mode_specific__u.gcm;
-    flea_ctr_mode_ctx_t__dtor(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t);
-
-    flea_ghash_ctx_t__dtor(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t);
-    // TODO: BUFFER CLEARING
+    flea_ctr_mode_ctx_t__dtor(&gcm__pt->ctr_ctx__t);
+    flea_ghash_ctx_t__dtor(&gcm__pt->ghash_ctx__t);
   }
 }
 #endif // #ifdef FLEA_HAVE_AE
