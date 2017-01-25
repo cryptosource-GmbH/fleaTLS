@@ -1,23 +1,17 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
+#include "internal/common/default.h"
 #include "flea/ae.h"
 #include "flea/bin_utils.h"
 #include "internal/common/hash/ghash.h"
 #include "flea/error_handling.h"
 
-static const flea_u16_t ghash_lo[16] = {
-    0x0000, 0x1c20, 0x3840, 0x2460, 0x7080, 0x6ca0, 0x48c0, 0x54e0,
-    0xe100, 0xfd20, 0xd940, 0xc560, 0x9180, 0x8da0, 0xa9c0, 0xb5e0  };
-
-/*
- * Platform Endianness Neutralizing Load and Store Macro definitions
- * GCM wants platform-neutral Big Endian (BE) byte ordering
- */
-#define GET_UINT32_BE(n,b,i) {                      \
-    (n) = ( (flea_u32_t) (b)[(i)    ] << 24 )         \
-        | ( (flea_u32_t) (b)[(i) + 1] << 16 )         \
-        | ( (flea_u32_t) (b)[(i) + 2] <<  8 )         \
-        | ( (flea_u32_t) (b)[(i) + 3]       ); }
-
+static const flea_u16_t ghash_lo[16] = 
+{
+  0x0000, 0x1c20, 0x3840, 0x2460, 0x7080, 0x6ca0, 0x48c0, 0x54e0,
+  0xe100, 0xfd20, 0xd940, 0xc560, 0x9180, 0x8da0, 0xa9c0, 0xb5e0 
+};
+// TODO:
 #define PUT_UINT32_BE(n,b,i) {                      \
     (b)[(i)    ] = (flea_u8_t) ( (n) >> 24 );   \
     (b)[(i) + 1] = (flea_u8_t) ( (n) >> 16 );   \
@@ -25,34 +19,6 @@ static const flea_u16_t ghash_lo[16] = {
     (b)[(i) + 3] = (flea_u8_t) ( (n)       ); }
 
 
-/******************************************************************************
- *
- *  GCM_INITIALIZE
- *
- *  Must be called once to initialize the GCM library.
- *
- *  At present, this only calls the AES keygen table generator, which expands
- *  the AES keying tables for use. This is NOT A THREAD-SAFE function, so it
- *  MUST be called during system initialization before a multi-threading
- *  environment is running.
- *
- ******************************************************************************/
-/*int gcm_initialize( void )
-{
-    aes_init_keygen_tables();
-    return( 0 );
-}*/
-
-
-/******************************************************************************
- *
- *  GCM_MULT
- *
- *  Performs a GHASH operation on the 128-bit input vector 'x', setting
- *  the 128-bit output vector to 'x' times H using our precomputed tables.
- *  'x' and 'output' are seen as elements of GCM's GF(2^128) Galois field.
- *
- ******************************************************************************/
 
 /**
  * Lshift smaller than shiftwidth 32 
@@ -81,26 +47,13 @@ do{ \
   out[0] = 0; \
 }while(0);
 
-#define FLEA_U64_TO_AU32(u64, au32) \
-do { \
-  au32[0] = u64; \
-  au32[1] = u64 >> 32; \
-}while(0)
-
-#define FLEA_AU32_TO_U64(au32, u64) \
-do { \
-  u64 = au32[0] | ((flea_u64_t) au32[1] << 32); \
-}while(0)
-
 #define FLEA_U64_OR_AU32(au32_in_out, au32_in) \
   do { \
     au32_in_out[0] |= au32_in[0]; \
     au32_in_out[1] |= au32_in[1]; \
   }while(0)
 
-static void ghash_process_block( flea_ghash_ctx_t *ctx__pt,     // pointer to established context
-                      const flea_u8_t x[16],    // pointer to 128-bit input vector
-                      flea_u8_t output[16] )    // pointer to 128-bit output vector
+static void ghash_process_block( flea_ghash_ctx_t *ctx__pt, const flea_u8_t x[16], flea_u8_t output[16]) 
 {
     int i;
     flea_u8_t lo, hi, rem;
@@ -150,63 +103,48 @@ static void ghash_process_block( flea_ghash_ctx_t *ctx__pt,     // pointer to es
     PUT_UINT32_BE( zl_a[1], output, 8 );
     PUT_UINT32_BE( zl_a[0], output, 12 );
 }
-/******************************************************************************
- *
- *  GCM_SETKEY
- *
- *  This is called to set the AES-GCM key. It initializes the AES key
- *  and populates the gcm context's pre-calculated HTables.
- *
- ******************************************************************************/
-flea_err_t THR_flea_ghash_ctx_t__setkey( flea_ghash_ctx_t *ctx__pt,   // pointer to caller-provided gcm context
+
+flea_err_t THR_flea_ghash_ctx_t__init( flea_ghash_ctx_t *ctx__pt,   
     const flea_ecb_mode_ctx_t *ecb_ctx__pt
-                ) // must be 128, 192 or 256
+                ) 
 {
     int i, j;
-    //flea_u64_t hi, lo;
-    //flea_u32_t hi_a[2], lo_a[2];
-    //flea_u64_t vl, vh;
     flea_u32_t vl_a[2], vh_a[2];
     flea_u8_t h[16];
 
     FLEA_THR_BEG_FUNC();
-    //memset( ctx, 0, sizeof(flea_ghash_ctx_t) );  // zero caller-provided GCM context
-    memset( h, 0, 16 );                     // initialize the block to encrypt
+    memset( h, 0, 16 );                     
 
-    // encrypt the null 128-bit block to generate a key-based value
-    // which is then used to initialize our GHASH lookup tables
-    /*if(( ret = aes_setkey( &ctx->aes_ctx, ENCRYPT, key, keysize )) != 0 )
-        return( ret );*/
-    
-    /*if(( ret = aes_cipher( &ctx->aes_ctx, h, h )) != 0 )
-        return( ret );*/
     FLEA_CCALL(THR_flea_ecb_mode_crypt_data(ecb_ctx__pt, h, h, ecb_ctx__pt->block_length__u8));
 
-    //GET_UINT32_BE( hi, h,  0  );    // pack h as two 64-bit ints, big-endian
-    GET_UINT32_BE( vh_a[1], h,  0  );    // pack h as two 64-bit ints, big-endian
-    //GET_UINT32_BE( lo_a[0], h,  4  );
-    GET_UINT32_BE( vh_a[0], h,  4  );
-    //vh = (flea_u64_t) hi << 32 | lo;
+#ifdef FLEA_HAVE_BE_ARCH_OPT
+  
+ //   GET_UINT32_BE( vh_a[1], h,  0  );    
+ vh_a[1] = FLEA_DECODE_U32_BE(h + 0);
+ vh_a[0] = FLEA_DECODE_U32_BE(h + 4);
+ vl_a[1] = FLEA_DECODE_U32_BE(h + 8);
+ vl_a[0] = FLEA_DECODE_U32_BE(h + 12);
+    
+ /*GET_UINT32_BE( vh_a[0], h,  4  );
 
-    //GET_UINT32_BE( hi, h,  8  );
     GET_UINT32_BE( vl_a[1], h,  8  );
-    //GET_UINT32_BE( lo, h,  12 );
-    GET_UINT32_BE( vl_a[0], h,  12 );
-    //vl = (flea_u64_t) hi << 32 | lo;
+    GET_UINT32_BE( vl_a[0], h,  12 );*/
+#else
+    vh_a[1] = flea__decode_U32_BE(h);
+    vh_a[0] = flea__decode_U32_BE(h+4);
+    vl_a[1] = flea__decode_U32_BE(h+8);
+    vl_a[0] = flea__decode_U32_BE(h+12);
+#endif
 
-    //ctx__pt->HL[8] = vl;                // 8 = 1000 corresponds to 1 in GF(2^128)
-    ctx__pt->HL[16] = vl_a[0];                // 8 = 1000 corresponds to 1 in GF(2^128)
-    ctx__pt->HL[17] = vl_a[1];                // 8 = 1000 corresponds to 1 in GF(2^128)
+    ctx__pt->HL[16] = vl_a[0];                
+    ctx__pt->HL[17] = vl_a[1];               
 
-    //ctx__pt->HH[8] = vh;
     ctx__pt->HH[16] = vh_a[0];
     ctx__pt->HH[17] = vh_a[1];
     
-    //ctx__pt->HH[0] = 0;                 // 0 corresponds to 0 in GF(2^128)
-    ctx__pt->HH[0] = 0;                 // 0 corresponds to 0 in GF(2^128)
-    ctx__pt->HH[1] = 0;                 // 0 corresponds to 0 in GF(2^128)
+    ctx__pt->HH[0] = 0;                 
+    ctx__pt->HH[1] = 0;                
     
-    //ctx__pt->HL[0] = 0;
     ctx__pt->HL[0] = 0;
     ctx__pt->HL[1] = 0;
 
@@ -214,42 +152,33 @@ flea_err_t THR_flea_ghash_ctx_t__setkey( flea_ghash_ctx_t *ctx__pt,   // pointer
     {
       flea_u32_t tmp_a[2];
         flea_u32_t T = (flea_u32_t) ( vl_a[0] & 1 ) * 0xe1000000UL;
-        //vl  = ( vh << 63 ) | ( vl >> 1 );
         FLEA_LSHIFT_U64_AU32_LARGE(vh_a, tmp_a, 63); 
         FLEA_RSHIFT_U64_AU32_SMALL(vl_a, vl_a, 1);
         FLEA_U64_OR_AU32(vl_a, tmp_a);
-        //vh  = ( vh >> 1 ) ^ ( (flea_u64_t) T << 32);
         FLEA_RSHIFT_U64_AU32_SMALL(vh_a, vh_a, 1);
         vh_a[1] ^= T;
 
-        //ctx__pt->HL[i] = vl;
         ctx__pt->HL[2*i] = vl_a[0];
         ctx__pt->HL[2*i+1] = vl_a[1];
 
-        //ctx__pt->HH[i] = vh;
         ctx__pt->HH[2*i] = vh_a[0];
         ctx__pt->HH[2*i+1] = vh_a[1];
     }
     for (i = 2; i < 16; i <<= 1 ) {
-        //flea_u64_t *HiL = ctx__pt->HL + i, *HiH = ctx__pt->HH + i;
         flea_u32_t * HiL_a = ctx__pt->HL + 2*i;
         flea_u32_t * HiH_a = ctx__pt->HH + 2*i;
         
-        //vh = *HiH;
         vh_a[0] = HiH_a[0];
         vh_a[1] = HiH_a[1];
         
-        //vl = *HiL;
         vl_a[0] = HiL_a[0];
         vl_a[1] = HiL_a[1];
 
         for( j = 1; j < i; j++ ) 
         {
-            //HiH[j] = vh ^ ctx__pt->HH[j];
             HiH_a[2*j] = vh_a[0] ^ ctx__pt->HH[2*j];
             HiH_a[2*j+1] = vh_a[1] ^ ctx__pt->HH[2*j+1];
 
-            //HiL[j] = vl ^ ctx__pt->HL[j];
             HiL_a[2*j] = vl_a[0] ^ ctx__pt->HL[2*j];
             HiL_a[2*j+1] = vl_a[1] ^ ctx__pt->HL[2*j+1];
         }
@@ -258,27 +187,6 @@ flea_err_t THR_flea_ghash_ctx_t__setkey( flea_ghash_ctx_t *ctx__pt,   // pointer
 }
 
 
-/******************************************************************************
- *
- *    GCM processing occurs four phases: SETKEY, START, UPDATE and FINISH.
- *
- *  SETKEY: 
- *  
- *   START: Sets the Encryption/Decryption mode.
- *          Accepts the initialization vector and additional data.
- *
- *  UPDATE: Encrypts or decrypts the plaintext or ciphertext.
- *
- *  FINISH: Performs a final GHASH to generate the authentication tag.
- *
- ******************************************************************************
- *
- *  GCM_START
- *
- *  Given a user-provided GCM context, this initializes it, sets the encryption
- *  mode, and preprocesses the initialization vector and additional AEAD data.
- *
- ******************************************************************************/
 flea_err_t THR_flea_ghash_ctx_t__start( flea_ghash_ctx_t *ctx, const flea_ecb_mode_ctx_t * ecb_ctx__pt, const flea_u8_t *iv, size_t iv_len, const flea_u8_t *add, size_t add_len
     )     
 {

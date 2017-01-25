@@ -1,8 +1,8 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_gcm__H_
 #define _flea_gcm__H_
 
-#include "flea/error_handling.h"
 #include "flea/types.h"
 #include "flea/block_cipher.h"
 
@@ -29,7 +29,7 @@ typedef struct {
     //aes_context aes_ctx;    // cipher context used
 } flea_ghash_ctx_t;
 
-flea_err_t THR_flea_ghash_ctx_t__setkey( flea_ghash_ctx_t *ctx__pt,   // pointer to caller-provided gcm context
+flea_err_t THR_flea_ghash_ctx_t__init( flea_ghash_ctx_t *ctx__pt,   // pointer to caller-provided gcm context
     const flea_ecb_mode_ctx_t *ecb_ctx__pt);
 
 flea_err_t THR_flea_ghash_ctx_t__start( flea_ghash_ctx_t *ctx,    // pointer to user-provided GCM context

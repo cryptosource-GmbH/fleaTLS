@@ -18,7 +18,7 @@
  * this flag to let flea only use stack buffers. In the latter case, be sure to
  * correctly define the RSA and EC key sizes.
  */
-//#define FLEA_USE_HEAP_BUF  // FBFLAGS_CORE_ON_OFF
+#define FLEA_USE_HEAP_BUF  // FBFLAGS_CORE_ON_OFF
 
 /**
  * Activate this flag to make use of the buffer overwrite detection. Should not
@@ -144,6 +144,13 @@
  * be used for various purposes.
  */
 #define FLEA_ON_LINUX_PLTF
+
+/**
+ * Enabling this flag causes the choice of code optimized for big endian platforms in some places.
+ * In any case, the generated remains valid independently of the platform's
+ * endianess, but may be non-optimal with regard to size and/or speed.
+ */
+#define FLEA_HAVE_BE_ARCH_OPT // FBFLAGS_ARCH_OPT_ON_OFF
 
 /**
  * set this value to use the user-provided implementation of the function
