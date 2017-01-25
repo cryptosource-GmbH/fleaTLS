@@ -20,17 +20,15 @@ typedef struct
     flea_u32_t HL[32];       
     flea_u32_t HH[32];      
     flea_u8_t base_ectr[16];
-    flea_u8_t y[16];       
+    //flea_u8_t y[16];       
     flea_u8_t buf[16];    
 //#endif
-    //flea_u8_t pend_input__bu8[16];
     flea_u8_t pend_input_len__u8;
 } flea_ghash_ctx_t;
 
-flea_err_t THR_flea_ghash_ctx_t__init( flea_ghash_ctx_t *ctx__pt,   
-    const flea_ecb_mode_ctx_t *ecb_ctx__pt);
+flea_err_t THR_flea_ghash_ctx_t__init( flea_ghash_ctx_t *ctx__pt, const flea_ecb_mode_ctx_t *ecb_ctx__pt);
 
-flea_err_t THR_flea_ghash_ctx_t__start( flea_ghash_ctx_t *ctx, const flea_ecb_mode_ctx_t * ecb_ctx__pt, const flea_u8_t *iv, size_t iv_len, const flea_u8_t *add, size_t add_len);
+flea_err_t THR_flea_ghash_ctx_t__start( flea_ghash_ctx_t *ctx, const flea_ecb_mode_ctx_t * ecb_ctx__pt, const flea_u8_t *iv, size_t iv_len, const flea_u8_t *add, flea_al_u16_t add_len, flea_u8_t * ctr_block__pu8);
 
 flea_err_t THR_flea_ghash_ctx_t__update( flea_ghash_ctx_t *ctx, flea_dtl_t length, const flea_u8_t *input);
 
