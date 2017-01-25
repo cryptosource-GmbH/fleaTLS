@@ -19,8 +19,8 @@ typedef struct {
     //int mode;               // cipher direction: encrypt/decrypt
     flea_u64_t len;           // cipher data length processed so far
     flea_u64_t add_len;       // total add data length
-    flea_u64_t HL[16];        // precalculated lo-half HTable
-    flea_u64_t HH[16];        // precalculated hi-half HTable
+    flea_u32_t HL[32];        // precalculated lo-half HTable
+    flea_u32_t HH[32];        // precalculated hi-half HTable
     flea_u8_t base_ectr[16];    // first counter-mode cipher output for tag
     flea_u8_t y[16];            // the current cipher-input IV|Counter value
     flea_u8_t buf[16];          // buf working value

@@ -91,6 +91,13 @@ do { \
 do { \
   u64 = au32[0] | ((flea_u64_t) au32[1] << 32); \
 }while(0)
+
+#define FLEA_U64_OR_AU32(au32_in_out, au32_in) \
+  do { \
+    au32_in_out[0] |= au32_in[0]; \
+    au32_in_out[1] |= au32_in[1]; \
+  }while(0)
+
 static void gcm_mult( flea_ghash_ctx_t *ctx__pt,     // pointer to established context
                       const flea_u8_t x[16],    // pointer to 128-bit input vector
                       flea_u8_t output[16] )    // pointer to 128-bit output vector
@@ -103,8 +110,13 @@ static void gcm_mult( flea_ghash_ctx_t *ctx__pt,     // pointer to established c
     flea_u32_t tmp_a[2];
     lo = (flea_u8_t)( x[15] & 0x0f );
     hi = (flea_u8_t)( x[15] >> 4 );
-    zh = ctx__pt->HH[lo];
-    zl = ctx__pt->HL[lo];
+    //zh = ctx__pt->HH[lo];
+    zh = ctx__pt->HH[2*lo] | (flea_u64_t) ctx__pt->HH[2*lo+1] << 32;
+    printf("from HH: zh = %016llx\n", zh);
+
+    //zl = ctx__pt->HL[lo];
+    zl = ctx__pt->HL[2*lo] |  (flea_u64_t) ctx__pt->HL[2*lo+1] << 32;
+    printf("from HL: zl = %016llx\n", zl);
   
     //flea_u32_t zhl, zhh, zll, zlh;
     for( i = 15; i >= 0; i-- ) {
@@ -127,23 +139,35 @@ static void gcm_mult( flea_ghash_ctx_t *ctx__pt,     // pointer to established c
             tmp_a[0] |= zl_a[0];
 
             FLEA_AU32_TO_U64(tmp_a, zl);
+            printf("zl_a[0] = %08x\n", zl_a[0]);
+            printf("zl_a[1] = %08x\n", zl_a[1]);
+            
             //zl = tmp | ( zl >> 4 );
-            //printf("zl mine = %016llx\n", zl);
+            printf("zl mine = %016llx\n", zl);
             
             //zl = (flea_u64_t)zlh << 32 | zll | zl >> 4;
         
         
             zh = ( zh >> 4 );
             zh ^= (flea_u64_t) last4[rem] << 48;
-            zh ^= ctx__pt->HH[lo];
-            zl ^= ctx__pt->HL[lo];
+            //zh ^= ctx__pt->HH[lo];
+            zh ^= ctx__pt->HH[2*lo] | (flea_u64_t) ctx__pt->HH[2*lo+1] << 32;
+
+            //zl ^= ctx__pt->HL[lo];
+            zl ^= ctx__pt->HL[2*lo] | (flea_u64_t) ctx__pt->HL[2*lo+1] << 32;
+            printf("zl mine after xor = %016llx\n", zl);
         }
         rem = (flea_u8_t) ( zl & 0x0f );
         zl = ( zh << 60 ) | ( zl >> 4 );
         zh = ( zh >> 4 );
+        //printf("rem = %u\n", rem);
         zh ^= (flea_u64_t) last4[rem] << 48;
-        zh ^= ctx__pt->HH[hi];
-        zl ^= ctx__pt->HL[hi];
+      
+        //zh ^= ctx__pt->HH[hi];
+        zh ^= ctx__pt->HH[2*hi] | (flea_u64_t) ctx__pt->HH[2*hi+1] << 32;
+       
+        //zl ^= ctx__pt->HL[hi];
+        zl ^= ctx__pt->HL[2*hi] |  (flea_u64_t) ctx__pt->HL[2*hi+1] << 32;
     }
     PUT_UINT32_BE( zh >> 32, output, 0 );
     PUT_UINT32_BE( zh, output, 4 );
@@ -165,8 +189,10 @@ flea_err_t THR_flea_ghash_ctx_t__setkey( flea_ghash_ctx_t *ctx__pt,   // pointer
                 ) // must be 128, 192 or 256
 {
     int i, j;
-    flea_u64_t hi, lo;
-    flea_u64_t vl, vh;
+    //flea_u64_t hi, lo;
+    //flea_u32_t hi_a[2], lo_a[2];
+    //flea_u64_t vl, vh;
+    flea_u32_t vl_a[2], vh_a[2];
     flea_u8_t h[16];
 
     FLEA_THR_BEG_FUNC();
@@ -182,33 +208,76 @@ flea_err_t THR_flea_ghash_ctx_t__setkey( flea_ghash_ctx_t *ctx__pt,   // pointer
         return( ret );*/
     FLEA_CCALL(THR_flea_ecb_mode_crypt_data(ecb_ctx__pt, h, h, ecb_ctx__pt->block_length__u8));
 
-    GET_UINT32_BE( hi, h,  0  );    // pack h as two 64-bit ints, big-endian
-    GET_UINT32_BE( lo, h,  4  );
-    vh = (flea_u64_t) hi << 32 | lo;
+    //GET_UINT32_BE( hi, h,  0  );    // pack h as two 64-bit ints, big-endian
+    GET_UINT32_BE( vh_a[1], h,  0  );    // pack h as two 64-bit ints, big-endian
+    //GET_UINT32_BE( lo_a[0], h,  4  );
+    GET_UINT32_BE( vh_a[0], h,  4  );
+    //vh = (flea_u64_t) hi << 32 | lo;
 
-    GET_UINT32_BE( hi, h,  8  );
-    GET_UINT32_BE( lo, h,  12 );
-    vl = (flea_u64_t) hi << 32 | lo;
+    //GET_UINT32_BE( hi, h,  8  );
+    GET_UINT32_BE( vl_a[1], h,  8  );
+    //GET_UINT32_BE( lo, h,  12 );
+    GET_UINT32_BE( vl_a[0], h,  12 );
+    //vl = (flea_u64_t) hi << 32 | lo;
 
-    ctx__pt->HL[8] = vl;                // 8 = 1000 corresponds to 1 in GF(2^128)
-    ctx__pt->HH[8] = vh;
+    //ctx__pt->HL[8] = vl;                // 8 = 1000 corresponds to 1 in GF(2^128)
+    ctx__pt->HL[16] = vl_a[0];                // 8 = 1000 corresponds to 1 in GF(2^128)
+    ctx__pt->HL[17] = vl_a[1];                // 8 = 1000 corresponds to 1 in GF(2^128)
+
+    //ctx__pt->HH[8] = vh;
+    ctx__pt->HH[16] = vh_a[0];
+    ctx__pt->HH[17] = vh_a[1];
+    
+    //ctx__pt->HH[0] = 0;                 // 0 corresponds to 0 in GF(2^128)
     ctx__pt->HH[0] = 0;                 // 0 corresponds to 0 in GF(2^128)
+    ctx__pt->HH[1] = 0;                 // 0 corresponds to 0 in GF(2^128)
+    
+    //ctx__pt->HL[0] = 0;
     ctx__pt->HL[0] = 0;
+    ctx__pt->HL[1] = 0;
 
-    for( i = 4; i > 0; i >>= 1 ) {
-        flea_u32_t T = (flea_u32_t) ( vl & 1 ) * 0xe1000000UL;
-        vl  = ( vh << 63 ) | ( vl >> 1 );
-        vh  = ( vh >> 1 ) ^ ( (flea_u64_t) T << 32);
-        ctx__pt->HL[i] = vl;
-        ctx__pt->HH[i] = vh;
+    for( i = 4; i > 0; i >>= 1 ) 
+    {
+      flea_u32_t tmp_a[2];
+        flea_u32_t T = (flea_u32_t) ( vl_a[0] & 1 ) * 0xe1000000UL;
+        //vl  = ( vh << 63 ) | ( vl >> 1 );
+        FLEA_LSHIFT_U64_AU32_LARGE(vh_a, tmp_a, 63); 
+        FLEA_RSHIFT_U64_AU32_SMALL(vl_a, vl_a, 1);
+        FLEA_U64_OR_AU32(vl_a, tmp_a);
+        //vh  = ( vh >> 1 ) ^ ( (flea_u64_t) T << 32);
+        FLEA_RSHIFT_U64_AU32_SMALL(vh_a, vh_a, 1);
+        vh_a[1] ^= T;
+
+        //ctx__pt->HL[i] = vl;
+        ctx__pt->HL[2*i] = vl_a[0];
+        ctx__pt->HL[2*i+1] = vl_a[1];
+
+        //ctx__pt->HH[i] = vh;
+        ctx__pt->HH[2*i] = vh_a[0];
+        ctx__pt->HH[2*i+1] = vh_a[1];
     }
     for (i = 2; i < 16; i <<= 1 ) {
-        flea_u64_t *HiL = ctx__pt->HL + i, *HiH = ctx__pt->HH + i;
-        vh = *HiH;
-        vl = *HiL;
-        for( j = 1; j < i; j++ ) {
-            HiH[j] = vh ^ ctx__pt->HH[j];
-            HiL[j] = vl ^ ctx__pt->HL[j];
+        //flea_u64_t *HiL = ctx__pt->HL + i, *HiH = ctx__pt->HH + i;
+        flea_u32_t * HiL_a = ctx__pt->HL + 2*i;
+        flea_u32_t * HiH_a = ctx__pt->HH + 2*i;
+        
+        //vh = *HiH;
+        vh_a[0] = HiH_a[0];
+        vh_a[1] = HiH_a[1];
+        
+        //vl = *HiL;
+        vl_a[0] = HiL_a[0];
+        vl_a[1] = HiL_a[1];
+
+        for( j = 1; j < i; j++ ) 
+        {
+            //HiH[j] = vh ^ ctx__pt->HH[j];
+            HiH_a[2*j] = vh_a[0] ^ ctx__pt->HH[2*j];
+            HiH_a[2*j+1] = vh_a[1] ^ ctx__pt->HH[2*j+1];
+
+            //HiL[j] = vl ^ ctx__pt->HL[j];
+            HiL_a[2*j] = vl_a[0] ^ ctx__pt->HL[2*j];
+            HiL_a[2*j+1] = vl_a[1] ^ ctx__pt->HL[2*j+1];
         }
     }
     FLEA_THR_FIN_SEC_empty();
