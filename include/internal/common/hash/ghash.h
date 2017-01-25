@@ -16,17 +16,17 @@ extern "C" {
   typedef struct 
   {
     flea_len_ctr_t len_ctr__t;
-    flea_u16_t add_len;       
+    flea_u16_t hdr_len__u16;       
 #ifdef FLEA_USE_HEAP_BUF
     flea_u32_t *hl__bu32;       
     flea_u32_t *hh__bu32;      
-    flea_u8_t *base_ectr;
-    flea_u8_t *buf;    
+    flea_u8_t *base_ctr__bu8;
+    flea_u8_t *state__bu8;    
 #else
     flea_u32_t hl__bu32[32];       
     flea_u32_t hh__bu32[32];      
-    flea_u8_t base_ectr[16];
-    flea_u8_t buf[16];    
+    flea_u8_t base_ctr__bu8[16];
+    flea_u8_t state__bu8[16];    
 #endif
     flea_u8_t pend_input_len__u8;
   } flea_ghash_ctx_t;
