@@ -4,15 +4,17 @@
 #include "flea/ae.h"
 #include "flea/alloc.h"
 #include "flea/bin_utils.h"
+#include "flea/util.h"
 #include "internal/common/hash/ghash.h"
 #include "flea/error_handling.h"
+
+#define __FLEA_GHASH_STATE_U32_ARR_LEN (32 + 32 + 16/4 + 16/4)
 
 static const flea_u16_t ghash_lo[16] = 
 {
   0x0000, 0x1c20, 0x3840, 0x2460, 0x7080, 0x6ca0, 0x48c0, 0x54e0,
   0xe100, 0xfd20, 0xd940, 0xc560, 0x9180, 0x8da0, 0xa9c0, 0xb5e0 
 };
-
 /**
  * Lshift smaller than shiftwidth 32 
  */
@@ -111,15 +113,20 @@ static void ghash_xor_and_process_block( flea_ghash_ctx_t *ctx__pt, flea_u8_t ou
   flea__xor_bytes_in_place(output__pu8, input__pcu8, input_len__alu8);
   ghash_process_block(ctx__pt, output__pu8);
 }
-flea_err_t THR_flea_ghash_ctx_t__init( flea_ghash_ctx_t *ctx__pt,   
-    const flea_ecb_mode_ctx_t *ecb_ctx__pt
-    ) 
+
+flea_err_t THR_flea_ghash_ctx_t__ctor( flea_ghash_ctx_t *ctx__pt, const flea_ecb_mode_ctx_t *ecb_ctx__pt) 
 {
   int i, j;
   flea_u32_t vl_a[2], vh_a[2];
   flea_u8_t h[__FLEA_GHASH_BLOCK_SIZE];
 
   FLEA_THR_BEG_FUNC();
+#ifdef FLEA_USE_HEAP_BUF
+FLEA_ALLOC_MEM_ARR(ctx__pt->HL, __FLEA_GHASH_STATE_U32_ARR_LEN);
+ctx__pt->HH = ctx__pt->HL + 32;
+ctx__pt->base_ectr = (flea_u8_t *) (ctx__pt->HH + 32);
+ctx__pt->buf=  ctx__pt->base_ectr + 16;
+#endif
   memset( h, 0, __FLEA_GHASH_BLOCK_SIZE );                     
   FLEA_CCALL(THR_flea_len_ctr_t__ctor(&ctx__pt->len_ctr__t, 2, 36, 32));
   FLEA_CCALL(THR_flea_ecb_mode_crypt_data(ecb_ctx__pt, h, h, ecb_ctx__pt->block_length__u8));
@@ -308,4 +315,7 @@ void flea_ghash_ctx_t__finish( flea_ghash_ctx_t *ctx__pt,
 void flea_ghash_ctx_t__dtor(flea_ghash_ctx_t *ctx__pt)
 {
   flea_len_ctr_t__dtor(&ctx__pt->len_ctr__t);
+#ifdef FLEA_USE_HEAP_BUF
+   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->HL, __FLEA_GHASH_STATE_U32_ARR_LEN);
+#endif
 }
