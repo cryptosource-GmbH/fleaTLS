@@ -11,6 +11,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+#define __FLEA_GHASH_BLOCK_SIZE 16
 
 typedef struct 
 {
