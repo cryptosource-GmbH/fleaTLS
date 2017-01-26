@@ -282,7 +282,9 @@ typedef struct {
 	CompressionMethod compression_method;
 
 	/* sequence number */
-	flea_u64_t sequence_number;
+	//flea_u64_t sequence_number;
+  flea_u32_t sequence_number__au32[2];
+  //flea_u32_t sequence_number_hi;
 
 	// TODO: maybe need to add more fields for stream ciphers
 
