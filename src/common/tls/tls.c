@@ -313,7 +313,7 @@ flea_err_t THR_flea_tls__read_record(flea_tls_ctx_t* tls_ctx, flea_u8_t* buff, f
 
 	if (buff_len < 5)
 	{
-		printf("Record too short!\n");
+		//printf("Record too short!\n");
 		FLEA_THROW("record length too short", FLEA_ERR_TLS_GENERIC);
 	}
 
@@ -325,13 +325,14 @@ flea_err_t THR_flea_tls__read_record(flea_tls_ctx_t* tls_ctx, flea_u8_t* buff, f
 	// TODO: have to allow several TLS versions, maybe use <, <=, >, >= instead of ==, !=
 	if (record->version.minor != tls_ctx->version.minor && record->version.major != tls_ctx->version.major)
 	{
-		printf("Version mismatch!\n");
 		FLEA_THROW("version mismatch", FLEA_ERR_TLS_GENERIC);
 	}
 
-	flea_u8_t *p = (flea_u8_t*) &record->length;
-	p[1] = buff[i++];
-	p[0] = buff[i++];
+	//flea_u8_t *p = (flea_u8_t*) &record->length;
+	/*p[1] = buff[i++];
+	p[0] = buff[i++];*/
+  record->length = buff[i++] << 8;
+  record->length |= buff[i++];
 
 
 	// need more data?
@@ -1341,6 +1342,7 @@ flea_err_t THR_flea_tls__read_next_record(flea_tls_ctx_t* tls_ctx, Record* recor
 	// When no bytes are left we have to read new data from the network
 	if (state->bytes_left == 0)
 	{
+    // TODO: REPLACE FIXED LENGTH 
 		FLEA_CCALL(THR_flea_tls__receive(socket_fd, state->read_buff, 16384, &state->read_buff_len));
 		state->bytes_left = state->read_buff_len;
 		state->bytes_read = 0;
