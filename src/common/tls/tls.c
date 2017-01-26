@@ -48,116 +48,92 @@ flea_tls__cipher_suite_t cipher_suites[2] =
 };
 
 
-// TODO: look at botan design: lib/kdf/prf_tls.cpp
-/* Falko: use "const" for input data*/
-flea_err_t P_Hash_Old(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u16_t seed_length, flea_u16_t res_length, flea_u8_t* data_out)
+static flea_err_t P_Hash(const flea_u8_t* secret, flea_u16_t secret_length, const flea_u8_t* seed, flea_u16_t seed_length, flea_u8_t* data_out, flea_u16_t res_length )
 {
-	flea_u16_t hash_len = 32;
-	flea_u16_t A_len;
-	if (seed_length > hash_len)
-	{
-		A_len = seed_length;
-	}
-	else
-	{
-		A_len = hash_len;
-	}
-	flea_u8_t A[A_len]; /* Falko: dynamically-sized stack buffers may not be used */
-	flea_u8_t A2[A_len];
-	flea_u8_t tmp_input[hash_len];
-	flea_u8_t tmp_output[hash_len];
-
-	// A(0) = seed
-	memcpy(A, seed, seed_length);
-
-	// expand to length bytes
-	flea_u16_t current_length = 0;
-	flea_al_u8_t len = hash_len;
-	flea_bool_t first = FLEA_TRUE;
-
-	FLEA_THR_BEG_FUNC();
-	while (current_length < res_length)
-	{
-		// A(i) = HMAC_hash(secret, A(i-1))
-		if (first)
-		{
-			FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, seed, seed_length, A2, &len));
-			first = FLEA_FALSE;
-		}
-		else
-		{
-			FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, A, hash_len, A2, &len));
-      // Ausgabe direkt nach tmp_input scheint am einfachsten
-		}
-// Falko A2 => A => tmp_input ? kann hier nicht ein Schritt gespart werden?
-		memcpy(A, A2, hash_len);
-
-		// calculate A(i) + seed
-		memcpy(tmp_input, A, hash_len);
-		memcpy(tmp_input+hash_len, seed, seed_length);
-
-		// + HMAC_hash(secret, A(i) + seed)
-		// concatenate to the result
-    // Falko: das kann direkt nach data_out geschrieben werden, mit entsprechend
-    // angepasster Ausgabelaenge:
-		FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, tmp_input, hash_len+seed_length, tmp_output, &len));
-    /* Falko: dann unoetig ( davon abgesehen sollte nur ein Aufruf mit
-     * entsprechend berechneter Laenge erfolgen ): */
-		if (current_length+hash_len < res_length)
-		{
-			memcpy(data_out+current_length, tmp_output, hash_len);
-		}
-		else
-		{
-			memcpy(data_out+current_length, tmp_output, res_length - current_length);
-		}
-		current_length += hash_len;
-	}
-	FLEA_THR_FIN_SEC_empty();
-}
-flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u16_t seed_length, flea_u16_t res_length, flea_u8_t* data_out)
-{
-	const flea_u16_t hash_out_len__alu8 = 32;
-	flea_u16_t A_len;
-	//flea_u8_t A__bu8[32]; /* Falko: dynamically-sized stack buffers may not be used */
+  const flea_u16_t hash_out_len__alu8 = 32;
   FLEA_DECL_BUF(a__bu8, flea_u8_t, 64);
-  //flea_u8_t B__bu8[32];
   flea_u8_t *A;
   flea_u8_t *B;
   flea_u8_t *tmp__pu8;
   flea_mac_ctx_t hmac__t = flea_mac_ctx_t__INIT_VALUE;
 
-	flea_u16_t current_length = 0;
-	// expand to length bytes
-	flea_al_u8_t len__alu8 = hash_out_len__alu8;
-FLEA_THR_BEG_FUNC();
-FLEA_ALLOC_BUF(a__bu8, 64);
+  // expand to length bytes
+  flea_al_u8_t len__alu8 = hash_out_len__alu8;
+  FLEA_THR_BEG_FUNC();
+  FLEA_ALLOC_BUF(a__bu8, 64);
   A = a__bu8;
   B = a__bu8 + 32;
-	FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, seed, seed_length, A, &len__alu8));
-	while (res_length)
-	{
+  FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, seed, seed_length, A, &len__alu8));
+  while (res_length)
+  {
     flea_al_u8_t to_go__alu16 = FLEA_MIN(res_length, hash_out_len__alu8);
-      res_length -= to_go__alu16;
-		// A(i) = HMAC_hash(secret, A(i-1))
-     flea_mac_ctx_t__INIT(&hmac__t);
-     FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&hmac__t, flea_hmac_sha256, secret, secret_length));
-     FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, A, hash_out_len__alu8)); 
-     FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, seed, seed_length)); 
-     len__alu8 = to_go__alu16;
-     FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&hmac__t, data_out, &len__alu8)); 
-     data_out += to_go__alu16;
-     len__alu8 = hash_out_len__alu8;
-     FLEA_CCALL(THR_flea_mac__compute_mac( flea_hmac_sha256, secret, secret_length, A, hash_out_len__alu8, B, &len__alu8));
-     tmp__pu8 = A;
-     A = B;
-     B = tmp__pu8;
-     flea_mac_ctx_t__dtor(&hmac__t);
-	}
-	FLEA_THR_FIN_SEC(
-   flea_mac_ctx_t__dtor(&hmac__t); 
-  FLEA_FREE_BUF_FINAL_SECRET_ARR(a__bu8, 64);
-    );
+    res_length -= to_go__alu16;
+    // A(i) = HMAC_hash(secret, A(i-1))
+    flea_mac_ctx_t__INIT(&hmac__t);
+    FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&hmac__t, flea_hmac_sha256, secret, secret_length));
+    FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, A, hash_out_len__alu8)); 
+    FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, seed, seed_length)); 
+    len__alu8 = to_go__alu16;
+    FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&hmac__t, data_out, &len__alu8)); 
+    data_out += to_go__alu16;
+    len__alu8 = hash_out_len__alu8;
+    FLEA_CCALL(THR_flea_mac__compute_mac( flea_hmac_sha256, secret, secret_length, A, hash_out_len__alu8, B, &len__alu8));
+    tmp__pu8 = A;
+    A = B;
+    B = tmp__pu8;
+    flea_mac_ctx_t__dtor(&hmac__t);
+  }
+  FLEA_THR_FIN_SEC(
+      flea_mac_ctx_t__dtor(&hmac__t); 
+      FLEA_FREE_BUF_FINAL_SECRET_ARR(a__bu8, 64);
+      );
+}
+static flea_err_t P_Hash_wLabel(const flea_u8_t* secret, flea_u16_t secret_length, const flea_u8_t * label__pcu8, flea_al_u8_t label_len__alu8, const flea_u8_t* seed, flea_u16_t seed_length, flea_u8_t* data_out, flea_u16_t res_length )
+{
+  const flea_u16_t hash_out_len__alu8 = 32;
+  FLEA_DECL_BUF(a__bu8, flea_u8_t, 64);
+  flea_u8_t *A;
+  flea_u8_t *B;
+  flea_u8_t *tmp__pu8;
+  flea_mac_ctx_t hmac__t = flea_mac_ctx_t__INIT_VALUE;
+
+  // expand to length bytes
+  flea_al_u8_t len__alu8 = hash_out_len__alu8;
+  FLEA_THR_BEG_FUNC();
+  FLEA_ALLOC_BUF(a__bu8, 64);
+  A = a__bu8;
+  B = a__bu8 + 32;
+    flea_mac_ctx_t__INIT(&hmac__t);
+    FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&hmac__t, flea_hmac_sha256, secret, secret_length));
+    FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, label__pcu8, label_len__alu8)); 
+    FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, seed, seed_length)); 
+    FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&hmac__t, A, &len__alu8)); 
+    flea_mac_ctx_t__dtor(&hmac__t);
+  //FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, seed, seed_length, A, &len__alu8));
+  while (res_length)
+  {
+    flea_al_u8_t to_go__alu16 = FLEA_MIN(res_length, hash_out_len__alu8);
+    res_length -= to_go__alu16;
+    // A(i) = HMAC_hash(secret, A(i-1))
+    flea_mac_ctx_t__INIT(&hmac__t);
+    FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&hmac__t, flea_hmac_sha256, secret, secret_length));
+    FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, A, hash_out_len__alu8)); 
+    FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, label__pcu8, label_len__alu8)); 
+    FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, seed, seed_length)); 
+    len__alu8 = to_go__alu16;
+    FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&hmac__t, data_out, &len__alu8)); 
+    data_out += to_go__alu16;
+    len__alu8 = hash_out_len__alu8;
+    FLEA_CCALL(THR_flea_mac__compute_mac( flea_hmac_sha256, secret, secret_length, A, hash_out_len__alu8, B, &len__alu8));
+    tmp__pu8 = A;
+    A = B;
+    B = tmp__pu8;
+    flea_mac_ctx_t__dtor(&hmac__t);
+  }
+  FLEA_THR_FIN_SEC(
+      flea_mac_ctx_t__dtor(&hmac__t); 
+      FLEA_FREE_BUF_FINAL_SECRET_ARR(a__bu8, 64);
+      );
 }
 /**
       P_hash(secret, seed) = HMAC_hash(secret, A(1) + seed) +
@@ -182,18 +158,19 @@ FLEA_ALLOC_BUF(a__bu8, 64);
 	              [0..verify_data_length-1];
 */
 // length: how long should the output be. 12 Octets = 96 Bits
-flea_err_t flea_tls__prf(flea_u8_t* secret, flea_u8_t secret_length, PRFLabel label, flea_u8_t* seed, flea_u16_t seed_length, flea_u16_t result_length, flea_u8_t* result) {
+flea_err_t flea_tls__prf(const flea_u8_t* secret, flea_u8_t secret_length, PRFLabel label, const flea_u8_t* seed, flea_u16_t seed_length, flea_u16_t result_length, flea_u8_t* result) {
 	FLEA_THR_BEG_FUNC();
 
 	/**
 		TODO: no fixed sha256
 	*/
-	flea_u8_t client_finished[] = {99, 108, 105, 101, 110, 116, 32, 102, 105, 110, 105, 115, 104, 101, 100};
-	flea_u8_t server_finished[] = {115, 101, 114, 118, 101, 114, 32, 102, 105, 110, 105, 115, 104, 101, 100};
-	flea_u8_t master_secret[] = {109, 97, 115, 116, 101, 114, 32, 115, 101, 99, 114, 101, 116};
-	flea_u8_t key_expansion[] = {107, 101, 121, 32, 101, 120, 112, 97, 110, 115, 105, 111, 110};
+	const flea_u8_t client_finished[] = {99, 108, 105, 101, 110, 116, 32, 102, 105, 110, 105, 115, 104, 101, 100};
+	const flea_u8_t server_finished[] = {115, 101, 114, 118, 101, 114, 32, 102, 105, 110, 105, 115, 104, 101, 100};
+	const flea_u8_t master_secret[] = {109, 97, 115, 116, 101, 114, 32, 115, 101, 99, 114, 101, 116};
+	const flea_u8_t key_expansion[] = {107, 101, 121, 32, 101, 120, 112, 97, 110, 115, 105, 111, 110};
 
-	flea_u8_t test_label[] = 	{0x74, 0x65, 0x73, 0x74, 0x20, 0x6c, 0x61, 0x62, 0x65, 0x6c};
+  // TODO: REMOVE
+	const flea_u8_t test_label[] = 	{0x74, 0x65, 0x73, 0x74, 0x20, 0x6c, 0x61, 0x62, 0x65, 0x6c};
 
 	flea_u8_t p_hash_seed[500];	// arbitrarily chosen: TODO change
 	flea_u16_t p_hash_seed_length;
@@ -204,31 +181,35 @@ flea_err_t flea_tls__prf(flea_u8_t* secret, flea_u8_t secret_length, PRFLabel la
 			memcpy(p_hash_seed, client_finished, sizeof(client_finished));
 			memcpy(p_hash_seed+sizeof(client_finished), seed, seed_length);
 			p_hash_seed_length = sizeof(client_finished) + seed_length;
+	    FLEA_CCALL(P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result, result_length ));
 			break;
 		case PRF_LABEL_MASTER_SECRET:
 			memcpy(p_hash_seed, master_secret, sizeof(master_secret));
 			memcpy(p_hash_seed+sizeof(master_secret), seed, seed_length);
 			p_hash_seed_length = sizeof(master_secret) + seed_length;
+	    FLEA_CCALL(P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result, result_length ));
 			break;
 		case PRF_LABEL_KEY_EXPANSION:
 			memcpy(p_hash_seed, key_expansion, sizeof(key_expansion));
 			memcpy(p_hash_seed+sizeof(key_expansion), seed, seed_length);
 			p_hash_seed_length = sizeof(key_expansion) + seed_length;
+	    FLEA_CCALL(P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result, result_length ));
 			break;
 		case PRF_LABEL_SERVER_FINISHED:
 			memcpy(p_hash_seed, server_finished, sizeof(server_finished));
 			memcpy(p_hash_seed+sizeof(server_finished), seed, seed_length);
 			p_hash_seed_length = sizeof(server_finished) + seed_length;
+	    FLEA_CCALL(P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result, result_length ));
 			break;
 		case PRF_LABEL_TEST:
 			memcpy(p_hash_seed, test_label, sizeof(test_label));
 			memcpy(p_hash_seed+sizeof(test_label), seed, seed_length);
 			p_hash_seed_length = sizeof(test_label) + seed_length;
+	    FLEA_CCALL(P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result, result_length ));
 			break;
 		default:
 			FLEA_THROW("Invalid label!", FLEA_ERR_TLS_GENERIC);
 	}
-	FLEA_CCALL(P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result_length, result));
 	FLEA_THR_FIN_SEC_empty();
 }
 
