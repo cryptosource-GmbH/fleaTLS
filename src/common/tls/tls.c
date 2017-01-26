@@ -245,7 +245,6 @@ flea_err_t THR_flea_tls__decrypt_record(flea_tls_ctx_t* tls_ctx, Record* record)
 	flea_u8_t enc_key_len = tls_ctx->active_read_connection_state->cipher_suite->enc_key_size;
 	flea_u8_t mac[FLEA_TLS_MAX_MAC_SIZE];
 	flea_u8_t iv[FLEA_TLS_MAX_IV_SIZE];
-	//flea_u8_t block_len = tls_ctx->active_read_connection_state->cipher_suite->block_size;
 	seq_lo__u32 = tls_ctx->active_read_connection_state->sequence_number__au32[0];
 	seq_hi__u32 = tls_ctx->active_read_connection_state->sequence_number__au32[1];
   inc_seq_nbr(tls_ctx->active_read_connection_state->sequence_number__au32);
@@ -257,9 +256,8 @@ flea_err_t THR_flea_tls__decrypt_record(flea_tls_ctx_t* tls_ctx, Record* record)
 	*/
 
 	// TODO: can read and write from/in the same buffer?
-	flea_u8_t tmp[FLEA_TLS_MAX_RECORD_DATA_SIZE];
-	FLEA_CCALL(THR_flea_cbc_mode__decrypt_data(tls_ctx->active_read_connection_state->cipher_suite->cipher, enc_key, enc_key_len, iv, iv_len, tmp, record->data, record->length));
-	memcpy(record->data, tmp, record->length);
+	FLEA_CCALL(THR_flea_cbc_mode__decrypt_data(tls_ctx->active_read_connection_state->cipher_suite->cipher, enc_key, enc_key_len, iv, iv_len, record->data, record->data, record->length));
+
 
 	/*
 		Remove padding and read IV
@@ -272,10 +270,9 @@ flea_err_t THR_flea_tls__decrypt_record(flea_tls_ctx_t* tls_ctx, Record* record)
 	*/
 	flea_u8_t in_out_mac_len = mac_len;
 	flea_u16_t data_len = record->length - (padding_len + 1) - iv_len - mac_len;
-	FLEA_CCALL(THR_flea_tls__compute_mac(record->data+iv_len, data_len, &tls_ctx->version, tls_ctx->active_read_connection_state->cipher_suite->mac_algorithm,
-																	mac_key, mac_key_len, enc_seq_nbr__au8, record->content_type, mac, &in_out_mac_len));
+	FLEA_CCALL(THR_flea_tls__compute_mac(record->data+iv_len, data_len, &tls_ctx->version, tls_ctx->active_read_connection_state->cipher_suite->mac_algorithm, mac_key, mac_key_len, enc_seq_nbr__au8, record->content_type, mac, &in_out_mac_len));
 
-  if (memcmp(mac, record->data+iv_len+data_len, mac_len) != 0)
+  if (!flea_sec_mem_equal(mac, record->data+iv_len+data_len, mac_len))
 	{
 		printf("MAC does not match!\n");
 		FLEA_THROW("MAC failure", FLEA_ERR_TLS_GENERIC);
@@ -284,10 +281,7 @@ flea_err_t THR_flea_tls__decrypt_record(flea_tls_ctx_t* tls_ctx, Record* record)
 	/*
 		adjust record
 	*/
-	flea_u8_t* tmp_data = calloc(data_len, sizeof(flea_u8_t));
-	memcpy(tmp_data, record->data+iv_len, data_len);
-	free(record->data);
-	record->data = tmp_data;
+  memmove(record->data, record->data+iv_len, data_len);
 	record->length = data_len;
 
 	FLEA_THR_FIN_SEC_empty();
