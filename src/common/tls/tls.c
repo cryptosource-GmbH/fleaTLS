@@ -726,7 +726,9 @@ void flea_tls__record_to_bytes(Record* record, flea_u8_t *bytes, flea_u16_t *len
 	bytes[i++] = record->version.major;
 	bytes[i++] = record->version.minor;
 
-	if (record->length < 256)
+  bytes[i++] = record->length >> 8;
+  bytes[i++] = record->length;
+	/*if (record->length < 256)
 	{
 		bytes[i++] = 0;
 		bytes[i++] = record->length;
@@ -739,7 +741,7 @@ void flea_tls__record_to_bytes(Record* record, flea_u8_t *bytes, flea_u16_t *len
 		bytes[i++] = p[1];
 		bytes[i++] = p[0];
 
-	}
+	}*/
 
 	memcpy(bytes+i, record->data, record->length);
 	i += record->length;
