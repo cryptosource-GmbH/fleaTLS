@@ -328,9 +328,6 @@ flea_err_t THR_flea_tls__read_record(flea_tls_ctx_t* tls_ctx, flea_u8_t* buff, f
 		FLEA_THROW("version mismatch", FLEA_ERR_TLS_GENERIC);
 	}
 
-	//flea_u8_t *p = (flea_u8_t*) &record->length;
-	/*p[1] = buff[i++];
-	p[0] = buff[i++];*/
   record->length = buff[i++] << 8;
   record->length |= buff[i++];
 
@@ -342,10 +339,10 @@ flea_err_t THR_flea_tls__read_record(flea_tls_ctx_t* tls_ctx, flea_u8_t* buff, f
 		printf("Record Fragmenting not yet supported!\n");
 		FLEA_THROW("Not Yet Implemented", FLEA_ERR_TLS_GENERIC);
 	}
-
+// TODO: IF record-length > max_rec_len, then error
 	// everything else is the record content
 	record->data = calloc(record->length, sizeof(flea_u8_t));
-	memcpy(record->data, buff+i, sizeof(flea_u8_t)*record->length);
+	memcpy(record->data, buff+i, record->length);
 	i += record->length;
 
 	//*bytes_left = buff_len - i;
@@ -951,7 +948,9 @@ flea_err_t THR_flea_tls__encrypt_record(flea_tls_ctx_t* tls_ctx, Record* record,
 	flea_rng__randomize(iv, iv_len);
 
 	// compute padding
-	flea_u8_t padding_len = (block_len - (data_len + mac_len + 1) % block_len) % block_len + 1;	// +1 for padding_length entry
+  // TODO: 2x % block_len => was war beabsichtigt?
+	//flea_u8_t padding_len = (block_len - (data_len + mac_len + 1) % block_len) % block_len + 1;	// +1 for padding_length entry
+	flea_u8_t padding_len = (block_len - (data_len + mac_len + 1) % block_len) + 1;	// +1 for padding_length entry
 	flea_u8_t padding[FLEA_TLS_MAX_PADDING_SIZE];
 	flea_dtl_t input_output_len = data_len + padding_len + mac_len;
 	flea_u8_t padded_data[FLEA_TLS_MAX_RECORD_DATA_SIZE];
@@ -1436,7 +1435,7 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx
 		if (handshake_state.initialized == FLEA_FALSE)
 		{
 			// send client hello
-			THR_flea_tls__send_client_hello(tls_ctx, &hash_ctx, socket_fd);
+			FLEA_CCALL(THR_flea_tls__send_client_hello(tls_ctx, &hash_ctx, socket_fd));
 
 			handshake_state.initialized = FLEA_TRUE;
 			handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO;
