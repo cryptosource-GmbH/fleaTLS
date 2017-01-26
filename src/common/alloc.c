@@ -4,9 +4,6 @@
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
 
-#ifdef FLEA_USE_BUF_DBG_CANARIES
-flea_u8_t flea_dbg_canaries_flag = 0;
-#endif
 
 #ifdef FLEA_USE_HEAP_BUF
 flea_err_t THR_flea_alloc__realloc_mem(void** mem_in_out__ppv, flea_u32_t orig_size__u32, flea_u32_t new_size__u32)

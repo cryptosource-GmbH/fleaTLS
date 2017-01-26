@@ -25,7 +25,6 @@ static const flea_u16_t ghash_lo[16] =
     out[0] = in[0] << shift; \
   }while(0);
 
-
 #define FLEA_RSHIFT_U64_AU32_SMALL(in, out, shift) \
   do{ \
     out[0]= (in[0] >> shift); \

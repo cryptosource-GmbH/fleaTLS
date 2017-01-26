@@ -37,10 +37,7 @@ static flea_err_t THR_flea_len_ctr_t__add_and_check_len_limit_inner(flea_u32_t* 
   flea_al_u8_t comp_idx__alu8 = limit_exponent__alu8 / (sizeof(ctr_block__pu32[0]) * 8);
   flea_u32_t comp__u32 = (1 << (limit_exponent__alu8 % (sizeof(ctr_block__pu32[0]) * 8)));
   FLEA_THR_BEG_FUNC();
-   
 
-  //comp_idx__alu8 = ctr_block_arr_len__alu8- comp_idx__alu8;
-  //for(i = ctr_block_arr_len__alu8 - 1; i >= 0; i--)
   for(i = 0; i < ctr_block_arr_len__alu8; i++)
   {
     flea_u32_t tmp__u32;
@@ -74,11 +71,12 @@ void flea_len_ctr_t__reset(flea_len_ctr_t *len_ctr__pt)
 }
 flea_err_t THR_flea_len_ctr_t__add_and_check_len_limit(flea_len_ctr_t *len_ctr__pt, flea_dtl_t add_len__dtl)
 {
-  flea_al_u8_t compare_len__alu8;
+#ifdef FLEA_USE_HEAP_BUF
+  flea_al_u8_t compare_len__alu8 = len_ctr__pt->counter_block_arr_len__u8 + 1;
+#endif
   flea_u32_t check_len_directly__u32 = len_ctr__pt->neg_limit_offset__u16 ? 0 : len_ctr__pt->limit_exponent__u8;
-  FLEA_DECL_BUF(compare__bu32, flea_u32_t,  (sizeof(len_ctr__pt->counter__bu32) /sizeof(len_ctr__pt->counter__bu32)+ 1));
+  FLEA_DECL_BUF(compare__bu32, flea_u32_t,  (sizeof(len_ctr__pt->counter__bu32) /sizeof(len_ctr__pt->counter__bu32[0])+ 1));
   FLEA_THR_BEG_FUNC();
-  compare_len__alu8 = len_ctr__pt->counter_block_arr_len__u8 + 1;
   FLEA_CCALL(THR_flea_len_ctr_t__add_and_check_len_limit_inner(len_ctr__pt->counter__bu32, len_ctr__pt->counter_block_arr_len__u8, add_len__dtl, check_len_directly__u32));
   if(!check_len_directly__u32)
   {

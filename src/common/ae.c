@@ -312,7 +312,7 @@ flea_err_t THR_flea_ae_ctx_t__final_encryption (flea_ae_ctx_t* ctx__pt, flea_u8_
   }
   if(ctx__pt->config__pt->ae_mode__t == flea_eax)
   {
-  FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&ctx__pt->mode_specific__u.eax.cmac_ctx__t, tag__pu8, tag_len__palu8)); // last arg only dummy, might be reduced to correct output size
+  FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&ctx__pt->mode_specific__u.eax.cmac_ctx__t, tag__pu8, tag_len__palu8));
   flea__xor_bytes_in_place(tag__pu8, ctx__pt->mode_specific__u.eax.header_omac__bu8, *tag_len__palu8);
   flea__xor_bytes_in_place(tag__pu8, ctx__pt->mode_specific__u.eax.nonce__bu8, *tag_len__palu8);
   }
