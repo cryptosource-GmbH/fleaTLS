@@ -50,7 +50,7 @@ flea_tls__cipher_suite_t cipher_suites[2] =
 
 // TODO: look at botan design: lib/kdf/prf_tls.cpp
 /* Falko: use "const" for input data*/
-flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u16_t seed_length, flea_u16_t res_length, flea_u8_t* data_out)
+flea_err_t P_Hash_Old(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u16_t seed_length, flea_u16_t res_length, flea_u8_t* data_out)
 {
 	flea_u16_t hash_len = 32;
 	flea_u16_t A_len;
@@ -81,7 +81,7 @@ flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, 
 		// A(i) = HMAC_hash(secret, A(i-1))
 		if (first)
 		{
-			FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, A, seed_length, A2, &len));
+			FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, seed, seed_length, A2, &len));
 			first = FLEA_FALSE;
 		}
 		else
@@ -114,6 +114,51 @@ flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, 
 		current_length += hash_len;
 	}
 	FLEA_THR_FIN_SEC_empty();
+}
+flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, flea_u16_t seed_length, flea_u16_t res_length, flea_u8_t* data_out)
+{
+	const flea_u16_t hash_out_len__alu8 = 32;
+	flea_u16_t A_len;
+	flea_u8_t A__bu8[32]; /* Falko: dynamically-sized stack buffers may not be used */
+  flea_u8_t B__bu8[32];
+flea_u8_t *A;
+flea_u8_t *B;
+flea_u8_t *tmp__pu8;
+	//flea_u8_t A2[A_len];
+	/*flea_u8_t tmp_input[hash_len];
+	flea_u8_t tmp_output[hash_len];*/
+  flea_mac_ctx_t hmac__t = flea_mac_ctx_t__INIT_VALUE;
+
+	flea_u16_t current_length = 0;
+	// expand to length bytes
+	flea_al_u8_t len__alu8 = hash_out_len__alu8;
+FLEA_THR_BEG_FUNC();
+  A = A__bu8;
+  B = B__bu8;
+	FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, seed, seed_length, A, &len__alu8));
+	while (res_length)
+	{
+    flea_al_u8_t to_go__alu16 = FLEA_MIN(res_length, hash_out_len__alu8);
+      res_length -= to_go__alu16;
+		// A(i) = HMAC_hash(secret, A(i-1))
+     FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&hmac__t, flea_hmac_sha256, secret, secret_length));
+     FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, A, hash_out_len__alu8)); 
+     FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, seed, seed_length)); 
+     len__alu8 = to_go__alu16;
+     FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&hmac__t, data_out, &len__alu8)); 
+     data_out += to_go__alu16;
+     len__alu8 = hash_out_len__alu8;
+     FLEA_CCALL(THR_flea_mac__compute_mac( flea_hmac_sha256, secret, secret_length, A, hash_out_len__alu8, B, &len__alu8));
+     tmp__pu8 = A;
+     A = B;
+     B = tmp__pu8;
+		 //FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, data_out, hash_out_len__alu8, A2, &to_go__alu16));
+        
+
+	}
+	FLEA_THR_FIN_SEC(
+   flea_mac_ctx_t__dtor(&hmac__t); 
+    );
 }
 /**
       P_hash(secret, seed) = HMAC_hash(secret, A(1) + seed) +

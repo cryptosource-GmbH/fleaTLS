@@ -84,7 +84,11 @@ flea_err_t THR_flea_mac_ctx_t__update(flea_mac_ctx_t* ctx, const flea_u8_t* dta,
  * to have at least FLEA_MAC_MAX_OUTPUT_LENGTH bytes allocated
  * @param result_len the caller must provide a pointer to a value representing
  * the available length of result, upon function return this value will be
- * updated to the number of bytes written to result
+ * updated to the number of bytes written to result. If the length provided by
+ * the caller is shorter than the natural output length of the chosen MAC, then
+ * the MAC will be truncated accordingly. If the length provided by the caller
+ * is longer than the MAC's natural output length, then the length value will be
+ * set to the MAC's natural output length and the full MAC value will be written.
  *
  * @return flea error code
  */

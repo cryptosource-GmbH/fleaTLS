@@ -429,6 +429,7 @@ static flea_err_t THR_flea_mac_ctx_t__final_compute_cmac (flea_mac_ctx_t* ctx__p
 {
   FLEA_DECL_BUF(block__bu8, flea_u8_t, FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH);
   FLEA_THR_BEG_FUNC();
+  flea_al_u8_t demanded_output_len__alu8;
   flea_u8_t* pending_block__pu8 = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.prev_ct__bu8;
   flea_al_u8_t block_length__alu8 = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_length__u8;
   flea_al_u8_t pending__alu8 = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.pending__u8;
@@ -459,9 +460,14 @@ static flea_err_t THR_flea_mac_ctx_t__final_compute_cmac (flea_mac_ctx_t* ctx__p
   ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_crypt_f(&ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t, block__bu8, block__bu8);
   if(*result_len__palu8 < ctx__pt->output_len__u8)
   {
-    FLEA_THROW("MAC result buffer too small", FLEA_ERR_BUFF_TOO_SMALL);
+    //FLEA_THROW("MAC result buffer too small", FLEA_ERR_BUFF_TOO_SMALL);
+    demanded_output_len__alu8 = *result_len__palu8; 
   }
-  memcpy(result__pu8, block__bu8, ctx__pt->output_len__u8);
+  else
+  {
+    demanded_output_len__alu8 = ctx__pt->output_len__u8;
+  }
+  memcpy(result__pu8, block__bu8, demanded_output_len__alu8);
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(block__bu8);
     );
@@ -484,7 +490,10 @@ flea_err_t THR_flea_mac_ctx_t__final_compute (flea_mac_ctx_t* ctx__pt, flea_u8_t
     FLEA_CCALL(THR_flea_mac_ctx_t__final_compute_cmac(ctx__pt, result__pu8, result_len__palu8));
   }
 #endif
-  *result_len__palu8 = ctx__pt->output_len__u8;
+  if(*result_len__palu8 > ctx__pt->output_len__u8)
+  {
+    *result_len__palu8 = ctx__pt->output_len__u8;
+  }
   FLEA_THR_FIN_SEC_empty();
 }
 
