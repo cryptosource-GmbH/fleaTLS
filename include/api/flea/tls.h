@@ -327,6 +327,17 @@ typedef struct {
 	Random server_random;								/* random value that the server sends */
 } flea_tls__security_parameters_t;
 
+
+typedef struct
+{
+  flea_u8_t * record_hdr__pu8;
+  flea_u8_t * message__pu8;
+  flea_u16_t message_len__u16;
+  flea_u16_t allocated_message_len__u16;
+} flea_tls_record_t;
+
+#define flea_tls_record_t__SET_BUF(__p, __buf, __buf_len) do { (__p)->record_hdr__pu8 = (__buf); (__p)->message__pu8 = (__buf) + 5; (__p)->message_len__u16 = 0; (__p)->allocated_message_len__u16 = (__buf_len) - 5; } while(0)
+
 typedef struct {
 	/* Security Parameters negotiated during handshake */
 	flea_tls__security_parameters_t* security_parameters;	// can be deleted from memory (or saved for later resumption?) TODO: check again how it works, maybe only store master secret

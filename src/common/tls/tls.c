@@ -728,20 +728,6 @@ void flea_tls__record_to_bytes(Record* record, flea_u8_t *bytes, flea_u16_t *len
 
   bytes[i++] = record->length >> 8;
   bytes[i++] = record->length;
-	/*if (record->length < 256)
-	{
-		bytes[i++] = 0;
-		bytes[i++] = record->length;
-	}
-	else
-	{
-		// TODO replace with function in bin_utils.c
-
-		flea_u8_t *p = (flea_u8_t*)&record->length;
-		bytes[i++] = p[1];
-		bytes[i++] = p[0];
-
-	}*/
 
 	memcpy(bytes+i, record->data, record->length);
 	i += record->length;
