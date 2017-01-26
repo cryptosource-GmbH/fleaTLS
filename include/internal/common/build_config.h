@@ -146,6 +146,13 @@
 #define FLEA_ON_LINUX_PLTF
 
 /**
+ * Enabling this flag causes the choice of code optimized for big endian platforms in some places.
+ * In any case, the generated remains valid independently of the platform's
+ * endianess, but may be non-optimal with regard to size and/or speed.
+ */
+//#define FLEA_HAVE_BE_ARCH_OPT // FBFLAGS_ARCH_OPT_ON_OFF
+
+/**
  * set this value to use the user-provided implementation of the function
  * used by flea to determine the current time.
  */

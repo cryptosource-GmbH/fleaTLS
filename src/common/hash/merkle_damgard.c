@@ -149,6 +149,7 @@ flea_al_u16_t flea_hash__get_output_length_by_id (flea_hash_id_t id)
 }
 flea_err_t THR_flea_hash_ctx_t__ctor (flea_hash_ctx_t* p_ctx, flea_hash_id_t id)
 {
+  flea_al_u8_t counter_block_arr_len__u8;
   FLEA_THR_BEG_FUNC();
 
   p_ctx->p_config = flea_hash__get_hash_config_by_id(id);
@@ -156,11 +157,11 @@ flea_err_t THR_flea_hash_ctx_t__ctor (flea_hash_ctx_t* p_ctx, flea_hash_id_t id)
   {
     FLEA_THROW("could not find hash id for merkle-damgard scheme", FLEA_ERR_INV_ALGORITHM);
   }
-  p_ctx->counter_block_arr_len__u8 = (p_ctx->p_config->count_format__u8 & ~1) / sizeof(p_ctx->counter__bu32[0]);
+  counter_block_arr_len__u8 = (p_ctx->p_config->count_format__u8 & ~1) / sizeof(p_ctx->len_ctr__t.counter__bu32[0]);
+  FLEA_CCALL(THR_flea_len_ctr_t__ctor(&p_ctx->len_ctr__t, counter_block_arr_len__u8, p_ctx->p_config->max_allowed_input_byte_len_exponent__u8, 0));
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM(p_ctx->pending_buffer, p_ctx->p_config->block_length);
   FLEA_ALLOC_MEM(p_ctx->hash_state, p_ctx->p_config->hash_state_length);
-  FLEA_ALLOC_MEM_ARR(p_ctx->counter__bu32, p_ctx->counter_block_arr_len__u8);
 #endif
   flea_hash_ctx_t__reset(p_ctx);
   FLEA_THR_FIN_SEC_empty();
@@ -172,88 +173,45 @@ void flea_hash_ctx_t__reset (flea_hash_ctx_t* p_ctx)
   p_ctx->total_byte_length = 0;
   p_ctx->pending = 0;
   p_ctx->p_config->init_func(p_ctx);
-  memset(p_ctx->counter__bu32, 0, p_ctx->counter_block_arr_len__u8 * sizeof(p_ctx->counter__bu32[0]));
+  flea_len_ctr_t__reset(&p_ctx->len_ctr__t);
 }
-static flea_err_t THR_flea_hash_ctx_t__add_to_counter_block_and_check_limit (flea_hash_ctx_t* ctx__pt, flea_dtl_t input_len__dtl, flea_al_u8_t limit_exponent__alu8)
-{
-  flea_al_s8_t i;
-  flea_u32_t* ctr_block__pu32 = ctx__pt->counter__bu32;
-  flea_u32_t carry__u32 = input_len__dtl;
-  flea_al_u8_t comp_idx__alu8 = limit_exponent__alu8 / (sizeof(ctr_block__pu32[0]) * 8);
-  flea_u32_t comp__u32 = (1 << (limit_exponent__alu8 % (sizeof(ctr_block__pu32[0]) * 8)));
 
-  comp_idx__alu8 = 3 - comp_idx__alu8;
+static flea_err_t THR_flea_hash_ctx_t__add_to_counter_block_and_check_limit (flea_hash_ctx_t* ctx__pt, flea_dtl_t input_len__dtl)
+{
   FLEA_THR_BEG_FUNC();
-  for(i = ctx__pt->counter_block_arr_len__u8 - 1; i >= 0; i--)
-  {
-    flea_u32_t tmp__u32;
-    flea_u32_t old__u32 = ctr_block__pu32[i];
-    tmp__u32 = old__u32 + carry__u32;
-    if((limit_exponent__alu8 != 0) && (i == comp_idx__alu8) && (ctr_block__pu32[i] > comp__u32))
-    {
-      FLEA_THROW("maximal hash input length exceeded", FLEA_ERR_INV_STATE);
-    }
-    ctr_block__pu32[i] = tmp__u32;
-    if(tmp__u32 >= old__u32)
-    {
-      // no overflow
-      carry__u32 = 0;
-      break;
-    }
-    carry__u32 = 1;
-  }
-  if(carry__u32)
-  {
-    // overflow which did not lead to a length excess error => possible in MD5.
-    memset(ctr_block__pu32, 0, ctx__pt->counter_block_arr_len__u8 * sizeof(ctr_block__pu32[0]));
-    ctr_block__pu32[0] = carry__u32;
-  }
+   FLEA_CCALL(THR_flea_len_ctr_t__add_and_check_len_limit(&ctx__pt->len_ctr__t, input_len__dtl));
   FLEA_THR_FIN_SEC_empty();
 }
 
-static void flea_hash__counter_byte_lengt_to_bit_length (flea_hash_ctx_t* ctx__pt)
-{
-
-  flea_al_s8_t i;
-  flea_u32_t carry__u32 = 0;
-
-  for(i = ctx__pt->counter_block_arr_len__u8 - 1; i >= 0; i--)
-  {
-    flea_u32_t old__u32 = ctx__pt->counter__bu32[i];
-    flea_u32_t new_carry__u32 = old__u32 >> 29;
-    ctx__pt->counter__bu32[i] = (old__u32 << 3) | carry__u32;
-    carry__u32 = new_carry__u32;
-  }
-}
 
 static void flea_hash__encode_length_BE (const flea_hash_ctx_t* ctx__pt, flea_u8_t* output__pu8)
 {
-  flea_al_u8_t i;
+  flea_al_s8_t i;
 
-  for(i = 0; i < ctx__pt->counter_block_arr_len__u8; i++)
+  for(i = ctx__pt->len_ctr__t.counter_block_arr_len__u8 - 1; i >= 0; i--)
   {
-    flea__encode_U32_BE(ctx__pt->counter__bu32[i], output__pu8);
+    flea__encode_U32_BE(ctx__pt->len_ctr__t.counter__bu32[i], output__pu8);
     output__pu8 += 4;
   }
 }
 static void flea_hash__encode_length_LE (const flea_hash_ctx_t* ctx__pt, flea_u8_t* output__pu8)
 {
-  flea_al_s8_t i;
+  flea_al_u8_t i;
 
-  for(i = ctx__pt->counter_block_arr_len__u8 - 1; i >= 0; i--)
+  for(i = 0; i < ctx__pt->len_ctr__t.counter_block_arr_len__u8; i++)
   {
-    flea__encode_U32_LE(ctx__pt->counter__bu32[i], output__pu8);
+    flea__encode_U32_LE(ctx__pt->len_ctr__t.counter__bu32[i], output__pu8);
     output__pu8 += 4;
   }
 }
 flea_err_t THR_flea_hash_ctx_t__update (flea_hash_ctx_t* p_ctx, const flea_u8_t* input, flea_dtl_t input_len)
 {
-  FLEA_THR_BEG_FUNC();
-  // first, complete the pending bytes
   flea_al_u8_t block_length = p_ctx->p_config->block_length;
   flea_dtl_t nb_full_blocks, tail_len, i;
-  FLEA_CCALL(THR_flea_hash_ctx_t__add_to_counter_block_and_check_limit(p_ctx, input_len, p_ctx->p_config->max_allowed_input_byte_len_exponent__u8));
   THR_flea_hash_compression_f THR_compr_func = p_ctx->p_config->compression_func;
+  FLEA_THR_BEG_FUNC();
+  // first, complete the pending bytes
+  FLEA_CCALL(THR_flea_hash_ctx_t__add_to_counter_block_and_check_limit(p_ctx, input_len));
   if(p_ctx->pending)
   {
     flea_al_u8_t left = block_length - p_ctx->pending;
@@ -307,25 +265,24 @@ flea_err_t THR_flea_hash_ctx_t__final_with_length_limit (flea_hash_ctx_t* p_ctx,
   p_ctx->pending_buffer[p_ctx->pending] = 0x80;
   p_ctx->pending++;
 
-  //if(zeroes < 8) // 8 is the length of the length encoding
-  if(zeroes < p_ctx->counter_block_arr_len__u8 * sizeof(p_ctx->counter__bu32[0]))
+  if(zeroes < p_ctx->len_ctr__t.counter_block_arr_len__u8 * sizeof(p_ctx->len_ctr__t.counter__bu32[0]))
   {
     // the current block is too small to place the length
     // fill up the pending block with zeroes and process it
     memset(p_ctx->pending_buffer + p_ctx->pending, 0, zeroes);
     FLEA_CCALL(THR_compr_func(p_ctx, p_ctx->pending_buffer));
-    zeroes = block_length - p_ctx->counter_block_arr_len__u8 * sizeof(p_ctx->counter__bu32[0]);
+    zeroes = block_length - p_ctx->len_ctr__t.counter_block_arr_len__u8 * sizeof(p_ctx->len_ctr__t.counter__bu32[0]);
     p_ctx->pending = 0;
   }
   else
   {
     // reserve the space for the length encoding
-    zeroes -= p_ctx->counter_block_arr_len__u8 * sizeof(p_ctx->counter__bu32[0]);
+    zeroes -= p_ctx->len_ctr__t.counter_block_arr_len__u8 * sizeof(p_ctx->len_ctr__t.counter__bu32[0]);
   }
   memset(&p_ctx->pending_buffer[p_ctx->pending], 0,  zeroes);
   p_ctx->pending += zeroes;
   // now place the length
-  flea_hash__counter_byte_lengt_to_bit_length(p_ctx);
+  flea_len_ctr_t__counter_byte_lengt_to_bit_length(&p_ctx->len_ctr__t);
   if(p_ctx->p_config->count_format__u8 & 1)
   {
     flea_hash__encode_length_BE(p_ctx, &p_ctx->pending_buffer[p_ctx->pending]);
@@ -359,12 +316,9 @@ void flea_hash_ctx_t__dtor (flea_hash_ctx_t* p_ctx)
   {
     return;
   }
-
+  flea_len_ctr_t__dtor(&p_ctx->len_ctr__t);
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(p_ctx->pending_buffer, p_ctx->p_config->block_length);
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(p_ctx->hash_state, p_ctx->p_config->hash_state_length / sizeof(flea_u32_t));
-#ifdef FLEA_USE_HEAP_BUF
-  FLEA_FREE_MEM_CHK_SET_NULL(p_ctx->counter__bu32);
-#endif
 }
 
 flea_al_u16_t flea_hash_ctx_t__get_output_length (flea_hash_ctx_t* p_ctx)

@@ -38,6 +38,8 @@ extern "C" {
  */
 void flea_memzero_secure(flea_u8_t* memory, flea_dtl_t mem_len);
 
+flea_bool_t flea_sec_mem_equal (const flea_u8_t* mem1__pcu8, const flea_u8_t* mem2__pcu8, flea_al_u16_t mem_len__alu16);
+
 int flea_memcmp_wsize(const void* mem1__pv, flea_dtl_t len_mem1__dtl, const void*mem2__pv, flea_dtl_t len_mem2__dtl);
 
 int flea_rcu8_cmp(const flea_ref_cu8_t *a, const flea_ref_cu8_t *b);

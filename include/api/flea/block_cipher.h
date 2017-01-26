@@ -56,6 +56,7 @@ typedef struct
   flea_u8_t pending_mask__bu8[FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
 #endif
   flea_al_u8_t pending_offset__alu8;
+  flea_al_u8_t ctr_len__alu8;
   const flea_block_cipher_config_entry_t* config__pt;
   flea_ecb_mode_ctx_t cipher_ctx__t;
 } flea_ctr_mode_ctx_t;
@@ -133,10 +134,11 @@ void flea_ecb_mode_ctx_t__dtor(flea_ecb_mode_ctx_t* ctx);
  * @param output the output data, may be equal to input (in-place encryption/decryption), but partial overlapping is not allowed
  * @param input_output_len the length of input and output
  */
-flea_err_t THR_flea_ecb_mode_crypt_data(flea_ecb_mode_ctx_t* ctx, const flea_u8_t* input, flea_u8_t* output, flea_dtl_t input_output_len);
+flea_err_t THR_flea_ecb_mode_crypt_data(const flea_ecb_mode_ctx_t* ctx, const flea_u8_t* input, flea_u8_t* output, flea_dtl_t input_output_len);
 
 /**
- * Create a CTR mode context. Starts with a counter block formed by (nonce || 0...0),
+ * Create a CTR mode context. Starts with a counter block formed by  (nonce || 0...0) in notation 
+ * assuming indexes [0] ... [max],
  * where 0...0 indicates the counter field's intitial value. The counter will continue
  * incrementing even when it grows into the nonce area
  * Can be used for either encryption or decryption.
@@ -147,8 +149,10 @@ flea_err_t THR_flea_ecb_mode_crypt_data(flea_ecb_mode_ctx_t* ctx, const flea_u8_
  * @param key_len length of key in bytes
  * @param nonce pointer to the nonce value
  * @param nonce_len length of nonce, may range from 0 to the underlying cipher's * block size in bytes
+ * @param ctr_len the length of counter window within the counter block, which is interpreted as a BE integer
+ * ranging from position [max](LSB) to [max - ctr_len](MSB)
  */
-flea_err_t THR_flea_ctr_mode_ctx_t__ctor(flea_ctr_mode_ctx_t* ctx, flea_block_cipher_id_t id, const flea_u8_t* key, flea_al_u8_t key_len, const flea_u8_t* nonce, flea_al_u8_t nonce_len );
+flea_err_t THR_flea_ctr_mode_ctx_t__ctor (flea_ctr_mode_ctx_t* p_ctx, flea_block_cipher_id_t ext_id__t, const flea_u8_t* key_pu8, flea_al_u8_t key_length_al_u8, const flea_u8_t* nonce_pu8, flea_al_u8_t nonce_length_al_u8, flea_al_u8_t ctr_len__alu8 );
 
 /**
  * Destroy a CTR mode context object.
@@ -182,7 +186,7 @@ void flea_ctr_mode_ctx_t__crypt(flea_ctr_mode_ctx_t* ctx, const flea_u8_t* input
  * @param output the output data
  * @param input_output_len the length of input and output data
  */
-flea_err_t THR_flea_ctr_mode_crypt_data(flea_block_cipher_id_t id, const flea_u8_t* key, flea_al_u16_t key_len, const flea_u8_t* nonce, flea_al_u8_t nonce_len, const flea_u8_t* input, flea_u8_t* output, flea_dtl_t input_output_len);
+flea_err_t THR_flea_ctr_mode_crypt_data (flea_block_cipher_id_t ext_id__t, const flea_u8_t* key_pu8, flea_al_u16_t key_length_al_u16, const flea_u8_t* nonce__pcu8, flea_al_u8_t nonce_len__alu8, const flea_u8_t* input_pu8, flea_u8_t* output_pu8, flea_dtl_t input_output_length_al_u16, flea_al_u8_t ctr_len__alu8 );
 
 /**
  * Encrypt/decrypt data in counter mode without using a context object and
@@ -198,7 +202,8 @@ flea_err_t THR_flea_ctr_mode_crypt_data(flea_block_cipher_id_t id, const flea_u8
  * @param output the output data
  * @param input_output_len the length of input and output data
  */
-flea_err_t THR_flea_ctr_mode_crypt_data_short_nonce(flea_block_cipher_id_t id, const flea_u8_t* key, flea_al_u16_t key_len, flea_u32_t nonce, const flea_u8_t* input, flea_u8_t* output, flea_dtl_t input_output_len);
+flea_err_t THR_flea_ctr_mode_crypt_data_short_nonce_full_ctr_len (flea_block_cipher_id_t id, const flea_u8_t* key, flea_al_u16_t key_len, flea_u32_t nonce, const flea_u8_t* input, flea_u8_t* output, flea_dtl_t input_output_len);
+
 
 /**
  * Create a CBC mode context object.

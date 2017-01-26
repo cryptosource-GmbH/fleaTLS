@@ -7,14 +7,17 @@
 #include "internal/common/default.h"
 #include "flea/types.h"
 
-
 #ifdef FLEA_USE_BUF_DBG_CANARIES
-extern flea_u8_t flea_dbg_canaries_flag;
-#define __FLEA_SIGNAL_DBG_CANARY_ERROR() do { flea_dbg_canaries_flag = 1; } while(0)
 
-#define FLEA_CLEAR_DBG_CANARY_ERROR() do { flea_dbg_canaries_flag = 0; } while(0)
+void flea_dbg_canaries__signal_canary_error();
+void flea_dbg_canaries__clear_canary_error();
+int flea_dbg_canaries__is_canary_error_set();
 
-#define FLEA_IS_DBG_CANARY_ERROR_SIGNALLED() (flea_dbg_canaries_flag != 0)
+#define __FLEA_SIGNAL_DBG_CANARY_ERROR() flea_dbg_canaries__signal_canary_error() //do { flea_dbg_canaries_flag = 1; } while(0)
+
+#define FLEA_CLEAR_DBG_CANARY_ERROR() flea_dbg_canaries__clear_canary_error() //do { flea_dbg_canaries_flag = 0; } while(0)
+
+#define FLEA_IS_DBG_CANARY_ERROR_SIGNALLED() flea_dbg_canaries__is_canary_error_set() // (flea_dbg_canaries_flag != 0)
 #endif
 
 #ifdef FLEA_USE_BUF_DBG_CANARIES

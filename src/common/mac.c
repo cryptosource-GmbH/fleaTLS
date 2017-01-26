@@ -306,6 +306,7 @@ flea_err_t THR_flea_mac_ctx_t__update (flea_mac_ctx_t* ctx__pt, const flea_u8_t*
   }
   else
   {
+    // cmac.
     // fill up pending block
     flea_u8_t* block__pu8 = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.prev_ct__bu8;
     flea_al_u8_t block_length__alu8 = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_length__u8;
@@ -460,7 +461,6 @@ static flea_err_t THR_flea_mac_ctx_t__final_compute_cmac (flea_mac_ctx_t* ctx__p
   {
     FLEA_THROW("MAC result buffer too small", FLEA_ERR_BUFF_TOO_SMALL);
   }
-  *result_len__palu8 = ctx__pt->output_len__u8;
   memcpy(result__pu8, block__bu8, ctx__pt->output_len__u8);
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(block__bu8);
@@ -484,33 +484,13 @@ flea_err_t THR_flea_mac_ctx_t__final_compute (flea_mac_ctx_t* ctx__pt, flea_u8_t
     FLEA_CCALL(THR_flea_mac_ctx_t__final_compute_cmac(ctx__pt, result__pu8, result_len__palu8));
   }
 #endif
+  *result_len__palu8 = ctx__pt->output_len__u8;
   FLEA_THR_FIN_SEC_empty();
 }
 
 /**
  * Timing neutral function for memory comparison.
  */
-static flea_bool_t flea_sec_mem_equal (const flea_u8_t* mem1__pcu8, const flea_u8_t* mem2__pcu8, flea_al_u16_t mem_len__alu16)
-{
-  flea_al_u16_t i;
-  flea_u8_t diff__u8 = 0;
-  flea_u8_t tmp__u8 = 0;
-  volatile flea_u8_t* sink__pvu8 = (volatile flea_u8_t*)&tmp__u8;
-
-  for(i = 0; i < mem_len__alu16; i++)
-  {
-    diff__u8 |= mem1__pcu8[i] - mem2__pcu8[i];
-  }
-  *sink__pvu8 = diff__u8;
-  if(*sink__pvu8)
-  {
-    return FLEA_FALSE;
-  }
-  else
-  {
-    return FLEA_TRUE;
-  }
-}
 
 flea_err_t THR_flea_mac_ctx_t__final_verify (flea_mac_ctx_t* ctx__pt, const flea_u8_t* exp_result__pcu8, flea_al_u8_t exp_result_len__alu8)
 {
