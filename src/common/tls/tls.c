@@ -703,15 +703,14 @@ void flea_tls__client_hello_to_bytes(flea_tls__client_hello_t* hello, flea_u8_t*
 void flea_tls__create_handshake_message(HandshakeType type, flea_u8_t *in, flea_u32_t length_in, flea_u8_t *out, flea_u32_t *length_out)
 {
 	flea_u32_t i=0;
-
+// TODO: keine Längenprüfung nötig?
 	// set handshake type
 	out[i++] = type;
 
 	// set handshake length
-	flea_u8_t *p = (flea_u8_t*)&length_in;
-	out[i++] = p[2];
-	out[i++] = p[1];
-	out[i++] = p[0];
+	out[i++] = length_in >> 16;
+	out[i++] = length_in >> 8;
+	out[i++] = length_in;
 
 	// copy all data
 	memcpy(out+i, in, length_in);
@@ -890,7 +889,8 @@ void flea_tls__finished_to_bytes(flea_tls__finished_t* finished, flea_u8_t* byte
 	*length = i;
 }
 
-void flea_tls__create_hello_message(flea_tls_ctx_t* tls_ctx, flea_tls__client_hello_t* hello)	{
+void flea_tls__create_hello_message(flea_tls_ctx_t* tls_ctx, flea_tls__client_hello_t* hello)	
+{
 	hello->client_version.major = tls_ctx->version.major;
 	hello->client_version.minor = tls_ctx->version.minor;
 
@@ -1199,11 +1199,12 @@ flea_err_t THR_flea_tls__send_alert(flea_tls_ctx_t* tls_ctx, flea_tls__alert_des
 	FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls__send_handshake_message(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t* hash_ctx, HandshakeType type, flea_u8_t* msg_bytes, flea_u32_t msg_bytes_len, int socket_fd) {
+flea_err_t THR_flea_tls__send_handshake_message(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t* hash_ctx, HandshakeType type, flea_u8_t* msg_bytes, flea_u32_t msg_bytes_len, int socket_fd) 
+{
 	FLEA_THR_BEG_FUNC();
 
 	// create handshake message
-	flea_u8_t handshake_bytes[16384]; // TODO: max length for handshake is 2^24 = 16777216
+	flea_u8_t handshake_bytes[16384]; // TODO: max length for handshake is 2^24 = 16777216 
 	flea_u32_t handshake_bytes_len;
 	flea_tls__create_handshake_message(type, msg_bytes, msg_bytes_len, handshake_bytes, &handshake_bytes_len);
 
@@ -1289,6 +1290,7 @@ flea_err_t THR_flea_tls__send_client_hello(flea_tls_ctx_t* tls_ctx, flea_hash_ct
 
 	FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO, client_hello_bytes, client_hello_bytes_len, socket_fd));
 
+  // TODO: dorther stammen die beiden Werte ja schon. Was ist beabsichtigt?
 	// add random to tls_ctx
 	memcpy(tls_ctx->security_parameters->client_random.gmt_unix_time, client_hello.random.gmt_unix_time, sizeof(tls_ctx->security_parameters->client_random.gmt_unix_time));
 	memcpy(tls_ctx->security_parameters->client_random.random_bytes, client_hello.random.random_bytes, sizeof(tls_ctx->security_parameters->client_random.random_bytes));
