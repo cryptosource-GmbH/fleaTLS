@@ -62,7 +62,9 @@ static flea_err_t THR_flea_test_hash_mess_result(flea_hash_id_t id__t, const fle
   }
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(digest__b_u8);
+    FLEA_FREE_BUF_FINAL(digest_copy__b_u8);
     flea_hash_ctx_t__dtor(&ctx);
+    flea_hash_ctx_t__dtor(&ctx_copy);
     );
 }
 

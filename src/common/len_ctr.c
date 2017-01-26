@@ -12,13 +12,24 @@
 flea_err_t THR_flea_len_ctr_t__ctor(flea_len_ctr_t * len_ctr__pt, flea_al_u8_t counter_block_arr_len__u8, flea_al_u8_t limit_exponent__alu8, flea_u16_t neg_limit_offset__u16)
 {
   FLEA_THR_BEG_FUNC();
-  len_ctr__pt->counter_block_arr_len__u8 = counter_block_arr_len__u8; //limit_exponent__alu8 / (sizeof(len_ctr__pt->counter__bu32[0]) * 8);
+  len_ctr__pt->counter_block_arr_len__u8 = counter_block_arr_len__u8; 
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM_ARR(len_ctr__pt->counter__bu32, len_ctr__pt->counter_block_arr_len__u8);
 #endif
   FLEA_SET_ARR(len_ctr__pt->counter__bu32, 0, len_ctr__pt->counter_block_arr_len__u8);
   len_ctr__pt->neg_limit_offset__u16 =  neg_limit_offset__u16;
   len_ctr__pt->limit_exponent__u8 = limit_exponent__alu8;
+  FLEA_THR_FIN_SEC_empty();
+}
+flea_err_t THR_flea_len_ctr_t__ctor_copy(flea_len_ctr_t * len_ctr__pt, const flea_len_ctr_t *orig__pt )
+{
+  FLEA_THR_BEG_FUNC();
+  memcpy(len_ctr__pt, orig__pt, sizeof(*len_ctr__pt));
+#ifdef FLEA_USE_HEAP_BUF
+  FLEA_ALLOC_MEM_ARR(len_ctr__pt->counter__bu32, len_ctr__pt->counter_block_arr_len__u8);
+  FLEA_CP_ARR(len_ctr__pt->counter__bu32, orig__pt->counter__bu32, len_ctr__pt->counter_block_arr_len__u8);
+#endif
+  
   FLEA_THR_FIN_SEC_empty();
 }
 

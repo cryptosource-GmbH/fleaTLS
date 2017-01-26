@@ -148,8 +148,6 @@ flea_al_u16_t flea_hash__get_output_length_by_id (flea_hash_id_t id)
   return config->output_length;
 }
 
-// TODO: get it working correctly!
-// TODO: build into hash test
 flea_err_t THR_flea_hash_ctx_t__ctor_copy(flea_hash_ctx_t* p_ctx_new, const flea_hash_ctx_t* p_ctx) {
     FLEA_THR_BEG_FUNC();
 
@@ -158,15 +156,15 @@ flea_err_t THR_flea_hash_ctx_t__ctor_copy(flea_hash_ctx_t* p_ctx_new, const flea
     {
       FLEA_THROW("could not find hash id for merkle-damgard scheme", FLEA_ERR_INV_ALGORITHM);
     }
-    p_ctx_new->counter_block_arr_len__u8 = p_ctx->counter_block_arr_len__u8;
+    //p_ctx_new->counter_block_arr_len__u8 = p_ctx->counter_block_arr_len__u8;
     #ifdef FLEA_USE_HEAP_BUF
     FLEA_ALLOC_MEM(p_ctx_new->pending_buffer, p_ctx_new->p_config->block_length);
     FLEA_ALLOC_MEM(p_ctx_new->hash_state, p_ctx_new->p_config->hash_state_length);
-    FLEA_ALLOC_MEM_ARR(p_ctx_new->counter__bu32, p_ctx_new->counter_block_arr_len__u8);
+    //FLEA_ALLOC_MEM_ARR(p_ctx_new->counter__bu32, p_ctx_new->counter_block_arr_len__u8);
     #endif
     memcpy(p_ctx_new->pending_buffer, p_ctx->pending_buffer, p_ctx_new->p_config->block_length * sizeof(p_ctx_new->pending_buffer[0]));
     memcpy(p_ctx_new->hash_state, p_ctx->hash_state, p_ctx_new->p_config->hash_state_length);
-    memcpy(p_ctx_new->counter__bu32, p_ctx->counter__bu32, p_ctx_new->counter_block_arr_len__u8 * sizeof(p_ctx_new->counter__bu32[0]));
+    FLEA_CCALL(THR_flea_len_ctr_t__ctor_copy(&p_ctx_new->len_ctr__t, &p_ctx->len_ctr__t));
     p_ctx_new->pending = p_ctx->pending;
     p_ctx_new->total_byte_length = p_ctx->total_byte_length;
 
