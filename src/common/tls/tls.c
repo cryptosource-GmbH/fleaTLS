@@ -48,47 +48,7 @@ flea_tls__cipher_suite_t cipher_suites[2] =
 };
 
 
-static flea_err_t P_Hash(const flea_u8_t* secret, flea_u16_t secret_length, const flea_u8_t* seed, flea_u16_t seed_length, flea_u8_t* data_out, flea_u16_t res_length )
-{
-  const flea_u16_t hash_out_len__alu8 = 32;
-  FLEA_DECL_BUF(a__bu8, flea_u8_t, 64);
-  flea_u8_t *A;
-  flea_u8_t *B;
-  flea_u8_t *tmp__pu8;
-  flea_mac_ctx_t hmac__t = flea_mac_ctx_t__INIT_VALUE;
-
-  // expand to length bytes
-  flea_al_u8_t len__alu8 = hash_out_len__alu8;
-  FLEA_THR_BEG_FUNC();
-  FLEA_ALLOC_BUF(a__bu8, 64);
-  A = a__bu8;
-  B = a__bu8 + 32;
-  FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, seed, seed_length, A, &len__alu8));
-  while (res_length)
-  {
-    flea_al_u8_t to_go__alu16 = FLEA_MIN(res_length, hash_out_len__alu8);
-    res_length -= to_go__alu16;
-    // A(i) = HMAC_hash(secret, A(i-1))
-    flea_mac_ctx_t__INIT(&hmac__t);
-    FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&hmac__t, flea_hmac_sha256, secret, secret_length));
-    FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, A, hash_out_len__alu8)); 
-    FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, seed, seed_length)); 
-    len__alu8 = to_go__alu16;
-    FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&hmac__t, data_out, &len__alu8)); 
-    data_out += to_go__alu16;
-    len__alu8 = hash_out_len__alu8;
-    FLEA_CCALL(THR_flea_mac__compute_mac( flea_hmac_sha256, secret, secret_length, A, hash_out_len__alu8, B, &len__alu8));
-    tmp__pu8 = A;
-    A = B;
-    B = tmp__pu8;
-    flea_mac_ctx_t__dtor(&hmac__t);
-  }
-  FLEA_THR_FIN_SEC(
-      flea_mac_ctx_t__dtor(&hmac__t); 
-      FLEA_FREE_BUF_FINAL_SECRET_ARR(a__bu8, 64);
-      );
-}
-static flea_err_t P_Hash_wLabel(const flea_u8_t* secret, flea_u16_t secret_length, const flea_u8_t * label__pcu8, flea_al_u8_t label_len__alu8, const flea_u8_t* seed, flea_u16_t seed_length, flea_u8_t* data_out, flea_u16_t res_length )
+static flea_err_t P_Hash(const flea_u8_t* secret, flea_u16_t secret_length, const flea_u8_t * label__pcu8, flea_al_u8_t label_len__alu8, const flea_u8_t* seed, flea_u16_t seed_length, flea_u8_t* data_out, flea_u16_t res_length )
 {
   const flea_u16_t hash_out_len__alu8 = 32;
   FLEA_DECL_BUF(a__bu8, flea_u8_t, 64);
@@ -172,44 +132,36 @@ flea_err_t flea_tls__prf(const flea_u8_t* secret, flea_u8_t secret_length, PRFLa
   // TODO: REMOVE
 	const flea_u8_t test_label[] = 	{0x74, 0x65, 0x73, 0x74, 0x20, 0x6c, 0x61, 0x62, 0x65, 0x6c};
 
-	flea_u8_t p_hash_seed[500];	// arbitrarily chosen: TODO change
-	flea_u16_t p_hash_seed_length;
-
+  const flea_u8_t *label__pcu8;
+  flea_al_u8_t label_len__alu8;
 	switch (label)
 	{
 		case PRF_LABEL_CLIENT_FINISHED:
-			memcpy(p_hash_seed, client_finished, sizeof(client_finished));
-			memcpy(p_hash_seed+sizeof(client_finished), seed, seed_length);
-			p_hash_seed_length = sizeof(client_finished) + seed_length;
-	    FLEA_CCALL(P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result, result_length ));
+      label__pcu8 = client_finished;
+      label_len__alu8 = sizeof(client_finished);
 			break;
 		case PRF_LABEL_MASTER_SECRET:
-			memcpy(p_hash_seed, master_secret, sizeof(master_secret));
-			memcpy(p_hash_seed+sizeof(master_secret), seed, seed_length);
-			p_hash_seed_length = sizeof(master_secret) + seed_length;
-	    FLEA_CCALL(P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result, result_length ));
+      label__pcu8 = master_secret;
+      label_len__alu8 = sizeof(master_secret);
 			break;
 		case PRF_LABEL_KEY_EXPANSION:
-			memcpy(p_hash_seed, key_expansion, sizeof(key_expansion));
-			memcpy(p_hash_seed+sizeof(key_expansion), seed, seed_length);
-			p_hash_seed_length = sizeof(key_expansion) + seed_length;
-	    FLEA_CCALL(P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result, result_length ));
+      label__pcu8 = key_expansion,
+      label_len__alu8 = sizeof(key_expansion);
 			break;
 		case PRF_LABEL_SERVER_FINISHED:
-			memcpy(p_hash_seed, server_finished, sizeof(server_finished));
-			memcpy(p_hash_seed+sizeof(server_finished), seed, seed_length);
-			p_hash_seed_length = sizeof(server_finished) + seed_length;
-	    FLEA_CCALL(P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result, result_length ));
+      label__pcu8 = server_finished;
+      label_len__alu8 = sizeof(server_finished);
 			break;
+      // TODO: REMOVE
 		case PRF_LABEL_TEST:
-			memcpy(p_hash_seed, test_label, sizeof(test_label));
-			memcpy(p_hash_seed+sizeof(test_label), seed, seed_length);
-			p_hash_seed_length = sizeof(test_label) + seed_length;
-	    FLEA_CCALL(P_Hash(secret, secret_length, p_hash_seed, p_hash_seed_length, result, result_length ));
+      label__pcu8 = test_label;
+      label_len__alu8 = sizeof(test_label);
 			break;
 		default:
 			FLEA_THROW("Invalid label!", FLEA_ERR_TLS_GENERIC);
+
 	}
+	FLEA_CCALL(P_Hash(secret, secret_length, label__pcu8, label_len__alu8 ,seed, seed_length, result, result_length ));
 	FLEA_THR_FIN_SEC_empty();
 }
 
