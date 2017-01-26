@@ -119,28 +119,28 @@ flea_err_t P_Hash(flea_u8_t* secret, flea_u16_t secret_length, flea_u8_t* seed, 
 {
 	const flea_u16_t hash_out_len__alu8 = 32;
 	flea_u16_t A_len;
-	flea_u8_t A__bu8[32]; /* Falko: dynamically-sized stack buffers may not be used */
-  flea_u8_t B__bu8[32];
-flea_u8_t *A;
-flea_u8_t *B;
-flea_u8_t *tmp__pu8;
-	//flea_u8_t A2[A_len];
-	/*flea_u8_t tmp_input[hash_len];
-	flea_u8_t tmp_output[hash_len];*/
+	//flea_u8_t A__bu8[32]; /* Falko: dynamically-sized stack buffers may not be used */
+  FLEA_DECL_BUF(a__bu8, flea_u8_t, 64);
+  //flea_u8_t B__bu8[32];
+  flea_u8_t *A;
+  flea_u8_t *B;
+  flea_u8_t *tmp__pu8;
   flea_mac_ctx_t hmac__t = flea_mac_ctx_t__INIT_VALUE;
 
 	flea_u16_t current_length = 0;
 	// expand to length bytes
 	flea_al_u8_t len__alu8 = hash_out_len__alu8;
 FLEA_THR_BEG_FUNC();
-  A = A__bu8;
-  B = B__bu8;
+FLEA_ALLOC_BUF(a__bu8, 64);
+  A = a__bu8;
+  B = a__bu8 + 32;
 	FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, seed, seed_length, A, &len__alu8));
 	while (res_length)
 	{
     flea_al_u8_t to_go__alu16 = FLEA_MIN(res_length, hash_out_len__alu8);
       res_length -= to_go__alu16;
 		// A(i) = HMAC_hash(secret, A(i-1))
+     flea_mac_ctx_t__INIT(&hmac__t);
      FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&hmac__t, flea_hmac_sha256, secret, secret_length));
      FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, A, hash_out_len__alu8)); 
      FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, seed, seed_length)); 
@@ -152,12 +152,11 @@ FLEA_THR_BEG_FUNC();
      tmp__pu8 = A;
      A = B;
      B = tmp__pu8;
-		 //FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, data_out, hash_out_len__alu8, A2, &to_go__alu16));
-        
-
+     flea_mac_ctx_t__dtor(&hmac__t);
 	}
 	FLEA_THR_FIN_SEC(
    flea_mac_ctx_t__dtor(&hmac__t); 
+  FLEA_FREE_BUF_FINAL_SECRET_ARR(a__bu8, 64);
     );
 }
 /**
