@@ -1371,19 +1371,11 @@ flea_err_t THR_flea_tls__send_handshake_message_stream(flea_tls_ctx_t* tls_ctx, 
 {
 	FLEA_THR_BEG_FUNC();
 
-	// create handshake message
-	//flea_u8_t handshake_bytes[16384]; // TODO: max length for handshake is 2^24 = 16777216 
-	//flea_u32_t handshake_bytes_len;
-  
-	//flea_tls__create_handshake_message(type, msg_bytes, msg_bytes_len, handshake_bytes, &handshake_bytes_len);
-
-	// send record
 	FLEA_CCALL(THR_flea_tls__send_record_hdr(tls_ctx, msg_bytes_len+4, CONTENT_TYPE_HANDSHAKE, rw_stream__pt));
 
   FLEA_CCALL(THR_flea_tls__send_handshake_message_hdr(type, msg_bytes_len, rw_stream__pt, hash_ctx));
 
 	// add handshake message to Hash
-	//FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
 	FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, msg_bytes, msg_bytes_len));
   FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, msg_bytes, msg_bytes_len));
   FLEA_CCALL(THR_flea_rw_stream_t__flush_write(rw_stream__pt));
