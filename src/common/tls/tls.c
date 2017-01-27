@@ -212,8 +212,10 @@ flea_err_t THR_flea_tls__compute_mac(flea_u8_t* data, flea_u32_t data_len, flea_
 	mac_data[8] = content_type;
 	mac_data[9] = version->major;
 	mac_data[10] = version->minor;
-	mac_data[11] = ((flea_u8_t*)&data_len)[1];	// TODO: do properly
-	mac_data[12] = ((flea_u8_t*)&data_len)[0];
+	/*mac_data[11] = ((flea_u8_t*)&data_len)[1];	// TODO: do properly
+	mac_data[12] = ((flea_u8_t*)&data_len)[0];*/
+  mac_data[11] = data_len >> 8;
+  mac_data[12] = data_len;
 	memcpy(mac_data+13, data, data_len);
 	flea_al_u8_t mac_len_out_al = *mac_len_out;
 
@@ -950,8 +952,7 @@ flea_err_t THR_flea_tls__encrypt_record(flea_tls_ctx_t* tls_ctx, Record* record,
   flea__encode_U32_LE(seq_lo__u32, enc_seq_nbr__au8);
   flea__encode_U32_LE(seq_hi__u32, enc_seq_nbr__au8 + 4);
 	// compute mac
-	FLEA_CCALL(THR_flea_tls__compute_mac(data, data_len, &tls_ctx->version, tls_ctx->active_write_connection_state->cipher_suite->mac_algorithm,
-																	mac_key, mac_key_len, enc_seq_nbr__au8, record->content_type, mac, &mac_len));
+	FLEA_CCALL(THR_flea_tls__compute_mac(data, data_len, &tls_ctx->version, tls_ctx->active_write_connection_state->cipher_suite->mac_algorithm, mac_key, mac_key_len, enc_seq_nbr__au8, record->content_type, mac, &mac_len));
 
 	// compute IV ... TODO: xor with last plaintext block? -> RFC
 	/*
