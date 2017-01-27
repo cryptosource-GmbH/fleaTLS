@@ -99,7 +99,7 @@ FILE(GLOB FLEA_SRCS ${SRC_DIR}/x86/*.c ${SRC_DIR}/common/*.c ${SRC_DIR}/user/*.c
   ${SRC_DIR}/pc/*.c ${SRC_DIR}/pc/*.cpp
   ${SRC_DIR}/linux/*.c ${SRC_DIR}/common/tls/*.c)
 
-FILE(GLOB TEST_SRCS test/src/pc/*.cpp test/src/common/*.c)
+FILE(GLOB TEST_SRCS test/src/pc/*.cpp test/src/pc/*.c test/src/common/*.c)
 
 # include folder with header files
 INCLUDE_DIRECTORIES(${INCLUDE_DIR} )
