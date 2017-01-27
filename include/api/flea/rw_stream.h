@@ -8,7 +8,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-
+// TODO: provide non-blocking interface 
   typedef flea_err_t (*flea_rw_stream_write_f)(void *custom_obj__pv, const flea_u8_t* source_buffer__pcu8, flea_dtl_t nb_bytes_to_write__dtl);
   typedef flea_err_t (*flea_rw_stream_read_f)(void *custom_obj__pv, flea_u8_t* target_buffer__pcu8, flea_dtl_t *nb_bytes_to_read__pdtl, flea_bool_t force_read__b);
  
@@ -28,7 +28,7 @@ typedef struct
 
 void flea_rw_stream_t__dtor(flea_rw_stream_t *stream__pt);
 
-flea_err_t THR_flea_rw_stream_t__ctor(flea_rw_stream_t * stream__pt, void *custom_obj__pv, flea_rw_stream_open_f open_func__f, flea_rw_stream_close_f close_func__f, flea_rw_stream_read_f read_func__f, flea_rw_stream_write_f write_func__f, flea_rw_stream_flush_write_f flush_write_func__f);
+flea_err_t THR_flea_rw_stream_t__ctor(flea_rw_stream_t * stream__pt, void *custom_obj__pv, flea_rw_stream_open_f open_func_mbn__f, flea_rw_stream_close_f close_func_mbn__f, flea_rw_stream_read_f read_func_mbn__f, flea_rw_stream_write_f write_func_mbn__f, flea_rw_stream_flush_write_f flush_write_func_mbn__f);
 
 flea_err_t THR_flea_rw_stream_t__write(flea_rw_stream_t * stream__pt, const flea_u8_t* data__pcu8, flea_dtl_t data_len__dtl);
 

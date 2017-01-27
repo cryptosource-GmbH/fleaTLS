@@ -76,6 +76,13 @@ typedef enum
    * A fixed sized buffer is too small or a reallocation in heap mode failed 
    * because the configured maximal buffer size was exhausted.
    */
+
+  /**
+   * A requested operation on a flea_rw_stream_t object is not supported by that
+   * object.
+   */ 
+  FLEA_ERR_STREAM_FUNC_NOT_SUPPORTED                  =0x0090,
+
   FLEA_ERR_BUFF_TOO_SMALL                             = 0x00A0,
   FLEA_ERR_DECODING_FAILURE                           = 0x00A1,
   FLEA_ERR_ASN1_DER_DEC_ERR                           = 0x00A3,
