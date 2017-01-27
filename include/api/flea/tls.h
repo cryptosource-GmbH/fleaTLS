@@ -8,6 +8,7 @@
 #include "flea/pubkey.h"
 #include "flea/hash.h"
 #include "flea/mac.h"
+#include "flea/rw_stream.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -382,7 +383,7 @@ typedef struct {
 
 flea_err_t flea_tls_ctx_t__ctor(flea_tls_ctx_t* ctx, flea_u8_t* session_id, flea_u8_t session_id_len);
 
-flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx);
+flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx, flea_rw_stream_t * rw_stream__pt);
 #ifdef __cplusplus
 }
 #endif

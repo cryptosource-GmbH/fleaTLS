@@ -1153,8 +1153,32 @@ flea_err_t THR_flea_tls__send(int socket_fd, flea_u8_t* buff, flea_u32_t buff_si
 	}
 	FLEA_THR_FIN_SEC_empty();
 }
+flea_err_t THR_flea_tls__send_record_stream(flea_tls_ctx_t* tls_ctx, flea_u8_t* bytes, flea_u16_t bytes_len, ContentType content_type, flea_rw_stream_t *rw_stream__pt ) 
+{
+	FLEA_THR_BEG_FUNC();
 
-flea_err_t THR_flea_tls__send_record(flea_tls_ctx_t* tls_ctx, flea_u8_t* bytes, flea_u16_t bytes_len, ContentType content_type, int socket_fd) {
+	// create record
+	Record record;
+	flea_u8_t record_bytes[16384];
+	flea_u16_t record_bytes_len;
+	FLEA_CCALL(THR_flea_tls__create_record(tls_ctx, &record, bytes, bytes_len, content_type));
+	flea_tls__record_to_bytes(&record, record_bytes, &record_bytes_len);
+
+	// send record
+	/*if (send(socket_fd, record_bytes, record_bytes_len, 0) < 0)
+	{
+		printf("send failed\n");
+		FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
+	}*/
+    
+  FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, record_bytes, record_bytes_len));
+  FLEA_CCALL(THR_flea_rw_stream_t__flush_write(rw_stream__pt));
+
+	FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_tls__send_record(flea_tls_ctx_t* tls_ctx, flea_u8_t* bytes, flea_u16_t bytes_len, ContentType content_type, int socket_fd) 
+{
 	FLEA_THR_BEG_FUNC();
 
 	// create record
@@ -1198,6 +1222,25 @@ flea_err_t THR_flea_tls__send_handshake_message(flea_tls_ctx_t* tls_ctx, flea_ha
 
 	// send record
 	FLEA_CCALL(THR_flea_tls__send_record(tls_ctx, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, socket_fd));
+
+
+	// add handshake message to Hash
+	FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
+
+	FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_tls__send_handshake_message_stream(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t* hash_ctx, HandshakeType type, flea_u8_t* msg_bytes, flea_u32_t msg_bytes_len, flea_rw_stream_t * rw_stream__pt) 
+{
+	FLEA_THR_BEG_FUNC();
+
+	// create handshake message
+	flea_u8_t handshake_bytes[16384]; // TODO: max length for handshake is 2^24 = 16777216 
+	flea_u32_t handshake_bytes_len;
+	flea_tls__create_handshake_message(type, msg_bytes, msg_bytes_len, handshake_bytes, &handshake_bytes_len);
+
+	// send record
+	FLEA_CCALL(THR_flea_tls__send_record_stream(tls_ctx, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE, rw_stream__pt));
 
 
 	// add handshake message to Hash
@@ -1264,7 +1307,7 @@ flea_err_t THR_flea_tls__send_finished(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t*
 	FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls__send_client_hello(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t* hash_ctx, int socket_fd)
+flea_err_t THR_flea_tls__send_client_hello(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t* hash_ctx, int socket_fd, flea_rw_stream_t * rw_stream__pt)
 {
 	FLEA_THR_BEG_FUNC();
 
@@ -1276,7 +1319,8 @@ flea_err_t THR_flea_tls__send_client_hello(flea_tls_ctx_t* tls_ctx, flea_hash_ct
 	flea_u32_t client_hello_bytes_len;	// 24 bit
 	flea_tls__client_hello_to_bytes(&client_hello, client_hello_bytes, &client_hello_bytes_len);
 
-	FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO, client_hello_bytes, client_hello_bytes_len, socket_fd));
+	//FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO, client_hello_bytes, client_hello_bytes_len, socket_fd));
+	FLEA_CCALL(THR_flea_tls__send_handshake_message_stream(tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO, client_hello_bytes, client_hello_bytes_len, rw_stream__pt));
 
   // TODO: dorther stammen die beiden Werte ja schon. Was ist beabsichtigt?
 	// add random to tls_ctx
@@ -1383,7 +1427,7 @@ void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state)
 }
 
 
-flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx)
+flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx, flea_rw_stream_t * rw_stream__pt )
 {
 	FLEA_THR_BEG_FUNC();
 
@@ -1425,7 +1469,7 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t* tls_ctx
 		if (handshake_state.initialized == FLEA_FALSE)
 		{
 			// send client hello
-			FLEA_CCALL(THR_flea_tls__send_client_hello(tls_ctx, &hash_ctx, socket_fd));
+			FLEA_CCALL(THR_flea_tls__send_client_hello(tls_ctx, &hash_ctx, socket_fd, rw_stream__pt));
 
 			handshake_state.initialized = FLEA_TRUE;
 			handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO;

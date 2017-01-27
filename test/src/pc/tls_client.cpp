@@ -16,8 +16,9 @@
 #include "pc/test_util.h"
 #include "flea/tls.h"
 #include "pc/test_pc.h"
+#include "pc/linux_sock.h"
 
-static int create_socket()
+/*static int create_socket()
 {
 	int socket_fd;
     socket_fd = socket(AF_INET , SOCK_STREAM , 0);
@@ -27,10 +28,13 @@ static int create_socket()
         printf("Could not create socket");
     }
 	return socket_fd;
-}
+}*/
 // TODO: socket generisch halten: send/recv funktionen function pointer
 flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
 {
+  flea_rw_stream_t rw_stream__t;
+
+#if 0
   int socket_fd;
   struct sockaddr_in addr;
 
@@ -40,13 +44,14 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   addr.sin_addr.s_addr = inet_addr("127.0.0.1");
   addr.sin_family = AF_INET;
   addr.sin_port = htons( 4444 );
+#endif 
   /*addr.sin_addr.s_addr = inet_addr("31.15.64.162");
     addr.sin_family = AF_INET;
     addr.sin_port = htons( 443 );*/
   // TODO: MISSING INIT OF CTX
   flea_tls_ctx_t tls_ctx;
   FLEA_THR_BEG_FUNC();
-
+#if 0 
   if (connect(socket_fd , (struct sockaddr *)&addr , sizeof(addr)) < 0)
   {
     addr.sin_port = htons(4445);
@@ -56,16 +61,19 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
       FLEA_THROW("Something went wrong!", FLEA_ERR_TLS_GENERIC);
     }
   }
-
+#endif
+  int socket_fd;
   FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, NULL, 0));
-
-  FLEA_CCALL(THR_flea_tls__client_handshake(socket_fd, &tls_ctx));
+   FLEA_CCALL(THR_flea_test_linux__create_rw_stream(&rw_stream__t, &socket_fd));
+  FLEA_CCALL(THR_flea_tls__client_handshake(socket_fd, &tls_ctx, &rw_stream__t));
   //flea_err_t err = flea_tls_handshake(socket_fd, &tls_ctx);
 
   // TODO: dtor
 
-  close (socket_fd);
-  FLEA_THR_FIN_SEC_empty();
+  //close (socket_fd);
+  FLEA_THR_FIN_SEC(
+     flea_rw_stream_t__dtor(&rw_stream__t); 
+      );
 }
 
 

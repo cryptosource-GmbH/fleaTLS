@@ -68,7 +68,7 @@ FLEA_THR_BEG_FUNC();
   }
   ctx__pt->socket_fd__int = socket_fd;
   FLEA_THR_FIN_SEC(
-      if(socket_fd != -1) 
+      if(socket_fd == -1) 
       {
         close (socket_fd);
       }
@@ -186,7 +186,7 @@ static flea_err_t THR_read_socket(void *ctx__pv, flea_u8_t* target_buffer__pu8, 
 }
 #endif
  
-flea_err_t flea_test_linux__create_rw_stream(flea_rw_stream_t * stream__pt)
+flea_err_t THR_flea_test_linux__create_rw_stream(flea_rw_stream_t * stream__pt, int * socket_fd)
 {
   FLEA_THR_BEG_FUNC();
  flea_rw_stream_open_f open__f = THR_open_socket;
@@ -196,7 +196,7 @@ flea_err_t flea_test_linux__create_rw_stream(flea_rw_stream_t * stream__pt)
  flea_rw_stream_read_f read__f = THR_read_socket;
  init_sock_stream(&stc_sock_stream__t);
  FLEA_CCALL(THR_flea_rw_stream_t__ctor(stream__pt, (void*) &stc_sock_stream__t, open__f, close__f, read__f, write__f, flush__f));
-
+ *socket_fd = stc_sock_stream__t.socket_fd__int; 
 // TODO: set up the buffers initialized!!
   FLEA_THR_FIN_SEC_empty();
 }

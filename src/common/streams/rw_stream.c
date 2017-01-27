@@ -17,6 +17,7 @@ flea_err_t THR_flea_rw_stream_t__ctor(flea_rw_stream_t * stream__pt, void *custo
   FLEA_THR_FIN_SEC_empty();
 }
 
+/* write blocking */
 flea_err_t THR_flea_rw_stream_t__write(flea_rw_stream_t * stream__pt, const flea_u8_t* data__pcu8, flea_dtl_t data_len__dtl)
 {
   FLEA_THR_BEG_FUNC();
