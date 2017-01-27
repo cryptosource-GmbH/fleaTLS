@@ -32,6 +32,9 @@ flea_err_t THR_flea_rw_stream_t__ctor(flea_rw_stream_t * stream__pt, void *custo
 
 flea_err_t THR_flea_rw_stream_t__write(flea_rw_stream_t * stream__pt, const flea_u8_t* data__pcu8, flea_dtl_t data_len__dtl);
 
+flea_err_t THR_flea_rw_stream_t__write_byte(flea_rw_stream_t * stream__pt, flea_u8_t byte__u8);
+
+flea_err_t THR_flea_rw_stream_t__write_u32_be(flea_rw_stream_t *stream__pt, flea_u32_t value__u32, flea_al_u8_t enc_len__alu8);
 
 flea_err_t THR_flea_rw_stream_t__flush_write(flea_rw_stream_t * stream__pt);
 
@@ -39,6 +42,7 @@ flea_err_t THR_flea_rw_stream_t__read(flea_rw_stream_t * stream__pt, flea_u8_t* 
 
 
 flea_err_t THR_flea_rw_stream_t__force_read(flea_rw_stream_t * stream__pt, flea_u8_t* data__pcu8, flea_dtl_t data_len__dtl);
+
 
 #ifdef __cplusplus
 }
