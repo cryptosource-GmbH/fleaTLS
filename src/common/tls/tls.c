@@ -981,7 +981,8 @@ flea_err_t THR_flea_tls__encrypt_record(flea_tls_ctx_t* tls_ctx, Record* record,
          SecurityParameters.block_size.
 
 */
-flea_err_t THR_flea_tls__create_record(flea_tls_ctx_t* tls_ctx, Record* record, flea_u8_t* data, flea_u32_t length, ContentType content_type) {
+flea_err_t THR_flea_tls__create_record(flea_tls_ctx_t* tls_ctx, Record* record, flea_u8_t* data, flea_u32_t length, ContentType content_type) 
+{
 	FLEA_THR_BEG_FUNC();
 
 	// TODO: if we support ciphers without encryption: need to adjust
@@ -1158,12 +1159,54 @@ flea_err_t THR_flea_tls__send_record_stream(flea_tls_ctx_t* tls_ctx, flea_u8_t* 
 	FLEA_THR_BEG_FUNC();
 
 	// create record
-	Record record;
-	flea_u8_t record_bytes[16384];
-	flea_u16_t record_bytes_len;
-	FLEA_CCALL(THR_flea_tls__create_record(tls_ctx, &record, bytes, bytes_len, content_type));
-	flea_tls__record_to_bytes(&record, record_bytes, &record_bytes_len);
+	//Record record;
+//	flea_u8_t record_bytes[16384];
+	//flea_u16_t record_bytes_len;
+	/*FLEA_CCALL(THR_flea_tls__create_record(tls_ctx, &record, bytes, bytes_len, content_type));
+	flea_tls__record_to_bytes(&record, record_bytes, &record_bytes_len);*/
+// TODO: write nothrow, indicate error in flush_write
+  flea_u8_t enc_len[2];
+  RecordType rec_type;
+	// TODO: if we support ciphers without encryption: need to adjust
+	if (tls_ctx->active_write_connection_state->cipher_suite->id == TLS_NULL_WITH_NULL_NULL)
+	{
+		rec_type = RECORD_TYPE_PLAINTEXT;
+	}
+	else
+	{
+		rec_type = RECORD_TYPE_CIPHERTEXT;
+	}
 
+	if (bytes_len > 16384 - 5)  // 2^14 is max length for record, +1024 / +2048 for compressed / ciphertext
+	{
+		printf ("Data too large for record: Need to implement fragmentation.\n");
+		FLEA_THROW("record too large", FLEA_ERR_TLS_GENERIC);
+	}
+
+	if (rec_type == RECORD_TYPE_PLAINTEXT)
+  {
+
+    enc_len[0] = bytes_len >> 8;
+    enc_len[1] = bytes_len;
+    /*	record->length = length;
+        record->data = calloc(length, sizeof(flea_u8_t));
+        memcpy(record->data, data, length);*/
+  }
+	// TODO: length max 2^14 + 2048
+	else if (rec_type == RECORD_TYPE_CIPHERTEXT)
+	{
+    memset(enc_len, 0, sizeof(enc_len));
+		//FLEA_CCALL(THR_flea_tls__encrypt_record(tls_ctx, record, data, length));
+    FLEA_THROW("sending of encrypted messages in stream mode not yet implemented", FLEA_ERR_INT_ERR);
+	}
+  flea_u8_t content_type__u8 = content_type;
+  FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, &content_type__u8, 1));
+  FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, &tls_ctx->version.major, 1));
+  FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, &tls_ctx->version.minor, 1));
+  FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, enc_len, sizeof(enc_len)));
+  FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, bytes, bytes_len));
+  printf("using streams!!!!!!\n");
+  // TODO: record_encryption still missing! must work on stream! 
 	// send record
 	/*if (send(socket_fd, record_bytes, record_bytes_len, 0) < 0)
 	{
@@ -1171,7 +1214,7 @@ flea_err_t THR_flea_tls__send_record_stream(flea_tls_ctx_t* tls_ctx, flea_u8_t* 
 		FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
 	}*/
     
-  FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, record_bytes, record_bytes_len));
+  //FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, record_bytes, record_bytes_len));
   FLEA_CCALL(THR_flea_rw_stream_t__flush_write(rw_stream__pt));
 
 	FLEA_THR_FIN_SEC_empty();
