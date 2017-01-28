@@ -17,6 +17,9 @@
 #include "flea/array_util.h"
 #include "flea/bin_utils.h"
 #include "flea/tls.h"
+#include "flea/cbc_filter.h"
+#include "flea/hash_stream.h"
+#include "flea/tee.h"
 
 #include <string.h>
 
@@ -1225,6 +1228,7 @@ flea_err_t THR_flea_tls__send_record_hdr(flea_tls_ctx_t* tls_ctx, flea_u16_t byt
 	{
     memset(enc_len, 0, sizeof(enc_len));
 		//FLEA_CCALL(THR_flea_tls__encrypt_record(tls_ctx, record, data, length));
+    printf("sending of encrypted messages in stream mode not yet implemented\n");
     FLEA_THROW("sending of encrypted messages in stream mode not yet implemented", FLEA_ERR_INT_ERR);
 	}
   flea_u8_t content_type__u8 = content_type;
@@ -1367,22 +1371,63 @@ flea_err_t THR_flea_tls__send_handshake_message(flea_tls_ctx_t* tls_ctx, flea_ha
 
 	FLEA_THR_FIN_SEC_empty();
 }
+static flea_bool_t flea_tls_does_chosen_ciphersuite_support_encryption(const flea_tls_ctx_t *tls_ctx__pt)
+{
+  return tls_ctx__pt->active_write_connection_state->cipher_suite->id != TLS_NULL_WITH_NULL_NULL;
+}
 
 flea_err_t THR_flea_tls__send_handshake_message_stream(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t* hash_ctx, HandshakeType type, flea_u8_t* msg_bytes, flea_u32_t msg_bytes_len, flea_rw_stream_t * rw_stream__pt) 
 {
+  //flea_rw_stream_t mac_stream; // not yet needed
+  flea_rw_stream_t encrypt_and_tee__t = flea_rw_stream_t__INIT_VALUE;
+  flea_cbc_filt_hlp_t cbc_filt_hlp__t;
+  flea_tee_w_stream_hlp_t tee_hlp__t;
+  flea_filter_t cbc_filt__t;
+  flea_al_u8_t padding_len__alu8;
+  flea_dtl_t encoded_msg_len__dtl;
 	FLEA_THR_BEG_FUNC();
 
-	FLEA_CCALL(THR_flea_tls__send_record_hdr(tls_ctx, msg_bytes_len+4, CONTENT_TYPE_HANDSHAKE, rw_stream__pt));
+	
+  // COMPUTE ENCRYPTED HDR LEN
+  if(flea_tls_does_chosen_ciphersuite_support_encryption(tls_ctx))
+  {
+	flea_u8_t block_len = tls_ctx->active_write_connection_state->cipher_suite->block_size;
+	flea_u8_t mac_len = tls_ctx->active_write_connection_state->cipher_suite->mac_size;
+	flea_u8_t iv_len = tls_ctx->active_write_connection_state->cipher_suite->iv_size;
 
-  FLEA_CCALL(THR_flea_tls__send_handshake_message_hdr(type, msg_bytes_len, rw_stream__pt, hash_ctx));
+	padding_len__alu8 = (block_len - ((msg_bytes_len + mac_len + 1) % block_len)) + 1;	// +1 for padding_length entry
+  encoded_msg_len__dtl = msg_bytes_len + padding_len__alu8 + mac_len + iv_len;
 
-	// add handshake message to Hash
-	FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, msg_bytes, msg_bytes_len));
-  FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, msg_bytes, msg_bytes_len));
+   
+  }
+  else
+  {
+    encoded_msg_len__dtl = msg_bytes_len;
+  }
+  //
+	FLEA_CCALL(THR_flea_tls__send_record_hdr(tls_ctx, encoded_msg_len__dtl+4, CONTENT_TYPE_HANDSHAKE, rw_stream__pt));
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_hdr(type, encoded_msg_len__dtl, rw_stream__pt, hash_ctx));
+
+// SEND IV plain
+
+  // FEED DIRECTLY TO HASH, ONLY FOR PLAINTEXT MESSAGE
+  if(!flea_tls_does_chosen_ciphersuite_support_encryption(tls_ctx))
+  {
+	  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, msg_bytes, msg_bytes_len));
+    FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, msg_bytes, msg_bytes_len));
+  }
+// create 
+//       mac 
+// msg <             hash
+//       encr-filt < 
+//                   send
+
   FLEA_CCALL(THR_flea_rw_stream_t__flush_write(rw_stream__pt));
 
   printf("using streeeeeaaaams!!!\n");
-	FLEA_THR_FIN_SEC_empty();
+	FLEA_THR_FIN_SEC(
+      flea_rw_stream_t__dtor(&encrypt_and_tee__t);  // NOT NEEDED!
+      );
 }
 
 

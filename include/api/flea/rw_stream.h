@@ -31,6 +31,9 @@ extern "C" {
     flea_al_u16_t filt_proc_buf_len__alu16;
   } flea_rw_stream_t;
 
+#define flea_rw_stream_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
+#define flea_rw_stream_t__INIT_VALUE { .custom_obj__pv = NULL }
+
   void flea_rw_stream_t__dtor(flea_rw_stream_t *stream__pt);
 
   flea_err_t THR_flea_rw_stream_t__ctor(flea_rw_stream_t * stream__pt, void *custom_obj__pv, flea_rw_stream_open_f open_func_mbn__f, flea_rw_stream_close_f close_func_mbn__f, flea_rw_stream_read_f read_func_mbn__f, flea_rw_stream_write_f write_func_mbn__f, flea_rw_stream_flush_write_f flush_write_func_mbn__f);
