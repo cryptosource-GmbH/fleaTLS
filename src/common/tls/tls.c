@@ -1379,26 +1379,40 @@ static flea_bool_t flea_tls_does_chosen_ciphersuite_support_encryption(const fle
 flea_err_t THR_flea_tls__send_handshake_message_stream(flea_tls_ctx_t* tls_ctx, flea_hash_ctx_t* hash_ctx, HandshakeType type, flea_u8_t* msg_bytes, flea_u32_t msg_bytes_len, flea_rw_stream_t * rw_stream__pt) 
 {
   //flea_rw_stream_t mac_stream; // not yet needed
-  flea_rw_stream_t encrypt_and_tee__t = flea_rw_stream_t__INIT_VALUE;
+  //flea_rw_stream_t encrypt_and_tee__t = flea_rw_stream_t__INIT_VALUE;
+  //flea_rw_stream_t hash_stream__t = flea_rw_stream_t__INIT_VALUE;
+  // TODO: reuse this object, allow resetting of IV after creation
+  flea_cbc_mode_ctx_t cbc_ctx__t = flea_cbc_mode_ctx_t__INIT_VALUE;
   flea_cbc_filt_hlp_t cbc_filt_hlp__t;
-  flea_tee_w_stream_hlp_t tee_hlp__t;
+  //flea_tee_w_stream_hlp_t tee_hlp__t;
   flea_filter_t cbc_filt__t;
   flea_al_u8_t padding_len__alu8;
   flea_dtl_t encoded_msg_len__dtl;
+
+	flea_u8_t block_len = tls_ctx->active_write_connection_state->cipher_suite->block_size;
+	flea_u8_t mac_len = tls_ctx->active_write_connection_state->cipher_suite->mac_size;
+	flea_u8_t iv_len__alu8 = tls_ctx->active_write_connection_state->cipher_suite->iv_size;
+
+	flea_u8_t* mac_key = tls_ctx->active_write_connection_state->mac_key;
+	flea_u8_t* enc_key = tls_ctx->active_write_connection_state->enc_key;
+
+	flea_u8_t mac_key_len = tls_ctx->active_write_connection_state->cipher_suite->mac_key_size;
+	flea_u8_t enc_key_len = tls_ctx->active_write_connection_state->cipher_suite->enc_key_size;
+
+  FLEA_DECL_BUF(iv__bu8, flea_u8_t, FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH + FLEA_MAC_MAX_OUTPUT_LENGTH + 64);
+  //FLEA_DECL_BUF(mac__bu8, flea_u8_t, FLEA_MAC_MAX_OUTPUT_LENGTH);
+  flea_u8_t *mac__pu8;
+  flea_u8_t *cbc_filt_buf__pu8;
 	FLEA_THR_BEG_FUNC();
 
-	
+  FLEA_ALLOC_BUF(iv__bu8, iv_len__alu8 + mac_len + 64); 	
+  mac__pu8 = iv__bu8 + iv_len__alu8;
+  cbc_filt_buf__pu8 = mac__pu8 + mac_len;
   // COMPUTE ENCRYPTED HDR LEN
   if(flea_tls_does_chosen_ciphersuite_support_encryption(tls_ctx))
   {
-	flea_u8_t block_len = tls_ctx->active_write_connection_state->cipher_suite->block_size;
-	flea_u8_t mac_len = tls_ctx->active_write_connection_state->cipher_suite->mac_size;
-	flea_u8_t iv_len = tls_ctx->active_write_connection_state->cipher_suite->iv_size;
-
-	padding_len__alu8 = (block_len - ((msg_bytes_len + mac_len + 1) % block_len)) + 1;	// +1 for padding_length entry
-  encoded_msg_len__dtl = msg_bytes_len + padding_len__alu8 + mac_len + iv_len;
-
-   
+    padding_len__alu8 = (block_len - ((msg_bytes_len + mac_len + 1) % block_len)) + 1;	// +1 for padding_length entry
+    encoded_msg_len__dtl = msg_bytes_len + padding_len__alu8 + mac_len + iv_len__alu8;
   }
   else
   {
@@ -1406,27 +1420,70 @@ flea_err_t THR_flea_tls__send_handshake_message_stream(flea_tls_ctx_t* tls_ctx, 
   }
   //
 	FLEA_CCALL(THR_flea_tls__send_record_hdr(tls_ctx, encoded_msg_len__dtl+4, CONTENT_TYPE_HANDSHAKE, rw_stream__pt));
-  FLEA_CCALL(THR_flea_tls__send_handshake_message_hdr(type, encoded_msg_len__dtl, rw_stream__pt, hash_ctx));
 
 // SEND IV plain
 
   // FEED DIRECTLY TO HASH, ONLY FOR PLAINTEXT MESSAGE
   if(!flea_tls_does_chosen_ciphersuite_support_encryption(tls_ctx))
   {
-	  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, msg_bytes, msg_bytes_len));
+    FLEA_CCALL(THR_flea_tls__send_handshake_message_hdr(type, encoded_msg_len__dtl, rw_stream__pt, hash_ctx));
     FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, msg_bytes, msg_bytes_len));
   }
-// create 
-//       mac 
-// msg <             hash
-//       encr-filt < 
-//                   send
+  else
+  {
 
+  flea_u32_t seq_lo__u32, seq_hi__u32;
+  flea_u8_t enc_seq_nbr__au8[8];
+/* create 
+         (hash)
+   msg <             
+         encr-filt|send
+*/
+    //FLEA_CCALL(THR_flea_rw_stream_t__ctor_hash_stream(&hash_stream__t, hash_ctx));
+    //FLEA_CCALL(THR_flea_rw_stream_t__ctor_tee_write_stream(&encrypt_and_tee__t, &tee_hlp__t, &hash_stream__t, rw_stream__pt ));
+    FLEA_CCALL(THR_flea_cbc_mode_ctx_t__ctor(&cbc_ctx__t, tls_ctx->active_write_connection_state->cipher_suite->cipher, enc_key, enc_key_len, iv__bu8, iv_len__alu8, flea_encrypt));
+    FLEA_CCALL(THR_flea_filter_t__ctor_cbc(&cbc_filt__t, &cbc_filt_hlp__t, &cbc_ctx__t));
+    // better: use stream prepended to 
+    FLEA_CCALL(THR_flea_rw_stream_t__set_filter(rw_stream__pt, &cbc_filt__t, cbc_filt_buf__pu8, 64)); 
+    
+	seq_lo__u32 = tls_ctx->active_write_connection_state->sequence_number__au32[0];
+	seq_hi__u32 = tls_ctx->active_write_connection_state->sequence_number__au32[1];
+
+  inc_seq_nbr(tls_ctx->active_write_connection_state->sequence_number__au32);
+// TODO: was ist mit SEQ overflow?
+  flea__encode_U32_LE(seq_lo__u32, enc_seq_nbr__au8);
+  flea__encode_U32_LE(seq_hi__u32, enc_seq_nbr__au8 + 4);
+// TODO: 
+// - make mac ctx, pass it to send_hs_hdr for updating
+// - feed msg data through MAC
+// - feed msg data through cbc-filt|send
+// - finalize MAC
+// - feed MAC through cbc-filt|send
+// - feed padding through cbc-filt|send
+
+// 
+	/*FLEA_CCALL(THR_flea_tls__compute_mac(data, data_len, &tls_ctx->version, tls_ctx->active_write_connection_state->cipher_suite->mac_algorithm, mac_key, mac_key_len, enc_seq_nbr__au8, record->content_type, mac, &mac_len));*/
+
+	// compute IV ... TODO: xor with last plaintext block? -> RFC
+	/*
+	Initialization Vector (IV)
+      When a block cipher is used in CBC mode, the initialization vector
+      is exclusive-ORed with the first plaintext block prior to
+      encryption.
+	*/
+	flea_rng__randomize(iv__bu8, iv_len__alu8);
+  }
+
+	FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, msg_bytes, msg_bytes_len));
   FLEA_CCALL(THR_flea_rw_stream_t__flush_write(rw_stream__pt));
 
   printf("using streeeeeaaaams!!!\n");
 	FLEA_THR_FIN_SEC(
-      flea_rw_stream_t__dtor(&encrypt_and_tee__t);  // NOT NEEDED!
+      flea_cbc_mode_ctx_t__dtor(&cbc_ctx__t);
+      flea_rw_stream_t__unset_filter(rw_stream__pt);
+      //flea_rw_stream_t__dtor(&encrypt_and_tee__t);  // NOT NEEDED!
+      //flea_rw_stream_t__dtor(&hash_stream__t);  // NOT NEEDED!
+      FLEA_FREE_BUF_FINAL(iv__bu8);
       );
 }
 

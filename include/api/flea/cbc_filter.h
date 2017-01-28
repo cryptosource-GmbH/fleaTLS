@@ -24,6 +24,7 @@ extern "C" {
   flea_u8_t pend_len__u8;
   } flea_cbc_filt_hlp_t;
 
+flea_err_t THR_flea_filter_t__ctor_cbc(flea_filter_t *filt__pt, flea_cbc_filt_hlp_t * uninit_cbc_hlp__pt, flea_cbc_mode_ctx_t *constructed_cbc_ctx__pt);
 
 #ifdef __cplusplus
 }

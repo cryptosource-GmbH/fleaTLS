@@ -63,8 +63,7 @@ flea_err_t THR_flea_filter_t__ctor_cbc(flea_filter_t *filt__pt, flea_cbc_filt_hl
 #endif
   uninit_cbc_hlp__pt->cbc_ctx__pt = constructed_cbc_ctx__pt;
   uninit_cbc_hlp__pt->block_length__u8 = constructed_cbc_ctx__pt->cipher_ctx__t.block_length__u8;
-  filt__pt->ctx__pv = uninit_cbc_hlp__pt;
-  filt__pt->proc__f = THR_cbc_filter_process;
+  FLEA_CCALL(THR_flea_filter_t__ctor(filt__pt, (void*) constructed_cbc_ctx__pt, THR_cbc_filter_process, constructed_cbc_ctx__pt->cipher_ctx__t.block_length__u8-1));
 
   FLEA_THR_FIN_SEC_empty();
 }

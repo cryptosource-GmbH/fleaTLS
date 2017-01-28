@@ -24,9 +24,12 @@ FLEA_CCALL(THR_flea_rw_stream_t__flush_write(hlp__pt->stream_2__pt));
   FLEA_THR_FIN_SEC_empty(); 
 }
 
-flea_err_t THR_flea_rw_stream_t__ctor_tee_write_stream (flea_rw_stream_t *rw_stream__pt, flea_tee_w_stream_hlp_t* hlp__pt, flea_rw_stream_t sink_stream_1__pt, flea_rw_stream_t sink_stream_2__pt)
+flea_err_t THR_flea_rw_stream_t__ctor_tee_write_stream (flea_rw_stream_t *rw_stream__pt, flea_tee_w_stream_hlp_t* hlp__pt, flea_rw_stream_t *sink_stream_1__pt, flea_rw_stream_t *sink_stream_2__pt)
 {
   FLEA_THR_BEG_FUNC();
+  hlp__pt->stream_1__pt = sink_stream_1__pt;
+  hlp__pt->stream_2__pt = sink_stream_2__pt;
+
   FLEA_CCALL(THR_flea_rw_stream_t__ctor(rw_stream__pt, (void *)hlp__pt, NULL, NULL, NULL, THR_flea_tee_write_func, THR_flea_tee_write_flush_func));
   FLEA_THR_FIN_SEC_empty(); 
 }
