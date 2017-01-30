@@ -300,6 +300,8 @@ void flea_mac_ctx_t__dtor_cipher_ctx_ref (flea_mac_ctx_t* ctx__pt)
 flea_err_t THR_flea_mac_ctx_t__update (flea_mac_ctx_t* ctx__pt, const flea_u8_t* data__pcu8, flea_dtl_t data_len__dtl)
 {
   FLEA_THR_BEG_FUNC();
+
+
   if(ctx__pt->mode_id__t == flea_hmac)
   {
     FLEA_CCALL(THR_flea_hash_ctx_t__update(&ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t, data__pcu8, data_len__dtl));

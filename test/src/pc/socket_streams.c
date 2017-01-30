@@ -86,6 +86,7 @@ static flea_err_t THR_send_socket_inner(int socket_fd, const flea_u8_t* source_b
 {
 
   FLEA_THR_BEG_FUNC();
+
 	if (send(socket_fd, source_buffer__pcu8, nb_bytes_to_write__dtl, 0) < 0)
 	{
 		FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);

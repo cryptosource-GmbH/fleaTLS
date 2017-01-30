@@ -77,6 +77,7 @@ flea_err_t THR_flea_rw_stream_t__write(flea_rw_stream_t * stream__pt, const flea
   }
   if(stream__pt->filt__pt)
   {
+
      
     const flea_dtl_t portion_size__dtl = stream__pt->filt_proc_buf_len__alu16 - stream__pt->filt__pt->max_absolute_output_expansion__u16;
     while(data_len__dtl)
@@ -86,11 +87,15 @@ flea_err_t THR_flea_rw_stream_t__write(flea_rw_stream_t * stream__pt, const flea
       FLEA_CCALL(THR_flea_filter_t__process(stream__pt->filt__pt, data__pcu8, to_go__alu16, stream__pt->filt_proc_buf__pu8, &output_len__dtl));
       data_len__dtl -= to_go__alu16;
       data__pcu8 += to_go__alu16;
-      FLEA_CCALL(stream__pt->write_func__f(stream__pt->custom_obj__pv, stream__pt->filt_proc_buf__pu8, output_len__dtl));
+      if(output_len__dtl)
+      {
+        FLEA_CCALL(stream__pt->write_func__f(stream__pt->custom_obj__pv, stream__pt->filt_proc_buf__pu8, output_len__dtl));
+      }
     }
   }
   else
   {
+    
     FLEA_CCALL(stream__pt->write_func__f(stream__pt->custom_obj__pv, data__pcu8, data_len__dtl));
   }
   FLEA_THR_FIN_SEC_empty();
