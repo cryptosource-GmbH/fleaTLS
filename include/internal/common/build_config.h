@@ -178,6 +178,12 @@
  */
 #define FLEA_USE_ECC_ADD_ALWAYS // FBFLAGS_ECC_ADA_ON_OFF
 
+/**
+ * Size of the buffer used in the cipher filter used inside TLS. Must be at
+ * least 32 bytes. Larger values increase performance.
+ */
+#define FLEA_TLS_CIPH_FILTER_BUF_LEN 65
+
 /* include must remain at the very end: */
 #include "internal/common/build_config_util.h"
 

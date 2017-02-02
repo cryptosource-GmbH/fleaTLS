@@ -1150,7 +1150,6 @@ flea_err_t THR_flea_tls__encrypt_record(flea_tls_ctx_t *tls_ctx, Record *record,
    *  encryption.
    */
   flea_rng__randomize(iv, iv_len);
-  memset(iv, 0xA5, iv_len);
 
   // compute padding
   // TODO: 2x % block_len => was war beabsichtigt?
@@ -1446,6 +1445,38 @@ flea_err_t THR_flea_tls__send_record_hdr(
   FLEA_THR_FIN_SEC_empty();
 }
 
+flea_err_t THR_flea_tls__send_record_new(
+  flea_tls_ctx_t   *tls_ctx,
+  flea_u8_t        *bytes,
+  flea_u16_t       bytes_len,
+  ContentType      content_type,
+  int              socket_fd,
+  flea_rw_stream_t *rw_stream__pt
+)
+{
+  FLEA_THR_BEG_FUNC();
+  // TODO: INIT OBJECT
+  flea_tls_rec_prot_t rec_prot__t;
+  flea_u8_t record_buf__au8[1000];
+  FLEA_CCALL(
+    THR_flea_tls_rec_prot_t__ctor(
+      &rec_prot__t, record_buf__au8, sizeof(record_buf__au8),
+      tls_ctx->active_write_connection_state->cipher_suite, tls_ctx->version.major, tls_ctx->version.minor,
+      rw_stream__pt
+    )
+  );
+
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__start_record(&rec_prot__t, content_type));
+  FLEA_CCALL(
+    THR_flea_tls_rec_prot_t__write_data(
+      &rec_prot__t, bytes, bytes_len,
+      tls_ctx->active_write_connection_state
+    )
+  );
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(&rec_prot__t, tls_ctx->active_write_connection_state));
+  FLEA_THR_FIN_SEC_empty();
+}
+
 flea_err_t THR_flea_tls__send_record(
   flea_tls_ctx_t *tls_ctx,
   flea_u8_t      *bytes,
@@ -1490,6 +1521,38 @@ flea_err_t THR_flea_tls__send_alert(
 
   FLEA_CCALL(THR_flea_tls__send_record(tls_ctx, alert_bytes, sizeof(alert_bytes), CONTENT_TYPE_ALERT, socket_fd));
 
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_tls__send_handshake_message_new(
+  flea_tls_ctx_t   *tls_ctx,
+  flea_hash_ctx_t  *hash_ctx,
+  HandshakeType    type,
+  flea_u8_t        *msg_bytes,
+  flea_u32_t       msg_bytes_len,
+  int              socket_fd,
+  flea_rw_stream_t *rw_stream__pt
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+  // create handshake message
+  flea_u8_t handshake_bytes[16384]; // TODO: max length for handshake is 2^24 = 16777216
+  flea_u32_t handshake_bytes_len;
+  flea_tls__create_handshake_message(type, msg_bytes, msg_bytes_len, handshake_bytes, &handshake_bytes_len);
+
+  // send record
+  FLEA_CCALL(
+    THR_flea_tls__send_record_new(
+      tls_ctx, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE,
+      socket_fd, rw_stream__pt
+    )
+  );
+
+
+  // add handshake message to Hash
+  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
 
   FLEA_THR_FIN_SEC_empty();
 }
@@ -1557,19 +1620,24 @@ flea_err_t THR_flea_tls__send_handshake_message_stream(
   flea_u8_t mac_key_len = tls_ctx->active_write_connection_state->cipher_suite->mac_key_size;
   flea_u8_t enc_key_len = tls_ctx->active_write_connection_state->cipher_suite->enc_key_size;
 
-  FLEA_DECL_BUF(iv__bu8, flea_u8_t, FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH + FLEA_MAC_MAX_OUTPUT_LENGTH + 64);
+  flea_al_u8_t subprotocol_hdr_len__alu8 = 4;
+
+  FLEA_DECL_BUF(
+    iv__bu8, flea_u8_t,
+    FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH + FLEA_MAC_MAX_OUTPUT_LENGTH + FLEA_TLS_CIPH_FILTER_BUF_LEN
+  );
   flea_u8_t *mac__pu8;
   flea_u8_t *cbc_filt_buf__pu8;
   FLEA_THR_BEG_FUNC();
 
-  FLEA_ALLOC_BUF(iv__bu8, iv_len__alu8 + mac_len + 64);
+  FLEA_ALLOC_BUF(iv__bu8, iv_len__alu8 + mac_len + FLEA_TLS_CIPH_FILTER_BUF_LEN);
   mac__pu8 = iv__bu8 + iv_len__alu8;
   cbc_filt_buf__pu8 = mac__pu8 + mac_len;
   // COMPUTE ENCRYPTED HDR LEN
   if(flea_tls_does_chosen_ciphersuite_support_encryption(tls_ctx))
   {
     // TODO: plus 4 => allg: sub-protocol header len
-    padding_len__alu8    = (block_len - ((msg_bytes_len + 4 + mac_len + 1) % block_len)) + 1; // +1 for padding_length entry
+    padding_len__alu8    = (block_len - ((msg_bytes_len + subprotocol_hdr_len__alu8 + mac_len + 1) % block_len)) + 1; // +1 for padding_length entry
     encoded_msg_len__dtl = msg_bytes_len + padding_len__alu8 + mac_len + iv_len__alu8;
     FLEA_CCALL(
       THR_flea_mac_ctx_t__ctor(
@@ -1580,7 +1648,12 @@ flea_err_t THR_flea_tls__send_handshake_message_stream(
   } else
   {
     encoded_msg_len__dtl = msg_bytes_len;
-    FLEA_CCALL(THR_flea_tls__send_record_hdr(tls_ctx, encoded_msg_len__dtl + 4, CONTENT_TYPE_HANDSHAKE, rw_stream__pt));
+    FLEA_CCALL(
+      THR_flea_tls__send_record_hdr(
+        tls_ctx, encoded_msg_len__dtl + subprotocol_hdr_len__alu8,
+        CONTENT_TYPE_HANDSHAKE, rw_stream__pt
+      )
+    );
   }
   //
 
@@ -1604,7 +1677,6 @@ flea_err_t THR_flea_tls__send_handshake_message_stream(
      */
 
     flea_rng__randomize(iv__bu8, iv_len__alu8);
-    memset(iv__bu8, 0xA5, iv_len__alu8);
     FLEA_CCALL(
       THR_flea_cbc_mode_ctx_t__ctor(
         &cbc_ctx__t, tls_ctx->active_write_connection_state->cipher_suite->cipher,
@@ -1612,7 +1684,6 @@ flea_err_t THR_flea_tls__send_handshake_message_stream(
       )
     );
     FLEA_CCALL(THR_flea_filter_t__ctor_cbc(&cbc_filt__t, &cbc_filt_hlp__t, &cbc_ctx__t));
-    // better: use stream prepended to
 
     seq_lo__u32 = tls_ctx->active_write_connection_state->sequence_number__au32[0];
     seq_hi__u32 = tls_ctx->active_write_connection_state->sequence_number__au32[1];
@@ -1635,17 +1706,28 @@ flea_err_t THR_flea_tls__send_handshake_message_stream(
     //
     flea_u8_t content_type__u8 = CONTENT_TYPE_HANDSHAKE;
     flea_u8_t enc_len__au8[2];
+
     FLEA_CCALL(THR_flea_mac_ctx_t__update(&mac_ctx__t, &content_type__u8, 1));
     FLEA_CCALL(THR_flea_mac_ctx_t__update(&mac_ctx__t, &tls_ctx->version.major, 1));
     FLEA_CCALL(THR_flea_mac_ctx_t__update(&mac_ctx__t, &tls_ctx->version.minor, 1));
     //  +4 => handshake hdr len
-    enc_len__au8[0] = (msg_bytes_len + 4) >> 8;
-    enc_len__au8[1] = (msg_bytes_len + 4);
+    enc_len__au8[0] = (msg_bytes_len + subprotocol_hdr_len__alu8) >> 8;
+    enc_len__au8[1] = (msg_bytes_len + subprotocol_hdr_len__alu8);
     FLEA_CCALL(THR_flea_mac_ctx_t__update(&mac_ctx__t, enc_len__au8, sizeof(enc_len__au8)));
 
-    FLEA_CCALL(THR_flea_tls__send_record_hdr(tls_ctx, encoded_msg_len__dtl + 4, CONTENT_TYPE_HANDSHAKE, rw_stream__pt));
+    FLEA_CCALL(
+      THR_flea_tls__send_record_hdr(
+        tls_ctx, encoded_msg_len__dtl + subprotocol_hdr_len__alu8,
+        CONTENT_TYPE_HANDSHAKE, rw_stream__pt
+      )
+    );
     FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, iv__bu8, iv_len__alu8));
-    FLEA_CCALL(THR_flea_rw_stream_t__set_filter(rw_stream__pt, &cbc_filt__t, cbc_filt_buf__pu8, 64));
+    FLEA_CCALL(
+      THR_flea_rw_stream_t__set_filter(
+        rw_stream__pt, &cbc_filt__t, cbc_filt_buf__pu8,
+        FLEA_TLS_CIPH_FILTER_BUF_LEN
+      )
+    );
     FLEA_CCALL(THR_flea_tls__send_handshake_message_hdr(type, msg_bytes_len, rw_stream__pt, hash_ctx, &mac_ctx__t));
     // - feed msg data through MAC
     FLEA_CCALL(THR_flea_mac_ctx_t__update(&mac_ctx__t, msg_bytes, msg_bytes_len));
@@ -1751,14 +1833,21 @@ static flea_err_t THR_flea_tls__send_finished(
 
   // FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_FINISHED, finished_bytes, finished_bytes_len, socket_fd));
 
-  //	FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_FINISHED, finished_bytes, finished_bytes_len, -1));
+  // FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_FINISHED, finished_bytes, finished_bytes_len, -1));
 
   FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_stream(
+    THR_flea_tls__send_handshake_message_new(
       tls_ctx, hash_ctx, HANDSHAKE_TYPE_FINISHED, finished_bytes,
-      finished_bytes_len, rw_stream__pt
+      finished_bytes_len, socket_fd, rw_stream__pt
     )
   );
+
+  /*FLEA_CCALL(
+   * THR_flea_tls__send_handshake_message_stream(
+   *  tls_ctx, hash_ctx, HANDSHAKE_TYPE_FINISHED, finished_bytes,
+   *  finished_bytes_len, rw_stream__pt
+   * )
+   * );*/
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_finished */
@@ -1782,11 +1871,18 @@ flea_err_t THR_flea_tls__send_client_hello(
 
   // FLEA_CCALL(THR_flea_tls__send_handshake_message(tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO, client_hello_bytes, client_hello_bytes_len, socket_fd));
   FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_stream(
+    THR_flea_tls__send_handshake_message_new(
       tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO,
-      client_hello_bytes, client_hello_bytes_len, rw_stream__pt
+      client_hello_bytes, client_hello_bytes_len, socket_fd, rw_stream__pt
     )
   );
+
+  /*FLEA_CCALL(
+   * THR_flea_tls__send_handshake_message_stream(
+   *  tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO,
+   *  client_hello_bytes, client_hello_bytes_len, rw_stream__pt
+   * )
+   * );*/
 
   // TODO: dorther stammen die beiden Werte ja schon. Was ist beabsichtigt?
   // add random to tls_ctx

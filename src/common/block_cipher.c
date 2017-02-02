@@ -342,18 +342,25 @@ flea_err_t THR_flea_ctr_mode_crypt_data_short_nonce_full_ctr_len (flea_block_cip
 }
 
 
-flea_err_t THR_flea_cbc_mode_ctx_t__ctor (flea_cbc_mode_ctx_t* ctx__pt, flea_block_cipher_id_t id__t, const flea_u8_t* key__pcu8, flea_al_u8_t key_len__alu8, const flea_u8_t* iv__pcu8, flea_al_u8_t iv_len__alu8, flea_cipher_dir_t dir__t )
+flea_err_t THR_flea_cbc_mode_ctx_t__ctor (flea_cbc_mode_ctx_t* ctx__pt, flea_block_cipher_id_t id__t, const flea_u8_t* key__pcu8, flea_al_u8_t key_len__alu8, const flea_u8_t* iv_mbn__pcu8, flea_al_u8_t iv_len__alu8, flea_cipher_dir_t dir__t )
 {
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_ecb_mode_ctx_t__ctor(&ctx__pt->cipher_ctx__t, id__t, key__pcu8, key_len__alu8, dir__t));
-  if(iv_len__alu8 != ctx__pt->cipher_ctx__t.block_length__u8)
-  {
-    FLEA_THROW("invalid IV length in CBC mode", FLEA_ERR_INV_ARG);
-  }
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM_ARR(ctx__pt->iv__bu8, ctx__pt->cipher_ctx__t.block_length__u8);
 #endif
-  memcpy(ctx__pt->iv__bu8, iv__pcu8, iv_len__alu8);
+  if(iv_mbn__pcu8)
+  {
+    if(iv_len__alu8 != ctx__pt->cipher_ctx__t.block_length__u8)
+    {
+      FLEA_THROW("invalid IV length in CBC mode", FLEA_ERR_INV_ARG);
+    }
+    memcpy(ctx__pt->iv__bu8, iv_mbn__pcu8, iv_len__alu8);
+  }
+  else
+  {
+    memset(ctx__pt->iv__bu8, 0, ctx__pt->cipher_ctx__t.block_length__u8);
+  }
   FLEA_THR_FIN_SEC_empty();
 }
 
