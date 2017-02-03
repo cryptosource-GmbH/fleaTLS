@@ -9,7 +9,6 @@
 #include "flea/hash.h"
 #include "flea/mac.h"
 #include "flea/rw_stream.h"
-#include "internal/common/tls_ciph_state.h"
 #include "internal/common/tls_ciph_suite.h"
 #include "internal/common/tls_rec_prot.h"
 
@@ -312,7 +311,7 @@ typedef struct
 
   flea_u8_t                    key_block[128]; // size for key block for aes256+sha256 - max size for all ciphersuites in RFC
 
-  // flea_tls_cipher_state_t      cipher_state__t;
+  flea_rw_stream_t             *rw_stream__pt;
 } flea_tls_ctx_t;
 // int flea_tls_connection();
 
