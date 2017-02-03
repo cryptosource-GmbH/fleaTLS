@@ -73,14 +73,14 @@ static flea_err_t THR_flea_tls__compute_mac(
 } /* THR_flea_tls__compute_mac */
 
 flea_err_t THR_flea_tls_rec_prot_t__ctor(
-  flea_tls_rec_prot_t      *rec_prot__pt,
-  flea_u8_t                *send_rec_buf_raw__pu8,
-  flea_al_u16_t            send_rec_buf_raw_len__alu16,
+  flea_tls_rec_prot_t            *rec_prot__pt,
+  flea_u8_t                      *send_rec_buf_raw__pu8,
+  flea_al_u16_t                  send_rec_buf_raw_len__alu16,
   // flea_al_u8_t             reserved_iv_len__alu8,
-  flea_tls__cipher_suite_t *suite__pt,
-  flea_al_u8_t             prot_vers_major,
-  flea_al_u8_t             prot_vers_minor,
-  flea_rw_stream_t         *rw_stream__pt
+  const flea_tls__cipher_suite_t *suite__pt,
+  flea_al_u8_t                   prot_vers_major,
+  flea_al_u8_t                   prot_vers_minor,
+  flea_rw_stream_t               *rw_stream__pt
 )
 {
   flea_al_u16_t reserved_payl_len__alu16;

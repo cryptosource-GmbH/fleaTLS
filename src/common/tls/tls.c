@@ -92,7 +92,7 @@ flea_u8_t trust_anchor[] =
   0x8f, 0x64, 0xba, 0x8e, 0xf1, 0x88 };
 
 // TODO: MUST BE CONST
-flea_tls__cipher_suite_t cipher_suites[2] = {
+const flea_tls__cipher_suite_t cipher_suites[2] = {
   { TLS_NULL_WITH_NULL_NULL,         (flea_block_cipher_id_t) 0,
     0, 0,
     0, 0, 0, (flea_mac_id_t) 0, (flea_hash_id_t) 0, (flea_tls__prf_algorithm_t) 0               },
@@ -1368,11 +1368,7 @@ flea_err_t THR_flea_tls__create_record(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__create_record */
 
-flea_err_t THR_flea_tls__create_connection_params(flea_tls_ctx_t *tls_ctx,
-  flea_tls__connection_state_t                                   *connection_state,
-  flea_tls__cipher_suite_t                                       *cipher_suite,
-  flea_bool_t                                                    writing_state
-)
+flea_err_t THR_flea_tls__create_connection_params(flea_tls_ctx_t *tls_ctx, flea_tls__connection_state_t *connection_state, const flea_tls__cipher_suite_t *cipher_suite, flea_bool_t writing_state)
 {
   FLEA_THR_BEG_FUNC();
 

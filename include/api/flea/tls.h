@@ -213,7 +213,7 @@ typedef enum
 } flea_tls__alert_level_t;
 
 
-extern flea_tls__cipher_suite_t cipher_suites[2];
+extern const flea_tls__cipher_suite_t cipher_suites[2];
 
 
 /**
@@ -316,17 +316,14 @@ typedef struct
 } flea_tls_ctx_t;
 // int flea_tls_connection();
 
-flea_err_t
-flea_tls_ctx_t__ctor(flea_tls_ctx_t *ctx, flea_u8_t *session_id, flea_u8_t session_id_len);
+flea_err_t flea_tls_ctx_t__ctor(flea_tls_ctx_t *ctx, flea_u8_t *session_id, flea_u8_t session_id_len);
 
-flea_err_t
-THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx, flea_rw_stream_t *rw_stream__pt);
-flea_err_t
-THR_flea_tls__send_app_data(flea_tls_ctx_t *tls_ctx, flea_u8_t *data, flea_u8_t data_len);
-flea_err_t
-THR_flea_tls__send_alert(flea_tls_ctx_t *tls_ctx, flea_tls__alert_description_t description, flea_tls__alert_level_t level);
+flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx, flea_rw_stream_t *rw_stream__pt);
+flea_err_t THR_flea_tls__send_app_data(flea_tls_ctx_t *tls_ctx, flea_u8_t *data, flea_u8_t data_len);
+flea_err_t THR_flea_tls__send_alert(flea_tls_ctx_t *tls_ctx, flea_tls__alert_description_t description, flea_tls__alert_level_t level);
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif /* h-guard */
