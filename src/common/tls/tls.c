@@ -1408,47 +1408,6 @@ flea_err_t THR_flea_tls__receive(int socket_fd, flea_u8_t *buff, flea_u32_t buff
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls__send(int socket_fd, flea_u8_t *buff, flea_u32_t buff_size)
-{
-  FLEA_THR_BEG_FUNC();
-  if(send(socket_fd, buff, buff_size, 0) < 0)
-  {
-    FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
-  }
-  FLEA_THR_FIN_SEC_empty();
-}
-
-flea_err_t THR_flea_tls__send_record_hdr(
-  flea_tls_ctx_t   *tls_ctx,
-  flea_u16_t       bytes_len,
-  ContentType      content_type,
-  flea_rw_stream_t *rw_stream__pt
-)
-{
-  FLEA_THR_BEG_FUNC();
-
-  // TODO: write nothrow, indicate error in flush_write
-  flea_u8_t enc_len[2];
-  // RecordType rec_type;
-  // TODO: if we support ciphers without encryption: need to adjust
-
-  if(bytes_len > 16384 - 5) // 2^14 is max length for record, +1024 / +2048 for compressed / ciphertext
-  {
-    printf("Data too large for record: Need to implement fragmentation.\n");
-    FLEA_THROW("record too large", FLEA_ERR_TLS_GENERIC);
-  }
-
-
-  enc_len[0] = bytes_len >> 8;
-  enc_len[1] = bytes_len;
-  flea_u8_t content_type__u8 = content_type;
-  FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, &content_type__u8, 1));
-  FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, &tls_ctx->version.major, 1));
-  FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, &tls_ctx->version.minor, 1));
-  FLEA_CCALL(THR_flea_rw_stream_t__write(rw_stream__pt, enc_len, sizeof(enc_len)));
-
-  FLEA_THR_FIN_SEC_empty();
-}
 
 static flea_err_t THR_flea_tls__send_record(
   flea_tls_ctx_t *tls_ctx,
@@ -1797,8 +1756,7 @@ flea_err_t THR_flea_tls__send_client_hello(
 flea_err_t THR_flea_tls__send_client_key_exchange(
   flea_tls_ctx_t    *tls_ctx,
   flea_hash_ctx_t   *hash_ctx,
-  flea_public_key_t *pubkey,
-  int               socket_fd
+  flea_public_key_t *pubkey
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -2041,7 +1999,7 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
         // TODO: send certificate message
       }
 
-      FLEA_CCALL(THR_flea_tls__send_client_key_exchange(tls_ctx, &hash_ctx, &pubkey, socket_fd));
+      FLEA_CCALL(THR_flea_tls__send_client_key_exchange(tls_ctx, &hash_ctx, &pubkey));
 
       FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx, &hash_ctx));
 
