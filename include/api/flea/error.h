@@ -209,7 +209,10 @@ typedef enum
   * A received record does not fit into the available buffer.
   */ 
   FLEA_ERR_TLS_EXCSS_REC_LEN                          = 0x0102,
-   
+
+  /* 
+   * Error for invalid state transitions, relevant for debugging as they _should_ never happen */
+  FLEA_ERR_TLS_INVALID_STATE                          = 0x0103,	   
   /** The routine for the construction of a valid certification path
    * was cancelled from another thread.
    */

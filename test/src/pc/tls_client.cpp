@@ -44,14 +44,15 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   addr.sin_addr.s_addr = inet_addr("127.0.0.1");
   addr.sin_family = AF_INET;
   addr.sin_port = htons( 4444 );
-#endif 
+#endif
   /*addr.sin_addr.s_addr = inet_addr("31.15.64.162");
     addr.sin_family = AF_INET;
     addr.sin_port = htons( 443 );*/
   // TODO: MISSING INIT OF CTX
   flea_tls_ctx_t tls_ctx;
+  char app_data_www[] = "GET index.html HTTP/1.1\nHost: 127.0.0.1";
   FLEA_THR_BEG_FUNC();
-#if 0 
+#if 0
   if (connect(socket_fd , (struct sockaddr *)&addr , sizeof(addr)) < 0)
   {
     addr.sin_port = htons(4445);
@@ -68,11 +69,15 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   FLEA_CCALL(THR_flea_tls__client_handshake(socket_fd, &tls_ctx, &rw_stream__t));
   //flea_err_t err = flea_tls_handshake(socket_fd, &tls_ctx);
 
+
+  FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (flea_u8_t*)app_data_www, strlen(app_data_www)));
+  //FLEA_CCALL(THR_flea_tls__send_alert(&tls_ctx, FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY, FLEA_TLS_ALERT_LEVEL_WARNING));
+
   // TODO: dtor
 
   //close (socket_fd);
   FLEA_THR_FIN_SEC(
-     flea_rw_stream_t__dtor(&rw_stream__t); 
+     flea_rw_stream_t__dtor(&rw_stream__t);
       );
 }
 
