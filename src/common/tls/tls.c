@@ -2371,3 +2371,15 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
   }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__client_handshake */
+
+
+
+flea_err_t THR_flea_tls__send_app_data(int socket_fd, flea_tls_ctx_t *tls_ctx, flea_u8_t *data, flea_u8_t data_len)
+{
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_CCALL(THR_flea_tls__send_record(tls_ctx, data, data_len, CONTENT_TYPE_APPLICATION_DATA, socket_fd));
+
+
+  FLEA_THR_FIN_SEC_empty();
+}
