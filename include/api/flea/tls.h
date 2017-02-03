@@ -140,12 +140,12 @@ typedef struct
   CHANGE_CIPHER_SPEC_TYPE change_cipher_spec;
 } ChangeCipherSpec;
 
-typedef struct
+/*typedef struct
 {
   flea_u8_t  *verify_data;
   flea_u32_t verify_data_length; // 12 for all cipher suites defined in TLS 1.2 - RFC 5246. is 24 bit!!
 } flea_tls__finished_t;
-
+*/
 /**
  * ServerHelloDone: no content, no struct needed
  */
