@@ -199,6 +199,8 @@ typedef enum
    * TLS Errors
    */ 
   FLEA_ERR_TLS_GENERIC                                = 0x0100,
+  FLEA_ERR_TLS_INVALID_STATE                          = 0x0101,	/* Error for invalid state transitions, relevant for debugging as they _should_ never happen */
+
    
   /** The routine for the construction of a valid certification path
    * was cancelled from another thread.
