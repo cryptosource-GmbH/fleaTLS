@@ -1241,7 +1241,7 @@ flea_err_t THR_flea_tls__encrypt_record(flea_tls_ctx_t *tls_ctx, Record *record,
   seq_lo__u32 = tls_ctx->active_write_connection_state->sequence_number__au32[0];
   seq_hi__u32 = tls_ctx->active_write_connection_state->sequence_number__au32[1];
   // TODO: put back in
-  // inc_seq_nbr(tls_ctx->active_write_connection_state->sequence_number__au32);
+  inc_seq_nbr(tls_ctx->active_write_connection_state->sequence_number__au32);
 
   // TODO: was ist mit SEQ overflow? => reneg. implement
   flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
@@ -1549,7 +1549,7 @@ static flea_err_t THR_flea_tls__send_record(
 }
 
 #if 0
-flea_err_t THR_flea_tls__send_record(
+flea_err_t THR_flea_tls__send_record_old(
   flea_tls_ctx_t *tls_ctx,
   flea_u8_t      *bytes,
   flea_u16_t     bytes_len,
@@ -1605,8 +1605,7 @@ flea_err_t THR_flea_tls__send_record(
 flea_err_t THR_flea_tls__send_alert(
   flea_tls_ctx_t                *tls_ctx,
   flea_tls__alert_description_t description,
-  flea_tls__alert_level_t       level,
-  int                           socket_fd
+  flea_tls__alert_level_t       level
 )
 {
   FLEA_THR_BEG_FUNC();
