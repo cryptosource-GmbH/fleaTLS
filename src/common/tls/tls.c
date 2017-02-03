@@ -498,6 +498,8 @@ flea_err_t THR_flea_tls__create_finished_data(
  * PRF(master_secret, finished_label, Hash(handshake_messages))
  *  [0..verify_data_length-1];
  */
+
+#if 0
 flea_err_t THR_flea_tls__create_finished_message_with_12_bytes_verify_data(
   flea_u8_t *messages_hash,
   flea_u8_t master_secret[48],
@@ -520,6 +522,7 @@ flea_err_t THR_flea_tls__create_finished_message_with_12_bytes_verify_data(
   FLEA_THR_FIN_SEC_empty();
 }
 
+#endif /* if 0 */
 flea_err_t THR_flea_tls__read_handshake_message(Record *record, HandshakeMessage *handshake_msg)
 {
   FLEA_THR_BEG_FUNC();
@@ -1589,8 +1592,7 @@ flea_err_t THR_flea_tls__send_handshake_message(
   flea_hash_ctx_t *hash_ctx,
   HandshakeType   type,
   flea_u8_t       *msg_bytes,
-  flea_u32_t      msg_bytes_len,
-  int             socket_fd
+  flea_u32_t      msg_bytes_len
 )
 {
   flea_al_s8_t i;
@@ -1627,10 +1629,9 @@ flea_err_t THR_flea_tls__send_handshake_message(
       tls_ctx->active_write_connection_state
     )
   );
+  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, msg_bytes, msg_bytes_len));
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(&rec_prot__t, tls_ctx->active_write_connection_state));
 
-  // add handshake message to Hash
-  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, msg_bytes, msg_bytes_len));
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_handshake_message */
@@ -1671,11 +1672,12 @@ static flea_err_t THR_flea_tls__send_finished(
   flea_u8_t messages_hash[32];
 
   FLEA_DECL_BUF(verify_data__bu8, flea_u8_t, 12);
+  const flea_al_u8_t verify_data_len__alu8 = 12;
   FLEA_THR_BEG_FUNC();
 
   // compute hash over handshake messages so far and create struct
   // flea_tls__finished_t finished;
-  FLEA_ALLOC_BUF(verify_data__bu8, 12);
+  FLEA_ALLOC_BUF(verify_data__bu8, verify_data_len__alu8);
 
   /*
    * use a copy of hash_ctx for send_finished instead of finalizing the original
@@ -1692,9 +1694,16 @@ static flea_err_t THR_flea_tls__send_finished(
   {
     label = PRF_LABEL_SERVER_FINISHED;
   }
+
+  /*FLEA_CCALL(
+   * THR_flea_tls__create_finished_message_with_12_bytes_verify_data(
+   *  messages_hash, tls_ctx->security_parameters->master_secret, label, verify_data__bu8
+   * )
+   * );*/
+
   FLEA_CCALL(
-    THR_flea_tls__create_finished_message_with_12_bytes_verify_data(
-      messages_hash, tls_ctx->security_parameters->master_secret, label, verify_data__bu8
+    THR_flea_tls__create_finished_data(
+      messages_hash, tls_ctx->security_parameters->master_secret, label, verify_data__bu8, verify_data_len__alu8
     )
   );
 
@@ -1711,8 +1720,7 @@ static flea_err_t THR_flea_tls__send_finished(
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message(
       tls_ctx, hash_ctx, HANDSHAKE_TYPE_FINISHED, verify_data__bu8,
-      12, socket_fd
-    )
+      12    )
   );
 
   /*FLEA_CCALL(
@@ -1747,7 +1755,7 @@ flea_err_t THR_flea_tls__send_client_hello(
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message(
       tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO,
-      client_hello_bytes, client_hello_bytes_len, socket_fd
+      client_hello_bytes, client_hello_bytes_len
     )
   );
 
@@ -1794,7 +1802,7 @@ flea_err_t THR_flea_tls__send_client_key_exchange(
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message(
       tls_ctx, hash_ctx, HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE,
-      client_key_ex_bytes, client_key_ex_bytes_len, socket_fd
+      client_key_ex_bytes, client_key_ex_bytes_len
     )
   );
 
