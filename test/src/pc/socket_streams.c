@@ -40,6 +40,49 @@ static void init_sock_stream(linux_socket_stream_ctx_t *sock_stream__pt)
   sock_stream__pt->write_buf__t.alloc_len__dtl = sizeof(sock_stream__pt->write_buf__t.buffer__au8);
 }
 
+static flea_err_t THR_open_socket_server(void *ctx__pv)
+{
+  FLEA_THR_BEG_FUNC();
+  linux_socket_stream_ctx_t *ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  struct sockaddr_in addr;
+  int listen_fd = -1, client_fd = 0;
+  listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+
+  if(listen_fd == -1)
+  {
+    FLEA_THROW("error opening linux socket", FLEA_ERR_INV_STATE);
+  }
+
+  memset(&addr, 0, sizeof(addr));
+  addr.sin_addr.s_addr = htonl(INADDR_ANY);
+  addr.sin_family      = AF_INET;
+  addr.sin_port        = htons(4444);
+
+  if(bind(listen_fd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
+  {
+    FLEA_THROW("Socket bind failed", FLEA_ERR_TLS_GENERIC);
+  }
+
+  // TODO: second is "backlog" argument. 3 is taken from an example, check if it makes sense
+  listen(listen_fd, 3);
+
+  // while(1)
+  client_fd = accept(listen_fd, (struct sockaddr *) NULL, NULL);
+  if(client_fd < 0)
+  {
+    FLEA_THROW("Socket accept failed", FLEA_ERR_TLS_GENERIC);
+  }
+
+  // TODO: check if we need to close socket_fd ??? (in examples never done)
+  ctx__pt->socket_fd__int = client_fd;
+  FLEA_THR_FIN_SEC(
+    if(listen_fd == -1)
+  {
+    close(client_fd);
+  }
+  );
+} /* THR_open_socket_server */
+
 static flea_err_t THR_open_socket(void *ctx__pv)
 {
   FLEA_THR_BEG_FUNC();
