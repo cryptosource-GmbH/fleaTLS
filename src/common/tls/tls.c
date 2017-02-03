@@ -2119,7 +2119,7 @@ flea_err_t THR_flea_tls__server_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
       {
         FLEA_THROW("Invalid state transition", FLEA_ERR_TLS_INVALID_STATE);
       }
-      if(recv_handshake.type == FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE)
+      if(recv_handshake.type == HANDSHAKE_TYPE_CERTIFICATE)
       {
         FLEA_CCALL(THR_flea_tls__read_client_hello(tls_ctx, &recv_handshake));
       }
