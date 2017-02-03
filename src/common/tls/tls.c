@@ -1450,7 +1450,7 @@ flea_err_t THR_flea_tls__send_record_hdr(
   FLEA_THR_FIN_SEC_empty();
 }
 
-static flea_err_t THR_flea_tls__send_record_new(
+static flea_err_t THR_flea_tls__send_record(
   flea_tls_ctx_t *tls_ctx,
   flea_u8_t      *bytes,
   flea_u16_t     bytes_len,
@@ -1547,7 +1547,7 @@ flea_err_t THR_flea_tls__send_alert(
   alert_bytes[0] = level;
   alert_bytes[1] = description;
 
-  FLEA_CCALL(THR_flea_tls__send_record_new(tls_ctx, alert_bytes, sizeof(alert_bytes), CONTENT_TYPE_ALERT));
+  FLEA_CCALL(THR_flea_tls__send_record(tls_ctx, alert_bytes, sizeof(alert_bytes), CONTENT_TYPE_ALERT));
 
 
   FLEA_THR_FIN_SEC_empty();
@@ -1641,6 +1641,7 @@ static flea_bool_t flea_tls_does_chosen_ciphersuite_support_encryption(const fle
   return tls_ctx__pt->active_write_connection_state->cipher_suite->id != TLS_NULL_WITH_NULL_NULL;
 }
 
+#if 0
 flea_err_t THR_flea_tls__send_change_cipher_spec(flea_tls_ctx_t *tls_ctx, flea_hash_ctx_t *hash_ctx, int socket_fd)
 {
   FLEA_THR_BEG_FUNC();
@@ -1662,9 +1663,22 @@ flea_err_t THR_flea_tls__send_change_cipher_spec(flea_tls_ctx_t *tls_ctx, flea_h
   FLEA_THR_FIN_SEC_empty();
 }
 
+#endif /* if 0 */
+
+flea_err_t THR_flea_tls__send_change_cipher_spec(flea_tls_ctx_t *tls_ctx, flea_hash_ctx_t *hash_ctx)
+{
+  FLEA_THR_BEG_FUNC();
+
+  flea_u8_t css_bytes[1] = { 1 };
+
+  FLEA_CCALL(THR_flea_tls__send_record(tls_ctx, css_bytes, sizeof(css_bytes), CONTENT_TYPE_CHANGE_CIPHER_SPEC));
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
 static flea_err_t THR_flea_tls__send_finished(
-  flea_tls_ctx_t   *tls_ctx,
-  flea_hash_ctx_t  *hash_ctx
+  flea_tls_ctx_t  *tls_ctx,
+  flea_hash_ctx_t *hash_ctx
 )
 {
   flea_u8_t messages_hash[32];
@@ -1718,7 +1732,8 @@ static flea_err_t THR_flea_tls__send_finished(
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message(
       tls_ctx, hash_ctx, HANDSHAKE_TYPE_FINISHED, verify_data__bu8,
-      12    )
+      12
+    )
   );
 
   /*FLEA_CCALL(
@@ -2028,7 +2043,7 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
 
       FLEA_CCALL(THR_flea_tls__send_client_key_exchange(tls_ctx, &hash_ctx, &pubkey, socket_fd));
 
-      FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx, &hash_ctx, socket_fd));
+      FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx, &hash_ctx));
 
       /*
        * Enable encryption for outgoing messages
