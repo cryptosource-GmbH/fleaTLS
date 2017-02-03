@@ -1664,9 +1664,7 @@ flea_err_t THR_flea_tls__send_change_cipher_spec(flea_tls_ctx_t *tls_ctx, flea_h
 
 static flea_err_t THR_flea_tls__send_finished(
   flea_tls_ctx_t   *tls_ctx,
-  flea_hash_ctx_t  *hash_ctx,
-  int              socket_fd,
-  flea_rw_stream_t *rw_stream__pt
+  flea_hash_ctx_t  *hash_ctx
 )
 {
   flea_u8_t messages_hash[32];
@@ -2056,7 +2054,7 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
       // TODO: call destructor active write state
       tls_ctx->active_write_connection_state = tls_ctx->pending_write_connection_state;
       // TODO: call constructor on pending write state
-      FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &hash_ctx, socket_fd, rw_stream__pt));
+      FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &hash_ctx));
 
 
       handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC;
