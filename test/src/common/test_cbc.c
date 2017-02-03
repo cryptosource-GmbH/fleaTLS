@@ -9,14 +9,14 @@
 #include  "flea/block_cipher.h"
 #include <string.h>
 
-flea_err_t THR_flea_test_cbc_mode ()
+flea_err_t THR_flea_test_cbc_mode()
 {
   // from https://tools.ietf.org/html/rfc3602
   const flea_u8_t aes128_cbc_key[] = { 0x56, 0xe4, 0x7a, 0x38, 0xc5, 0x59, 0x89, 0x74, 0xbc, 0x46, 0x90, 0x3d, 0xba, 0x29, 0x03, 0x49 };
-  const flea_u8_t aes128_cbc_iv[] = { 0x8c, 0xe8, 0x2e, 0xef, 0xbe, 0xa0, 0xda, 0x3c, 0x44, 0x69, 0x9e, 0xd7, 0xdb, 0x51, 0xb7, 0xd9 };
+  const flea_u8_t aes128_cbc_iv[]  = { 0x8c, 0xe8, 0x2e, 0xef, 0xbe, 0xa0, 0xda, 0x3c, 0x44, 0x69, 0x9e, 0xd7, 0xdb, 0x51, 0xb7, 0xd9 };
 
 
-  const flea_u8_t aes128_cbc_pt[]  = {
+  const flea_u8_t aes128_cbc_pt[] = {
     0xa0, 0xa1, 0xa2, 0xa3, 0xa4, 0xa5, 0xa6, 0xa7, 0xa8, 0xa9, 0xaa, 0xab, 0xac, 0xad, 0xae, 0xaf,
     0xb0, 0xb1, 0xb2, 0xb3, 0xb4, 0xb5, 0xb6, 0xb7, 0xb8, 0xb9, 0xba, 0xbb, 0xbc, 0xbd, 0xbe, 0xbf,
     0xc0, 0xc1, 0xc2, 0xc3, 0xc4, 0xc5, 0xc6, 0xc7, 0xc8, 0xc9, 0xca, 0xcb, 0xcc, 0xcd, 0xce, 0xcf,
@@ -30,8 +30,8 @@ flea_err_t THR_flea_test_cbc_mode ()
     0x83, 0xce, 0x9f, 0x9a, 0x10, 0x2e, 0xe9, 0x9d, 0x49, 0xa5, 0x3e, 0x87, 0xf4, 0xc3, 0xda, 0x55
   };
 
-  const flea_u8_t* in_ptr__pcu8;
-  flea_u8_t* out_ptr__pu8;
+  const flea_u8_t *in_ptr__pcu8;
+  flea_u8_t *out_ptr__pu8;
 
   FLEA_DECL_OBJ(encr_ctx__t, flea_cbc_mode_ctx_t);
 #ifdef FLEA_HAVE_AES_BLOCK_DECR
@@ -75,7 +75,8 @@ flea_err_t THR_flea_test_cbc_mode ()
 #endif // #ifdef FLEA_HAVE_AES_BLOCK_DECR
 
   in_ptr__pcu8 = aes128_cbc_pt;
-  out_ptr__pu8 = encr__bu8;;
+  out_ptr__pu8 = encr__bu8;
+  ;
   FLEA_CCALL(THR_flea_cbc_mode_ctx_t__crypt(&encr_ctx__t, in_ptr__pcu8, out_ptr__pu8, block_len__u8));
   in_ptr__pcu8 += block_len__u8;
   out_ptr__pu8 += block_len__u8;
@@ -108,7 +109,7 @@ flea_err_t THR_flea_test_cbc_mode ()
   // set up encryptor again
   flea_cbc_mode_ctx_t__dtor(&encr_ctx__t);
   FLEA_CCALL(THR_flea_cbc_mode_ctx_t__ctor(&encr_ctx__t, flea_aes128, aes128_cbc_key, sizeof(aes128_cbc_key), aes128_cbc_iv, sizeof(aes128_cbc_iv), flea_encrypt));
-// encrypt in place
+  // encrypt in place
   in_ptr__pcu8 = aes128_cbc_pt;
   out_ptr__pu8 = encr__bu8;
   FLEA_CCALL(THR_flea_cbc_mode_ctx_t__crypt(&encr_ctx__t, in_ptr__pcu8, out_ptr__pu8, block_len__u8));
@@ -127,7 +128,7 @@ flea_err_t THR_flea_test_cbc_mode ()
     FLEA_FREE_BUF_FINAL(encr__bu8);
     FLEA_FREE_BUF_FINAL(decr__bu8);
     flea_cbc_mode_ctx_t__dtor(&encr_ctx__t);
-    FLEA_DO_IF_HAVE_AES_BLOCK_DECR(flea_cbc_mode_ctx_t__dtor(&decr_ctx__t); );
+    FLEA_DO_IF_HAVE_AES_BLOCK_DECR(flea_cbc_mode_ctx_t__dtor(&decr_ctx__t);
     );
-
-}
+  );
+} /* THR_flea_test_cbc_mode */

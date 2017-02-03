@@ -10,8 +10,7 @@
 #include <string.h>
 
 #ifdef FLEA_HAVE_DES
-const flea_u32_t Spbox[8][64] =
-{
+const flea_u32_t Spbox[8][64] = {
   { 0x01010400, 0x00000000, 0x00010000, 0x01010404,
     0x01010004, 0x00010404, 0x00000004, 0x00010000,
     0x00000400, 0x01010400, 0x01010404, 0x00000400,
@@ -143,7 +142,6 @@ const flea_u32_t Spbox[8][64] =
 };
 
 
-
 /* Richard Outerbridge's clever initial permutation algorithm
  * (see Schneier p 478)
  *
@@ -153,58 +151,58 @@ const flea_u32_t Spbox[8][64] =
  * in the FIPS). This allows us to avoid one of the two
  * rotates that would otherwise be required in each of the 16 rounds.
  */
-static void flea_des_iperm (flea_u32_t* p_left, flea_u32_t* p_right)
+static void flea_des_iperm(flea_u32_t *p_left, flea_u32_t *p_right)
 {
   unsigned long work;
-  flea_u32_t left = *p_left;
+  flea_u32_t left  = *p_left;
   flea_u32_t right = *p_right;
 
-  work = ((left >> 4) ^ right) & 0x0f0f0f0f;
-  right ^= work;
-  left ^= work << 4;
-  work = ((left >> 16) ^ right) & 0xffff;
-  right ^= work;
-  left ^= work << 16;
-  work = ((right >> 2) ^ left) & 0x33333333;
-  left ^= work;
-  right ^= (work << 2);
-  work = ((right >> 8) ^ left) & 0xff00ff;
-  left ^= work;
-  right ^= (work << 8);
-  right = (right << 1) | (right >> 31);
-  work = (left ^ right) & 0xaaaaaaaa;
-  left ^= work;
-  right ^= work;
-  left = (left << 1) | (left >> 31);
-  *p_left = left;
+  work     = ((left >> 4) ^ right) & 0x0f0f0f0f;
+  right   ^= work;
+  left    ^= work << 4;
+  work     = ((left >> 16) ^ right) & 0xffff;
+  right   ^= work;
+  left    ^= work << 16;
+  work     = ((right >> 2) ^ left) & 0x33333333;
+  left    ^= work;
+  right   ^= (work << 2);
+  work     = ((right >> 8) ^ left) & 0xff00ff;
+  left    ^= work;
+  right   ^= (work << 8);
+  right    = (right << 1) | (right >> 31);
+  work     = (left ^ right) & 0xaaaaaaaa;
+  left    ^= work;
+  right   ^= work;
+  left     = (left << 1) | (left >> 31);
+  *p_left  = left;
   *p_right = right;
 }
 
 /* Inverse permutation, also from Outerbridge via Schneier */
-static void flea_des_fperm (flea_u32_t* p_left, flea_u32_t* p_right)
+static void flea_des_fperm(flea_u32_t *p_left, flea_u32_t *p_right)
 {
-  flea_u32_t left = *p_left;
+  flea_u32_t left  = *p_left;
   flea_u32_t right = *p_right;
   flea_u32_t work;
 
-  right = (right << 31) | (right >> 1);
-  work = (left ^ right) & 0xaaaaaaaa;
-  left ^= work;
-  right ^= work;
-  left = (left >> 1) | (left << 31);
-  work = ((left >> 8) ^ right) & 0xff00ff;
-  right ^= work;
-  left ^= work << 8;
-  work = ((left >> 2) ^ right) & 0x33333333;
-  right ^= work;
-  left ^= work << 2;
-  work = ((right >> 16) ^ left) & 0xffff;
-  left ^= work;
-  right ^= work << 16;
-  work = ((right >> 4) ^ left) & 0x0f0f0f0f;
-  left ^= work;
-  right ^= work << 4;
-  *p_left = left;
+  right    = (right << 31) | (right >> 1);
+  work     = (left ^ right) & 0xaaaaaaaa;
+  left    ^= work;
+  right   ^= work;
+  left     = (left >> 1) | (left << 31);
+  work     = ((left >> 8) ^ right) & 0xff00ff;
+  right   ^= work;
+  left    ^= work << 8;
+  work     = ((left >> 2) ^ right) & 0x33333333;
+  right   ^= work;
+  left    ^= work << 2;
+  work     = ((right >> 16) ^ left) & 0xffff;
+  left    ^= work;
+  right   ^= work << 16;
+  work     = ((right >> 4) ^ left) & 0x0f0f0f0f;
+  left    ^= work;
+  right   ^= work << 4;
+  *p_left  = left;
   *p_right = right;
 }
 
@@ -219,37 +217,37 @@ static void flea_des_fperm (flea_u32_t* p_left, flea_u32_t* p_right)
  * not the origin-0 numbering used elsewhere in this code)
  * See comments elsewhere about the pre-rotated values of r and Spbox.
  */
-void flea_des_f (flea_u32_t* p_l, flea_u32_t* p_r, const flea_u32_t* keys )
+void flea_des_f(flea_u32_t *p_l, flea_u32_t *p_r, const flea_u32_t *keys)
 {
   flea_u32_t l = *p_l;
   flea_u32_t r = *p_r;
   flea_u32_t work;
 
   work = (((r >> 4) | (r << 28)) ^ *keys++);
-  l ^= Spbox[6][work & 0x3f];
-  l ^= Spbox[4][(work >> 8) & 0x3f];
-  l ^= Spbox[2][(work >> 16) & 0x3f];
-  l ^= Spbox[0][(work >> 24) & 0x3f];
+  l   ^= Spbox[6][work & 0x3f];
+  l   ^= Spbox[4][(work >> 8) & 0x3f];
+  l   ^= Spbox[2][(work >> 16) & 0x3f];
+  l   ^= Spbox[0][(work >> 24) & 0x3f];
   work = (r ^ *keys);
-  l ^= Spbox[7][work & 0x3f];
-  l ^= Spbox[5][(work >> 8) & 0x3f];
-  l ^= Spbox[3][(work >> 16) & 0x3f];
-  l ^= Spbox[1][(work >> 24) & 0x3f];
+  l   ^= Spbox[7][work & 0x3f];
+  l   ^= Spbox[5][(work >> 8) & 0x3f];
+  l   ^= Spbox[3][(work >> 16) & 0x3f];
+  l   ^= Spbox[1][(work >> 24) & 0x3f];
   *p_l = l;
   *p_r = r;
 }
 
 /* permuted choice table (key) */
 static flea_u8_t pc1[] = {
-  57, 49,	 41,	 33,	 25,	17, 9,
-  1,	58,	 50,	 42,	 34,	26, 18,
-  10, 2,	 59,	 51,	 43,	35, 27,
-  19, 11,	 3,		 60,	 52,	44, 36,
+  57, 49, 41, 33, 25, 17,  9,
+  1,  58, 50, 42, 34, 26, 18,
+  10,  2, 59, 51, 43, 35, 27,
+  19, 11,  3, 60, 52, 44, 36,
 
-  63, 55,	 47,	 39,	 31,	23, 15,
-  7,	62,	 54,	 46,	 38,	30, 22,
-  14, 6,	 61,	 53,	 45,	37, 29,
-  21, 13,	 5,		 28,	 20,	12, 4
+  63, 55, 47, 39, 31, 23, 15,
+  7,  62, 54, 46, 38, 30, 22,
+  14,  6, 61, 53, 45, 37, 29,
+  21, 13,  5, 28, 20, 12, 4
 };
 
 /* number left rotations of pc1 */
@@ -259,30 +257,30 @@ static flea_u8_t totrot[] = {
 
 /* permuted choice key (table) */
 static flea_u8_t pc2[] = {
-  14, 17,	 11,	 24,	1,	 5,
-  3,	28,	 15,	 6,		21,	 10,
-  23, 19,	 12,	 4,		26,	 8,
-  16, 7,	 27,	 20,	13,	 2,
-  41, 52,	 31,	 37,	47,	 55,
-  30, 40,	 51,	 45,	33,	 48,
-  44, 49,	 39,	 56,	34,	 53,
-  46, 42,	 50,	 36,	29,	 32
+  14, 17, 11, 24,  1,  5,
+  3,  28, 15,  6, 21, 10,
+  23, 19, 12,  4, 26,  8,
+  16,  7, 27, 20, 13,  2,
+  41, 52, 31, 37, 47, 55,
+  30, 40, 51, 45, 33, 48,
+  44, 49, 39, 56, 34, 53,
+  46, 42, 50, 36, 29, 32
 };
 
 static int bytebit[] = {
   0200, 0100, 040, 020, 010, 04, 02, 01
 };
 
-flea_err_t THR_flea_single_des_setup_key (flea_ecb_mode_ctx_t* ctx__pt, const flea_u8_t *key)
+flea_err_t THR_flea_single_des_setup_key(flea_ecb_mode_ctx_t *ctx__pt, const flea_u8_t *key)
 {
   return THR_flea_single_des_setup_key_with_key_offset(ctx__pt, 0, key);
 }
 
-flea_err_t THR_flea_single_des_setup_key_with_key_offset (flea_ecb_mode_ctx_t* ctx__p_t, flea_al_u16_t expanded_key_offset__alu16,  const flea_u8_t *key)
+flea_err_t THR_flea_single_des_setup_key_with_key_offset(flea_ecb_mode_ctx_t *ctx__p_t, flea_al_u16_t expanded_key_offset__alu16, const flea_u8_t *key)
 {
-  flea_u8_t* pc1m;
-  flea_u8_t* pcr;
-  flea_u8_t* ks;
+  flea_u8_t *pc1m;
+  flea_u8_t *pcr;
+  flea_u8_t *ks;
   const flea_al_u16_t work_buf_len = 2 * 56 + 8;
 
   FLEA_DECL_BUF(work__b_u8, flea_u8_t, work_buf_len);
@@ -291,26 +289,26 @@ flea_err_t THR_flea_single_des_setup_key_with_key_offset (flea_ecb_mode_ctx_t* c
   FLEA_ALLOC_BUF(work__b_u8, work_buf_len);
 
   pc1m = work__b_u8;
-  pcr = work__b_u8 + 56;
-  ks = pcr + 56;
+  pcr  = work__b_u8 + 56;
+  ks   = pcr + 56;
 
   register int i, j, l;
   int m;
 
-  flea_u32_t* k = ctx__p_t->expanded_key__bu8 + expanded_key_offset__alu16;
+  flea_u32_t *k = ctx__p_t->expanded_key__bu8 + expanded_key_offset__alu16;
   for(j = 0; j < 56; j++)
-  {                           /* convert pc1 to bits of key */
-    l = pc1[j] - 1;           /* integer bit location	 */
-    m = l & 07;               /* find bit		 */
-    pc1m[j] = (key[l >> 3] &  /* find which key byte l is in */
-               bytebit[m])    /* and which bit of that byte */
-              ? 1 : 0;        /* and store 1-bit result */
+  {                        /* convert pc1 to bits of key */
+    l       = pc1[j] - 1;  /* integer bit location	 */
+    m       = l & 07;      /* find bit		 */
+    pc1m[j] = (key[l >> 3] /* find which key byte l is in */
+      & bytebit[m]) ?      /* and which bit of that byte */
+      1 : 0;               /* and store 1-bit result */
   }
   for(i = 0; i < 16; i++)
   {                   /* key chunk for each iteration */
     memset(ks, 0, 8); /* Clear key schedule */
     for(j = 0; j < 56; j++)
-    {                 /* rotate pc1 the right amount */
+    { /* rotate pc1 the right amount */
       pcr[j] = pc1m[(l = j + totrot[i]) < (j < 28 ? 28 : 56) ? l : l - 28];
     }
     /* rotate left and right halves independently */
@@ -320,37 +318,37 @@ flea_err_t THR_flea_single_des_setup_key_with_key_offset (flea_ecb_mode_ctx_t* c
       if(pcr[pc2[j] - 1])
       {
         /* mask it in if it's there */
-        l = j % 6;
+        l          = j % 6;
         ks[j / 6] |= bytebit[l] >> 2;
       }
     }
     /* Now convert to odd/even interleaved form for use in F */
-    k[i * 2] = (((flea_u32_t)ks[0]) << 24)
-               | (((flea_u32_t)ks[2]) << 16)
-               | (((flea_u32_t)ks[4]) << 8)
-               | ((flea_u32_t)ks[6]);
-    k[i * 2 + 1] = ((flea_u32_t)ks[1] << 24)
-                   | (((flea_u32_t)ks[3]) << 16)
-                   | (((flea_u32_t)ks[5]) << 8)
-                   | ((flea_u32_t)ks[7]);
+    k[i * 2] = (((flea_u32_t) ks[0]) << 24)
+      | (((flea_u32_t) ks[2]) << 16)
+      | (((flea_u32_t) ks[4]) << 8)
+      | ((flea_u32_t) ks[6]);
+    k[i * 2 + 1] = ((flea_u32_t) ks[1] << 24)
+      | (((flea_u32_t) ks[3]) << 16)
+      | (((flea_u32_t) ks[5]) << 8)
+      | ((flea_u32_t) ks[7]);
   }
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(work__b_u8);
-    );
-}
+  );
+} /* THR_flea_single_des_setup_key_with_key_offset */
 
-void flea_single_des_encrypt_block (const flea_ecb_mode_ctx_t* ctx__pt, const flea_u8_t* input__pcu8, flea_u8_t* output__pu8)
+void flea_single_des_encrypt_block(const flea_ecb_mode_ctx_t *ctx__pt, const flea_u8_t *input__pcu8, flea_u8_t *output__pu8)
 {
   flea_single_des_encrypt_block_with_key_offset(ctx__pt, 0, input__pcu8, output__pu8);
 }
 
-void flea_single_des_encrypt_block_with_key_offset (const flea_ecb_mode_ctx_t* ctx__p_t, flea_al_u16_t expanded_key_offset__alu16, const flea_u8_t* input__pc_u8, flea_u8_t* output__p_u8)
+void flea_single_des_encrypt_block_with_key_offset(const flea_ecb_mode_ctx_t *ctx__p_t, flea_al_u16_t expanded_key_offset__alu16, const flea_u8_t *input__pc_u8, flea_u8_t *output__p_u8)
 {
   flea_al_u8_t i;
   flea_u32_t left, right;
   const flea_u32_t *keys;
 
-  left = flea__decode_U32_BE(input__pc_u8);
+  left  = flea__decode_U32_BE(input__pc_u8);
   right = flea__decode_U32_BE(input__pc_u8 + 4);
 
   flea_des_iperm(&left, &right);
@@ -368,19 +366,19 @@ void flea_single_des_encrypt_block_with_key_offset (const flea_ecb_mode_ctx_t* c
   flea__encode_U32_BE(left, output__p_u8 + 4);
 }
 
-void flea_single_des_decrypt_block (const flea_ecb_mode_ctx_t* ctx__pt, const flea_u8_t* input__pcu8, flea_u8_t* output__pu8)
+void flea_single_des_decrypt_block(const flea_ecb_mode_ctx_t *ctx__pt, const flea_u8_t *input__pcu8, flea_u8_t *output__pu8)
 {
   flea_single_des_decrypt_block_with_key_offset(ctx__pt, 0, input__pcu8, output__pu8);
 }
 
-void flea_single_des_decrypt_block_with_key_offset (const flea_ecb_mode_ctx_t* ctx__p_t, flea_al_u16_t expanded_key_offset__alu16, const flea_u8_t* input__pc_u8, flea_u8_t* output__p_u8)
+void flea_single_des_decrypt_block_with_key_offset(const flea_ecb_mode_ctx_t *ctx__p_t, flea_al_u16_t expanded_key_offset__alu16, const flea_u8_t *input__pc_u8, flea_u8_t *output__p_u8)
 {
   flea_al_u8_t i;
   flea_u32_t left, right;
   const flea_u32_t *keys;
 
 
-  left = flea__decode_U32_BE(input__pc_u8);
+  left  = flea__decode_U32_BE(input__pc_u8);
   right = flea__decode_U32_BE(input__pc_u8 + 4);
   flea_des_iperm(&left, &right);
 

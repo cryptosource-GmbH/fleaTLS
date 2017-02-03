@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 struct struct_flea_hash_ctx_t;
+
 typedef struct struct_flea_hash_ctx_t flea_hash_ctx_t;
 
 #ifdef __cplusplus

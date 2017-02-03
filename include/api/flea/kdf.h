@@ -27,7 +27,8 @@ extern "C" {
  *
  * @return flea error code
  */
-flea_err_t THR_flea_kdf_X9_63(flea_hash_id_t id, const flea_u8_t* input, flea_al_u16_t input_len, const flea_u8_t* shared_info, flea_al_u16_t shared_info_len, flea_u8_t* output, flea_al_u16_t output_len);
+flea_err_t
+THR_flea_kdf_X9_63(flea_hash_id_t id, const flea_u8_t *input, flea_al_u16_t input_len, const flea_u8_t *shared_info, flea_al_u16_t shared_info_len, flea_u8_t *output, flea_al_u16_t output_len);
 
 #ifdef __cplusplus
 }

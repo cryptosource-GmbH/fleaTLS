@@ -6,12 +6,12 @@
 
 #include "internal/common/build_config.h"
 #include "flea/algo_config.h" // must be after build config
-//#include "flea/types.h"
+// #include "flea/types.h"
 #include <stdlib.h>
 #include <string.h>
 
 #ifdef FLEA_DO_PRINTF_ERRS
-#include <stdio.h>
+# include <stdio.h>
 #endif
 
 #endif /* h-guard */

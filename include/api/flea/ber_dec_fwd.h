@@ -8,9 +8,9 @@
 extern "C" {
 #endif
 
-  struct struct_flea_ber_dec_t;
+struct struct_flea_ber_dec_t;
 
-  typedef struct struct_flea_ber_dec_t flea_ber_dec_t;
+typedef struct struct_flea_ber_dec_t flea_ber_dec_t;
 
 #ifdef __cplusplus
 }

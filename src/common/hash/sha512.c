@@ -13,7 +13,6 @@
 #include "flea/hash.h"
 
 
-
 static const flea_u32_t K[160] = {
   0x428a2f98UL, 0xd728ae22UL, 0x71374491UL, 0x23ef65cdUL, 0xb5c0fbcfUL, 0xec4d3b2fUL, 0xe9b5dba5UL, 0x8189dbbcUL,
   0x3956c25bUL, 0xf348b538UL, 0x59f111f1UL, 0xb605d019UL, 0x923f82a4UL, 0xaf194f9bUL, 0xab1c5ed5UL, 0xda6d8118UL,
@@ -38,19 +37,19 @@ static const flea_u32_t K[160] = {
 };
 
 
-#define BLOCK_SIZE          128
+#define BLOCK_SIZE 128
 
 #ifdef FLEA_USE_SHA512_ROUND_MACRO
-#define ROR64_n(r, value, w) \
+# define ROR64_n(r, value, w) \
   do { \
     flea_al_u8_t v, u; \
-    v = w - 32;  \
-    u = 32 - v;  \
-    (r)[1] ^= ((flea_u32_t)(((value)[1] << u))) | ((flea_u32_t)(((value)[0] ) >> v)); \
+    v       = w - 32;  \
+    u       = 32 - v;  \
+    (r)[1] ^= ((flea_u32_t) (((value)[1] << u))) | ((flea_u32_t) (((value)[0] ) >> v)); \
     (r)[0] ^= ((value)[0] << u) | (((value)[1] ) >> v); \
   } while(0)
 
-#define ROR64_n_small(r, value, w) \
+# define ROR64_n_small(r, value, w) \
   do { \
     flea_al_u8_t u = 32 - w; \
     (r)[1] ^= ((value)[1] >> w) | ((value)[0] << u);  \
@@ -58,18 +57,18 @@ static const flea_u32_t K[160] = {
   } while(0)
 
 
-
-#else
-void ROR64_n (flea_u32_t r[2], const flea_u32_t value[2], flea_al_u8_t w)
+#else /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
+void ROR64_n(flea_u32_t r[2], const flea_u32_t value[2], flea_al_u8_t w)
 {
   flea_al_u8_t v, u;
 
-  v = w - 32;
-  u = 32 - v;
-  r[1] ^= ((flea_u32_t)((value[1] << u))) | ((flea_u32_t)((value[0] ) >> v));
+  v     = w - 32;
+  u     = 32 - v;
+  r[1] ^= ((flea_u32_t) ((value[1] << u))) | ((flea_u32_t) ((value[0] ) >> v));
   r[0] ^= (value[0] << u) | ((value[1] ) >> v);
 }
-void ROR64_n_small (flea_u32_t r[2], const flea_u32_t value[2], flea_al_u8_t w)
+
+void ROR64_n_small(flea_u32_t r[2], const flea_u32_t value[2], flea_al_u8_t w)
 {
   flea_al_u8_t u = 32 - w;
 
@@ -77,23 +76,22 @@ void ROR64_n_small (flea_u32_t r[2], const flea_u32_t value[2], flea_al_u8_t w)
   r[0] ^= (value[0] >> w) | (value[1] << u);
 }
 
-#endif
+#endif /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
 
-#define R_n(r, x, w )        \
+#define R_n(r, x, w)        \
   do { \
     (r)[0] ^= (x)[0] >> w; \
     (r)[1] ^= ((x)[1] >> w) | (x)[0] << (32 - w); \
   } while(0)
 
 
-
-#define Ch_n(r, x, y, z )     \
+#define Ch_n(r, x, y, z)     \
   do { \
     (r)[0] = ((z)[0] ^ ((x)[0] & ((y)[0] ^ (z)[0]))); \
     (r)[1] = ((z)[1] ^ ((x)[1] & ((y)[1] ^ (z)[1]))); \
   } while(0)
 
-#define Maj_n(r, x, y, z )    \
+#define Maj_n(r, x, y, z)    \
   do { \
     (r)[0] = ((((x)[0] | (y)[0]) & (z)[0]) | ((x)[0] & (y)[0])); \
     (r)[1] = ((((x)[1] | (y)[1]) & (z)[1]) | ((x)[1] & (y)[1])); \
@@ -116,7 +114,7 @@ void ROR64_n_small (flea_u32_t r[2], const flea_u32_t value[2], flea_al_u8_t w)
     ROR64_n(r, x, 39); \
   } while(0)
 
-#define Gamma1_n(r, x )    \
+#define Gamma1_n(r, x)    \
   do { \
     flea_u32_t G_sum[2] = { 0, 0 }; \
     ROR64_n_small(G_sum, x, 19); \
@@ -125,7 +123,7 @@ void ROR64_n_small (flea_u32_t r[2], const flea_u32_t value[2], flea_al_u8_t w)
     assn64(r, G_sum); \
   } while(0)
 
-#define Gamma0_n_add(r, x )    \
+#define Gamma0_n_add(r, x)    \
   do { \
     flea_u32_t G_sum[2] = { 0, 0 }; \
     ROR64_n_small(G_sum, x, 1); \
@@ -133,26 +131,27 @@ void ROR64_n_small (flea_u32_t r[2], const flea_u32_t value[2], flea_al_u8_t w)
     R_n(G_sum, x, 7); \
     add64(r, G_sum); \
   } while(0)
-#define Gamma1_old(r, x ) r = Gamma1(x)
+#define Gamma1_old(r, x) r = Gamma1(x)
 
 #define add64_old(io, b) io += b
-#define assn64_old(o, b) o = b
+#define assn64_old(o, b) o   = b
 
-#define assn64(o, b) do { (o)[0] = (b)[0]; (o)[1] = (b)[1]; } while(0)
+#define assn64(o, b)     do { (o)[0] = (b)[0]; (o)[1] = (b)[1]; } while(0)
 
-#define add64(io, b) do { \
+#define add64(io, b) \
+  do { \
     flea_u32_t old; \
     flea_al_u8_t carry = 0; \
-    old = (io)[1]; \
+    old      = (io)[1]; \
     (io)[1] += (b)[1]; \
     if((io)[1] < old) \
     { carry = 1; } \
     (io)[0] += carry + (b)[0]; \
-} while(0)
+  } while(0)
 
 #ifdef FLEA_USE_SHA512_ROUND_MACRO
 
-#define FLEA_SHA_512_ROUND( a, b, c, d, e, f, g, h, i )       \
+# define FLEA_SHA_512_ROUND(a, b, c, d, e, f, g, h, i)       \
   Sigma1_n(t0, e); \
   add64(t0, h); \
   Ch_n(tmp, e, f, g); \
@@ -168,13 +167,13 @@ void ROR64_n_small (flea_u32_t r[2], const flea_u32_t value[2], flea_al_u8_t w)
   assn64(h, t0); \
   add64(h, t1);
 
-#else
-static void Sha512Round ( flea_u32_t a[2], flea_u32_t b[2], flea_u32_t c[2], flea_u32_t d[2], flea_u32_t e[2], flea_u32_t f[2], flea_u32_t g[2], flea_u32_t h[2], flea_al_u8_t i, const flea_u32_t* W )
+#else /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
+static void Sha512Round(flea_u32_t a[2], flea_u32_t b[2], flea_u32_t c[2], flea_u32_t d[2], flea_u32_t e[2], flea_u32_t f[2], flea_u32_t g[2], flea_u32_t h[2], flea_al_u8_t i, const flea_u32_t *W)
 {
   flea_u32_t t0[2] = { 0, 0 };
   flea_u32_t t1[2] = { 0, 0 };
   flea_u32_t tmp[2] = { 0, 0 };
-  const flea_u32_t* W_p, *K_p;
+  const flea_u32_t *W_p, *K_p;
 
   Sigma1_n(t0, e);
   add64(t0, h);
@@ -191,33 +190,33 @@ static void Sha512Round ( flea_u32_t a[2], flea_u32_t b[2], flea_u32_t c[2], fle
   assn64(h, t0);
   add64(h, t1);
 }
-#endif
+
+#endif /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
 
 
-flea_err_t THR_flea_sha512_compression_function ( flea_hash_ctx_t* ctx__pt, const flea_u8_t* input)
+flea_err_t THR_flea_sha512_compression_function(flea_hash_ctx_t *ctx__pt, const flea_u8_t *input)
 {
-
   FLEA_DECL_BUF(S_and_W, flea_u32_t, 16 + 160);
-  flea_u32_t* W;
+  flea_u32_t *W;
   flea_u32_t *S;
   int i;
 
-  flea_u32_t* state = (flea_u32_t*)ctx__pt->hash_state;
+  flea_u32_t *state = (flea_u32_t *) ctx__pt->hash_state;
   FLEA_THR_BEG_FUNC();
   FLEA_ALLOC_BUF(S_and_W, 16 + 160);
-  S = (flea_u32_t*)S_and_W;
-  W = (flea_u32_t*)&S_and_W[16];
-  for( i = 0; i < 16; i += 1 )
+  S = (flea_u32_t *) S_and_W;
+  W = (flea_u32_t *) &S_and_W[16];
+  for(i = 0; i < 16; i += 1)
   {
     S[i] = state[i];
   }
 
-  for( i = 0; i < 32; i++)
+  for(i = 0; i < 32; i++)
   {
     W[i] = flea__decode_U32_BE(input + 4 * i);
   }
 
-  for( i = 32; i < 160; i += 2 )
+  for(i = 32; i < 160; i += 2)
   {
     Gamma1_n(&W[i], &W[i - 4]);
     Gamma0_n_add(&W[i], &W[i - 30]);
@@ -227,14 +226,13 @@ flea_err_t THR_flea_sha512_compression_function ( flea_hash_ctx_t* ctx__pt, cons
 
 
 #ifdef FLEA_USE_SHA512_ROUND_MACRO
-  for( i = 0; i < 80; i += 8 )
+  for(i = 0; i < 80; i += 8)
   {
-
     flea_u32_t tmp[2];
     flea_u32_t t0[2];
     flea_u32_t t1[2];
-    flea_u32_t* W_p;
-    const flea_u32_t* K_p;
+    flea_u32_t *W_p;
+    const flea_u32_t *K_p;
     FLEA_SHA_512_ROUND(&S[0], &S[2], &S[4], &S[6], &S[8], &S[10], &S[12], &S[14], i + 0);
     FLEA_SHA_512_ROUND(&S[14], &S[0], &S[2], &S[4], &S[6], &S[8], &S[10], &S[12], i + 1);
     FLEA_SHA_512_ROUND(&S[12], &S[14], &S[0], &S[2], &S[4], &S[6], &S[8], &S[10], i + 2);
@@ -244,8 +242,8 @@ flea_err_t THR_flea_sha512_compression_function ( flea_hash_ctx_t* ctx__pt, cons
     FLEA_SHA_512_ROUND(&S[4], &S[6], &S[8], &S[10], &S[12], &S[14], &S[0], &S[2], i + 6);
     FLEA_SHA_512_ROUND(&S[2], &S[4], &S[6], &S[8], &S[10], &S[12], &S[14], &S[0], i + 7);
   }
-#else
-  for( i = 0; i < 80; i += 1 )
+#else /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
+  for(i = 0; i < 80; i += 1)
   {
     flea_u32_t tmp[2];
     Sha512Round(&S[0], &S[2], &S[4], &S[6], &S[8], &S[10], &S[12], &S[14], i, W);
@@ -259,55 +257,68 @@ flea_err_t THR_flea_sha512_compression_function ( flea_hash_ctx_t* ctx__pt, cons
     assn64(&S[4], &S[2]);
     assn64(&S[2], tmp);
   }
-#endif
+#endif /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
 
-  for( i = 0; i < 8; i++ )
+  for(i = 0; i < 8; i++)
   {
     add64((&state[2 * i]), &S[2 * i]);
   }
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_SECRET_ARR(S_and_W, 16 + 160);
-    );
-}
+  );
+} /* THR_flea_sha512_compression_function */
 
-void flea_sha512_init ( flea_hash_ctx_t* ctx__pt)
+void flea_sha512_init(flea_hash_ctx_t *ctx__pt)
 {
+  flea_u32_t *state = ctx__pt->hash_state;
 
-  flea_u32_t* state =  ctx__pt->hash_state;
-
-  state[0] = 0x6a09e667UL; state[1] = 0xf3bcc908UL;
-  state[2] = 0xbb67ae85UL; state[3] = 0x84caa73bUL;
-  state[4] = 0x3c6ef372UL; state[5] = 0xfe94f82bUL;
-  state[6] = 0xa54ff53aUL; state[7] = 0x5f1d36f1UL;
-  state[8] = 0x510e527fUL; state[9] = 0xade682d1UL;
-  state[10] = 0x9b05688cUL; state[11] = 0x2b3e6c1fUL;
-  state[12] = 0x1f83d9abUL; state[13] = 0xfb41bd6bUL;
-  state[14] = 0x5be0cd19UL; state[15] = 0x137e2179UL;
+  state[0]  = 0x6a09e667UL;
+  state[1]  = 0xf3bcc908UL;
+  state[2]  = 0xbb67ae85UL;
+  state[3]  = 0x84caa73bUL;
+  state[4]  = 0x3c6ef372UL;
+  state[5]  = 0xfe94f82bUL;
+  state[6]  = 0xa54ff53aUL;
+  state[7]  = 0x5f1d36f1UL;
+  state[8]  = 0x510e527fUL;
+  state[9]  = 0xade682d1UL;
+  state[10] = 0x9b05688cUL;
+  state[11] = 0x2b3e6c1fUL;
+  state[12] = 0x1f83d9abUL;
+  state[13] = 0xfb41bd6bUL;
+  state[14] = 0x5be0cd19UL;
+  state[15] = 0x137e2179UL;
 }
 
-void flea_sha384_init ( flea_hash_ctx_t* ctx__pt)
+void flea_sha384_init(flea_hash_ctx_t *ctx__pt)
 {
+  flea_u32_t *state = ctx__pt->hash_state;
 
-  flea_u32_t* state =  ctx__pt->hash_state;
-
-  state[0] = 0xcbbb9d5dUL; state[1] = 0xc1059ed8UL;
-  state[2] = 0x629a292aUL; state[3] = 0x367cd507UL;
-  state[4] = 0x9159015aUL; state[5] = 0x3070dd17UL;
-  state[6] = 0x152fecd8UL; state[7] = 0xf70e5939UL;
-  state[8] = 0x67332667UL; state[9] = 0xffc00b31UL;
-  state[10] = 0x8eb44a87UL; state[11] = 0x68581511UL;
-  state[12] = 0xdb0c2e0dUL; state[13] = 0x64f98fa7UL;
-  state[14] = 0x47b5481dUL; state[15] = 0xbefa4fa4UL;
-
+  state[0]  = 0xcbbb9d5dUL;
+  state[1]  = 0xc1059ed8UL;
+  state[2]  = 0x629a292aUL;
+  state[3]  = 0x367cd507UL;
+  state[4]  = 0x9159015aUL;
+  state[5]  = 0x3070dd17UL;
+  state[6]  = 0x152fecd8UL;
+  state[7]  = 0xf70e5939UL;
+  state[8]  = 0x67332667UL;
+  state[9]  = 0xffc00b31UL;
+  state[10] = 0x8eb44a87UL;
+  state[11] = 0x68581511UL;
+  state[12] = 0xdb0c2e0dUL;
+  state[13] = 0x64f98fa7UL;
+  state[14] = 0x47b5481dUL;
+  state[15] = 0xbefa4fa4UL;
 }
-void flea_sha512_encode_hash_state (const flea_hash_ctx_t* ctx__pt, flea_u8_t* output,  flea_al_u8_t output_len)
+
+void flea_sha512_encode_hash_state(const flea_hash_ctx_t *ctx__pt, flea_u8_t *output, flea_al_u8_t output_len)
 {
   flea_al_u8_t i;
-  flea_u32_t* state = (flea_u32_t*)ctx__pt->hash_state;
+  flea_u32_t *state = (flea_u32_t *) ctx__pt->hash_state;
 
-  for( i = 0; i < output_len; i++ )
+  for(i = 0; i < output_len; i++)
   {
     output[i] = state[i / 4] >> ((3 - (i % 4)) * 8);
   }
 }
-

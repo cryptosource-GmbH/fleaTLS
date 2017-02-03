@@ -19,6 +19,3 @@ extern const flea_u8_t flea_test_cert_tls_server_broken[1371];
 extern const flea_u8_t test_self_signed_ecdsa_csca_cert__acu8[1190];
 
 #endif /* h-guard */
-
-
-

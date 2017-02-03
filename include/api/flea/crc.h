@@ -16,7 +16,8 @@ extern "C" {
  * @param data pointer to the data to compute the checksum of
  * @param data_len length of data
  */
-flea_u16_t flea_crc16_ccit_compute(flea_u16_t crc_init, const flea_u8_t* data, flea_dtl_t data_len);
+flea_u16_t
+flea_crc16_ccit_compute(flea_u16_t crc_init, const flea_u8_t *data, flea_dtl_t data_len);
 
 #ifdef __cplusplus
 }

@@ -30,14 +30,17 @@
  * Maximal length of a private key of a public key scheme
  */
 #define FLEA_PK_MAX_PRIVKEY_LEN __FLEA_COMPUTED_PK_MAX_ASYM_PRIVKEY_LEN
+
 /**
  * Maximal length of a signature of a public key scheme
  */
 #define FLEA_PK_MAX_SIGNATURE_LEN __FLEA_COMPUTED_MAX_ASYM_SIG_LEN
+
 /**
  * Maximal output length of a raw public key scheme function
  */
 #define FLEA_PK_MAX_PRIMITIVE_INPUT_LEN __FLEA_COMPUTED_ASYM_PRIMITIVE_INPUT_LEN
+
 /**
  * Maximal input length of a raw public key scheme function
  */

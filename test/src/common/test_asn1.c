@@ -13,7 +13,6 @@
 
 flea_err_t THR_flea_test_ber_dec_basic()
 {
-
   FLEA_DECL_OBJ(source__t, flea_data_source_t);
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   FLEA_DECL_BUF(version_buf__bu8, flea_u8_t, 10);
@@ -23,7 +22,7 @@ flea_err_t THR_flea_test_ber_dec_basic()
   const flea_u8_t *oid__pu8;
   flea_bool_t found_tag__b;
   FLEA_THR_BEG_FUNC();
-  FLEA_ALLOC_BUF(version_buf__bu8, 10); 
+  FLEA_ALLOC_BUF(version_buf__bu8, 10);
   FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, flea_test_cert_1__au8, sizeof(flea_test_cert_1__au8), &hlp__t));
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0));
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional(&dec__t, FLEA_ASN1_OID, 0, &oid__pu8, &version_len__dtl, &found_tag__b));
@@ -57,17 +56,17 @@ flea_err_t THR_flea_test_ber_dec_basic()
   if(version_len__dtl != 1 || version_buf__bu8[0] != 1)
   {
     FLEA_THROW("invalid decoded version number", FLEA_ERR_FAILED_TEST);
-  } 
+  }
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(&dec__t));
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
   // decode the OID
   version_len__dtl = 10;
-FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(0, FLEA_ASN1_OID), &oid_ref__t));
+  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(0, FLEA_ASN1_OID), &oid_ref__t));
   if(oid_ref__t.len__dtl != 9)
   {
     FLEA_THROW("invalid decoded OID length", FLEA_ERR_FAILED_TEST);
-  } 
+  }
   if(oid_ref__t.data__pcu8[0] != 0x2A || oid_ref__t.data__pcu8[8] != 0x0B)
   {
     FLEA_THROW("invalid decoded OID", FLEA_ERR_FAILED_TEST);
@@ -75,12 +74,11 @@ FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(0
   if(FLEA_ERR_ASN1_DER_DEC_ERR != THR_flea_ber_dec_t__close_constructed_at_end(&dec__t))
   {
     FLEA_THROW("skipping remaining bytes when requiring constructed to be finished", FLEA_ERR_FAILED_TEST);
-  } 
+  }
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(&dec__t));
   FLEA_THR_FIN_SEC(
-      flea_data_source_t__dtor(&source__t); 
-      flea_ber_dec_t__dtor(&dec__t);
-      FLEA_FREE_BUF_FINAL(version_buf__bu8);
-      );
-}
-
+    flea_data_source_t__dtor(&source__t);
+    flea_ber_dec_t__dtor(&dec__t);
+    FLEA_FREE_BUF_FINAL(version_buf__bu8);
+  );
+} /* THR_flea_test_ber_dec_basic */

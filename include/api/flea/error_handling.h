@@ -22,7 +22,7 @@
  * constructed state, specific initial values are defined. This ensures that in the
  * cleanup section at the end of the function it is alway possible to determine
  * whether the resources held by such a variable must be released or not.
-
+ *
  * The code section of each throwing function starts with the macro
  * FLEA_THR_BEG_FUNC()
  * which declares the return value variable of the function used by other macros
@@ -74,15 +74,15 @@
 
 
 #ifdef FLEA_DO_PRINTF_ERRS
-#define FLEA_PRINTF_1_SWITCHED(__format) printf(__format)
-#define FLEA_PRINTF_2_SWITCHED(__format, __arg1) printf(__format, __arg1)
-#define FLEA_PRINTF_3_SWITCHED(__format, __arg1, __arg2) printf(__format, __arg1, __arg2)
-#define __FLEA_EVTL_PRINT_ERR(__func, __str) printf("%s: %s\n", __func, __str)
+# define FLEA_PRINTF_1_SWITCHED(__format)                 printf(__format)
+# define FLEA_PRINTF_2_SWITCHED(__format, __arg1)         printf(__format, __arg1)
+# define FLEA_PRINTF_3_SWITCHED(__format, __arg1, __arg2) printf(__format, __arg1, __arg2)
+# define __FLEA_EVTL_PRINT_ERR(__func, __str)             printf("%s: %s\n", __func, __str)
 #else
-#define FLEA_PRINTF_1_SWITCHED(__format)
-#define FLEA_PRINTF_2_SWITCHED(__format, __arg1)
-#define FLEA_PRINTF_3_SWITCHED(__format, __arg1, __arg2)
-#define __FLEA_EVTL_PRINT_ERR(__func, __str) do { } while(0)
+# define FLEA_PRINTF_1_SWITCHED(__format)
+# define FLEA_PRINTF_2_SWITCHED(__format, __arg1)
+# define FLEA_PRINTF_3_SWITCHED(__format, __arg1, __arg2)
+# define __FLEA_EVTL_PRINT_ERR(__func, __str) do { } while(0)
 #endif
 
 #define FLEA_THROW(__mess, __val) \

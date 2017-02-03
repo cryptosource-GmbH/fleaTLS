@@ -62,7 +62,6 @@
  * Determine the u32 length of a string from the bit length, rounded up to full
  * words
  */
-#define FLEA_CEIL_U32_LEN_FROM_BIT_LEN(__a)  (((__a) + 8 * sizeof(flea_u32_t) - 1) / (8 * sizeof(flea_u32_t)))
+#define FLEA_CEIL_U32_LEN_FROM_BIT_LEN(__a) (((__a) + 8 * sizeof(flea_u32_t) - 1) / (8 * sizeof(flea_u32_t)))
 
 #endif /* h-guard */
-

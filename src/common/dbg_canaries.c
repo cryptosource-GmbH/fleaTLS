@@ -11,13 +11,15 @@ void flea_dbg_canaries__signal_canary_error()
 {
   flea_dbg_canaries_flag = 1;
 }
+
 void flea_dbg_canaries__clear_canary_error()
 {
   flea_dbg_canaries_flag = 0;
 }
+
 int flea_dbg_canaries__is_canary_error_set()
 {
   return flea_dbg_canaries_flag != 0;
 }
 
-#endif
+#endif /* ifdef FLEA_USE_BUF_DBG_CANARIES */

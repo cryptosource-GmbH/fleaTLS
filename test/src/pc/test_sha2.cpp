@@ -13,10 +13,10 @@
 flea_err_t THR_flea_test_sha256_file_based()
 {
   std::string leaf_name = "sha256_test.dat";
-  std::string file_name = "misc/testdata/" + leaf_name; 
+  std::string file_name = "misc/testdata/" + leaf_name;
 
-  
-  std::ifstream input(file_name.c_str()); 
+
+  std::ifstream input(file_name.c_str());
 
 
   bool end = false;
@@ -35,24 +35,23 @@ flea_err_t THR_flea_test_sha256_file_based()
       }
       if(line.find(std::string("next")) == 0)
       {
-        //std::cout << "next test: " << line << std::endl;
+        // std::cout << "next test: " << line << std::endl;
         // nothing to do
       }
-      else if(line.find(std::string("end")) == 0)
+      else
+      if(line.find(std::string("end")) == 0)
       {
         end = true;
       }
-      //std::cout << "testing hash with message size = " << m.size() << std::endl;
+      // std::cout << "testing hash with message size = " << m.size() << std::endl;
       if(0 != THR_flea_test_hash_function_inner(
-              &m[0], m.size(),
-              &d[0], d.size(),
-              flea_sha256 
-            ))
-          {
-            return FLEA_ERR_FAILED_TEST;
-          }
-            
-
+          &m[0], m.size(),
+          &d[0], d.size(),
+          flea_sha256
+        ))
+      {
+        return FLEA_ERR_FAILED_TEST;
+      }
     } // end while loop
   }
   catch(std::exception & e)
@@ -61,4 +60,4 @@ flea_err_t THR_flea_test_sha256_file_based()
     throw(e);
   }
   return FLEA_ERR_FINE;
-}
+} // THR_flea_test_sha256_file_based

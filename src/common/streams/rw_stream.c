@@ -122,12 +122,13 @@ flea_err_t THR_flea_rw_stream_t__write(
         );
       }
     }
-  } else
+  }
+  else
   {
     FLEA_CCALL(stream__pt->write_func__f(stream__pt->custom_obj__pv, data__pcu8, data_len__dtl));
   }
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_rw_stream_t__write */
 
 #if 0
 flea_err_t THR_flea_rw_stream_t__write_through_filter_and_tee_output(

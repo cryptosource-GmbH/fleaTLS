@@ -1,4 +1,3 @@
-
 #ifndef _flea_test_linux_sock__H_
 #define _flea_test_linux_sock__H_
 
@@ -7,7 +6,8 @@
 extern "C" {
 #endif
 
-flea_err_t THR_flea_test_linux__create_rw_stream(flea_rw_stream_t * stream__pt, int * socket_fd);
+flea_err_t
+THR_flea_test_linux__create_rw_stream(flea_rw_stream_t *stream__pt, int *socket_fd);
 
 #ifdef __cplusplus
 }

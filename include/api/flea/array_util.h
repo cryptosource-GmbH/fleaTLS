@@ -11,6 +11,6 @@
 
 #define FLEA_NB_ARRAY_ENTRIES_WLEN(__arr, __size_in_bytes) ((__size_in_bytes) / sizeof((__arr)[0]))
 
-#define FLEA_NB_ARRAY_ENTRIES(__arr) FLEA_NB_ARRAY_ENTRIES_WLEN((__arr), sizeof(__arr))
+#define FLEA_NB_ARRAY_ENTRIES(__arr)                       FLEA_NB_ARRAY_ENTRIES_WLEN((__arr), sizeof(__arr))
 
 #endif /* h-guard */

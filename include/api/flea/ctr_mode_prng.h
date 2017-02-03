@@ -1,4 +1,3 @@
-
 #ifndef _flea_fortuna__H_
 #define _flea_fortuna__H_
 
@@ -17,30 +16,29 @@ extern "C" {
  */
 typedef struct
 {
-
-  flea_u8_t pending_output_len__u8;
+  flea_u8_t           pending_output_len__u8;
 #ifdef FLEA_USE_HEAP_BUF
-  flea_u8_t* pending_output__bu8;
-  flea_u8_t* count_block__bu8;
-  flea_u8_t* key__bu8;
-  flea_u8_t* accu__bu8;
+  flea_u8_t           *pending_output__bu8;
+  flea_u8_t           *count_block__bu8;
+  flea_u8_t           *key__bu8;
+  flea_u8_t           *accu__bu8;
 #else
-  flea_u8_t pending_output__bu8[FLEA_AES_BLOCK_LENGTH];
-  flea_u8_t count_block__bu8[FLEA_AES_BLOCK_LENGTH];
-  flea_u8_t key__bu8[FLEA_AES256_KEY_BYTE_LENGTH];
+  flea_u8_t           pending_output__bu8[FLEA_AES_BLOCK_LENGTH];
+  flea_u8_t           count_block__bu8[FLEA_AES_BLOCK_LENGTH];
+  flea_u8_t           key__bu8[FLEA_AES256_KEY_BYTE_LENGTH];
 #endif
   flea_ecb_mode_ctx_t cipher_ctx__t;
 } flea_ctr_mode_prng_t;
 
-#define flea_ctr_mode_prng_t__INIT_VALUE  { .cipher_ctx__t = flea_ecb_mode_ctx_t__INIT_VALUE }
+#define flea_ctr_mode_prng_t__INIT_VALUE { .cipher_ctx__t = flea_ecb_mode_ctx_t__INIT_VALUE }
 
 #ifdef FLEA_USE_HEAP_BUF
-#define flea_ctr_mode_prng_t__INIT(__p) \
+# define flea_ctr_mode_prng_t__INIT(__p) \
   do { \
     flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t); \
   } while(0)
 #else
-#define flea_ctr_mode_prng_t__INIT(__p) \
+# define flea_ctr_mode_prng_t__INIT(__p) \
   do { \
     flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t); \
   } while(0)
@@ -56,7 +54,8 @@ typedef struct
  *
  * @return error code
  */
-flea_err_t THR_flea_ctr_mode_prng_t__ctor(flea_ctr_mode_prng_t* ctx__pt, const flea_u8_t* state__pcu8, flea_al_u8_t state_len__alu8);
+flea_err_t
+THR_flea_ctr_mode_prng_t__ctor(flea_ctr_mode_prng_t *ctx__pt, const flea_u8_t *state__pcu8, flea_al_u8_t state_len__alu8);
 
 /**
  * Randomize a buffer without flushing the PRNG. 'Flushing' means to apply a
@@ -71,7 +70,8 @@ flea_err_t THR_flea_ctr_mode_prng_t__ctor(flea_ctr_mode_prng_t* ctx__pt, const f
  * @param mem_len__dtl length of the memory area
  *
  */
-void flea_ctr_mode_prng_t__randomize_no_flush(flea_ctr_mode_prng_t* ctx__pt, flea_u8_t* mem__pu8, flea_dtl_t mem_len__dtl);
+void
+flea_ctr_mode_prng_t__randomize_no_flush(flea_ctr_mode_prng_t *ctx__pt, flea_u8_t *mem__pu8, flea_dtl_t mem_len__dtl);
 
 /**
  * Randomize a buffer and subsequently flushing the PRNG. 'Flushing' means to apply a
@@ -83,7 +83,8 @@ void flea_ctr_mode_prng_t__randomize_no_flush(flea_ctr_mode_prng_t* ctx__pt, fle
  * @param mem_len__dtl length of the memory area
  *
  */
-void flea_ctr_mode_prng_t__randomize(flea_ctr_mode_prng_t* ctx__pt, flea_u8_t* mem__pu8, flea_dtl_t mem_len__dtl);
+void
+flea_ctr_mode_prng_t__randomize(flea_ctr_mode_prng_t *ctx__pt, flea_u8_t *mem__pu8, flea_dtl_t mem_len__dtl);
 
 /**
  * Add additional seed data to the PRNG. Calling this function does never reduce the entropy level of the PRNG.
@@ -94,7 +95,8 @@ void flea_ctr_mode_prng_t__randomize(flea_ctr_mode_prng_t* ctx__pt, flea_u8_t* m
  *
  * @return flea error code
  */
-flea_err_t THR_flea_ctr_mode_prng_t__reseed(flea_ctr_mode_prng_t* ctx__pt, const flea_u8_t* seed__pcu8, flea_dtl_t seed_len__dtl);
+flea_err_t
+THR_flea_ctr_mode_prng_t__reseed(flea_ctr_mode_prng_t *ctx__pt, const flea_u8_t *seed__pcu8, flea_dtl_t seed_len__dtl);
 
 /**
  * Flush the internal state of the PRNG. After this operation, even when the
@@ -103,14 +105,16 @@ flea_err_t THR_flea_ctr_mode_prng_t__reseed(flea_ctr_mode_prng_t* ctx__pt, const
  *
  * @param ctx__pt pointer to the PRNG context object
  */
-void flea_ctr_mode_prng_t__flush(flea_ctr_mode_prng_t* ctx__pt);
+void
+flea_ctr_mode_prng_t__flush(flea_ctr_mode_prng_t *ctx__pt);
 
 /**
  * Destroy a PRNG object.
  *
  * @param ctx__pt pointer to the PRNG context object
  */
-void flea_ctr_mode_prng_t__dtor(flea_ctr_mode_prng_t* ctx__pt);
+void
+flea_ctr_mode_prng_t__dtor(flea_ctr_mode_prng_t *ctx__pt);
 
 #ifdef __cplusplus
 }

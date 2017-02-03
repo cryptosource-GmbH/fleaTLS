@@ -10,12 +10,10 @@
 #ifdef FLEA_USE_SMALL_AES
 
 
-
-#define Nb 4
-
+# define Nb 4
 
 
-static const flea_u8_t flea_aes_sbox[256] =   {
+static const flea_u8_t flea_aes_sbox[256] = {
   0x63, 0x7c, 0x77, 0x7b, 0xf2, 0x6b, 0x6f, 0xc5, 0x30, 0x01, 0x67, 0x2b, 0xfe, 0xd7, 0xab, 0x76,
   0xca, 0x82, 0xc9, 0x7d, 0xfa, 0x59, 0x47, 0xf0, 0xad, 0xd4, 0xa2, 0xaf, 0x9c, 0xa4, 0x72, 0xc0,
   0xb7, 0xfd, 0x93, 0x26, 0x36, 0x3f, 0xf7, 0xcc, 0x34, 0xa5, 0xe5, 0xf1, 0x71, 0xd8, 0x31, 0x15,
@@ -34,7 +32,7 @@ static const flea_u8_t flea_aes_sbox[256] =   {
   0x8c, 0xa1, 0x89, 0x0d, 0xbf, 0xe6, 0x42, 0x68, 0x41, 0x99, 0x2d, 0x0f, 0xb0, 0x54, 0xbb, 0x16
 };
 
-#ifdef FLEA_HAVE_AES_BLOCK_DECR
+# ifdef FLEA_HAVE_AES_BLOCK_DECR
 static const flea_u8_t flea_aes_rsbox[256] =
 { 0x52, 0x09, 0x6a, 0xd5, 0x30, 0x36, 0xa5, 0x38, 0xbf, 0x40, 0xa3, 0x9e, 0x81, 0xf3, 0xd7, 0xfb,
   0x7c, 0xe3, 0x39, 0x82, 0x9b, 0x2f, 0xff, 0x87, 0x34, 0x8e, 0x43, 0x44, 0xc4, 0xde, 0xe9, 0xcb,
@@ -52,34 +50,35 @@ static const flea_u8_t flea_aes_rsbox[256] =
   0x60, 0x51, 0x7f, 0xa9, 0x19, 0xb5, 0x4a, 0x0d, 0x2d, 0xe5, 0x7a, 0x9f, 0x93, 0xc9, 0x9c, 0xef,
   0xa0, 0xe0, 0x3b, 0x4d, 0xae, 0x2a, 0xf5, 0xb0, 0xc8, 0xeb, 0xbb, 0x3c, 0x83, 0x53, 0x99, 0x61,
   0x17, 0x2b, 0x04, 0x7e, 0xba, 0x77, 0xd6, 0x26, 0xe1, 0x69, 0x14, 0x63, 0x55, 0x21, 0x0c, 0x7d };
-#endif // #ifdef FLEA_HAVE_AES_BLOCK_DECR
+# endif // #ifdef FLEA_HAVE_AES_BLOCK_DECR
 
 
 static const flea_u8_t Rcon[] = {
   0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36
 };
 
-flea_err_t THR_flea_aes_setup_encr_key (flea_ecb_mode_ctx_t* ctx__pt, const flea_u8_t* key__pcu8)
+flea_err_t THR_flea_aes_setup_encr_key(flea_ecb_mode_ctx_t *ctx__pt, const flea_u8_t *key__pcu8)
 {
   flea_aes_setup_encr_key(ctx__pt, key__pcu8);
   return FLEA_ERR_FINE;
 }
 
-void flea_aes_setup_encr_key (flea_ecb_mode_ctx_t* ctx__pt, const flea_u8_t* key__pcu8)
+void flea_aes_setup_encr_key(flea_ecb_mode_ctx_t *ctx__pt, const flea_u8_t *key__pcu8)
 {
   flea_u32_t i, j, k;
   flea_u8_t tempa[4];
   flea_al_u16_t keyBits = 8 * ctx__pt->key_byte_size__u8;
 
   flea_al_u8_t Nr, Nk;
-  flea_u8_t* expanded_key__pu8 = (flea_u8_t*)ctx__pt->expanded_key__bu8;
+  flea_u8_t *expanded_key__pu8 = (flea_u8_t *) ctx__pt->expanded_key__bu8;
 
   if(keyBits == 128)
   {
     Nr = 10;
     Nk = 4;
   }
-  else if(keyBits == 192)
+  else
+  if(keyBits == 192)
   {
     Nr = 12;
     Nk = 6;
@@ -105,8 +104,7 @@ void flea_aes_setup_encr_key (flea_ecb_mode_ctx_t* ctx__pt, const flea_u8_t* key
     }
     if(i % Nk == 0)
     {
-
-      k = tempa[0];
+      k        = tempa[0];
       tempa[0] = tempa[1];
       tempa[1] = tempa[2];
       tempa[2] = tempa[3];
@@ -117,9 +115,10 @@ void flea_aes_setup_encr_key (flea_ecb_mode_ctx_t* ctx__pt, const flea_u8_t* key
       tempa[2] = flea_aes_sbox[tempa[2]];
       tempa[3] = flea_aes_sbox[tempa[3]];
 
-      tempa[0] =  tempa[0] ^ Rcon[i / Nk - 1];
+      tempa[0] = tempa[0] ^ Rcon[i / Nk - 1];
     }
-    else if(Nk > 6 && i % Nk == 4)
+    else
+    if(Nk > 6 && i % Nk == 4)
     {
       {
         tempa[0] = flea_aes_sbox[tempa[0]];
@@ -133,16 +132,17 @@ void flea_aes_setup_encr_key (flea_ecb_mode_ctx_t* ctx__pt, const flea_u8_t* key
     expanded_key__pu8[i * 4 + 2] = expanded_key__pu8[(i - Nk) * 4 + 2] ^ tempa[2];
     expanded_key__pu8[i * 4 + 3] = expanded_key__pu8[(i - Nk) * 4 + 3] ^ tempa[3];
   }
-}
+} /* flea_aes_setup_encr_key */
 
-#ifdef FLEA_HAVE_AES_BLOCK_DECR
-flea_err_t THR_flea_aes_setup_decr_key (flea_ecb_mode_ctx_t* ctx__p_t, const flea_u8_t* cipherKey)
+# ifdef FLEA_HAVE_AES_BLOCK_DECR
+flea_err_t THR_flea_aes_setup_decr_key(flea_ecb_mode_ctx_t *ctx__p_t, const flea_u8_t *cipherKey)
 {
   return THR_flea_aes_setup_encr_key(ctx__p_t, cipherKey);
 }
-#endif // #ifdef FLEA_HAVE_AES_BLOCK_DECR
 
-static void flea_aes_small_add_round_key (flea_u8_t round, flea_u8_t* state__pu8, const flea_u8_t* round_key__pcu8)
+# endif // #ifdef FLEA_HAVE_AES_BLOCK_DECR
+
+static void flea_aes_small_add_round_key(flea_u8_t round, flea_u8_t *state__pu8, const flea_u8_t *round_key__pcu8)
 {
   flea_al_u8_t i;
 
@@ -152,7 +152,7 @@ static void flea_aes_small_add_round_key (flea_u8_t round, flea_u8_t* state__pu8
   }
 }
 
-static void flea_aes_small_subbytes (flea_u8_t* state__pu8)
+static void flea_aes_small_subbytes(flea_u8_t *state__pu8)
 {
   flea_u8_t i;
 
@@ -162,41 +162,40 @@ static void flea_aes_small_subbytes (flea_u8_t* state__pu8)
   }
 }
 
-static void flea_aes_small_shift_rows (flea_u8_t* state__pu8)
+static void flea_aes_small_shift_rows(flea_u8_t *state__pu8)
 {
   flea_u8_t temp;
 
   // Rotate first row 1 columns to left
-  temp           = state__pu8[0 * 4 + 1];
+  temp = state__pu8[0 * 4 + 1];
   state__pu8[0 * 4 + 1] = state__pu8[1 * 4 + 1];
   state__pu8[1 * 4 + 1] = state__pu8[2 * 4 + 1];
   state__pu8[2 * 4 + 1] = state__pu8[3 * 4 + 1];
   state__pu8[3 * 4 + 1] = temp;
 
   // Rotate second row 2 columns to left
-  temp           = state__pu8[0 * 4 + 2];
+  temp = state__pu8[0 * 4 + 2];
   state__pu8[0 * 4 + 2] = state__pu8[2 * 4 + 2];
   state__pu8[2 * 4 + 2] = temp;
 
-  temp       = state__pu8[1 * 4 + 2];
+  temp = state__pu8[1 * 4 + 2];
   state__pu8[1 * 4 + 2] = state__pu8[3 * 4 + 2];
   state__pu8[3 * 4 + 2] = temp;
 
   // Rotate third row 3 columns to left
-  temp       = state__pu8[0 * 4 + 3];
+  temp = state__pu8[0 * 4 + 3];
   state__pu8[0 * 4 + 3] = state__pu8[3 * 4 + 3];
   state__pu8[3 * 4 + 3] = state__pu8[2 * 4 + 3];
   state__pu8[2 * 4 + 3] = state__pu8[1 * 4 + 3];
   state__pu8[1 * 4 + 3] = temp;
 }
 
-static flea_u8_t xtime (flea_u8_t x)
+static flea_u8_t xtime(flea_u8_t x)
 {
   return (x << 1) ^ (((x >> 7) & 1) * 0x1b);
 }
 
-
-static void flea_aes_small_mix_col (flea_u8_t* state__pu8)
+static void flea_aes_small_mix_col(flea_u8_t *state__pu8)
 {
   flea_u8_t i;
   flea_u8_t Tmp, Tm, t;
@@ -206,42 +205,40 @@ static void flea_aes_small_mix_col (flea_u8_t* state__pu8)
     t   = state__pu8[i * 4 + 0];
     Tmp = state__pu8[i * 4 + 0] ^ state__pu8[i * 4 + 1] ^ state__pu8[i * 4 + 2] ^ state__pu8[i * 4 + 3];
     Tm  = state__pu8[i * 4 + 0] ^ state__pu8[i * 4 + 1];
-    Tm = xtime(Tm);
+    Tm  = xtime(Tm);
     state__pu8[i * 4 + 0] ^= Tm ^ Tmp;
-    Tm  = state__pu8[i * 4 + 1] ^ state__pu8[i * 4 + 2];
+    Tm = state__pu8[i * 4 + 1] ^ state__pu8[i * 4 + 2];
     Tm = xtime(Tm);
     state__pu8[i * 4 + 1] ^= Tm ^ Tmp;
-    Tm  = state__pu8[i * 4 + 2] ^ state__pu8[i * 4 + 3];
+    Tm = state__pu8[i * 4 + 2] ^ state__pu8[i * 4 + 3];
     Tm = xtime(Tm);
     state__pu8[i * 4 + 2] ^= Tm ^ Tmp;
-    Tm  = state__pu8[i * 4 + 3] ^ t;
+    Tm = state__pu8[i * 4 + 3] ^ t;
     Tm = xtime(Tm);
     state__pu8[i * 4 + 3] ^= Tm ^ Tmp;
   }
 }
 
-
-#ifdef FLEA_HAVE_AES_BLOCK_DECR
-static flea_u8_t flea_small_aes_multiply (flea_u8_t x, flea_u8_t y)
+# ifdef FLEA_HAVE_AES_BLOCK_DECR
+static flea_u8_t flea_small_aes_multiply(flea_u8_t x, flea_u8_t y)
 {
-
   flea_u8_t x_arr[4];
   flea_u8_t x_run = x;
   flea_al_u8_t i;
 
   for(i = 0; i < 4; i++)
   {
-    x_run = ((x_run << 1) ^ (((x_run >> 7) & 1) * 0x1b));
-    x_arr[i]  = x_run;
+    x_run    = ((x_run << 1) ^ (((x_run >> 7) & 1) * 0x1b));
+    x_arr[i] = x_run;
   }
-  return ((y & 1) * x) ^
-         ((y >> 1 & 1) * x_arr[0]) ^
-         ((y >> 2 & 1) * x_arr[1]) ^
-         ((y >> 3 & 1) * x_arr[2]) ^
-         ((y >> 4 & 1) * x_arr[3]);
+  return ((y & 1) * x)
+         ^ ((y >> 1 & 1) * x_arr[0])
+         ^ ((y >> 2 & 1) * x_arr[1])
+         ^ ((y >> 3 & 1) * x_arr[2])
+         ^ ((y >> 4 & 1) * x_arr[3]);
 }
 
-static void flea_aes_small_inv_mix_col (flea_u8_t* state__pu8)
+static void flea_aes_small_inv_mix_col(flea_u8_t *state__pu8)
 {
   flea_al_u8_t i, j;
   flea_u8_t a, b, c, d;
@@ -261,8 +258,7 @@ static void flea_aes_small_inv_mix_col (flea_u8_t* state__pu8)
   }
 }
 
-
-static void flea_aes_small_inv_subbytes (flea_u8_t* state__pu8)
+static void flea_aes_small_inv_subbytes(flea_u8_t *state__pu8)
 {
   flea_u8_t i;
 
@@ -272,7 +268,7 @@ static void flea_aes_small_inv_subbytes (flea_u8_t* state__pu8)
   }
 }
 
-static void flea_aes_small_inv_shift_rows (flea_u8_t* state__pu8)
+static void flea_aes_small_inv_shift_rows(flea_u8_t *state__pu8)
 {
   flea_u8_t temp;
 
@@ -296,58 +292,61 @@ static void flea_aes_small_inv_shift_rows (flea_u8_t* state__pu8)
   state__pu8[2 * 4 + 3] = state__pu8[3 * 4 + 3];
   state__pu8[3 * 4 + 3] = temp;
 }
-#endif // #ifdef FLEA_HAVE_AES_BLOCK_DECR
+
+# endif // #ifdef FLEA_HAVE_AES_BLOCK_DECR
 
 
-void flea_aes_encrypt_block (const flea_ecb_mode_ctx_t* p_ctx,  const flea_u8_t* pt, flea_u8_t* ct)
+void flea_aes_encrypt_block(const flea_ecb_mode_ctx_t *p_ctx, const flea_u8_t *pt, flea_u8_t *ct)
 {
-  flea_u8_t round = 0;
-  flea_u8_t* state__pu8 = ct;
+  flea_u8_t round       = 0;
+  flea_u8_t *state__pu8 = ct;
+
   if(state__pu8 != pt)
   {
     memcpy(state__pu8, pt, 16);
   }
   flea_al_u8_t Nr = p_ctx->nb_rounds__u8;
-  flea_aes_small_add_round_key(0, state__pu8, (flea_u8_t*)p_ctx->expanded_key__bu8 );
+  flea_aes_small_add_round_key(0, state__pu8, (flea_u8_t *) p_ctx->expanded_key__bu8);
 
   for(round = 1; round < Nr; ++round)
   {
     flea_aes_small_subbytes(state__pu8);
     flea_aes_small_shift_rows(state__pu8);
     flea_aes_small_mix_col(state__pu8);
-    flea_aes_small_add_round_key(round, state__pu8, (flea_u8_t*)p_ctx->expanded_key__bu8);
+    flea_aes_small_add_round_key(round, state__pu8, (flea_u8_t *) p_ctx->expanded_key__bu8);
   }
 
   flea_aes_small_subbytes(state__pu8);
   flea_aes_small_shift_rows(state__pu8);
-  flea_aes_small_add_round_key(Nr, state__pu8, (flea_u8_t*)p_ctx->expanded_key__bu8 );
+  flea_aes_small_add_round_key(Nr, state__pu8, (flea_u8_t *) p_ctx->expanded_key__bu8);
 }
 
-#ifdef FLEA_HAVE_AES_BLOCK_DECR
-void flea_aes_decrypt_block (const flea_ecb_mode_ctx_t* p_ctx, const flea_u8_t* ct, flea_u8_t* pt)
+# ifdef FLEA_HAVE_AES_BLOCK_DECR
+void flea_aes_decrypt_block(const flea_ecb_mode_ctx_t *p_ctx, const flea_u8_t *ct, flea_u8_t *pt)
 {
-  flea_u8_t round = 0;
-  flea_al_u8_t Nr = p_ctx->nb_rounds__u8;
-  flea_u8_t* state__pu8 = pt;
-  
+  flea_u8_t round       = 0;
+  flea_al_u8_t Nr       = p_ctx->nb_rounds__u8;
+  flea_u8_t *state__pu8 = pt;
+
   if(state__pu8 != ct)
   {
     memcpy(state__pu8, ct, 16);
   }
-  flea_aes_small_add_round_key(Nr, state__pu8, (flea_u8_t*)p_ctx->expanded_key__bu8);
+  flea_aes_small_add_round_key(Nr, state__pu8, (flea_u8_t *) p_ctx->expanded_key__bu8);
 
   for(round = Nr - 1; round > 0; round--)
   {
     flea_aes_small_inv_shift_rows(state__pu8);
     flea_aes_small_inv_subbytes(state__pu8);
-    flea_aes_small_add_round_key(round, state__pu8, (flea_u8_t*)p_ctx->expanded_key__bu8);
+    flea_aes_small_add_round_key(round, state__pu8, (flea_u8_t *) p_ctx->expanded_key__bu8);
     flea_aes_small_inv_mix_col(state__pu8);
   }
 
   flea_aes_small_inv_shift_rows(state__pu8);
   flea_aes_small_inv_subbytes(state__pu8);
-  flea_aes_small_add_round_key(0, state__pu8, (flea_u8_t*)p_ctx->expanded_key__bu8);
+  flea_aes_small_add_round_key(0, state__pu8, (flea_u8_t *) p_ctx->expanded_key__bu8);
 }
-#endif  // #ifdef FLEA_HAVE_AES_BLOCK_DECR
 
-#endif  // #ifdef FLEA_USE_SMALL_AES
+# endif // #ifdef FLEA_HAVE_AES_BLOCK_DECR
+
+#endif // #ifdef FLEA_USE_SMALL_AES

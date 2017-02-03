@@ -5,7 +5,7 @@
 #include "flea/error_handling.h"
 #include "flea/types.h"
 #include "flea/error.h"
-flea_err_t THR_flea_test_flea_types ()
+flea_err_t THR_flea_test_flea_types()
 {
   FLEA_THR_BEG_FUNC();
   if(sizeof(flea_u8_t) != 1)
@@ -36,17 +36,17 @@ flea_err_t THR_flea_test_flea_types ()
   {
     FLEA_THROW("wrong size for type", FLEA_ERR_FAILED_TEST);
   }
-  if(sizeof(flea_dbl_uword_t) != 2*sizeof(flea_uword_t))
+  if(sizeof(flea_dbl_uword_t) != 2 * sizeof(flea_uword_t))
   {
     FLEA_THROW("wrong size for type", FLEA_ERR_FAILED_TEST);
   }
-  if(sizeof(flea_dbl_sword_t) != 2*sizeof(flea_sword_t))
+  if(sizeof(flea_dbl_sword_t) != 2 * sizeof(flea_sword_t))
   {
     FLEA_THROW("wrong size for type", FLEA_ERR_FAILED_TEST);
   }
-  if(sizeof(flea_pszd_uint_t) != sizeof(void*))
+  if(sizeof(flea_pszd_uint_t) != sizeof(void *))
   {
     FLEA_THROW("wrong size for type", FLEA_ERR_FAILED_TEST);
   }
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_test_flea_types */

@@ -1,26 +1,25 @@
 #include "stm32f4xx_it.h"
-//#include "main.h"
+// #include "main.h"
 #if 0
+
 /**
  * @brief   This function handles NMI exception.
  * @param  None
  * @retval None
  */
-void NMI_Handler (void)
-{
-}
+void NMI_Handler(void)
+{ }
 
 /**
  * @brief  This function handles Hard Fault exception.
  * @param  None
  * @retval None
  */
-void HardFault_Handler (void)
+void HardFault_Handler(void)
 {
   /* Go to infinite loop when Hard Fault exception occurs */
   while(1)
-  {
-  }
+  { }
 }
 
 /**
@@ -28,12 +27,11 @@ void HardFault_Handler (void)
  * @param  None
  * @retval None
  */
-void MemManage_Handler (void)
+void MemManage_Handler(void)
 {
   /* Go to infinite loop when Memory Manage exception occurs */
   while(1)
-  {
-  }
+  { }
 }
 
 /**
@@ -41,12 +39,11 @@ void MemManage_Handler (void)
  * @param  None
  * @retval None
  */
-void BusFault_Handler (void)
+void BusFault_Handler(void)
 {
   /* Go to infinite loop when Bus Fault exception occurs */
   while(1)
-  {
-  }
+  { }
 }
 
 /**
@@ -54,12 +51,11 @@ void BusFault_Handler (void)
  * @param  None
  * @retval None
  */
-void UsageFault_Handler (void)
+void UsageFault_Handler(void)
 {
   /* Go to infinite loop when Usage Fault exception occurs */
   while(1)
-  {
-  }
+  { }
 }
 
 /**
@@ -67,34 +63,31 @@ void UsageFault_Handler (void)
  * @param  None
  * @retval None
  */
-void SVC_Handler (void)
-{
-}
+void SVC_Handler(void)
+{ }
 
 /**
  * @brief  This function handles Debug Monitor exception.
  * @param  None
  * @retval None
  */
-void DebugMon_Handler (void)
-{
-}
+void DebugMon_Handler(void)
+{ }
 
 /**
  * @brief  This function handles PendSVC exception.
  * @param  None
  * @retval None
  */
-void PendSV_Handler (void)
-{
-}
+void PendSV_Handler(void)
+{ }
 
 /**
  * @brief  This function handles SysTick Handler.
  * @param  None
  * @retval None
  */
-void SysTick_Handler (void)
+void SysTick_Handler(void)
 {
   timing_handler();
 }
@@ -106,4 +99,4 @@ void SysTick_Handler (void)
 /*  file (startup_stm32f4xx.s).                                               */
 /******************************************************************************/
 
-#endif
+#endif /* if 0 */

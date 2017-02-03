@@ -10,15 +10,14 @@
 #include "internal/common/math/mpi.h"
 
 
-
-flea_err_t THR_flea_test_montgm_mul_comp_n_prime ()
+flea_err_t THR_flea_test_montgm_mul_comp_n_prime()
 {
 #if FLEA_WORD_BIT_SIZE == 32
-  flea_uword_t test_vec[] = { 1, 3, 5, 7, 101, 257, 259, 65535, 65537, 3021, 343525, (flea_uword_t)-1, ((flea_uword_t)-1)-2, ((flea_uword_t)-1) - 4 };
+  flea_uword_t test_vec[] = { 1, 3, 5, 7, 101, 257, 259, 65535, 65537, 3021, 343525, (flea_uword_t) -1, ((flea_uword_t) -1) - 2, ((flea_uword_t) -1) - 4 };
 #elif FLEA_WORD_BIT_SIZE == 16
-  flea_uword_t test_vec[] = { 1, 3, 5, 7, 101, 257, 259, 65535,  3021, (flea_uword_t)-1, ((flea_uword_t)-1) - 2, ((flea_uword_t)-1) - 4 };
+  flea_uword_t test_vec[] = { 1, 3, 5, 7, 101, 257, 259, 65535, 3021, (flea_uword_t) -1, ((flea_uword_t) -1) - 2, ((flea_uword_t) -1) - 4 };
 #elif FLEA_WORD_BIT_SIZE == 8
-  flea_uword_t test_vec[] = { 1, 3, 5, 7, 101, (flea_uword_t)-1, ((flea_uword_t)-1) - 2, ((flea_uword_t)-1) - 4 };
+  flea_uword_t test_vec[] = { 1, 3, 5, 7, 101, (flea_uword_t) -1, ((flea_uword_t) -1) - 2, ((flea_uword_t) -1) - 4 };
 #endif
   unsigned i;
   const unsigned nb_test_vecs = sizeof(test_vec) / sizeof(test_vec[0]);
@@ -27,21 +26,20 @@ flea_err_t THR_flea_test_montgm_mul_comp_n_prime ()
   for(i = 0; i < nb_test_vecs; i++)
   {
     flea_dbl_uword_t prod, q, rem;
-    const flea_dbl_uword_t mod = ((flea_dbl_uword_t)FLEA_UWORD_MAX) + 1;
+    const flea_dbl_uword_t mod = ((flea_dbl_uword_t) FLEA_UWORD_MAX) + 1;
     flea_uword_t inv = flea_montgomery_compute_n_prime(test_vec[i]);
-    prod = -(flea_dbl_uword_t)inv * test_vec[i];
-    q = prod / mod;       // reduce modulo mod ...
-    rem = prod - q * mod; // ... completed
-    if(rem != 1)          // n*n^{-1} modulo "mod" = 1
+    prod = -(flea_dbl_uword_t) inv * test_vec[i];
+    q    = prod / mod;     // reduce modulo mod ...
+    rem  = prod - q * mod; // ... completed
+    if(rem != 1)           // n*n^{-1} modulo "mod" = 1
     {
       FLEA_THROW("error in computing n'", FLEA_ERR_FAILED_TEST);
     }
-
   }
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_test_montgm_mul_small2 ()
+flea_err_t THR_flea_test_montgm_mul_small2()
 {
   FLEA_THR_BEG_FUNC();
   flea_u8_t exp_res_enc [] = { 6 };
@@ -60,15 +58,14 @@ flea_err_t THR_flea_test_montgm_mul_small2 ()
 #if FLEA_WORD_BIT_SIZE == 32
   flea_u8_t R_enc [] = {
     0x01,
-    0x00,0x00,	0x00,	 0x00
+    0x00, 0x00, 0x00, 0x00
   };
 #elif FLEA_WORD_BIT_SIZE == 16
   flea_u8_t R_enc [] = {
     0x01,
-    0x00,	 0x00
+    0x00, 0x00
   };
 #endif
-
 
 
   flea_u8_t one_enc[] = { 1 };
@@ -81,9 +78,9 @@ flea_err_t THR_flea_test_montgm_mul_small2 ()
   flea_uword_t b_trf_arr [mod_word_len];
   flea_uword_t mod_arr [mod_word_len];
   flea_uword_t exp_res_arr [mod_word_len];
-  flea_uword_t R_arr [(sizeof(R_enc) + sizeof(flea_uword_t) - 1)/sizeof(flea_uword_t)];
+  flea_uword_t R_arr [(sizeof(R_enc) + sizeof(flea_uword_t) - 1) / sizeof(flea_uword_t)];
   flea_uword_t large_tmp_arr[sizeof(R_arr) * 2 + 1];
-  flea_uword_t q_arr[sizeof(R_arr)/sizeof(flea_uword_t)];
+  flea_uword_t q_arr[sizeof(R_arr) / sizeof(flea_uword_t)];
   flea_uword_t mm_ws_arr[mod_word_len + 1];
   flea_uword_t one_arr[1];
 
@@ -96,8 +93,8 @@ flea_err_t THR_flea_test_montgm_mul_small2 ()
 
   flea_montgm_mul_ctx_t mm_ctx;
   flea_mpi_div_ctx_t div_ctx;
-  div_ctx.un = un;
-  div_ctx.vn = vn;
+  div_ctx.un     = un;
+  div_ctx.vn     = vn;
   div_ctx.un_len = un_len;
   div_ctx.vn_len = vn_len;
 
@@ -124,8 +121,8 @@ flea_err_t THR_flea_test_montgm_mul_small2 ()
   FLEA_CCALL(THR_flea_mpi_t__decode(&R, R_enc, sizeof(R_enc)));
   FLEA_CCALL(THR_flea_mpi_t__decode(&one, one_enc, sizeof(one_enc)));
 
-  mm_ctx.p_ws = &mm_ws;
-  mm_ctx.p_mod = &mod;
+  mm_ctx.p_ws      = &mm_ws;
+  mm_ctx.p_mod     = &mod;
   mm_ctx.mod_prime = flea_montgomery_compute_n_prime(mod.m_words[0]);
 
   FLEA_CCALL(THR_flea_mpi_t__mul(&large_tmp, &R, &a));
@@ -140,15 +137,16 @@ flea_err_t THR_flea_test_montgm_mul_small2 ()
 
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&large_tmp, &a_trf, &b_trf, &mm_ctx));
 
-  FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&res, &large_tmp, &one, &mm_ctx ));
+  FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&res, &large_tmp, &one, &mm_ctx));
 
   if(!flea_mpi_t__equal(&res, &exp_res))
   {
     FLEA_THROW("montgomery multiplication result not correct", FLEA_ERR_FAILED_TEST);
   }
   FLEA_THR_FIN_SEC_empty();
-}
-flea_err_t THR_flea_test_montgm_mul_small ()
+} /* THR_flea_test_montgm_mul_small2 */
+
+flea_err_t THR_flea_test_montgm_mul_small()
 {
   FLEA_THR_BEG_FUNC();
   flea_u8_t exp_res_enc [] = { 0x11, 0xAE, 0x54 };
@@ -167,7 +165,7 @@ flea_err_t THR_flea_test_montgm_mul_small ()
 
   flea_u8_t R_enc [] = {
     0x01,
-    0x00,0x00,	0x00,	 0x00
+    0x00, 0x00, 0x00, 0x00
   };
 
   flea_u8_t one_enc[] = { 1 };
@@ -188,7 +186,6 @@ flea_err_t THR_flea_test_montgm_mul_small ()
   flea_uword_t one_arr[1];
 
 
-
   const flea_al_u16_t vn_len = sizeof(mod_arr);
   const flea_al_u16_t un_len = sizeof(large_tmp_arr) + 2;
 
@@ -197,8 +194,8 @@ flea_err_t THR_flea_test_montgm_mul_small ()
   flea_hlf_uword_t un [un_len];
 
   flea_mpi_div_ctx_t div_ctx;
-  div_ctx.un = un;
-  div_ctx.vn = vn;
+  div_ctx.un     = un;
+  div_ctx.vn     = vn;
   div_ctx.un_len = un_len;
   div_ctx.vn_len = vn_len;
 
@@ -226,8 +223,8 @@ flea_err_t THR_flea_test_montgm_mul_small ()
   FLEA_CCALL(THR_flea_mpi_t__decode(&R, R_enc, sizeof(R_enc)));
   FLEA_CCALL(THR_flea_mpi_t__decode(&one, one_enc, sizeof(one_enc)));
 
-  mm_ctx.p_ws = &mm_ws;
-  mm_ctx.p_mod = &mod;
+  mm_ctx.p_ws      = &mm_ws;
+  mm_ctx.p_mod     = &mod;
   mm_ctx.mod_prime = flea_montgomery_compute_n_prime(mod.m_words[0]);
 
   FLEA_CCALL(THR_flea_mpi_t__mul(&large_tmp, &R, &a));
@@ -242,7 +239,7 @@ flea_err_t THR_flea_test_montgm_mul_small ()
 
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&large_tmp, &a_trf, &b_trf, &mm_ctx));
 
-  FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&res, &large_tmp, &one, &mm_ctx ));
+  FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&res, &large_tmp, &one, &mm_ctx));
 
   if(!flea_mpi_t__equal(&res, &exp_res))
   {
@@ -250,9 +247,9 @@ flea_err_t THR_flea_test_montgm_mul_small ()
   }
 
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_test_montgm_mul_small */
 
-flea_err_t THR_flea_test_montgm_mul ()
+flea_err_t THR_flea_test_montgm_mul()
 {
   FLEA_THR_BEG_FUNC();
   flea_u8_t exp_res_enc [] = { 0x82, 0x13, 0xAE, 0x9A, 0x94, 0xAE, 0x0F, 0x00, 0xDB, 0x38, 0x3B, 0x89, 0xB9, 0x37, 0x58, 0x6E, 0x80, 0x11, 0x41, 0x36, 0x5A, 0x2B, 0xED, 0x9C };
@@ -277,9 +274,9 @@ flea_err_t THR_flea_test_montgm_mul ()
 
   flea_u8_t R_enc [] = {
     0x01,
-    0x00,0x00,	0x00,	 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00,0x00,	0x00,	 0x00, 0x00, 0x00, 0x00, 0x00,
-    0x00,0x00,	0x00,	 0x00, 0x00, 0x00, 0x00, 0x00
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+    0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
   };
 
   flea_u8_t one_enc[] = { 1 };
@@ -310,8 +307,8 @@ flea_err_t THR_flea_test_montgm_mul ()
   flea_hlf_uword_t un [un_len];
 
   flea_mpi_div_ctx_t div_ctx;
-  div_ctx.un = un;
-  div_ctx.vn = vn;
+  div_ctx.un     = un;
+  div_ctx.vn     = vn;
   div_ctx.un_len = un_len;
   div_ctx.vn_len = vn_len;
 
@@ -339,8 +336,8 @@ flea_err_t THR_flea_test_montgm_mul ()
   FLEA_CCALL(THR_flea_mpi_t__decode(&R, R_enc, sizeof(R_enc)));
   FLEA_CCALL(THR_flea_mpi_t__decode(&one, one_enc, sizeof(one_enc)));
 
-  mm_ctx.p_ws = &mm_ws;
-  mm_ctx.p_mod = &mod;
+  mm_ctx.p_ws      = &mm_ws;
+  mm_ctx.p_mod     = &mod;
   mm_ctx.mod_prime = flea_montgomery_compute_n_prime(mod.m_words[0]);
 
   FLEA_CCALL(THR_flea_mpi_t__mul(&large_tmp, &R, &a));
@@ -362,7 +359,4 @@ flea_err_t THR_flea_test_montgm_mul ()
     FLEA_THROW("montgomery multiplication result not correct", FLEA_ERR_FAILED_TEST);
   }
   FLEA_THR_FIN_SEC_empty();
-}
-
-
-
+} /* THR_flea_test_montgm_mul */

@@ -1,4 +1,3 @@
-
 #ifndef _flea_privkey_int__H_
 #define _flea_privkey_int__H_
 
@@ -7,11 +6,11 @@
 extern "C" {
 #endif
 
-#define RSA_PRIV_P_IDX 0
-#define RSA_PRIV_Q_IDX 1
+#define RSA_PRIV_P_IDX  0
+#define RSA_PRIV_Q_IDX  1
 #define RSA_PRIV_D1_IDX 2
 #define RSA_PRIV_D2_IDX 3
-#define RSA_PRIV_C_IDX 4
+#define RSA_PRIV_C_IDX  4
 
 
 #ifdef __cplusplus

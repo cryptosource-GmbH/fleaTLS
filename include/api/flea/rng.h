@@ -22,7 +22,8 @@ extern "C" {
  * @param mem_len the length of the area to be randomized
  *
  */
-void flea_rng__randomize(flea_u8_t* mem, flea_dtl_t mem_len);
+void
+flea_rng__randomize(flea_u8_t *mem, flea_dtl_t mem_len);
 
 
 /**
@@ -35,7 +36,8 @@ void flea_rng__randomize(flea_u8_t* mem, flea_dtl_t mem_len);
  *
  * @return flea error code
  */
-flea_err_t  THR_flea_rng__reseed_volatile(const flea_u8_t* seed, flea_dtl_t seed_len);
+flea_err_t
+THR_flea_rng__reseed_volatile(const flea_u8_t *seed, flea_dtl_t seed_len);
 
 /**
  * Reseed the global RNG state in RAM. The persistent NVM state is also set to a
@@ -47,7 +49,8 @@ flea_err_t  THR_flea_rng__reseed_volatile(const flea_u8_t* seed, flea_dtl_t seed
  *
  * @return flea error code
  */
-flea_err_t THR_flea_rng__reseed_persistent(const flea_u8_t* seed, flea_dtl_t seed_len);
+flea_err_t
+THR_flea_rng__reseed_persistent(const flea_u8_t *seed, flea_dtl_t seed_len);
 
 #ifdef __cplusplus
 }

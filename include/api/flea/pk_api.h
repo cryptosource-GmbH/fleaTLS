@@ -12,25 +12,20 @@
 #include "flea/privkey.h"
 
 
-
 #ifdef FLEA_HAVE_ASYM_ALGS
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
-
-
-
+# endif
 
 
 typedef union
 {
+  flea_ref_cu8_t            rsa_public_exp__ru8;
 
-  flea_ref_cu8_t rsa_public_exp__ru8;
-
-#ifdef FLEA_HAVE_ECC
- flea_ec_gfp_dom_par_ref_t ecc_dom_par__t;
-#endif /* #ifdef FLEA_HAVE_ECC */
+# ifdef FLEA_HAVE_ECC
+  flea_ec_gfp_dom_par_ref_t ecc_dom_par__t;
+# endif /* #ifdef FLEA_HAVE_ECC */
 } flea_pub_key_param_u;
 
 /**
@@ -39,6 +34,7 @@ typedef union
 typedef enum { flea_sign, flea_verify } flea_pk_signer_direction_t;
 
 struct struct_flea_pk_config_t;
+
 typedef struct struct_flea_pk_config_t flea_pk_config_t;
 
 /**
@@ -47,18 +43,18 @@ typedef struct struct_flea_pk_config_t flea_pk_config_t;
 typedef struct
 {
   flea_hash_ctx_t hash_ctx;
-  flea_hash_id_t hash_id__t;
+  flea_hash_id_t  hash_id__t;
 } flea_pk_signer_t;
 
 
-#define flea_pk_signer_t__INIT_VALUE { .hash_ctx = flea_hash_ctx_t__INIT_VALUE }
+# define flea_pk_signer_t__INIT_VALUE { .hash_ctx = flea_hash_ctx_t__INIT_VALUE }
 
-#ifdef FLEA_USE_HEAP_BUF
-#define flea_pk_signer_t__INIT(__p) do { flea_hash_ctx_t__INIT(&(__p)->hash_ctx); } while(0)
-#else
+# ifdef FLEA_USE_HEAP_BUF
+#  define flea_pk_signer_t__INIT(__p) do { flea_hash_ctx_t__INIT(&(__p)->hash_ctx); } while(0)
+# else
 /* needed for secret wiping in hash ctx*/
-#define flea_pk_signer_t__INIT(__p) do { flea_hash_ctx_t__INIT(&(__p)->hash_ctx); } while(0) 
-#endif
+#  define flea_pk_signer_t__INIT(__p) do { flea_hash_ctx_t__INIT(&(__p)->hash_ctx); } while(0)
+# endif
 
 
 /**
@@ -71,14 +67,16 @@ typedef struct
  *
  * @return flea error code
  */
-flea_err_t THR_flea_pk_signer_t__ctor(flea_pk_signer_t* signer, flea_hash_id_t hash_id);
+flea_err_t
+THR_flea_pk_signer_t__ctor(flea_pk_signer_t *signer, flea_hash_id_t hash_id);
 
 /**
  * Destroy a public key signer object.
  *
  * @param signer the signer object to destroy
  */
-void flea_pk_signer_t__dtor(flea_pk_signer_t* signer);
+void
+flea_pk_signer_t__dtor(flea_pk_signer_t *signer);
 
 /**
  * Update a public key signer object with signature data.
@@ -89,7 +87,8 @@ void flea_pk_signer_t__dtor(flea_pk_signer_t* signer);
  *
  * @return flea error code
  */
-flea_err_t THR_flea_pk_signer_t__update(flea_pk_signer_t* signer, const flea_u8_t* message, flea_al_u16_t message_len);
+flea_err_t
+THR_flea_pk_signer_t__update(flea_pk_signer_t *signer, const flea_u8_t *message, flea_al_u16_t message_len);
 
 
 /**
@@ -99,7 +98,7 @@ flea_err_t THR_flea_pk_signer_t__update(flea_pk_signer_t* signer, const flea_u8_
  * @param id the ID of the signature scheme to use
  * @param key pointer to the public key to be used in the operation
  * @param key_len the length of key
- * @param params the parameters to be used for the public key operation. 
+ * @param params the parameters to be used for the public key operation.
  *    in case of ECDSA, a pointer to the domain parameters in flea's internal
  *    format must be provided. in case of RSA, the public exponent must be
  *    provided.
@@ -109,12 +108,15 @@ flea_err_t THR_flea_pk_signer_t__update(flea_pk_signer_t* signer, const flea_u8_
  * @return flea error code FLEA_ERR_FINE indicates successful verification and FLEA_ERR_INV_SIGNATURE indicates a
  * failed signature verification
  */
-flea_err_t THR_flea_pk_signer_t__final_verify(flea_pk_signer_t* signer__pt, flea_pk_scheme_id_t id__t, const flea_public_key_t *pubkey__pt, const flea_u8_t* signature__pu8, flea_al_u16_t signature_len__alu16);
+flea_err_t
+THR_flea_pk_signer_t__final_verify(flea_pk_signer_t *signer__pt, flea_pk_scheme_id_t id__t, const flea_public_key_t *pubkey__pt, const flea_u8_t *signature__pu8, flea_al_u16_t signature_len__alu16);
 
 
-flea_err_t THR_flea_pk_api__verify_signature(const flea_ref_cu8_t *message__prcu8, const flea_ref_cu8_t * signature__prcu8, const flea_public_key_t *pubkey__pt, flea_pk_scheme_id_t pk_scheme_id__t, flea_hash_id_t hash_id__t);
+flea_err_t
+THR_flea_pk_api__verify_signature(const flea_ref_cu8_t *message__prcu8, const flea_ref_cu8_t *signature__prcu8, const flea_public_key_t *pubkey__pt, flea_pk_scheme_id_t pk_scheme_id__t, flea_hash_id_t hash_id__t);
 
-flea_err_t THR_flea_pk_api__sign(const flea_ref_cu8_t *message__prcu8, flea_ref_u8_t * signature__pru8, const flea_private_key_t *privkey__pt, flea_pk_scheme_id_t pk_scheme_id__t, flea_hash_id_t hash_id__t);
+flea_err_t
+THR_flea_pk_api__sign(const flea_ref_cu8_t *message__prcu8, flea_ref_u8_t *signature__pru8, const flea_private_key_t *privkey__pt, flea_pk_scheme_id_t pk_scheme_id__t, flea_hash_id_t hash_id__t);
 
 /**
  * Finalize the signature generation.
@@ -130,7 +132,8 @@ flea_err_t THR_flea_pk_api__sign(const flea_ref_cu8_t *message__prcu8, flea_ref_
  * of the pointer target will be updated to the number of actual signature bytes written.
  * @return flea error code
  */
-flea_err_t THR_flea_pk_signer_t__final_sign (flea_pk_signer_t* signer__pt, flea_pk_scheme_id_t id__t, const flea_private_key_t *privkey__pt, flea_u8_t* signature__pu8, flea_al_u16_t* signature_len__palu16);
+flea_err_t
+THR_flea_pk_signer_t__final_sign(flea_pk_signer_t *signer__pt, flea_pk_scheme_id_t id__t, const flea_private_key_t *privkey__pt, flea_u8_t *signature__pu8, flea_al_u16_t *signature_len__palu16);
 
 
 /**
@@ -148,7 +151,8 @@ flea_err_t THR_flea_pk_signer_t__final_sign (flea_pk_signer_t* signer__pt, flea_
  *  @param params public parameters associated with the key
  *  @param params_len the length of params
  */
-flea_err_t THR_flea_pk_api__encrypt_message( flea_pk_scheme_id_t id, flea_hash_id_t hash_id, const flea_u8_t* message, flea_al_u16_t message_len, flea_u8_t* result, flea_al_u16_t* result_len, const flea_u8_t* key, flea_al_u16_t key_len, const flea_u8_t* params, flea_al_u16_t params_len);
+flea_err_t
+THR_flea_pk_api__encrypt_message(flea_pk_scheme_id_t id, flea_hash_id_t hash_id, const flea_u8_t *message, flea_al_u16_t message_len, flea_u8_t *result, flea_al_u16_t *result_len, const flea_u8_t *key, flea_al_u16_t key_len, const flea_u8_t *params, flea_al_u16_t params_len);
 
 /**
  *  Decrypt a message using a public key scheme.
@@ -171,11 +175,12 @@ flea_err_t THR_flea_pk_api__encrypt_message( flea_pk_scheme_id_t id, flea_hash_i
  *                                            a padding error (defense against
  *                                            Bleichenbacher's attack).
  */
-flea_err_t THR_flea_pk_api__decrypt_message (flea_pk_scheme_id_t id__t, flea_hash_id_t hash_id__t, const flea_u8_t* ciphertext, flea_al_u16_t ciphertext_len, flea_u8_t* result, flea_al_u16_t* result_len, const flea_u8_t* key, flea_al_u16_t key_len, flea_al_u16_t enforced_pkcs1_v1_5_decryption_result_len );
+flea_err_t
+THR_flea_pk_api__decrypt_message(flea_pk_scheme_id_t id__t, flea_hash_id_t hash_id__t, const flea_u8_t *ciphertext, flea_al_u16_t ciphertext_len, flea_u8_t *result, flea_al_u16_t *result_len, const flea_u8_t *key, flea_al_u16_t key_len, flea_al_u16_t enforced_pkcs1_v1_5_decryption_result_len);
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
 

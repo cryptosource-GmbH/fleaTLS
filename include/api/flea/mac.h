@@ -14,7 +14,6 @@ extern "C" {
 #endif
 
 
-
 /**
  * Supported MAC algorithms
  */
@@ -25,22 +24,21 @@ typedef enum { flea_hmac_md5, flea_hmac_sha1, flea_hmac_sha224, flea_hmac_sha256
  */
 struct struct_flea_mac_ctx_t
 {
-  flea_u8_t output_len__u8;
+  flea_u8_t          output_len__u8;
   flea_mac_mode_id_t mode_id__t;
   union
   {
     flea_mac_ctx_hmac_specific_t hmac_specific__t;
     flea_mac_ctx_cmac_specific_t cmac_specific__t;
   } primitive_specific_ctx__u;
-
 };
 
 #define flea_mac_ctx_t__INIT_VALUE { .output_len__u8 = 0 }
 
 #ifdef FLEA_USE_HEAP_BUF
-#define flea_mac_ctx_t__INIT(__a) do { (__a)->output_len__u8 = 0; } while(0)
+# define flea_mac_ctx_t__INIT(__a) do { (__a)->output_len__u8 = 0; } while(0)
 #else
-#define flea_mac_ctx_t__INIT(__a) do { (__a)->output_len__u8 = 0; } while(0)
+# define flea_mac_ctx_t__INIT(__a) do { (__a)->output_len__u8 = 0; } while(0)
 
 #endif
 
@@ -55,7 +53,8 @@ struct struct_flea_mac_ctx_t
  *
  * @return flea error code
  */
-flea_err_t THR_flea_mac_ctx_t__ctor(flea_mac_ctx_t* ctx, flea_mac_id_t id, const flea_u8_t* key, flea_al_u16_t key_len);
+flea_err_t
+THR_flea_mac_ctx_t__ctor(flea_mac_ctx_t *ctx, flea_mac_id_t id, const flea_u8_t *key, flea_al_u16_t key_len);
 
 /**
  * Destroy a MAC object.
@@ -63,7 +62,8 @@ flea_err_t THR_flea_mac_ctx_t__ctor(flea_mac_ctx_t* ctx, flea_mac_id_t id, const
  * @param ctx pointer to the context object to destroy
  *
  */
-void flea_mac_ctx_t__dtor(flea_mac_ctx_t* ctx);
+void
+flea_mac_ctx_t__dtor(flea_mac_ctx_t *ctx);
 
 /**
  * Feed data to a MAC object for either MAC computation of verification.
@@ -74,7 +74,8 @@ void flea_mac_ctx_t__dtor(flea_mac_ctx_t* ctx);
  *
  * @return flea error code
  */
-flea_err_t THR_flea_mac_ctx_t__update(flea_mac_ctx_t* ctx, const flea_u8_t* dta, flea_dtl_t data_len);
+flea_err_t
+THR_flea_mac_ctx_t__update(flea_mac_ctx_t *ctx, const flea_u8_t *dta, flea_dtl_t data_len);
 
 /**
  * Finalize a MAC computation.
@@ -92,7 +93,8 @@ flea_err_t THR_flea_mac_ctx_t__update(flea_mac_ctx_t* ctx, const flea_u8_t* dta,
  *
  * @return flea error code
  */
-flea_err_t THR_flea_mac_ctx_t__final_compute(flea_mac_ctx_t* ctx, flea_u8_t* result, flea_al_u8_t* result_len);
+flea_err_t
+THR_flea_mac_ctx_t__final_compute(flea_mac_ctx_t *ctx, flea_u8_t *result, flea_al_u8_t *result_len);
 
 /**
  * Finalize MAC verification.
@@ -104,7 +106,8 @@ flea_err_t THR_flea_mac_ctx_t__final_compute(flea_mac_ctx_t* ctx, flea_u8_t* res
  * @return flea error code: FLEA_ERR_FINE if the verification succeeded,
  * FLEA_ERR_INV_MAC if it failed
  */
-flea_err_t THR_flea_mac_ctx_t__final_verify(flea_mac_ctx_t* ctx, const flea_u8_t* mac, flea_al_u8_t mac_len);
+flea_err_t
+THR_flea_mac_ctx_t__final_verify(flea_mac_ctx_t *ctx, const flea_u8_t *mac, flea_al_u8_t mac_len);
 
 /**
  * Compute a MAC over a data string.
@@ -122,7 +125,8 @@ flea_err_t THR_flea_mac_ctx_t__final_verify(flea_mac_ctx_t* ctx, const flea_u8_t
  *
  * @return flea error code
  */
-flea_err_t THR_flea_mac__compute_mac(flea_mac_id_t id, const flea_u8_t* key, flea_al_u16_t key_len, const flea_u8_t* dta, flea_dtl_t dta_len, flea_u8_t* result, flea_al_u8_t* result_len);
+flea_err_t
+THR_flea_mac__compute_mac(flea_mac_id_t id, const flea_u8_t *key, flea_al_u16_t key_len, const flea_u8_t *dta, flea_dtl_t dta_len, flea_u8_t *result, flea_al_u8_t *result_len);
 
 /**
  * Verify a MAC over a data string.
@@ -137,7 +141,8 @@ flea_err_t THR_flea_mac__compute_mac(flea_mac_id_t id, const flea_u8_t* key, fle
  *
  * @return flea error code: FLEA_ERR_FINE if the verification succeeded, FLEA_ERR_INV_MAC if it failed
  */
-flea_err_t THR_flea_mac__verify_mac(flea_mac_id_t id, const flea_u8_t* key, flea_al_u16_t key_len, const flea_u8_t* dta, flea_dtl_t dta_len, const flea_u8_t* mac, flea_al_u8_t mac_len);
+flea_err_t
+THR_flea_mac__verify_mac(flea_mac_id_t id, const flea_u8_t *key, flea_al_u16_t key_len, const flea_u8_t *dta, flea_dtl_t dta_len, const flea_u8_t *mac, flea_al_u8_t mac_len);
 
 #ifdef __cplusplus
 }

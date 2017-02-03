@@ -6,6 +6,7 @@
 #include <stdlib.h> // for malloc
 #include "internal/common/alloc_dbg_int.h"
 #include "internal/common/alloc_int.h"
+
 /**
  * use standard malloc and free
  */
@@ -26,7 +27,7 @@
 
 #define FLEA_ALLOC_MEM_ARR(__ptr, __size) FLEA_ALLOC_MEM((__ptr), sizeof((__ptr)[0]) * (__size))
 
-#define FLEA_ALLOC_TYPE(__ptr) FLEA_ALLOC_MEM((__ptr), sizeof((__ptr)[0]))
+#define FLEA_ALLOC_TYPE(__ptr)            FLEA_ALLOC_MEM((__ptr), sizeof((__ptr)[0]))
 
 #define FLEA_FREE_MEM(__ptr) \
   do { \
@@ -53,71 +54,72 @@
   } while(0)
 
 #if defined FLEA_USE_HEAP_BUF && defined FLEA_USE_STACK_BUF
-#error only FLEA_USE_HEAP_BUF or FLEA_USE_STACK_BUF may be defined, not both
+# error only FLEA_USE_HEAP_BUF or FLEA_USE_STACK_BUF may be defined, not both
 #endif
 
 
 #ifdef FLEA_USE_HEAP_BUF
-#define FLEA_HEAP_OR_STACK_CODE(__heap, __stack) __heap
-#define FLEA_DO_IF_USE_HEAP_BUF(__x) do { __x } while(0)
-#define __FLEA_FREE_BUF_SET_NULL(__name) FLEA_FREE_MEM_SET_NULL(__name)
-#define FLEA_DECL_DYN_LEN(__name, __type, __value) __len_type __dyn_len_name = __static_len
+# define FLEA_HEAP_OR_STACK_CODE(__heap, __stack)   __heap
+# define FLEA_DO_IF_USE_HEAP_BUF(__x)               do { __x } while(0)
+# define __FLEA_FREE_BUF_SET_NULL(__name)           FLEA_FREE_MEM_SET_NULL(__name)
+# define FLEA_DECL_DYN_LEN(__name, __type, __value) __len_type __dyn_len_name = __static_len
 #else
-#define FLEA_HEAP_OR_STACK_CODE(__heap, __stack) __stack
-#define FLEA_DO_IF_USE_HEAP_BUF(__x)
-#define __FLEA_FREE_BUF_SET_NULL(__name)
+# define FLEA_HEAP_OR_STACK_CODE(__heap, __stack)   __stack
+# define FLEA_DO_IF_USE_HEAP_BUF(__x)
+# define __FLEA_FREE_BUF_SET_NULL(__name)
 #endif
 
-#define FLEA_FREE_MEM_SET_NULL_IF_USE_HEAP_BUF(__x)  __FLEA_FREE_BUF_SET_NULL(__x)
+#define FLEA_FREE_MEM_SET_NULL_IF_USE_HEAP_BUF(__x) __FLEA_FREE_BUF_SET_NULL(__x)
 
-#define FLEA_DECL_OBJ(__name, __type) __type __name = __type ## __INIT_VALUE
+#define FLEA_DECL_OBJ(__name, __type)               __type __name = __type ## __INIT_VALUE
 #ifdef FLEA_USE_HEAP_BUF
 
-#     define FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(__name, __type_len) \
+# define FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(__name, __type_len) \
   do { \
     if(__name) { \
-      flea_memzero_secure((flea_u8_t*)__name, (__type_len) * sizeof(__name[0])); \
+      flea_memzero_secure((flea_u8_t *) __name, (__type_len) * sizeof(__name[0])); \
       FLEA_FREE_MEM_SET_NULL(__name); \
     } \
   } while(0)
 
 
-#     define FLEA_FREE_BUF_SECRET_ARR(__name, __type_len) \
+# define FLEA_FREE_BUF_SECRET_ARR(__name, __type_len) \
   do { \
     if(__name) { \
-      flea_memzero_secure((flea_u8_t*)__name, (__type_len) * sizeof(__name[0])); \
+      flea_memzero_secure((flea_u8_t *) __name, (__type_len) * sizeof(__name[0])); \
       FLEA_BUF_CHK_DBG_CANARIES(__name); \
       FLEA_FREE_MEM_SET_NULL(__FLEA_GET_ALLOCATED_BUF_NAME(__name)); \
-      __name = NULL;         /*s. th. user buffer is also NULL */ \
+      __name = NULL; /*s. th. user buffer is also NULL */ \
     } \
   } while(0)
 
 
 #elif defined FLEA_USE_STACK_BUF // #ifdef FLEA_USE_HEAP_BUF
 
-#     define FLEA_FREE_BUF_SECRET_ARR(__name, __type_len) \
+# define FLEA_FREE_BUF_SECRET_ARR(__name, __type_len) \
   do { \
-    flea_memzero_secure((flea_u8_t*)__name, (__type_len) * sizeof(__name[0])); \
+    flea_memzero_secure((flea_u8_t *) __name, (__type_len) * sizeof(__name[0])); \
     FLEA_BUF_CHK_DBG_CANARIES(__name); \
   } while(0)
-#     define FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(__name, __type_len) \
+# define FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(__name, __type_len) \
   do { \
-    flea_memzero_secure((flea_u8_t*)__name, (__type_len) * sizeof(__name[0])); \
+    flea_memzero_secure((flea_u8_t *) __name, (__type_len) * sizeof(__name[0])); \
   } while(0)
 
 #else // #elif defined FLEA_USE_STACK_BUF
-#error no buf type (heap or stack) defined for flea
-#endif
+# error no buf type (heap or stack) defined for flea
+#endif // ifdef FLEA_USE_HEAP_BUF
 
-flea_err_t THR_flea_alloc__realloc_mem(void** mem_in_out__ppv, flea_u32_t orig_size__u32, flea_u32_t new_size__u32);
+flea_err_t
+THR_flea_alloc__realloc_mem(void **mem_in_out__ppv, flea_u32_t orig_size__u32, flea_u32_t new_size__u32);
 
 /**
  * Ensure the size of a buffer providing minimal and maximal growth size and the
- * maximal size of the buffer for reallocation. 
+ * maximal size of the buffer for reallocation.
  *
  * @param mem_in_out__ppv [in/out] the pointer to the memory array to grow.
  * @param in_out_alloc_units__pdtl [in/out] pointer tothe number of currently allocated buffer elements;
- *                                          on function return, the pointer target receives the new size, 
+ *                                          on function return, the pointer target receives the new size,
  *                                          which is at least as large to hold used_units__dtl + min_grow_units__dtl elements.
  * @param used_units__dtl the number of currently used / set  buffer elements
  * @param min_grow_units__dtl the minimal number of new units which must additionally fit into the buffer
@@ -130,6 +132,7 @@ flea_err_t THR_flea_alloc__realloc_mem(void** mem_in_out__ppv, flea_u32_t orig_s
  * @return flea error code in the case the allocation request cannot be
  * fullfilled due to exceeding the provided limit or a failing allocation.
  */
-flea_err_t THR_flea_alloc__ensure_buffer_capacity(void** mem_in_out__ppv, flea_dtl_t *in_out_alloc_units__pdtl, flea_dtl_t used_units__dtl, flea_dtl_t min_grow_units__dtl, flea_dtl_t max_grow_units__dtl, flea_dtl_t max_alloc_units__dtl, flea_al_u16_t unit_byte_size__alu16);
+flea_err_t
+THR_flea_alloc__ensure_buffer_capacity(void **mem_in_out__ppv, flea_dtl_t *in_out_alloc_units__pdtl, flea_dtl_t used_units__dtl, flea_dtl_t min_grow_units__dtl, flea_dtl_t max_grow_units__dtl, flea_dtl_t max_alloc_units__dtl, flea_al_u16_t unit_byte_size__alu16);
 
 #endif /* h-guard */

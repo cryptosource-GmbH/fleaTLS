@@ -12,7 +12,7 @@
 
 #ifdef FLEA_USE_BUF_DBG_CANARIES
 
-static flea_err_t THR_test_dbg_canaries_write_after_u32 ()
+static flea_err_t THR_test_dbg_canaries_write_after_u32()
 {
   // this function violates the canary values
 
@@ -28,10 +28,10 @@ static flea_err_t THR_test_dbg_canaries_write_after_u32 ()
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(test_buf_u32);
-    );
-
+  );
 }
-static flea_err_t THR_test_dbg_canaries_write_before_u32 ()
+
+static flea_err_t THR_test_dbg_canaries_write_before_u32()
 {
   // this function violates the canary values
 
@@ -45,10 +45,10 @@ static flea_err_t THR_test_dbg_canaries_write_before_u32 ()
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(test_buf);
 
-    );
-
+  );
 }
-static flea_err_t THR_test_dbg_canaries_write_after ()
+
+static flea_err_t THR_test_dbg_canaries_write_after()
 {
   // this function violates the canary values
 
@@ -66,11 +66,11 @@ static flea_err_t THR_test_dbg_canaries_write_after ()
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(test_buf_u32);
-    FLEA_FREE_BUF(test_buf);  // testing also FLEA_FREE_BUF() macro
-    );
-
+    FLEA_FREE_BUF(test_buf); // testing also FLEA_FREE_BUF() macro
+  );
 }
-static flea_err_t THR_test_dbg_canaries_write_before ()
+
+static flea_err_t THR_test_dbg_canaries_write_before()
 {
   // this function violates the canary values
 
@@ -84,13 +84,11 @@ static flea_err_t THR_test_dbg_canaries_write_before ()
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(test_buf);
 
-    );
-
+  );
 }
 
-flea_err_t THR_flea_test_dbg_canaries ()
+flea_err_t THR_flea_test_dbg_canaries()
 {
-
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(THR_test_dbg_canaries_write_before());
@@ -120,12 +118,13 @@ flea_err_t THR_flea_test_dbg_canaries ()
 
 
   FLEA_THR_FIN_SEC_empty();
-
 }
+
 #else // #ifdef FLEA_USE_BUF_DBG_CANARIES
 
-flea_err_t THR_flea_test_dbg_canaries ()
+flea_err_t THR_flea_test_dbg_canaries()
 {
   return FLEA_ERR_FINE;
 }
+
 #endif // #else of #ifdef FLEA_USE_BUF_DBG_CANARIES

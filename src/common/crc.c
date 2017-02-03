@@ -5,7 +5,7 @@
 
 // computes ~crc16
 // initial remainder shall be zero for CCIT compatibility
-flea_u16_t flea_crc16_ccit_compute (flea_u16_t crc_init__u16, const flea_u8_t* data__pcu8, flea_dtl_t data_len__dtl)
+flea_u16_t flea_crc16_ccit_compute(flea_u16_t crc_init__u16, const flea_u8_t *data__pcu8, flea_dtl_t data_len__dtl)
 {
   flea_dtl_t i;
 

@@ -16,7 +16,6 @@ extern "C" {
 #endif
 
 
-
 /**
  * Supported hash algorithms.
  */
@@ -28,30 +27,30 @@ typedef enum { flea_davies_meyer_aes128, flea_md5, flea_sha1, flea_sha224, flea_
  */
 struct struct_flea_hash_ctx_t
 {
-//  flea_u8_t counter_block_arr_len__u8;
+  //  flea_u8_t counter_block_arr_len__u8;
 
 #ifdef FLEA_USE_HEAP_BUF
-  flea_u8_t* pending_buffer;
-  flea_u32_t* hash_state;
+  flea_u8_t                      *pending_buffer;
+  flea_u32_t                     *hash_state;
 #elif defined FLEA_USE_STACK_BUF
-  flea_u8_t pending_buffer[__FLEA_COMPUTED_MAX_HASH_BLOCK_LEN];
-  flea_u32_t hash_state[__FLEA_COMPUTED_MAX_HASH_STATE_LEN / sizeof(flea_u32_t)];
+  flea_u8_t                      pending_buffer[__FLEA_COMPUTED_MAX_HASH_BLOCK_LEN];
+  flea_u32_t                     hash_state[__FLEA_COMPUTED_MAX_HASH_STATE_LEN / sizeof(flea_u32_t)];
 #endif
-  flea_u64_t total_byte_length;
-  const flea_hash_config_entry_t * p_config;
-  flea_len_ctr_t len_ctr__t;
-  flea_al_u8_t pending;
+  flea_u64_t                     total_byte_length;
+  const flea_hash_config_entry_t *p_config;
+  flea_len_ctr_t                 len_ctr__t;
+  flea_al_u8_t                   pending;
 };
 
 
 #ifdef FLEA_USE_HEAP_BUF
-#define flea_hash_ctx_t__INIT(__p) do { (__p)->p_config = NULL; (__p)->pending_buffer = NULL; (__p)->hash_state = NULL; flea_len_ctr_t__INIT(&(__p)->len_ctr__t); } while(0)
-#define flea_hash_ctx_t__INIT_VALUE { .p_config = NULL, .pending_buffer = NULL, .hash_state = NULL, .pending = 0, .len_ctr__t = flea_len_ctr_t__INIT_VALUE }
+# define flea_hash_ctx_t__INIT(__p) do { (__p)->p_config = NULL; (__p)->pending_buffer = NULL; (__p)->hash_state = NULL; flea_len_ctr_t__INIT(&(__p)->len_ctr__t); } while(0)
+# define flea_hash_ctx_t__INIT_VALUE { .p_config = NULL, .pending_buffer = NULL, .hash_state = NULL, .pending = 0, .len_ctr__t = flea_len_ctr_t__INIT_VALUE }
 #else
 /* needed for secret wiping */
-#define flea_hash_ctx_t__INIT(__p) do { (__p)->p_config = NULL; } while(0)
+# define flea_hash_ctx_t__INIT(__p) do { (__p)->p_config = NULL; } while(0)
 /* needed for secret wiping */
-#define flea_hash_ctx_t__INIT_VALUE { .p_config = NULL }
+# define flea_hash_ctx_t__INIT_VALUE { .p_config = NULL }
 #endif
 
 
@@ -63,7 +62,8 @@ struct struct_flea_hash_ctx_t
  *
  * @return flea error code
  */
-flea_err_t THR_flea_hash_ctx_t__ctor(flea_hash_ctx_t* ctx, flea_hash_id_t id);
+flea_err_t
+THR_flea_hash_ctx_t__ctor(flea_hash_ctx_t *ctx, flea_hash_id_t id);
 
 
 /**
@@ -72,15 +72,17 @@ flea_err_t THR_flea_hash_ctx_t__ctor(flea_hash_ctx_t* ctx, flea_hash_id_t id);
  * @param p_ctx_new pointer to newly created context
  * @param p_ctx pointer to context where data is copied from
  *
-*/
-flea_err_t THR_flea_hash_ctx_t__ctor_copy(flea_hash_ctx_t* p_ctx_new, const flea_hash_ctx_t* p_ctx);
+ */
+flea_err_t
+THR_flea_hash_ctx_t__ctor_copy(flea_hash_ctx_t *p_ctx_new, const flea_hash_ctx_t *p_ctx);
 
 /**
  * Destroy a hash context object.
  *
  * @param ctx pointer to the object to destroy
  */
-void flea_hash_ctx_t__dtor(flea_hash_ctx_t* ctx);
+void
+flea_hash_ctx_t__dtor(flea_hash_ctx_t *ctx);
 
 /**
  * Reset a hash context object. The object will be in the same state as if
@@ -88,7 +90,8 @@ void flea_hash_ctx_t__dtor(flea_hash_ctx_t* ctx);
  *
  * @param ctx pointer to the object to reset
  */
-void flea_hash_ctx_t__reset(flea_hash_ctx_t* ctx);
+void
+flea_hash_ctx_t__reset(flea_hash_ctx_t *ctx);
 
 /**
  * Feed data to a hash context object
@@ -99,7 +102,8 @@ void flea_hash_ctx_t__reset(flea_hash_ctx_t* ctx);
  *
  *
  */
-flea_err_t THR_flea_hash_ctx_t__update(flea_hash_ctx_t* ctx, const flea_u8_t* input, flea_dtl_t input_len);
+flea_err_t
+THR_flea_hash_ctx_t__update(flea_hash_ctx_t *ctx, const flea_u8_t *input, flea_dtl_t input_len);
 
 /**
  * Finalize the hash computation of a context object and generate the hash
@@ -111,7 +115,8 @@ flea_err_t THR_flea_hash_ctx_t__update(flea_hash_ctx_t* ctx, const flea_u8_t* in
  *
  * @return flea erro code (memory allocation failure)
  */
-flea_err_t THR_flea_hash_ctx_t__final(flea_hash_ctx_t* ctx, flea_u8_t* output);
+flea_err_t
+THR_flea_hash_ctx_t__final(flea_hash_ctx_t *ctx, flea_u8_t *output);
 
 /**
  * Finalize the hash computation of a context object and generate the hash
@@ -124,7 +129,8 @@ flea_err_t THR_flea_hash_ctx_t__final(flea_hash_ctx_t* ctx, flea_u8_t* output);
  *
  * @return flea erro code (memory allocation failure)
  */
-flea_err_t THR_flea_hash_ctx_t__final_with_length_limit(flea_hash_ctx_t* ctx, flea_u8_t* output, flea_al_u16_t output_len);
+flea_err_t
+THR_flea_hash_ctx_t__final_with_length_limit(flea_hash_ctx_t *ctx, flea_u8_t *output, flea_al_u16_t output_len);
 
 /**
  * Find out the output length in bytes of a the hash algorithm used within a
@@ -134,7 +140,8 @@ flea_err_t THR_flea_hash_ctx_t__final_with_length_limit(flea_hash_ctx_t* ctx, fl
  *
  * @return the output length of the employed hash function
  */
-flea_al_u16_t flea_hash_ctx_t__get_output_length(flea_hash_ctx_t* ctx);
+flea_al_u16_t
+flea_hash_ctx_t__get_output_length(flea_hash_ctx_t *ctx);
 
 /**
  * Find out the output byte length of a hash algorithm by its id
@@ -143,7 +150,8 @@ flea_al_u16_t flea_hash_ctx_t__get_output_length(flea_hash_ctx_t* ctx);
  *
  * @return the hash algorithm's output length in bytes
  */
-flea_al_u16_t flea_hash__get_output_length_by_id(flea_hash_id_t id);
+flea_al_u16_t
+flea_hash__get_output_length_by_id(flea_hash_id_t id);
 
 /**
  * Compute the hash value of a data string.
@@ -156,12 +164,13 @@ flea_al_u16_t flea_hash__get_output_length_by_id(flea_hash_id_t id);
  * the employed hash id
  * @param output_len the length of output. if the specified value is smaller
  * than the hash function's output length, then the output will be truncated to
- * the specified length. The output length is at most FLEA_MAX_HASH_OUT_LEN, it 
- * can be inferred from the hash-id. 
+ * the specified length. The output length is at most FLEA_MAX_HASH_OUT_LEN, it
+ * can be inferred from the hash-id.
  *
  * @return flea error code
  */
-flea_err_t THR_flea_compute_hash(flea_hash_id_t id, const flea_u8_t* input, flea_dtl_t input_len, flea_u8_t* output, flea_al_u16_t output_len);
+flea_err_t
+THR_flea_compute_hash(flea_hash_id_t id, const flea_u8_t *input, flea_dtl_t input_len, flea_u8_t *output, flea_al_u16_t output_len);
 
 #ifdef __cplusplus
 }
