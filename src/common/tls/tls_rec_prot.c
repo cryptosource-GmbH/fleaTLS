@@ -96,6 +96,7 @@ flea_err_t THR_flea_tls_rec_prot_t__ctor(
   rec_prot__pt->rw_stream__pt         = rw_stream__pt;
   rec_prot__pt->ciph_suite_id         = suite__pt->id;
   rec_prot__pt->reserved_iv_len__u8   = suite__pt->iv_size;
+  rec_prot__pt->payload_offset__u16 = 0;
   if(suite__pt->id == TLS_NULL_WITH_NULL_NULL)
   {
     reserved_payl_len__alu16 = 0;
@@ -115,13 +116,14 @@ flea_err_t THR_flea_tls_rec_prot_t__ctor(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls_rec_prot_t__start_record(flea_tls_rec_prot_t *rec_prot__pt, ContentType content_type__e)
+flea_err_t THR_flea_tls_rec_prot_t__start_record_writing(flea_tls_rec_prot_t *rec_prot__pt, ContentType content_type__e)
 {
   FLEA_THR_BEG_FUNC();
   rec_prot__pt->send_rec_buf_raw__pu8[0] = content_type__e;
   rec_prot__pt->send_rec_buf_raw__pu8[1] = rec_prot__pt->prot_version__t.major;
   rec_prot__pt->send_rec_buf_raw__pu8[2] = rec_prot__pt->prot_version__t.minor;
   rec_prot__pt->payload_used_len__u16    = 0;
+  rec_prot__pt->payload_offset__u16 = 0;
 
   FLEA_THR_FIN_SEC_empty();
 }
@@ -138,6 +140,7 @@ flea_err_t THR_flea_tls_rec_prot_t__write_data(
   FLEA_THR_BEG_FUNC();
   while(data_len__dtl)
   {
+    rec_prot__pt->write_ongoing__u8 = 1;
     flea_al_u16_t to_go__alu16 = FLEA_MIN(data_len__dtl, buf_free_len__alu16);
     memcpy(rec_prot__pt->payload_buf__pu8 + rec_prot__pt->payload_used_len__u16, data__pcu8, to_go__alu16);
     data_len__dtl -= to_go__alu16;
@@ -291,5 +294,69 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
     );
   }
   FLEA_CCALL(THR_flea_rw_stream_t__flush_write(rec_prot__pt->rw_stream__pt));
+  rec_prot__pt->write_ongoing__u8 = 0;
+  FLEA_THR_FIN_SEC_empty();
+}
+
+
+flea_err_t THR_flea_tls_rec_prot_t__read_data(
+  flea_tls_rec_prot_t          *rec_prot__pt,
+  flea_u8_t                     *data__pu8,
+  flea_dtl_t                   *data_len__pdtl,
+  flea_tls__connection_state_t *conn_state__pt,
+  flea_tls__protocol_version_t *prot_version__pt,
+  flea_bool_t do_verify_prot_version__b,
+  ContentType *cont_type__pe
+)
+{
+  flea_al_u16_t to_cp__alu16, read_bytes_count__alu16 = 0;
+  flea_dtl_t data_len__dtl = *data_len__pdtl;
+  FLEA_THR_BEG_FUNC();
+  if(rec_prot__pt->write_ongoing__u8)
+  {
+    FLEA_CCALL(THR_flea_rw_stream_t__flush_write(rec_prot__pt->rw_stream__pt));
+  }
+  to_cp__alu16 = FLEA_MIN(data_len__dtl, rec_prot__pt->payload_used_len__u16 - rec_prot__pt->payload_offset__u16);
+  memcpy(data__pu8, rec_prot__pt->payload_buf__pu8 + rec_prot__pt->payload_offset__u16, to_cp__alu16);
+  rec_prot__pt->payload_offset__u16 += to_cp__alu16;
+  data_len__dtl -= to_cp__alu16;
+  data__pu8 += to_cp__alu16;
+  read_bytes_count__alu16 += to_cp__alu16;
+  while(data_len__dtl)
+  {
+    
+    flea_dtl_t raw_read_len__dtl = RECORD_HDR_LEN;
+    flea_al_u16_t raw_rec_content_len__alu16;
+    FLEA_CCALL(THR_flea_rw_stream_t__read(rec_prot__pt->rw_stream__pt, rec_prot__pt->send_rec_buf_raw__pu8, &raw_read_len__dtl));
+    *cont_type__pe = rec_prot__pt->payload_buf__pu8[0];
+    if(do_verify_prot_version__b)
+    {
+      if((prot_version__pt->major != rec_prot__pt->payload_buf__pu8[1]) ||
+          (prot_version__pt->minor != rec_prot__pt->payload_buf__pu8[2]))
+      {
+        FLEA_THROW("invalid protocol version in record", FLEA_ERR_TLS_INV_REC_HDR);
+      }
+    }
+    else
+    {
+      prot_version__pt->major = rec_prot__pt->payload_buf__pu8[1];
+      prot_version__pt->minor = rec_prot__pt->payload_buf__pu8[2];
+    }
+    raw_rec_content_len__alu16 = rec_prot__pt->payload_buf__pu8[3] << 8;
+    raw_rec_content_len__alu16 |= rec_prot__pt->payload_buf__pu8[3];
+    if(raw_rec_content_len__alu16 > FLEA_TLS_MAX_RECORD_DATA_SIZE)
+    {
+      FLEA_THROW("received record does not fit into receive buffer", FLEA_ERR_TLS_EXCSS_REC_LEN);
+    }
+    rec_prot__pt->payload_offset__u16 = 0;
+    rec_prot__pt->payload_used_len__u16 = raw_rec_content_len__alu16;
+    to_cp__alu16 = FLEA_MIN(raw_rec_content_len__alu16, data_len__dtl);
+    memcpy(data__pu8, rec_prot__pt->payload_buf__pu8, to_cp__alu16); 
+    rec_prot__pt->payload_offset__u16 = to_cp__alu16; 
+    read_bytes_count__alu16 += to_cp__alu16;
+    data_len__dtl -= to_cp__alu16;
+    data__pu8 += to_cp__alu16;
+  }
+  *data_len__pdtl = read_bytes_count__alu16;
   FLEA_THR_FIN_SEC_empty();
 }

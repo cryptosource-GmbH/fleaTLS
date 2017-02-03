@@ -199,6 +199,16 @@ typedef enum
    * TLS Errors
    */ 
   FLEA_ERR_TLS_GENERIC                                = 0x0100,
+
+  /**
+   * Invalid contents of a TLS record header.
+   */
+  FLEA_ERR_TLS_INV_REC_HDR                            = 0x0101,
+ 
+ /**
+  * A received record does not fit into the available buffer.
+  */ 
+  FLEA_ERR_TLS_EXCSS_REC_LEN                          = 0x0102,
    
   /** The routine for the construction of a valid certification path
    * was cancelled from another thread.

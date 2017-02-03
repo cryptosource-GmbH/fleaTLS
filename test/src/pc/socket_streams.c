@@ -155,6 +155,7 @@ static flea_err_t THR_read_socket(
   {
     FLEA_THROW("recv err", FLEA_ERR_TLS_GENERIC);
   }
+  *nb_bytes_to_read__pdtl = did_read_ssz;
   FLEA_THR_FIN_SEC_empty();
 }
 

@@ -66,15 +66,19 @@ typedef enum
 
 typedef struct
 {
+  // TODO: BUFFER OF LEN 
+  //FLEA_TLS_MAX_RECORD_DATA_SIZE + RECORD_HDR_LEN
   flea_u8_t                    *send_rec_buf_raw__pu8;
   flea_u16_t                   send_rec_buf_raw_len__u16;
   flea_u8_t                    *payload_buf__pu8;
   flea_u16_t                   payload_max_len__u16;
   flea_u16_t                   payload_used_len__u16;
+  flea_u16_t                  payload_offset__u16;
   flea_u8_t                    reserved_iv_len__u8;
   flea_tls__protocol_version_t prot_version__t;
   flea_rw_stream_t             *rw_stream__pt;
   flea_tls__cipher_suite_id_t  ciph_suite_id;
+  flea_u8_t                    write_ongoing__u8;
 } flea_tls_rec_prot_t;
 
 flea_err_t
@@ -89,8 +93,7 @@ THR_flea_tls_rec_prot_t__ctor(
   flea_rw_stream_t         *rw_stream__pt
 );
 
-flea_err_t
-THR_flea_tls_rec_prot_t__start_record(flea_tls_rec_prot_t *rec_prot__pt, ContentType content_type__e);
+flea_err_t THR_flea_tls_rec_prot_t__start_record_writing(flea_tls_rec_prot_t *rec_prot__pt, ContentType content_type__e);
 
 
 flea_err_t

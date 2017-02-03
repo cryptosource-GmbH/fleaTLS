@@ -350,8 +350,8 @@ flea_err_t THR_flea_tls__decrypt_record(flea_tls_ctx_t *tls_ctx, Record *record)
   seq_hi__u32 = tls_ctx->active_read_connection_state->sequence_number__au32[1];
   inc_seq_nbr(tls_ctx->active_read_connection_state->sequence_number__au32);
   // TODO: was ist mit SEQ overflow?
-  flea__encode_U32_LE(seq_lo__u32, enc_seq_nbr__au8);
-  flea__encode_U32_LE(seq_hi__u32, enc_seq_nbr__au8 + 4);
+  flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
+  flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
 
   /*
    * First decrypt
@@ -1131,12 +1131,11 @@ flea_err_t THR_flea_tls__encrypt_record(flea_tls_ctx_t *tls_ctx, Record *record,
 
   seq_lo__u32 = tls_ctx->active_write_connection_state->sequence_number__au32[0];
   seq_hi__u32 = tls_ctx->active_write_connection_state->sequence_number__au32[1];
-  // TODO: put back in
-  // inc_seq_nbr(tls_ctx->active_write_connection_state->sequence_number__au32);
+  inc_seq_nbr(tls_ctx->active_write_connection_state->sequence_number__au32);
 
   // TODO: was ist mit SEQ overflow? => reneg. implement
-  flea__encode_U32_LE(seq_lo__u32, enc_seq_nbr__au8);
-  flea__encode_U32_LE(seq_hi__u32, enc_seq_nbr__au8 + 4);
+  flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
+  flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
   // compute mac
   FLEA_CCALL(
     THR_flea_tls__compute_mac(
@@ -1428,7 +1427,7 @@ static flea_err_t THR_flea_tls__send_record(
     )
   );
 
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__start_record(&rec_prot__t, content_type));
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__start_record_writing(&rec_prot__t, content_type));
   FLEA_CCALL(
     THR_flea_tls_rec_prot_t__write_data(
       &rec_prot__t, bytes, bytes_len,
@@ -1571,7 +1570,7 @@ flea_err_t THR_flea_tls__send_handshake_message(
     )
   );
 
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__start_record(&rec_prot__t, CONTENT_TYPE_HANDSHAKE));
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__start_record_writing(&rec_prot__t, CONTENT_TYPE_HANDSHAKE));
 
   flea_u8_t type_byte = type;
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(&rec_prot__t, &type_byte, 1, tls_ctx->active_write_connection_state));
