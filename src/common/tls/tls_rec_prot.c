@@ -350,6 +350,8 @@ flea_err_t THR_flea_tls_rec_prot_t__read_data(
     {
       FLEA_THROW("received record does not fit into receive buffer", FLEA_ERR_TLS_EXCSS_REC_LEN);
     }
+    raw_read_len__dtl = raw_rec_content_len__alu16;
+    FLEA_CCALL(THR_flea_rw_stream_t__read(rec_prot__pt->rw_stream__pt, rec_prot__pt->payload_buf__pu8, &raw_read_len__dtl));
     rec_prot__pt->payload_offset__u16   = 0;
     rec_prot__pt->payload_used_len__u16 = raw_rec_content_len__alu16;
     to_cp__alu16 = FLEA_MIN(raw_rec_content_len__alu16, data_len__dtl);
