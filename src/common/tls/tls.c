@@ -454,7 +454,16 @@ flea_err_t THR_flea_tls__read_record(
   record->data = calloc(record->length, sizeof(flea_u8_t));
   memcpy(record->data, buff + i, record->length);
   i += record->length;
-
+  {
+    unsigned i;
+    printf("record content bytes = ");
+    for(i = 0; i < record->length; i++)
+    {
+      if(i % 32 == 0) printf("\n");
+      printf("%02x", record->data[i]);
+    }
+    printf("\n");
+  }
   // *bytes_left = buff_len - i;
   *bytes_left = *bytes_left - i;
 
@@ -518,6 +527,8 @@ flea_err_t THR_flea_tls__create_finished_message_with_12_bytes_verify_data(
 #endif /* if 0 */
 flea_err_t THR_flea_tls__read_handshake_message(Record *record, HandshakeMessage *handshake_msg)
 {
+  flea_u32_t len__u32;
+
   FLEA_THR_BEG_FUNC();
   if(record->length < 4)
   {
@@ -526,12 +537,14 @@ flea_err_t THR_flea_tls__read_handshake_message(Record *record, HandshakeMessage
 
   handshake_msg->type = record->data[0];
 
-  flea_u8_t *p = (flea_u8_t *) &handshake_msg->length;
-  p[3] = 0;
-  p[2] = record->data[1];
-  p[1] = record->data[2];
-  p[0] = record->data[3];
+  // flea_u8_t *p = (flea_u8_t *) &handshake_msg->length;
+  len__u32 = (((flea_u32_t) record->data[1]) << 16) | (((flea_u32_t) record->data[2]) << 8) | (((flea_u32_t) record->data[3]));
 
+  /*p[3] = 0;
+   * p[2] = record->data[1];
+   * p[1] = record->data[2];
+   * p[0] = record->data[3];*/
+  handshake_msg->length = len__u32;
   if(handshake_msg->length < record->length - 4)
   {
     FLEA_THROW("length incorrect", FLEA_ERR_TLS_GENERIC);
@@ -566,6 +579,7 @@ flea_err_t THR_flea_tls__read_client_hello(flea_tls_ctx_t *tls_ctx, HandshakeMes
 
 
   // read random
+  // TODO: CHECK HOW TIME IS TO BE USED AND THEN ENCODE IT CORRECTLY
   flea_u8_t *p = (flea_u8_t *) tls_ctx->security_parameters->client_random.gmt_unix_time;
   for(flea_u8_t i = 0; i < 4; i++)
   {
@@ -1697,10 +1711,10 @@ flea_err_t THR_flea_tls__send_handshake_message(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_handshake_message */
 
-static flea_bool_t flea_tls_does_chosen_ciphersuite_support_encryption(const flea_tls_ctx_t *tls_ctx__pt)
-{
-  return tls_ctx__pt->active_write_connection_state->cipher_suite->id != TLS_NULL_WITH_NULL_NULL;
-}
+/*static flea_bool_t flea_tls_does_chosen_ciphersuite_support_encryption(const flea_tls_ctx_t *tls_ctx__pt)
+ * {
+ * return tls_ctx__pt->active_write_connection_state->cipher_suite->id != TLS_NULL_WITH_NULL_NULL;
+ * }*/
 
 #if 0
 flea_err_t THR_flea_tls__send_change_cipher_spec(flea_tls_ctx_t *tls_ctx, flea_hash_ctx_t *hash_ctx, int socket_fd)
@@ -1942,6 +1956,18 @@ flea_err_t THR_flea_tls__read_next_record(flea_tls_ctx_t *tls_ctx, Record *recor
   {
     // TODO: REPLACE FIXED LENGTH
     FLEA_CCALL(THR_flea_tls__receive(socket_fd, state->read_buff, 16384, &state->read_buff_len));
+
+    {
+      unsigned i;
+      printf("received bytes = ");
+      for(i = 0; i < state->read_buff_len; i++)
+      {
+        if(i % 32 == 0) printf("\n");
+        printf("%02x", state->read_buff[i]);
+      }
+      printf("\n");
+    }
+
     state->bytes_left = state->read_buff_len;
     state->bytes_read = 0;
     if(state->read_buff_len == 0)
@@ -1961,7 +1987,7 @@ flea_err_t THR_flea_tls__read_next_record(flea_tls_ctx_t *tls_ctx, Record *recor
   state->bytes_read = state->read_buff_len - state->bytes_left;
 
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls__read_next_record */
 
 typedef enum
 {
@@ -2010,7 +2036,7 @@ flea_err_t THR_flea_tls__server_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
   flea_hash_ctx_t hash_ctx;
   THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256); // TODO: initialize properly
 
-  flea_public_key_t pubkey; // TODO: -> tls_ctx
+  // flea_public_key_t pubkey; // TODO: -> tls_ctx
 
   // received records and handshakes for processing the current state
   Record recv_record;
@@ -2155,7 +2181,7 @@ flea_err_t THR_flea_tls__server_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
       {
         FLEA_THROW("Invalid state transition", FLEA_ERR_TLS_INVALID_STATE);
       }
-      if(recv_handshake.type == FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE)
+      if(recv_handshake.type == (flea_u8_t) FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE)
       {
         FLEA_CCALL(THR_flea_tls__read_client_hello(tls_ctx, &recv_handshake));
       }
@@ -2194,6 +2220,7 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
   flea_tls__handshake_state_ctor(&handshake_state);
   flea_tls__read_state_t read_state;
   flea_tls__read_state_ctor(&read_state);
+  flea_tls_rec_prot_t rec_prot__t;
   flea_hash_ctx_t hash_ctx;
   THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256); // TODO: initialize properly
 

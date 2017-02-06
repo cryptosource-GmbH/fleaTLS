@@ -20,6 +20,7 @@ typedef enum
 typedef enum
 {
   TLS_NULL_WITH_NULL_NULL         = 0x0000,
+  // TODO: GENERALIZE TO CBC_WITH_HMAC:
   TLS_RSA_WITH_AES_256_CBC_SHA256 = 0x003D
 } flea_tls__cipher_suite_id_t;
 
