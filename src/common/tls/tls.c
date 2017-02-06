@@ -1456,18 +1456,21 @@ flea_err_t THR_flea_tls__create_master_secret(
 }
 
 // TODO: configurable parameters
-flea_err_t flea_tls_ctx_t__ctor(flea_tls_ctx_t *ctx, flea_u8_t *session_id, flea_u8_t session_id_len)
+flea_err_t flea_tls_ctx_t__ctor(flea_tls_ctx_t *ctx, flea_rw_stream_t *rw_stream__pt, flea_u8_t *session_id, flea_u8_t session_id_len, int socket_fd)
 {
   FLEA_THR_BEG_FUNC();
   ctx->security_parameters = calloc(1, sizeof(flea_tls__security_parameters_t));
+  ctx->socket_fd     = socket_fd;
+  ctx->rw_stream__pt = rw_stream__pt;
 
   /* specify connection end */
   ctx->security_parameters->connection_end = FLEA_TLS_CLIENT;
 
   /* set TLS version */
-  ctx->version.minor = 0x03;
   ctx->version.major = 0x03;
+  ctx->version.minor = 0x03;
 
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__ctor(&ctx->rec_prot__t, ctx->version.major, ctx->version.minor, rw_stream__pt));
   /* set cipher suite values */
   flea_u8_t TLS_RSA_WITH_AES_256_CBC_SHA256[] = { 0x00, 0x3D };
 
@@ -1526,6 +1529,7 @@ flea_err_t THR_flea_tls__receive(int socket_fd, flea_u8_t *buff, flea_u32_t buff
   FLEA_THR_FIN_SEC_empty();
 }
 
+#if 0
 static flea_err_t THR_flea_tls__send_record(
   flea_tls_ctx_t *tls_ctx,
   flea_u8_t      *bytes,
@@ -1536,14 +1540,14 @@ static flea_err_t THR_flea_tls__send_record(
   FLEA_THR_BEG_FUNC();
   // TODO: INIT OBJECT
   flea_tls_rec_prot_t rec_prot__t;
-  flea_u8_t record_buf__au8[1000];
-  FLEA_CCALL(
-    THR_flea_tls_rec_prot_t__ctor(
-      &rec_prot__t, record_buf__au8, sizeof(record_buf__au8),
-      tls_ctx->active_write_connection_state->cipher_suite, tls_ctx->version.major, tls_ctx->version.minor,
-      tls_ctx->rw_stream__pt
-    )
-  );
+
+  /*FLEA_CCALL(
+   * THR_flea_tls_rec_prot_t__ctor(
+   *  &rec_prot__t,
+   *   tls_ctx->version.major, tls_ctx->version.minor,
+   *  tls_ctx->rw_stream__pt
+   * )
+   * );*/
 
   FLEA_CCALL(THR_flea_tls_rec_prot_t__start_record_writing(&rec_prot__t, content_type));
   FLEA_CCALL(
@@ -1556,59 +1560,41 @@ static flea_err_t THR_flea_tls__send_record(
   FLEA_THR_FIN_SEC_empty();
 }
 
-#if 0
-flea_err_t THR_flea_tls__send_record_old(
+#endif /* if 0 */
+flea_err_t THR_flea_tls__send_record(
   flea_tls_ctx_t *tls_ctx,
   flea_u8_t      *bytes,
   flea_u16_t     bytes_len,
-  ContentType    content_type,
-  int            socket_fd
+  ContentType    content_type
 )
 {
   // TODO: INIT OBJECT
-  flea_tls_rec_prot_t rec_prot__t;
-  flea_u8_t record_buf__au8[1000];
+  // :w
+  //
+  // flea_tls_rec_prot_t rec_prot__t;
+  // flea_u8_t record_buf__au8[1000];
 
   FLEA_THR_BEG_FUNC();
 
   // create record
-  // Record record;
-  // flea_u8_t record_bytes[16384];
-  // flea_u16_t record_bytes_len;
-  // FLEA_CCALL(THR_flea_tls__create_record(tls_ctx, &record, bytes, bytes_len, content_type));
-  // flea_tls__record_to_bytes(&record, record_bytes, &record_bytes_len);
-
-  FLEA_CCALL(
-    THR_flea_tls_rec_prot_t__ctor(
-      &rec_prot__t, record_buf__au8, sizeof(record_buf__au8),
-      tls_ctx->active_write_connection_state->cipher_suite, tls_ctx->version.major, tls_ctx->version.minor,
-      tls_ctx->rw_stream__pt
-    )
-  );
-
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__start_record(&rec_prot__t, content_type));
-  FLEA_CCALL(
-    THR_flea_tls_rec_prot_t__write_data(
-      &rec_prot__t, bytes, bytes_len,
-      tls_ctx->active_write_connection_state
-    )
-  );
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(&rec_prot__t, tls_ctx->active_write_connection_state));
+  Record record;
+  flea_u8_t record_bytes[16384];
+  flea_u16_t record_bytes_len;
+  FLEA_CCALL(THR_flea_tls__create_record(tls_ctx, &record, bytes, bytes_len, content_type));
+  flea_tls__record_to_bytes(&record, record_bytes, &record_bytes_len);
 
   // send record
-
-  /*if(socket_fd != -1)
-   * {
-   * if(send(socket_fd, record_bytes, record_bytes_len, 0) < 0)
-   * {
-   *  printf("send failed\n");
-   *  FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
-   * }
-   * }*/
+  int socket_fd = tls_ctx->socket_fd;
+  if(socket_fd != -1)
+  {
+    if(send(socket_fd, record_bytes, record_bytes_len, 0) < 0)
+    {
+      printf("send failed\n");
+      FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
+    }
+  }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_record */
-
-#endif /* if 0 */
 
 flea_err_t THR_flea_tls__send_alert(
   flea_tls_ctx_t                *tls_ctx,
@@ -1628,15 +1614,15 @@ flea_err_t THR_flea_tls__send_alert(
   FLEA_THR_FIN_SEC_empty();
 }
 
-#if 0
-flea_err_t THR_flea_tls__send_handshake_message_new(
-  flea_tls_ctx_t   *tls_ctx,
-  flea_hash_ctx_t  *hash_ctx,
-  HandshakeType    type,
-  flea_u8_t        *msg_bytes,
-  flea_u32_t       msg_bytes_len,
-  int              socket_fd,
-  flea_rw_stream_t *rw_stream__pt
+flea_err_t THR_flea_tls__send_handshake_message(
+  flea_tls_ctx_t  *tls_ctx,
+  flea_hash_ctx_t *hash_ctx,
+  HandshakeType   type,
+  flea_u8_t       *msg_bytes,
+  flea_u32_t      msg_bytes_len
+
+  /*int              socket_fd,
+   * flea_rw_stream_t *rw_stream__pt*/
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -1648,7 +1634,7 @@ flea_err_t THR_flea_tls__send_handshake_message_new(
 
   // send record
   FLEA_CCALL(
-    THR_flea_tls__send_record_new(
+    THR_flea_tls__send_record(
       tls_ctx, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE
     )
   );
@@ -1660,8 +1646,7 @@ flea_err_t THR_flea_tls__send_handshake_message_new(
   FLEA_THR_FIN_SEC_empty();
 }
 
-#endif /* if 0 */
-
+#if 0
 flea_err_t THR_flea_tls__send_handshake_message(
   flea_tls_ctx_t  *tls_ctx,
   flea_hash_ctx_t *hash_ctx,
@@ -1710,6 +1695,8 @@ flea_err_t THR_flea_tls__send_handshake_message(
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_handshake_message */
+
+#endif /* if 0 */
 
 /*static flea_bool_t flea_tls_does_chosen_ciphersuite_support_encryption(const flea_tls_ctx_t *tls_ctx__pt)
  * {
@@ -2220,7 +2207,6 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
   flea_tls__handshake_state_ctor(&handshake_state);
   flea_tls__read_state_t read_state;
   flea_tls__read_state_ctor(&read_state);
-  flea_tls_rec_prot_t rec_prot__t;
   flea_hash_ctx_t hash_ctx;
   THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256); // TODO: initialize properly
 
@@ -2229,8 +2215,8 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
   // received records and handshakes for processing the current state
   Record recv_record;
   HandshakeMessage recv_handshake;
-
-  tls_ctx->rw_stream__pt = rw_stream__pt;
+  // TO/DO: this must be in tls_ctx_ctor:
+  // tls_ctx->rw_stream__pt = rw_stream__pt;
   while(1)
   {
     // initialize handshake by sending CLIENT_HELLO

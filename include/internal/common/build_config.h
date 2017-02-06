@@ -186,6 +186,9 @@
  */
 #define FLEA_TLS_CIPH_FILTER_BUF_LEN 65
 
+// TODO: CHECK THE SIZE
+#define FLEA_TLS_TRNSF_BUF_SIZE 16384
+
 /* include must remain at the very end: */
 #include "internal/common/build_config_util.h"
 
