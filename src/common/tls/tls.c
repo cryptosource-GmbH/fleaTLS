@@ -1901,6 +1901,38 @@ void flea_tls__read_state_ctor(flea_tls__read_state_t *state)
   state->connection_closed = FLEA_FALSE;
 }
 
+#if 0
+flea_err_t THR_flea_tls__read_next_record_new(flea_tls_ctx_t *tls_ctx, Record *record, RecordType record_type, int socket_fd, flea_tls__read_state_t *state)
+{
+  FLEA_THR_BEG_FUNC();
+
+  // When no bytes are left we have to read new data from the network
+  if(state->bytes_left == 0)
+  {
+    // TODO: REPLACE FIXED LENGTH
+    FLEA_CCALL(THR_flea_tls__receive(socket_fd, state->read_buff, 16384, &state->read_buff_len));
+    state->bytes_left = state->read_buff_len;
+    state->bytes_read = 0;
+    if(state->read_buff_len == 0)
+    {
+      state->connection_closed = FLEA_TRUE;
+      return FLEA_ERR_FINE;
+    }
+  }
+
+  // else we read the next record
+  FLEA_CCALL(
+    THR_flea_tls__read_record(
+      tls_ctx, state->read_buff + state->bytes_read, state->read_buff_len, record,
+      &state->bytes_left
+    )
+  );
+  state->bytes_read = state->read_buff_len - state->bytes_left;
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
+#endif /* if 0 */
 flea_err_t THR_flea_tls__read_next_record(flea_tls_ctx_t *tls_ctx, Record *record, RecordType record_type, int socket_fd, flea_tls__read_state_t *state)
 {
   FLEA_THR_BEG_FUNC();
@@ -2198,6 +2230,7 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
     {
       // TODO: record type argument has to be removed because it's determined by the current connection state in tls_ctx
       FLEA_CCALL(THR_flea_tls__read_next_record(tls_ctx, &recv_record, RECORD_TYPE_PLAINTEXT, socket_fd, &read_state));
+      // TODO: ^REPLACE BY RECORD PROTOCOL READ
       if(read_state.connection_closed == FLEA_TRUE)
       {
         printf("peer closed connection\n");
@@ -2206,6 +2239,8 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
 
       if(recv_record.content_type == CONTENT_TYPE_HANDSHAKE)
       {
+        //  TODO: USE INPUT FROM READ DATA FROM RECORD PROTOCOL (REPLACE FIRST
+        //  ARG)
         FLEA_CCALL(THR_flea_tls__read_handshake_message(&recv_record, &recv_handshake));
 
         // update hash for all incoming handshake messages
