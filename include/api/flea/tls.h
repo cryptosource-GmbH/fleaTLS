@@ -286,9 +286,9 @@ typedef struct
    *  record processed.
    *
    */
-  flea_tls__connection_state_t *active_write_connection_state; /* Swap active and pending after a ChangeCipherSpec message */
-  flea_tls__connection_state_t *active_read_connection_state;  /* and reinitialized pending */
-  flea_tls__connection_state_t *pending_write_connection_state;
+  // flea_tls__connection_state_t *active_write_connection_state; /* Swap active and pending after a ChangeCipherSpec message */
+  flea_tls__connection_state_t *active_read_connection_state; /* and reinitialized pending */
+  // flea_tls__connection_state_t *pending_write_connection_state;
   flea_tls__connection_state_t *pending_read_connection_state;
 
   /*

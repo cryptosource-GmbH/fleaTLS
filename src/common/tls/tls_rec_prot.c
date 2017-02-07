@@ -207,7 +207,7 @@ flea_err_t THR_flea_tls_rec_prot_t__write_data(
 {
   flea_al_u16_t buf_free_len__alu16 = rec_prot__pt->payload_max_len__u16 - rec_prot__pt->payload_used_len__u16;
 
-  printf("THR_flea_tls_rec_prot_t__write_data buf_free_len__alu16 initial = %u\n", buf_free_len__alu16);
+  // printf("THR_flea_tls_rec_prot_t__write_data buf_free_len__alu16 initial = %u\n", buf_free_len__alu16);
   FLEA_THR_BEG_FUNC();
   while(data_len__dtl)
   {
@@ -219,7 +219,7 @@ flea_err_t THR_flea_tls_rec_prot_t__write_data(
     rec_prot__pt->payload_used_len__u16 += to_go__alu16;
     buf_free_len__alu16 -= to_go__alu16;
 
-    printf("THR_flea_tls_rec_prot_t__write_data buf_free_len__alu16 in loop = %u\n", buf_free_len__alu16);
+    // printf("THR_flea_tls_rec_prot_t__write_data buf_free_len__alu16 in loop = %u\n", buf_free_len__alu16);
     if(buf_free_len__alu16 == 0)
     {
       FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
@@ -358,7 +358,7 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
   {
     rec_prot__pt->send_rec_buf_raw__bu8[3] = rec_prot__pt->payload_used_len__u16 >> 8;
     rec_prot__pt->send_rec_buf_raw__bu8[4] = rec_prot__pt->payload_used_len__u16;
-    printf("rec_prot write_flush: writing %u PLAIN bytes to underlying stream\n", rec_prot__pt->payload_used_len__u16 + RECORD_HDR_LEN);
+    // printf("rec_prot write_flush: writing %u PLAIN bytes to underlying stream\n", rec_prot__pt->payload_used_len__u16 + RECORD_HDR_LEN);
     FLEA_CCALL(
       THR_flea_rw_stream_t__write(
         rec_prot__pt->rw_stream__pt, rec_prot__pt->send_rec_buf_raw__bu8,

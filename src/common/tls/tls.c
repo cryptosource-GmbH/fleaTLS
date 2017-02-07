@@ -1229,6 +1229,7 @@ void flea_tls__create_hello_message(flea_tls_ctx_t *tls_ctx, flea_tls__client_he
   hello->compression_methods_length = tls_ctx->security_parameters->compression_methods_len;
 }
 
+#if 0
 flea_err_t THR_flea_tls__encrypt_record(flea_tls_ctx_t *tls_ctx, Record *record, flea_u8_t *data, flea_u32_t data_len)
 {
   flea_u32_t seq_lo__u32, seq_hi__u32;
@@ -1316,6 +1317,8 @@ flea_err_t THR_flea_tls__encrypt_record(flea_tls_ctx_t *tls_ctx, Record *record,
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__encrypt_record */
 
+#endif /* if 0 */
+
 /*
  * Initialization Vector (IV)
  *    When a block cipher is used in CBC mode, the initialization vector
@@ -1333,6 +1336,7 @@ flea_err_t THR_flea_tls__encrypt_record(flea_tls_ctx_t *tls_ctx, Record *record,
  *       SecurityParameters.block_size.
  *
  */
+#if 0
 flea_err_t THR_flea_tls__create_record(
   flea_tls_ctx_t *tls_ctx,
   Record         *record,
@@ -1382,6 +1386,7 @@ flea_err_t THR_flea_tls__create_record(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__create_record */
 
+#endif /* if 0 */
 flea_err_t THR_flea_tls__create_connection_params(flea_tls_ctx_t *tls_ctx,
   flea_tls__connection_state_t                                   *connection_state,
   flea_tls__cipher_suite_t                                       *cipher_suite,
@@ -1505,12 +1510,12 @@ flea_err_t flea_tls_ctx_t__ctor(flea_tls_ctx_t *ctx, flea_rw_stream_t *rw_stream
 
   ctx->premaster_secret = calloc(256, sizeof(flea_u8_t));
 
-  ctx->pending_read_connection_state  = calloc(1, sizeof(flea_tls__connection_state_t));
-  ctx->pending_write_connection_state = calloc(1, sizeof(flea_tls__connection_state_t));
-  ctx->active_read_connection_state   = calloc(1, sizeof(flea_tls__connection_state_t));
-  ctx->active_write_connection_state  = calloc(1, sizeof(flea_tls__connection_state_t));
-  ctx->active_read_connection_state->cipher_suite  = &cipher_suites[0]; // set TLS_NULL_WITH_NULL_NULL
-  ctx->active_write_connection_state->cipher_suite = &cipher_suites[0];
+  ctx->pending_read_connection_state = calloc(1, sizeof(flea_tls__connection_state_t));
+  // ctx->pending_write_connection_state = calloc(1, sizeof(flea_tls__connection_state_t));
+  ctx->active_read_connection_state = calloc(1, sizeof(flea_tls__connection_state_t));
+  // ctx->active_write_connection_state  = calloc(1, sizeof(flea_tls__connection_state_t));
+  ctx->active_read_connection_state->cipher_suite = &cipher_suites[0]; // set TLS_NULL_WITH_NULL_NULL
+  // ctx->active_write_connection_state->cipher_suite = &cipher_suites[0];
 
   FLEA_THR_FIN_SEC_empty();
 } /* flea_tls_ctx_t__ctor */
@@ -2130,7 +2135,7 @@ flea_err_t THR_flea_tls__server_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
 
         // make pending state active
         // TODO: call destructor active write state
-        tls_ctx->active_write_connection_state = tls_ctx->pending_write_connection_state;
+        // tls_ctx->active_write_connection_state = tls_ctx->pending_write_connection_state;
         // TODO: call constructor on pending write state
 
         // send finished
