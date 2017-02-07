@@ -148,6 +148,21 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
   flea_tls_rec_prot_t *rec_prot__pt
 );
 
+flea_err_t THR_flea_tls_rec_prot_t__read_data(
+  flea_tls_rec_prot_t          *rec_prot__pt,
+  flea_u8_t                    *data__pu8,
+  flea_al_u16_t                *data_len__palu16,
+  // flea_tls__connection_state_t *conn_state__pt,
+  flea_tls__protocol_version_t *prot_version__pt,
+  flea_bool_t                  do_verify_prot_version__b,
+  ContentType                  cont_type__e,
+  flea_bool_t                  do_verify_content_type__b
+);
+
+flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
+  flea_tls_rec_prot_t *rec_prot__pt,
+  ContentType         *cont_type__pe
+);
 
 flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
   flea_tls_rec_prot_t    *rec_prot__pt,
