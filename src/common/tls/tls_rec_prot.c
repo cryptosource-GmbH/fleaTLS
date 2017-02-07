@@ -26,20 +26,21 @@ static void inc_seq_nbr(flea_u32_t *seq__au32)
   }
 }
 
-static flea_err_t THR_flea_tls__compute_mac(
-  flea_u8_t                    *data,
-  flea_u32_t                   data_len,
-  flea_tls__protocol_version_t *version,
-  flea_mac_id_t                mac_algorithm,
-  flea_u8_t                    *mac_key,
-  flea_u8_t                    mac_key_len,
-  const flea_u8_t              sequence_number__au8[8],
-  ContentType                  content_type,
-  flea_u8_t                    *mac_out,
-  flea_u8_t                    *mac_len_out
+static flea_err_t THR_flea_tls_rec_prot_t__compute_mac(
+  flea_tls_rec_prot_t *rec_prot__pt,
+  flea_u8_t           *data,
+  flea_u32_t          data_len,
+  flea_mac_id_t       mac_algorithm,
+  flea_u8_t           *mac_key,
+  flea_u8_t           mac_key_len,
+  const flea_u8_t     sequence_number__au8[8],
+  flea_u8_t           *mac_out,
+  flea_u8_t           *mac_len_out
 )
 {
   flea_mac_ctx_t mac__t = flea_mac_ctx_t__INIT_VALUE;
+  flea_al_u8_t mac_len_out_alu8;
+  flea_u8_t enc_len__au8[2];
 
   FLEA_THR_BEG_FUNC();
 
@@ -52,32 +53,18 @@ static flea_err_t THR_flea_tls__compute_mac(
    */
   // 8 + 1 + (1+1) + 2 + length
 
+  FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&mac__t, mac_algorithm, mac_key, mac_key_len));
+  FLEA_CCALL(THR_flea_mac_ctx_t__update(&mac__t, sequence_number__au8, 8));
+  FLEA_CCALL(THR_flea_mac_ctx_t__update(&mac__t, rec_prot__pt->send_rec_buf_raw__bu8, 3));
 
-  flea_u32_t mac_data_len = 13 + data_len;
-  flea_u8_t mac_data[FLEA_TLS_MAX_RECORD_DATA_SIZE];
+  enc_len__au8[0] = data_len >> 8;
+  enc_len__au8[1] = data_len;
+  FLEA_CCALL(THR_flea_mac_ctx_t__update(&mac__t, enc_len__au8, sizeof(enc_len__au8)));
+  FLEA_CCALL(THR_flea_mac_ctx_t__update(&mac__t, data, data_len));
 
-  // FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&mac__t, mac_algorithm, secret, secret_length));
+  mac_len_out_alu8 = *mac_len_out;
 
-  // memcpy(mac_data, &sequence_number, 8);
-  // TODO: GET RID OF THIS, COMPUTE MAC OVER RECORD INCLUDING HEADER INSTEAD
-  memcpy(mac_data, sequence_number__au8, 8);
-  mac_data[8]  = content_type;
-  mac_data[9]  = version->major;
-  mac_data[10] = version->minor;
-
-  /*mac_data[11] = ((flea_u8_t*)&data_len)[1];	// TODO: do properly
-   * mac_data[12] = ((flea_u8_t*)&data_len)[0];*/
-  mac_data[11] = data_len >> 8;
-  mac_data[12] = data_len;
-  memcpy(mac_data + 13, data, data_len);
-  flea_al_u8_t mac_len_out_al = *mac_len_out;
-
-  FLEA_CCALL(
-    THR_flea_mac__compute_mac(
-      mac_algorithm, mac_key, mac_key_len, mac_data, mac_data_len, mac_out,
-      &mac_len_out_al
-    )
-  );
+  FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&mac__t, mac_out, &mac_len_out_alu8));
 
   FLEA_THR_FIN_SEC(
     flea_mac_ctx_t__dtor(&mac__t);
@@ -293,18 +280,20 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
   // TODO: CAPTURE UNDERFLOW
   data_len = data_len - (padding_len + 1) - iv_len - mac_len;
   FLEA_CCALL(
-    THR_flea_tls__compute_mac(
-      data + iv_len, data_len, &rec_prot__pt->prot_version__t, // &tls_ctx->version,
+    THR_flea_tls_rec_prot_t__compute_mac(
+      rec_prot__pt,
+      data + iv_len, data_len, // &rec_prot__pt->prot_version__t, // &tls_ctx->version,
       rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_id,
       mac_key, mac_key_len,
       enc_seq_nbr__au8,
-      content_type__e, mac, &in_out_mac_len
+      // content_type__e,
+      mac, &in_out_mac_len
     )
   );
 
   if(!flea_sec_mem_equal(mac, data + iv_len + data_len, mac_len))
   {
-    printf("MAC does not match!\n");
+    // printf("MAC does not match!\n");
     FLEA_THROW("MAC failure", FLEA_ERR_TLS_GENERIC);
   }
 
@@ -351,10 +340,11 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
   // TODO: was ist mit SEQ overflow? => reneg. implement
   // compute mac
   FLEA_CCALL(
-    THR_flea_tls__compute_mac(
-      data, data_len, &rec_prot__pt->prot_version__t, // &tls_ctx->version,
+    THR_flea_tls_rec_prot_t__compute_mac(
+      rec_prot__pt,
+      data, data_len, // &rec_prot__pt->prot_version__t, // &tls_ctx->version,
       rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_id, mac_key, mac_key_len, enc_seq_nbr__au8,
-      rec_prot__pt->send_rec_buf_raw__bu8[0] /* content_type */, mac, &mac_len
+      /*rec_prot__pt->send_rec_buf_raw__bu8[0]*/ /* content_type */ mac, &mac_len
     )
   );
 
