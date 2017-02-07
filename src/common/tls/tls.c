@@ -1568,14 +1568,13 @@ flea_err_t THR_flea_tls__send_record(
   ContentType    content_type
 )
 {
-  // TODO: INIT OBJECT
-  // :w
   //
   // flea_tls_rec_prot_t rec_prot__t;
   // flea_u8_t record_buf__au8[1000];
 
   FLEA_THR_BEG_FUNC();
 
+#if 0
   // create record
   Record record;
   flea_u8_t record_bytes[16384];
@@ -1593,6 +1592,13 @@ flea_err_t THR_flea_tls__send_record(
       FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
     }
   }
+#else /* if 0 */
+  printf("send record called with %u bytes\n", bytes_len);
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__start_record_writing(&tls_ctx->rec_prot__t, content_type));
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(&tls_ctx->rec_prot__t, bytes, bytes_len));
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(&tls_ctx->rec_prot__t));
+#endif /* if 0 */
+
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_record */
 
@@ -2332,7 +2338,7 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
         )
       );
       FLEA_CCALL(THR_flea_tls__generate_key_block(tls_ctx, tls_ctx->key_block));
-
+#if 0
       FLEA_CCALL(
         THR_flea_tls__create_connection_params(
           tls_ctx, tls_ctx->pending_write_connection_state,
@@ -2343,6 +2349,22 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
       // make pending state active
       // TODO: call destructor active write state
       tls_ctx->active_write_connection_state = tls_ctx->pending_write_connection_state;
+#else /* if 0 */
+
+      FLEA_CCALL(THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+          &tls_ctx->rec_prot__t,
+          flea_tls_write,
+          flea_aes256,
+          flea_sha256,
+          flea_hmac_sha256,
+          tls_ctx->key_block + 2 * 32, /* cipher_key__pcu8, 32 = mac key size*/
+          32,                          /* cipher_key_len */
+          tls_ctx->key_block,          /* mac_key__pcu8 */
+          32 /*mac_key_len */,
+          32 /* mac_len */
+        ));
+#endif /* if 0 */
+
       // TODO: call constructor on pending write state
       FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &hash_ctx));
 

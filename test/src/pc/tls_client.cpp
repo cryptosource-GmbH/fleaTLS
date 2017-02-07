@@ -53,6 +53,7 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   flea_tls_ctx_t tls_ctx;
   char app_data_www[] = "GET index.html HTTP/1.1\nHost: 127.0.0.1";
   FLEA_THR_BEG_FUNC();
+  flea_tls_ctx_t__INIT(&tls_ctx);
 #if 0
   if(connect(socket_fd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
   {

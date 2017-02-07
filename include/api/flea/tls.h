@@ -316,7 +316,8 @@ typedef struct
   flea_tls_rec_prot_t          rec_prot__t;
   int                          socket_fd;
 } flea_tls_ctx_t;
-// int flea_tls_connection();
+
+#define flea_tls_ctx_t__INIT(__p) memset((__p), 0, sizeof(*(__p)));
 
 flea_err_t flea_tls_ctx_t__ctor(flea_tls_ctx_t *ctx, flea_rw_stream_t *rw_stream__pt, flea_u8_t *session_id, flea_u8_t session_id_len, int socket_fd);
 
