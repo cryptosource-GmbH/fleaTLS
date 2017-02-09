@@ -360,14 +360,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
     )
   );
 
-  // compute IV ... TODO: xor with last plaintext block? -> RFC
-
-  /*
-   * Initialization Vector (IV)
-   *  When a block cipher is used in CBC mode, the initialization vector
-   *  is exclusive-ORed with the first plaintext block prior to
-   *  encryption.
-   */
   flea_rng__randomize(iv, iv_len);
 
   flea_dtl_t input_output_len = data_len + padding_len + mac_len;
