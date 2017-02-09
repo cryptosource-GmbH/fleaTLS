@@ -26,7 +26,7 @@ extern "C" {
 #define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
 #define FLEA_TLS_MAX_PADDING_SIZE     255   // each byte must hold the padding value => 255 is max
 
-
+// TODO: ASSIGN FIXED VALUES?
 typedef enum { PRF_LABEL_TEST, PRF_LABEL_CLIENT_FINISHED, PRF_LABEL_SERVER_FINISHED, PRF_LABEL_MASTER_SECRET,
                PRF_LABEL_KEY_EXPANSION } PRFLabel;
 
@@ -319,9 +319,9 @@ typedef struct
 
 #define flea_tls_ctx_t__INIT(__p) memset((__p), 0, sizeof(*(__p)));
 
-flea_err_t flea_tls_ctx_t__ctor(flea_tls_ctx_t *ctx, flea_rw_stream_t *rw_stream__pt, flea_u8_t *session_id, flea_u8_t session_id_len, int socket_fd);
+flea_err_t flea_tls_ctx_t__ctor(flea_tls_ctx_t *ctx, flea_rw_stream_t *rw_stream__pt, flea_u8_t *session_id, flea_u8_t session_id_len);
 
-flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx, flea_rw_stream_t *rw_stream__pt);
+flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t *tls_ctx, flea_rw_stream_t *rw_stream__pt);
 flea_err_t THR_flea_tls__send_app_data(flea_tls_ctx_t *tls_ctx, flea_u8_t *data, flea_u8_t data_len);
 // TODO: RECEIVE APP DATA
 flea_err_t THR_flea_tls__send_alert(flea_tls_ctx_t *tls_ctx, flea_tls__alert_description_t description, flea_tls__alert_level_t level);
