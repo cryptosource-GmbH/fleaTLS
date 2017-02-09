@@ -41,6 +41,12 @@
 
 #define NO_COMPRESSION 0
 
+typedef struct
+{
+  flea_u8_t  type__u8;
+  flea_u32_t len__u32;
+} handshake_header;
+
 // TODO: MAKE INPUT DATA
 // CA cert to verify the server's certificate
 flea_u8_t trust_anchor[] =
@@ -480,7 +486,7 @@ flea_err_t THR_flea_tls__read_server_hello(
   if(server_hello->session_id_length > 0)
   {
     server_hello->session_id = calloc(server_hello->session_id_length, sizeof(flea_u8_t));
-    p = (flea_u8_t *) server_hello->session_id;
+    p = server_hello->session_id;
     for(flea_u8_t i = 0; i < server_hello->session_id_length; i++)
     {
       p[i] = handshake_msg->data[length++];
@@ -493,7 +499,7 @@ flea_err_t THR_flea_tls__read_server_hello(
   }
 
   // read cipher suites
-  p    = (flea_u8_t *) &server_hello->cipher_suite;
+  p    = &server_hello->cipher_suite;
   p[0] = handshake_msg->data[length++];
   p[1] = handshake_msg->data[length++];
 
@@ -570,7 +576,7 @@ flea_err_t THR_flea_tls__read_finished(
 
   if(finished_len == handshake_msg->length)
   {
-    if(memcmp(handshake_msg->data, finished, finished_len) != 0)
+    if(!flea_sec_mem_equal(handshake_msg->data, finished, finished_len))
     {
       printf("Finished message not verifiable\n");
       printf("Got: \n");
@@ -1469,7 +1475,7 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t *tls_ctx, flea_rw_strea
 
 
   // define and init state
-  flea_tls__handshake_state_t handshake_state;
+  flea_tls__handshake_state_t handshake_state; // TODO: INIT OBJECT
   flea_tls__handshake_state_ctor(&handshake_state);
   // flea_tls__read_state_t read_state;
   // flea_tls__read_state_ctor(&read_state);
