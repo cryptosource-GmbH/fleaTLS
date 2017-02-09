@@ -10,6 +10,7 @@
 #include "flea/util.h"
 #include <stdio.h>
 
+// TODO: REMOVE ALL OF THESE DEFINES EXCEPT MAX_PADDING_SIZE ?
 #define FLEA_TLS_MAX_MAC_SIZE         32
 #define FLEA_TLS_MAX_MAC_KEY_SIZE     32
 #define FLEA_TLS_MAX_IV_SIZE          32
@@ -157,7 +158,8 @@ flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
   flea_al_u16_t reserved_payl_len__alu16;
 
   FLEA_THR_BEG_FUNC();
-
+  printf("setting cbc_hmac_ciphersuite in rec_prot, payload_used_len = %u, write_ongoing = %u\n", rec_prot__pt->payload_used_len__u16, rec_prot__pt->write_ongoing__u8);
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
   rec_prot__pt->reserved_iv_len__u8 = flea_block_cipher__get_block_size(block_cipher_id);
   rec_prot__pt->payload_buf__pu8    = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->reserved_iv_len__u8 + RECORD_HDR_LEN;
 
@@ -203,21 +205,27 @@ flea_err_t THR_flea_tls_rec_prot_t__write_data(
   // flea_tls__connection_state_t *conn_state__pt
 )
 {
-  flea_al_u16_t buf_free_len__alu16 = rec_prot__pt->payload_max_len__u16 - rec_prot__pt->payload_used_len__u16;
+  flea_al_u16_t buf_free_len__alu16;
 
-  // printf("THR_flea_tls_rec_prot_t__write_data buf_free_len__alu16 initial = %u\n", buf_free_len__alu16);
+  /*  printf("THR_flea_tls_rec_prot_t__write_data called for %u bytes\n", data_len__dtl);
+   * printf("   content type = %u\n", content_type__e);
+   * printf("   write_ongoing = %u\n", rec_prot__pt->write_ongoing__u8);*/
   FLEA_THR_BEG_FUNC();
   if(rec_prot__pt->write_ongoing__u8)
   {
     if(rec_prot__pt->send_rec_buf_raw__bu8[0] != content_type__e)
     {
+      // printf("rec_prot write_data: calling write flush because record type changed\n");
       FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
+      flea_tls_rec_prot_t__write_record_header(rec_prot__pt, content_type__e);
     }
   }
   else
   {
     flea_tls_rec_prot_t__write_record_header(rec_prot__pt, content_type__e);
   }
+
+  buf_free_len__alu16 = rec_prot__pt->payload_max_len__u16 - rec_prot__pt->payload_used_len__u16;
   while(data_len__dtl)
   {
     rec_prot__pt->write_ongoing__u8 = 1;
@@ -334,14 +342,15 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
   flea_u8_t iv_len      = flea_block_cipher__get_block_size(rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id);
   flea_u8_t mac_len     = rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_size__u8;
   flea_u8_t enc_key_len = rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_key_size__u8;
-  flea_u8_t mac[FLEA_TLS_MAX_MAC_SIZE];
-  flea_u8_t *iv       = rec_prot__pt->send_rec_buf_raw__bu8 + RECORD_HDR_LEN;
-  flea_u8_t block_len = iv_len;
+  flea_u8_t *iv         = rec_prot__pt->send_rec_buf_raw__bu8 + RECORD_HDR_LEN;
+  flea_u8_t block_len   = iv_len;
 
   flea_u8_t *data        = rec_prot__pt->payload_buf__pu8;
   flea_al_u16_t data_len = rec_prot__pt->payload_used_len__u16;
+  flea_u8_t padding_len  = (block_len - (data_len + mac_len + 1) % block_len) + 1; // +1 for padding_length entry
 
-  // compute mac
+  flea_u8_t *mac     = data + data_len;
+  flea_u8_t *padding = mac + mac_len;
   FLEA_CCALL(
     THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
       rec_prot__pt,
@@ -361,29 +370,18 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
    */
   flea_rng__randomize(iv, iv_len);
 
-  // compute padding
-  // TODO: 2x % block_len => was war beabsichtigt?
-  // flea_u8_t padding_len = (block_len - (data_len + mac_len + 1) % block_len) % block_len + 1;	// +1 for padding_length entry
-  flea_u8_t padding_len = (block_len - (data_len + mac_len + 1) % block_len) + 1; // +1 for padding_length entry
-  flea_u8_t padding[FLEA_TLS_MAX_PADDING_SIZE];
   flea_dtl_t input_output_len = data_len + padding_len + mac_len;
-  flea_u8_t padded_data[FLEA_TLS_MAX_RECORD_DATA_SIZE];
 
-  // printf("padding len orig version = %u\n", padding_len);
   for(flea_u8_t k = 0; k < padding_len; k++)
   {
-    padding[k] = padding_len - 1; // account for padding_length entry again
+    padding[k] = padding_len - 1;
   }
-  memcpy(padded_data, data, data_len);
-  memcpy(padded_data + data_len, mac, mac_len);
-  memcpy(padded_data + data_len + mac_len, padding, padding_len);
 
-  // compute encryption
   flea_u8_t encrypted[FLEA_TLS_MAX_RECORD_DATA_SIZE];
   FLEA_CCALL(
     THR_flea_cbc_mode__encrypt_data(
       rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id, enc_key,
-      enc_key_len, iv, iv_len, encrypted, padded_data, input_output_len
+      enc_key_len, iv, iv_len, encrypted, data, input_output_len
     )
   );
 
@@ -400,8 +398,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
   length_tot = input_output_len + iv_len;
   rec_prot__pt->send_rec_buf_raw__bu8[3] = length_tot >> 8;
   rec_prot__pt->send_rec_buf_raw__bu8[4] = length_tot;
-  // record->data   = calloc(input_output_len + iv_len, sizeof(flea_u8_t));
-  // memcpy(rec_prot__pt->send_rec_buf_raw__bu8 + RECORD_HDR_LEN, iv, iv_len);
   memcpy(rec_prot__pt->payload_buf__pu8, encrypted, input_output_len);
   *encrypted_len__palu16 = input_output_len;
   FLEA_THR_FIN_SEC_empty();
@@ -412,8 +408,11 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
 )
 {
   FLEA_THR_BEG_FUNC();
-
-  // if(rec_prot__pt->ciph_suite_id == TLS_RSA_WITH_AES_256_CBC_SHA256)
+  printf("write flush called with payload used len = %u\n", rec_prot__pt->payload_used_len__u16);
+  if((rec_prot__pt->payload_used_len__u16 == 0) || !rec_prot__pt->write_ongoing__u8)
+  {
+    FLEA_THR_RETURN();
+  }
   if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == TLS_RSA_WITH_AES_256_CBC_SHA256)
   {
     flea_al_u16_t encrypted_len__alu16;
@@ -464,7 +463,6 @@ flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
   FLEA_THR_BEG_FUNC();
   flea_tls__protocol_version_t dummy_version__t;
   flea_al_u16_t read_len_zero__alu16 = 0;
-  // TODO: ENSURE THAT THE HEADER IS READ!
   FLEA_CCALL(THR_flea_tls_rec_prot_t__read_data(rec_prot__pt, NULL, &read_len_zero__alu16, &dummy_version__t, FLEA_FALSE, 0 /*dummy_content_type */, FLEA_TRUE));
   *cont_type__pe = rec_prot__pt->send_rec_buf_raw__bu8[0];
   FLEA_THR_FIN_SEC_empty();
@@ -484,11 +482,11 @@ flea_err_t THR_flea_tls_rec_prot_t__read_data(
   flea_al_u16_t to_cp__alu16, read_bytes_count__alu16 = 0;
   flea_dtl_t data_len__dtl = *data_len__palu16;
 
-  printf("rec_prot: read data called for %u bytes\n", data_len__dtl);
+  printf("rec_prot: read data called for %u bytes, write_ongoing = %u\n", data_len__dtl, rec_prot__pt->write_ongoing__u8);
   FLEA_THR_BEG_FUNC();
   if(rec_prot__pt->write_ongoing__u8)
   {
-    FLEA_CCALL(THR_flea_rw_stream_t__flush_write(rec_prot__pt->rw_stream__pt));
+    FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
   }
   to_cp__alu16 = FLEA_MIN(data_len__dtl, rec_prot__pt->payload_used_len__u16 - rec_prot__pt->payload_offset__u16);
   memcpy(data__pu8, rec_prot__pt->payload_buf__pu8 + rec_prot__pt->payload_offset__u16, to_cp__alu16);
@@ -496,7 +494,6 @@ flea_err_t THR_flea_tls_rec_prot_t__read_data(
   data_len__dtl -= to_cp__alu16;
   data__pu8     += to_cp__alu16;
   read_bytes_count__alu16 += to_cp__alu16;
-  // while(data_len__dtl)
   // enter only if
   // - called with current_or_next_record_for_content_type__b
   //   OR

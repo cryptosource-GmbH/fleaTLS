@@ -1571,38 +1571,6 @@ flea_err_t THR_flea_tls__receive(int socket_fd, flea_u8_t *buff, flea_u32_t buff
   FLEA_THR_FIN_SEC_empty();
 }
 
-#if 0
-static flea_err_t THR_flea_tls__send_record(
-  flea_tls_ctx_t *tls_ctx,
-  flea_u8_t      *bytes,
-  flea_u16_t     bytes_len,
-  ContentType    content_type
-)
-{
-  FLEA_THR_BEG_FUNC();
-  // TODO: INIT OBJECT
-  flea_tls_rec_prot_t rec_prot__t;
-
-  /*FLEA_CCALL(
-   * THR_flea_tls_rec_prot_t__ctor(
-   *  &rec_prot__t,
-   *   tls_ctx->version.major, tls_ctx->version.minor,
-   *  tls_ctx->rw_stream__pt
-   * )
-   * );*/
-
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__start_record_writing(&rec_prot__t, content_type));
-  FLEA_CCALL(
-    THR_flea_tls_rec_prot_t__write_data(
-      &rec_prot__t, bytes, bytes_len,
-      tls_ctx->active_write_connection_state
-    )
-  );
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(&rec_prot__t, tls_ctx->active_write_connection_state));
-  FLEA_THR_FIN_SEC_empty();
-}
-
-#endif /* if 0 */
 flea_err_t THR_flea_tls__send_record(
   flea_tls_ctx_t *tls_ctx,
   flea_u8_t      *bytes,
@@ -1616,30 +1584,12 @@ flea_err_t THR_flea_tls__send_record(
 
   FLEA_THR_BEG_FUNC();
 
-#if 0
-  // create record
-  Record record;
-  flea_u8_t record_bytes[16384];
-  flea_u16_t record_bytes_len;
-  FLEA_CCALL(THR_flea_tls__create_record(tls_ctx, &record, bytes, bytes_len, content_type));
-  flea_tls__record_to_bytes(&record, record_bytes, &record_bytes_len);
-
-  // send record
-  int socket_fd = tls_ctx->socket_fd;
-  if(socket_fd != -1)
-  {
-    if(send(socket_fd, record_bytes, record_bytes_len, 0) < 0)
-    {
-      printf("send failed\n");
-      FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
-    }
-  }
-#else /* if 0 */
   printf("send record called with %u bytes\n", bytes_len);
   // FLEA_CCALL(THR_flea_tls_rec_prot_t__start_record_writing(&tls_ctx->rec_prot__t, content_type));
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(&tls_ctx->rec_prot__t, content_type, bytes, bytes_len));
+#ifdef FLEA_TLS_SEND_RECORD_EAGER
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(&tls_ctx->rec_prot__t));
-#endif /* if 0 */
+#endif
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_record */
@@ -1668,28 +1618,24 @@ flea_err_t THR_flea_tls__send_handshake_message(
   HandshakeType   type,
   flea_u8_t       *msg_bytes,
   flea_u32_t      msg_bytes_len
-
-  /*int              socket_fd,
-   * flea_rw_stream_t *rw_stream__pt*/
 )
 {
   FLEA_THR_BEG_FUNC();
 
-  // create handshake message
-  flea_u8_t handshake_bytes[16384]; // TODO: max length for handshake is 2^24 = 16777216
-  flea_u32_t handshake_bytes_len;
-  flea_tls__create_handshake_message(type, msg_bytes, msg_bytes_len, handshake_bytes, &handshake_bytes_len);
+  flea_u8_t hdr__au8[4];
+  hdr__au8[0] = type;
 
-  // send record
-  FLEA_CCALL(
-    THR_flea_tls__send_record(
-      tls_ctx, handshake_bytes, handshake_bytes_len, CONTENT_TYPE_HANDSHAKE
-    )
-  );
+  hdr__au8[1] = msg_bytes_len >> 16;
+  hdr__au8[2] = msg_bytes_len >> 8;
+  hdr__au8[3] = msg_bytes_len;
 
-
-  // add handshake message to Hash
-  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, handshake_bytes, handshake_bytes_len));
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(&tls_ctx->rec_prot__t, CONTENT_TYPE_HANDSHAKE, hdr__au8, sizeof(hdr__au8)));
+  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, hdr__au8, sizeof(hdr__au8)));
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(&tls_ctx->rec_prot__t, CONTENT_TYPE_HANDSHAKE, msg_bytes, msg_bytes_len));
+  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, msg_bytes, msg_bytes_len));
+#ifdef FLEA_TLS_SEND_RECORD_EAGER
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(&tls_ctx->rec_prot__t));
+#endif
 
   FLEA_THR_FIN_SEC_empty();
 }
@@ -2421,8 +2367,10 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
         // TODO: send certificate message
       }
 
+      printf("SM sending client key_ex\n");
       FLEA_CCALL(THR_flea_tls__send_client_key_exchange(tls_ctx, &hash_ctx, &pubkey));
-
+      // FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(&tls_ctx->rec_prot__t));
+      printf("SM sending change cipherspec\n");
       FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx, &hash_ctx));
 
       /*
@@ -2450,6 +2398,7 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
       tls_ctx->active_write_connection_state = tls_ctx->pending_write_connection_state;
 #else /* if 0 */
 
+      printf("SM: switching on encryption on write...\n");
       FLEA_CCALL(THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
           &tls_ctx->rec_prot__t,
           flea_tls_write,
@@ -2464,7 +2413,7 @@ flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx
         ));
 #endif /* if 0 */
 
-      printf("SM: switched on encryption on write\n");
+      printf("SM: ...switched on encryption on write\n");
       // TODO: call constructor on pending write state
       FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &hash_ctx));
       printf("SM: sent finished\n");
