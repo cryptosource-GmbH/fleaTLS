@@ -132,17 +132,13 @@ void flea_tls_rec_prot_t__set_null_ciphersuite(
   flea_tls_stream_dir_e direction
 );
 
-flea_err_t THR_flea_tls_rec_prot_t__start_record_writing(
-  flea_tls_rec_prot_t *rec_prot__pt,
-  ContentType         content_type__e
-);
 
 flea_err_t THR_flea_tls_rec_prot_t__write_data(
   flea_tls_rec_prot_t *rec_prot__pt,
+  ContentType         content_type__e,
   const flea_u8_t     *data__pcu8,
   flea_dtl_t          data_len__dtl
 );
-
 
 flea_err_t THR_flea_tls_rec_prot_t__write_flush(
   flea_tls_rec_prot_t *rec_prot__pt

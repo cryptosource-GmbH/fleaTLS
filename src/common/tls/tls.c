@@ -1636,8 +1636,8 @@ flea_err_t THR_flea_tls__send_record(
   }
 #else /* if 0 */
   printf("send record called with %u bytes\n", bytes_len);
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__start_record_writing(&tls_ctx->rec_prot__t, content_type));
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(&tls_ctx->rec_prot__t, bytes, bytes_len));
+  // FLEA_CCALL(THR_flea_tls_rec_prot_t__start_record_writing(&tls_ctx->rec_prot__t, content_type));
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(&tls_ctx->rec_prot__t, content_type, bytes, bytes_len));
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(&tls_ctx->rec_prot__t));
 #endif /* if 0 */
 

@@ -8,6 +8,7 @@
 #include "flea/alloc.h"
 #include "flea/rng.h"
 #include "flea/util.h"
+#include <stdio.h>
 
 #define FLEA_TLS_MAX_MAC_SIZE         32
 #define FLEA_TLS_MAX_MAC_KEY_SIZE     32
@@ -182,23 +183,21 @@ flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls_rec_prot_t__start_record_writing(
+void flea_tls_rec_prot_t__write_record_header(
   flea_tls_rec_prot_t *rec_prot__pt,
   ContentType         content_type__e
 )
 {
-  FLEA_THR_BEG_FUNC();
   rec_prot__pt->send_rec_buf_raw__bu8[0] = content_type__e;
   rec_prot__pt->send_rec_buf_raw__bu8[1] = rec_prot__pt->prot_version__t.major;
   rec_prot__pt->send_rec_buf_raw__bu8[2] = rec_prot__pt->prot_version__t.minor;
   rec_prot__pt->payload_used_len__u16    = 0;
   rec_prot__pt->payload_offset__u16      = 0;
-
-  FLEA_THR_FIN_SEC_empty();
 }
 
 flea_err_t THR_flea_tls_rec_prot_t__write_data(
   flea_tls_rec_prot_t *rec_prot__pt,
+  ContentType         content_type__e,
   const flea_u8_t     *data__pcu8,
   flea_dtl_t          data_len__dtl
   // flea_tls__connection_state_t *conn_state__pt
@@ -208,6 +207,17 @@ flea_err_t THR_flea_tls_rec_prot_t__write_data(
 
   // printf("THR_flea_tls_rec_prot_t__write_data buf_free_len__alu16 initial = %u\n", buf_free_len__alu16);
   FLEA_THR_BEG_FUNC();
+  if(rec_prot__pt->write_ongoing__u8)
+  {
+    if(rec_prot__pt->send_rec_buf_raw__bu8[0] != content_type__e)
+    {
+      FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
+    }
+  }
+  else
+  {
+    flea_tls_rec_prot_t__write_record_header(rec_prot__pt, content_type__e);
+  }
   while(data_len__dtl)
   {
     rec_prot__pt->write_ongoing__u8 = 1;
@@ -225,7 +235,7 @@ flea_err_t THR_flea_tls_rec_prot_t__write_data(
     }
   }
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls_rec_prot_t__write_data */
 
 static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
   flea_tls_rec_prot_t *rec_prot__pt,
@@ -317,7 +327,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
   flea_al_u16_t       *encrypted_len__palu16
 )
 {
-  flea_u32_t seq_lo__u32, seq_hi__u32;
   flea_al_u16_t length_tot;
 
   FLEA_THR_BEG_FUNC();
@@ -331,8 +340,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
 
   flea_u8_t *data        = rec_prot__pt->payload_buf__pu8;
   flea_al_u16_t data_len = rec_prot__pt->payload_used_len__u16;
-  seq_lo__u32 = rec_prot__pt->write_state__t.sequence_number__au32[0];
-  seq_hi__u32 = rec_prot__pt->write_state__t.sequence_number__au32[1];
 
   // compute mac
   FLEA_CCALL(
@@ -554,12 +561,10 @@ flea_err_t THR_flea_tls_rec_prot_t__read_data(
 
         if(raw_read_len__dtl == 1)
         {
-          int i = 100;
           printf("read one byte\n");
         }
         if(raw_read_len__dtl == 80)
         {
-          int i = 100;
           printf("read 80 bytes\n");
         }
       }
