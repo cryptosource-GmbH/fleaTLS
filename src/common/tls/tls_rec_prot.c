@@ -202,20 +202,15 @@ flea_err_t THR_flea_tls_rec_prot_t__write_data(
   ContentType         content_type__e,
   const flea_u8_t     *data__pcu8,
   flea_dtl_t          data_len__dtl
-  // flea_tls__connection_state_t *conn_state__pt
 )
 {
   flea_al_u16_t buf_free_len__alu16;
 
-  /*  printf("THR_flea_tls_rec_prot_t__write_data called for %u bytes\n", data_len__dtl);
-   * printf("   content type = %u\n", content_type__e);
-   * printf("   write_ongoing = %u\n", rec_prot__pt->write_ongoing__u8);*/
   FLEA_THR_BEG_FUNC();
   if(rec_prot__pt->write_ongoing__u8)
   {
     if(rec_prot__pt->send_rec_buf_raw__bu8[0] != content_type__e)
     {
-      // printf("rec_prot write_data: calling write flush because record type changed\n");
       FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
       flea_tls_rec_prot_t__write_record_header(rec_prot__pt, content_type__e);
     }
@@ -236,7 +231,6 @@ flea_err_t THR_flea_tls_rec_prot_t__write_data(
     rec_prot__pt->payload_used_len__u16 += to_go__alu16;
     buf_free_len__alu16 -= to_go__alu16;
 
-    // printf("THR_flea_tls_rec_prot_t__write_data buf_free_len__alu16 in loop = %u\n", buf_free_len__alu16);
     if(buf_free_len__alu16 == 0)
     {
       FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
@@ -447,25 +441,12 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__write_flush */
 
-flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
-  flea_tls_rec_prot_t *rec_prot__pt,
-  ContentType         *cont_type__pe
-)
-{
-  FLEA_THR_BEG_FUNC();
-  flea_tls__protocol_version_t dummy_version__t;
-  flea_al_u16_t read_len_zero__alu16 = 0;
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__read_data(rec_prot__pt, NULL, &read_len_zero__alu16, &dummy_version__t, FLEA_FALSE, 0 /*dummy_content_type */, FLEA_TRUE));
-  *cont_type__pe = rec_prot__pt->send_rec_buf_raw__bu8[0];
-  FLEA_THR_FIN_SEC_empty();
-}
-
-flea_err_t THR_flea_tls_rec_prot_t__read_data(
+static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   flea_tls_rec_prot_t          *rec_prot__pt,
   flea_u8_t                    *data__pu8,
   flea_al_u16_t                *data_len__palu16,
   // flea_tls__connection_state_t *conn_state__pt,
-  flea_tls__protocol_version_t *prot_version__pt,
+  flea_tls__protocol_version_t *prot_version_mbn__pt,
   flea_bool_t                  do_verify_prot_version__b,
   ContentType                  cont_type__e,
   flea_bool_t                  current_or_next_record_for_content_type__b
@@ -513,16 +494,17 @@ flea_err_t THR_flea_tls_rec_prot_t__read_data(
       printf("rec_prot: passed content type check\n");
       if(do_verify_prot_version__b)
       {
-        if((prot_version__pt->major != rec_prot__pt->send_rec_buf_raw__bu8[1]) ||
-          (prot_version__pt->minor != rec_prot__pt->send_rec_buf_raw__bu8[2]))
+        if((prot_version_mbn__pt->major != rec_prot__pt->send_rec_buf_raw__bu8[1]) ||
+          (prot_version_mbn__pt->minor != rec_prot__pt->send_rec_buf_raw__bu8[2]))
         {
           FLEA_THROW("invalid protocol version in record", FLEA_ERR_TLS_INV_REC_HDR);
         }
       }
       else
+      if(prot_version_mbn__pt)
       {
-        prot_version__pt->major = rec_prot__pt->send_rec_buf_raw__bu8[1];
-        prot_version__pt->minor = rec_prot__pt->send_rec_buf_raw__bu8[2];
+        prot_version_mbn__pt->major = rec_prot__pt->send_rec_buf_raw__bu8[1];
+        prot_version_mbn__pt->minor = rec_prot__pt->send_rec_buf_raw__bu8[2];
       }
       printf("rec_prot: passed version check set\n");
       raw_rec_content_len__alu16  = rec_prot__pt->send_rec_buf_raw__bu8[3] << 8;
@@ -583,6 +565,29 @@ flea_err_t THR_flea_tls_rec_prot_t__read_data(
   *data_len__palu16 = read_bytes_count__alu16;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__read_data */
+
+flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
+  flea_tls_rec_prot_t *rec_prot__pt,
+  ContentType         *cont_type__pe
+)
+{
+  FLEA_THR_BEG_FUNC();
+  flea_tls__protocol_version_t dummy_version__t;
+  flea_al_u16_t read_len_zero__alu16 = 0;
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__read_data_inner(rec_prot__pt, NULL, &read_len_zero__alu16, &dummy_version__t, FLEA_FALSE, 0 /*dummy_content_type */, FLEA_TRUE));
+  *cont_type__pe = rec_prot__pt->send_rec_buf_raw__bu8[0];
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_tls_rec_prot_t__read_data(
+  flea_tls_rec_prot_t *rec_prot__pt,
+  ContentType         cont_type__e,
+  flea_u8_t           *data__pu8,
+  flea_al_u16_t       *data_len__palu16
+)
+{
+  return THR_flea_tls_rec_prot_t__read_data_inner(rec_prot__pt, data__pu8, data_len__palu16, NULL, FLEA_FALSE, cont_type__e, FLEA_FALSE);
+}
 
 void flea_tls_rec_prot_t__dtor(flea_tls_rec_prot_t *rec_prot__pt)
 {

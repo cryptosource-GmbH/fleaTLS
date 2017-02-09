@@ -280,21 +280,12 @@ flea_err_t THR_flea_tls__read_handshake_message(flea_tls_ctx_t *tls_ctx__pt, Han
 
   FLEA_THR_BEG_FUNC();
 
-  /*if(record->length < 4)
-   * {
-   * FLEA_THROW("length too small", FLEA_ERR_TLS_GENERIC);
-   * }
-   * cont_type__u8*/
 
   FLEA_CCALL(THR_flea_tls_rec_prot_t__read_data(
       &tls_ctx__pt->rec_prot__t,
-      hdr__au8,
-      &len__palu16,
-      &tls_ctx__pt->version,
-      FLEA_TRUE, /*do_verify_prot_version__b*/
       CONTENT_TYPE_HANDSHAKE,
-      FLEA_FALSE
-    ));
+      hdr__au8,
+      &len__palu16));
 
   handshake_msg->type = hdr__au8[0];
 
@@ -306,12 +297,9 @@ flea_err_t THR_flea_tls__read_handshake_message(flea_tls_ctx_t *tls_ctx__pt, Han
   len__palu16         = handshake_msg->length;
   FLEA_CCALL(THR_flea_tls_rec_prot_t__read_data(
       &tls_ctx__pt->rec_prot__t,
-      handshake_msg->data,
-      &len__palu16,
-      &tls_ctx__pt->version,
-      FLEA_TRUE, /*do_verify_prot_version__b*/
       CONTENT_TYPE_HANDSHAKE,
-      FLEA_FALSE /* do_verify_content_type__b*/
+      handshake_msg->data,
+      &len__palu16
     ));
 
   if(handshake_msg->type != HANDSHAKE_TYPE_FINISHED)
@@ -1564,13 +1552,9 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t *tls_ctx, flea_rw_strea
 
           FLEA_CCALL(THR_flea_tls_rec_prot_t__read_data(
               &tls_ctx->rec_prot__t,
-              &dummy_byte,
-              &len_one__alu16,
-              // flea_tls__connection_state_t *conn_state__pt,
-              &tls_ctx->version,
-              FLEA_TRUE, /*do_verify_prot_version__b*/
               CONTENT_TYPE_CHANGE_CIPHER_SPEC,
-              FLEA_FALSE
+              &dummy_byte,
+              &len_one__alu16
             ));
           FLEA_CCALL(THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
               &tls_ctx->rec_prot__t,
