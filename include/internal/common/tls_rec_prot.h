@@ -14,12 +14,13 @@
 extern "C" {
 #endif
 
-typedef enum
-{
-  NO_COMPRESSION = 0,
-  COMPRESSION    = 255
-} CompressionMethod;
-
+/*
+ * typedef enum
+ * {
+ * NO_COMPRESSION = 0,
+ * COMPRESSION    = 255
+ * } CompressionMethod;
+ */
 #if 0
 flea_tls__cipher_suite_id_t id;
 
@@ -42,6 +43,8 @@ flea_tls__prf_algorithm_t prf_algorithm;
 
 typedef enum { flea_tls_write, flea_tls_read } flea_tls_stream_dir_e;
 
+#if 0
+
 typedef struct
 {
   /*
@@ -57,7 +60,7 @@ typedef struct
   //  flea_u8_t         *iv;
 
   /* compression state */
-  CompressionMethod compression_method;
+  // CompressionMethod compression_method;
 
   /* sequence number */
   // flea_u64_t sequence_number;
@@ -66,6 +69,7 @@ typedef struct
 
   // TODO: maybe need to add more fields for stream ciphers
 } flea_tls__connection_state_t;
+#endif // if 0
 
 typedef struct
 {

@@ -78,8 +78,8 @@ typedef struct
   flea_u8_t                    session_id_length;
   flea_u8_t                    *cipher_suites;
   flea_u16_t                   cipher_suites_length;
-  CompressionMethod            *compression_methods;
-  flea_u8_t                    compression_methods_length;
+  // CompressionMethod            *compression_methods;
+  // flea_u8_t                    compression_methods_length;
   flea_u8_t                    *extensions; // 2^16 bytes
 } flea_tls__client_hello_t;
 
@@ -90,8 +90,8 @@ typedef struct
   flea_u8_t                    *session_id;
   flea_u8_t                    session_id_length;
   flea_u8_t                    cipher_suite;
-  CompressionMethod            compression_method;
-  flea_u8_t                    compression_methods_length;
+  // CompressionMethod            compression_method;
+  // flea_u8_t                    compression_methods_length;
   flea_u8_t                    *extensions; // 2^16 bytes
 } ServerHello;
 
@@ -249,11 +249,11 @@ typedef struct
 
   /*flea_u8_t mac_length;
    * flea_u8_t mac_key_length;*/
-  CompressionMethod *compression_methods; /* Pool of compression methods that can be negotiated. Priority (in case of server): Prefer first over second and so on */
-  flea_u32_t        compression_methods_len;
-  flea_u8_t         master_secret[48]; /* symmetric keys are derived from this */
-  Random            client_random;     /* random value that the client sends */
-  Random            server_random;     /* random value that the server sends */
+  // CompressionMethod *compression_methods; /* Pool of compression methods that can be negotiated. Priority (in case of server): Prefer first over second and so on */
+  // flea_u32_t        compression_methods_len;
+  flea_u8_t master_secret[48]; /* symmetric keys are derived from this */
+  Random    client_random;     /* random value that the client sends */
+  Random    server_random;     /* random value that the server sends */
 } flea_tls__security_parameters_t;
 
 typedef struct
@@ -287,9 +287,9 @@ typedef struct
    *
    */
   // flea_tls__connection_state_t *active_write_connection_state; /* Swap active and pending after a ChangeCipherSpec message */
-  flea_tls__connection_state_t *active_read_connection_state; /* and reinitialized pending */
+  // flea_tls__connection_state_t *active_read_connection_state; /* and reinitialized pending */
   // flea_tls__connection_state_t *pending_write_connection_state;
-  flea_tls__connection_state_t *pending_read_connection_state;
+  // flea_tls__connection_state_t *pending_read_connection_state;
 
   /*
    * Other information or configuration
@@ -309,12 +309,12 @@ typedef struct
 
   flea_u8_t                    *premaster_secret; // shall be deleted after master_Secret is calculated
   flea_bool_t                  resumption;
-
+  // TODO: ABSTRACT BUFF:
   flea_u8_t                    key_block[128]; // size for key block for aes256+sha256 - max size for all ciphersuites in RFC
 
   flea_rw_stream_t             *rw_stream__pt;
   flea_tls_rec_prot_t          rec_prot__t;
-  int                          socket_fd;
+  // int                          socket_fd;
 } flea_tls_ctx_t;
 
 #define flea_tls_ctx_t__INIT(__p) memset((__p), 0, sizeof(*(__p)));
@@ -323,6 +323,7 @@ flea_err_t flea_tls_ctx_t__ctor(flea_tls_ctx_t *ctx, flea_rw_stream_t *rw_stream
 
 flea_err_t THR_flea_tls__client_handshake(int socket_fd, flea_tls_ctx_t *tls_ctx, flea_rw_stream_t *rw_stream__pt);
 flea_err_t THR_flea_tls__send_app_data(flea_tls_ctx_t *tls_ctx, flea_u8_t *data, flea_u8_t data_len);
+// TODO: RECEIVE APP DATA
 flea_err_t THR_flea_tls__send_alert(flea_tls_ctx_t *tls_ctx, flea_tls__alert_description_t description, flea_tls__alert_level_t level);
 #ifdef __cplusplus
 }
