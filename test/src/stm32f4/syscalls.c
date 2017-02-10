@@ -8,7 +8,10 @@ int _close(int file)
   return 0;
 }
 
-int _fstat(int file, struct stat *st)
+int _fstat(
+  int          file,
+  struct stat* st
+)
 {
   return 0;
 }
@@ -18,29 +21,44 @@ int _isatty(int file)
   return 1;
 }
 
-int _lseek(int file, int ptr, int dir)
+int _lseek(
+  int file,
+  int ptr,
+  int dir
+)
 {
   return 0;
 }
 
-int _open(const char *name, int flags, int mode)
+int _open(
+  const char* name,
+  int         flags,
+  int         mode
+)
 {
   return -1;
 }
 
-int _read(int file, char *ptr, int len)
+int _read(
+  int   file,
+  char* ptr,
+  int   len
+)
 {
   return 0;
 }
 
 /* Register name faking - works in collusion with the linker.  */
-register char *stack_ptr asm ("sp");
+register char* stack_ptr asm ("sp");
 
-caddr_t _sbrk_r(struct _reent *r, int incr)
+caddr_t _sbrk_r(
+  struct _reent* r,
+  int            incr
+)
 {
   extern char end asm ("end"); /* Defined by the linker.  */
-  static char *heap_end;
-  char *prev_heap_end;
+  static char* heap_end;
+  char* prev_heap_end;
 
   if(heap_end == NULL)
   {
@@ -54,8 +72,7 @@ caddr_t _sbrk_r(struct _reent *r, int incr)
     /* Some of the libstdc++-v3 tests rely upon detecting
      *  out of memory errors, so do not abort here.  */
 #if 0
-    extern void
-    abort(void);
+    extern void abort(void);
 
     _write(1, "_sbrk: Heap and stack collision\n", 32);
 
@@ -72,7 +89,11 @@ caddr_t _sbrk_r(struct _reent *r, int incr)
   return (caddr_t) prev_heap_end;
 } /* _sbrk_r */
 
-int _write(int file, char *ptr, int len)
+int _write(
+  int   file,
+  char* ptr,
+  int   len
+)
 {
   int i;
 

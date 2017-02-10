@@ -191,7 +191,7 @@
 uint32_t SystemCoreClock = 168000000;
 // uint32_t SystemCoreClock = 84000000;
 
-__I uint8_t AHBPrescTable[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9 };
+__I uint8_t AHBPrescTable[16] = {0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9};
 
 /**
  * @}
@@ -201,11 +201,9 @@ __I uint8_t AHBPrescTable[16] = { 0, 0, 0, 0, 0, 0, 0, 0, 1, 2, 3, 4, 6, 7, 8, 9
  * @{
  */
 
-static void
-SetSysClock(void);
+static void SetSysClock(void);
 #ifdef DATA_IN_ExtSRAM
-static void
-SystemInit_ExtMemCtl(void);
+static void SystemInit_ExtMemCtl(void);
 #endif /* DATA_IN_ExtSRAM */
 
 /**
@@ -334,7 +332,7 @@ void SystemCoreClockUpdate(void)
           pllvco = (HSI_VALUE / pllm) * ((RCC->PLLCFGR & RCC_PLLCFGR_PLLN) >> 6);
         }
 
-        pllp = (((RCC->PLLCFGR & RCC_PLLCFGR_PLLP) >> 16) + 1 ) * 2;
+        pllp = (((RCC->PLLCFGR & RCC_PLLCFGR_PLLP) >> 16) + 1) * 2;
         SystemCoreClock = pllvco / pllp;
         break;
       default:
@@ -371,8 +369,7 @@ static void SetSysClock(void)
   {
     HSEStatus = RCC->CR & RCC_CR_HSERDY;
     StartUpCounter++;
-  }
-  while((HSEStatus == 0) && (StartUpCounter != HSE_STARTUP_TIMEOUT));
+  } while((HSEStatus == 0) && (StartUpCounter != HSE_STARTUP_TIMEOUT));
 
   if((RCC->CR & RCC_CR_HSERDY) != RESET)
   {
@@ -417,7 +414,7 @@ static void SetSysClock(void)
     RCC->CFGR |= RCC_CFGR_SW_PLL;
 
     /* Wait till the main PLL is used as system clock source */
-    while((RCC->CFGR & (uint32_t) RCC_CFGR_SWS ) != RCC_CFGR_SWS_PLL)
+    while((RCC->CFGR & (uint32_t) RCC_CFGR_SWS) != RCC_CFGR_SWS_PLL)
     {
       ;
     }

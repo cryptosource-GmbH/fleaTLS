@@ -16,7 +16,11 @@
 
 using namespace std;
 
-std::vector<flea_u8_t> parse_line(const char *name, flea_u16_t result_size, std::ifstream & input)
+std::vector<flea_u8_t> parse_line(
+  const char*   name,
+  flea_u16_t    result_size,
+  std::ifstream & input
+)
 {
   std::string line_start = std::string(name) + " = ";
   std::string line;
@@ -47,7 +51,8 @@ std::vector<flea_u8_t> parse_line(const char *name, flea_u16_t result_size, std:
   int offset = result_size - (value.size() + 1) / 2;
   if(offset < 0)
   {
-    std::cerr << "value size error: name = " << std::string(name) << ", result_size = " << result_size << ", value.size() = " << value.size() << ", offset = " << offset << std::endl;
+    std::cerr << "value size error: name = " << std::string(name) << ", result_size = " << result_size
+              << ", value.size() = " << value.size() << ", offset = " << offset << std::endl;
     throw test_utils_exceptn_t("string parsing error in test configuration");
   }
   for(unsigned i = 0; i < value.size(); i++)
@@ -58,13 +63,11 @@ std::vector<flea_u8_t> parse_line(const char *name, flea_u16_t result_size, std:
     {
       byte = value[i] - 0x30;
     }
-    else
-    if(((unsigned) value[i]) >= 0x41 + 0 && ((unsigned) value[i]) <= 0x41 + 6)
+    else if(((unsigned) value[i]) >= 0x41 + 0 && ((unsigned) value[i]) <= 0x41 + 6)
     {
       byte = value[i] - 0x41 + 10;
     }
-    else
-    if(((unsigned) value[i]) >= 0x61 + 0 && ((unsigned) value[i]) <= 0x61 + 6)
+    else if(((unsigned) value[i]) >= 0x61 + 0 && ((unsigned) value[i]) <= 0x61 + 6)
     {
       byte = value[i] - 0x61 + 10;
     }
@@ -80,7 +83,10 @@ std::vector<flea_u8_t> parse_line(const char *name, flea_u16_t result_size, std:
 } // parse_line
 
 namespace {
-bool string_ends_with(std::string const &fullString, std::string const &ending)
+bool string_ends_with(
+  std::string const &fullString,
+  std::string const &ending
+)
 {
   if(fullString.length() >= ending.length())
   {
@@ -193,7 +199,7 @@ std::vector<unsigned char> read_bin_file(std::string const& filename)
 
 bool is_dir_existent(std::string const& dir_name)
 {
-  DIR *dir = opendir(dir_name.c_str());
+  DIR* dir = opendir(dir_name.c_str());
 
   if(dir)
   {
@@ -204,11 +210,16 @@ bool is_dir_existent(std::string const& dir_name)
   return false;
 }
 
-std::vector<std::string> get_entries_of_dir(std::string const& dir_name, dir_entry_extract_mode_t extr_mode, std::string const& postfix, std::string const& prefix)
+std::vector<std::string> get_entries_of_dir(
+  std::string const        & dir_name,
+  dir_entry_extract_mode_t extr_mode,
+  std::string const        & postfix,
+  std::string const        & prefix
+)
 {
   std::vector<std::string> result;
-  DIR *dir;
-  struct dirent *ent;
+  DIR* dir;
+  struct dirent* ent;
   if((dir = opendir(dir_name.c_str())) != NULL)
   {
     /* print all the files and directories within directory */
@@ -246,12 +257,17 @@ std::vector<std::string> get_entries_of_dir(std::string const& dir_name, dir_ent
 
     /*FLEA_PRINTF_1_SWITCHTED("could not open test data directory\n");
      * FLEA_PRINTF_1_SWITCHTED("be sure to run unit tests from main folder as build/unit_tests\n");*/
-    throw test_utils_exceptn_t("could not open directory " + dir_name + ", be sure to run unit tests from main folder as build/unit_tests");
+    throw test_utils_exceptn_t(
+            "could not open directory " + dir_name + ", be sure to run unit tests from main folder as build/unit_tests"
+    );
   }
   return result;
 } // get_entries_of_dir
 
-void property_set_t::add_index_name_string_with_equation_mark(std::string const& s, property_string_form_t form)
+void property_set_t::add_index_name_string_with_equation_mark(
+  std::string const      & s,
+  property_string_form_t form
+)
 {
   size_t equ_pos = s.find("=");
 
@@ -286,7 +302,11 @@ void property_set_t::add_index_name_string_with_equation_mark(std::string const&
   (*this)[name] = value;
 } // property_set_t::add_index_name_string_with_equation_mark
 
-property_set_t::property_set_t(int argc, const char **argv, properties_spec_t const& spec)
+property_set_t::property_set_t(
+  int                    argc,
+  const char**           argv,
+  properties_spec_t const& spec
+)
   : m_spec(spec)
 {
   for(unsigned i = 1; i < static_cast<unsigned>(argc); i++)
@@ -302,7 +322,10 @@ property_set_t::property_set_t(int argc, const char **argv, properties_spec_t co
   }
 }
 
-property_set_t::property_set_t(std::string const& filename, properties_spec_t const& spec)
+property_set_t::property_set_t(
+  std::string const      & filename,
+  properties_spec_t const& spec
+)
   : m_filename(filename),
   m_spec(spec)
 {
@@ -334,7 +357,10 @@ property_set_t::property_set_t(std::string const& filename, properties_spec_t co
   }
 }
 
-void property_set_t::throw_exception(std::string const& text, std::string const& property) const
+void property_set_t::throw_exception(
+  std::string const& text,
+  std::string const& property
+) const
 {
   if(property == "")
   {
@@ -347,18 +373,22 @@ void property_set_t::throw_exception(std::string const& text, std::string const&
     {
       value_inf = " with value '" + get_property_as_string(property) + "'";
     }
-    throw test_utils_exceptn_t("error in file " + m_filename + " with property '" + property + "'" + value_inf + ": " + text);
+    throw test_utils_exceptn_t(
+            "error in file " + m_filename + " with property '" + property + "'" + value_inf + ": " + text
+    );
   }
 }
 
-flea_bool_t property_set_t::get_property_as_bool(std::string const& index, bool *default_val) const
+flea_bool_t property_set_t::get_property_as_bool(
+  std::string const& index,
+  bool*            default_val
+) const
 {
   if(default_val == nullptr)
   {
     ensure_index(index);
   }
-  else
-  if(!have_index(index))
+  else if(!have_index(index))
   {
     return *default_val;
   }
@@ -366,8 +396,7 @@ flea_bool_t property_set_t::get_property_as_bool(std::string const& index, bool 
   {
     return FLEA_TRUE;
   }
-  else
-  if(find(index)->second == "false")
+  else if(find(index)->second == "false")
   {
     return FLEA_FALSE;
   }
@@ -412,7 +441,10 @@ void property_set_t::ensure_index(std::string const& index) const
   }
 }
 
-flea_u32_t property_set_t::get_property_as_u32_default(std::string const& index, flea_u32_t default_val) const
+flea_u32_t property_set_t::get_property_as_u32_default(
+  std::string const& index,
+  flea_u32_t       default_val
+) const
 {
   if(have_index(index))
   {
@@ -427,7 +459,11 @@ flea_u32_t property_set_t::get_property_as_u32(std::string const& index) const
   string value = find(index)->second;
   if(!value.size())
   {
-    throw test_utils_exceptn_t(std::string("value of property '") + index + std::string("' in file ") + m_filename + " is not numeric as expected");
+    throw test_utils_exceptn_t(
+            std::string("value of property '") + index + std::string(
+              "' in file "
+            ) + m_filename + " is not numeric as expected"
+    );
   }
   return string_to_u32bit(value);
 }

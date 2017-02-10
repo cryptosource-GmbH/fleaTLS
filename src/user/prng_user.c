@@ -6,9 +6,12 @@
 #include "flea/error.h"
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
-static flea_u8_t gl_prng_state__au8[FLEA_AES256_KEY_BYTE_LENGTH] = { 0 };
+static flea_u8_t gl_prng_state__au8[FLEA_AES256_KEY_BYTE_LENGTH] = {0};
 
-flea_err_t THR_flea_user__rng__load_prng_state(flea_u8_t *result__bu8, flea_al_u8_t result_len__alu8)
+flea_err_t THR_flea_user__rng__load_prng_state(
+  flea_u8_t*   result__bu8,
+  flea_al_u8_t result_len__alu8
+)
 {
   FLEA_THR_BEG_FUNC();
   if(result_len__alu8 != sizeof(gl_prng_state__au8))
@@ -24,7 +27,10 @@ flea_err_t THR_flea_user__rng__load_prng_state(flea_u8_t *result__bu8, flea_al_u
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_user__rng__save_prng_state(const flea_u8_t *state__pcu8, flea_al_u8_t state_len__alu8)
+flea_err_t THR_flea_user__rng__save_prng_state(
+  const flea_u8_t* state__pcu8,
+  flea_al_u8_t     state_len__alu8
+)
 {
   FLEA_THR_BEG_FUNC();
   if(state_len__alu8 != sizeof(gl_prng_state__au8))

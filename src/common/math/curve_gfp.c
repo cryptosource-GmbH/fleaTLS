@@ -12,10 +12,16 @@
 extern "C" {
 # endif
 
-flea_err_t THR_flea_curve_gfp_t__init_dp_array(flea_curve_gfp_t *p_curve, const flea_ec_gfp_dom_par_ref_t *dp__pt, flea_uword_t *memory, flea_al_u16_t memory_word_len)
+flea_err_t THR_flea_curve_gfp_t__init_dp_array(
+  flea_curve_gfp_t*                p_curve,
+  const flea_ec_gfp_dom_par_ref_t* dp__pt,
+  flea_uword_t*                    memory,
+  flea_al_u16_t                    memory_word_len
+)
 {
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_curve_gfp_t__init(
+  FLEA_CCALL(
+    THR_flea_curve_gfp_t__init(
       p_curve,
       dp__pt->a__ru8.data__pcu8,
       dp__pt->a__ru8.len__dtl,
@@ -24,13 +30,25 @@ flea_err_t THR_flea_curve_gfp_t__init_dp_array(flea_curve_gfp_t *p_curve, const 
       dp__pt->p__ru8.data__pcu8,
       dp__pt->p__ru8.len__dtl,
       memory,
-      memory_word_len));
+      memory_word_len
+    )
+  );
 
 
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_curve_gfp_t__init(flea_curve_gfp_t *p_curve, const flea_u8_t *a_enc, flea_al_u16_t a_enc_len, const flea_u8_t *b_enc, flea_al_u16_t b_enc_len, const flea_u8_t *p_enc, flea_al_u16_t p_enc_len, flea_uword_t *memory, flea_al_u16_t memory_word_len)
+flea_err_t THR_flea_curve_gfp_t__init(
+  flea_curve_gfp_t* p_curve,
+  const flea_u8_t*  a_enc,
+  flea_al_u16_t     a_enc_len,
+  const flea_u8_t*  b_enc,
+  flea_al_u16_t     b_enc_len,
+  const flea_u8_t*  p_enc,
+  flea_al_u16_t     p_enc_len,
+  flea_uword_t*     memory,
+  flea_al_u16_t     memory_word_len
+)
 {
   flea_mpi_ulen_t p_word_len = (p_enc_len + sizeof(flea_uword_t) - 1) / sizeof(flea_uword_t);
   flea_mpi_ulen_t a_word_len = (a_enc_len + sizeof(flea_uword_t) - 1) / sizeof(flea_uword_t);

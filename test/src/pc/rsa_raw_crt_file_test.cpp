@@ -12,8 +12,8 @@
 
 #ifdef FLEA_HAVE_RSA
 
-# define CHECK_NOT_NEGATIVE(__f) do { if(__f < 0) { return FLEA_ERR_INT_ERR; } } while(0)
-# define CHECK_ZERO(__f)         do { if(__f != 0) { return FLEA_ERR_INT_ERR; } } while(0)
+# define CHECK_NOT_NEGATIVE(__f) do {if(__f < 0) {return FLEA_ERR_INT_ERR;}} while(0)
+# define CHECK_ZERO(__f)         do {if(__f != 0) {return FLEA_ERR_INT_ERR;}} while(0)
 static flea_err_t THR_flea_test_crt_rsa_raw_file_based_for_file(std::string const& leaf_name)
 {
   std::string file_name = "misc/testdata/" + leaf_name; // .dat";
@@ -46,8 +46,7 @@ static flea_err_t THR_flea_test_crt_rsa_raw_file_based_for_file(std::string cons
         // std::cout << "next test: " << line << std::endl;
         // nothing to do
       }
-      else
-      if(line.find(std::string("end")) == 0)
+      else if(line.find(std::string("end")) == 0)
       {
         end = true;
       }
@@ -67,7 +66,8 @@ static flea_err_t THR_flea_test_crt_rsa_raw_file_based_for_file(std::string cons
           &q_inv[0],
           q_inv.size(),
           // &pub_exp[0],
-          &mod[0]))
+          &mod[0]
+        ))
       {
         std::cout << "error in file " << leaf_name << ", test with mod = ";
         for(unsigned j = 0; j < mod.size(); j++)

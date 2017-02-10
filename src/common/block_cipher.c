@@ -144,7 +144,7 @@ flea_al_u8_t flea_block_cipher__get_block_size(flea_block_cipher_id_t id)
   return flea_find_block_cipher_config(id)->block_length__u8;
 }
 
-void flea_ecb_mode_ctx_t__dtor(flea_ecb_mode_ctx_t *ctx__pt)
+void flea_ecb_mode_ctx_t__dtor(flea_ecb_mode_ctx_t* ctx__pt)
 {
   if(ctx__pt->config__pt == NULL)
   {
@@ -153,11 +153,17 @@ void flea_ecb_mode_ctx_t__dtor(flea_ecb_mode_ctx_t *ctx__pt)
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->expanded_key__bu8, ctx__pt->config__pt->expanded_key_u32_size__u16);
 }
 
-flea_err_t THR_flea_ecb_mode_ctx_t__ctor(flea_ecb_mode_ctx_t *p_ctx, flea_block_cipher_id_t ext_id__t, const flea_u8_t *key, flea_al_u16_t key_byte_length, flea_cipher_dir_t dir)
+flea_err_t THR_flea_ecb_mode_ctx_t__ctor(
+  flea_ecb_mode_ctx_t*   p_ctx,
+  flea_block_cipher_id_t ext_id__t,
+  const flea_u8_t*       key,
+  flea_al_u16_t          key_byte_length,
+  flea_cipher_dir_t      dir
+)
 {
   FLEA_THR_BEG_FUNC();
 
-  const flea_block_cipher_config_entry_t *config__p_t = flea_find_block_cipher_config(ext_id__t);
+  const flea_block_cipher_config_entry_t* config__p_t = flea_find_block_cipher_config(ext_id__t);
   if(config__p_t == NULL)
   {
     FLEA_THROW("invalid block cipher id", FLEA_ERR_INV_ALGORITHM);
@@ -197,7 +203,12 @@ flea_err_t THR_flea_ecb_mode_ctx_t__ctor(flea_ecb_mode_ctx_t *p_ctx, flea_block_
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_ecb_mode_ctx_t__ctor */
 
-flea_err_t THR_flea_ecb_mode_crypt_data(const flea_ecb_mode_ctx_t *ctx__p_t, const flea_u8_t *input__pc_u8, flea_u8_t *output__p_u8, flea_dtl_t data_len__al_u16)
+flea_err_t THR_flea_ecb_mode_crypt_data(
+  const flea_ecb_mode_ctx_t* ctx__p_t,
+  const flea_u8_t*           input__pc_u8,
+  flea_u8_t*                 output__p_u8,
+  flea_dtl_t                 data_len__al_u16
+)
 {
   flea_al_u8_t block_length__al_u8 = ctx__p_t->block_length__u8;
 
@@ -216,14 +227,22 @@ flea_err_t THR_flea_ecb_mode_crypt_data(const flea_ecb_mode_ctx_t *ctx__p_t, con
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_ctr_mode_ctx_t__ctor(flea_ctr_mode_ctx_t *p_ctx, flea_block_cipher_id_t ext_id__t, const flea_u8_t *key_pu8, flea_al_u8_t key_length_al_u8, const flea_u8_t *nonce_pu8, flea_al_u8_t nonce_length_al_u8, flea_al_u8_t ctr_len__alu8)
+flea_err_t THR_flea_ctr_mode_ctx_t__ctor(
+  flea_ctr_mode_ctx_t*   p_ctx,
+  flea_block_cipher_id_t ext_id__t,
+  const flea_u8_t*       key_pu8,
+  flea_al_u8_t           key_length_al_u8,
+  const flea_u8_t*       nonce_pu8,
+  flea_al_u8_t           nonce_length_al_u8,
+  flea_al_u8_t           ctr_len__alu8
+)
 {
   flea_al_u8_t block_length_al_u8;
 
   FLEA_THR_BEG_FUNC();
   flea_ecb_mode_ctx_t__INIT(&p_ctx->cipher_ctx__t);
 
-  const flea_block_cipher_config_entry_t *config__pt = flea_find_block_cipher_config(ext_id__t);
+  const flea_block_cipher_config_entry_t* config__pt = flea_find_block_cipher_config(ext_id__t);
   if(config__pt == NULL)
   {
     FLEA_THROW("invalid block cipher id", FLEA_ERR_INV_ARG);
@@ -251,7 +270,7 @@ flea_err_t THR_flea_ctr_mode_ctx_t__ctor(flea_ctr_mode_ctx_t *p_ctx, flea_block_
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_ctr_mode_ctx_t__ctor */
 
-void flea_ctr_mode_ctx_t__dtor(flea_ctr_mode_ctx_t *p_ctx)
+void flea_ctr_mode_ctx_t__dtor(flea_ctr_mode_ctx_t* p_ctx)
 {
   if(p_ctx->cipher_ctx__t.config__pt == NULL)
   {
@@ -264,12 +283,17 @@ void flea_ctr_mode_ctx_t__dtor(flea_ctr_mode_ctx_t *p_ctx)
   flea_ecb_mode_ctx_t__dtor(&p_ctx->cipher_ctx__t);
 }
 
-void flea_ctr_mode_ctx_t__crypt(flea_ctr_mode_ctx_t *p_ctx, const flea_u8_t *input_pu8, flea_u8_t *output_pu8, flea_dtl_t input_output_length_al_u16)
+void flea_ctr_mode_ctx_t__crypt(
+  flea_ctr_mode_ctx_t* p_ctx,
+  const flea_u8_t*     input_pu8,
+  flea_u8_t*           output_pu8,
+  flea_dtl_t           input_output_length_al_u16
+)
 {
   flea_al_u16_t nb_blocks_al_u16;
   flea_al_u8_t block_length_al_u8;
   flea_al_u8_t tail_al_u8, head_al_u8, pending_offset__alu8, i;
-  flea_u8_t *pending_mask__bu8;
+  flea_u8_t* pending_mask__bu8;
   flea_cipher_block_processing_f block_function;
 
 
@@ -298,7 +322,10 @@ void flea_ctr_mode_ctx_t__crypt(flea_ctr_mode_ctx_t *p_ctx, const flea_u8_t *inp
     block_function(&p_ctx->cipher_ctx__t, p_ctx->ctr_block__bu8, pending_mask__bu8);
 
     flea__xor_bytes(output_pu8, input_pu8, pending_mask__bu8, block_length_al_u8);
-    flea__increment_encoded_BE_int(p_ctx->ctr_block__bu8 + block_length_al_u8 - p_ctx->ctr_len__alu8, p_ctx->ctr_len__alu8);
+    flea__increment_encoded_BE_int(
+      p_ctx->ctr_block__bu8 + block_length_al_u8 - p_ctx->ctr_len__alu8,
+      p_ctx->ctr_len__alu8
+    );
     output_pu8 += block_length_al_u8;
     input_pu8  += block_length_al_u8;
   }
@@ -308,32 +335,83 @@ void flea_ctr_mode_ctx_t__crypt(flea_ctr_mode_ctx_t *p_ctx, const flea_u8_t *inp
     block_function(&p_ctx->cipher_ctx__t, p_ctx->ctr_block__bu8, pending_mask__bu8);
     flea__xor_bytes(output_pu8, input_pu8, pending_mask__bu8, tail_al_u8);
     p_ctx->pending_offset__alu8 = tail_al_u8;
-    flea__increment_encoded_BE_int(p_ctx->ctr_block__bu8 + block_length_al_u8 - p_ctx->ctr_len__alu8, p_ctx->ctr_len__alu8);
+    flea__increment_encoded_BE_int(
+      p_ctx->ctr_block__bu8 + block_length_al_u8 - p_ctx->ctr_len__alu8,
+      p_ctx->ctr_len__alu8
+    );
   }
 } /* flea_ctr_mode_ctx_t__crypt */
 
-flea_err_t THR_flea_ctr_mode_crypt_data(flea_block_cipher_id_t ext_id__t, const flea_u8_t *key_pu8, flea_al_u16_t key_length_al_u16, const flea_u8_t *nonce__pcu8, flea_al_u8_t nonce_len__alu8, const flea_u8_t *input_pu8, flea_u8_t *output_pu8, flea_dtl_t input_output_length_al_u16, flea_al_u8_t ctr_len__alu8)
+flea_err_t THR_flea_ctr_mode_crypt_data(
+  flea_block_cipher_id_t ext_id__t,
+  const flea_u8_t*       key_pu8,
+  flea_al_u16_t          key_length_al_u16,
+  const flea_u8_t*       nonce__pcu8,
+  flea_al_u8_t           nonce_len__alu8,
+  const flea_u8_t*       input_pu8,
+  flea_u8_t*             output_pu8,
+  flea_dtl_t             input_output_length_al_u16,
+  flea_al_u8_t           ctr_len__alu8
+)
 {
   FLEA_DECL_OBJ(ctx, flea_ctr_mode_ctx_t);
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx, ext_id__t, key_pu8, key_length_al_u16, nonce__pcu8, nonce_len__alu8, ctr_len__alu8));
+  FLEA_CCALL(
+    THR_flea_ctr_mode_ctx_t__ctor(
+      &ctx,
+      ext_id__t,
+      key_pu8,
+      key_length_al_u16,
+      nonce__pcu8,
+      nonce_len__alu8,
+      ctr_len__alu8
+    )
+  );
   flea_ctr_mode_ctx_t__crypt(&ctx, input_pu8, output_pu8, input_output_length_al_u16);
   FLEA_THR_FIN_SEC(
     flea_ctr_mode_ctx_t__dtor(&ctx);
   );
 }
 
-flea_err_t THR_flea_ctr_mode_crypt_data_short_nonce_full_ctr_len(flea_block_cipher_id_t ext_id__t, const flea_u8_t *key_pu8, flea_al_u16_t key_length_al_u16, flea_u32_t nonce_u32, const flea_u8_t *input_pu8, flea_u8_t *output_pu8, flea_dtl_t input_output_length_al_u16)
+flea_err_t THR_flea_ctr_mode_crypt_data_short_nonce_full_ctr_len(
+  flea_block_cipher_id_t ext_id__t,
+  const flea_u8_t*       key_pu8,
+  flea_al_u16_t          key_length_al_u16,
+  flea_u32_t             nonce_u32,
+  const flea_u8_t*       input_pu8,
+  flea_u8_t*             output_pu8,
+  flea_dtl_t             input_output_length_al_u16
+)
 {
   flea_u8_t enc_nonce[4];
 
   FLEA_THR_BEG_FUNC();
   flea__encode_U32_BE(nonce_u32, enc_nonce);
-  FLEA_CCALL(THR_flea_ctr_mode_crypt_data(ext_id__t, key_pu8, key_length_al_u16, enc_nonce, sizeof(enc_nonce), input_pu8, output_pu8, input_output_length_al_u16, flea_block_cipher__get_block_size(ext_id__t)));
+  FLEA_CCALL(
+    THR_flea_ctr_mode_crypt_data(
+      ext_id__t,
+      key_pu8,
+      key_length_al_u16,
+      enc_nonce,
+      sizeof(enc_nonce),
+      input_pu8,
+      output_pu8,
+      input_output_length_al_u16,
+      flea_block_cipher__get_block_size(ext_id__t)
+    )
+  );
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_cbc_mode_ctx_t__ctor(flea_cbc_mode_ctx_t *ctx__pt, flea_block_cipher_id_t id__t, const flea_u8_t *key__pcu8, flea_al_u8_t key_len__alu8, const flea_u8_t *iv_mbn__pcu8, flea_al_u8_t iv_len__alu8, flea_cipher_dir_t dir__t)
+flea_err_t THR_flea_cbc_mode_ctx_t__ctor(
+  flea_cbc_mode_ctx_t*   ctx__pt,
+  flea_block_cipher_id_t id__t,
+  const flea_u8_t*       key__pcu8,
+  flea_al_u8_t           key_len__alu8,
+  const flea_u8_t*       iv_mbn__pcu8,
+  flea_al_u8_t           iv_len__alu8,
+  flea_cipher_dir_t      dir__t
+)
 {
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_ecb_mode_ctx_t__ctor(&ctx__pt->cipher_ctx__t, id__t, key__pcu8, key_len__alu8, dir__t));
@@ -355,7 +433,12 @@ flea_err_t THR_flea_cbc_mode_ctx_t__ctor(flea_cbc_mode_ctx_t *ctx__pt, flea_bloc
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_cbc_mode_ctx_t__crypt(flea_cbc_mode_ctx_t *ctx__pt, const flea_u8_t *input__pcu8, flea_u8_t *output__pu8, flea_dtl_t input_output_len__dtl)
+flea_err_t THR_flea_cbc_mode_ctx_t__crypt(
+  flea_cbc_mode_ctx_t* ctx__pt,
+  const flea_u8_t*     input__pcu8,
+  flea_u8_t*           output__pu8,
+  flea_dtl_t           input_output_len__dtl
+)
 {
   flea_dtl_t nb_blocks__dtl, i;
 
@@ -373,7 +456,7 @@ flea_err_t THR_flea_cbc_mode_ctx_t__crypt(flea_cbc_mode_ctx_t *ctx__pt, const fl
   }
   if(ctx__pt->cipher_ctx__t.dir__t == flea_encrypt)
   {
-    flea_u8_t *iv__pu8 = ctx__pt->iv__bu8;
+    flea_u8_t* iv__pu8 = ctx__pt->iv__bu8;
     for(i = 0; i < nb_blocks__dtl; i++)
     {
       flea__xor_bytes(output__pu8, iv__pu8, input__pcu8, block_len__alu8);
@@ -387,7 +470,7 @@ flea_err_t THR_flea_cbc_mode_ctx_t__crypt(flea_cbc_mode_ctx_t *ctx__pt, const fl
   else // decrypt
   {
     FLEA_ALLOC_BUF(decr_block__bu8, block_len__alu8);
-    const flea_u8_t *iv__pu8 = ctx__pt->iv__bu8;
+    const flea_u8_t* iv__pu8 = ctx__pt->iv__bu8;
     input__pcu8 += input_output_len__dtl - block_len__alu8;
     output__pu8 += input_output_len__dtl - block_len__alu8;
     // save the new IV
@@ -411,7 +494,17 @@ flea_err_t THR_flea_cbc_mode_ctx_t__crypt(flea_cbc_mode_ctx_t *ctx__pt, const fl
   );
 } /* THR_flea_cbc_mode_ctx_t__crypt */
 
-flea_err_t THR_flea_cbc_mode__crypt_data(flea_block_cipher_id_t id__t, const flea_u8_t *key__pcu8, flea_al_u8_t key_len__alu8, const flea_u8_t *iv__pcu8, flea_al_u8_t iv_len__alu8, flea_cipher_dir_t dir__t, flea_u8_t *output__pu8, const flea_u8_t *input__pcu8, flea_dtl_t input_output_len__dtl)
+flea_err_t THR_flea_cbc_mode__crypt_data(
+  flea_block_cipher_id_t id__t,
+  const flea_u8_t*       key__pcu8,
+  flea_al_u8_t           key_len__alu8,
+  const flea_u8_t*       iv__pcu8,
+  flea_al_u8_t           iv_len__alu8,
+  flea_cipher_dir_t      dir__t,
+  flea_u8_t*             output__pu8,
+  const flea_u8_t*       input__pcu8,
+  flea_dtl_t             input_output_len__dtl
+)
 {
   FLEA_DECL_OBJ(ctx__t, flea_cbc_mode_ctx_t);
   FLEA_THR_BEG_FUNC();
@@ -422,17 +515,55 @@ flea_err_t THR_flea_cbc_mode__crypt_data(flea_block_cipher_id_t id__t, const fle
   );
 }
 
-flea_err_t THR_flea_cbc_mode__encrypt_data(flea_block_cipher_id_t id__t, const flea_u8_t *key__pcu8, flea_al_u8_t key_len__alu8, const flea_u8_t *iv__pcu8, flea_al_u8_t iv_len__alu8, flea_u8_t *output__pu8, const flea_u8_t *input__pcu8, flea_dtl_t input_output_len__dtl)
+flea_err_t THR_flea_cbc_mode__encrypt_data(
+  flea_block_cipher_id_t id__t,
+  const flea_u8_t*       key__pcu8,
+  flea_al_u8_t           key_len__alu8,
+  const flea_u8_t*       iv__pcu8,
+  flea_al_u8_t           iv_len__alu8,
+  flea_u8_t*             output__pu8,
+  const flea_u8_t*       input__pcu8,
+  flea_dtl_t             input_output_len__dtl
+)
 {
-  return THR_flea_cbc_mode__crypt_data(id__t, key__pcu8, key_len__alu8, iv__pcu8, iv_len__alu8, flea_encrypt, output__pu8, input__pcu8, input_output_len__dtl);
+  return THR_flea_cbc_mode__crypt_data(
+    id__t,
+    key__pcu8,
+    key_len__alu8,
+    iv__pcu8,
+    iv_len__alu8,
+    flea_encrypt,
+    output__pu8,
+    input__pcu8,
+    input_output_len__dtl
+  );
 }
 
-flea_err_t THR_flea_cbc_mode__decrypt_data(flea_block_cipher_id_t id__t, const flea_u8_t *key__pcu8, flea_al_u8_t key_len__alu8, const flea_u8_t *iv__pcu8, flea_al_u8_t iv_len__alu8, flea_u8_t *output__pu8, const flea_u8_t *input__pcu8, flea_dtl_t input_output_len__dtl)
+flea_err_t THR_flea_cbc_mode__decrypt_data(
+  flea_block_cipher_id_t id__t,
+  const flea_u8_t*       key__pcu8,
+  flea_al_u8_t           key_len__alu8,
+  const flea_u8_t*       iv__pcu8,
+  flea_al_u8_t           iv_len__alu8,
+  flea_u8_t*             output__pu8,
+  const flea_u8_t*       input__pcu8,
+  flea_dtl_t             input_output_len__dtl
+)
 {
-  return THR_flea_cbc_mode__crypt_data(id__t, key__pcu8, key_len__alu8, iv__pcu8, iv_len__alu8, flea_decrypt, output__pu8, input__pcu8, input_output_len__dtl);
+  return THR_flea_cbc_mode__crypt_data(
+    id__t,
+    key__pcu8,
+    key_len__alu8,
+    iv__pcu8,
+    iv_len__alu8,
+    flea_decrypt,
+    output__pu8,
+    input__pcu8,
+    input_output_len__dtl
+  );
 }
 
-void flea_cbc_mode_ctx_t__dtor(flea_cbc_mode_ctx_t *ctx__pt)
+void flea_cbc_mode_ctx_t__dtor(flea_cbc_mode_ctx_t* ctx__pt)
 {
   flea_ecb_mode_ctx_t__dtor(&ctx__pt->cipher_ctx__t);
   // IV is not considered a secret

@@ -22,7 +22,8 @@ typedef struct struct_flea_ecb_mode_ctx_t flea_ecb_mode_ctx_t;
 /**
  * supported block ciphers.
  */
-typedef enum { flea_des_single, flea_tdes_2key, flea_tdes_3key, flea_desx, flea_aes128, flea_aes192, flea_aes256 } flea_block_cipher_id_t;
+typedef enum { flea_des_single, flea_tdes_2key, flea_tdes_3key, flea_desx, flea_aes128, flea_aes192,
+               flea_aes256 } flea_block_cipher_id_t;
 
 #ifdef __cplusplus
 }

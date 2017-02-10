@@ -9,8 +9,7 @@
 extern "C" {
 #endif
 
-flea_err_t
-THR_flea_pltfif_time__get_current_time(flea_gmt_time_t *time__t);
+flea_err_t THR_flea_pltfif_time__get_current_time(flea_gmt_time_t* time__t);
 
 #ifdef __cplusplus
 }

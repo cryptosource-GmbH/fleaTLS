@@ -13,7 +13,10 @@ extern "C" {
 #endif
 
 
-flea_err_t THR_flea_rw_stream_t__ctor_hash_stream(flea_rw_stream_t *stream__pt, flea_hash_ctx_t *constructed_hash_ctx__pt);
+flea_err_t THR_flea_rw_stream_t__ctor_hash_stream(
+  flea_rw_stream_t* stream__pt,
+  flea_hash_ctx_t*  constructed_hash_ctx__pt
+);
 
 
 #ifdef __cplusplus

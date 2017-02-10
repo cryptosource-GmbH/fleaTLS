@@ -12,8 +12,10 @@
  * the each start-up.
  *
  */
-flea_err_t
-THR_flea_user__rng__load_prng_state(flea_u8_t *result__bu8, flea_al_u8_t result_len__alu8);
+flea_err_t THR_flea_user__rng__load_prng_state(
+  flea_u8_t*   result__bu8,
+  flea_al_u8_t result_len__alu8
+);
 
 /**
  * Function which has to be implemented for each platform. It saves a new RNG
@@ -22,21 +24,21 @@ THR_flea_user__rng__load_prng_state(flea_u8_t *result__bu8, flea_al_u8_t result_
  *
  *
  */
-flea_err_t
-THR_flea_user__rng__save_prng_state(const flea_u8_t *state__pcu8, flea_al_u8_t state_len__alu8);
+flea_err_t THR_flea_user__rng__save_prng_state(
+  const flea_u8_t* state__pcu8,
+  flea_al_u8_t     state_len__alu8
+);
 
 /**
  * This function must be called prior to using any RNG function.
  */
-flea_err_t
-THR_flea_rng__init(void);
+flea_err_t THR_flea_rng__init(void);
 
 /**
  * Function to be called at a point where no future calls to flea RNG functions are
  * conducted.
  */
-void
-flea_rng__deinit(void);
+void flea_rng__deinit(void);
 
 /**
  * Fill a memory area with random bytes using the global RNG. The RNG does not perform flushing to
@@ -48,16 +50,17 @@ flea_rng__deinit(void);
  * @param mem_len the length of the area to be randomized
  *
  */
-void
-flea_rng__randomize_no_flush(flea_u8_t *mem, flea_dtl_t mem_len);
+void flea_rng__randomize_no_flush(
+  flea_u8_t* mem,
+  flea_dtl_t mem_len
+);
 
 /**
  * Cause the global RNG to flush its state in order to achieve forward security.
  * After the flushing operation, it is not possible to recover previous output
  * from the RNG state.
  */
-void
-flea_rng__flush(void);
+void flea_rng__flush(void);
 
 
 #endif /* h-guard */

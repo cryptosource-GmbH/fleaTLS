@@ -13,23 +13,16 @@
 volatile uint32_t time_var1, time_var2;
 
 // Private function prototypes
-void
-Delay(volatile uint32_t nCount);
-void
-init();
-void
-calculation_test();
-void
-dac_test();
+void Delay(volatile uint32_t nCount);
+void init();
+void calculation_test();
+void dac_test();
 
-flea_err_t
-THR_flea_test_rsa_crt();
+flea_err_t THR_flea_test_rsa_crt();
 
-flea_err_t
-THR_flea_test_ecdsa_256bit_sign_loop(unsigned count);
+flea_err_t THR_flea_test_ecdsa_256bit_sign_loop(unsigned count);
 
-void
-test_loop(unsigned limit);
+void test_loop(unsigned limit);
 
 enum sysclk_freq
 {
@@ -44,10 +37,10 @@ enum sysclk_freq
 // doesn't work, causes trap
 void rcc_set_frequency(enum sysclk_freq freq)
 {
-  int freqs[] = { 42, 84, 168, 200, 240 };
+  int freqs[] = {42, 84, 168, 200, 240};
 
   /* USB freqs: 42MHz, 42Mhz, 48MHz, 50MHz, 48MHz */
-  int pll_div[] = { 2, 4, 7, 10, 10 };
+  int pll_div[] = {2, 4, 7, 10, 10};
 
   /* PLL_VCO = (HSE_VALUE / PLL_M) * PLL_N */
   /* SYSCLK = PLL_VCO / PLL_P */

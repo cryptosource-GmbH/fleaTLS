@@ -12,7 +12,10 @@
 #include "internal/common/alloc_dbg_int.h"
 #include "flea/error_handling.h"
 
-static flea_bool_t is_prefix_of(const char *prefix, const char *s)
+static flea_bool_t is_prefix_of(
+  const char* prefix,
+  const char* s
+)
 {
   flea_u16_t prefix_len = strlen(prefix);
   flea_u16_t s_len      = strlen(s);
@@ -35,7 +38,7 @@ static flea_bool_t is_prefix_of(const char *prefix, const char *s)
 static unsigned canary_errors = 0;
 # define CHECK_DBG_CANARIES_FLAG_SWITCHED(__f) \
   do { \
-    if(FLEA_IS_DBG_CANARY_ERROR_SIGNALLED()) { FLEA_PRINTF_TEST_OUTP_2_SWITCHED("canary error in test %s\n", # __f); canary_errors++; } \
+    if(FLEA_IS_DBG_CANARY_ERROR_SIGNALLED()) {FLEA_PRINTF_TEST_OUTP_2_SWITCHED("canary error in test %s\n", # __f); canary_errors++;} \
     FLEA_CLEAR_DBG_CANARY_ERROR(); \
   } while(0)
 #else
@@ -46,12 +49,17 @@ static unsigned canary_errors = 0;
   do { \
     if(!func_prefix || is_prefix_of(func_prefix, # __f)) { \
       nb_exec_tests++; \
-      if((rv = __f)) { FLEA_PRINTF_TEST_OUTP_3_SWITCHED("FAILED TEST: error %x in test %s\n", rv, # __f); failed_tests++; } \
+      if((rv = __f)) {FLEA_PRINTF_TEST_OUTP_3_SWITCHED("FAILED TEST: error %x in test %s\n", rv, # __f); failed_tests++;} \
       CHECK_DBG_CANARIES_FLAG_SWITCHED(__f); \
     } \
   } while(0)
 
-int flea_unit_tests(flea_u32_t nb_reps, const char *cert_path_prefix, const char *func_prefix, flea_bool_t full__b)
+int flea_unit_tests(
+  flea_u32_t  nb_reps,
+  const char* cert_path_prefix,
+  const char* func_prefix,
+  flea_bool_t full__b
+)
 {
   unsigned nb_exec_tests = 0;
   unsigned failed_tests  = 0;

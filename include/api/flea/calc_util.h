@@ -8,7 +8,7 @@
 /**
  * Determine the maximum of two values
  */
-#define FLEA_MAX(a, b) ( (a) > (b) ? (a) : (b))
+#define FLEA_MAX(a, b) ((a) > (b) ? (a) : (b))
 
 /**
  * Determine the maximum of three values
@@ -28,7 +28,7 @@
 /**
  * Determine the minimum of two values
  */
-#define FLEA_MIN(a, b) ( (a) > (b) ? (b) : (a))
+#define FLEA_MIN(a, b) ((a) > (b) ? (b) : (a))
 
 /**
  * Determine the minimum of three values

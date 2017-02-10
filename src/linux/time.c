@@ -6,10 +6,10 @@
 #include <time.h>
 
 #ifdef FLEA_ON_LINUX_PLTF
-flea_err_t THR_flea_pltfif_time__get_current_time(flea_gmt_time_t *time__t)
+flea_err_t THR_flea_pltfif_time__get_current_time(flea_gmt_time_t* time__t)
 {
   time_t t;
-  struct tm *ts;
+  struct tm* ts;
 
   FLEA_THR_BEG_FUNC();
   t  = time(NULL);

@@ -15,8 +15,11 @@ using namespace std;
 
 
 // TODO: EVALUATE KEY LEN REQ IN TESTS
-#if defined FLEA_HAVE_RSA && ( FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
-static flea_err_t THR_flea_execute_path_test_case_for_properties(std::string const& dir_path, property_set_t const& prop)
+#if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
+static flea_err_t THR_flea_execute_path_test_case_for_properties(
+  std::string const   & dir_path,
+  property_set_t const& prop
+)
 {
   FLEA_THR_BEG_FUNC();
   std::vector<std::string> trust_anchor_files = get_entries_of_dir(dir_path + "/trust_anchors", dir_entries_with_path);
@@ -73,7 +76,7 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(std::string con
   string host_id_str = prop.get_property_as_string_default_empty("host_id");
   flea_host_id_type_e host_id_type = flea_host_dnsname; /* will be overridden */
   flea_ref_cu8_t host_id__rcu8;
-  flea_ref_cu8_t *host_id_mbn__prcu8 = nullptr;
+  flea_ref_cu8_t* host_id_mbn__prcu8 = nullptr;
   if(host_id_str != "")
   {
     string host_id_type_str = prop.get_property_as_string("host_id_type");
@@ -82,8 +85,7 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(std::string con
       // host_id_type = flea_host_ipaddr;
       throw test_utils_exceptn_t("host_id_type 'ip_addr' not yet supported");
     }
-    else
-    if(host_id_type_str == "dns_name")
+    else if(host_id_type_str == "dns_name")
     {
       host_id_type = flea_host_dnsname;
     }
@@ -97,11 +99,19 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(std::string con
   }
 
   err = THR_flea_test_cert_path_generic(
-    &target_cert[0], target_cert.size(),
-    &anchor_ptrs[0], &anchor_lens[0], anchor_ptrs.size(),
-    &cert_ptrs[0], &cert_lens[0], cert_ptrs.size(),
-    &crl_ptrs[0], &crl_lens[0], crl_ptrs.size(),
-    (const flea_u8_t *) time_str.c_str(), time_str.size(),
+    &target_cert[0],
+    target_cert.size(),
+    &anchor_ptrs[0],
+    &anchor_lens[0],
+    anchor_ptrs.size(),
+    &cert_ptrs[0],
+    &cert_lens[0],
+    cert_ptrs.size(),
+    &crl_ptrs[0],
+    &crl_lens[0],
+    crl_ptrs.size(),
+    (const flea_u8_t *) time_str.c_str(),
+    time_str.size(),
     disable_revocation_checking,
     host_id_mbn__prcu8,
     host_id_type
@@ -118,7 +128,9 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(std::string con
     {
       if(!prop.get_as_bool_default_false("suppress_validation_error"))
       {
-        std::cout << "test '" << prop.get_filename() << "': unsuccessful verification of correct cert chain, error code = " << std::hex << err << std::dec << std::endl;
+        std::cout << "test '" << prop.get_filename()
+                  << "': unsuccessful verification of correct cert chain, error code = " << std::hex << err << std::dec
+                  << std::endl;
         FLEA_THROW("unsuccessful validation of valid cert path", FLEA_ERR_FAILED_TEST);
       }
     }
@@ -127,8 +139,7 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(std::string con
       // std::cout << "ignoring failure of test "  << prop.get_filename() << " because of chain len restriction" << std::endl;
     }
   }
-  else
-  if(!valid && !err)
+  else if(!valid && !err)
   {
     std::cout << "test '" << prop.get_filename() << "': unexpexted successful chain verification" << std::endl;
     FLEA_THROW("successful validation of invalid cert path", FLEA_ERR_FAILED_TEST);
@@ -174,7 +185,10 @@ static flea_err_t THR_flea_execute_path_test_case(std::string const& dir_path)
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_test_path_validation_file_based(const char *cert_path_prefix, flea_u32_t *nb_exec_tests_pu32)
+flea_err_t THR_flea_test_path_validation_file_based(
+  const char* cert_path_prefix,
+  flea_u32_t* nb_exec_tests_pu32
+)
 {
   FLEA_THR_BEG_FUNC();
   std::string path_test_main_dir = "misc/testdata/cert_paths/";

@@ -136,7 +136,7 @@ const flea_hash_config_entry_t * flea_hash__get_hash_config_by_id(flea_hash_id_t
 
 flea_al_u16_t flea_hash__get_output_length_by_id(flea_hash_id_t id)
 {
-  const flea_hash_config_entry_t *config = flea_hash__get_hash_config_by_id(id);
+  const flea_hash_config_entry_t* config = flea_hash__get_hash_config_by_id(id);
 
   if(config == NULL)
   {
@@ -145,7 +145,10 @@ flea_al_u16_t flea_hash__get_output_length_by_id(flea_hash_id_t id)
   return config->output_length;
 }
 
-flea_err_t THR_flea_hash_ctx_t__ctor_copy(flea_hash_ctx_t *p_ctx_new, const flea_hash_ctx_t *p_ctx)
+flea_err_t THR_flea_hash_ctx_t__ctor_copy(
+  flea_hash_ctx_t*       p_ctx_new,
+  const flea_hash_ctx_t* p_ctx
+)
 {
   FLEA_THR_BEG_FUNC();
 
@@ -160,7 +163,11 @@ flea_err_t THR_flea_hash_ctx_t__ctor_copy(flea_hash_ctx_t *p_ctx_new, const flea
   FLEA_ALLOC_MEM(p_ctx_new->hash_state, p_ctx_new->p_config->hash_state_length);
   // FLEA_ALLOC_MEM_ARR(p_ctx_new->counter__bu32, p_ctx_new->counter_block_arr_len__u8);
 #endif
-  memcpy(p_ctx_new->pending_buffer, p_ctx->pending_buffer, p_ctx_new->p_config->block_length * sizeof(p_ctx_new->pending_buffer[0]));
+  memcpy(
+    p_ctx_new->pending_buffer,
+    p_ctx->pending_buffer,
+    p_ctx_new->p_config->block_length * sizeof(p_ctx_new->pending_buffer[0])
+  );
   memcpy(p_ctx_new->hash_state, p_ctx->hash_state, p_ctx_new->p_config->hash_state_length);
   FLEA_CCALL(THR_flea_len_ctr_t__ctor_copy(&p_ctx_new->len_ctr__t, &p_ctx->len_ctr__t));
   p_ctx_new->pending = p_ctx->pending;
@@ -169,7 +176,10 @@ flea_err_t THR_flea_hash_ctx_t__ctor_copy(flea_hash_ctx_t *p_ctx_new, const flea
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_hash_ctx_t__ctor(flea_hash_ctx_t *p_ctx, flea_hash_id_t id)
+flea_err_t THR_flea_hash_ctx_t__ctor(
+  flea_hash_ctx_t* p_ctx,
+  flea_hash_id_t   id
+)
 {
   flea_al_u8_t counter_block_arr_len__u8;
 
@@ -181,7 +191,14 @@ flea_err_t THR_flea_hash_ctx_t__ctor(flea_hash_ctx_t *p_ctx, flea_hash_id_t id)
     FLEA_THROW("could not find hash id for merkle-damgard scheme", FLEA_ERR_INV_ALGORITHM);
   }
   counter_block_arr_len__u8 = (p_ctx->p_config->count_format__u8 & ~1) / sizeof(p_ctx->len_ctr__t.counter__bu32[0]);
-  FLEA_CCALL(THR_flea_len_ctr_t__ctor(&p_ctx->len_ctr__t, counter_block_arr_len__u8, p_ctx->p_config->max_allowed_input_byte_len_exponent__u8, 0));
+  FLEA_CCALL(
+    THR_flea_len_ctr_t__ctor(
+      &p_ctx->len_ctr__t,
+      counter_block_arr_len__u8,
+      p_ctx->p_config->max_allowed_input_byte_len_exponent__u8,
+      0
+    )
+  );
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM(p_ctx->pending_buffer, p_ctx->p_config->block_length);
   FLEA_ALLOC_MEM(p_ctx->hash_state, p_ctx->p_config->hash_state_length);
@@ -190,7 +207,7 @@ flea_err_t THR_flea_hash_ctx_t__ctor(flea_hash_ctx_t *p_ctx, flea_hash_id_t id)
   FLEA_THR_FIN_SEC_empty();
 }
 
-void flea_hash_ctx_t__reset(flea_hash_ctx_t *p_ctx)
+void flea_hash_ctx_t__reset(flea_hash_ctx_t* p_ctx)
 {
   p_ctx->total_byte_length = 0;
   p_ctx->pending = 0;
@@ -198,14 +215,20 @@ void flea_hash_ctx_t__reset(flea_hash_ctx_t *p_ctx)
   flea_len_ctr_t__reset(&p_ctx->len_ctr__t);
 }
 
-static flea_err_t THR_flea_hash_ctx_t__add_to_counter_block_and_check_limit(flea_hash_ctx_t *ctx__pt, flea_dtl_t input_len__dtl)
+static flea_err_t THR_flea_hash_ctx_t__add_to_counter_block_and_check_limit(
+  flea_hash_ctx_t* ctx__pt,
+  flea_dtl_t       input_len__dtl
+)
 {
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_len_ctr_t__add_and_check_len_limit(&ctx__pt->len_ctr__t, input_len__dtl));
   FLEA_THR_FIN_SEC_empty();
 }
 
-static void flea_hash__encode_length_BE(const flea_hash_ctx_t *ctx__pt, flea_u8_t *output__pu8)
+static void flea_hash__encode_length_BE(
+  const flea_hash_ctx_t* ctx__pt,
+  flea_u8_t*             output__pu8
+)
 {
   flea_al_s8_t i;
 
@@ -216,7 +239,10 @@ static void flea_hash__encode_length_BE(const flea_hash_ctx_t *ctx__pt, flea_u8_
   }
 }
 
-static void flea_hash__encode_length_LE(const flea_hash_ctx_t *ctx__pt, flea_u8_t *output__pu8)
+static void flea_hash__encode_length_LE(
+  const flea_hash_ctx_t* ctx__pt,
+  flea_u8_t*             output__pu8
+)
 {
   flea_al_u8_t i;
 
@@ -227,7 +253,11 @@ static void flea_hash__encode_length_LE(const flea_hash_ctx_t *ctx__pt, flea_u8_
   }
 }
 
-flea_err_t THR_flea_hash_ctx_t__update(flea_hash_ctx_t *p_ctx, const flea_u8_t *input, flea_dtl_t input_len)
+flea_err_t THR_flea_hash_ctx_t__update(
+  flea_hash_ctx_t* p_ctx,
+  const flea_u8_t* input,
+  flea_dtl_t       input_len
+)
 {
   flea_al_u8_t block_length = p_ctx->p_config->block_length;
   flea_dtl_t nb_full_blocks, tail_len, i;
@@ -267,14 +297,21 @@ flea_err_t THR_flea_hash_ctx_t__update(flea_hash_ctx_t *p_ctx, const flea_u8_t *
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_hash_ctx_t__update */
 
-flea_err_t THR_flea_hash_ctx_t__final(flea_hash_ctx_t *p_ctx, flea_u8_t *output)
+flea_err_t THR_flea_hash_ctx_t__final(
+  flea_hash_ctx_t* p_ctx,
+  flea_u8_t*       output
+)
 {
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_hash_ctx_t__final_with_length_limit(p_ctx, output, p_ctx->p_config->block_length));
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_hash_ctx_t__final_with_length_limit(flea_hash_ctx_t *p_ctx, flea_u8_t *output, flea_al_u16_t output_length)
+flea_err_t THR_flea_hash_ctx_t__final_with_length_limit(
+  flea_hash_ctx_t* p_ctx,
+  flea_u8_t*       output,
+  flea_al_u16_t    output_length
+)
 {
   FLEA_THR_BEG_FUNC();
   flea_al_u8_t block_length = p_ctx->p_config->block_length;
@@ -294,7 +331,8 @@ flea_err_t THR_flea_hash_ctx_t__final_with_length_limit(flea_hash_ctx_t *p_ctx, 
     // fill up the pending block with zeroes and process it
     memset(p_ctx->pending_buffer + p_ctx->pending, 0, zeroes);
     FLEA_CCALL(THR_compr_func(p_ctx, p_ctx->pending_buffer));
-    zeroes         = block_length - p_ctx->len_ctr__t.counter_block_arr_len__u8 * sizeof(p_ctx->len_ctr__t.counter__bu32[0]);
+    zeroes = block_length - p_ctx->len_ctr__t.counter_block_arr_len__u8
+      * sizeof(p_ctx->len_ctr__t.counter__bu32[0]);
     p_ctx->pending = 0;
   }
   else
@@ -333,7 +371,7 @@ flea_err_t THR_flea_hash_ctx_t__final_with_length_limit(flea_hash_ctx_t *p_ctx, 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_hash_ctx_t__final_with_length_limit */
 
-void flea_hash_ctx_t__dtor(flea_hash_ctx_t *p_ctx)
+void flea_hash_ctx_t__dtor(flea_hash_ctx_t* p_ctx)
 {
   if(p_ctx->p_config == NULL)
   {
@@ -344,12 +382,18 @@ void flea_hash_ctx_t__dtor(flea_hash_ctx_t *p_ctx)
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(p_ctx->hash_state, p_ctx->p_config->hash_state_length / sizeof(flea_u32_t));
 }
 
-flea_al_u16_t flea_hash_ctx_t__get_output_length(flea_hash_ctx_t *p_ctx)
+flea_al_u16_t flea_hash_ctx_t__get_output_length(flea_hash_ctx_t* p_ctx)
 {
   return p_ctx->p_config->output_length;
 }
 
-flea_err_t THR_flea_compute_hash(flea_hash_id_t id, const flea_u8_t *input_pu8, flea_dtl_t input_len_al_u16, flea_u8_t *output_pu8, flea_al_u16_t output_len_al_u16)
+flea_err_t THR_flea_compute_hash(
+  flea_hash_id_t   id,
+  const flea_u8_t* input_pu8,
+  flea_dtl_t       input_len_al_u16,
+  flea_u8_t*       output_pu8,
+  flea_al_u16_t    output_len_al_u16
+)
 {
   FLEA_DECL_OBJ(ctx, flea_hash_ctx_t);
   flea_al_u16_t natural_output_len_al_u16;
@@ -359,7 +403,10 @@ flea_err_t THR_flea_compute_hash(flea_hash_id_t id, const flea_u8_t *input_pu8, 
   natural_output_len_al_u16 = flea_hash_ctx_t__get_output_length(&ctx);
   if(natural_output_len_al_u16 < output_len_al_u16)
   {
-    FLEA_THROW("desired output length of digest is longer than the hash functions natural output length", FLEA_ERR_INV_ARG);
+    FLEA_THROW(
+      "desired output length of digest is longer than the hash functions natural output length",
+      FLEA_ERR_INV_ARG
+    );
   }
   FLEA_CCALL(THR_flea_hash_ctx_t__update(&ctx, input_pu8, input_len_al_u16));
 

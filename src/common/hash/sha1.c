@@ -8,10 +8,10 @@
 #include "flea/error_handling.h"
 
 #ifdef FLEA_HAVE_SHA1
-# define ROL(x, y)   ( ((x) << (y)) | ((x) >> (32 - (y))) )
-# define ROR(x, y)   ( ((x) >> (y)) | ((x) << (32 - (y))) )
+# define ROL(x, y)   (((x) << (y)) | ((x) >> (32 - (y))))
+# define ROR(x, y)   (((x) >> (y)) | ((x) << (32 - (y))))
 
-# define F0(x, y, z) ( (x & y) | ((~x) & z) )
+# define F0(x, y, z) ((x & y) | ((~x) & z))
 # define F1(x, y, z) (x ^ y ^ z)
 # define F2(x, y, z) ((x & y) | (z & (x | y)))
 # define F3(x, y, z) (x ^ y ^ z)
@@ -25,29 +25,54 @@
 
 # else
 
-typedef flea_u32_t (*F_f)(flea_u32_t x, flea_u32_t y, flea_u32_t z);
+typedef flea_u32_t (* F_f)(
+  flea_u32_t x,
+  flea_u32_t y,
+  flea_u32_t z
+);
 
-flea_u32_t F0_f(flea_u32_t x, flea_u32_t y, flea_u32_t z)
+flea_u32_t F0_f(
+  flea_u32_t x,
+  flea_u32_t y,
+  flea_u32_t z
+)
 {
   return F0(x, y, z);
 }
 
-flea_u32_t F1_f(flea_u32_t x, flea_u32_t y, flea_u32_t z)
+flea_u32_t F1_f(
+  flea_u32_t x,
+  flea_u32_t y,
+  flea_u32_t z
+)
 {
   return F1(x, y, z);
 }
 
-flea_u32_t F2_f(flea_u32_t x, flea_u32_t y, flea_u32_t z)
+flea_u32_t F2_f(
+  flea_u32_t x,
+  flea_u32_t y,
+  flea_u32_t z
+)
 {
   return F2(x, y, z);
 }
 
-flea_u32_t F3_f(flea_u32_t x, flea_u32_t y, flea_u32_t z)
+flea_u32_t F3_f(
+  flea_u32_t x,
+  flea_u32_t y,
+  flea_u32_t z
+)
 {
   return F3(x, y, z);
 }
 
-static void flea_sha1_20_rounds(flea_u32_t *abcde, flea_u32_t k, flea_u32_t *W, F_f func)
+static void flea_sha1_20_rounds(
+  flea_u32_t* abcde,
+  flea_u32_t  k,
+  flea_u32_t* W,
+  F_f         func
+)
 {
   flea_al_u8_t i;
   flea_u32_t a = abcde[0];
@@ -77,11 +102,14 @@ static void flea_sha1_20_rounds(flea_u32_t *abcde, flea_u32_t k, flea_u32_t *W, 
 
 
 # define FLEA_LOAD_U32_BE(y)       \
-  (((flea_u32_t) ((&y)[0] ) << 24)   \
-  | ((flea_u32_t) ((&y)[1] ) << 16)   \
-  | ((flea_u32_t) ((&y)[2] ) << 8)    \
-  | ((flea_u32_t) ((&y)[3] )))
-flea_err_t THR_flea_sha1_compression_function(flea_hash_ctx_t *ctx__pt, const flea_u8_t *input__pc_u8)
+  (((flea_u32_t) ((&y)[0]) << 24)   \
+  | ((flea_u32_t) ((&y)[1]) << 16)   \
+  | ((flea_u32_t) ((&y)[2]) << 8)    \
+  | ((flea_u32_t) ((&y)[3])))
+flea_err_t THR_flea_sha1_compression_function(
+  flea_hash_ctx_t* ctx__pt,
+  const flea_u8_t* input__pc_u8
+)
 {
   flea_u32_t i, j;
 
@@ -90,7 +118,7 @@ flea_err_t THR_flea_sha1_compression_function(flea_hash_ctx_t *ctx__pt, const fl
 # else
   flea_u32_t abcde[5];
 # endif
-  flea_u32_t *state__p_u32;
+  flea_u32_t* state__p_u32;
   FLEA_DECL_BUF(W__bu8, flea_u32_t, 80);
   FLEA_THR_BEG_FUNC();
   FLEA_ALLOC_BUF(W__bu8, 80);
@@ -173,9 +201,9 @@ flea_err_t THR_flea_sha1_compression_function(flea_hash_ctx_t *ctx__pt, const fl
   );
 } /* THR_flea_sha1_compression_function */
 
-void flea_sha1_init(flea_hash_ctx_t *ctx__pt)
+void flea_sha1_init(flea_hash_ctx_t* ctx__pt)
 {
-  flea_u32_t *state__p_u32 = (flea_u32_t *) ctx__pt->hash_state;
+  flea_u32_t* state__p_u32 = (flea_u32_t *) ctx__pt->hash_state;
 
   state__p_u32[0] = 0x67452301;
   state__p_u32[1] = 0xefcdab89;

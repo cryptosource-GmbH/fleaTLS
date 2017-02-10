@@ -11,7 +11,7 @@
  * use standard malloc and free
  */
 #define MY_FLEA_ALLOC_MEM(__ptr, __size) \
-  do { (__ptr) = malloc(__size); } while(0)
+  do {(__ptr) = malloc(__size);} while(0)
 
 #define MY_FLEA_FREE_MEM(__ptr) \
   free(__ptr)
@@ -22,7 +22,7 @@
   do { \
     MY_FLEA_ALLOC_MEM(__ptr, __size); \
     if(!(__ptr)) { \
-      FLEA_THROW("could not aquire memory", FLEA_ERR_OUT_OF_MEM); } \
+      FLEA_THROW("could not aquire memory", FLEA_ERR_OUT_OF_MEM);} \
   } while(0)
 
 #define FLEA_ALLOC_MEM_ARR(__ptr, __size) FLEA_ALLOC_MEM((__ptr), sizeof((__ptr)[0]) * (__size))
@@ -60,7 +60,7 @@
 
 #ifdef FLEA_USE_HEAP_BUF
 # define FLEA_HEAP_OR_STACK_CODE(__heap, __stack)   __heap
-# define FLEA_DO_IF_USE_HEAP_BUF(__x)               do { __x } while(0)
+# define FLEA_DO_IF_USE_HEAP_BUF(__x)               do {__x} while(0)
 # define __FLEA_FREE_BUF_SET_NULL(__name)           FLEA_FREE_MEM_SET_NULL(__name)
 # define FLEA_DECL_DYN_LEN(__name, __type, __value) __len_type __dyn_len_name = __static_len
 #else
@@ -110,8 +110,11 @@
 # error no buf type (heap or stack) defined for flea
 #endif // ifdef FLEA_USE_HEAP_BUF
 
-flea_err_t
-THR_flea_alloc__realloc_mem(void **mem_in_out__ppv, flea_u32_t orig_size__u32, flea_u32_t new_size__u32);
+flea_err_t THR_flea_alloc__realloc_mem(
+  void**     mem_in_out__ppv,
+  flea_u32_t orig_size__u32,
+  flea_u32_t new_size__u32
+);
 
 /**
  * Ensure the size of a buffer providing minimal and maximal growth size and the
@@ -132,7 +135,14 @@ THR_flea_alloc__realloc_mem(void **mem_in_out__ppv, flea_u32_t orig_size__u32, f
  * @return flea error code in the case the allocation request cannot be
  * fullfilled due to exceeding the provided limit or a failing allocation.
  */
-flea_err_t
-THR_flea_alloc__ensure_buffer_capacity(void **mem_in_out__ppv, flea_dtl_t *in_out_alloc_units__pdtl, flea_dtl_t used_units__dtl, flea_dtl_t min_grow_units__dtl, flea_dtl_t max_grow_units__dtl, flea_dtl_t max_alloc_units__dtl, flea_al_u16_t unit_byte_size__alu16);
+flea_err_t THR_flea_alloc__ensure_buffer_capacity(
+  void**        mem_in_out__ppv,
+  flea_dtl_t*   in_out_alloc_units__pdtl,
+  flea_dtl_t    used_units__dtl,
+  flea_dtl_t    min_grow_units__dtl,
+  flea_dtl_t    max_grow_units__dtl,
+  flea_dtl_t    max_alloc_units__dtl,
+  flea_al_u16_t unit_byte_size__alu16
+);
 
 #endif /* h-guard */

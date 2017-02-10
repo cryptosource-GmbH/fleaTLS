@@ -19,7 +19,17 @@
 #include "internal/common/ecc_int.h"
 
 #ifdef FLEA_HAVE_ECDSA
-flea_err_t THR_flea_ecdsa__raw_verify(const flea_u8_t *enc_r, flea_al_u8_t enc_r_len, const flea_u8_t *enc_s, flea_al_u8_t enc_s_len, const flea_u8_t *message, flea_al_u8_t message_len, const flea_u8_t *pub_point_enc, flea_al_u8_t pub_point_enc_len, const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
+flea_err_t THR_flea_ecdsa__raw_verify(
+  const flea_u8_t*                 enc_r,
+  flea_al_u8_t                     enc_r_len,
+  const flea_u8_t*                 enc_s,
+  flea_al_u8_t                     enc_s_len,
+  const flea_u8_t*                 message,
+  flea_al_u8_t                     message_len,
+  const flea_u8_t*                 pub_point_enc,
+  flea_al_u8_t                     pub_point_enc_len,
+  const flea_ec_gfp_dom_par_ref_t* dom_par__pt
+)
 {
   flea_mpi_t n, s, s_inv, double_sized_field_elem;
 
@@ -34,10 +44,14 @@ flea_err_t THR_flea_ecdsa__raw_verify(const flea_u8_t *enc_r, flea_al_u8_t enc_r
 # else
   flea_al_u8_t enc_order_len;
   flea_al_u8_t enc_field_len;
-  flea_uword_t *ecc_ws_mpi_arrs [ECDSA_VERIFY_MPI_WS_COUNT];
+  flea_uword_t* ecc_ws_mpi_arrs [ECDSA_VERIFY_MPI_WS_COUNT];
 # endif
   FLEA_DECL_BUF(vn, flea_hlf_uword_t, FLEA_MPI_DIV_VN_HLFW_LEN_FROM_DIVISOR_W_LEN(FLEA_ECC_MAX_ORDER_WORD_SIZE));
-  FLEA_DECL_BUF(un, flea_hlf_uword_t, FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(2 * (FLEA_ECC_MAX_MOD_WORD_SIZE + 1)));
+  FLEA_DECL_BUF(
+    un,
+    flea_hlf_uword_t,
+    FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(2 * (FLEA_ECC_MAX_MOD_WORD_SIZE + 1))
+  );
   FLEA_DECL_BUF(s_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE);
   FLEA_DECL_BUF(s_inv_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE);
   FLEA_DECL_BUF(n_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE);
@@ -87,25 +101,54 @@ flea_err_t THR_flea_ecdsa__raw_verify(const flea_u8_t *enc_r, flea_al_u8_t enc_r
   FLEA_ALLOC_BUF(double_sized_field_elem_arr, double_sized_field_elem_arr_len);
 
 
-  FLEA_CCALL(THR_flea_curve_gfp_t__init_dp_array(
+  FLEA_CCALL(
+    THR_flea_curve_gfp_t__init_dp_array(
       &curve,
       dom_par__pt,
       curve_word_arr,
-      FLEA_HEAP_OR_STACK_CODE(curve_word_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(curve_word_arr))));
+      FLEA_HEAP_OR_STACK_CODE(curve_word_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(curve_word_arr))
+    )
+  );
 
-  FLEA_CCALL(THR_flea_point_gfp_t__init(&G, dom_par__pt->gx__ru8.data__pcu8, dom_par__pt->gx__ru8.len__dtl, dom_par__pt->gy__ru8.data__pcu8, dom_par__pt->gy__ru8.len__dtl, G_arr, FLEA_HEAP_OR_STACK_CODE(G_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(G_arr))));
-  FLEA_CCALL(THR_flea_point_gfp_t__init_decode(&P, pub_point_enc, pub_point_enc_len, P_arr, FLEA_HEAP_OR_STACK_CODE(G_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(P_arr))));
+  FLEA_CCALL(
+    THR_flea_point_gfp_t__init(
+      &G,
+      dom_par__pt->gx__ru8.data__pcu8,
+      dom_par__pt->gx__ru8.len__dtl,
+      dom_par__pt->gy__ru8.data__pcu8,
+      dom_par__pt->gy__ru8.len__dtl,
+      G_arr,
+      FLEA_HEAP_OR_STACK_CODE(G_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(G_arr))
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_point_gfp_t__init_decode(
+      &P,
+      pub_point_enc,
+      pub_point_enc_len,
+      P_arr,
+      FLEA_HEAP_OR_STACK_CODE(G_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(P_arr))
+    )
+  );
   flea_mpi_t__init(&s_inv, s_inv_arr, FLEA_HEAP_OR_STACK_CODE(order_word_len, FLEA_STACK_BUF_NB_ENTRIES(s_inv_arr)));
   flea_mpi_t__init(&s, s_arr, FLEA_HEAP_OR_STACK_CODE(order_word_len, FLEA_STACK_BUF_NB_ENTRIES(s_arr)));
   flea_mpi_t__init(&n, n_arr, FLEA_HEAP_OR_STACK_CODE(order_word_len, FLEA_STACK_BUF_NB_ENTRIES(n_arr)));
-  flea_mpi_t__init(&double_sized_field_elem, double_sized_field_elem_arr, FLEA_HEAP_OR_STACK_CODE(double_sized_field_elem_arr_len, FLEA_STACK_BUF_NB_ENTRIES(double_sized_field_elem_arr)));
+  flea_mpi_t__init(
+    &double_sized_field_elem,
+    double_sized_field_elem_arr,
+    FLEA_HEAP_OR_STACK_CODE(double_sized_field_elem_arr_len, FLEA_STACK_BUF_NB_ENTRIES(double_sized_field_elem_arr))
+  );
 
   FLEA_CCALL(THR_flea_mpi_t__decode(&n, dom_par__pt->n__ru8.data__pcu8, dom_par__pt->n__ru8.len__dtl));
   FLEA_CCALL(THR_flea_mpi_t__decode(&s, enc_s, enc_s_len));
 
   for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs); i++)
   {
-    flea_mpi_t__init(&mpi_worksp_arr[i], ecc_ws_mpi_arrs[i], FLEA_HEAP_OR_STACK_CODE(ecc_ws_mpi_arrs_word_len, FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs[i])));
+    flea_mpi_t__init(
+      &mpi_worksp_arr[i],
+      ecc_ws_mpi_arrs[i],
+      FLEA_HEAP_OR_STACK_CODE(ecc_ws_mpi_arrs_word_len, FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs[i]))
+    );
   }
   // k_inv = k^(-1)
   FLEA_CCALL(THR_flea_mpi_t__invert_odd_mod(&s_inv, &s, &n, mpi_worksp_arr));
@@ -169,7 +212,17 @@ flea_err_t THR_flea_ecdsa__raw_verify(const flea_u8_t *enc_r, flea_al_u8_t enc_r
   );
 } /* THR_flea_ecdsa__raw_verify */
 
-flea_err_t THR_flea_ecdsa__raw_sign(flea_u8_t *res_r_arr, flea_al_u8_t *res_r_arr_len, flea_u8_t *res_s_arr, flea_al_u8_t *res_s_arr_len, const flea_u8_t *message, flea_al_u8_t message_len, const flea_u8_t *priv_key_enc_arr, flea_al_u8_t priv_key_enc_arr_len, const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
+flea_err_t THR_flea_ecdsa__raw_sign(
+  flea_u8_t*                       res_r_arr,
+  flea_al_u8_t*                    res_r_arr_len,
+  flea_u8_t*                       res_s_arr,
+  flea_al_u8_t*                    res_s_arr_len,
+  const flea_u8_t*                 message,
+  flea_al_u8_t                     message_len,
+  const flea_u8_t*                 priv_key_enc_arr,
+  flea_al_u8_t                     priv_key_enc_arr_len,
+  const flea_ec_gfp_dom_par_ref_t* dom_par__pt
+)
 {
   flea_mpi_t n, k, k_inv, r, s;
 
@@ -187,11 +240,15 @@ flea_err_t THR_flea_ecdsa__raw_sign(flea_u8_t *res_r_arr, flea_al_u8_t *res_r_ar
 # ifdef FLEA_USE_STACK_BUF
   flea_uword_t ecc_ws_mpi_arrs [ECDSA_SIGN_MPI_WS_COUNT][FLEA_ECC_MAX_ORDER_WORD_SIZE];
 # else
-  flea_uword_t *ecc_ws_mpi_arrs [ECDSA_SIGN_MPI_WS_COUNT];
+  flea_uword_t* ecc_ws_mpi_arrs [ECDSA_SIGN_MPI_WS_COUNT];
   flea_al_u8_t enc_field_len, enc_order_len;
 # endif
   FLEA_DECL_BUF(vn, flea_hlf_uword_t, FLEA_MPI_DIV_VN_HLFW_LEN_FROM_DIVISOR_W_LEN(FLEA_ECC_MAX_ORDER_WORD_SIZE));
-  FLEA_DECL_BUF(un, flea_hlf_uword_t, FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(2 * (FLEA_ECC_MAX_MOD_WORD_SIZE + 1)));
+  FLEA_DECL_BUF(
+    un,
+    flea_hlf_uword_t,
+    FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(2 * (FLEA_ECC_MAX_MOD_WORD_SIZE + 1))
+  );
   FLEA_DECL_BUF(k_arr, flea_uword_t, 2 * FLEA_ECC_MAX_ORDER_WORD_SIZE + 1);
   FLEA_DECL_BUF(k_inv_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE);
   FLEA_DECL_BUF(n_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE);
@@ -230,14 +287,27 @@ flea_err_t THR_flea_ecdsa__raw_sign(flea_u8_t *res_r_arr, flea_al_u8_t *res_r_ar
   FLEA_ALLOC_BUF(curve_word_arr, curve_word_arr_word_len);
 
 
-  FLEA_CCALL(THR_flea_curve_gfp_t__init_dp_array(
+  FLEA_CCALL(
+    THR_flea_curve_gfp_t__init_dp_array(
       &curve,
       // p_dp,
       dom_par__pt,
       curve_word_arr,
-      FLEA_HEAP_OR_STACK_CODE(curve_word_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(curve_word_arr))));
+      FLEA_HEAP_OR_STACK_CODE(curve_word_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(curve_word_arr))
+    )
+  );
   FLEA_ALLOC_BUF(G_arr, G_arr_word_len);
-  FLEA_CCALL(THR_flea_point_gfp_t__init(&G, dom_par__pt->gx__ru8.data__pcu8, dom_par__pt->gx__ru8.len__dtl, dom_par__pt->gy__ru8.data__pcu8, dom_par__pt->gy__ru8.len__dtl, G_arr, FLEA_HEAP_OR_STACK_CODE(G_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(G_arr))));
+  FLEA_CCALL(
+    THR_flea_point_gfp_t__init(
+      &G,
+      dom_par__pt->gx__ru8.data__pcu8,
+      dom_par__pt->gx__ru8.len__dtl,
+      dom_par__pt->gy__ru8.data__pcu8,
+      dom_par__pt->gy__ru8.len__dtl,
+      G_arr,
+      FLEA_HEAP_OR_STACK_CODE(G_arr_word_len, FLEA_STACK_BUF_NB_ENTRIES(G_arr))
+    )
+  );
 
   FLEA_ALLOC_BUF(vn, vn_len);
   FLEA_ALLOC_BUF(un, un_len);
@@ -268,8 +338,7 @@ flea_err_t THR_flea_ecdsa__raw_sign(flea_u8_t *res_r_arr, flea_al_u8_t *res_r_ar
     do
     {
       FLEA_CCALL(THR_flea_mpi_t__random_integer(&k, &n));
-    }
-    while(flea_mpi_t__is_zero(&k));
+    } while(flea_mpi_t__is_zero(&k));
 
     // mul Q=k*G
     FLEA_CCALL(THR_flea_point_gfp_t__mul(&G, &k, &curve, do_use_add_always__b));
@@ -288,7 +357,11 @@ flea_err_t THR_flea_ecdsa__raw_sign(flea_u8_t *res_r_arr, flea_al_u8_t *res_r_ar
 # endif
     for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs); i++)
     {
-      flea_mpi_t__init(&mpi_worksp_arr[i], ecc_ws_mpi_arrs[i], FLEA_HEAP_OR_STACK_CODE(ecc_ws_mpi_arrs_word_len, FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs[i])));
+      flea_mpi_t__init(
+        &mpi_worksp_arr[i],
+        ecc_ws_mpi_arrs[i],
+        FLEA_HEAP_OR_STACK_CODE(ecc_ws_mpi_arrs_word_len, FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs[i]))
+      );
     }
     // k_inv = k^(-1)
     FLEA_CCALL(THR_flea_mpi_t__invert_odd_mod(&k_inv, &k, &n, mpi_worksp_arr));

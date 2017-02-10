@@ -14,7 +14,10 @@
 #include "flea/lib.h"
 #include "flea/rng.h"
 
-int main(int argc, const char **argv)
+int main(
+  int          argc,
+  const char** argv
+)
 {
   int res;
   flea_u32_t rnd = 0;
@@ -41,9 +44,9 @@ int main(int argc, const char **argv)
   else
   {
     flea_u32_t reps = 1;
-    const char *cert_path_prefix = NULL;
+    const char* cert_path_prefix = NULL;
     std::string cert_path_prefix_str;
-    const char *func_prefix = NULL;
+    const char* func_prefix = NULL;
     std::string func_prefix_str;
     if(cmdl_args.have_index("cert_path_prefix"))
     {

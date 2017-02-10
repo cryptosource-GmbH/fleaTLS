@@ -19,14 +19,14 @@ public:
   /**
    * Get the message of the exception.
    */
-  const char * what() const throw() { return msg.c_str(); }
+  const char * what() const throw() {return msg.c_str();}
 
-  test_utils_exceptn_t(const std::string& m = "Unknown error"){ set_msg(m); }
+  test_utils_exceptn_t(const std::string& m = "Unknown error"){set_msg(m);}
 
   virtual ~test_utils_exceptn_t() throw() { }
 
 protected:
-  void set_msg(const std::string& m){ msg = "test_utils: " + m; }
+  void set_msg(const std::string& m){msg = "test_utils: " + m;}
 
 private:
   std::string msg;
@@ -47,14 +47,21 @@ public:
 
   typedef enum { value_in_property_str_is_required_e, value_in_property_str_is_not_required_e } property_string_form_t;
 
-  property_set_t(std::string const& filename, properties_spec_t const& spec = properties_spec_t());
-  property_set_t(int argc, const char **argv, properties_spec_t const& spec = properties_spec_t());
+  property_set_t(
+    std::string const      & filename,
+    properties_spec_t const& spec = properties_spec_t()
+  );
+  property_set_t(
+    int                    argc,
+    const char**           argv,
+    properties_spec_t const& spec = properties_spec_t()
+  );
   std::string get_property_as_string(std::string const& index) const;
   std::string get_property_as_string_default_empty(std::string const& index) const;
   flea_u32_t get_property_as_u32(std::string const& index) const;
   flea_bool_t get_as_bool_required(std::string const& index) const
   {
-    bool *default_val = nullptr;
+    bool* default_val = nullptr;
 
     return get_property_as_bool(index, default_val);
   }
@@ -74,32 +81,48 @@ public:
   }
 
   bool have_index(std::string const& index) const;
-  flea_u32_t get_property_as_u32_default(std::string const& index, flea_u32_t default_val) const;
+  flea_u32_t get_property_as_u32_default(
+    std::string const& index,
+    flea_u32_t       default_val
+  ) const;
   std::string const& get_filename() const
-  { return m_filename; };
+  {return m_filename;};
 
 private:
 
-  void throw_exception(std::string const& text, std::string const& property = "") const;
-  void add_index_name_string_with_equation_mark(std::string const& s, property_string_form_t form);
-  flea_bool_t get_property_as_bool(std::string const& index, bool *default_ptr) const;
+  void throw_exception(
+    std::string const& text,
+    std::string const& property = ""
+  ) const;
+  void add_index_name_string_with_equation_mark(
+    std::string const      & s,
+    property_string_form_t form
+  );
+  flea_bool_t get_property_as_bool(
+    std::string const& index,
+    bool*            default_ptr
+  ) const;
   void ensure_index(std::string const& index) const;
   std::string m_filename;
   properties_spec_t m_spec;
 };
-std::vector<flea_u8_t>
-parse_line(const char *name, flea_u16_t result_size, std::ifstream & input);
+std::vector<flea_u8_t> parse_line(
+  const char*   name,
+  flea_u16_t    result_size,
+  std::ifstream & input
+);
 
-std::vector<unsigned char>
-read_bin_file(std::string const& filename);
+std::vector<unsigned char> read_bin_file(std::string const& filename);
 
-bool
-is_dir_existent(std::string const& dir_name);
+bool is_dir_existent(std::string const& dir_name);
 
-std::vector<std::string>
-get_entries_of_dir(std::string const& dir_name, dir_entry_extract_mode_t extr_mode, std::string const& postfix = "", std::string const& prefix = "");
+std::vector<std::string> get_entries_of_dir(
+  std::string const        & dir_name,
+  dir_entry_extract_mode_t extr_mode,
+  std::string const        & postfix = "",
+  std::string const        & prefix = ""
+);
 
-flea_u32_t
-string_to_u32bit(std::string const& str);
+flea_u32_t string_to_u32bit(std::string const& str);
 
 #endif // ifndef __flea_test_util_cpp_H_

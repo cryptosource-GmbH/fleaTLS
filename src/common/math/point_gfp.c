@@ -23,12 +23,16 @@
 /**
  * check whether the given point is the point at infinity
  */
-static flea_bool_t flea_point_jac_proj_t__is_zero(const flea_point_jac_proj_t *p_point)
+static flea_bool_t flea_point_jac_proj_t__is_zero(const flea_point_jac_proj_t* p_point)
 {
   return flea_mpi_t__is_zero(&p_point->m_z);
 }
 
-static flea_err_t THR_flea_point_gfp_t__verify_cofactor(const flea_point_gfp_t *point__pt, const flea_curve_gfp_t *curve__pct, const flea_mpi_t *cofactor__pt)
+static flea_err_t THR_flea_point_gfp_t__verify_cofactor(
+  const flea_point_gfp_t* point__pt,
+  const flea_curve_gfp_t* curve__pct,
+  const flea_mpi_t*       cofactor__pt
+)
 {
   flea_point_gfp_t point__t;
 
@@ -47,7 +51,12 @@ static flea_err_t THR_flea_point_gfp_t__verify_cofactor(const flea_point_gfp_t *
   );
 }
 
-flea_err_t THR_flea_point_gfp_t__validate_point(const flea_point_gfp_t *point__pt, const flea_curve_gfp_t *curve__pct, const flea_mpi_t *cofactor__pt, flea_mpi_div_ctx_t *div_ctx__pt)
+flea_err_t THR_flea_point_gfp_t__validate_point(
+  const flea_point_gfp_t* point__pt,
+  const flea_curve_gfp_t* curve__pct,
+  const flea_mpi_t*       cofactor__pt,
+  flea_mpi_div_ctx_t*     div_ctx__pt
+)
 {
   /*
    * verify the conditions given in
@@ -79,7 +88,11 @@ flea_err_t THR_flea_point_gfp_t__validate_point(const flea_point_gfp_t *point__p
 
 
   /* check that the coords of P are field elements */
-  if((0 <= flea_mpi_t__compare(&point__pt->m_x, &curve__pct->m_p)) || (0 <= flea_mpi_t__compare(&point__pt->m_y, &curve__pct->m_p)) )
+  if((0 <=
+    flea_mpi_t__compare(
+      &point__pt->m_x,
+      &curve__pct->m_p
+    )) || (0 <= flea_mpi_t__compare(&point__pt->m_y, &curve__pct->m_p)))
   {
     FLEA_THROW("ec point not curve", FLEA_ERR_POINT_NOT_ON_CURVE);
   }
@@ -110,7 +123,12 @@ flea_err_t THR_flea_point_gfp_t__validate_point(const flea_point_gfp_t *point__p
   );
 } /* THR_flea_point_gfp_t__validate_point */
 
-flea_err_t THR_flea_point_gfp_t__encode(flea_u8_t *p_u8__result, flea_al_u8_t *p_al_u8__result_len, flea_point_gfp_t *p_t_point, const flea_curve_gfp_t *p_t_curve)
+flea_err_t THR_flea_point_gfp_t__encode(
+  flea_u8_t*              p_u8__result,
+  flea_al_u8_t*           p_al_u8__result_len,
+  flea_point_gfp_t*       p_t_point,
+  const flea_curve_gfp_t* p_t_curve
+)
 {
   flea_al_u16_t al_u16__prime_byte_len;
 
@@ -125,15 +143,27 @@ flea_err_t THR_flea_point_gfp_t__encode(flea_u8_t *p_u8__result, flea_al_u8_t *p
   p_u8__result[0] = 0x04;
   // assuming that the correct curve has been used
   FLEA_CCALL(THR_flea_mpi_t__encode(&p_u8__result[1], al_u16__prime_byte_len, &p_t_point->m_x));
-  FLEA_CCALL(THR_flea_mpi_t__encode(&p_u8__result[1 + al_u16__prime_byte_len], al_u16__prime_byte_len, &p_t_point->m_y));
+  FLEA_CCALL(
+    THR_flea_mpi_t__encode(
+      &p_u8__result[1 + al_u16__prime_byte_len],
+      al_u16__prime_byte_len,
+      &p_t_point->m_y
+    )
+  );
   *p_al_u8__result_len = 2 * al_u16__prime_byte_len + 1;
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_point_gfp_t__init_decode(flea_point_gfp_t *p_result, const flea_u8_t *enc_point__pc_u8, flea_al_u16_t enc_point_len__al_u8, flea_uword_t *memory, flea_al_u16_t memory_word_len)
+flea_err_t THR_flea_point_gfp_t__init_decode(
+  flea_point_gfp_t* p_result,
+  const flea_u8_t*  enc_point__pc_u8,
+  flea_al_u16_t     enc_point_len__al_u8,
+  flea_uword_t*     memory,
+  flea_al_u16_t     memory_word_len
+)
 {
-  const flea_u8_t *x_enc__p_u8;
-  const flea_u8_t *y_enc__p_u8;
+  const flea_u8_t* x_enc__p_u8;
+  const flea_u8_t* y_enc__p_u8;
   flea_al_u8_t enc_coord_len__al_u8;
 
   FLEA_THR_BEG_FUNC();
@@ -144,12 +174,27 @@ flea_err_t THR_flea_point_gfp_t__init_decode(flea_point_gfp_t *p_result, const f
   }
   x_enc__p_u8 = &enc_point__pc_u8[1];
   y_enc__p_u8 = &enc_point__pc_u8[1 + enc_coord_len__al_u8];
-  FLEA_CCALL(THR_flea_point_gfp_t__init(p_result, x_enc__p_u8, enc_coord_len__al_u8, y_enc__p_u8, enc_coord_len__al_u8, memory, memory_word_len));
+  FLEA_CCALL(
+    THR_flea_point_gfp_t__init(
+      p_result,
+      x_enc__p_u8,
+      enc_coord_len__al_u8,
+      y_enc__p_u8,
+      enc_coord_len__al_u8,
+      memory,
+      memory_word_len
+    )
+  );
 
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_point_gfp_t__init_copy(flea_point_gfp_t *result__pt, const flea_point_gfp_t *other__pct, flea_uword_t *memory, flea_al_u16_t memory_word_len)
+flea_err_t THR_flea_point_gfp_t__init_copy(
+  flea_point_gfp_t*       result__pt,
+  const flea_point_gfp_t* other__pct,
+  flea_uword_t*           memory,
+  flea_al_u16_t           memory_word_len
+)
 {
   flea_mpi_ulen_t p_word_len = memory_word_len / 2;
 
@@ -163,7 +208,15 @@ flea_err_t THR_flea_point_gfp_t__init_copy(flea_point_gfp_t *result__pt, const f
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_point_gfp_t__init(flea_point_gfp_t *p_result, const flea_u8_t *x_enc, flea_al_u16_t x_enc_len, const flea_u8_t *y_enc, flea_al_u16_t y_enc_len, flea_uword_t *memory, flea_al_u16_t memory_word_len)
+flea_err_t THR_flea_point_gfp_t__init(
+  flea_point_gfp_t* p_result,
+  const flea_u8_t*  x_enc,
+  flea_al_u16_t     x_enc_len,
+  const flea_u8_t*  y_enc,
+  flea_al_u16_t     y_enc_len,
+  flea_uword_t*     memory,
+  flea_al_u16_t     memory_word_len
+)
 {
   flea_mpi_ulen_t p_word_len = memory_word_len / 2;
 
@@ -177,7 +230,12 @@ flea_err_t THR_flea_point_gfp_t__init(flea_point_gfp_t *p_result, const flea_u8_
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_point_jac_proj_t__set_to_zero(flea_point_jac_proj_t *p_result, const flea_mpi_t *p_montg_const_sq_mod_p, flea_montgm_mul_ctx_t *p_mm_ctx, flea_mpi_t *p_double_sized_ws)
+flea_err_t THR_flea_point_jac_proj_t__set_to_zero(
+  flea_point_jac_proj_t* p_result,
+  const flea_mpi_t*      p_montg_const_sq_mod_p,
+  flea_montgm_mul_ctx_t* p_mm_ctx,
+  flea_mpi_t*            p_double_sized_ws
+)
 {
   FLEA_THR_BEG_FUNC();
 
@@ -189,7 +247,16 @@ flea_err_t THR_flea_point_jac_proj_t__set_to_zero(flea_point_jac_proj_t *p_resul
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_point_jac_proj_t__init(flea_point_jac_proj_t *p_result, const flea_point_gfp_t *p_affine_point, const flea_mpi_t *p_montg_const_sq_mod_p, flea_mpi_t *p_mod_sized_ws, flea_montgm_mul_ctx_t *p_mm_ctx, flea_uword_t *memory, flea_al_u16_t memory_word_len, flea_mpi_t *p_mm_mul_result_ws)
+flea_err_t THR_flea_point_jac_proj_t__init(
+  flea_point_jac_proj_t*  p_result,
+  const flea_point_gfp_t* p_affine_point,
+  const flea_mpi_t*       p_montg_const_sq_mod_p,
+  flea_mpi_t*             p_mod_sized_ws,
+  flea_montgm_mul_ctx_t*  p_mm_ctx,
+  flea_uword_t*           memory,
+  flea_al_u16_t           memory_word_len,
+  flea_mpi_t*             p_mm_mul_result_ws
+)
 {
   FLEA_THR_BEG_FUNC();
   flea_mpi_ulen_t p_word_len = p_mm_ctx->p_mod->m_nb_used_words;
@@ -214,7 +281,12 @@ flea_err_t THR_flea_point_jac_proj_t__init(flea_point_jac_proj_t *p_result, cons
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_point_jac_proj_t__init_copy(flea_point_jac_proj_t *p_result, const flea_point_jac_proj_t *p_other_point, flea_uword_t *memory, flea_al_u16_t memory_word_len)
+flea_err_t THR_flea_point_jac_proj_t__init_copy(
+  flea_point_jac_proj_t*       p_result,
+  const flea_point_jac_proj_t* p_other_point,
+  flea_uword_t*                memory,
+  flea_al_u16_t                memory_word_len
+)
 {
   FLEA_THR_BEG_FUNC();
   flea_mpi_ulen_t p_word_len = memory_word_len / 3;
@@ -231,7 +303,15 @@ flea_err_t THR_flea_point_jac_proj_t__init_copy(flea_point_jac_proj_t *p_result,
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_point_jac_proj_t__add(flea_point_jac_proj_t *p_point_1, const flea_point_jac_proj_t *p_point_2, const flea_mpi_t *p_aR, const flea_mpi_t *p_bR, flea_montgm_mul_ctx_t *p_mm_ctx, flea_mpi_t p_workspace_arr[9], const flea_mpi_t *p_montg_const_sq_mod_p)
+flea_err_t THR_flea_point_jac_proj_t__add(
+  flea_point_jac_proj_t*       p_point_1,
+  const flea_point_jac_proj_t* p_point_2,
+  const flea_mpi_t*            p_aR,
+  const flea_mpi_t*            p_bR,
+  flea_montgm_mul_ctx_t*       p_mm_ctx,
+  flea_mpi_t                   p_workspace_arr[9],
+  const flea_mpi_t*            p_montg_const_sq_mod_p
+)
 {
   FLEA_THR_BEG_FUNC();
 
@@ -242,8 +322,7 @@ flea_err_t THR_flea_point_jac_proj_t__add(flea_point_jac_proj_t *p_point_1, cons
     FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(&p_point_1->m_z, &p_point_2->m_z));
     FLEA_THR_RETURN();
   }
-  else
-  if(flea_point_jac_proj_t__is_zero(p_point_2))
+  else if(flea_point_jac_proj_t__is_zero(p_point_2))
   {
     FLEA_THR_RETURN();
   }
@@ -261,18 +340,50 @@ flea_err_t THR_flea_point_jac_proj_t__add(flea_point_jac_proj_t *p_point_1, cons
 
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&p_workspace_arr[6], &p_point_2->m_y, &p_workspace_arr[5], p_mm_ctx));
 
-  FLEA_CCALL(THR_flea_mpi_t__subtract_mod(&p_workspace_arr[0], &p_workspace_arr[4], &p_workspace_arr[1], p_mm_ctx->p_mod, &p_workspace_arr[7]));
-  FLEA_CCALL(THR_flea_mpi_t__subtract_mod(&p_workspace_arr[7], &p_workspace_arr[6], &p_workspace_arr[3], p_mm_ctx->p_mod, &p_workspace_arr[8]));
+  FLEA_CCALL(
+    THR_flea_mpi_t__subtract_mod(
+      &p_workspace_arr[0],
+      &p_workspace_arr[4],
+      &p_workspace_arr[1],
+      p_mm_ctx->p_mod,
+      &p_workspace_arr[7]
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_mpi_t__subtract_mod(
+      &p_workspace_arr[7],
+      &p_workspace_arr[6],
+      &p_workspace_arr[3],
+      p_mm_ctx->p_mod,
+      &p_workspace_arr[8]
+    )
+  );
 
   if(flea_mpi_t__is_zero(&p_workspace_arr[0]))
   {
     if(flea_mpi_t__is_zero(&p_workspace_arr[7]))
     {
-      FLEA_CCALL(THR_flea_point_jac_proj_t__double(p_point_1, p_aR, p_bR, p_mm_ctx, p_workspace_arr, p_montg_const_sq_mod_p));
+      FLEA_CCALL(
+        THR_flea_point_jac_proj_t__double(
+          p_point_1,
+          p_aR,
+          p_bR,
+          p_mm_ctx,
+          p_workspace_arr,
+          p_montg_const_sq_mod_p
+        )
+      );
       FLEA_THR_RETURN();
     }
     // set point to zero
-    FLEA_CCALL(THR_flea_point_jac_proj_t__set_to_zero(p_point_1, p_montg_const_sq_mod_p, p_mm_ctx, &p_workspace_arr[0]));
+    FLEA_CCALL(
+      THR_flea_point_jac_proj_t__set_to_zero(
+        p_point_1,
+        p_montg_const_sq_mod_p,
+        p_mm_ctx,
+        &p_workspace_arr[0]
+      )
+    );
     FLEA_THR_RETURN();
   }
 
@@ -294,14 +405,30 @@ flea_err_t THR_flea_point_jac_proj_t__add(flea_point_jac_proj_t *p_point_1, cons
   FLEA_CCALL(THR_flea_mpi_t__quick_reduce_smaller_zero(&p_workspace_arr[5], p_mm_ctx->p_mod, &p_workspace_arr[8]));
   FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(&p_point_1->m_x, &p_workspace_arr[5]));
 
-  FLEA_CCALL(THR_flea_mpi_t__subtract_mod(&p_workspace_arr[4], &p_workspace_arr[4], &p_point_1->m_x, p_mm_ctx->p_mod, &p_workspace_arr[8]));
+  FLEA_CCALL(
+    THR_flea_mpi_t__subtract_mod(
+      &p_workspace_arr[4],
+      &p_workspace_arr[4],
+      &p_point_1->m_x,
+      p_mm_ctx->p_mod,
+      &p_workspace_arr[8]
+    )
+  );
 
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&p_workspace_arr[8], &p_workspace_arr[7], &p_workspace_arr[4], p_mm_ctx));
   FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(&p_point_1->m_y, &p_workspace_arr[8]));
 
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&p_workspace_arr[8], &p_workspace_arr[6], &p_workspace_arr[3], p_mm_ctx));
 
-  FLEA_CCALL(THR_flea_mpi_t__subtract_mod(&p_point_1->m_y, &p_point_1->m_y, &p_workspace_arr[8], p_mm_ctx->p_mod, &p_workspace_arr[1]));
+  FLEA_CCALL(
+    THR_flea_mpi_t__subtract_mod(
+      &p_point_1->m_y,
+      &p_point_1->m_y,
+      &p_workspace_arr[8],
+      p_mm_ctx->p_mod,
+      &p_workspace_arr[1]
+    )
+  );
 
   FLEA_CCALL(THR_flea_mpi_t__montgm_mul(&p_workspace_arr[8], &p_point_1->m_z, &p_point_2->m_z, p_mm_ctx));
 
@@ -313,18 +440,25 @@ flea_err_t THR_flea_point_jac_proj_t__add(flea_point_jac_proj_t *p_point_1, cons
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_point_jac_proj_t__add */
 
-flea_err_t THR_flea_point_jac_proj_t__double(flea_point_jac_proj_t *p_point, const flea_mpi_t *p_aR, const flea_mpi_t *p_bR, flea_montgm_mul_ctx_t *p_mm_ctx, flea_mpi_t p_workspace_arr[9], const flea_mpi_t *p_montg_const_sq_mod_p)
+flea_err_t THR_flea_point_jac_proj_t__double(
+  flea_point_jac_proj_t* p_point,
+  const flea_mpi_t*      p_aR,
+  const flea_mpi_t*      p_bR,
+  flea_montgm_mul_ctx_t* p_mm_ctx,
+  flea_mpi_t             p_workspace_arr[9],
+  const flea_mpi_t*      p_montg_const_sq_mod_p
+)
 {
-  flea_mpi_t *p_z_quad   = &p_workspace_arr[0];
-  flea_mpi_t *p_y_sq     = &p_workspace_arr[1];
-  flea_mpi_t *p_a_z_quad = &p_workspace_arr[2];
+  flea_mpi_t* p_z_quad   = &p_workspace_arr[0];
+  flea_mpi_t* p_y_sq     = &p_workspace_arr[1];
+  flea_mpi_t* p_a_z_quad = &p_workspace_arr[2];
 
-  flea_mpi_t *p_S = &p_workspace_arr[3];
-  flea_mpi_t *p_M = &p_workspace_arr[4];
-  flea_mpi_t *p_U = &p_workspace_arr[5];
-  flea_mpi_t *p_x = &p_workspace_arr[6];
-  flea_mpi_t *p_y = &p_workspace_arr[7];
-  flea_mpi_t *p_z = &p_workspace_arr[8];
+  flea_mpi_t* p_S = &p_workspace_arr[3];
+  flea_mpi_t* p_M = &p_workspace_arr[4];
+  flea_mpi_t* p_U = &p_workspace_arr[5];
+  flea_mpi_t* p_x = &p_workspace_arr[6];
+  flea_mpi_t* p_y = &p_workspace_arr[7];
+  flea_mpi_t* p_z = &p_workspace_arr[8];
 
 
   FLEA_THR_BEG_FUNC();
@@ -334,8 +468,7 @@ flea_err_t THR_flea_point_jac_proj_t__double(flea_point_jac_proj_t *p_point, con
   {
     FLEA_THR_RETURN();
   }
-  else
-  if(flea_mpi_t__is_zero(&p_point->m_y))
+  else if(flea_mpi_t__is_zero(&p_point->m_y))
   {
     FLEA_CCALL(THR_flea_point_jac_proj_t__set_to_zero(p_point, p_montg_const_sq_mod_p, p_mm_ctx, &p_workspace_arr[0]));
     FLEA_THR_RETURN();
@@ -404,14 +537,26 @@ flea_err_t THR_flea_point_jac_proj_t__double(flea_point_jac_proj_t *p_point, con
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_point_jac_proj_t__double */
 
-flea_err_t THR_flea_point_gfp_t__mul(flea_point_gfp_t *p_point_in_out, const flea_mpi_t *p_scalar, const flea_curve_gfp_t *p_curve, flea_bool_t use_add_always__b)
+flea_err_t THR_flea_point_gfp_t__mul(
+  flea_point_gfp_t*       p_point_in_out,
+  const flea_mpi_t*       p_scalar,
+  const flea_curve_gfp_t* p_curve,
+  flea_bool_t             use_add_always__b
+)
 {
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(p_point_in_out, p_scalar, NULL, NULL, p_curve, use_add_always__b));
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_point_gfp_t__mul_multi(flea_point_gfp_t *p_point_in_out, const flea_mpi_t *p_scalar, const flea_point_gfp_t *p_point_2, const flea_mpi_t *p_scalar_2, const flea_curve_gfp_t *p_curve, flea_bool_t use_add_always__b)
+flea_err_t THR_flea_point_gfp_t__mul_multi(
+  flea_point_gfp_t*       p_point_in_out,
+  const flea_mpi_t*       p_scalar,
+  const flea_point_gfp_t* p_point_2,
+  const flea_mpi_t*       p_scalar_2,
+  const flea_curve_gfp_t* p_curve,
+  flea_bool_t             use_add_always__b
+)
 {
   flea_point_jac_proj_t p2, p3;
   flea_mpi_ulen_t i;
@@ -423,14 +568,19 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(flea_point_gfp_t *p_point_in_out, con
   const flea_al_u16_t un_len = FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(2 * (prime_word_len + 1)); // + 1 due to reducing R^2 !
 
   FLEA_DECL_BUF(vn, flea_hlf_uword_t, FLEA_MPI_DIV_VN_HLFW_LEN_FROM_DIVISOR_W_LEN((FLEA_ECC_MAX_MOD_WORD_SIZE + 1)));
-  FLEA_DECL_BUF(un, flea_hlf_uword_t, FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(2 * (FLEA_ECC_MAX_MOD_WORD_SIZE + 1)));
+  FLEA_DECL_BUF(
+    un,
+    flea_hlf_uword_t,
+    FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(2 * (FLEA_ECC_MAX_MOD_WORD_SIZE + 1))
+  );
   flea_mpi_div_ctx_t div_ctx;
 
 
   flea_mpi_t montg_const, montg_const_sq_mod_p, mod_sized_ws, montgm_mul_ws, aR_mod_p, bR_mod_p;
 
   flea_mpi_t mpi_worksp_arr_double_mod_size[9];
-  const flea_al_u8_t precomp_points_count_const = FLEA_MAX(1 << FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE, (1 << (2 * FLEA_ECC_MULTI_MUL_MAX_WINDOW_SIZE)));
+  const flea_al_u8_t precomp_points_count_const =
+    FLEA_MAX(1 << FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE, (1 << (2 * FLEA_ECC_MULTI_MUL_MAX_WINDOW_SIZE)));
   flea_al_u8_t precomp_points_count;
   flea_al_u8_t window_size;
   flea_point_jac_proj_t precomp_points[precomp_points_count_const];
@@ -457,12 +607,13 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(flea_point_gfp_t *p_point_in_out, con
 # ifdef FLEA_USE_STACK_BUF
   flea_uword_t ecc_ws_mpi_arrs [9][ecc_ws_mpi_arrs_word_len];
 # else
-  flea_uword_t *ecc_ws_mpi_arrs [9];
+  flea_uword_t* ecc_ws_mpi_arrs [9];
 # endif
   flea_al_u8_t line_col_size = 0;
   FLEA_THR_BEG_FUNC();
 
-  precomp_points_count = p_point_2 ? (1 << (2 * FLEA_ECC_MULTI_MUL_MAX_WINDOW_SIZE)) : (1 << FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE);
+  precomp_points_count =
+    p_point_2 ? (1 << (2 * FLEA_ECC_MULTI_MUL_MAX_WINDOW_SIZE)) : (1 << FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE);
 # ifdef FLEA_USE_HEAP_BUF
   memset(ecc_ws_mpi_arrs, 0, sizeof(ecc_ws_mpi_arrs));
   for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs); i++)
@@ -525,7 +676,15 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(flea_point_gfp_t *p_point_in_out, con
   FLEA_CCALL(THR_flea_mpi_t__set_pow_2(&montg_const, p_curve->m_p.m_nb_used_words * FLEA_WORD_BIT_SIZE));
 
   FLEA_CCALL(THR_flea_mpi_t__mul(&mpi_worksp_arr_double_mod_size[0], &montg_const, &montg_const));
-  FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &montg_const_sq_mod_p, &mpi_worksp_arr_double_mod_size[0], &p_curve->m_p, &div_ctx));
+  FLEA_CCALL(
+    THR_flea_mpi_t__divide(
+      NULL,
+      &montg_const_sq_mod_p,
+      &mpi_worksp_arr_double_mod_size[0],
+      &p_curve->m_p,
+      &div_ctx
+    )
+  );
 
   FLEA_CCALL(THR_flea_mpi_t__mul(&mpi_worksp_arr_double_mod_size[0], &montg_const, &p_curve->m_a));
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &aR_mod_p, &mpi_worksp_arr_double_mod_size[0], &p_curve->m_p, &div_ctx));
@@ -534,8 +693,30 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(flea_point_gfp_t *p_point_in_out, con
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &bR_mod_p, &mpi_worksp_arr_double_mod_size[0], &p_curve->m_p, &div_ctx));
 
   // init as zero directly, use dummy values
-  FLEA_CCALL(THR_flea_point_jac_proj_t__init(&p2, p_point_in_out, &montg_const_sq_mod_p, &mod_sized_ws, &mm_ctx, proj_point_word_arr_2, proj_point_word_arr_word_len, &mpi_worksp_arr_double_mod_size[0]));
-  FLEA_CCALL(THR_flea_point_jac_proj_t__init(&p3, p_point_in_out, &montg_const_sq_mod_p, &mod_sized_ws, &mm_ctx, proj_point_word_arr_3, proj_point_word_arr_word_len, &mpi_worksp_arr_double_mod_size[0]));
+  FLEA_CCALL(
+    THR_flea_point_jac_proj_t__init(
+      &p2,
+      p_point_in_out,
+      &montg_const_sq_mod_p,
+      &mod_sized_ws,
+      &mm_ctx,
+      proj_point_word_arr_2,
+      proj_point_word_arr_word_len,
+      &mpi_worksp_arr_double_mod_size[0]
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_point_jac_proj_t__init(
+      &p3,
+      p_point_in_out,
+      &montg_const_sq_mod_p,
+      &mod_sized_ws,
+      &mm_ctx,
+      proj_point_word_arr_3,
+      proj_point_word_arr_word_len,
+      &mpi_worksp_arr_double_mod_size[0]
+    )
+  );
 
 
   if(p_point_2)
@@ -544,30 +725,93 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(flea_point_gfp_t *p_point_in_out, con
     window_size   = FLEA_ECC_MULTI_MUL_MAX_WINDOW_SIZE;
     line_col_size = 1 << window_size;
 
-    FLEA_CCALL(THR_flea_point_jac_proj_t__init(&precomp_points[1], p_point_2, &montg_const_sq_mod_p, &mod_sized_ws, &mm_ctx, precomp_points_word_arr + 1 * proj_point_word_arr_word_len, proj_point_word_arr_word_len, &mpi_worksp_arr_double_mod_size[0]));
+    FLEA_CCALL(
+      THR_flea_point_jac_proj_t__init(
+        &precomp_points[1],
+        p_point_2,
+        &montg_const_sq_mod_p,
+        &mod_sized_ws,
+        &mm_ctx,
+        precomp_points_word_arr + 1 * proj_point_word_arr_word_len,
+        proj_point_word_arr_word_len,
+        &mpi_worksp_arr_double_mod_size[0]
+      )
+    );
     // p1 already set
     // process first line
     for(i = 1; i < line_col_size; i++)
     {
       if(1 != i)
       {
-        FLEA_CCALL(THR_flea_point_jac_proj_t__init_copy(&precomp_points[i], &precomp_points[i - 1], precomp_points_word_arr + i * proj_point_word_arr_word_len, proj_point_word_arr_word_len));
-        FLEA_CCALL(THR_flea_point_jac_proj_t__add(&precomp_points[i], &precomp_points[1], &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+        FLEA_CCALL(
+          THR_flea_point_jac_proj_t__init_copy(
+            &precomp_points[i],
+            &precomp_points[i - 1],
+            precomp_points_word_arr + i * proj_point_word_arr_word_len,
+            proj_point_word_arr_word_len
+          )
+        );
+        FLEA_CCALL(
+          THR_flea_point_jac_proj_t__add(
+            &precomp_points[i],
+            &precomp_points[1],
+            &aR_mod_p,
+            &bR_mod_p,
+            &mm_ctx,
+            mpi_worksp_arr_double_mod_size,
+            &montg_const_sq_mod_p
+          )
+        );
       }
       // now spread it to the whole column
       for(j = 1; j < line_col_size; j++)
       {
-        FLEA_CCALL(THR_flea_point_jac_proj_t__init_copy(&precomp_points[i + j * line_col_size], &precomp_points[i], precomp_points_word_arr + (i + j * line_col_size) * proj_point_word_arr_word_len, proj_point_word_arr_word_len));
+        FLEA_CCALL(
+          THR_flea_point_jac_proj_t__init_copy(
+            &precomp_points[i + j * line_col_size],
+            &precomp_points[i],
+            precomp_points_word_arr + (i + j * line_col_size) * proj_point_word_arr_word_len,
+            proj_point_word_arr_word_len
+          )
+        );
       }
     }
     // process first column
     // first entry (in 2nd row):
-    FLEA_CCALL(THR_flea_point_jac_proj_t__init(&precomp_points[1 * line_col_size], p_point_in_out, &montg_const_sq_mod_p, &mod_sized_ws, &mm_ctx, precomp_points_word_arr + (line_col_size * proj_point_word_arr_word_len), proj_point_word_arr_word_len, &mpi_worksp_arr_double_mod_size[0]));
+    FLEA_CCALL(
+      THR_flea_point_jac_proj_t__init(
+        &precomp_points[1 * line_col_size],
+        p_point_in_out,
+        &montg_const_sq_mod_p,
+        &mod_sized_ws,
+        &mm_ctx,
+        precomp_points_word_arr + (line_col_size * proj_point_word_arr_word_len),
+        proj_point_word_arr_word_len,
+        &mpi_worksp_arr_double_mod_size[0]
+      )
+    );
     //  remaining entries:
     for(j = 2; j < line_col_size; j++)
     {
-      FLEA_CCALL(THR_flea_point_jac_proj_t__init_copy(&precomp_points[j * line_col_size], &precomp_points[(j - 1) * line_col_size], precomp_points_word_arr + j * line_col_size * proj_point_word_arr_word_len, proj_point_word_arr_word_len));
-      FLEA_CCALL(THR_flea_point_jac_proj_t__add(&precomp_points[j * line_col_size], &precomp_points[1 * line_col_size], &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+      FLEA_CCALL(
+        THR_flea_point_jac_proj_t__init_copy(
+          &precomp_points[j * line_col_size],
+          &precomp_points[(j - 1) * line_col_size],
+          precomp_points_word_arr + j * line_col_size * proj_point_word_arr_word_len,
+          proj_point_word_arr_word_len
+        )
+      );
+      FLEA_CCALL(
+        THR_flea_point_jac_proj_t__add(
+          &precomp_points[j * line_col_size],
+          &precomp_points[1 * line_col_size],
+          &aR_mod_p,
+          &bR_mod_p,
+          &mm_ctx,
+          mpi_worksp_arr_double_mod_size,
+          &montg_const_sq_mod_p
+        )
+      );
     }
     // now the first row and first column are finished, and the remaining points
     // have already their p1 contribution.
@@ -576,7 +820,17 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(flea_point_gfp_t *p_point_in_out, con
     {
       for(j = 1; j < line_col_size; j++)
       {
-        FLEA_CCALL(THR_flea_point_jac_proj_t__add(&precomp_points[j * line_col_size + i], &precomp_points[j * line_col_size], &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+        FLEA_CCALL(
+          THR_flea_point_jac_proj_t__add(
+            &precomp_points[j * line_col_size + i],
+            &precomp_points[j * line_col_size],
+            &aR_mod_p,
+            &bR_mod_p,
+            &mm_ctx,
+            mpi_worksp_arr_double_mod_size,
+            &montg_const_sq_mod_p
+          )
+        );
       }
     }
   }
@@ -584,15 +838,50 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(flea_point_gfp_t *p_point_in_out, con
   {
     // precomp for single mul window
 
-    FLEA_CCALL(THR_flea_point_jac_proj_t__init(&precomp_points[1], p_point_in_out, &montg_const_sq_mod_p, &mod_sized_ws, &mm_ctx, precomp_points_word_arr + 1 * proj_point_word_arr_word_len, proj_point_word_arr_word_len, &mpi_worksp_arr_double_mod_size[0]));
+    FLEA_CCALL(
+      THR_flea_point_jac_proj_t__init(
+        &precomp_points[1],
+        p_point_in_out,
+        &montg_const_sq_mod_p,
+        &mod_sized_ws,
+        &mm_ctx,
+        precomp_points_word_arr + 1 * proj_point_word_arr_word_len,
+        proj_point_word_arr_word_len,
+        &mpi_worksp_arr_double_mod_size[0]
+      )
+    );
     for(i = 2; i < precomp_points_count; i++)
     {
-      FLEA_CCALL(THR_flea_point_jac_proj_t__init_copy(&precomp_points[i], &precomp_points[i - 1], precomp_points_word_arr + i * proj_point_word_arr_word_len, proj_point_word_arr_word_len));
-      FLEA_CCALL(THR_flea_point_jac_proj_t__add(&precomp_points[i], &precomp_points[1], &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+      FLEA_CCALL(
+        THR_flea_point_jac_proj_t__init_copy(
+          &precomp_points[i],
+          &precomp_points[i - 1],
+          precomp_points_word_arr + i * proj_point_word_arr_word_len,
+          proj_point_word_arr_word_len
+        )
+      );
+      FLEA_CCALL(
+        THR_flea_point_jac_proj_t__add(
+          &precomp_points[i],
+          &precomp_points[1],
+          &aR_mod_p,
+          &bR_mod_p,
+          &mm_ctx,
+          mpi_worksp_arr_double_mod_size,
+          &montg_const_sq_mod_p
+        )
+      );
     }
   }
   // create the point O
-  FLEA_CCALL(THR_flea_point_jac_proj_t__set_to_zero(&p2, &montg_const_sq_mod_p, &mm_ctx, &mpi_worksp_arr_double_mod_size[0]));
+  FLEA_CCALL(
+    THR_flea_point_jac_proj_t__set_to_zero(
+      &p2,
+      &montg_const_sq_mod_p,
+      &mm_ctx,
+      &mpi_worksp_arr_double_mod_size[0]
+    )
+  );
 
   i = flea_mpi_t__get_bit_size(p_scalar);
   if(p_scalar_2)
@@ -612,7 +901,16 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(flea_point_gfp_t *p_point_in_out, con
     }
     for(j = 0; j < window_size; j++)
     {
-      FLEA_CCALL(THR_flea_point_jac_proj_t__double(&p2, &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+      FLEA_CCALL(
+        THR_flea_point_jac_proj_t__double(
+          &p2,
+          &aR_mod_p,
+          &bR_mod_p,
+          &mm_ctx,
+          mpi_worksp_arr_double_mod_size,
+          &montg_const_sq_mod_p
+        )
+      );
     }
     exp_bit1 = flea_mpi_t__get_window(p_scalar, i - window_size, window_size);
     if(p_scalar_2)
@@ -623,7 +921,17 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(flea_point_gfp_t *p_point_in_out, con
       exp_bit2 = flea_mpi_t__get_window(p_scalar_2, i - window_size, window_size);
       if(exp_bit1 | exp_bit2)
       {
-        FLEA_CCALL(THR_flea_point_jac_proj_t__add(&p2, &precomp_points[exp_bit2 + exp_bit1 * line_col_size], &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+        FLEA_CCALL(
+          THR_flea_point_jac_proj_t__add(
+            &p2,
+            &precomp_points[exp_bit2 + exp_bit1 * line_col_size],
+            &aR_mod_p,
+            &bR_mod_p,
+            &mm_ctx,
+            mpi_worksp_arr_double_mod_size,
+            &montg_const_sq_mod_p
+          )
+        );
       }
     }
     else
@@ -632,19 +940,54 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(flea_point_gfp_t *p_point_in_out, con
 
       if(exp_bit1)
       {
-        FLEA_CCALL(THR_flea_point_jac_proj_t__add(&p2, &precomp_points[exp_bit1], &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+        FLEA_CCALL(
+          THR_flea_point_jac_proj_t__add(
+            &p2,
+            &precomp_points[exp_bit1],
+            &aR_mod_p,
+            &bR_mod_p,
+            &mm_ctx,
+            mpi_worksp_arr_double_mod_size,
+            &montg_const_sq_mod_p
+          )
+        );
       }
-      else
-      if(use_add_always__b)
+      else if(use_add_always__b)
       {
-        FLEA_CCALL(THR_flea_point_jac_proj_t__add(&p3, &precomp_points[exp_bit1 + 1], &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+        FLEA_CCALL(
+          THR_flea_point_jac_proj_t__add(
+            &p3,
+            &precomp_points[exp_bit1 + 1],
+            &aR_mod_p,
+            &bR_mod_p,
+            &mm_ctx,
+            mpi_worksp_arr_double_mod_size,
+            &montg_const_sq_mod_p
+          )
+        );
       }
     }
     i -= window_size;
   }
 
-  FLEA_CCALL(THR_flea_point_jac_proj_t__get_affine_x(&p_point_in_out->m_x, &p2, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
-  FLEA_CCALL(THR_flea_point_jac_proj_t__get_affine_y(&p_point_in_out->m_y, &p2, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+  FLEA_CCALL(
+    THR_flea_point_jac_proj_t__get_affine_x(
+      &p_point_in_out->m_x,
+      &p2,
+      &mm_ctx,
+      mpi_worksp_arr_double_mod_size,
+      &montg_const_sq_mod_p
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_point_jac_proj_t__get_affine_y(
+      &p_point_in_out->m_y,
+      &p2,
+      &mm_ctx,
+      mpi_worksp_arr_double_mod_size,
+      &montg_const_sq_mod_p
+    )
+  );
   FLEA_THR_FIN_SEC(
     FLEA_DO_IF_USE_HEAP_BUF(
       for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs); i++)
@@ -668,7 +1011,13 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(flea_point_gfp_t *p_point_in_out, con
 } /* THR_flea_point_gfp_t__mul_multi */
 
 // each inv_ws entry must have double  mod size + 1 allocated (as mm-mul result)
-flea_err_t THR_flea_point_jac_proj_t__get_affine_x(flea_mpi_t *p_result, const flea_point_jac_proj_t *p_point, flea_montgm_mul_ctx_t *p_mm_ctx, flea_mpi_t inv_ws[4], flea_mpi_t *p_montg_const_sq_mod_p)
+flea_err_t THR_flea_point_jac_proj_t__get_affine_x(
+  flea_mpi_t*                  p_result,
+  const flea_point_jac_proj_t* p_point,
+  flea_montgm_mul_ctx_t*       p_mm_ctx,
+  flea_mpi_t                   inv_ws[4],
+  flea_mpi_t*                  p_montg_const_sq_mod_p
+)
 {
   FLEA_THR_BEG_FUNC();
   if(flea_point_jac_proj_t__is_zero(p_point))
@@ -685,7 +1034,13 @@ flea_err_t THR_flea_point_jac_proj_t__get_affine_x(flea_mpi_t *p_result, const f
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_point_jac_proj_t__get_affine_y(flea_mpi_t *p_result, const flea_point_jac_proj_t *p_point, flea_montgm_mul_ctx_t *p_mm_ctx, flea_mpi_t inv_ws[4], flea_mpi_t *p_montg_const_sq_mod_p)
+flea_err_t THR_flea_point_jac_proj_t__get_affine_y(
+  flea_mpi_t*                  p_result,
+  const flea_point_jac_proj_t* p_point,
+  flea_montgm_mul_ctx_t*       p_mm_ctx,
+  flea_mpi_t                   inv_ws[4],
+  flea_mpi_t*                  p_montg_const_sq_mod_p
+)
 {
   FLEA_THR_BEG_FUNC();
   if(flea_point_jac_proj_t__is_zero(p_point))

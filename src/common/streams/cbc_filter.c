@@ -7,9 +7,15 @@
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
 
-static flea_err_t THR_cbc_filter_process(void *custom_obj__pv, const flea_u8_t *input__pcu8, flea_dtl_t input_len__dtl, flea_u8_t *output__pu8, flea_dtl_t *output_len__pdtl)
+static flea_err_t THR_cbc_filter_process(
+  void*            custom_obj__pv,
+  const flea_u8_t* input__pcu8,
+  flea_dtl_t       input_len__dtl,
+  flea_u8_t*       output__pu8,
+  flea_dtl_t*      output_len__pdtl
+)
 {
-  flea_cbc_filt_hlp_t *hlp__pt = (flea_cbc_filt_hlp_t *) custom_obj__pv;
+  flea_cbc_filt_hlp_t* hlp__pt = (flea_cbc_filt_hlp_t *) custom_obj__pv;
   // flea_cbc_mode_ctx_t *cbc_ctx__pt = hlp__pt->cbc_ctx__pt;
   flea_al_u8_t pend_len__alu8 = hlp__pt->pend_len__u8;
   flea_dtl_t output_len__dtl  = *output_len__pdtl;
@@ -31,7 +37,14 @@ static flea_err_t THR_cbc_filter_process(void *custom_obj__pv, const flea_u8_t *
       {
         FLEA_THROW("insufficient output space", FLEA_ERR_BUFF_TOO_SMALL);
       }
-      FLEA_CCALL(THR_flea_cbc_mode_ctx_t__crypt(hlp__pt->cbc_ctx__pt, hlp__pt->pend_input__bu8, output__pu8, hlp__pt->block_length__u8));
+      FLEA_CCALL(
+        THR_flea_cbc_mode_ctx_t__crypt(
+          hlp__pt->cbc_ctx__pt,
+          hlp__pt->pend_input__bu8,
+          output__pu8,
+          hlp__pt->block_length__u8
+        )
+      );
       written__dtl  += hlp__pt->block_length__u8;
       pend_len__alu8 = 0;
       output__pu8   += hlp__pt->block_length__u8;
@@ -45,7 +58,14 @@ static flea_err_t THR_cbc_filter_process(void *custom_obj__pv, const flea_u8_t *
     {
       FLEA_THROW("insufficient output space", FLEA_ERR_BUFF_TOO_SMALL);
     }
-    FLEA_CCALL(THR_flea_cbc_mode_ctx_t__crypt(hlp__pt->cbc_ctx__pt, input__pcu8, output__pu8, hlp__pt->block_length__u8));
+    FLEA_CCALL(
+      THR_flea_cbc_mode_ctx_t__crypt(
+        hlp__pt->cbc_ctx__pt,
+        input__pcu8,
+        output__pu8,
+        hlp__pt->block_length__u8
+      )
+    );
     input__pcu8     += to_go__alu8;
     output__pu8     += to_go__alu8;
     input_len__dtl  -= to_go__alu8;
@@ -59,7 +79,11 @@ static flea_err_t THR_cbc_filter_process(void *custom_obj__pv, const flea_u8_t *
   FLEA_THR_FIN_SEC_empty();
 } /* THR_cbc_filter_process */
 
-flea_err_t THR_flea_filter_t__ctor_cbc(flea_filter_t *filt__pt, flea_cbc_filt_hlp_t *uninit_cbc_hlp__pt, flea_cbc_mode_ctx_t *constructed_cbc_ctx__pt)
+flea_err_t THR_flea_filter_t__ctor_cbc(
+  flea_filter_t*       filt__pt,
+  flea_cbc_filt_hlp_t* uninit_cbc_hlp__pt,
+  flea_cbc_mode_ctx_t* constructed_cbc_ctx__pt
+)
 {
   FLEA_THR_BEG_FUNC();
   memset(uninit_cbc_hlp__pt, 0, sizeof(*uninit_cbc_hlp__pt));
@@ -68,7 +92,14 @@ flea_err_t THR_flea_filter_t__ctor_cbc(flea_filter_t *filt__pt, flea_cbc_filt_hl
 #endif
   uninit_cbc_hlp__pt->cbc_ctx__pt      = constructed_cbc_ctx__pt;
   uninit_cbc_hlp__pt->block_length__u8 = constructed_cbc_ctx__pt->cipher_ctx__t.block_length__u8;
-  FLEA_CCALL(THR_flea_filter_t__ctor(filt__pt, (void *) uninit_cbc_hlp__pt, THR_cbc_filter_process, constructed_cbc_ctx__pt->cipher_ctx__t.block_length__u8 - 1));
+  FLEA_CCALL(
+    THR_flea_filter_t__ctor(
+      filt__pt,
+      (void *) uninit_cbc_hlp__pt,
+      THR_cbc_filter_process,
+      constructed_cbc_ctx__pt->cipher_ctx__t.block_length__u8 - 1
+    )
+  );
   // printf("cbc filter ctor: pend_len = %u\n", uninit_cbc_hlp__pt->
   FLEA_THR_FIN_SEC_empty();
 }

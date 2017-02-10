@@ -34,9 +34,12 @@
 #define ID_PE_OID_AUTH_INF_ACC (ID_PE_INDIC | 1)
 #define ID_PE_OID_SUBJ_INF_ACC (ID_PE_INDIC | 11)
 
-const flea_u8_t id_pe__cau8 [7] = { 0x2B, 0x06, 0x01, 0x05, 0x05, 0x07, 0x01 };
+const flea_u8_t id_pe__cau8 [7] = {0x2B, 0x06, 0x01, 0x05, 0x05, 0x07, 0x01};
 
-static flea_err_t THR_flea_x509_cert_parse_basic_constraints(flea_ber_dec_t *cont_dec__pt, flea_basic_constraints_t *basic_constraints__pt)
+static flea_err_t THR_flea_x509_cert_parse_basic_constraints(
+  flea_ber_dec_t*           cont_dec__pt,
+  flea_basic_constraints_t* basic_constraints__pt
+)
 {
   flea_u32_t x__u32;
   flea_bool_t found__b;
@@ -66,9 +69,12 @@ static flea_err_t THR_flea_x509_cert_parse_basic_constraints(flea_ber_dec_t *con
   FLEA_THR_FIN_SEC_empty();
 }
 
-static flea_err_t THR_flea_x509_cert__parse_eku(flea_ber_dec_t *cont_dec__pt, flea_key_usage_t *ext_key_usage__pt)
+static flea_err_t THR_flea_x509_cert__parse_eku(
+  flea_ber_dec_t*   cont_dec__pt,
+  flea_key_usage_t* ext_key_usage__pt
+)
 {
-  const flea_u8_t id_kp__cau8 [] = { 0x2B, 0x06, 0x01, 0x05, 0x05, 0x07, 0x03 };
+  const flea_u8_t id_kp__cau8 [] = {0x2B, 0x06, 0x01, 0x05, 0x05, 0x07, 0x03};
   flea_ref_cu8_t oid_ref__t;
   flea_u16_t purposes__u16 = 0;
 
@@ -89,13 +95,13 @@ static flea_err_t THR_flea_x509_cert__parse_eku(flea_ber_dec_t *cont_dec__pt, fl
     purposes__u16 |= (1 << oid_ref__t.data__pcu8[sizeof(id_kp__cau8)]);
   }
   if(purposes__u16 & (flea_u16_t) ~(
-      (1 << FLEA_ASN1_EKU_BITP_any_ext_ku       )
-      | (1 << FLEA_ASN1_EKU_BITP_server_auth      )
-      | (1 << FLEA_ASN1_EKU_BITP_client_auth      )
-      | (1 << FLEA_ASN1_EKU_BITP_code_signing     )
-      | (1 << FLEA_ASN1_EKU_BITP_email_protection )
-      | (1 << FLEA_ASN1_EKU_BITP_time_stamping    )
-      | (1 << FLEA_ASN1_EKU_BITP_ocsp_signing     )))
+      (1 << FLEA_ASN1_EKU_BITP_any_ext_ku)
+      | (1 << FLEA_ASN1_EKU_BITP_server_auth)
+      | (1 << FLEA_ASN1_EKU_BITP_client_auth)
+      | (1 << FLEA_ASN1_EKU_BITP_code_signing)
+      | (1 << FLEA_ASN1_EKU_BITP_email_protection)
+      | (1 << FLEA_ASN1_EKU_BITP_time_stamping)
+      | (1 << FLEA_ASN1_EKU_BITP_ocsp_signing)))
   {
     FLEA_THROW("unknown extended key usage purpose", FLEA_ERR_X509_EKU_VAL_ERR);
   }
@@ -105,7 +111,10 @@ static flea_err_t THR_flea_x509_cert__parse_eku(flea_ber_dec_t *cont_dec__pt, fl
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_x509_cert__parse_eku */
 
-static flea_err_t THR_flea_x509_cert__parse_key_usage(flea_ber_dec_t *cont_dec__pt, flea_key_usage_t *key_usage__pt)
+static flea_err_t THR_flea_x509_cert__parse_key_usage(
+  flea_ber_dec_t*   cont_dec__pt,
+  flea_key_usage_t* key_usage__pt
+)
 {
   flea_ref_cu8_t bit_str_ref__t;
   flea_u16_t ku__u16;
@@ -127,7 +136,10 @@ static flea_err_t THR_flea_x509_cert__parse_key_usage(flea_ber_dec_t *cont_dec__
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_x509__parse_algid_ref(flea_x509_algid_ref_t *algid_ref__pt, flea_ber_dec_t *dec__pt)
+flea_err_t THR_flea_x509__parse_algid_ref(
+  flea_x509_algid_ref_t* algid_ref__pt,
+  flea_ber_dec_t*        dec__pt
+)
 {
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
@@ -137,7 +149,10 @@ flea_err_t THR_flea_x509__parse_algid_ref(flea_x509_algid_ref_t *algid_ref__pt, 
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_x509__process_alg_ids(flea_x509_algid_ref_t *tbs_ref__pt, const flea_x509_algid_ref_t *outer_ref__pt)
+flea_err_t THR_flea_x509__process_alg_ids(
+  flea_x509_algid_ref_t*       tbs_ref__pt,
+  const flea_x509_algid_ref_t* outer_ref__pt
+)
 {
   FLEA_THR_BEG_FUNC();
 
@@ -160,7 +175,10 @@ flea_err_t THR_flea_x509__process_alg_ids(flea_x509_algid_ref_t *tbs_ref__pt, co
  *
  * id-pe  OBJECT IDENTIFIER  ::=  { id-pkix 1 }
  */
-static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(flea_x509_ext_ref_t *ext_ref__pt, flea_ber_dec_t *dec__pt)
+static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
+  flea_x509_ext_ref_t* ext_ref__pt,
+  flea_ber_dec_t*      dec__pt
+)
 {
   flea_bool_t have_extensions__b;
   flea_ref_cu8_t ext_oid_ref__t;
@@ -170,7 +188,14 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(flea_x509_ext_ref_
   FLEA_DECL_OBJ(source__t, flea_data_source_t);
   FLEA_THR_BEG_FUNC();
   /* open implicit */
-  FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional(dec__pt, 3, FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC, &have_extensions__b));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__open_constructed_optional(
+      dec__pt,
+      3,
+      FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC,
+      &have_extensions__b
+    )
+  );
   if(!have_extensions__b)
   {
     FLEA_THR_RETURN();
@@ -190,7 +215,13 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(flea_x509_ext_ref_
     FLEA_CCALL(THR_flea_ber_dec_t__decode_boolean_default_false(dec__pt, &critical__b));
 
     /* decode the extension value in the octet string */
-    FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(dec__pt, FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, FLEA_ASN1_OCTET_STRING), &ostr__t));
+    FLEA_CCALL(
+      THR_flea_ber_dec_t__get_ref_to_raw_cft(
+        dec__pt,
+        FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, FLEA_ASN1_OCTET_STRING),
+        &ostr__t
+      )
+    );
 
     /* open 'octet string' sequence */
     if(ext_oid_ref__t.len__dtl == 3 && ext_oid_ref__t.data__pcu8[0] == 0x55 && ext_oid_ref__t.data__pcu8[1] == 0x1D)
@@ -199,8 +230,8 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(flea_x509_ext_ref_
       ext_indic_pos__alu8   = 2;
       oid_indicator__alu16 |= ext_oid_ref__t.data__pcu8[ext_indic_pos__alu8];
     }
-    else
-    if((ext_oid_ref__t.len__dtl == sizeof(id_pe__cau8) + 1 ) && (!memcmp(ext_oid_ref__t.data__pcu8, id_pe__cau8, sizeof(id_pe__cau8))))
+    else if((ext_oid_ref__t.len__dtl == sizeof(id_pe__cau8) + 1) &&
+      (!memcmp(ext_oid_ref__t.data__pcu8, id_pe__cau8, sizeof(id_pe__cau8))))
     {
       oid_indicator__alu16  = ID_PE_INDIC;
       ext_indic_pos__alu8   = sizeof(id_pe__cau8);
@@ -226,7 +257,14 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(flea_x509_ext_ref_
           ext_ref__pt->auth_key_id__t.is_present__u8 = FLEA_TRUE;
 
           FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&cont_dec__t));
-          FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(&cont_dec__t, (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 0), &ext_ref__pt->auth_key_id__t.key_id__t, &found__b));
+          FLEA_CCALL(
+            THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
+              &cont_dec__t,
+              (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 0),
+              &ext_ref__pt->auth_key_id__t.key_id__t,
+              &found__b
+            )
+          );
 
 
           break;
@@ -238,7 +276,13 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(flea_x509_ext_ref_
         }
         case ID_CE_OID_SUBJ_KEY_ID:
         {
-          FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&cont_dec__t, FLEA_ASN1_OCTET_STRING, &ext_ref__pt->subj_key_id__t));
+          FLEA_CCALL(
+            THR_flea_ber_dec_t__get_ref_to_raw_cft(
+              &cont_dec__t,
+              FLEA_ASN1_OCTET_STRING,
+              &ext_ref__pt->subj_key_id__t
+            )
+          );
           break;
         }
         case ID_CE_OID_SUBJ_ALT_NAME:
@@ -266,20 +310,35 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(flea_x509_ext_ref_
         case ID_CE_OID_CRL_DISTR_POINT:
         {
           ext_ref__pt->crl_distr_point__t.is_present__u8 = FLEA_TRUE;
-          FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&cont_dec__t, &ext_ref__pt->crl_distr_point__t.raw_ref__t));
+          FLEA_CCALL(
+            THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(
+              &cont_dec__t,
+              &ext_ref__pt->crl_distr_point__t.raw_ref__t
+            )
+          );
           break;
         }
         case ID_CE_OID_FRESHEST_CRL:
         {
           ext_ref__pt->freshest_crl__t.is_present__u8 = FLEA_TRUE;
-          FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&cont_dec__t, &ext_ref__pt->freshest_crl__t.raw_ref__t));
+          FLEA_CCALL(
+            THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(
+              &cont_dec__t,
+              &ext_ref__pt->freshest_crl__t.raw_ref__t
+            )
+          );
 
           break;
         }
         case ID_PE_OID_AUTH_INF_ACC:
         {
           ext_ref__pt->auth_inf_acc__t.is_present__u8 = FLEA_TRUE;
-          FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&cont_dec__t, &ext_ref__pt->auth_inf_acc__t.raw_ref__t));
+          FLEA_CCALL(
+            THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(
+              &cont_dec__t,
+              &ext_ref__pt->auth_inf_acc__t.raw_ref__t
+            )
+          );
           break;
         }
         default:
@@ -307,7 +366,10 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(flea_x509_ext_ref_
   );
 } /* THR_flea_x509_cert_ref__t__parse_extensions */
 
-flea_err_t THR_flea_x509__parse_dn(flea_x509_dn_ref_t *dn_ref__pt, flea_ber_dec_t *dec__pt)
+flea_err_t THR_flea_x509__parse_dn(
+  flea_x509_dn_ref_t* dn_ref__pt,
+  flea_ber_dec_t*     dec__pt
+)
 {
   FLEA_DECL_OBJ(source__t, flea_data_source_t);
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
@@ -316,19 +378,27 @@ flea_err_t THR_flea_x509__parse_dn(flea_x509_dn_ref_t *dn_ref__pt, flea_ber_dec_
 
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(dec__pt, &dn_ref__pt->raw_dn_complete__t));
 
-  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, dn_ref__pt->raw_dn_complete__t.data__pcu8, dn_ref__pt->raw_dn_complete__t.len__dtl, &hlp__t));
+  FLEA_CCALL(
+    THR_flea_data_source_t__ctor_memory(
+      &source__t,
+      dn_ref__pt->raw_dn_complete__t.data__pcu8,
+      dn_ref__pt->raw_dn_complete__t.len__dtl,
+      &hlp__t
+    )
+  );
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0));
 
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
   while(flea_ber_dec_t__has_current_more_data(&dec__t))
   {
-    flea_ref_cu8_t *entry_ref__pt = NULL;
+    flea_ref_cu8_t* entry_ref__pt = NULL;
     flea_ref_cu8_t entry_ref__t;
     flea_asn1_str_type_t str_type__t;
     FLEA_CCALL(THR_flea_ber_dec_t__open_set(&dec__t));
     FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
     FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_oid(&dec__t, &entry_ref__t));
-    if(entry_ref__t.len__dtl != 3 || entry_ref__t.data__pcu8[0] != FLEA_ASN1_OID_FIRST_BYTE(2, 5) || entry_ref__t.data__pcu8[1] != 4)
+    if(entry_ref__t.len__dtl != 3 ||
+      entry_ref__t.data__pcu8[0] != FLEA_ASN1_OID_FIRST_BYTE(2, 5) || entry_ref__t.data__pcu8[1] != 4)
     {
       FLEA_THROW("invalid oid for distinguished name component", FLEA_ERR_X509_DN_ERROR);
     }
@@ -365,7 +435,14 @@ flea_err_t THR_flea_x509__parse_dn(flea_x509_dn_ref_t *dn_ref__pt, flea_ber_dec_
     {
       FLEA_THROW("unknown component in distinguished name", FLEA_ERR_X509_DN_ERROR);
     }
-    FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_string(&dec__t, &str_type__t, &entry_ref__pt->data__pcu8, &entry_ref__pt->len__dtl));
+    FLEA_CCALL(
+      THR_flea_ber_dec_t__get_ref_to_string(
+        &dec__t,
+        &str_type__t,
+        &entry_ref__pt->data__pcu8,
+        &entry_ref__pt->len__dtl
+      )
+    );
     // close the sequence
     FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
     // close the set -- multivalued RDNs are not supported
@@ -378,7 +455,11 @@ flea_err_t THR_flea_x509__parse_dn(flea_x509_dn_ref_t *dn_ref__pt, flea_ber_dec_
   );
 } /* THR_flea_x509__parse_dn */
 
-flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, const flea_u8_t *der_encoded_cert__pu8, flea_al_u16_t der_encoded_cert_len__alu16)
+flea_err_t THR_flea_x509_cert_ref_t__ctor(
+  flea_x509_cert_ref_t* cert_ref__pt,
+  const flea_u8_t*      der_encoded_cert__pu8,
+  flea_al_u16_t         der_encoded_cert_len__alu16
+)
 {
   FLEA_DECL_OBJ(source__t, flea_data_source_t);
   FLEA_DECL_OBJ(source_tbs__t, flea_data_source_t);
@@ -391,18 +472,39 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, co
 
   FLEA_THR_BEG_FUNC();
 
-  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source_tbs__t, der_encoded_cert__pu8, der_encoded_cert_len__alu16, &hlp_tbs__t));
+  FLEA_CCALL(
+    THR_flea_data_source_t__ctor_memory(
+      &source_tbs__t,
+      der_encoded_cert__pu8,
+      der_encoded_cert_len__alu16,
+      &hlp_tbs__t
+    )
+  );
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec_tbs__t, &source_tbs__t, 0));
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec_tbs__t));
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&dec_tbs__t, &cert_ref__pt->tbs_ref__t));
 
 
-  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, der_encoded_cert__pu8, der_encoded_cert_len__alu16, &hlp__t));
+  FLEA_CCALL(
+    THR_flea_data_source_t__ctor_memory(
+      &source__t,
+      der_encoded_cert__pu8,
+      der_encoded_cert_len__alu16,
+      &hlp__t
+    )
+  );
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0));
 
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional(&dec__t, 0, FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC, &found_tag__b));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__open_constructed_optional(
+      &dec__t,
+      0,
+      FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC,
+      &found_tag__b
+    )
+  );
   if(found_tag__b)
   {
     flea_dtl_t version_len__dtl = 1;
@@ -436,11 +538,30 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, co
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
   FLEA_CCALL(THR_flea_x509__parse_algid_ref(&cert_ref__pt->subject_public_key_info__t.algid__t, &dec__t));
 
-  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&dec__t, &cert_ref__pt->subject_public_key_info__t.public_key_as_tlv__t));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(
+      &dec__t,
+      &cert_ref__pt->subject_public_key_info__t.public_key_as_tlv__t
+    )
+  );
 
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(&dec__t, 1, FLEA_ASN1_BIT_STRING, &cert_ref__pt->issuer_unique_id_as_bitstr__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(&dec__t, 2, FLEA_ASN1_BIT_STRING, &cert_ref__pt->subject_unique_id_as_bitstr__t));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(
+      &dec__t,
+      1,
+      FLEA_ASN1_BIT_STRING,
+      &cert_ref__pt->issuer_unique_id_as_bitstr__t
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(
+      &dec__t,
+      2,
+      FLEA_ASN1_BIT_STRING,
+      &cert_ref__pt->subject_unique_id_as_bitstr__t
+    )
+  );
   FLEA_CCALL(THR_flea_x509_cert_ref__t__parse_extensions(&cert_ref__pt->extensions__t, &dec__t));
 
   /* closing the tbs */
@@ -448,7 +569,13 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, co
 
   FLEA_CCALL(THR_flea_x509__parse_algid_ref(&outer_sig_algid__t, &dec__t));
   FLEA_CCALL(THR_flea_x509__process_alg_ids(&cert_ref__pt->tbs_sig_algid__t, &outer_sig_algid__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, BIT_STRING), &cert_ref__pt->cert_signature_as_bit_string__t));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__get_ref_to_raw_cft(
+      &dec__t,
+      FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, BIT_STRING),
+      &cert_ref__pt->cert_signature_as_bit_string__t
+    )
+  );
   FLEA_THR_FIN_SEC(
     flea_data_source_t__dtor(&source__t);
     flea_data_source_t__dtor(&source_tbs__t);
@@ -457,7 +584,12 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, co
   );
 } /* THR_flea_x509_cert_ref_t__ctor */
 
-flea_bool_t flea_x509_has_key_usages(const flea_x509_cert_ref_t *cert_ref__pt, flea_key_usage_ext_e ku_type, flea_key_usage_e required_usages__u16, flea_key_usage_exlicitness_e explicitness)
+flea_bool_t flea_x509_has_key_usages(
+  const flea_x509_cert_ref_t*  cert_ref__pt,
+  flea_key_usage_ext_e         ku_type,
+  flea_key_usage_e             required_usages__u16,
+  flea_key_usage_exlicitness_e explicitness
+)
 {
   flea_al_u16_t ku_val__alu16;
   flea_al_u8_t ku_present_alu8;

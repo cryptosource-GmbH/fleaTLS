@@ -19,7 +19,7 @@
 
 #define RECORD_HDR_LEN                5
 
-static void inc_seq_nbr(flea_u32_t *seq__au32)
+static void inc_seq_nbr(flea_u32_t* seq__au32)
 {
   seq__au32[0]++;
   if(seq__au32[0] == 0)
@@ -29,16 +29,11 @@ static void inc_seq_nbr(flea_u32_t *seq__au32)
 }
 
 static flea_err_t THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
-  flea_tls_rec_prot_t   *rec_prot__pt,
-  flea_tls_conn_state_t *conn_state__pt,
-  flea_u8_t             *data,
-  flea_u32_t            data_len,
-  // flea_mac_id_t       mac_algorithm,
-  // flea_u8_t           *mac_key,
-  // flea_u8_t           mac_key_len,
-  // const flea_u8_t       sequence_number__au8[8],
-  flea_u8_t             *mac_out
-  // flea_u8_t           *mac_len_out
+  flea_tls_rec_prot_t*   rec_prot__pt,
+  flea_tls_conn_state_t* conn_state__pt,
+  flea_u8_t*             data,
+  flea_u32_t             data_len,
+  flea_u8_t*             mac_out
 )
 {
   flea_mac_ctx_t mac__t = flea_mac_ctx_t__INIT_VALUE;
@@ -47,7 +42,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
   flea_u8_t enc_seq_nbr__au8[8];
   flea_u32_t seq_lo__u32, seq_hi__u32;
 
-  flea_u8_t *mac_key    = conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.mac_key__bu8;
+  flea_u8_t* mac_key    = conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.mac_key__bu8;
   flea_u8_t mac_len     = conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_size__u8;
   flea_u8_t mac_key_len = conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_key_size__u8;
 
@@ -66,7 +61,14 @@ static flea_err_t THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
   seq_hi__u32 = conn_state__pt->sequence_number__au32[1];
   flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
   flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
-  FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&mac__t, conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_id, mac_key, mac_key_len));
+  FLEA_CCALL(
+    THR_flea_mac_ctx_t__ctor(
+      &mac__t,
+      conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_id,
+      mac_key,
+      mac_key_len
+    )
+  );
   FLEA_CCALL(THR_flea_mac_ctx_t__update(&mac__t, enc_seq_nbr__au8, sizeof(enc_seq_nbr__au8)));
   FLEA_CCALL(THR_flea_mac_ctx_t__update(&mac__t, rec_prot__pt->send_rec_buf_raw__bu8, 3));
 
@@ -85,13 +87,10 @@ static flea_err_t THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
 } /* THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac */
 
 flea_err_t THR_flea_tls_rec_prot_t__ctor(
-  flea_tls_rec_prot_t *rec_prot__pt,
-  // flea_u8_t                *send_rec_buf_raw__bu8,
-  // flea_al_u16_t            send_rec_buf_raw_len__alu16,
-  // flea_tls__cipher_suite_t *suite__pt,
-  flea_al_u8_t        prot_vers_major,
-  flea_al_u8_t        prot_vers_minor,
-  flea_rw_stream_t    *rw_stream__pt
+  flea_tls_rec_prot_t* rec_prot__pt,
+  flea_al_u8_t         prot_vers_major,
+  flea_al_u8_t         prot_vers_minor,
+  flea_rw_stream_t*    rw_stream__pt
 )
 {
   // TODO: need to implement limit for maximal send buffer size explicitly, since
@@ -120,7 +119,7 @@ flea_err_t THR_flea_tls_rec_prot_t__ctor(
 } /* THR_flea_tls_rec_prot_t__ctor */
 
 void flea_tls_rec_prot_t__set_null_ciphersuite(
-  flea_tls_rec_prot_t   *rec_prot__pt,
+  flea_tls_rec_prot_t*  rec_prot__pt,
   flea_tls_stream_dir_e direction
 )
 {
@@ -142,26 +141,31 @@ void flea_tls_rec_prot_t__set_null_ciphersuite(
 }
 
 flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-  flea_tls_rec_prot_t    *rec_prot__pt,
+  flea_tls_rec_prot_t*   rec_prot__pt,
   flea_tls_stream_dir_e  direction,
   flea_block_cipher_id_t block_cipher_id,
   flea_hash_id_t         hash_id,
   flea_mac_id_t          mac_id,
-  const flea_u8_t        *cipher_key__pcu8,
+  const flea_u8_t*       cipher_key__pcu8,
   flea_al_u8_t           cipher_key_len__alu8,
-  const flea_u8_t        *mac_key__pcu8,
+  const flea_u8_t*       mac_key__pcu8,
   flea_al_u8_t           mac_key_len__alu8,
   flea_al_u8_t           mac_size__alu8
 )
 {
-  flea_tls_conn_state_t *conn_state__pt;
+  flea_tls_conn_state_t* conn_state__pt;
   flea_al_u16_t reserved_payl_len__alu16;
 
   FLEA_THR_BEG_FUNC();
-  printf("setting cbc_hmac_ciphersuite in rec_prot, payload_used_len = %u, write_ongoing = %u\n", rec_prot__pt->payload_used_len__u16, rec_prot__pt->write_ongoing__u8);
+  printf(
+    "setting cbc_hmac_ciphersuite in rec_prot, payload_used_len = %u, write_ongoing = %u\n",
+    rec_prot__pt->payload_used_len__u16,
+    rec_prot__pt->write_ongoing__u8
+  );
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
   rec_prot__pt->reserved_iv_len__u8 = flea_block_cipher__get_block_size(block_cipher_id);
-  rec_prot__pt->payload_buf__pu8    = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->reserved_iv_len__u8 + RECORD_HDR_LEN;
+  rec_prot__pt->payload_buf__pu8    = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->reserved_iv_len__u8
+    + RECORD_HDR_LEN;
 
   reserved_payl_len__alu16 = mac_size__alu8 + 2 * rec_prot__pt->reserved_iv_len__u8; /* 2* block size: one for IV, one for padding */
 
@@ -170,7 +174,8 @@ flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
     FLEA_THROW("send/receive buffer is too small", FLEA_ERR_BUFF_TOO_SMALL);
   }
 
-  rec_prot__pt->payload_max_len__u16 = rec_prot__pt->send_rec_buf_raw_len__u16 - RECORD_HDR_LEN - reserved_payl_len__alu16;
+  rec_prot__pt->payload_max_len__u16 = rec_prot__pt->send_rec_buf_raw_len__u16 - RECORD_HDR_LEN
+    - reserved_payl_len__alu16;
   // flea_tls_rec_prot_t__update_max_buf_len(rec_prot__pt);
   if(direction == flea_tls_write)
   {
@@ -181,13 +186,25 @@ flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
     conn_state__pt = &rec_prot__pt->read_state__t;
   }
   flea_tls_conn_state_t__dtor(conn_state__pt);
-  FLEA_CCALL(THR_flea_tls_conn_state_t__ctor_cbc_hmac(conn_state__pt, block_cipher_id, hash_id, mac_id, cipher_key__pcu8, cipher_key_len__alu8, mac_key__pcu8, mac_key_len__alu8, mac_size__alu8));
+  FLEA_CCALL(
+    THR_flea_tls_conn_state_t__ctor_cbc_hmac(
+      conn_state__pt,
+      block_cipher_id,
+      hash_id,
+      mac_id,
+      cipher_key__pcu8,
+      cipher_key_len__alu8,
+      mac_key__pcu8,
+      mac_key_len__alu8,
+      mac_size__alu8
+    )
+  );
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite */
 
 void flea_tls_rec_prot_t__write_record_header(
-  flea_tls_rec_prot_t *rec_prot__pt,
-  ContentType         content_type__e
+  flea_tls_rec_prot_t* rec_prot__pt,
+  ContentType          content_type__e
 )
 {
   rec_prot__pt->send_rec_buf_raw__bu8[0] = content_type__e;
@@ -198,10 +215,10 @@ void flea_tls_rec_prot_t__write_record_header(
 }
 
 flea_err_t THR_flea_tls_rec_prot_t__write_data(
-  flea_tls_rec_prot_t *rec_prot__pt,
-  ContentType         content_type__e,
-  const flea_u8_t     *data__pcu8,
-  flea_dtl_t          data_len__dtl
+  flea_tls_rec_prot_t* rec_prot__pt,
+  ContentType          content_type__e,
+  const flea_u8_t*     data__pcu8,
+  flea_dtl_t           data_len__dtl
 )
 {
   flea_al_u16_t buf_free_len__alu16;
@@ -240,23 +257,27 @@ flea_err_t THR_flea_tls_rec_prot_t__write_data(
 } /* THR_flea_tls_rec_prot_t__write_data */
 
 static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
-  flea_tls_rec_prot_t *rec_prot__pt,
-  flea_al_u16_t       *decrypted_len__palu16,
-  ContentType         content_type__e
+  flea_tls_rec_prot_t* rec_prot__pt,
+  flea_al_u16_t*       decrypted_len__palu16,
+  ContentType          content_type__e
 )
 {
   flea_u32_t seq_lo__u32, seq_hi__u32;
   flea_u8_t enc_seq_nbr__au8[8];
 
   FLEA_THR_BEG_FUNC();
-  flea_u8_t mac_len     = rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_size__u8;
-  flea_u8_t *enc_key    = rec_prot__pt->read_state__t.suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8;
-  flea_u8_t iv_len      = flea_block_cipher__get_block_size(rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id);
-  flea_u8_t enc_key_len = rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_key_size__u8;
+  flea_u8_t mac_len =
+    rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_size__u8;
+  flea_u8_t* enc_key = rec_prot__pt->read_state__t.suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8;
+  flea_u8_t iv_len   = flea_block_cipher__get_block_size(
+    rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id
+    );
+  flea_u8_t enc_key_len =
+    rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_key_size__u8;
   flea_u8_t mac[FLEA_TLS_MAX_MAC_SIZE];
   flea_u8_t padding_len;
-  flea_u8_t *data        = rec_prot__pt->payload_buf__pu8;
-  flea_u8_t *iv          = data;
+  flea_u8_t* data        = rec_prot__pt->payload_buf__pu8;
+  flea_u8_t* iv          = data;
   flea_al_u16_t data_len = rec_prot__pt->payload_used_len__u16;
   flea_al_u16_t data_len_previous__alu16;
 
@@ -279,8 +300,12 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
     THR_flea_cbc_mode__decrypt_data(
       rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id,
       enc_key,
-      enc_key_len, iv, iv_len,
-      data + iv_len, data + iv_len, data_len - iv_len
+      enc_key_len,
+      iv,
+      iv_len,
+      data + iv_len,
+      data + iv_len,
+      data_len - iv_len
       /*record->data, record->data, record->length*/
     )
   );
@@ -305,7 +330,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
     THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
       rec_prot__pt,
       &rec_prot__pt->read_state__t,
-      data + iv_len, data_len,
+      data + iv_len,
+      data_len,
       // enc_seq_nbr__au8,
       mac
     )
@@ -325,31 +351,36 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
 } /* THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac */
 
 static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
-  flea_tls_rec_prot_t *rec_prot__pt,
-  flea_al_u16_t       *encrypted_len__palu16
+  flea_tls_rec_prot_t* rec_prot__pt,
+  flea_al_u16_t*       encrypted_len__palu16
 )
 {
   flea_al_u16_t length_tot;
 
   FLEA_THR_BEG_FUNC();
-  flea_u8_t *enc_key    = rec_prot__pt->write_state__t.suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8;
-  flea_u8_t iv_len      = flea_block_cipher__get_block_size(rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id);
-  flea_u8_t mac_len     = rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_size__u8;
-  flea_u8_t enc_key_len = rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_key_size__u8;
-  flea_u8_t *iv         = rec_prot__pt->send_rec_buf_raw__bu8 + RECORD_HDR_LEN;
-  flea_u8_t block_len   = iv_len;
+  flea_u8_t* enc_key = rec_prot__pt->write_state__t.suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8;
+  flea_u8_t iv_len   = flea_block_cipher__get_block_size(
+    rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id
+    );
+  flea_u8_t mac_len =
+    rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_size__u8;
+  flea_u8_t enc_key_len =
+    rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_key_size__u8;
+  flea_u8_t* iv       = rec_prot__pt->send_rec_buf_raw__bu8 + RECORD_HDR_LEN;
+  flea_u8_t block_len = iv_len;
 
-  flea_u8_t *data        = rec_prot__pt->payload_buf__pu8;
+  flea_u8_t* data        = rec_prot__pt->payload_buf__pu8;
   flea_al_u16_t data_len = rec_prot__pt->payload_used_len__u16;
   flea_u8_t padding_len  = (block_len - (data_len + mac_len + 1) % block_len) + 1; // +1 for padding_length entry
 
-  flea_u8_t *mac     = data + data_len;
-  flea_u8_t *padding = mac + mac_len;
+  flea_u8_t* mac     = data + data_len;
+  flea_u8_t* padding = mac + mac_len;
   FLEA_CCALL(
     THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
       rec_prot__pt,
       &rec_prot__pt->write_state__t,
-      data, data_len,
+      data,
+      data_len,
       mac
     )
   );
@@ -366,8 +397,14 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
   flea_u8_t encrypted[FLEA_TLS_MAX_RECORD_DATA_SIZE];
   FLEA_CCALL(
     THR_flea_cbc_mode__encrypt_data(
-      rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id, enc_key,
-      enc_key_len, iv, iv_len, encrypted, data, input_output_len
+      rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id,
+      enc_key,
+      enc_key_len,
+      iv,
+      iv_len,
+      encrypted,
+      data,
+      input_output_len
     )
   );
 
@@ -390,7 +427,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
 } /* THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac */
 
 flea_err_t THR_flea_tls_rec_prot_t__write_flush(
-  flea_tls_rec_prot_t *rec_prot__pt
+  flea_tls_rec_prot_t* rec_prot__pt
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -405,7 +442,8 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
     FLEA_CCALL(THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(rec_prot__pt, &encrypted_len__alu16));
     FLEA_CCALL(
       THR_flea_rw_stream_t__write(
-        rec_prot__pt->rw_stream__pt, rec_prot__pt->send_rec_buf_raw__bu8,
+        rec_prot__pt->rw_stream__pt,
+        rec_prot__pt->send_rec_buf_raw__bu8,
         encrypted_len__alu16 + RECORD_HDR_LEN + rec_prot__pt->reserved_iv_len__u8
       )
     );
@@ -421,15 +459,15 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
      * }*/
     inc_seq_nbr(rec_prot__pt->write_state__t.sequence_number__au32);
   }
-  else
-  if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == TLS_NULL_WITH_NULL_NULL)
+  else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == TLS_NULL_WITH_NULL_NULL)
   {
     rec_prot__pt->send_rec_buf_raw__bu8[3] = rec_prot__pt->payload_used_len__u16 >> 8;
     rec_prot__pt->send_rec_buf_raw__bu8[4] = rec_prot__pt->payload_used_len__u16;
     // printf("rec_prot write_flush: writing %u PLAIN bytes to underlying stream\n", rec_prot__pt->payload_used_len__u16 + RECORD_HDR_LEN);
     FLEA_CCALL(
       THR_flea_rw_stream_t__write(
-        rec_prot__pt->rw_stream__pt, rec_prot__pt->send_rec_buf_raw__bu8,
+        rec_prot__pt->rw_stream__pt,
+        rec_prot__pt->send_rec_buf_raw__bu8,
         rec_prot__pt->payload_used_len__u16 + RECORD_HDR_LEN
       )
     );
@@ -442,20 +480,24 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
 } /* THR_flea_tls_rec_prot_t__write_flush */
 
 static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
-  flea_tls_rec_prot_t          *rec_prot__pt,
-  flea_u8_t                    *data__pu8,
-  flea_al_u16_t                *data_len__palu16,
+  flea_tls_rec_prot_t*          rec_prot__pt,
+  flea_u8_t*                    data__pu8,
+  flea_al_u16_t*                data_len__palu16,
   // flea_tls__connection_state_t *conn_state__pt,
-  flea_tls__protocol_version_t *prot_version_mbn__pt,
-  flea_bool_t                  do_verify_prot_version__b,
-  ContentType                  cont_type__e,
-  flea_bool_t                  current_or_next_record_for_content_type__b
+  flea_tls__protocol_version_t* prot_version_mbn__pt,
+  flea_bool_t                   do_verify_prot_version__b,
+  ContentType                   cont_type__e,
+  flea_bool_t                   current_or_next_record_for_content_type__b
 )
 {
   flea_al_u16_t to_cp__alu16, read_bytes_count__alu16 = 0;
   flea_dtl_t data_len__dtl = *data_len__palu16;
 
-  printf("rec_prot: read data called for %u bytes, write_ongoing = %u\n", data_len__dtl, rec_prot__pt->write_ongoing__u8);
+  printf(
+    "rec_prot: read data called for %u bytes, write_ongoing = %u\n",
+    data_len__dtl,
+    rec_prot__pt->write_ongoing__u8
+  );
   FLEA_THR_BEG_FUNC();
   if(rec_prot__pt->write_ongoing__u8)
   {
@@ -473,7 +515,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   // - called with non-zero length and data copied above did not suffice
   // no more data left. this is important for 0-length reads to
   // get the current record type
-  if((current_or_next_record_for_content_type__b && (rec_prot__pt->payload_used_len__u16 - rec_prot__pt->payload_offset__u16 == 0)) || data_len__dtl)
+  if((current_or_next_record_for_content_type__b &&
+    (rec_prot__pt->payload_used_len__u16 - rec_prot__pt->payload_offset__u16 == 0)) || data_len__dtl)
   {
     do
     {
@@ -482,7 +525,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
       printf("rec_prot: read data, entered read loop. reading header: %u bytes\n", raw_rec_content_len__alu16);
       FLEA_CCALL(
         THR_flea_rw_stream_t__read(
-          rec_prot__pt->rw_stream__pt, rec_prot__pt->send_rec_buf_raw__bu8,
+          rec_prot__pt->rw_stream__pt,
+          rec_prot__pt->send_rec_buf_raw__bu8,
           &raw_read_len__dtl
         )
       );
@@ -500,8 +544,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
           FLEA_THROW("invalid protocol version in record", FLEA_ERR_TLS_INV_REC_HDR);
         }
       }
-      else
-      if(prot_version_mbn__pt)
+      else if(prot_version_mbn__pt)
       {
         prot_version_mbn__pt->major = rec_prot__pt->send_rec_buf_raw__bu8[1];
         prot_version_mbn__pt->minor = rec_prot__pt->send_rec_buf_raw__bu8[2];
@@ -514,9 +557,11 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         FLEA_THROW("received record does not fit into receive buffer", FLEA_ERR_TLS_EXCSS_REC_LEN);
       }
       raw_read_len__dtl = raw_rec_content_len__alu16;
-      FLEA_CCALL( // TODO: READ IN PROPER BLOCKING MODE
+      FLEA_CCALL(
+        // TODO: READ IN PROPER BLOCKING MODE
         THR_flea_rw_stream_t__read(
-          rec_prot__pt->rw_stream__pt, rec_prot__pt->payload_buf__pu8,
+          rec_prot__pt->rw_stream__pt,
+          rec_prot__pt->payload_buf__pu8,
           &raw_read_len__dtl
         )
       );
@@ -545,7 +590,13 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
 
       if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_id == TLS_RSA_WITH_AES_256_CBC_SHA256)
       {
-        FLEA_CCALL(THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(rec_prot__pt, &raw_rec_content_len__alu16, rec_prot__pt->send_rec_buf_raw__bu8[0]));
+        FLEA_CCALL(
+          THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
+            rec_prot__pt,
+            &raw_rec_content_len__alu16,
+            rec_prot__pt->send_rec_buf_raw__bu8[0]
+          )
+        );
         inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
       }
       else
@@ -559,37 +610,54 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
       read_bytes_count__alu16 += to_cp__alu16;
       data_len__dtl -= to_cp__alu16;
       data__pu8     += to_cp__alu16;
-    }
-    while(data_len__dtl);
+    } while(data_len__dtl);
   }
   *data_len__palu16 = read_bytes_count__alu16;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__read_data */
 
 flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
-  flea_tls_rec_prot_t *rec_prot__pt,
-  ContentType         *cont_type__pe
+  flea_tls_rec_prot_t* rec_prot__pt,
+  ContentType*         cont_type__pe
 )
 {
   FLEA_THR_BEG_FUNC();
   flea_tls__protocol_version_t dummy_version__t;
   flea_al_u16_t read_len_zero__alu16 = 0;
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__read_data_inner(rec_prot__pt, NULL, &read_len_zero__alu16, &dummy_version__t, FLEA_FALSE, 0 /*dummy_content_type */, FLEA_TRUE));
+  FLEA_CCALL(
+    THR_flea_tls_rec_prot_t__read_data_inner(
+      rec_prot__pt,
+      NULL,
+      &read_len_zero__alu16,
+      &dummy_version__t,
+      FLEA_FALSE,
+      0 /*dummy_content_type */,
+      FLEA_TRUE
+    )
+  );
   *cont_type__pe = rec_prot__pt->send_rec_buf_raw__bu8[0];
   FLEA_THR_FIN_SEC_empty();
 }
 
 flea_err_t THR_flea_tls_rec_prot_t__read_data(
-  flea_tls_rec_prot_t *rec_prot__pt,
-  ContentType         cont_type__e,
-  flea_u8_t           *data__pu8,
-  flea_al_u16_t       *data_len__palu16
+  flea_tls_rec_prot_t* rec_prot__pt,
+  ContentType          cont_type__e,
+  flea_u8_t*           data__pu8,
+  flea_al_u16_t*       data_len__palu16
 )
 {
-  return THR_flea_tls_rec_prot_t__read_data_inner(rec_prot__pt, data__pu8, data_len__palu16, NULL, FLEA_FALSE, cont_type__e, FLEA_FALSE);
+  return THR_flea_tls_rec_prot_t__read_data_inner(
+    rec_prot__pt,
+    data__pu8,
+    data_len__palu16,
+    NULL,
+    FLEA_FALSE,
+    cont_type__e,
+    FLEA_FALSE
+  );
 }
 
-void flea_tls_rec_prot_t__dtor(flea_tls_rec_prot_t *rec_prot__pt)
+void flea_tls_rec_prot_t__dtor(flea_tls_rec_prot_t* rec_prot__pt)
 {
   flea_tls_conn_state_t__dtor(&rec_prot__pt->write_state__t);
   flea_tls_conn_state_t__dtor(&rec_prot__pt->read_state__t);

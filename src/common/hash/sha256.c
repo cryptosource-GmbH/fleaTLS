@@ -36,10 +36,10 @@
 # define ror(value, bits)         (((value) >> (bits)) | ((value) << (32 - (bits))))
 
 # define LOAD32H(x, y)                            \
-  { x = ((flea_u32_t) ((y)[0] & 255) << 24)   \
-      | ((flea_u32_t) ((y)[1] & 255) << 16)   \
-      | ((flea_u32_t) ((y)[2] & 255) << 8)    \
-      | ((flea_u32_t) ((y)[3] & 255)); }
+  {x = ((flea_u32_t) ((y)[0] & 255) << 24)   \
+     | ((flea_u32_t) ((y)[1] & 255) << 16)   \
+     | ((flea_u32_t) ((y)[2] & 255) << 8)    \
+     | ((flea_u32_t) ((y)[3] & 255));}
 
 
 static const flea_u32_t K[64] = {
@@ -75,10 +75,22 @@ static const flea_u32_t K[64] = {
   d += t0;                                          \
   h  = t0 + t1;
 # else
-static void Sha256Round(flea_u32_t *a__pu32, flea_u32_t *b__pu32, flea_u32_t *c__pu32, flea_u32_t *d__pu32, flea_u32_t *e__pu32, flea_u32_t *f__pu32, flea_u32_t *g__pu32, flea_u32_t *h__pu32, flea_al_u8_t i, flea_u32_t *W)
+static void Sha256Round(
+  flea_u32_t*  a__pu32,
+  flea_u32_t*  b__pu32,
+  flea_u32_t*  c__pu32,
+  flea_u32_t*  d__pu32,
+  flea_u32_t*  e__pu32,
+  flea_u32_t*  f__pu32,
+  flea_u32_t*  g__pu32,
+  flea_u32_t*  h__pu32,
+  flea_al_u8_t i,
+  flea_u32_t*  W
+)
 {
   flea_u32_t t0, t1;
-  flea_u32_t a = *a__pu32, b = *b__pu32, c = *c__pu32, d = *d__pu32, e = *e__pu32, f = *f__pu32, g = *g__pu32, h = *h__pu32;
+  flea_u32_t a = *a__pu32, b = *b__pu32, c = *c__pu32, d = *d__pu32, e = *e__pu32, f = *f__pu32, g = *g__pu32,
+    h = *h__pu32;
 
   t0       = h + Sigma1(e) + Ch(e, f, g) + K[i] + W[i];
   t1       = Sigma0(a) + Maj(a, b, c);
@@ -96,13 +108,16 @@ static void Sha256Round(flea_u32_t *a__pu32, flea_u32_t *b__pu32, flea_u32_t *c_
 
 # endif /* ifdef FLEA_USE_SHA256_ROUND_MACRO */
 
-flea_err_t THR_flea_sha256_compression_function(flea_hash_ctx_t *ctx__pt, const flea_u8_t *input)
+flea_err_t THR_flea_sha256_compression_function(
+  flea_hash_ctx_t* ctx__pt,
+  const flea_u8_t* input
+)
 {
   FLEA_DECL_BUF(S_and_W, flea_u32_t, 8 + 64);
-  flea_u32_t *S;
-  flea_u32_t *W;
+  flea_u32_t* S;
+  flea_u32_t* W;
   int i;
-  flea_u32_t *state = ctx__pt->hash_state;
+  flea_u32_t* state = ctx__pt->hash_state;
 
   FLEA_THR_BEG_FUNC();
   FLEA_ALLOC_BUF(S_and_W, 8 + 64);
@@ -117,7 +132,7 @@ flea_err_t THR_flea_sha256_compression_function(flea_hash_ctx_t *ctx__pt, const 
   // Copy the state into 512-bits into W[0..15]
   for(i = 0; i < 16; i++)
   {
-    LOAD32H(W[i], input + (4 * i) );
+    LOAD32H(W[i], input + (4 * i));
   }
 
   // Fill W[16..63]
@@ -167,9 +182,9 @@ flea_err_t THR_flea_sha256_compression_function(flea_hash_ctx_t *ctx__pt, const 
   );
 } /* THR_flea_sha256_compression_function */
 
-void flea_sha256_init(flea_hash_ctx_t *ctx__pt)
+void flea_sha256_init(flea_hash_ctx_t* ctx__pt)
 {
-  flea_u32_t *state = ctx__pt->hash_state;
+  flea_u32_t* state = ctx__pt->hash_state;
 
   state[0] = 0x6A09E667UL;
   state[1] = 0xBB67AE85UL;
@@ -181,9 +196,9 @@ void flea_sha256_init(flea_hash_ctx_t *ctx__pt)
   state[7] = 0x5BE0CD19UL;
 }
 
-void flea_sha224_init(flea_hash_ctx_t *ctx__pt)
+void flea_sha224_init(flea_hash_ctx_t* ctx__pt)
 {
-  flea_u32_t *state = ctx__pt->hash_state;
+  flea_u32_t* state = ctx__pt->hash_state;
 
   state[0] = 0xc1059ed8UL;
   state[1] = 0x367cd507UL;
@@ -195,10 +210,14 @@ void flea_sha224_init(flea_hash_ctx_t *ctx__pt)
   state[7] = 0xbefa4fa4UL;
 }
 
-void flea_sha256_encode_hash_state(const flea_hash_ctx_t *ctx__t, flea_u8_t *output, flea_al_u8_t output_len)
+void flea_sha256_encode_hash_state(
+  const flea_hash_ctx_t* ctx__t,
+  flea_u8_t*             output,
+  flea_al_u8_t           output_len
+)
 {
   flea_al_u8_t i;
-  flea_u32_t *state = (flea_u32_t *) ctx__t->hash_state;
+  flea_u32_t* state = (flea_u32_t *) ctx__t->hash_state;
 
   for(i = 0; i < output_len; i++)
   {

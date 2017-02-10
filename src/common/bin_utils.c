@@ -4,7 +4,11 @@
 #include "flea/bin_utils.h"
 #include "flea/types.h"
 
-void flea__xor_bytes_in_place(flea_u8_t *in_out, const flea_u8_t *in2, flea_dtl_t len)
+void flea__xor_bytes_in_place(
+  flea_u8_t*       in_out,
+  const flea_u8_t* in2,
+  flea_dtl_t       len
+)
 {
   flea_dtl_t i;
 
@@ -14,7 +18,12 @@ void flea__xor_bytes_in_place(flea_u8_t *in_out, const flea_u8_t *in2, flea_dtl_
   }
 }
 
-void flea__xor_bytes(flea_u8_t *out, const flea_u8_t *in1, const flea_u8_t *in2, flea_dtl_t len__dtl)
+void flea__xor_bytes(
+  flea_u8_t*       out,
+  const flea_u8_t* in1,
+  const flea_u8_t* in2,
+  flea_dtl_t       len__dtl
+)
 {
   flea_dtl_t i;
 
@@ -24,7 +33,10 @@ void flea__xor_bytes(flea_u8_t *out, const flea_u8_t *in1, const flea_u8_t *in2,
   }
 }
 
-void flea__encode_U32_LE(flea_u32_t to_enc, flea_u8_t res[4])
+void flea__encode_U32_LE(
+  flea_u32_t to_enc,
+  flea_u8_t  res[4]
+)
 {
   res[3] = to_enc >> 24;
   res[2] = to_enc >> 16;
@@ -32,7 +44,10 @@ void flea__encode_U32_LE(flea_u32_t to_enc, flea_u8_t res[4])
   res[0] = to_enc & 0xFF;
 }
 
-void flea__encode_U32_BE(flea_u32_t to_enc, flea_u8_t res[4])
+void flea__encode_U32_BE(
+  flea_u32_t to_enc,
+  flea_u8_t  res[4]
+)
 {
   res[0] = to_enc >> 24;
   res[1] = to_enc >> 16;
@@ -44,7 +59,7 @@ flea_u32_t flea__decode_U32_BE(const flea_u8_t enc[4])
 {
   return ((flea_u32_t) enc[0] << 24)
          | ((flea_u32_t) enc[1] << 16)
-         | ((flea_u32_t) enc[2] << 8 )
+         | ((flea_u32_t) enc[2] << 8)
          | ((flea_u32_t) (enc[3] & 0xFF));
 }
 
@@ -54,7 +69,10 @@ flea_u16_t flea__decode_U16_LE(const flea_u8_t enc[2])
          | ((flea_u16_t) (enc[0] & 0xFF));
 }
 
-void flea__increment_encoded_BE_int(flea_u8_t *ctr_block_pu8, flea_al_u8_t ctr_block_length_al_u8)
+void flea__increment_encoded_BE_int(
+  flea_u8_t*   ctr_block_pu8,
+  flea_al_u8_t ctr_block_length_al_u8
+)
 {
   flea_al_s8_t i;
 
@@ -85,12 +103,14 @@ flea_al_u8_t flea__nlz_uword(flea_uword_t x)
       x = y;
     }
     c = c >> 1;
-  }
-  while(c != 0);
+  } while(c != 0);
   return n - x;
 }
 
-flea_mpi_ulen_t flea__get_BE_int_bit_len(const flea_u8_t *enc__pcu8, flea_mpi_ulen_t int_len__mpl)
+flea_mpi_ulen_t flea__get_BE_int_bit_len(
+  const flea_u8_t* enc__pcu8,
+  flea_mpi_ulen_t  int_len__mpl
+)
 {
   flea_mpi_ulen_t i;
 

@@ -12,7 +12,13 @@
 #include "flea/hash.h"
 #include <string.h>
 
-flea_err_t THR_flea_pkcs1_mgf1(flea_u8_t *output__pu8, flea_al_u16_t output_len__alu16, const flea_u8_t *seed__pc_u8, flea_al_u16_t seed_len__alu16, flea_hash_id_t hash_id__t)
+flea_err_t THR_flea_pkcs1_mgf1(
+  flea_u8_t*       output__pu8,
+  flea_al_u16_t    output_len__alu16,
+  const flea_u8_t* seed__pc_u8,
+  flea_al_u16_t    seed_len__alu16,
+  flea_hash_id_t   hash_id__t
+)
 {
   flea_al_u16_t nb_blocks;
   flea_al_u16_t i;
@@ -48,7 +54,13 @@ flea_err_t THR_flea_pkcs1_mgf1(flea_u8_t *output__pu8, flea_al_u16_t output_len_
   );
 } /* THR_flea_pkcs1_mgf1 */
 
-flea_err_t THR_flea_pk_api__encode_message__oaep(flea_u8_t *input_output__pu8, flea_al_u16_t input_len__alu16, flea_al_u16_t *output_len__palu16, flea_al_u16_t bit_size__alu16, flea_hash_id_t hash_id__t)
+flea_err_t THR_flea_pk_api__encode_message__oaep(
+  flea_u8_t*     input_output__pu8,
+  flea_al_u16_t  input_len__alu16,
+  flea_al_u16_t* output_len__palu16,
+  flea_al_u16_t  bit_size__alu16,
+  flea_hash_id_t hash_id__t
+)
 {
   flea_al_u16_t k__alu16;
   flea_al_u16_t pad__alu16;
@@ -84,14 +96,38 @@ flea_err_t THR_flea_pk_api__encode_message__oaep(flea_u8_t *input_output__pu8, f
   memmove(input_output__pu8 + message_offs__alu16, input_output__pu8, input_len__alu16);
   input_output__pu8[  message_offs__alu16 - 1] = 0x01;
   memset(input_output__pu8 + ps_offs__alu16, 0, ps_len__alu16);
-  FLEA_CCALL(THR_flea_compute_hash(hash_id__t, input_output__pu8, 0, input_output__pu8 + lhash_offs__alu16, hash_output_len__alu8));
+  FLEA_CCALL(
+    THR_flea_compute_hash(
+      hash_id__t,
+      input_output__pu8,
+      0,
+      input_output__pu8 + lhash_offs__alu16,
+      hash_output_len__alu8
+    )
+  );
   db_len__alu16 = k__alu16 - hash_output_len__alu8 - 1;
 
   // gen seed in output buffer
   flea_rng__randomize(input_output__pu8 + 1, hash_output_len__alu8);
 
-  FLEA_CCALL(THR_flea_pkcs1_mgf1(input_output__pu8 + lhash_offs__alu16, db_len__alu16, input_output__pu8 + 1, hash_output_len__alu8, hash_id__t));
-  FLEA_CCALL(THR_flea_pkcs1_mgf1(input_output__pu8 + 1, hash_output_len__alu8, input_output__pu8 + lhash_offs__alu16, db_len__alu16, hash_id__t));
+  FLEA_CCALL(
+    THR_flea_pkcs1_mgf1(
+      input_output__pu8 + lhash_offs__alu16,
+      db_len__alu16,
+      input_output__pu8 + 1,
+      hash_output_len__alu8,
+      hash_id__t
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_pkcs1_mgf1(
+      input_output__pu8 + 1,
+      hash_output_len__alu8,
+      input_output__pu8 + lhash_offs__alu16,
+      db_len__alu16,
+      hash_id__t
+    )
+  );
   input_output__pu8[0] = 0x00;
 
   *output_len__palu16 = k__alu16;
@@ -99,12 +135,19 @@ flea_err_t THR_flea_pk_api__encode_message__oaep(flea_u8_t *input_output__pu8, f
 } /* THR_flea_pk_api__encode_message__oaep */
 
 // will destroy input content
-flea_err_t THR_flea_pk_api__decode_message__oaep(flea_u8_t *result__pu8, flea_al_u16_t *result_len__palu16, flea_u8_t *input__pu8, flea_al_u16_t input_len__alu16, flea_al_u16_t bit_size__alu16, flea_hash_id_t hash_id__t)
+flea_err_t THR_flea_pk_api__decode_message__oaep(
+  flea_u8_t*     result__pu8,
+  flea_al_u16_t* result_len__palu16,
+  flea_u8_t*     input__pu8,
+  flea_al_u16_t  input_len__alu16,
+  flea_al_u16_t  bit_size__alu16,
+  flea_hash_id_t hash_id__t
+)
 {
   flea_al_u16_t db_len__alu16;
   flea_al_u16_t lhash_offs__alu16;
   flea_al_u8_t hash_output_len__alu8;
-  flea_u8_t *message__pu8;
+  flea_u8_t* message__pu8;
   flea_al_u16_t message_len__alu16;
 
   FLEA_DECL_BUF(lhash__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
@@ -119,8 +162,24 @@ flea_err_t THR_flea_pk_api__decode_message__oaep(flea_u8_t *result__pu8, flea_al
   db_len__alu16     = input_len__alu16 - lhash_offs__alu16;
   FLEA_ALLOC_BUF(lhash__bu8, hash_output_len__alu8);
   FLEA_CCALL(THR_flea_compute_hash(hash_id__t, input__pu8, 0, lhash__bu8, hash_output_len__alu8));
-  FLEA_CCALL(THR_flea_pkcs1_mgf1(&input__pu8[1], hash_output_len__alu8, input__pu8 + lhash_offs__alu16, db_len__alu16, hash_id__t));
-  FLEA_CCALL(THR_flea_pkcs1_mgf1(&input__pu8[lhash_offs__alu16], db_len__alu16, &input__pu8[1], hash_output_len__alu8, hash_id__t));
+  FLEA_CCALL(
+    THR_flea_pkcs1_mgf1(
+      &input__pu8[1],
+      hash_output_len__alu8,
+      input__pu8 + lhash_offs__alu16,
+      db_len__alu16,
+      hash_id__t
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_pkcs1_mgf1(
+      &input__pu8[lhash_offs__alu16],
+      db_len__alu16,
+      &input__pu8[1],
+      hash_output_len__alu8,
+      hash_id__t
+    )
+  );
   // parse the unmasked db
   error__alu8       |= memcmp(&input__pu8[lhash_offs__alu16], lhash__bu8, hash_output_len__alu8);
   message_len__alu16 = input_len__alu16 - lhash_offs__alu16 - hash_output_len__alu8;

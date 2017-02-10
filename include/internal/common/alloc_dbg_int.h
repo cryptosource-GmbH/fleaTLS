@@ -9,12 +9,9 @@
 
 #ifdef FLEA_USE_BUF_DBG_CANARIES
 
-void
-flea_dbg_canaries__signal_canary_error();
-void
-flea_dbg_canaries__clear_canary_error();
-int
-flea_dbg_canaries__is_canary_error_set();
+void flea_dbg_canaries__signal_canary_error();
+void flea_dbg_canaries__clear_canary_error();
+int flea_dbg_canaries__is_canary_error_set();
 
 # define __FLEA_SIGNAL_DBG_CANARY_ERROR()     flea_dbg_canaries__signal_canary_error() // do { flea_dbg_canaries_flag = 1; } while(0)
 
@@ -52,14 +49,14 @@ flea_dbg_canaries__is_canary_error_set();
 # define FLEA_BUF_CHK_DBG_CANARIES(__name) \
   do { \
     if(FLEA_BUF_DBG_CANARIES_ARE_NOT_OK(__name)) \
-    { __FLEA_FREE_BUF_SET_NULL(__name ## _FLEA_DBG_CANARIES__RAW); /*s.th. tests don't show leak */ \
-      __FLEA_SIGNAL_DBG_CANARY_ERROR(); }                          /* we are in the cleanup section and cannot use THROW*/ \
+    {__FLEA_FREE_BUF_SET_NULL(__name ## _FLEA_DBG_CANARIES__RAW); /*s.th. tests don't show leak */ \
+     __FLEA_SIGNAL_DBG_CANARY_ERROR();}                           /* we are in the cleanup section and cannot use THROW*/ \
   } while(0)
 
 # ifdef FLEA_USE_HEAP_BUF
 #  define FLEA_DECL_BUF(__name, __type, __static_size) \
   __type * __name ## _FLEA_DBG_CANARIES__RAW = NULL; \
-  __type *__name = NULL; \
+  __type* __name = NULL; \
   typedef __type __name ## _DBG_CANARIES_HELP_TYPE; \
   flea_u32_t __name ## _FLEA_DBG_CANARIES_DYNAMIC_SIZE = 0
 
@@ -75,7 +72,7 @@ flea_dbg_canaries__is_canary_error_set();
   do { \
     if(__name) { \
       if(FLEA_BUF_DBG_CANARIES_ARE_NOT_OK(__name)) \
-      { __FLEA_SIGNAL_DBG_CANARY_ERROR(); } /* we are in the cleanup section and cannot use THROW*/ \
+      {__FLEA_SIGNAL_DBG_CANARY_ERROR();} /* we are in the cleanup section and cannot use THROW*/ \
       FLEA_FREE_MEM(__name ## _FLEA_DBG_CANARIES__RAW); \
     } \
   } while(0)
@@ -85,7 +82,7 @@ flea_dbg_canaries__is_canary_error_set();
     if(__name) { \
       flea_memzero_secure((flea_u8_t *) __name, (__type_len) * sizeof(__name[0])); \
       if(FLEA_BUF_DBG_CANARIES_ARE_NOT_OK(__name)) \
-      { __FLEA_SIGNAL_DBG_CANARY_ERROR(); } /* we are in the cleanup section and cannot use THROW*/ \
+      {__FLEA_SIGNAL_DBG_CANARY_ERROR();} /* we are in the cleanup section and cannot use THROW*/ \
       FLEA_FREE_MEM(__name ## _FLEA_DBG_CANARIES__RAW); \
     } \
   } while(0)
@@ -94,7 +91,7 @@ flea_dbg_canaries__is_canary_error_set();
   do { \
     if(__name) { \
       if(FLEA_BUF_DBG_CANARIES_ARE_NOT_OK(__name)) \
-      {  __FLEA_SIGNAL_DBG_CANARY_ERROR(); } /* we are in the cleanup section and cannot use THROW*/ \
+      {__FLEA_SIGNAL_DBG_CANARY_ERROR();} /* we are in the cleanup section and cannot use THROW*/ \
       FLEA_FREE_MEM_SET_NULL(__name ## _FLEA_DBG_CANARIES__RAW); \
       __name = NULL; /*s. th. user buffer is also NULL */ \
     } \
@@ -105,7 +102,7 @@ flea_dbg_canaries__is_canary_error_set();
 #  define FLEA_DECL_BUF(__name, __type, __static_size) \
   flea_u32_t __name ## _FLEA_DBG_CANARIES_DYNAMIC_SIZE = __static_size; \
   flea_u8_t __name ## _FLEA_DBG_CANARIES__RAW[(__static_size) * sizeof(__type) + 8]; \
-  __type *__name = (__type *) &(((flea_u8_t *) __name ## _FLEA_DBG_CANARIES__RAW)[4]); \
+  __type* __name = (__type *) &(((flea_u8_t *) __name ## _FLEA_DBG_CANARIES__RAW)[4]); \
   FLEA_BUF_SET_CANANRIES(__name, __static_size)
 
 #  define FLEA_STACK_BUF_NB_ENTRIES(__name) ((sizeof(__name ## _FLEA_DBG_CANARIES__RAW) - 8) / sizeof(__name[0]))
@@ -115,7 +112,7 @@ flea_dbg_canaries__is_canary_error_set();
 #  define FLEA_FREE_BUF_FINAL(__name) \
   do { \
     if(FLEA_BUF_DBG_CANARIES_ARE_NOT_OK(__name)) \
-    { __FLEA_SIGNAL_DBG_CANARY_ERROR(); } \
+    {__FLEA_SIGNAL_DBG_CANARY_ERROR();} \
   } while(0)
 
 
@@ -126,7 +123,7 @@ flea_dbg_canaries__is_canary_error_set();
     if(__name) { \
       flea_memzero_secure((flea_u8_t *) __name, (__type_len) * sizeof(__name[0])); \
       if(FLEA_BUF_DBG_CANARIES_ARE_NOT_OK(__name)) \
-      { __FLEA_SIGNAL_DBG_CANARY_ERROR(); } \
+      {__FLEA_SIGNAL_DBG_CANARY_ERROR();} \
     } \
   } while(0)
 # else // ifdef FLEA_USE_HEAP_BUF

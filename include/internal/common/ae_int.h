@@ -11,8 +11,8 @@ typedef struct
   flea_ctr_mode_ctx_t ctr_ctx__t;
   flea_mac_ctx_t      cmac_ctx__t;
 #ifdef FLEA_USE_HEAP_BUF
-  flea_u8_t           *nonce__bu8;
-  flea_u8_t           *header_omac__bu8;
+  flea_u8_t*          nonce__bu8;
+  flea_u8_t*          header_omac__bu8;
 #else
   flea_u8_t           nonce__bu8 [FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
   flea_u8_t           header_omac__bu8[FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];

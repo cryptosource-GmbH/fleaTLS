@@ -12,12 +12,15 @@
 #include <string.h>
 
 #ifdef FLEA_HAVE_DAVIES_MEYER_HASH
-void flea_hash_davies_meyer_aes128_init(flea_hash_ctx_t *ctx__pt)
+void flea_hash_davies_meyer_aes128_init(flea_hash_ctx_t* ctx__pt)
 {
   memset(ctx__pt->hash_state, 0, 16);
 }
 
-flea_err_t THR_flea_hash_davies_meyer_aes128_compression(flea_hash_ctx_t *ctx__pt, const flea_u8_t *input)
+flea_err_t THR_flea_hash_davies_meyer_aes128_compression(
+  flea_hash_ctx_t* ctx__pt,
+  const flea_u8_t* input
+)
 {
   FLEA_DECL_OBJ(aes_ctx, flea_ecb_mode_ctx_t);
   FLEA_DECL_BUF(tmp_state, flea_u8_t, FLEA_AES_BLOCK_LENGTH);

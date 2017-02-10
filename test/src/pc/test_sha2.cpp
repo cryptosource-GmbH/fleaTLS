@@ -38,15 +38,16 @@ flea_err_t THR_flea_test_sha256_file_based()
         // std::cout << "next test: " << line << std::endl;
         // nothing to do
       }
-      else
-      if(line.find(std::string("end")) == 0)
+      else if(line.find(std::string("end")) == 0)
       {
         end = true;
       }
       // std::cout << "testing hash with message size = " << m.size() << std::endl;
       if(0 != THR_flea_test_hash_function_inner(
-          &m[0], m.size(),
-          &d[0], d.size(),
+          &m[0],
+          m.size(),
+          &d[0],
+          d.size(),
           flea_sha256
         ))
       {

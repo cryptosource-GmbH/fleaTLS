@@ -21,14 +21,14 @@ static const flea_u16_t ghash_lo[16] = {
 #define FLEA_LSHIFT_U64_AU32_SMALL(in, out, shift) \
   do { \
     out[1] = (in[1] << shift); \
-    if(shift <= 32) { out[1] |= (in[0] >> (32 - shift)); } \
+    if(shift <= 32) {out[1] |= (in[0] >> (32 - shift));} \
     out[0] = in[0] << shift; \
   } while(0);
 
 #define FLEA_RSHIFT_U64_AU32_SMALL(in, out, shift) \
   do { \
     out[0] = (in[0] >> shift); \
-    if(shift <= 32) { out[0] |= (in[1] << (32 - shift)); } \
+    if(shift <= 32) {out[0] |= (in[1] << (32 - shift));} \
     out[1] = in[1] >> shift; \
   } while(0);
 
@@ -37,7 +37,7 @@ static const flea_u16_t ghash_lo[16] = {
  */
 #define FLEA_LSHIFT_U64_AU32_LARGE(in, out, shift) \
   do { \
-    out[1] = (in[0] << (32 - ( 64 - shift))); \
+    out[1] = (in[0] << (32 - (64 - shift))); \
     out[0] = 0; \
   } while(0);
 
@@ -47,17 +47,20 @@ static const flea_u16_t ghash_lo[16] = {
     au32_in_out[1] |= au32_in[1]; \
   } while(0)
 
-static void ghash_process_block(flea_ghash_ctx_t *ctx__pt, /*const flea_u8_t x[__FLEA_GHASH_BLOCK_SIZE],*/ flea_u8_t output[__FLEA_GHASH_BLOCK_SIZE])
+static void ghash_process_block(
+  flea_ghash_ctx_t* ctx__pt, /*const flea_u8_t x[__FLEA_GHASH_BLOCK_SIZE],*/
+  flea_u8_t         output[__FLEA_GHASH_BLOCK_SIZE]
+)
 {
   int i;
   flea_u8_t lo, hi, rem;
   flea_u32_t zl_a[2];
   flea_u32_t zh_a[2];
   flea_u32_t tmp_a[2];
-  flea_u8_t *x = output;
+  flea_u8_t* x = output;
 
-  lo      = (flea_u8_t) ( x[15] & 0x0f );
-  hi      = (flea_u8_t) ( x[15] >> 4 );
+  lo      = (flea_u8_t) (x[15] & 0x0f);
+  hi      = (flea_u8_t) (x[15] >> 4);
   zh_a[0] = ctx__pt->hh__bu32[2 * lo];
   zh_a[1] = ctx__pt->hh__bu32[2 * lo + 1];
 
@@ -68,13 +71,13 @@ static void ghash_process_block(flea_ghash_ctx_t *ctx__pt, /*const flea_u8_t x[_
   {
     if(i & 1)
     {
-      hi = (flea_u8_t) ( x[(i + 1) / 2] >> 4 );
+      hi = (flea_u8_t) (x[(i + 1) / 2] >> 4);
     }
     else
     {
-      hi = (flea_u8_t) ( x[(i + 1) / 2] & 0x0f );
+      hi = (flea_u8_t) (x[(i + 1) / 2] & 0x0f);
     }
-    rem = (flea_u8_t) ( zl_a[0] & 0x0f );
+    rem = (flea_u8_t) (zl_a[0] & 0x0f);
 
     FLEA_LSHIFT_U64_AU32_LARGE(zh_a, tmp_a, 60);
     FLEA_RSHIFT_U64_AU32_SMALL(zl_a, zl_a, 4);
@@ -108,13 +111,21 @@ static void ghash_process_block(flea_ghash_ctx_t *ctx__pt, /*const flea_u8_t x[_
 #endif
 } /* ghash_process_block */
 
-static void ghash_xor_and_process_block(flea_ghash_ctx_t *ctx__pt, flea_u8_t output__pu8[__FLEA_GHASH_BLOCK_SIZE], const flea_u8_t *input__pcu8, flea_al_u8_t input_len__alu8)
+static void ghash_xor_and_process_block(
+  flea_ghash_ctx_t* ctx__pt,
+  flea_u8_t         output__pu8[__FLEA_GHASH_BLOCK_SIZE],
+  const flea_u8_t*  input__pcu8,
+  flea_al_u8_t      input_len__alu8
+)
 {
   flea__xor_bytes_in_place(output__pu8, input__pcu8, input_len__alu8);
   ghash_process_block(ctx__pt, output__pu8);
 }
 
-flea_err_t THR_flea_ghash_ctx_t__ctor(flea_ghash_ctx_t *ctx__pt, const flea_ecb_mode_ctx_t *ecb_ctx__pt)
+flea_err_t THR_flea_ghash_ctx_t__ctor(
+  flea_ghash_ctx_t*          ctx__pt,
+  const flea_ecb_mode_ctx_t* ecb_ctx__pt
+)
 {
   int i, j;
   flea_u32_t vl_a[2], vh_a[2];
@@ -158,7 +169,7 @@ flea_err_t THR_flea_ghash_ctx_t__ctor(flea_ghash_ctx_t *ctx__pt, const flea_ecb_
   for(i = 4; i > 0; i >>= 1)
   {
     flea_u32_t tmp_a[2];
-    flea_u32_t T = (flea_u32_t) ( vl_a[0] & 1 ) * 0xe1000000UL;
+    flea_u32_t T = (flea_u32_t) (vl_a[0] & 1) * 0xe1000000UL;
     FLEA_LSHIFT_U64_AU32_LARGE(vh_a, tmp_a, 63);
     FLEA_RSHIFT_U64_AU32_SMALL(vl_a, vl_a, 1);
     FLEA_U64_OR_AU32(vl_a, tmp_a);
@@ -173,8 +184,8 @@ flea_err_t THR_flea_ghash_ctx_t__ctor(flea_ghash_ctx_t *ctx__pt, const flea_ecb_
   }
   for(i = 2; i < 16; i <<= 1)
   {
-    flea_u32_t *HiL_a = ctx__pt->hl__bu32 + 2 * i;
-    flea_u32_t *HiH_a = ctx__pt->hh__bu32 + 2 * i;
+    flea_u32_t* HiL_a = ctx__pt->hl__bu32 + 2 * i;
+    flea_u32_t* HiH_a = ctx__pt->hh__bu32 + 2 * i;
 
     vh_a[0] = HiH_a[0];
     vh_a[1] = HiH_a[1];
@@ -194,10 +205,18 @@ flea_err_t THR_flea_ghash_ctx_t__ctor(flea_ghash_ctx_t *ctx__pt, const flea_ecb_
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_ghash_ctx_t__ctor */
 
-flea_err_t THR_flea_ghash_ctx_t__start(flea_ghash_ctx_t *ctx, const flea_ecb_mode_ctx_t *ecb_ctx__pt, const flea_u8_t *iv, size_t iv_len, const flea_u8_t *add, flea_al_u16_t hdr_len__u16, flea_u8_t *ctr_block__pu8)
+flea_err_t THR_flea_ghash_ctx_t__start(
+  flea_ghash_ctx_t*          ctx,
+  const flea_ecb_mode_ctx_t* ecb_ctx__pt,
+  const flea_u8_t*           iv,
+  size_t                     iv_len,
+  const flea_u8_t*           add,
+  flea_al_u16_t              hdr_len__u16,
+  flea_u8_t*                 ctr_block__pu8
+)
 {
   FLEA_DECL_BUF(work__bu8, flea_u8_t, 32);
-  const flea_u8_t *p;
+  const flea_u8_t* p;
   size_t use_len;
 
   FLEA_THR_BEG_FUNC();
@@ -220,20 +239,27 @@ flea_err_t THR_flea_ghash_ctx_t__start(flea_ghash_ctx_t *ctx, const flea_ecb_mod
     p = iv;
     while(iv_len > 0)
     {
-      use_len = ( iv_len < __FLEA_GHASH_BLOCK_SIZE ) ? iv_len : __FLEA_GHASH_BLOCK_SIZE;
+      use_len = (iv_len < __FLEA_GHASH_BLOCK_SIZE) ? iv_len : __FLEA_GHASH_BLOCK_SIZE;
       ghash_xor_and_process_block(ctx, ctr_block__pu8, p, use_len);
       iv_len -= use_len;
       p      += use_len;
     }
     ghash_xor_and_process_block(ctx, ctr_block__pu8, work__bu8, __FLEA_GHASH_BLOCK_SIZE);
   }
-  FLEA_CCALL(THR_flea_ecb_mode_crypt_data(ecb_ctx__pt, ctr_block__pu8, ctx->base_ctr__bu8, ecb_ctx__pt->block_length__u8));
+  FLEA_CCALL(
+    THR_flea_ecb_mode_crypt_data(
+      ecb_ctx__pt,
+      ctr_block__pu8,
+      ctx->base_ctr__bu8,
+      ecb_ctx__pt->block_length__u8
+    )
+  );
 
   ctx->hdr_len__u16 = hdr_len__u16;
   p = add;
   while(hdr_len__u16 > 0)
   {
-    use_len = ( hdr_len__u16 < __FLEA_GHASH_BLOCK_SIZE ) ? hdr_len__u16 : __FLEA_GHASH_BLOCK_SIZE;
+    use_len = (hdr_len__u16 < __FLEA_GHASH_BLOCK_SIZE) ? hdr_len__u16 : __FLEA_GHASH_BLOCK_SIZE;
     ghash_xor_and_process_block(ctx, ctx->state__bu8, p, use_len);
     hdr_len__u16 -= use_len;
     p += use_len;
@@ -243,7 +269,11 @@ flea_err_t THR_flea_ghash_ctx_t__start(flea_ghash_ctx_t *ctx, const flea_ecb_mod
   );
 } /* THR_flea_ghash_ctx_t__start */
 
-flea_err_t THR_flea_ghash_ctx_t__update(flea_ghash_ctx_t *ctx__pt, flea_dtl_t input_len__dtl, const flea_u8_t *input__pcu8)
+flea_err_t THR_flea_ghash_ctx_t__update(
+  flea_ghash_ctx_t* ctx__pt,
+  flea_dtl_t        input_len__dtl,
+  const flea_u8_t*  input__pcu8
+)
 {
   flea_al_u8_t left__alu8, to_copy__alu8, tail_len__alu8;
   flea_dtl_t nb_full_blocks__alu16, i;
@@ -279,9 +309,13 @@ flea_err_t THR_flea_ghash_ctx_t__update(flea_ghash_ctx_t *ctx__pt, flea_dtl_t in
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_ghash_ctx_t__update */
 
-void flea_ghash_ctx_t__finish(flea_ghash_ctx_t *ctx__pt, flea_u8_t *tag, size_t tag_len)
+void flea_ghash_ctx_t__finish(
+  flea_ghash_ctx_t* ctx__pt,
+  flea_u8_t*        tag,
+  size_t            tag_len
+)
 {
-  flea_u8_t *work_buf = ctx__pt->base_ctr__bu8;
+  flea_u8_t* work_buf = ctx__pt->base_ctr__bu8;
   flea_u32_t orig_add_len__u32 = ctx__pt->hdr_len__u16 * 8;
 
   flea_len_ctr_t__counter_byte_lengt_to_bit_length(&ctx__pt->len_ctr__t);
@@ -311,7 +345,7 @@ void flea_ghash_ctx_t__finish(flea_ghash_ctx_t *ctx__pt, flea_u8_t *tag, size_t 
   }
 }
 
-void flea_ghash_ctx_t__dtor(flea_ghash_ctx_t *ctx__pt)
+void flea_ghash_ctx_t__dtor(flea_ghash_ctx_t* ctx__pt)
 {
   flea_len_ctr_t__dtor(&ctx__pt->len_ctr__t);
 #ifdef FLEA_USE_HEAP_BUF

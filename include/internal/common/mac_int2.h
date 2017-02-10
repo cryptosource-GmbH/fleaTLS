@@ -5,7 +5,6 @@
 #define _flea_mac_int2__H_
 
 
-const mac_config_entry_t *
-flea_mac__find_mac_config(flea_mac_id_t id);
+const mac_config_entry_t * flea_mac__find_mac_config(flea_mac_id_t id);
 
 #endif /* h-guard */

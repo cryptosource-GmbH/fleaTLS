@@ -5,9 +5,14 @@
 #include "flea/util.h"
 
 
-static flea_err_t THR_flea_mem_read_stream__read(void *hlp__pv, flea_u8_t *target_buffer__pu8, flea_dtl_t *nb_bytes_to_read__pdtl, flea_bool_t force_read__b)
+static flea_err_t THR_flea_mem_read_stream__read(
+  void*       hlp__pv,
+  flea_u8_t*  target_buffer__pu8,
+  flea_dtl_t* nb_bytes_to_read__pdtl,
+  flea_bool_t force_read__b
+)
 {
-  flea_mem_read_stream_help_t *hlp__pt;
+  flea_mem_read_stream_help_t* hlp__pt;
   flea_dtl_t to_read__dtl;
 
   FLEA_THR_BEG_FUNC();
@@ -29,10 +34,10 @@ static flea_err_t THR_flea_mem_read_stream__read(void *hlp__pv, flea_u8_t *targe
 }
 
 flea_err_t THR_flea_rw_stream_t__ctor_memory(
-  flea_rw_stream_t            *rw_stream__pt,
-  const flea_u8_t             *source_mem__pcu8,
-  flea_dtl_t                  source_mem_len__dtl,
-  flea_mem_read_stream_help_t *hlp_uninit__pt
+  flea_rw_stream_t*            rw_stream__pt,
+  const flea_u8_t*             source_mem__pcu8,
+  flea_dtl_t                   source_mem_len__dtl,
+  flea_mem_read_stream_help_t* hlp_uninit__pt
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -40,6 +45,16 @@ flea_err_t THR_flea_rw_stream_t__ctor_memory(
   hlp_uninit__pt->data__pcu8 = source_mem__pcu8;
   hlp_uninit__pt->offs__dtl  = 0;
   hlp_uninit__pt->len__dtl   = source_mem_len__dtl;
-  FLEA_CCALL(THR_flea_rw_stream_t__ctor(rw_stream__pt, (void *) hlp_uninit__pt, NULL, NULL, THR_flea_mem_read_stream__read, NULL, NULL));
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__ctor(
+      rw_stream__pt,
+      (void *) hlp_uninit__pt,
+      NULL,
+      NULL,
+      THR_flea_mem_read_stream__read,
+      NULL,
+      NULL
+    )
+  );
   FLEA_THR_FIN_SEC_empty();
 }

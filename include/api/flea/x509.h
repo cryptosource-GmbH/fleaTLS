@@ -60,7 +60,7 @@ typedef enum
 
 typedef struct
 {
-  const flea_u8_t       *data__pcu8;
+  const flea_u8_t*      data__pcu8;
   flea_dtl_t            len__dtl;
   flea_asn1_time_type_t time_type__t;
 } flea_x509_date_ref_t;
@@ -169,23 +169,36 @@ typedef struct
 } flea_x509_cert_ref_t;
 
 
-#define flea_x509_cert_ref_t__INIT_VALUE { .version__u8 = 0 }
+#define flea_x509_cert_ref_t__INIT_VALUE {.version__u8 = 0}
 
 #define flea_x509_cert_ref_t__dtor(__p)
 
-flea_err_t
-THR_flea_x509_cert_ref_t__ctor(flea_x509_cert_ref_t *cert_ref__pt, const flea_u8_t *der_encoded_cert__pu8, flea_al_u16_t der_encoded_cert_len__alu16);
+flea_err_t THR_flea_x509_cert_ref_t__ctor(
+  flea_x509_cert_ref_t* cert_ref__pt,
+  const flea_u8_t*      der_encoded_cert__pu8,
+  flea_al_u16_t         der_encoded_cert_len__alu16
+);
 
 
-flea_bool_t
-flea_x509_has_key_usages(const flea_x509_cert_ref_t *cert_ref__pt, flea_key_usage_ext_e ku_type, flea_key_usage_e required_usages__u16, flea_key_usage_exlicitness_e explicitness);
+flea_bool_t flea_x509_has_key_usages(
+  const flea_x509_cert_ref_t*  cert_ref__pt,
+  flea_key_usage_ext_e         ku_type,
+  flea_key_usage_e             required_usages__u16,
+  flea_key_usage_exlicitness_e explicitness
+);
 
-flea_err_t
-THR_flea_x509__parse_algid_ref(flea_x509_algid_ref_t *algid_ref__pt, flea_ber_dec_t *dec__pt);
+flea_err_t THR_flea_x509__parse_algid_ref(
+  flea_x509_algid_ref_t* algid_ref__pt,
+  flea_ber_dec_t*        dec__pt
+);
 
-flea_err_t
-THR_flea_x509__parse_dn(flea_x509_dn_ref_t *dn_ref__pt, flea_ber_dec_t *dec__pt);
+flea_err_t THR_flea_x509__parse_dn(
+  flea_x509_dn_ref_t* dn_ref__pt,
+  flea_ber_dec_t*     dec__pt
+);
 
-flea_err_t
-THR_flea_x509__process_alg_ids(flea_x509_algid_ref_t *tbs_ref__pt, const flea_x509_algid_ref_t *outer_ref__pt);
+flea_err_t THR_flea_x509__process_alg_ids(
+  flea_x509_algid_ref_t*       tbs_ref__pt,
+  const flea_x509_algid_ref_t* outer_ref__pt
+);
 #endif /* h-guard */

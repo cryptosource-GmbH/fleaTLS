@@ -6,8 +6,7 @@
 extern "C" {
 #endif
 
-int
-flea_start_tls_client(property_set_t const& cmdl_args);
+int flea_start_tls_client(property_set_t const& cmdl_args);
 
 
 #ifdef __cplusplus

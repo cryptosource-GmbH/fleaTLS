@@ -30,7 +30,8 @@ flea_err_t THR_flea_test_data_source_mem()
   {
     FLEA_THROW("wrong number of read bytes", FLEA_ERR_FAILED_TEST);
   }
-  if(trg_buf__bu8[nb_read] != 0 || trg_buf__bu8[nb_read + 1] != 0 || trg_buf__bu8[nb_read + 2] != 0 || trg_buf__bu8[nb_read + 3] != 0)
+  if(trg_buf__bu8[nb_read] != 0 || trg_buf__bu8[nb_read + 1] != 0 || trg_buf__bu8[nb_read + 2] != 0 ||
+    trg_buf__bu8[nb_read + 3] != 0)
   {
     FLEA_THROW("target buffer overwrite", FLEA_ERR_FAILED_TEST);
   }

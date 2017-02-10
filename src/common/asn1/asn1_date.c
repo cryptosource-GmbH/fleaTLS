@@ -16,37 +16,79 @@ const int ASN1_TYPE_GeneralizedTime = 24;
 #define ASCII_NUM_OFFSET 48
 
 
-flea_err_t THR_flea_asn1_parse_gmt_time_optional(flea_ber_dec_t *dec__t, flea_gmt_time_t *utctime__pt, flea_bool_t *found__pb)
+flea_err_t THR_flea_asn1_parse_gmt_time_optional(
+  flea_ber_dec_t*  dec__t,
+  flea_gmt_time_t* utctime__pt,
+  flea_bool_t*     found__pb
+)
 {
   flea_x509_date_ref_t date_ref__t;
   flea_bool_t optional_found__b = FLEA_TRUE;
 
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_date_opt(dec__t, &date_ref__t.time_type__t, &date_ref__t.data__pcu8, &date_ref__t.len__dtl, &optional_found__b));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__get_ref_to_date_opt(
+      dec__t,
+      &date_ref__t.time_type__t,
+      &date_ref__t.data__pcu8,
+      &date_ref__t.len__dtl,
+      &optional_found__b
+    )
+  );
   if(!optional_found__b)
   {
     *found__pb = FLEA_FALSE;
   }
-  FLEA_CCALL(THR_flea_asn1_parse_date(date_ref__t.time_type__t, date_ref__t.data__pcu8, date_ref__t.len__dtl, utctime__pt));
+  FLEA_CCALL(
+    THR_flea_asn1_parse_date(
+      date_ref__t.time_type__t,
+      date_ref__t.data__pcu8,
+      date_ref__t.len__dtl,
+      utctime__pt
+    )
+  );
   *found__pb = FLEA_TRUE;
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_asn1_parse_gmt_time(flea_ber_dec_t *dec__t, flea_gmt_time_t *utctime__pt)
+flea_err_t THR_flea_asn1_parse_gmt_time(
+  flea_ber_dec_t*  dec__t,
+  flea_gmt_time_t* utctime__pt
+)
 {
   FLEA_THR_BEG_FUNC();
 
   flea_x509_date_ref_t date_ref__t;
   flea_bool_t optional_found__b = FLEA_FALSE;
 
-  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_date_opt(dec__t, &date_ref__t.time_type__t, &date_ref__t.data__pcu8, &date_ref__t.len__dtl, &optional_found__b));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__get_ref_to_date_opt(
+      dec__t,
+      &date_ref__t.time_type__t,
+      &date_ref__t.data__pcu8,
+      &date_ref__t.len__dtl,
+      &optional_found__b
+    )
+  );
 
-  FLEA_CCALL(THR_flea_asn1_parse_date(date_ref__t.time_type__t, date_ref__t.data__pcu8, date_ref__t.len__dtl, utctime__pt));
+  FLEA_CCALL(
+    THR_flea_asn1_parse_date(
+      date_ref__t.time_type__t,
+      date_ref__t.data__pcu8,
+      date_ref__t.len__dtl,
+      utctime__pt
+    )
+  );
 
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_asn1_parse_date(flea_asn1_time_type_t tag__t, const flea_u8_t *value_in, flea_dtl_t value_length, flea_gmt_time_t *value_out)
+flea_err_t THR_flea_asn1_parse_date(
+  flea_asn1_time_type_t tag__t,
+  const flea_u8_t*      value_in,
+  flea_dtl_t            value_length,
+  flea_gmt_time_t*      value_out
+)
 {
   FLEA_THR_BEG_FUNC();
 
@@ -68,7 +110,11 @@ flea_err_t THR_flea_asn1_parse_date(flea_asn1_time_type_t tag__t, const flea_u8_
 }
 
 // function that parses up to 2 digits
-static void flea_asn1_date_parse_next_digits_u8(const flea_u8_t *in, flea_u8_t length, flea_u8_t *out)
+static void flea_asn1_date_parse_next_digits_u8(
+  const flea_u8_t* in,
+  flea_u8_t        length,
+  flea_u8_t*       out
+)
 {
   *out = 0;
   flea_u16_t tmp;
@@ -85,7 +131,11 @@ static void flea_asn1_date_parse_next_digits_u8(const flea_u8_t *in, flea_u8_t l
 }
 
 // function that parses up to 4 digits
-static void flea_asn1_date_parse_next_digits_u16(const flea_u8_t *in, flea_u8_t length, flea_u16_t *out)
+static void flea_asn1_date_parse_next_digits_u16(
+  const flea_u8_t* in,
+  flea_u8_t        length,
+  flea_u16_t*      out
+)
 {
   *out = 0;
   flea_u16_t tmp;
@@ -108,9 +158,13 @@ static void flea_asn1_date_parse_next_digits_u16(const flea_u8_t *in, flea_u8_t 
  * (i.e., times are YYYYMMDDHHMMSSZ), even where the number of seconds
  * is zero.  GeneralizedTime values MUST NOT include fractional seconds.
  */
-flea_err_t THR_flea_asn1_parse_generalized_time(const flea_u8_t *value_in, size_t value_length, flea_gmt_time_t *value_out)
+flea_err_t THR_flea_asn1_parse_generalized_time(
+  const flea_u8_t* value_in,
+  size_t           value_length,
+  flea_gmt_time_t* value_out
+)
 {
-  const unsigned char *v = value_in;
+  const unsigned char* v = value_in;
 
   FLEA_THR_BEG_FUNC();
 
@@ -157,9 +211,13 @@ flea_err_t THR_flea_asn1_parse_generalized_time(const flea_u8_t *value_in, size_
  *
  *  Where YY is less than 50, the year SHALL be interpreted as 20YY.
  */
-flea_err_t THR_flea_asn1_parse_utc_time(const flea_u8_t *value_in, size_t value_length, flea_gmt_time_t *value_out)
+flea_err_t THR_flea_asn1_parse_utc_time(
+  const flea_u8_t* value_in,
+  size_t           value_length,
+  flea_gmt_time_t* value_out
+)
 {
-  const unsigned char *v = value_in;
+  const unsigned char* v = value_in;
 
   FLEA_THR_BEG_FUNC();
 
@@ -196,14 +254,16 @@ flea_err_t THR_flea_asn1_parse_utc_time(const flea_u8_t *value_in, size_t value_
 // -1: date1 < date2
 // 0: equal
 // 1: date1 > date2
-int flea_asn1_cmp_utc_time(const flea_gmt_time_t *date1, const flea_gmt_time_t *date2)
+int flea_asn1_cmp_utc_time(
+  const flea_gmt_time_t* date1,
+  const flea_gmt_time_t* date2
+)
 {
   if(date1->year > date2->year)
   {
     return 1;
   }
-  else
-  if(date1->year < date2->year)
+  else if(date1->year < date2->year)
   {
     return -1;
   }
@@ -212,8 +272,7 @@ int flea_asn1_cmp_utc_time(const flea_gmt_time_t *date1, const flea_gmt_time_t *
   {
     return 1;
   }
-  else
-  if(date1->month < date2->month)
+  else if(date1->month < date2->month)
   {
     return -1;
   }
@@ -222,8 +281,7 @@ int flea_asn1_cmp_utc_time(const flea_gmt_time_t *date1, const flea_gmt_time_t *
   {
     return 1;
   }
-  else
-  if(date1->day < date2->day)
+  else if(date1->day < date2->day)
   {
     return -1;
   }
@@ -232,8 +290,7 @@ int flea_asn1_cmp_utc_time(const flea_gmt_time_t *date1, const flea_gmt_time_t *
   {
     return 1;
   }
-  else
-  if(date1->hours < date2->hours)
+  else if(date1->hours < date2->hours)
   {
     return -1;
   }
@@ -242,8 +299,7 @@ int flea_asn1_cmp_utc_time(const flea_gmt_time_t *date1, const flea_gmt_time_t *
   {
     return 1;
   }
-  else
-  if(date1->minutes < date2->minutes)
+  else if(date1->minutes < date2->minutes)
   {
     return -1;
   }
@@ -252,8 +308,7 @@ int flea_asn1_cmp_utc_time(const flea_gmt_time_t *date1, const flea_gmt_time_t *
   {
     return 1;
   }
-  else
-  if(date1->seconds < date2->seconds)
+  else if(date1->seconds < date2->seconds)
   {
     return -1;
   }

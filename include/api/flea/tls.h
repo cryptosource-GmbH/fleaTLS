@@ -51,7 +51,7 @@ typedef struct
   ContentType                  content_type;
   flea_tls__protocol_version_t version;
   flea_u16_t                   length;
-  flea_u8_t                    *data;
+  flea_u8_t*                   data;
 } Record;
 
 typedef struct
@@ -67,37 +67,37 @@ typedef struct
 {
   HandshakeType type;
   flea_u32_t    length; // actually 24 Bit type !!
-  flea_u8_t     *data;
+  flea_u8_t*    data;
 } HandshakeMessage;
 
 typedef struct
 {
   flea_tls__protocol_version_t client_version;
   Random                       random;
-  flea_u8_t                    *session_id;
+  flea_u8_t*                   session_id;
   flea_u8_t                    session_id_length;
-  flea_u8_t                    *cipher_suites;
+  flea_u8_t*                   cipher_suites;
   flea_u16_t                   cipher_suites_length;
   // CompressionMethod            *compression_methods;
   // flea_u8_t                    compression_methods_length;
-  flea_u8_t                    *extensions; // 2^16 bytes
+  flea_u8_t*                   extensions; // 2^16 bytes
 } flea_tls__client_hello_t;
 
 typedef struct
 {
   flea_tls__protocol_version_t server_version;
   Random                       random;
-  flea_u8_t                    *session_id;
+  flea_u8_t*                   session_id;
   flea_u8_t                    session_id_length;
   flea_u8_t                    cipher_suite;
   // CompressionMethod            compression_method;
   // flea_u8_t                    compression_methods_length;
-  flea_u8_t                    *extensions; // 2^16 bytes
+  flea_u8_t*                   extensions; // 2^16 bytes
 } ServerHello;
 
 typedef struct
 {
-  flea_u8_t  *certificate_list;
+  flea_u8_t* certificate_list;
   flea_u32_t certificate_list_length;
 } Certificate;
 
@@ -128,9 +128,9 @@ typedef struct
    *  } EncryptedPreMasterSecret;
    */
   flea_u8_t  premaster_secret[256]; /* TODO: variable */
-  flea_u8_t  *encrypted_premaster_secret;
+  flea_u8_t* encrypted_premaster_secret;
   flea_u16_t encrypted_premaster_secret_length;
-  flea_u8_t  *ClientDiffieHellmanPublic;
+  flea_u8_t* ClientDiffieHellmanPublic;
 } flea_tls__client_key_ex_t;
 
 typedef enum { CHANGE_CIPHER_SPEC_TYPE_CHANGE_CIPHER_SPEC = 1 } CHANGE_CIPHER_SPEC_TYPE;
@@ -258,24 +258,24 @@ typedef struct
 
 typedef struct
 {
-  flea_u8_t  *record_hdr__pu8;
-  flea_u8_t  *message__pu8;
+  flea_u8_t* record_hdr__pu8;
+  flea_u8_t* message__pu8;
   flea_u16_t message_len__u16;
   flea_u16_t allocated_message_len__u16;
 } flea_tls_record_t;
 
 #define flea_tls_record_t__SET_BUF(__p, __buf, __buf_len) \
-  do { (__p)->record_hdr__pu8  = (__buf); \
-       (__p)->message__pu8     = (__buf) + 5; \
-       (__p)->message_len__u16 = 0; \
-       (__p)->allocated_message_len__u16 = (__buf_len) - 5; \
+  do {(__p)->record_hdr__pu8  = (__buf); \
+      (__p)->message__pu8     = (__buf) + 5; \
+      (__p)->message_len__u16 = 0; \
+      (__p)->allocated_message_len__u16 = (__buf_len) - 5; \
   } while(0)
 
 
 typedef struct
 {
   /* Security Parameters negotiated during handshake */
-  flea_tls__security_parameters_t *security_parameters; // can be deleted from memory (or saved for later resumption?) TODO: check again how it works, maybe only store master secret
+  flea_tls__security_parameters_t* security_parameters; // can be deleted from memory (or saved for later resumption?) TODO: check again how it works, maybe only store master secret
 
   /*
    * Connection States
@@ -295,7 +295,7 @@ typedef struct
    * Other information or configuration
    */
 
-  flea_u8_t                    *allowed_cipher_suites; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
+  flea_u8_t*                   allowed_cipher_suites; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
   flea_u32_t                   allowed_cipher_suites_len;
   flea_u8_t                    selected_cipher_suite[2];
 
@@ -307,12 +307,12 @@ typedef struct
   flea_u8_t                    session_id[32]; /* Session ID for later resumption */
   flea_u8_t                    session_id_len;
 
-  flea_u8_t                    *premaster_secret; // shall be deleted after master_Secret is calculated
+  flea_u8_t*                   premaster_secret; // shall be deleted after master_Secret is calculated
   flea_bool_t                  resumption;
   // TODO: ABSTRACT BUFF:
   flea_u8_t                    key_block[128]; // size for key block for aes256+sha256 - max size for all ciphersuites in RFC
 
-  flea_rw_stream_t             *rw_stream__pt;
+  flea_rw_stream_t*            rw_stream__pt;
   flea_tls_rec_prot_t          rec_prot__t;
   // int                          socket_fd;
 } flea_tls_ctx_t;
@@ -320,12 +320,28 @@ typedef struct
 
 #define flea_tls_ctx_t__INIT(__p) memset((__p), 0, sizeof(*(__p)));
 
-flea_err_t flea_tls_ctx_t__ctor(flea_tls_ctx_t *ctx, flea_rw_stream_t *rw_stream__pt, flea_u8_t *session_id, flea_u8_t session_id_len);
+flea_err_t flea_tls_ctx_t__ctor(
+  flea_tls_ctx_t*   ctx,
+  flea_rw_stream_t* rw_stream__pt,
+  flea_u8_t*        session_id,
+  flea_u8_t         session_id_len
+);
 
-flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t *tls_ctx, flea_rw_stream_t *rw_stream__pt);
-flea_err_t THR_flea_tls__send_app_data(flea_tls_ctx_t *tls_ctx, flea_u8_t *data, flea_u8_t data_len);
+flea_err_t THR_flea_tls__client_handshake(
+  flea_tls_ctx_t*   tls_ctx,
+  flea_rw_stream_t* rw_stream__pt
+);
+flea_err_t THR_flea_tls__send_app_data(
+  flea_tls_ctx_t* tls_ctx,
+  flea_u8_t*      data,
+  flea_u8_t       data_len
+);
 // TODO: RECEIVE APP DATA
-flea_err_t THR_flea_tls__send_alert(flea_tls_ctx_t *tls_ctx, flea_tls__alert_description_t description, flea_tls__alert_level_t level);
+flea_err_t THR_flea_tls__send_alert(
+  flea_tls_ctx_t*               tls_ctx,
+  flea_tls__alert_description_t description,
+  flea_tls__alert_level_t       level
+);
 #ifdef __cplusplus
 }
 #endif

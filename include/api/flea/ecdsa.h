@@ -30,8 +30,17 @@ extern "C" {
  * invalid
  *
  */
-flea_err_t
-THR_flea_ecdsa__raw_verify(const flea_u8_t *enc_r, flea_al_u8_t enc_r_len, const flea_u8_t *enc_s, flea_al_u8_t enc_s_len, const flea_u8_t *message, flea_al_u8_t message_len, const flea_u8_t *pub_point_enc, flea_al_u8_t pub_point_enc_len, const flea_ec_gfp_dom_par_ref_t *dom_par__pt);
+flea_err_t THR_flea_ecdsa__raw_verify(
+  const flea_u8_t*                 enc_r,
+  flea_al_u8_t                     enc_r_len,
+  const flea_u8_t*                 enc_s,
+  flea_al_u8_t                     enc_s_len,
+  const flea_u8_t*                 message,
+  flea_al_u8_t                     message_len,
+  const flea_u8_t*                 pub_point_enc,
+  flea_al_u8_t                     pub_point_enc_len,
+  const flea_ec_gfp_dom_par_ref_t* dom_par__pt
+);
 
 /**
  * Generate an ECDSA signature on a hash value.
@@ -48,8 +57,17 @@ THR_flea_ecdsa__raw_verify(const flea_u8_t *enc_r, flea_al_u8_t enc_r_len, const
  *
  * @return flea error code
  */
-flea_err_t
-THR_flea_ecdsa__raw_sign(flea_u8_t *res_r_arr, flea_al_u8_t *res_r_arr_len, flea_u8_t *res_s_arr, flea_al_u8_t *res_s_arr_len, const flea_u8_t *message, flea_al_u8_t message_len, const flea_u8_t *priv_key_enc_arr, flea_al_u8_t priv_key_enc_arr_len, const flea_ec_gfp_dom_par_ref_t *dom_par__pt);
+flea_err_t THR_flea_ecdsa__raw_sign(
+  flea_u8_t*                       res_r_arr,
+  flea_al_u8_t*                    res_r_arr_len,
+  flea_u8_t*                       res_s_arr,
+  flea_al_u8_t*                    res_s_arr_len,
+  const flea_u8_t*                 message,
+  flea_al_u8_t                     message_len,
+  const flea_u8_t*                 priv_key_enc_arr,
+  flea_al_u8_t                     priv_key_enc_arr_len,
+  const flea_ec_gfp_dom_par_ref_t* dom_par__pt
+);
 
 #endif /* #ifdef FLEA_HAVE_ECC */
 #ifdef __cplusplus

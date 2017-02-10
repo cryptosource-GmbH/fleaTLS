@@ -140,7 +140,14 @@ flea_err_t flea_test_tls_record_protocol_basic()
   FLEA_THR_BEG_FUNC();
   FLEA_ALLOC_BUF(read_buf__bu8, 3000);
   FLEA_ALLOC_BUF(stream_buf__bu8, 16384);
-  FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&mem_read_stream__t, some_record__au8, sizeof(some_record__au8), &mem_hlp__t));
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__ctor_memory(
+      &mem_read_stream__t,
+      some_record__au8,
+      sizeof(some_record__au8),
+      &mem_hlp__t
+    )
+  );
 
   // FLEA_CCALL(THR_flea_tls_rec_prot_t__ctor(&rec_prot__t, stream_buf__bu8, stream_buf_len__alu16,
 

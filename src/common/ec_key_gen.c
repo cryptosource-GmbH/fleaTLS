@@ -18,7 +18,13 @@
 #include "internal/common/ecc_int.h"
 
 #ifdef FLEA_HAVE_ECC
-flea_err_t THR_flea_generate_ecc_key(flea_u8_t *result_public__p_u8, flea_al_u8_t *result_public_len__p_al_u8, flea_u8_t *result_private__p_u8, flea_al_u8_t *result_private_len__p_al_u8, const flea_ec_gfp_dom_par_ref_t *dom_par__pt)
+flea_err_t THR_flea_generate_ecc_key(
+  flea_u8_t*                       result_public__p_u8,
+  flea_al_u8_t*                    result_public_len__p_al_u8,
+  flea_u8_t*                       result_private__p_u8,
+  flea_al_u8_t*                    result_private_len__p_al_u8,
+  const flea_ec_gfp_dom_par_ref_t* dom_par__pt
+)
 {
   flea_curve_gfp_t curve;
   flea_point_gfp_t pub_point;
@@ -60,7 +66,17 @@ flea_err_t THR_flea_generate_ecc_key(flea_u8_t *result_public__p_u8, flea_al_u8_
   FLEA_CCALL(THR_flea_mpi_t__decode(&n, dom_par__pt->n__ru8.data__pcu8, dom_par__pt->n__ru8.len__dtl));
 
   FLEA_CCALL(THR_flea_mpi_t__random_integer(&sk_mpi, &n));
-  FLEA_CCALL(THR_flea_point_gfp_t__init(&pub_point, dom_par__pt->gx__ru8.data__pcu8, dom_par__pt->gx__ru8.len__dtl, dom_par__pt->gy__ru8.data__pcu8, dom_par__pt->gy__ru8.len__dtl, pub_point_arr, pub_point_word_arr_len));
+  FLEA_CCALL(
+    THR_flea_point_gfp_t__init(
+      &pub_point,
+      dom_par__pt->gx__ru8.data__pcu8,
+      dom_par__pt->gx__ru8.len__dtl,
+      dom_par__pt->gy__ru8.data__pcu8,
+      dom_par__pt->gy__ru8.len__dtl,
+      pub_point_arr,
+      pub_point_word_arr_len
+    )
+  );
 
   FLEA_CCALL(THR_flea_curve_gfp_t__init_dp_array(&curve, dom_par__pt, curve_word_arr, curve_word_arr_word_len));
 

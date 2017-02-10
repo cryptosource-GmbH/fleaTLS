@@ -5,13 +5,13 @@
 #include "flea/error_handling.h"
 
 static flea_err_t THR_flea_data_source__memory__read(
-  void       *custom_obj__pv,
-  flea_dtl_t *nb_bytes_to_read__pdtl,
-  flea_u8_t  *target_buffer__pu8
+  void*       custom_obj__pv,
+  flea_dtl_t* nb_bytes_to_read__pdtl,
+  flea_u8_t*  target_buffer__pu8
 )
 {
   flea_dtl_t to_read__dtl;
-  flea_data_source_mem_help_t *buffer__pt;
+  flea_data_source_mem_help_t* buffer__pt;
 
   FLEA_THR_BEG_FUNC();
   buffer__pt   = ((flea_data_source_mem_help_t *) custom_obj__pv);
@@ -29,11 +29,11 @@ static flea_err_t THR_flea_data_source__memory__read(
 }
 
 static flea_err_t THR_flea_data_source__memory__skip(
-  void       *custom_obj__pv,
+  void*      custom_obj__pv,
   flea_dtl_t to_skip__dtl
 )
 {
-  flea_data_source_mem_help_t *buffer__pt;
+  flea_data_source_mem_help_t* buffer__pt;
 
   FLEA_THR_BEG_FUNC();
   buffer__pt = ((flea_data_source_mem_help_t *) custom_obj__pv);
@@ -47,14 +47,14 @@ static flea_err_t THR_flea_data_source__memory__skip(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_bool_t flea_data_source_t__is_memory_data_source(const flea_data_source_t *source__pt)
+flea_bool_t flea_data_source_t__is_memory_data_source(const flea_data_source_t* source__pt)
 {
   return source__pt->read_func__f == THR_flea_data_source__memory__read;
 }
 
-const flea_u8_t * flea_data_source_t__get_memory_pointer_to_current(const flea_data_source_t *source__pt)
+const flea_u8_t * flea_data_source_t__get_memory_pointer_to_current(const flea_data_source_t* source__pt)
 {
-  flea_data_source_mem_help_t *buffer__pt;
+  flea_data_source_mem_help_t* buffer__pt;
 
   buffer__pt = ((flea_data_source_mem_help_t *) source__pt->custom_obj__pv);
   if(!flea_data_source_t__is_memory_data_source(source__pt))
@@ -65,10 +65,10 @@ const flea_u8_t * flea_data_source_t__get_memory_pointer_to_current(const flea_d
 }
 
 flea_err_t THR_flea_data_source_t__ctor_memory(
-  flea_data_source_t          *source__t,
-  const flea_u8_t             *source_mem__pcu8,
-  flea_dtl_t                  source_mem_len__dtl,
-  flea_data_source_mem_help_t *buffer_uninit__pt
+  flea_data_source_t*          source__t,
+  const flea_u8_t*             source_mem__pcu8,
+  flea_dtl_t                   source_mem_len__dtl,
+  flea_data_source_mem_help_t* buffer_uninit__pt
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -83,9 +83,9 @@ flea_err_t THR_flea_data_source_t__ctor_memory(
 }
 
 flea_err_t THR_flea_data_source_t__read(
-  flea_data_source_t *source__pt,
-  flea_dtl_t         *nb_bytes_to_read__pdtl,
-  flea_u8_t          *target_mem__pu8
+  flea_data_source_t* source__pt,
+  flea_dtl_t*         nb_bytes_to_read__pdtl,
+  flea_u8_t*          target_mem__pu8
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -98,16 +98,16 @@ flea_err_t THR_flea_data_source_t__read(
 }
 
 flea_err_t THR_flea_data_source_t__skip(
-  flea_data_source_t *source__pt,
-  flea_dtl_t         to_skip__dtl
+  flea_data_source_t* source__pt,
+  flea_dtl_t          to_skip__dtl
 )
 {
   return source__pt->skip_func__f(source__pt->custom_obj__pv, to_skip__dtl);
 }
 
 flea_err_t THR_flea_data_source_t__read_byte(
-  flea_data_source_t *source__pt,
-  flea_u8_t          *out_mem__pu8
+  flea_data_source_t* source__pt,
+  flea_u8_t*          out_mem__pu8
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -122,9 +122,9 @@ flea_err_t THR_flea_data_source_t__read_byte(
 }
 
 flea_err_t THR_flea_data_source_t__force_read(
-  flea_data_source_t *source__pt,
-  flea_dtl_t         nb_bytes_to_read__dtl,
-  flea_u8_t          *target_mem__pu8
+  flea_data_source_t* source__pt,
+  flea_dtl_t          nb_bytes_to_read__dtl,
+  flea_u8_t*          target_mem__pu8
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -139,5 +139,5 @@ flea_err_t THR_flea_data_source_t__force_read(
   FLEA_THR_FIN_SEC_empty();
 }
 
-void flea_data_source_t__dtor(flea_data_source_t *source__pt)
+void flea_data_source_t__dtor(flea_data_source_t* source__pt)
 { }

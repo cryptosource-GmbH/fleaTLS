@@ -8,39 +8,61 @@
 
 #ifdef FLEA_HAVE_MD5
 
-# define F(x, y, z) ( (z) ^ ((x) & ((y) ^ (z))) )
-# define G(x, y, z) ( (y) ^ ((z) & ((x) ^ (y))) )
-# define H(x, y, z) ( (x) ^ (y) ^ (z) )
-# define I(x, y, z) ( (y) ^ ((x) | ~(z)) )
+# define F(x, y, z) ((z) ^ ((x) & ((y) ^ (z))))
+# define G(x, y, z) ((y) ^ ((z) & ((x) ^ (y))))
+# define H(x, y, z) ((x) ^ (y) ^ (z))
+# define I(x, y, z) ((y) ^ ((x) | ~(z)))
 
 # define STEP(f, a, b, c, d, x, t, s)                          \
   (a) += f((b), (c), (d)) + (x) + (t);                        \
   (a)  = (((a) << (s)) | (((a) & 0xffffffff) >> (32 - (s))));  \
   (a) += (b);
 
-# define SET(n) ((ptr[(n) * 4]) | (((flea_u32_t) ptr[(n) * 4 + 1]) << 8) | (((flea_u32_t) ptr[(n) * 4 + 2]) << 16) | (((flea_u32_t) ptr[(n) * 4 + 3]) << 24) )
+# define SET(n) \
+  ((ptr[(n) * 4]) | (((flea_u32_t) ptr[(n) * 4 + 1]) << 8) | (((flea_u32_t) ptr[(n) * 4 + 2]) << 16) \
+  | (((flea_u32_t) ptr[(n) * 4 + 3]) << 24))
 # define GET(n) SET(n)
 
 # ifndef FLEA_USE_MD5_ROUND_MACRO
 
-typedef flea_u32_t (*flea_md5_round_arithm_f)(flea_u32_t x, flea_u32_t y, flea_u32_t z);
+typedef flea_u32_t (* flea_md5_round_arithm_f)(
+  flea_u32_t x,
+  flea_u32_t y,
+  flea_u32_t z
+);
 
-static flea_u32_t flea_md5_round_arithm_1(flea_u32_t x, flea_u32_t y, flea_u32_t z)
+static flea_u32_t flea_md5_round_arithm_1(
+  flea_u32_t x,
+  flea_u32_t y,
+  flea_u32_t z
+)
 {
   return F(x, y, z);
 }
 
-static flea_u32_t flea_md5_round_arithm_2(flea_u32_t x, flea_u32_t y, flea_u32_t z)
+static flea_u32_t flea_md5_round_arithm_2(
+  flea_u32_t x,
+  flea_u32_t y,
+  flea_u32_t z
+)
 {
   return G(x, y, z);
 }
 
-static flea_u32_t flea_md5_round_arithm_3(flea_u32_t x, flea_u32_t y, flea_u32_t z)
+static flea_u32_t flea_md5_round_arithm_3(
+  flea_u32_t x,
+  flea_u32_t y,
+  flea_u32_t z
+)
 {
   return H(x, y, z);
 }
 
-static flea_u32_t flea_md5_round_arithm_4(flea_u32_t x, flea_u32_t y, flea_u32_t z)
+static flea_u32_t flea_md5_round_arithm_4(
+  flea_u32_t x,
+  flea_u32_t y,
+  flea_u32_t z
+)
 {
   return I(x, y, z);
 }
@@ -80,7 +102,14 @@ const flea_u8_t flea_md5_idx_table__au8[] = {
   0x07, 0xe5, 0xc3, 0xa1, 0x8f, 0x6d, 0x4b, 0x29
 };
 
-static void flea_md5_round(flea_u32_t abcd[4], const flea_u8_t *ptr, flea_md5_round_arithm_f func, const flea_u32_t *t_table__pcu32, const flea_u8_t *s_table__pcu8, const flea_u8_t *idx_table__pcu8)
+static void flea_md5_round(
+  flea_u32_t              abcd[4],
+  const flea_u8_t*        ptr,
+  flea_md5_round_arithm_f func,
+  const flea_u32_t*       t_table__pcu32,
+  const flea_u8_t*        s_table__pcu8,
+  const flea_u8_t*        idx_table__pcu8
+)
 {
   flea_u32_t a = abcd[0];
   flea_u32_t b = abcd[1];
@@ -115,10 +144,13 @@ static void flea_md5_round(flea_u32_t abcd[4], const flea_u8_t *ptr, flea_md5_ro
 
 # endif /* ifndef FLEA_USE_MD5_ROUND_MACRO */
 
-flea_err_t THR_flea_md5_compression_function(flea_hash_ctx_t *ctx__pt, const flea_u8_t *input)
+flea_err_t THR_flea_md5_compression_function(
+  flea_hash_ctx_t* ctx__pt,
+  const flea_u8_t* input
+)
 {
-  const flea_u8_t *ptr;
-  flea_u32_t *state;
+  const flea_u8_t* ptr;
+  flea_u32_t* state;
 
 # ifdef FLEA_USE_MD5_ROUND_MACRO
   flea_u32_t a;
@@ -144,15 +176,36 @@ flea_err_t THR_flea_md5_compression_function(flea_hash_ctx_t *ctx__pt, const fle
 
 # ifndef FLEA_USE_MD5_ROUND_MACRO
   flea_md5_round(abcd, ptr, flea_md5_round_arithm_1, flea_md5_table__au32, flea_md5_s_table__au8, NULL);
-  flea_md5_round(abcd, ptr, flea_md5_round_arithm_2, flea_md5_table__au32 + 16, flea_md5_s_table__au8 + 4, flea_md5_idx_table__au8);
-  flea_md5_round(abcd, ptr, flea_md5_round_arithm_3, flea_md5_table__au32 + 32, flea_md5_s_table__au8 + 8, flea_md5_idx_table__au8 + 8);
-  flea_md5_round(abcd, ptr, flea_md5_round_arithm_4, flea_md5_table__au32 + 48, flea_md5_s_table__au8 + 12, flea_md5_idx_table__au8 + 16);
+  flea_md5_round(
+    abcd,
+    ptr,
+    flea_md5_round_arithm_2,
+    flea_md5_table__au32 + 16,
+    flea_md5_s_table__au8 + 4,
+    flea_md5_idx_table__au8
+  );
+  flea_md5_round(
+    abcd,
+    ptr,
+    flea_md5_round_arithm_3,
+    flea_md5_table__au32 + 32,
+    flea_md5_s_table__au8 + 8,
+    flea_md5_idx_table__au8 + 8
+  );
+  flea_md5_round(
+    abcd,
+    ptr,
+    flea_md5_round_arithm_4,
+    flea_md5_table__au32 + 48,
+    flea_md5_s_table__au8 + 12,
+    flea_md5_idx_table__au8 + 16
+  );
 
   state[0] += abcd[0];
   state[1] += abcd[1];
   state[2] += abcd[2];
   state[3] += abcd[3];
-# else
+# else /* ifndef FLEA_USE_MD5_ROUND_MACRO */
 
   STEP(F, a, b, c, d, SET(0), 0xd76aa478, 7)
   STEP(F, d, a, b, c, SET(1), 0xe8c7b756, 12)
@@ -234,9 +287,9 @@ flea_err_t THR_flea_md5_compression_function(flea_hash_ctx_t *ctx__pt, const fle
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_md5_compression_function */
 
-void flea_md5_init(flea_hash_ctx_t *ctx__pt)
+void flea_md5_init(flea_hash_ctx_t* ctx__pt)
 {
-  flea_u32_t *state = (flea_u32_t *) ctx__pt->hash_state;
+  flea_u32_t* state = (flea_u32_t *) ctx__pt->hash_state;
 
   state[0] = 0x67452301UL;
   state[1] = 0xefcdab89UL;
@@ -244,15 +297,19 @@ void flea_md5_init(flea_hash_ctx_t *ctx__pt)
   state[3] = 0x10325476UL;
 }
 
-void flea_md5_encode_hash_state(const flea_hash_ctx_t *ctx__pt, flea_u8_t *output, flea_al_u8_t output_len)
+void flea_md5_encode_hash_state(
+  const flea_hash_ctx_t* ctx__pt,
+  flea_u8_t*             output,
+  flea_al_u8_t           output_len
+)
 {
   flea_al_u8_t i;
-  flea_u32_t *state = (flea_u32_t *) ctx__pt->hash_state;
+  flea_u32_t* state = (flea_u32_t *) ctx__pt->hash_state;
 
   output_len = (output_len + 3) / 4;
   for(i = 0; i < output_len; i++)
   {
-    flea__encode_U32_LE(state[i], output + (4 * i) );
+    flea__encode_U32_LE(state[i], output + (4 * i));
   }
 }
 

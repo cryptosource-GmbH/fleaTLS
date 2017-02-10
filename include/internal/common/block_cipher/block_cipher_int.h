@@ -8,9 +8,16 @@
 
 #define FLEA_BLOCK_CIPHER_MAX_EXPANDED_KEY_U32_SIZE __FLEA_COMPUTED_BLOCK_CIPHER_MAX_EXPANDED_KEY_U32_SIZE
 
-typedef void (*flea_cipher_block_processing_f)(const flea_ecb_mode_ctx_t *p_ctx, const flea_u8_t *input, flea_u8_t *output);
+typedef void (* flea_cipher_block_processing_f)(
+  const flea_ecb_mode_ctx_t* p_ctx,
+  const flea_u8_t*           input,
+  flea_u8_t*                 output
+);
 
-typedef flea_err_t (*THR_flea_block_cipher_key_sched_f)(flea_ecb_mode_ctx_t *ctx, const flea_u8_t *cipherKey);
+typedef flea_err_t (* THR_flea_block_cipher_key_sched_f)(
+  flea_ecb_mode_ctx_t* ctx,
+  const flea_u8_t*     cipherKey
+);
 
 struct struct_flea_block_cipher_config_entry_t;
 

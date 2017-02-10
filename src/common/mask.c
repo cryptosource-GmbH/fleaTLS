@@ -35,14 +35,22 @@ flea_pszd_uint_t flea_expand_u32_to_ptr_szd_mask(flea_u32_t in)
   return result;
 }
 
-flea_u32_t flea_consttime__select_u32_nz_z(flea_u32_t select_if_nonzero, flea_u32_t select_if_zero, flea_u32_t condition)
+flea_u32_t flea_consttime__select_u32_nz_z(
+  flea_u32_t select_if_nonzero,
+  flea_u32_t select_if_zero,
+  flea_u32_t condition
+)
 {
   flea_u32_t mask = flea_expand_u32_to_u32_mask(condition);
 
   return ((select_if_zero & ~mask) | (select_if_nonzero & mask));
 }
 
-void * flea_consttime__select_ptr_nz_z(void *select_if_nonzero, void *select_if_zero, flea_u32_t condition)
+void * flea_consttime__select_ptr_nz_z(
+  void*      select_if_nonzero,
+  void*      select_if_zero,
+  flea_u32_t condition
+)
 {
   flea_pszd_uint_t mask = flea_expand_u32_to_ptr_szd_mask(condition);
   flea_pszd_uint_t if_zero__pszd    = (flea_pszd_uint_t) select_if_zero;

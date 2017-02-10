@@ -154,9 +154,14 @@ const mac_config_entry_t * flea_mac__find_mac_config(flea_mac_id_t id__t)
   return NULL;
 }
 
-static flea_err_t THR_flea_mac_ctx_t__ctor_hmac(flea_mac_ctx_t *ctx__pt, const mac_config_entry_t *config_entry__pt, const flea_u8_t *key__pcu8, flea_al_u16_t key_len__alu16)
+static flea_err_t THR_flea_mac_ctx_t__ctor_hmac(
+  flea_mac_ctx_t*           ctx__pt,
+  const mac_config_entry_t* config_entry__pt,
+  const flea_u8_t*          key__pcu8,
+  flea_al_u16_t             key_len__alu16
+)
 {
-  flea_u8_t *alias_key__pu8;
+  flea_u8_t* alias_key__pu8;
   flea_u8_t key_byte_len__u8;
   flea_al_u8_t i;
 
@@ -170,7 +175,10 @@ static flea_err_t THR_flea_mac_ctx_t__ctor_hmac(flea_mac_ctx_t *ctx__pt, const m
 
   ctx__pt->output_len__u8 = config_entry__pt->mac_output_len__u8; // setting this tells the dtor that all other fields are initialized
 # ifdef FLEA_USE_HEAP_BUF
-  FLEA_ALLOC_MEM_ARR(ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key__bu8, ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key_byte_len__u8);
+  FLEA_ALLOC_MEM_ARR(
+    ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key__bu8,
+    ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key_byte_len__u8
+  );
 # endif
   alias_key__pu8      = ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key__bu8;
   ctx__pt->mode_id__t = config_entry__pt->mode_id__t;
@@ -179,18 +187,32 @@ static flea_err_t THR_flea_mac_ctx_t__ctor_hmac(flea_mac_ctx_t *ctx__pt, const m
   if(key_len__alu16 > config_entry__pt->key_byte_size__u8)
   {
     flea_u8_t hash_output_len__u8 = flea_hash__get_output_length_by_id(config_entry__pt->primitive_id__u.hash_id__t);
-    FLEA_CCALL(THR_flea_compute_hash(config_entry__pt->primitive_id__u.hash_id__t, key__pcu8, key_len__alu16, alias_key__pu8, hash_output_len__u8));
+    FLEA_CCALL(
+      THR_flea_compute_hash(
+        config_entry__pt->primitive_id__u.hash_id__t,
+        key__pcu8,
+        key_len__alu16,
+        alias_key__pu8,
+        hash_output_len__u8
+      )
+    );
     memset(alias_key__pu8 + hash_output_len__u8, 0, key_byte_len__u8 - hash_output_len__u8);
   }
-  else
-  if(key_len__alu16 < key_byte_len__u8)
+  else if(key_len__alu16 < key_byte_len__u8)
   {
     memcpy(alias_key__pu8, key__pcu8, key_len__alu16);
     memset(alias_key__pu8 + key_len__alu16, 0, key_byte_len__u8 - key_len__alu16);
   }
-  FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t, config_entry__pt->primitive_id__u.hash_id__t));
+  FLEA_CCALL(
+    THR_flea_hash_ctx_t__ctor(
+      &ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t,
+      config_entry__pt->primitive_id__u.hash_id__t
+    )
+  );
 
-  ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_output_len__u8 = flea_hash_ctx_t__get_output_length(&ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t);
+  ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_output_len__u8 = flea_hash_ctx_t__get_output_length(
+    &ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t
+    );
   // now build k ^ ipad and process it
   for(i = 0; i < key_byte_len__u8; i++)
   {
@@ -201,7 +223,13 @@ static flea_err_t THR_flea_mac_ctx_t__ctor_hmac(flea_mac_ctx_t *ctx__pt, const m
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_mac_ctx_t__ctor_hmac */
 
-flea_err_t THR_flea_mac_ctx_t__ctor_cmac(flea_mac_ctx_t *ctx__pt, const mac_config_entry_t *config_entry__pt, const flea_u8_t *key__pcu8, flea_al_u16_t key_len__alu16, flea_ecb_mode_ctx_t *ciph_ctx_ref__pt)
+flea_err_t THR_flea_mac_ctx_t__ctor_cmac(
+  flea_mac_ctx_t*           ctx__pt,
+  const mac_config_entry_t* config_entry__pt,
+  const flea_u8_t*          key__pcu8,
+  flea_al_u16_t             key_len__alu16,
+  flea_ecb_mode_ctx_t*      ciph_ctx_ref__pt
+)
 {
   FLEA_THR_BEG_FUNC();
   // lookup config
@@ -225,7 +253,15 @@ flea_err_t THR_flea_mac_ctx_t__ctor_cmac(flea_mac_ctx_t *ctx__pt, const mac_conf
   ctx__pt->mode_id__t = config_entry__pt->mode_id__t;
   if(ciph_ctx_ref__pt == NULL)
   {
-    FLEA_CCALL(THR_flea_ecb_mode_ctx_t__ctor(&ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t, config_entry__pt->primitive_id__u.cipher_id__t, key__pcu8, key_len__alu16, flea_encrypt));
+    FLEA_CCALL(
+      THR_flea_ecb_mode_ctx_t__ctor(
+        &ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t,
+        config_entry__pt->primitive_id__u.cipher_id__t,
+        key__pcu8,
+        key_len__alu16,
+        flea_encrypt
+      )
+    );
   }
   else
   {
@@ -236,9 +272,14 @@ flea_err_t THR_flea_mac_ctx_t__ctor_cmac(flea_mac_ctx_t *ctx__pt, const mac_conf
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_mac_ctx_t__ctor_cmac */
 
-flea_err_t THR_flea_mac_ctx_t__ctor(flea_mac_ctx_t *ctx__pt, flea_mac_id_t id__t, const flea_u8_t *key__pcu8, flea_al_u16_t key_len__alu16)
+flea_err_t THR_flea_mac_ctx_t__ctor(
+  flea_mac_ctx_t*  ctx__pt,
+  flea_mac_id_t    id__t,
+  const flea_u8_t* key__pcu8,
+  flea_al_u16_t    key_len__alu16
+)
 {
-  const mac_config_entry_t *config_entry__pt;
+  const mac_config_entry_t* config_entry__pt;
 
   FLEA_THR_BEG_FUNC();
 
@@ -260,7 +301,7 @@ flea_err_t THR_flea_mac_ctx_t__ctor(flea_mac_ctx_t *ctx__pt, flea_mac_id_t id__t
   FLEA_THR_FIN_SEC_empty();
 }
 
-void flea_mac_ctx_t__dtor(flea_mac_ctx_t *ctx__pt)
+void flea_mac_ctx_t__dtor(flea_mac_ctx_t* ctx__pt)
 {
   if(ctx__pt->output_len__u8 == 0)
   {
@@ -275,7 +316,7 @@ void flea_mac_ctx_t__dtor(flea_mac_ctx_t *ctx__pt)
   flea_mac_ctx_t__dtor_cipher_ctx_ref(ctx__pt);
 }
 
-void flea_mac_ctx_t__dtor_cipher_ctx_ref(flea_mac_ctx_t *ctx__pt)
+void flea_mac_ctx_t__dtor_cipher_ctx_ref(flea_mac_ctx_t* ctx__pt)
 {
   if(ctx__pt->output_len__u8 == 0)
   {
@@ -284,31 +325,49 @@ void flea_mac_ctx_t__dtor_cipher_ctx_ref(flea_mac_ctx_t *ctx__pt)
   }
   if(ctx__pt->mode_id__t == flea_hmac)
   {
-    FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key__bu8, ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key_byte_len__u8);
+    FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(
+      ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key__bu8,
+      ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key_byte_len__u8
+    );
     flea_hash_ctx_t__dtor(&ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t);
   }
   else // cmac
   {
-    flea_al_u8_t block_length__alu8 = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.config__pt->block_length__u8;
-    FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->primitive_specific_ctx__u.cmac_specific__t.prev_ct__bu8, block_length__alu8);
+    flea_al_u8_t block_length__alu8 =
+      ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.config__pt->block_length__u8;
+    FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(
+      ctx__pt->primitive_specific_ctx__u.cmac_specific__t.prev_ct__bu8,
+      block_length__alu8
+    );
   }
 }
 
-flea_err_t THR_flea_mac_ctx_t__update(flea_mac_ctx_t *ctx__pt, const flea_u8_t *data__pcu8, flea_dtl_t data_len__dtl)
+flea_err_t THR_flea_mac_ctx_t__update(
+  flea_mac_ctx_t*  ctx__pt,
+  const flea_u8_t* data__pcu8,
+  flea_dtl_t       data_len__dtl
+)
 {
   FLEA_THR_BEG_FUNC();
 
 
   if(ctx__pt->mode_id__t == flea_hmac)
   {
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(&ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t, data__pcu8, data_len__dtl));
+    FLEA_CCALL(
+      THR_flea_hash_ctx_t__update(
+        &ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t,
+        data__pcu8,
+        data_len__dtl
+      )
+    );
   }
   else
   {
     // cmac.
     // fill up pending block
-    flea_u8_t *block__pu8 = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.prev_ct__bu8;
-    flea_al_u8_t block_length__alu8 = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_length__u8;
+    flea_u8_t* block__pu8 = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.prev_ct__bu8;
+    flea_al_u8_t block_length__alu8 =
+      ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_length__u8;
     flea_al_u8_t left__alu8, to_copy__alu8, tail_len__alu8;
     flea_dtl_t nb_full_blocks__alu16, i;
     flea_al_u8_t pending__alu8 = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.pending__u8;
@@ -324,7 +383,11 @@ flea_err_t THR_flea_mac_ctx_t__update(flea_mac_ctx_t *ctx__pt, const flea_u8_t *
 
     if((pending__alu8 == block_length__alu8) && (nb_full_blocks__alu16 || tail_len__alu8))
     {
-      ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_crypt_f(&ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t, block__pu8, block__pu8);
+      ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_crypt_f(
+        &ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t,
+        block__pu8,
+        block__pu8
+      );
       pending__alu8 = 0;
     }
     // we have to keep the last block for potential finalize
@@ -336,7 +399,11 @@ flea_err_t THR_flea_mac_ctx_t__update(flea_mac_ctx_t *ctx__pt, const flea_u8_t *
     for(i = 0; i < nb_full_blocks__alu16; i++)
     {
       flea__xor_bytes_in_place(block__pu8, data__pcu8, block_length__alu8);
-      ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_crypt_f(&ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t, block__pu8, block__pu8);
+      ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_crypt_f(
+        &ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t,
+        block__pu8,
+        block__pu8
+      );
       data__pcu8 += block_length__alu8;
     }
     if(tail_len__alu8 != 0)
@@ -350,7 +417,7 @@ flea_err_t THR_flea_mac_ctx_t__update(flea_mac_ctx_t *ctx__pt, const flea_u8_t *
 } /* THR_flea_mac_ctx_t__update */
 
 // internal function
-void flea_mac_ctx_t__reset_cmac(flea_mac_ctx_t *ctx__pt)
+void flea_mac_ctx_t__reset_cmac(flea_mac_ctx_t* ctx__pt)
 {
   flea_u8_t block_length__u8 = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_length__u8;
 
@@ -359,7 +426,10 @@ void flea_mac_ctx_t__reset_cmac(flea_mac_ctx_t *ctx__pt)
 }
 
 # if defined FLEA_HAVE_CMAC
-static void flea_mac__polyn_double(flea_u8_t *block__pu8, flea_al_u8_t block_length__alu8)
+static void flea_mac__polyn_double(
+  flea_u8_t*   block__pu8,
+  flea_al_u8_t block_length__alu8
+)
 {
   flea_al_u8_t i;
   flea_al_u8_t carry__alu8 = 0;
@@ -390,13 +460,17 @@ static void flea_mac__polyn_double(flea_u8_t *block__pu8, flea_al_u8_t block_len
 # endif // #if defined FLEA_HAVE_CMAC
 
 # ifdef FLEA_HAVE_HMAC
-static flea_err_t THR_flea_mac_ctx_t__final_compute_hmac(flea_mac_ctx_t *ctx__pt, flea_u8_t *result__pu8, flea_al_u8_t *result_len__palu8)
+static flea_err_t THR_flea_mac_ctx_t__final_compute_hmac(
+  flea_mac_ctx_t* ctx__pt,
+  flea_u8_t*      result__pu8,
+  flea_al_u8_t*   result_len__palu8
+)
 {
   FLEA_DECL_BUF(hash_out__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
   flea_al_u8_t i;
-  flea_u8_t *tmp_alias__pu8     = result__pu8;
+  flea_u8_t* tmp_alias__pu8     = result__pu8;
   flea_u8_t key_byte_len__u8    = ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key_byte_len__u8;
-  flea_u8_t *alias_key__pu8     = ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key__bu8;
+  flea_u8_t* alias_key__pu8     = ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key__bu8;
   flea_u8_t hash_output_len__u8 = ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_output_len__u8;
   flea_al_u8_t demanded_output_len__alu8 = *result_len__palu8;
   FLEA_THR_BEG_FUNC();
@@ -405,7 +479,12 @@ static flea_err_t THR_flea_mac_ctx_t__final_compute_hmac(flea_mac_ctx_t *ctx__pt
     FLEA_ALLOC_BUF(hash_out__bu8, ctx__pt->output_len__u8);
     tmp_alias__pu8 = hash_out__bu8;
   }
-  FLEA_CCALL(THR_flea_hash_ctx_t__final(&ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t, tmp_alias__pu8));
+  FLEA_CCALL(
+    THR_flea_hash_ctx_t__final(
+      &ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t,
+      tmp_alias__pu8
+    )
+  );
   // reuse the hash-ctx for the outer hash application:
   flea_hash_ctx_t__reset(&ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t);
   for(i = 0; i < key_byte_len__u8; i++)
@@ -413,32 +492,53 @@ static flea_err_t THR_flea_mac_ctx_t__final_compute_hmac(flea_mac_ctx_t *ctx__pt
     flea_u8_t byte = alias_key__pu8[i] ^ 0x5c;
     FLEA_CCALL(THR_flea_hash_ctx_t__update(&ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t, &byte, 1));
   }
-  FLEA_CCALL(THR_flea_hash_ctx_t__update(&ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t, tmp_alias__pu8, hash_output_len__u8));
+  FLEA_CCALL(
+    THR_flea_hash_ctx_t__update(
+      &ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t,
+      tmp_alias__pu8,
+      hash_output_len__u8
+    )
+  );
   if(demanded_output_len__alu8 > ctx__pt->output_len__u8)
   {
     demanded_output_len__alu8 = ctx__pt->output_len__u8;
   }
-  FLEA_CCALL(THR_flea_hash_ctx_t__final_with_length_limit(&ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t, result__pu8, demanded_output_len__alu8));
+  FLEA_CCALL(
+    THR_flea_hash_ctx_t__final_with_length_limit(
+      &ctx__pt->primitive_specific_ctx__u.hmac_specific__t.
+      hash_ctx__t,
+      result__pu8,
+      demanded_output_len__alu8
+    )
+  );
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(hash_out__bu8);
   );
-}
+} /* THR_flea_mac_ctx_t__final_compute_hmac */
 
 # endif // #ifdef FLEA_HAVE_HMAC
 # ifdef FLEA_HAVE_CMAC
-static flea_err_t THR_flea_mac_ctx_t__final_compute_cmac(flea_mac_ctx_t *ctx__pt, flea_u8_t *result__pu8, flea_al_u8_t *result_len__palu8)
+static flea_err_t THR_flea_mac_ctx_t__final_compute_cmac(
+  flea_mac_ctx_t* ctx__pt,
+  flea_u8_t*      result__pu8,
+  flea_al_u8_t*   result_len__palu8
+)
 {
   FLEA_DECL_BUF(block__bu8, flea_u8_t, FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH);
   FLEA_THR_BEG_FUNC();
   flea_al_u8_t demanded_output_len__alu8;
-  flea_u8_t *pending_block__pu8   = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.prev_ct__bu8;
+  flea_u8_t* pending_block__pu8   = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.prev_ct__bu8;
   flea_al_u8_t block_length__alu8 = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_length__u8;
   flea_al_u8_t pending__alu8      = ctx__pt->primitive_specific_ctx__u.cmac_specific__t.pending__u8;
   // determine whether the last block is a complete block:
   FLEA_ALLOC_BUF(block__bu8, block_length__alu8);
   memset(block__bu8, 0, block_length__alu8);
 
-  ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_crypt_f(&ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t, block__bu8, block__bu8);
+  ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_crypt_f(
+    &ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t,
+    block__bu8,
+    block__bu8
+  );
   // K1 ^ M*_n
   // compute K1
   flea_mac__polyn_double(block__bu8, block_length__alu8);
@@ -457,7 +557,11 @@ static flea_err_t THR_flea_mac_ctx_t__final_compute_cmac(flea_mac_ctx_t *ctx__pt
     pending_block__pu8[pending__alu8] ^= 0x80;
     flea__xor_bytes_in_place(block__bu8, pending_block__pu8, block_length__alu8);
   }
-  ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_crypt_f(&ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t, block__bu8, block__bu8);
+  ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t.block_crypt_f(
+    &ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t,
+    block__bu8,
+    block__bu8
+  );
   if(*result_len__palu8 < ctx__pt->output_len__u8)
   {
     // FLEA_THROW("MAC result buffer too small", FLEA_ERR_BUFF_TOO_SMALL);
@@ -474,7 +578,11 @@ static flea_err_t THR_flea_mac_ctx_t__final_compute_cmac(flea_mac_ctx_t *ctx__pt
 } /* THR_flea_mac_ctx_t__final_compute_cmac */
 
 # endif // #ifdef FLEA_HAVE_CMAC
-flea_err_t THR_flea_mac_ctx_t__final_compute(flea_mac_ctx_t *ctx__pt, flea_u8_t *result__pu8, flea_al_u8_t *result_len__palu8)
+flea_err_t THR_flea_mac_ctx_t__final_compute(
+  flea_mac_ctx_t* ctx__pt,
+  flea_u8_t*      result__pu8,
+  flea_al_u8_t*   result_len__palu8
+)
 {
   FLEA_THR_BEG_FUNC();
 # ifdef FLEA_HAVE_HMAC
@@ -502,7 +610,11 @@ flea_err_t THR_flea_mac_ctx_t__final_compute(flea_mac_ctx_t *ctx__pt, flea_u8_t 
  * Timing neutral function for memory comparison.
  */
 
-flea_err_t THR_flea_mac_ctx_t__final_verify(flea_mac_ctx_t *ctx__pt, const flea_u8_t *exp_result__pcu8, flea_al_u8_t exp_result_len__alu8)
+flea_err_t THR_flea_mac_ctx_t__final_verify(
+  flea_mac_ctx_t*  ctx__pt,
+  const flea_u8_t* exp_result__pcu8,
+  flea_al_u8_t     exp_result_len__alu8
+)
 {
   flea_al_u8_t mac_res_len__alu8 = exp_result_len__alu8;
 
@@ -524,7 +636,15 @@ flea_err_t THR_flea_mac_ctx_t__final_verify(flea_mac_ctx_t *ctx__pt, const flea_
   );
 }
 
-flea_err_t THR_flea_mac__compute_mac(flea_mac_id_t id__t, const flea_u8_t *key__pcu8, flea_al_u16_t key_len__alu16, const flea_u8_t *data__pcu8, flea_dtl_t data_len__dtl, flea_u8_t *result__pu8, flea_al_u8_t *result_len__palu8)
+flea_err_t THR_flea_mac__compute_mac(
+  flea_mac_id_t    id__t,
+  const flea_u8_t* key__pcu8,
+  flea_al_u16_t    key_len__alu16,
+  const flea_u8_t* data__pcu8,
+  flea_dtl_t       data_len__dtl,
+  flea_u8_t*       result__pu8,
+  flea_al_u8_t*    result_len__palu8
+)
 {
   FLEA_DECL_OBJ(ctx__t, flea_mac_ctx_t);
 
@@ -537,7 +657,15 @@ flea_err_t THR_flea_mac__compute_mac(flea_mac_id_t id__t, const flea_u8_t *key__
   );
 }
 
-flea_err_t THR_flea_mac__verify_mac(flea_mac_id_t id__t, const flea_u8_t *key__pcu8, flea_al_u16_t key_len__alu16, const flea_u8_t *data__pcu8, flea_dtl_t data_len__dtl, const flea_u8_t *exp_mac__pu8, flea_al_u8_t exp_mac_len__alu8)
+flea_err_t THR_flea_mac__verify_mac(
+  flea_mac_id_t    id__t,
+  const flea_u8_t* key__pcu8,
+  flea_al_u16_t    key_len__alu16,
+  const flea_u8_t* data__pcu8,
+  flea_dtl_t       data_len__dtl,
+  const flea_u8_t* exp_mac__pu8,
+  flea_al_u8_t     exp_mac_len__alu8
+)
 {
   FLEA_DECL_OBJ(ctx__t, flea_mac_ctx_t);
   FLEA_THR_BEG_FUNC();

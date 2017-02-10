@@ -7,10 +7,11 @@
 #include "flea/types.h"
 #include "flea/hash.h"
 
-void
-flea_hash_davies_meyer_aes128_init(flea_hash_ctx_t *ctx__pt);
+void flea_hash_davies_meyer_aes128_init(flea_hash_ctx_t* ctx__pt);
 
-flea_err_t
-THR_flea_hash_davies_meyer_aes128_compression(flea_hash_ctx_t *ctx__pt, const flea_u8_t *input);
+flea_err_t THR_flea_hash_davies_meyer_aes128_compression(
+  flea_hash_ctx_t* ctx__pt,
+  const flea_u8_t* input
+);
 
 #endif /* h-guard */

@@ -16,7 +16,8 @@ extern "C" {
 /**
  * Available AE modes.
  */
-typedef enum { flea_eax_aes128, flea_eax_aes192, flea_eax_aes256, flea_gcm_aes128, flea_gcm_aes192, flea_gcm_aes256 } flea_ae_id_t;
+typedef enum { flea_eax_aes128, flea_eax_aes192, flea_eax_aes256, flea_gcm_aes128, flea_gcm_aes192,
+               flea_gcm_aes256 } flea_ae_id_t;
 
 
 /**
@@ -24,13 +25,13 @@ typedef enum { flea_eax_aes128, flea_eax_aes192, flea_eax_aes256, flea_gcm_aes12
  */
 typedef struct
 {
-  flea_u8_t                    tag_len__u8;
-  const flea_ae_config_entry_t *config__pt;
-  flea_u8_t                    pending__u8;
+  flea_u8_t                     tag_len__u8;
+  const flea_ae_config_entry_t* config__pt;
+  flea_u8_t                     pending__u8;
 #ifdef FLEA_USE_HEAP_BUF
-  flea_u8_t                    *buffer__bu8;
+  flea_u8_t*                    buffer__bu8;
 #else
-  flea_u8_t                    buffer__bu8[FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
+  flea_u8_t                     buffer__bu8[FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
 #endif
   union
   {
@@ -39,7 +40,7 @@ typedef struct
   } mode_specific__u;
 } flea_ae_ctx_t;
 
-#define flea_ae_ctx_t__INIT_VALUE { .tag_len__u8 = 0 }
+#define flea_ae_ctx_t__INIT_VALUE {.tag_len__u8 = 0}
 
 
 /**
@@ -61,16 +62,24 @@ typedef struct
  *
  * @return flea error code
  * */
-flea_err_t
-THR_flea_ae_ctx_t__ctor(flea_ae_ctx_t *ctx__pt, flea_ae_id_t id__t, const flea_u8_t *key__pcu8, flea_al_u16_t key_len__alu16, const flea_u8_t *nonce__pcu8, flea_al_u8_t nonce_len__alu8, const flea_u8_t *header__pcu8, flea_u16_t header_len__u16, flea_al_u8_t tag_length__alu8);
+flea_err_t THR_flea_ae_ctx_t__ctor(
+  flea_ae_ctx_t*   ctx__pt,
+  flea_ae_id_t     id__t,
+  const flea_u8_t* key__pcu8,
+  flea_al_u16_t    key_len__alu16,
+  const flea_u8_t* nonce__pcu8,
+  flea_al_u8_t     nonce_len__alu8,
+  const flea_u8_t* header__pcu8,
+  flea_u16_t       header_len__u16,
+  flea_al_u8_t     tag_length__alu8
+);
 
 /**
  * Destroy an AE context object.
  *
  * @param ctx pointer to the object to destroy
  */
-void
-flea_ae_ctx_t__dtor(flea_ae_ctx_t *ctx);
+void flea_ae_ctx_t__dtor(flea_ae_ctx_t* ctx);
 
 /**
  * Feed a ctx with plaintext data and produce ciphertext output. The function
@@ -83,8 +92,12 @@ flea_ae_ctx_t__dtor(flea_ae_ctx_t *ctx);
  *
  * @return flea error code
  */
-flea_err_t
-THR_flea_ae_ctx_t__update_encryption(flea_ae_ctx_t *ctx, const flea_u8_t *input, flea_u8_t *output, flea_dtl_t input_output_len);
+flea_err_t THR_flea_ae_ctx_t__update_encryption(
+  flea_ae_ctx_t*   ctx,
+  const flea_u8_t* input,
+  flea_u8_t*       output,
+  flea_dtl_t       input_output_len
+);
 
 /**
  * Finalize an AE encryption operation. The number of bytes written to tag is
@@ -96,8 +109,11 @@ THR_flea_ae_ctx_t__update_encryption(flea_ae_ctx_t *ctx, const flea_u8_t *input,
  *
  * @return flea error code
  */
-flea_err_t
-THR_flea_ae_ctx_t__final_encryption(flea_ae_ctx_t *ctx, flea_u8_t *tag, flea_al_u8_t *tag_len);
+flea_err_t THR_flea_ae_ctx_t__final_encryption(
+  flea_ae_ctx_t* ctx,
+  flea_u8_t*     tag,
+  flea_al_u8_t*  tag_len
+);
 
 /**
  * Feed an AE ctx with ciphertext data for decryption. The number of bytes
@@ -114,8 +130,13 @@ THR_flea_ae_ctx_t__final_encryption(flea_ae_ctx_t *ctx, flea_u8_t *tag, flea_al_
  *
  * @return flea error code
  */
-flea_err_t
-THR_flea_ae_ctx_t__update_decryption(flea_ae_ctx_t *ctx, const flea_u8_t *input, flea_dtl_t input_len, flea_u8_t *output, flea_dtl_t *output_len);
+flea_err_t THR_flea_ae_ctx_t__update_decryption(
+  flea_ae_ctx_t*   ctx,
+  const flea_u8_t* input,
+  flea_dtl_t       input_len,
+  flea_u8_t*       output,
+  flea_dtl_t*      output_len
+);
 
 /**
  * Finalize the decryption operation. All plaintext has already been output by
@@ -130,8 +151,7 @@ THR_flea_ae_ctx_t__update_decryption(flea_ae_ctx_t *ctx, const flea_u8_t *input,
  * returned. if it succeeded, FLEA_ERR_FINE is returned.
  *
  */
-flea_err_t
-THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t *ctx__pt);
+flea_err_t THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t* ctx__pt);
 
 /**
  * Encrypt a complete plaintext using an AE scheme.
@@ -152,8 +172,20 @@ THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t *ctx__pt);
  *
  * @return flea error code
  */
-flea_err_t
-THR_flea_ae__encrypt(flea_ae_id_t id, const flea_u8_t *key, flea_dtl_t key_len, const flea_u8_t *nonce, flea_dtl_t nonce_len, const flea_u8_t *header, flea_dtl_t header_len, const flea_u8_t *input, flea_u8_t *output, flea_dtl_t input_output_len, flea_u8_t *tag, flea_al_u8_t tag_len);
+flea_err_t THR_flea_ae__encrypt(
+  flea_ae_id_t     id,
+  const flea_u8_t* key,
+  flea_dtl_t       key_len,
+  const flea_u8_t* nonce,
+  flea_dtl_t       nonce_len,
+  const flea_u8_t* header,
+  flea_dtl_t       header_len,
+  const flea_u8_t* input,
+  flea_u8_t*       output,
+  flea_dtl_t       input_output_len,
+  flea_u8_t*       tag,
+  flea_al_u8_t     tag_len
+);
 
 /**
  * Decrypt a complete plaintext using an AE scheme.
@@ -176,8 +208,20 @@ THR_flea_ae__encrypt(flea_ae_id_t id, const flea_u8_t *key, flea_dtl_t key_len, 
  * @return flea error code. If the MAC verification failed, FLEA_ERR_INV_MAC is
  * returned. if it succeeded, FLEA_ERR_FINE is returned.
  */
-flea_err_t
-THR_flea_ae__decrypt(flea_ae_id_t id, const flea_u8_t *key, flea_dtl_t key_len, const flea_u8_t *nonce, flea_dtl_t nonce_len, const flea_u8_t *header, flea_dtl_t header_len, const flea_u8_t *input, flea_u8_t *output, flea_dtl_t input_output_len, const flea_u8_t *tag, flea_al_u8_t tag_len);
+flea_err_t THR_flea_ae__decrypt(
+  flea_ae_id_t     id,
+  const flea_u8_t* key,
+  flea_dtl_t       key_len,
+  const flea_u8_t* nonce,
+  flea_dtl_t       nonce_len,
+  const flea_u8_t* header,
+  flea_dtl_t       header_len,
+  const flea_u8_t* input,
+  flea_u8_t*       output,
+  flea_dtl_t       input_output_len,
+  const flea_u8_t* tag,
+  flea_al_u8_t     tag_len
+);
 
 #ifdef __cplusplus
 }

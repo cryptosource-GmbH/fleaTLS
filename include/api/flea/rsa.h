@@ -24,8 +24,15 @@ extern "C" {
  *  @param modulus_length length of the modulus_enc array
  *
  */
-flea_err_t
-THR_flea_rsa_raw_operation(flea_u8_t *result_arr, const flea_u8_t *exponent_enc, flea_al_u16_t exponent_length, const flea_u8_t *base_enc, flea_al_u16_t base_length, const flea_u8_t *modulus_enc, flea_al_u16_t modulus_length);
+flea_err_t THR_flea_rsa_raw_operation(
+  flea_u8_t*       result_arr,
+  const flea_u8_t* exponent_enc,
+  flea_al_u16_t    exponent_length,
+  const flea_u8_t* base_enc,
+  flea_al_u16_t    base_length,
+  const flea_u8_t* modulus_enc,
+  flea_al_u16_t    modulus_length
+);
 
 /**
  *  RSA 2048-bit private raw operation using chinese remainder theorem.
@@ -49,22 +56,22 @@ THR_flea_rsa_raw_operation(flea_u8_t *result_arr, const flea_u8_t *exponent_enc,
  *  @return flea error code
  *
  */
-flea_err_t
-THR_flea_rsa_raw_operation_crt(
-  flea_u8_t       *result_enc,
-  const flea_u8_t *base_enc,
-  flea_al_u16_t   base_length,
-  flea_al_u16_t   modulus_length,
-  const flea_u8_t *p_enc,
-  flea_mpi_ulen_t p_enc_len,
-  const flea_u8_t *q_enc,
-  flea_mpi_ulen_t q_enc_len,
-  const flea_u8_t *d1_enc,
-  flea_mpi_ulen_t d1_enc_len,
-  const flea_u8_t *d2_enc,
-  flea_mpi_ulen_t d2_enc_len,
-  const flea_u8_t *c_enc,
-  flea_mpi_ulen_t c_enc_len);
+flea_err_t THR_flea_rsa_raw_operation_crt(
+  flea_u8_t*       result_enc,
+  const flea_u8_t* base_enc,
+  flea_al_u16_t    base_length,
+  flea_al_u16_t    modulus_length,
+  const flea_u8_t* p_enc,
+  flea_mpi_ulen_t  p_enc_len,
+  const flea_u8_t* q_enc,
+  flea_mpi_ulen_t  q_enc_len,
+  const flea_u8_t* d1_enc,
+  flea_mpi_ulen_t  d1_enc_len,
+  const flea_u8_t* d2_enc,
+  flea_mpi_ulen_t  d2_enc_len,
+  const flea_u8_t* c_enc,
+  flea_mpi_ulen_t  c_enc_len
+);
 
 /**
  *  RSA 2048-bit private raw operation using chinese remainder theorem with the
@@ -80,14 +87,13 @@ THR_flea_rsa_raw_operation_crt(
  *  @param key pointer to the key in flea's internal format
  *  @param key_len the length of key, must be equal to  5*(modulus_length+1)/2
  */
-flea_err_t
-THR_flea_rsa_raw_operation_crt_internal_key_format(
-  flea_u8_t       *result_enc,
-  const flea_u8_t *base_enc,
-  flea_al_u16_t   base_length,
-  flea_al_u16_t   modulus_length,
-  const flea_u8_t *key,
-  flea_al_u16_t   key_len
+flea_err_t THR_flea_rsa_raw_operation_crt_internal_key_format(
+  flea_u8_t*       result_enc,
+  const flea_u8_t* base_enc,
+  flea_al_u16_t    base_length,
+  flea_al_u16_t    modulus_length,
+  const flea_u8_t* key,
+  flea_al_u16_t    key_len
 );
 
 #ifdef __cplusplus

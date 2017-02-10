@@ -14,27 +14,27 @@
 
 #if defined FLEA_HAVE_RSA && (defined FLEA_USE_HEAP_BUF || FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
 flea_err_t THR_flea_test_cert_path_generic(
-  const flea_u8_t      *target_cert_ptr,
-  flea_u32_t           target_cert_len,
-  flea_u8_t            **trust_anchor_ptrs,
-  flea_u32_t           *trust_anchor_lens,
-  flea_u32_t           nb_trust_anchors,
-  flea_u8_t            **cert_ptrs,
-  flea_u32_t           *cert_lens,
-  flea_u32_t           nb_certs,
-  flea_u8_t            **crl_ptrs,
-  flea_u32_t           *crl_lens,
-  flea_u32_t           nb_crls,
-  const flea_u8_t      *validation_date_utctime,
-  flea_al_u16_t        validation_date_utctime_len,
-  flea_bool_t          disable_revocation_checking,
-  const flea_ref_cu8_t *host_id_mbn__pcrcu8,
-  flea_host_id_type_e  host_id_type
+  const flea_u8_t*      target_cert_ptr,
+  flea_u32_t            target_cert_len,
+  flea_u8_t**           trust_anchor_ptrs,
+  flea_u32_t*           trust_anchor_lens,
+  flea_u32_t            nb_trust_anchors,
+  flea_u8_t**           cert_ptrs,
+  flea_u32_t*           cert_lens,
+  flea_u32_t            nb_certs,
+  flea_u8_t**           crl_ptrs,
+  flea_u32_t*           crl_lens,
+  flea_u32_t            nb_crls,
+  const flea_u8_t*      validation_date_utctime,
+  flea_al_u16_t         validation_date_utctime_len,
+  flea_bool_t           disable_revocation_checking,
+  const flea_ref_cu8_t* host_id_mbn__pcrcu8,
+  flea_host_id_type_e   host_id_type
 )
 {
   flea_public_key_t target_pubkey__t = flea_public_key_t__INIT_VALUE;
   const flea_bool_t is_valid_chain   = FLEA_TRUE;
-  flea_x509_cert_ref_t cert_refs[20] = { { .is_trusted__b = 0 } };
+  flea_x509_cert_ref_t cert_refs[20] = {{.is_trusted__b = 0}};
   flea_u32_t cert_ref_pos = 0;
   flea_err_t err;
 
@@ -79,7 +79,12 @@ flea_err_t THR_flea_test_cert_path_generic(
     {
       i %= nb_certs;
       FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&cert_refs[cert_ref_pos], cert_ptrs[i], cert_lens[i]));
-      FLEA_CCALL(THR_flea_cert_path_validator_t__add_cert_ref_without_trust_status(&cert_chain__t, &cert_refs[cert_ref_pos]));
+      FLEA_CCALL(
+        THR_flea_cert_path_validator_t__add_cert_ref_without_trust_status(
+          &cert_chain__t,
+          &cert_refs[cert_ref_pos]
+        )
+      );
       cert_ref_pos++;
       cert_ptrs[i] = cert_ptrs[nb_certs - 1];
       cert_lens[i] = cert_lens[nb_certs - 1];
@@ -91,7 +96,7 @@ flea_err_t THR_flea_test_cert_path_generic(
     flea_u32_t i;
     flea_rng__randomize((flea_u8_t *) &i, sizeof(i));
     i %= nb_crls;
-    flea_ref_cu8_t crl_ref = { crl_ptrs[i], crl_lens[i] };
+    flea_ref_cu8_t crl_ref = {crl_ptrs[i], crl_lens[i]};
     FLEA_CCALL(THR_flea_cert_path_validator_t__add_crl(&cert_chain__t, &crl_ref));
 
     crl_ptrs[i] = crl_ptrs[nb_crls - 1];
@@ -105,11 +110,21 @@ flea_err_t THR_flea_test_cert_path_generic(
   }
   if(host_id_mbn__pcrcu8)
   {
-    err = THR_flea_cert_path_validator__build_and_verify_cert_chain_and_hostid_and_create_pub_key(&cert_chain__t, &time__t, host_id_mbn__pcrcu8, host_id_type, &target_pubkey__t);
+    err = THR_flea_cert_path_validator__build_and_verify_cert_chain_and_hostid_and_create_pub_key(
+      &cert_chain__t,
+      &time__t,
+      host_id_mbn__pcrcu8,
+      host_id_type,
+      &target_pubkey__t
+      );
   }
   else
   {
-    err = THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_pub_key(&cert_chain__t, &time__t, &target_pubkey__t);
+    err = THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_pub_key(
+      &cert_chain__t,
+      &time__t,
+      &target_pubkey__t
+      );
   }
   if(is_valid_chain)
   {
@@ -118,8 +133,7 @@ flea_err_t THR_flea_test_cert_path_generic(
       FLEA_THROW("error in verification of correct certificate path", err);
     }
   }
-  else
-  if(!err)
+  else if(!err)
   {
     FLEA_THROW("accepted an incorrect certificate path", FLEA_ERR_FAILED_TEST);
   }

@@ -19,30 +19,67 @@ flea_err_t THR_flea_test_ber_dec_basic()
   flea_dtl_t version_len__dtl = 10;
   flea_ref_cu8_t oid_ref__t;
   flea_data_source_mem_help_t hlp__t;
-  const flea_u8_t *oid__pu8;
+  const flea_u8_t* oid__pu8;
   flea_bool_t found_tag__b;
   FLEA_THR_BEG_FUNC();
   FLEA_ALLOC_BUF(version_buf__bu8, 10);
-  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, flea_test_cert_1__au8, sizeof(flea_test_cert_1__au8), &hlp__t));
+  FLEA_CCALL(
+    THR_flea_data_source_t__ctor_memory(
+      &source__t,
+      flea_test_cert_1__au8,
+      sizeof(flea_test_cert_1__au8),
+      &hlp__t
+    )
+  );
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0));
-  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_optional(&dec__t, FLEA_ASN1_OID, 0, &oid__pu8, &version_len__dtl, &found_tag__b));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__get_ref_to_raw_optional(
+      &dec__t,
+      FLEA_ASN1_OID,
+      0,
+      &oid__pu8,
+      &version_len__dtl,
+      &found_tag__b
+    )
+  );
   if(found_tag__b)
   {
     FLEA_THROW("optional decoding of missing element", FLEA_ERR_FAILED_TEST);
   }
 
-  FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional(&dec__t, 0, FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC, &found_tag__b));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__open_constructed_optional(
+      &dec__t,
+      0,
+      FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC,
+      &found_tag__b
+    )
+  );
   if(found_tag__b)
   {
     FLEA_THROW("optional opening of missing constructed", FLEA_ERR_FAILED_TEST);
   }
-  FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional(&dec__t, 0, FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC, &found_tag__b));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__open_constructed_optional(
+      &dec__t,
+      0,
+      FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC,
+      &found_tag__b
+    )
+  );
   if(found_tag__b)
   {
     FLEA_THROW("optional opening of missing constructed", FLEA_ERR_FAILED_TEST);
   }
   version_len__dtl = 10;
-  FLEA_CCALL(THR_flea_ber_dec_t__open_constructed_optional(&dec__t, FLEA_ASN1_SEQUENCE, FLEA_ASN1_CONSTRUCTED, &found_tag__b));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__open_constructed_optional(
+      &dec__t,
+      FLEA_ASN1_SEQUENCE,
+      FLEA_ASN1_CONSTRUCTED,
+      &found_tag__b
+    )
+  );
   if(!found_tag__b)
   {
     FLEA_THROW("optional opening of existing constructed", FLEA_ERR_FAILED_TEST);
@@ -52,7 +89,14 @@ flea_err_t THR_flea_test_ber_dec_basic()
   // decode integer serial number
   FLEA_CCALL(THR_flea_ber_dec_t__open_constructed(&dec__t, 0, FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC));
 
-  FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw_cft(&dec__t, FLEA_ASN1_CFT_MAKE3(0, 0, FLEA_ASN1_INT), version_buf__bu8, &version_len__dtl));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__read_value_raw_cft(
+      &dec__t,
+      FLEA_ASN1_CFT_MAKE3(0, 0, FLEA_ASN1_INT),
+      version_buf__bu8,
+      &version_len__dtl
+    )
+  );
   if(version_len__dtl != 1 || version_buf__bu8[0] != 1)
   {
     FLEA_THROW("invalid decoded version number", FLEA_ERR_FAILED_TEST);

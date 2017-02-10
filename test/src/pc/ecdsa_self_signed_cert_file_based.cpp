@@ -20,12 +20,12 @@
 
 #if defined FLEA_HAVE_ASYM_SIG && defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_MOD_BIT_SIZE >= 224
 
-const char *test_file_dirs[] = { "misc/testdata/certs/self_ec_certs_only_for_sig_ver/secp224r1__implict_dp/" };
+const char* test_file_dirs[] = {"misc/testdata/certs/self_ec_certs_only_for_sig_ver/secp224r1__implict_dp/"};
 
 static flea_err_t THR_iterate_files(std::string const &dir_name)
 {
-  DIR *dir;
-  struct dirent *ent;
+  DIR* dir;
+  struct dirent* ent;
   unsigned err_count = 0;
 
   if((dir = opendir(dir_name.c_str())) != NULL)

@@ -33,17 +33,17 @@ typedef struct
 
 static linux_socket_stream_ctx_t stc_sock_stream__t;
 
-static void init_sock_stream(linux_socket_stream_ctx_t *sock_stream__pt)
+static void init_sock_stream(linux_socket_stream_ctx_t* sock_stream__pt)
 {
   memset(sock_stream__pt, 0, sizeof(*sock_stream__pt));
   sock_stream__pt->read_buf__t.alloc_len__dtl  = sizeof(sock_stream__pt->read_buf__t.buffer__au8);
   sock_stream__pt->write_buf__t.alloc_len__dtl = sizeof(sock_stream__pt->write_buf__t.buffer__au8);
 }
 
-static flea_err_t THR_open_socket_server(void *ctx__pv)
+static flea_err_t THR_open_socket_server(void* ctx__pv)
 {
   FLEA_THR_BEG_FUNC();
-  linux_socket_stream_ctx_t *ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
   struct sockaddr_in addr;
   int listen_fd = -1, client_fd = 0;
   listen_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -83,10 +83,10 @@ static flea_err_t THR_open_socket_server(void *ctx__pv)
   );
 } /* THR_open_socket_server */
 
-static flea_err_t THR_open_socket(void *ctx__pv)
+static flea_err_t THR_open_socket(void* ctx__pv)
 {
   FLEA_THR_BEG_FUNC();
-  linux_socket_stream_ctx_t *ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
   struct sockaddr_in addr;
   int socket_fd = -1;
   socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -118,17 +118,17 @@ static flea_err_t THR_open_socket(void *ctx__pv)
   );
 } /* THR_open_socket */
 
-void close_socket(void *ctx__pv)
+void close_socket(void* ctx__pv)
 {
-  linux_socket_stream_ctx_t *ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
 
   close(ctx__pt->socket_fd__int);
 }
 
 static flea_err_t THR_send_socket_inner(
-  int             socket_fd,
-  const flea_u8_t *source_buffer__pcu8,
-  flea_dtl_t      nb_bytes_to_write__dtl
+  int              socket_fd,
+  const flea_u8_t* source_buffer__pcu8,
+  flea_dtl_t       nb_bytes_to_write__dtl
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -141,13 +141,13 @@ static flea_err_t THR_send_socket_inner(
 }
 
 static flea_err_t THR_write_socket(
-  void            *ctx__pv,
-  const flea_u8_t *source_buffer__pcu8,
-  flea_dtl_t      nb_bytes_to_write__dtl
+  void*            ctx__pv,
+  const flea_u8_t* source_buffer__pcu8,
+  flea_dtl_t       nb_bytes_to_write__dtl
 )
 {
   FLEA_THR_BEG_FUNC();
-  linux_socket_stream_ctx_t *ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
   while(nb_bytes_to_write__dtl)
   {
     ctx__pt->write_buf__t.buffer__au8[ctx__pt->write_buf__t.used_len__dtl++] = *source_buffer__pcu8;
@@ -157,7 +157,8 @@ static flea_err_t THR_write_socket(
     {
       FLEA_CCALL(
         THR_send_socket_inner(
-          ctx__pt->socket_fd__int, ctx__pt->write_buf__t.buffer__au8,
+          ctx__pt->socket_fd__int,
+          ctx__pt->write_buf__t.buffer__au8,
           ctx__pt->write_buf__t.used_len__dtl
         )
       );
@@ -167,14 +168,15 @@ static flea_err_t THR_write_socket(
   FLEA_THR_FIN_SEC_empty();
 }
 
-static flea_err_t THR_write_flush_socket(void *ctx__pv)
+static flea_err_t THR_write_flush_socket(void* ctx__pv)
 {
-  linux_socket_stream_ctx_t *ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
     THR_send_socket_inner(
-      ctx__pt->socket_fd__int, ctx__pt->write_buf__t.buffer__au8,
+      ctx__pt->socket_fd__int,
+      ctx__pt->write_buf__t.buffer__au8,
       ctx__pt->write_buf__t.used_len__dtl
     )
   );
@@ -183,13 +185,13 @@ static flea_err_t THR_write_flush_socket(void *ctx__pv)
 }
 
 static flea_err_t THR_read_socket(
-  void        *ctx__pv,
-  flea_u8_t   *target_buffer__pu8,
-  flea_dtl_t  *nb_bytes_to_read__pdtl,
+  void*       ctx__pv,
+  flea_u8_t*  target_buffer__pu8,
+  flea_dtl_t* nb_bytes_to_read__pdtl,
   flea_bool_t force_read__b
 )
 {
-  linux_socket_stream_ctx_t *ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
 
   FLEA_THR_BEG_FUNC();
   force_read__b = force_read__b;
@@ -204,15 +206,15 @@ static flea_err_t THR_read_socket(
 
 #if 0
 static flea_err_t THR_read_socket(
-  void        *ctx__pv,
-  flea_u8_t   *target_buffer__pu8,
-  flea_dtl_t  *nb_bytes_to_read__pdtl,
+  void*       ctx__pv,
+  flea_u8_t*  target_buffer__pu8,
+  flea_dtl_t* nb_bytes_to_read__pdtl,
   flea_bool_t force_read__b
 )
 {
-  linux_socket_stream_ctx_t *ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
   flea_dtl_t rem_len__dtl = *nb_bytes_to_read__pdtl;
-  read_buf_t *buf__pt     = &ctx__pt->read_buf__t;
+  read_buf_t* buf__pt     = &ctx__pt->read_buf__t;
 
   FLEA_THR_BEG_FUNC();
   // first draw from read buffer.
@@ -250,8 +252,7 @@ static flea_err_t THR_read_socket(
       buf__pt->offset__dtl = to_go__dtl;
       target_buffer__pu8  += to_go__dtl;
       rem_len__dtl        -= to_go__dtl;
-    }
-    while(rem_len__dtl && ( force_read__b || no_read_at_all__b));
+    } while(rem_len__dtl && (force_read__b || no_read_at_all__b));
   }
   *nb_bytes_to_read__pdtl -= rem_len__dtl;
 
@@ -260,7 +261,7 @@ static flea_err_t THR_read_socket(
 
 #endif /* if 0 */
 
-flea_err_t THR_flea_test_linux__create_rw_stream(flea_rw_stream_t *stream__pt)
+flea_err_t THR_flea_test_linux__create_rw_stream(flea_rw_stream_t* stream__pt)
 {
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_open_f open__f         = THR_open_socket;
@@ -271,7 +272,12 @@ flea_err_t THR_flea_test_linux__create_rw_stream(flea_rw_stream_t *stream__pt)
   init_sock_stream(&stc_sock_stream__t);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
-      stream__pt, (void *) &stc_sock_stream__t, open__f, close__f, read__f, write__f,
+      stream__pt,
+      (void *) &stc_sock_stream__t,
+      open__f,
+      close__f,
+      read__f,
+      write__f,
       flush__f
     )
   );

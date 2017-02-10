@@ -14,7 +14,10 @@
 
 static flea_ctr_mode_prng_t gl_rng_ctx__t;
 
-void flea_rng__randomize_volatile(flea_u8_t *mem__pu8, flea_dtl_t mem_len__dtl)
+void flea_rng__randomize_volatile(
+  flea_u8_t* mem__pu8,
+  flea_dtl_t mem_len__dtl
+)
 {
   flea_ctr_mode_prng_t__randomize(&gl_rng_ctx__t, mem__pu8, mem_len__dtl);
 }
@@ -42,7 +45,10 @@ flea_err_t THR_flea_rng__init()
   );
 }
 
-flea_err_t THR_flea_rng__reseed_persistent(const flea_u8_t *seed__pcu8, flea_dtl_t seed_len__dtl)
+flea_err_t THR_flea_rng__reseed_persistent(
+  const flea_u8_t* seed__pcu8,
+  flea_dtl_t       seed_len__dtl
+)
 {
   FLEA_DECL_BUF(new_persistent_key__bu8, flea_u8_t, FLEA_AES256_KEY_BYTE_LENGTH);
   FLEA_DECL_BUF(compare__bu8, flea_u8_t, FLEA_AES256_KEY_BYTE_LENGTH);
@@ -63,7 +69,10 @@ flea_err_t THR_flea_rng__reseed_persistent(const flea_u8_t *seed__pcu8, flea_dtl
   );
 }
 
-flea_err_t THR_flea_rng__reseed_volatile(const flea_u8_t *seed__pcu8, flea_dtl_t seed_len__dtl)
+flea_err_t THR_flea_rng__reseed_volatile(
+  const flea_u8_t* seed__pcu8,
+  flea_dtl_t       seed_len__dtl
+)
 {
   return THR_flea_ctr_mode_prng_t__reseed(&gl_rng_ctx__t, seed__pcu8, seed_len__dtl);
 }
@@ -73,12 +82,18 @@ void flea_rng__flush()
   flea_ctr_mode_prng_t__flush(&gl_rng_ctx__t);
 }
 
-void flea_rng__randomize_no_flush(flea_u8_t *mem__pu8, flea_dtl_t mem_len__dtl)
+void flea_rng__randomize_no_flush(
+  flea_u8_t* mem__pu8,
+  flea_dtl_t mem_len__dtl
+)
 {
   flea_ctr_mode_prng_t__randomize_no_flush(&gl_rng_ctx__t, mem__pu8, mem_len__dtl);
 }
 
-void flea_rng__randomize(flea_u8_t *mem__pu8, flea_dtl_t mem_len__dtl)
+void flea_rng__randomize(
+  flea_u8_t* mem__pu8,
+  flea_dtl_t mem_len__dtl
+)
 {
   flea_ctr_mode_prng_t__randomize_no_flush(&gl_rng_ctx__t, mem__pu8, mem_len__dtl);
   flea_rng__flush();

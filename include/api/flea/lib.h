@@ -14,15 +14,13 @@ extern "C" {
  * at the devices startup. If the return value of this function indicates an
  * error, then no cryptographic functions may be used.
  */
-flea_err_t
-THR_flea_lib__init(void);
+flea_err_t THR_flea_lib__init(void);
 
 /**
  * Function that may be called at a point after which no more
  * functions of flea are used.
  */
-void
-flea_lib__deinit(void);
+void flea_lib__deinit(void);
 
 # ifdef __cplusplus
 }
