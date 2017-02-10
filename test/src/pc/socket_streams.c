@@ -192,14 +192,17 @@ static flea_err_t THR_read_socket(
 )
 {
   linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  ssize_t did_read_ssz;
 
   FLEA_THR_BEG_FUNC();
-  force_read__b = force_read__b;
-  ssize_t did_read_ssz = recv(ctx__pt->socket_fd__int, target_buffer__pu8, *nb_bytes_to_read__pdtl, 0);
-  if(did_read_ssz < 0)
+  do
   {
-    FLEA_THROW("recv err", FLEA_ERR_TLS_GENERIC);
-  }
+    did_read_ssz = recv(ctx__pt->socket_fd__int, target_buffer__pu8, *nb_bytes_to_read__pdtl, 0);
+    if(did_read_ssz < 0)
+    {
+      FLEA_THROW("recv err", FLEA_ERR_TLS_GENERIC);
+    }
+  } while(force_read__b && (did_read_ssz == 0));
   *nb_bytes_to_read__pdtl = did_read_ssz;
   FLEA_THR_FIN_SEC_empty();
 }

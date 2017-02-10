@@ -1184,9 +1184,6 @@ flea_err_t THR_flea_tls__send_handshake_message_content(
   {
     FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx_mbn__pt, msg_bytes, msg_bytes_len));
   }
-#ifdef FLEA_TLS_SEND_RECORD_EAGER
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
-#endif
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -1352,10 +1349,18 @@ static flea_err_t THR_flea_tls__send_client_hello(
     )
   );
 
-  /*
-   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, client_hello_bytes, 1));
-   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, client_hello_bytes+1, client_hello_bytes_len-1));
-   */
+  #define FRAG 1
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, client_hello_bytes, FRAG));
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      client_hello_bytes + FRAG,
+      client_hello_bytes_len - FRAG
+    )
+  );
+
+#if 0
 
 
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, client_hello_bytes, 2));
@@ -1367,7 +1372,7 @@ static flea_err_t THR_flea_tls__send_client_hello(
       client_hello_bytes_len - 2
     )
   );
-
+#endif /* if 0 */
 
   // FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, client_hello_bytes, client_hello_bytes_len));
 
