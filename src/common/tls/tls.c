@@ -786,32 +786,33 @@ void flea_tls__client_hello_to_bytes(
   *length = i;
 } /* flea_tls__client_hello_to_bytes */
 
-flea_err_t THR_flea_tls__send_handshake_message_hdr(
-  HandshakeType     type,
-  flea_u32_t        content_len__u32,
-  flea_rw_stream_t* rw_stream__pt,
-  flea_hash_ctx_t*  hash_ctx__pt,
-  flea_mac_ctx_t*   mac_ctx__pt
+static flea_err_t THR_flea_tls__send_handshake_message_hdr(
+  flea_tls_rec_prot_t* rec_prot__pt,
+  flea_hash_ctx_t*     hash_ctx_mbn__pt,
+  HandshakeType        type,
+  flea_u32_t           content_len__u32
 )
 {
   flea_u8_t enc_for_hash__au8[4];
 
   FLEA_THR_BEG_FUNC();
 
-  FLEA_CCALL(THR_flea_rw_stream_t__write_byte(rw_stream__pt, type));
   enc_for_hash__au8[0] = type;
 
-  FLEA_CCALL(THR_flea_rw_stream_t__write_u32_be(rw_stream__pt, content_len__u32, 3));
   enc_for_hash__au8[1] = content_len__u32 >> 16;
   enc_for_hash__au8[2] = content_len__u32 >> 8;
   enc_for_hash__au8[3] = content_len__u32;
-
-  // TODO: MAKE HASH STREAM AND FUNCTION WHICH WRITE THE SAME DATA TO TWO STREAMS
-  // (CONSIDER A TEE-OBJECTS, BUT THIS IS OVERDOING HERE MOST PROBABLY)
-  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx__pt, enc_for_hash__au8, sizeof(enc_for_hash__au8)));
-  if(mac_ctx__pt)
+  FLEA_CCALL(
+    THR_flea_tls_rec_prot_t__write_data(
+      rec_prot__pt,
+      CONTENT_TYPE_HANDSHAKE,
+      enc_for_hash__au8,
+      sizeof(enc_for_hash__au8)
+    )
+  );
+  if(hash_ctx_mbn__pt)
   {
-    FLEA_CCALL(THR_flea_mac_ctx_t__update(mac_ctx__pt, enc_for_hash__au8, sizeof(enc_for_hash__au8)));
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx_mbn__pt, enc_for_hash__au8, sizeof(enc_for_hash__au8)));
   }
   FLEA_THR_FIN_SEC_empty();
 }
@@ -1163,45 +1164,44 @@ flea_err_t THR_flea_tls__send_alert(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls__send_handshake_message(
-  flea_tls_ctx_t*  tls_ctx,
-  flea_hash_ctx_t* hash_ctx,
-  HandshakeType    type,
-  flea_u8_t*       msg_bytes,
-  flea_u32_t       msg_bytes_len
+flea_err_t THR_flea_tls__send_handshake_message_content(
+  flea_tls_rec_prot_t* rec_prot__pt,
+  flea_hash_ctx_t*     hash_ctx_mbn__pt,
+  flea_u8_t*           msg_bytes,
+  flea_u32_t           msg_bytes_len
 )
 {
   FLEA_THR_BEG_FUNC();
-
-  flea_u8_t hdr__au8[4];
-  hdr__au8[0] = type;
-
-  hdr__au8[1] = msg_bytes_len >> 16;
-  hdr__au8[2] = msg_bytes_len >> 8;
-  hdr__au8[3] = msg_bytes_len;
-
   FLEA_CCALL(
     THR_flea_tls_rec_prot_t__write_data(
-      &tls_ctx->rec_prot__t,
-      CONTENT_TYPE_HANDSHAKE,
-      hdr__au8,
-      sizeof(hdr__au8)
-    )
-  );
-  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, hdr__au8, sizeof(hdr__au8)));
-  FLEA_CCALL(
-    THR_flea_tls_rec_prot_t__write_data(
-      &tls_ctx->rec_prot__t,
+      rec_prot__pt,
       CONTENT_TYPE_HANDSHAKE,
       msg_bytes,
       msg_bytes_len
     )
   );
-  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx, msg_bytes, msg_bytes_len));
+  if(hash_ctx_mbn__pt)
+  {
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx_mbn__pt, msg_bytes, msg_bytes_len));
+  }
 #ifdef FLEA_TLS_SEND_RECORD_EAGER
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(&tls_ctx->rec_prot__t));
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
 #endif
+  FLEA_THR_FIN_SEC_empty();
+}
 
+static flea_err_t THR_flea_tls__send_handshake_message(
+  flea_tls_rec_prot_t* rec_prot__pt,
+  flea_hash_ctx_t*     hash_ctx_mbn__pt,
+  HandshakeType        type,
+  flea_u8_t*           msg_bytes,
+  flea_u32_t           msg_bytes_len
+)
+{
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_hdr(rec_prot__pt, hash_ctx_mbn__pt, type, msg_bytes_len));
+
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(rec_prot__pt, hash_ctx_mbn__pt, msg_bytes, msg_bytes_len));
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_handshake_message */
 
@@ -1264,7 +1264,7 @@ static flea_err_t THR_flea_tls__send_finished(
 
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message(
-      tls_ctx,
+      &tls_ctx->rec_prot__t,
       hash_ctx,
       HANDSHAKE_TYPE_FINISHED,
       verify_data__bu8,
@@ -1296,7 +1296,7 @@ static flea_err_t THR_flea_tls__send_client_hello(
 
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message(
-      tls_ctx,
+      &tls_ctx->rec_prot__t,
       hash_ctx,
       HANDSHAKE_TYPE_CLIENT_HELLO,
       client_hello_bytes,
@@ -1341,7 +1341,7 @@ flea_err_t THR_flea_tls__send_client_key_exchange(
 
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message(
-      tls_ctx,
+      &tls_ctx->rec_prot__t,
       hash_ctx,
       HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE,
       client_key_ex_bytes,
