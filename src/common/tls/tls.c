@@ -1286,6 +1286,55 @@ static flea_err_t THR_flea_tls__send_client_hello(
 {
   FLEA_THR_BEG_FUNC();
 
+  /*flea_tls__client_hello_t client_hello;
+   * flea_tls__create_hello_message(tls_ctx, &client_hello);
+   *
+   * // transform struct to bytes
+   * flea_u8_t client_hello_bytes[16384];
+   * flea_u32_t client_hello_bytes_len; // 24 bit
+   * flea_tls__client_hello_to_bytes(&client_hello, client_hello_bytes, &client_hello_bytes_len);
+   *
+   * FLEA_CCALL(
+   * THR_flea_tls__send_handshake_message(
+   *  &tls_ctx->rec_prot__t,
+   *  hash_ctx,
+   *  HANDSHAKE_TYPE_CLIENT_HELLO,
+   *  client_hello_bytes,
+   *  client_hello_bytes_len
+   * )
+   * ); */
+
+
+  // calculate length for the header
+  // TODO: include session id in the calculation (the 0 at 3rd place)
+  // TODO: include cipher suites length instead of hard coded 2 (5+6th place)
+  // TODO: include extensions length (last place)
+
+  /*flea_u32_t len = 2 + 1 + 0 + 32 + 2 + 2 + 1 + 1 + 0;
+   * FLEA_CCALL(THR_flea_tls__send_handshake_message_hdr(&tls_ctx->rec_prot__t, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO, len));
+   *
+   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.major, 1));
+   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.minor, 1));
+   *
+   * // session ID empty => no resumption (new handshake negotiation)
+   * // TODO: include possibility to resume a session
+   * flea_u8_t null_byte[] = {0};
+   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, null_byte, 1));
+   *
+   *
+   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, tls_ctx->security_parameters->client_random.gmt_unix_time, sizeof(tls_ctx->security_parameters->client_random.gmt_unix_time)));
+   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, tls_ctx->security_parameters->client_random.random_bytes, sizeof(tls_ctx->security_parameters->client_random.random_bytes)));
+   *
+   * //flea__encode_U32_BE(tls_ctx->allowed_cipher_suites_len, (flea_u8_t*)&buf);
+   * flea_u8_t cipher_suites_len[2] = { 0x00, 0x02 };
+   *
+   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, cipher_suites_len, 2));
+   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, tls_ctx->allowed_cipher_suites, tls_ctx->allowed_cipher_suites_len));
+   *
+   * // compression methods
+   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, null_byte, 1));
+   */
+
   flea_tls__client_hello_t client_hello;
   flea_tls__create_hello_message(tls_ctx, &client_hello);
 
@@ -1295,28 +1344,33 @@ static flea_err_t THR_flea_tls__send_client_hello(
   flea_tls__client_hello_to_bytes(&client_hello, client_hello_bytes, &client_hello_bytes_len);
 
   FLEA_CCALL(
-    THR_flea_tls__send_handshake_message(
+    THR_flea_tls__send_handshake_message_hdr(
       &tls_ctx->rec_prot__t,
       hash_ctx,
       HANDSHAKE_TYPE_CLIENT_HELLO,
-      client_hello_bytes,
       client_hello_bytes_len
     )
   );
 
+  /*
+   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, client_hello_bytes, 1));
+   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, client_hello_bytes+1, client_hello_bytes_len-1));
+   */
 
-  // TODO: dorther stammen die beiden Werte ja schon. Was ist beabsichtigt?
-  // add random to tls_ctx
-  memcpy(
-    tls_ctx->security_parameters->client_random.gmt_unix_time,
-    client_hello.random.gmt_unix_time,
-    sizeof(tls_ctx->security_parameters->client_random.gmt_unix_time)
+
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, client_hello_bytes, 2));
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      client_hello_bytes + 2,
+      client_hello_bytes_len - 2
+    )
   );
-  memcpy(
-    tls_ctx->security_parameters->client_random.random_bytes,
-    client_hello.random.random_bytes,
-    sizeof(tls_ctx->security_parameters->client_random.random_bytes)
-  );
+
+
+  // FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, client_hello_bytes, client_hello_bytes_len));
+
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_client_hello */
