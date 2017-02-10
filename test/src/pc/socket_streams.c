@@ -260,7 +260,7 @@ static flea_err_t THR_read_socket(
 
 #endif /* if 0 */
 
-flea_err_t THR_flea_test_linux__create_rw_stream(flea_rw_stream_t *stream__pt, int *socket_fd)
+flea_err_t THR_flea_test_linux__create_rw_stream(flea_rw_stream_t *stream__pt)
 {
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_open_f open__f         = THR_open_socket;
@@ -275,7 +275,6 @@ flea_err_t THR_flea_test_linux__create_rw_stream(flea_rw_stream_t *stream__pt, i
       flush__f
     )
   );
-  *socket_fd = stc_sock_stream__t.socket_fd__int;
   // TODO: set up the buffers initialized!!
   FLEA_THR_FIN_SEC_empty();
 }

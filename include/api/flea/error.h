@@ -217,6 +217,13 @@ typedef enum
    * Error for invalid state transitions, relevant for debugging as they _should_ never happen */
   FLEA_ERR_TLS_INVALID_STATE             = 0x0103,
 
+  FLEA_ERR_TLS_INV_REC                   = 0x0104,
+
+  /**
+   * The fleaTLS client received an invalid algorithm choice in the server hello.
+   */
+  FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO  = 0x0104,
+
   /** The routine for the construction of a valid certification path
    * was cancelled from another thread.
    */
