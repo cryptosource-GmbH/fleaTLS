@@ -236,16 +236,8 @@ extern const flea_tls__cipher_suite_t cipher_suites[2];
  */
 typedef struct
 {
-  flea_tls__connection_end_t  connection_end;        /* Server or Client */
-  flea_tls__prf_algorithm_t   prf_algorithm;         /* PRF algorithm to use */
-  flea_tls__bulk_cipher_alg_t bulk_cipher_algorithm; /* Encryption Algorithm to use */
-  flea_tls__cipher_type_t     cipher_type;           /* Block, Stream or AEAD */
+  flea_tls__connection_end_t connection_end; /* Server or Client */
 
-  /*	flea_u8_t enc_key_length;
-   * flea_u8_t block_length;
-   * flea_u8_t fixed_iv_length;
-   * flea_u8_t record_iv_length;*/
-  flea_tls__mac_algorithm_t mac_algorithm; /* negotiated mac algorithm */
 
   /*flea_u8_t mac_length;
    * flea_u8_t mac_key_length;*/
@@ -295,6 +287,7 @@ typedef struct
    * Other information or configuration
    */
 
+  // define 4 parameters independently instead of list of cipher suites
   flea_u8_t*                   allowed_cipher_suites; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
   flea_u32_t                   allowed_cipher_suites_len;
   flea_u8_t                    selected_cipher_suite[2];
