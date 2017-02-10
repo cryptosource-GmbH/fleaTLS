@@ -16,6 +16,7 @@ typedef flea_err_t (* flea_rw_stream_write_f)(
   const flea_u8_t* source_buffer__pcu8,
   flea_dtl_t       nb_bytes_to_write__dtl
 );
+
 typedef flea_err_t (* flea_rw_stream_read_f)(
   void*       custom_obj__pv,
   flea_u8_t*  target_buffer__pcu8,
@@ -24,7 +25,9 @@ typedef flea_err_t (* flea_rw_stream_read_f)(
 );
 
 typedef flea_err_t (* flea_rw_stream_open_f)(void* custom_obj__pv);
+
 typedef flea_err_t (* flea_rw_stream_flush_write_f)(void* custom_obj__pv);
+
 typedef void (* flea_rw_stream_close_f)(void* custom_obj__pv);
 
 typedef struct
