@@ -1934,7 +1934,8 @@ flea_err_t THR_flea_tls__client_handshake(
         //    call unregister_hash_ctx
         //    TODO: CALL CTORS FOR ALL OBJECTS
         if((flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_SERVER_HELLO) &&
-          (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_CERTIFICATE))
+          (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_CERTIFICATE) &&
+          (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_SERVER_HELLO_DONE))
         {
           recv_handshake.data   = hs_tmp_buf__au8;
           recv_handshake.length = flea_tls_handsh_reader_t__get_msg_rem_len(&handsh_rdr__t);
@@ -2126,7 +2127,10 @@ flea_err_t THR_flea_tls__client_handshake(
 #endif
       {
         handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
-        // TODO: verify server hello done (?)
+        if(flea_tls_handsh_reader_t__get_msg_rem_len(&handsh_rdr__t) != 0)
+        {
+          FLEA_THROW("invalid length of server hello done", FLEA_ERR_TLS_GENERIC);
+        }
         continue;
       }
     }
