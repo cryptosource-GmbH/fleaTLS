@@ -7,6 +7,8 @@ extern "C" {
 #endif
 
 flea_err_t THR_flea_test_linux__create_rw_stream(flea_rw_stream_t* stream__pt);
+flea_err_t THR_flea_test_linux__create_rw_stream_server(flea_rw_stream_t* stream__pt);
+
 
 #ifdef __cplusplus
 }

@@ -30,7 +30,7 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
 
   FLEA_THR_BEG_FUNC();
   flea_tls_ctx_t__INIT(&tls_ctx);
-  FLEA_CCALL(THR_flea_test_linux__create_rw_stream(&rw_stream__t));
+  FLEA_CCALL(THR_flea_test_linux__create_rw_stream_server(&rw_stream__t));
   FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
   FLEA_CCALL(THR_flea_tls__server_handshake(&tls_ctx, &rw_stream__t));
 

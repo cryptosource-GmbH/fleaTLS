@@ -415,23 +415,9 @@ flea_err_t THR_flea_tls__read_client_hello(
   {
     FLEA_THROW("parsing error", FLEA_ERR_TLS_GENERIC);
   }
-  flea_u8_t i = 0;
-  flea_u8_t j;
-  flea_bool_t found = FLEA_FALSE;
-  while(i < cipher_suites_len / 2)
-  {
-    j = 0;
-    while(j < sizeof(cipher_suites))
-    {
-      if(memcmp(&cipher_suites[j], &handshake_msg->data[2 * i], 2) == 0)
-      {
-        memcpy(tls_ctx->selected_cipher_suite, &handshake_msg->data[2 * i], 2);
-        break;
-      }
-      j++;
-    }
-    i++;
-  }
+  flea_bool_t found = FLEA_TRUE;
+  // TODO: need to check if we support one of the client's cipher suite and we
+  // need to choose one !! (hard coded RSA AES 256)
   if(found == FLEA_FALSE)
   {
     FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_GENERIC);
@@ -446,7 +432,7 @@ flea_err_t THR_flea_tls__read_client_hello(
   flea_u8_t compression_methods_len = handshake_msg->data[len++];
 
   // check that we have enough bytes left to read the compression methods
-  if(len + cipher_suites_len > handshake_msg->length || cipher_suites_len % 2 != 0)
+  if(len + compression_methods_len > handshake_msg->length)
   {
     FLEA_THROW("parsing error", FLEA_ERR_TLS_GENERIC);
   }
@@ -1020,6 +1006,11 @@ flea_err_t flea_tls_ctx_t__ctor(
   flea_rng__randomize(ctx->security_parameters->client_random.gmt_unix_time, 4); // TODO: check RFC for correct implementation - actual time?
   flea_rng__randomize(ctx->security_parameters->client_random.random_bytes, 28);
 
+  /* set server random */
+  flea_rng__randomize(ctx->security_parameters->server_random.gmt_unix_time, 4);
+  flea_rng__randomize(ctx->security_parameters->server_random.random_bytes, 28);
+
+
   ctx->resumption = FLEA_FALSE;
 
   ctx->premaster_secret = calloc(256, sizeof(flea_u8_t));
@@ -1264,6 +1255,76 @@ static flea_err_t THR_flea_tls__send_client_hello(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_client_hello */
 
+static flea_err_t THR_flea_tls__send_server_hello(
+  flea_tls_ctx_t*  tls_ctx,
+  flea_hash_ctx_t* hash_ctx
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+  // calculate length for the header
+  // TODO: include cipher suites length instead of hard coded 2 (5+6th place)
+  // TODO: include extensions length (last place)
+  // TODO: change 4th element (32) to the real SessionID length
+
+  flea_u32_t len = 2 + 32 + 1 + 32 + 2 + 1;
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_hdr(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      HANDSHAKE_TYPE_SERVER_HELLO,
+      len
+    )
+  );
+
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.major, 1));
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.minor, 1));
+
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      tls_ctx->security_parameters->client_random.gmt_unix_time,
+      sizeof(tls_ctx->security_parameters->client_random.gmt_unix_time)
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      tls_ctx->security_parameters->client_random.random_bytes,
+      sizeof(tls_ctx->security_parameters->client_random.random_bytes)
+    )
+  );
+
+  // TODO: actual implementation, e.g. support renegotiation
+  flea_u8_t dummy_session_id_len = 32;
+  flea_u8_t dummy_session_id[32];
+  flea_rng__randomize(dummy_session_id, dummy_session_id_len);
+
+
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &dummy_session_id_len, 1));
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      dummy_session_id,
+      dummy_session_id_len
+    )
+  );
+
+  // TODO: hard coded
+  flea_u8_t suite[] = {0x00, 0x3d};
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, suite, 2));
+
+  // We don't support compression
+  flea_u8_t null_byte = 0;
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &null_byte, 1));
+
+
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_tls__send_client_hello */
+
 /**
  * Implementation note: Public-key-encrypted data is represented as an
  * opaque vector <0..2^16-1> (see Section 4.7).  Thus, the RSA-encrypted
@@ -1476,6 +1537,7 @@ flea_err_t THR_flea_tls__server_handshake(
     {
       if(handshake_state.sent_first_round == FLEA_FALSE)
       {
+        FLEA_CCALL(THR_flea_tls__send_server_hello(tls_ctx, &hash_ctx));
         // send server_hello
         // send Certificate
         // send server_hello_done

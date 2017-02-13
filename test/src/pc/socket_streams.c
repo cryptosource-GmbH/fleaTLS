@@ -264,6 +264,31 @@ static flea_err_t THR_read_socket(
 
 #endif /* if 0 */
 
+// TODO: merge into create_rw_stream function
+flea_err_t THR_flea_test_linux__create_rw_stream_server(flea_rw_stream_t* stream__pt)
+{
+  FLEA_THR_BEG_FUNC();
+  flea_rw_stream_open_f open__f         = THR_open_socket_server;
+  flea_rw_stream_close_f close__f       = close_socket;
+  flea_rw_stream_write_f write__f       = THR_write_socket;
+  flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
+  flea_rw_stream_read_f read__f         = THR_read_socket;
+  init_sock_stream(&stc_sock_stream__t);
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__ctor(
+      stream__pt,
+      (void *) &stc_sock_stream__t,
+      open__f,
+      close__f,
+      read__f,
+      write__f,
+      flush__f
+    )
+  );
+  // TODO: set up the buffers initialized!!
+  FLEA_THR_FIN_SEC_empty();
+}
+
 flea_err_t THR_flea_test_linux__create_rw_stream(flea_rw_stream_t* stream__pt)
 {
   FLEA_THR_BEG_FUNC();
