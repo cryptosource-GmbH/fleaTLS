@@ -1629,9 +1629,6 @@ flea_err_t THR_flea_tls__client_handshake(
   // received records and handshakes for processing the current state
   // Record recv_record;
 
-  /*HandshakeMessage recv_handshake;
-   * flea_u8_t hs_tmp_buf__au8[200000];*/
-  // flea_u8_t handshake_msg_type;
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
   FLEA_DECL_OBJ(rec_prot_rd_stream__t, flea_rw_stream_t);
   flea_tls_rec_prot_rdr_hlp_t rec_prot_rdr_hlp__t;
@@ -1676,10 +1673,6 @@ flea_err_t THR_flea_tls__client_handshake(
       {
         //  TODO: USE INPUT FROM READ DATA FROM RECORD PROTOCOL (REPLACE FIRST
         //  ARG)
-#if 0
-        FLEA_CCALL(THR_flea_tls__read_handshake_message(tls_ctx, &recv_handshake, &hash_ctx));
-        printf("SM: read handshake message\n");
-#else
         FLEA_CCALL(
           THR_flea_rw_stream_t__ctor_rec_prot(
             &rec_prot_rd_stream__t,
@@ -1699,24 +1692,6 @@ flea_err_t THR_flea_tls__client_handshake(
         //    => in THR_flea_tls_handsh_read_stream_t__read hasher != NULL => hash
         //    call unregister_hash_ctx
         //    TODO: CALL CTORS FOR ALL OBJECTS
-# if 0
-        if((flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_SERVER_HELLO) &&
-          (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_CERTIFICATE) &&
-          (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_SERVER_HELLO_DONE))
-        {
-          recv_handshake.data   = hs_tmp_buf__au8;
-          recv_handshake.length = flea_tls_handsh_reader_t__get_msg_rem_len(&handsh_rdr__t);
-          recv_handshake.type   = flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t);
-          FLEA_CCALL(
-            THR_flea_rw_stream_t__force_read(
-              flea_tls_handsh_reader_t__get_read_stream(&handsh_rdr__t),
-              hs_tmp_buf__au8,
-              flea_tls_handsh_reader_t__get_msg_rem_len(&handsh_rdr__t)
-            )
-          );
-        }
-# endif /* if 0 */
-#endif  /* if 0 */
 
         // update hash for all incoming handshake messages
         // TODO: only include messages sent AFTER ClientHello. At the moment it could include HelloRequest received before sending HelloRequest
@@ -1832,19 +1807,9 @@ flea_err_t THR_flea_tls__client_handshake(
 
     if(handshake_state.expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO)
     {
-#if 0
-      if(recv_handshake.type == HANDSHAKE_TYPE_SERVER_HELLO)
-#else
       if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_HELLO)
-#endif
       {
-#if 0
-        ServerHello server_hello; // TODO: don't need this
-        FLEA_CCALL(THR_flea_tls__read_server_hello(tls_ctx, &recv_handshake, &server_hello));
-#else
-
         FLEA_CCALL(THR_flea_tls__read_server_hello(tls_ctx, &handsh_rdr__t));
-#endif
         printf("SM: read server hello\n");
         handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE
           | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
@@ -1861,20 +1826,12 @@ flea_err_t THR_flea_tls__client_handshake(
 
     if(handshake_state.expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE)
     {
-#if 0
-      if(recv_handshake.type == HANDSHAKE_TYPE_CERTIFICATE)
-#else
       if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
-#endif
       {
         printf("SM: reading certificate\n");
         // Certificate certificate_message; // TODO: don't need this
-#if 0
-        FLEA_CCALL(THR_flea_tls__read_certificate(tls_ctx, &recv_handshake, &certificate_message, &pubkey));
-#else
         FLEA_CCALL(THR_flea_tls__read_certificate(tls_ctx, &handsh_rdr__t, &pubkey));
 
-#endif
         tls_ctx->server_pubkey = pubkey; // TODO: PUBKEY STILL NEEDED?
         continue;
       }
@@ -1887,11 +1844,7 @@ flea_err_t THR_flea_tls__client_handshake(
 
     if(handshake_state.expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE)
     {
-#if 0
-      if(recv_handshake.type == HANDSHAKE_TYPE_SERVER_HELLO_DONE)
-#else
       if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_HELLO_DONE)
-#endif
       {
         handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
         if(flea_tls_handsh_reader_t__get_msg_rem_len(&handsh_rdr__t) != 0)
@@ -1904,18 +1857,10 @@ flea_err_t THR_flea_tls__client_handshake(
 
     if(handshake_state.expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED)
     {
-#if 0
-      if(recv_handshake.type == HANDSHAKE_TYPE_FINISHED)
-#else
       if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
-#endif
       {
-#if 0
-        FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &hash_ctx, &recv_handshake));
-#else
         FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx));
 
-#endif
         printf("Handshake completed!\n");
 
         break;
