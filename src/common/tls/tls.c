@@ -298,6 +298,7 @@ flea_err_t THR_flea_tls__create_finished_data(
 )
 {
   FLEA_THR_BEG_FUNC();
+  // TODO: hardcoded hash-len 32 always correct?
   FLEA_CCALL(flea_tls__prf(master_secret, 48, label, messages_hash, 32, data_len, data));
   FLEA_THR_FIN_SEC_empty();
 }
@@ -721,7 +722,10 @@ flea_err_t THR_flea_tls__read_server_hello(
   if(tls_ctx->session_id_len != 0)
   {
     // TODO: IMPLEMENT "COMPARE IN STREAM" AND ELIMINATE LOCAL BUFFER
-    flea_memcmp_wsize(tls_ctx->session_id, tls_ctx->session_id_len, session_id__bu8, session_id_len__u8);
+    if(0 == flea_memcmp_wsize(tls_ctx->session_id, tls_ctx->session_id_len, session_id__bu8, session_id_len__u8))
+    {
+      tls_ctx->resumption = FLEA_TRUE;
+    }
 
     /*if(tls_ctx->session_id_len == server_hello->session_id_length)
      * {
@@ -742,6 +746,7 @@ flea_err_t THR_flea_tls__read_server_hello(
 
 #endif /* if 1 */
 
+#if 0
 flea_err_t THR_flea_tls__read_finished(
   flea_tls_ctx_t*   tls_ctx,
   flea_hash_ctx_t*  hash_ctx,
@@ -806,6 +811,87 @@ flea_err_t THR_flea_tls__read_finished(
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__read_finished */
+
+#else /* if 0 */
+
+flea_err_t THR_flea_tls__read_finished(
+  flea_tls_ctx_t*           tls_ctx,
+  flea_tls_handsh_reader_t* hs_rdr__pt,
+  flea_hash_ctx_t*          hash_ctx
+)
+{
+  FLEA_DECL_BUF(messages_hash__bu8, flea_u8_t, __FLEA_COMPUTED_MAX_HASH_OUT_LEN + 2 * 12);
+  // TODO: need to generalize 12byte ? (botan doesn't do it either) -  avoiding "magical number" would be better
+  const flea_al_u8_t finished_len__alu8 = 12;
+  flea_rw_stream_t* hs_rd_stream__pt;
+  FLEA_THR_BEG_FUNC();
+  FLEA_ALLOC_BUF(messages_hash__bu8, __FLEA_COMPUTED_MAX_HASH_OUT_LEN + 2 * 12);
+  flea_u8_t* finished__pu8     = messages_hash__bu8 + __FLEA_COMPUTED_MAX_HASH_OUT_LEN;
+  flea_u8_t* rec_finished__pu8 = messages_hash__bu8 + __FLEA_COMPUTED_MAX_HASH_OUT_LEN + finished_len__alu8;
+  // compute hash over handshake messages so far
+  // flea_u8_t messages_hash[32]; // TODO: GENERALIZE, USE BUF
+  FLEA_CCALL(THR_flea_hash_ctx_t__final(hash_ctx, messages_hash__bu8));
+
+
+  PRFLabel label;
+  if(tls_ctx->security_parameters->connection_end == FLEA_TLS_CLIENT)
+  {
+    label = PRF_LABEL_SERVER_FINISHED;
+  }
+  else
+  {
+    label = PRF_LABEL_CLIENT_FINISHED;
+  }
+
+  FLEA_CCALL(
+    THR_flea_tls__create_finished_data(
+      messages_hash__bu8,
+      tls_ctx->security_parameters->master_secret,
+      label,
+      finished__pu8,
+      finished_len__alu8
+    )
+  );
+  hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
+  FLEA_CCALL(THR_flea_rw_stream_t__force_read(hs_rd_stream__pt, rec_finished__pu8, finished_len__alu8));
+  if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
+  {
+    printf("trailing data in finished message\n");
+    FLEA_THROW("trailing data in finished message", FLEA_ERR_TLS_GENERIC);
+  }
+  // if(finished_len == handshake_msg->length)
+  // {
+  if(!flea_sec_mem_equal(rec_finished__pu8, finished__pu8, finished_len__alu8))
+  {
+    printf("Finished message not verifiable\n");
+    printf("Got: \n");
+    for(int i = 0; i < 12; i++)
+    {
+      printf("%02x ", rec_finished__pu8[i]);
+    }
+    printf("\nBut calculated: \n");
+    for(int i = 0; i < 12; i++)
+    {
+      printf("%02x ", finished__pu8[i]);
+    }
+    printf("\n");
+
+    FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_GENERIC);
+  }
+  // }
+
+  /*else
+   * {
+   * FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_GENERIC);
+   * }*/
+
+
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL(messages_hash__bu8);
+  );
+} /* THR_flea_tls__read_finished */
+
+#endif /* if 0 */
 
 flea_err_t THR_verify_cert_chain(
   flea_u8_t*         tls_cert_chain__acu8,
@@ -1863,8 +1949,9 @@ flea_err_t THR_flea_tls__client_handshake(
 
   // received records and handshakes for processing the current state
   // Record recv_record;
-  HandshakeMessage recv_handshake;
-  flea_u8_t hs_tmp_buf__au8[200000];
+
+  /*HandshakeMessage recv_handshake;
+   * flea_u8_t hs_tmp_buf__au8[200000];*/
   // flea_u8_t handshake_msg_type;
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
   FLEA_DECL_OBJ(rec_prot_rd_stream__t, flea_rw_stream_t);
@@ -1933,6 +2020,7 @@ flea_err_t THR_flea_tls__client_handshake(
         //    => in THR_flea_tls_handsh_read_stream_t__read hasher != NULL => hash
         //    call unregister_hash_ctx
         //    TODO: CALL CTORS FOR ALL OBJECTS
+# if 0
         if((flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_SERVER_HELLO) &&
           (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_CERTIFICATE) &&
           (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_SERVER_HELLO_DONE))
@@ -1948,8 +2036,8 @@ flea_err_t THR_flea_tls__client_handshake(
             )
           );
         }
-
-#endif /* if 0 */
+# endif /* if 0 */
+#endif  /* if 0 */
 
         // update hash for all incoming handshake messages
         // TODO: only include messages sent AFTER ClientHello. At the moment it could include HelloRequest received before sending HelloRequest
@@ -2143,9 +2231,13 @@ flea_err_t THR_flea_tls__client_handshake(
       if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
 #endif
       {
+#if 0
         FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &hash_ctx, &recv_handshake));
+#else
+        FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx));
+
+#endif
         printf("Handshake completed!\n");
-        // FLEA_CCALL(THR_flea_tls__send_alert(tls_ctx, FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY, FLEA_TLS_ALERT_LEVEL_WARNING, socket_fd));
 
         break;
       }
