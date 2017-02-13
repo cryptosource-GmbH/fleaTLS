@@ -19,7 +19,7 @@ typedef flea_err_t (* flea_rw_stream_write_f)(
 
 typedef flea_err_t (* flea_rw_stream_read_f)(
   void*       custom_obj__pv,
-  flea_u8_t*  target_buffer__pcu8,
+  flea_u8_t*  target_buffer__pu8,
   flea_dtl_t* nb_bytes_to_read__pdtl,
   flea_bool_t force_read__b
 );

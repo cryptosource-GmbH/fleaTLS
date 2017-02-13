@@ -12,7 +12,7 @@ extern "C" {
 
 typedef struct
 {
-  flea_u8_t                    handshake_msg_type__u8;
+  // flea_u8_t                    handshake_msg_type__u8;
   flea_rw_stream_t             handshake_read_stream__t;
   flea_tls_handsh_reader_hlp_t hlp__t;
 } flea_tls_handsh_reader_t;
