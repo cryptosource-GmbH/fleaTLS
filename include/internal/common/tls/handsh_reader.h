@@ -44,7 +44,7 @@ flea_err_t THR_flea_tls_handsh_reader_t__set_hash_ctx(
   flea_hash_ctx_t*          hash_ctx__pt
 );
 
-flea_al_u8_t flea_tls_handsh_reader_t__unset_hasher(flea_tls_handsh_reader_t* handsh_rdr__pt);
+void flea_tls_handsh_reader_t__unset_hasher(flea_tls_handsh_reader_t* handsh_rdr__pt);
 
 #ifdef __cplusplus
 }

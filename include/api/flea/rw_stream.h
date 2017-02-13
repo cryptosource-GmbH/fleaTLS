@@ -99,6 +99,11 @@ flea_err_t THR_flea_rw_stream_t__force_read(
   flea_dtl_t        data_len__dtl
 );
 
+flea_err_t THR_flea_rw_stream_t__read_byte(
+  flea_rw_stream_t* stream__pt,
+  flea_u8_t*        byte__pu8
+);
+
 void flea_rw_stream_t__set_filter(
   flea_rw_stream_t* stream__pt,
   flea_filter_t*    filt__pt,

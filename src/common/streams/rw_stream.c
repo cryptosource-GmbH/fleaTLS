@@ -187,6 +187,16 @@ flea_err_t THR_flea_rw_stream_t__read(
   FLEA_THR_FIN_SEC_empty();
 }
 
+flea_err_t THR_flea_rw_stream_t__read_byte(
+  flea_rw_stream_t* stream__pt,
+  flea_u8_t*        byte__pu8
+)
+{
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_rw_stream_t__force_read(stream__pt, byte__pu8, 1));
+  FLEA_THR_FIN_SEC_empty();
+}
+
 flea_err_t THR_flea_rw_stream_t__force_read(
   flea_rw_stream_t* stream__pt,
   flea_u8_t*        data__pcu8,

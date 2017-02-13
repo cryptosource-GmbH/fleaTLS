@@ -53,12 +53,7 @@ static flea_err_t THR_flea_tls_handsh_read_stream_t__read(
   }
   if(rdr_hlp__pt->hash_ctx__pt)
   {
-    printf("handsh_read_stream: updating message in hasher, len = %u\n", *nb_bytes_to_read__pdtl);
     FLEA_CCALL(THR_flea_hash_ctx_t__update(rdr_hlp__pt->hash_ctx__pt, target_buffer__pu8, *nb_bytes_to_read__pdtl));
-  }
-  else
-  {
-    printf("handsh_read_stream: NOT updating message in hasher, len = %u\n", *nb_bytes_to_read__pdtl);
   }
   rdr_hlp__pt->remaining_bytes__u32 -= *nb_bytes_to_read__pdtl;
   FLEA_THR_FIN_SEC_empty();

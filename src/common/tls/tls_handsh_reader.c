@@ -79,7 +79,7 @@ flea_err_t THR_flea_tls_handsh_reader_t__set_hash_ctx(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_al_u8_t flea_tls_handsh_reader_t__unset_hasher(flea_tls_handsh_reader_t* handsh_rdr__pt)
+void flea_tls_handsh_reader_t__unset_hasher(flea_tls_handsh_reader_t* handsh_rdr__pt)
 {
   handsh_rdr__pt->hlp__t.hash_ctx__pt = NULL;
 }
