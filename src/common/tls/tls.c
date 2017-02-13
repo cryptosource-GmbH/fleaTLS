@@ -923,87 +923,6 @@ void print_server_hello(ServerHello hello)
    * printf("%02x ", hello.compression_method);*/
 }
 
-/**
- * Implementation note: Public-key-encrypted data is represented as an
- * opaque vector <0..2^16-1> (see Section 4.7).  Thus, the RSA-encrypted
- * PreMasterSecret in a ClientKeyExchange is preceded by two length
- * bytes.
- *
- * These bytes are redundant in the case of RSA because the
- * EncryptedPreMasterSecret is the only data in the ClientKeyExchange
- * and its length can therefore be unambiguously determined
- */
-flea_err_t THR_flea_tls__create_client_key_exchange_rsa(
-  flea_tls_ctx_t*            tls_ctx,
-  flea_public_key_t*         pubkey,
-  flea_tls__client_key_ex_t* key_ex
-)
-{
-  flea_u8_t premaster_secret[48];
-
-  FLEA_THR_BEG_FUNC();
-
-  premaster_secret[0] = 3;
-  premaster_secret[1] = 3;
-  key_ex->algorithm   = KEY_EXCHANGE_ALGORITHM_RSA;
-
-  // random 46 bit
-  flea_rng__randomize(premaster_secret + 2, 46);
-
-  tls_ctx->premaster_secret[0] = tls_ctx->version.major;
-  tls_ctx->premaster_secret[1] = tls_ctx->version.minor;
-  memcpy(tls_ctx->premaster_secret + 2, premaster_secret + 2, 46);
-
-  memcpy(key_ex->premaster_secret, premaster_secret, 48);
-
-  /**
-   *   RSA encryption is done using the RSAES-PKCS1-v1_5 encryption scheme
-   *   https://tools.ietf.org/html/rfc3447#section-7.2
-   */
-
-  // pubkey->key_bit_size__u16
-  // TODO: local abstract buf dependent on key size
-  flea_al_u16_t result_len = 256;
-  flea_u8_t buf[256];
-  FLEA_CCALL(
-    THR_flea_public_key_t__encrypt_message(
-      pubkey,
-      flea_rsa_pkcs1_v1_5_encr,
-      0,
-      premaster_secret,
-      sizeof(premaster_secret),
-      buf,
-      &result_len
-    )
-  );
-
-  key_ex->encrypted_premaster_secret = calloc(result_len, sizeof(flea_u8_t));
-  memcpy(key_ex->encrypted_premaster_secret, buf, result_len);
-  key_ex->encrypted_premaster_secret_length = result_len;
-
-  FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_tls__create_client_key_exchange */
-
-void flea_tls__client_key_exchange_to_bytes(
-  flea_tls__client_key_ex_t* key_ex,
-  flea_u8_t*                 bytes,
-  flea_u32_t*                length
-)
-{
-  flea_u16_t i = 0;
-  flea_u8_t* p = (flea_u8_t *) &key_ex->encrypted_premaster_secret_length;
-
-  bytes[i++] = p[1];
-  bytes[i++] = p[0];
-
-  for(flea_u16_t j = 0; j < key_ex->encrypted_premaster_secret_length; j++)
-  {
-    bytes[i++] = key_ex->encrypted_premaster_secret[j];
-  }
-
-  *length = i;
-}
-
 void flea_tls__create_hello_message(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls__client_hello_t* hello
@@ -1307,31 +1226,64 @@ static flea_err_t THR_flea_tls__send_client_hello(
   // TODO: include cipher suites length instead of hard coded 2 (5+6th place)
   // TODO: include extensions length (last place)
 
-  /*flea_u32_t len = 2 + 1 + 0 + 32 + 2 + 2 + 1 + 1 + 0;
-   * FLEA_CCALL(THR_flea_tls__send_handshake_message_hdr(&tls_ctx->rec_prot__t, hash_ctx, HANDSHAKE_TYPE_CLIENT_HELLO, len));
-   *
-   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.major, 1));
-   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.minor, 1));
-   *
-   * // session ID empty => no resumption (new handshake negotiation)
-   * // TODO: include possibility to resume a session
-   * flea_u8_t null_byte[] = {0};
-   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, null_byte, 1));
-   *
-   *
-   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, tls_ctx->security_parameters->client_random.gmt_unix_time, sizeof(tls_ctx->security_parameters->client_random.gmt_unix_time)));
-   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, tls_ctx->security_parameters->client_random.random_bytes, sizeof(tls_ctx->security_parameters->client_random.random_bytes)));
-   *
-   * //flea__encode_U32_BE(tls_ctx->allowed_cipher_suites_len, (flea_u8_t*)&buf);
-   * flea_u8_t cipher_suites_len[2] = { 0x00, 0x02 };
-   *
-   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, cipher_suites_len, 2));
-   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, tls_ctx->allowed_cipher_suites, tls_ctx->allowed_cipher_suites_len));
-   *
-   * // compression methods
-   * FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, null_byte, 1));
-   */
+  flea_u32_t len = 2 + 1 + 0 + 32 + 2 + 2 + 1 + 1 + 0;
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_hdr(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      HANDSHAKE_TYPE_CLIENT_HELLO,
+      len
+    )
+  );
 
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.major, 1));
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.minor, 1));
+
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      tls_ctx->security_parameters->client_random.gmt_unix_time,
+      sizeof(tls_ctx->security_parameters->client_random.gmt_unix_time)
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      tls_ctx->security_parameters->client_random.random_bytes,
+      sizeof(tls_ctx->security_parameters->client_random.random_bytes)
+    )
+  );
+
+
+  // session ID empty => no resumption (new handshake negotiation)
+  // TODO: include possibility to resume a session
+  flea_u8_t null_byte[] = {0};
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, null_byte, 1));
+
+
+  // flea__encode_U32_BE(tls_ctx->allowed_cipher_suites_len, (flea_u8_t*)&buf);
+  flea_u8_t cipher_suites_len[2];
+  flea__encode_U16_BE(tls_ctx->allowed_cipher_suites_len, cipher_suites_len);
+
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, cipher_suites_len, 2));
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      tls_ctx->allowed_cipher_suites,
+      tls_ctx->allowed_cipher_suites_len
+    )
+  );
+
+  // compression methods: we don't support compression
+  flea_u8_t one_byte[] = {1};
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, one_byte, 1));
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, null_byte, 1));
+
+
+#if 0
   flea_tls__client_hello_t client_hello;
   flea_tls__create_hello_message(tls_ctx, &client_hello);
 
@@ -1349,7 +1301,7 @@ static flea_err_t THR_flea_tls__send_client_hello(
     )
   );
 
-  #define FRAG 1
+  // #define FRAG 1
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, client_hello_bytes, FRAG));
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
@@ -1359,7 +1311,7 @@ static flea_err_t THR_flea_tls__send_client_hello(
       client_hello_bytes_len - FRAG
     )
   );
-
+#endif /* if 0 */
 #if 0
 
 
@@ -1380,6 +1332,70 @@ static flea_err_t THR_flea_tls__send_client_hello(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_client_hello */
 
+/**
+ * Implementation note: Public-key-encrypted data is represented as an
+ * opaque vector <0..2^16-1> (see Section 4.7).  Thus, the RSA-encrypted
+ * PreMasterSecret in a ClientKeyExchange is preceded by two length
+ * bytes.
+ *
+ * These bytes are redundant in the case of RSA because the
+ * EncryptedPreMasterSecret is the only data in the ClientKeyExchange
+ * and its length can therefore be unambiguously determined
+ */
+
+flea_err_t THR_flea_tls__send_client_key_exchange_rsa(
+  flea_tls_ctx_t*    tls_ctx,
+  flea_hash_ctx_t*   hash_ctx,
+  flea_public_key_t* pubkey
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+  flea_u32_t premaster_secret_len = 48;
+  // first 2 bytes are version, following 46 random
+  tls_ctx->premaster_secret[0] = tls_ctx->version.major;
+  tls_ctx->premaster_secret[1] = tls_ctx->version.minor;
+
+  // random 46 byte
+  flea_rng__randomize(tls_ctx->premaster_secret + 2, premaster_secret_len - 2);
+
+  /**
+   *   RSA encryption is done using the RSAES-PKCS1-v1_5 encryption scheme
+   *   https://tools.ietf.org/html/rfc3447#section-7.2
+   */
+
+  // pubkey->key_bit_size__u16
+  // TODO: local abstract buf dependent on key size
+  flea_al_u16_t result_len = 256;
+  flea_u8_t enc[256];
+  FLEA_CCALL(
+    THR_flea_public_key_t__encrypt_message(
+      pubkey,
+      flea_rsa_pkcs1_v1_5_encr,
+      0,
+      tls_ctx->premaster_secret,
+      premaster_secret_len,
+      enc,
+      &result_len
+    )
+  );
+
+  flea_u8_t len_enc[2];
+  flea__encode_U16_BE(result_len, len_enc);
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_hdr(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE,
+      result_len + sizeof(len_enc)
+    )
+  );
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, len_enc, sizeof(len_enc)));
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, enc, result_len));
+
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_tls__send_client_key_exchange_rsa */
+
 // send_client_key_exchange
 flea_err_t THR_flea_tls__send_client_key_exchange(
   flea_tls_ctx_t*    tls_ctx,
@@ -1388,29 +1404,8 @@ flea_err_t THR_flea_tls__send_client_key_exchange(
 )
 {
   FLEA_THR_BEG_FUNC();
-  // TODO: remove buffer, write h.s. message directly to record protocol.
-  flea_tls__client_key_ex_t client_key_ex;
-  FLEA_CCALL(THR_flea_tls__create_client_key_exchange_rsa(tls_ctx, pubkey, &client_key_ex));
 
-
-  // transform struct to bytes
-  flea_u8_t client_key_ex_bytes[16384];
-  flea_u32_t client_key_ex_bytes_len;
-  flea_tls__client_key_exchange_to_bytes(&client_key_ex, client_key_ex_bytes, &client_key_ex_bytes_len);
-
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message(
-      &tls_ctx->rec_prot__t,
-      hash_ctx,
-      HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE,
-      client_key_ex_bytes,
-      client_key_ex_bytes_len
-    )
-  );
-
-  // add secrets to tls_ctx
-  memcpy(tls_ctx->premaster_secret, client_key_ex.premaster_secret, 256); // TODO: variable size depending on key ex method
-
+  FLEA_CCALL(THR_flea_tls__send_client_key_exchange_rsa(tls_ctx, hash_ctx, pubkey));
 
   FLEA_THR_FIN_SEC_empty();
 }
