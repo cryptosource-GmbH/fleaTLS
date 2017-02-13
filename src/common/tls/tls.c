@@ -465,124 +465,6 @@ flea_err_t THR_flea_tls__read_client_hello(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__read_client_hello */
 
-/*
- * typedef struct {
- * ProtocolVersion server_version;
- * Random random;
- * SessionID session_id;
- * flea_u8_t* cipher_suites;
- * flea_u16_t cipher_suites_length;
- * CompressionMethod compression_method;
- * flea_u8_t* extensions;	// 2^16 bytes
- * } ServerHello;
- */
-#if 0
-flea_err_t THR_flea_tls__read_server_hello(
-  flea_tls_ctx_t*   tls_ctx,
-  HandshakeMessage* handshake_msg,
-  ServerHello*      server_hello
-)
-{
-  flea_u8_t server_compression_meth__u8;
-
-  FLEA_THR_BEG_FUNC();
-  if(handshake_msg->length < 41) // min ServerHello length
-  {
-    FLEA_THROW("length too small", FLEA_ERR_TLS_GENERIC);
-  }
-
-  // keep track of length
-  int length = 0;
-
-  // read version
-  server_hello->server_version.major = handshake_msg->data[length++];
-  server_hello->server_version.minor = handshake_msg->data[length++];
-
-  // TODO: in this part the client has to decide if he accepts the server's TLS version - implement negotiation
-  if(server_hello->server_version.major != tls_ctx->version.major ||
-    server_hello->server_version.minor != tls_ctx->version.minor)
-  {
-    // TODO: NEED TO SEND ALERT?
-    FLEA_THROW("version mismatch", FLEA_ERR_TLS_GENERIC);
-  }
-
-  // read random
-
-  flea_u8_t* p = server_hello->random.gmt_unix_time;
-  for(flea_u8_t i = 0; i < 4; i++)
-  {
-    p[i] = handshake_msg->data[length++];
-  }
-  p = server_hello->random.random_bytes;
-  for(flea_u8_t i = 0; i < 28; i++)
-  {
-    p[i] = handshake_msg->data[length++];
-  }
-
-  // read session id length
-  server_hello->session_id_length = handshake_msg->data[length++];
-  if(server_hello->session_id_length > 0)
-  {
-    server_hello->session_id = calloc(server_hello->session_id_length, sizeof(flea_u8_t));
-    p = server_hello->session_id;
-    for(flea_u8_t i = 0; i < server_hello->session_id_length; i++)
-    {
-      p[i] = handshake_msg->data[length++];
-    }
-  }
-
-  if(length + 3 > handshake_msg->length)
-  {
-    FLEA_THROW("length incorrect", FLEA_ERR_TLS_GENERIC);
-  }
-
-  // read cipher suites
-  p    = &server_hello->cipher_suite;
-  p[0] = handshake_msg->data[length++];
-  p[1] = handshake_msg->data[length++];
-
-  // read compression method
-  // server_hello->compression_method = handshake_msg->data[length++];
-
-  server_compression_meth__u8 = handshake_msg->data[length++];
-  if(server_compression_meth__u8 != NO_COMPRESSION)
-  {
-    // TODO: NEED TO SEND ALERT?
-    FLEA_THROW("unsupported compression method from server", FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO);
-  }
-  // TODO: parse extension
-  // for now simply ignore them
-
-  // update security parameters
-  memcpy(
-    tls_ctx->security_parameters->server_random.gmt_unix_time,
-    server_hello->random.gmt_unix_time,
-    sizeof(tls_ctx->security_parameters->server_random.gmt_unix_time)
-  ); // QUESTION: sizeof durch variablen (#define) ersetzen?
-  memcpy(
-    tls_ctx->security_parameters->server_random.random_bytes,
-    server_hello->random.random_bytes,
-    sizeof(tls_ctx->security_parameters->server_random.random_bytes)
-  );
-
-  // client wants to resume connection and has provided a session id
-  if(tls_ctx->session_id_len != 0)
-  {
-    if(tls_ctx->session_id_len == server_hello->session_id_length)
-    {
-      if(memcmp(tls_ctx->session_id, server_hello->session_id, tls_ctx->session_id_len) == 0)
-      {
-        tls_ctx->resumption = FLEA_TRUE;
-      }
-    }
-  }
-  memcpy(tls_ctx->session_id, server_hello->session_id, server_hello->session_id_length);
-
-  FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_tls__read_server_hello */
-
-#else /* if 1 */
-
 flea_err_t THR_flea_tls__read_server_hello(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt
@@ -594,25 +476,18 @@ flea_err_t THR_flea_tls__read_server_hello(
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_u8_t ciphersuite__au8[2];
 
-  // ServerHello server_hello__t;
-  // ServerHello* server_hello = &server_hello__t;
   FLEA_DECL_BUF(session_id__bu8, flea_u8_t, 32);
   const flea_al_u8_t max_session_id_len__alu8 = 32;
   FLEA_THR_BEG_FUNC();
-  // if(handshake_msg->length < 41) // min ServerHello length
-  if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) < 41) // min ServerHello length
+  if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) < 41) /* min ServerHello length */
   {
     FLEA_THROW("length too small", FLEA_ERR_TLS_GENERIC);
   }
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
   // keep track of length
-  // int length = 0;
 
   // read version
 
-  /*server_hello->server_version.major = handshake_msg->data[length++];
-   *  server_hello->server_version.minor = handshake_msg->data[length++];*/
-  // # if 0
   FLEA_CCALL(
     THR_flea_rw_stream_t__force_read(
       hs_rd_stream__pt,
@@ -626,7 +501,6 @@ flea_err_t THR_flea_tls__read_server_hello(
     // TODO: NEED TO SEND ALERT?
     FLEA_THROW("version mismatch", FLEA_ERR_TLS_GENERIC);
   }
-  // # endif /* if 0 */
   // TODO: in this part the client has to decide if he accepts the server's TLS version - implement negotiation
   // read random
   FLEA_CCALL(
@@ -637,11 +511,6 @@ flea_err_t THR_flea_tls__read_server_hello(
     )
   );
 
-  /*flea_u8_t* p = server_hello->random.gmt_unix_time;
-   * for(flea_u8_t i = 0; i < 4; i++)
-   * {
-   * p[i] = handshake_msg->data[length++];
-   * }*/
   FLEA_CCALL(
     THR_flea_rw_stream_t__force_read(
       hs_rd_stream__pt,
@@ -650,11 +519,6 @@ flea_err_t THR_flea_tls__read_server_hello(
     )
   );
 
-  /*p = server_hello->random.random_bytes;
-   * for(flea_u8_t i = 0; i < 28; i++)
-   * {
-   * p[i] = handshake_msg->data[length++];
-   * }*/
 
   // read session id length
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &session_id_len__u8));
@@ -670,27 +534,11 @@ flea_err_t THR_flea_tls__read_server_hello(
   FLEA_CCALL(THR_flea_rw_stream_t__force_read(hs_rd_stream__pt, session_id__bu8, session_id_len__u8));
   // TODO: STORE SESSION ID
 
-  /*server_hello->session_id = calloc(server_hello->session_id_length, sizeof(flea_u8_t));
-   * p = server_hello->session_id;
-   * for(flea_u8_t i = 0; i < server_hello->session_id_length; i++)
-   * {
-   * p[i] = handshake_msg->data[length++];
-   * }*/
-  // }
-
-  /*if(length + 3 > handshake_msg->length)
-   * {
-   * FLEA_THROW("length incorrect", FLEA_ERR_TLS_GENERIC);
-   * }*/
-
   // read cipher suites
   FLEA_CCALL(THR_flea_rw_stream_t__force_read(hs_rd_stream__pt, ciphersuite__au8, sizeof(ciphersuite__au8)));
-# if 0
-  p    = &server_hello->cipher_suite;
-  p[0] = handshake_msg->data[length++];
-  p[1] = handshake_msg->data[length++];
-# endif
 
+  // TODO: CHECK CIPHERSUITE
+  // - must be among presented ones in client hello
   // read compression method
   // server_hello->compression_method = handshake_msg->data[length++];
 
@@ -707,17 +555,6 @@ flea_err_t THR_flea_tls__read_server_hello(
 
   // update security parameters
 
-  /*memcpy(
-   * tls_ctx->security_parameters->server_random.gmt_unix_time,
-   * server_hello->random.gmt_unix_time,
-   * sizeof(tls_ctx->security_parameters->server_random.gmt_unix_time)
-   * ); // QUESTION: sizeof durch variablen (#define) ersetzen?
-   * memcpy(
-   * tls_ctx->security_parameters->server_random.random_bytes,
-   * server_hello->random.random_bytes,
-   * sizeof(tls_ctx->security_parameters->server_random.random_bytes)
-   * );*/
-
   // client wants to resume connection and has provided a session id
   if(tls_ctx->session_id_len != 0)
   {
@@ -726,14 +563,6 @@ flea_err_t THR_flea_tls__read_server_hello(
     {
       tls_ctx->resumption = FLEA_TRUE;
     }
-
-    /*if(tls_ctx->session_id_len == server_hello->session_id_length)
-     * {
-     * if(memcmp(tls_ctx->session_id, server_hello->session_id, tls_ctx->session_id_len) == 0)
-     * {
-     *  tls_ctx->resumption = FLEA_TRUE;
-     * }
-     * }*/
   }
   // TODO: USE REF AND CPREF
   memcpy(tls_ctx->session_id, session_id__bu8, session_id_len__u8);
@@ -743,76 +572,6 @@ flea_err_t THR_flea_tls__read_server_hello(
     FLEA_FREE_BUF_FINAL(session_id__bu8);
   );
 } /* THR_flea_tls__read_server_hello */
-
-#endif /* if 1 */
-
-#if 0
-flea_err_t THR_flea_tls__read_finished(
-  flea_tls_ctx_t*   tls_ctx,
-  flea_hash_ctx_t*  hash_ctx,
-  HandshakeMessage* handshake_msg
-)
-{
-  FLEA_THR_BEG_FUNC();
-
-  // compute hash over handshake messages so far
-  flea_u8_t messages_hash[32];
-  FLEA_CCALL(THR_flea_hash_ctx_t__final(hash_ctx, messages_hash));
-
-
-  PRFLabel label;
-  if(tls_ctx->security_parameters->connection_end == FLEA_TLS_CLIENT)
-  {
-    label = PRF_LABEL_SERVER_FINISHED;
-  }
-  else
-  {
-    label = PRF_LABEL_CLIENT_FINISHED;
-  }
-  // TODO: need to generalize 12byte ? (botan doesn't do it either) -  avoiding "magical number" would be better
-  flea_u8_t finished_len = 12;
-  flea_u8_t* finished    = calloc(finished_len, sizeof(flea_u8_t));
-
-  FLEA_CCALL(
-    THR_flea_tls__create_finished_data(
-      messages_hash,
-      tls_ctx->security_parameters->master_secret,
-      label,
-      finished,
-      finished_len
-    )
-  );
-
-  if(finished_len == handshake_msg->length)
-  {
-    if(!flea_sec_mem_equal(handshake_msg->data, finished, finished_len))
-    {
-      printf("Finished message not verifiable\n");
-      printf("Got: \n");
-      for(int i = 0; i < 12; i++)
-      {
-        printf("%02x ", handshake_msg->data[i]);
-      }
-      printf("\nBut calculated: \n");
-      for(int i = 0; i < 12; i++)
-      {
-        printf("%02x ", finished[i]);
-      }
-      printf("\n");
-
-      FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_GENERIC);
-    }
-  }
-  else
-  {
-    FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_GENERIC);
-  }
-
-
-  FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_tls__read_finished */
-
-#else /* if 0 */
 
 flea_err_t THR_flea_tls__read_finished(
   flea_tls_ctx_t*           tls_ctx,
@@ -829,7 +588,6 @@ flea_err_t THR_flea_tls__read_finished(
   flea_u8_t* finished__pu8     = messages_hash__bu8 + __FLEA_COMPUTED_MAX_HASH_OUT_LEN;
   flea_u8_t* rec_finished__pu8 = messages_hash__bu8 + __FLEA_COMPUTED_MAX_HASH_OUT_LEN + finished_len__alu8;
   // compute hash over handshake messages so far
-  // flea_u8_t messages_hash[32]; // TODO: GENERALIZE, USE BUF
   FLEA_CCALL(THR_flea_hash_ctx_t__final(hash_ctx, messages_hash__bu8));
 
 
@@ -856,11 +614,8 @@ flea_err_t THR_flea_tls__read_finished(
   FLEA_CCALL(THR_flea_rw_stream_t__force_read(hs_rd_stream__pt, rec_finished__pu8, finished_len__alu8));
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {
-    printf("trailing data in finished message\n");
     FLEA_THROW("trailing data in finished message", FLEA_ERR_TLS_GENERIC);
   }
-  // if(finished_len == handshake_msg->length)
-  // {
   if(!flea_sec_mem_equal(rec_finished__pu8, finished__pu8, finished_len__alu8))
   {
     printf("Finished message not verifiable\n");
@@ -878,20 +633,12 @@ flea_err_t THR_flea_tls__read_finished(
 
     FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_GENERIC);
   }
-  // }
-
-  /*else
-   * {
-   * FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_GENERIC);
-   * }*/
 
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(messages_hash__bu8);
   );
 } /* THR_flea_tls__read_finished */
-
-#endif /* if 0 */
 
 flea_err_t THR_verify_cert_chain(
   flea_u8_t*         tls_cert_chain__acu8,
@@ -956,30 +703,6 @@ flea_err_t THR_verify_cert_chain(
   );
 } /* THR_verify_cert_chain */
 
-#if 0
-flea_err_t THR_flea_tls__read_certificate(
-  flea_tls_ctx_t*    tls_ctx,
-  HandshakeMessage*  handshake_msg,
-  Certificate*       cert_message,
-  flea_public_key_t* pubkey
-)
-{
-  FLEA_THR_BEG_FUNC();
-
-  // TODO: do properly and read the 3 length bytes in instead of skipping them
-  cert_message->certificate_list_length = handshake_msg->length - 3;
-
-  cert_message->certificate_list = calloc(cert_message->certificate_list_length, sizeof(flea_u8_t));
-
-  memcpy(cert_message->certificate_list, handshake_msg->data + 3, cert_message->certificate_list_length);
-
-  FLEA_CCALL(THR_verify_cert_chain(cert_message->certificate_list, cert_message->certificate_list_length, pubkey));
-
-  FLEA_THR_FIN_SEC_empty();
-}
-
-#else /* if 0 */
-
 flea_err_t THR_flea_tls__read_certificate(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
@@ -992,9 +715,7 @@ flea_err_t THR_flea_tls__read_certificate(
   cert_chain_len__u32 = flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt);
   // TODO: cert read stream
   FLEA_ALLOC_BUF(cert_chain__bu8, cert_chain_len__u32);
-  // cert_message->certificate_list = calloc(cert_message->certificate_list_length, sizeof(flea_u8_t));
 
-  // memcpy(cert_message->certificate_list, handshake_msg->data + 3, cert_message->certificate_list_length);
   FLEA_CCALL(
     THR_flea_rw_stream_t__force_read(
       flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
@@ -1010,14 +731,6 @@ flea_err_t THR_flea_tls__read_certificate(
   );
 }
 
-#endif /* if 0 */
-
-/**
- * Variable-length vectors are defined by specifying a subrange of legal
- * lengths, inclusively, using the notation <floor..ceiling>.  When
- * these are encoded, the actual length precedes the vector's contents
- * in the byte stream.
- */
 void flea_tls__client_hello_to_bytes(
   flea_tls__client_hello_t* hello,
   flea_u8_t*                bytes,
@@ -1101,54 +814,6 @@ static flea_err_t THR_flea_tls__send_handshake_message_hdr(
     FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx_mbn__pt, enc_for_hash__au8, sizeof(enc_for_hash__au8)));
   }
   FLEA_THR_FIN_SEC_empty();
-}
-
-// TODO: REMOVE WHOLE FUNCTION
-void flea_tls__create_handshake_message(
-  HandshakeType type,
-  flea_u8_t*    in,
-  flea_u32_t    length_in,
-  flea_u8_t*    out,
-  flea_u32_t*   length_out
-)
-{
-  flea_u32_t i = 0;
-
-  // TO/DO: keine Längenprüfung nötig?
-  // set handshake type
-  out[i++] = type;
-
-  // set handshake length
-  out[i++] = length_in >> 16;
-  out[i++] = length_in >> 8;
-  out[i++] = length_in;
-
-  // copy all data
-  memcpy(out + i, in, length_in);
-  i += length_in;
-
-  *length_out = i;
-}
-
-void flea_tls__record_to_bytes(
-  Record*     record,
-  flea_u8_t*  bytes,
-  flea_u16_t* length
-)
-{
-  flea_u16_t i = 0;
-
-  bytes[i++] = record->content_type;
-  bytes[i++] = record->version.major;
-  bytes[i++] = record->version.minor;
-
-  bytes[i++] = record->length >> 8;
-  bytes[i++] = record->length;
-
-  memcpy(bytes + i, record->data, record->length);
-  i += record->length;
-
-  *length = i;
 }
 
 void flea_tls__print_client_hello(flea_tls__client_hello_t hello)
@@ -1328,16 +993,30 @@ flea_err_t THR_flea_tls__create_master_secret(
   flea_u8_t* master_secret_res
 )
 {
+  FLEA_DECL_BUF(random_seed__bu8, flea_u8_t, 64);
   FLEA_THR_BEG_FUNC();
-  flea_u8_t random_seed[64];
-  memcpy(random_seed, client_hello_random.gmt_unix_time, 4);
-  memcpy(random_seed + 4, client_hello_random.random_bytes, 28);
-  memcpy(random_seed + 32, server_hello_random.gmt_unix_time, 4);
-  memcpy(random_seed + 36, server_hello_random.random_bytes, 28);
+  FLEA_ALLOC_BUF(random_seed__bu8, 64);
+  // flea_u8_t random_seed[64];
+  memcpy(random_seed__bu8, client_hello_random.gmt_unix_time, 4);
+  memcpy(random_seed__bu8 + 4, client_hello_random.random_bytes, 28);
+  memcpy(random_seed__bu8 + 32, server_hello_random.gmt_unix_time, 4);
+  memcpy(random_seed__bu8 + 36, server_hello_random.random_bytes, 28);
 
   // pre_master_secret is 48 bytes, master_secret is desired to be 48 bytes
-  FLEA_CCALL(flea_tls__prf(pre_master_secret, 48, PRF_LABEL_MASTER_SECRET, random_seed, 64, 48, master_secret_res));
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_CCALL(
+    flea_tls__prf(
+      pre_master_secret,
+      48,
+      PRF_LABEL_MASTER_SECRET,
+      random_seed__bu8,
+      64,
+      48,
+      master_secret_res
+    )
+  );
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL_SECRET_ARR(random_seed__bu8, 64);
+  );
 }
 
 // TODO: configurable parameters
