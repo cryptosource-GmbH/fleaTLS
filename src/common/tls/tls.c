@@ -1442,7 +1442,9 @@ void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state)
 
 flea_err_t THR_flea_tls__server_handshake(
   flea_tls_ctx_t*   tls_ctx,
-  flea_rw_stream_t* rw_stream__pt
+  flea_rw_stream_t* rw_stream__pt,
+  flea_ref_cu8_t*   cert_chain,
+  flea_u32_t        cert_chain_len
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -1538,9 +1540,18 @@ flea_err_t THR_flea_tls__server_handshake(
       if(handshake_state.sent_first_round == FLEA_FALSE)
       {
         FLEA_CCALL(THR_flea_tls__send_server_hello(tls_ctx, &hash_ctx));
-        // send server_hello
+
         // send Certificate
-        // send server_hello_done
+
+        FLEA_CCALL(
+          THR_flea_tls__send_handshake_message(
+            &tls_ctx->rec_prot__t,
+            &hash_ctx,
+            HANDSHAKE_TYPE_SERVER_HELLO_DONE,
+            (flea_u8_t *) NULL,
+            0
+          )
+        );
 
         handshake_state.sent_first_round = FLEA_TRUE;
       }
