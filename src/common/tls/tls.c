@@ -21,6 +21,8 @@
 #include "flea/cbc_filter.h"
 #include "flea/hash_stream.h"
 #include "flea/tee.h"
+#include "internal/common/tls/handsh_reader.h"
+#include "internal/common/tls/tls_rec_prot_rdr.h"
 
 #include <string.h>
 
@@ -374,7 +376,7 @@ flea_err_t THR_flea_tls__read_client_hello(
 
   // read random
   // TODO: CHECK HOW TIME IS TO BE USED AND THEN ENCODE IT CORRECTLY
-  flea_u8_t* p = (flea_u8_t *) tls_ctx->security_parameters->client_random.gmt_unix_time;
+  flea_u8_t* p = (flea_u8_t*) tls_ctx->security_parameters->client_random.gmt_unix_time;
   for(flea_u8_t i = 0; i < 4; i++)
   {
     p[i] = handshake_msg->data[len++];
@@ -473,6 +475,7 @@ flea_err_t THR_flea_tls__read_client_hello(
  * flea_u8_t* extensions;	// 2^16 bytes
  * } ServerHello;
  */
+#if 1
 flea_err_t THR_flea_tls__read_server_hello(
   flea_tls_ctx_t*   tls_ctx,
   HandshakeMessage* handshake_msg,
@@ -576,6 +579,141 @@ flea_err_t THR_flea_tls__read_server_hello(
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__read_server_hello */
+
+#else /* if 1 */
+
+flea_err_t THR_flea_tls__read_server_hello(
+  flea_tls_ctx_t*           tls_ctx,
+  flea_tls_handsh_reader_t* hs_rdr__pt
+)
+{
+  flea_u8_t server_compression_meth__u8;
+  flea_u8_t server_version_major_minor__au8[2];
+  flea_rw_stream_t* hs_rd_stream__pt;
+  flea_u8_t
+  ServerHello server_hello__t;
+  ServerHello* server_hello = &server_hello__t;
+
+  FLEA_THR_BEG_FUNC();
+  // if(handshake_msg->length < 41) // min ServerHello length
+  if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) < 41) // min ServerHello length
+  {
+    FLEA_THROW("length too small", FLEA_ERR_TLS_GENERIC);
+  }
+  hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
+  // keep track of length
+  int length = 0;
+
+  // read version
+
+  /*server_hello->server_version.major = handshake_msg->data[length++];
+   *  server_hello->server_version.minor = handshake_msg->data[length++];*/
+# if 0
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__force_read(
+      hs_rdr__pt,
+      server_version_major_minor__au8,
+      sizeof(server_version_major_minor__au8)
+    )
+  );
+  if(server_version_major_minor__au8[0] != tls_ctx->version.major ||
+    server_version_major_minor__au8[1] != tls_ctx->version.minor)
+  {
+    // TODO: NEED TO SEND ALERT?
+    FLEA_THROW("version mismatch", FLEA_ERR_TLS_GENERIC);
+  }
+# endif /* if 0 */
+  // TODO: in this part the client has to decide if he accepts the server's TLS version - implement negotiation
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__force_read(
+      hs_rdr__pt,
+      server_version_major_minor__au8,
+      sizeof(server_version_major_minor__au8)
+    )
+  );
+  if(server_hello->server_version.major != tls_ctx->version.major ||
+    server_hello->server_version.minor != tls_ctx->version.minor)
+  {
+    // TODO: NEED TO SEND ALERT?
+    FLEA_THROW("version mismatch", FLEA_ERR_TLS_GENERIC);
+  }
+
+  // read random
+
+  flea_u8_t* p = server_hello->random.gmt_unix_time;
+  for(flea_u8_t i = 0; i < 4; i++)
+  {
+    p[i] = handshake_msg->data[length++];
+  }
+  p = server_hello->random.random_bytes;
+  for(flea_u8_t i = 0; i < 28; i++)
+  {
+    p[i] = handshake_msg->data[length++];
+  }
+
+  // read session id length
+  server_hello->session_id_length = handshake_msg->data[length++];
+  if(server_hello->session_id_length > 0)
+  {
+    server_hello->session_id = calloc(server_hello->session_id_length, sizeof(flea_u8_t));
+    p = server_hello->session_id;
+    for(flea_u8_t i = 0; i < server_hello->session_id_length; i++)
+    {
+      p[i] = handshake_msg->data[length++];
+    }
+  }
+
+  if(length + 3 > handshake_msg->length)
+  {
+    FLEA_THROW("length incorrect", FLEA_ERR_TLS_GENERIC);
+  }
+
+  // read cipher suites
+  p    = &server_hello->cipher_suite;
+  p[0] = handshake_msg->data[length++];
+  p[1] = handshake_msg->data[length++];
+
+  // read compression method
+  // server_hello->compression_method = handshake_msg->data[length++];
+
+  server_compression_meth__u8 = handshake_msg->data[length++];
+  if(server_compression_meth__u8 != NO_COMPRESSION)
+  {
+    // TODO: NEED TO SEND ALERT?
+    FLEA_THROW("unsupported compression method from server", FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO);
+  }
+  // TODO: parse extension
+  // for now simply ignore them
+
+  // update security parameters
+  memcpy(
+    tls_ctx->security_parameters->server_random.gmt_unix_time,
+    server_hello->random.gmt_unix_time,
+    sizeof(tls_ctx->security_parameters->server_random.gmt_unix_time)
+  ); // QUESTION: sizeof durch variablen (#define) ersetzen?
+  memcpy(
+    tls_ctx->security_parameters->server_random.random_bytes,
+    server_hello->random.random_bytes,
+    sizeof(tls_ctx->security_parameters->server_random.random_bytes)
+  );
+
+  // client wants to resume connection and has provided a session id
+  if(tls_ctx->session_id_len != 0)
+  {
+    if(tls_ctx->session_id_len == server_hello->session_id_length)
+    {
+      if(memcmp(tls_ctx->session_id, server_hello->session_id, tls_ctx->session_id_len) == 0)
+      {
+        tls_ctx->resumption = FLEA_TRUE;
+      }
+    }
+  }
+  memcpy(tls_ctx->session_id, server_hello->session_id, server_hello->session_id_length);
+
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_tls__read_server_hello */
+
+#endif /* if 1 */
 
 flea_err_t THR_flea_tls__read_finished(
   flea_tls_ctx_t*   tls_ctx,
@@ -770,7 +908,7 @@ void flea_tls__client_hello_to_bytes(
   }
 
   // cipher suites length
-  flea_u8_t* p = (flea_u8_t *) &hello->cipher_suites_length;
+  flea_u8_t* p = (flea_u8_t*) &hello->cipher_suites_length;
   bytes[i++] = p[1];
   bytes[i++] = p[0];
 
@@ -916,7 +1054,7 @@ void print_server_hello(ServerHello hello)
     printf("%02x ", hello.session_id[i]);
   }
   printf("\nCipher Suite: ");
-  flea_u8_t* p = (flea_u8_t *) &hello.cipher_suite;
+  flea_u8_t* p = (flea_u8_t*) &hello.cipher_suite;
   printf("(%02x, %02x) ", p[0], p[1]);
 
   /*printf("\nCompression Method: ");
@@ -991,7 +1129,7 @@ void flea_tls__client_key_exchange_to_bytes(
 )
 {
   flea_u16_t i = 0;
-  flea_u8_t* p = (flea_u8_t *) &key_ex->encrypted_premaster_secret_length;
+  flea_u8_t* p = (flea_u8_t*) &key_ex->encrypted_premaster_secret_length;
 
   bytes[i++] = p[1];
   bytes[i++] = p[0];
@@ -1658,13 +1796,17 @@ flea_err_t THR_flea_tls__client_handshake(
   // flea_tls__read_state_t read_state;
   // flea_tls__read_state_ctor(&read_state);
   flea_hash_ctx_t hash_ctx;
-  THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256); // TODO: initialize properly
-
-  flea_public_key_t pubkey; // TODO: -> tls_ctx
+  FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256)); // TODO: initialize properly
+  flea_public_key_t pubkey;                                      // TODO: -> tls_ctx
 
   // received records and handshakes for processing the current state
   // Record recv_record;
   HandshakeMessage recv_handshake;
+  flea_u8_t hs_tmp_buf__au8[200000];
+  // flea_u8_t handshake_msg_type;
+  FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
+  FLEA_DECL_OBJ(rec_prot_rd_stream__t, flea_rw_stream_t);
+  flea_tls_rec_prot_rdr_hlp_t rec_prot_rdr_hlp__t;
   // TO/DO: this must be in tls_ctx_ctor:
   // tls_ctx->rw_stream__pt = rw_stream__pt;
   while(1)
@@ -1691,13 +1833,10 @@ flea_err_t THR_flea_tls__client_handshake(
      */
     if(handshake_state.expected_messages != FLEA_TLS_HANDSHAKE_EXPECT_NONE)
     {
+      // TODO: SUBFUNCTION WHICH HANDLES HANDSHAKE MESSAGES
       // TODO: record type argument has to be removed because it's determined by the current connection state in tls_ctx
-#if 0
-      FLEA_CCALL(THR_flea_tls__read_next_record(tls_ctx, &recv_record, RECORD_TYPE_PLAINTEXT, socket_fd, &read_state));
-#else
       ContentType cont_type__e;
       FLEA_CCALL(THR_flea_tls_rec_prot_t__get_current_record_type(&tls_ctx->rec_prot__t, &cont_type__e));
-#endif
       // TODO: ^REPLACE BY RECORD PROTOCOL READ
 
       /*if(read_state.connection_closed == FLEA_TRUE)
@@ -1709,8 +1848,49 @@ flea_err_t THR_flea_tls__client_handshake(
       {
         //  TODO: USE INPUT FROM READ DATA FROM RECORD PROTOCOL (REPLACE FIRST
         //  ARG)
+#if 0
         FLEA_CCALL(THR_flea_tls__read_handshake_message(tls_ctx, &recv_handshake, &hash_ctx));
         printf("SM: read handshake message\n");
+#else
+        FLEA_CCALL(
+          THR_flea_rw_stream_t__ctor_rec_prot(
+            &rec_prot_rd_stream__t,
+            &rec_prot_rdr_hlp__t,
+            &tls_ctx->rec_prot__t,
+            CONTENT_TYPE_HANDSHAKE
+          )
+        );
+        FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &rec_prot_rd_stream__t));
+        if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_FINISHED)
+        {
+          printf("registering hash_ctx\n");
+          FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, &hash_ctx));
+        }
+        else
+        {
+          printf("NOT registering hash_ctx\n");
+        }
+        // get type
+        // if "not finished", then call tls_hs_rdr__register_hash_ctx
+        //    => set the hasher in handsh_reader_t->flea_tls_handsh_reader_hlp_t,
+        //    => in THR_flea_tls_handsh_read_stream_t__read hasher != NULL => hash
+        //    call unregister_hash_ctx
+        //    TODO: CALL CTORS FOR ALL OBJECTS
+
+        recv_handshake.data   = hs_tmp_buf__au8;
+        recv_handshake.length = flea_tls_handsh_reader_t__get_msg_rem_len(&handsh_rdr__t);
+        recv_handshake.type   = flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t);
+
+        FLEA_CCALL(
+          THR_flea_rw_stream_t__force_read(
+            flea_tls_handsh_reader_t__get_read_stream(&handsh_rdr__t),
+            hs_tmp_buf__au8,
+            flea_tls_handsh_reader_t__get_msg_rem_len(&handsh_rdr__t)
+          )
+        );
+
+
+#endif /* if 0 */
 
         // update hash for all incoming handshake messages
         // TODO: only include messages sent AFTER ClientHello. At the moment it could include HelloRequest received before sending HelloRequest
@@ -1826,7 +2006,11 @@ flea_err_t THR_flea_tls__client_handshake(
 
     if(handshake_state.expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO)
     {
+#if 1
       if(recv_handshake.type == HANDSHAKE_TYPE_SERVER_HELLO)
+#else
+      if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_HELLO)
+#endif
       {
         ServerHello server_hello; // TODO: don't need this
         FLEA_CCALL(THR_flea_tls__read_server_hello(tls_ctx, &recv_handshake, &server_hello));

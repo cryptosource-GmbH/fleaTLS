@@ -22,6 +22,7 @@ typedef struct
   flea_u8_t minor;
 } flea_tls__protocol_version_t;
 
+// TODO: RENAME TO TLS_REC_CONT_TYPE (struct and values)
 typedef enum
 {
   CONTENT_TYPE_CHANGE_CIPHER_SPEC = 20,

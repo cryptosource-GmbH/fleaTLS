@@ -13,10 +13,10 @@ static flea_err_t THR_flea_tls_handsh_read_stream_t__read(
   flea_bool_t force_read__b
 )
 {
-  flea_tls_handsh_reader_hlp_t* rdr_hlp__pt = (flea_tls_handsh_reader_hlp_t *) custom_obj__pv;
+  flea_tls_handsh_reader_hlp_t* rdr_hlp__pt = (flea_tls_handsh_reader_hlp_t*) custom_obj__pv;
 
   FLEA_THR_BEG_FUNC();
-  if(rdr_hlp__pt->remaining_bytes__u32 == 0)
+  if(*nb_bytes_to_read__pdtl && (rdr_hlp__pt->remaining_bytes__u32 == 0))
   {
     FLEA_THROW("no more data left in handshake message", FLEA_ERR_STREAM_EOF);
   }
@@ -35,7 +35,7 @@ static flea_err_t THR_flea_tls_handsh_read_stream_t__read(
   {
     FLEA_CCALL(
       THR_flea_rw_stream_t__force_read(
-        rdr_hlp__pt->underlying_read_stream__pt,
+        rdr_hlp__pt->rec_prot_read_stream__pt,
         target_buffer__pu8,
         *nb_bytes_to_read__pdtl
       )
@@ -45,11 +45,20 @@ static flea_err_t THR_flea_tls_handsh_read_stream_t__read(
   {
     FLEA_CCALL(
       THR_flea_rw_stream_t__read(
-        rdr_hlp__pt->underlying_read_stream__pt,
+        rdr_hlp__pt->rec_prot_read_stream__pt,
         target_buffer__pu8,
         nb_bytes_to_read__pdtl
       )
     );
+  }
+  if(rdr_hlp__pt->hash_ctx__pt)
+  {
+    printf("handsh_read_stream: updating message in hasher, len = %u\n", *nb_bytes_to_read__pdtl);
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(rdr_hlp__pt->hash_ctx__pt, target_buffer__pu8, *nb_bytes_to_read__pdtl));
+  }
+  else
+  {
+    printf("handsh_read_stream: NOT updating message in hasher, len = %u\n", *nb_bytes_to_read__pdtl);
   }
   rdr_hlp__pt->remaining_bytes__u32 -= *nb_bytes_to_read__pdtl;
   FLEA_THR_FIN_SEC_empty();
@@ -58,17 +67,18 @@ static flea_err_t THR_flea_tls_handsh_read_stream_t__read(
 flea_err_t THR_flea_rw_stream_t__ctor_tls_handsh_reader(
   flea_rw_stream_t*             handsh_read_stream__pt,
   flea_tls_handsh_reader_hlp_t* hlp__pt,
-  flea_rw_stream_t*             underlying_read_stream__pt,
+  flea_rw_stream_t*             rec_prot_read_stream__pt,
   flea_u32_t                    msg_len__u32
 )
 {
   FLEA_THR_BEG_FUNC();
-  hlp__pt->underlying_read_stream__pt = underlying_read_stream__pt;
-  hlp__pt->remaining_bytes__u32       = msg_len__u32;
+  hlp__pt->rec_prot_read_stream__pt = rec_prot_read_stream__pt;
+  hlp__pt->remaining_bytes__u32     = msg_len__u32;
+  hlp__pt->hash_ctx__pt = NULL;
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       handsh_read_stream__pt,
-      (void *) hlp__pt,
+      (void*) hlp__pt,
       NULL,
       NULL,
       THR_flea_tls_handsh_read_stream_t__read,

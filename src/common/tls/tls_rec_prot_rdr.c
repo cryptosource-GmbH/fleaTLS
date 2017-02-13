@@ -15,7 +15,7 @@ static flea_err_t THR_flea_rec_prot_rdr_t__read(
   flea_bool_t force_read__b
 )
 {
-  flea_tls_rec_prot_rdr_hlp_t* hlp__pt = (flea_tls_rec_prot_rdr_hlp_t *) custom_obj__pv;
+  flea_tls_rec_prot_rdr_hlp_t* hlp__pt = (flea_tls_rec_prot_rdr_hlp_t*) custom_obj__pv;
 
   FLEA_THR_BEG_FUNC();
   force_read__b = force_read__b;
@@ -30,7 +30,7 @@ static flea_err_t THR_flea_rec_prot_rdr_t__read(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_rec_prot_rdr_t__ctor(
+flea_err_t THR_flea_rw_stream_t__ctor_rec_prot(
   flea_rw_stream_t*            rec_prot_read_str__pt,
   flea_tls_rec_prot_rdr_hlp_t* hlp__pt,
   flea_tls_rec_prot_t*         rec_prot__pt,
@@ -43,7 +43,7 @@ flea_err_t THR_flea_rec_prot_rdr_t__ctor(
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       rec_prot_read_str__pt,
-      (void *) hlp__pt,
+      (void*) hlp__pt,
       NULL,
       NULL,
       THR_flea_rec_prot_rdr_t__read,
