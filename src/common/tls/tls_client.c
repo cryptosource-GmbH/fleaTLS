@@ -262,17 +262,23 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
 
 static flea_err_t THR_flea_handle_handsh_msg(
   flea_tls_ctx_t*              tls_ctx,
-  flea_tls_handsh_reader_t*    handsh_rdr__pt,
   flea_tls__handshake_state_t* handshake_state,
   flea_hash_ctx_t*             hash_ctx__pt
 )
 {
+  FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
   FLEA_THR_BEG_FUNC();
+
+  FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t));
+  if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_FINISHED)
+  {
+    FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, hash_ctx__pt));
+  }
   if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO)
   {
-    if(flea_tls_handsh_reader_t__get_handsh_msg_type(handsh_rdr__pt) == HANDSHAKE_TYPE_SERVER_HELLO)
+    if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_HELLO)
     {
-      FLEA_CCALL(THR_flea_tls__read_server_hello(tls_ctx, handsh_rdr__pt));
+      FLEA_CCALL(THR_flea_tls__read_server_hello(tls_ctx, &handsh_rdr__t));
       printf("SM: read server hello\n");
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE
         | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
@@ -286,11 +292,11 @@ static flea_err_t THR_flea_handle_handsh_msg(
   }
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE)
   {
-    if(flea_tls_handsh_reader_t__get_handsh_msg_type(handsh_rdr__pt) == HANDSHAKE_TYPE_CERTIFICATE)
+    if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
     {
       printf("SM: reading certificate\n");
       // Certificate certificate_message; // TODO: don't need this
-      FLEA_CCALL(THR_flea_tls__read_certificate(tls_ctx, handsh_rdr__pt, &tls_ctx->server_pubkey));
+      FLEA_CCALL(THR_flea_tls__read_certificate(tls_ctx, &handsh_rdr__t, &tls_ctx->server_pubkey));
 
       // tls_ctx->server_pubkey = pubkey; // TODO: PUBKEY STILL NEEDED?
     }
@@ -301,10 +307,10 @@ static flea_err_t THR_flea_handle_handsh_msg(
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE)
   {
     // TODO: include here: FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE and FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
-    if(flea_tls_handsh_reader_t__get_handsh_msg_type(handsh_rdr__pt) == HANDSHAKE_TYPE_SERVER_HELLO_DONE)
+    if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_HELLO_DONE)
     {
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
-      if(flea_tls_handsh_reader_t__get_msg_rem_len(handsh_rdr__pt) != 0)
+      if(flea_tls_handsh_reader_t__get_msg_rem_len(&handsh_rdr__t) != 0)
       {
         FLEA_THROW("invalid length of server hello done", FLEA_ERR_TLS_GENERIC);
       }
@@ -313,9 +319,9 @@ static flea_err_t THR_flea_handle_handsh_msg(
   }
   else if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED)
   {
-    if(flea_tls_handsh_reader_t__get_handsh_msg_type(handsh_rdr__pt) == HANDSHAKE_TYPE_FINISHED)
+    if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
     {
-      FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, handsh_rdr__pt, hash_ctx__pt));
+      FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, hash_ctx__pt));
 
       printf("Handshake completed!\n");
 
@@ -326,7 +332,9 @@ static flea_err_t THR_flea_handle_handsh_msg(
       FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
     }
   }
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC(
+    flea_tls_handsh_reader_t__dtor(&handsh_rdr__t);
+  );
 } /* THR_flea_handle_handsh_msg */
 
 flea_err_t THR_flea_tls__client_handshake(
@@ -356,20 +364,8 @@ flea_err_t THR_flea_tls__client_handshake(
   // define and init state
   flea_tls__handshake_state_t handshake_state; // TODO: INIT OBJECT
   flea_tls__handshake_state_ctor(&handshake_state);
-  // flea_tls__read_state_t read_state;
-  // flea_tls__read_state_ctor(&read_state);
-  flea_hash_ctx_t hash_ctx;
+  flea_hash_ctx_t hash_ctx = flea_hash_ctx_t__INIT_VALUE;
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256)); // TODO: initialize properly
-  // flea_public_key_t pubkey;                                      // TODO: -> tls_ctx
-
-  // received records and handshakes for processing the current state
-  // Record recv_record;
-
-  FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
-  // FLEA_DECL_OBJ(rec_prot_rd_stream__t, flea_rw_stream_t);
-  // flea_tls_rec_prot_rdr_hlp_t rec_prot_rdr_hlp__t;
-  // TO/DO: this must be in tls_ctx_ctor:
-  // tls_ctx->rw_stream__pt = rw_stream__pt;
   while(1)
   {
     // initialize handshake by sending CLIENT_HELLO
@@ -401,23 +397,12 @@ flea_err_t THR_flea_tls__client_handshake(
 
       if(cont_type__e == CONTENT_TYPE_HANDSHAKE)
       {
-        FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t));
-        if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_FINISHED)
-        {
-          FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, &hash_ctx));
-        }
-
-        FLEA_CCALL(THR_flea_handle_handsh_msg(tls_ctx, &handsh_rdr__t, &handshake_state, &hash_ctx));
+        FLEA_CCALL(THR_flea_handle_handsh_msg(tls_ctx, &handshake_state, &hash_ctx));
         if(handshake_state.finished == FLEA_TRUE)
         {
           break;
         }
         continue;
-        // get type
-        // if "not finished", then call tls_hs_rdr__register_hash_ctx
-        //    => set the hasher in handsh_reader_t->flea_tls_handsh_reader_hlp_t,
-        //    => in THR_flea_tls_handsh_read_stream_t__read hasher != NULL => hash
-        //    call unregister_hash_ctx
         //    TODO: CALL CTORS FOR ALL OBJECTS
 
         // update hash for all incoming handshake messages
@@ -489,7 +474,6 @@ flea_err_t THR_flea_tls__client_handshake(
       }
 
       printf("SM sending client key_ex\n");
-      // FLEA_CCALL(THR_flea_tls__send_client_key_exchange(tls_ctx, &hash_ctx, &pubkey));
       // TODO: INIT PUBKEY IN CTOR!
       FLEA_CCALL(THR_flea_tls__send_client_key_exchange(tls_ctx, &hash_ctx, &tls_ctx->server_pubkey));
       printf("SM sending change cipherspec\n");
