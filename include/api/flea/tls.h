@@ -327,7 +327,8 @@ flea_err_t THR_flea_tls__server_handshake(
   flea_tls_ctx_t*   tls_ctx,
   flea_rw_stream_t* rw_stream__pt,
   flea_ref_cu8_t*   cert_chain,
-  flea_u32_t        cert_chain_len
+  flea_u32_t        cert_chain_len,
+  flea_ref_cu8_t*   server_key__pt
 );
 
 // TODO: RECEIVE APP DATA
