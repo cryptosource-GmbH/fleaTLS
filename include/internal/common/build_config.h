@@ -12,7 +12,7 @@
 /**
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  */
-// #define FLEA_DO_PRINTF_ERRS
+#define FLEA_DO_PRINTF_ERRS
 
 /**
  * Activate this flag to let flea make heap allocation for buffers. Deactivate

@@ -343,6 +343,7 @@ flea_err_t THR_flea_tls__send_alert(
   flea_tls__alert_level_t       level
 );
 
+
 #ifdef __cplusplus
 }
 #endif

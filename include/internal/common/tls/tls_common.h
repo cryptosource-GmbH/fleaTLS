@@ -29,6 +29,14 @@ flea_err_t THR_flea_tls__send_handshake_message_content(
   flea_u32_t           msg_bytes_len
 );
 
+flea_err_t THR_flea_tls__send_handshake_message(
+  flea_tls_rec_prot_t* rec_prot__pt,
+  flea_hash_ctx_t*     hash_ctx_mbn__pt,
+  HandshakeType        type,
+  flea_u8_t*           msg_bytes,
+  flea_u32_t           msg_bytes_len
+);
+
 flea_err_t THR_flea_tls__read_finished(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,

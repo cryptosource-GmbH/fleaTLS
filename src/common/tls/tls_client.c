@@ -391,7 +391,6 @@ flea_err_t THR_flea_tls__client_handshake(
     if(handshake_state.expected_messages != FLEA_TLS_HANDSHAKE_EXPECT_NONE)
     {
       // TODO: SUBFUNCTION WHICH HANDLES HANDSHAKE MESSAGES
-      // TODO: record type argument has to be removed because it's determined by the current connection state in tls_ctx
       ContentType cont_type__e;
       FLEA_CCALL(THR_flea_tls_rec_prot_t__get_current_record_type(&tls_ctx->rec_prot__t, &cont_type__e));
 
