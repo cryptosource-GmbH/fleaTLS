@@ -16,7 +16,7 @@ static flea_err_t THR_flea_mem_read_stream__read(
   flea_dtl_t to_read__dtl;
 
   FLEA_THR_BEG_FUNC();
-  hlp__pt = (flea_mem_read_stream_help_t *) hlp__pv;
+  hlp__pt = (flea_mem_read_stream_help_t*) hlp__pv;
 
   if(*nb_bytes_to_read__pdtl > 0 && hlp__pt->len__dtl == 0)
   {
@@ -48,12 +48,13 @@ flea_err_t THR_flea_rw_stream_t__ctor_memory(
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       rw_stream__pt,
-      (void *) hlp_uninit__pt,
+      (void*) hlp_uninit__pt,
       NULL,
       NULL,
       THR_flea_mem_read_stream__read,
       NULL,
-      NULL
+      NULL,
+      0
     )
   );
   FLEA_THR_FIN_SEC_empty();

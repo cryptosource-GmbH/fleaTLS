@@ -13,7 +13,8 @@ flea_err_t THR_flea_rw_stream_t__ctor(
   flea_rw_stream_close_f       close_func__f,
   flea_rw_stream_read_f        read_func__f,
   flea_rw_stream_write_f       write_func__f,
-  flea_rw_stream_flush_write_f flush_write_func__f
+  flea_rw_stream_flush_write_f flush_write_func__f,
+  flea_u32_t                   read_limit__u32
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -26,6 +27,12 @@ flea_err_t THR_flea_rw_stream_t__ctor(
   stream__pt->filt__pt = NULL;
   stream__pt->filt_proc_buf__pu8       = NULL;
   stream__pt->filt_proc_buf_len__alu16 = 0;
+  stream__pt->read_rem_len__u32        = read_limit__u32;
+  stream__pt->have_read_limit__b       = FLEA_FALSE;
+  if(read_limit__u32 != 0)
+  {
+    stream__pt->have_read_limit__b = FLEA_TRUE;
+  }
   if(open_func__f != NULL)
   {
     FLEA_CCALL(open_func__f(custom_obj__pv));
@@ -167,13 +174,34 @@ flea_err_t THR_flea_rw_stream_t__flush_write(flea_rw_stream_t* stream__pt)
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_rw_stream_t__read(
+static flea_err_t THR_flea_rw_stream_t__inner_read(
   flea_rw_stream_t* stream__pt,
   flea_u8_t*        data__pu8,
-  flea_dtl_t*       data_len__pdtl
+  flea_dtl_t*       data_len__pdtl,
+  flea_bool_t       force_read__b
 )
 {
   FLEA_THR_BEG_FUNC();
+
+  if(stream__pt->have_read_limit__b)
+  {
+    if(*data_len__pdtl && (stream__pt->read_rem_len__u32 == 0))
+    {
+      FLEA_THROW("no more data left in handshake message", FLEA_ERR_STREAM_EOF);
+    }
+
+    if(*data_len__pdtl > stream__pt->read_rem_len__u32)
+    {
+      if(force_read__b)
+      {
+        FLEA_THROW("insufficient data left in handshake message", FLEA_ERR_STREAM_EOF);
+      }
+      else
+      {
+        *data_len__pdtl = stream__pt->read_rem_len__u32;
+      }
+    }
+  }
 
   if(stream__pt->filt__pt != NULL)
   {
@@ -183,8 +211,18 @@ flea_err_t THR_flea_rw_stream_t__read(
   {
     FLEA_THROW("stream writing not supported by this stream", FLEA_ERR_STREAM_FUNC_NOT_SUPPORTED);
   }
-  FLEA_CCALL(stream__pt->read_func__f(stream__pt->custom_obj__pv, data__pu8, data_len__pdtl, FLEA_FALSE));
+  FLEA_CCALL(stream__pt->read_func__f(stream__pt->custom_obj__pv, data__pu8, data_len__pdtl, force_read__b));
+  stream__pt->read_rem_len__u32 -= *data_len__pdtl;
   FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_rw_stream_t__inner_read */
+
+flea_err_t THR_flea_rw_stream_t__read(
+  flea_rw_stream_t* stream__pt,
+  flea_u8_t*        data__pu8,
+  flea_dtl_t*       data_len__pdtl
+)
+{
+  return THR_flea_rw_stream_t__inner_read(stream__pt, data__pu8, data_len__pdtl, FLEA_FALSE);
 }
 
 flea_err_t THR_flea_rw_stream_t__read_byte(
@@ -199,24 +237,17 @@ flea_err_t THR_flea_rw_stream_t__read_byte(
 
 flea_err_t THR_flea_rw_stream_t__force_read(
   flea_rw_stream_t* stream__pt,
-  flea_u8_t*        data__pcu8,
+  flea_u8_t*        data__pu8,
   flea_dtl_t        data_len__dtl
 )
 {
+  // TODO: IMPLEMENT FORCE READ ONLY IN THIS TYPE DIRECTLY:
+  // SUCCESSIVE READS UNTIL ALL REQUESTED DATA HAS BEEN READ.
   FLEA_THR_BEG_FUNC();
   flea_dtl_t len__dtl = data_len__dtl;
 
+  return THR_flea_rw_stream_t__inner_read(stream__pt, data__pu8, &len__dtl, FLEA_TRUE);
 
-  if(stream__pt->filt__pt != NULL)
-  {
-    FLEA_THROW("FILTER NOT IMPLEMENTED FOR STREAM READING", FLEA_ERR_INV_ARG);
-  }
-
-  if(stream__pt->read_func__f == NULL)
-  {
-    FLEA_THROW("stream writing not supported by this stream", FLEA_ERR_STREAM_FUNC_NOT_SUPPORTED);
-  }
-  FLEA_CCALL(stream__pt->read_func__f(stream__pt->custom_obj__pv, data__pcu8, &len__dtl, FLEA_TRUE));
   FLEA_THR_FIN_SEC_empty();
 }
 
