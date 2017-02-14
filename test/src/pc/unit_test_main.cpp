@@ -32,7 +32,7 @@ int main(
     printf("rnd = %u\n", rnd);
   }
 
-  if(THR_flea_lib__init() || THR_flea_rng__reseed_volatile((flea_u8_t *) &rnd, sizeof(rnd)))
+  if(THR_flea_lib__init() || THR_flea_rng__reseed_volatile((flea_u8_t*) &rnd, sizeof(rnd)))
   {
     FLEA_PRINTF_1_SWITCHED("error with lib init, tests aborted\n");
     return 1;

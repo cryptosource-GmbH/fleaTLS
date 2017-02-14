@@ -43,7 +43,7 @@ static void init_sock_stream(linux_socket_stream_ctx_t* sock_stream__pt)
 static flea_err_t THR_open_socket_server(void* ctx__pv)
 {
   FLEA_THR_BEG_FUNC();
-  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
   struct sockaddr_in addr;
   int listen_fd = -1, client_fd = 0;
   listen_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -58,7 +58,7 @@ static flea_err_t THR_open_socket_server(void* ctx__pv)
   addr.sin_family      = AF_INET;
   addr.sin_port        = htons(4444);
 
-  if(bind(listen_fd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
+  if(bind(listen_fd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
   {
     FLEA_THROW("Socket bind failed", FLEA_ERR_TLS_GENERIC);
   }
@@ -67,7 +67,7 @@ static flea_err_t THR_open_socket_server(void* ctx__pv)
   listen(listen_fd, 3);
 
   // while(1)
-  client_fd = accept(listen_fd, (struct sockaddr *) NULL, NULL);
+  client_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
   if(client_fd < 0)
   {
     FLEA_THROW("Socket accept failed", FLEA_ERR_TLS_GENERIC);
@@ -86,7 +86,7 @@ static flea_err_t THR_open_socket_server(void* ctx__pv)
 static flea_err_t THR_open_socket(void* ctx__pv)
 {
   FLEA_THR_BEG_FUNC();
-  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
   struct sockaddr_in addr;
   int socket_fd = -1;
   socket_fd = socket(AF_INET, SOCK_STREAM, 0);
@@ -101,10 +101,10 @@ static flea_err_t THR_open_socket(void* ctx__pv)
   addr.sin_family      = AF_INET;
   addr.sin_port        = htons(4444);
 
-  if(connect(socket_fd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
+  if(connect(socket_fd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
   {
     addr.sin_port = htons(4445);
-    if(connect(socket_fd, (struct sockaddr *) &addr, sizeof(addr)) < 0)
+    if(connect(socket_fd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
     {
       FLEA_THROW("Something went wrong!", FLEA_ERR_TLS_GENERIC);
     }
@@ -120,7 +120,7 @@ static flea_err_t THR_open_socket(void* ctx__pv)
 
 void close_socket(void* ctx__pv)
 {
-  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
 
   close(ctx__pt->socket_fd__int);
 }
@@ -147,7 +147,7 @@ static flea_err_t THR_write_socket(
 )
 {
   FLEA_THR_BEG_FUNC();
-  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
   while(nb_bytes_to_write__dtl)
   {
     ctx__pt->write_buf__t.buffer__au8[ctx__pt->write_buf__t.used_len__dtl++] = *source_buffer__pcu8;
@@ -170,7 +170,7 @@ static flea_err_t THR_write_socket(
 
 static flea_err_t THR_write_flush_socket(void* ctx__pv)
 {
-  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
@@ -191,7 +191,7 @@ static flea_err_t THR_read_socket(
   flea_bool_t force_read__b
 )
 {
-  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
   ssize_t did_read_ssz;
 
   FLEA_THR_BEG_FUNC();
@@ -215,7 +215,7 @@ static flea_err_t THR_read_socket(
   flea_bool_t force_read__b
 )
 {
-  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t *) ctx__pv;
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
   flea_dtl_t rem_len__dtl = *nb_bytes_to_read__pdtl;
   read_buf_t* buf__pt     = &ctx__pt->read_buf__t;
 
@@ -277,7 +277,7 @@ flea_err_t THR_flea_test_linux__create_rw_stream_server(flea_rw_stream_t* stream
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,
-      (void *) &stc_sock_stream__t,
+      (void*) &stc_sock_stream__t,
       open__f,
       close__f,
       read__f,
@@ -301,7 +301,7 @@ flea_err_t THR_flea_test_linux__create_rw_stream(flea_rw_stream_t* stream__pt)
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,
-      (void *) &stc_sock_stream__t,
+      (void*) &stc_sock_stream__t,
       open__f,
       close__f,
       read__f,

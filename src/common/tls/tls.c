@@ -1594,7 +1594,7 @@ flea_err_t THR_flea_tls__server_handshake(
             &tls_ctx->rec_prot__t,
             &hash_ctx,
             HANDSHAKE_TYPE_SERVER_HELLO_DONE,
-            (flea_u8_t *) NULL,
+            (flea_u8_t*) NULL,
             0
           )
         );
