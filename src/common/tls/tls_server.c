@@ -222,6 +222,104 @@ static flea_err_t THR_flea_tls__send_server_hello(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_server_hello */
 
+static flea_err_t THR_flea_tls__send_certificate(
+  flea_tls_ctx_t*  tls_ctx,
+  flea_hash_ctx_t* hash_ctx,
+  flea_ref_cu8_t*  cert_chain__pt,
+  flea_u8_t        cert_chain_len__u8
+)
+{
+  flea_u32_t hdr_len__u32;
+  flea_u32_t cert_list_len__u32;
+
+  FLEA_THR_BEG_FUNC();
+
+  // TODO: enable option to exclude the root CA (RFC: MAY be ommited)
+
+  // calculate length for the header
+  hdr_len__u32 = 3; // 3 byte for length of certificate list
+  for(flea_u8_t i = 0; i < cert_chain_len__u8; i++)
+  {
+    hdr_len__u32 += 3; // 3 byte for length encoding of each certificate
+    hdr_len__u32 += cert_chain__pt[i].len__dtl;
+  }
+
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_hdr(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      HANDSHAKE_TYPE_CERTIFICATE,
+      hdr_len__u32
+    )
+  );
+
+  // encode length
+  cert_list_len__u32 = hdr_len__u32 - 3;
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      &((flea_u8_t*) &cert_list_len__u32)[2],
+      1
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      &((flea_u8_t*) &cert_list_len__u32)[1],
+      1
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      &((flea_u8_t*) &cert_list_len__u32)[0],
+      1
+    )
+  );
+
+
+  for(flea_u8_t i = 0; i < cert_chain_len__u8; i++)
+  {
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_content(
+        &tls_ctx->rec_prot__t,
+        hash_ctx,
+        &((flea_u8_t*) &(cert_chain__pt[i].len__dtl))[2],
+        1
+      )
+    );
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_content(
+        &tls_ctx->rec_prot__t,
+        hash_ctx,
+        &((flea_u8_t*) &(cert_chain__pt[i].len__dtl))[1],
+        1
+      )
+    );
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_content(
+        &tls_ctx->rec_prot__t,
+        hash_ctx,
+        &((flea_u8_t*) &(cert_chain__pt[i].len__dtl))[0],
+        1
+      )
+    );
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_content(
+        &tls_ctx->rec_prot__t,
+        hash_ctx,
+        cert_chain__pt[i].data__pcu8,
+        cert_chain__pt[i].len__dtl
+      )
+    );
+  }
+
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_tls__send_certificate */
+
 static flea_err_t THR_flea_handle_handsh_msg(
   flea_tls_ctx_t*              tls_ctx,
   flea_tls__handshake_state_t* handshake_state,
@@ -243,19 +341,70 @@ static flea_err_t THR_flea_handle_handsh_msg(
     {
       FLEA_CCALL(THR_flea_tls__read_client_hello(tls_ctx, &handsh_rdr__t));
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
+      return FLEA_ERR_FINE;
+    }
+    else
+    {
+      FLEA_THROW("Unexpected message", FLEA_ERR_TLS_GENERIC);
     }
   }
+
+  if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE)
+  {
+    handshake_state->expected_messages ^= FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE;
+    if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
+    {
+      printf("SM: reading certificate\n");
+      // TODO: read certificate and verify
+
+      return FLEA_ERR_FINE;
+    }
+  }
+  if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_KEY_EXCHANGE)
+  {
+    handshake_state->expected_messages ^= FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_KEY_EXCHANGE;
+    if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE)
+    {
+      // TODO: read client_key_exchange
+      return FLEA_ERR_FINE;
+    }
+  }
+
+  if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY)
+  {
+    handshake_state->expected_messages ^= FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY;
+    if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_VERIFY)
+    {
+      // TODO: read certificate verify
+      return FLEA_ERR_FINE;
+    }
+  }
+
+  if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED)
+  {
+    if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
+    {
+      // TODO: read finished
+      return FLEA_ERR_FINE;
+    }
+    else
+    {
+      FLEA_THROW("Expected finished message, but got something else", FLEA_ERR_TLS_GENERIC);
+    }
+  }
+
+  FLEA_THROW("No handshake message processed", FLEA_ERR_TLS_INVALID_STATE);
 
   FLEA_THR_FIN_SEC(
     flea_tls_handsh_reader_t__dtor(&handsh_rdr__t);
   );
-}
+} /* THR_flea_handle_handsh_msg */
 
 flea_err_t THR_flea_tls__server_handshake(
   flea_tls_ctx_t*   tls_ctx,
   flea_rw_stream_t* rw_stream__pt,
-  flea_ref_cu8_t*   cert_chain,
-  flea_u32_t        cert_chain_len
+  flea_ref_cu8_t*   cert_chain__pt,
+  flea_u32_t        cert_chain_len__u32
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -353,7 +502,7 @@ flea_err_t THR_flea_tls__server_handshake(
       {
         FLEA_CCALL(THR_flea_tls__send_server_hello(tls_ctx, &hash_ctx));
 
-        // send Certificate
+        FLEA_CCALL(THR_flea_tls__send_certificate(tls_ctx, &hash_ctx, cert_chain__pt, cert_chain_len__u32));
 
         FLEA_CCALL(
           THR_flea_tls__send_handshake_message(

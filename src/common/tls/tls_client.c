@@ -306,9 +306,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
 
       // tls_ctx->server_pubkey = pubkey; // TODO: PUBKEY STILL NEEDED?
     }
-    handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
-      | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
-      | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
+    handshake_state->expected_messages ^= FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE;
   }
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE)
   {
