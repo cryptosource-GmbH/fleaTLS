@@ -18,17 +18,6 @@
 #include "pc/test_pc.h"
 #include "pc/linux_sock.h"
 
-/*static int create_socket()
- * {
- * int socket_fd;
- *  socket_fd = socket(AF_INET , SOCK_STREAM , 0);
- *
- *  if (socket_fd == -1)
- *  {
- *      printf("Could not create socket");
- *  }
- * return socket_fd;
- * }*/
 // TODO: socket generisch halten: send/recv funktionen function pointer
 flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
 {
@@ -43,10 +32,10 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   flea_tls_ctx_t__INIT(&tls_ctx);
   FLEA_CCALL(THR_flea_test_linux__create_rw_stream(&rw_stream__t));
   FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
-  FLEA_CCALL(THR_flea_tls__client_handshake(&tls_ctx, &rw_stream__t));
+  FLEA_CCALL(THR_flea_tls__client_handshake(&tls_ctx));
 
 
-  FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (flea_u8_t *) app_data_www, strlen(app_data_www)));
+  FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
   // FLEA_CCALL(THR_flea_tls__send_alert(&tls_ctx, FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY, FLEA_TLS_ALERT_LEVEL_WARNING));
 
   // TODO: dtor, close TLS connection

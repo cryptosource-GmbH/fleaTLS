@@ -321,10 +321,7 @@ flea_err_t flea_tls_ctx_t__ctor(
   flea_u8_t         session_id_len
 );
 
-flea_err_t THR_flea_tls__client_handshake(
-  flea_tls_ctx_t*   tls_ctx,
-  flea_rw_stream_t* rw_stream__pt
-);
+flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx);
 
 flea_err_t THR_flea_tls__server_handshake(
   flea_tls_ctx_t*   tls_ctx,
@@ -333,17 +330,19 @@ flea_err_t THR_flea_tls__server_handshake(
   flea_u32_t        cert_chain_len
 );
 
+// TODO: RECEIVE APP DATA
 flea_err_t THR_flea_tls__send_app_data(
   flea_tls_ctx_t* tls_ctx,
   flea_u8_t*      data,
   flea_u8_t       data_len
 );
-// TODO: RECEIVE APP DATA
+
 flea_err_t THR_flea_tls__send_alert(
   flea_tls_ctx_t*               tls_ctx,
   flea_tls__alert_description_t description,
   flea_tls__alert_level_t       level
 );
+
 #ifdef __cplusplus
 }
 #endif

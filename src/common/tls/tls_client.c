@@ -260,9 +260,78 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
   FLEA_THR_FIN_SEC_empty();
 }
 
+static flea_err_t THR_flea_handle_handsh_msg(
+  flea_tls_ctx_t*              tls_ctx,
+  flea_tls_handsh_reader_t*    handsh_rdr__pt,
+  flea_tls__handshake_state_t* handshake_state,
+  flea_hash_ctx_t*             hash_ctx__pt
+)
+{
+  FLEA_THR_BEG_FUNC();
+  if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO)
+  {
+    if(flea_tls_handsh_reader_t__get_handsh_msg_type(handsh_rdr__pt) == HANDSHAKE_TYPE_SERVER_HELLO)
+    {
+      FLEA_CCALL(THR_flea_tls__read_server_hello(tls_ctx, handsh_rdr__pt));
+      printf("SM: read server hello\n");
+      handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE
+        | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
+        | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
+        | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
+    }
+    else
+    {
+      FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
+    }
+  }
+  else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE)
+  {
+    if(flea_tls_handsh_reader_t__get_handsh_msg_type(handsh_rdr__pt) == HANDSHAKE_TYPE_CERTIFICATE)
+    {
+      printf("SM: reading certificate\n");
+      // Certificate certificate_message; // TODO: don't need this
+      FLEA_CCALL(THR_flea_tls__read_certificate(tls_ctx, handsh_rdr__pt, &tls_ctx->server_pubkey));
+
+      // tls_ctx->server_pubkey = pubkey; // TODO: PUBKEY STILL NEEDED?
+    }
+    handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
+      | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
+      | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
+  }
+  else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE)
+  {
+    // TODO: include here: FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE and FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
+    if(flea_tls_handsh_reader_t__get_handsh_msg_type(handsh_rdr__pt) == HANDSHAKE_TYPE_SERVER_HELLO_DONE)
+    {
+      handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
+      if(flea_tls_handsh_reader_t__get_msg_rem_len(handsh_rdr__pt) != 0)
+      {
+        FLEA_THROW("invalid length of server hello done", FLEA_ERR_TLS_GENERIC);
+      }
+    }
+    // TODO: NO ERROR WHEN MISSING?
+  }
+  else if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED)
+  {
+    if(flea_tls_handsh_reader_t__get_handsh_msg_type(handsh_rdr__pt) == HANDSHAKE_TYPE_FINISHED)
+    {
+      FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, handsh_rdr__pt, hash_ctx__pt));
+
+      printf("Handshake completed!\n");
+
+      handshake_state->finished = FLEA_TRUE;
+    }
+    else
+    {
+      FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
+    }
+  }
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_handle_handsh_msg */
+
 flea_err_t THR_flea_tls__client_handshake(
-  flea_tls_ctx_t*   tls_ctx,
-  flea_rw_stream_t* rw_stream__pt
+  flea_tls_ctx_t* tls_ctx
+  // flea_rw_stream_t* rw_stream__pt
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -291,7 +360,7 @@ flea_err_t THR_flea_tls__client_handshake(
   // flea_tls__read_state_ctor(&read_state);
   flea_hash_ctx_t hash_ctx;
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256)); // TODO: initialize properly
-  flea_public_key_t pubkey;                                      // TODO: -> tls_ctx
+  // flea_public_key_t pubkey;                                      // TODO: -> tls_ctx
 
   // received records and handshakes for processing the current state
   // Record recv_record;
@@ -337,6 +406,13 @@ flea_err_t THR_flea_tls__client_handshake(
         {
           FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, &hash_ctx));
         }
+
+        FLEA_CCALL(THR_flea_handle_handsh_msg(tls_ctx, &handsh_rdr__t, &handshake_state, &hash_ctx));
+        if(handshake_state.finished == FLEA_TRUE)
+        {
+          break;
+        }
+        continue;
         // get type
         // if "not finished", then call tls_hs_rdr__register_hash_ctx
         //    => set the hasher in handsh_reader_t->flea_tls_handsh_reader_hlp_t,
@@ -405,7 +481,7 @@ flea_err_t THR_flea_tls__client_handshake(
       }
     }
     // We don't expect another message so it's our turn to continue
-    else
+    else // TODO: CONSIDER EXPLICIT MODELLING OF THIS CONDITION
     {
       if(handshake_state.send_client_cert == FLEA_TRUE)
       {
@@ -413,7 +489,9 @@ flea_err_t THR_flea_tls__client_handshake(
       }
 
       printf("SM sending client key_ex\n");
-      FLEA_CCALL(THR_flea_tls__send_client_key_exchange(tls_ctx, &hash_ctx, &pubkey));
+      // FLEA_CCALL(THR_flea_tls__send_client_key_exchange(tls_ctx, &hash_ctx, &pubkey));
+      // TODO: INIT PUBKEY IN CTOR!
+      FLEA_CCALL(THR_flea_tls__send_client_key_exchange(tls_ctx, &hash_ctx, &tls_ctx->server_pubkey));
       printf("SM sending change cipherspec\n");
       FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx, &hash_ctx));
 
@@ -453,73 +531,6 @@ flea_err_t THR_flea_tls__client_handshake(
 
       handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC;
       continue;
-    }
-
-
-    if(handshake_state.expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO)
-    {
-      if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_HELLO)
-      {
-        FLEA_CCALL(THR_flea_tls__read_server_hello(tls_ctx, &handsh_rdr__t));
-        printf("SM: read server hello\n");
-        handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE
-          | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
-          | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
-          | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
-        continue;
-      }
-      else
-      {
-        FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
-      }
-    }
-
-
-    if(handshake_state.expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE)
-    {
-      if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
-      {
-        printf("SM: reading certificate\n");
-        // Certificate certificate_message; // TODO: don't need this
-        FLEA_CCALL(THR_flea_tls__read_certificate(tls_ctx, &handsh_rdr__t, &pubkey));
-
-        tls_ctx->server_pubkey = pubkey; // TODO: PUBKEY STILL NEEDED?
-        continue;
-      }
-      handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
-        | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
-        | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
-    }
-
-    // TODO: include here: FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE and FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
-
-    if(handshake_state.expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE)
-    {
-      if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_HELLO_DONE)
-      {
-        handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
-        if(flea_tls_handsh_reader_t__get_msg_rem_len(&handsh_rdr__t) != 0)
-        {
-          FLEA_THROW("invalid length of server hello done", FLEA_ERR_TLS_GENERIC);
-        }
-        continue;
-      }
-    }
-
-    if(handshake_state.expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED)
-    {
-      if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
-      {
-        FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx));
-
-        printf("Handshake completed!\n");
-
-        break;
-      }
-      else
-      {
-        FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
-      }
     }
   }
   FLEA_THR_FIN_SEC_empty();
