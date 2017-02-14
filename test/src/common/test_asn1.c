@@ -5,26 +5,26 @@
 #include "flea/error_handling.h"
 #include "flea/error.h"
 #include "flea/alloc.h"
-#include "flea/data_source.h"
 #include "internal/common/ber_dec.h"
 #include "test_data_x509_certs.h"
+#include "flea/mem_read_stream.h"
 
 #include <string.h>
 
 flea_err_t THR_flea_test_ber_dec_basic()
 {
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   FLEA_DECL_BUF(version_buf__bu8, flea_u8_t, 10);
   flea_dtl_t version_len__dtl = 10;
   flea_ref_cu8_t oid_ref__t;
-  flea_data_source_mem_help_t hlp__t;
+  flea_mem_read_stream_help_t hlp__t;
   const flea_u8_t* oid__pu8;
   flea_bool_t found_tag__b;
   FLEA_THR_BEG_FUNC();
   FLEA_ALLOC_BUF(version_buf__bu8, 10);
   FLEA_CCALL(
-    THR_flea_data_source_t__ctor_memory(
+    THR_flea_rw_stream_t__ctor_memory(
       &source__t,
       flea_test_cert_1__au8,
       sizeof(flea_test_cert_1__au8),
@@ -121,7 +121,7 @@ flea_err_t THR_flea_test_ber_dec_basic()
   }
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(&dec__t));
   FLEA_THR_FIN_SEC(
-    flea_data_source_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source__t);
     flea_ber_dec_t__dtor(&dec__t);
     FLEA_FREE_BUF_FINAL(version_buf__bu8);
   );

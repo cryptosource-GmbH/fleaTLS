@@ -5,6 +5,7 @@
 #include "flea/error_handling.h"
 #include "flea/bin_utils.h"
 #include "flea/filter.h"
+#include "flea/alloc.h"
 
 flea_err_t THR_flea_rw_stream_t__ctor(
   flea_rw_stream_t*            stream__pt,
@@ -215,6 +216,27 @@ static flea_err_t THR_flea_rw_stream_t__inner_read(
   stream__pt->read_rem_len__u32 -= *data_len__pdtl;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_rw_stream_t__inner_read */
+
+// TODO: ALLOW OPTIONAL SKIP FUNCTION TO BE SET IN CTOR, WHICH IS FAVORED OVER
+// GENERIC ONE
+flea_err_t THR_flea_rw_stream_t__skip_read(
+  flea_rw_stream_t* stream__pt,
+  flea_dtl_t        skip_len__dtl
+)
+{
+  FLEA_DECL_BUF(skip_buf__bu8, flea_u8_t, 16);
+  FLEA_THR_BEG_FUNC();
+  FLEA_ALLOC_BUF(skip_buf__bu8, 16);
+  while(skip_len__dtl)
+  {
+    flea_al_u8_t skip__alu8 = FLEA_MIN(16, skip_len__dtl);
+    FLEA_CCALL(THR_flea_rw_stream_t__force_read(stream__pt, skip_buf__bu8, skip__alu8));
+    skip_len__dtl -= skip__alu8;
+  }
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF(skip_buf__bu8);
+  );
+}
 
 flea_err_t THR_flea_rw_stream_t__read(
   flea_rw_stream_t* stream__pt,

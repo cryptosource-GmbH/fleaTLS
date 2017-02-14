@@ -48,7 +48,6 @@ flea_err_t THR_flea_tls_handsh_reader_t__ctor(
     THR_flea_tls__read_handsh_hdr(
       &handsh_rdr__pt->rec_prot_rd_stream__t,
       &handsh_rdr__pt->hlp__t.handshake_msg_type__u8,
-      // &handsh_rdr__pt->hlp__t.remaining_bytes__u32,
       &read_limit__u32,
       handsh_rdr__pt->hlp__t.handsh_hdr__au8
     )

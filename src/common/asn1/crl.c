@@ -9,6 +9,7 @@
 #include "flea/namespace_asn1.h"
 #include "flea/asn1_date.h"
 #include "flea/pubkey.h"
+#include "flea/mem_read_stream.h"
 
 #ifdef FLEA_HAVE_ASYM_ALGS
 # define DELTA_CRL_INDIC_INDIC     27
@@ -22,8 +23,8 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(
 )
 {
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
-  flea_data_source_mem_help_t hlp__t;
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
+  flea_mem_read_stream_help_t hlp__t;
   flea_bool_t full_name_present__b;
   FLEA_THR_BEG_FUNC();
   if(!subject__pt->extensions__t.crl_distr_point__t.is_present__u8)
@@ -34,7 +35,7 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(
     );
   }
   FLEA_CCALL(
-    THR_flea_data_source_t__ctor_memory(
+    THR_flea_rw_stream_t__ctor_memory(
       &source__t,
       subject__pt->extensions__t.crl_distr_point__t.raw_ref__t.data__pcu8,
       subject__pt->extensions__t.crl_distr_point__t.raw_ref__t.len__dtl,
@@ -152,7 +153,7 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(
 
   FLEA_THR_FIN_SEC(
     flea_ber_dec_t__dtor(&dec__t);
-    flea_data_source_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source__t);
   );
 } /* THR_flea_crl__does_cdp_contain_distrib_point */
 
@@ -239,7 +240,7 @@ static flea_err_t THR_flea_crl__parse_extensions(
 )
 {
   FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
   FLEA_THR_BEG_FUNC();
   /* open extensions */
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
@@ -248,7 +249,7 @@ static flea_err_t THR_flea_crl__parse_extensions(
     flea_bool_t critical__b = FLEA_FALSE;
     flea_ref_cu8_t ext_oid_ref__t;
     flea_ref_cu8_t ostr__t;
-    flea_data_source_mem_help_t hlp__t;
+    flea_mem_read_stream_help_t hlp__t;
     /* open this extension */
     FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
     FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_oid(dec__pt, &ext_oid_ref__t));
@@ -263,7 +264,7 @@ static flea_err_t THR_flea_crl__parse_extensions(
       )
     );
 
-    FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, ostr__t.data__pcu8, ostr__t.len__dtl, &hlp__t));
+    FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&source__t, ostr__t.data__pcu8, ostr__t.len__dtl, &hlp__t));
     FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &source__t, 0));
     if(!(ext_oid_ref__t.len__dtl == 3 && ext_oid_ref__t.data__pcu8[0] == 0x55 && ext_oid_ref__t.data__pcu8[1] == 0x1D))
     {
@@ -352,7 +353,7 @@ static flea_err_t THR_flea_crl__parse_extensions(
     }
 
     flea_ber_dec_t__dtor(&cont_dec__t);
-    flea_data_source_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source__t);
     /* close extension sequence */
     FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(dec__pt));
   } /* while(flea_ber_dec_t__has_current_more_data(dec__pt)) */
@@ -360,7 +361,7 @@ static flea_err_t THR_flea_crl__parse_extensions(
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
   FLEA_THR_FIN_SEC(
     flea_ber_dec_t__dtor(&cont_dec__t);
-    flea_data_source_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source__t);
   );
 } /* THR_flea_crl__parse_extensions */
 
@@ -375,13 +376,13 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
   flea_gmt_time_t*            latest_this_update__pt
 )
 {
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source_tbs__t, flea_data_source_t);
+  FLEA_DECL_OBJ(source_tbs__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec_tbs__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(pubkey__t, flea_public_key_t);
-  flea_data_source_mem_help_t hlp__t;
-  flea_data_source_mem_help_t hlp_tbs__t;
+  flea_mem_read_stream_help_t hlp__t;
+  flea_mem_read_stream_help_t hlp_tbs__t;
   flea_ref_cu8_t tbs__rcu8;
   flea_u32_t enc_version__u32;
   flea_x509_algid_ref_t algid_ref_1__t;
@@ -396,12 +397,12 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
   flea_ref_cu8_t sig_content__rcu8;
   FLEA_THR_BEG_FUNC();
 
-  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source_tbs__t, crl_der__pcu8, crl_der_len__dtl, &hlp_tbs__t));
+  FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&source_tbs__t, crl_der__pcu8, crl_der_len__dtl, &hlp_tbs__t));
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec_tbs__t, &source_tbs__t, 0));
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec_tbs__t));
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&dec_tbs__t, &tbs__rcu8));
 
-  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, crl_der__pcu8, crl_der_len__dtl, &hlp__t));
+  FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&source__t, crl_der__pcu8, crl_der_len__dtl, &hlp__t));
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0));
 
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t)); // crl seq
@@ -555,8 +556,8 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
 
 
   FLEA_THR_FIN_SEC(
-    flea_data_source_t__dtor(&source__t);
-    flea_data_source_t__dtor(&source_tbs__t);
+    flea_rw_stream_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source_tbs__t);
     flea_ber_dec_t__dtor(&dec__t);
     flea_ber_dec_t__dtor(&dec_tbs__t);
     flea_public_key_t__dtor(&pubkey__t);

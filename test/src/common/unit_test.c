@@ -135,7 +135,7 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_test_incr_enc_BE_int());
       // #endif
 
-      CALL_TEST(THR_flea_test_data_source_mem());
+      CALL_TEST(THR_flea_test_mem_read_stream());
 
       CALL_TEST(THR_flea_test_ber_dec_basic());
 

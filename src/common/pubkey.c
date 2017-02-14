@@ -13,6 +13,7 @@
 #include "flea/pk_api.h"
 #include "flea/ecc_named_curves.h"
 #include "internal/common/oid.h"
+#include "flea/mem_read_stream.h"
 
 #ifdef FLEA_HAVE_ASYM_ALGS
 //
@@ -138,12 +139,12 @@ static flea_err_t THR_flea_x509_decode_ecdsa_signature(
   flea_al_u16_t r_offs, s_offs, diff, insert_offs;
 
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
-  flea_data_source_mem_help_t hlp__t;
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
+  flea_mem_read_stream_help_t hlp__t;
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(
-    THR_flea_data_source_t__ctor_memory(
+    THR_flea_rw_stream_t__ctor_memory(
       &source__t,
       x509_enc_sig__pt->data__pcu8,
       x509_enc_sig__pt->len__dtl,
@@ -182,7 +183,7 @@ static flea_err_t THR_flea_x509_decode_ecdsa_signature(
   *result_len__palu16 = ref_r__t.len__dtl + ref_s__t.len__dtl + diff;
 
   FLEA_THR_FIN_SEC(
-    flea_data_source_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source__t);
     flea_ber_dec_t__dtor(&dec__t);
 
   );
@@ -234,15 +235,15 @@ flea_err_t THR_flea_x509_parse_ecc_public_params(
   flea_ec_gfp_dom_par_ref_t* dom_par__pt
 )
 {
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
-  flea_data_source_mem_help_t hlp__t;
+  flea_mem_read_stream_help_t hlp__t;
   flea_bool_t found__b;
   FLEA_THR_BEG_FUNC();
 
 
   FLEA_CCALL(
-    THR_flea_data_source_t__ctor_memory(
+    THR_flea_rw_stream_t__ctor_memory(
       &source__t,
       encoded_parameters__pt->data__pcu8,
       encoded_parameters__pt->len__dtl,
@@ -357,7 +358,7 @@ flea_err_t THR_flea_x509_parse_ecc_public_params(
   }
 
   FLEA_THR_FIN_SEC(
-    flea_data_source_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source__t);
     flea_ber_dec_t__dtor(&dec__t);
   );
 } /* THR_flea_x509_parse_ecc_public_params */
@@ -370,12 +371,12 @@ flea_err_t THR_flea_x509_parse_rsa_public_key(
   flea_ref_cu8_t*       pub_exp__pt
 )
 {
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
-  flea_data_source_mem_help_t hlp__t;
+  flea_mem_read_stream_help_t hlp__t;
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
-    THR_flea_data_source_t__ctor_memory(
+    THR_flea_rw_stream_t__ctor_memory(
       &source__t,
       public_key_value__pt->data__pcu8,
       public_key_value__pt->len__dtl,
@@ -392,7 +393,7 @@ flea_err_t THR_flea_x509_parse_rsa_public_key(
   /* close sequence */
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
   FLEA_THR_FIN_SEC(
-    flea_data_source_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source__t);
     flea_ber_dec_t__dtor(&dec__t);
   );
 }
@@ -470,14 +471,14 @@ flea_err_t THR_flea_public_key_t__ctor(
 )
 {
   FLEA_DECL_OBJ(key_dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
-  flea_data_source_mem_help_t hlp__t;
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
+  flea_mem_read_stream_help_t hlp__t;
   FLEA_THR_BEG_FUNC();
   flea_ref_cu8_t public_key_as_bitstr__t;
   flea_ref_cu8_t public_key_value__t; /* BIT STRING value */
   key__pt->key_type__t = key_type;
   FLEA_CCALL(
-    THR_flea_data_source_t__ctor_memory(
+    THR_flea_rw_stream_t__ctor_memory(
       &source__t,
       key_as_bit_string_tlv__prcu8->data__pcu8,
       key_as_bit_string_tlv__prcu8->len__dtl,
@@ -528,7 +529,7 @@ flea_err_t THR_flea_public_key_t__ctor(
     FLEA_THROW("key type is not supported not supported", FLEA_ERR_INV_KEY_TYPE);
   }
   FLEA_THR_FIN_SEC(
-    flea_data_source_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source__t);
     flea_ber_dec_t__dtor(&key_dec__t);
   );
 } /* THR_flea_public_key_t__ctor */

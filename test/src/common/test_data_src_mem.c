@@ -5,10 +5,10 @@
 #include "flea/error_handling.h"
 #include "flea/error.h"
 #include "flea/alloc.h"
-#include "flea/data_source.h"
 #include <string.h>
+#include "flea/mem_read_stream.h"
 
-flea_err_t THR_flea_test_data_source_mem()
+flea_err_t THR_flea_test_mem_read_stream()
 {
   const flea_u8_t source_mem__au8[64] = {
     0xc3, 0x0e, 0x32, 0xff, 0xed, 0xc0, 0x77, 0x4e, 0x6a, 0xff, 0x6a, 0xf0, 0x86, 0x9f, 0x71, 0xaa,
@@ -18,14 +18,14 @@ flea_err_t THR_flea_test_data_source_mem()
   };
 
   FLEA_DECL_BUF(trg_buf__bu8, flea_u8_t, sizeof(source_mem__au8));
-  flea_data_source_mem_help_t hlp__t;
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
+  flea_mem_read_stream_help_t hlp__t;
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
   flea_dtl_t nb_read = 60;
   FLEA_THR_BEG_FUNC();
   FLEA_ALLOC_BUF(trg_buf__bu8, sizeof(source_mem__au8));
   memset(trg_buf__bu8, 0, sizeof(source_mem__au8));
-  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, source_mem__au8, sizeof(source_mem__au8), &hlp__t));
-  FLEA_CCALL(THR_flea_data_source_t__read(&source__t, &nb_read, trg_buf__bu8));
+  FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&source__t, source_mem__au8, sizeof(source_mem__au8), &hlp__t));
+  FLEA_CCALL(THR_flea_rw_stream_t__read(&source__t, trg_buf__bu8, &nb_read));
   if(nb_read != 60)
   {
     FLEA_THROW("wrong number of read bytes", FLEA_ERR_FAILED_TEST);
@@ -36,7 +36,7 @@ flea_err_t THR_flea_test_data_source_mem()
     FLEA_THROW("target buffer overwrite", FLEA_ERR_FAILED_TEST);
   }
   nb_read = 10;
-  FLEA_CCALL(THR_flea_data_source_t__read(&source__t, &nb_read, &trg_buf__bu8[60]));
+  FLEA_CCALL(THR_flea_rw_stream_t__read(&source__t, &trg_buf__bu8[60], &nb_read));
   if(nb_read != 4)
   {
     FLEA_THROW("wrong number of read bytes", FLEA_ERR_FAILED_TEST);
@@ -46,7 +46,7 @@ flea_err_t THR_flea_test_data_source_mem()
     FLEA_THROW("error with content", FLEA_ERR_FAILED_TEST);
   }
   FLEA_THR_FIN_SEC(
-    flea_data_source_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source__t);
     FLEA_FREE_BUF_FINAL(trg_buf__bu8);
   );
 } /* THR_flea_test_data_source_mem */

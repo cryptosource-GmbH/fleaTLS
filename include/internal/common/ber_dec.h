@@ -5,8 +5,8 @@
 
 #include "internal/common/default.h"
 #include "flea/ber_dec_fwd.h"
-#include "flea/data_source.h"
 #include "flea/util.h"
+#include "flea/rw_stream.h"
 
 #define FLEA_BER_DEC_MAX_NESTING_LEVEL 15
 
@@ -58,18 +58,18 @@ typedef enum { flea_asn1_utc_time, flea_asn1_generalized_time } flea_asn1_time_t
 
 struct struct_flea_ber_dec_t
 {
-  flea_data_source_t* source__pt;
-  flea_al_u8_t        level__alu8;
-  flea_al_u8_t        alloc_levels__alu8;
+  flea_rw_stream_t* source__pt;
+  flea_al_u8_t      level__alu8;
+  flea_al_u8_t      alloc_levels__alu8;
 #ifdef FLEA_USE_HEAP_BUF
-  flea_dtl_t*         allo_open_cons__bdtl;
+  flea_dtl_t*       allo_open_cons__bdtl;
 #else
-  flea_dtl_t          allo_open_cons__bdtl[FLEA_BER_DEC_MAX_NESTING_LEVEL];
+  flea_dtl_t        allo_open_cons__bdtl[FLEA_BER_DEC_MAX_NESTING_LEVEL];
 #endif
-  flea_dtl_t          length_limit__dtl;
-  flea_asn1_tag_t     stored_tag_type__t;
-  flea_u8_t           stored_tag_class_form__u8;
-  flea_u8_t           stored_tag_nb_bytes__u8;
+  flea_dtl_t        length_limit__dtl;
+  flea_asn1_tag_t   stored_tag_type__t;
+  flea_u8_t         stored_tag_class_form__u8;
+  flea_u8_t         stored_tag_nb_bytes__u8;
 };
 
 #ifdef FLEA_USE_HEAP_BUF
@@ -90,9 +90,9 @@ struct struct_flea_ber_dec_t
  *
  */
 flea_err_t THR_flea_ber_dec_t__ctor(
-  flea_ber_dec_t*     dec,
-  flea_data_source_t* source,
-  flea_dtl_t          length_limit
+  flea_ber_dec_t*   dec,
+  flea_rw_stream_t* read_stream__pt,
+  flea_dtl_t        length_limit
 );
 
 /**

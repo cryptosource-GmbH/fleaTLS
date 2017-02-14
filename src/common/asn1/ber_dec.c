@@ -6,6 +6,7 @@
 #include "flea/alloc.h"
 #include "flea/array_util.h"
 #include "flea/namespace_asn1.h"
+#include "flea/mem_read_stream.h"
 
 #define FLEA_BER_DEC_LEVELS_PRE_ALLOC 5
 
@@ -18,14 +19,14 @@ typedef enum { extr_ref_to_tlv, extr_ref_to_v, extr_read_v } access_mode_t;
 
 
 flea_err_t THR_flea_ber_dec_t__ctor(
-  flea_ber_dec_t*     dec__pt,
-  flea_data_source_t* source__pt,
-  flea_dtl_t          length_limit__dtl
+  flea_ber_dec_t*   dec__pt,
+  flea_rw_stream_t* read_stream__pt,
+  flea_dtl_t        length_limit__dtl
 )
 {
   FLEA_THR_BEG_FUNC();
   dec__pt->level__alu8 = 0;
-  dec__pt->source__pt  = source__pt;
+  dec__pt->source__pt  = read_stream__pt;
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM_ARR(dec__pt->allo_open_cons__bdtl, FLEA_BER_DEC_LEVELS_PRE_ALLOC);
   dec__pt->alloc_levels__alu8 = FLEA_BER_DEC_LEVELS_PRE_ALLOC;
@@ -59,7 +60,8 @@ static flea_err_t THR_flea_ber_dec_t__read_byte_and_consume_length(
 )
 {
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_data_source_t__read_byte(dec__pt->source__pt, out_mem__pu8));
+  // FLEA_CCALL(THR_flea_rw_stream_t__read_byte(dec__pt->source__pt, out_mem__pu8));
+  FLEA_CCALL(THR_flea_rw_stream_t__read_byte(dec__pt->source__pt, out_mem__pu8));
   FLEA_CCALL(THR_flea_ber_dec_t__consume_current_length(dec__pt, 1));
   FLEA_THR_FIN_SEC_empty();
 }
@@ -341,7 +343,7 @@ flea_err_t THR_flea_ber_dec_t__close_constructed_skip_remaining(flea_ber_dec_t* 
   {
     /* if a tag was cached, we loose it now */
     dec__pt->stored_tag_nb_bytes__u8 = 0;
-    FLEA_CCALL(THR_flea_data_source_t__skip(dec__pt->source__pt, remaining__dtl));
+    FLEA_CCALL(THR_flea_rw_stream_t__skip_read(dec__pt->source__pt, remaining__dtl));
   }
   dec__pt->level__alu8--;
 
@@ -391,7 +393,11 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(
   }
   if(ref_extract_mode__t == extr_ref_to_tlv)
   {
-    *raw__ppu8 = flea_data_source_t__get_memory_pointer_to_current(dec__pt->source__pt);
+    // TODO: HACK FOR MEMORY-READ-STREAMS:
+    // *raw__ppu8 = flea_rw_stream_t__get_memory_pointer_to_current(dec__pt->source__pt);
+    *raw__ppu8 =
+      &((flea_mem_read_stream_help_t*) dec__pt->source__pt->custom_obj__pv)->data__pcu8[((flea_mem_read_stream_help_t*)
+      dec__pt->source__pt->custom_obj__pv)->offs__dtl];
     if(!*raw__ppu8)
     {
       FLEA_THROW(
@@ -417,7 +423,12 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(
   FLEA_CCALL(THR_flea_ber_dec_t__decode_length(dec__pt, &length__dtl));
   if(ref_extract_mode__t == extr_ref_to_v || ref_extract_mode__t == extr_ref_to_tlv)
   {
-    p__pu8 = flea_data_source_t__get_memory_pointer_to_current(dec__pt->source__pt);
+    // TODO: HACK FOR MEMORY-READ-STREAMS:
+    // p__pu8 = flea_rw_stream_t__get_memory_pointer_to_current(dec__pt->source__pt);
+    p__pu8 =
+      &((flea_mem_read_stream_help_t*) dec__pt->source__pt->custom_obj__pv)->data__pcu8[((flea_mem_read_stream_help_t*)
+      dec__pt->source__pt->custom_obj__pv)->offs__dtl];
+
 
     if(ref_extract_mode__t != extr_ref_to_tlv)
     {
@@ -432,7 +443,7 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(
   FLEA_CCALL(THR_flea_ber_dec_t__consume_current_length(dec__pt, length__dtl));
   if(ref_extract_mode__t == extr_ref_to_v || ref_extract_mode__t == extr_ref_to_tlv)
   {
-    FLEA_CCALL(THR_flea_data_source_t__skip(dec__pt->source__pt, length__dtl));
+    FLEA_CCALL(THR_flea_rw_stream_t__skip_read(dec__pt->source__pt, length__dtl));
   }
   else // read_v
   {
@@ -440,7 +451,7 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(
     {
       FLEA_THROW("target memory area for ASN.1 decoding output too small", FLEA_ERR_ASN1_DEC_TRGT_BUF_TOO_SMALL);
     }
-    FLEA_CCALL(THR_flea_data_source_t__force_read(dec__pt->source__pt, length__dtl, (flea_u8_t *) *raw__ppu8));
+    FLEA_CCALL(THR_flea_rw_stream_t__force_read(dec__pt->source__pt, (flea_u8_t*) *raw__ppu8, length__dtl));
     *raw_len__pdtl = length__dtl;
   }
 
@@ -782,7 +793,7 @@ flea_err_t THR_flea_ber_dec_t__read_value_raw_cft_opt(
   return THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(
     dec__pt,
     cft,
-    (const flea_u8_t **) &out_mem_local__pu8,
+    (const flea_u8_t**) &out_mem_local__pu8,
     out_mem_len__pdtl,
     optional_found__pb,
     extr_read_v

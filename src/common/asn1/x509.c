@@ -8,7 +8,7 @@
 #include "flea/array_util.h"
 #include "flea/namespace_asn1.h"
 #include "flea/asn1_date.h"
-
+#include "flea/mem_read_stream.h"
 #include <string.h>
 
 #define ID_UNSUPP_EXT_OID 0
@@ -185,7 +185,7 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
   flea_bool_t critical__b;
 
   FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
   FLEA_THR_BEG_FUNC();
   /* open implicit */
   FLEA_CCALL(
@@ -208,7 +208,7 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
     flea_al_u8_t ext_indic_pos__alu8;
     flea_ref_cu8_t ostr__t;
     flea_al_u16_t oid_indicator__alu16 = 0;
-    flea_data_source_mem_help_t hlp__t;
+    flea_mem_read_stream_help_t hlp__t;
     /* open this extension */
     FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
     FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_oid(dec__pt, &ext_oid_ref__t));
@@ -246,7 +246,7 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
       oid_indicator__alu16 = ID_UNSUPP_EXT_OID;
     }
     /* standard extension */
-    FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, ostr__t.data__pcu8, ostr__t.len__dtl, &hlp__t));
+    FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&source__t, ostr__t.data__pcu8, ostr__t.len__dtl, &hlp__t));
     FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &source__t, 0));
     switch(oid_indicator__alu16)
     {
@@ -350,7 +350,7 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
 
 
     flea_ber_dec_t__dtor(&cont_dec__t);
-    flea_data_source_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source__t);
     /* close extension sequence */
     FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
   } /* while(flea_ber_dec_t__has_current_more_data(dec__pt)) */
@@ -362,7 +362,7 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
   FLEA_THR_FIN_SEC(
     flea_ber_dec_t__dtor(&cont_dec__t);
-    flea_data_source_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source__t);
   );
 } /* THR_flea_x509_cert_ref__t__parse_extensions */
 
@@ -371,15 +371,15 @@ flea_err_t THR_flea_x509__parse_dn(
   flea_ber_dec_t*     dec__pt
 )
 {
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
-  flea_data_source_mem_help_t hlp__t;
+  flea_mem_read_stream_help_t hlp__t;
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(dec__pt, &dn_ref__pt->raw_dn_complete__t));
 
   FLEA_CCALL(
-    THR_flea_data_source_t__ctor_memory(
+    THR_flea_rw_stream_t__ctor_memory(
       &source__t,
       dn_ref__pt->raw_dn_complete__t.data__pcu8,
       dn_ref__pt->raw_dn_complete__t.len__dtl,
@@ -450,7 +450,7 @@ flea_err_t THR_flea_x509__parse_dn(
   }
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
   FLEA_THR_FIN_SEC(
-    flea_data_source_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source__t);
     flea_ber_dec_t__dtor(&dec__t);
   );
 } /* THR_flea_x509__parse_dn */
@@ -461,19 +461,19 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
   flea_al_u16_t         der_encoded_cert_len__alu16
 )
 {
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
-  FLEA_DECL_OBJ(source_tbs__t, flea_data_source_t);
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
+  FLEA_DECL_OBJ(source_tbs__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(dec_tbs__t, flea_ber_dec_t);
-  flea_data_source_mem_help_t hlp__t;
-  flea_data_source_mem_help_t hlp_tbs__t;
+  flea_mem_read_stream_help_t hlp__t;
+  flea_mem_read_stream_help_t hlp_tbs__t;
   flea_bool_t found_tag__b;
   flea_x509_algid_ref_t outer_sig_algid__t;
 
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(
-    THR_flea_data_source_t__ctor_memory(
+    THR_flea_rw_stream_t__ctor_memory(
       &source_tbs__t,
       der_encoded_cert__pu8,
       der_encoded_cert_len__alu16,
@@ -486,7 +486,7 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
 
 
   FLEA_CCALL(
-    THR_flea_data_source_t__ctor_memory(
+    THR_flea_rw_stream_t__ctor_memory(
       &source__t,
       der_encoded_cert__pu8,
       der_encoded_cert_len__alu16,
@@ -577,8 +577,8 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
     )
   );
   FLEA_THR_FIN_SEC(
-    flea_data_source_t__dtor(&source__t);
-    flea_data_source_t__dtor(&source_tbs__t);
+    flea_rw_stream_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source_tbs__t);
     flea_ber_dec_t__dtor(&dec__t);
     flea_ber_dec_t__dtor(&dec_tbs__t);
   );
