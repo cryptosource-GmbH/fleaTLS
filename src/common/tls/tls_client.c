@@ -297,8 +297,8 @@ flea_err_t THR_flea_tls__client_handshake(
   // Record recv_record;
 
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
-  FLEA_DECL_OBJ(rec_prot_rd_stream__t, flea_rw_stream_t);
-  flea_tls_rec_prot_rdr_hlp_t rec_prot_rdr_hlp__t;
+  // FLEA_DECL_OBJ(rec_prot_rd_stream__t, flea_rw_stream_t);
+  // flea_tls_rec_prot_rdr_hlp_t rec_prot_rdr_hlp__t;
   // TO/DO: this must be in tls_ctx_ctor:
   // tls_ctx->rw_stream__pt = rw_stream__pt;
   while(1)
@@ -329,26 +329,10 @@ flea_err_t THR_flea_tls__client_handshake(
       // TODO: record type argument has to be removed because it's determined by the current connection state in tls_ctx
       ContentType cont_type__e;
       FLEA_CCALL(THR_flea_tls_rec_prot_t__get_current_record_type(&tls_ctx->rec_prot__t, &cont_type__e));
-      // TODO: ^REPLACE BY RECORD PROTOCOL READ
 
-      /*if(read_state.connection_closed == FLEA_TRUE)
-       * {
-       * printf("peer closed connection\n");
-       * break;
-       * }*/
       if(cont_type__e == CONTENT_TYPE_HANDSHAKE)
       {
-        //  TODO: USE INPUT FROM READ DATA FROM RECORD PROTOCOL (REPLACE FIRST
-        //  ARG)
-        FLEA_CCALL(
-          THR_flea_rw_stream_t__ctor_rec_prot(
-            &rec_prot_rd_stream__t,
-            &rec_prot_rdr_hlp__t,
-            &tls_ctx->rec_prot__t,
-            CONTENT_TYPE_HANDSHAKE
-          )
-        );
-        FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &rec_prot_rd_stream__t));
+        FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t));
         if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_FINISHED)
         {
           FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, &hash_ctx));
@@ -411,11 +395,12 @@ flea_err_t THR_flea_tls__client_handshake(
       }
       else if(cont_type__e == CONTENT_TYPE_ALERT)
       {
-        // TODO: handle alert message properly
+        // TODO: handle alert message properly,i.e. close connection
         FLEA_THROW("Received unhandled alert", FLEA_ERR_TLS_GENERIC);
       }
       else
       {
+        // TODO: SEND ALERT, CLOSE CONNECTION
         FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
       }
     }

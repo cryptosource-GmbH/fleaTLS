@@ -4,6 +4,8 @@
 #include "flea/types.h"
 #include "flea/rw_stream.h"
 #include "internal/common/tls/handsh_read_stream.h"
+#include "internal/common/tls/tls_rec_prot_rdr.h"
+#include "internal/common/tls_rec_prot.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,6 +16,9 @@ typedef struct
 {
   flea_rw_stream_t             handshake_read_stream__t;
   flea_tls_handsh_reader_hlp_t hlp__t;
+
+  flea_tls_rec_prot_rdr_hlp_t  rec_prot_rdr_hlp__t;
+  flea_rw_stream_t             rec_prot_rd_stream__t;
 } flea_tls_handsh_reader_t;
 
 #define flea_tls_handsh_reader_t__INIT_VALUE {.handshake_read_stream__t.custom_obj__pv = NULL}
@@ -23,7 +28,7 @@ typedef struct
 
 flea_err_t THR_flea_tls_handsh_reader_t__ctor(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
-  flea_rw_stream_t*         rec_prot_read_stream__pt
+  flea_tls_rec_prot_t*      rec_prot__pt
 );
 
 flea_err_t THR_flea_tls__read_handsh_hdr(

@@ -29,14 +29,23 @@ flea_err_t THR_flea_tls__read_handsh_hdr(
 
 flea_err_t THR_flea_tls_handsh_reader_t__ctor(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
-  flea_rw_stream_t*         rec_prot_read_stream__pt
+  flea_tls_rec_prot_t*      rec_prot__pt
 )
 {
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(
+    THR_flea_rw_stream_t__ctor_rec_prot(
+      &handsh_rdr__pt->rec_prot_rd_stream__t,
+      &handsh_rdr__pt->rec_prot_rdr_hlp__t,
+      rec_prot__pt,
+      CONTENT_TYPE_HANDSHAKE
+    )
+  );
+
+  FLEA_CCALL(
     THR_flea_tls__read_handsh_hdr(
-      rec_prot_read_stream__pt,
+      &handsh_rdr__pt->rec_prot_rd_stream__t,
       &handsh_rdr__pt->hlp__t.handshake_msg_type__u8,
       &handsh_rdr__pt->hlp__t.remaining_bytes__u32,
       handsh_rdr__pt->hlp__t.handsh_hdr__au8
@@ -46,7 +55,7 @@ flea_err_t THR_flea_tls_handsh_reader_t__ctor(
     THR_flea_rw_stream_t__ctor_tls_handsh_reader(
       &handsh_rdr__pt->handshake_read_stream__t,
       &handsh_rdr__pt->hlp__t,
-      rec_prot_read_stream__pt,
+      &handsh_rdr__pt->rec_prot_rd_stream__t,
       handsh_rdr__pt->hlp__t.remaining_bytes__u32
     )
   );
