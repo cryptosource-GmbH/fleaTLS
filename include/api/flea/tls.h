@@ -11,7 +11,7 @@
 #include "flea/rw_stream.h"
 #include "internal/common/tls_ciph_suite.h"
 #include "internal/common/tls_rec_prot.h"
-
+#include "flea/util.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -324,6 +324,14 @@ flea_err_t THR_flea_tls__client_handshake(
   flea_tls_ctx_t*   tls_ctx,
   flea_rw_stream_t* rw_stream__pt
 );
+
+flea_err_t THR_flea_tls__server_handshake(
+  flea_tls_ctx_t*   tls_ctx,
+  flea_rw_stream_t* rw_stream__pt,
+  flea_ref_cu8_t*   cert_chain,
+  flea_u32_t        cert_chain_len
+);
+
 flea_err_t THR_flea_tls__send_app_data(
   flea_tls_ctx_t* tls_ctx,
   flea_u8_t*      data,

@@ -55,6 +55,15 @@ void flea__encode_U32_BE(
   res[3] = to_enc & 0xFF;
 }
 
+void flea__encode_U16_BE(
+  flea_u16_t to_enc,
+  flea_u8_t  res[2]
+)
+{
+  res[0] = to_enc >> 8;
+  res[1] = to_enc & 0xFF;
+}
+
 flea_u32_t flea__decode_U32_BE(const flea_u8_t enc[4])
 {
   return ((flea_u32_t) enc[0] << 24)

@@ -41,6 +41,10 @@ int main(
   {
     res = flea_start_tls_client(cmdl_args);
   }
+  else if(cmdl_args.have_index("tls_server"))
+  {
+    res = flea_start_tls_server(cmdl_args);
+  }
   else
   {
     flea_u32_t reps = 1;

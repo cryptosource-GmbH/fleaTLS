@@ -82,6 +82,17 @@ void flea__encode_U32_BE(
 );
 
 /**
+ * Encode a 2-byte value big endian.
+ *
+ * @param to_enc the value to encode
+ * @param res 2-byte memory location to store the encoded result
+ */
+void flea__encode_U16_BE(
+  flea_u16_t to_enc,
+  flea_u8_t  res[2]
+);
+
+/**
  * Encode a 4-byte value little endian.
  *
  * @param to_enc the value to encode
