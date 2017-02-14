@@ -69,6 +69,7 @@ typedef struct
   flea_u32_t    length; // actually 24 Bit type !!
   flea_u8_t*    data;
 } HandshakeMessage;
+#if 0
 
 typedef struct
 {
@@ -82,7 +83,6 @@ typedef struct
   // flea_u8_t                    compression_methods_length;
   flea_u8_t*                   extensions; // 2^16 bytes
 } flea_tls__client_hello_t;
-
 typedef struct
 {
   flea_tls__protocol_version_t server_version;
@@ -100,6 +100,7 @@ typedef struct
   flea_u8_t* certificate_list;
   flea_u32_t certificate_list_length;
 } Certificate;
+#endif // if 0
 
 typedef enum                 // dhe_dss, dhe_rsa, dh_anon,
 { KEY_EXCHANGE_ALGORITHM_RSA // ,
