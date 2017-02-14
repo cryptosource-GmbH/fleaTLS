@@ -138,7 +138,7 @@ typedef struct
 
 typedef struct
 {
-  flea_ref_cu8_t tbs_ref__t;
+  // flea_ref_cu8_t tbs_ref__t;
 
   /**
    *  the interpreted version number (not the encoded integer)
@@ -165,11 +165,12 @@ typedef struct
 
   flea_ref_cu8_t              cert_signature_as_bit_string__t;
 
-  flea_bool_t                 is_trusted__b;
+  //  flea_bool_t                 is_trusted__b;
 } flea_x509_cert_ref_t;
 
 
 #define flea_x509_cert_ref_t__INIT_VALUE {.version__u8 = 0}
+#define flea_x509_cert_ref_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
 
 #define flea_x509_cert_ref_t__dtor(__p)
 
