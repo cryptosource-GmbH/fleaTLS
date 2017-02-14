@@ -37,6 +37,9 @@ static flea_al_u16_t find_cert(
       ))
     {
       /* compare tbs */
+
+      /*flea_ref_cu8_t tbs1__rcu8, tbs2__rcu8;
+       * flea_err_t err = THR_flea_x509_cert__get_ref_to_tbs(*/
       if(!flea_rcu8_cmp(&cert_to_find__pt->tbs_ref__t, &cert_collection__bt[i].tbs_ref__t))
       {
         if(FLEA_DER_REF_IS_ABSENT(&cert_collection__bt[i].cert_signature_as_bit_string__t) ||

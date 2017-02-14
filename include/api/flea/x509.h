@@ -201,4 +201,10 @@ flea_err_t THR_flea_x509__process_alg_ids(
   flea_x509_algid_ref_t*       tbs_ref__pt,
   const flea_x509_algid_ref_t* outer_ref__pt
 );
+
+flea_err_t THR_flea_x509_cert__get_ref_to_tbs(
+  const flea_u8_t* der_encoded_cert__pu8,
+  flea_al_u16_t    der_encoded_cert_len__alu16,
+  flea_ref_cu8_t*  ref_to_tbs__pt
+);
 #endif /* h-guard */

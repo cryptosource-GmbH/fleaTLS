@@ -455,6 +455,35 @@ flea_err_t THR_flea_x509__parse_dn(
   );
 } /* THR_flea_x509__parse_dn */
 
+flea_err_t THR_flea_x509_cert__get_ref_to_tbs(
+  const flea_u8_t* der_encoded_cert__pu8,
+  flea_al_u16_t    der_encoded_cert_len__alu16,
+  flea_ref_cu8_t*  ref_to_tbs__pt
+)
+{
+  FLEA_DECL_OBJ(source_tbs__t, flea_rw_stream_t);
+  FLEA_DECL_OBJ(dec_tbs__t, flea_ber_dec_t);
+  flea_mem_read_stream_help_t hlp_tbs__t;
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__ctor_memory(
+      &source_tbs__t,
+      der_encoded_cert__pu8,
+      der_encoded_cert_len__alu16,
+      &hlp_tbs__t
+    )
+  );
+
+  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec_tbs__t, &source_tbs__t, 0));
+  FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec_tbs__t));
+  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&dec_tbs__t, ref_to_tbs__pt));
+  FLEA_THR_FIN_SEC(
+    flea_rw_stream_t__dtor(&source_tbs__t);
+    flea_ber_dec_t__dtor(&dec_tbs__t);
+  );
+}
+
 flea_err_t THR_flea_x509_cert_ref_t__ctor(
   flea_x509_cert_ref_t* cert_ref__pt,
   const flea_u8_t*      der_encoded_cert__pu8,

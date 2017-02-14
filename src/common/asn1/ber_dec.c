@@ -395,6 +395,8 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(
   {
     // TODO: HACK FOR MEMORY-READ-STREAMS:
     // *raw__ppu8 = flea_rw_stream_t__get_memory_pointer_to_current(dec__pt->source__pt);
+    // TODO: instead of providing ref, allocate space, cp the data, and return
+    // that pointer. in case of data source memory however, give direct access.
     *raw__ppu8 =
       &((flea_mem_read_stream_help_t*) dec__pt->source__pt->custom_obj__pv)->data__pcu8[((flea_mem_read_stream_help_t*)
       dec__pt->source__pt->custom_obj__pv)->offs__dtl];
