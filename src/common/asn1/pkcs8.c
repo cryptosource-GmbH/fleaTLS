@@ -9,6 +9,7 @@
 #include "flea/pkcs8.h"
 #include "flea/bin_utils.h"
 #include "internal/common/oid.h"
+#include "flea/mem_read_stream.h"
 
 #ifdef FLEA_HAVE_ASYM_ALGS
 # ifdef FLEA_HAVE_RSA
@@ -162,13 +163,13 @@ static flea_err_t THR_flea_create_private_and_or_public_key_from_pkcs8(
 
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
-  FLEA_DECL_OBJ(cont_source__t, flea_data_source_t);
-  flea_data_source_mem_help_t hlp__t;
-  flea_data_source_mem_help_t cont_hlp__t;
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
+  FLEA_DECL_OBJ(cont_source__t, flea_rw_stream_t);
+  flea_mem_read_stream_help_t hlp__t;
+  flea_mem_read_stream_help_t cont_hlp__t;
   flea_x509_algid_ref_t algid_ref__t;
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&source__t, der_key__pcu8, der_key_len__alu16, &hlp__t));
+  FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&source__t, der_key__pcu8, der_key_len__alu16, &hlp__t));
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0));
 
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
@@ -191,7 +192,7 @@ static flea_err_t THR_flea_create_private_and_or_public_key_from_pkcs8(
     )
   );
 
-  FLEA_CCALL(THR_flea_data_source_t__ctor_memory(&cont_source__t, ostr__t.data__pcu8, ostr__t.len__dtl, &cont_hlp__t));
+  FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&cont_source__t, ostr__t.data__pcu8, ostr__t.len__dtl, &cont_hlp__t));
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &cont_source__t, 0));
 
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&cont_dec__t));
@@ -230,8 +231,8 @@ static flea_err_t THR_flea_create_private_and_or_public_key_from_pkcs8(
   FLEA_THR_FIN_SEC(
     flea_ber_dec_t__dtor(&dec__t);
     flea_ber_dec_t__dtor(&cont_dec__t);
-    flea_data_source_t__dtor(&source__t);
-    flea_data_source_t__dtor(&cont_source__t);
+    flea_rw_stream_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&cont_source__t);
   );
 } /* THR_flea_create_private_and_or_public_key_from_pkcs8 */
 

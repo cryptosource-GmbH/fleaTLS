@@ -479,11 +479,11 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__write_flush */
 
+// TODO: ADD ALERT HANDLING TO THIS FUNCTION
 static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   flea_tls_rec_prot_t*          rec_prot__pt,
   flea_u8_t*                    data__pu8,
   flea_al_u16_t*                data_len__palu16,
-  // flea_tls__connection_state_t *conn_state__pt,
   flea_tls__protocol_version_t* prot_version_mbn__pt,
   flea_bool_t                   do_verify_prot_version__b,
   ContentType                   cont_type__e,

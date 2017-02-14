@@ -290,7 +290,8 @@ flea_err_t THR_flea_test_linux__create_rw_stream_server(flea_rw_stream_t* stream
       close__f,
       read__f,
       write__f,
-      flush__f
+      flush__f,
+      0
     )
   );
   // TODO: set up the buffers initialized!!
@@ -314,7 +315,8 @@ flea_err_t THR_flea_test_linux__create_rw_stream(flea_rw_stream_t* stream__pt)
       close__f,
       read__f,
       write__f,
-      flush__f
+      flush__f,
+      0
     )
   );
   // TODO: set up the buffers initialized!!

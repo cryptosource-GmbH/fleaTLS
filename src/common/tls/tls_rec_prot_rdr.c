@@ -48,7 +48,8 @@ flea_err_t THR_flea_rw_stream_t__ctor_rec_prot(
       NULL,
       THR_flea_rec_prot_rdr_t__read,
       NULL,
-      NULL
+      NULL,
+      0
     )
   );
   FLEA_THR_FIN_SEC_empty();

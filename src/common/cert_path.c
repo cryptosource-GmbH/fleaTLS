@@ -146,6 +146,7 @@ static flea_err_t THR_validate_cert_path(
     FLEA_THROW("attempted to verify an empty certificate path", FLEA_ERR_INV_ARG);
   }
 
+  /* from TA to target cert */
   for(i = chain_len__alu16 - 1; i >= 0; i--)
   {
     flea_x509_cert_ref_t* current__pt = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i]];
@@ -203,16 +204,13 @@ static flea_err_t THR_validate_cert_path(
       }
     }
   }
-  /* verify signature from target to TA */
 
-  /*inherited_params__rcu8.data__pcu8 = NULL;
-   * inherited_params__rcu8.len__dtl = 0;*/
+  /* from TA to target cert */
   for(i = (flea_s32_t) (chain_len__alu16 - 2); i >= 0; i--)
   {
     flea_bool_t is_ca_cert__b         = (i != 0) ? FLEA_TRUE : FLEA_FALSE;
     flea_x509_cert_ref_t* subject__pt = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i]];
     flea_x509_cert_ref_t* issuer__pt  = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i + 1]];
-    // flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
 
     // verify against subsequent certificate
     FLEA_CCALL(THR_flea_x509_verify_cert_ref_signature(subject__pt, issuer__pt));
@@ -230,16 +228,9 @@ static flea_err_t THR_validate_cert_path(
         )
       );
     }
-
-    /*if(returned_params__rcu8.len__dtl)
-     * {
-     * // these are the params for the subject cert
-     * inherited_params__rcu8 = returned_params__rcu8;
-     * }*/
   }
   if(key_to_construct_mbn__pt)
   {
-    // flea_ref_cu8_t *inherited_params_to_use__prcu8 = inherited_params__rcu8.len__dtl ? &inherited_params__rcu8 : NULL;
     FLEA_CCALL(
       THR_flea_public_key_t__ctor_cert(
         key_to_construct_mbn__pt,
@@ -468,7 +459,7 @@ flea_err_t THR_flea_cert_path_validator_t__add_crl(
     const flea_al_u16_t entry_size = sizeof(cpv__pt->crl_collection__brcu8[0]);
     FLEA_CCALL(
       THR_flea_alloc__realloc_mem(
-        (void **) &cpv__pt->crl_collection__brcu8,
+        (void**) &cpv__pt->crl_collection__brcu8,
         entry_size * cpv__pt->crl_collection_allocated__u16,
         entry_size * (cpv__pt->crl_collection_allocated__u16 + FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT)
       )
@@ -527,7 +518,7 @@ flea_err_t THR_flea_cert_path_validator_t__add_cert_ref_without_trust_status(
     const flea_al_u16_t entry_size = sizeof(cpv__pt->cert_collection__bt[0]);
     FLEA_CCALL(
       THR_flea_alloc__realloc_mem(
-        (void **) &cpv__pt->cert_collection__bt,
+        (void**) &cpv__pt->cert_collection__bt,
         entry_size * cpv__pt->cert_collection_size__u16,
         entry_size * (cpv__pt->cert_collection_size__u16 + FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT)
       )

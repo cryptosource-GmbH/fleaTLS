@@ -154,7 +154,7 @@ flea_err_t THR_flea_test_dbg_canaries(void);
 
 flea_err_t THR_flea_test_crc16(void);
 
-flea_err_t THR_flea_test_data_source_mem();
+flea_err_t THR_flea_test_mem_read_stream();
 
 flea_err_t THR_flea_test_ber_dec_basic();
 

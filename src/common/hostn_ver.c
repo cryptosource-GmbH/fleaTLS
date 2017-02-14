@@ -7,6 +7,7 @@
 #include "flea/alloc.h"
 #include "flea/util.h"
 #include "flea/x509.h"
+#include "flea/mem_read_stream.h"
 
 
 static flea_bool_t is_ascii_string(
@@ -104,7 +105,7 @@ static flea_err_t THR_flea_x509__verify_host_name(
   {
     second_label_offset_cert = offs_of_second_label(cert_dns_name__pcrcu8->data__pcu8, cert_dns_name__pcrcu8->len__dtl);
     second_label_offset_user = offs_of_second_label(
-      (const flea_u8_t *) user_host_name__pcrcu8->data__pcu8,
+      (const flea_u8_t*) user_host_name__pcrcu8->data__pcu8,
       user_host_name__pcrcu8->len__dtl
       );
     if((second_label_offset_cert != 1) || (second_label_offset_user == 0))
@@ -119,7 +120,7 @@ static flea_err_t THR_flea_x509__verify_host_name(
     FLEA_THR_RETURN();
   }
   if(are_strings_equal_case_insensitive(
-      (const flea_u8_t *) user_host_name__pcrcu8->data__pcu8
+      (const flea_u8_t*) user_host_name__pcrcu8->data__pcu8
       + second_label_offset_user,
       cert_dns_name__pcrcu8->data__pcu8 + second_label_offset_cert,
       user_cmp_len__alu16
@@ -138,7 +139,7 @@ flea_err_t THR_flea_x509__verify_tls_server_id_cstr(
 {
   flea_ref_cu8_t user_id__rcu8;
 
-  user_id__rcu8.data__pcu8 = (const flea_u8_t *) user_id__cs;
+  user_id__rcu8.data__pcu8 = (const flea_u8_t*) user_id__cs;
   user_id__rcu8.len__dtl   = strlen(user_id__cs);
   return THR_flea_x509__verify_tls_server_id(&user_id__rcu8, host_type, server_cert__pt);
 }
@@ -150,25 +151,33 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
 )
 {
   FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source__t, flea_data_source_t);
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
 
   const flea_x509_dn_ref_t* cert_subject_dn__pcrcu8 = &server_cert__pt->subject__t;
   flea_bool_t contains_dnsname__b = FLEA_FALSE;
   flea_bool_t contains_ipaddr__b  = FLEA_FALSE;
-  flea_data_source_mem_help_t hlp__t;
+  // flea_mem_read_stream_help_t hlp__t;
+  flea_mem_read_stream_help_t hlp__t;
   FLEA_THR_BEG_FUNC();
 
   if(server_cert__pt->extensions__t.san__t.is_present__u8)
   {
     const flea_ref_cu8_t* general_names_raw__pcrcu8 = &server_cert__pt->extensions__t.san__t.san_raw__t;
     FLEA_CCALL(
-      THR_flea_data_source_t__ctor_memory(
+      THR_flea_rw_stream_t__ctor_memory(
         &source__t,
         general_names_raw__pcrcu8->data__pcu8,
         general_names_raw__pcrcu8->len__dtl,
         &hlp__t
       )
     );
+
+    /*THR_flea_rw_stream_t__ctor_memory(
+     * &source__t,
+     * general_names_raw__pcrcu8->data__pcu8,
+     * general_names_raw__pcrcu8->len__dtl,
+     * &hlp__t
+     * )*/
     FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &source__t, 0));
     FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&cont_dec__t));
 
@@ -320,6 +329,6 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
   FLEA_THROW("TLS server id does not match server certificate", FLEA_ERR_X509_TLS_SERVER_ID_NO_MATCH);
   FLEA_THR_FIN_SEC(
     flea_ber_dec_t__dtor(&cont_dec__t);
-    flea_data_source_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source__t);
   );
 } /* THR_flea_x509__verify_tls_server_id */

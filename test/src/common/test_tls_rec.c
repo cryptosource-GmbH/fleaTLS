@@ -132,8 +132,8 @@ flea_u8_t some_record__au8 [] = {
 flea_err_t flea_test_tls_record_protocol_basic()
 {
   FLEA_DECL_BUF(read_buf__bu8, flea_u8_t, 3000);
-  FLEA_DECL_BUF(stream_buf__bu8, flea_u8_t, 16384);  // TODO: vary length!
-  const flea_al_u16_t stream_buf_len__alu16 = 16384; // TODO: vary length!
+  FLEA_DECL_BUF(stream_buf__bu8, flea_u8_t, 16384); // TODO: vary length!
+  // const flea_al_u16_t stream_buf_len__alu16 = 16384; // TODO: vary length!
   FLEA_DECL_OBJ(mem_read_stream__t, flea_rw_stream_t);
   flea_mem_read_stream_help_t mem_hlp__t;
   FLEA_DECL_OBJ(rec_prot__t, flea_tls_rec_prot_t);

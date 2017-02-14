@@ -11,7 +11,7 @@ static flea_err_t THR_flea_hash_stream_write(
   flea_dtl_t       data_len__dtl
 )
 {
-  flea_hash_ctx_t* hash_ctx__pt = (flea_hash_ctx_t *) custom_obj__pv;
+  flea_hash_ctx_t* hash_ctx__pt = (flea_hash_ctx_t*) custom_obj__pv;
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx__pt, data__pcu8, data_len__dtl));
@@ -27,12 +27,13 @@ flea_err_t THR_flea_rw_stream_t__ctor_hash_stream(
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,
-      (void *) constructed_hash_ctx__pt,
+      (void*) constructed_hash_ctx__pt,
       NULL,
       NULL,
       NULL,
       THR_flea_hash_stream_write,
-      NULL
+      NULL,
+      0
     )
   );
   FLEA_THR_FIN_SEC_empty();

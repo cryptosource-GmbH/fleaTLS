@@ -16,7 +16,7 @@ extern "C" {
 typedef struct
 {
   flea_rw_stream_t* rec_prot_read_stream__pt;
-  flea_u32_t        remaining_bytes__u32;
+  //  flea_u32_t        remaining_bytes__u32;
   flea_u8_t         handshake_msg_type__u8;
   flea_hash_ctx_t*  hash_ctx__pt;
   flea_u8_t         handsh_hdr__au8[4];

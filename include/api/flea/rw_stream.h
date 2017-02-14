@@ -42,6 +42,8 @@ typedef struct
   flea_filter_t*               filt__pt;
   flea_u8_t*                   filt_proc_buf__pu8;
   flea_al_u16_t                filt_proc_buf_len__alu16;
+  flea_u32_t                   read_rem_len__u32;
+  flea_bool_t                  have_read_limit__b;
 } flea_rw_stream_t;
 
 #define flea_rw_stream_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
@@ -56,7 +58,8 @@ flea_err_t THR_flea_rw_stream_t__ctor(
   flea_rw_stream_close_f       close_func_mbn__f,
   flea_rw_stream_read_f        read_func_mbn__f,
   flea_rw_stream_write_f       write_func_mbn__f,
-  flea_rw_stream_flush_write_f flush_write_func_mbn__f
+  flea_rw_stream_flush_write_f flush_write_func_mbn__f,
+  flea_u32_t                   read_limit__u32
 );
 
 flea_err_t THR_flea_rw_stream_t__set_filter(
@@ -97,6 +100,12 @@ flea_err_t THR_flea_rw_stream_t__force_read(
   flea_rw_stream_t* stream__pt,
   flea_u8_t*        data__pcu8,
   flea_dtl_t        data_len__dtl
+);
+
+
+flea_err_t THR_flea_rw_stream_t__skip_read(
+  flea_rw_stream_t* stream__pt,
+  flea_dtl_t        skip_len__dtl
 );
 
 flea_err_t THR_flea_rw_stream_t__read_byte(
