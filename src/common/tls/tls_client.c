@@ -119,6 +119,12 @@ flea_err_t THR_flea_tls__read_server_hello(
   memcpy(tls_ctx->session_id, session_id__bu8, session_id_len__u8);
   tls_ctx->session_id_len = session_id_len__u8;
 
+  // check length in the header field for integrity
+  if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
+  {
+    FLEA_THROW("Header length field mismatch", FLEA_ERR_TLS_GENERIC);
+  }
+
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(session_id__bu8);
   );
