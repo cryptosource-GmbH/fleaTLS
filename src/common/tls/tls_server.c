@@ -29,10 +29,8 @@ flea_err_t THR_flea_tls__read_client_hello(
 
   FLEA_DECL_BUF(session_id__bu8, flea_u8_t, 32);
   const flea_al_u8_t max_session_id_len__alu8 = 32;
-  FLEA_DECL_BUF(cipher_suites__bu8, flea_u8_t, 1024); // TODO: think about the max buffer size !
-  flea_u16_t cipher_suites_len__u16;
-  const flea_u16_t max_cipher_suites_len__u16 = 1024;
   flea_u8_t client_compression_methods_len__u8;
+  flea_u16_t cipher_suites_len__u16;
   FLEA_DECL_BUF(client_compression_methods__bu8, flea_u8_t, 32); // TODO: do we need more than 2, actually? check how many are defined (2 in the original TLS RFC, maybe more in other RFCs?)
   const flea_u8_t max_client_compression_methods_len__u8 = 32;
   flea_bool_t found_compression_method;
@@ -97,21 +95,51 @@ flea_err_t THR_flea_tls__read_client_hello(
   // TODO: stream function to read in the length
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, ((flea_u8_t*) &cipher_suites_len__u16) + 1));
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &cipher_suites_len__u16));
-  if(cipher_suites_len__u16 > max_cipher_suites_len__u16)
+  if(cipher_suites_len__u16 % 2 != 0)
   {
-    FLEA_THROW("implementation does not support the given cipher suites length", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("incorrect cipher suites length", FLEA_ERR_TLS_GENERIC);
   }
 
-  // read cipher suites
-  FLEA_ALLOC_BUF(cipher_suites__bu8, cipher_suites_len__u16);
-  FLEA_CCALL(THR_flea_rw_stream_t__force_read(hs_rd_stream__pt, cipher_suites__bu8, cipher_suites_len__u16));
-  flea_bool_t found = FLEA_TRUE;
-  // TODO: need to check if we support one of the client's cipher suite and we
-  // need to choose one !! (hard coded RSA AES 256)
+  // TODO: need to choose the "best" cipher suite
+  // TODO: everything declared and defined locally because there is no
+  // consistent implementation for the cipher suites yet
+  flea_bool_t found = FLEA_FALSE;
+  flea_u8_t curr_cs__au8[2];
+  flea_u8_t supported_cs__au8[2]   = {0x00, 0x3d}; // RSA AES256 CBC SHA256
+  flea_u16_t supported_cs_len__u16 = 2;
+  flea_u16_t supported_cs_index__u16;
+  flea_u8_t chosen_cs__au8[2];
+  flea_u16_t chosen_cs_index__u16 = supported_cs_len__u16; // if we find another cs with a smaller index (comes first in supported_cs__au8) then we prefer that one over the currently chosen one
+  while(cipher_suites_len__u16)
+  {
+    FLEA_CCALL(THR_flea_rw_stream_t__force_read(hs_rd_stream__pt, curr_cs__au8, 2));
+
+    // iterate over all supported cipher suites
+    //
+    supported_cs_index__u16 = 0;
+    while(supported_cs_index__u16 < supported_cs_len__u16)
+    {
+      // TODO: endianess!!
+      if(curr_cs__au8[0] == supported_cs__au8[supported_cs_index__u16] &&
+        curr_cs__au8[1] == supported_cs__au8[supported_cs_index__u16 + 1])
+      {
+        if(supported_cs_index__u16 < chosen_cs_index__u16)
+        {
+          chosen_cs_index__u16 = supported_cs_index__u16;
+          chosen_cs__au8[0]    = supported_cs__au8[chosen_cs_index__u16];
+          chosen_cs__au8[1]    = supported_cs__au8[chosen_cs_index__u16];
+          found = FLEA_TRUE;
+        }
+      }
+      supported_cs_index__u16 += 2;
+    }
+    cipher_suites_len__u16 -= 2;
+  }
   if(found == FLEA_FALSE)
   {
     FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_GENERIC);
   }
+
 
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &client_compression_methods_len__u8));
   if(client_compression_methods_len__u8 > max_client_compression_methods_len__u8)
@@ -172,7 +200,6 @@ flea_err_t THR_flea_tls__read_client_hello(
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(session_id__bu8);
-    FLEA_FREE_BUF_FINAL(cipher_suites__bu8);
     FLEA_FREE_BUF_FINAL(client_compression_methods__bu8);
   );
 } /* THR_flea_tls__read_client_hello */
