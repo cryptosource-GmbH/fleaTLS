@@ -210,15 +210,17 @@ flea_err_t THR_flea_pk_api__encrypt_message(
  *                                            Bleichenbacher's attack).
  */
 flea_err_t THR_flea_pk_api__decrypt_message(
-  flea_pk_scheme_id_t id__t,
-  flea_hash_id_t      hash_id__t,
-  const flea_u8_t*    ciphertext,
-  flea_al_u16_t       ciphertext_len,
-  flea_u8_t*          result,
-  flea_al_u16_t*      result_len,
-  const flea_u8_t*    key,
-  flea_al_u16_t       key_len,
-  flea_al_u16_t       enforced_pkcs1_v1_5_decryption_result_len
+  flea_pk_scheme_id_t       id__t,
+  flea_hash_id_t            hash_id__t,
+  const flea_u8_t*          ciphertext__pcu8,
+  flea_al_u16_t             ciphertext_len__alu16,
+  flea_u8_t*                result__pu8,
+  flea_al_u16_t*            result_len__palu16,
+
+  /*const flea_u8_t*    key__pcu8,
+   * flea_al_u16_t       key_len__alu16,*/
+  const flea_private_key_t* privkey__pt,
+  flea_al_u16_t             enforced_decryption_result_len__alu16
 );
 
 # ifdef __cplusplus

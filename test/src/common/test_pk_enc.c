@@ -12,7 +12,7 @@
 #include "flea/pk_api.h"
 #include "internal/common/pk_enc/oaep.h"
 #include "test_data_rsa_key_internal_format.h"
-
+#include "flea/privkey.h"
 
 /*
  * Reference test data created with Botan.
@@ -57,8 +57,16 @@ static flea_err_t THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
   FLEA_DECL_BUF(decr__bu8, flea_u8_t, 2048 / 8);
   flea_al_u16_t decr_len__alu16   = 2048 / 8;
   const flea_u8_t exp_res__acu8[] = "abc";
+  FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
+  flea_ref_cu8_t priv_key_int_form__rcu8 = {.data__pcu8 = rsa_2048_crt_key_internal_format__acu8, .len__dtl = sizeof(rsa_2048_crt_key_internal_format__acu8)};
   FLEA_THR_BEG_FUNC();
-
+  FLEA_CCALL(
+    THR_flea_private_key_t__ctor_rsa_internal_format(
+      &privkey__t,
+      &priv_key_int_form__rcu8,
+      2048
+    )
+  );
   FLEA_ALLOC_BUF(decr__bu8, 2048 / 8);
   // test OAEP decryption
   FLEA_CCALL(
@@ -69,8 +77,7 @@ static flea_err_t THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
       sizeof(ct_oaep),
       decr__bu8,
       &decr_len__alu16,
-      rsa_2048_crt_key_internal_format__acu8,
-      sizeof(rsa_2048_crt_key_internal_format__acu8),
+      &privkey__t,
       0
     )
   );
@@ -92,8 +99,7 @@ static flea_err_t THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
       sizeof(ct_pkcs1_v1_5),
       decr__bu8,
       &decr_len__alu16,
-      rsa_2048_crt_key_internal_format__acu8,
-      sizeof(rsa_2048_crt_key_internal_format__acu8),
+      &privkey__t,
       0
     )
   );
@@ -107,6 +113,7 @@ static flea_err_t THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
   }
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(decr__bu8);
+    flea_private_key_t__dtor(&privkey__t);
   );
 # else // #if FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048 && defined FLEA_HAVE_SHA1 && defined FLEA_HAVE_RSA
 
@@ -304,7 +311,7 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
   }
   extr_message_len = sizeof(message);
 
-  /* no let the last position be zero, this is also an invalid ciphertext */
+  /* now let the last position be zero, this is also an invalid ciphertext */
   res[1536 / 8 - 1] = 0;
   /* test decoding of incorrect ciphertext (this time the zero-separator is found at the last position and thus the message size is zero) without Bleichenbacher countermeasure */
   if(FLEA_ERR_INV_CIPHERTEXT !=
@@ -537,6 +544,7 @@ static flea_err_t THR_flea_inner_test_pk_encryption(
 {
   const flea_u8_t rsa_pub_exp__acu8[] = {0x01, 0x00, 0x01};
 
+  FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
   FLEA_DECL_BUF(ciphertext__bu8, flea_u8_t, 2048 / 8); // FLEA_PK_MAX_PRIMITIVE_OUTPUT_LEN);
   const flea_u8_t message__acu8 [] = {0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
                                       0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
@@ -550,6 +558,14 @@ static flea_err_t THR_flea_inner_test_pk_encryption(
   FLEA_ALLOC_BUF(ciphertext__bu8, ciphertext_len__alu16);
   FLEA_ALLOC_BUF(decrypted__bu8, decrypted_len__alu16);
 
+  flea_ref_cu8_t priv_key_int_form__rcu8 = {.data__pcu8 = rsa_2048_crt_key_internal_format__acu8, .len__dtl = sizeof(rsa_2048_crt_key_internal_format__acu8)};
+  FLEA_CCALL(
+    THR_flea_private_key_t__ctor_rsa_internal_format(
+      &privkey__t,
+      &priv_key_int_form__rcu8,
+      2048
+    )
+  );
   FLEA_CCALL(
     THR_flea_pk_api__encrypt_message(
       id__t,
@@ -573,8 +589,10 @@ static flea_err_t THR_flea_inner_test_pk_encryption(
       ciphertext_len__alu16,
       decrypted__bu8,
       &decrypted_len__alu16,
-      rsa_2048_crt_key_internal_format__acu8,
-      sizeof(rsa_2048_crt_key_internal_format__acu8),
+
+      /*rsa_2048_crt_key_internal_format__acu8,
+       * sizeof(rsa_2048_crt_key_internal_format__acu8),*/
+      &privkey__t,
       0
     )
   );
@@ -589,6 +607,7 @@ static flea_err_t THR_flea_inner_test_pk_encryption(
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(ciphertext__bu8);
     FLEA_FREE_BUF_FINAL(decrypted__bu8);
+    flea_private_key_t__dtor(&privkey__t);
   );
 } /* THR_flea_inner_test_pk_encryption */
 
