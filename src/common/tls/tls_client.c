@@ -423,7 +423,7 @@ flea_err_t THR_flea_tls__client_handshake(
         {
           flea_u8_t dummy_byte;
           flea_al_u16_t len_one__alu16 = 1;
-          // TODO: verify that message is correct?
+          // TODO: verify correctness of the message (?)
 
           /*
            * Enable encryption for incoming messages

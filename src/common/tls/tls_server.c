@@ -16,6 +16,7 @@
 #include <stdio.h>
 #include "flea/pkcs8.h"
 #include "flea/rsa.h"
+#include "flea/pk_api.h"
 
 flea_err_t THR_flea_tls__read_client_hello(
   flea_tls_ctx_t*           tls_ctx,
@@ -28,13 +29,16 @@ flea_err_t THR_flea_tls__read_client_hello(
 
   FLEA_DECL_BUF(session_id__bu8, flea_u8_t, 32);
   const flea_al_u8_t max_session_id_len__alu8 = 32;
-  FLEA_DECL_BUF(cipher_suites__bu8, flea_u8_t, 128); // TODO: think about the max buffer size !
+  FLEA_DECL_BUF(cipher_suites__bu8, flea_u8_t, 1024); // TODO: think about the max buffer size !
   flea_u16_t cipher_suites_len__u16;
-  const flea_u16_t max_cipher_suites_len__alu16 = 128;
+  const flea_u16_t max_cipher_suites_len__u16 = 1024;
   flea_u8_t client_compression_methods_len__u8;
   FLEA_DECL_BUF(client_compression_methods__bu8, flea_u8_t, 32); // TODO: do we need more than 2, actually? check how many are defined (2 in the original TLS RFC, maybe more in other RFCs?)
   const flea_u8_t max_client_compression_methods_len__u8 = 32;
   flea_bool_t found_compression_method;
+  const flea_u16_t max_extensions_len__u16 = 1024;
+  FLEA_DECL_BUF(extensions__bu8, flea_u8_t, 1024); // TODO: think about the max buffer size !
+  flea_u16_t extensions_len__u16;
   FLEA_THR_BEG_FUNC();
 
 
@@ -93,7 +97,7 @@ flea_err_t THR_flea_tls__read_client_hello(
   // TODO: stream function to read in the length
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, ((flea_u8_t*) &cipher_suites_len__u16) + 1));
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &cipher_suites_len__u16));
-  if(cipher_suites_len__u16 > max_cipher_suites_len__alu16)
+  if(cipher_suites_len__u16 > max_cipher_suites_len__u16)
   {
     FLEA_THROW("implementation does not support the given cipher suites length", FLEA_ERR_TLS_GENERIC);
   }
@@ -137,7 +141,24 @@ flea_err_t THR_flea_tls__read_client_hello(
     FLEA_THROW("Could not agree on compression method", FLEA_ERR_TLS_GENERIC);
   }
 
-  // TODO: parse extensions
+  // read extension length
+  // TODO: stream function to read in the length
+  FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, ((flea_u8_t*) &extensions_len__u16) + 1));
+  FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &extensions_len__u16));
+  if(extensions_len__u16 > max_extensions_len__u16)
+  {
+    FLEA_THROW("implementation does not support the given extensions length", FLEA_ERR_TLS_GENERIC);
+  }
+
+  // read extension
+  FLEA_ALLOC_BUF(extensions__bu8, extensions_len__u16);
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__force_read(
+      hs_rd_stream__pt,
+      extensions__bu8,
+      extensions_len__u16
+    )
+  );
 
   // check length in the header field for integrity
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
@@ -182,16 +203,16 @@ static flea_err_t THR_flea_tls__send_server_hello(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx->rec_prot__t,
       hash_ctx,
-      tls_ctx->security_parameters->client_random.gmt_unix_time,
-      sizeof(tls_ctx->security_parameters->client_random.gmt_unix_time)
+      tls_ctx->security_parameters->server_random.gmt_unix_time,
+      sizeof(tls_ctx->security_parameters->server_random.gmt_unix_time)
     )
   );
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx->rec_prot__t,
       hash_ctx,
-      tls_ctx->security_parameters->client_random.random_bytes,
-      sizeof(tls_ctx->security_parameters->client_random.random_bytes)
+      tls_ctx->security_parameters->server_random.random_bytes,
+      sizeof(tls_ctx->security_parameters->server_random.random_bytes)
     )
   );
 
@@ -322,6 +343,12 @@ static flea_err_t THR_flea_tls__send_certificate(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_certificate */
 
+/*
+ * Note: The version number in the PreMasterSecret is the version
+ * offered by the client in the ClientHello.client_version, not the
+ * version negotiated for the connection.
+ *
+ */
 static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
@@ -330,16 +357,13 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
 {
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_u16_t enc_premaster_secret_len__u16;
-  flea_private_key_t key_t;
+  flea_private_key_t key__t;
   const flea_u16_t max_enc_premaster_secret_len__u16 = 256;
+  flea_al_u16_t premaster_secret__len_u16 = 256;
 
   FLEA_DECL_BUF(enc_premaster_secret__bu8, flea_u8_t, 256); // TODO: need more ?
-  FLEA_DECL_BUF(premaster_secret__bu8, flea_u8_t, 48);
+  // FLEA_DECL_BUF(premaster_secret__bu8, flea_u8_t, 256); // always 48 byte but could be more if it is manipulated
   FLEA_THR_BEG_FUNC();
-
-  // read server key
-
-  FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&key_t, server_key__pt->data__pcu8, server_key__pt->len__dtl));
 
 
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
@@ -363,10 +387,33 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
     )
   );
 
-  // decrypt to 48 byte premaster secret
+  // read server key
+  // TODO: do one time when initializing TLS?
+  FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&key__t, server_key__pt->data__pcu8, server_key__pt->len__dtl));
+
+  // decrypt premaster secret
+  // Note: Bleichenbacher's attack is prevented by using the last parameter
+  // which enforces a result of 48 byte even when decryption failed for some
+  // reason. Thus the recommendation in RFC5246/7.4.7.1 is implemented
+  // TODO: check if it's really done like suggested
+  // FLEA_ALLOC_BUF(premaster_secret__bu8, 256);
+  FLEA_CCALL(
+    THR_flea_pk_api__decrypt_message(
+      flea_rsa_pkcs1_v1_5_encr,
+      flea_sha256,
+      enc_premaster_secret__bu8,
+      enc_premaster_secret_len__u16,
+      tls_ctx->premaster_secret,
+      &premaster_secret__len_u16,
+      &key__t,
+      48
+    )
+  );
 
 
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL(enc_premaster_secret__bu8);
+  );
 } /* THR_flea_tls__read_client_key_exchange_rsa */
 
 static flea_err_t THR_flea_tls__read_client_key_exchange(
@@ -391,13 +438,19 @@ static flea_err_t THR_flea_handle_handsh_msg(
 )
 {
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
+  FLEA_DECL_OBJ(hash_ctx_copy_read_finished__t, flea_hash_ctx_t);
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t));
-  if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_FINISHED)
+  if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
   {
-    FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, hash_ctx__pt));
+    /*
+     * for read_finished use a copy of hash_ctx where the finished message is not included yet
+     */
+    FLEA_CCALL(THR_flea_hash_ctx_t__ctor_copy(&hash_ctx_copy_read_finished__t, hash_ctx__pt));
   }
+  FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, hash_ctx__pt));
+
 
   if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_HELLO)
   {
@@ -426,7 +479,8 @@ static flea_err_t THR_flea_handle_handsh_msg(
   }
   if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_KEY_EXCHANGE)
   {
-    handshake_state->expected_messages ^= FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_KEY_EXCHANGE;
+    handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY
+      | FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC;
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE)
     {
       FLEA_CCALL(THR_flea_tls__read_client_key_exchange(tls_ctx, &handsh_rdr__t, server_key__pt));
@@ -446,9 +500,12 @@ static flea_err_t THR_flea_handle_handsh_msg(
 
   if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED)
   {
+    handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
     {
-      // TODO: read finished
+      FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx_copy_read_finished__t));
+      // FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, hash_ctx__pt));
+
       return FLEA_ERR_FINE;
     }
     else
@@ -474,6 +531,9 @@ flea_err_t THR_flea_tls__server_handshake(
 {
   FLEA_THR_BEG_FUNC();
 
+  // TODO: propably better to do it somewhere else
+  tls_ctx->security_parameters->connection_end = FLEA_TLS_SERVER;
+
   // define and init state
   flea_tls__handshake_state_t handshake_state;
   flea_tls__handshake_state_ctor(&handshake_state);
@@ -482,10 +542,7 @@ flea_err_t THR_flea_tls__server_handshake(
 
   // flea_public_key_t pubkey; // TODO: -> tls_ctx
 
-  // received records and handshakes for processing the current state
-  HandshakeMessage recv_handshake;
 
-  // set to true and wait for hello_client
   handshake_state.initialized       = FLEA_TRUE;
   handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_HELLO;
   handshake_state.send_client_cert  = FLEA_FALSE; // TODO: implement client cert checking / certificate request
@@ -508,12 +565,26 @@ flea_err_t THR_flea_tls__server_handshake(
       }
       else if(cont_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
       {
-        if(handshake_state.expected_messages != FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC)
+        if(!(handshake_state.expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC))
         {
           FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
         }
         else
         {
+          printf("SM: Processing ChangeCipherSpec\n");
+
+          flea_u8_t dummy_byte;
+          flea_al_u16_t len_one__alu16 = 1;
+
+          FLEA_CCALL(
+            THR_flea_tls_rec_prot_t__read_data(
+              &tls_ctx->rec_prot__t,
+              CONTENT_TYPE_CHANGE_CIPHER_SPEC,
+              &dummy_byte,
+              &len_one__alu16
+            )
+          );
+
           /*
            * Enable encryption for incoming messages
            */
@@ -536,11 +607,11 @@ flea_err_t THR_flea_tls__server_handshake(
               flea_aes256,
               flea_sha256,
               flea_hmac_sha256,
-              tls_ctx->key_block + 2 * 32 + 32,               /* cipher_key__pcu8, "2*32" = 2*mac key size, "+ 32" = cipher_key_size */
-              32,                                             /* cipher_key_len */
-              tls_ctx->key_block + 32 /* 32 = mac_key_size*/, /* mac_key__pcu8 */
-              32 /*mac_key_len */,
-              32 /* mac_len */
+              tls_ctx->key_block + 2 * 32,
+              32,
+              tls_ctx->key_block,
+              32,
+              32
             )
           );
 
@@ -586,7 +657,9 @@ flea_err_t THR_flea_tls__server_handshake(
       }
       else
       {
-        // send change_cipher_spec
+        printf("SM: sending change cipherspec\n");
+        FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx, &hash_ctx));
+
         printf("SM: switching on encryption on write...\n");
         FLEA_CCALL(
           THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
@@ -595,17 +668,17 @@ flea_err_t THR_flea_tls__server_handshake(
             flea_aes256,
             flea_sha256,
             flea_hmac_sha256,
-            tls_ctx->key_block + 2 * 32, /* cipher_key__pcu8, 32 = mac key size*/
-            32,                          /* cipher_key_len */
-            tls_ctx->key_block,          /* mac_key__pcu8 */
-            32 /*mac_key_len */,
-            32 /* mac_len */
+            tls_ctx->key_block + 2 * 32 + 32,
+            32,
+            tls_ctx->key_block + 32,
+            32,
+            32
           )
         );
 
 
-        // send finished
-        printf("sent finished\n");
+        FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &hash_ctx));
+        printf("SM: sent finished\n");
 
         handshake_state.finished = FLEA_TRUE;
 

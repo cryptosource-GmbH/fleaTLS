@@ -331,7 +331,12 @@ flea_err_t THR_flea_tls__server_handshake(
   flea_ref_cu8_t*   server_key__pt
 );
 
-// TODO: RECEIVE APP DATA
+flea_err_t THR_flea_tls__read_app_data(
+  flea_tls_ctx_t* tls_ctx_t,
+  flea_u8_t*      data__pu8,
+  flea_al_u16_t*  data_len__palu16
+);
+
 flea_err_t THR_flea_tls__send_app_data(
   flea_tls_ctx_t* tls_ctx,
   flea_u8_t*      data,

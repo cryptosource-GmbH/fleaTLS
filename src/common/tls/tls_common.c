@@ -337,11 +337,12 @@ flea_err_t THR_flea_tls__read_handshake_message(
     )
   );
 
-  if(handshake_msg->type != HANDSHAKE_TYPE_FINISHED)
-  {
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx__pt, hdr__au8, sizeof(hdr__au8)));
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx__pt, handshake_msg->data, handshake_msg->length));
-  }
+  // for the client: we don't need the hash at the end of the handshake
+  // if(handshake_msg->type != HANDSHAKE_TYPE_FINISHED && tls_ctx->security_parameters->connection_end = FLEA_TLS_CLIENT)
+  // {
+  //  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx__pt, hdr__au8, sizeof(hdr__au8)));
+  //  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx__pt, handshake_msg->data, handshake_msg->length));
+  // }
   if(len__palu16 != handshake_msg->length)
   {
     FLEA_THROW("did not read sufficient data for handshake message", FLEA_ERR_INT_ERR);
@@ -359,12 +360,18 @@ flea_err_t THR_flea_tls__read_finished(
   // TODO: need to generalize 12byte ? (botan doesn't do it either) -  avoiding "magical number" would be better
   const flea_al_u8_t finished_len__alu8 = 12;
   flea_rw_stream_t* hs_rd_stream__pt;
+  FLEA_DECL_OBJ(hash_ctx_copy, flea_hash_ctx_t);
   FLEA_THR_BEG_FUNC();
+
   FLEA_ALLOC_BUF(messages_hash__bu8, __FLEA_COMPUTED_MAX_HASH_OUT_LEN + 2 * 12);
   flea_u8_t* finished__pu8     = messages_hash__bu8 + __FLEA_COMPUTED_MAX_HASH_OUT_LEN;
   flea_u8_t* rec_finished__pu8 = messages_hash__bu8 + __FLEA_COMPUTED_MAX_HASH_OUT_LEN + finished_len__alu8;
-  // compute hash over handshake messages so far
-  FLEA_CCALL(THR_flea_hash_ctx_t__final(hash_ctx, messages_hash__bu8));
+
+  /*
+   * use a copy of hash_ctx for send_finished instead of finalizing the original
+   */
+  FLEA_CCALL(THR_flea_hash_ctx_t__ctor_copy(&hash_ctx_copy, hash_ctx));
+  FLEA_CCALL(THR_flea_hash_ctx_t__final(&hash_ctx_copy, messages_hash__bu8));
 
 
   PRFLabel label;
@@ -711,7 +718,7 @@ flea_err_t THR_flea_tls__send_handshake_message(
 
 flea_err_t THR_flea_tls__send_change_cipher_spec(
   flea_tls_ctx_t*  tls_ctx,
-  flea_hash_ctx_t* hash_ctx
+  flea_hash_ctx_t* hash_ctx // TODO: need hash_ctx?
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -806,7 +813,6 @@ void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state)
   state->sent_first_round = FLEA_FALSE;
 }
 
-// TODO: record type argument has to be removed because it's determined by the current connection state in tls_ctx
 flea_err_t THR_flea_tls__send_app_data(
   flea_tls_ctx_t* tls_ctx,
   flea_u8_t*      data,
@@ -817,6 +823,26 @@ flea_err_t THR_flea_tls__send_app_data(
 
   FLEA_CCALL(THR_flea_tls__send_record(tls_ctx, data, data_len, CONTENT_TYPE_APPLICATION_DATA));
 
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_tls__read_app_data(
+  flea_tls_ctx_t* tls_ctx_t,
+  flea_u8_t*      data__pu8,
+  flea_al_u16_t*  data_len__palu16
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_CCALL(
+    THR_flea_tls_rec_prot_t__read_data(
+      &tls_ctx_t->rec_prot__t,
+      CONTENT_TYPE_APPLICATION_DATA,
+      data__pu8,
+      data_len__palu16
+    )
+  );
 
   FLEA_THR_FIN_SEC_empty();
 }

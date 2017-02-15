@@ -210,6 +210,10 @@ static flea_err_t THR_read_socket(
     {
       FLEA_THROW("recv err", FLEA_ERR_TLS_GENERIC);
     }
+    else if(did_read_ssz == 0)
+    {
+      // TODO: socket got closed!
+    }
   } while(force_read__b && (did_read_ssz == 0));
   *nb_bytes_to_read__pdtl = did_read_ssz;
   FLEA_THR_FIN_SEC_empty();

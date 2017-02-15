@@ -241,7 +241,14 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   server_key__t.len__dtl   = sizeof(server_key);
   FLEA_CCALL(THR_flea_tls__server_handshake(&tls_ctx, &rw_stream__t, cert_chain, 2, &server_key__t));
 
-
+  // now read data and echo it back
+  flea_u8_t buf[1000];
+  flea_al_u16_t buf_len;
+  while(1)
+  {
+    FLEA_CCALL(THR_flea_tls__read_app_data(&tls_ctx, buf, &buf_len));
+    FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, buf, buf_len));
+  }
   // FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (flea_u8_t *) app_data_www, strlen(app_data_www)));
   // FLEA_CCALL(THR_flea_tls__send_alert(&tls_ctx, FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY, FLEA_TLS_ALERT_LEVEL_WARNING));
 
