@@ -10,6 +10,15 @@
 extern "C" {
 #endif
 
+#define FLEA_SWAP(__type, __a, __b) \
+  do \
+  { \
+    __type __tmp; \
+    __tmp = (__a); \
+    (__a) = (__b); \
+    (__b) = __tmp; \
+  } while(0) \
+
 
 /**
  * Type which references to constant strings of u8 in memory.
