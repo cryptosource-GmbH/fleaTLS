@@ -195,6 +195,8 @@ flea_err_t THR_flea_tls__read_client_hello(
           extension_len__u16
         )
       );
+
+      // TODO: implement handle_extension function that processes the extensions
     }
   }
   // check length in the header field for integrity
