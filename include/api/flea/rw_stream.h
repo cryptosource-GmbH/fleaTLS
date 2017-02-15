@@ -5,6 +5,7 @@
 
 #include "flea/types.h"
 #include "flea/filter.h"
+#include "flea/rw_stream_types.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -44,6 +45,8 @@ typedef struct
   flea_al_u16_t                filt_proc_buf_len__alu16;
   flea_u32_t                   read_rem_len__u32;
   flea_bool_t                  have_read_limit__b;
+  flea_rw_stream_type_e        strm_type__e;
+  flea_bool_t                  has_filter_support__b;
 } flea_rw_stream_t;
 
 #define flea_rw_stream_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
@@ -61,6 +64,22 @@ flea_err_t THR_flea_rw_stream_t__ctor(
   flea_rw_stream_flush_write_f flush_write_func_mbn__f,
   flea_u32_t                   read_limit__u32
 );
+
+
+flea_err_t THR_flea_rw_stream_t__ctor_detailed(
+  flea_rw_stream_t*            stream__pt,
+  void*                        custom_obj__pv,
+  flea_rw_stream_open_f        open_func__f,
+  flea_rw_stream_close_f       close_func__f,
+  flea_rw_stream_read_f        read_func__f,
+  flea_rw_stream_write_f       write_func__f,
+  flea_rw_stream_flush_write_f flush_write_func__f,
+  flea_u32_t                   read_limit__u32,
+  flea_rw_stream_type_e        strm_type__e,
+  flea_bool_t                  has_filter_support__b
+);
+
+flea_rw_stream_type_e flea_rw_stream_t__get_strm_type(const flea_rw_stream_t* rw_stream__pt);
 
 flea_err_t THR_flea_rw_stream_t__set_filter(
   flea_rw_stream_t* stream__pt,

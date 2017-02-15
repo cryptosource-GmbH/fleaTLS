@@ -53,23 +53,26 @@ typedef enum { flea_asn1_printable_str, flea_asn1_utf8_str } flea_asn1_str_type_
 
 typedef enum { flea_asn1_utc_time, flea_asn1_generalized_time } flea_asn1_time_type_t;
 
+typedef enum { flea_decode_ref, flea_decode_copy } flea_asn1_dec_val_hndg_e;
+
 #define FLEA_DER_REF_SET_ABSENT(__p) (__p)->data__pcu8 = NULL; (__p)->len__dtl = 0
 #define FLEA_DER_REF_IS_ABSENT(__p)  ((__p)->data__pcu8 == 0)
 
 struct struct_flea_ber_dec_t
 {
-  flea_rw_stream_t* source__pt;
-  flea_al_u8_t      level__alu8;
-  flea_al_u8_t      alloc_levels__alu8;
+  flea_rw_stream_t*        source__pt;
+  flea_al_u8_t             level__alu8;
+  flea_al_u8_t             alloc_levels__alu8;
 #ifdef FLEA_USE_HEAP_BUF
-  flea_dtl_t*       allo_open_cons__bdtl;
+  flea_dtl_t*              allo_open_cons__bdtl;
 #else
-  flea_dtl_t        allo_open_cons__bdtl[FLEA_BER_DEC_MAX_NESTING_LEVEL];
+  flea_dtl_t               allo_open_cons__bdtl[FLEA_BER_DEC_MAX_NESTING_LEVEL];
 #endif
-  flea_dtl_t        length_limit__dtl;
-  flea_asn1_tag_t   stored_tag_type__t;
-  flea_u8_t         stored_tag_class_form__u8;
-  flea_u8_t         stored_tag_nb_bytes__u8;
+  flea_dtl_t               length_limit__dtl;
+  flea_asn1_tag_t          stored_tag_type__t;
+  flea_u8_t                stored_tag_class_form__u8;
+  flea_u8_t                stored_tag_nb_bytes__u8;
+  flea_asn1_dec_val_hndg_e dec_val_handling__e;
 };
 
 #ifdef FLEA_USE_HEAP_BUF
@@ -90,9 +93,10 @@ struct struct_flea_ber_dec_t
  *
  */
 flea_err_t THR_flea_ber_dec_t__ctor(
-  flea_ber_dec_t*   dec,
-  flea_rw_stream_t* read_stream__pt,
-  flea_dtl_t        length_limit
+  flea_ber_dec_t*          dec__pt,
+  flea_rw_stream_t*        read_stream__pt,
+  flea_dtl_t               length_limit__dtl,
+  flea_asn1_dec_val_hndg_e dec_val_hndg__e
 );
 
 /**

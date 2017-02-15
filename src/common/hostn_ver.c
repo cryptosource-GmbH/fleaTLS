@@ -178,7 +178,7 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
      * general_names_raw__pcrcu8->len__dtl,
      * &hlp__t
      * )*/
-    FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &source__t, 0));
+    FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &source__t, 0, flea_decode_ref));
     FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&cont_dec__t));
 
     while(flea_ber_dec_t__has_current_more_data(&cont_dec__t))

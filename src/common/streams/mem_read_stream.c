@@ -54,7 +54,7 @@ flea_err_t THR_flea_rw_stream_t__ctor_memory(
   // TODO: REMOVE THIS LIMIT, LIMIT ALREADY IMPLEMENTED BY READ_STREAM
   hlp_uninit__pt->len__dtl = source_mem_len__dtl;
   FLEA_CCALL(
-    THR_flea_rw_stream_t__ctor(
+    THR_flea_rw_stream_t__ctor_detailed(
       rw_stream__pt,
       (void*) hlp_uninit__pt,
       NULL,
@@ -62,7 +62,9 @@ flea_err_t THR_flea_rw_stream_t__ctor_memory(
       THR_flea_mem_read_stream__read,
       NULL,
       NULL,
-      source_mem_len__dtl
+      source_mem_len__dtl,
+      flea_strm_type_memory,
+      FLEA_FALSE /* no filter support */
     )
   );
   FLEA_THR_FIN_SEC_empty();

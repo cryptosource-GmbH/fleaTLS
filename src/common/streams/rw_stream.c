@@ -18,6 +18,33 @@ flea_err_t THR_flea_rw_stream_t__ctor(
   flea_u32_t                   read_limit__u32
 )
 {
+  return THR_flea_rw_stream_t__ctor_detailed(
+    stream__pt,
+    custom_obj__pv,
+    open_func__f,
+    close_func__f,
+    read_func__f,
+    write_func__f,
+    flush_write_func__f,
+    read_limit__u32,
+    flea_strm_type_generic,
+    FLEA_TRUE /* has filter support = true */
+  );
+}
+
+flea_err_t THR_flea_rw_stream_t__ctor_detailed(
+  flea_rw_stream_t*            stream__pt,
+  void*                        custom_obj__pv,
+  flea_rw_stream_open_f        open_func__f,
+  flea_rw_stream_close_f       close_func__f,
+  flea_rw_stream_read_f        read_func__f,
+  flea_rw_stream_write_f       write_func__f,
+  flea_rw_stream_flush_write_f flush_write_func__f,
+  flea_u32_t                   read_limit__u32,
+  flea_rw_stream_type_e        strm_type__e,
+  flea_bool_t                  has_filter_support__b
+)
+{
   FLEA_THR_BEG_FUNC();
   stream__pt->custom_obj__pv      = custom_obj__pv;
   stream__pt->open_func__f        = open_func__f;
@@ -30,6 +57,8 @@ flea_err_t THR_flea_rw_stream_t__ctor(
   stream__pt->filt_proc_buf_len__alu16 = 0;
   stream__pt->read_rem_len__u32        = read_limit__u32;
   stream__pt->have_read_limit__b       = FLEA_FALSE;
+  stream__pt->strm_type__e = strm_type__e;
+  stream__pt->has_filter_support__b = has_filter_support__b;
   if(read_limit__u32 != 0)
   {
     stream__pt->have_read_limit__b = FLEA_TRUE;
@@ -41,6 +70,11 @@ flea_err_t THR_flea_rw_stream_t__ctor(
   FLEA_THR_FIN_SEC_empty();
 }
 
+flea_rw_stream_type_e flea_rw_stream_t__get_strm_type(const flea_rw_stream_t* rw_stream__pt)
+{
+  return rw_stream__pt->strm_type__e;
+}
+
 flea_err_t THR_flea_rw_stream_t__set_filter(
   flea_rw_stream_t* stream__pt,
   flea_filter_t*    filt__pt,
@@ -49,6 +83,10 @@ flea_err_t THR_flea_rw_stream_t__set_filter(
 )
 {
   FLEA_THR_BEG_FUNC();
+  if(!stream__pt->has_filter_support__b)
+  {
+    FLEA_THROW("cannot set filter in stream without filter support", FLEA_ERR_INV_STATE);
+  }
   if(filt__pt->max_absolute_output_expansion__u16 >= process_buf_len__alu16)
   {
     FLEA_THROW("process buffer is too small for the supplied filter", FLEA_ERR_BUFF_TOO_SMALL);

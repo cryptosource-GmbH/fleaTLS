@@ -23,28 +23,28 @@ typedef struct
 #define flea_byte_vec_t__CONSTR_EMPTY {0, 0, 0, FLEA_FALSE}
 
 
-void flea_byte_vec_t__INIT(flea_byte_vec_t* that);
+void flea_byte_vec_t__INIT(flea_byte_vec_t* byte_vec__pt);
 
-void flea_byte_vec_t__dtor(flea_byte_vec_t* that);
+void flea_byte_vec_t__dtor(flea_byte_vec_t* byte_vec__pt);
 // #define _flea_byte_vec_t__IS_CONSTR(__p) (1)
 
-void flea_byte_vec_t__reset(flea_byte_vec_t* that);
+void flea_byte_vec_t__reset(flea_byte_vec_t* byte_vec__pt);
 
-void flea_byte_vec_t__ctor_empty(flea_byte_vec_t* that);
+void flea_byte_vec_t__ctor_empty(flea_byte_vec_t* byte_vec__pt);
 
 flea_err_t THR_flea_byte_vec_t__push_back(
-  flea_byte_vec_t* that,
+  flea_byte_vec_t* byte_vec__pt,
   flea_u8_t*       dta,
   flea_u32_t       len
 );
 
 flea_err_t THR_flea_byte_vec_t__reserve(
-  flea_byte_vec_t* that,
+  flea_byte_vec_t* byte_vec__pt,
   flea_u32_t       reserve_len
 );
 
 flea_err_t THR_flea_byte_vec_t__append_constant_bytes(
-  flea_byte_vec_t* that,
+  flea_byte_vec_t* byte_vec__pt,
   flea_u8_t        value,
   flea_u32_t       repeat
 );
@@ -55,7 +55,7 @@ flea_err_t THR_flea_byte_vec_t__append_constant_bytes(
  * previous size, the new bytes at the end are set to zero
  */
 flea_err_t THR_flea_byte_vec_t__resize(
-  flea_byte_vec_t* that,
+  flea_byte_vec_t* byte_vec__pt,
   unsigned         new_size
 );
 

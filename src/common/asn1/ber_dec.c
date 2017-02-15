@@ -19,14 +19,22 @@ typedef enum { extr_ref_to_tlv, extr_ref_to_v, extr_read_v } access_mode_t;
 
 
 flea_err_t THR_flea_ber_dec_t__ctor(
-  flea_ber_dec_t*   dec__pt,
-  flea_rw_stream_t* read_stream__pt,
-  flea_dtl_t        length_limit__dtl
+  flea_ber_dec_t*          dec__pt,
+  flea_rw_stream_t*        read_stream__pt,
+  flea_dtl_t               length_limit__dtl,
+  flea_asn1_dec_val_hndg_e dec_val_hndg__e
 )
 {
   FLEA_THR_BEG_FUNC();
   dec__pt->level__alu8 = 0;
   dec__pt->source__pt  = read_stream__pt;
+  if((dec_val_hndg__e == flea_decode_ref) && flea_rw_stream_t__get_strm_type(read_stream__pt) != flea_strm_type_memory)
+  {
+    FLEA_THROW(
+      "ber decoder cannot be configured to ref decoding for input streams of type other than 'memory read stream'",
+      FLEA_ERR_INV_ARG
+    );
+  }
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM_ARR(dec__pt->allo_open_cons__bdtl, FLEA_BER_DEC_LEVELS_PRE_ALLOC);
   dec__pt->alloc_levels__alu8 = FLEA_BER_DEC_LEVELS_PRE_ALLOC;

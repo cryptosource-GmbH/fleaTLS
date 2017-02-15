@@ -31,7 +31,7 @@ flea_err_t THR_flea_test_ber_dec_basic()
       &hlp__t
     )
   );
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0));
+  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref));
   FLEA_CCALL(
     THR_flea_ber_dec_t__get_ref_to_raw_optional(
       &dec__t,
