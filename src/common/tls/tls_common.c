@@ -426,7 +426,6 @@ flea_err_t THR_verify_cert_chain(
   const flea_u8_t date_str[] = "170228200000Z"; // TODO: datumsfunktion aufrufen
   flea_gmt_time_t time__t;
   flea_bool_t first__b = FLEA_TRUE;
-  flea_err_t err;
   const flea_u8_t* ptr = tls_cert_chain__acu8;
   flea_al_u16_t len    = length;
 
@@ -434,7 +433,7 @@ flea_err_t THR_verify_cert_chain(
 
   while(len > 3)
   {
-    FLEA_DECL_OBJ(ref__t, flea_x509_cert_ref_t);
+    // FLEA_DECL_OBJ(ref__t, flea_x509_cert_ref_t);
     flea_u32_t new_len = ((flea_u32_t) ptr[0] << 16) | (ptr[1] << 8) | (ptr[2]);
     ptr += 3;
     len -= 3;
@@ -442,37 +441,38 @@ flea_err_t THR_verify_cert_chain(
     {
       FLEA_THROW("invalid cert chain length", FLEA_ERR_INV_ARG);
     }
-    FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&ref__t, ptr, new_len));
-    ptr += new_len;
-    len -= new_len;
+    // FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&ref__t, ptr, new_len));
     if(first__b)
     {
-      FLEA_CCALL(THR_flea_cert_path_validator_t__ctor_cert_ref(&cert_chain__t, &ref__t));
+      // FLEA_CCALL(THR_flea_cert_path_validator_t__ctor_cert_ref(&cert_chain__t, &ref__t));
+      FLEA_CCALL(THR_flea_cert_path_validator_t__ctor_cert(&cert_chain__t, ptr, new_len));
       first__b = FLEA_FALSE;
     }
     else
     {
-      FLEA_CCALL(THR_flea_cert_path_validator_t__add_cert_ref_without_trust_status(&cert_chain__t, &ref__t));
+      FLEA_CCALL(THR_flea_cert_path_validator_t__add_cert_without_trust_status(&cert_chain__t, ptr, new_len));
     }
+    ptr += new_len;
+    len -= new_len;
   }
 
   FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) - 1, &time__t));
 
 
   // add trust anchor
-  FLEA_DECL_OBJ(trust_ref__t, flea_x509_cert_ref_t);
-  err = THR_flea_x509_cert_ref_t__ctor(&trust_ref__t, trust_anchor, sizeof(trust_anchor));
-  err = THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(&cert_chain__t, &trust_ref__t);
-
+  // FLEA_DECL_OBJ(trust_ref__t, flea_x509_cert_ref_t);
+  // err = THR_flea_x509_cert_ref_t__ctor(&trust_ref__t, trust_anchor, sizeof(trust_anchor));
+  // err = THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(&cert_chain__t, &trust_ref__t);
+  FLEA_CCALL(THR_flea_cert_path_validator_t__add_trust_anchor_cert(&cert_chain__t, trust_anchor, sizeof(trust_anchor)));
+  // TODO: ENABLE REVOCATION CHECKING IN TLS
   flea_cert_path_validator_t__disable_revocation_checking(&cert_chain__t);
-  err =
-    THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_pub_key(&cert_chain__t, &time__t, pubkey__t);
-
-  /* TODO: make test cases to check that this works as intended */
-  if(err)
-  {
-    FLEA_THROW("failed to verify chain!", FLEA_ERR_CERT_PATH_NOT_FOUND);
-  }
+  FLEA_CCALL(
+    THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_pub_key(
+      &cert_chain__t,
+      &time__t,
+      pubkey__t
+    )
+  );
 
   FLEA_THR_FIN_SEC(
     flea_cert_path_validator_t__dtor(&cert_chain__t);

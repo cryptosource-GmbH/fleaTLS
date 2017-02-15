@@ -7,6 +7,7 @@
 #include "flea/x509.h"
 #include "flea/pubkey.h"
 #include "flea/hostn_ver.h"
+#include "flea/cert_info.h"
 
 #ifdef FLEA_HAVE_ASYM_ALGS
 
@@ -18,22 +19,24 @@ extern "C" {
 typedef struct
 {
 # ifdef FLEA_USE_HEAP_BUF
-  flea_ref_cu8_t*       crl_collection__brcu8;
-  flea_x509_cert_ref_t* cert_collection__bt;
-  flea_u16_t*           chain__bu16;
+  flea_ref_cu8_t*        crl_collection__brcu8;
+  // flea_x509_cert_ref_t* cert_collection__bt;
+  flea_x509_cert_info_t* cert_collection__bt;
+  flea_u16_t*            chain__bu16;
 # else
-  flea_ref_cu8_t        crl_collection__brcu8[FLEA_MAX_CERT_COLLECTION_NB_CRLS];
-  flea_x509_cert_ref_t  cert_collection__bt[FLEA_MAX_CERT_COLLECTION_SIZE];
-  flea_u16_t            chain__bu16[FLEA_MAX_CERT_CHAIN_DEPTH]; // including target and TA
+  flea_ref_cu8_t         crl_collection__brcu8[FLEA_MAX_CERT_COLLECTION_NB_CRLS];
+  // flea_x509_cert_ref_t  cert_collection__bt[FLEA_MAX_CERT_COLLECTION_SIZE];
+  flea_x509_cert_info_t  cert_collection__bt[FLEA_MAX_CERT_COLLECTION_SIZE];
+  flea_u16_t             chain__bu16[FLEA_MAX_CERT_CHAIN_DEPTH]; // including target and TA
 # endif
-  flea_u16_t            crl_collection_allocated__u16;
-  flea_u16_t            cert_collection_allocated__u16;
-  flea_u16_t            nb_crls__u16;
-  flea_u16_t            cert_collection_size__u16;
-  flea_u16_t            chain_pos__u16; // offset to final element, = length - 1
-  flea_bool_t           perform_revocation_checking__b;
+  flea_u16_t             crl_collection_allocated__u16;
+  flea_u16_t             cert_collection_allocated__u16;
+  flea_u16_t             nb_crls__u16;
+  flea_u16_t             cert_collection_size__u16;
+  flea_u16_t             chain_pos__u16; // offset to final element, = length - 1
+  flea_bool_t            perform_revocation_checking__b;
 
-  volatile flea_bool_t  abort_cert_path_finding__vb;
+  volatile flea_bool_t   abort_cert_path_finding__vb;
 # ifdef FLEA_USE_HEAP_BUF
 # else
 # endif
@@ -52,10 +55,10 @@ flea_err_t THR_flea_cert_path_validator_t__ctor_cert(
   flea_al_u16_t               target_cert_len__alu16
 );
 
-flea_err_t THR_flea_cert_path_validator_t__ctor_cert_ref(
-  flea_cert_path_validator_t* chain__pt,
-  flea_x509_cert_ref_t*       target_cert__pt
-);
+/*flea_err_t THR_flea_cert_path_validator_t__ctor_cert_ref(
+ * flea_cert_path_validator_t* chain__pt,
+ * flea_x509_cert_ref_t*       target_cert__pt
+ * );*/
 
 void flea_cert_path_validator_t__disable_revocation_checking(flea_cert_path_validator_t* cert_chain__pt);
 
@@ -70,10 +73,10 @@ flea_err_t THR_flea_cert_path_validator_t__add_cert_without_trust_status(
   flea_al_u16_t               cert_len__alu16
 );
 
-flea_err_t THR_flea_cert_path_validator_t__add_cert_ref_without_trust_status(
-  flea_cert_path_validator_t* chain__pt,
-  const flea_x509_cert_ref_t* cert_ref__pt
-);
+/*flea_err_t THR_flea_cert_path_validator_t__add_cert_ref_without_trust_status(
+ * flea_cert_path_validator_t* chain__pt,
+ * const flea_x509_cert_ref_t* cert_ref__pt
+ * );*/
 
 /**
  * Add a trust anchor to object. It is possible to add the target cert itself again if it is trusted. This is
@@ -85,10 +88,10 @@ flea_err_t THR_flea_cert_path_validator_t__add_trust_anchor_cert(
   flea_al_u16_t               cert_len__alu16
 );
 
-flea_err_t THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(
-  flea_cert_path_validator_t* chain__pt,
-  const flea_x509_cert_ref_t* cert_ref__pt
-);
+/*flea_err_t THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(
+ * flea_cert_path_validator_t* chain__pt,
+ * const flea_x509_cert_ref_t* cert_ref__pt
+ * );*/
 
 /**
  * This function tries to build a certificate path from the set target certificate

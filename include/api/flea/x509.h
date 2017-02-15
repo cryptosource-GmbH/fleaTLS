@@ -138,7 +138,7 @@ typedef struct
 
 typedef struct
 {
-  flea_ref_cu8_t tbs_ref__t;
+  // flea_ref_cu8_t tbs_ref__t;
 
   /**
    *  the interpreted version number (not the encoded integer)
@@ -165,11 +165,12 @@ typedef struct
 
   flea_ref_cu8_t              cert_signature_as_bit_string__t;
 
-  flea_bool_t                 is_trusted__b;
+  //  flea_bool_t                 is_trusted__b;
 } flea_x509_cert_ref_t;
 
 
 #define flea_x509_cert_ref_t__INIT_VALUE {.version__u8 = 0}
+#define flea_x509_cert_ref_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
 
 #define flea_x509_cert_ref_t__dtor(__p)
 
@@ -200,5 +201,11 @@ flea_err_t THR_flea_x509__parse_dn(
 flea_err_t THR_flea_x509__process_alg_ids(
   flea_x509_algid_ref_t*       tbs_ref__pt,
   const flea_x509_algid_ref_t* outer_ref__pt
+);
+
+flea_err_t THR_flea_x509_cert__get_ref_to_tbs(
+  const flea_u8_t* der_encoded_cert__pu8,
+  flea_al_u16_t    der_encoded_cert_len__alu16,
+  flea_ref_cu8_t*  ref_to_tbs__pt
 );
 #endif /* h-guard */
