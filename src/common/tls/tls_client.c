@@ -269,7 +269,9 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
 static flea_err_t THR_flea_handle_handsh_msg(
   flea_tls_ctx_t*              tls_ctx,
   flea_tls__handshake_state_t* handshake_state,
-  flea_hash_ctx_t*             hash_ctx__pt
+  flea_hash_ctx_t*             hash_ctx__pt,
+  flea_u8_t*                   trust_anchor__pu8,
+  flea_u16_t                   trust_anchor_len__u16
 )
 {
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
@@ -302,7 +304,15 @@ static flea_err_t THR_flea_handle_handsh_msg(
     {
       printf("SM: reading certificate\n");
       // Certificate certificate_message; // TODO: don't need this
-      FLEA_CCALL(THR_flea_tls__read_certificate(tls_ctx, &handsh_rdr__t, &tls_ctx->server_pubkey));
+      FLEA_CCALL(
+        THR_flea_tls__read_certificate(
+          tls_ctx,
+          &handsh_rdr__t,
+          &tls_ctx->server_pubkey,
+          trust_anchor__pu8,
+          trust_anchor_len__u16
+        )
+      );
 
       // tls_ctx->server_pubkey = pubkey; // TODO: PUBKEY STILL NEEDED?
     }
@@ -342,7 +352,9 @@ static flea_err_t THR_flea_handle_handsh_msg(
 } /* THR_flea_handle_handsh_msg */
 
 flea_err_t THR_flea_tls__client_handshake(
-  flea_tls_ctx_t* tls_ctx
+  flea_tls_ctx_t* tls_ctx,
+  flea_u8_t*      trust_anchor__pu8,
+  flea_u16_t      trust_anchor_len__u16
   // flea_rw_stream_t* rw_stream__pt
 )
 {
@@ -400,7 +412,15 @@ flea_err_t THR_flea_tls__client_handshake(
 
       if(cont_type__e == CONTENT_TYPE_HANDSHAKE)
       {
-        FLEA_CCALL(THR_flea_handle_handsh_msg(tls_ctx, &handshake_state, &hash_ctx));
+        FLEA_CCALL(
+          THR_flea_handle_handsh_msg(
+            tls_ctx,
+            &handshake_state,
+            &hash_ctx,
+            trust_anchor__pu8,
+            trust_anchor_len__u16
+          )
+        );
         if(handshake_state.finished == FLEA_TRUE)
         {
           break;

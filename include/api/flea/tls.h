@@ -321,7 +321,11 @@ flea_err_t flea_tls_ctx_t__ctor(
   flea_u8_t         session_id_len
 );
 
-flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx);
+flea_err_t THR_flea_tls__client_handshake(
+  flea_tls_ctx_t* tls_ctx,
+  flea_u8_t*      trust_anchor__pu8,
+  flea_u16_t      trust_anchor_len__u16
+);
 
 flea_err_t THR_flea_tls__server_handshake(
   flea_tls_ctx_t*   tls_ctx,

@@ -141,25 +141,28 @@ flea_err_t THR_flea_tls__read_client_hello(
     FLEA_THROW("Could not agree on compression method", FLEA_ERR_TLS_GENERIC);
   }
 
-  // read extension length
-  // TODO: stream function to read in the length
-  FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, ((flea_u8_t*) &extensions_len__u16) + 1));
-  FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &extensions_len__u16));
-  if(extensions_len__u16 > max_extensions_len__u16)
+  // check length in the header field for integrity
+  if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {
-    FLEA_THROW("implementation does not support the given extensions length", FLEA_ERR_TLS_GENERIC);
+    // read extension length
+    // TODO: stream function to read in the length
+    FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, ((flea_u8_t*) &extensions_len__u16) + 1));
+    FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &extensions_len__u16));
+    if(extensions_len__u16 > max_extensions_len__u16)
+    {
+      FLEA_THROW("implementation does not support the given extensions length", FLEA_ERR_TLS_GENERIC);
+    }
+
+    // read extension
+    FLEA_ALLOC_BUF(extensions__bu8, extensions_len__u16);
+    FLEA_CCALL(
+      THR_flea_rw_stream_t__force_read(
+        hs_rd_stream__pt,
+        extensions__bu8,
+        extensions_len__u16
+      )
+    );
   }
-
-  // read extension
-  FLEA_ALLOC_BUF(extensions__bu8, extensions_len__u16);
-  FLEA_CCALL(
-    THR_flea_rw_stream_t__force_read(
-      hs_rd_stream__pt,
-      extensions__bu8,
-      extensions_len__u16
-    )
-  );
-
   // check length in the header field for integrity
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {

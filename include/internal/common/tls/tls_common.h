@@ -12,7 +12,9 @@ extern "C" {
 flea_err_t THR_flea_tls__read_certificate(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
-  flea_public_key_t*        pubkey
+  flea_public_key_t*        pubkey,
+  flea_u8_t*                trust_anchor__pu16,
+  flea_u16_t                trust_anchor_len__u16
 );
 
 flea_err_t THR_flea_tls__send_handshake_message_hdr(
