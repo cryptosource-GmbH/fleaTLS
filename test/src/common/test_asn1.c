@@ -362,7 +362,7 @@ flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy()
       FLEA_TRUE /* apparent generic rd stream */,
       flea_decode_copy,
       dec_func_cpy,
-      dec_func_ref,
+      dec_func_ref, /* this is invalid for a generic stream */
       FLEA_ERR_FINE,
       FLEA_ERR_FINE,
       FLEA_ERR_INV_STATE

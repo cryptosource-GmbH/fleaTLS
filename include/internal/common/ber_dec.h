@@ -182,13 +182,6 @@ flea_err_t THR_flea_ber_dec_t__close_constructed_skip_remaining(flea_ber_dec_t* 
  * upon return, it will receive the length of the data read into out_mem__pu8
  */
 
-/*flea_err_t THR_flea_ber_dec_t__read_value_raw(
- * flea_ber_dec_t* dec__pt,
- * flea_asn1_tag_t type_t,
- * flea_al_u8_t    class_form__alu8,
- * flea_u8_t*      out_mem__pu8,
- * flea_dtl_t*     out_mem_len__pdtl
- * );*/
 flea_err_t THR_flea_ber_dec_t__read_value_raw(
   flea_ber_dec_t*  dec__pt,
   flea_asn1_tag_t  type__t,
@@ -205,22 +198,10 @@ flea_err_t THR_flea_ber_dec_t__read_value_raw(
  *
  */
 
-/*flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_optional(
- * flea_ber_dec_t*   dec__pt,
- * flea_asn1_tag_t   type__t,
- * flea_al_u8_t      class_form__alu8,
- * flea_u8_t const** raw__cppu8,
- * flea_dtl_t*       len__pdtl,
- * flea_bool_t*      found_ptr
- * );*/
-
 flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_optional(
   flea_ber_dec_t*  dec__pt,
   flea_asn1_tag_t  type__t,
   flea_al_u8_t     class_form__alu8,
-
-  /*flea_u8_t const** raw__cppu8,
-   * flea_dtl_t*       len__pdtl,*/
   flea_byte_vec_t* byte_vec__pt,
   flea_bool_t*     found__pb
 );
@@ -278,6 +259,7 @@ flea_err_t THR_flea_ber_dec_t__get_der_REF_to_positive_int_wo_lead_zeroes_option
   flea_ref_cu8_t* der_ref__pt
 );
 
+// TODO: REMOVE
 flea_err_t THR_flea_ber_dec_t__decode_int(
   flea_ber_dec_t*  dec__pt,
   flea_byte_vec_t* res_vec__pt
@@ -294,42 +276,16 @@ flea_err_t THR_flea_ber_dec_t__get_der_ref_to_oid(
  * @param str_type_ptr  [out] receives the value of the decoded string type
  */
 
-/*flea_err_t THR_flea_ber_dec_t__get_ref_to_string(
- * flea_ber_dec_t*       dec__pt,
- * flea_asn1_str_type_t* str_type_ptr,
- * flea_u8_t const**     raw__cppu8,
- * flea_dtl_t*           len__pdtl
- * );*/
 flea_err_t THR_flea_ber_dec_t__get_ref_to_string(
   flea_ber_dec_t*       dec__pt,
   flea_asn1_str_type_t* str_type__pt,
-  // flea_u8_t const**     raw__cppu8,
   flea_byte_vec_t*      res_vec__pt
-  // flea_dtl_t*           len__pdtl
 );
 
-
-flea_err_t THR_flea_ber_dec_t__get_ref_to_date(
-  flea_ber_dec_t*        dec__pt,
-  flea_asn1_time_type_t* time_type__pt,
-  flea_u8_t const**      raw__cppu8,
-  flea_dtl_t*            len__pdtl
-);
-
-/*flea_err_t THR_flea_ber_dec_t__get_ref_to_date_opt(
- * flea_ber_dec_t*        dec__pt,
- * flea_asn1_time_type_t* time_type__pt,
- * flea_u8_t const**      raw__cppu8,
- * flea_dtl_t*            len__pdtl,
- * flea_bool_t*           optional_found__pb
- * );*/
 
 flea_err_t THR_flea_ber_dec_t__get_ref_to_date_opt(
   flea_ber_dec_t*        dec__pt,
   flea_asn1_time_type_t* time_type__pt,
-
-  /*flea_u8_t const**      raw__cppu8,
-   * flea_dtl_t*            len__pdtl,*/
   flea_byte_vec_t*       res_vec__pt,
   flea_bool_t*           optional_found__pb
 );
@@ -348,19 +304,13 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner
   flea_byte_vec_t* ref__pt
 );
 
-/*flea_err_t THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(
- * flea_ber_dec_t* dec__pt,
- * flea_byte_vec_t* ref__pt
- * );*/
 flea_err_t THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(
   flea_ber_dec_t*  dec__pt,
-  // flea_byte_vec_t* ref__pt
   flea_byte_vec_t* vec__pt
 );
 
 flea_err_t THR_flea_ber_dec_t__get_ref_to_next_tlv_raw_optional(
   flea_ber_dec_t*  dec__pt,
-  // flea_byte_vec_t* ref__pt
   flea_byte_vec_t* byte_vec__pt
 );
 
@@ -385,36 +335,10 @@ flea_err_t THR_flea_ber_dec_t__decode_boolean_default_false(
 );
 
 
-/*flea_err_t THR_flea_ber_dec_t__read_value_raw_cft(
- * flea_ber_dec_t* dec__pt,
- * flea_asn1_tag_t cft,
- * flea_u8_t*      out_mem__pu8,
- * flea_dtl_t*     out_mem_len__pdtl
- * );
- */
-flea_err_t THR_flea_ber_dec_t__read_value_raw_cft(
-  flea_ber_dec_t*  dec__pt,
-  flea_asn1_tag_t  cft,
-  flea_byte_vec_t* res_vec__pt
-
-  /*flea_u8_t*      out_mem__pu8,
-   * flea_dtl_t*     out_mem_len__pdtl*/
-);
-
-/*flea_err_t THR_flea_ber_dec_t__read_value_raw_cft_opt(
- * flea_ber_dec_t* dec__pt,
- * flea_asn1_tag_t cft,
- * flea_u8_t*      out_mem__pu8,
- * flea_dtl_t*     out_mem_len__pdtl,
- * flea_bool_t*    optional_found__pb
- * );*/
 flea_err_t THR_flea_ber_dec_t__read_value_raw_cft_opt(
   flea_ber_dec_t*  dec__pt,
   flea_asn1_tag_t  cft,
   flea_byte_vec_t* res_vec__pt,
-
-  /*flea_u8_t*      out_mem__pu8,
-   * flea_dtl_t*     out_mem_len__pdtl,*/
   flea_bool_t*     optional_found__pb
 );
 
@@ -422,12 +346,6 @@ flea_err_t THR_flea_ber_dec_t__get_REF_to_raw_cft(
   flea_ber_dec_t* dec__pt,
   flea_asn1_tag_t cft,
   flea_ref_cu8_t* ref__pt
-);
-
-flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_cft(
-  flea_ber_dec_t*  dec__pt,
-  flea_asn1_tag_t  cft,
-  flea_byte_vec_t* ref__pt
 );
 
 
@@ -468,6 +386,66 @@ flea_err_t THR_flea_ber_dec__get_ref_to_bit_string_content_no_unused_bits(
 flea_bool_t flea_ber_dec__is_tlv_null(const flea_byte_vec_t* ref__pt);
 
 flea_bool_t flea_ber_dec__is_tlv_null_vec(const flea_byte_vec_t* ref__pt);
+
+flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_cft(
+  flea_ber_dec_t*  dec__pt,
+  flea_asn1_tag_t  cft,
+  flea_byte_vec_t* ref__pt
+);
+
+
+/* ==================================================================== */
+/* ==================================================================== */
+/*          NEW FUNCTIONS                                               */
+/* ==================================================================== */
+/* ==================================================================== */
+// TODO:
+/** non-optional decoding **/
+/* was already there: */
+flea_err_t THR_flea_ber_dec_t__read_value_raw_cft(
+  flea_ber_dec_t*  dec__pt,
+  flea_asn1_tag_t  cft,
+  flea_byte_vec_t* res_vec__pt
+);
+
+#if 0
+flea_err_t THR_flea_ber_dec_t__decode_value_raw_cft(
+  flea_ber_dec_t*  dec__pt,
+  flea_asn1_tag_t  cft,
+  flea_byte_vec_t* res_vec__pt
+);
+
+/* was already there, but with wrong 3rd arg type: */
+flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_cft_NEW(
+  flea_ber_dec_t* dec__pt,
+  flea_asn1_tag_t cft,
+  flea_ref_cu8_t* ref__pt
+);
+
+
+/** optional decoding **/
+
+flea_err_t THR_flea_ber_dec_t__read_value_raw_cft_optional(
+  flea_ber_dec_t*  dec__pt,
+  flea_asn1_tag_t  cft,
+  flea_byte_vec_t* res_vec__pt,
+  flea_bool_t*     optional_found__pb
+);
+
+flea_err_t THR_flea_ber_dec_t__decode_value_raw_cft_optional(
+  flea_ber_dec_t*  dec__pt,
+  flea_asn1_tag_t  cft,
+  flea_byte_vec_t* res_vec__pt,
+  flea_bool_t*     optional_found__pb
+);
+
+flea_err_t THR_flea_ber_dec_t__get_ref_to_value_raw_cft_optional(
+  flea_ber_dec_t* dec__pt,
+  flea_asn1_tag_t cft,
+  flea_ref_cu8_t* res__prcu8,
+  flea_bool_t*    optional_found__pb
+);
+#endif // if 0
 #ifdef __cplusplus
 }
 #endif
