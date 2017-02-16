@@ -18,14 +18,14 @@
 #include "flea/cert_info.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
-flea_err_t THR_flea_x509_verify_cert_ref_signature_inner(
+static flea_err_t THR_flea_x509_verify_cert_ref_signature_inner(
   const flea_x509_cert_ref_t* subject_cert_ref__pt,
-  const flea_ref_cu8_t*       subject_tbs_ref__prcu8,
+  const flea_byte_vec_t*      subject_tbs_ref__prcu8,
   const flea_x509_cert_ref_t* issuer_cert_ref__pt// ,
-  // flea_ref_cu8_t* issuer_tbs_ref__prcu8
+  // flea_byte_vec_t* issuer_tbs_ref__prcu8
 )
 {
-  flea_ref_cu8_t sig_content__t;
+  flea_byte_vec_t sig_content__t;
   flea_public_key_t key__t = flea_public_key_t__INIT_VALUE;
 
   FLEA_THR_BEG_FUNC();
@@ -60,7 +60,7 @@ flea_err_t THR_flea_x509_verify_cert_signature(
 {
   FLEA_DECL_OBJ(subj_ref__t, flea_x509_cert_ref_t);
   FLEA_DECL_OBJ(iss_ref__t, flea_x509_cert_ref_t);
-  flea_ref_cu8_t subj_tbs_ref__rcu8;
+  flea_byte_vec_t subj_tbs_ref__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
     THR_flea_x509_cert__get_ref_to_tbs(
@@ -90,7 +90,7 @@ flea_err_t THR_flea_x509_verify_cert_info_signature(
   );
 
   /*
-   * flea_ref_cu8_t sig_content__t;
+   * flea_byte_vec_t sig_content__t;
    * flea_public_key_t key__t = flea_public_key_t__INIT_VALUE;
    *
    * FLEA_THR_BEG_FUNC();

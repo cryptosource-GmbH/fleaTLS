@@ -50,17 +50,24 @@ flea_err_t THR_flea_test_dec_tls_server_cert()
   const char* wrong_hostname__cs  = "internal.cryptosource.dd";
   const char* wrong_hostname2__cs = "jnternal.cryptosource.de";
 
-  flea_u8_t ipaddr__acu8 []         = {94, 16, 81, 15};
-  flea_u8_t wrong_ipaddr__acu8 []   = {94, 16, 81, 14};
-  flea_ref_cu8_t ipaddr__rcu8       = {ipaddr__acu8, sizeof(ipaddr__acu8)};
-  flea_ref_cu8_t wrong_ipaddr__rcu8 = {wrong_ipaddr__acu8, sizeof(wrong_ipaddr__acu8)};
+  flea_u8_t ipaddr__acu8 []       = {94, 16, 81, 15};
+  flea_u8_t wrong_ipaddr__acu8 [] = {94, 16, 81, 14};
+
+  /*flea_ref_cu8_t ipaddr__rcu8       = {ipaddr__acu8, sizeof(ipaddr__acu8)};
+   * flea_ref_cu8_t wrong_ipaddr__rcu8 = {wrong_ipaddr__acu8, sizeof(wrong_ipaddr__acu8)};*/
+  FLEA_DECL_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(ipaddr_vec__t, ipaddr__acu8, sizeof(ipaddr__acu8));
+  FLEA_DECL_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(
+    wrong_ipaddr_vec__t,
+    wrong_ipaddr__acu8,
+    sizeof(wrong_ipaddr__acu8)
+  );
 
   FLEA_DECL_OBJ(cert_ref__t, flea_x509_cert_ref_t);
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&cert_ref__t, test_cert_tls_server_1, sizeof(test_cert_tls_server_1)));
 
   FLEA_CCALL(THR_flea_x509__verify_tls_server_id_cstr(hostname__cs, flea_host_dnsname, &cert_ref__t));
-  FLEA_CCALL(THR_flea_x509__verify_tls_server_id(&ipaddr__rcu8, flea_host_ipaddr, &cert_ref__t));
+  FLEA_CCALL(THR_flea_x509__verify_tls_server_id(&ipaddr_vec__t, flea_host_ipaddr, &cert_ref__t));
 
   if(FLEA_ERR_X509_TLS_SERVER_ID_NO_MATCH !=
     THR_flea_x509__verify_tls_server_id_cstr(wrong_hostname__cs, flea_host_dnsname, &cert_ref__t))
@@ -73,7 +80,7 @@ flea_err_t THR_flea_test_dec_tls_server_cert()
     FLEA_THROW("wrong server id accepted", FLEA_ERR_FAILED_TEST);
   }
   if(FLEA_ERR_X509_TLS_SERVER_ID_NO_MATCH !=
-    THR_flea_x509__verify_tls_server_id(&wrong_ipaddr__rcu8, flea_host_ipaddr, &cert_ref__t))
+    THR_flea_x509__verify_tls_server_id(&wrong_ipaddr_vec__t, flea_host_ipaddr, &cert_ref__t))
   {
     FLEA_THROW("wrong server id accepted", FLEA_ERR_FAILED_TEST);
   }
@@ -103,17 +110,17 @@ flea_err_t THR_flea_test_dec_ca_cert()
   {
     FLEA_THROW("parsed version number is incorrect", FLEA_ERR_FAILED_TEST);
   }
-  if(cert_ref__t.serial_number__t.len__dtl != 1 || cert_ref__t.serial_number__t.data__pcu8[0] != 62)
+  if(cert_ref__t.serial_number__t.len__dtl != 1 || cert_ref__t.serial_number__t.data__pu8[0] != 62)
   {
     FLEA_THROW("parsed serial number is incorrect", FLEA_ERR_FAILED_TEST);
   }
   if(cert_ref__t.tbs_sig_algid__t.oid_ref__t.len__dtl != 9 ||
-    cert_ref__t.tbs_sig_algid__t.oid_ref__t.data__pcu8[0] != 0x2A)
+    cert_ref__t.tbs_sig_algid__t.oid_ref__t.data__pu8[0] != 0x2A)
   {
     FLEA_THROW("parsed tbs sig alg is incorrect", FLEA_ERR_FAILED_TEST);
   }
-  if(cert_ref__t.issuer__t.country__t.len__dtl != 2 || cert_ref__t.issuer__t.country__t.data__pcu8[0] != 'U' ||
-    cert_ref__t.issuer__t.country__t.data__pcu8[1] != 'S')
+  if(cert_ref__t.issuer__t.country__t.len__dtl != 2 || cert_ref__t.issuer__t.country__t.data__pu8[0] != 'U' ||
+    cert_ref__t.issuer__t.country__t.data__pu8[1] != 'S')
   {
     FLEA_THROW("parsed issuer country is incorrect", FLEA_ERR_FAILED_TEST);
   }
@@ -122,8 +129,8 @@ flea_err_t THR_flea_test_dec_ca_cert()
     FLEA_THROW("issuer unique id error", FLEA_ERR_FAILED_TEST);
   }
   if(cert_ref__t.subject_public_key_info__t.algid__t.params_ref_as_tlv__t.len__dtl != 2 ||
-    cert_ref__t.subject_public_key_info__t.algid__t.params_ref_as_tlv__t.data__pcu8[0] != 0x05 ||
-    cert_ref__t.subject_public_key_info__t.algid__t.params_ref_as_tlv__t.data__pcu8[1] != 0x00)
+    cert_ref__t.subject_public_key_info__t.algid__t.params_ref_as_tlv__t.data__pu8[0] != 0x05 ||
+    cert_ref__t.subject_public_key_info__t.algid__t.params_ref_as_tlv__t.data__pu8[1] != 0x00)
   {
     FLEA_THROW("error decoding null params", FLEA_ERR_FAILED_TEST);
   }

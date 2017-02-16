@@ -33,23 +33,27 @@ static flea_al_u16_t find_cert(
   for(i = start_pos__alu16; i < cert_collection_size__alu16; i++)
   {
     /* compare subject DN's */
-    if(!flea_rcu8_cmp(
+    // if(!flea_rcu8_cmp(
+    if(!flea_byte_vec_t__cmp(
         &cert_to_find__pt->cert_ref__t.subject__t.raw_dn_complete__t,
         &cert_collection__bt[i].cert_ref__t.subject__t.raw_dn_complete__t
       ))
     {
       /* compare tbs */
 
-      // flea_ref_cu8_t tbs1__rcu8, tbs2__rcu8;
+      // flea_byte_vec_t tbs1__rcu8, tbs2__rcu8;
       // flea_err_t err = THR_flea_x509_cert__get_ref_to_tbs(cert_to_find__pt->ref_to_raw_der__rcu8.data__pcu8, cert_to_find__pt->ref_to_raw_der__rcu8.len__dtl, &tbs1__rcu8);
       // err |= THR_flea_x509_cert__get_ref_to_tbs(cert_collection__bt[i].ref_to_raw_der__rcu8.data__pcu8, cert_collection__bt[i].ref_to_raw_der__rcu8.len__dtl, &tbs2__rcu8);
       // if(!flea_rcu8_cmp(&cert_to_find__pt->tbs_ref__t, &cert_collection__bt[i].tbs_ref__t))
       // if(!flea_rcu8_cmp(&tbs1__rcu8, &tbs2__rcu8))
-      if(!flea_rcu8_cmp(&cert_to_find__pt->ref_to_tbs__rcu8, &cert_collection__bt[i].ref_to_tbs__rcu8))
+
+      // if(!flea_rcu8_cmp(&cert_to_find__pt->ref_to_tbs__rcu8, &cert_collection__bt[i].ref_to_tbs__rcu8))
+      if(!flea_byte_vec_t__cmp(&cert_to_find__pt->ref_to_tbs__rcu8, &cert_collection__bt[i].ref_to_tbs__rcu8))
       {
         if(FLEA_DER_REF_IS_ABSENT(&cert_collection__bt[i].cert_ref__t.cert_signature_as_bit_string__t) ||
           FLEA_DER_REF_IS_ABSENT(&cert_to_find__pt->cert_ref__t.cert_signature_as_bit_string__t) ||
-          !flea_rcu8_cmp(
+ // !flea_rcu8_cmp(
+          !flea_byte_vec_t__cmp(
             &cert_to_find__pt->cert_ref__t.cert_signature_as_bit_string__t,
             &cert_collection__bt[i].cert_ref__t.cert_signature_as_bit_string__t
           ))
@@ -58,7 +62,7 @@ static flea_al_u16_t find_cert(
     }
   }
   return END_OF_COLL;
-}
+} /* find_cert */
 
 static flea_al_u16_t find_issuer(
   const flea_x509_cert_ref_t*  cert_to_find_issuer_to__pt,
@@ -75,7 +79,8 @@ static flea_al_u16_t find_issuer(
   for(i = start_pos__alu16; i < cert_collection_size__alu16; i++)
   {
     /* compare subject DN's */
-    if(!flea_rcu8_cmp(
+    // if(!flea_rcu8_cmp(
+    if(!flea_byte_vec_t__cmp(
         &cert_to_find_issuer_to__pt->issuer__t.raw_dn_complete__t,
         &cert_collection__bt[i].cert_ref__t.subject__t.raw_dn_complete__t
       ))
@@ -120,7 +125,8 @@ static flea_bool_t is_cert_self_issued(const flea_x509_cert_ref_t* cert__pt)
   {
     return FLEA_TRUE;
   }
-  if(0 == flea_rcu8_cmp(&cert__pt->subject__t.raw_dn_complete__t, &cert__pt->issuer__t.raw_dn_complete__t))
+  // if(0 == flea_rcu8_cmp(&cert__pt->subject__t.raw_dn_complete__t, &cert__pt->issuer__t.raw_dn_complete__t))
+  if(0 == flea_byte_vec_t__cmp(&cert__pt->subject__t.raw_dn_complete__t, &cert__pt->issuer__t.raw_dn_complete__t))
   {
     return FLEA_TRUE;
   }
@@ -136,7 +142,7 @@ static flea_err_t THR_validate_cert_path(
   flea_s32_t i;
   flea_al_u16_t chain_len__alu16 = cert_cpv__pt->chain_pos__u16 + 1;
   flea_al_u16_t m_path__u16      = chain_len__alu16;
-  // flea_ref_cu8_t inherited_params__rcu8;
+  // flea_byte_vec_t inherited_params__rcu8;
   flea_gmt_time_t compare_time__t;
 
   FLEA_THR_BEG_FUNC();
@@ -267,7 +273,7 @@ flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain(
 flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain_and_hostid_and_create_pub_key(
   flea_cert_path_validator_t* cert_cpv__pt,
   const flea_gmt_time_t*      time_mbn__pt,
-  const flea_ref_cu8_t*       host_id__pcrcu8,
+  const flea_byte_vec_t*      host_id__pcrcu8,
   flea_host_id_type_e         host_id_type,
   flea_public_key_t*          key_to_construct_mbn__pt
 )
@@ -476,7 +482,7 @@ void flea_cert_path_validator_t__abort_cert_path_building(flea_cert_path_validat
 
 flea_err_t THR_flea_cert_path_validator_t__add_crl(
   flea_cert_path_validator_t* cpv__pt,
-  const flea_ref_cu8_t*       crl_der__cprcu8
+  const flea_byte_vec_t*      crl_der__cprcu8
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -536,14 +542,15 @@ static flea_err_t THR_flea_cert_path_validator_t__add_cert(
 )
 {
   // flea_x509_cert_ref_t ref__t = flea_x509_cert_ref_t__INIT_VALUE;
-  flea_x509_cert_info_t cert_info__t;
+  flea_x509_cert_info_t cert_info__t = flea_x509_cert_info_t__INIT_VALUE;
 
   FLEA_THR_BEG_FUNC();
+
   flea_x509_cert_ref_t__INIT(&cert_info__t.cert_ref__t);
   FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&cert_info__t.cert_ref__t, cert__pcu8, cert_len__alu16));
   cert_info__t.is_trusted__b = is_trusted__b;
-  cert_info__t.ref_to_raw_der__rcu8.data__pcu8 = cert__pcu8;
-  cert_info__t.ref_to_raw_der__rcu8.len__dtl   = cert_len__alu16;
+  cert_info__t.ref_to_raw_der__rcu8.data__pu8 = (flea_u8_t*) cert__pcu8;
+  cert_info__t.ref_to_raw_der__rcu8.len__dtl  = cert_len__alu16;
   FLEA_CCALL(THR_flea_x509_cert__get_ref_to_tbs(cert__pcu8, cert_len__alu16, &cert_info__t.ref_to_tbs__rcu8));
   // FLEA_CCALL(THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(cpv__pt, &ref__t));
   FLEA_CCALL(THR_flea_cert_path_validator_t__add_cert_info(cpv__pt, &cert_info__t));

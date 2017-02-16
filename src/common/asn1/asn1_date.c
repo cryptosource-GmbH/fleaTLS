@@ -24,17 +24,23 @@ flea_err_t THR_flea_asn1_parse_gmt_time_optional(
 {
   flea_x509_date_ref_t date_ref__t;
   flea_bool_t optional_found__b = FLEA_TRUE;
+  flea_byte_vec_t byte_vec__t   = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
 
   FLEA_THR_BEG_FUNC();
+  // TODO: ELIMINATE INTERMEDIATE REPRESENTATION
   FLEA_CCALL(
     THR_flea_ber_dec_t__get_ref_to_date_opt(
       dec__t,
       &date_ref__t.time_type__t,
-      &date_ref__t.data__pcu8,
-      &date_ref__t.len__dtl,
+
+      /*&date_ref__t.data__pcu8,
+      * &date_ref__t.len__dtl,*/
+      &byte_vec__t,
       &optional_found__b
     )
   );
+  date_ref__t.data__pcu8 = byte_vec__t.data__pu8;
+  date_ref__t.len__dtl   = byte_vec__t.len__dtl;
   if(!optional_found__b)
   {
     *found__pb = FLEA_FALSE;
@@ -49,7 +55,7 @@ flea_err_t THR_flea_asn1_parse_gmt_time_optional(
   );
   *found__pb = FLEA_TRUE;
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_asn1_parse_gmt_time_optional */
 
 flea_err_t THR_flea_asn1_parse_gmt_time(
   flea_ber_dec_t*  dec__t,
@@ -61,16 +67,22 @@ flea_err_t THR_flea_asn1_parse_gmt_time(
   flea_x509_date_ref_t date_ref__t;
   flea_bool_t optional_found__b = FLEA_FALSE;
 
+  flea_byte_vec_t byte_vec__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+  // TODO: ELIMINATE INTERMEDIATE REPRESENTATION
   FLEA_CCALL(
     THR_flea_ber_dec_t__get_ref_to_date_opt(
       dec__t,
       &date_ref__t.time_type__t,
-      &date_ref__t.data__pcu8,
-      &date_ref__t.len__dtl,
+
+      /*&date_ref__t.data__pcu8,
+      * &date_ref__t.len__dtl,*/
+      &byte_vec__t,
       &optional_found__b
     )
   );
 
+  date_ref__t.data__pcu8 = byte_vec__t.data__pu8;
+  date_ref__t.len__dtl   = byte_vec__t.len__dtl;
   FLEA_CCALL(
     THR_flea_asn1_parse_date(
       date_ref__t.time_type__t,

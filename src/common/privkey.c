@@ -20,7 +20,7 @@
 # ifdef FLEA_HAVE_ECC
 flea_err_t THR_flea_private_key_t__ctor_ecc(
   flea_private_key_t*              key__pt,
-  const flea_ref_cu8_t*            scalar__cprcu8,
+  const flea_byte_vec_t*           scalar__cprcu8,
   const flea_ec_gfp_dom_par_ref_t* dp_ref__pt
 )
 {
@@ -35,7 +35,7 @@ flea_err_t THR_flea_private_key_t__ctor_ecc(
   {
     FLEA_THROW("ECC order too large", FLEA_ERR_INV_ECC_DP);
   }
-  if(flea__get_BE_int_bit_len(scalar__cprcu8->data__pcu8, scalar__cprcu8->len__dtl) > key__pt->key_bit_size__u16)
+  if(flea__get_BE_int_bit_len(scalar__cprcu8->data__pu8, scalar__cprcu8->len__dtl) > key__pt->key_bit_size__u16)
   {
     FLEA_THROW("ECC order too large", FLEA_ERR_INV_KEY_SIZE);
   }
@@ -46,7 +46,8 @@ flea_err_t THR_flea_private_key_t__ctor_ecc(
 #  else
   dp_concat_len__alu16 = sizeof(key__pt->privkey_with_params__u.ec_priv_key_val__t.dp_mem__bu8);
 #  endif
-  flea_copy_rcu8_use_mem(
+  // flea_copy_rcu8_use_mem(
+  flea_byte_vec_t__copy_content_set_ref_use_mem(
     &key__pt->privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8,
     key__pt->privkey_with_params__u.ec_priv_key_val__t.priv_scalar__mem__bu8,
     scalar__cprcu8
@@ -155,8 +156,8 @@ flea_err_t THR_flea_private_key_t__ctor_rsa_components(
     const flea_u8_t* ptr__pcu8 = comp_ptrs__apcu8[i];
     flea_al_u16_t len__alu16   = comp_lens__aalu16[i];
     memcpy(priv_key_mem__pcu8, ptr__pcu8, len__alu16);
-    key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[i].data__pcu8 = priv_key_mem__pcu8;
-    key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[i].len__dtl   = len__alu16;
+    key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[i].data__pu8 = priv_key_mem__pcu8;
+    key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[i].len__dtl  = len__alu16;
     priv_key_mem__pcu8 += len__alu16;
   }
 

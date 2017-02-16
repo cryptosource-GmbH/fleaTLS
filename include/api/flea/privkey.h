@@ -20,7 +20,7 @@ extern "C" {
 typedef struct
 {
   flea_ec_gfp_dom_par_ref_t dp__t;
-  flea_ref_cu8_t            scalar__rcu8;
+  flea_byte_vec_t           scalar__rcu8;
 # ifdef FLEA_USE_STACK_BUF
   flea_u8_t                 dp_mem__bu8[FLEA_ECC_MAX_DP_CONCAT_BYTE_SIZE];
   flea_u8_t                 priv_scalar__mem__bu8[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
@@ -32,11 +32,11 @@ typedef struct
 
 typedef struct
 {
-  flea_ref_cu8_t pqd1d2c__rcu8 [5];
+  flea_byte_vec_t pqd1d2c__rcu8 [5];
 # ifdef FLEA_USE_STACK_BUF
-  flea_u8_t      priv_key_mem__bu8 [FLEA_RSA_CRT_KEY_INTERNAL_FORMAT_MAX_BYTE_SIZE];
+  flea_u8_t       priv_key_mem__bu8 [FLEA_RSA_CRT_KEY_INTERNAL_FORMAT_MAX_BYTE_SIZE];
 # else
-  flea_u8_t*     priv_key_mem__bu8;
+  flea_u8_t*      priv_key_mem__bu8;
 # endif
 } flea_rsa_privkey_val_t;
 
@@ -86,7 +86,7 @@ flea_err_t THR_flea_private_key_t__ctor_rsa_components(
 
 flea_err_t THR_flea_private_key_t__ctor_ecc(
   flea_private_key_t*              key__pt,
-  const flea_ref_cu8_t*            scalar__cprcu8,
+  const flea_byte_vec_t*           scalar__cprcu8,
   const flea_ec_gfp_dom_par_ref_t* dp_ref__pt
 );
 

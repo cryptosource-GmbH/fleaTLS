@@ -59,11 +59,13 @@ static flea_err_t THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
   const flea_u8_t exp_res__acu8[] = "abc";
   FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
   flea_ref_cu8_t priv_key_int_form__rcu8 = {.data__pcu8 = rsa_2048_crt_key_internal_format__acu8, .len__dtl = sizeof(rsa_2048_crt_key_internal_format__acu8)};
+  // flea_byte_vec_t priv_key_int_format_vec__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(rsa_2048_crt_key_internal_format__acu8,sizeof(rsa_2048_crt_key_internal_format__acu8));
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
     THR_flea_private_key_t__ctor_rsa_internal_format(
       &privkey__t,
       &priv_key_int_form__rcu8,
+      // &priv_key_int_format_vec__t,
       2048
     )
   );
@@ -559,9 +561,11 @@ static flea_err_t THR_flea_inner_test_pk_encryption(
   FLEA_ALLOC_BUF(decrypted__bu8, decrypted_len__alu16);
 
   flea_ref_cu8_t priv_key_int_form__rcu8 = {.data__pcu8 = rsa_2048_crt_key_internal_format__acu8, .len__dtl = sizeof(rsa_2048_crt_key_internal_format__acu8)};
+  // flea_byte_vec_t priv_key_int_format_vec__t  = flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(rsa_2048_crt_key_internal_format__acu8, sizeof(rsa_2048_crt_key_internal_format__acu8));
   FLEA_CCALL(
     THR_flea_private_key_t__ctor_rsa_internal_format(
       &privkey__t,
+      // &priv_key_int_format_vec__t,
       &priv_key_int_form__rcu8,
       2048
     )

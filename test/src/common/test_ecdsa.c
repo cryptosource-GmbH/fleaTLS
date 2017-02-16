@@ -65,22 +65,30 @@ flea_err_t THR_flea_test_cvc_sig_ver()
 
   flea_err_t err_code;
   // flea_pub_key_param_u param__u;
-  flea_ref_cu8_t pubpoint__crcu8 = {
-    .data__pcu8 = public_key__acu8,
-    .len__dtl   = sizeof(public_key__acu8)
-  };
+
+  /*flea_ref_cu8_t pubpoint__crcu8 = {
+   * .data__pcu8 = public_key__acu8,
+   * .len__dtl   = sizeof(public_key__acu8)
+   * };*/
+  FLEA_DECL_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(
+    pubpoint_vec__t,
+    (flea_u8_t*) public_key__acu8,
+    sizeof(public_key__acu8)
+  );
+
   flea_ec_gfp_dom_par_ref_t ecc_dom_par__t;
   FLEA_THR_BEG_FUNC();
   flea_al_u16_t sig_len__alu16 = sizeof(cvc_signature_rs__acu8);
   FLEA_CCALL(THR_flea_pk_signer_t__ctor(&verifier__t, flea_sha224));
   FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&ecc_dom_par__t, flea_brainpoolP224r1));
   FLEA_CCALL(THR_flea_pk_signer_t__update(&verifier__t, sign_data__acu8, sizeof(sign_data__acu8)));
-  FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(&public_key__t, &pubpoint__crcu8, &ecc_dom_par__t));
+  // FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(&public_key__t, &pubpoint__crcu8, &ecc_dom_par__t));
+  FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(&public_key__t, &pubpoint_vec__t, &ecc_dom_par__t));
   err_code = THR_flea_pk_signer_t__final_verify(
     &verifier__t,
     flea_ecdsa_emsa1,
     &public_key__t,
-    (flea_u8_t *) cvc_signature_rs__acu8,
+    (flea_u8_t*) cvc_signature_rs__acu8,
     sig_len__alu16
     );
   if(err_code != FLEA_ERR_FINE)

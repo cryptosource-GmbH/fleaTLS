@@ -49,7 +49,7 @@ typedef enum { flea_ecc_key, flea_rsa_key } flea_pk_key_type_t;
 
 typedef struct
 {
-  flea_ref_cu8_t            public_point_encoded__rcu8;
+  flea_byte_vec_t           public_point_encoded__rcu8;
   flea_ec_gfp_dom_par_ref_t dp__t;
 #  ifdef FLEA_USE_STACK_BUF
   flea_u8_t                 dp_mem__bu8[FLEA_ECC_MAX_DP_CONCAT_BYTE_SIZE];
@@ -102,21 +102,28 @@ typedef struct
 void flea_public_key_t__dtor(flea_public_key_t* key__pt);
 
 flea_err_t THR_flea_x509_parse_ecc_public_params(
-  const flea_ref_cu8_t*      encoded_parameters__pt,
+  const flea_byte_vec_t*     encoded_parameters__pt,
   flea_ec_gfp_dom_par_ref_t* dom_par__pt
 );
 
-flea_err_t THR_flea_x509_parse_rsa_public_key(
-  const flea_ref_cu8_t* public_key_value__pt,
-  flea_ref_cu8_t*       modulus__pt,
-  flea_ref_cu8_t*       pub_exp__pt
-);
+/*flea_err_t THR_flea_x509_parse_rsa_public_key(
+ * const flea_byte_vec_t* public_key_value__pt,
+ * flea_byte_vec_t*       modulus__pt,
+ * flea_byte_vec_t*       pub_exp__pt
+ * );*/
 
+/*
+ * flea_err_t THR_flea_public_key_t__ctor(
+ * flea_public_key_t*    key__pt,
+ * flea_pk_key_type_t    key_type,
+ * const flea_byte_vec_t* key_as_bit_string_tlv__prcu8,
+ * const flea_byte_vec_t* encoded_params__prcu8
+ * );*/
 flea_err_t THR_flea_public_key_t__ctor(
-  flea_public_key_t*    key__pt,
-  flea_pk_key_type_t    key_type,
-  const flea_ref_cu8_t* key_as_bit_string_tlv__prcu8,
-  const flea_ref_cu8_t* encoded_params__prcu8
+  flea_public_key_t*     key__pt,
+  flea_pk_key_type_t     key_type,
+  const flea_byte_vec_t* key_as_bit_string_tlv__prcu8,
+  const flea_byte_vec_t* encoded_params__prcu8
 );
 
 flea_err_t THR_flea_public_key_t__ctor_cert(
@@ -127,16 +134,16 @@ flea_err_t THR_flea_public_key_t__ctor_cert(
 flea_err_t THR_flea_public_key_t__verify_signature(
   const flea_public_key_t* key__pt,
   flea_pk_scheme_id_t      pk_scheme_id__t,
-  const flea_ref_cu8_t*    message__prcu8,
-  const flea_ref_cu8_t*    signature__prcu8,
+  const flea_byte_vec_t*   message__prcu8,
+  const flea_byte_vec_t*   signature__prcu8,
   flea_hash_id_t           hash_id__t
 );
 
 flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
   const flea_public_key_t*     public_key__pt,
   const flea_x509_algid_ref_t* sigalg_id__t,
-  const flea_ref_cu8_t*        tbs_data__pt,
-  const flea_ref_cu8_t*        signature__pt
+  const flea_byte_vec_t*       tbs_data__pt,
+  const flea_byte_vec_t*       signature__pt
 );
 
 flea_err_t THR_flea_public_key_t__encrypt_message(
@@ -153,11 +160,14 @@ flea_err_t THR_flea_public_key_t__ctor_rsa(
   flea_public_key_t*    key__pt,
   const flea_ref_cu8_t* mod__pcrcu8,
   const flea_ref_cu8_t* pub_exp__pcrcu8
+
+  /*const flea_byte_vec_t* mod__pcrcu8,
+   * const flea_byte_vec_t* pub_exp__pcrcu8*/
 );
 
 flea_err_t THR_flea_public_key_t__ctor_ecc(
   flea_public_key_t*               key__pt,
-  const flea_ref_cu8_t*            public_key_value__pt,
+  const flea_byte_vec_t*           public_key_value__pt,
   const flea_ec_gfp_dom_par_ref_t* dp__pt
 );
 

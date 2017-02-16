@@ -356,30 +356,42 @@ static flea_err_t THR_flea_test_pkcs8_inner(
   FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
   FLEA_DECL_OBJ(pubkey__t, flea_public_key_t);
 
-  FLEA_DECL_BUF(sig_buf__b_u8, flea_u8_t, FLEA_PK_MAX_SIGNATURE_LEN);
-  const flea_ref_cu8_t message__rcu8 = {
-    .data__pcu8 = pkcs8_rsa_key_2048_crt,
-    .len__dtl   = sizeof(pkcs8_rsa_key_2048_crt)
-  };
-  flea_ref_u8_t signature__ru8;
-  flea_ref_cu8_t signature__rcu8;
+  // FLEA_DECL_BUF(sig_buf__b_u8, flea_u8_t, FLEA_PK_MAX_SIGNATURE_LEN);
+
+  /*const flea_ref_cu8_t message__rcu8 = {
+   * .data__pcu8 = pkcs8_rsa_key_2048_crt,
+   * .len__dtl   = sizeof(pkcs8_rsa_key_2048_crt)
+   * };*/
+  // FLEA_DECL_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(
+  flea_byte_vec_t message_vec__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(
+    pkcs8_rsa_key_2048_crt,
+    sizeof(pkcs8_rsa_key_2048_crt)
+    );
+
+  /*flea_ref_u8_t signature__ru8;
+   * flea_ref_cu8_t signature__rcu8;*/
+  // TODO: IN HEAP MODE IMPLEMENT AND TEST REALLOCATION OF VEC
+  FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(sig_vec__t, FLEA_PK_MAX_SIGNATURE_LEN);
   FLEA_THR_BEG_FUNC();
-  FLEA_ALLOC_BUF(sig_buf__b_u8, FLEA_PK_MAX_SIGNATURE_LEN);
-  signature__ru8.data__pcu8 = sig_buf__b_u8;
-  signature__ru8.len__dtl   = FLEA_PK_MAX_SIGNATURE_LEN;
+  // FLEA_ALLOC_BUF(sig_buf__b_u8, FLEA_PK_MAX_SIGNATURE_LEN);
+
+  /*signature__ru8.data__pcu8 = sig_buf__b_u8;
+   * signature__ru8.len__dtl   = FLEA_PK_MAX_SIGNATURE_LEN;*/
   FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&privkey__t, pkcs8__pcu8, pkcs8_len__alu16));
   FLEA_CCALL(THR_flea_public_key_t__ctor_pkcs8(&pubkey__t, pkcs8__pcu8, pkcs8_len__alu16));
 
-  FLEA_CCALL(THR_flea_pk_api__sign(&message__rcu8, &signature__ru8, &privkey__t, scheme_id__t, hash_id__t));
-  signature__rcu8.data__pcu8 = signature__ru8.data__pcu8;
-  signature__rcu8.len__dtl   = signature__ru8.len__dtl;
-  FLEA_CCALL(THR_flea_pk_api__verify_signature(&message__rcu8, &signature__rcu8, &pubkey__t, scheme_id__t, hash_id__t));
+  // FLEA_CCALL(THR_flea_pk_api__sign(&message__rcu8, &signature__ru8, &privkey__t, scheme_id__t, hash_id__t));
+  FLEA_CCALL(THR_flea_pk_api__sign(&message_vec__t, &sig_vec__t, &privkey__t, scheme_id__t, hash_id__t));
+
+  /*signature__rcu8.data__pcu8 = signature__ru8.data__pcu8;
+  * signature__rcu8.len__dtl   = signature__ru8.len__dtl;*/
+  // FLEA_CCALL(THR_flea_pk_api__verify_signature(&message__rcu8, &signature__rcu8, &pubkey__t, scheme_id__t, hash_id__t));
+  FLEA_CCALL(THR_flea_pk_api__verify_signature(&message_vec__t, &sig_vec__t, &pubkey__t, scheme_id__t, hash_id__t));
   FLEA_THR_FIN_SEC(
     flea_private_key_t__dtor(&privkey__t);
     flea_public_key_t__dtor(&pubkey__t);
-    FLEA_FREE_BUF_FINAL(sig_buf__b_u8);
   );
-}
+} /* THR_flea_test_pkcs8_inner */
 
 flea_err_t THR_flea_test_pkcs8()
 {

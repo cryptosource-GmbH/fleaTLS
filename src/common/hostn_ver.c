@@ -78,10 +78,10 @@ static flea_bool_t are_strings_equal_case_insensitive(
 }
 
 static flea_err_t THR_flea_x509__verify_host_name(
-  const flea_ref_cu8_t* user_host_name__pcrcu8,
-  const flea_ref_cu8_t* cert_dns_name__pcrcu8,
-  flea_bool_t           allow_wildcard__b,
-  flea_bool_t*          result__pb
+  const flea_byte_vec_t* user_host_name__pcrcu8,
+  const flea_byte_vec_t* cert_dns_name__pcrcu8,
+  flea_bool_t            allow_wildcard__b,
+  flea_bool_t*           result__pb
 )
 {
   *result__pb = FLEA_FALSE;
@@ -91,7 +91,7 @@ static flea_err_t THR_flea_x509__verify_host_name(
   FLEA_THR_BEG_FUNC();
 
   if((user_host_name__pcrcu8->len__dtl > 0xFFFF) || !user_host_name__pcrcu8->len__dtl ||
-    !is_ascii_string(user_host_name__pcrcu8->data__pcu8, user_host_name__pcrcu8->len__dtl))
+    !is_ascii_string(user_host_name__pcrcu8->data__pu8, user_host_name__pcrcu8->len__dtl))
   {
     FLEA_THROW("invalid user hostname of size 0", FLEA_ERR_X509_INVALID_USER_HOSTN);
   }
@@ -101,11 +101,11 @@ static flea_err_t THR_flea_x509__verify_host_name(
   }
   user_cmp_len__alu16 = user_host_name__pcrcu8->len__dtl;
   cert_cmp_len__alu16 = cert_dns_name__pcrcu8->len__dtl;
-  if((cert_dns_name__pcrcu8->len__dtl >= 3) && (cert_dns_name__pcrcu8->data__pcu8[0] == '*') && allow_wildcard__b)
+  if((cert_dns_name__pcrcu8->len__dtl >= 3) && (cert_dns_name__pcrcu8->data__pu8[0] == '*') && allow_wildcard__b)
   {
-    second_label_offset_cert = offs_of_second_label(cert_dns_name__pcrcu8->data__pcu8, cert_dns_name__pcrcu8->len__dtl);
+    second_label_offset_cert = offs_of_second_label(cert_dns_name__pcrcu8->data__pu8, cert_dns_name__pcrcu8->len__dtl);
     second_label_offset_user = offs_of_second_label(
-      (const flea_u8_t*) user_host_name__pcrcu8->data__pcu8,
+      (const flea_u8_t*) user_host_name__pcrcu8->data__pu8,
       user_host_name__pcrcu8->len__dtl
       );
     if((second_label_offset_cert != 1) || (second_label_offset_user == 0))
@@ -120,9 +120,9 @@ static flea_err_t THR_flea_x509__verify_host_name(
     FLEA_THR_RETURN();
   }
   if(are_strings_equal_case_insensitive(
-      (const flea_u8_t*) user_host_name__pcrcu8->data__pcu8
+      (const flea_u8_t*) user_host_name__pcrcu8->data__pu8
       + second_label_offset_user,
-      cert_dns_name__pcrcu8->data__pcu8 + second_label_offset_cert,
+      cert_dns_name__pcrcu8->data__pu8 + second_label_offset_cert,
       user_cmp_len__alu16
     ))
   {
@@ -137,15 +137,15 @@ flea_err_t THR_flea_x509__verify_tls_server_id_cstr(
   const flea_x509_cert_ref_t* server_cert__pt
 )
 {
-  flea_ref_cu8_t user_id__rcu8;
+  flea_byte_vec_t user_id__rcu8;
 
-  user_id__rcu8.data__pcu8 = (const flea_u8_t*) user_id__cs;
-  user_id__rcu8.len__dtl   = strlen(user_id__cs);
+  user_id__rcu8.data__pu8 = (flea_u8_t*) user_id__cs;
+  user_id__rcu8.len__dtl  = strlen(user_id__cs);
   return THR_flea_x509__verify_tls_server_id(&user_id__rcu8, host_type, server_cert__pt);
 }
 
 flea_err_t THR_flea_x509__verify_tls_server_id(
-  const flea_ref_cu8_t*       user_id__pcrcu8,
+  const flea_byte_vec_t*      user_id__pcrcu8,
   flea_host_id_type_e         host_type,
   const flea_x509_cert_ref_t* server_cert__pt
 )
@@ -162,11 +162,11 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
 
   if(server_cert__pt->extensions__t.san__t.is_present__u8)
   {
-    const flea_ref_cu8_t* general_names_raw__pcrcu8 = &server_cert__pt->extensions__t.san__t.san_raw__t;
+    const flea_byte_vec_t* general_names_raw__pcrcu8 = &server_cert__pt->extensions__t.san__t.san_raw__t;
     FLEA_CCALL(
       THR_flea_rw_stream_t__ctor_memory(
         &source__t,
-        general_names_raw__pcrcu8->data__pcu8,
+        general_names_raw__pcrcu8->data__pu8,
         general_names_raw__pcrcu8->len__dtl,
         &hlp__t
       )
@@ -183,9 +183,9 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
 
     while(flea_ber_dec_t__has_current_more_data(&cont_dec__t))
     {
-      flea_ref_cu8_t dummy_ref__t;
+      flea_byte_vec_t dummy_ref__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
       flea_bool_t found__b, found_any__b = FLEA_FALSE;
-      flea_ref_cu8_t dec_name__rcu8;
+      flea_byte_vec_t dec_name__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
 
       /*GeneralName ::= CHOICE {
        * otherName                 [0]  AnotherName,*/
@@ -284,7 +284,8 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
         {
           FLEA_THROW("invalid ip address format", FLEA_ERR_X509_SAN_DEC_ERR);
         }
-        if(!flea_rcu8_cmp(&dec_name__rcu8, user_id__pcrcu8))
+        // if(!flea_rcu8_cmp(&dec_name__rcu8, user_id__pcrcu8))
+        if(!flea_byte_vec_t__cmp(&dec_name__rcu8, user_id__pcrcu8))
         {
           FLEA_THR_RETURN();
         }

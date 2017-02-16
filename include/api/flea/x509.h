@@ -67,34 +67,50 @@ typedef struct
 
 typedef struct
 {
-  flea_ref_cu8_t oid_ref__t;
-  flea_ref_cu8_t params_ref_as_tlv__t;
+  flea_byte_vec_t oid_ref__t;
+  flea_byte_vec_t params_ref_as_tlv__t;
 } flea_x509_algid_ref_t;
+
+#define flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE {.oid_ref__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, .params_ref_as_tlv__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE}
 
 typedef struct
 {
   flea_x509_algid_ref_t algid__t;
-  flea_ref_cu8_t        public_key_as_tlv__t;
+  flea_byte_vec_t       public_key_as_tlv__t;
 } flea_x509_public_key_info_t;
 
 typedef struct
 {
-  flea_ref_cu8_t raw_dn_complete__t;
-  flea_ref_cu8_t country__t;
-  flea_ref_cu8_t org__t;
-  flea_ref_cu8_t org_unit__t;
-  flea_ref_cu8_t dn_qual__t;
-  flea_ref_cu8_t state_or_province_name__t;
-  flea_ref_cu8_t locality_name__t;
-  flea_ref_cu8_t common_name__t;
-  flea_ref_cu8_t serial_number__t;
-  flea_ref_cu8_t domain_component_attribute__t;
+  flea_byte_vec_t raw_dn_complete__t;
+  flea_byte_vec_t country__t;
+  flea_byte_vec_t org__t;
+  flea_byte_vec_t org_unit__t;
+  flea_byte_vec_t dn_qual__t;
+  flea_byte_vec_t state_or_province_name__t;
+  flea_byte_vec_t locality_name__t;
+  flea_byte_vec_t common_name__t;
+  flea_byte_vec_t serial_number__t;
+  flea_byte_vec_t domain_component_attribute__t;
 } flea_x509_dn_ref_t;
+
+#define flea_x509_dn_ref_t__CONSTR_EMPTY_ALLOCATABLE \
+  { \
+    .raw_dn_complete__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
+    .country__t         = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
+    .org__t      = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
+    .org_unit__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
+    .dn_qual__t  = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
+    .state_or_province_name__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
+    .locality_name__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
+    .common_name__t   = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
+    .serial_number__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
+    .domain_component_attribute__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE \
+  }
 
 typedef struct
 {
-  flea_u8_t      is_present__u8;
-  flea_ref_cu8_t key_id__t;
+  flea_u8_t       is_present__u8;
+  flea_byte_vec_t key_id__t;
 } flea_x509_auth_key_id_t;
 
 typedef struct
@@ -113,20 +129,20 @@ typedef struct
 
 typedef struct
 {
-  flea_u8_t      is_present__u8;
-  flea_ref_cu8_t raw_ref__t;
+  flea_u8_t       is_present__u8;
+  flea_byte_vec_t raw_ref__t;
 } flea_x509_raw_ext_t;
 
 typedef struct
 {
-  flea_u8_t      is_present__u8;
-  flea_ref_cu8_t san_raw__t;
+  flea_u8_t       is_present__u8;
+  flea_byte_vec_t san_raw__t;
 } flea_x509_subj_alt_names_t;
 
 typedef struct
 {
   flea_x509_auth_key_id_t    auth_key_id__t;
-  flea_ref_cu8_t             subj_key_id__t;
+  flea_byte_vec_t            subj_key_id__t;
   flea_key_usage_t           key_usage__t;
   flea_key_usage_t           ext_key_usage__t;
   flea_x509_subj_alt_names_t san__t;
@@ -138,14 +154,14 @@ typedef struct
 
 typedef struct
 {
-  // flea_ref_cu8_t tbs_ref__t;
+  // flea_byte_vec_t tbs_ref__t;
 
   /**
    *  the interpreted version number (not the encoded integer)
    */
   flea_u8_t                   version__u8;
 
-  flea_ref_cu8_t              serial_number__t;
+  flea_byte_vec_t             serial_number__t;
   flea_x509_algid_ref_t       tbs_sig_algid__t;
 
   flea_x509_dn_ref_t          issuer__t;
@@ -157,13 +173,13 @@ typedef struct
 
   flea_x509_public_key_info_t subject_public_key_info__t;
 
-  flea_ref_cu8_t              issuer_unique_id_as_bitstr__t;
+  flea_byte_vec_t             issuer_unique_id_as_bitstr__t;
 
-  flea_ref_cu8_t              subject_unique_id_as_bitstr__t;
+  flea_byte_vec_t             subject_unique_id_as_bitstr__t;
 
   flea_x509_ext_ref_t         extensions__t;
 
-  flea_ref_cu8_t              cert_signature_as_bit_string__t;
+  flea_byte_vec_t             cert_signature_as_bit_string__t;
 
   //  flea_bool_t                 is_trusted__b;
 } flea_x509_cert_ref_t;
@@ -206,6 +222,6 @@ flea_err_t THR_flea_x509__process_alg_ids(
 flea_err_t THR_flea_x509_cert__get_ref_to_tbs(
   const flea_u8_t* der_encoded_cert__pu8,
   flea_al_u16_t    der_encoded_cert_len__alu16,
-  flea_ref_cu8_t*  ref_to_tbs__pt
+  flea_byte_vec_t* ref_to_tbs__pt
 );
 #endif /* h-guard */

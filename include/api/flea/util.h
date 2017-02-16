@@ -17,7 +17,13 @@ extern "C" {
     __tmp = (__a); \
     (__a) = (__b); \
     (__b) = __tmp; \
-  } while(0) \
+  } while(0)
+
+#define FLEA_ASSGN_REF_FROM_BYTE_VEC(ref__pt, vec__pt) \
+  do { \
+    (ref__pt)->data__pcu8 = (vec__pt)->data__pu8; \
+    (ref__pt)->len__dtl   = (vec__pt)->len__dtl; \
+  } while(0)
 
 
 /**

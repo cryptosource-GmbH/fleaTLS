@@ -65,15 +65,15 @@ flea_err_t THR_flea_rsa_raw_operation_crt_private_key(
       base_enc,
       base_length,
       (priv_key__pt->key_bit_size__u16 + 7) / 8,
-      priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_P_IDX].data__pcu8,
+      priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_P_IDX].data__pu8,
       priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_P_IDX].len__dtl,
-      priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_Q_IDX].data__pcu8,
+      priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_Q_IDX].data__pu8,
       priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_Q_IDX].len__dtl,
-      priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_D1_IDX].data__pcu8,
+      priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_D1_IDX].data__pu8,
       priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_D1_IDX].len__dtl,
-      priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_D2_IDX].data__pcu8,
+      priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_D2_IDX].data__pu8,
       priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_D2_IDX].len__dtl,
-      priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_C_IDX].data__pcu8,
+      priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_C_IDX].data__pu8,
       priv_key__pt->privkey_with_params__u.rsa_priv_key_val__t.pqd1d2c__rcu8[RSA_PRIV_C_IDX].len__dtl
     )
   );

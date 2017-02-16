@@ -19,12 +19,12 @@ extern "C" {
 typedef struct
 {
 # ifdef FLEA_USE_HEAP_BUF
-  flea_ref_cu8_t*        crl_collection__brcu8;
+  flea_byte_vec_t*       crl_collection__brcu8;
   // flea_x509_cert_ref_t* cert_collection__bt;
   flea_x509_cert_info_t* cert_collection__bt;
   flea_u16_t*            chain__bu16;
 # else
-  flea_ref_cu8_t         crl_collection__brcu8[FLEA_MAX_CERT_COLLECTION_NB_CRLS];
+  flea_byte_vec_t        crl_collection__brcu8[FLEA_MAX_CERT_COLLECTION_NB_CRLS];
   // flea_x509_cert_ref_t  cert_collection__bt[FLEA_MAX_CERT_COLLECTION_SIZE];
   flea_x509_cert_info_t  cert_collection__bt[FLEA_MAX_CERT_COLLECTION_SIZE];
   flea_u16_t             chain__bu16[FLEA_MAX_CERT_CHAIN_DEPTH]; // including target and TA
@@ -64,7 +64,7 @@ void flea_cert_path_validator_t__disable_revocation_checking(flea_cert_path_vali
 
 flea_err_t THR_flea_cert_path_validator_t__add_crl(
   flea_cert_path_validator_t* chain__pt,
-  const flea_ref_cu8_t*       crl_der__cprcu8
+  const flea_byte_vec_t*      crl_der__cprcu8
 );
 
 flea_err_t THR_flea_cert_path_validator_t__add_cert_without_trust_status(
@@ -122,7 +122,7 @@ flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_
 flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain_and_hostid_and_create_pub_key(
   flea_cert_path_validator_t* cert_chain__pt,
   const flea_gmt_time_t*      time_mbn__pt,
-  const flea_ref_cu8_t*       host_id__pcrcu8,
+  const flea_byte_vec_t*      host_id__pcrcu8,
   flea_host_id_type_e         host_id_type,
   flea_public_key_t*          key_to_construct_mbn__pt
 );

@@ -133,8 +133,10 @@ flea_err_t THR_flea_pk_signer_t__final_sign(
   flea_pk_signer_t*         signer__pt,
   flea_pk_scheme_id_t       id__t,
   const flea_private_key_t* privkey__pt,
-  flea_u8_t*                signature__pu8,
-  flea_al_u16_t*            signature_len__palu16
+
+  /*flea_u8_t*                signature__pu8,
+   * flea_al_u16_t*            signature_len__palu16*/
+  flea_byte_vec_t*          sig_vec__pt
 )
 {
   flea_pk_primitive_id_t primitive_id__t;
@@ -193,19 +195,21 @@ flea_err_t THR_flea_pk_signer_t__final_sign(
     flea_u8_t* sig_r__pu8;
     flea_u8_t* sig_s__pu8;
     flea_al_u8_t s_len__al_u8;
-    flea_al_u8_t r_len__al_u8 = (*signature_len__palu16) / 2;
-
+    flea_al_u8_t r_len__al_u8;// = (*signature_len__palu16) / 2;
+    flea_u8_t* signature__pu8;
+    flea_al_u8_t max_sig_part_len = privkey__pt->privkey_with_params__u.ec_priv_key_val__t.dp__t.n__ru8.len__dtl;
     if(privkey__pt->key_type__t != flea_ecc_key)
     {
       FLEA_THROW("invalid key type for signing", FLEA_ERR_INV_KEY_TYPE);
     }
-
-    s_len__al_u8 = r_len__al_u8,
-    sig_r__pu8   = signature__pu8;
-    sig_s__pu8   = signature__pu8 + r_len__al_u8;
+    FLEA_CCALL(THR_flea_byte_vec_t__resize(sig_vec__pt, 2 * max_sig_part_len));
+    signature__pu8 = sig_vec__pt->data__pu8;
+    r_len__al_u8   = max_sig_part_len;
+    s_len__al_u8   = r_len__al_u8,
+    sig_r__pu8     = signature__pu8;
+    sig_s__pu8     = signature__pu8 + r_len__al_u8;
     // concat encoding of r and s
 
-    flea_al_u8_t max_sig_part_len = privkey__pt->privkey_with_params__u.ec_priv_key_val__t.dp__t.n__ru8.len__dtl;
     sig_s__pu8   = sig_r__pu8 + max_sig_part_len;
     s_len__al_u8 = max_sig_part_len;
     r_len__al_u8 = max_sig_part_len;
@@ -217,7 +221,7 @@ flea_err_t THR_flea_pk_signer_t__final_sign(
         &s_len__al_u8,
         primitive_input__bu8,
         primitive_input_len__alu16,
-        privkey__pt->privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8.data__pcu8,
+        privkey__pt->privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8.data__pu8,
         privkey__pt->privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8.len__dtl,
         &privkey__pt->privkey_with_params__u.ec_priv_key_val__t.dp__t
       )
@@ -235,7 +239,8 @@ flea_err_t THR_flea_pk_signer_t__final_sign(
       memset(sig_r__pu8, 0, shift);
     }
     // set up the signature with correct length
-    *signature_len__palu16 = 2 * max_sig_part_len;
+    // *signature_len__palu16 = 2 * max_sig_part_len;
+    // sig_vec__pt->len__dtl = 2 * max_sig_part_len; // ALREADY DONE ABOVE
 
 # else // #ifdef FLEA_HAVE_ECDSA
     FLEA_THROW("ECDSA not supported", FLEA_ERR_INV_ALGORITHM);
@@ -249,19 +254,25 @@ flea_err_t THR_flea_pk_signer_t__final_sign(
       FLEA_THROW("invalid key type for signing", FLEA_ERR_INV_KEY_TYPE);
     }
     // in RSA, input length = output length
-    if(*signature_len__palu16 < primitive_input_len__alu16)
-    {
-      FLEA_THROW("signature buffer too small for RSA signature", FLEA_ERR_BUFF_TOO_SMALL);
-    }
+    FLEA_CCALL(THR_flea_byte_vec_t__resize(sig_vec__pt, primitive_input_len__alu16));
+
+    /* if(*signature_len__palu16 < primitive_input_len__alu16)
+     * {
+     * FLEA_THROW("signature buffer too small for RSA signature", FLEA_ERR_BUFF_TOO_SMALL);
+     * }*/
     FLEA_CCALL(
       THR_flea_rsa_raw_operation_crt_private_key(
         privkey__pt,
-        signature__pu8,
+        // signature__pu8,
+        sig_vec__pt->data__pu8,
         primitive_input__bu8,
         primitive_input_len__alu16
       )
     );
-    *signature_len__palu16 = (privkey__pt->key_bit_size__u16 + 7) / 8;
+    // *signature_len__palu16 = (privkey__pt->key_bit_size__u16 + 7) / 8;
+    // TODO: LEAVE RESULT LENGTH AT primitive_input_len__alu16 :
+    sig_vec__pt->len__dtl = (privkey__pt->key_bit_size__u16 + 7) / 8;
+
 
 # else // #ifdef FLEA_HAVE_RSA
     FLEA_THROW("rsa not supported", FLEA_ERR_INV_ALGORITHM);
@@ -359,7 +370,7 @@ flea_err_t THR_flea_pk_signer_t__final_verify(
         s_len__al_u8,
         primitive_input__bu8,
         primitive_input_len__alu16,
-        pubkey__pt->pubkey_with_params__u.ec_public_val__t.public_point_encoded__rcu8.data__pcu8,
+        pubkey__pt->pubkey_with_params__u.ec_public_val__t.public_point_encoded__rcu8.data__pu8,
         pubkey__pt->pubkey_with_params__u.ec_public_val__t.public_point_encoded__rcu8.len__dtl,
         &pubkey__pt->pubkey_with_params__u.ec_public_val__t.dp__t
       )
@@ -474,8 +485,8 @@ flea_err_t THR_flea_pk_api__verify_message__pkcs1_v1_5(
 } /* THR_flea_pk_api__verify_message__pkcs1_v1_5 */
 
 flea_err_t THR_flea_pk_api__verify_signature(
-  const flea_ref_cu8_t*    message__prcu8,
-  const flea_ref_cu8_t*    signature__prcu8,
+  const flea_byte_vec_t*   message__prcu8,
+  const flea_byte_vec_t*   signature__prcu8,
   const flea_public_key_t* pubkey__pt,
   flea_pk_scheme_id_t      pk_scheme_id__t,
   flea_hash_id_t           hash_id__t
@@ -484,13 +495,13 @@ flea_err_t THR_flea_pk_api__verify_signature(
   FLEA_DECL_OBJ(signer__t, flea_pk_signer_t);
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_pk_signer_t__ctor(&signer__t, hash_id__t));
-  FLEA_CCALL(THR_flea_pk_signer_t__update(&signer__t, message__prcu8->data__pcu8, message__prcu8->len__dtl));
+  FLEA_CCALL(THR_flea_pk_signer_t__update(&signer__t, message__prcu8->data__pu8, message__prcu8->len__dtl));
   FLEA_CCALL(
     THR_flea_pk_signer_t__final_verify(
       &signer__t,
       pk_scheme_id__t,
       pubkey__pt,
-      signature__prcu8->data__pcu8,
+      signature__prcu8->data__pu8,
       signature__prcu8->len__dtl
     )
   );
@@ -500,8 +511,8 @@ flea_err_t THR_flea_pk_api__verify_signature(
 }
 
 flea_err_t THR_flea_pk_api__sign(
-  const flea_ref_cu8_t*     message__prcu8,
-  flea_ref_u8_t*            signature__pru8,
+  const flea_byte_vec_t*    message__prcu8,
+  flea_byte_vec_t*          signature__pru8,
   const flea_private_key_t* privkey__pt,
   flea_pk_scheme_id_t       pk_scheme_id__t,
   flea_hash_id_t            hash_id__t
@@ -509,19 +520,20 @@ flea_err_t THR_flea_pk_api__sign(
 {
   FLEA_DECL_OBJ(signer__t, flea_pk_signer_t);
   FLEA_THR_BEG_FUNC();
-  flea_al_u16_t sig_len__alu16 = signature__pru8->len__dtl;
+  // flea_al_u16_t sig_len__alu16 = signature__pru8->len__dtl;
   FLEA_CCALL(THR_flea_pk_signer_t__ctor(&signer__t, hash_id__t));
-  FLEA_CCALL(THR_flea_pk_signer_t__update(&signer__t, message__prcu8->data__pcu8, message__prcu8->len__dtl));
+  FLEA_CCALL(THR_flea_pk_signer_t__update(&signer__t, message__prcu8->data__pu8, message__prcu8->len__dtl));
   FLEA_CCALL(
     THR_flea_pk_signer_t__final_sign(
       &signer__t,
       pk_scheme_id__t,
       privkey__pt,
-      signature__pru8->data__pcu8,
-      &sig_len__alu16
+      // signature__pru8->data__pu8,
+      signature__pru8
+      // &sig_len__alu16
     )
   );
-  signature__pru8->len__dtl = sig_len__alu16;
+  // signature__pru8->len__dtl = sig_len__alu16;
   FLEA_THR_FIN_SEC(
     flea_pk_signer_t__dtor(&signer__t);
   );

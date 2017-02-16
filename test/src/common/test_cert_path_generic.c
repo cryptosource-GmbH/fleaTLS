@@ -112,7 +112,8 @@ flea_err_t THR_flea_test_cert_path_generic(
     flea_u32_t i;
     flea_rng__randomize((flea_u8_t*) &i, sizeof(i));
     i %= nb_crls;
-    flea_ref_cu8_t crl_ref = {crl_ptrs[i], crl_lens[i]};
+    // flea_ref_cu8_t crl_ref = {crl_ptrs[i], crl_lens[i]};
+    flea_byte_vec_t crl_ref = flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(crl_ptrs[i], crl_lens[i]);
     FLEA_CCALL(THR_flea_cert_path_validator_t__add_crl(&cert_chain__t, &crl_ref));
 
     crl_ptrs[i] = crl_ptrs[nb_crls - 1];
@@ -126,10 +127,15 @@ flea_err_t THR_flea_test_cert_path_generic(
   }
   if(host_id_mbn__pcrcu8)
   {
+    flea_byte_vec_t host_id_vec__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(
+      host_id_mbn__pcrcu8->data__pcu8,
+      host_id_mbn__pcrcu8->len__dtl
+      );
     err = THR_flea_cert_path_validator__build_and_verify_cert_chain_and_hostid_and_create_pub_key(
       &cert_chain__t,
       &time__t,
-      host_id_mbn__pcrcu8,
+      // host_id_mbn__pcrcu8,
+      &host_id_vec__t,
       host_id_type,
       &target_pubkey__t
       );
