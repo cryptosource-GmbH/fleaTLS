@@ -75,6 +75,7 @@ all: libflea_lpc1768.a test
 # $@ = left hand side of the target def
 
 $(OBJDIR)/%.o : %.c
+	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@ 
   
 libflea_lpc1768.a: $(OBJS)
