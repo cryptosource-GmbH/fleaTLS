@@ -8,7 +8,9 @@
 #include "internal/common/ber_dec.h"
 #include "test_data_x509_certs.h"
 #include "flea/mem_read_stream.h"
+#include "test_data_pkcs8.h"
 
+#include <stdio.h>
 #include <string.h>
 
 flea_err_t THR_flea_test_ber_dec_basic()
@@ -135,3 +137,239 @@ flea_err_t THR_flea_test_ber_dec_basic()
     flea_ber_dec_t__dtor(&dec__t);
   );
 } /* THR_flea_test_ber_dec_basic */
+
+typedef enum { dec_func_default, dec_func_ref, dec_func_cpy } dec_func_e;
+
+static flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
+  flea_bool_t              is_fake_gen_strm__b,
+  flea_asn1_dec_val_hndg_e dec_val_hndg__e,
+  dec_func_e               first_dec_func__e,
+  dec_func_e               second_dec_func__e,
+  flea_err_t               dec_ctor_exp_err_code,
+  flea_err_t               first_func_exp_err_code,
+  flea_err_t               second_func_exp_err_code
+)
+{
+  FLEA_DECL_OBJ(strm__t, flea_rw_stream_t);
+  FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
+  flea_mem_read_stream_help_t hlp__t;
+  // FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(cp_pkcs8_vec__t, sizeof(flea_testd_pkcs8_ecc_key_secp384r1_implicit_params__au8));
+#ifdef FLEA_USE_STACK_BUF
+  FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(dec_vec__t, 1000);
+#else
+  flea_byte_vec_t dec_vec__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
+#endif
+  // flea_ref_cu8_t ref__rcu8;
+  flea_err_t err__t;
+  flea_asn1_tag_t false_cft         = FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, FLEA_ASN1_SET);
+  flea_u8_t exp_version_tlv__au8 [] = {0x02, 0x01, 0x00};
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__ctor_memory(
+      &strm__t,
+      flea_testd_pkcs8_ecc_key_secp384r1_implicit_params__au8,
+      sizeof(flea_testd_pkcs8_ecc_key_secp384r1_implicit_params__au8),
+      &hlp__t
+    )
+  );
+  if(is_fake_gen_strm__b)
+  {
+    strm__t.strm_type__e = flea_strm_type_generic;
+  }
+  err__t = THR_flea_ber_dec_t__ctor(&dec__t, &strm__t, 0, dec_val_hndg__e);
+  if(err__t != dec_ctor_exp_err_code)
+  {
+    FLEA_THROW("unexpected ctor err code", FLEA_ERR_FAILED_TEST);
+  }
+  if(err__t)
+  {
+    FLEA_THR_RETURN();
+  }
+
+
+  FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
+
+  if(first_dec_func__e == dec_func_cpy)
+  {
+    flea_bool_t optional_found__b = FLEA_TRUE;
+    err__t = THR_flea_ber_dec_t__read_value_raw_cft_opt(&dec__t, false_cft, &dec_vec__t, &optional_found__b);
+    if(err__t != first_func_exp_err_code)
+    {
+      FLEA_THROW("unexpected error code", FLEA_ERR_FAILED_TEST);
+    }
+    if(!err__t && optional_found__b)
+    {
+      FLEA_THROW("invalid decoding result", FLEA_ERR_FAILED_TEST);
+    }
+  }
+  else if(first_dec_func__e == dec_func_ref)
+  {
+    flea_bool_t found__b;
+    // TODO: EMPLOY REF HERE INSTEAD OF VEC
+    err__t = THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(&dec__t, false_cft, &dec_vec__t, &found__b);
+
+    if(err__t != first_func_exp_err_code)
+    {
+      FLEA_THROW("unexpected error code", FLEA_ERR_FAILED_TEST);
+    }
+    if(!err__t && found__b)
+    {
+      FLEA_THROW("invalid decoding result", FLEA_ERR_FAILED_TEST);
+    }
+  }
+  else if(first_dec_func__e == dec_func_default)
+  {
+    printf("test case not yet implemented\n");
+    FLEA_THROW("test case not yet implemented", FLEA_ERR_FAILED_TEST);
+  }
+
+  if(second_dec_func__e == dec_func_cpy)
+  {
+    // err__t = THR_flea_ber_dec_t__read_value_raw(&dec__t, FLEA_ASN1_INT, FLEA_ASN1_UNIVERSAL_PRIMITIVE, &dec_vec__t);
+
+    /*  printf("test case not yet implemented\n");
+     * FLEA_THROW("test case not yet implemented", FLEA_ERR_FAILED_TEST);*/
+
+    err__t =
+      THR_flea_ber_dec_t__read_value_raw_cft(
+      &dec__t,
+      FLEA_ASN1_CFT_MAKE2(
+        FLEA_ASN1_UNIVERSAL_PRIMITIVE,
+        FLEA_ASN1_INT
+      ),
+      &dec_vec__t
+      );
+    if(err__t != second_func_exp_err_code)
+    {
+      FLEA_THROW("unexpected error code", FLEA_ERR_FAILED_TEST);
+    }
+    if(!err__t && ((dec_vec__t.len__dtl != 1) || (dec_vec__t.data__pu8[0] != 0)))
+    {
+      FLEA_THROW("invalid decoded value for second function", FLEA_ERR_FAILED_TEST);
+    }
+  }
+  else if(second_dec_func__e == dec_func_ref)
+  {
+    // TODO: EMPLOY REF HERE INSTEAD OF VEC
+    err__t = THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&dec__t, &dec_vec__t);
+
+    if(err__t != second_func_exp_err_code)
+    {
+      FLEA_THROW("unexpected error code", FLEA_ERR_FAILED_TEST);
+    }
+
+    if(!err__t)
+    {
+      if(dec_vec__t.len__dtl != sizeof(exp_version_tlv__au8))
+      {
+        FLEA_THROW("PKCS#8 version of invalid length", FLEA_ERR_FAILED_TEST);
+      }
+      if(memcmp(exp_version_tlv__au8, dec_vec__t.data__pu8, sizeof(exp_version_tlv__au8)))
+      {
+        FLEA_THROW("PKCS#8 version of invalid content", FLEA_ERR_FAILED_TEST);
+      }
+    }
+  }
+  else if(second_dec_func__e == dec_func_default)
+  {
+    printf("test case not yet implemented\n");
+    FLEA_THROW("test case not yet implemented", FLEA_ERR_FAILED_TEST);
+  }
+
+
+  FLEA_THR_FIN_SEC(
+    flea_rw_stream_t__dtor(&strm__t);
+    flea_ber_dec_t__dtor(&dec__t);
+    flea_byte_vec_t__dtor(&dec_vec__t);
+  );
+} /* THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner */
+
+flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy()
+{
+  // FLEA_DECL_BUF(version_buf__bu8, flea_u8_t, 10);
+  // flea_dtl_t version_len__dtl = 10;
+  // flea_ref_cu8_t oid_ref__t;
+  // flea_byte_vec_t oid_vec__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(
+    THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
+      /* normal mem rd stream */ FLEA_FALSE,
+      flea_decode_ref,
+      dec_func_cpy,
+      dec_func_ref,
+      FLEA_ERR_FINE,
+      FLEA_ERR_FINE,
+      FLEA_ERR_FINE
+    )
+  );
+
+  /* construction of a decoder using ref decoding as default may not work */
+  FLEA_CCALL(
+    THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
+      FLEA_TRUE /* apparent generic rd stream */,
+      flea_decode_ref,
+      dec_func_cpy,
+      dec_func_ref,
+      FLEA_ERR_INV_ARG, /*N/A*/
+      FLEA_ERR_FINE,    /*N/A*/
+      FLEA_ERR_FINE
+    )
+  );
+
+  FLEA_CCALL(
+    THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
+      FLEA_TRUE /* apparent generic rd stream */,
+      flea_decode_copy,
+      dec_func_cpy,
+      dec_func_cpy,
+      FLEA_ERR_FINE,
+      FLEA_ERR_FINE,
+      FLEA_ERR_FINE
+    )
+  );
+
+  FLEA_CCALL(
+    THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
+      FLEA_FALSE /* normal mem rd stream */,
+      flea_decode_copy,
+      dec_func_cpy,
+      dec_func_cpy,
+      FLEA_ERR_FINE,
+      FLEA_ERR_FINE,
+      FLEA_ERR_FINE
+    )
+  );
+
+  /* calling a decode-ref function when the underlying read stream doesn't support
+   * static memory pointers, decoding should fail
+   */
+  FLEA_CCALL(
+    THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
+      FLEA_TRUE /* apparent generic rd stream */,
+      flea_decode_copy,
+      dec_func_ref,
+      dec_func_cpy,
+      FLEA_ERR_FINE,
+      FLEA_ERR_INV_STATE,
+      FLEA_ERR_FINE
+    )
+  );
+
+  FLEA_CCALL(
+    THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
+      FLEA_TRUE /* apparent generic rd stream */,
+      flea_decode_copy,
+      dec_func_cpy,
+      dec_func_ref,
+      FLEA_ERR_FINE,
+      FLEA_ERR_FINE,
+      FLEA_ERR_INV_STATE
+    )
+  );
+
+  // TODO: ALSO MAKE CALLS WITH DEC_FUNC_DEFAULT
+  FLEA_THR_FIN_SEC_empty(
+  );
+} /* THR_flea_test_ber_dec_opt_and_ref_and_cpy */

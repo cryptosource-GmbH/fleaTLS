@@ -138,7 +138,7 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_test_mem_read_stream());
 
       CALL_TEST(THR_flea_test_ber_dec_basic());
-
+      CALL_TEST(THR_flea_test_ber_dec_opt_and_ref_and_cpy());
 
       CALL_TEST(THR_flea_test_dec_ca_cert());
       CALL_TEST(THR_flea_test_dec_tls_server_cert());

@@ -74,6 +74,7 @@ struct struct_flea_ber_dec_t
   flea_u8_t                stored_tag_class_form__u8;
   flea_u8_t                stored_tag_nb_bytes__u8;
   flea_asn1_dec_val_hndg_e dec_val_handling__e;
+  // const flea_u8_t*         next_tlv_ptr__pcu8;
 };
 
 #ifdef FLEA_USE_HEAP_BUF

@@ -158,6 +158,7 @@ flea_err_t THR_flea_test_mem_read_stream();
 
 flea_err_t THR_flea_test_ber_dec_basic();
 
+flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy();
 
 flea_err_t THR_flea_test_dec_tls_server_cert_broken();
 

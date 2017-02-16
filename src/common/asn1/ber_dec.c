@@ -18,6 +18,17 @@ typedef enum { flea_accept_any_tag, flea_be_strict_about_tag } flea_tag_verify_m
 typedef enum { extr_ref_to_tlv, extr_read_tlv, extr_ref_to_v, extr_read_v, extr_default_tlv,
                extr_default_v } access_mode_t;
 
+static flea_bool_t flea_ber_dec_t__is_ref_decoding_supported(flea_ber_dec_t* dec__pt)
+{
+  return flea_rw_stream_t__get_strm_type(dec__pt->source__pt) == flea_strm_type_memory;
+}
+
+static const flea_u8_t* flea_ber_dec_t__get_mem_ptr_to_current(flea_ber_dec_t* dec__pt)
+{
+  return &((flea_mem_read_stream_help_t*) dec__pt->source__pt->custom_obj__pv)->data__pcu8[((flea_mem_read_stream_help_t
+         *)
+         dec__pt->source__pt->custom_obj__pv)->offs__dtl];
+}
 
 flea_err_t THR_flea_ber_dec_t__ctor(
   flea_ber_dec_t*          dec__pt,
@@ -29,13 +40,6 @@ flea_err_t THR_flea_ber_dec_t__ctor(
   FLEA_THR_BEG_FUNC();
   dec__pt->level__alu8 = 0;
   dec__pt->source__pt  = read_stream__pt;
-  if((dec_val_hndg__e == flea_decode_ref) && flea_rw_stream_t__get_strm_type(read_stream__pt) != flea_strm_type_memory)
-  {
-    FLEA_THROW(
-      "ber decoder cannot be configured to ref decoding for input streams of type other than 'memory read stream'",
-      FLEA_ERR_INV_ARG
-    );
-  }
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM_ARR(dec__pt->allo_open_cons__bdtl, FLEA_BER_DEC_LEVELS_PRE_ALLOC);
   dec__pt->alloc_levels__alu8 = FLEA_BER_DEC_LEVELS_PRE_ALLOC;
@@ -45,6 +49,19 @@ flea_err_t THR_flea_ber_dec_t__ctor(
 #endif
   dec__pt->length_limit__dtl       = length_limit__dtl;
   dec__pt->stored_tag_nb_bytes__u8 = 0;
+
+  if((dec_val_hndg__e == flea_decode_ref) && !flea_ber_dec_t__is_ref_decoding_supported(dec__pt))
+  {
+    FLEA_THROW(
+      "ber decoder cannot be configured to ref decoding for input streams of type other than 'memory read stream'",
+      FLEA_ERR_INV_ARG
+    );
+  }
+
+  /*if(flea_ber_dec_t__is_ref_decoding_supported(dec__pt))
+   * {
+   * dec__pt->next_tlv_ptr__pcu8 = flea_ber_dec_t__get_mem_ptr_to_current(dec__pt);
+   * }*/
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -394,7 +411,7 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(
   flea_tag_verify_mode_t tag_verify_mode__t;
 
   FLEA_THR_BEG_FUNC();
-  if((ref_extract_mode__t == extr_default_v))
+  if(ref_extract_mode__t == extr_default_v)
   {
     if(dec__pt->dec_val_handling__e == flea_decode_ref)
     {
@@ -413,10 +430,18 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(
     }
     else
     {
-      // TODO: IMPLEMENT:
       ref_extract_mode__t = extr_read_tlv;
     }
   }
+  if(!flea_ber_dec_t__is_ref_decoding_supported(dec__pt) &&
+    ((ref_extract_mode__t == extr_ref_to_v) || (ref_extract_mode__t == extr_ref_to_tlv)))
+  {
+    FLEA_THROW(
+      "trying to obtain a memory reference from a decoder which, based on the decoding stream, does not support this",
+      FLEA_ERR_INV_STATE
+    );
+  }
+  // TODO: IMPLEMENT OR DISCARD:
   if(ref_extract_mode__t == extr_read_tlv)
   {
     FLEA_THROW("read tlv mode not yet implemented", FLEA_ERR_INT_ERR);
@@ -443,9 +468,18 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(
     // TODO: instead of providing ref, allocate space, cp the data, and return
     // that pointer. in case of data source memory however, give direct access.
     // *raw__ppu8 =
-    raw__pu8 =
-      &((flea_mem_read_stream_help_t*) dec__pt->source__pt->custom_obj__pv)->data__pcu8[((flea_mem_read_stream_help_t*)
-      dec__pt->source__pt->custom_obj__pv)->offs__dtl];
+    raw__pu8  = flea_ber_dec_t__get_mem_ptr_to_current(dec__pt);
+    raw__pu8 -= dec__pt->stored_tag_nb_bytes__u8;
+    ;
+    // TODO: CAN THIS WORK WITH STORED TAG? ANSWER: NO, OF COURSE NOT
+    //    BUG WOULD BE TRIGGERED IF OPTIONAL DECODING FAILS, AND AFTER THAT A REF TO
+    //    TLS IS REQUESTED.
+    //   -> for mem-rd-stream a solution would be always to store a pointer to the
+    //   next tlv, which is only advanced after successful decoding
+    //   -> for generic streams, which only support cpy decoding, the tag needs to
+    //   be stored, as it is already the case, and be copied to the result vec
+    //   first, followed by L, V.
+    //
 
     /*if(!*raw__ppu8)
      * {
@@ -471,42 +505,46 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(
     FLEA_THR_RETURN();
   }
   FLEA_CCALL(THR_flea_ber_dec_t__decode_length(dec__pt, &length__dtl));
-  if(dec__pt->dec_val_handling__e == flea_decode_ref)
+
+  /*if(dec__pt->dec_val_handling__e == flea_decode_ref)
+   * {*/
+  if(ref_extract_mode__t == extr_ref_to_v || ref_extract_mode__t == extr_ref_to_tlv)
   {
-    if(ref_extract_mode__t == extr_ref_to_v || ref_extract_mode__t == extr_ref_to_tlv)
+    // TODO: HACK FOR MEMORY-READ-STREAMS:
+    // p__pu8 = flea_rw_stream_t__get_memory_pointer_to_current(dec__pt->source__pt);
+    p__pu8 = flea_ber_dec_t__get_mem_ptr_to_current(dec__pt);
+
+
+    // TODO: FOR EXTR_READ_TLV, THE MEM STARTING AT p__pu8  NEEDS TO BE COPIED
+
+    if(ref_extract_mode__t != extr_ref_to_tlv)
     {
-      // TODO: HACK FOR MEMORY-READ-STREAMS:
-      // p__pu8 = flea_rw_stream_t__get_memory_pointer_to_current(dec__pt->source__pt);
-      p__pu8 =
-        &((flea_mem_read_stream_help_t*) dec__pt->source__pt->custom_obj__pv)->data__pcu8[((flea_mem_read_stream_help_t*)
-        dec__pt->source__pt->custom_obj__pv)->offs__dtl];
-
-
-      if(ref_extract_mode__t != extr_ref_to_tlv)
-      {
-        // *raw__ppu8     = p__pu8;
-        raw__pu8 = p__pu8;
-        // *raw_len__pdtl = length__dtl;
-        raw_len__dtl = length__dtl;
-      }
-      else // ref to whole tlv
-      {
-        // *raw_len__pdtl = p__pu8 - *raw__ppu8 + length__dtl;
-        raw_len__dtl = p__pu8 - raw__pu8 + length__dtl;
-      }
-      flea_byte_vec_t__set_ref(res_vec__pt, (flea_u8_t*) raw__pu8, raw_len__dtl);
+      // *raw__ppu8     = p__pu8;
+      raw__pu8 = p__pu8;
+      // *raw_len__pdtl = length__dtl;
+      raw_len__dtl = length__dtl;
     }
+    else // ref to whole tlv
+    {
+      // *raw_len__pdtl = p__pu8 - *raw__ppu8 + length__dtl;
+      raw_len__dtl = p__pu8 - raw__pu8 + length__dtl;
+    }
+    flea_byte_vec_t__set_ref(res_vec__pt, (flea_u8_t*) raw__pu8, raw_len__dtl);
   }
-  else
-  {
-    FLEA_THROW("CPY not implemented", FLEA_ERR_INT_ERR);
-  }
+
+  /*}
+   * else
+   * {
+   * FLEA_THROW("CPY not implemented", FLEA_ERR_INT_ERR);
+   * }*/
   FLEA_CCALL(THR_flea_ber_dec_t__consume_current_length(dec__pt, length__dtl));
   if(ref_extract_mode__t == extr_ref_to_v || ref_extract_mode__t == extr_ref_to_tlv)
   {
+    // TODO: THIS CONFLICTS WITH HASHING THE TBS (DOES IT? SKIPPING A TEE STREAM DOES
+    // WHAT?)
     FLEA_CCALL(THR_flea_rw_stream_t__skip_read(dec__pt->source__pt, length__dtl));
   }
-  else // read_v
+  else if(ref_extract_mode__t == extr_read_v) // read_v
   {
     /*if(length__dtl > *raw_len__pdtl)
      * {
@@ -517,6 +555,13 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(
     // FLEA_CCALL(THR_flea_rw_stream_t__force_read(dec__pt->source__pt, (flea_u8_t*) *raw__ppu8, length__dtl));
     FLEA_CCALL(THR_flea_rw_stream_t__force_read(dec__pt->source__pt, res_vec__pt->data__pu8, res_vec__pt->len__dtl));
     // *raw_len__pdtl = length__dtl;
+  }
+  else // read_tlv
+  {
+    flea_byte_vec_t__reset(res_vec__pt);
+    FLEA_CCALL(THR_flea_byte_vec_t__resize(res_vec__pt, length__dtl));
+    // FLEA_CCALL(THR_flea_rw_stream_t__force_read(dec__pt->source__pt, (flea_u8_t*) *raw__ppu8, length__dtl));
+    FLEA_CCALL(THR_flea_rw_stream_t__force_read(dec__pt->source__pt, res_vec__pt->data__pu8, res_vec__pt->len__dtl));
   }
 
   FLEA_THR_FIN_SEC_empty();
