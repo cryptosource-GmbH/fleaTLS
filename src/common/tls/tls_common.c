@@ -24,6 +24,7 @@
 #include "internal/common/tls/handsh_reader.h"
 #include "internal/common/tls/tls_rec_prot_rdr.h"
 #include "internal/common/tls/tls_common.h"
+#include "internal/common/tls/tls_cert_path.h"
 
 #include <string.h>
 
@@ -34,6 +35,7 @@
 #include "flea/rng.h"
 #include "flea/block_cipher.h"
 #include "flea/bin_utils.h"
+#include "flea/cert_store.h"
 
 #include <stdio.h>
 
@@ -584,11 +586,17 @@ flea_err_t THR_flea_tls__read_certificate(
 {
   FLEA_DECL_BUF(cert_chain__bu8, flea_u8_t, 10000);
   flea_u32_t cert_chain_len__u32;
+  flea_u8_t dummy__au8_l3[3];
+
+  // TODO: REMOVE:
+  flea_cert_store_t trust_store__t = flea_cert_store_t__INIT_VALUE;
   FLEA_THR_BEG_FUNC();
+
+
   cert_chain_len__u32 = flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt);
   // TODO: cert read stream
   FLEA_ALLOC_BUF(cert_chain__bu8, cert_chain_len__u32);
-
+#if 0
   FLEA_CCALL(
     THR_flea_rw_stream_t__force_read(
       flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
@@ -598,11 +606,29 @@ flea_err_t THR_flea_tls__read_certificate(
   );
   // TODO: UNSAFE ARITHM, WILL BE REPLACED...:
   FLEA_CCALL(THR_verify_cert_chain(cert_chain__bu8 + 3, cert_chain_len__u32 - 3, pubkey));
-
+#else
+  // ADD ALSO CRLS
+  FLEA_CCALL(THR_flea_cert_store_t__add_trusted_cert(&trust_store__t, trust_anchor, sizeof(trust_anchor)));
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__force_read(
+      flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
+      dummy__au8_l3,
+      sizeof(dummy__au8_l3)
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_tls__cert_path_validation(
+      tls_ctx,
+      flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
+      &trust_store__t,
+      pubkey
+    )
+  );
+#endif /* if 0 */
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(cert_chain__bu8);
   );
-}
+} /* THR_flea_tls__read_certificate */
 
 flea_err_t THR_flea_tls__send_handshake_message_hdr(
   flea_tls_rec_prot_t* rec_prot__pt,

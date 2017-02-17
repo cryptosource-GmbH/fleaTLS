@@ -653,4 +653,18 @@ flea_bool_t flea_x509_has_key_usages(
   return FLEA_FALSE;
 }
 
+flea_bool_t flea_x509_is_cert_self_issued(const flea_x509_cert_ref_t* cert__pt)
+{
+  if(FLEA_DER_REF_IS_ABSENT(&cert__pt->issuer__t.raw_dn_complete__t))
+  {
+    return FLEA_TRUE;
+  }
+  // if(0 == flea_rcu8_cmp(&cert__pt->subject__t.raw_dn_complete__t, &cert__pt->issuer__t.raw_dn_complete__t))
+  if(0 == flea_byte_vec_t__cmp(&cert__pt->subject__t.raw_dn_complete__t, &cert__pt->issuer__t.raw_dn_complete__t))
+  {
+    return FLEA_TRUE;
+  }
+  return FLEA_FALSE;
+}
+
 // flea_err_t THR_flea_

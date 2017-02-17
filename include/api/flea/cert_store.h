@@ -38,6 +38,13 @@ flea_err_t THR_flea_cert_store_t__add_trusted_cert(
   flea_al_u16_t      der_enc_cert_len__alu16
 );
 
+flea_err_t THR_flea_cert_store_t__is_cert_trusted(
+  const flea_cert_store_t* cert_store__pct,
+  const flea_u8_t*         cert_to_check__pcu8,
+  flea_al_u16_t            cert_to_check_len__alu16,
+  flea_bool_t*             result_is_trusted__pb
+);
+
 /**
  * Add the trusted certs in a cert store to a path validator object as trust
  * anchors to be used in path validation.

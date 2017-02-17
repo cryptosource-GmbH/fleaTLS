@@ -30,7 +30,7 @@ flea_err_t THR_flea_cert_store_t__add_trusted_cert(
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_CCALL(
     THR_flea_alloc__ensure_buffer_capacity(
-      (void **) &cert_store__pt->enc_cert_refs__bcu8,
+      (void**) &cert_store__pt->enc_cert_refs__bcu8,
       &cert_store__pt->nb_alloc_certs__dtl,
       cert_store__pt->nb_set_certs__u16,
       1,
@@ -71,6 +71,34 @@ flea_err_t THR_flea_cert_store_t__add_trusted_to_path_validator(
         cert_store__pct->enc_cert_refs__bcu8[i].len__dtl
       )
     );
+  }
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_cert_store_t__is_cert_trusted(
+  const flea_cert_store_t* cert_store__pct,
+  const flea_u8_t*         cert_to_check__pcu8,
+  flea_al_u16_t            cert_to_check_len__alu16,
+  flea_bool_t*             result_is_trusted__pb
+)
+{
+  flea_al_u16_t nb_certs__alu16 = cert_store__pct->nb_set_certs__u16;
+  flea_al_u16_t i;
+
+  FLEA_THR_BEG_FUNC();
+  *result_is_trusted__pb = FLEA_FALSE;
+  for(i = 0; i < nb_certs__alu16; i++)
+  {
+    if(!flea_memcmp_wsize(
+        cert_store__pct->enc_cert_refs__bcu8[i].data__pcu8,
+        cert_store__pct->enc_cert_refs__bcu8[i].len__dtl,
+        cert_to_check__pcu8,
+        cert_to_check_len__alu16
+      ))
+    {
+      *result_is_trusted__pb = FLEA_TRUE;
+      break;
+    }
   }
   FLEA_THR_FIN_SEC_empty();
 }

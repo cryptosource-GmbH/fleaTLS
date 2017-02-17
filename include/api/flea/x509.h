@@ -224,4 +224,6 @@ flea_err_t THR_flea_x509_cert__get_ref_to_tbs(
   flea_al_u16_t    der_encoded_cert_len__alu16,
   flea_byte_vec_t* ref_to_tbs__pt
 );
+
+flea_bool_t flea_x509_is_cert_self_issued(const flea_x509_cert_ref_t* cert__pt);
 #endif /* h-guard */

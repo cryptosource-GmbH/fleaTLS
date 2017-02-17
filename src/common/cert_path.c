@@ -6,7 +6,6 @@
 #include "flea/alloc.h"
 #include "flea/cert_verify.h"
 #include "flea/array_util.h"
-#include "flea/cert_path.h"
 #include "flea/asn1_date.h"
 #include "flea/error_handling.h"
 #include "internal/common/ber_dec.h"
@@ -14,6 +13,8 @@
 #include "flea/crl.h"
 #include "internal/pltf_if/time.h"
 #include "flea/hostn_ver.h"
+#include "flea/cert_path.h"
+#include "internal/common/cert_path_int.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
 # define END_OF_COLL 0xFFFF
@@ -119,20 +120,6 @@ void flea_cert_path_validator_t__dtor(flea_cert_path_validator_t* cpv__pt)
 # endif
 }
 
-static flea_bool_t is_cert_self_issued(const flea_x509_cert_ref_t* cert__pt)
-{
-  if(FLEA_DER_REF_IS_ABSENT(&cert__pt->issuer__t.raw_dn_complete__t))
-  {
-    return FLEA_TRUE;
-  }
-  // if(0 == flea_rcu8_cmp(&cert__pt->subject__t.raw_dn_complete__t, &cert__pt->issuer__t.raw_dn_complete__t))
-  if(0 == flea_byte_vec_t__cmp(&cert__pt->subject__t.raw_dn_complete__t, &cert__pt->issuer__t.raw_dn_complete__t))
-  {
-    return FLEA_TRUE;
-  }
-  return FLEA_FALSE;
-}
-
 static flea_err_t THR_validate_cert_path(
   flea_cert_path_validator_t* cert_cpv__pt,
   const flea_gmt_time_t*      arg_compare_time_mbn__pt,
@@ -142,19 +129,13 @@ static flea_err_t THR_validate_cert_path(
   flea_s32_t i;
   flea_al_u16_t chain_len__alu16 = cert_cpv__pt->chain_pos__u16 + 1;
   flea_al_u16_t m_path__u16      = chain_len__alu16;
+
   // flea_byte_vec_t inherited_params__rcu8;
-  flea_gmt_time_t compare_time__t;
+  // flea_gmt_time_t compare_time__t;
+
 
   FLEA_THR_BEG_FUNC();
 
-  if(arg_compare_time_mbn__pt)
-  {
-    compare_time__t = *arg_compare_time_mbn__pt;
-  }
-  else
-  {
-    FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&compare_time__t));
-  }
   if(chain_len__alu16 == 0)
   {
     FLEA_THROW("attempted to verify an empty certificate path", FLEA_ERR_INV_ARG);
@@ -167,23 +148,12 @@ static flea_err_t THR_validate_cert_path(
     flea_x509_cert_info_t* current__pt = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i]];
     flea_bool_t is_current_ta;
     flea_bool_t is_current_target;
+    flea_basic_constraints_t* basic_constraints__pt;
     is_current_ta     = (i == (flea_s32_t) chain_len__alu16 - 1);
     is_current_target = (i == 0);
-    flea_basic_constraints_t* basic_constraints__pt;
-    flea_key_usage_t* key_usage__pt;
 
-    key_usage__pt         = &current__pt->cert_ref__t.extensions__t.key_usage__t;
     basic_constraints__pt = &current__pt->cert_ref__t.extensions__t.basic_constraints__t;
-    // verify validity date
-    if(1 == flea_asn1_cmp_utc_time(&current__pt->cert_ref__t.not_before__t, &compare_time__t))
-    {
-      FLEA_THROW("certificate not yet valid", FLEA_ERR_CERT_NOT_YET_VALID);
-    }
-    if(-1 == flea_asn1_cmp_utc_time(&current__pt->cert_ref__t.not_after__t, &compare_time__t))
-    {
-      FLEA_THROW("certificate not yet valid", FLEA_ERR_CERT_NOT_YET_VALID);
-    }
-    if(!is_cert_self_issued(&current__pt->cert_ref__t) && !is_current_target)
+    if(!flea_x509_is_cert_self_issued(&current__pt->cert_ref__t) && !is_current_target)
     {
       if(m_path__u16 == 0)
       {
@@ -200,24 +170,14 @@ static flea_err_t THR_validate_cert_path(
         m_path__u16 = FLEA_MIN(basic_constraints__pt->path_len__u16, m_path__u16);
       }
     }
-
-    /** flea does not check the TA to be a CA **/
-    if(!is_current_target && !is_current_ta)
-    {
-      if(!basic_constraints__pt->is_present__u8)
-      {
-        FLEA_THROW("basic constraints missing", FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT);
-      }
-      if(!basic_constraints__pt->is_ca__b)
-      {
-        FLEA_THROW("basic constraints does not indicate CA", FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT);
-      }
-      if(key_usage__pt->is_present__u8 &&
-        !(key_usage__pt->purposes__u16 & flea_ku_key_cert_sign))
-      {
-        FLEA_THROW("key usage cert sign missing", FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT);
-      }
-    }
+    FLEA_CCALL(
+      THR_flea_cert_path__validate_single_cert(
+        &current__pt->cert_ref__t,
+        is_current_ta,
+        is_current_target,
+        arg_compare_time_mbn__pt
+      )
+    );
   }
 
   /* from TA to target cert */
@@ -229,7 +189,7 @@ static flea_err_t THR_validate_cert_path(
 
     // verify against subsequent certificate
     FLEA_CCALL(THR_flea_x509_verify_cert_info_signature(subject__pt, issuer__pt));
-    /* check revocation. current "inherited params" are for the issuer */
+
     if(cert_cpv__pt->perform_revocation_checking__b)
     {
       FLEA_CCALL(
@@ -238,7 +198,7 @@ static flea_err_t THR_validate_cert_path(
           &issuer__pt->cert_ref__t,
           cert_cpv__pt->crl_collection__brcu8,
           cert_cpv__pt->nb_crls__u16,
-          &compare_time__t,
+          arg_compare_time_mbn__pt,
           is_ca_cert__b
         )
       );
@@ -588,5 +548,62 @@ flea_err_t THR_flea_cert_path_validator_t__add_trust_anchor_cert(
  *
  * FLEA_THR_FIN_SEC_empty();
  * }*/
+
+flea_err_t THR_flea_cert_path__validate_single_cert(
+  flea_x509_cert_ref_t*  cert_ref__pt,
+  flea_bool_t            is_trusted__b,
+  flea_bool_t            is_target__b,
+  const flea_gmt_time_t* arg_compare_time_mbn__pt
+)
+{
+  flea_basic_constraints_t* basic_constraints__pt;
+  flea_key_usage_t* key_usage__pt;
+  flea_gmt_time_t compare_time__t;
+
+  // TODO: COMPILE TIME FLAG FOR EXCLUDING TRUST ANCHOR FROM THESE CHECKS
+  // flea_boot_t is_current_target__b == (!is_trusted__b) && (!must_be_ca__b)
+  FLEA_THR_BEG_FUNC();
+
+  if(arg_compare_time_mbn__pt)
+  {
+    compare_time__t = *arg_compare_time_mbn__pt;
+  }
+  else
+  {
+    FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&compare_time__t));
+  }
+
+  key_usage__pt         = &cert_ref__pt->extensions__t.key_usage__t;
+  basic_constraints__pt = &cert_ref__pt->extensions__t.basic_constraints__t;
+  // verify validity date
+  if(1 == flea_asn1_cmp_utc_time(&cert_ref__pt->not_before__t, &compare_time__t))
+  {
+    FLEA_THROW("certificate not yet valid", FLEA_ERR_CERT_NOT_YET_VALID);
+  }
+  if(-1 == flea_asn1_cmp_utc_time(&cert_ref__pt->not_after__t, &compare_time__t))
+  {
+    FLEA_THROW("certificate not yet valid", FLEA_ERR_CERT_NOT_YET_VALID);
+  }
+
+
+  /** flea does check the TA to be a CA **/
+  if(!is_target__b) // && !is_trusted__b)
+  {
+    if(!basic_constraints__pt->is_present__u8)
+    {
+      FLEA_THROW("basic constraints missing", FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT);
+    }
+    if(!basic_constraints__pt->is_ca__b)
+    {
+      FLEA_THROW("basic constraints does not indicate CA", FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT);
+    }
+    if(key_usage__pt->is_present__u8 &&
+      !(key_usage__pt->purposes__u16 & flea_ku_key_cert_sign))
+    {
+      FLEA_THROW("key usage cert sign missing", FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT);
+    }
+  }
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_cert_path__validate_single_cert */
 
 #endif /* #ifdef FLEA_HAVE_ASYM_SIG */
