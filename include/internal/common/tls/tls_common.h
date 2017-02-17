@@ -12,9 +12,7 @@ extern "C" {
 flea_err_t THR_flea_tls__read_certificate(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
-  flea_public_key_t*        pubkey,
-  const flea_u8_t*          trust_anchor__pu16,
-  flea_al_u16_t             trust_anchor_len__alu16
+  flea_public_key_t*        pubkey
 );
 
 flea_err_t THR_flea_tls__send_handshake_message_hdr(
@@ -27,7 +25,7 @@ flea_err_t THR_flea_tls__send_handshake_message_hdr(
 flea_err_t THR_flea_tls__send_handshake_message_content(
   flea_tls_rec_prot_t* rec_prot__pt,
   flea_hash_ctx_t*     hash_ctx_mbn__pt,
-  flea_u8_t*           msg_bytes,
+  const flea_u8_t*     msg_bytes,
   flea_u32_t           msg_bytes_len
 );
 
@@ -35,7 +33,7 @@ flea_err_t THR_flea_tls__send_handshake_message(
   flea_tls_rec_prot_t* rec_prot__pt,
   flea_hash_ctx_t*     hash_ctx_mbn__pt,
   HandshakeType        type,
-  flea_u8_t*           msg_bytes,
+  const flea_u8_t*     msg_bytes,
   flea_u32_t           msg_bytes_len
 );
 

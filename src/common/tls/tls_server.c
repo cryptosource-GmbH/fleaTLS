@@ -27,6 +27,7 @@ flea_err_t THR_flea_tls__read_client_hello(
   flea_u8_t client_version_major_minor__au8[2];
   flea_u8_t session_id_len__u8;
 
+  // TODO: free buf fehlt:
   FLEA_DECL_BUF(session_id__bu8, flea_u8_t, 32);
   const flea_al_u8_t max_session_id_len__alu8 = 32;
   flea_u8_t client_compression_methods_len__u8;
@@ -109,7 +110,8 @@ flea_err_t THR_flea_tls__read_client_hello(
   flea_u16_t supported_cs_len__u16 = 2;
   flea_u16_t supported_cs_index__u16;
   flea_u8_t chosen_cs__au8[2];
-  flea_u16_t chosen_cs_index__u16 = supported_cs_len__u16; // if we find another cs with a smaller index (comes first in supported_cs__au8) then we prefer that one over the currently chosen one
+  // TODO: mit u16 arbeiten für die Ciphersuites statt mit 2-byte Arrays
+  flea_u16_t chosen_cs_index__u16 = supported_cs_len__u16; // TODO: Falko: Off by one  ?
   while(cipher_suites_len__u16)
   {
     FLEA_CCALL(THR_flea_rw_stream_t__force_read(hs_rd_stream__pt, curr_cs__au8, 2));
@@ -163,11 +165,19 @@ flea_err_t THR_flea_tls__read_client_hello(
   {
     // read extension length
     // TODO: stream function to read in the length
+    // TODO: Falko: Die wird kommen, aber bis dahin bitte Endianess-unabhängig
+    // dekodieren
     FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, ((flea_u8_t*) &all_extensions_len__u16) + 1));
     FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &all_extensions_len__u16));
 
     // read extensions
     FLEA_ALLOC_BUF(extension__bu8, max_extension_len__u16); // TODO/QUESTION: Alloc anew for every extension or simply use the max extension length?
+    // ANSWER(Falko): Im es müssen die Extensions, die wir unterstützen,
+    // verarbeitet werden können. Das sollte dann in Unterfunktionen erfolgen.
+    // Somit brauchen wir hier keinen Buffer.
+    // Da wir noch keine Extensions unterstützen, sollten die Daten im Moment
+    // nur weggelesen werden. Dafür wird es auch noch unterstützung im Stream
+    // geben ('skip').
     while(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) > 0)
     {
       // read type
@@ -181,6 +191,8 @@ flea_err_t THR_flea_tls__read_client_hello(
 
       // read length
       // TODO: use stream function for decoding
+      // TODO: Falko: Die wird kommen, aber bis dahin bitte Endianess-unabhängig
+      // dekodieren
       FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, ((flea_u8_t*) &extension_len__u16) + 1));
       FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &extension_len__u16));
 

@@ -9,6 +9,7 @@
 #include "flea/cbc_filter.h"
 #include "flea/hash_stream.h"
 #include "flea/tee.h"
+#include "flea/cert_store.h"
 #include "internal/common/tls/handsh_reader.h"
 #include "internal/common/tls/tls_rec_prot_rdr.h"
 #include "internal/common/tls/tls_common.h"
@@ -269,9 +270,7 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
 static flea_err_t THR_flea_handle_handsh_msg(
   flea_tls_ctx_t*              tls_ctx,
   flea_tls__handshake_state_t* handshake_state,
-  flea_hash_ctx_t*             hash_ctx__pt,
-  flea_u8_t*                   trust_anchor__pu8,
-  flea_u16_t                   trust_anchor_len__u16
+  flea_hash_ctx_t*             hash_ctx__pt
 )
 {
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
@@ -308,9 +307,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
         THR_flea_tls__read_certificate(
           tls_ctx,
           &handsh_rdr__t,
-          &tls_ctx->server_pubkey,
-          trust_anchor__pu8,
-          trust_anchor_len__u16
+          &tls_ctx->server_pubkey
         )
       );
 
@@ -352,9 +349,11 @@ static flea_err_t THR_flea_handle_handsh_msg(
 } /* THR_flea_handle_handsh_msg */
 
 flea_err_t THR_flea_tls__client_handshake(
-  flea_tls_ctx_t* tls_ctx,
-  flea_u8_t*      trust_anchor__pu8,
-  flea_u16_t      trust_anchor_len__u16
+  flea_tls_ctx_t*          tls_ctx,
+  const flea_cert_store_t* trust_store__pt
+
+  /*flea_u8_t*      trust_anchor__pu8,
+   * flea_u16_t      trust_anchor_len__u16*/
   // flea_rw_stream_t* rw_stream__pt
 )
 {
@@ -381,6 +380,9 @@ flea_err_t THR_flea_tls__client_handshake(
   flea_tls__handshake_state_t handshake_state; // TODO: INIT OBJECT
   flea_tls__handshake_state_ctor(&handshake_state);
   flea_hash_ctx_t hash_ctx = flea_hash_ctx_t__INIT_VALUE;
+
+  tls_ctx->trust_store__pt = trust_store__pt;
+
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256)); // TODO: initialize properly
   while(1)
   {
@@ -416,9 +418,7 @@ flea_err_t THR_flea_tls__client_handshake(
           THR_flea_handle_handsh_msg(
             tls_ctx,
             &handshake_state,
-            &hash_ctx,
-            trust_anchor__pu8,
-            trust_anchor_len__u16
+            &hash_ctx
           )
         );
         if(handshake_state.finished == FLEA_TRUE)

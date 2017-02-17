@@ -447,17 +447,13 @@ flea_err_t THR_verify_cert_chain(
 flea_err_t THR_flea_tls__read_certificate(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
-  flea_public_key_t*        pubkey,
-  const flea_u8_t*          trust_anchor__pu8,
-  flea_al_u16_t             trust_anchor_len__alu16
+  flea_public_key_t*        pubkey
 )
 {
   FLEA_DECL_BUF(cert_chain__bu8, flea_u8_t, 10000);
   flea_u32_t cert_chain_len__u32;
   flea_u8_t dummy__au8_l3[3];
 
-  // TODO: REMOVE:
-  flea_cert_store_t trust_store__t = flea_cert_store_t__INIT_VALUE;
   FLEA_THR_BEG_FUNC();
 
 
@@ -476,7 +472,7 @@ flea_err_t THR_flea_tls__read_certificate(
   FLEA_CCALL(THR_verify_cert_chain(cert_chain__bu8 + 3, cert_chain_len__u32 - 3, pubkey));
 #else
   // ADD ALSO CRLS
-  FLEA_CCALL(THR_flea_cert_store_t__add_trusted_cert(&trust_store__t, trust_anchor__pu8, trust_anchor_len__alu16));
+  //
   FLEA_CCALL(
     THR_flea_rw_stream_t__force_read(
       flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
@@ -488,7 +484,7 @@ flea_err_t THR_flea_tls__read_certificate(
     THR_flea_tls__cert_path_validation(
       tls_ctx,
       flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
-      &trust_store__t,
+      tls_ctx->trust_store__pt,
       pubkey
     )
   );
@@ -665,7 +661,7 @@ flea_err_t THR_flea_tls__send_alert(
 flea_err_t THR_flea_tls__send_handshake_message_content(
   flea_tls_rec_prot_t* rec_prot__pt,
   flea_hash_ctx_t*     hash_ctx_mbn__pt,
-  flea_u8_t*           msg_bytes,
+  const flea_u8_t*     msg_bytes,
   flea_u32_t           msg_bytes_len
 )
 {
@@ -689,7 +685,7 @@ flea_err_t THR_flea_tls__send_handshake_message(
   flea_tls_rec_prot_t* rec_prot__pt,
   flea_hash_ctx_t*     hash_ctx_mbn__pt,
   HandshakeType        type,
-  flea_u8_t*           msg_bytes,
+  const flea_u8_t*     msg_bytes,
   flea_u32_t           msg_bytes_len
 )
 {
