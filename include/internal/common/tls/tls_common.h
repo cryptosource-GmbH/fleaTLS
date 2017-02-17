@@ -12,7 +12,9 @@ extern "C" {
 flea_err_t THR_flea_tls__read_certificate(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
-  flea_public_key_t*        pubkey
+  flea_public_key_t*        pubkey,
+  flea_u8_t*                trust_anchor__pu16,
+  flea_u16_t                trust_anchor_len__u16
 );
 
 flea_err_t THR_flea_tls__send_handshake_message_hdr(
@@ -25,6 +27,14 @@ flea_err_t THR_flea_tls__send_handshake_message_hdr(
 flea_err_t THR_flea_tls__send_handshake_message_content(
   flea_tls_rec_prot_t* rec_prot__pt,
   flea_hash_ctx_t*     hash_ctx_mbn__pt,
+  flea_u8_t*           msg_bytes,
+  flea_u32_t           msg_bytes_len
+);
+
+flea_err_t THR_flea_tls__send_handshake_message(
+  flea_tls_rec_prot_t* rec_prot__pt,
+  flea_hash_ctx_t*     hash_ctx_mbn__pt,
+  HandshakeType        type,
   flea_u8_t*           msg_bytes,
   flea_u32_t           msg_bytes_len
 );
@@ -55,7 +65,7 @@ typedef enum
   FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE = 0x20,
   FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST = 0x40,
   FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE   = 0x80,
-  FLEA_TLS_HANDSHAKE_EXPECT_f                   = 0x100,
+  FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY  = 0x100,
   FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_KEY_EXCHANGE = 0x200,
   FLEA_TLS_HANDSHAKE_EXPECT_FINISHED            = 0x400,
   FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC  = 0x800

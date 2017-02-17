@@ -52,6 +52,14 @@ static flea_err_t THR_open_socket_server(void* ctx__pv)
   {
     FLEA_THROW("error opening linux socket", FLEA_ERR_INV_STATE);
   }
+  // TODO: maybe change this. It SO_REUSEADDR enables us to reuse the same port
+  // even though it is still blocked and waiting for a timeout when not properly
+  // closed
+  if(setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1}, sizeof(int)) < 0)
+  {
+    FLEA_THROW("setsockopt(SO_REUSEADDR) failed", FLEA_ERR_INV_STATE);
+  }
+
 
   memset(&addr, 0, sizeof(addr));
   addr.sin_addr.s_addr = htonl(INADDR_ANY);
@@ -201,6 +209,10 @@ static flea_err_t THR_read_socket(
     if(did_read_ssz < 0)
     {
       FLEA_THROW("recv err", FLEA_ERR_TLS_GENERIC);
+    }
+    else if(did_read_ssz == 0)
+    {
+      // TODO: socket got closed!
     }
   } while(force_read__b && (did_read_ssz == 0));
   *nb_bytes_to_read__pdtl = did_read_ssz;

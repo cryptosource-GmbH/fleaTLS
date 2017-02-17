@@ -46,58 +46,6 @@ typedef struct
   flea_u32_t len__u32;
 } handshake_header;
 
-// TODO: MAKE INPUT DATA
-// CA cert to verify the server's certificate
-flea_u8_t trust_anchor[] =
-{0x30, 0x82, 0x03, 0x7f, 0x30, 0x82, 0x02, 0x67, 0xa0, 0x03, 0x02, 0x01, 0x02, 0x02, 0x09, 0x00, 0xfe, 0x12, 0x36,
- 0x42, 0xa1, 0xb6, 0xf7, 0x11, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b, 0x05,
- 0x00, 0x30, 0x56, 0x31, 0x0b, 0x30, 0x09, 0x06, 0x03, 0x55, 0x04, 0x06, 0x13, 0x02, 0x41, 0x55, 0x31, 0x13, 0x30,
- 0x11, 0x06, 0x03, 0x55, 0x04, 0x08, 0x0c, 0x0a, 0x53, 0x6f, 0x6d, 0x65, 0x2d, 0x53, 0x74, 0x61, 0x74, 0x65, 0x31,
- 0x21, 0x30, 0x1f, 0x06, 0x03, 0x55, 0x04, 0x0a, 0x0c, 0x18, 0x49, 0x6e, 0x74, 0x65, 0x72, 0x6e, 0x65, 0x74, 0x20,
- 0x57, 0x69, 0x64, 0x67, 0x69, 0x74, 0x73, 0x20, 0x50, 0x74, 0x79, 0x20, 0x4c, 0x74, 0x64, 0x31, 0x0f, 0x30, 0x0d,
- 0x06, 0x03, 0x55, 0x04, 0x03, 0x0c, 0x06, 0x72, 0x6f, 0x6f, 0x74, 0x43, 0x41, 0x30, 0x1e, 0x17, 0x0d, 0x31, 0x36,
- 0x31, 0x31, 0x30, 0x31, 0x30, 0x38, 0x33, 0x39, 0x31, 0x33, 0x5a, 0x17, 0x0d, 0x31, 0x39, 0x30, 0x38, 0x32, 0x32,
- 0x30, 0x38, 0x33, 0x39, 0x31, 0x33, 0x5a, 0x30, 0x56, 0x31, 0x0b, 0x30, 0x09, 0x06, 0x03, 0x55, 0x04, 0x06, 0x13,
- 0x02, 0x41, 0x55, 0x31, 0x13, 0x30, 0x11, 0x06, 0x03, 0x55, 0x04, 0x08, 0x0c, 0x0a, 0x53, 0x6f, 0x6d, 0x65, 0x2d,
- 0x53, 0x74, 0x61, 0x74, 0x65, 0x31, 0x21, 0x30, 0x1f, 0x06, 0x03, 0x55, 0x04, 0x0a, 0x0c, 0x18, 0x49, 0x6e, 0x74,
- 0x65, 0x72, 0x6e, 0x65, 0x74, 0x20, 0x57, 0x69, 0x64, 0x67, 0x69, 0x74, 0x73, 0x20, 0x50, 0x74, 0x79, 0x20, 0x4c,
- 0x74, 0x64, 0x31, 0x0f, 0x30, 0x0d, 0x06, 0x03, 0x55, 0x04, 0x03, 0x0c, 0x06, 0x72, 0x6f, 0x6f, 0x74, 0x43, 0x41,
- 0x30, 0x82, 0x01, 0x22, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x01, 0x05, 0x00,
- 0x03, 0x82, 0x01, 0x0f, 0x00, 0x30, 0x82, 0x01, 0x0a, 0x02, 0x82, 0x01, 0x01, 0x00, 0xcf, 0xa5, 0x70, 0x42, 0x71,
- 0x64, 0xdf, 0xfa, 0x98, 0x43, 0x8a, 0x13, 0x5f, 0xe3, 0x7d, 0xed, 0x27, 0xff, 0x52, 0x3a, 0x6b, 0x7f, 0x0f, 0xd6,
- 0x80, 0xaa, 0xfd, 0x2e, 0xf9, 0xb7, 0xcf, 0x6b, 0x46, 0x72, 0x91, 0x95, 0x39, 0x44, 0xc1, 0xbf, 0x69, 0x9e, 0x65,
- 0xab, 0xbd, 0xa7, 0xe6, 0x3c, 0xfd, 0x12, 0x09, 0xa6, 0xda, 0x1e, 0xf4, 0x12, 0x9b, 0x0d, 0xd6, 0x5c, 0x6c, 0xdf,
- 0x64, 0x77, 0xfe, 0x35, 0x2d, 0xd9, 0xad, 0x99, 0xc1, 0x47, 0x31, 0xef, 0x95, 0x23, 0x38, 0x48, 0xd7, 0xa6, 0x84,
- 0x69, 0x6c, 0x4d, 0x37, 0xe8, 0x29, 0xd3, 0xb4, 0x68, 0x03, 0x19, 0xdc, 0xb1, 0xd1, 0xfd, 0xfb, 0x97, 0x61, 0x50,
- 0xe7, 0x2a, 0xa0, 0xfd, 0x7c, 0x8f, 0x51, 0x88, 0x0b, 0x5d, 0x74, 0xce, 0xb6, 0xa5, 0x65, 0x53, 0xb2, 0x0d, 0xdf,
- 0xb5, 0x7a, 0xe1, 0x3c, 0x98, 0x6e, 0x29, 0xa7, 0x90, 0x75, 0x13, 0xac, 0x22, 0x92, 0xdb, 0xe6, 0x8c, 0x6f, 0x32,
- 0xa7, 0x42, 0xa4, 0xa4, 0x5c, 0x04, 0xdb, 0x04, 0x95, 0x34, 0x13, 0xe0, 0xa1, 0x47, 0x00, 0x21, 0xf6, 0xa1, 0xa7,
- 0xaa, 0x0e, 0x97, 0xc5, 0x2b, 0x64, 0x00, 0x74, 0xdd, 0x57, 0xe3, 0x03, 0xe0, 0xb8, 0xc5, 0x4e, 0xe3, 0x3e, 0xf0,
- 0x33, 0x7d, 0x5e, 0x82, 0xda, 0xaa, 0x04, 0x0d, 0xdc, 0x80, 0x14, 0xaf, 0x30, 0x10, 0x9c, 0x5b, 0xb8, 0xd2, 0xb6,
- 0x76, 0x6c, 0x10, 0x27, 0xfd, 0x6e, 0xaa, 0xc2, 0x70, 0x7e, 0x0d, 0x37, 0x2c, 0x28, 0x81, 0x26, 0xc8, 0xeb, 0x7c,
- 0x4b, 0x8f, 0xda, 0x7b, 0x02, 0xb0, 0x51, 0x92, 0x3d, 0x3d, 0x5e, 0x53, 0xfa, 0xcb, 0x43, 0x4f, 0xef, 0x1e, 0x61,
- 0xe5, 0xb9, 0x2c, 0x08, 0x77, 0xff, 0x65, 0x77, 0x13, 0x4d, 0xd4, 0xcb, 0x2e, 0x7f, 0x9d, 0xe2, 0x1a, 0xc3, 0x19,
- 0x84, 0xb1, 0x52, 0x9d, 0x02, 0x03, 0x01, 0x00, 0x01, 0xa3, 0x50, 0x30, 0x4e, 0x30, 0x1d, 0x06, 0x03, 0x55, 0x1d,
- 0x0e, 0x04, 0x16, 0x04, 0x14, 0xb7, 0x52, 0x9d, 0x67, 0xd2, 0x32, 0x3f, 0x0c, 0x4d, 0xe3, 0xa2, 0xe8, 0x95, 0xfe,
- 0x23, 0x83, 0xbf, 0xaa, 0x17, 0x66, 0x30, 0x1f, 0x06, 0x03, 0x55, 0x1d, 0x23, 0x04, 0x18, 0x30, 0x16, 0x80, 0x14,
- 0xb7, 0x52, 0x9d, 0x67, 0xd2, 0x32, 0x3f, 0x0c, 0x4d, 0xe3, 0xa2, 0xe8, 0x95, 0xfe, 0x23, 0x83, 0xbf, 0xaa, 0x17,
- 0x66, 0x30, 0x0c, 0x06, 0x03, 0x55, 0x1d, 0x13, 0x04, 0x05, 0x30, 0x03, 0x01, 0x01, 0xff, 0x30, 0x0d, 0x06, 0x09,
- 0x2a, 0x86, 0x48, 0x86, 0xf7, 0x0d, 0x01, 0x01, 0x0b, 0x05, 0x00, 0x03, 0x82, 0x01, 0x01, 0x00, 0x7b, 0x18, 0xad,
- 0x25, 0x86, 0x17, 0x93, 0x93, 0xcb, 0x01, 0xe1, 0x07, 0xce, 0xfa, 0x37, 0x96, 0x5f, 0x17, 0x95, 0x1d, 0x76, 0xf3,
- 0x04, 0x36, 0x81, 0x64, 0x78, 0x2a, 0xc2, 0xcc, 0xbd, 0x77, 0xf7, 0x59, 0xeb, 0x9a, 0xf7, 0xb3, 0xfc, 0x1a, 0x30,
- 0xfe, 0x6f, 0x6e, 0x02, 0xc6, 0x2d, 0x4d, 0x79, 0x25, 0xaf, 0x98, 0xb4, 0xab, 0x3e, 0x25, 0xfc, 0xef, 0x98, 0x26,
- 0x0f, 0x6a, 0x0a, 0x74, 0x5b, 0x4f, 0x3a, 0x6c, 0xd6, 0x42, 0x56, 0xd9, 0x25, 0x0a, 0x1e, 0x3a, 0x4c, 0x74, 0xe9,
- 0x28, 0xcf, 0x7d, 0xe9, 0x48, 0xdc, 0xd6, 0xf4, 0x23, 0xf7, 0x2e, 0xc9, 0x50, 0xb7, 0xad, 0x22, 0x9b, 0xdf, 0x60,
- 0xcf, 0x2f, 0x4b, 0x98, 0x79, 0x3d, 0x56, 0xf0, 0x03, 0xfd, 0xe1, 0x61, 0x12, 0xed, 0x44, 0xe8, 0x22, 0xce, 0x4d,
- 0x41, 0xe7, 0xd4, 0x9c, 0xf9, 0x12, 0x57, 0x12, 0xb0, 0x20, 0xb3, 0xfa, 0xf5, 0x09, 0x8b, 0xc6, 0x38, 0xc2, 0x31,
- 0x41, 0xe8, 0xf3, 0x1c, 0x9a, 0xb7, 0x87, 0x73, 0x64, 0x29, 0xc5, 0x0f, 0x8e, 0x2d, 0x80, 0xbd, 0x54, 0x16, 0x6d,
- 0xc2, 0xcd, 0x5f, 0x0c, 0x12, 0xe0, 0xd2, 0x6b, 0xce, 0x99, 0x53, 0x7b, 0xa8, 0x38, 0x4e, 0x17, 0xea, 0xc1, 0x70,
- 0x9b, 0x33, 0x39, 0xc2, 0x83, 0x11, 0xba, 0xbd, 0x9b, 0x79, 0x09, 0xc5, 0x01, 0xea, 0x2d, 0xc6, 0x56, 0xf2, 0x9a,
- 0x14, 0x68, 0x37, 0xb2, 0x28, 0xb0, 0x60, 0xf0, 0xc6, 0xf4, 0xa6, 0x1e, 0xeb, 0x2b, 0x1d, 0x0e, 0xa0, 0x58, 0xfc,
- 0xd8, 0x2c, 0x01, 0xa3, 0xcf, 0xae, 0xa8, 0x3b, 0x49, 0x9e, 0xad, 0x51, 0xe7, 0x08, 0x65, 0x8c, 0x5c, 0x33, 0x54,
- 0x04, 0x14, 0x48, 0xf1, 0x79, 0xab, 0x33, 0xf5, 0xd4, 0xe0, 0xef, 0x1a, 0x62, 0x13, 0x48, 0xda, 0x52, 0x3e, 0x02,
- 0x8f, 0x64, 0xba, 0x8e, 0xf1, 0x88};
-
 // TODO: MUST BE CONST
 const flea_tls__cipher_suite_t cipher_suites[2] = {
   {TLS_NULL_WITH_NULL_NULL,         (flea_block_cipher_id_t) 0,
@@ -339,114 +287,18 @@ flea_err_t THR_flea_tls__read_handshake_message(
     )
   );
 
-  if(handshake_msg->type != HANDSHAKE_TYPE_FINISHED)
-  {
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx__pt, hdr__au8, sizeof(hdr__au8)));
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx__pt, handshake_msg->data, handshake_msg->length));
-  }
+  // for the client: we don't need the hash at the end of the handshake
+  // if(handshake_msg->type != HANDSHAKE_TYPE_FINISHED && tls_ctx->security_parameters->connection_end = FLEA_TLS_CLIENT)
+  // {
+  //  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx__pt, hdr__au8, sizeof(hdr__au8)));
+  //  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx__pt, handshake_msg->data, handshake_msg->length));
+  // }
   if(len__palu16 != handshake_msg->length)
   {
     FLEA_THROW("did not read sufficient data for handshake message", FLEA_ERR_INT_ERR);
   }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__read_handshake_message */
-
-flea_err_t THR_flea_tls__read_client_hello(
-  flea_tls_ctx_t*   tls_ctx,
-  HandshakeMessage* handshake_msg
-)
-{
-  FLEA_THR_BEG_FUNC();
-
-  flea_u32_t len = 0;
-
-  if(handshake_msg->length < 34)
-  {
-    FLEA_THROW("message too short", FLEA_ERR_TLS_GENERIC);
-  }
-
-  // TODO: negotiate version properly
-  if(handshake_msg->data[len++] != tls_ctx->version.major || handshake_msg->data[len++] != tls_ctx->version.minor)
-  {
-    FLEA_THROW("Version mismatch!", FLEA_ERR_TLS_GENERIC);
-  }
-
-
-  // read random
-  // TODO: CHECK HOW TIME IS TO BE USED AND THEN ENCODE IT CORRECTLY
-  flea_u8_t* p = (flea_u8_t*) tls_ctx->security_parameters->client_random.gmt_unix_time;
-  for(flea_u8_t i = 0; i < 4; i++)
-  {
-    p[i] = handshake_msg->data[len++];
-  }
-  p = tls_ctx->security_parameters->client_random.random_bytes;
-  for(flea_u8_t i = 0; i < 28; i++)
-  {
-    p[i] = handshake_msg->data[len++];
-  }
-
-
-  // session id
-  flea_u8_t session_id_len = handshake_msg->data[len++];
-  if(session_id_len > 0)
-  {
-    if(session_id_len + len > handshake_msg->length)
-    {
-      FLEA_THROW("parsing error", FLEA_ERR_TLS_GENERIC);
-    }
-    else
-    {
-      // TODO: handle session id !
-      len += session_id_len; // TODO: !
-    }
-  }
-
-  // check that we have enough bytes left to read the cipher suites length
-  if(len + 2 > handshake_msg->length)
-  {
-    FLEA_THROW("parsing error", FLEA_ERR_TLS_GENERIC);
-  }
-  flea_u16_t cipher_suites_len;
-  cipher_suites_len  = handshake_msg->data[len++] << 8;
-  cipher_suites_len |= handshake_msg->data[len++];
-
-  // check that we have enough bytes left to read the cipher suites
-  if(len + cipher_suites_len > handshake_msg->length || cipher_suites_len % 2 != 0)
-  {
-    FLEA_THROW("parsing error", FLEA_ERR_TLS_GENERIC);
-  }
-  flea_bool_t found = FLEA_TRUE;
-  // TODO: need to check if we support one of the client's cipher suite and we
-  // need to choose one !! (hard coded RSA AES 256)
-  if(found == FLEA_FALSE)
-  {
-    FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_GENERIC);
-  }
-  len += cipher_suites_len;
-
-  // check that we have enough bytes left to read the compression methods length
-  if(len + 1 > handshake_msg->length)
-  {
-    FLEA_THROW("parsing error", FLEA_ERR_TLS_GENERIC);
-  }
-  flea_u8_t compression_methods_len = handshake_msg->data[len++];
-
-  // check that we have enough bytes left to read the compression methods
-  if(len + compression_methods_len > handshake_msg->length)
-  {
-    FLEA_THROW("parsing error", FLEA_ERR_TLS_GENERIC);
-  }
-  // TODO: actually read and evaluate
-  len += compression_methods_len;
-
-  // check that length was correct
-  if(len != handshake_msg->length)
-  {
-    FLEA_THROW("parsing error", FLEA_ERR_TLS_GENERIC);
-  }
-
-  FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_tls__read_client_hello */
 
 flea_err_t THR_flea_tls__read_finished(
   flea_tls_ctx_t*           tls_ctx,
@@ -458,12 +310,18 @@ flea_err_t THR_flea_tls__read_finished(
   // TODO: need to generalize 12byte ? (botan doesn't do it either) -  avoiding "magical number" would be better
   const flea_al_u8_t finished_len__alu8 = 12;
   flea_rw_stream_t* hs_rd_stream__pt;
+  FLEA_DECL_OBJ(hash_ctx_copy, flea_hash_ctx_t);
   FLEA_THR_BEG_FUNC();
+
   FLEA_ALLOC_BUF(messages_hash__bu8, __FLEA_COMPUTED_MAX_HASH_OUT_LEN + 2 * 12);
   flea_u8_t* finished__pu8     = messages_hash__bu8 + __FLEA_COMPUTED_MAX_HASH_OUT_LEN;
   flea_u8_t* rec_finished__pu8 = messages_hash__bu8 + __FLEA_COMPUTED_MAX_HASH_OUT_LEN + finished_len__alu8;
-  // compute hash over handshake messages so far
-  FLEA_CCALL(THR_flea_hash_ctx_t__final(hash_ctx, messages_hash__bu8));
+
+  /*
+   * use a copy of hash_ctx for send_finished instead of finalizing the original
+   */
+  FLEA_CCALL(THR_flea_hash_ctx_t__ctor_copy(&hash_ctx_copy, hash_ctx));
+  FLEA_CCALL(THR_flea_hash_ctx_t__final(&hash_ctx_copy, messages_hash__bu8));
 
 
   PRFLabel label;
@@ -517,7 +375,9 @@ flea_err_t THR_flea_tls__read_finished(
 
 flea_err_t THR_verify_cert_chain(
   flea_u8_t*         tls_cert_chain__acu8,
-  flea_u32_t         length,
+  flea_u32_t         tls_cert_chain_len__u32,
+  flea_u8_t*         trust_anchor_pu8,
+  flea_u16_t         trust_anchor_len__u16,
   flea_public_key_t* pubkey__t
 )
 {
@@ -526,7 +386,7 @@ flea_err_t THR_verify_cert_chain(
   flea_gmt_time_t time__t;
   flea_bool_t first__b = FLEA_TRUE;
   const flea_u8_t* ptr = tls_cert_chain__acu8;
-  flea_al_u16_t len    = length;
+  flea_al_u16_t len    = tls_cert_chain_len__u32;
 
   FLEA_THR_BEG_FUNC();
 
@@ -562,7 +422,13 @@ flea_err_t THR_verify_cert_chain(
   // FLEA_DECL_OBJ(trust_ref__t, flea_x509_cert_ref_t);
   // err = THR_flea_x509_cert_ref_t__ctor(&trust_ref__t, trust_anchor, sizeof(trust_anchor));
   // err = THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(&cert_chain__t, &trust_ref__t);
-  FLEA_CCALL(THR_flea_cert_path_validator_t__add_trust_anchor_cert(&cert_chain__t, trust_anchor, sizeof(trust_anchor)));
+  FLEA_CCALL(
+    THR_flea_cert_path_validator_t__add_trust_anchor_cert(
+      &cert_chain__t,
+      trust_anchor_pu8,
+      trust_anchor_len__u16
+    )
+  );
   // TODO: ENABLE REVOCATION CHECKING IN TLS
   flea_cert_path_validator_t__disable_revocation_checking(&cert_chain__t);
   FLEA_CCALL(
@@ -581,7 +447,9 @@ flea_err_t THR_verify_cert_chain(
 flea_err_t THR_flea_tls__read_certificate(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
-  flea_public_key_t*        pubkey
+  flea_public_key_t*        pubkey,
+  const flea_u8_t*          trust_anchor__pu8,
+  flea_al_u16_t                trust_anchor_len__alu16
 )
 {
   FLEA_DECL_BUF(cert_chain__bu8, flea_u8_t, 10000);
@@ -608,7 +476,7 @@ flea_err_t THR_flea_tls__read_certificate(
   FLEA_CCALL(THR_verify_cert_chain(cert_chain__bu8 + 3, cert_chain_len__u32 - 3, pubkey));
 #else
   // ADD ALSO CRLS
-  FLEA_CCALL(THR_flea_cert_store_t__add_trusted_cert(&trust_store__t, trust_anchor, sizeof(trust_anchor)));
+  FLEA_CCALL(THR_flea_cert_store_t__add_trusted_cert(&trust_store__t, trust_anchor__pu8, trust_anchor_len__alu16));
   FLEA_CCALL(
     THR_flea_rw_stream_t__force_read(
       flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
@@ -817,7 +685,7 @@ flea_err_t THR_flea_tls__send_handshake_message_content(
   FLEA_THR_FIN_SEC_empty();
 }
 
-static flea_err_t THR_flea_tls__send_handshake_message(
+flea_err_t THR_flea_tls__send_handshake_message(
   flea_tls_rec_prot_t* rec_prot__pt,
   flea_hash_ctx_t*     hash_ctx_mbn__pt,
   HandshakeType        type,
@@ -834,7 +702,7 @@ static flea_err_t THR_flea_tls__send_handshake_message(
 
 flea_err_t THR_flea_tls__send_change_cipher_spec(
   flea_tls_ctx_t*  tls_ctx,
-  flea_hash_ctx_t* hash_ctx
+  flea_hash_ctx_t* hash_ctx // TODO: need hash_ctx?
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -906,76 +774,6 @@ flea_err_t THR_flea_tls__send_finished(
   );
 } /* THR_flea_tls__send_finished */
 
-static flea_err_t THR_flea_tls__send_server_hello(
-  flea_tls_ctx_t*  tls_ctx,
-  flea_hash_ctx_t* hash_ctx
-)
-{
-  FLEA_THR_BEG_FUNC();
-
-  // calculate length for the header
-  // TODO: include cipher suites length instead of hard coded 2 (5+6th place)
-  // TODO: include extensions length (last place)
-  // TODO: change 4th element (32) to the real SessionID length
-
-  flea_u32_t len = 2 + 32 + 1 + 32 + 2 + 1;
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_hdr(
-      &tls_ctx->rec_prot__t,
-      hash_ctx,
-      HANDSHAKE_TYPE_SERVER_HELLO,
-      len
-    )
-  );
-
-  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.major, 1));
-  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.minor, 1));
-
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx->rec_prot__t,
-      hash_ctx,
-      tls_ctx->security_parameters->client_random.gmt_unix_time,
-      sizeof(tls_ctx->security_parameters->client_random.gmt_unix_time)
-    )
-  );
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx->rec_prot__t,
-      hash_ctx,
-      tls_ctx->security_parameters->client_random.random_bytes,
-      sizeof(tls_ctx->security_parameters->client_random.random_bytes)
-    )
-  );
-
-  // TODO: actual implementation, e.g. support renegotiation
-  flea_u8_t dummy_session_id_len = 32;
-  flea_u8_t dummy_session_id[32];
-  flea_rng__randomize(dummy_session_id, dummy_session_id_len);
-
-
-  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &dummy_session_id_len, 1));
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx->rec_prot__t,
-      hash_ctx,
-      dummy_session_id,
-      dummy_session_id_len
-    )
-  );
-
-  // TODO: hard coded
-  flea_u8_t suite[] = {0x00, 0x3d};
-  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, suite, 2));
-
-  // We don't support compression
-  flea_u8_t null_byte = 0;
-  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &null_byte, 1));
-
-
-  FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_tls__send_client_hello */
-
 /**
  * Implementation note: Public-key-encrypted data is represented as an
  * opaque vector <0..2^16-1> (see Section 4.7).  Thus, the RSA-encrypted
@@ -999,195 +797,6 @@ void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state)
   state->sent_first_round = FLEA_FALSE;
 }
 
-flea_err_t THR_flea_tls__server_handshake(
-  flea_tls_ctx_t*   tls_ctx,
-  flea_rw_stream_t* rw_stream__pt,
-  flea_ref_cu8_t*   cert_chain,
-  flea_u32_t        cert_chain_len
-)
-{
-  FLEA_THR_BEG_FUNC();
-
-  // define and init state
-  flea_tls__handshake_state_t handshake_state;
-  flea_tls__handshake_state_ctor(&handshake_state);
-  flea_hash_ctx_t hash_ctx;
-  THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256); // TODO: initialize properly
-
-  // flea_public_key_t pubkey; // TODO: -> tls_ctx
-
-  // received records and handshakes for processing the current state
-  HandshakeMessage recv_handshake;
-
-  // set to true and wait for hello_client
-  handshake_state.initialized       = FLEA_TRUE;
-  handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_HELLO;
-  handshake_state.send_client_cert  = FLEA_FALSE; // TODO: implement client cert checking / certificate request
-
-  while(handshake_state.finished != FLEA_TRUE)
-  {
-    /*
-     * read next record
-     */
-    if(handshake_state.expected_messages != FLEA_TLS_HANDSHAKE_EXPECT_NONE)
-    {
-      ContentType cont_type__e;
-      FLEA_CCALL(THR_flea_tls_rec_prot_t__get_current_record_type(&tls_ctx->rec_prot__t, &cont_type__e));
-
-      // TODO: record type argument has to be removed because it's determined by the current connection state in tls_ctx
-      if(cont_type__e == CONTENT_TYPE_HANDSHAKE)
-      {
-        FLEA_CCALL(THR_flea_tls__read_handshake_message(tls_ctx, &recv_handshake, &hash_ctx));
-      }
-      else if(cont_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
-      {
-        if(handshake_state.expected_messages != FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC)
-        {
-          FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
-        }
-        else
-        {
-          /*
-           * Enable encryption for incoming messages
-           */
-          // setup key material
-          FLEA_CCALL(
-            THR_flea_tls__create_master_secret(
-              tls_ctx->security_parameters->client_random,
-              tls_ctx->security_parameters->server_random,
-              tls_ctx->premaster_secret,
-              tls_ctx->security_parameters->master_secret
-            )
-          );
-          FLEA_CCALL(THR_flea_tls__generate_key_block(tls_ctx, tls_ctx->key_block));
-
-          // enable encryption for read direction
-          FLEA_CCALL(
-            THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-              &tls_ctx->rec_prot__t,
-              flea_tls_read,
-              flea_aes256,
-              flea_sha256,
-              flea_hmac_sha256,
-              tls_ctx->key_block + 2 * 32 + 32,               /* cipher_key__pcu8, "2*32" = 2*mac key size, "+ 32" = cipher_key_size */
-              32,                                             /* cipher_key_len */
-              tls_ctx->key_block + 32 /* 32 = mac_key_size*/, /* mac_key__pcu8 */
-              32 /*mac_key_len */,
-              32 /* mac_len */
-            )
-          );
-
-
-          handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
-
-          continue;
-        }
-      }
-      else if(cont_type__e == CONTENT_TYPE_ALERT)
-      {
-        // TODO: handle alert message properly
-        FLEA_THROW("Received unhandled alert", FLEA_ERR_TLS_GENERIC);
-      }
-      else
-      {
-        FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
-      }
-    }
-    // We don't expect another message so it's our turn to continue
-    else
-    {
-      if(handshake_state.sent_first_round == FLEA_FALSE)
-      {
-        FLEA_CCALL(THR_flea_tls__send_server_hello(tls_ctx, &hash_ctx));
-
-        // send Certificate
-
-        FLEA_CCALL(
-          THR_flea_tls__send_handshake_message(
-            &tls_ctx->rec_prot__t,
-            &hash_ctx,
-            HANDSHAKE_TYPE_SERVER_HELLO_DONE,
-            (flea_u8_t*) NULL,
-            0
-          )
-        );
-
-        handshake_state.sent_first_round = FLEA_TRUE;
-      }
-      else
-      {
-        // send change_cipher_spec
-        printf("SM: switching on encryption on write...\n");
-        FLEA_CCALL(
-          THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-            &tls_ctx->rec_prot__t,
-            flea_tls_write,
-            flea_aes256,
-            flea_sha256,
-            flea_hmac_sha256,
-            tls_ctx->key_block + 2 * 32, /* cipher_key__pcu8, 32 = mac key size*/
-            32,                          /* cipher_key_len */
-            tls_ctx->key_block,          /* mac_key__pcu8 */
-            32 /*mac_key_len */,
-            32 /* mac_len */
-          )
-        );
-
-
-        // send finished
-        printf("sent finished\n");
-
-        handshake_state.finished = FLEA_TRUE;
-
-
-        /*
-         * Enable encryption for outgoing messages
-         */
-      }
-
-      continue;
-    }
-
-    if(handshake_state.expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_HELLO)
-    {
-      if(recv_handshake.type == HANDSHAKE_TYPE_CLIENT_HELLO)
-      {
-        FLEA_CCALL(THR_flea_tls__read_client_hello(tls_ctx, &recv_handshake));
-        handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
-      }
-    }
-
-    if(handshake_state.expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_HELLO)
-    {
-      if(recv_handshake.type == HANDSHAKE_TYPE_CLIENT_HELLO)
-      {
-        FLEA_CCALL(THR_flea_tls__read_client_hello(tls_ctx, &recv_handshake));
-      }
-      else
-      {
-        FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
-      }
-    }
-
-    if(handshake_state.expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE)
-    {
-      if(handshake_state.send_client_cert == FLEA_FALSE)
-      {
-        FLEA_THROW("Invalid state transition", FLEA_ERR_TLS_INVALID_STATE);
-      }
-      if(recv_handshake.type == (flea_u8_t) FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE)
-      {
-        FLEA_CCALL(THR_flea_tls__read_client_hello(tls_ctx, &recv_handshake));
-      }
-      else
-      {
-        FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
-      }
-    }
-  }
-  FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_tls__server_handshake */
-
 flea_err_t THR_flea_tls__send_app_data(
   flea_tls_ctx_t* tls_ctx,
   flea_u8_t*      data,
@@ -1198,6 +807,26 @@ flea_err_t THR_flea_tls__send_app_data(
 
   FLEA_CCALL(THR_flea_tls__send_record(tls_ctx, data, data_len, CONTENT_TYPE_APPLICATION_DATA));
 
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_tls__read_app_data(
+  flea_tls_ctx_t* tls_ctx_t,
+  flea_u8_t*      data__pu8,
+  flea_al_u16_t*  data_len__palu16
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_CCALL(
+    THR_flea_tls_rec_prot_t__read_data(
+      &tls_ctx_t->rec_prot__t,
+      CONTENT_TYPE_APPLICATION_DATA,
+      data__pu8,
+      data_len__palu16
+    )
+  );
 
   FLEA_THR_FIN_SEC_empty();
 }

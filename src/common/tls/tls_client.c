@@ -119,6 +119,12 @@ flea_err_t THR_flea_tls__read_server_hello(
   memcpy(tls_ctx->session_id, session_id__bu8, session_id_len__u8);
   tls_ctx->session_id_len = session_id_len__u8;
 
+  // check length in the header field for integrity
+  if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
+  {
+    FLEA_THROW("Header length field mismatch", FLEA_ERR_TLS_GENERIC);
+  }
+
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(session_id__bu8);
   );
@@ -263,7 +269,9 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
 static flea_err_t THR_flea_handle_handsh_msg(
   flea_tls_ctx_t*              tls_ctx,
   flea_tls__handshake_state_t* handshake_state,
-  flea_hash_ctx_t*             hash_ctx__pt
+  flea_hash_ctx_t*             hash_ctx__pt,
+  flea_u8_t*                   trust_anchor__pu8,
+  flea_u16_t                   trust_anchor_len__u16
 )
 {
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
@@ -296,13 +304,19 @@ static flea_err_t THR_flea_handle_handsh_msg(
     {
       printf("SM: reading certificate\n");
       // Certificate certificate_message; // TODO: don't need this
-      FLEA_CCALL(THR_flea_tls__read_certificate(tls_ctx, &handsh_rdr__t, &tls_ctx->server_pubkey));
+      FLEA_CCALL(
+        THR_flea_tls__read_certificate(
+          tls_ctx,
+          &handsh_rdr__t,
+          &tls_ctx->server_pubkey,
+          trust_anchor__pu8,
+          trust_anchor_len__u16
+        )
+      );
 
       // tls_ctx->server_pubkey = pubkey; // TODO: PUBKEY STILL NEEDED?
     }
-    handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
-      | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
-      | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
+    handshake_state->expected_messages ^= FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE;
   }
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE)
   {
@@ -338,7 +352,9 @@ static flea_err_t THR_flea_handle_handsh_msg(
 } /* THR_flea_handle_handsh_msg */
 
 flea_err_t THR_flea_tls__client_handshake(
-  flea_tls_ctx_t* tls_ctx
+  flea_tls_ctx_t* tls_ctx,
+  flea_u8_t*      trust_anchor__pu8,
+  flea_u16_t      trust_anchor_len__u16
   // flea_rw_stream_t* rw_stream__pt
 )
 {
@@ -391,13 +407,20 @@ flea_err_t THR_flea_tls__client_handshake(
     if(handshake_state.expected_messages != FLEA_TLS_HANDSHAKE_EXPECT_NONE)
     {
       // TODO: SUBFUNCTION WHICH HANDLES HANDSHAKE MESSAGES
-      // TODO: record type argument has to be removed because it's determined by the current connection state in tls_ctx
       ContentType cont_type__e;
       FLEA_CCALL(THR_flea_tls_rec_prot_t__get_current_record_type(&tls_ctx->rec_prot__t, &cont_type__e));
 
       if(cont_type__e == CONTENT_TYPE_HANDSHAKE)
       {
-        FLEA_CCALL(THR_flea_handle_handsh_msg(tls_ctx, &handshake_state, &hash_ctx));
+        FLEA_CCALL(
+          THR_flea_handle_handsh_msg(
+            tls_ctx,
+            &handshake_state,
+            &hash_ctx,
+            trust_anchor__pu8,
+            trust_anchor_len__u16
+          )
+        );
         if(handshake_state.finished == FLEA_TRUE)
         {
           break;
@@ -420,7 +443,7 @@ flea_err_t THR_flea_tls__client_handshake(
         {
           flea_u8_t dummy_byte;
           flea_al_u16_t len_one__alu16 = 1;
-          // TODO: verify that message is correct?
+          // TODO: verify correctness of the message (?)
 
           /*
            * Enable encryption for incoming messages
