@@ -449,7 +449,7 @@ flea_err_t THR_flea_tls__read_certificate(
   flea_tls_handsh_reader_t* hs_rdr__pt,
   flea_public_key_t*        pubkey,
   const flea_u8_t*          trust_anchor__pu8,
-  flea_al_u16_t                trust_anchor_len__alu16
+  flea_al_u16_t             trust_anchor_len__alu16
 )
 {
   FLEA_DECL_BUF(cert_chain__bu8, flea_u8_t, 10000);
