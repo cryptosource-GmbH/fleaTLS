@@ -34,6 +34,10 @@ typedef struct
   flea_byte_vec_t name = {.data__pu8 = __byte_vec_stack_buf_for_ ## name, \
                           .len__dtl  =                                 0, .allo__dtl= size, .is_mem_allocable__b = FLEA_FALSE, .is_mem_deallocable__b = FLEA_FALSE}
 
+#define flea_byte_vec_t__CONSTR_EXISTING_BUF_EMPTY_ALLOCATABLE(name, size) \
+  {.data__pu8 = name, \
+   .len__dtl  = 0, .allo__dtl = size, .is_mem_allocable__b = FLEA_TRUE, .is_mem_deallocable__b = FLEA_FALSE}
+
 #define FLEA_DECL_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(name, buf, size) \
   flea_byte_vec_t name = flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(buf, size)
 

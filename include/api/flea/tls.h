@@ -269,7 +269,7 @@ typedef struct
 typedef struct
 {
   /* Security Parameters negotiated during handshake */
-  flea_tls__security_parameters_t* security_parameters; // can be deleted from memory (or saved for later resumption?) TODO: check again how it works, maybe only store master secret
+  flea_tls__security_parameters_t security_parameters; // can be deleted from memory (or saved for later resumption?) TODO: check again how it works, maybe only store master secret
 
   /*
    * Connection States
@@ -290,7 +290,7 @@ typedef struct
    */
 
   // define 4 parameters independently instead of list of cipher suites
-  flea_u8_t*                   allowed_cipher_suites; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
+  flea_u8_t                    allowed_cipher_suites[2]; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
   flea_u32_t                   allowed_cipher_suites_len;
   flea_u8_t                    selected_cipher_suite[2];
 
@@ -302,19 +302,25 @@ typedef struct
   flea_u8_t                    session_id[32]; /* Session ID for later resumption */
   flea_u8_t                    session_id_len;
 
-  flea_u8_t*                   premaster_secret; // shall be deleted after master_Secret is calculated
-  flea_bool_t                  resumption;
-  // TODO: ABSTRACT BUFF:
-  flea_u8_t                    key_block[128]; // size for key block for aes256+sha256 - max size for all ciphersuites in RFC
+  // flea_byte_vec_t              premaster_secret__t; // shall be deleted after master_Secret is calculated
 
-  flea_rw_stream_t*            rw_stream__pt;
-  flea_tls_rec_prot_t          rec_prot__t;
-  const flea_cert_store_t*     trust_store__pt;
+  /*#ifdef FLEA_USE_STACK_BUF
+   * flea_u8_t                   premaster_secret__au8[256];
+   #endif*/
+  flea_bool_t              resumption;
+  // TODO: ABSTRACT BUFF:
+  flea_u8_t                key_block[128]; // size for key block for aes256+sha256 - max size for all ciphersuites in RFC
+
+  flea_rw_stream_t*        rw_stream__pt;
+  flea_tls_rec_prot_t      rec_prot__t;
+  const flea_cert_store_t* trust_store__pt;
   // int                          socket_fd;
 } flea_tls_ctx_t;
 
 
-#define flea_tls_ctx_t__INIT(__p) memset((__p), 0, sizeof(*(__p)));
+#define flea_tls_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
+
+void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt);
 
 // TODO: REMOVE THIS AND MAKE CLIENT AND SERVER HANDSHAKE FUNCTIONS CTORS
 flea_err_t flea_tls_ctx_t__ctor(

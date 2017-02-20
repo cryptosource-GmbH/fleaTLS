@@ -52,7 +52,7 @@ flea_err_t THR_flea_tls__cert_path_validation(
     flea_u8_t* new_cert__pu8;
     flea_x509_cert_ref_t* new_cert_ref__pt;
     flea_u8_t* prev_cert__pu8;
-    flea_x509_cert_ref_t* prev_cert_ref__pt;
+    // flea_x509_cert_ref_t* prev_cert_ref__pt;
     flea_bool_t is_new_cert_trusted__b;
     flea_u16_t path_len__u16;
     flea_basic_constraints_t* basic_constraints__pt;
@@ -78,8 +78,8 @@ flea_err_t THR_flea_tls__cert_path_validation(
       new_cert_ref__pt = &cert_ref_1__t;
       even__b = FLEA_FALSE;
 
-      prev_cert__pu8    = cert_buf_2__bu8;
-      prev_cert_ref__pt = &cert_ref_2__t;
+      prev_cert__pu8 = cert_buf_2__bu8;
+      // prev_cert_ref__pt = &cert_ref_2__t;
     }
     else
     {
@@ -97,8 +97,8 @@ flea_err_t THR_flea_tls__cert_path_validation(
       new_cert_ref__pt = &cert_ref_2__t;
       even__b = FLEA_TRUE;
 
-      prev_cert__pu8    = cert_buf_1__bu8;
-      prev_cert_ref__pt = &cert_ref_1__t;
+      prev_cert__pu8 = cert_buf_1__bu8;
+      // prev_cert_ref__pt = &cert_ref_1__t;
     }
     FLEA_CCALL(THR_flea_rw_stream_t__force_read(rd_strm__pt, new_cert__pu8, new_cert_len__u32));
 

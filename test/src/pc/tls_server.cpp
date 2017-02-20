@@ -232,21 +232,23 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   cert_chain[0].data__pcu8 = server_cert;
   cert_chain[0].len__dtl   = sizeof(server_cert);
 
+  // now read data and echo it back
+  flea_u8_t buf[1000];
+  flea_al_u16_t buf_len = sizeof(buf);
+  flea_ref_cu8_t server_key__t;
   FLEA_THR_BEG_FUNC();
   flea_tls_ctx_t__INIT(&tls_ctx);
   FLEA_CCALL(THR_flea_test_linux__create_rw_stream_server(&rw_stream__t));
   FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
-  flea_ref_cu8_t server_key__t;
   server_key__t.data__pcu8 = server_key;
   server_key__t.len__dtl   = sizeof(server_key);
   FLEA_CCALL(THR_flea_tls__server_handshake(&tls_ctx, &rw_stream__t, cert_chain, 2, &server_key__t));
 
-  // now read data and echo it back
-  flea_u8_t buf[1000];
-  flea_al_u16_t buf_len;
   while(1)
   {
+    printf("before read_app_data\n");
     FLEA_CCALL(THR_flea_tls__read_app_data(&tls_ctx, buf, &buf_len));
+    printf("read_app_data returned\n");
     FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, buf, buf_len));
   }
   // FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (flea_u8_t *) app_data_www, strlen(app_data_www)));

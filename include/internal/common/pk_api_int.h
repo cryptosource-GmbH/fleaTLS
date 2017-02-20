@@ -1,8 +1,9 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
+#include "flea/byte_vec.h"
 
 #ifndef _flea_pk_api_int__H_
-#define _flea_pk_api_int__H_
+# define _flea_pk_api_int__H_
 
 
 flea_err_t THR_flea_pk_api__encode_message__emsa1(
@@ -49,10 +50,18 @@ flea_err_t THR_flea_pk_api__encode_message__pkcs1_v1_5_sign(
 flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5(
   const flea_u8_t* encoded__pcu8,
   flea_al_u16_t    encoded_len__alu16,
-  flea_u8_t*       output_message__pu8,
-  flea_al_u16_t*   output_message_len__palu16,
+  flea_byte_vec_t* result_vec__pt,
   flea_al_u16_t    bit_size__alu16,
   flea_al_u16_t    enforced_decoding_result_len__alu16
 );
+
+/*flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5(
+ * const flea_u8_t* encoded__pcu8,
+ * flea_al_u16_t    encoded_len__alu16,
+ * flea_u8_t*       output_message__pu8,
+ * flea_al_u16_t*   output_message_len__palu16,
+ * flea_al_u16_t    bit_size__alu16,
+ * flea_al_u16_t    enforced_decoding_result_len__alu16
+ * );*/
 
 #endif /* h-guard */

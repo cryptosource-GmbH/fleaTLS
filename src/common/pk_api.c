@@ -544,8 +544,10 @@ flea_err_t THR_flea_pk_api__sign(
 flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5(
   const flea_u8_t* encoded__pcu8,
   flea_al_u16_t    encoded_len__alu16,
-  flea_u8_t*       output_message__pu8,
-  flea_al_u16_t*   output_message_len__palu16,
+
+  /*  flea_u8_t*       output_message__pu8,
+   * flea_al_u16_t*   output_message_len__palu16,*/
+  flea_byte_vec_t* result_vec__pt,
   flea_al_u16_t    bit_size__alu16,
   flea_al_u16_t    enforced_decoding_result_len__alu16
 )
@@ -638,12 +640,15 @@ flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5(
     encoded__pcu8++;
     encoded_len__alu16--;
   }
-  if(encoded_len__alu16 > *output_message_len__palu16)
-  {
-    FLEA_THROW("output buffer too small for PKCS#1 v1.5 message", FLEA_ERR_BUFF_TOO_SMALL);
-  }
-  memcpy(output_message__pu8, encoded__pcu8, encoded_len__alu16);
-  *output_message_len__palu16 = encoded_len__alu16;
+
+  /*if(encoded_len__alu16 > *output_message_len__palu16)
+   * {
+   * FLEA_THROW("output buffer too small for PKCS#1 v1.5 message", FLEA_ERR_BUFF_TOO_SMALL);
+   * }*/
+  // flea_byte_vec_t__reset(resul
+  FLEA_CCALL(THR_flea_byte_vec_t__set_content(result_vec__pt, encoded__pcu8, encoded_len__alu16));
+  // memcpy(output_message__pu8, encoded__pcu8, encoded_len__alu16);
+  // *output_message_len__palu16 = encoded_len__alu16;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_pk_api__decode_message__pkcs1_v1_5 */
 
@@ -877,8 +882,10 @@ flea_err_t THR_flea_pk_api__decrypt_message(
   flea_hash_id_t            hash_id__t,
   const flea_u8_t*          ciphertext__pcu8,
   flea_al_u16_t             ciphertext_len__alu16,
-  flea_u8_t*                result__pu8,
-  flea_al_u16_t*            result_len__palu16,
+
+  /*flea_u8_t*                result__pu8,
+   * flea_al_u16_t*            result_len__palu16,*/
+  flea_byte_vec_t*          result_vec__pt,
 
   /*const flea_u8_t*    key__pcu8,
    * flea_al_u16_t       key_len__alu16,*/
@@ -928,8 +935,10 @@ flea_err_t THR_flea_pk_api__decrypt_message(
       THR_flea_pk_api__decode_message__pkcs1_v1_5(
         primitive_output__bu8,
         primitive_output_len__alu16,
-        result__pu8,
-        result_len__palu16,
+        result_vec__pt,
+
+        /*result__pu8,
+         * result_len__palu16,*/
         8 * mod_len__alu16,
         enforced_decryption_result_len__alu16
       )
@@ -939,8 +948,10 @@ flea_err_t THR_flea_pk_api__decrypt_message(
   {
     FLEA_CCALL(
       THR_flea_pk_api__decode_message__oaep(
-        result__pu8,
-        result_len__palu16,
+
+        /*result__pu8,
+         * result_len__palu16,*/
+        result_vec__pt,
         primitive_output__bu8,
         primitive_output_len__alu16,
         8 * mod_len__alu16,
