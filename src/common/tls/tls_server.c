@@ -32,6 +32,7 @@ flea_err_t THR_flea_tls__read_client_hello(
   const flea_al_u8_t max_session_id_len__alu8 = 32;
   flea_u8_t client_compression_methods_len__u8;
   flea_u16_t cipher_suites_len__u16;
+  flea_u8_t cipher_suites_len_to_dec__au8[2];
   flea_bool_t found_compression_method;
   const flea_u16_t max_extension_len__u16 = 100; // max size for one extension
   FLEA_DECL_BUF(extension__bu8, flea_u8_t, 100); // TODO: think about the max buffer size !
@@ -94,8 +95,13 @@ flea_err_t THR_flea_tls__read_client_hello(
   // TODO: if != 0: resumption !
 
   // TODO: stream function to read in the length
-  FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, ((flea_u8_t*) &cipher_suites_len__u16) + 1));
-  FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &cipher_suites_len__u16));
+
+  // FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, ((flea_u8_t*) &cipher_suites_len__u16) + 1));
+  // FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &cipher_suites_len__u16));
+  FLEA_CCALL(THR_flea_rw_stream_t__force_read(hs_rd_stream__pt, cipher_suites_len_to_dec__au8, 2));
+  cipher_suites_len__u16 = flea__decode_U16_BE(cipher_suites_len_to_dec__au8);
+
+
   if(cipher_suites_len__u16 % 2 != 0)
   {
     FLEA_THROW("incorrect cipher suites length", FLEA_ERR_TLS_GENERIC);
@@ -120,7 +126,6 @@ flea_err_t THR_flea_tls__read_client_hello(
     supported_cs_index__u16 = 0;
     while(supported_cs_index__u16 < supported_cs_len__u16)
     {
-      // TODO: endianess!!
       if(curr_cs__au8[0] == supported_cs__au8[supported_cs_index__u16] &&
         curr_cs__au8[1] == supported_cs__au8[supported_cs_index__u16 + 1])
       {
