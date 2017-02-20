@@ -136,12 +136,14 @@ flea_err_t THR_flea_pk_api__encode_message__oaep(
 
 // will destroy input content
 flea_err_t THR_flea_pk_api__decode_message__oaep(
-  flea_u8_t*     result__pu8,
-  flea_al_u16_t* result_len__palu16,
-  flea_u8_t*     input__pu8,
-  flea_al_u16_t  input_len__alu16,
-  flea_al_u16_t  bit_size__alu16,
-  flea_hash_id_t hash_id__t
+
+  /*  flea_u8_t*     result__pu8,
+   * flea_al_u16_t* result_len__palu16,*/
+  flea_byte_vec_t* result_vec__pt,
+  flea_u8_t*       input__pu8,
+  flea_al_u16_t    input_len__alu16,
+  flea_al_u16_t    bit_size__alu16,
+  flea_hash_id_t   hash_id__t
 )
 {
   flea_al_u16_t db_len__alu16;
@@ -203,13 +205,15 @@ flea_err_t THR_flea_pk_api__decode_message__oaep(
     {
       message__pu8++;
       message_len__alu16--;
-      if(*result_len__palu16 < message_len__alu16)
-      {
-        FLEA_THROW("oaep buffer for decoded message too small", FLEA_ERR_BUFF_TOO_SMALL);
-      }
+
+      /*if(*result_len__palu16 < message_len__alu16)
+       * {
+       * FLEA_THROW("oaep buffer for decoded message too small", FLEA_ERR_BUFF_TOO_SMALL);
+       * }*/
       if(!error__alu8)
       {
-        memcpy(result__pu8, message__pu8, message_len__alu16);
+        FLEA_CCALL(THR_flea_byte_vec_t__set_content(result_vec__pt, message__pu8, message_len__alu16));
+        // memcpy(result__pu8, message__pu8, message_len__alu16);
       }
     }
   }
@@ -217,7 +221,7 @@ flea_err_t THR_flea_pk_api__decode_message__oaep(
   {
     FLEA_THROW("OAEP decoding error", FLEA_ERR_INTEGRITY_FAILURE);
   }
-  *result_len__palu16 = message_len__alu16;
+  // *result_len__palu16 = message_len__alu16;
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(lhash__bu8);
   );

@@ -36,6 +36,7 @@
 #include "flea/block_cipher.h"
 #include "flea/bin_utils.h"
 #include "flea/cert_store.h"
+#include "flea/byte_vec.h"
 
 #include <stdio.h>
 
@@ -215,14 +216,14 @@ flea_err_t THR_flea_tls__generate_key_block(
 {
   FLEA_THR_BEG_FUNC();
   flea_u8_t seed[64];
-  memcpy(seed, tls_ctx->security_parameters->server_random.gmt_unix_time, 4);
-  memcpy(seed + 4, tls_ctx->security_parameters->server_random.random_bytes, 28);
-  memcpy(seed + 32, tls_ctx->security_parameters->client_random.gmt_unix_time, 4);
-  memcpy(seed + 36, tls_ctx->security_parameters->client_random.random_bytes, 28);
+  memcpy(seed, tls_ctx->security_parameters.server_random.gmt_unix_time, 4);
+  memcpy(seed + 4, tls_ctx->security_parameters.server_random.random_bytes, 28);
+  memcpy(seed + 32, tls_ctx->security_parameters.client_random.gmt_unix_time, 4);
+  memcpy(seed + 36, tls_ctx->security_parameters.client_random.random_bytes, 28);
 
   FLEA_CCALL(
     flea_tls__prf(
-      tls_ctx->security_parameters->master_secret,
+      tls_ctx->security_parameters.master_secret,
       48,
       PRF_LABEL_KEY_EXPANSION,
       seed,
@@ -247,58 +248,6 @@ flea_err_t THR_flea_tls__create_finished_data(
   FLEA_CCALL(flea_tls__prf(master_secret, 48, label, messages_hash, 32, data_len, data));
   FLEA_THR_FIN_SEC_empty();
 }
-
-flea_err_t THR_flea_tls__read_handshake_message(
-  flea_tls_ctx_t*   tls_ctx__pt,
-  HandshakeMessage* handshake_msg,
-  flea_hash_ctx_t*  hash_ctx__pt
-)
-{
-  flea_u32_t len__u32;
-  flea_u8_t hdr__au8[4];
-  flea_al_u16_t len__palu16 = sizeof(hdr__au8);
-
-  FLEA_THR_BEG_FUNC();
-
-
-  FLEA_CCALL(
-    THR_flea_tls_rec_prot_t__read_data(
-      &tls_ctx__pt->rec_prot__t,
-      CONTENT_TYPE_HANDSHAKE,
-      hdr__au8,
-      &len__palu16
-    )
-  );
-
-  handshake_msg->type = hdr__au8[0];
-
-  len__u32 = (((flea_u32_t) hdr__au8[1]) << 16) | (((flea_u32_t) hdr__au8[2]) << 8) | (((flea_u32_t) hdr__au8[3]));
-
-  handshake_msg->length = len__u32;
-
-  handshake_msg->data = calloc(handshake_msg->length, sizeof(flea_u8_t));
-  len__palu16         = handshake_msg->length;
-  FLEA_CCALL(
-    THR_flea_tls_rec_prot_t__read_data(
-      &tls_ctx__pt->rec_prot__t,
-      CONTENT_TYPE_HANDSHAKE,
-      handshake_msg->data,
-      &len__palu16
-    )
-  );
-
-  // for the client: we don't need the hash at the end of the handshake
-  // if(handshake_msg->type != HANDSHAKE_TYPE_FINISHED && tls_ctx->security_parameters->connection_end = FLEA_TLS_CLIENT)
-  // {
-  //  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx__pt, hdr__au8, sizeof(hdr__au8)));
-  //  FLEA_CCALL(THR_flea_hash_ctx_t__update(hash_ctx__pt, handshake_msg->data, handshake_msg->length));
-  // }
-  if(len__palu16 != handshake_msg->length)
-  {
-    FLEA_THROW("did not read sufficient data for handshake message", FLEA_ERR_INT_ERR);
-  }
-  FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_tls__read_handshake_message */
 
 flea_err_t THR_flea_tls__read_finished(
   flea_tls_ctx_t*           tls_ctx,
@@ -325,7 +274,7 @@ flea_err_t THR_flea_tls__read_finished(
 
 
   PRFLabel label;
-  if(tls_ctx->security_parameters->connection_end == FLEA_TLS_CLIENT)
+  if(tls_ctx->security_parameters.connection_end == FLEA_TLS_CLIENT)
   {
     label = PRF_LABEL_SERVER_FINISHED;
   }
@@ -337,7 +286,7 @@ flea_err_t THR_flea_tls__read_finished(
   FLEA_CCALL(
     THR_flea_tls__create_finished_data(
       messages_hash__bu8,
-      tls_ctx->security_parameters->master_secret,
+      tls_ctx->security_parameters.master_secret,
       label,
       finished__pu8,
       finished_len__alu8
@@ -530,10 +479,11 @@ flea_err_t THR_flea_tls__send_handshake_message_hdr(
  *    [0..47];
  */
 flea_err_t THR_flea_tls__create_master_secret(
-  Random     client_hello_random,
-  Random     server_hello_random,
-  flea_u8_t* pre_master_secret,
-  flea_u8_t* master_secret_res
+  Random           client_hello_random,
+  Random           server_hello_random,
+  // flea_u8_t* pre_master_secret,
+  flea_byte_vec_t* premaster_secret__pt,
+  flea_u8_t*       master_secret_res
 )
 {
   FLEA_DECL_BUF(random_seed__bu8, flea_u8_t, 64);
@@ -546,10 +496,12 @@ flea_err_t THR_flea_tls__create_master_secret(
   memcpy(random_seed__bu8 + 36, server_hello_random.random_bytes, 28);
 
   // pre_master_secret is 48 bytes, master_secret is desired to be 48 bytes
+  // FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, 48));
   FLEA_CCALL(
     flea_tls__prf(
-      pre_master_secret,
-      48,
+      // pre_master_secret,
+      premaster_secret__pt->data__pu8,
+      premaster_secret__pt->len__dtl,
       PRF_LABEL_MASTER_SECRET,
       random_seed__bu8,
       64,
@@ -572,11 +524,11 @@ flea_err_t flea_tls_ctx_t__ctor(
 )
 {
   FLEA_THR_BEG_FUNC();
-  ctx->security_parameters = calloc(1, sizeof(flea_tls__security_parameters_t));
-  ctx->rw_stream__pt       = rw_stream__pt;
+  // ctx->security_parameters = calloc(1, sizeof(flea_tls__security_parameters_t));
+  ctx->rw_stream__pt = rw_stream__pt;
 
   /* specify connection end */
-  ctx->security_parameters->connection_end = FLEA_TLS_CLIENT;
+  ctx->security_parameters.connection_end = FLEA_TLS_CLIENT;
 
   /* set TLS version */
   ctx->version.major = 0x03;
@@ -586,7 +538,7 @@ flea_err_t flea_tls_ctx_t__ctor(
   /* set cipher suite values */
   flea_u8_t TLS_RSA_WITH_AES_256_CBC_SHA256[] = {0x00, 0x3D};
 
-  ctx->allowed_cipher_suites = calloc(2, sizeof(flea_u8_t));
+  // ctx->allowed_cipher_suites = calloc(2, sizeof(flea_u8_t));
   memcpy(ctx->allowed_cipher_suites, TLS_RSA_WITH_AES_256_CBC_SHA256, 2);
   ctx->allowed_cipher_suites_len = 2;
 
@@ -606,18 +558,25 @@ flea_err_t flea_tls_ctx_t__ctor(
   /* set client_random */
   // TODO: do we need these parameters in the ctx? everything only needed during
   // handshake should be local to that function
-  flea_rng__randomize(ctx->security_parameters->client_random.gmt_unix_time, 4); // TODO: check RFC for correct implementation - actual time?
-  flea_rng__randomize(ctx->security_parameters->client_random.random_bytes, 28);
+  flea_rng__randomize(ctx->security_parameters.client_random.gmt_unix_time, 4); // TODO: check RFC for correct implementation - actual time?
+  flea_rng__randomize(ctx->security_parameters.client_random.random_bytes, 28);
 
   /* set server random */
-  flea_rng__randomize(ctx->security_parameters->server_random.gmt_unix_time, 4);
-  flea_rng__randomize(ctx->security_parameters->server_random.random_bytes, 28);
+  flea_rng__randomize(ctx->security_parameters.server_random.gmt_unix_time, 4);
+  flea_rng__randomize(ctx->security_parameters.server_random.random_bytes, 28);
 
 
   ctx->resumption = FLEA_FALSE;
 
-  ctx->premaster_secret = calloc(256, sizeof(flea_u8_t));
-
+#if 0
+# ifdef FLEA_USE_HEAP_BUF
+  // nothing to do
+  // ctx->premaster_secret = calloc(256, sizeof(flea_u8_t));
+# else
+  ctx->premaster_secret =
+    flea_byte_vec_t__CONSTR_EXISTING_BUF_EMPTY_ALLOCATABLE(ctx->premaster_secret__au8, sizeof(premaster_secret__au8));
+# endif
+#endif
 
   FLEA_THR_FIN_SEC_empty();
 } /* flea_tls_ctx_t__ctor */
@@ -734,7 +693,7 @@ flea_err_t THR_flea_tls__send_finished(
   FLEA_CCALL(THR_flea_hash_ctx_t__final(&hash_ctx_copy, messages_hash__pu8));
 
   // TODO: REMOVE LABEL ENUM, USE REF TO LABELS DIRECTLY
-  if(tls_ctx->security_parameters->connection_end == FLEA_TLS_CLIENT)
+  if(tls_ctx->security_parameters.connection_end == FLEA_TLS_CLIENT)
   {
     label = PRF_LABEL_CLIENT_FINISHED;
   }
@@ -746,7 +705,7 @@ flea_err_t THR_flea_tls__send_finished(
   FLEA_CCALL(
     THR_flea_tls__create_finished_data(
       messages_hash__pu8,
-      tls_ctx->security_parameters->master_secret,
+      tls_ctx->security_parameters.master_secret,
       label,
       verify_data__bu8,
       verify_data_len__alu8
@@ -825,4 +784,10 @@ flea_err_t THR_flea_tls__read_app_data(
   );
 
   FLEA_THR_FIN_SEC_empty();
+}
+
+void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
+{
+  flea_tls_rec_prot_t__dtor(&tls_ctx__pt->rec_prot__t);
+  flea_public_key_t__dtor(&tls_ctx__pt->server_pubkey);
 }
