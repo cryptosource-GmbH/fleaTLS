@@ -11,13 +11,13 @@
 #include <stdio.h>
 
 // TODO: REMOVE ALL OF THESE DEFINES EXCEPT MAX_PADDING_SIZE ?
-#define FLEA_TLS_MAX_MAC_SIZE         32
-#define FLEA_TLS_MAX_MAC_KEY_SIZE     32
-#define FLEA_TLS_MAX_IV_SIZE          32
-#define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
-#define FLEA_TLS_MAX_PADDING_SIZE     255   // each byte must hold the padding value => 255 is max
+#define FLEA_TLS_MAX_MAC_SIZE     32
+#define FLEA_TLS_MAX_MAC_KEY_SIZE 32
+#define FLEA_TLS_MAX_IV_SIZE      32
+// #define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
+#define FLEA_TLS_MAX_PADDING_SIZE 255 // each byte must hold the padding value => 255 is max
 
-#define RECORD_HDR_LEN                5
+#define RECORD_HDR_LEN            5
 
 static void inc_seq_nbr(flea_u32_t* seq__au32)
 {
@@ -394,7 +394,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
     padding[k] = padding_len - 1;
   }
 
-  flea_u8_t encrypted[FLEA_TLS_MAX_RECORD_DATA_SIZE];
+  // flea_u8_t encrypted[FLEA_TLS_MAX_RECORD_DATA_SIZE];
   FLEA_CCALL(
     THR_flea_cbc_mode__encrypt_data(
       rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id,
@@ -402,7 +402,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
       enc_key_len,
       iv,
       iv_len,
-      encrypted,
+      data,
       data,
       input_output_len
     )
@@ -421,7 +421,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
   length_tot = input_output_len + iv_len;
   rec_prot__pt->send_rec_buf_raw__bu8[3] = length_tot >> 8;
   rec_prot__pt->send_rec_buf_raw__bu8[4] = length_tot;
-  memcpy(rec_prot__pt->payload_buf__pu8, encrypted, input_output_len);
+  // memcpy(rec_prot__pt->payload_buf__pu8, encrypted, input_output_len);
   *encrypted_len__palu16 = input_output_len;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac */
@@ -552,7 +552,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
       printf("rec_prot: passed version check set\n");
       raw_rec_content_len__alu16  = rec_prot__pt->send_rec_buf_raw__bu8[3] << 8;
       raw_rec_content_len__alu16 |= rec_prot__pt->send_rec_buf_raw__bu8[4];
-      if(raw_rec_content_len__alu16 > FLEA_TLS_MAX_RECORD_DATA_SIZE)
+      if(raw_rec_content_len__alu16 > FLEA_TLS_TRNSF_BUF_SIZE - RECORD_HDR_LEN)
       {
         FLEA_THROW("received record does not fit into receive buffer", FLEA_ERR_TLS_EXCSS_REC_LEN);
       }
