@@ -45,6 +45,15 @@ typedef struct
   {.data__pu8 = (flea_u8_t*) buf, \
    .len__dtl  = size, .allo__dtl = size, .is_mem_allocable__b = FLEA_FALSE, .is_mem_deallocable__b = FLEA_FALSE}
 
+#ifdef FLEA_USE_HEAP_BUF
+# define FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(name, \
+    size) flea_byte_vec_t name = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE
+#else
+# define FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(name, \
+    size) FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(name, size)
+#endif
+
+
 void flea_byte_vec_t__INIT(flea_byte_vec_t* byte_vec__pt);
 
 void flea_byte_vec_t__dtor(flea_byte_vec_t* byte_vec__pt);

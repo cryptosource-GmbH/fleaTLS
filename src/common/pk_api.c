@@ -809,8 +809,7 @@ flea_err_t THR_flea_pk_api__encrypt_message(
   flea_hash_id_t      hash_id__t,
   const flea_u8_t*    message__pcu8,
   flea_al_u16_t       message_len__alu16,
-  flea_u8_t*          result__pu8,
-  flea_al_u16_t*      result_len__palu16,
+  flea_byte_vec_t*    result__pt,
   const flea_u8_t*    key__pcu8,
   flea_al_u16_t       key_len__alu16,
   const flea_u8_t*    params__pcu8,
@@ -823,20 +822,23 @@ flea_err_t THR_flea_pk_api__encrypt_message(
   FLEA_THR_BEG_FUNC();
   minimal_out_len__alu16     = key_len__alu16;
   primitive_input_len__alu16 = minimal_out_len__alu16;
-  if(minimal_out_len__alu16 > *result_len__palu16)
-  {
-    FLEA_THROW("output buffer too small in pk encryption", FLEA_ERR_BUFF_TOO_SMALL);
-  }
+
+  /*if(minimal_out_len__alu16 > *result_len__palu16)
+   * {
+   * FLEA_THROW("output buffer too small in pk encryption", FLEA_ERR_BUFF_TOO_SMALL);
+   * }*/
+  FLEA_CCALL(THR_flea_byte_vec_t__resize(result__pt, minimal_out_len__alu16));
   if(message_len__alu16 > primitive_input_len__alu16)
   {
     FLEA_THROW("message too long of pk encryption", FLEA_ERR_INV_ARG);
   }
-  memcpy(result__pu8, message__pcu8, message_len__alu16);
+  memcpy(result__pt->data__pu8, message__pcu8, message_len__alu16);
   if(id__t == flea_rsa_oaep_encr)
   {
     FLEA_CCALL(
       THR_flea_pk_api__encode_message__oaep(
-        result__pu8,
+        // result__pu8,
+        result__pt->data__pu8,
         message_len__alu16,
         &primitive_input_len__alu16,
         key_len__alu16 * 8,
@@ -848,7 +850,8 @@ flea_err_t THR_flea_pk_api__encrypt_message(
   {
     FLEA_CCALL(
       THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(
-        result__pu8,
+        // result__pu8,
+        result__pt->data__pu8,
         message_len__alu16,
         &primitive_input_len__alu16,
         key_len__alu16 * 8,
@@ -862,10 +865,12 @@ flea_err_t THR_flea_pk_api__encrypt_message(
   }
   FLEA_CCALL(
     THR_flea_rsa_raw_operation(
-      result__pu8,
+      // result__pu8,
+      result__pt->data__pu8,
       params__pcu8,
       params_len__alu16,
-      result__pu8,
+      // result__pu8,
+      result__pt->data__pu8,
       primitive_input_len__alu16,
       key__pcu8,
       key_len__alu16

@@ -152,9 +152,19 @@ flea_err_t THR_flea_public_key_t__encrypt_message(
   flea_hash_id_t           hash_id__t,
   const flea_u8_t*         message__pcu8,
   flea_al_u16_t            message_len__alu16,
-  flea_u8_t*               result__pu8,
-  flea_al_u16_t*           result_len__palu16
+  flea_byte_vec_t*         result__pt
 );
+
+/*
+ * flea_err_t THR_flea_public_key_t__encrypt_message(
+ * const flea_public_key_t* key__pt,
+ * flea_pk_scheme_id_t      pk_scheme_id__t,
+ * flea_hash_id_t           hash_id__t,
+ * const flea_u8_t*         message__pcu8,
+ * flea_al_u16_t            message_len__alu16,
+ * flea_u8_t*               result__pu8,
+ * flea_al_u16_t*           result_len__palu16
+ * );*/
 
 flea_err_t THR_flea_public_key_t__ctor_rsa(
   flea_public_key_t*    key__pt,

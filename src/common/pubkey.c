@@ -724,8 +724,10 @@ flea_err_t THR_flea_public_key_t__encrypt_message(
   flea_hash_id_t           hash_id__t,
   const flea_u8_t*         message__pcu8,
   flea_al_u16_t            message_len__alu16,
-  flea_u8_t*               result__pu8,
-  flea_al_u16_t*           result_len__palu16
+  flea_byte_vec_t*         result__pt
+
+  /*  flea_u8_t*               result__pu8,
+   * flea_al_u16_t*           result_len__palu16*/
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -740,8 +742,10 @@ flea_err_t THR_flea_public_key_t__encrypt_message(
       hash_id__t,
       message__pcu8,
       message_len__alu16,
-      result__pu8,
-      result_len__palu16,
+      result__pt,
+
+      /*result__pu8,
+       * result_len__palu16,*/
       key__pt->pubkey_with_params__u.rsa_public_val__t.mod__rcu8.data__pcu8,
       key__pt->pubkey_with_params__u.rsa_public_val__t.mod__rcu8.len__dtl,
       key__pt->pubkey_with_params__u.rsa_public_val__t.pub_exp__rcu8.data__pcu8,

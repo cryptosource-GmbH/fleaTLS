@@ -187,17 +187,29 @@ flea_err_t THR_flea_pk_signer_t__final_sign(
  *  @param params_len the length of params
  */
 flea_err_t THR_flea_pk_api__encrypt_message(
-  flea_pk_scheme_id_t id,
-  flea_hash_id_t      hash_id,
-  const flea_u8_t*    message,
-  flea_al_u16_t       message_len,
-  flea_u8_t*          result,
-  flea_al_u16_t*      result_len,
-  const flea_u8_t*    key,
-  flea_al_u16_t       key_len,
-  const flea_u8_t*    params,
-  flea_al_u16_t       params_len
+  flea_pk_scheme_id_t id__t,
+  flea_hash_id_t      hash_id__t,
+  const flea_u8_t*    message__pcu8,
+  flea_al_u16_t       message_len__alu16,
+  flea_byte_vec_t*    result__pt,
+  const flea_u8_t*    key__pcu8,
+  flea_al_u16_t       key_len__alu16,
+  const flea_u8_t*    params__pcu8,
+  flea_al_u16_t       params_len__alu16
 );
+
+/*flea_err_t THR_flea_pk_api__encrypt_message(
+ * flea_pk_scheme_id_t id,
+ * flea_hash_id_t      hash_id,
+ * const flea_u8_t*    message,
+ * flea_al_u16_t       message_len,
+ * flea_u8_t*          result,
+ * flea_al_u16_t*      result_len,
+ * const flea_u8_t*    key,
+ * flea_al_u16_t       key_len,
+ * const flea_u8_t*    params,
+ * flea_al_u16_t       params_len
+ * );*/
 
 /**
  *  Decrypt a message using a public key scheme.
