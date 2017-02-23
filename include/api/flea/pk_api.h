@@ -129,6 +129,17 @@ flea_err_t THR_flea_pk_api__verify_signature(
   flea_hash_id_t           hash_id__t
 );
 
+flea_err_t THR_flea_pk_signer_t__verify_digest(
+  const flea_u8_t*         digest__pcu8,
+  flea_al_u8_t             digest_len__alu8,
+  flea_hash_id_t           hash_id__t,
+  flea_pk_scheme_id_t      id__t,
+  const flea_public_key_t* pubkey__pt,
+  const flea_u8_t*         signature__pu8,
+  flea_al_u16_t            signature_len__alu16
+);
+
+
 flea_err_t THR_flea_pk_api__sign(
   const flea_byte_vec_t*    message__prcu8,
   flea_byte_vec_t*          signature__pru8,

@@ -437,7 +437,7 @@ flea_err_t THR_flea_ber_dec_t__skip_input(
   FLEA_THR_BEG_FUNC();
   while(len__dtl--)
   {
-    // TODO: INEFFICIENT, COULD USE STREAM_PUMP HERE (NEED HASH STREAM THEN)
+    // TODO: INEFFICIENT, IMPLEMENT HASH_CTX_T__UPDATE_FROM_STREAM
     flea_u8_t byte;
     FLEA_CCALL(THR_flea_rw_stream_t__force_read(dec__pt->source__pt, &byte, 1));
     FLEA_CCALL(THR_flea_ber_dec_t__handle_hashing(dec__pt, &byte, 1));
