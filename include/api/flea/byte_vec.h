@@ -86,6 +86,11 @@ flea_err_t THR_flea_byte_vec_t__append(
   flea_u32_t       len
 );
 
+flea_err_t THR_flea_byte_vec_t__push_back(
+  flea_byte_vec_t* byte_vec__pt,
+  flea_u8_t        byte
+);
+
 flea_err_t THR_flea_byte_vec_t__reserve(
   flea_byte_vec_t* byte_vec__pt,
   flea_u32_t       reserve_len

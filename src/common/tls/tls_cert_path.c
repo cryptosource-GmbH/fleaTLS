@@ -167,3 +167,18 @@ flea_err_t THR_flea_tls__cert_path_validation(
     FLEA_FREE_BUF_FINAL(cert_buf_2__bu8);
   );
 } /* THR_flea_tls__cert_path_validation */
+
+#if 0
+static flea_err_t THR_flea_tls__validate_cert(
+  flea_rw_stream_t* rd_stream__pt,
+  flea_byte_vec_t*  signature_in_out,
+  flea_bool_t       have_input_signature
+
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_x509_cert_ref_t__ctor */
+
+#endif /* if 0 */

@@ -7,6 +7,7 @@
 #include "flea/array_util.h"
 #include "flea/namespace_asn1.h"
 #include "flea/mem_read_stream.h"
+#include "flea/hash.h"
 
 #define FLEA_BER_DEC_LEVELS_PRE_ALLOC 5
 
@@ -30,6 +31,32 @@ static const flea_u8_t* flea_ber_dec_t__get_mem_ptr_to_current(flea_ber_dec_t* d
          dec__pt->source__pt->custom_obj__pv)->offs__dtl];
 }
 
+flea_err_t THR_flea_ber_dec_t__ctor_hash_support(
+  flea_ber_dec_t*          dec__pt,
+  flea_rw_stream_t*        read_stream__pt,
+  flea_dtl_t               length_limit__dtl,
+  flea_asn1_dec_val_hndg_e dec_val_hndg__e,
+  flea_byte_vec_t*         back_buffer__pt,
+  flea_hash_ctx_t*         unconstructed_hash_ctx__pt
+)
+{
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__ctor(
+      dec__pt,
+      read_stream__pt,
+      length_limit__dtl,
+      dec_val_hndg__e
+    )
+  );
+
+  dec__pt->back_buffer__pt = back_buffer__pt;
+  dec__pt->hash_ctx__pt    = unconstructed_hash_ctx__pt;
+  flea_hash_ctx_t__INIT(dec__pt->hash_ctx__pt);
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
 flea_err_t THR_flea_ber_dec_t__ctor(
   flea_ber_dec_t*          dec__pt,
   flea_rw_stream_t*        read_stream__pt,
@@ -49,7 +76,9 @@ flea_err_t THR_flea_ber_dec_t__ctor(
 #endif
   dec__pt->length_limit__dtl       = length_limit__dtl;
   dec__pt->stored_tag_nb_bytes__u8 = 0;
-
+  dec__pt->back_buffer__pt         = NULL;
+  dec__pt->hash_active__b = FLEA_FALSE;
+  dec__pt->hash_ctx__pt   = NULL;
   if((dec_val_hndg__e == flea_decode_ref) && !flea_ber_dec_t__is_ref_decoding_supported(dec__pt))
   {
     FLEA_THROW(
@@ -80,6 +109,51 @@ static flea_err_t THR_flea_ber_dec_t__consume_current_length(
   FLEA_THR_FIN_SEC_empty();
 }
 
+flea_err_t THR_flea_ber_dec_t__activate_hashing(
+  flea_ber_dec_t* dec__pt,
+  flea_hash_id_t  hash_id
+)
+{
+  FLEA_THR_BEG_FUNC();
+  if(!dec__pt->back_buffer__pt)
+  {
+    FLEA_THROW("no hashing support available", FLEA_ERR_INV_STATE);
+  }
+  FLEA_CCALL(THR_flea_hash_ctx_t__ctor(dec__pt->hash_ctx__pt, hash_id));
+  dec__pt->hash_active__b = FLEA_TRUE;
+  FLEA_CCALL(
+    THR_flea_hash_ctx_t__update(
+      dec__pt->hash_ctx__pt,
+      dec__pt->back_buffer__pt->data__pu8,
+      dec__pt->back_buffer__pt->len__dtl
+    )
+  );
+  FLEA_THR_FIN_SEC_empty();
+}
+
+void flea_ber_dec_t__deactivate_hashing(flea_ber_dec_t* dec__pt)
+{
+  dec__pt->hash_active__b = FLEA_FALSE;
+}
+
+static flea_err_t THR_flea_ber_dec_t__handle_hashing(
+  flea_ber_dec_t*  dec__pt,
+  const flea_u8_t* data__pcu8,
+  flea_dtl_t       data_len__dtl
+)
+{
+  FLEA_THR_BEG_FUNC();
+  if(dec__pt->back_buffer__pt && !dec__pt->hash_active__b)
+  {
+    FLEA_CCALL(THR_flea_byte_vec_t__append(dec__pt->back_buffer__pt, data__pcu8, data_len__dtl));
+  }
+  else if(dec__pt->hash_active__b)
+  {
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(dec__pt->hash_ctx__pt, data__pcu8, data_len__dtl));
+  }
+  FLEA_THR_FIN_SEC_empty();
+}
+
 static flea_err_t THR_flea_ber_dec_t__read_byte_and_consume_length(
   flea_ber_dec_t* dec__pt,
   flea_u8_t*      out_mem__pu8
@@ -89,6 +163,7 @@ static flea_err_t THR_flea_ber_dec_t__read_byte_and_consume_length(
   // FLEA_CCALL(THR_flea_rw_stream_t__read_byte(dec__pt->source__pt, out_mem__pu8));
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(dec__pt->source__pt, out_mem__pu8));
   FLEA_CCALL(THR_flea_ber_dec_t__consume_current_length(dec__pt, 1));
+  FLEA_CCALL(THR_flea_ber_dec_t__handle_hashing(dec__pt, out_mem__pu8, 1));
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -354,6 +429,22 @@ flea_err_t THR_flea_ber_dec_t__open_constructed(
   return THR_flea_ber_dec_t__open_constructed_opt(dec__pt, type__t, class_form__alu8, &optional__b);
 }
 
+flea_err_t THR_flea_ber_dec_t__skip_input(
+  flea_ber_dec_t* dec__pt,
+  flea_dtl_t      len__dtl
+)
+{
+  FLEA_THR_BEG_FUNC();
+  while(len__dtl--)
+  {
+    // TODO: INEFFICIENT, COULD USE STREAM_PUMP HERE (NEED HASH STREAM THEN)
+    flea_u8_t byte;
+    FLEA_CCALL(THR_flea_rw_stream_t__force_read(dec__pt->source__pt, &byte, 1));
+    FLEA_CCALL(THR_flea_ber_dec_t__handle_hashing(dec__pt, &byte, 1));
+  }
+  FLEA_THR_FIN_SEC_empty();
+}
+
 flea_err_t THR_flea_ber_dec_t__close_constructed_skip_remaining(flea_ber_dec_t* dec__pt)
 {
   flea_dtl_t remaining__dtl;
@@ -369,7 +460,8 @@ flea_err_t THR_flea_ber_dec_t__close_constructed_skip_remaining(flea_ber_dec_t* 
   {
     /* if a tag was cached, we loose it now */
     dec__pt->stored_tag_nb_bytes__u8 = 0;
-    FLEA_CCALL(THR_flea_rw_stream_t__skip_read(dec__pt->source__pt, remaining__dtl));
+    // FLEA_CCALL(THR_flea_rw_stream_t__skip_read(dec__pt->source__pt, remaining__dtl));
+    FLEA_CCALL(THR_flea_ber_dec_t__skip_input(dec__pt, remaining__dtl));
   }
   dec__pt->level__alu8--;
 
@@ -540,9 +632,10 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(
   FLEA_CCALL(THR_flea_ber_dec_t__consume_current_length(dec__pt, length__dtl));
   if(ref_extract_mode__t == extr_ref_to_v || ref_extract_mode__t == extr_ref_to_tlv)
   {
-    // TODO: THIS CONFLICTS WITH HASHING THE TBS (DOES IT? SKIPPING A TEE STREAM DOES
+    /// TODO: THIS CONFLICTS WITH HASHING THE TBS (DOES IT? SKIPPING A TEE STREAM DOES
     // WHAT?)
-    FLEA_CCALL(THR_flea_rw_stream_t__skip_read(dec__pt->source__pt, length__dtl));
+    // FLEA_CCALL(THR_flea_rw_stream_t__skip_read(dec__pt->source__pt, length__dtl));
+    FLEA_CCALL(THR_flea_ber_dec_t__skip_input(dec__pt, length__dtl));
   }
   else if(ref_extract_mode__t == extr_read_v) // read_v
   {
@@ -554,14 +647,17 @@ static flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_opt_cft(
     FLEA_CCALL(THR_flea_byte_vec_t__resize(res_vec__pt, length__dtl));
     // FLEA_CCALL(THR_flea_rw_stream_t__force_read(dec__pt->source__pt, (flea_u8_t*) *raw__ppu8, length__dtl));
     FLEA_CCALL(THR_flea_rw_stream_t__force_read(dec__pt->source__pt, res_vec__pt->data__pu8, res_vec__pt->len__dtl));
+    FLEA_CCALL(THR_flea_ber_dec_t__handle_hashing(dec__pt, res_vec__pt->data__pu8, res_vec__pt->len__dtl));
     // *raw_len__pdtl = length__dtl;
   }
   else // read_tlv
   {
+    // TODO: wrong code, unreachable, read_tlv not implemented
     flea_byte_vec_t__reset(res_vec__pt);
     FLEA_CCALL(THR_flea_byte_vec_t__resize(res_vec__pt, length__dtl));
     // FLEA_CCALL(THR_flea_rw_stream_t__force_read(dec__pt->source__pt, (flea_u8_t*) *raw__ppu8, length__dtl));
     FLEA_CCALL(THR_flea_rw_stream_t__force_read(dec__pt->source__pt, res_vec__pt->data__pu8, res_vec__pt->len__dtl));
+    FLEA_CCALL(THR_flea_ber_dec_t__handle_hashing(dec__pt, res_vec__pt->data__pu8, res_vec__pt->len__dtl));
   }
 
   FLEA_THR_FIN_SEC_empty();
@@ -1155,6 +1251,10 @@ void flea_ber_dec_t__dtor(flea_ber_dec_t* dec__pt)
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_SET_NULL(dec__pt->allo_open_cons__bdtl);
 #endif
+  if(dec__pt->hash_ctx__pt)
+  {
+    flea_hash_ctx_t__dtor(dec__pt->hash_ctx__pt);
+  }
 }
 
 static flea_err_t THR_flea_ber_dec_t__decode_short_bit_str_to_u32_opt(

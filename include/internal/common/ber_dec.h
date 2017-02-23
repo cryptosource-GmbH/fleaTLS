@@ -8,6 +8,7 @@
 #include "flea/util.h"
 #include "flea/rw_stream.h"
 #include "flea/byte_vec.h"
+#include "flea/hash.h"
 
 #define FLEA_BER_DEC_MAX_NESTING_LEVEL 15
 
@@ -74,6 +75,10 @@ struct struct_flea_ber_dec_t
   flea_u8_t                stored_tag_class_form__u8;
   flea_u8_t                stored_tag_nb_bytes__u8;
   flea_asn1_dec_val_hndg_e dec_val_handling__e;
+  flea_byte_vec_t*         back_buffer__pt;
+  flea_u8_t                hash_active__b;
+  flea_hash_ctx_t*         hash_ctx__pt;
+  // flea_u8_t* hasher_constru
   // const flea_u8_t*         next_tlv_ptr__pcu8;
 };
 
@@ -100,6 +105,23 @@ flea_err_t THR_flea_ber_dec_t__ctor(
   flea_dtl_t               length_limit__dtl,
   flea_asn1_dec_val_hndg_e dec_val_hndg__e
 );
+
+
+flea_err_t THR_flea_ber_dec_t__ctor_hash_support(
+  flea_ber_dec_t*          dec__pt,
+  flea_rw_stream_t*        read_stream__pt,
+  flea_dtl_t               length_limit__dtl,
+  flea_asn1_dec_val_hndg_e dec_val_hndg__e,
+  flea_byte_vec_t*         back_buffer__pt,
+  flea_hash_ctx_t*         unconstructed_hash_ctx__pt
+);
+
+flea_err_t THR_flea_ber_dec_t__activate_hashing(
+  flea_ber_dec_t* dec__pt,
+  flea_hash_id_t  hash_id
+);
+
+void flea_ber_dec_t__deactivate_hashing(flea_ber_dec_t* dec__pt);
 
 /**
  * Destroy a decoder.

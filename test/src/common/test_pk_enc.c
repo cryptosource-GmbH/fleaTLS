@@ -13,7 +13,6 @@
 #include "internal/common/pk_enc/oaep.h"
 #include "test_data_rsa_key_internal_format.h"
 #include "flea/privkey.h"
-#include "heap_stack_abstraction.h"
 
 /*
  * Reference test data created with Botan.
