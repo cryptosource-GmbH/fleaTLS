@@ -131,6 +131,13 @@ flea_err_t THR_flea_public_key_t__ctor_cert(
   const flea_x509_cert_ref_t* cert_ref__pt
 );
 
+flea_err_t THR_flea_x509_get_hash_id_and_scheme_type_from_oid(
+  const flea_u8_t*    oid__pcu8,
+  flea_al_u16_t       oid_len__alu16,
+  flea_hash_id_t*     result_hash_id__pe,
+  flea_pk_key_type_t* result_key_type_e
+);
+
 flea_err_t THR_flea_public_key_t__verify_signature(
   const flea_public_key_t* key__pt,
   flea_pk_scheme_id_t      pk_scheme_id__t,

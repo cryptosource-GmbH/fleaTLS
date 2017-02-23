@@ -95,24 +95,25 @@ flea_err_t THR_get_hash_id_from_x509_id_for_ecdsa(
 } /* THR_get_hash_id_from_x509_id_for_ecdsa */
 
 # ifdef FLEA_HAVE_ECC
-
+#  if 0
 static flea_err_t THR_flea_x509_verify_ecdsa_signature(
   const flea_byte_vec_t*   oid_ref__pt,
   const flea_public_key_t* ver_key__pt,
   const flea_byte_vec_t*   der_enc_signature__pt,
-  const flea_byte_vec_t*   tbs_data__pt
+  const flea_byte_vec_t*   tbs_data__pt,
+  flea_hash_id_t           ecdsa_hash_id__t
 )
 {
-  flea_hash_id_t ecdsa_hash_id__t;
+  // flea_hash_id_t ecdsa_hash_id__t;
 
   FLEA_THR_BEG_FUNC();
-  /* allocating DER encoded size wastes a few bytes of RAM but saves some code */
-  FLEA_CCALL(
-    THR_get_hash_id_from_x509_id_for_ecdsa(
-      oid_ref__pt->data__pu8 + sizeof(ecdsa_oid_prefix__acu8),
-      &ecdsa_hash_id__t
-    )
-  );
+
+  /*  FLEA_CCALL(
+   *  THR_get_hash_id_from_x509_id_for_ecdsa(
+   *    oid_ref__pt->data__pu8 + sizeof(ecdsa_oid_prefix__acu8),
+   *    &ecdsa_hash_id__t
+   *  )
+   * );*/
   FLEA_CCALL(
     THR_flea_public_key_t__verify_signature(
       ver_key__pt,
@@ -126,6 +127,8 @@ static flea_err_t THR_flea_x509_verify_ecdsa_signature(
   FLEA_THR_FIN_SEC(
   );
 }
+
+#  endif /* if 0 */
 
 /* assumes that result__pu8 has sufficient length allocated */
 static flea_err_t THR_flea_x509_decode_ecdsa_signature(
@@ -657,6 +660,52 @@ flea_err_t THR_flea_public_key_t__verify_signature(
   );
 } /* THR_flea_public_key_t__verify_signature */
 
+flea_err_t THR_flea_x509_get_hash_id_and_scheme_type_from_oid(
+  const flea_u8_t*    oid__pcu8,
+  flea_al_u16_t       oid_len__alu16,
+  flea_hash_id_t*     result_hash_id__pe,
+  flea_pk_key_type_t* result_key_type_e
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+# ifdef FLEA_HAVE_RSA
+  if(((oid_len__alu16 == sizeof(pkcs1_oid_prefix__cau8) + 1)) &&
+    !memcmp(oid__pcu8, pkcs1_oid_prefix__cau8, sizeof(pkcs1_oid_prefix__cau8)))
+  {
+    FLEA_CCALL(
+      THR_get_hash_id_from_x509_id_for_rsa(
+        oid__pcu8[sizeof(pkcs1_oid_prefix__cau8)],
+        result_hash_id__pe
+      )
+    );
+
+    *result_key_type_e = flea_rsa_key;
+  }
+  else
+# endif /* ifdef FLEA_HAVE_RSA */
+# ifdef FLEA_HAVE_ECC
+  if(oid_len__alu16 == sizeof(ecdsa_oid_prefix__acu8) + 2 &&
+    !memcmp(oid__pcu8, ecdsa_oid_prefix__acu8, sizeof(ecdsa_oid_prefix__acu8)))
+  {
+    FLEA_CCALL(
+      THR_get_hash_id_from_x509_id_for_ecdsa(
+        oid__pcu8 + sizeof(ecdsa_oid_prefix__acu8),
+        result_hash_id__pe
+      )
+    );
+    *result_key_type_e = flea_ecc_key;
+  }
+  else
+# endif /* ifdef FLEA_HAVE_ECC */
+  {
+    FLEA_THROW("invalid signature algorithm", FLEA_ERR_X509_SIG_ALG_ERR);
+  }
+
+
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_x509_get_hash_id_and_scheme_type_from_oid */
+
 flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
   const flea_public_key_t*     public_key__pt,
   const flea_x509_algid_ref_t* sigalg_id__t,
@@ -665,9 +714,57 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
 )
 {
   const flea_byte_vec_t* oid_ref__pt = &sigalg_id__t->oid_ref__t;
+  flea_hash_id_t hash_id;
+  flea_pk_key_type_t key_type;
 
   FLEA_THR_BEG_FUNC();
-# ifdef FLEA_HAVE_RSA
+  // TODO: REFACTOR USING THR_flea_x509_get_hash_id_and_scheme_type_from_oid (ABOVE)
+  FLEA_CCALL(
+    THR_flea_x509_get_hash_id_and_scheme_type_from_oid(
+      oid_ref__pt->data__pu8,
+      oid_ref__pt->len__dtl,
+      &hash_id,
+      &key_type
+    )
+  );
+  if(key_type != public_key__pt->key_type__t)
+  {
+    FLEA_THROW("key type and algorithm don't match", FLEA_ERR_INV_ALGORITHM);
+  }
+# if 1
+
+#  ifdef FLEA_HAVE_RSA
+  if(key_type == flea_rsa_key)
+  {
+    FLEA_CCALL(
+      THR_flea_public_key_t__verify_signature(
+        public_key__pt,
+        flea_rsa_pkcs1_v1_5_sign,
+        tbs_data__pt,
+        signature__pt,
+        hash_id
+      )
+    );
+  }
+  else
+#  endif /* ifdef FLEA_HAVE_RSA */
+#  ifdef FLEA_HAVE_ECC
+  if(key_type == flea_ecc_key)
+  {
+    FLEA_CCALL(
+      THR_flea_public_key_t__verify_signature(
+        public_key__pt,
+        flea_ecdsa_emsa1,
+        tbs_data__pt,
+        signature__pt,
+        hash_id
+      )
+    );
+    // FLEA_CCALL(THR_flea_x509_verify_ecdsa_signature(oid_ref__pt, public_key__pt, signature__pt, tbs_data__pt));
+  }
+#  endif /* ifdef FLEA_HAVE_ECC */
+# else  /* if 1 */
+#  ifdef FLEA_HAVE_RSA
   if(((oid_ref__pt->len__dtl == sizeof(pkcs1_oid_prefix__cau8) + 1)) &&
     !memcmp(oid_ref__pt->data__pu8, pkcs1_oid_prefix__cau8, sizeof(pkcs1_oid_prefix__cau8)))
   {
@@ -696,8 +793,8 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
     }
   }
   else
-# endif /* ifdef FLEA_HAVE_RSA */
-# ifdef FLEA_HAVE_ECC
+#  endif /* ifdef FLEA_HAVE_RSA */
+#  ifdef FLEA_HAVE_ECC
   if(oid_ref__pt->len__dtl == sizeof(ecdsa_oid_prefix__acu8) + 2 &&
     !memcmp(oid_ref__pt->data__pu8, ecdsa_oid_prefix__acu8, sizeof(ecdsa_oid_prefix__acu8)))
   {
@@ -711,10 +808,13 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
     }
   }
   else
-# endif /* #ifdef FLEA_HAVE_ECC */
+#  endif /* #ifdef FLEA_HAVE_ECC */
   {
     FLEA_THROW("unsupported primitive", FLEA_ERR_X509_UNSUPP_PRIMITIVE);
   }
+
+
+# endif /* if 1 */
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_public_key_t__verify_signature_use_sigalg_id */
 

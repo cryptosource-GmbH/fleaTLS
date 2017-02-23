@@ -14,8 +14,9 @@
 #include "internal/common/tls/handsh_reader.h"
 #include "internal/pltf_if/time.h"
 
-#define FLEA_TLS_CERT_BUF_SIZE     1536
-#define FLEA_TLS_CERT_PATH_MAX_LEN 20
+#define FLEA_TLS_CERT_BUF_SIZE                  1536
+#define FLEA_TLS_CERT_PATH_MAX_LEN              20
+#define FLEA_X509_CERT_PRE_SIGALGID_BUFFER_SIZE 70
 
 flea_err_t THR_flea_tls__cert_path_validation(
   flea_tls_ctx_t*          tls_ctx__pt,
@@ -170,15 +171,68 @@ flea_err_t THR_flea_tls__cert_path_validation(
 
 #if 0
 static flea_err_t THR_flea_tls__validate_cert(
-  flea_rw_stream_t* rd_stream__pt,
+  flea_rw_stream_t* rd_strm__pt,
   flea_byte_vec_t*  signature_in_out,
   flea_bool_t       have_input_signature
 
 )
 {
+  FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
+  FLEA_DECL_OBJ(hash__t, flea_hash_ctx_t);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(back_buffer__t, FLEA_X509_CERT_PRE_SIGALGID_BUFFER_SIZE);
+  FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(version_vec__t, 1);
+  flea_bool_t found_tag__b;
+  flea_x509_algid_ref_t sigalg_id__t = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
   FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__ctor_hash_support(
+      &dec__t,
+      rd_strm__pt,
+      0,
+      flea_decode_copy,
+      &back_buffer__t,
+      &hash__t
+    )
+  );
 
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
+  FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__open_constructed_optional(
+      &dec__t,
+      0,
+      FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC,
+      &found_tag__b
+    )
+  );
+  if(found_tag__b)
+  {
+    // flea_dtl_t version_len__dtl = 1;
+    // flea_u8_t version__u8;
+    // FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw(&dec__t, FLEA_ASN1_INT, 0, &version__u8, &version_len__dtl));
+    FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw(&dec__t, FLEA_ASN1_INT, 0, &version_vec__t));
+    // if(version_len__dtl != 1)
+    if(version_vec__t.len__dtl != 1)
+    {
+      FLEA_THROW("x.509 version of invalid length", FLEA_ERR_X509_VERSION_ERROR);
+    }
+    // cert_ref__pt->version__u8 = version__u8 + 1;
+    // cert_ref__pt->version__u8 = version_vec__t.data__pu8[0] + 1;
+    version_vec__t.data__pu8[0] += 1;
+    FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
+  }
+  else
+  {
+    FLEA_CCALL(THR_flea_byte_vec_t__push_back(&version_vec__t, 1));
+  }
+
+  FLEA_CCALL(THR_flea_ber_dec_t__decode_int(&dec__t, &cert_ref__pt->serial_number__t));
+
+  FLEA_CCALL(THR_flea_x509__parse_algid_ref(&sigalg_id__t, &dec__t));
+
+  FLEA_THR_FIN_SEC(
+    flea_ber_dec_t__dtor(&dec__t);
+  );
 } /* THR_flea_x509_cert_ref_t__ctor */
 
 #endif /* if 0 */
