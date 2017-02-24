@@ -417,7 +417,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
       0
     )
   );
-  FLEA_CCALL(THR_flea_x509__parse_algid_ref(&algid_ref_1__t, &dec__t));
+  FLEA_CCALL(THR_flea_x509__decode_algid_ref(&algid_ref_1__t, &dec__t));
   FLEA_CCALL(THR_flea_x509__parse_dn(&crl_issuer_ref__t, &dec__t));
   FLEA_CCALL(THR_flea_asn1_parse_gmt_time(&dec__t, &this_update__t));
   FLEA_CCALL(THR_flea_asn1_parse_gmt_time(&dec__t, &next_update__t));
@@ -523,7 +523,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
 
 
-  FLEA_CCALL(THR_flea_x509__parse_algid_ref(&algid_ref_2__t, &dec__t));
+  FLEA_CCALL(THR_flea_x509__decode_algid_ref(&algid_ref_2__t, &dec__t));
   FLEA_CCALL(THR_flea_x509__process_alg_ids(&algid_ref_1__t, &algid_ref_2__t));
   FLEA_CCALL(
     THR_flea_ber_dec_t__get_ref_to_raw_cft(

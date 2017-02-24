@@ -204,7 +204,7 @@ flea_bool_t flea_x509_has_key_usages(
   flea_key_usage_exlicitness_e explicitness
 );
 
-flea_err_t THR_flea_x509__parse_algid_ref(
+flea_err_t THR_flea_x509__decode_algid_ref(
   flea_x509_algid_ref_t* algid_ref__pt,
   flea_ber_dec_t*        dec__pt
 );

@@ -138,6 +138,7 @@ flea_err_t THR_flea_x509_get_hash_id_and_scheme_type_from_oid(
   flea_pk_key_type_t* result_key_type_e
 );
 
+
 flea_err_t THR_flea_public_key_t__verify_signature(
   const flea_public_key_t* key__pt,
   flea_pk_scheme_id_t      pk_scheme_id__t,

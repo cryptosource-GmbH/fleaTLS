@@ -718,7 +718,6 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
   flea_pk_key_type_t key_type;
 
   FLEA_THR_BEG_FUNC();
-  // TODO: REFACTOR USING THR_flea_x509_get_hash_id_and_scheme_type_from_oid (ABOVE)
   FLEA_CCALL(
     THR_flea_x509_get_hash_id_and_scheme_type_from_oid(
       oid_ref__pt->data__pu8,
@@ -731,9 +730,8 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
   {
     FLEA_THROW("key type and algorithm don't match", FLEA_ERR_INV_ALGORITHM);
   }
-# if 1
 
-#  ifdef FLEA_HAVE_RSA
+# ifdef FLEA_HAVE_RSA
   if(key_type == flea_rsa_key)
   {
     FLEA_CCALL(
@@ -747,8 +745,8 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
     );
   }
   else
-#  endif /* ifdef FLEA_HAVE_RSA */
-#  ifdef FLEA_HAVE_ECC
+# endif /* ifdef FLEA_HAVE_RSA */
+# ifdef FLEA_HAVE_ECC
   if(key_type == flea_ecc_key)
   {
     FLEA_CCALL(
@@ -760,61 +758,8 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
         hash_id
       )
     );
-    // FLEA_CCALL(THR_flea_x509_verify_ecdsa_signature(oid_ref__pt, public_key__pt, signature__pt, tbs_data__pt));
   }
-#  endif /* ifdef FLEA_HAVE_ECC */
-# else  /* if 1 */
-#  ifdef FLEA_HAVE_RSA
-  if(((oid_ref__pt->len__dtl == sizeof(pkcs1_oid_prefix__cau8) + 1)) &&
-    !memcmp(oid_ref__pt->data__pu8, pkcs1_oid_prefix__cau8, sizeof(pkcs1_oid_prefix__cau8)))
-  {
-    flea_hash_id_t hash_id__t;
-    if(public_key__pt->key_type__t == flea_rsa_key)
-    {
-      FLEA_CCALL(
-        THR_get_hash_id_from_x509_id_for_rsa(
-          oid_ref__pt->data__pu8[sizeof(pkcs1_oid_prefix__cau8)],
-          &hash_id__t
-        )
-      );
-      FLEA_CCALL(
-        THR_flea_public_key_t__verify_signature(
-          public_key__pt,
-          flea_rsa_pkcs1_v1_5_sign,
-          tbs_data__pt,
-          signature__pt,
-          hash_id__t
-        )
-      );
-    }
-    else
-    {
-      FLEA_THROW("key type and algorithm don't match", FLEA_ERR_INV_ALGORITHM);
-    }
-  }
-  else
-#  endif /* ifdef FLEA_HAVE_RSA */
-#  ifdef FLEA_HAVE_ECC
-  if(oid_ref__pt->len__dtl == sizeof(ecdsa_oid_prefix__acu8) + 2 &&
-    !memcmp(oid_ref__pt->data__pu8, ecdsa_oid_prefix__acu8, sizeof(ecdsa_oid_prefix__acu8)))
-  {
-    if(public_key__pt->key_type__t == flea_ecc_key)
-    {
-      FLEA_CCALL(THR_flea_x509_verify_ecdsa_signature(oid_ref__pt, public_key__pt, signature__pt, tbs_data__pt));
-    }
-    else
-    {
-      FLEA_THROW("key type and algorithm don't match", FLEA_ERR_INV_ALGORITHM);
-    }
-  }
-  else
-#  endif /* #ifdef FLEA_HAVE_ECC */
-  {
-    FLEA_THROW("unsupported primitive", FLEA_ERR_X509_UNSUPP_PRIMITIVE);
-  }
-
-
-# endif /* if 1 */
+# endif /* ifdef FLEA_HAVE_ECC */
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_public_key_t__verify_signature_use_sigalg_id */
 

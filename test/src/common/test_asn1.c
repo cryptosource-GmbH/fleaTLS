@@ -138,7 +138,8 @@ flea_err_t THR_flea_test_ber_dec_basic()
   );
 } /* THR_flea_test_ber_dec_basic */
 
-typedef enum { dec_func_default, dec_func_ref, dec_func_cpy } dec_func_e;
+typedef enum { dec_func_default, dec_func_ref,
+               dec_func_cpy /*, dec_func_cpy_tlv__only_for_first_function*/ } dec_func_e;
 
 static flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
   flea_bool_t              is_fake_gen_strm__b,
@@ -163,6 +164,7 @@ static flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
   flea_err_t err__t;
   flea_asn1_tag_t false_cft         = FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, FLEA_ASN1_SET);
   flea_u8_t exp_version_tlv__au8 [] = {0x02, 0x01, 0x00};
+  flea_bool_t optional_found__b     = FLEA_TRUE;
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(
@@ -192,8 +194,9 @@ static flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
 
   if(first_dec_func__e == dec_func_cpy)
   {
-    flea_bool_t optional_found__b = FLEA_TRUE;
+    optional_found__b = FLEA_TRUE;
     err__t = THR_flea_ber_dec_t__read_value_raw_cft_opt(&dec__t, false_cft, &dec_vec__t, &optional_found__b);
+#if 0
     if(err__t != first_func_exp_err_code)
     {
       FLEA_THROW("unexpected error code", FLEA_ERR_FAILED_TEST);
@@ -202,26 +205,36 @@ static flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
     {
       FLEA_THROW("invalid decoding result", FLEA_ERR_FAILED_TEST);
     }
+#endif
   }
   else if(first_dec_func__e == dec_func_ref)
   {
-    flea_bool_t found__b;
+    // flea_bool_t found__b;
+    optional_found__b = FLEA_TRUE;
     // TODO: EMPLOY REF HERE INSTEAD OF VEC
-    err__t = THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(&dec__t, false_cft, &dec_vec__t, &found__b);
-
-    if(err__t != first_func_exp_err_code)
-    {
-      FLEA_THROW("unexpected error code", FLEA_ERR_FAILED_TEST);
-    }
-    if(!err__t && found__b)
-    {
-      FLEA_THROW("invalid decoding result", FLEA_ERR_FAILED_TEST);
-    }
+    err__t = THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(&dec__t, false_cft, &dec_vec__t, &optional_found__b);
+#if 0
+#endif
   }
   else if(first_dec_func__e == dec_func_default)
   {
     printf("test case not yet implemented\n");
-    FLEA_THROW("test case not yet implemented", FLEA_ERR_FAILED_TEST);
+    FLEA_THROW("test case not yet implemented", FLEA_ERR_INT_ERR);
+  }
+
+  /*else if(first_dec_func__e == dec_func_cpy_tlv__only_for_first_function)
+   * {
+   *
+   * optional_found__b = FLEA_TRUE;
+   * err__t = THR_flea_ber_dec_t__read_tlv_raw_optional(&dec__t, &dec_vec__t, &optional_found__b);
+   * }*/
+  if(err__t != first_func_exp_err_code)
+  {
+    FLEA_THROW("unexpected error code", FLEA_ERR_FAILED_TEST);
+  }
+  if(!err__t && optional_found__b)
+  {
+    FLEA_THROW("invalid decoding result", FLEA_ERR_FAILED_TEST);
   }
 
   if(second_dec_func__e == dec_func_cpy)
@@ -230,7 +243,7 @@ static flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
 
     /*  printf("test case not yet implemented\n");
      * FLEA_THROW("test case not yet implemented", FLEA_ERR_FAILED_TEST);*/
-
+#if 0
     err__t =
       THR_flea_ber_dec_t__read_value_raw_cft(
       &dec__t,
@@ -248,17 +261,15 @@ static flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
     {
       FLEA_THROW("invalid decoded value for second function", FLEA_ERR_FAILED_TEST);
     }
-  }
-  else if(second_dec_func__e == dec_func_ref)
-  {
-    // TODO: EMPLOY REF HERE INSTEAD OF VEC
-    err__t = THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&dec__t, &dec_vec__t);
+#else /* if 0 */
+    flea_bool_t optional_false__b = FLEA_FALSE;
+    err__t = THR_flea_ber_dec_t__read_tlv_raw_optional(&dec__t, &dec_vec__t, &optional_false__b);
 
     if(err__t != second_func_exp_err_code)
     {
       FLEA_THROW("unexpected error code", FLEA_ERR_FAILED_TEST);
     }
-
+# if 0
     if(!err__t)
     {
       if(dec_vec__t.len__dtl != sizeof(exp_version_tlv__au8))
@@ -270,11 +281,73 @@ static flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
         FLEA_THROW("PKCS#8 version of invalid content", FLEA_ERR_FAILED_TEST);
       }
     }
+# endif /* if 0 */
+#endif  /* if 0 */
+  }
+  else if(second_dec_func__e == dec_func_ref)
+  {
+    // TODO: EMPLOY REF HERE INSTEAD OF VEC
+    err__t = THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&dec__t, &dec_vec__t);
+
+#if 0
+    if(err__t != second_func_exp_err_code)
+    {
+      FLEA_THROW("unexpected error code", FLEA_ERR_FAILED_TEST);
+    }
+    if(!err__t)
+    {
+      if(dec_vec__t.len__dtl != sizeof(exp_version_tlv__au8))
+      {
+        FLEA_THROW("PKCS#8 version of invalid length", FLEA_ERR_FAILED_TEST);
+      }
+      if(memcmp(exp_version_tlv__au8, dec_vec__t.data__pu8, sizeof(exp_version_tlv__au8)))
+      {
+        FLEA_THROW("PKCS#8 version of invalid content", FLEA_ERR_FAILED_TEST);
+      }
+    }
+#endif /* if 0 */
   }
   else if(second_dec_func__e == dec_func_default)
   {
-    printf("test case not yet implemented\n");
-    FLEA_THROW("test case not yet implemented", FLEA_ERR_FAILED_TEST);
+    err__t = THR_flea_ber_dec_t__decode_tlv_raw_optional(&dec__t, &dec_vec__t);
+
+#if 0
+    if(err__t != second_func_exp_err_code)
+    {
+      FLEA_THROW("unexpected error code", FLEA_ERR_FAILED_TEST);
+    }
+    if(!err__t)
+    {
+      if(dec_vec__t.len__dtl != sizeof(exp_version_tlv__au8))
+      {
+        FLEA_THROW("PKCS#8 version of invalid length", FLEA_ERR_FAILED_TEST);
+      }
+      if(memcmp(exp_version_tlv__au8, dec_vec__t.data__pu8, sizeof(exp_version_tlv__au8)))
+      {
+        FLEA_THROW("PKCS#8 version of invalid content", FLEA_ERR_FAILED_TEST);
+      }
+    }
+#endif /* if 0 */
+  }
+  else
+  {
+    FLEA_THROW("unexpected test config", FLEA_ERR_INT_ERR);
+  }
+
+  if(err__t != second_func_exp_err_code)
+  {
+    FLEA_THROW("unexpected error code", FLEA_ERR_FAILED_TEST);
+  }
+  if(!err__t)
+  {
+    if(dec_vec__t.len__dtl != sizeof(exp_version_tlv__au8))
+    {
+      FLEA_THROW("PKCS#8 version of invalid length", FLEA_ERR_FAILED_TEST);
+    }
+    if(memcmp(exp_version_tlv__au8, dec_vec__t.data__pu8, sizeof(exp_version_tlv__au8)))
+    {
+      FLEA_THROW("PKCS#8 version of invalid content", FLEA_ERR_FAILED_TEST);
+    }
   }
 
 
@@ -319,6 +392,7 @@ flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy()
   );
 
   FLEA_CCALL(
+    // TODO:fails
     THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
       FLEA_TRUE /* apparent generic rd stream */,
       flea_decode_copy,
@@ -368,6 +442,19 @@ flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy()
       FLEA_ERR_INV_STATE
     )
   );
+
+  FLEA_CCALL(
+    THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
+      FLEA_TRUE /* apparent generic rd stream */,
+      flea_decode_copy,
+      dec_func_cpy,
+      dec_func_default,
+      FLEA_ERR_FINE,
+      FLEA_ERR_FINE,
+      FLEA_ERR_FINE
+    )
+  );
+
 
   // TODO: ALSO MAKE CALLS WITH DEC_FUNC_DEFAULT
   FLEA_THR_FIN_SEC_empty(

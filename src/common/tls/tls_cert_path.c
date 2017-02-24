@@ -7,6 +7,8 @@
 #include "flea/error_handling.h"
 #include "internal/common/ber_dec.h"
 #include "flea/x509.h"
+#include "flea/asn1_date.h"
+#include "flea/namespace_asn1.h"
 #include "flea/tls.h"
 #include "flea/rw_stream.h"
 #include "flea/cert_store.h"
@@ -169,20 +171,58 @@ flea_err_t THR_flea_tls__cert_path_validation(
   );
 } /* THR_flea_tls__cert_path_validation */
 
-#if 0
-static flea_err_t THR_flea_tls__validate_cert(
-  flea_rw_stream_t* rd_strm__pt,
-  flea_byte_vec_t*  signature_in_out,
-  flea_bool_t       have_input_signature
+static flea_err_t THR_flea_tls_chec_cert_validity_time(
+  flea_ber_dec_t*        dec__pt,
+  const flea_gmt_time_t* compare_time__pt
+)
+{
+  flea_gmt_time_t not_after__t;
+  flea_gmt_time_t not_before__t;
 
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
+
+
+  FLEA_CCALL(THR_flea_asn1_parse_gmt_time(dec__pt, &not_before__t));
+  FLEA_CCALL(THR_flea_asn1_parse_gmt_time(dec__pt, &not_after__t));
+
+  if(1 == flea_asn1_cmp_utc_time(&not_before__t, compare_time__pt))
+  {
+    FLEA_THROW("certificate not yet valid", FLEA_ERR_CERT_NOT_YET_VALID);
+  }
+  if(-1 == flea_asn1_cmp_utc_time(&not_after__t, compare_time__pt))
+  {
+    FLEA_THROW("certificate not yet valid", FLEA_ERR_CERT_NOT_YET_VALID);
+  }
+  FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
+  FLEA_THR_FIN_SEC_empty();
+}
+
+static flea_err_t THR_flea_tls__validate_cert(
+  flea_rw_stream_t*      rd_strm__pt,
+  flea_byte_vec_t*       signature_in_out,
+  flea_bool_t            have_precursor_to_verify__b,
+  flea_byte_vec_t*       issuer_dn__pt, // previous issuer on input, gets updated to validated cert's subject
+  const flea_gmt_time_t* compare_time__pt
 )
 {
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(hash__t, flea_hash_ctx_t);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(back_buffer__t, FLEA_X509_CERT_PRE_SIGALGID_BUFFER_SIZE);
   FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(version_vec__t, 1);
+
+  /* for SN, subject:
+   */
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(var_buffer__t, 200);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_issuer__t, 200);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_subject__t, 200);
   flea_bool_t found_tag__b;
   flea_x509_algid_ref_t sigalg_id__t = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
+  flea_hash_id_t sigalg_hash_id;
+  flea_pk_key_type_t key_type;
+
+
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
     THR_flea_ber_dec_t__ctor_hash_support(
@@ -225,14 +265,46 @@ static flea_err_t THR_flea_tls__validate_cert(
   {
     FLEA_CCALL(THR_flea_byte_vec_t__push_back(&version_vec__t, 1));
   }
+  // TODO: USE SN FOR CRL CHECK
+  FLEA_CCALL(THR_flea_ber_dec_t__decode_int(&dec__t, &var_buffer__t));
 
-  FLEA_CCALL(THR_flea_ber_dec_t__decode_int(&dec__t, &cert_ref__pt->serial_number__t));
+  FLEA_CCALL(THR_flea_x509__decode_algid_ref(&sigalg_id__t, &dec__t));
+  FLEA_CCALL(
+    THR_flea_x509_get_hash_id_and_scheme_type_from_oid(
+      sigalg_id__t.oid_ref__t.data__pu8,
+      sigalg_id__t.oid_ref__t.len__dtl,
+      &sigalg_hash_id,
+      &key_type
+    )
+  );
+  FLEA_CCALL(THR_flea_ber_dec_t__activate_hashing(&dec__t, sigalg_hash_id));
+  // CANT'T BE CALLED, ASSUMES MEM SRC:
+  // FLEA_CCALL(THR_flea_x509__parse_dn(&local_dn__t, &dec__t));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__read_value_raw_cft(
+      &dec__t,
+      FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, SEQUENCE),
+      &local_issuer__t
+    )
+  );
 
-  FLEA_CCALL(THR_flea_x509__parse_algid_ref(&sigalg_id__t, &dec__t));
+  FLEA_CCALL(THR_flea_tls_chec_cert_validity_time(&dec__t, compare_time__pt));
+
+  // TODO: IMPLEMENT COMPARE WITH STREAM
+  // FLEA_CCALL(THR_flea_x509__parse_dn(&cert_ref__pt->subject__t, &dec__t));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__read_value_raw_cft(
+      &dec__t,
+      FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, SEQUENCE),
+      &local_subject__t
+    )
+  );
+  if(have_precursor_to_verify__b && flea_byte_vec_t__cmp(issuer_dn__pt, &local_issuer__t))
+  {
+    FLEA_THROW("name chaining failed", FLEA_ERR_X509_DN_ERROR);
+  }
 
   FLEA_THR_FIN_SEC(
     flea_ber_dec_t__dtor(&dec__t);
   );
 } /* THR_flea_x509_cert_ref_t__ctor */
-
-#endif /* if 0 */
