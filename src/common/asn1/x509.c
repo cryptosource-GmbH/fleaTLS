@@ -11,32 +11,10 @@
 #include "flea/mem_read_stream.h"
 #include <string.h>
 
-#define ID_UNSUPP_EXT_OID 0
-
-/** id-ce **/
-#define ID_CE_INDIC                (0x0100)
-#define ID_CE_OID_AKI              (ID_CE_INDIC | 35)
-#define ID_CE_OID_POLICIES         (ID_CE_INDIC | 32)
-#define ID_CE_OID_KEY_USAGE        (ID_CE_INDIC | 15)
-#define ID_CE_OID_SUBJ_KEY_ID      (ID_CE_INDIC | 14)
-#define ID_CE_OID_SUBJ_ALT_NAME    (ID_CE_INDIC | 17)
-#define ID_CE_OID_ISS_ALT_NAME     (ID_CE_INDIC | 18)
-#define ID_CE_OID_BASIC_CONSTR     (ID_CE_INDIC | 19)
-#define ID_CE_OID_NAME_CONSTR      (ID_CE_INDIC | 30)
-#define ID_CE_OID_POLICY_CONSTR    (ID_CE_INDIC | 36)
-#define ID_CE_OID_EXT_KEY_USAGE    (ID_CE_INDIC | 37)
-#define ID_CE_OID_CRL_DISTR_POINT  (ID_CE_INDIC | 31)
-#define ID_CE_OID_INHIB_ANY_POLICY (ID_CE_INDIC | 54)
-#define ID_CE_OID_FRESHEST_CRL     (ID_CE_INDIC | 46)
-
-/** id-pe**/
-#define ID_PE_INDIC            (0x0200)
-#define ID_PE_OID_AUTH_INF_ACC (ID_PE_INDIC | 1)
-#define ID_PE_OID_SUBJ_INF_ACC (ID_PE_INDIC | 11)
 
 const flea_u8_t id_pe__cau8 [7] = {0x2B, 0x06, 0x01, 0x05, 0x05, 0x07, 0x01};
 
-static flea_err_t THR_flea_x509_cert_parse_basic_constraints(
+flea_err_t THR_flea_x509_cert_parse_basic_constraints(
   flea_ber_dec_t*           cont_dec__pt,
   flea_basic_constraints_t* basic_constraints__pt
 )
@@ -69,7 +47,7 @@ static flea_err_t THR_flea_x509_cert_parse_basic_constraints(
   FLEA_THR_FIN_SEC_empty();
 }
 
-static flea_err_t THR_flea_x509_cert__parse_eku(
+flea_err_t THR_flea_x509_cert__parse_eku(
   flea_ber_dec_t*   cont_dec__pt,
   flea_key_usage_t* ext_key_usage__pt
 )
@@ -111,7 +89,7 @@ static flea_err_t THR_flea_x509_cert__parse_eku(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_x509_cert__parse_eku */
 
-static flea_err_t THR_flea_x509_cert__parse_key_usage(
+flea_err_t THR_flea_x509_cert__parse_key_usage(
   flea_ber_dec_t*   cont_dec__pt,
   flea_key_usage_t* key_usage__pt
 )

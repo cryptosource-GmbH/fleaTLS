@@ -121,10 +121,18 @@ flea_err_t THR_flea_x509_parse_ecc_public_params(
  * );*/
 flea_err_t THR_flea_public_key_t__ctor(
   flea_public_key_t*     key__pt,
-  flea_pk_key_type_t     key_type,
   const flea_byte_vec_t* key_as_bit_string_tlv__prcu8,
-  const flea_byte_vec_t* encoded_params__prcu8
+  const flea_byte_vec_t* encoded_params__prcu8,
+  const flea_byte_vec_t* alg_oid__pt
 );
+
+/*
+ * flea_err_t THR_flea_public_key_t__ctor(
+ * flea_public_key_t*     key__pt,
+ * flea_pk_key_type_t     key_type,
+ * const flea_byte_vec_t* key_as_bit_string_tlv__prcu8,
+ * const flea_byte_vec_t* encoded_params__prcu8
+ * );*/
 
 flea_err_t THR_flea_public_key_t__ctor_cert(
   flea_public_key_t*          key__pt,
