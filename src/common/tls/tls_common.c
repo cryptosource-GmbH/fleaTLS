@@ -509,10 +509,25 @@ flea_err_t THR_flea_tls__create_master_secret(
       master_secret_res
     )
   );
+  // TODO: remove
+  printf("\n\n\n Master Secret:\n");
+  for(int i = 0; i < 48; i++)
+  {
+    printf("%02x ", master_secret_res[i]);
+  }
+  printf("\n\n");
+  printf("\n\n\n Premaster Secret:\n");
+  for(int i = 0; i < premaster_secret__pt->len__dtl; i++)
+  {
+    printf("%02x ", premaster_secret__pt->data__pu8[i]);
+  }
+  printf("\n\n");
+
+
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL_SECRET_ARR(random_seed__bu8, 64);
   );
-}
+} /* THR_flea_tls__create_master_secret */
 
 // TODO: configurable parameters
 // TODO: ctor = handshake function
