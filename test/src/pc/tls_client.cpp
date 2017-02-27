@@ -19,7 +19,7 @@
 #include "pc/linux_sock.h"
 
 
-// #define SIZE_1024
+#define SIZE_1024
 // CA cert to verify the server's certificate
 const flea_u8_t trust_anchor__acu8[] = {
 #ifdef SIZE_1024
