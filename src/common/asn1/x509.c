@@ -11,32 +11,10 @@
 #include "flea/mem_read_stream.h"
 #include <string.h>
 
-#define ID_UNSUPP_EXT_OID 0
-
-/** id-ce **/
-#define ID_CE_INDIC                (0x0100)
-#define ID_CE_OID_AKI              (ID_CE_INDIC | 35)
-#define ID_CE_OID_POLICIES         (ID_CE_INDIC | 32)
-#define ID_CE_OID_KEY_USAGE        (ID_CE_INDIC | 15)
-#define ID_CE_OID_SUBJ_KEY_ID      (ID_CE_INDIC | 14)
-#define ID_CE_OID_SUBJ_ALT_NAME    (ID_CE_INDIC | 17)
-#define ID_CE_OID_ISS_ALT_NAME     (ID_CE_INDIC | 18)
-#define ID_CE_OID_BASIC_CONSTR     (ID_CE_INDIC | 19)
-#define ID_CE_OID_NAME_CONSTR      (ID_CE_INDIC | 30)
-#define ID_CE_OID_POLICY_CONSTR    (ID_CE_INDIC | 36)
-#define ID_CE_OID_EXT_KEY_USAGE    (ID_CE_INDIC | 37)
-#define ID_CE_OID_CRL_DISTR_POINT  (ID_CE_INDIC | 31)
-#define ID_CE_OID_INHIB_ANY_POLICY (ID_CE_INDIC | 54)
-#define ID_CE_OID_FRESHEST_CRL     (ID_CE_INDIC | 46)
-
-/** id-pe**/
-#define ID_PE_INDIC            (0x0200)
-#define ID_PE_OID_AUTH_INF_ACC (ID_PE_INDIC | 1)
-#define ID_PE_OID_SUBJ_INF_ACC (ID_PE_INDIC | 11)
 
 const flea_u8_t id_pe__cau8 [7] = {0x2B, 0x06, 0x01, 0x05, 0x05, 0x07, 0x01};
 
-static flea_err_t THR_flea_x509_cert_parse_basic_constraints(
+flea_err_t THR_flea_x509_cert_parse_basic_constraints(
   flea_ber_dec_t*           cont_dec__pt,
   flea_basic_constraints_t* basic_constraints__pt
 )
@@ -69,7 +47,7 @@ static flea_err_t THR_flea_x509_cert_parse_basic_constraints(
   FLEA_THR_FIN_SEC_empty();
 }
 
-static flea_err_t THR_flea_x509_cert__parse_eku(
+flea_err_t THR_flea_x509_cert__parse_eku(
   flea_ber_dec_t*   cont_dec__pt,
   flea_key_usage_t* ext_key_usage__pt
 )
@@ -111,7 +89,7 @@ static flea_err_t THR_flea_x509_cert__parse_eku(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_x509_cert__parse_eku */
 
-static flea_err_t THR_flea_x509_cert__parse_key_usage(
+flea_err_t THR_flea_x509_cert__parse_key_usage(
   flea_ber_dec_t*   cont_dec__pt,
   flea_key_usage_t* key_usage__pt
 )
@@ -136,15 +114,23 @@ static flea_err_t THR_flea_x509_cert__parse_key_usage(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_x509__parse_algid_ref(
+flea_err_t THR_flea_x509__decode_algid_ref(
   flea_x509_algid_ref_t* algid_ref__pt,
   flea_ber_dec_t*        dec__pt
 )
 {
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
-  FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_oid(dec__pt, &algid_ref__pt->oid_ref__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw_optional(dec__pt, &algid_ref__pt->params_ref_as_tlv__t));
+  // FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_oid(dec__pt, &algid_ref__pt->oid_ref__t));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__decode_value_raw_cft(
+      dec__pt,
+      FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, OID),
+      &algid_ref__pt->oid_ref__t
+    )
+  );
+  // FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw_optional(dec__pt, &algid_ref__pt->params_ref_as_tlv__t));
+  FLEA_CCALL(THR_flea_ber_dec_t__decode_tlv_raw_optional(dec__pt, &algid_ref__pt->params_ref_as_tlv__t));
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
   FLEA_THR_FIN_SEC_empty();
 }
@@ -559,7 +545,7 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
   FLEA_CCALL(THR_flea_ber_dec_t__decode_int(&dec__t, &cert_ref__pt->serial_number__t));
 
 
-  FLEA_CCALL(THR_flea_x509__parse_algid_ref(&cert_ref__pt->tbs_sig_algid__t, &dec__t));
+  FLEA_CCALL(THR_flea_x509__decode_algid_ref(&cert_ref__pt->tbs_sig_algid__t, &dec__t));
   FLEA_CCALL(THR_flea_x509__parse_dn(&cert_ref__pt->issuer__t, &dec__t));
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
 
@@ -571,7 +557,7 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
 
   /* enter subject public key info */
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
-  FLEA_CCALL(THR_flea_x509__parse_algid_ref(&cert_ref__pt->subject_public_key_info__t.algid__t, &dec__t));
+  FLEA_CCALL(THR_flea_x509__decode_algid_ref(&cert_ref__pt->subject_public_key_info__t.algid__t, &dec__t));
 
   FLEA_CCALL(
     THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(
@@ -602,7 +588,7 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
   /* closing the tbs */
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
 
-  FLEA_CCALL(THR_flea_x509__parse_algid_ref(&outer_sig_algid__t, &dec__t));
+  FLEA_CCALL(THR_flea_x509__decode_algid_ref(&outer_sig_algid__t, &dec__t));
   FLEA_CCALL(THR_flea_x509__process_alg_ids(&cert_ref__pt->tbs_sig_algid__t, &outer_sig_algid__t));
   FLEA_CCALL(
     THR_flea_ber_dec_t__get_ref_to_raw_cft(

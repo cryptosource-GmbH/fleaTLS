@@ -208,3 +208,13 @@ flea_err_t THR_flea_byte_vec_t__append(
   byte_vec__pt->len__dtl = new_len__dtl;
   FLEA_THR_FIN_SEC();
 }
+
+flea_err_t THR_flea_byte_vec_t__push_back(
+  flea_byte_vec_t* byte_vec__pt,
+  flea_u8_t        byte
+)
+{
+  flea_u8_t byte__u8 = byte;
+
+  return THR_flea_byte_vec_t__append(byte_vec__pt, &byte__u8, 1);
+}

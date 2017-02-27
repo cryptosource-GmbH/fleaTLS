@@ -13,7 +13,6 @@
 #include "internal/common/pk_enc/oaep.h"
 #include "test_data_rsa_key_internal_format.h"
 #include "flea/privkey.h"
-#include "heap_stack_abstraction.h"
 
 /*
  * Reference test data created with Botan.
@@ -563,8 +562,9 @@ static flea_err_t THR_flea_inner_test_pk_encryption(
 {
   const flea_u8_t rsa_pub_exp__acu8[] = {0x01, 0x00, 0x01};
 
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(ciphertext__t, 2048 / 8);
   FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
-  FLEA_DECL_BUF(ciphertext__bu8, flea_u8_t, 2048 / 8); // FLEA_PK_MAX_PRIMITIVE_OUTPUT_LEN);
+  // FLEA_DECL_BUF(ciphertext__bu8, flea_u8_t, 2048 / 8); // FLEA_PK_MAX_PRIMITIVE_OUTPUT_LEN);
   const flea_u8_t message__acu8 [] = {0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
                                       0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
                                       0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
@@ -572,10 +572,10 @@ static flea_err_t THR_flea_inner_test_pk_encryption(
                                       0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0x11};
   // FLEA_DECL_BUF(decrypted__bu8, flea_u8_t, sizeof(message__acu8));
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(decr_vec__t, sizeof(message__acu8));
-  flea_al_u16_t ciphertext_len__alu16 = 2048 / 8;
+  // flea_al_u16_t ciphertext_len__alu16 = 2048 / 8;
   // flea_al_u16_t decrypted_len__alu16  = sizeof(message__acu8);
   FLEA_THR_BEG_FUNC();
-  FLEA_ALLOC_BUF(ciphertext__bu8, ciphertext_len__alu16);
+  // FLEA_ALLOC_BUF(ciphertext__bu8, ciphertext_len__alu16);
   // FLEA_ALLOC_BUF(decrypted__bu8, decrypted_len__alu16);
 
   flea_ref_cu8_t priv_key_int_form__rcu8 = {.data__pcu8 = rsa_2048_crt_key_internal_format__acu8, .len__dtl = sizeof(rsa_2048_crt_key_internal_format__acu8)};
@@ -594,8 +594,10 @@ static flea_err_t THR_flea_inner_test_pk_encryption(
       hash_id__t,
       message__acu8,
       sizeof(message__acu8),
-      ciphertext__bu8,
-      &ciphertext_len__alu16,
+      &ciphertext__t,
+
+      /*ciphertext__bu8,
+       * &ciphertext_len__alu16,*/
       rsa_2048_pub_key_internal_format__acu8,
       sizeof(rsa_2048_pub_key_internal_format__acu8),
       rsa_pub_exp__acu8,
@@ -607,8 +609,8 @@ static flea_err_t THR_flea_inner_test_pk_encryption(
     THR_flea_pk_api__decrypt_message(
       id__t,
       hash_id__t,
-      ciphertext__bu8,
-      ciphertext_len__alu16,
+      ciphertext__t.data__pu8,
+      ciphertext__t.len__dtl,
 
       /*decrypted__bu8,
        * &decrypted_len__alu16,*/
@@ -629,8 +631,8 @@ static flea_err_t THR_flea_inner_test_pk_encryption(
     FLEA_THROW("decrypted pk message has incorrect content", FLEA_ERR_FAILED_TEST);
   }
   FLEA_THR_FIN_SEC(
-    FLEA_FREE_BUF_FINAL(ciphertext__bu8);
     flea_byte_vec_t__dtor(&decr_vec__t);
+    flea_byte_vec_t__dtor(&ciphertext__t);
     flea_private_key_t__dtor(&privkey__t);
   );
 } /* THR_flea_inner_test_pk_encryption */

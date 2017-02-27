@@ -95,24 +95,25 @@ flea_err_t THR_get_hash_id_from_x509_id_for_ecdsa(
 } /* THR_get_hash_id_from_x509_id_for_ecdsa */
 
 # ifdef FLEA_HAVE_ECC
-
+#  if 0
 static flea_err_t THR_flea_x509_verify_ecdsa_signature(
   const flea_byte_vec_t*   oid_ref__pt,
   const flea_public_key_t* ver_key__pt,
   const flea_byte_vec_t*   der_enc_signature__pt,
-  const flea_byte_vec_t*   tbs_data__pt
+  const flea_byte_vec_t*   tbs_data__pt,
+  flea_hash_id_t           ecdsa_hash_id__t
 )
 {
-  flea_hash_id_t ecdsa_hash_id__t;
+  // flea_hash_id_t ecdsa_hash_id__t;
 
   FLEA_THR_BEG_FUNC();
-  /* allocating DER encoded size wastes a few bytes of RAM but saves some code */
-  FLEA_CCALL(
-    THR_get_hash_id_from_x509_id_for_ecdsa(
-      oid_ref__pt->data__pu8 + sizeof(ecdsa_oid_prefix__acu8),
-      &ecdsa_hash_id__t
-    )
-  );
+
+  /*  FLEA_CCALL(
+   *  THR_get_hash_id_from_x509_id_for_ecdsa(
+   *    oid_ref__pt->data__pu8 + sizeof(ecdsa_oid_prefix__acu8),
+   *    &ecdsa_hash_id__t
+   *  )
+   * );*/
   FLEA_CCALL(
     THR_flea_public_key_t__verify_signature(
       ver_key__pt,
@@ -126,6 +127,8 @@ static flea_err_t THR_flea_x509_verify_ecdsa_signature(
   FLEA_THR_FIN_SEC(
   );
 }
+
+#  endif /* if 0 */
 
 /* assumes that result__pu8 has sufficient length allocated */
 static flea_err_t THR_flea_x509_decode_ecdsa_signature(
@@ -423,6 +426,36 @@ static flea_err_t THR_flea_public_key_t__create_rsa_key(
 
 # endif /* ifdef FLEA_HAVE_RSA */
 
+flea_err_t THR_flea_determine_public_key_type_from_oid(
+  const flea_u8_t*    oid_val__pcu8,
+  flea_dtl_t          oid_val_len__dtl,
+  flea_pk_key_type_t* result_key_type__pe
+)
+{
+  FLEA_THR_BEG_FUNC();
+# ifdef FLEA_HAVE_RSA
+  if(((oid_val_len__dtl == sizeof(pkcs1_oid_prefix__cau8) + 1)) &&
+    !memcmp(oid_val__pcu8, pkcs1_oid_prefix__cau8, sizeof(pkcs1_oid_prefix__cau8)))
+  {
+    *result_key_type__pe = flea_rsa_key;
+  }
+  else
+# endif /* ifdef FLEA_HAVE_RSA */
+# ifdef FLEA_HAVE_ECC
+  if(oid_val_len__dtl == sizeof(ecdsa_oid_prefix__acu8) + 2 &&
+    !memcmp(oid_val__pcu8, ecdsa_oid_prefix__acu8, sizeof(ecdsa_oid_prefix__acu8)))
+  {
+    *result_key_type__pe = flea_ecc_key;
+  }
+  else
+# endif /* #ifdef FLEA_HAVE_ECC */
+  {
+    FLEA_THROW("unsupported primitive", FLEA_ERR_X509_UNSUPP_PRIMITIVE);
+  }
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
 flea_err_t THR_flea_public_key_t__ctor_cert(
   flea_public_key_t*          key__pt,
   const flea_x509_cert_ref_t* cert_ref__pt
@@ -431,7 +464,17 @@ flea_err_t THR_flea_public_key_t__ctor_cert(
   const flea_byte_vec_t* oid_ref__pt = &cert_ref__pt->tbs_sig_algid__t.oid_ref__t;
 
   FLEA_THR_BEG_FUNC();
-# ifdef FLEA_HAVE_RSA
+
+  FLEA_CCALL(
+    THR_flea_public_key_t__ctor_asn1(
+      key__pt,
+      &cert_ref__pt->subject_public_key_info__t.public_key_as_tlv__t,
+      &cert_ref__pt->subject_public_key_info__t.algid__t.params_ref_as_tlv__t,
+      oid_ref__pt
+    )
+  );
+# if 0
+#  ifdef FLEA_HAVE_RSA
   if(((oid_ref__pt->len__dtl == sizeof(pkcs1_oid_prefix__cau8) + 1)) &&
     !memcmp(oid_ref__pt->data__pu8, pkcs1_oid_prefix__cau8, sizeof(pkcs1_oid_prefix__cau8)))
   {
@@ -445,8 +488,8 @@ flea_err_t THR_flea_public_key_t__ctor_cert(
     );
   }
   else
-# endif /* ifdef FLEA_HAVE_RSA */
-# ifdef FLEA_HAVE_ECC
+#  endif /* ifdef FLEA_HAVE_RSA */
+#  ifdef FLEA_HAVE_ECC
   if(oid_ref__pt->len__dtl == sizeof(ecdsa_oid_prefix__acu8) + 2 &&
     !memcmp(oid_ref__pt->data__pu8, ecdsa_oid_prefix__acu8, sizeof(ecdsa_oid_prefix__acu8)))
   {
@@ -460,18 +503,19 @@ flea_err_t THR_flea_public_key_t__ctor_cert(
     );
   }
   else
-# endif /* #ifdef FLEA_HAVE_ECC */
+#  endif /* #ifdef FLEA_HAVE_ECC */
   {
     FLEA_THROW("unsupported primitive", FLEA_ERR_X509_UNSUPP_PRIMITIVE);
   }
+# endif /* if 0 */
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_public_key_t__ctor_cert */
 
-flea_err_t THR_flea_public_key_t__ctor(
+flea_err_t THR_flea_public_key_t__ctor_asn1(
   flea_public_key_t*     key__pt,
-  flea_pk_key_type_t     key_type,
   const flea_byte_vec_t* key_as_bit_string_tlv__prcu8,
-  const flea_byte_vec_t* encoded_params__prcu8
+  const flea_byte_vec_t* encoded_params__prcu8,
+  const flea_byte_vec_t* alg_oid__pt
 )
 {
   FLEA_DECL_OBJ(key_dec__t, flea_ber_dec_t);
@@ -480,7 +524,13 @@ flea_err_t THR_flea_public_key_t__ctor(
   FLEA_THR_BEG_FUNC();
   flea_byte_vec_t public_key_as_bitstr__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
   flea_byte_vec_t public_key_value__t     = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE; /* BIT STRING value */
-  key__pt->key_type__t = key_type;
+  FLEA_CCALL(
+    THR_flea_determine_public_key_type_from_oid(
+      alg_oid__pt->data__pu8,
+      alg_oid__pt->len__dtl,
+      &key__pt->key_type__t
+    )
+  );
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor_memory(
       &source__t,
@@ -506,7 +556,7 @@ flea_err_t THR_flea_public_key_t__ctor(
   );
 
 # ifdef FLEA_HAVE_ECC
-  if(key_type == flea_ecc_key)
+  if(key__pt->key_type__t == flea_ecc_key)
   {
     flea_ec_gfp_dom_par_ref_t dp_ref__t;
     FLEA_CCALL(THR_flea_x509_parse_ecc_public_params(encoded_params__prcu8, &dp_ref__t));
@@ -517,7 +567,7 @@ flea_err_t THR_flea_public_key_t__ctor(
 # endif
 # ifdef FLEA_HAVE_RSA
 
-  if(key_type == flea_rsa_key)
+  if(key__pt->key_type__t == flea_rsa_key)
   {
     /*flea_byte_vec_t mod__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
      *  flea_byte_vec_t exp__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;*/
@@ -657,6 +707,52 @@ flea_err_t THR_flea_public_key_t__verify_signature(
   );
 } /* THR_flea_public_key_t__verify_signature */
 
+flea_err_t THR_flea_x509_get_hash_id_and_key_type_from_oid(
+  const flea_u8_t*    oid__pcu8,
+  flea_al_u16_t       oid_len__alu16,
+  flea_hash_id_t*     result_hash_id__pe,
+  flea_pk_key_type_t* result_key_type_e
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+# ifdef FLEA_HAVE_RSA
+  if(((oid_len__alu16 == sizeof(pkcs1_oid_prefix__cau8) + 1)) &&
+    !memcmp(oid__pcu8, pkcs1_oid_prefix__cau8, sizeof(pkcs1_oid_prefix__cau8)))
+  {
+    FLEA_CCALL(
+      THR_get_hash_id_from_x509_id_for_rsa(
+        oid__pcu8[sizeof(pkcs1_oid_prefix__cau8)],
+        result_hash_id__pe
+      )
+    );
+
+    *result_key_type_e = flea_rsa_key;
+  }
+  else
+# endif /* ifdef FLEA_HAVE_RSA */
+# ifdef FLEA_HAVE_ECC
+  if(oid_len__alu16 == sizeof(ecdsa_oid_prefix__acu8) + 2 &&
+    !memcmp(oid__pcu8, ecdsa_oid_prefix__acu8, sizeof(ecdsa_oid_prefix__acu8)))
+  {
+    FLEA_CCALL(
+      THR_get_hash_id_from_x509_id_for_ecdsa(
+        oid__pcu8 + sizeof(ecdsa_oid_prefix__acu8),
+        result_hash_id__pe
+      )
+    );
+    *result_key_type_e = flea_ecc_key;
+  }
+  else
+# endif /* ifdef FLEA_HAVE_ECC */
+  {
+    FLEA_THROW("invalid signature algorithm", FLEA_ERR_X509_SIG_ALG_ERR);
+  }
+
+
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_x509_get_hash_id_and_scheme_type_from_oid */
+
 flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
   const flea_public_key_t*     public_key__pt,
   const flea_x509_algid_ref_t* sigalg_id__t,
@@ -665,56 +761,52 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
 )
 {
   const flea_byte_vec_t* oid_ref__pt = &sigalg_id__t->oid_ref__t;
+  flea_hash_id_t hash_id;
+  flea_pk_key_type_t key_type;
 
   FLEA_THR_BEG_FUNC();
-# ifdef FLEA_HAVE_RSA
-  if(((oid_ref__pt->len__dtl == sizeof(pkcs1_oid_prefix__cau8) + 1)) &&
-    !memcmp(oid_ref__pt->data__pu8, pkcs1_oid_prefix__cau8, sizeof(pkcs1_oid_prefix__cau8)))
+  FLEA_CCALL(
+    THR_flea_x509_get_hash_id_and_key_type_from_oid(
+      oid_ref__pt->data__pu8,
+      oid_ref__pt->len__dtl,
+      &hash_id,
+      &key_type
+    )
+  );
+  if(key_type != public_key__pt->key_type__t)
   {
-    flea_hash_id_t hash_id__t;
-    if(public_key__pt->key_type__t == flea_rsa_key)
-    {
-      FLEA_CCALL(
-        THR_get_hash_id_from_x509_id_for_rsa(
-          oid_ref__pt->data__pu8[sizeof(pkcs1_oid_prefix__cau8)],
-          &hash_id__t
-        )
-      );
-      FLEA_CCALL(
-        THR_flea_public_key_t__verify_signature(
-          public_key__pt,
-          flea_rsa_pkcs1_v1_5_sign,
-          tbs_data__pt,
-          signature__pt,
-          hash_id__t
-        )
-      );
-    }
-    else
-    {
-      FLEA_THROW("key type and algorithm don't match", FLEA_ERR_INV_ALGORITHM);
-    }
+    FLEA_THROW("key type and algorithm don't match", FLEA_ERR_INV_ALGORITHM);
+  }
+
+# ifdef FLEA_HAVE_RSA
+  if(key_type == flea_rsa_key)
+  {
+    FLEA_CCALL(
+      THR_flea_public_key_t__verify_signature(
+        public_key__pt,
+        flea_rsa_pkcs1_v1_5_sign,
+        tbs_data__pt,
+        signature__pt,
+        hash_id
+      )
+    );
   }
   else
 # endif /* ifdef FLEA_HAVE_RSA */
 # ifdef FLEA_HAVE_ECC
-  if(oid_ref__pt->len__dtl == sizeof(ecdsa_oid_prefix__acu8) + 2 &&
-    !memcmp(oid_ref__pt->data__pu8, ecdsa_oid_prefix__acu8, sizeof(ecdsa_oid_prefix__acu8)))
+  if(key_type == flea_ecc_key)
   {
-    if(public_key__pt->key_type__t == flea_ecc_key)
-    {
-      FLEA_CCALL(THR_flea_x509_verify_ecdsa_signature(oid_ref__pt, public_key__pt, signature__pt, tbs_data__pt));
-    }
-    else
-    {
-      FLEA_THROW("key type and algorithm don't match", FLEA_ERR_INV_ALGORITHM);
-    }
+    FLEA_CCALL(
+      THR_flea_public_key_t__verify_signature(
+        public_key__pt,
+        flea_ecdsa_emsa1,
+        tbs_data__pt,
+        signature__pt,
+        hash_id
+      )
+    );
   }
-  else
-# endif /* #ifdef FLEA_HAVE_ECC */
-  {
-    FLEA_THROW("unsupported primitive", FLEA_ERR_X509_UNSUPP_PRIMITIVE);
-  }
+# endif /* ifdef FLEA_HAVE_ECC */
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_public_key_t__verify_signature_use_sigalg_id */
 
@@ -724,8 +816,10 @@ flea_err_t THR_flea_public_key_t__encrypt_message(
   flea_hash_id_t           hash_id__t,
   const flea_u8_t*         message__pcu8,
   flea_al_u16_t            message_len__alu16,
-  flea_u8_t*               result__pu8,
-  flea_al_u16_t*           result_len__palu16
+  flea_byte_vec_t*         result__pt
+
+  /*  flea_u8_t*               result__pu8,
+   * flea_al_u16_t*           result_len__palu16*/
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -740,8 +834,10 @@ flea_err_t THR_flea_public_key_t__encrypt_message(
       hash_id__t,
       message__pcu8,
       message_len__alu16,
-      result__pu8,
-      result_len__palu16,
+      result__pt,
+
+      /*result__pu8,
+       * result_len__palu16,*/
       key__pt->pubkey_with_params__u.rsa_public_val__t.mod__rcu8.data__pcu8,
       key__pt->pubkey_with_params__u.rsa_public_val__t.mod__rcu8.len__dtl,
       key__pt->pubkey_with_params__u.rsa_public_val__t.pub_exp__rcu8.data__pcu8,

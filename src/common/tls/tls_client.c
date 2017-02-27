@@ -207,6 +207,7 @@ static flea_err_t THR_flea_tls__send_client_key_exchange_rsa(
   flea_byte_vec_t*   premaster_secret__pt
 )
 {
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(encrypted__t, FLEA_RSA_MAX_MOD_BYTE_LEN);
   FLEA_THR_BEG_FUNC();
 
   const flea_u32_t premaster_secret_len = 48;
@@ -238,25 +239,36 @@ static flea_err_t THR_flea_tls__send_client_key_exchange_rsa(
       premaster_secret__pt->data__pu8,
       // tls_ctx->premaster_secret,
       premaster_secret_len,
-      enc,
-      &result_len
+      &encrypted__t
+
+      /*enc,
+       * &result_len*/
     )
   );
 
   flea_u8_t len_enc[2];
-  flea__encode_U16_BE(result_len, len_enc);
+  flea__encode_U16_BE(encrypted__t.len__dtl, len_enc);
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_hdr(
       &tls_ctx->rec_prot__t,
       hash_ctx,
       HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE,
-      result_len + sizeof(len_enc)
+      encrypted__t.len__dtl + sizeof(len_enc)
     )
   );
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, len_enc, sizeof(len_enc)));
-  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, enc, result_len));
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      encrypted__t.data__pu8,
+      encrypted__t.len__dtl
+    )
+  );
 
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC(
+    flea_byte_vec_t__dtor(&encrypted__t);
+  );
 } /* THR_flea_tls__send_client_key_exchange_rsa */
 
 // send_client_key_exchange

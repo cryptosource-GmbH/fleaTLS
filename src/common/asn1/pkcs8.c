@@ -188,7 +188,7 @@ static flea_err_t THR_flea_create_private_and_or_public_key_from_pkcs8(
   {
     FLEA_THROW("invalid PKCS#8 version", FLEA_ERR_X509_VERSION_ERROR);
   }
-  FLEA_CCALL(THR_flea_x509__parse_algid_ref(&algid_ref__t, &dec__t));
+  FLEA_CCALL(THR_flea_x509__decode_algid_ref(&algid_ref__t, &dec__t));
   FLEA_CCALL(
     THR_flea_ber_dec_t__get_ref_to_raw_cft(
       &dec__t,

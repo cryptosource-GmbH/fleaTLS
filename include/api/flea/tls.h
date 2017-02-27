@@ -21,11 +21,11 @@ extern "C" {
 
 // defines for max sizes to allocate on the stack
 // TODO: cleaner solution?
-#define FLEA_TLS_MAX_MAC_SIZE         32
-#define FLEA_TLS_MAX_MAC_KEY_SIZE     32
-#define FLEA_TLS_MAX_IV_SIZE          32
-#define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
-#define FLEA_TLS_MAX_PADDING_SIZE     255   // each byte must hold the padding value => 255 is max
+#define FLEA_TLS_MAX_MAC_SIZE     32
+#define FLEA_TLS_MAX_MAC_KEY_SIZE 32
+#define FLEA_TLS_MAX_IV_SIZE      32
+// #define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
+#define FLEA_TLS_MAX_PADDING_SIZE 255 // each byte must hold the padding value => 255 is max
 
 // TODO: ASSIGN FIXED VALUES?
 typedef enum { PRF_LABEL_TEST, PRF_LABEL_CLIENT_FINISHED, PRF_LABEL_SERVER_FINISHED, PRF_LABEL_MASTER_SECRET,
