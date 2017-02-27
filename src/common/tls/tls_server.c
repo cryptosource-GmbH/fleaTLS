@@ -418,6 +418,8 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
   flea_private_key_t key__t;
   const flea_u16_t max_enc_premaster_secret_len__u16 = 256;
 
+  // FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(decrypted__t, FLEA_RSA_MAX_MOD_BYTE_LEN);
+
   // flea_al_u16_t premaster_secret__len_u16 = 256;
 
   FLEA_DECL_BUF(enc_premaster_secret__bu8, flea_u8_t, 256); // TODO: need more ?
@@ -757,11 +759,7 @@ flea_err_t THR_flea_tls__server_handshake(
         printf("SM: sent finished\n");
 
         handshake_state.finished = FLEA_TRUE;
-
-
-        /*
-         * Enable encryption for outgoing messages
-         */
+        break;
       }
 
       continue;
