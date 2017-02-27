@@ -63,7 +63,7 @@ flea_err_t THR_flea_x509_verify_cert_signature(
   flea_byte_vec_t subj_tbs_ref__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
-    THR_flea_x509_cert__get_ref_to_tbs(
+    THR_flea_x509_cert__get_ref_to_tbs_byte_vec(
       enc_subject_cert__pcu8,
       enc_subject_cert_len__dtl,
       &subj_tbs_ref__rcu8

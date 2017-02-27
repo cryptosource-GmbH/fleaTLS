@@ -399,16 +399,13 @@ flea_err_t THR_flea_tls__read_certificate(
   flea_public_key_t*        pubkey
 )
 {
-  FLEA_DECL_BUF(cert_chain__bu8, flea_u8_t, 10000);
-  flea_u32_t cert_chain_len__u32;
+  // flea_u32_t cert_chain_len__u32;
   flea_u8_t dummy__au8_l3[3];
 
   FLEA_THR_BEG_FUNC();
 
 
-  cert_chain_len__u32 = flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt);
-  // TODO: cert read stream
-  FLEA_ALLOC_BUF(cert_chain__bu8, cert_chain_len__u32);
+  // cert_chain_len__u32 = flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt);
 #if 0
   FLEA_CCALL(
     THR_flea_rw_stream_t__force_read(
@@ -422,6 +419,7 @@ flea_err_t THR_flea_tls__read_certificate(
 #else
   // ADD ALSO CRLS
   //
+  // TODO: WHAT IS READ HERE?
   FLEA_CCALL(
     THR_flea_rw_stream_t__force_read(
       flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
@@ -438,8 +436,7 @@ flea_err_t THR_flea_tls__read_certificate(
     )
   );
 #endif /* if 0 */
-  FLEA_THR_FIN_SEC(
-    FLEA_FREE_BUF_FINAL(cert_chain__bu8);
+  FLEA_THR_FIN_SEC_empty(
   );
 } /* THR_flea_tls__read_certificate */
 

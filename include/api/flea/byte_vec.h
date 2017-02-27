@@ -70,7 +70,7 @@ int flea_byte_vec_t__cmp(
 
 void flea_byte_vec_t__set_ref(
   flea_byte_vec_t* byte_vec__pt,
-  flea_u8_t*       data__pcu8,
+  const flea_u8_t* data__pcu8,
   flea_dtl_t       data_len__dtl
 );
 

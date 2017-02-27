@@ -6,9 +6,9 @@
 #include "internal/common/default.h"
 #include "flea/error.h"
 #include "flea/types.h"
+#include "flea/byte_vec.h"
 #include "internal/common/len_ctr.h"
 #include "flea/block_cipher.h"
-#include <stdlib.h>
 #include "internal/common/hash_int.h"
 
 #ifdef __cplusplus
@@ -115,6 +115,11 @@ flea_err_t THR_flea_hash_ctx_t__update(
   flea_dtl_t       input_len
 );
 
+flea_err_t THR_flea_hash_ctx_t__final_byte_vec(
+  flea_hash_ctx_t* p_ctx,
+  flea_byte_vec_t* result__pt
+);
+
 /**
  * Finalize the hash computation of a context object and generate the hash
  * value.
@@ -188,6 +193,13 @@ flea_err_t THR_flea_compute_hash(
   flea_dtl_t       input_len,
   flea_u8_t*       output,
   flea_al_u16_t    output_len
+);
+
+flea_err_t THR_flea_compute_hash_byte_vec(
+  flea_hash_id_t   id,
+  const flea_u8_t* input_pu8,
+  flea_dtl_t       input_len_al_u16,
+  flea_byte_vec_t* result__pt
 );
 
 #ifdef __cplusplus

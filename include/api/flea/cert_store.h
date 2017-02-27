@@ -47,6 +47,14 @@ flea_err_t THR_flea_cert_store_t__is_cert_trusted(
   flea_bool_t*             result_is_trusted__pb
 );
 
+flea_err_t THR_flea_cert_store_t__is_tbs_hash_trusted(
+  const flea_cert_store_t* cert_store__pct,
+  flea_hash_id_t           tbs_cert_hash_id__e,
+  const flea_u8_t*         tbs_cert_hash_to_check__pcu8,
+  flea_al_u8_t             tbs_cert_hash_to_check_len__alu8,
+  flea_bool_t*             result_is_trusted__pb
+);
+
 /**
  * Add the trusted certs in a cert store to a path validator object as trust
  * anchors to be used in path validation.

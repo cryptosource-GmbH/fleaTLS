@@ -4,6 +4,7 @@
 #include "flea/types.h"
 #include "flea/alloc.h"
 #include "flea/cert_verify.h"
+#include "flea/byte_vec.h"
 #include "flea/error_handling.h"
 #include "internal/common/ber_dec.h"
 #include "flea/x509.h"
@@ -21,7 +22,8 @@
 #define FLEA_TLS_CERT_PATH_MAX_LEN              20
 #define FLEA_X509_CERT_PRE_SIGALGID_BUFFER_SIZE 70
 
-flea_err_t THR_flea_tls__cert_path_validation(
+#if 0
+flea_err_t THR_flea_tls__cert_path_validation_OLD(
   flea_tls_ctx_t*          tls_ctx__pt,
   // flea_tls_handsh_reader_t* hs_rdr__pt,
   flea_rw_stream_t*        rd_strm__pt,
@@ -171,6 +173,9 @@ flea_err_t THR_flea_tls__cert_path_validation(
     FLEA_FREE_BUF_FINAL(cert_buf_2__bu8);
   );
 } /* THR_flea_tls__cert_path_validation */
+
+#endif /* if 0 */
+
 
 static flea_err_t THR_flea_tls_chec_cert_validity_time(
   flea_ber_dec_t*        dec__pt,
@@ -405,9 +410,15 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
             FLEA_THROW("unsupported critical extension", FLEA_ERR_X509_ERR_UNSUP_CRIT_EXT);
           }
     }
-    // close conceptual constructed of extension octet string
+    /* close conceptual constructed of extension octet string */
     FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(dec__pt));
+    /* close the extension */
+    FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
   }
+  /* close extensions */
+  FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
+  /* close implicit */
+  FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
   FLEA_THR_FIN_SEC(
     flea_byte_vec_t__dtor(&ext_oid__t);
   );
@@ -415,9 +426,11 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
 
 static flea_err_t THR_flea_tls__validate_cert(
   flea_rw_stream_t*           rd_strm__pt,
+  flea_u32_t                  new_cert_len__u32,
   flea_public_key_t*          pubkey_out__pt,
   flea_byte_vec_t*            signature_in_out__pt,
   flea_byte_vec_t*            tbs_hash_in_out__pt,
+  flea_hash_id_t*             tbs_hash_id__pe,
   flea_bool_t                 have_precursor_to_verify__b,
   flea_byte_vec_t*            issuer_dn__pt, // previous issuer on input, gets updated to validated cert's subject
   const flea_gmt_time_t*      compare_time__pt,
@@ -437,7 +450,7 @@ static flea_err_t THR_flea_tls__validate_cert(
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(var_buffer__t, 200);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_issuer__t, 200);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_subject__t, 200);
-  flea_bool_t found_tag__b;
+  flea_bool_t optional_found__b;
   flea_x509_algid_ref_t sigalg_id__t         = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
   flea_x509_algid_ref_t outer_sigalg_id__t   = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
   flea_x509_algid_ref_t public_key_alg_id__t = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
@@ -458,7 +471,7 @@ static flea_err_t THR_flea_tls__validate_cert(
     THR_flea_ber_dec_t__ctor_hash_support(
       &dec__t,
       rd_strm__pt,
-      0,
+      new_cert_len__u32,
       flea_decode_copy,
       &back_buffer__t,
       &hash__t
@@ -466,16 +479,17 @@ static flea_err_t THR_flea_tls__validate_cert(
   );
 
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
+  flea_ber_dec_t__activate_hashing(&dec__t);
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
   FLEA_CCALL(
     THR_flea_ber_dec_t__open_constructed_optional(
       &dec__t,
       0,
       FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC,
-      &found_tag__b
+      &optional_found__b
     )
   );
-  if(found_tag__b)
+  if(optional_found__b)
   {
     // flea_dtl_t version_len__dtl = 1;
     // flea_u8_t version__u8;
@@ -507,13 +521,14 @@ static flea_err_t THR_flea_tls__validate_cert(
       &key_type
     )
   );
-  FLEA_CCALL(THR_flea_ber_dec_t__activate_hashing(&dec__t, sigalg_hash_id));
+  FLEA_CCALL(THR_flea_ber_dec_t__set_hash_id(&dec__t, sigalg_hash_id));
   // CANT'T BE CALLED, ASSUMES MEM SRC:
   // FLEA_CCALL(THR_flea_x509__parse_dn(&local_dn__t, &dec__t));
   FLEA_CCALL(
+    // TODO: causes error in first cert
     THR_flea_ber_dec_t__read_value_raw_cft(
       &dec__t,
-      FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, SEQUENCE),
+      FLEA_ASN1_CFT_MAKE2(UNIVERSAL_CONSTRUCTED, SEQUENCE),
       &local_issuer__t
     )
   );
@@ -525,39 +540,41 @@ static flea_err_t THR_flea_tls__validate_cert(
   FLEA_CCALL(
     THR_flea_ber_dec_t__read_value_raw_cft(
       &dec__t,
-      FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, SEQUENCE),
+      FLEA_ASN1_CFT_MAKE2(UNIVERSAL_CONSTRUCTED, SEQUENCE),
       &local_subject__t
     )
   );
-  if(have_precursor_to_verify__b && flea_byte_vec_t__cmp(issuer_dn__pt, &local_issuer__t))
+  if(have_precursor_to_verify__b && flea_byte_vec_t__cmp(issuer_dn__pt, &local_subject__t))
   {
     FLEA_THROW("name chaining failed", FLEA_ERR_X509_DN_ERROR);
   }
+  FLEA_CCALL(THR_flea_byte_vec_t__set_content(issuer_dn__pt, local_issuer__t.data__pu8, local_issuer__t.len__dtl));
   /* enter subject public key info */
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
   FLEA_CCALL(THR_flea_x509__decode_algid_ref(&public_key_alg_id__t, &dec__t));
 
+  optional_found__b = FLEA_FALSE;
   FLEA_CCALL(
-    THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(
+    THR_flea_ber_dec_t__decode_tlv_raw_optional(
       &dec__t,
-      &public_key_value__t
+      &public_key_value__t,
+      &optional_found__b
+    )
+  );
+
+  FLEA_CCALL(
+    THR_flea_public_key_t__ctor_asn1(
+      pubkey_out__pt,
+      &public_key_value__t,
+      &public_key_alg_id__t.params_ref_as_tlv__t,
+      &public_key_alg_id__t.oid_ref__t
     )
   );
   if(have_precursor_to_verify__b)
   {
-    flea_hash_id_t hash_id;
-    flea_pk_key_type_t key_type;
     flea_pk_scheme_id_t scheme_id;
 
-    FLEA_CCALL(
-      THR_flea_x509_get_hash_id_and_key_type_from_oid(
-        public_key_alg_id__t.oid_ref__t.data__pu8,
-        public_key_alg_id__t.oid_ref__t.len__dtl,
-        &hash_id,
-        &key_type
-      )
-    );
-    if(key_type == flea_rsa_key)
+    if(pubkey_out__pt->key_type__t == flea_rsa_key)
     {
       scheme_id = flea_rsa_pkcs1_v1_5_sign;
     }
@@ -566,20 +583,12 @@ static flea_err_t THR_flea_tls__validate_cert(
       scheme_id = flea_ecdsa_emsa1;
     }
 
-    FLEA_CCALL(
-      THR_flea_public_key_t__ctor_asn1(
-        pubkey_out__pt,
-        &public_key_value__t,
-        &public_key_alg_id__t.params_ref_as_tlv__t,
-        &public_key_alg_id__t.oid_ref__t
-      )
-    );
 
     FLEA_CCALL(
       THR_flea_pk_api__verify_digest(
         tbs_hash_in_out__pt->data__pu8,
         tbs_hash_in_out__pt->len__dtl,
-        hash_id,
+        *tbs_hash_id__pe,
         scheme_id,
         pubkey_out__pt,
         signature_in_out__pt->data__pu8,
@@ -621,13 +630,25 @@ static flea_err_t THR_flea_tls__validate_cert(
   // TODO: VALIDATE BASIC CONSTRAINTS
   /* closing the tbs */
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
+  // TODO: COMPUTE HASH
+
+  /*FLEA_CCALL(
+   * THR_flea_x509_get_hash_id_and_key_type_from_oid(
+   *  public_key_alg_id__t.oid_ref__t.data__pu8,
+   *  public_key_alg_id__t.oid_ref__t.len__dtl,
+   *  tbs_hash_id__pe,
+   *  &key_type
+   * )
+   * );*/
+  *tbs_hash_id__pe = sigalg_hash_id;
+  FLEA_CCALL(THR_flea_hash_ctx_t__final_byte_vec(&hash__t, tbs_hash_in_out__pt));
 
   FLEA_CCALL(THR_flea_x509__decode_algid_ref(&outer_sigalg_id__t, &dec__t));
   // TODO: THIS FUNCTION DOES A DANGEROUS REF-ASSIGNMENT OF THE PARAMS FROM ONE
   // SIGALG ID TO THE OTHER!
   FLEA_CCALL(THR_flea_x509__process_alg_ids(&sigalg_id__t, &outer_sigalg_id__t));
   FLEA_CCALL(
-    THR_flea_ber_dec_t__get_ref_to_raw_cft(
+    THR_flea_ber_dec_t__read_value_raw_cft(
       &dec__t,
       FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, BIT_STRING),
       signature_in_out__pt
@@ -636,5 +657,106 @@ static flea_err_t THR_flea_tls__validate_cert(
 
   FLEA_THR_FIN_SEC(
     flea_ber_dec_t__dtor(&dec__t);
+    flea_byte_vec_t__dtor(&local_subject__t);
   );
 } /* THR_flea_x509_cert_ref_t__ctor */
+
+flea_err_t THR_flea_tls__cert_path_validation(
+  flea_tls_ctx_t*          tls_ctx__pt,
+  flea_rw_stream_t*        rd_strm__pt,
+  const flea_cert_store_t* trust_store__pt,
+  flea_public_key_t*       pubkey_to_construct__pt
+)
+{
+  flea_u8_t enc_len__au8[3];
+  // flea_rw_stream_t* rd_strm__pt;
+  flea_bool_t finished__b = FLEA_FALSE;
+  flea_gmt_time_t compare_time__t;
+  flea_al_u16_t cert_count__alu16 = 0;
+  flea_bool_t first__b = FLEA_TRUE;
+  // TODO: can be used to see that last cert is handled:
+  // cert_chain_len__u32 = flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt)
+  flea_public_key_t cycling_pubkey__t = flea_public_key_t__INIT_VALUE;
+
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(cycling_signature__t, FLEA_RSA_MAX_MOD_BYTE_LEN + 10);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(cycling_tbs_hash__t, FLEA_MAX_HASH_OUT_LEN);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(cycling_issuer_dn, 100);
+  // flea_basic_constraints_t basic_constraints__t;
+  flea_hash_id_t cycling_hash_id;
+  flea_public_key_t* pubkey_ptr__pt = pubkey_to_construct__pt;
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&compare_time__t));
+
+  // rd_strm__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
+  do
+  {
+    flea_bool_t is_cert_trusted__b;
+    flea_basic_constraints_t basic_constraints__t;
+    flea_key_usage_t key_usage__t;
+    flea_key_usage_t extd_key_usage__t;
+    flea_x509_subj_alt_names_t san__t;
+    flea_u32_t new_cert_len__u32;
+
+    if(!first__b)
+    {
+      pubkey_ptr__pt = &cycling_pubkey__t;
+    }
+    if(++cert_count__alu16 > FLEA_TLS_CERT_PATH_MAX_LEN)
+    {
+      FLEA_THROW("maximal cert path size for TLS exceeded", FLEA_ERR_INV_ARG);
+    }
+
+    FLEA_CCALL(THR_flea_rw_stream_t__force_read(rd_strm__pt, enc_len__au8, sizeof(enc_len__au8)));
+    new_cert_len__u32 = ((flea_u32_t) enc_len__au8[0] << 16) | (enc_len__au8[1] << 8) | (enc_len__au8[2]);
+
+
+    // TODO: MAKE STRUCT FOR ALL THESE VALUES
+    FLEA_CCALL(
+      THR_flea_tls__validate_cert(
+        rd_strm__pt, // TODO: ALSO USE LENGTH LIMIT
+        new_cert_len__u32,
+        // &cycling_pubkey__t,
+        pubkey_ptr__pt,
+        &cycling_signature__t,
+        &cycling_tbs_hash__t,
+        &cycling_hash_id,
+        !first__b,
+        &cycling_issuer_dn,
+        &compare_time__t,
+        &key_usage__t,
+        &extd_key_usage__t,
+        &san__t,
+        &basic_constraints__t
+      )
+    );
+
+    if(!first__b)
+    {
+      flea_public_key_t__dtor(&cycling_pubkey__t);
+    }
+    // TODO: AN EOF ERROR SHOULD BE TRANSFORMED TO A USEFUL ERROR ("UNTRUSTED")
+    // TODO: CHECK NAME CHAINING
+    // TODO: CHECK SERVER NAME IF THIS IS A CLIENT
+    // check trusted based on hash
+    FLEA_CCALL(
+      THR_flea_cert_store_t__is_tbs_hash_trusted(
+        trust_store__pt,
+        cycling_hash_id,
+        cycling_tbs_hash__t.data__pu8,
+        cycling_tbs_hash__t.len__dtl,
+        &is_cert_trusted__b
+      )
+    );
+    if(is_cert_trusted__b)
+    {
+      FLEA_THR_RETURN();
+    }
+    // TODO:
+    // CHECK BASIC CONSTRAINTS AND KU
+    first__b = FLEA_FALSE;
+  } while(!finished__b);
+  FLEA_THR_FIN_SEC(
+    flea_public_key_t__dtor(&cycling_pubkey__t);
+  );
+} /* THR_flea_tls__cert_path_validation */
