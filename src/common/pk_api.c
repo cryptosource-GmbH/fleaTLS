@@ -305,7 +305,7 @@ flea_err_t THR_flea_pk_signer_t__final_verify(
 
   FLEA_CCALL(THR_flea_hash_ctx_t__final(&signer__pt->hash_ctx, digest_buf__bu8));
   FLEA_CCALL(
-    THR_flea_pk_signer_t__verify_digest(
+    THR_flea_pk_api__verify_digest(
       digest_buf__bu8,
       digest_len__alu8,
       signer__pt->hash_id__t,
@@ -320,7 +320,7 @@ flea_err_t THR_flea_pk_signer_t__final_verify(
   );
 }
 
-flea_err_t THR_flea_pk_signer_t__verify_digest(
+flea_err_t THR_flea_pk_api__verify_digest(
   const flea_u8_t*         digest__pcu8,
   flea_al_u8_t             digest_len__alu8,
   flea_hash_id_t           hash_id__t,

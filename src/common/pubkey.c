@@ -466,7 +466,7 @@ flea_err_t THR_flea_public_key_t__ctor_cert(
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(
-    THR_flea_public_key_t__ctor(
+    THR_flea_public_key_t__ctor_asn1(
       key__pt,
       &cert_ref__pt->subject_public_key_info__t.public_key_as_tlv__t,
       &cert_ref__pt->subject_public_key_info__t.algid__t.params_ref_as_tlv__t,
@@ -511,7 +511,7 @@ flea_err_t THR_flea_public_key_t__ctor_cert(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_public_key_t__ctor_cert */
 
-flea_err_t THR_flea_public_key_t__ctor(
+flea_err_t THR_flea_public_key_t__ctor_asn1(
   flea_public_key_t*     key__pt,
   const flea_byte_vec_t* key_as_bit_string_tlv__prcu8,
   const flea_byte_vec_t* encoded_params__prcu8,
@@ -707,7 +707,7 @@ flea_err_t THR_flea_public_key_t__verify_signature(
   );
 } /* THR_flea_public_key_t__verify_signature */
 
-flea_err_t THR_flea_x509_get_hash_id_and_scheme_type_from_oid(
+flea_err_t THR_flea_x509_get_hash_id_and_key_type_from_oid(
   const flea_u8_t*    oid__pcu8,
   flea_al_u16_t       oid_len__alu16,
   flea_hash_id_t*     result_hash_id__pe,
@@ -766,7 +766,7 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
-    THR_flea_x509_get_hash_id_and_scheme_type_from_oid(
+    THR_flea_x509_get_hash_id_and_key_type_from_oid(
       oid_ref__pt->data__pu8,
       oid_ref__pt->len__dtl,
       &hash_id,

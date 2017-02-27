@@ -129,7 +129,7 @@ flea_err_t THR_flea_pk_api__verify_signature(
   flea_hash_id_t           hash_id__t
 );
 
-flea_err_t THR_flea_pk_signer_t__verify_digest(
+flea_err_t THR_flea_pk_api__verify_digest(
   const flea_u8_t*         digest__pcu8,
   flea_al_u8_t             digest_len__alu8,
   flea_hash_id_t           hash_id__t,

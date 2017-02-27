@@ -34,7 +34,7 @@ flea_err_t THR_flea_tls__read_client_hello(
   flea_u16_t cipher_suites_len__u16;
   flea_bool_t found_compression_method;
   const flea_u16_t max_extension_len__u16 = 100; // max size for one extension
-  FLEA_DECL_BUF(extension__bu8, flea_u8_t, 100); // TODO: think about the max buffer size !
+  // FLEA_DECL_BUF(extension__bu8, flea_u8_t, 100); // TODO: think about the max buffer size !
   flea_u16_t all_extensions_len__u16;
   flea_u16_t extension_len__u16;
   flea_u8_t extension_type__au8[2]; // TODO: meaningful representation of extension type
@@ -109,7 +109,7 @@ flea_err_t THR_flea_tls__read_client_hello(
   flea_u8_t supported_cs__au8[2]   = {0x00, 0x3d}; // RSA AES256 CBC SHA256
   flea_u16_t supported_cs_len__u16 = 2;
   flea_u16_t supported_cs_index__u16;
-  flea_u8_t chosen_cs__au8[2];
+  // flea_u8_t chosen_cs__au8[2];
   // TODO: mit u16 arbeiten für die Ciphersuites statt mit 2-byte Arrays
   flea_u16_t chosen_cs_index__u16 = supported_cs_len__u16; // TODO: Falko: Off by one  ?
   while(cipher_suites_len__u16)
@@ -127,8 +127,8 @@ flea_err_t THR_flea_tls__read_client_hello(
         if(supported_cs_index__u16 < chosen_cs_index__u16)
         {
           chosen_cs_index__u16 = supported_cs_index__u16;
-          chosen_cs__au8[0]    = supported_cs__au8[chosen_cs_index__u16];
-          chosen_cs__au8[1]    = supported_cs__au8[chosen_cs_index__u16];
+          // chosen_cs__au8[0]    = supported_cs__au8[chosen_cs_index__u16];
+          // chosen_cs__au8[1]    = supported_cs__au8[chosen_cs_index__u16];
           found = FLEA_TRUE;
         }
       }
@@ -171,7 +171,7 @@ flea_err_t THR_flea_tls__read_client_hello(
     FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &all_extensions_len__u16));
 
     // read extensions
-    FLEA_ALLOC_BUF(extension__bu8, max_extension_len__u16); // TODO/QUESTION: Alloc anew for every extension or simply use the max extension length?
+    // FLEA_ALLOC_BUF(extension__bu8, max_extension_len__u16); // TODO/QUESTION: Alloc anew for every extension or simply use the max extension length?
     // ANSWER(Falko): Im es müssen die Extensions, die wir unterstützen,
     // verarbeitet werden können. Das sollte dann in Unterfunktionen erfolgen.
     // Somit brauchen wir hier keinen Buffer.
@@ -200,13 +200,16 @@ flea_err_t THR_flea_tls__read_client_hello(
       {
         FLEA_THROW("extension too long to be processed", FLEA_ERR_TLS_GENERIC);
       }
-      FLEA_CCALL(
-        THR_flea_rw_stream_t__force_read(
-          hs_rd_stream__pt,
-          extension__bu8,
-          extension_len__u16
-        )
-      );
+
+      /*FLEA_CCALL(
+       * THR_flea_rw_stream_t__force_read(
+       *  hs_rd_stream__pt,
+       *  extension__bu8,
+       *  extension_len__u16
+       * )
+       * );*/
+      FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, extension_len__u16));
+
 
       // TODO: implement handle_extension function that processes the extensions
     }

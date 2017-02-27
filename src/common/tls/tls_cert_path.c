@@ -7,6 +7,7 @@
 #include "flea/error_handling.h"
 #include "internal/common/ber_dec.h"
 #include "flea/x509.h"
+#include "flea/pk_api.h"
 #include "flea/asn1_date.h"
 #include "flea/namespace_asn1.h"
 #include "flea/tls.h"
@@ -407,7 +408,9 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
 
 static flea_err_t THR_flea_tls__validate_cert(
   flea_rw_stream_t*           rd_strm__pt,
+  flea_public_key_t*          pubkey_out__pt,
   flea_byte_vec_t*            signature_in_out__pt,
+  flea_byte_vec_t*            tbs_hash_in_out__pt,
   flea_bool_t                 have_precursor_to_verify__b,
   flea_byte_vec_t*            issuer_dn__pt, // previous issuer on input, gets updated to validated cert's subject
   const flea_gmt_time_t*      compare_time__pt,
@@ -442,6 +445,8 @@ static flea_err_t THR_flea_tls__validate_cert(
      // flea_x509_public_key_info_t  = flea_x509_public_key_info_t__
 
   FLEA_THR_BEG_FUNC();
+
+  flea_public_key_t__dtor(pubkey_out__pt);
   FLEA_CCALL(
     THR_flea_ber_dec_t__ctor_hash_support(
       &dec__t,
@@ -488,7 +493,7 @@ static flea_err_t THR_flea_tls__validate_cert(
 
   FLEA_CCALL(THR_flea_x509__decode_algid_ref(&sigalg_id__t, &dec__t));
   FLEA_CCALL(
-    THR_flea_x509_get_hash_id_and_scheme_type_from_oid(
+    THR_flea_x509_get_hash_id_and_key_type_from_oid(
       sigalg_id__t.oid_ref__t.data__pu8,
       sigalg_id__t.oid_ref__t.len__dtl,
       &sigalg_hash_id,
@@ -533,11 +538,47 @@ static flea_err_t THR_flea_tls__validate_cert(
   );
   if(have_precursor_to_verify__b)
   {
-    printf("HOLDING verify signature !!!!!\n");
-    while(1)
+    flea_hash_id_t hash_id;
+    flea_pk_key_type_t key_type;
+    flea_pk_scheme_id_t scheme_id;
+
+    FLEA_CCALL(
+      THR_flea_x509_get_hash_id_and_key_type_from_oid(
+        public_key_alg_id__t.oid_ref__t.data__pu8,
+        public_key_alg_id__t.oid_ref__t.len__dtl,
+        &hash_id,
+        &key_type
+      )
+    );
+    if(key_type == flea_rsa_key)
     {
-      ;
+      scheme_id = flea_rsa_pkcs1_v1_5_sign;
     }
+    else
+    {
+      scheme_id = flea_ecdsa_emsa1;
+    }
+
+    FLEA_CCALL(
+      THR_flea_public_key_t__ctor_asn1(
+        pubkey_out__pt,
+        &public_key_value__t,
+        &public_key_alg_id__t.params_ref_as_tlv__t,
+        &public_key_alg_id__t.oid_ref__t
+      )
+    );
+
+    FLEA_CCALL(
+      THR_flea_pk_api__verify_digest(
+        tbs_hash_in_out__pt->data__pu8,
+        tbs_hash_in_out__pt->len__dtl,
+        hash_id,
+        scheme_id,
+        pubkey_out__pt,
+        signature_in_out__pt->data__pu8,
+        signature_in_out__pt->len__dtl
+      )
+    );
   }
 
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
