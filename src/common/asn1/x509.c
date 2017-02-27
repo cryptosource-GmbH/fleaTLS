@@ -120,6 +120,7 @@ flea_err_t THR_flea_x509__decode_algid_ref(
 )
 {
   FLEA_THR_BEG_FUNC();
+  flea_bool_t optional_found__b = FLEA_TRUE;
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
   // FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_oid(dec__pt, &algid_ref__pt->oid_ref__t));
   FLEA_CCALL(
@@ -130,7 +131,17 @@ flea_err_t THR_flea_x509__decode_algid_ref(
     )
   );
   // FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw_optional(dec__pt, &algid_ref__pt->params_ref_as_tlv__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__decode_tlv_raw_optional(dec__pt, &algid_ref__pt->params_ref_as_tlv__t));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__decode_tlv_raw_optional(
+      dec__pt,
+      &algid_ref__pt->params_ref_as_tlv__t,
+      &optional_found__b
+    )
+  );
+  if(!optional_found__b)
+  {
+    algid_ref__pt->params_ref_as_tlv__t.len__dtl = 0;
+  }
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
   FLEA_THR_FIN_SEC_empty();
 }
@@ -568,7 +579,7 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
 
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
   FLEA_CCALL(
-    THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(
+    THR_flea_ber_dec_t__decode_implicit_universal_optional_with_inner(
       &dec__t,
       1,
       FLEA_ASN1_BIT_STRING,
@@ -576,7 +587,7 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
     )
   );
   FLEA_CCALL(
-    THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(
+    THR_flea_ber_dec_t__decode_implicit_universal_optional_with_inner(
       &dec__t,
       2,
       FLEA_ASN1_BIT_STRING,

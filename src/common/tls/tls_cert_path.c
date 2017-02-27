@@ -331,8 +331,15 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
         {
           if(subj_alt_names_mbn__pt)
           {
+            flea_bool_t optional_false__b = FLEA_FALSE;
             subj_alt_names_mbn__pt->is_present__u8 = FLEA_TRUE;
-            FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(dec__pt, &subj_alt_names_mbn__pt->san_raw__t));
+            FLEA_CCALL(
+              THR_flea_ber_dec_t__decode_tlv_raw_optional(
+                dec__pt,
+                &subj_alt_names_mbn__pt->san_raw__t,
+                &optional_false__b
+              )
+            );
           }
           break;
         }
@@ -584,16 +591,18 @@ static flea_err_t THR_flea_tls__validate_cert(
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
 
   // TODO: skip decode this:
+  // issuer unique ID
   FLEA_CCALL(
-    THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(
+    THR_flea_ber_dec_t__decode_implicit_universal_optional_with_inner(
       &dec__t,
       1,
       FLEA_ASN1_BIT_STRING,
       &var_buffer__t
     )
   );
+  // subject unique ID
   FLEA_CCALL(
-    THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(
+    THR_flea_ber_dec_t__decode_implicit_universal_optional_with_inner(
       &dec__t,
       2,
       FLEA_ASN1_BIT_STRING,
@@ -609,7 +618,7 @@ static flea_err_t THR_flea_tls__validate_cert(
       basic_constr__pt
     )
   );
-
+  // TODO: VALIDATE BASIC CONSTRAINTS
   /* closing the tbs */
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
 

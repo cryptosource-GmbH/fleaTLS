@@ -240,7 +240,7 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
       found_any__b |= found__b;
       /* directoryName             [4]  Name,              binary only*/
       FLEA_CCALL(
-        THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional(
+        THR_flea_ber_dec_t__decode_implicit_universal_optional(
           &cont_dec__t,
           4, /*dummy*/
           0,
