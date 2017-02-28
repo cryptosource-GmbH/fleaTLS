@@ -61,7 +61,7 @@ void flea_byte_vec_t__dtor(flea_byte_vec_t* byte_vec__pt);
 
 void flea_byte_vec_t__reset(flea_byte_vec_t* byte_vec__pt);
 
-void flea_byte_vec_t__ctor_empty(flea_byte_vec_t* byte_vec__pt);
+void flea_byte_vec_t__ctor_empty_allocatable(flea_byte_vec_t* byte_vec__pt);
 
 int flea_byte_vec_t__cmp(
   const flea_byte_vec_t* a,

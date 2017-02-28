@@ -570,6 +570,7 @@ static flea_err_t THR_flea_tls__validate_cert(
       &public_key_alg_id__t.oid_ref__t
     )
   );
+  flea_byte_vec_t__dtor(&public_key_value__t);
   if(have_precursor_to_verify__b)
   {
     flea_pk_scheme_id_t scheme_id;
@@ -644,8 +645,6 @@ static flea_err_t THR_flea_tls__validate_cert(
   FLEA_CCALL(THR_flea_hash_ctx_t__final_byte_vec(&hash__t, tbs_hash_in_out__pt));
 
   FLEA_CCALL(THR_flea_x509__decode_algid_ref(&outer_sigalg_id__t, &dec__t));
-  // TODO: THIS FUNCTION DOES A DANGEROUS REF-ASSIGNMENT OF THE PARAMS FROM ONE
-  // SIGALG ID TO THE OTHER!
   FLEA_CCALL(THR_flea_x509__process_alg_ids(&sigalg_id__t, &outer_sigalg_id__t));
   FLEA_CCALL(
     THR_flea_ber_dec_t__read_value_raw_cft(
@@ -655,9 +654,20 @@ static flea_err_t THR_flea_tls__validate_cert(
     )
   );
 
+  flea_byte_vec_t__dtor(&var_buffer__t);
   FLEA_THR_FIN_SEC(
     flea_ber_dec_t__dtor(&dec__t);
+    flea_byte_vec_t__dtor(&public_key_value__t);
     flea_byte_vec_t__dtor(&local_subject__t);
+    flea_byte_vec_t__dtor(&var_buffer__t);
+    flea_byte_vec_t__dtor(&local_issuer__t);
+    flea_byte_vec_t__dtor(&back_buffer__t);
+    flea_byte_vec_t__dtor(&sigalg_id__t.oid_ref__t);
+    flea_byte_vec_t__dtor(&sigalg_id__t.params_ref_as_tlv__t);
+    flea_byte_vec_t__dtor(&outer_sigalg_id__t.oid_ref__t);
+    flea_byte_vec_t__dtor(&outer_sigalg_id__t.params_ref_as_tlv__t);
+    flea_byte_vec_t__dtor(&public_key_alg_id__t.oid_ref__t);
+    flea_byte_vec_t__dtor(&public_key_alg_id__t.params_ref_as_tlv__t);
   );
 } /* THR_flea_x509_cert_ref_t__ctor */
 
@@ -684,8 +694,12 @@ flea_err_t THR_flea_tls__cert_path_validation(
   // flea_basic_constraints_t basic_constraints__t;
   flea_hash_id_t cycling_hash_id;
   flea_public_key_t* pubkey_ptr__pt = pubkey_to_construct__pt;
-  FLEA_THR_BEG_FUNC();
 
+  flea_x509_subj_alt_names_t san__t;
+  FLEA_THR_BEG_FUNC();
+  // TODO: NEED SOLUTION FOR STACK-USAGE /=> REAL SOLUTION: PROCESS DURING
+  // VALIDATION
+  flea_byte_vec_t__ctor_empty_allocatable(&san__t.san_raw__t);
   FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&compare_time__t));
 
   // rd_strm__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
@@ -695,7 +709,6 @@ flea_err_t THR_flea_tls__cert_path_validation(
     flea_basic_constraints_t basic_constraints__t;
     flea_key_usage_t key_usage__t;
     flea_key_usage_t extd_key_usage__t;
-    flea_x509_subj_alt_names_t san__t;
     flea_u32_t new_cert_len__u32;
 
     if(!first__b)
@@ -758,5 +771,9 @@ flea_err_t THR_flea_tls__cert_path_validation(
   } while(!finished__b);
   FLEA_THR_FIN_SEC(
     flea_public_key_t__dtor(&cycling_pubkey__t);
+    flea_byte_vec_t__dtor(&cycling_signature__t);
+    flea_byte_vec_t__dtor(&cycling_issuer_dn);
+    flea_byte_vec_t__dtor(&cycling_tbs_hash__t);
+    flea_byte_vec_t__dtor(&san__t.san_raw__t);
   );
 } /* THR_flea_tls__cert_path_validation */

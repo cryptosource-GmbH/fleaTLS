@@ -318,6 +318,7 @@ flea_err_t THR_flea_tls__read_finished(
 
 
   FLEA_THR_FIN_SEC(
+    flea_hash_ctx_t__dtor(&hash_ctx_copy);
     FLEA_FREE_BUF_FINAL(messages_hash__bu8);
   );
 } /* THR_flea_tls__read_finished */

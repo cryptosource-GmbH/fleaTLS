@@ -77,9 +77,6 @@ flea_err_t THR_flea_asn1_parse_gmt_time(
     THR_flea_ber_dec_t__decode_date_opt(
       dec__t,
       &date_ref__t.time_type__t,
-
-      /*&date_ref__t.data__pcu8,
-      * &date_ref__t.len__dtl,*/
       &byte_vec__t,
       &optional_found__b
     )
@@ -96,7 +93,9 @@ flea_err_t THR_flea_asn1_parse_gmt_time(
     )
   );
 
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC(
+    flea_byte_vec_t__dtor(&byte_vec__t);
+  );
 } /* THR_flea_asn1_parse_gmt_time */
 
 flea_err_t THR_flea_asn1_parse_date(

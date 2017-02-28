@@ -157,11 +157,15 @@ flea_err_t THR_flea_x509__process_alg_ids(
   {
     FLEA_THROW("the two signature algorithm identifiers in the certificate do not match", FLEA_ERR_X509_SIG_ALG_ERR);
   }
-  if(flea_ber_dec__is_tlv_null(&tbs_ref__pt->params_ref_as_tlv__t))
-  {
-    // take params from outer
-    tbs_ref__pt->params_ref_as_tlv__t = outer_ref__pt->params_ref_as_tlv__t;
-  }
+  // TODO: DECIDE IF THIS IS NEEDED. IF YES, ONE ALGID MAY BE 'FREED' AND THE
+  // OTHER GETS ALL THE VALUES. IMPLEMENT BYTE_VEC_T__MOVE FOR THIS. INDICATE
+  // THAT THIS FUNCTION COMPLETES ONE ALG-ID AND DESTROYS THE OTHER IN ITS NAME
+
+  /*if(flea_ber_dec__is_tlv_null(&tbs_ref__pt->params_ref_as_tlv__t))
+   * {
+   * // take params from outer
+   * tbs_ref__pt->params_ref_as_tlv__t = outer_ref__pt->params_ref_as_tlv__t;
+   * }*/
   FLEA_THR_FIN_SEC_empty();
 }
 

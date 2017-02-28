@@ -11,7 +11,8 @@
  * use standard malloc and free
  */
 #define MY_FLEA_ALLOC_MEM(__ptr, __size) \
-  do {(__ptr) = malloc(__size);} while(0)
+  do {(__ptr) = malloc(__size); \
+  } while(0)
 
 #define MY_FLEA_FREE_MEM(__ptr) \
   free(__ptr)
@@ -77,7 +78,7 @@
 # define FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(__name, __type_len) \
   do { \
     if(__name) { \
-      flea_memzero_secure((flea_u8_t *) __name, (__type_len) * sizeof(__name[0])); \
+      flea_memzero_secure((flea_u8_t*) __name, (__type_len) * sizeof(__name[0])); \
       FLEA_FREE_MEM_SET_NULL(__name); \
     } \
   } while(0)
@@ -86,7 +87,7 @@
 # define FLEA_FREE_BUF_SECRET_ARR(__name, __type_len) \
   do { \
     if(__name) { \
-      flea_memzero_secure((flea_u8_t *) __name, (__type_len) * sizeof(__name[0])); \
+      flea_memzero_secure((flea_u8_t*) __name, (__type_len) * sizeof(__name[0])); \
       FLEA_BUF_CHK_DBG_CANARIES(__name); \
       FLEA_FREE_MEM_SET_NULL(__FLEA_GET_ALLOCATED_BUF_NAME(__name)); \
       __name = NULL; /*s. th. user buffer is also NULL */ \
@@ -98,12 +99,12 @@
 
 # define FLEA_FREE_BUF_SECRET_ARR(__name, __type_len) \
   do { \
-    flea_memzero_secure((flea_u8_t *) __name, (__type_len) * sizeof(__name[0])); \
+    flea_memzero_secure((flea_u8_t*) __name, (__type_len) * sizeof(__name[0])); \
     FLEA_BUF_CHK_DBG_CANARIES(__name); \
   } while(0)
 # define FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(__name, __type_len) \
   do { \
-    flea_memzero_secure((flea_u8_t *) __name, (__type_len) * sizeof(__name[0])); \
+    flea_memzero_secure((flea_u8_t*) __name, (__type_len) * sizeof(__name[0])); \
   } while(0)
 
 #else // #elif defined FLEA_USE_STACK_BUF

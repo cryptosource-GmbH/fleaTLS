@@ -1422,7 +1422,9 @@ static flea_err_t THR_flea_ber_dec_t__decode_implicit_universal_optional_with_in
   }
   else
   {
-    FLEA_DER_REF_SET_ABSENT(ref__pt);
+    // TODO: GET RID OF THIS MACRO COMPLETELY:
+    // FLEA_DER_REF_SET_ABSENT(ref__pt);
+    ref__pt->len__dtl = 0;
   }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner_toggled */

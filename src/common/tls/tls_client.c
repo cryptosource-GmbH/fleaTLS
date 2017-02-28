@@ -578,5 +578,6 @@ flea_err_t THR_flea_tls__client_handshake(
   }
   FLEA_THR_FIN_SEC(
     flea_byte_vec_t__dtor(&premaster_secret__t);
+    flea_hash_ctx_t__dtor(&hash_ctx);
   );
 } /* THR_flea_tls__client_handshake */

@@ -1,6 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
-#define PREALLOC (20)
+#define PREALLOC (0)
 #include "flea/byte_vec.h"
 #include "flea/util.h"
 #include "flea/alloc.h"
@@ -25,12 +25,13 @@ void flea_byte_vec_t__dtor(flea_byte_vec_t* byte_vec__pt)
   }
   byte_vec__pt->len__dtl  = 0;
   byte_vec__pt->allo__dtl = 0;
-  // byte_vec__pt->is_mem_deallocable__b = FLEA_FALSE;
-  byte_vec__pt->is_mem_allocable__b = FLEA_FALSE;
+  byte_vec__pt->is_mem_deallocable__b = FLEA_FALSE;
+  // byte_vec__pt->is_mem_allocable__b = FLEA_FALSE;
 }
 
 void flea_byte_vec_t__ctor_empty_allocatable(flea_byte_vec_t* byte_vec__pt)
 {
+  flea_byte_vec_t__INIT(byte_vec__pt);
   byte_vec__pt->is_mem_allocable__b = FLEA_TRUE;
   /* nothing to do */
 }

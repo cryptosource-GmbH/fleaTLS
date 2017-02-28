@@ -58,8 +58,8 @@ typedef enum { flea_asn1_utc_time, flea_asn1_generalized_time } flea_asn1_time_t
 
 typedef enum { flea_decode_ref, flea_decode_copy } flea_asn1_dec_val_hndg_e;
 
-#define FLEA_DER_REF_SET_ABSENT(__p) (__p)->data__pu8 = NULL; (__p)->len__dtl = 0
-#define FLEA_DER_REF_IS_ABSENT(__p)  ((__p)->data__pu8 == 0)
+// #define FLEA_DER_REF_SET_ABSENT(__p) (__p)->data__pu8 = NULL; (__p)->len__dtl = 0
+#define FLEA_DER_REF_IS_ABSENT(__p) ((__p)->data__pu8 == 0)
 
 struct struct_flea_ber_dec_t
 {
