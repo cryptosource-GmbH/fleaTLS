@@ -405,7 +405,7 @@ flea_err_t THR_flea_tls__client_handshake(
 #ifdef FLEA_USE_HEAP_BUF
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
 #else
-  flea_u8_t premaster_secret__au8[256]; // TODO: SET CORRECT SIZE LIMIT
+  flea_u8_t premaster_secret__au8[FLEA_RSA_MAX_MOD_BYTE_LEN];
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_EMPTY_ALLOCATABLE(
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
