@@ -120,6 +120,7 @@ flea_err_t THR_flea_x509__decode_algid_ref(
 )
 {
   FLEA_THR_BEG_FUNC();
+  flea_bool_t optional_found__b = FLEA_TRUE;
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
   // FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_oid(dec__pt, &algid_ref__pt->oid_ref__t));
   FLEA_CCALL(
@@ -130,7 +131,17 @@ flea_err_t THR_flea_x509__decode_algid_ref(
     )
   );
   // FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw_optional(dec__pt, &algid_ref__pt->params_ref_as_tlv__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__decode_tlv_raw_optional(dec__pt, &algid_ref__pt->params_ref_as_tlv__t));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__decode_tlv_raw_optional(
+      dec__pt,
+      &algid_ref__pt->params_ref_as_tlv__t,
+      &optional_found__b
+    )
+  );
+  if(!optional_found__b)
+  {
+    algid_ref__pt->params_ref_as_tlv__t.len__dtl = 0;
+  }
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
   FLEA_THR_FIN_SEC_empty();
 }
@@ -146,11 +157,15 @@ flea_err_t THR_flea_x509__process_alg_ids(
   {
     FLEA_THROW("the two signature algorithm identifiers in the certificate do not match", FLEA_ERR_X509_SIG_ALG_ERR);
   }
-  if(flea_ber_dec__is_tlv_null(&tbs_ref__pt->params_ref_as_tlv__t))
-  {
-    // take params from outer
-    tbs_ref__pt->params_ref_as_tlv__t = outer_ref__pt->params_ref_as_tlv__t;
-  }
+  // TODO: DECIDE IF THIS IS NEEDED. IF YES, ONE ALGID MAY BE 'FREED' AND THE
+  // OTHER GETS ALL THE VALUES. IMPLEMENT BYTE_VEC_T__MOVE FOR THIS. INDICATE
+  // THAT THIS FUNCTION COMPLETES ONE ALG-ID AND DESTROYS THE OTHER IN ITS NAME
+
+  /*if(flea_ber_dec__is_tlv_null(&tbs_ref__pt->params_ref_as_tlv__t))
+   * {
+   * // take params from outer
+   * tbs_ref__pt->params_ref_as_tlv__t = outer_ref__pt->params_ref_as_tlv__t;
+   * }*/
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -188,7 +203,6 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
   }
   /* open extensions */
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
-  // printf("parse_extension: before more data\n");
   while(flea_ber_dec_t__has_current_more_data(dec__pt))
   {
     flea_al_u8_t ext_indic_pos__alu8;
@@ -443,15 +457,31 @@ flea_err_t THR_flea_x509__parse_dn(
   );
 } /* THR_flea_x509__parse_dn */
 
-flea_err_t THR_flea_x509_cert__get_ref_to_tbs(
+// TODO: GET RID OF THIS:
+flea_err_t THR_flea_x509_cert__get_ref_to_tbs_byte_vec(
   const flea_u8_t* der_encoded_cert__pu8,
   flea_al_u16_t    der_encoded_cert_len__alu16,
   flea_byte_vec_t* ref_to_tbs__pt
 )
 {
+  flea_ref_cu8_t ref__rcu8;
+
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_x509_cert__get_ref_to_tbs(der_encoded_cert__pu8, der_encoded_cert_len__alu16, &ref__rcu8));
+  flea_byte_vec_t__set_ref(ref_to_tbs__pt, ref__rcu8.data__pcu8, ref__rcu8.len__dtl);
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_x509_cert__get_ref_to_tbs(
+  const flea_u8_t* der_encoded_cert__pu8,
+  flea_al_u16_t    der_encoded_cert_len__alu16,
+  flea_ref_cu8_t*  ref_to_tbs__pt
+)
+{
   FLEA_DECL_OBJ(source_tbs__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec_tbs__t, flea_ber_dec_t);
   flea_mem_read_stream_help_t hlp_tbs__t;
+  flea_byte_vec_t intermed_ref = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(
@@ -465,7 +495,9 @@ flea_err_t THR_flea_x509_cert__get_ref_to_tbs(
 
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec_tbs__t, &source_tbs__t, 0, flea_decode_ref));
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec_tbs__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&dec_tbs__t, ref_to_tbs__pt));
+  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&dec_tbs__t, &intermed_ref));
+  ref_to_tbs__pt->data__pcu8 = intermed_ref.data__pu8;
+  ref_to_tbs__pt->len__dtl   = intermed_ref.len__dtl;
   FLEA_THR_FIN_SEC(
     flea_rw_stream_t__dtor(&source_tbs__t);
     flea_ber_dec_t__dtor(&dec_tbs__t);
@@ -568,7 +600,7 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
 
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
   FLEA_CCALL(
-    THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(
+    THR_flea_ber_dec_t__decode_implicit_universal_optional_with_inner(
       &dec__t,
       1,
       FLEA_ASN1_BIT_STRING,
@@ -576,7 +608,7 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
     )
   );
   FLEA_CCALL(
-    THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(
+    THR_flea_ber_dec_t__decode_implicit_universal_optional_with_inner(
       &dec__t,
       2,
       FLEA_ASN1_BIT_STRING,

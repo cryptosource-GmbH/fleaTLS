@@ -12,6 +12,7 @@
 #include "flea/array_util.h"
 #include "flea/alloc.h"
 #include "flea/util.h"
+#include "flea/byte_vec.h"
 #include "flea/bin_utils.h"
 
 #include <string.h>
@@ -120,7 +121,7 @@ const flea_hash_config_entry_t flea_array_hash_configs[] = {
 #endif /* ifdef FLEA_HAVE_SHA384_512 */
 };
 
-const flea_hash_config_entry_t * flea_hash__get_hash_config_by_id(flea_hash_id_t id)
+const flea_hash_config_entry_t* flea_hash__get_hash_config_by_id(flea_hash_id_t id)
 {
   flea_al_u16_t i;
 
@@ -297,13 +298,25 @@ flea_err_t THR_flea_hash_ctx_t__update(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_hash_ctx_t__update */
 
+flea_err_t THR_flea_hash_ctx_t__final_byte_vec(
+  flea_hash_ctx_t* p_ctx,
+  flea_byte_vec_t* result__pt
+)
+{
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_byte_vec_t__resize(result__pt, p_ctx->p_config->output_length));
+  FLEA_CCALL(THR_flea_hash_ctx_t__final(p_ctx, result__pt->data__pu8));
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
 flea_err_t THR_flea_hash_ctx_t__final(
   flea_hash_ctx_t* p_ctx,
   flea_u8_t*       output
 )
 {
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_hash_ctx_t__final_with_length_limit(p_ctx, output, p_ctx->p_config->block_length));
+  FLEA_CCALL(THR_flea_hash_ctx_t__final_with_length_limit(p_ctx, output, p_ctx->p_config->output_length));
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -385,6 +398,29 @@ void flea_hash_ctx_t__dtor(flea_hash_ctx_t* p_ctx)
 flea_al_u16_t flea_hash_ctx_t__get_output_length(flea_hash_ctx_t* p_ctx)
 {
   return p_ctx->p_config->output_length;
+}
+
+flea_err_t THR_flea_compute_hash_byte_vec(
+  flea_hash_id_t   id,
+  const flea_u8_t* input_pu8,
+  flea_dtl_t       input_len_al_u16,
+  flea_byte_vec_t* result__pt
+)
+{
+  FLEA_DECL_OBJ(ctx, flea_hash_ctx_t);
+  flea_al_u16_t natural_output_len_al_u16;
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&ctx, id));
+  natural_output_len_al_u16 = flea_hash_ctx_t__get_output_length(&ctx);
+  FLEA_CCALL(THR_flea_byte_vec_t__resize(result__pt, natural_output_len_al_u16));
+  FLEA_CCALL(THR_flea_hash_ctx_t__update(&ctx, input_pu8, input_len_al_u16));
+
+  FLEA_CCALL(THR_flea_hash_ctx_t__final_byte_vec(&ctx, result__pt));
+
+  FLEA_THR_FIN_SEC(
+    flea_hash_ctx_t__dtor(&ctx);
+  );
 }
 
 flea_err_t THR_flea_compute_hash(

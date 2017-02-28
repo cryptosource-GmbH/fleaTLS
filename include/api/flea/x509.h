@@ -248,6 +248,13 @@ flea_err_t THR_flea_x509__process_alg_ids(
 flea_err_t THR_flea_x509_cert__get_ref_to_tbs(
   const flea_u8_t* der_encoded_cert__pu8,
   flea_al_u16_t    der_encoded_cert_len__alu16,
+  flea_ref_cu8_t*  ref_to_tbs__pt
+);
+
+
+flea_err_t THR_flea_x509_cert__get_ref_to_tbs_byte_vec(
+  const flea_u8_t* der_encoded_cert__pu8,
+  flea_al_u16_t    der_encoded_cert_len__alu16,
   flea_byte_vec_t* ref_to_tbs__pt
 );
 

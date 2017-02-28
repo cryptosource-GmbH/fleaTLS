@@ -300,6 +300,7 @@ flea_err_t THR_flea_tls__read_finished(
   }
   if(!flea_sec_mem_equal(rec_finished__pu8, finished__pu8, finished_len__alu8))
   {
+#if 0
     printf("Finished message not verifiable\n");
     printf("Got: \n");
     for(int i = 0; i < 12; i++)
@@ -312,12 +313,13 @@ flea_err_t THR_flea_tls__read_finished(
       printf("%02x ", finished__pu8[i]);
     }
     printf("\n");
-
+#endif /* if 0 */
     FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_GENERIC);
   }
 
 
   FLEA_THR_FIN_SEC(
+    flea_hash_ctx_t__dtor(&hash_ctx_copy);
     FLEA_FREE_BUF_FINAL(messages_hash__bu8);
   );
 } /* THR_flea_tls__read_finished */
@@ -399,16 +401,13 @@ flea_err_t THR_flea_tls__read_certificate(
   flea_public_key_t*        pubkey
 )
 {
-  FLEA_DECL_BUF(cert_chain__bu8, flea_u8_t, 10000);
-  flea_u32_t cert_chain_len__u32;
+  // flea_u32_t cert_chain_len__u32;
   flea_u8_t dummy__au8_l3[3];
 
   FLEA_THR_BEG_FUNC();
 
 
-  cert_chain_len__u32 = flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt);
-  // TODO: cert read stream
-  FLEA_ALLOC_BUF(cert_chain__bu8, cert_chain_len__u32);
+  // cert_chain_len__u32 = flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt);
 #if 0
   FLEA_CCALL(
     THR_flea_rw_stream_t__force_read(
@@ -422,6 +421,7 @@ flea_err_t THR_flea_tls__read_certificate(
 #else
   // ADD ALSO CRLS
   //
+  // TODO: WHAT IS READ HERE?
   FLEA_CCALL(
     THR_flea_rw_stream_t__force_read(
       flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
@@ -438,8 +438,7 @@ flea_err_t THR_flea_tls__read_certificate(
     )
   );
 #endif /* if 0 */
-  FLEA_THR_FIN_SEC(
-    FLEA_FREE_BUF_FINAL(cert_chain__bu8);
+  FLEA_THR_FIN_SEC_empty(
   );
 } /* THR_flea_tls__read_certificate */
 
@@ -549,7 +548,6 @@ flea_err_t flea_tls_ctx_t__ctor(
   /* set SessionID */
   if(session_id_len > 32)
   {
-    printf("max session id length: 32");
     FLEA_THROW("session id too large", FLEA_ERR_TLS_GENERIC);
   }
   memcpy(&ctx->session_id, session_id, session_id_len);
@@ -590,7 +588,6 @@ flea_err_t THR_flea_tls__send_record(
 {
   FLEA_THR_BEG_FUNC();
 
-  printf("send record called with %u bytes\n", bytes_len);
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(&tls_ctx->rec_prot__t, content_type, bytes, bytes_len));
 #ifdef FLEA_TLS_SEND_RECORD_EAGER
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(&tls_ctx->rec_prot__t));

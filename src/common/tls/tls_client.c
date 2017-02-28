@@ -305,7 +305,6 @@ static flea_err_t THR_flea_handle_handsh_msg(
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_HELLO)
     {
       FLEA_CCALL(THR_flea_tls__read_server_hello(tls_ctx, &handsh_rdr__t));
-      printf("SM: read server hello\n");
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE
         | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
         | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
@@ -320,7 +319,6 @@ static flea_err_t THR_flea_handle_handsh_msg(
   {
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
     {
-      printf("SM: reading certificate\n");
       // Certificate certificate_message; // TODO: don't need this
       FLEA_CCALL(
         THR_flea_tls__read_certificate(
@@ -353,7 +351,6 @@ static flea_err_t THR_flea_handle_handsh_msg(
     {
       FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, hash_ctx__pt));
 
-      printf("Handshake completed!\n");
 
       handshake_state->finished = FLEA_TRUE;
     }
@@ -404,7 +401,7 @@ flea_err_t THR_flea_tls__client_handshake(
 #ifdef FLEA_USE_HEAP_BUF
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
 #else
-  flea_u8_t premaster_secret__au8[256]; // TODO: SET CORRECT SIZE LIMIT
+  flea_u8_t premaster_secret__au8[FLEA_RSA_MAX_MOD_BYTE_LEN];
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_EMPTY_ALLOCATABLE(
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
@@ -418,7 +415,6 @@ flea_err_t THR_flea_tls__client_handshake(
     {
       // send client hello
       FLEA_CCALL(THR_flea_tls__send_client_hello(tls_ctx, &hash_ctx));
-      printf("SM: sent client hello\n");
       handshake_state.initialized       = FLEA_TRUE;
       handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO;
     }
@@ -498,7 +494,6 @@ flea_err_t THR_flea_tls__client_handshake(
               32 /* mac_len */
             )
           );
-          printf("SM: switched on encryption on read\n");
           handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
 
           continue;
@@ -523,7 +518,6 @@ flea_err_t THR_flea_tls__client_handshake(
         // TODO: send certificate message
       }
 
-      printf("SM sending client key_ex\n");
       // TODO: INIT PUBKEY IN CTOR!
       FLEA_CCALL(
         THR_flea_tls__send_client_key_exchange(
@@ -533,7 +527,6 @@ flea_err_t THR_flea_tls__client_handshake(
           &premaster_secret__t
         )
       );
-      printf("SM sending change cipherspec\n");
       FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx, &hash_ctx));
 
       /*
@@ -551,7 +544,6 @@ flea_err_t THR_flea_tls__client_handshake(
       );
       FLEA_CCALL(THR_flea_tls__generate_key_block(tls_ctx, tls_ctx->key_block));
 
-      printf("SM: switching on encryption on write...\n");
       FLEA_CCALL(
         THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
           &tls_ctx->rec_prot__t,
@@ -567,9 +559,7 @@ flea_err_t THR_flea_tls__client_handshake(
         )
       );
 
-      printf("SM: ...switched on encryption on write\n");
       FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &hash_ctx));
-      printf("SM: sent finished\n");
 
       handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC;
       continue;
@@ -577,5 +567,6 @@ flea_err_t THR_flea_tls__client_handshake(
   }
   FLEA_THR_FIN_SEC(
     flea_byte_vec_t__dtor(&premaster_secret__t);
+    flea_hash_ctx_t__dtor(&hash_ctx);
   );
 } /* THR_flea_tls__client_handshake */

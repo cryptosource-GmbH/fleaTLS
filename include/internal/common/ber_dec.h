@@ -16,22 +16,23 @@
 extern "C" {
 #endif
 
-#define FLEA_ASN1_UNIVERSAL_PRIMITIVE 0x00
-#define FLEA_ASN1_CONTEXT_SPECIFIC    0x80
-#define FLEA_ASN1_UNIVERSAL           0x00
-#define FLEA_ASN1_APPLICATION         0x40
-#define FLEA_ASN1_CONSTRUCTED         0x20
-#define FLEA_ASN1_SEQUENCE            0x10
-#define FLEA_ASN1_SET                 0x11
-#define FLEA_ASN1_BOOL                0x01
-#define FLEA_ASN1_INT                 0x02
-#define FLEA_ASN1_BIT_STRING          0x03
-#define FLEA_ASN1_OCTET_STRING        0x04
-#define FLEA_ASN1_OID                 0x06
-#define FLEA_ASN1_UTF8_STR            0x0C
-#define FLEA_ASN1_PRINTABLE_STR       0x13
-#define FLEA_ASN1_GENERALIZED_TIME    24
-#define FLEA_ASN1_UTC_TIME            23
+#define FLEA_ASN1_UNIVERSAL_PRIMITIVE   0x00
+#define FLEA_ASN1_UNIVERSAL_CONSTRUCTED FLEA_ASN1_CONSTRUCTED
+#define FLEA_ASN1_CONTEXT_SPECIFIC      0x80
+#define FLEA_ASN1_UNIVERSAL             0x00
+#define FLEA_ASN1_APPLICATION           0x40
+#define FLEA_ASN1_CONSTRUCTED           0x20
+#define FLEA_ASN1_SEQUENCE              0x10
+#define FLEA_ASN1_SET                   0x11
+#define FLEA_ASN1_BOOL                  0x01
+#define FLEA_ASN1_INT                   0x02
+#define FLEA_ASN1_BIT_STRING            0x03
+#define FLEA_ASN1_OCTET_STRING          0x04
+#define FLEA_ASN1_OID                   0x06
+#define FLEA_ASN1_UTF8_STR              0x0C
+#define FLEA_ASN1_PRINTABLE_STR         0x13
+#define FLEA_ASN1_GENERALIZED_TIME      24
+#define FLEA_ASN1_UTC_TIME              23
 
 /**
  * class, form and type encoded in an u32
@@ -57,8 +58,8 @@ typedef enum { flea_asn1_utc_time, flea_asn1_generalized_time } flea_asn1_time_t
 
 typedef enum { flea_decode_ref, flea_decode_copy } flea_asn1_dec_val_hndg_e;
 
-#define FLEA_DER_REF_SET_ABSENT(__p) (__p)->data__pu8 = NULL; (__p)->len__dtl = 0
-#define FLEA_DER_REF_IS_ABSENT(__p)  ((__p)->data__pu8 == 0)
+// #define FLEA_DER_REF_SET_ABSENT(__p) (__p)->data__pu8 = NULL; (__p)->len__dtl = 0
+#define FLEA_DER_REF_IS_ABSENT(__p) ((__p)->data__pu8 == 0)
 
 struct struct_flea_ber_dec_t
 {
@@ -77,6 +78,7 @@ struct struct_flea_ber_dec_t
   flea_asn1_dec_val_hndg_e dec_val_handling__e;
   flea_byte_vec_t*         back_buffer__pt;
   flea_u8_t                hash_active__b;
+  flea_u8_t                hash_buffering_active__b;
   flea_hash_ctx_t*         hash_ctx__pt;
   // flea_u8_t* hasher_constru
   // const flea_u8_t*         next_tlv_ptr__pcu8;
@@ -116,11 +118,12 @@ flea_err_t THR_flea_ber_dec_t__ctor_hash_support(
   flea_hash_ctx_t*         unconstructed_hash_ctx__pt
 );
 
-flea_err_t THR_flea_ber_dec_t__activate_hashing(
+flea_err_t THR_flea_ber_dec_t__set_hash_id(
   flea_ber_dec_t* dec__pt,
   flea_hash_id_t  hash_id
 );
 
+void flea_ber_dec_t__activate_hashing(flea_ber_dec_t* dec__pt);
 void flea_ber_dec_t__deactivate_hashing(flea_ber_dec_t* dec__pt);
 
 /**
@@ -305,22 +308,43 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_string(
   flea_byte_vec_t*      res_vec__pt
 );
 
-
-flea_err_t THR_flea_ber_dec_t__get_ref_to_date_opt(
+flea_err_t THR_flea_ber_dec_t__decode_date_opt(
   flea_ber_dec_t*        dec__pt,
   flea_asn1_time_type_t* time_type__pt,
   flea_byte_vec_t*       res_vec__pt,
   flea_bool_t*           optional_found__pb
 );
 
-flea_err_t THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional(
+/*flea_err_t THR_flea_ber_dec_t__get_ref_to_date_opt(
+ * flea_ber_dec_t*        dec__pt,
+ * flea_asn1_time_type_t* time_type__pt,
+ * flea_byte_vec_t*       res_vec__pt,
+ * flea_bool_t*           optional_found__pb
+ * );*/
+
+/*flea_err_t THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional(
+ * flea_ber_dec_t*  dec__pt,
+ * flea_al_u8_t     outer_tag__alu8,
+ * flea_asn1_tag_t  encap_type__t,
+ * flea_byte_vec_t* ref__pt
+ * );*/
+
+
+flea_err_t THR_flea_ber_dec_t__decode_implicit_universal_optional(
   flea_ber_dec_t*  dec__pt,
   flea_al_u8_t     outer_tag__alu8,
   flea_asn1_tag_t  encap_type__t,
   flea_byte_vec_t* ref__pt
 );
 
-flea_err_t THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(
+/*flea_err_t THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(
+ * flea_ber_dec_t*  dec__pt,
+ * flea_al_u8_t     outer_tag__alu8,
+ * flea_asn1_tag_t  encap_type__t,
+ * flea_byte_vec_t* ref__pt
+ * );*/
+
+flea_err_t THR_flea_ber_dec_t__decode_implicit_universal_optional_with_inner(
   flea_ber_dec_t*  dec__pt,
   flea_al_u8_t     outer_tag__alu8,
   flea_asn1_tag_t  encap_type__t,
@@ -437,10 +461,21 @@ flea_err_t THR_flea_ber_dec_t__decode_value_raw_cft(
   flea_byte_vec_t* res_vec__pt
 );
 
+flea_err_t THR_flea_ber_dec_t__decode_value_raw_cft_opt(
+  flea_ber_dec_t*  dec__pt,
+  flea_asn1_tag_t  cft,
+  flea_byte_vec_t* res_vec__pt,
+  flea_bool_t*     optional_found__pb
+);
 
+/*flea_err_t THR_flea_ber_dec_t__decode_tlv_raw_optional(
+ * flea_ber_dec_t*  dec__pt,
+ * flea_byte_vec_t* byte_vec__pt
+ * );*/
 flea_err_t THR_flea_ber_dec_t__decode_tlv_raw_optional(
   flea_ber_dec_t*  dec__pt,
-  flea_byte_vec_t* byte_vec__pt
+  flea_byte_vec_t* byte_vec__pt,
+  flea_bool_t*     optional_found__pb
 );
 
 flea_err_t THR_flea_ber_dec_t__read_tlv_raw_optional(

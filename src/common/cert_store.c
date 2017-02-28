@@ -1,10 +1,19 @@
 #include "internal/common/default.h"
 #include "flea/cert_store.h"
+#include "flea/util.h"
 #include "flea/error_handling.h"
 #include "flea/error.h"
 #include "flea/alloc.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
+
+static flea_bool_t flea_cert_store_t__is_cert_trusted(
+  const flea_cert_store_t* cert_store__pt,
+  flea_al_u16_t            pos__alu16
+)
+{
+  return FLEA_TRUE;
+}
 
 flea_err_t THR_flea_cert_store_t__ctor(flea_cert_store_t* cert_store__pt)
 {
@@ -75,6 +84,58 @@ flea_err_t THR_flea_cert_store_t__add_trusted_to_path_validator(
   FLEA_THR_FIN_SEC_empty();
 }
 
+flea_err_t THR_flea_cert_store_t__is_tbs_hash_trusted(
+  const flea_cert_store_t* cert_store__pct,
+  flea_hash_id_t           tbs_cert_hash_id__e,
+  const flea_u8_t*         tbs_cert_hash_to_check__pcu8,
+  flea_al_u8_t             tbs_cert_hash_to_check_len__alu8,
+  flea_bool_t*             result_is_trusted__pb
+)
+{
+  flea_al_u16_t i;
+  flea_al_u16_t nb_certs__alu16 = cert_store__pct->nb_set_certs__u16;
+
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_hash__t, FLEA_MAX_HASH_OUT_LEN);
+  FLEA_THR_BEG_FUNC();
+  *result_is_trusted__pb = FLEA_FALSE;
+  for(i = 0; i < nb_certs__alu16; i++)
+  {
+    if(flea_cert_store_t__is_cert_trusted(cert_store__pct, i))
+    {
+      flea_ref_cu8_t tbs_ref__rcu8;
+      FLEA_CCALL(
+        THR_flea_x509_cert__get_ref_to_tbs(
+          cert_store__pct->enc_cert_refs__bcu8[i].data__pcu8,
+          cert_store__pct->enc_cert_refs__bcu8[i].len__dtl,
+          &tbs_ref__rcu8
+        )
+      );
+      FLEA_CCALL(
+        THR_flea_compute_hash_byte_vec(
+          tbs_cert_hash_id__e,
+          tbs_ref__rcu8.data__pcu8,
+          tbs_ref__rcu8.len__dtl,
+          &local_hash__t
+        )
+      );
+      if(!flea_memcmp_wsize(
+          local_hash__t.data__pu8,
+          local_hash__t.len__dtl,
+          tbs_cert_hash_to_check__pcu8,
+          tbs_cert_hash_to_check_len__alu8
+        ))
+      {
+        *result_is_trusted__pb = FLEA_TRUE;
+        break;
+      }
+    }
+  }
+
+  FLEA_THR_FIN_SEC(
+    flea_byte_vec_t__dtor(&local_hash__t);
+  );
+} /* THR_flea_cert_store_t__is_tbs_hash_trusted */
+
 flea_err_t THR_flea_cert_store_t__is_cert_trusted(
   const flea_cert_store_t* cert_store__pct,
   const flea_u8_t*         cert_to_check__pcu8,
@@ -96,7 +157,7 @@ flea_err_t THR_flea_cert_store_t__is_cert_trusted(
         cert_to_check_len__alu16
       ))
     {
-      *result_is_trusted__pb = FLEA_TRUE;
+      *result_is_trusted__pb = flea_cert_store_t__is_cert_trusted(cert_store__pct, i);
       break;
     }
   }

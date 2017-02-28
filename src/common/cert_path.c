@@ -511,7 +511,7 @@ static flea_err_t THR_flea_cert_path_validator_t__add_cert(
   cert_info__t.is_trusted__b = is_trusted__b;
   cert_info__t.ref_to_raw_der__rcu8.data__pu8 = (flea_u8_t*) cert__pcu8;
   cert_info__t.ref_to_raw_der__rcu8.len__dtl  = cert_len__alu16;
-  FLEA_CCALL(THR_flea_x509_cert__get_ref_to_tbs(cert__pcu8, cert_len__alu16, &cert_info__t.ref_to_tbs__rcu8));
+  FLEA_CCALL(THR_flea_x509_cert__get_ref_to_tbs_byte_vec(cert__pcu8, cert_len__alu16, &cert_info__t.ref_to_tbs__rcu8));
   // FLEA_CCALL(THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(cpv__pt, &ref__t));
   FLEA_CCALL(THR_flea_cert_path_validator_t__add_cert_info(cpv__pt, &cert_info__t));
   FLEA_THR_FIN_SEC(

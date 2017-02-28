@@ -531,7 +531,6 @@ static flea_err_t THR_flea_handle_handsh_msg(
     handshake_state->expected_messages ^= FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE;
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
     {
-      printf("SM: reading certificate\n");
       // TODO: read certificate and verify
 
       return FLEA_ERR_FINE;
@@ -648,8 +647,6 @@ flea_err_t THR_flea_tls__server_handshake(
         }
         else
         {
-          printf("SM: Processing ChangeCipherSpec\n");
-
           flea_u8_t dummy_byte;
           flea_al_u16_t len_one__alu16 = 1;
 
@@ -735,10 +732,8 @@ flea_err_t THR_flea_tls__server_handshake(
       }
       else
       {
-        printf("SM: sending change cipherspec\n");
         FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx, &hash_ctx));
 
-        printf("SM: switching on encryption on write...\n");
         FLEA_CCALL(
           THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
             &tls_ctx->rec_prot__t,
@@ -756,7 +751,6 @@ flea_err_t THR_flea_tls__server_handshake(
 
 
         FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &hash_ctx));
-        printf("SM: sent finished\n");
 
         handshake_state.finished = FLEA_TRUE;
         break;

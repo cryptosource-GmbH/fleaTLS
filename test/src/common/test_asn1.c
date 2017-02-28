@@ -309,7 +309,8 @@ static flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
   }
   else if(second_dec_func__e == dec_func_default)
   {
-    err__t = THR_flea_ber_dec_t__decode_tlv_raw_optional(&dec__t, &dec_vec__t);
+    flea_bool_t optional_false__b = FLEA_FALSE;
+    err__t = THR_flea_ber_dec_t__decode_tlv_raw_optional(&dec__t, &dec_vec__t, &optional_false__b);
 
 #if 0
     if(err__t != second_func_exp_err_code)
