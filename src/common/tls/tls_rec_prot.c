@@ -157,11 +157,6 @@ flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
   flea_al_u16_t reserved_payl_len__alu16;
 
   FLEA_THR_BEG_FUNC();
-  printf(
-    "setting cbc_hmac_ciphersuite in rec_prot, payload_used_len = %u, write_ongoing = %u\n",
-    rec_prot__pt->payload_used_len__u16,
-    rec_prot__pt->write_ongoing__u8
-  );
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
   rec_prot__pt->reserved_iv_len__u8 = flea_block_cipher__get_block_size(block_cipher_id);
   rec_prot__pt->payload_buf__pu8    = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->reserved_iv_len__u8
@@ -338,7 +333,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
   );
   if(!flea_sec_mem_equal(mac, data + iv_len + data_len, mac_len))
   {
-    printf("MAC does not match!\n");
     FLEA_THROW("MAC failure", FLEA_ERR_TLS_GENERIC);
   }
 
@@ -431,7 +425,6 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
 )
 {
   FLEA_THR_BEG_FUNC();
-  printf("write flush called with payload used len = %u\n", rec_prot__pt->payload_used_len__u16);
   if((rec_prot__pt->payload_used_len__u16 == 0) || !rec_prot__pt->write_ongoing__u8)
   {
     FLEA_THR_RETURN();
@@ -493,11 +486,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   flea_al_u16_t to_cp__alu16, read_bytes_count__alu16 = 0;
   flea_dtl_t data_len__dtl = *data_len__palu16;
 
-  printf(
-    "rec_prot: read data called for %u bytes, write_ongoing = %u\n",
-    data_len__dtl,
-    rec_prot__pt->write_ongoing__u8
-  );
   FLEA_THR_BEG_FUNC();
   if(rec_prot__pt->write_ongoing__u8)
   {
@@ -522,7 +510,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
     {
       flea_dtl_t raw_read_len__dtl = RECORD_HDR_LEN;
       flea_al_u16_t raw_rec_content_len__alu16 = raw_read_len__dtl;
-      printf("rec_prot: read data, entered read loop. reading header: %u bytes\n", raw_rec_content_len__alu16);
       FLEA_CCALL(
         THR_flea_rw_stream_t__read(
           rec_prot__pt->rw_stream__pt,
@@ -530,12 +517,10 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
           &raw_read_len__dtl
         )
       );
-      printf("rec_prot: read data, read %u header bytes\n", raw_read_len__dtl);
       if(!current_or_next_record_for_content_type__b && (cont_type__e != rec_prot__pt->send_rec_buf_raw__bu8[0]))
       {
         FLEA_THROW("content typede does not match", FLEA_ERR_TLS_INV_REC_HDR);
       }
-      printf("rec_prot: passed content type check\n");
       if(do_verify_prot_version__b)
       {
         if((prot_version_mbn__pt->major != rec_prot__pt->send_rec_buf_raw__bu8[1]) ||
@@ -549,7 +534,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         prot_version_mbn__pt->major = rec_prot__pt->send_rec_buf_raw__bu8[1];
         prot_version_mbn__pt->minor = rec_prot__pt->send_rec_buf_raw__bu8[2];
       }
-      printf("rec_prot: passed version check set\n");
       raw_rec_content_len__alu16  = rec_prot__pt->send_rec_buf_raw__bu8[3] << 8;
       raw_rec_content_len__alu16 |= rec_prot__pt->send_rec_buf_raw__bu8[4];
       if(raw_rec_content_len__alu16 > FLEA_TLS_TRNSF_BUF_SIZE - RECORD_HDR_LEN)
@@ -565,25 +549,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
           raw_read_len__dtl
         )
       );
-      {
-        unsigned i;
-        printf("rec_prot: read %u record payload bytes from socket: ", raw_read_len__dtl);
-        for(i = 0; i < raw_read_len__dtl; i++)
-        {
-          if(i % 32 == 0)
-            printf("\n");
-          printf("%02x ", rec_prot__pt->payload_buf__pu8[i]);
-        }
 
-        if(raw_read_len__dtl == 1)
-        {
-          printf("read one byte\n");
-        }
-        if(raw_read_len__dtl == 80)
-        {
-          printf("read 80 bytes\n");
-        }
-      }
 
       rec_prot__pt->payload_offset__u16   = 0;
       rec_prot__pt->payload_used_len__u16 = raw_read_len__dtl;

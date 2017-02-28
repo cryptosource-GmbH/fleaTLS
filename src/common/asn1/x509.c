@@ -203,7 +203,6 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
   }
   /* open extensions */
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
-  // printf("parse_extension: before more data\n");
   while(flea_ber_dec_t__has_current_more_data(dec__pt))
   {
     flea_al_u8_t ext_indic_pos__alu8;

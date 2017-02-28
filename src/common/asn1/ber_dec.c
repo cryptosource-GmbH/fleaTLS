@@ -428,7 +428,6 @@ static flea_err_t THR_flea_ber_dec_t__open_constructed_opt(
   if(dec__pt->level__alu8 + 1 >= dec__pt->alloc_levels__alu8)
   {
 #ifdef FLEA_USE_HEAP_BUF
-    // printf("called grow levels\n");
     FLEA_CCALL(THR_flea_ber_dec_t__grow_levels(dec__pt, dec__pt->level__alu8 + 2 + FLEA_BER_DEC_LEVELS_PRE_ALLOC));
 #else
     FLEA_THROW("nesting too deep", FLEA_ERR_ASN1_DER_EXCSS_NST);

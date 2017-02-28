@@ -300,6 +300,7 @@ flea_err_t THR_flea_tls__read_finished(
   }
   if(!flea_sec_mem_equal(rec_finished__pu8, finished__pu8, finished_len__alu8))
   {
+#if 0
     printf("Finished message not verifiable\n");
     printf("Got: \n");
     for(int i = 0; i < 12; i++)
@@ -312,7 +313,7 @@ flea_err_t THR_flea_tls__read_finished(
       printf("%02x ", finished__pu8[i]);
     }
     printf("\n");
-
+#endif /* if 0 */
     FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_GENERIC);
   }
 
@@ -547,7 +548,6 @@ flea_err_t flea_tls_ctx_t__ctor(
   /* set SessionID */
   if(session_id_len > 32)
   {
-    printf("max session id length: 32");
     FLEA_THROW("session id too large", FLEA_ERR_TLS_GENERIC);
   }
   memcpy(&ctx->session_id, session_id, session_id_len);
@@ -588,7 +588,6 @@ flea_err_t THR_flea_tls__send_record(
 {
   FLEA_THR_BEG_FUNC();
 
-  printf("send record called with %u bytes\n", bytes_len);
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(&tls_ctx->rec_prot__t, content_type, bytes, bytes_len));
 #ifdef FLEA_TLS_SEND_RECORD_EAGER
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(&tls_ctx->rec_prot__t));
