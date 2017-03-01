@@ -59,6 +59,7 @@ typedef struct
   flea_tls__protocol_version_t prot_version__t;
   flea_rw_stream_t*            rw_stream__pt;
   flea_u8_t                    write_ongoing__u8;
+  flea_u16_t                   read_bytes_from_current_record__u16;
 } flea_tls_rec_prot_t;
 
 #define flea_tls_rec_prot_t__INIT_VALUE {.send_rec_buf_raw__bu8 = 0}

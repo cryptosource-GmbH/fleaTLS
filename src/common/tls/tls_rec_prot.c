@@ -109,6 +109,7 @@ flea_err_t THR_flea_tls_rec_prot_t__ctor(
   rec_prot__pt->rw_stream__pt         = rw_stream__pt;
   // rec_prot__pt->ciph_suite_id         = suite__pt->id;
   rec_prot__pt->payload_offset__u16 = 0;
+  rec_prot__pt->read_bytes_from_current_record__u16 = 0;
 
   /*flea_tls_conn_state_t__ctor_no_cipher(&rec_prot__pt->write_state__t);
    * flea_tls_conn_state_t__ctor_no_cipher(&rec_prot__pt->read_state__t);*/
@@ -490,6 +491,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   if(rec_prot__pt->write_ongoing__u8)
   {
     FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
+    // TODO: SHOULD BE UNNECCESSARY:
+    rec_prot__pt->read_bytes_from_current_record__u16 = 0;
   }
   to_cp__alu16 = FLEA_MIN(data_len__dtl, rec_prot__pt->payload_used_len__u16 - rec_prot__pt->payload_offset__u16);
   memcpy(data__pu8, rec_prot__pt->payload_buf__pu8 + rec_prot__pt->payload_offset__u16, to_cp__alu16);
@@ -506,6 +509,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   if((current_or_next_record_for_content_type__b &&
     (rec_prot__pt->payload_used_len__u16 - rec_prot__pt->payload_offset__u16 == 0)) || data_len__dtl)
   {
+    /* start reading a new record */
     do
     {
       flea_dtl_t raw_read_len__dtl = RECORD_HDR_LEN;
