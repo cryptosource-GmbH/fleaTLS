@@ -98,7 +98,7 @@ flea_err_t THR_flea_tls__read_client_hello(
 
   // FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, ((flea_u8_t*) &cipher_suites_len__u16) + 1));
   // FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &cipher_suites_len__u16));
-  FLEA_CCALL(THR_flea_rw_stream_t__force_read(hs_rd_stream__pt, cipher_suites_len_to_dec__au8, 2));
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, cipher_suites_len_to_dec__au8, 2));
   cipher_suites_len__u16 = flea__decode_U16_BE(cipher_suites_len_to_dec__au8);
 
 
