@@ -764,9 +764,10 @@ flea_err_t THR_flea_tls__send_app_data(
 }
 
 flea_err_t THR_flea_tls__read_app_data(
-  flea_tls_ctx_t* tls_ctx_t,
-  flea_u8_t*      data__pu8,
-  flea_al_u16_t*  data_len__palu16
+  flea_tls_ctx_t*         tls_ctx_t,
+  flea_u8_t*              data__pu8,
+  flea_al_u16_t*          data_len__palu16,
+  flea_stream_read_mode_e rd_mode__e
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -776,7 +777,8 @@ flea_err_t THR_flea_tls__read_app_data(
       &tls_ctx_t->rec_prot__t,
       CONTENT_TYPE_APPLICATION_DATA,
       data__pu8,
-      data_len__palu16
+      data_len__palu16,
+      rd_mode__e
     )
   );
 

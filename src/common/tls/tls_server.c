@@ -655,7 +655,8 @@ flea_err_t THR_flea_tls__server_handshake(
               &tls_ctx->rec_prot__t,
               CONTENT_TYPE_CHANGE_CIPHER_SPEC,
               &dummy_byte,
-              &len_one__alu16
+              &len_one__alu16,
+              flea_read_full
             )
           );
 

@@ -60,6 +60,8 @@ typedef struct
   flea_rw_stream_t*            rw_stream__pt;
   flea_u8_t                    write_ongoing__u8;
   flea_u16_t                   read_bytes_from_current_record__u16;
+  flea_u16_t                   current_record_content_len__u16;
+  // flea_u8_t                    current_hdr_offset__u8;
 } flea_tls_rec_prot_t;
 
 #define flea_tls_rec_prot_t__INIT_VALUE {.send_rec_buf_raw__bu8 = 0}
@@ -92,11 +94,13 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
 );
 
 flea_err_t THR_flea_tls_rec_prot_t__read_data(
-  flea_tls_rec_prot_t* rec_prot__pt,
-  ContentType          cont_type__e,
-  flea_u8_t*           data__pu8,
-  flea_al_u16_t*       data_len__palu16
+  flea_tls_rec_prot_t*    rec_prot__pt,
+  ContentType             cont_type__e,
+  flea_u8_t*              data__pu8,
+  flea_al_u16_t*          data_len__palu16,
+  flea_stream_read_mode_e rd_mode__e
 );
+
 
 flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
   flea_tls_rec_prot_t* rec_prot__pt,

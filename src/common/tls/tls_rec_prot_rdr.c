@@ -24,7 +24,8 @@ static flea_err_t THR_flea_rec_prot_rdr_t__read(
       hlp__pt->rec_prot__pt,
       (ContentType) hlp__pt->record_type__u8,
       target_buffer__pu8,
-      &nb_bytes_to_read__alu16
+      &nb_bytes_to_read__alu16,
+      rd_mode__e
     )
   );
   *nb_bytes_to_read__pdtl = nb_bytes_to_read__alu16;
