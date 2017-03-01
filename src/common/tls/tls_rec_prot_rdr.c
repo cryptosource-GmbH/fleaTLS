@@ -12,20 +12,22 @@ static flea_err_t THR_flea_rec_prot_rdr_t__read(
   void*                   custom_obj__pv,
   flea_u8_t*              target_buffer__pu8,
   flea_dtl_t*             nb_bytes_to_read__pdtl,
-  flea_stream_read_mode_e force_read__b
+  flea_stream_read_mode_e rd_mode__e
 )
 {
-  flea_tls_rec_prot_rdr_hlp_t* hlp__pt = (flea_tls_rec_prot_rdr_hlp_t*) custom_obj__pv;
+  flea_tls_rec_prot_rdr_hlp_t* hlp__pt  = (flea_tls_rec_prot_rdr_hlp_t*) custom_obj__pv;
+  flea_al_u16_t nb_bytes_to_read__alu16 = *nb_bytes_to_read__pdtl;
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
     THR_flea_tls_rec_prot_t__read_data(
       hlp__pt->rec_prot__pt,
-      hlp__pt->record_type__u8,
+      (ContentType) hlp__pt->record_type__u8,
       target_buffer__pu8,
-      nb_bytes_to_read__pdtl
+      &nb_bytes_to_read__alu16
     )
   );
+  *nb_bytes_to_read__pdtl = nb_bytes_to_read__alu16;
   FLEA_THR_FIN_SEC_empty();
 }
 
