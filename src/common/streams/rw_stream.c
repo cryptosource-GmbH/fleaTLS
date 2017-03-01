@@ -226,14 +226,14 @@ static flea_err_t THR_flea_rw_stream_t__inner_read(
   {
     if(*data_len__pdtl && (stream__pt->read_rem_len__u32 == 0))
     {
-      FLEA_THROW("no more data left in handshake message", FLEA_ERR_STREAM_EOF);
+      FLEA_THROW("no more data left in stream", FLEA_ERR_STREAM_EOF);
     }
 
     if(*data_len__pdtl > stream__pt->read_rem_len__u32)
     {
       if(force_read__b)
       {
-        FLEA_THROW("insufficient data left in handshake message", FLEA_ERR_STREAM_EOF);
+        FLEA_THROW("insufficient data left in strea", FLEA_ERR_STREAM_EOF);
       }
       else
       {
@@ -248,7 +248,7 @@ static flea_err_t THR_flea_rw_stream_t__inner_read(
   }
   if(stream__pt->read_func__f == NULL)
   {
-    FLEA_THROW("stream writing not supported by this stream", FLEA_ERR_STREAM_FUNC_NOT_SUPPORTED);
+    FLEA_THROW("reading not supported by this stream", FLEA_ERR_STREAM_FUNC_NOT_SUPPORTED);
   }
   FLEA_CCALL(stream__pt->read_func__f(stream__pt->custom_obj__pv, data__pu8, data_len__pdtl, force_read__b));
   stream__pt->read_rem_len__u32 -= *data_len__pdtl;
@@ -256,7 +256,8 @@ static flea_err_t THR_flea_rw_stream_t__inner_read(
 } /* THR_flea_rw_stream_t__inner_read */
 
 // TODO: ALLOW OPTIONAL SKIP FUNCTION TO BE SET IN CTOR, WHICH IS FAVORED OVER
-// GENERIC ONE
+// GENERIC ONE => not helpful for decoding, since hashing the skipped data is often still
+// necessary!
 flea_err_t THR_flea_rw_stream_t__skip_read(
   flea_rw_stream_t* stream__pt,
   flea_dtl_t        skip_len__dtl
