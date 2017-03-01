@@ -214,10 +214,10 @@ flea_err_t THR_flea_rw_stream_t__flush_write(flea_rw_stream_t* stream__pt)
 }
 
 static flea_err_t THR_flea_rw_stream_t__inner_read(
-  flea_rw_stream_t* stream__pt,
-  flea_u8_t*        data__pu8,
-  flea_dtl_t*       data_len__pdtl,
-  flea_bool_t       force_read__b
+  flea_rw_stream_t*       stream__pt,
+  flea_u8_t*              data__pu8,
+  flea_dtl_t*             data_len__pdtl,
+  flea_stream_read_mode_e rd_mode__e
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -231,7 +231,7 @@ static flea_err_t THR_flea_rw_stream_t__inner_read(
 
     if(*data_len__pdtl > stream__pt->read_rem_len__u32)
     {
-      if(force_read__b)
+      if(rd_mode__e == flea_read_full)
       {
         FLEA_THROW("insufficient data left in strea", FLEA_ERR_STREAM_EOF);
       }
@@ -250,7 +250,7 @@ static flea_err_t THR_flea_rw_stream_t__inner_read(
   {
     FLEA_THROW("reading not supported by this stream", FLEA_ERR_STREAM_FUNC_NOT_SUPPORTED);
   }
-  FLEA_CCALL(stream__pt->read_func__f(stream__pt->custom_obj__pv, data__pu8, data_len__pdtl, force_read__b));
+  FLEA_CCALL(stream__pt->read_func__f(stream__pt->custom_obj__pv, data__pu8, data_len__pdtl, rd_mode__e));
   stream__pt->read_rem_len__u32 -= *data_len__pdtl;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_rw_stream_t__inner_read */
@@ -269,7 +269,7 @@ flea_err_t THR_flea_rw_stream_t__skip_read(
   while(skip_len__dtl)
   {
     flea_al_u8_t skip__alu8 = FLEA_MIN(16, skip_len__dtl);
-    FLEA_CCALL(THR_flea_rw_stream_t__force_read(stream__pt, skip_buf__bu8, skip__alu8));
+    FLEA_CCALL(THR_flea_rw_stream_t__read_full(stream__pt, skip_buf__bu8, skip__alu8));
     skip_len__dtl -= skip__alu8;
   }
   FLEA_THR_FIN_SEC(
@@ -278,12 +278,13 @@ flea_err_t THR_flea_rw_stream_t__skip_read(
 }
 
 flea_err_t THR_flea_rw_stream_t__read(
-  flea_rw_stream_t* stream__pt,
-  flea_u8_t*        data__pu8,
-  flea_dtl_t*       data_len__pdtl
+  flea_rw_stream_t*       stream__pt,
+  flea_u8_t*              data__pu8,
+  flea_dtl_t*             data_len__pdtl,
+  flea_stream_read_mode_e rd_mode__e
 )
 {
-  return THR_flea_rw_stream_t__inner_read(stream__pt, data__pu8, data_len__pdtl, FLEA_FALSE);
+  return THR_flea_rw_stream_t__inner_read(stream__pt, data__pu8, data_len__pdtl, rd_mode__e);
 }
 
 flea_err_t THR_flea_rw_stream_t__read_byte(
@@ -292,11 +293,11 @@ flea_err_t THR_flea_rw_stream_t__read_byte(
 )
 {
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_rw_stream_t__force_read(stream__pt, byte__pu8, 1));
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(stream__pt, byte__pu8, 1));
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_rw_stream_t__force_read(
+flea_err_t THR_flea_rw_stream_t__read_full(
   flea_rw_stream_t* stream__pt,
   flea_u8_t*        data__pu8,
   flea_dtl_t        data_len__dtl
@@ -307,7 +308,7 @@ flea_err_t THR_flea_rw_stream_t__force_read(
   FLEA_THR_BEG_FUNC();
   flea_dtl_t len__dtl = data_len__dtl;
 
-  return THR_flea_rw_stream_t__inner_read(stream__pt, data__pu8, &len__dtl, FLEA_TRUE);
+  return THR_flea_rw_stream_t__inner_read(stream__pt, data__pu8, &len__dtl, flea_read_full);
 
   FLEA_THR_FIN_SEC_empty();
 }

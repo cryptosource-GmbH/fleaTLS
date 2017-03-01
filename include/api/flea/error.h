@@ -91,7 +91,15 @@ typedef enum
   FLEA_ERR_ASN1_DEC_TRGT_BUF_TOO_SMALL                = 0x00A7,
   FLEA_ERR_ASN1_DER_CALL_SEQ_ERR                      = 0x00A8,
   FLEA_ERR_ASN1_DER_CST_LEN_LIMIT_EXCEEDED            = 0x00A9,
+
+  /**
+   * Unspecified error while trying to read from a stream.
+   */
   FLEA_ERR_FAILED_STREAM_READ                         = 0x00AD,
+
+  /**
+   * Unspecified error while trying to write to a stream.
+   */
   FLEA_ERR_FAILED_STREAM_WRITE                        = 0x00AE,
   FLEA_ERR_PRNG_NVM_WRITE_ERROR                       = 0x00B1,
   FLEA_ERR_RNG_NOT_SEEDED                             = 0x00B2,

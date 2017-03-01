@@ -293,7 +293,7 @@ flea_err_t THR_flea_tls__read_finished(
     )
   );
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
-  FLEA_CCALL(THR_flea_rw_stream_t__force_read(hs_rd_stream__pt, rec_finished__pu8, finished_len__alu8));
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, rec_finished__pu8, finished_len__alu8));
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {
     FLEA_THROW("trailing data in finished message", FLEA_ERR_TLS_GENERIC);
@@ -410,7 +410,7 @@ flea_err_t THR_flea_tls__read_certificate(
   // cert_chain_len__u32 = flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt);
 #if 0
   FLEA_CCALL(
-    THR_flea_rw_stream_t__force_read(
+    THR_flea_rw_stream_t__read_full(
       flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
       cert_chain__bu8,
       cert_chain_len__u32
@@ -423,7 +423,7 @@ flea_err_t THR_flea_tls__read_certificate(
   //
   // TODO: WHAT IS READ HERE?
   FLEA_CCALL(
-    THR_flea_rw_stream_t__force_read(
+    THR_flea_rw_stream_t__read_full(
       flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
       dummy__au8_l3,
       sizeof(dummy__au8_l3)

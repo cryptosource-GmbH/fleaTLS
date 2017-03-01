@@ -514,7 +514,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         THR_flea_rw_stream_t__read(
           rec_prot__pt->rw_stream__pt,
           rec_prot__pt->send_rec_buf_raw__bu8,
-          &raw_read_len__dtl
+          &raw_read_len__dtl,
+          flea_read_full
         )
       );
       if(!current_or_next_record_for_content_type__b && (cont_type__e != rec_prot__pt->send_rec_buf_raw__bu8[0]))
@@ -543,7 +544,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
       raw_read_len__dtl = raw_rec_content_len__alu16;
       FLEA_CCALL(
         // TODO: READ IN PROPER BLOCKING MODE
-        THR_flea_rw_stream_t__force_read(
+        THR_flea_rw_stream_t__read_full(
           rec_prot__pt->rw_stream__pt,
           rec_prot__pt->payload_buf__pu8,
           raw_read_len__dtl

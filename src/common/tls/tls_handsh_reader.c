@@ -16,7 +16,7 @@ flea_err_t THR_flea_tls__read_handsh_hdr(
 {
   FLEA_THR_BEG_FUNC();
   flea_u8_t hdr__au8[4];
-  FLEA_CCALL(THR_flea_rw_stream_t__force_read(stream__pt, hdr__au8, sizeof(hdr__au8)));
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(stream__pt, hdr__au8, sizeof(hdr__au8)));
   *handsh_type__pu8 = hdr__au8[0];
   *msg_len__pu32    = (((flea_u32_t) hdr__au8[1]) << 16) | (((flea_u32_t) hdr__au8[2]) << 8)
     | (((flea_u32_t) hdr__au8[3]));

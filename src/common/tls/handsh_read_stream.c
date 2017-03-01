@@ -8,19 +8,21 @@
 
 // TODO: IMPLEMENT LENGTH LIMIT USING RW_STREAM'S LIMIT
 static flea_err_t THR_flea_tls_handsh_read_stream_t__read(
-  void*       custom_obj__pv,
-  flea_u8_t*  target_buffer__pu8,
-  flea_dtl_t* nb_bytes_to_read__pdtl,
-  flea_bool_t force_read__b
+  void*                   custom_obj__pv,
+  flea_u8_t*              target_buffer__pu8,
+  flea_dtl_t*             nb_bytes_to_read__pdtl,
+  flea_stream_read_mode_e rd_mode__e
 )
 {
   flea_tls_handsh_reader_hlp_t* rdr_hlp__pt = (flea_tls_handsh_reader_hlp_t*) custom_obj__pv;
 
   FLEA_THR_BEG_FUNC();
-  if(force_read__b)
+  // if(read_full__b)
+  if(rd_mode__e == flea_read_full)
   {
+    // TODO: REMOVE THIS, CAN SIMPLY CALL THE GENERIC READ FUNCTION!
     FLEA_CCALL(
-      THR_flea_rw_stream_t__force_read(
+      THR_flea_rw_stream_t__read_full(
         rdr_hlp__pt->rec_prot_read_stream__pt,
         target_buffer__pu8,
         *nb_bytes_to_read__pdtl
@@ -33,7 +35,8 @@ static flea_err_t THR_flea_tls_handsh_read_stream_t__read(
       THR_flea_rw_stream_t__read(
         rdr_hlp__pt->rec_prot_read_stream__pt,
         target_buffer__pu8,
-        nb_bytes_to_read__pdtl
+        nb_bytes_to_read__pdtl,
+        rd_mode__e
       )
     );
   }

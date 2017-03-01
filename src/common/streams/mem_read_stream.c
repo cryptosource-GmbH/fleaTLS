@@ -6,10 +6,10 @@
 
 
 static flea_err_t THR_flea_mem_read_stream__read(
-  void*       hlp__pv,
-  flea_u8_t*  target_buffer__pu8,
-  flea_dtl_t* nb_bytes_to_read__pdtl,
-  flea_bool_t force_read__b
+  void*                   hlp__pv,
+  flea_u8_t*              target_buffer__pu8,
+  flea_dtl_t*             nb_bytes_to_read__pdtl,
+  flea_stream_read_mode_e rd_mode__e
 )
 {
   flea_mem_read_stream_help_t* hlp__pt;
@@ -19,7 +19,7 @@ static flea_err_t THR_flea_mem_read_stream__read(
   hlp__pt      = (flea_mem_read_stream_help_t*) hlp__pv;
   to_read__dtl = *nb_bytes_to_read__pdtl;
 
-  if(!force_read__b)
+  if(rd_mode__e != flea_read_full)
   {
     if(to_read__dtl > hlp__pt->len__dtl)
     {
@@ -28,7 +28,7 @@ static flea_err_t THR_flea_mem_read_stream__read(
   }
   if(to_read__dtl > hlp__pt->len__dtl)
   {
-    FLEA_THROW("no more bytes to read in mem_read_stream", FLEA_ERR_FAILED_STREAM_READ);
+    FLEA_THROW("insufficient data to read in mem_read_stream", FLEA_ERR_STREAM_EOF);
   }
   // to_read__dtl = FLEA_MIN(to_read__dtl, hlp__pt->len__dtl);
   memcpy(target_buffer__pu8, &hlp__pt->data__pcu8[hlp__pt->offs__dtl], to_read__dtl);
@@ -36,7 +36,6 @@ static flea_err_t THR_flea_mem_read_stream__read(
   hlp__pt->len__dtl      -= to_read__dtl;
   *nb_bytes_to_read__pdtl = to_read__dtl;
 
-  force_read__b = force_read__b + 1;
   FLEA_THR_FIN_SEC_empty();
 }
 
