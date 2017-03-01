@@ -71,6 +71,16 @@ void flea__xor_bytes(
 flea_u32_t flea__decode_U32_BE(const flea_u8_t enc[4]);
 
 /**
+ * Decode a 2-byte big endian encoded array.
+ *
+ * @param enc the 2-byte data to decode
+ *
+ * @return the big endian decoded value of the input data
+ */
+flea_u16_t flea__decode_U16_BE(flea_u8_t enc[2]);
+
+
+/**
  * Encode a 4-byte value big endian.
  *
  * @param to_enc the value to encode

@@ -72,6 +72,11 @@ flea_u32_t flea__decode_U32_BE(const flea_u8_t enc[4])
          | ((flea_u32_t) (enc[3] & 0xFF));
 }
 
+flea_u16_t flea__decode_U16_BE(flea_u8_t enc[2])
+{
+  return ((flea_u16_t) enc[0] << 8) | ((flea_u16_t) enc[1] & 0xFF);
+}
+
 flea_u16_t flea__decode_U16_LE(const flea_u8_t enc[2])
 {
   return ((flea_u16_t) enc[1] << 8)

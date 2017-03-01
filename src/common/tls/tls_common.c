@@ -511,7 +511,7 @@ flea_err_t THR_flea_tls__create_master_secret(
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL_SECRET_ARR(random_seed__bu8, 64);
   );
-}
+} /* THR_flea_tls__create_master_secret */
 
 // TODO: configurable parameters
 // TODO: ctor = handshake function

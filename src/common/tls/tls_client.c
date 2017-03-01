@@ -229,9 +229,8 @@ static flea_err_t THR_flea_tls__send_client_key_exchange_rsa(
 
   // pubkey->key_bit_size__u16
   // TODO: local abstract buf dependent on key size
-
-  /*flea_al_u16_t result_len = 256;
-   * flea_u8_t enc[256];*/
+  // flea_al_u16_t result_len = (pubkey->key_bit_size__u16 + 7) / 8;
+  // flea_u8_t enc[256];
   FLEA_CCALL(
     THR_flea_public_key_t__encrypt_message(
       pubkey,
