@@ -11,7 +11,24 @@
 extern "C" {
 #endif
 
-// TODO: provide non-blocking interface
+typedef enum
+{
+  /**
+   * Read operation may return with zero bytes read.
+   */
+  flea_read_nonblocking,
+
+  /**
+   * Read operation blocks until at least one byte has been read.
+   */
+  flea_read_blocking,
+
+  /**
+   * Read operation will return the exactly the requested number of bytes.
+   */
+  flea_read_full
+} flea_stream_read_mode_e;
+
 typedef flea_err_t (* flea_rw_stream_write_f)(
   void*            custom_obj__pv,
   const flea_u8_t* source_buffer__pcu8,
@@ -19,10 +36,10 @@ typedef flea_err_t (* flea_rw_stream_write_f)(
 );
 
 typedef flea_err_t (* flea_rw_stream_read_f)(
-  void*       custom_obj__pv,
-  flea_u8_t*  target_buffer__pu8,
-  flea_dtl_t* nb_bytes_to_read__pdtl,
-  flea_bool_t force_read__b
+  void*                   custom_obj__pv,
+  flea_u8_t*              target_buffer__pu8,
+  flea_dtl_t*             nb_bytes_to_read__pdtl,
+  flea_stream_read_mode_e rd_mode__e
 );
 
 typedef flea_err_t (* flea_rw_stream_open_f)(void* custom_obj__pv);
@@ -110,12 +127,13 @@ flea_err_t THR_flea_rw_stream_t__write_u32_be(
 flea_err_t THR_flea_rw_stream_t__flush_write(flea_rw_stream_t* stream__pt);
 
 flea_err_t THR_flea_rw_stream_t__read(
-  flea_rw_stream_t* stream__pt,
-  flea_u8_t*        data__pu8,
-  flea_dtl_t*       data_len__pdtl
+  flea_rw_stream_t*       stream__pt,
+  flea_u8_t*              data__pu8,
+  flea_dtl_t*             data_len__pdtl,
+  flea_stream_read_mode_e rd_mode__e
 );
 
-flea_err_t THR_flea_rw_stream_t__force_read(
+flea_err_t THR_flea_rw_stream_t__read_full(
   flea_rw_stream_t* stream__pt,
   flea_u8_t*        data__pcu8,
   flea_dtl_t        data_len__dtl

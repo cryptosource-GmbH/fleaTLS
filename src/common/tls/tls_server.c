@@ -51,7 +51,7 @@ flea_err_t THR_flea_tls__read_client_hello(
 
   // read version
   FLEA_CCALL(
-    THR_flea_rw_stream_t__force_read(
+    THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
       client_version_major_minor__au8,
       sizeof(client_version_major_minor__au8)
@@ -67,14 +67,14 @@ flea_err_t THR_flea_tls__read_client_hello(
   // read random
   // TODO: CHECK HOW TIME IS TO BE USED AND THEN ENCODE IT CORRECTLY
   FLEA_CCALL(
-    THR_flea_rw_stream_t__force_read(
+    THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
       tls_ctx->security_parameters.client_random.gmt_unix_time,
       4
     )
   );
   FLEA_CCALL(
-    THR_flea_rw_stream_t__force_read(
+    THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
       tls_ctx->security_parameters.client_random.random_bytes,
       28
@@ -91,7 +91,7 @@ flea_err_t THR_flea_tls__read_client_hello(
 
   // read session id
   FLEA_ALLOC_BUF(session_id__bu8, session_id_len__u8);
-  FLEA_CCALL(THR_flea_rw_stream_t__force_read(hs_rd_stream__pt, session_id__bu8, session_id_len__u8));
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, session_id__bu8, session_id_len__u8));
   // TODO: if != 0: resumption !
 
   // TODO: stream function to read in the length
@@ -120,7 +120,7 @@ flea_err_t THR_flea_tls__read_client_hello(
   flea_u16_t chosen_cs_index__u16 = supported_cs_len__u16; // TODO: Falko: Off by one  ?
   while(cipher_suites_len__u16)
   {
-    FLEA_CCALL(THR_flea_rw_stream_t__force_read(hs_rd_stream__pt, curr_cs__au8, 2));
+    FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, curr_cs__au8, 2));
 
     // iterate over all supported cipher suites
     supported_cs_index__u16 = 0;
@@ -187,7 +187,7 @@ flea_err_t THR_flea_tls__read_client_hello(
     {
       // read type
       FLEA_CCALL(
-        THR_flea_rw_stream_t__force_read(
+        THR_flea_rw_stream_t__read_full(
           hs_rd_stream__pt,
           extension_type__au8,
           2
@@ -207,7 +207,7 @@ flea_err_t THR_flea_tls__read_client_hello(
       }
 
       /*FLEA_CCALL(
-       * THR_flea_rw_stream_t__force_read(
+       * THR_flea_rw_stream_t__read_full(
        *  hs_rd_stream__pt,
        *  extension__bu8,
        *  extension_len__u16
@@ -441,7 +441,7 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
   // read encrypted premaster secret
   FLEA_ALLOC_BUF(enc_premaster_secret__bu8, enc_premaster_secret_len__u16);
   FLEA_CCALL(
-    THR_flea_rw_stream_t__force_read(
+    THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
       enc_premaster_secret__bu8,
       enc_premaster_secret_len__u16

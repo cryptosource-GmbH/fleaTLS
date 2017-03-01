@@ -25,7 +25,7 @@ flea_err_t THR_flea_test_mem_read_stream()
   FLEA_ALLOC_BUF(trg_buf__bu8, sizeof(source_mem__au8));
   memset(trg_buf__bu8, 0, sizeof(source_mem__au8));
   FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&source__t, source_mem__au8, sizeof(source_mem__au8), &hlp__t));
-  FLEA_CCALL(THR_flea_rw_stream_t__read(&source__t, trg_buf__bu8, &nb_read));
+  FLEA_CCALL(THR_flea_rw_stream_t__read(&source__t, trg_buf__bu8, &nb_read, flea_read_nonblocking));
   if(nb_read != 60)
   {
     FLEA_THROW("wrong number of read bytes", FLEA_ERR_FAILED_TEST);
@@ -36,7 +36,7 @@ flea_err_t THR_flea_test_mem_read_stream()
     FLEA_THROW("target buffer overwrite", FLEA_ERR_FAILED_TEST);
   }
   nb_read = 10;
-  FLEA_CCALL(THR_flea_rw_stream_t__read(&source__t, &trg_buf__bu8[60], &nb_read));
+  FLEA_CCALL(THR_flea_rw_stream_t__read(&source__t, &trg_buf__bu8[60], &nb_read, flea_read_blocking));
   if(nb_read != 4)
   {
     FLEA_THROW("wrong number of read bytes", FLEA_ERR_FAILED_TEST);

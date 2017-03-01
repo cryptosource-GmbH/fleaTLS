@@ -68,7 +68,7 @@ flea_err_t THR_flea_tls__cert_path_validation_OLD(
       FLEA_THROW("maximal cert path size for TLS exceeded", FLEA_ERR_INV_ARG);
     }
 
-    FLEA_CCALL(THR_flea_rw_stream_t__force_read(rd_strm__pt, enc_len__au8, sizeof(enc_len__au8)));
+    FLEA_CCALL(THR_flea_rw_stream_t__read_full(rd_strm__pt, enc_len__au8, sizeof(enc_len__au8)));
     new_cert_len__u32 = ((flea_u32_t) enc_len__au8[0] << 16) | (enc_len__au8[1] << 8) | (enc_len__au8[2]);
     if(even__b)
     {
@@ -106,7 +106,7 @@ flea_err_t THR_flea_tls__cert_path_validation_OLD(
       prev_cert__pu8 = cert_buf_1__bu8;
       // prev_cert_ref__pt = &cert_ref_1__t;
     }
-    FLEA_CCALL(THR_flea_rw_stream_t__force_read(rd_strm__pt, new_cert__pu8, new_cert_len__u32));
+    FLEA_CCALL(THR_flea_rw_stream_t__read_full(rd_strm__pt, new_cert__pu8, new_cert_len__u32));
 
     FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(new_cert_ref__pt, new_cert__pu8, new_cert_len__u32));
 
@@ -719,7 +719,7 @@ flea_err_t THR_flea_tls__cert_path_validation(
       FLEA_THROW("maximal cert path size for TLS exceeded", FLEA_ERR_INV_ARG);
     }
 
-    FLEA_CCALL(THR_flea_rw_stream_t__force_read(rd_strm__pt, enc_len__au8, sizeof(enc_len__au8)));
+    FLEA_CCALL(THR_flea_rw_stream_t__read_full(rd_strm__pt, enc_len__au8, sizeof(enc_len__au8)));
     new_cert_len__u32 = ((flea_u32_t) enc_len__au8[0] << 16) | (enc_len__au8[1] << 8) | (enc_len__au8[2]);
 
 

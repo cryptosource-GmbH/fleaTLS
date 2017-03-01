@@ -7,6 +7,7 @@
 
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <errno.h>
 #include <arpa/inet.h> // inet_addr
 #include <unistd.h>    // for close
 
@@ -193,31 +194,55 @@ static flea_err_t THR_write_flush_socket(void* ctx__pv)
 }
 
 static flea_err_t THR_read_socket(
-  void*       ctx__pv,
-  flea_u8_t*  target_buffer__pu8,
-  flea_dtl_t* nb_bytes_to_read__pdtl,
-  flea_bool_t force_read__b
+  void*                   ctx__pv,
+  flea_u8_t*              target_buffer__pu8,
+  flea_dtl_t*             nb_bytes_to_read__pdtl,
+  flea_stream_read_mode_e rd_mode__e
 )
 {
   linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
   ssize_t did_read_ssz;
+  int flags = 0;
+  flea_dtl_t rem_len__dtl    = *nb_bytes_to_read__pdtl;
+  flea_dtl_t read_total__dtl = 0;
 
   FLEA_THR_BEG_FUNC();
+  if(rem_len__dtl == 0)
+  {
+    FLEA_THR_RETURN();
+  }
+  if(rd_mode__e == flea_read_nonblocking)
+  {
+    flags |= MSG_DONTWAIT;
+  }
   do
   {
-    did_read_ssz = recv(ctx__pt->socket_fd__int, target_buffer__pu8, *nb_bytes_to_read__pdtl, 0);
+    did_read_ssz = recv(ctx__pt->socket_fd__int, target_buffer__pu8, rem_len__dtl, flags);
     if(did_read_ssz < 0)
     {
-      FLEA_THROW("recv err", FLEA_ERR_TLS_GENERIC);
+      if((rd_mode__e == flea_read_nonblocking) &&
+        ((did_read_ssz == EAGAIN) || (did_read_ssz == EWOULDBLOCK) || (did_read_ssz == 0)))
+      {
+        FLEA_THR_RETURN();
+      }
+      FLEA_THROW("recv err", FLEA_ERR_FAILED_STREAM_READ);
     }
     else if(did_read_ssz == 0)
     {
-      // TODO: socket got closed!
+      FLEA_THROW("recv err", FLEA_ERR_FAILED_STREAM_READ);
     }
-  } while(force_read__b && (did_read_ssz == 0));
-  *nb_bytes_to_read__pdtl = did_read_ssz;
+    if(rd_mode__e == flea_read_full)
+    {
+      target_buffer__pu8 += did_read_ssz;
+      rem_len__dtl       -= did_read_ssz;
+      read_total__dtl    += did_read_ssz;
+    }
+  } while((rd_mode__e == flea_read_full) && rem_len__dtl);
+  *nb_bytes_to_read__pdtl = read_total__dtl;
+  // TODO: ^REPLACE BY
+  // *nb_bytes_to_read__pdtl -= rem_len__dtl;
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_read_socket */
 
 #if 0
 static flea_err_t THR_read_socket(

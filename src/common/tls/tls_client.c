@@ -41,7 +41,7 @@ flea_err_t THR_flea_tls__read_server_hello(
   // read version
 
   FLEA_CCALL(
-    THR_flea_rw_stream_t__force_read(
+    THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
       server_version_major_minor__au8,
       sizeof(server_version_major_minor__au8)
@@ -56,7 +56,7 @@ flea_err_t THR_flea_tls__read_server_hello(
   // TODO: in this part the client has to decide if he accepts the server's TLS version - implement negotiation
   // read random
   FLEA_CCALL(
-    THR_flea_rw_stream_t__force_read(
+    THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
       tls_ctx->security_parameters.server_random.gmt_unix_time,
       4
@@ -64,7 +64,7 @@ flea_err_t THR_flea_tls__read_server_hello(
   );
 
   FLEA_CCALL(
-    THR_flea_rw_stream_t__force_read(
+    THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
       tls_ctx->security_parameters.server_random.random_bytes,
       28
@@ -83,11 +83,11 @@ flea_err_t THR_flea_tls__read_server_hello(
 
   FLEA_ALLOC_BUF(session_id__bu8, session_id_len__u8);
 
-  FLEA_CCALL(THR_flea_rw_stream_t__force_read(hs_rd_stream__pt, session_id__bu8, session_id_len__u8));
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, session_id__bu8, session_id_len__u8));
   // TODO: STORE SESSION ID
 
   // read cipher suites
-  FLEA_CCALL(THR_flea_rw_stream_t__force_read(hs_rd_stream__pt, ciphersuite__au8, sizeof(ciphersuite__au8)));
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, ciphersuite__au8, sizeof(ciphersuite__au8)));
 
   // TODO: CHECK CIPHERSUITE
   // - must be among presented ones in client hello

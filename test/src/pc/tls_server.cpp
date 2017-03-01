@@ -386,6 +386,7 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
 
   FLEA_THR_FIN_SEC(
     flea_rw_stream_t__dtor(&rw_stream__t);
+    flea_tls_ctx_t__dtor(&tls_ctx);
   );
 } // THR_flea_start_tls_server
 
