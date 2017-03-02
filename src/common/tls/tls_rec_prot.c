@@ -86,6 +86,13 @@ static flea_err_t THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
   );
 } /* THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac */
 
+static void flea_tls_rec_prot_t__discard_pending_write(flea_tls_rec_prot_t* rec_prot__pt)
+{
+  rec_prot__pt->write_ongoing__u8     = 0;
+  rec_prot__pt->payload_offset__u16   = 0;
+  rec_prot__pt->payload_used_len__u16 = 0;
+}
+
 flea_err_t THR_flea_tls_rec_prot_t__ctor(
   flea_tls_rec_prot_t* rec_prot__pt,
   flea_al_u8_t         prot_vers_major,
@@ -474,9 +481,12 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
     );
   }
   FLEA_CCALL(THR_flea_rw_stream_t__flush_write(rec_prot__pt->rw_stream__pt));
-  rec_prot__pt->write_ongoing__u8     = 0;
-  rec_prot__pt->payload_offset__u16   = 0;
-  rec_prot__pt->payload_used_len__u16 = 0;
+
+  flea_tls_rec_prot_t__discard_pending_write(rec_prot__pt);
+
+  /*rec_prot__pt->write_ongoing__u8     = 0;
+   *  rec_prot__pt->payload_offset__u16   = 0;
+   *  rec_prot__pt->payload_used_len__u16 = 0;*/
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__write_flush */
 
@@ -518,13 +528,18 @@ flea_err_t THR_flea_tls_rec_prot_t__close_and_send_close_notify(flea_tls_rec_pro
 {
   FLEA_THR_BEG_FUNC();
 
-  FLEA_CCALL(
-    THR_flea_tls_rec_prot_t__send_alert(
-      rec_prot__pt,
-      FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY,
-      FLEA_TLS_ALERT_LEVEL_FATAL
-    )
-  );
+  if(!rec_prot__pt->is_session_closed__u8)
+  {
+    flea_tls_rec_prot_t__discard_pending_write(rec_prot__pt);
+    FLEA_CCALL(
+      THR_flea_tls_rec_prot_t__send_alert(
+        rec_prot__pt,
+        FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY,
+        FLEA_TLS_ALERT_LEVEL_WARNING
+      )
+    );
+    rec_prot__pt->is_session_closed__u8 = FLEA_TRUE;
+  }
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -758,6 +773,8 @@ flea_err_t THR_flea_tls_rec_prot_t__read_data(
 
 void flea_tls_rec_prot_t__dtor(flea_tls_rec_prot_t* rec_prot__pt)
 {
+  /* no way to handle error here: */
+  THR_flea_tls_rec_prot_t__close_and_send_close_notify(rec_prot__pt);
   flea_tls_conn_state_t__dtor(&rec_prot__pt->write_state__t);
   flea_tls_conn_state_t__dtor(&rec_prot__pt->read_state__t);
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(rec_prot__pt->send_rec_buf_raw__bu8, FLEA_TLS_TRNSF_BUF_SIZE);
