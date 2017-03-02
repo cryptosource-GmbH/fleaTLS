@@ -61,6 +61,8 @@ typedef enum
    */
   FLEA_ERR_TLS_PEER_CERT_INVALID_KEY_USAGE            = 0x0043,
 
+  FLEA_ERR_TLS_SESS_CLOSED                            = 0x0044,
+
   /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */

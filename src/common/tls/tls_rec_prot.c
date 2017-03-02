@@ -112,6 +112,7 @@ flea_err_t THR_flea_tls_rec_prot_t__ctor(
   rec_prot__pt->read_bytes_from_current_record__u16 = 0;
 
   rec_prot__pt->current_record_content_len__u16 = 0;
+  rec_prot__pt->is_session_closed__u8 = FLEA_FALSE;
 
   /*flea_tls_conn_state_t__ctor_no_cipher(&rec_prot__pt->write_state__t);
    * flea_tls_conn_state_t__ctor_no_cipher(&rec_prot__pt->read_state__t);*/
@@ -222,6 +223,10 @@ flea_err_t THR_flea_tls_rec_prot_t__write_data(
   flea_al_u16_t buf_free_len__alu16;
 
   FLEA_THR_BEG_FUNC();
+  if(rec_prot__pt->is_session_closed__u8)
+  {
+    FLEA_THROW("tls session closed", FLEA_ERR_TLS_SESS_CLOSED);
+  }
   if(rec_prot__pt->write_ongoing__u8)
   {
     if(rec_prot__pt->send_rec_buf_raw__bu8[0] != content_type__e)
@@ -475,6 +480,54 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__write_flush */
 
+flea_err_t THR_flea_tls_rec_prot_t__send_record(
+  flea_tls_rec_prot_t* rec_prot__pt,
+  flea_u8_t*           bytes,
+  flea_u16_t           bytes_len,
+  ContentType          content_type
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(rec_prot__pt, content_type, bytes, bytes_len));
+#ifdef FLEA_TLS_SEND_RECORD_EAGER
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
+#endif
+
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_tls__send_record */
+
+flea_err_t THR_flea_tls_rec_prot_t__send_alert(
+  flea_tls_rec_prot_t*          rec_prot__pt,
+  flea_tls__alert_description_t description,
+  flea_tls__alert_level_t       level
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+  flea_u8_t alert_bytes[2];
+  alert_bytes[0] = level;
+  alert_bytes[1] = description;
+
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__send_record(rec_prot__pt, alert_bytes, sizeof(alert_bytes), CONTENT_TYPE_ALERT));
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_tls_rec_prot_t__close_and_send_close_notify(flea_tls_rec_prot_t* rec_prot__pt)
+{
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_CCALL(
+    THR_flea_tls_rec_prot_t__send_alert(
+      rec_prot__pt,
+      FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY,
+      FLEA_TLS_ALERT_LEVEL_FATAL
+    )
+  );
+  FLEA_THR_FIN_SEC_empty();
+}
+
 // TODO: ADD ALERT HANDLING TO THIS FUNCTION
 static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   flea_tls_rec_prot_t*          rec_prot__pt,
@@ -491,6 +544,10 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   flea_dtl_t data_len__dtl = *data_len__palu16;
 
   FLEA_THR_BEG_FUNC();
+  if(rec_prot__pt->is_session_closed__u8)
+  {
+    FLEA_THROW("tls session closed", FLEA_ERR_TLS_SESS_CLOSED);
+  }
   if(rec_prot__pt->write_ongoing__u8)
   {
     FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));

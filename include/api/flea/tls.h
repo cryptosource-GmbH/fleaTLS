@@ -179,41 +179,6 @@ typedef enum
   FLEA_TLS_CIPHER_TYPE_AEAD
 } flea_tls__cipher_type_t;
 
-typedef enum
-{
-  FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY                = 0,
-  FLEA_TLS_ALERT_DESC_UNEXPECTED_MESSAGE          = 10,
-  FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC              = 20,
-  FLEA_TLS_ALERT_DESC_DECRYPTION_FAILED_RESERVED  = 21,
-  FLEA_TLS_ALERT_DESC_RECORD_OVERFLOW             = 22,
-  FLEA_TLS_ALERT_DESC_DECOMPRESSION_FAILURE       = 30,
-  FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE           = 40,
-  FLEA_TLS_ALERT_DESC_NO_CERTIFICATE_RESERVED     = 41,
-  FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE             = 42,
-  FLEA_TLS_ALERT_DESC_UNSUPPORTED_CERTIFICATE     = 43,
-  FLEA_TLS_ALERT_DESC_CERTIFICATE_REVOKED         = 44,
-  FLEA_TLS_ALERT_DESC_CERTIFICATE_EXPIRED         = 45,
-  FLEA_TLS_ALERT_DESC_CERTIFICATE_UNKNOWN         = 46,
-  FLEA_TLS_ALERT_DESC_ILLEGAL_PARAMETER           = 47,
-  FLEA_TLS_ALERT_DESC_UNKNOWN_CA                  = 48,
-  FLEA_TLS_ALERT_DESC_ACCESS_DENIED               = 49,
-  FLEA_TLS_ALERT_DESC_DECODE_ERROR                = 50,
-  FLEA_TLS_ALERT_DESC_DECRYPT_ERROR               = 51,
-  FLEA_TLS_ALERT_DESC_EXPORT_RESTRICTION_RESERVED = 60,
-  FLEA_TLS_ALERT_DESC_PROTOCOL_VERSION            = 70,
-  FLEA_TLS_ALERT_DESC_INSUFFICIENT_SECURITY       = 71,
-  FLEA_TLS_ALERT_DESC_INTERNAL_ERROR              = 80,
-  FLEA_TLS_ALERT_DESC_USER_CANCELED               = 90,
-  FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION            = 100,
-  FLEA_TLS_ALERT_DESC_UNSUPPORTED_EXTENSION       = 110
-} flea_tls__alert_description_t;
-
-typedef enum
-{
-  FLEA_TLS_ALERT_LEVEL_WARNING = 1,
-  FLEA_TLS_ALERT_LEVEL_FATAL   = 2
-} flea_tls__alert_level_t;
-
 
 extern const flea_tls__cipher_suite_t cipher_suites[2];
 
@@ -354,12 +319,6 @@ flea_err_t THR_flea_tls__send_app_data(
   flea_tls_ctx_t* tls_ctx,
   flea_u8_t*      data,
   flea_u8_t       data_len
-);
-
-flea_err_t THR_flea_tls__send_alert(
-  flea_tls_ctx_t*               tls_ctx,
-  flea_tls__alert_description_t description,
-  flea_tls__alert_level_t       level
 );
 
 

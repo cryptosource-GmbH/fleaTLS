@@ -528,7 +528,7 @@ flea_err_t THR_flea_tls__client_handshake(
           &premaster_secret__t
         )
       );
-      FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx, &hash_ctx));
+      FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx));
 
       /*
        * Enable encryption for outgoing messages

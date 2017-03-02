@@ -73,8 +73,7 @@ typedef enum
 #endif
 
 flea_err_t THR_flea_tls__send_change_cipher_spec(
-  flea_tls_ctx_t*  tls_ctx,
-  flea_hash_ctx_t* hash_ctx
+  flea_tls_ctx_t* tls_ctx
 );
 
 flea_err_t THR_flea_tls__send_finished(
