@@ -97,6 +97,7 @@ typedef struct
   flea_u16_t                   read_bytes_from_current_record__u16;
   flea_u16_t                   current_record_content_len__u16;
   flea_u8_t                    is_session_closed__u8;
+  flea_u8_t                    is_current_record_alert__u8;
   // flea_u8_t                    current_hdr_offset__u8;
 } flea_tls_rec_prot_t;
 

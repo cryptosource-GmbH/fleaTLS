@@ -374,8 +374,16 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
 
   while(1)
   {
+    flea_err_t retval = THR_flea_tls__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
+    if(retval == FLEA_ERR_TLS_SESSION_CLOSED)
+    {
+      FLEA_THR_RETURN();
+    }
+    else if(retval)
+    {
+      FLEA_THROW("rethrowing error from read_app_data", retval);
+    }
     printf("before read_app_data\n");
-    FLEA_CCALL(THR_flea_tls__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking));
     buf[buf_len] = 0;
     printf("received data: %s\n", buf);
     printf("read_app_data returned\n");
@@ -384,7 +392,6 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   // FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (flea_u8_t *) app_data_www, strlen(app_data_www)));
   // FLEA_CCALL(THR_flea_tls__send_alert(&tls_ctx, FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY, FLEA_TLS_ALERT_LEVEL_WARNING));
 
-  // TODO: dtor, close TLS connection
 
   FLEA_THR_FIN_SEC(
     flea_rw_stream_t__dtor(&rw_stream__t);
