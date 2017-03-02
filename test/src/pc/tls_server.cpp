@@ -376,6 +376,8 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   {
     printf("before read_app_data\n");
     FLEA_CCALL(THR_flea_tls__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking));
+    buf[buf_len] = 0;
+    printf("received data: %s\n", buf);
     printf("read_app_data returned\n");
     FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, buf, buf_len));
   }

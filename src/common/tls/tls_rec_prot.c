@@ -498,6 +498,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
     rec_prot__pt->read_bytes_from_current_record__u16 = 0;
     rec_prot__pt->current_record_content_len__u16     = 0;
   }
+  // TODO: MERGE THIS COPYING WITH THE FINAL COPYING
   to_cp__alu16 = FLEA_MIN(data_len__dtl, rec_prot__pt->payload_used_len__u16 - rec_prot__pt->payload_offset__u16);
   memcpy(data__pu8, rec_prot__pt->payload_buf__pu8 + rec_prot__pt->payload_offset__u16, to_cp__alu16);
   rec_prot__pt->payload_offset__u16 += to_cp__alu16;
@@ -645,7 +646,10 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
       read_bytes_count__alu16 += to_cp__alu16;
       data_len__dtl -= to_cp__alu16;
       data__pu8     += to_cp__alu16;
-    } while(data_len__dtl);
+    } while(
+      ((rd_mode__e == flea_read_full) && data_len__dtl) ||
+      ((rd_mode__e == flea_read_blocking) && !read_bytes_count__alu16)
+    );
   }
   *data_len__palu16 = read_bytes_count__alu16;
   FLEA_THR_FIN_SEC_empty();
