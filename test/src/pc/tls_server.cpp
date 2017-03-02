@@ -388,6 +388,7 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
     printf("received data: %s\n", buf);
     printf("read_app_data returned\n");
     FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, buf, buf_len));
+    buf_len = sizeof(buf);
   }
   // FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (flea_u8_t *) app_data_www, strlen(app_data_www)));
   // FLEA_CCALL(THR_flea_tls__send_alert(&tls_ctx, FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY, FLEA_TLS_ALERT_LEVEL_WARNING));
