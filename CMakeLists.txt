@@ -86,7 +86,8 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 
 # Directories
-SET(INCLUDE_DIR include include/api test/include)
+SET(INCLUDE_DIR include include/api test/include build_cfg/general
+  build_cfg/pltf_spec/64bit_default pltf_support/linux/include)
 
 SET(SRC_DIR src )
 
@@ -97,7 +98,7 @@ FILE(GLOB FLEA_SRCS ${SRC_DIR}/x86/*.c ${SRC_DIR}/common/*.c ${SRC_DIR}/user/*.c
   ${SRC_DIR}/common/hash/*.c ${SRC_DIR}/common/math/*.c ${SRC_DIR}/common/pk_enc/*.c 
   ${SRC_DIR}/common/asn1/*.c ${SRC_DIR}/common/streams/*.c
   ${SRC_DIR}/pc/*.c ${SRC_DIR}/pc/*.cpp
-  ${SRC_DIR}/linux/*.c ${SRC_DIR}/common/tls/*.c)
+  ${SRC_DIR}/linux/*.c ${SRC_DIR}/common/tls/*.c pltf_support/linux/src/*.c)
 
 FILE(GLOB TEST_SRCS test/src/pc/*.cpp test/src/pc/*.c test/src/common/*.c)
 

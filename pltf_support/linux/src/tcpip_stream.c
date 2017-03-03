@@ -302,7 +302,7 @@ static flea_err_t THR_read_socket(
 #endif /* if 0 */
 
 // TODO: merge into create_rw_stream function
-flea_err_t THR_flea_test_linux__create_rw_stream_server(flea_rw_stream_t* stream__pt)
+flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(flea_rw_stream_t* stream__pt)
 {
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_open_f open__f         = THR_open_socket_server;
@@ -327,7 +327,7 @@ flea_err_t THR_flea_test_linux__create_rw_stream_server(flea_rw_stream_t* stream
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_test_linux__create_rw_stream(flea_rw_stream_t* stream__pt)
+flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(flea_rw_stream_t* stream__pt)
 {
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_open_f open__f         = THR_open_socket;

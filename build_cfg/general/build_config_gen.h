@@ -1,8 +1,10 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 
-#ifndef _flea_build_config__H_
-#define _flea_build_config__H_
+#ifndef _flea_build_cfg_gen__H_
+#define _flea_build_cfg_gen__H_
+
+#include "build_cfg_pltf.h"
 
 /**
  * When set, print test failures and summary with printf.
@@ -121,18 +123,6 @@
 #define FLEA_ECC_MAX_COFACTOR_BIT_SIZE 32
 
 /**
- * Can be either 16 or 32
- */
-#define FLEA_WORD_BIT_SIZE 32 // FBFLAGS__INT_LIST 16 32
-
-/**
- * Has to be set to the platforms natural pointer size,
- * i.e. to sizeof(void*).
- * Supported values are 8 (64-bit), 4 (32-bit), and 2 (16-bit).
- */
-#define FLEA_PTR_BYTE_SIZE 8
-
-/**
  * Type for the maximal length of data processed by flea in various functions. The effect is that
  * flea_dtl_t, the type that represents data lengths in various API function
  * signatures, is defined with a width of 32 bit if the flag is set and with a width of 16 bit if commented out.
@@ -141,24 +131,14 @@
  */
 #define FLEA_HAVE_DTL_32BIT // FBFLAGS_DTL_32_BIT_ON_OFF
 
-/**
- * set this value if flea runs on a linux platform and the os' interface shall
- * be used for various purposes.
- */
-#define FLEA_ON_LINUX_PLTF
 
 /**
  * Enabling this flag causes the choice of code optimized for big endian platforms in some places.
- * In any case, the generated remains valid independently of the platform's
+ * In any case, the generated code remains valid independently of the platform's
  * endianess, but may be non-optimal with regard to size and/or speed.
  */
 // #define FLEA_HAVE_BE_ARCH_OPT // FBFLAGS_ARCH_OPT_ON_OFF
 
-/**
- * set this value to use the user-provided implementation of the function
- * used by flea to determine the current time.
- */
-// #define FLEA_USE_USER_CURR_TIME
 
 /**
  * This value defines the maximal accepted length of name components (e.g. in

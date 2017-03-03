@@ -16,7 +16,7 @@
 #include "pc/test_util.h"
 #include "flea/tls.h"
 #include "pc/test_pc.h"
-#include "pc/linux_sock.h"
+#include "pltf_support/tcpip_stream.h"
 
 flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
 {
@@ -366,7 +366,7 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   flea_ref_cu8_t server_key__t;
   FLEA_THR_BEG_FUNC();
   flea_tls_ctx_t__INIT(&tls_ctx);
-  FLEA_CCALL(THR_flea_test_linux__create_rw_stream_server(&rw_stream__t));
+  FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_server(&rw_stream__t));
   FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
   server_key__t.data__pcu8 = server_key;
   server_key__t.len__dtl   = sizeof(server_key);

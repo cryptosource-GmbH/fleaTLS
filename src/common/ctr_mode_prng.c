@@ -1,6 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
-#include "internal/common/build_config.h"
+#include "internal/common/default.h"
 #include "flea/block_cipher.h"
 #include "flea/ctr_mode_prng.h"
 #include "internal/common/block_cipher/aes.h"

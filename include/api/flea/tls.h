@@ -3,7 +3,7 @@
 #ifndef _flea_tls__H_
 #define _flea_tls__H_
 
-#include "internal/common/build_config.h"
+#include "internal/common/default.h"
 #include "flea/types.h"
 #include "flea/pubkey.h"
 #include "flea/hash.h"

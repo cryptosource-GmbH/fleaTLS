@@ -8,7 +8,7 @@ extern "C" {
 #endif
 
 
-#include "internal/common/build_config.h"
+#include "internal/common/default.h"
 #include  "flea/types.h"
 
 
