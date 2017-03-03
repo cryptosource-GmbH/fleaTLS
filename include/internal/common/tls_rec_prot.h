@@ -83,7 +83,7 @@ typedef struct
 #ifdef FLEA_USE_HEAP_BUF
   flea_u8_t*                   send_rec_buf_raw__bu8;
 #else
-  flea_u8_t                    send_rec_buf_raw__bu8[FLEA_TLS_REC_BUF_SIZE];
+  flea_u8_t                    send_rec_buf_raw__bu8[FLEA_TLS_TRNSF_BUF_SIZE];
 #endif
   flea_u16_t                   send_rec_buf_raw_len__u16;
   flea_u8_t*                   payload_buf__pu8;

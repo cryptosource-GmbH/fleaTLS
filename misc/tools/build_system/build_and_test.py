@@ -15,8 +15,10 @@ import random
 # open: keep FBFLAGS comments in produced header file so that it can be reused
 # by the script
 
-build_config_file_str = "../../../include/internal/common/build_config.h"
-build_config_file_save_str = "../../../include/internal/common/build_config.h__orig"
+#build_config_file_str = "../../../include/internal/common/build_config.h"
+build_config_file_str = "../../../build_cfg/general/build_config_gen.h"
+#build_config_file_save_str = "../../../include/internal/common/build_config.h__orig"
+build_config_file_save_str = "../../../build_cfg/general/build_config_gen.h__orig"
 make_cwd_str = "../../../"
 #build_config_file_str = "include/internal/common/build_config.h"
 #build_config_file_save_str = "include/internal/common/build_config.h__orig"
@@ -243,11 +245,11 @@ def iterate_through_configs_with_build_and_tests(stripped_file, concrete_flag_va
  #print "build_config_file: lines in stripped_file", len(stripped_file)
  #print "max max_comb_len = " + str(max_combination_len)
  for i in range (0, max_combination_len):
-   print "testing configuration " + str(i+1) + " of " + str(max_combination_len)
+   #print "testing configuration " + str(i+1) + " of " + str(max_combination_len)
    new_file = [] 
    for line in stripped_file:
      #print "processing line of stripped file: " + line
-     if (re.search('#define _flea_build_config__H_', line)):
+     if (re.search('#define _flea_build_cfg_gen__H_', line)):
        #print "found insertion tag for flag values"
        new_file.append(line)
        new_file.append("\n")
@@ -357,9 +359,9 @@ def build_variants_and_test():
     print "using valgrind"
   if( not os.path.exists(build_config_file_save_str)):
     shutil.copy(build_config_file_str, build_config_file_save_str)
-    print "backup file of build_config.h created" 
+    print "backup file of build_config_gen.h created" 
   else:
-    print "backup file of build_config.h already exists" 
+    print "backup file of build_config_gen.h already exists" 
   for i in range(iters):
     print "iter " + str(i+1) + " of " + str(iters)
     clearGlobals()
@@ -384,7 +386,7 @@ def build_variants_and_test():
     #while normal_var_index < normal_var_max:
     #  build_and_test_core_config(stripped_file, flag_list, 0, list())
   shutil.move(build_config_file_save_str, build_config_file_str)
-  print "completed without errors, original build_config.h restored" 
+  print "completed without errors, original build_config_gen.h restored" 
 
 build_variants_and_test()
 
