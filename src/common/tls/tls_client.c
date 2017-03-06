@@ -367,10 +367,6 @@ static flea_err_t THR_flea_handle_handsh_msg(
 flea_err_t THR_flea_tls__client_handshake(
   flea_tls_ctx_t*          tls_ctx,
   const flea_cert_store_t* trust_store__pt
-
-  /*flea_u8_t*      trust_anchor__pu8,
-   * flea_u16_t      trust_anchor_len__u16*/
-  // flea_rw_stream_t* rw_stream__pt
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -477,7 +473,8 @@ flea_err_t THR_flea_tls__client_handshake(
               &tls_ctx->rec_prot__t,
               CONTENT_TYPE_CHANGE_CIPHER_SPEC,
               &dummy_byte,
-              &len_one__alu16
+              &len_one__alu16,
+              flea_read_full
             )
           );
           FLEA_CCALL(
@@ -527,7 +524,7 @@ flea_err_t THR_flea_tls__client_handshake(
           &premaster_secret__t
         )
       );
-      FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx, &hash_ctx));
+      FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx));
 
       /*
        * Enable encryption for outgoing messages

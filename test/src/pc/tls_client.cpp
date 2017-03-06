@@ -16,7 +16,7 @@
 #include "pc/test_util.h"
 #include "flea/tls.h"
 #include "pc/test_pc.h"
-#include "pc/linux_sock.h"
+#include "pltf_support/tcpip_stream.h"
 
 
 // CA cert to verify the server's certificate
@@ -140,7 +140,7 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
       sizeof(trust_anchor_2048__acu8)
     )
   );
-  FLEA_CCALL(THR_flea_test_linux__create_rw_stream(&rw_stream__t));
+  FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_client(&rw_stream__t));
   FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
   FLEA_CCALL(THR_flea_tls__client_handshake(&tls_ctx, &trust_store__t));
 

@@ -62,6 +62,16 @@ typedef enum
   FLEA_ERR_TLS_PEER_CERT_INVALID_KEY_USAGE            = 0x0043,
 
   /**
+   * The operation cannot be carried out because the TLS session was closed.
+   */
+  FLEA_ERR_TLS_SESSION_CLOSED                         = 0x0044,
+
+  /**
+   *
+   */
+  FLEA_ERR_TLS_REC_FATAL_ALERT                        = 0x0045,
+
+  /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */
   FLEA_ERR_PKCS8_INVALID_KEY_OID                      = 0x0070,

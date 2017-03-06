@@ -415,7 +415,10 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
 {
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_u16_t enc_premaster_secret_len__u16;
-  flea_private_key_t key__t;
+
+  FLEA_DECL_OBJ(key__t, flea_private_key_t);
+
+  // TODO: FIX HARDCODED LENGTH!
   const flea_u16_t max_enc_premaster_secret_len__u16 = 256;
 
   // FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(decrypted__t, FLEA_RSA_MAX_MOD_BYTE_LEN);
@@ -470,6 +473,7 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(enc_premaster_secret__bu8);
+    flea_private_key_t__dtor(&key__t);
   );
 } /* THR_flea_tls__read_client_key_exchange_rsa */
 
@@ -482,7 +486,6 @@ static flea_err_t THR_flea_tls__read_client_key_exchange(
 {
   FLEA_THR_BEG_FUNC();
 
-  // TODO: choose appropriate function
   FLEA_CCALL(THR_flea_tls__read_client_key_exchange_rsa(tls_ctx, hs_rdr__pt, server_key__pt, premaster_secret__pt));
 
   FLEA_THR_FIN_SEC_empty();
@@ -606,7 +609,7 @@ flea_err_t THR_flea_tls__server_handshake(
   flea_tls__handshake_state_t handshake_state;
   flea_tls__handshake_state_ctor(&handshake_state);
   flea_hash_ctx_t hash_ctx;
-  THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256); // TODO: initialize properly
+  FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256)); // TODO: initialize properly
 
   // flea_public_key_t pubkey; // TODO: -> tls_ctx
 
@@ -655,7 +658,8 @@ flea_err_t THR_flea_tls__server_handshake(
               &tls_ctx->rec_prot__t,
               CONTENT_TYPE_CHANGE_CIPHER_SPEC,
               &dummy_byte,
-              &len_one__alu16
+              &len_one__alu16,
+              flea_read_full
             )
           );
 
@@ -732,7 +736,7 @@ flea_err_t THR_flea_tls__server_handshake(
       }
       else
       {
-        FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx, &hash_ctx));
+        FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx));
 
         FLEA_CCALL(
           THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(

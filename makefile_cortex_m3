@@ -19,16 +19,24 @@ endif
 
 ###################################################
 
-INCLUDES = -Iinclude -Iinclude/api -Itest/include
+INCLUDES = -Iinclude -Iinclude/api -Itest/include -I./build_cfg/general -I./build_cfg/pltf_spec/32bit_default 
 
-vpath %.c src/common src/common/math src/common/hash src/common/hash src/common/pk_enc src/user
+vpath %.c src/common/asn1 src/common/streams src/common src/common/hash src/common/math src/common/pk_enc src/user src/common/tls
 
-CFLAGS  = -O3 -g -Wall -std=c99
+SRC_DIRS = src/common/asn1 src/common/streams src/common src/common/hash src/common/math src/common/pk_enc src/user src/common/tls
+
+#CFLAGS  = -O3 -g -Wall -std=c99
+CFLAGS  = -Wall -std=c99 # -Os add about 1/4 of running time compared to -O3
 
 #-g 
 CFLAGS += $(INCLUDES) -DFLEA_PLTF_ARM_32BIT
+CFLAGS += -finline-functions -O3 -fomit-frame-pointer 
+CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m3
+#CFLAGS += -mthumb -mcpu=cortex-m3
 
-CFLAGS += -mthumb -mcpu=cortex-m3
+#CFLAGS += -ffreestanding -nostdlib -MMD -MP
+CFLAGS += -MMD #-MP
+#CFLAGS += -MMD -MP
 
 # allow discarding of unused code during linking:
 CFLAGS += -fdata-sections -ffunction-sections
@@ -41,22 +49,19 @@ else
 CFLAGS += -msoft-float
 endif
 
-#CFLAGS += -ffreestanding -nostdlib -MMD -MP
-CFLAGS += -MMD -MP
-CFLAGS += -Iinc -Iinc/core -Iinc/peripherals
+#CFLAGS += -Iinc -Iinc/core -Iinc/peripherals
 
-LD_FLAGS =-Wl,--gc-sections -mcpu=cortex-m3 -mthumb 
-LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys
+#LD_FLAGS =-Wl,--gc-sections -mcpu=cortex-m3 -mthumb 
+#LD_SYS_LIBS = -lstdc++ -lsupc++ -lm -lc -lgcc -lnosys
 
 SRC_DIR = src
 
-SRC_DIRS = src/common/asn1 src/common/streams src/common src/common/hash src/common/math src/common/pk_enc src/user
 
 
 SRCS := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 #$(info $$SRCS is [${SRCS}])
 
-OBJDIR = build/lpc1768
+OBJDIR = build/cortex_m3
 OBJS_RAW = $(SRCS:.c=.o)
 
 OBJS = $(addprefix $(OBJDIR)/, $(OBJS_RAW))
@@ -67,9 +72,9 @@ DEPS = $(addprefix $(OBJDIR)/, $(DEPS_RAW))
 
 
 	
-.PHONY: libflea_lpc1768.a
+.PHONY: libflea_cortex_m3.a
 
-all: libflea_lpc1768.a test
+all: libflea_cortex_m3.a 
 
 # $< = "prerequisite": right hand side in target def
 # $@ = left hand side of the target def
@@ -78,16 +83,17 @@ $(OBJDIR)/%.o : %.c
 	@mkdir -p $(@D)
 	$(CC) $(CFLAGS) -c $< -o $@ 
   
-libflea_lpc1768.a: $(OBJS)
+libflea_cortex_m3.a: $(OBJS)
 	$(AR) -r $@ $(OBJS)
+	mv libflea_cortex_m3.a build/
 
-test: libflea_lpc1768.a
+test: libflea_cortex_m3.a
 	@echo "making test"
 	$(MAKE) -C test FLOAT_TYPE=$(FLOAT_TYPE)
 
 clean:
+	rm -f $(OBJS)  build/libflea_cortex_m3.a 
 	find $(OBJDIR) -name "*.d" | xargs -n1 trash-put
-	rm -f $(OBJS)  libflea_lpc1768.a 
 	$(MAKE) clean -C test
 
 -include $(DEPS)
