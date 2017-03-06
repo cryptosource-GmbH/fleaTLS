@@ -360,7 +360,6 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   cert_chain[0].len__dtl   = sizeof(server_cert_1024__au8);
   server_key__t.data__pcu8 = server_key_1024__au8;
   server_key__t.len__dtl   = sizeof(server_key_1024__au8);
-
 #else
   cert_chain[1].data__pcu8 = trust_anchor_2048__au8;
   cert_chain[1].len__dtl   = sizeof(trust_anchor_2048__au8);
@@ -368,8 +367,6 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   cert_chain[0].len__dtl   = sizeof(server_cert_2048__au8);
   server_key__t.data__pcu8 = server_key_2048__au8;
   server_key__t.len__dtl   = sizeof(server_key_2048__au8);
-
-
 #endif // ifdef SERVER_CERT_1024
 
   // now read data and echo it back

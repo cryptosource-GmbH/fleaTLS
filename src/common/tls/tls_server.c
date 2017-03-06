@@ -609,7 +609,7 @@ flea_err_t THR_flea_tls__server_handshake(
   flea_tls__handshake_state_t handshake_state;
   flea_tls__handshake_state_ctor(&handshake_state);
   flea_hash_ctx_t hash_ctx;
-  FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256)); // TODO: initialize properly (no fixed sha256);
+  FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256)); // TODO: initialize properly (no fixed sha256)
 
   // flea_public_key_t pubkey; // TODO: -> tls_ctx
 
@@ -764,6 +764,7 @@ flea_err_t THR_flea_tls__server_handshake(
     }
   }
   FLEA_THR_FIN_SEC(
+    flea_hash_ctx_t__dtor(&hash_ctx);
     flea_byte_vec_t__dtor(&premaster_secret__t);
   );
 } /* THR_flea_tls__server_handshake */
