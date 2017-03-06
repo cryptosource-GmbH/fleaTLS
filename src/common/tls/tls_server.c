@@ -426,7 +426,6 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
   // flea_al_u16_t premaster_secret__len_u16 = 256;
 
   FLEA_DECL_BUF(enc_premaster_secret__bu8, flea_u8_t, 256); // TODO: need more ?
-  // FLEA_DECL_BUF(premaster_secret__bu8, flea_u8_t, 256); // always 48 byte but could be more if it is manipulated
   FLEA_THR_BEG_FUNC();
 
 
@@ -521,7 +520,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
     {
       FLEA_CCALL(THR_flea_tls__read_client_hello(tls_ctx, &handsh_rdr__t));
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
-      return FLEA_ERR_FINE;
+      FLEA_THR_RETURN();
     }
     else
     {
@@ -536,7 +535,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
     {
       // TODO: read certificate and verify
 
-      return FLEA_ERR_FINE;
+      FLEA_THR_RETURN();
     }
   }
   if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_KEY_EXCHANGE)
@@ -546,7 +545,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE)
     {
       FLEA_CCALL(THR_flea_tls__read_client_key_exchange(tls_ctx, &handsh_rdr__t, server_key__pt, premaster_secret__pt));
-      return FLEA_ERR_FINE;
+      FLEA_THR_RETURN();
     }
   }
 
@@ -556,7 +555,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_VERIFY)
     {
       // TODO: read certificate verify
-      return FLEA_ERR_FINE;
+      FLEA_THR_RETURN();
     }
   }
 
@@ -568,7 +567,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
       FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx_copy_read_finished__t));
       // FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, hash_ctx__pt));
 
-      return FLEA_ERR_FINE;
+      FLEA_THR_RETURN();
     }
     else
     {
@@ -580,6 +579,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
 
   FLEA_THR_FIN_SEC(
     flea_tls_handsh_reader_t__dtor(&handsh_rdr__t);
+    flea_hash_ctx_t__dtor(&hash_ctx_copy_read_finished__t);
   );
 } /* THR_flea_handle_handsh_msg */
 
@@ -609,7 +609,7 @@ flea_err_t THR_flea_tls__server_handshake(
   flea_tls__handshake_state_t handshake_state;
   flea_tls__handshake_state_ctor(&handshake_state);
   flea_hash_ctx_t hash_ctx;
-  FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256)); // TODO: initialize properly
+  FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256)); // TODO: initialize properly (no fixed sha256);
 
   // flea_public_key_t pubkey; // TODO: -> tls_ctx
 
@@ -763,5 +763,7 @@ flea_err_t THR_flea_tls__server_handshake(
       continue;
     }
   }
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC(
+    flea_byte_vec_t__dtor(&premaster_secret__t);
+  );
 } /* THR_flea_tls__server_handshake */
