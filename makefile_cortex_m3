@@ -21,9 +21,9 @@ endif
 
 INCLUDES = -Iinclude -Iinclude/api -Itest/include -I./build_cfg/general -I./build_cfg/pltf_spec/32bit_default 
 
-vpath %.c src/common/asn1 src/common/streams src/common src/common/hash src/common/math src/common/pk_enc src/user src/common/tls
+vpath %.c src/common/asn1 src/common/streams src/common src/common/hash src/common/math src/common/pk_enc src/user src/common/tls pltf_support/workaround_lpc/src
 
-SRC_DIRS = src/common/asn1 src/common/streams src/common src/common/hash src/common/math src/common/pk_enc src/user src/common/tls
+SRC_DIRS = src/common/asn1 src/common/streams src/common src/common/hash src/common/math src/common/pk_enc src/user src/common/tls pltf_support/workaround_lpc/src
 
 #CFLAGS  = -O3 -g -Wall -std=c99
 CFLAGS  = -Wall -std=c99 # -Os add about 1/4 of running time compared to -O3
