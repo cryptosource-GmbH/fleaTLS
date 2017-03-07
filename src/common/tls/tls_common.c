@@ -296,20 +296,6 @@ flea_err_t THR_flea_tls__read_finished(
   }
   if(!flea_sec_mem_equal(rec_finished__pu8, finished__pu8, finished_len__alu8))
   {
-#if 0
-    printf("Finished message not verifiable\n");
-    printf("Got: \n");
-    for(int i = 0; i < 12; i++)
-    {
-      printf("%02x ", rec_finished__pu8[i]);
-    }
-    printf("\nBut calculated: \n");
-    for(int i = 0; i < 12; i++)
-    {
-      printf("%02x ", finished__pu8[i]);
-    }
-    printf("\n");
-#endif /* if 0 */
     FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_GENERIC);
   }
 

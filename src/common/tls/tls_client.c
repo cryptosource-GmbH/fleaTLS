@@ -89,7 +89,7 @@ flea_err_t THR_flea_tls__read_server_hello(
   // read cipher suites
   FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, ciphersuite__au8, sizeof(ciphersuite__au8)));
 
-  tls_ctx->selected_cipher_suite__u16 = TLS_RSA_WITH_AES_256_CBC_SHA256;
+  tls_ctx->selected_cipher_suite__u16 = TLS_RSA_WITH_AES_256_CBC_SHA;
   // TODO: CHECK / SELECT CIPHERSUITE
   // - must be among presented ones in client hello
   // read compression method
@@ -371,23 +371,6 @@ flea_err_t THR_flea_tls__client_handshake(
 )
 {
   FLEA_THR_BEG_FUNC();
-
-  /*
-   * TODO: make this a real test case
-   * flea_u8_t secret[] =   {0x9b, 0xbe, 0x43, 0x6b ,0xa9, 0x40, 0xf0, 0x17, 0xb1, 0x76, 0x52, 0x84, 0x9a, 0x71, 0xdb, 0x35} ;
-   * flea_u8_t seed[] =     {0xa0, 0xba, 0x9f, 0x93, 0x6c, 0xda, 0x31, 0x18, 0x27, 0xa6, 0xf7, 0x96, 0xff, 0xd5, 0x19, 0x8c};
-   * flea_u8_t result[100];
-   * //   flea_u8_t test_label[] =  {0x74, 0x65, 0x73, 0x74, 0x20, 0x6c, 0x61, 0x62, 0x65, 0x6c};
-   * PRF(secret, 16, PRF_LABEL_TEST, seed, 16, 100, result);
-   *
-   * printf("PRF TEST\n");
-   * for (int i=0; i<100; i++)
-   * {
-   * printf("%02x ", result[i]);
-   * }
-   * printf("\n");
-   */
-
 
   // define and init state
   flea_tls__handshake_state_t handshake_state; // TODO: INIT OBJECT

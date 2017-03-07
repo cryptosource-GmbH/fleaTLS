@@ -516,15 +516,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
     )
   );
 
-  /*{
-   * unsigned i;
-   * printf("encrypt_record: encrypt %u bytes of data:\n", input_output_len);
-   * for(i = 0; i < input_output_len; i++)
-   * {
-   *  printf("%02x ", padded_data[i]);
-   * }
-   * printf("\n");
-   * }*/
 
   length_tot = input_output_len + iv_len;
   rec_prot__pt->send_rec_buf_raw__bu8[3] = length_tot >> 8;
@@ -555,22 +546,12 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
       )
     );
 
-    /*{
-     * unsigned i;
-     * printf("encrypt_record_new: encrypt %u bytes of data:\n", input_output_len);
-     * for(i = 0; i < input_output_len; i++)
-     * {
-     *  printf("%02x ", padded_data[i]);
-     * }
-     * printf("\n");
-     * }*/
     inc_seq_nbr(rec_prot__pt->write_state__t.sequence_number__au32);
   }
   else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == TLS_NULL_WITH_NULL_NULL)
   {
     rec_prot__pt->send_rec_buf_raw__bu8[3] = rec_prot__pt->payload_used_len__u16 >> 8;
     rec_prot__pt->send_rec_buf_raw__bu8[4] = rec_prot__pt->payload_used_len__u16;
-    // printf("rec_prot write_flush: writing %u PLAIN bytes to underlying stream\n", rec_prot__pt->payload_used_len__u16 + RECORD_HDR_LEN);
     FLEA_CCALL(
       THR_flea_rw_stream_t__write(
         rec_prot__pt->rw_stream__pt,
