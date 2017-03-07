@@ -139,6 +139,7 @@ flea_err_t THR_flea_tls__read_client_hello(
           chosen_cs_index__u16 = supported_cs_index__u16;
           // chosen_cs__au8[0]    = supported_cs__au8[chosen_cs_index__u16];
           // chosen_cs__au8[1]    = supported_cs__au8[chosen_cs_index__u16];
+          tls_ctx->selected_cipher_suite__u16 = curr_cs__alu16;
           found = FLEA_TRUE;
         }
       }
@@ -151,7 +152,6 @@ flea_err_t THR_flea_tls__read_client_hello(
   {
     FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_GENERIC);
   }
-
 
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &client_compression_methods_len__u8));
 
@@ -658,6 +658,20 @@ flea_err_t THR_flea_tls__server_handshake(
         {
           flea_u8_t dummy_byte;
           flea_al_u16_t len_one__alu16 = 1;
+          flea_al_u8_t key_block_len__alu8;
+          flea_al_u8_t mac_key_len__alu8, mac_len__alu8, cipher_key_len__alu8;
+          // flea_mac_id_t mac_id;
+          const flea_tls__cipher_suite_t* suite__pt = flea_tls_get_cipher_suite_by_id(
+            tls_ctx->selected_cipher_suite__u16
+            );
+          if(suite__pt == NULL)
+          {
+            FLEA_THROW("invalid ciphersuite selected", FLEA_ERR_INT_ERR);
+          }
+          mac_key_len__alu8    = suite__pt->mac_key_size;
+          mac_len__alu8        = suite__pt->mac_size;
+          cipher_key_len__alu8 = suite__pt->enc_key_size;
+          key_block_len__alu8  = 2 * mac_key_len__alu8 + 2 * cipher_key_len__alu8;
 
           FLEA_CCALL(
             THR_flea_tls_rec_prot_t__read_data(
@@ -682,7 +696,14 @@ flea_err_t THR_flea_tls__server_handshake(
               tls_ctx->security_parameters.master_secret
             )
           );
-          FLEA_CCALL(THR_flea_tls__generate_key_block(tls_ctx, tls_ctx->key_block));
+          // TODO: key block need not be a member => make local
+          FLEA_CCALL(
+            THR_flea_tls__generate_key_block(
+              &tls_ctx->security_parameters,
+              tls_ctx->key_block,
+              key_block_len__alu8
+            )
+          );
 
           // enable encryption for read direction
           FLEA_CCALL(
@@ -690,13 +711,14 @@ flea_err_t THR_flea_tls__server_handshake(
               &tls_ctx->rec_prot__t,
               flea_tls_read,
               flea_aes256,
-              flea_sha256,
-              flea_hmac_sha256,
-              tls_ctx->key_block + 2 * 32,
-              32,
+              // flea_sha256,
+              // flea_hmac_sha256,
+              suite__pt->mac_algorithm,
+              tls_ctx->key_block + 2 * mac_key_len__alu8,
+              cipher_key_len__alu8,
               tls_ctx->key_block,
-              32,
-              32
+              mac_key_len__alu8,// 32,
+              mac_len__alu8// 32
             )
           );
 
@@ -749,7 +771,7 @@ flea_err_t THR_flea_tls__server_handshake(
             &tls_ctx->rec_prot__t,
             flea_tls_write,
             flea_aes256,
-            flea_sha256,
+            // flea_sha256,
             flea_hmac_sha256,
             tls_ctx->key_block + 2 * 32 + 32,
             32,

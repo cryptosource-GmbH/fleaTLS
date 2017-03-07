@@ -208,7 +208,7 @@ flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
   flea_tls_rec_prot_t*   rec_prot__pt,
   flea_tls_stream_dir_e  direction,
   flea_block_cipher_id_t block_cipher_id,
-  flea_hash_id_t         hash_id,
+  // flea_hash_id_t         hash_id,
   flea_mac_id_t          mac_id,
   const flea_u8_t*       cipher_key__pcu8,
   flea_al_u8_t           cipher_key_len__alu8,
@@ -249,7 +249,7 @@ flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
     THR_flea_tls_conn_state_t__ctor_cbc_hmac(
       conn_state__pt,
       block_cipher_id,
-      hash_id,
+      // hash_id,
       mac_id,
       cipher_key__pcu8,
       cipher_key_len__alu8,

@@ -180,7 +180,7 @@ static flea_err_t THR_flea_tls__send_client_hello(
 
   // flea__encode_U32_BE(tls_ctx->allowed_cipher_suites_len, (flea_u8_t*)&buf);
   flea_u8_t cipher_suites_len[2];
-  flea__encode_U16_BE(tls_ctx->allowed_cipher_suites_len, cipher_suites_len);
+  flea__encode_U16_BE(tls_ctx->allowed_cipher_suites_len__u8, cipher_suites_len);
 
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, cipher_suites_len, 2));
   FLEA_CCALL(
@@ -188,7 +188,7 @@ static flea_err_t THR_flea_tls__send_client_hello(
       &tls_ctx->rec_prot__t,
       hash_ctx,
       tls_ctx->allowed_cipher_suites,
-      tls_ctx->allowed_cipher_suites_len
+      tls_ctx->allowed_cipher_suites_len__u8
     )
   );
 
@@ -482,7 +482,7 @@ flea_err_t THR_flea_tls__client_handshake(
               &tls_ctx->rec_prot__t,
               flea_tls_read,
               flea_aes256,
-              flea_sha256,
+              // flea_sha256,
               flea_hmac_sha256,
               tls_ctx->key_block + 2 * 32 + 32,               /* cipher_key__pcu8, "2*32" = 2*mac key size, "+ 32" = cipher_key_size */
               32,                                             /* cipher_key_len */
@@ -539,14 +539,15 @@ flea_err_t THR_flea_tls__client_handshake(
           tls_ctx->security_parameters.master_secret
         )
       );
-      FLEA_CCALL(THR_flea_tls__generate_key_block(tls_ctx, tls_ctx->key_block));
+      // TODO: CORRECT KEY BLOCK LEN
+      FLEA_CCALL(THR_flea_tls__generate_key_block(&tls_ctx->security_parameters, tls_ctx->key_block, 128));
 
       FLEA_CCALL(
         THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
           &tls_ctx->rec_prot__t,
           flea_tls_write,
           flea_aes256,
-          flea_sha256,
+          // flea_sha256,
           flea_hmac_sha256,
           tls_ctx->key_block + 2 * 32, /* cipher_key__pcu8, 32 = mac key size*/
           32,                          /* cipher_key_len */

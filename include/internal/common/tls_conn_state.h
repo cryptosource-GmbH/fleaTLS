@@ -18,7 +18,7 @@ typedef struct
   flea_u8_t              cipher_key_size__u8;
   flea_u8_t              mac_key_size__u8; // RFC: 8 bits
   flea_u8_t              mac_size__u8;     // RFC: 8 bits
-  flea_hash_id_t         hash_id;          // default: flea_sha256
+  // flea_hash_id_t         hash_id;          // default: flea_sha256
   flea_mac_id_t          mac_id;
 } flea_tls_cbc_hmac_suite_config_t;
 
@@ -66,7 +66,7 @@ void flea_tls_conn_state_t__ctor_no_cipher(flea_tls_conn_state_t* conn_state__pt
 flea_err_t THR_flea_tls_conn_state_t__ctor_cbc_hmac(
   flea_tls_conn_state_t* conn_state__pt,
   flea_block_cipher_id_t block_cipher_id,
-  flea_hash_id_t         hash_id, // ????
+  // flea_hash_id_t         hash_id, // ????
   flea_mac_id_t          mac_id,
   const flea_u8_t*       cipher_key__pcu8,
   flea_al_u8_t           cipher_key_len__alu8,

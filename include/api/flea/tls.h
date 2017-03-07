@@ -180,9 +180,6 @@ typedef enum
 } flea_tls__cipher_type_t;
 
 
-extern const flea_tls__cipher_suite_t cipher_suites[2];
-
-
 /**
  * Security Parameters
  *
@@ -215,13 +212,14 @@ typedef struct
   Random    server_random;     /* random value that the server sends */
 } flea_tls__security_parameters_t;
 
-typedef struct
-{
-  flea_u8_t* record_hdr__pu8;
-  flea_u8_t* message__pu8;
-  flea_u16_t message_len__u16;
-  flea_u16_t allocated_message_len__u16;
-} flea_tls_record_t;
+/*typedef struct
+ * {
+ * flea_u8_t* record_hdr__pu8;
+ * flea_u8_t* message__pu8;
+ * flea_u16_t message_len__u16;
+ * flea_u16_t allocated_message_len__u16;
+ * } flea_tls_record_t;
+ */
 
 #define flea_tls_record_t__SET_BUF(__p, __buf, __buf_len) \
   do {(__p)->record_hdr__pu8  = (__buf); \
@@ -230,25 +228,11 @@ typedef struct
       (__p)->allocated_message_len__u16 = (__buf_len) - 5; \
   } while(0)
 
-
 typedef struct
 {
   /* Security Parameters negotiated during handshake */
   flea_tls__security_parameters_t security_parameters; // can be deleted from memory (or saved for later resumption?) TODO: check again how it works, maybe only store master secret
 
-  /*
-   * Connection States
-   *
-   *  Once the security parameters have been set and the keys have been
-   *  generated, the connection states can be instantiated by making them
-   *  the current states.  These current states MUST be updated for each
-   *  record processed.
-   *
-   */
-  // flea_tls__connection_state_t *active_write_connection_state; /* Swap active and pending after a ChangeCipherSpec message */
-  // flea_tls__connection_state_t *active_read_connection_state; /* and reinitialized pending */
-  // flea_tls__connection_state_t *pending_write_connection_state;
-  // flea_tls__connection_state_t *pending_read_connection_state;
 
   /*
    * Other information or configuration
@@ -256,8 +240,8 @@ typedef struct
 
   // define 4 parameters independently instead of list of cipher suites
   flea_u8_t                    allowed_cipher_suites[2]; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
-  flea_u32_t                   allowed_cipher_suites_len;
-  flea_u8_t                    selected_cipher_suite[2];
+  flea_u8_t                    allowed_cipher_suites_len__u8;
+  flea_u16_t                   selected_cipher_suite__u16;
 
   /* TODO: Where do I allocate the memory? inside __ctor seems pointless with stack usage */
   flea_public_key_t            server_pubkey; /* Public Key of server to use (Key Exchange) */

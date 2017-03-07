@@ -26,7 +26,7 @@ void flea_tls_conn_state_t__ctor_no_cipher(flea_tls_conn_state_t* conn_state__pt
 flea_err_t THR_flea_tls_conn_state_t__ctor_cbc_hmac(
   flea_tls_conn_state_t* conn_state__pt,
   flea_block_cipher_id_t block_cipher_id,
-  flea_hash_id_t         hash_id, // ????
+  // flea_hash_id_t         hash_id, // ????
   flea_mac_id_t          mac_id,
   const flea_u8_t*       cipher_key__pcu8,
   flea_al_u8_t           cipher_key_len__alu8,
@@ -45,8 +45,8 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_cbc_hmac(
     conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8 + cipher_key_len__alu8;
 #endif
   conn_state__pt->cipher_suite_config__t.cipher_suite_id = TLS_RSA_WITH_AES_256_CBC_SHA256;
-  conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id           = block_cipher_id;
-  conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.hash_id             = hash_id;
+  conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id = block_cipher_id;
+  // conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.hash_id             = hash_id;
   conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_size__u8        = mac_size__alu8;
   conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_key_size__u8    = mac_key_len__alu8;
   conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_key_size__u8 =

@@ -93,8 +93,10 @@ flea_err_t THR_flea_tls__create_master_secret(
 
 
 flea_err_t THR_flea_tls__generate_key_block(
-  flea_tls_ctx_t* tls_ctx,
-  flea_u8_t*      key_block
+  // flea_tls_ctx_t* tls_ctx,
+  const flea_tls__security_parameters_t* security_parameters__pt,
+  flea_u8_t*                             key_block,
+  flea_al_u8_t                           key_block_len__alu8
 );
 
 #endif /* h-guard */

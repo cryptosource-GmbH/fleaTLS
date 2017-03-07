@@ -37,6 +37,7 @@
 #include "flea/bin_utils.h"
 #include "flea/cert_store.h"
 #include "flea/byte_vec.h"
+#include "internal/common/tls_ciph_suite.h"
 
 #include <stdio.h>
 
@@ -46,16 +47,6 @@ typedef struct
   flea_u8_t  type__u8;
   flea_u32_t len__u32;
 } handshake_header;
-
-// TODO: MUST BE CONST
-const flea_tls__cipher_suite_t cipher_suites[2] = {
-  {TLS_NULL_WITH_NULL_NULL,         (flea_block_cipher_id_t) 0,
-   0, 0,
-   0, 0, 0, (flea_mac_id_t) 0, (flea_hash_id_t) 0, (flea_tls__prf_algorithm_t) 0},
-  {TLS_RSA_WITH_AES_256_CBC_SHA256, flea_aes256,
-   16, 16, 32, 32, 32, flea_hmac_sha256, flea_sha256, FLEA_TLS_PRF_SHA256},
-  //  { TLS_RSA_WITH_AES_256_CBC_SHA
-};
 
 
 static flea_err_t P_Hash(
@@ -211,25 +202,29 @@ flea_err_t flea_tls__prf(
  *        SecurityParameters.client_random);
  */
 flea_err_t THR_flea_tls__generate_key_block(
-  flea_tls_ctx_t* tls_ctx,
-  flea_u8_t*      key_block
+  // flea_tls_ctx_t* tls_ctx,
+  const flea_tls__security_parameters_t* security_parameters__pt,
+  flea_u8_t*                             key_block,
+  flea_al_u8_t                           key_block_len__alu8
 )
 {
+  // flea_al_u8_t mac_len__alu8, mac_key_len__alu8, cipher_block_len__alu8, cipher_key_len__alu8;
+
   FLEA_THR_BEG_FUNC();
   flea_u8_t seed[64];
-  memcpy(seed, tls_ctx->security_parameters.server_random.gmt_unix_time, 4);
-  memcpy(seed + 4, tls_ctx->security_parameters.server_random.random_bytes, 28);
-  memcpy(seed + 32, tls_ctx->security_parameters.client_random.gmt_unix_time, 4);
-  memcpy(seed + 36, tls_ctx->security_parameters.client_random.random_bytes, 28);
+  memcpy(seed, security_parameters__pt->server_random.gmt_unix_time, 4);
+  memcpy(seed + 4, security_parameters__pt->server_random.random_bytes, 28);
+  memcpy(seed + 32, security_parameters__pt->client_random.gmt_unix_time, 4);
+  memcpy(seed + 36, security_parameters__pt->client_random.random_bytes, 28);
 
   FLEA_CCALL(
     flea_tls__prf(
-      tls_ctx->security_parameters.master_secret,
+      security_parameters__pt->master_secret,
       48,
       PRF_LABEL_KEY_EXPANSION,
       seed,
       sizeof(seed),
-      128,
+      key_block_len__alu8, // 128,
       key_block
     )
   );
@@ -540,11 +535,13 @@ flea_err_t flea_tls_ctx_t__ctor(
 
   // ctx->allowed_cipher_suites = calloc(2, sizeof(flea_u8_t));
   memcpy(ctx->allowed_cipher_suites, TLS_RSA_WITH_AES_256_CBC_SHA256, 2);
-  ctx->allowed_cipher_suites_len = 2;
+  ctx->allowed_cipher_suites_len__u8 = 2;
 
   // CipherSuite TLS_NULL_WITH_NULL_NULL = { 0x00,0x00 };
-  ctx->selected_cipher_suite[0] = 0x00;
-  ctx->selected_cipher_suite[1] = 0x00;
+
+  /*ctx->selected_cipher_suite[0] = 0x00;
+   *  ctx->selected_cipher_suite[1] = 0x00;*/
+  ctx->selected_cipher_suite__u16 == 0x00;
 
   /* set SessionID */
   if(session_id_len > 32)
