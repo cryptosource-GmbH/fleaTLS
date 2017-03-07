@@ -62,8 +62,13 @@ flea_err_t THR_flea_start_https_server(property_set_t const& cmdl_args)
 
   while(1)
   {
-    const char* website =
-      "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\"> <TITLE>A study of population dynamics</TITLE>";
+    buf_len = sizeof(buf);
+    // const char* response_hdr_1 = "HTTP/1.1 200 OK\r\nServer: flea https\r\nContent-Type: text/html\r\nContent-Length: 51\r\n";
+    const char* response_hdr_1 =
+      "HTTP/1.1 200 OK\r\nDate: Mon, 27 Jul 2009 12:28:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT\r\nContent-Length: 50\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html><head><body>this is text</body></head></html>";
+    // const char* website = "<html><head><body>this is text</body></head></html>    ";
+    //  "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\"> <TITLE>A study of population dynamics</TITLE>\n";
+    // "HTTP/1.1 403 Forbidden\nContent-Length: 185\nConnection: close\nContent-Type: text/html\n\n<html><head>\n<title>403 Forbidden</title>\n</head><body>\n<h1>Forbidden</h1>\nThe requested URL, file type or operation is not allowed on this simple static file webserver.\n</body></html>\n";
     flea_err_t retval = THR_flea_tls__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
     if(retval == FLEA_ERR_TLS_SESSION_CLOSED)
     {
@@ -78,8 +83,12 @@ flea_err_t THR_flea_start_https_server(property_set_t const& cmdl_args)
     printf("received data: %s\n", buf);
     printf("read_app_data returned\n");
 
-    FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (const flea_u8_t*) website, strlen(website) - 1));
-    buf_len = sizeof(buf);
+    printf("sending:\n");
+    printf("%s", response_hdr_1);
+    FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (const flea_u8_t*) response_hdr_1, strlen(response_hdr_1)));
+    // printf("sending:\n");
+    // printf("%s", website);
+    // FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (const flea_u8_t*) website, strlen(website)));
   }
   // FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (flea_u8_t *) app_data_www, strlen(app_data_www)));
   // FLEA_CCALL(THR_flea_tls__send_alert(&tls_ctx, FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY, FLEA_TLS_ALERT_LEVEL_WARNING));
@@ -95,14 +104,15 @@ int flea_start_https_server(property_set_t const& cmdl_args)
 {
   flea_err_t err;
 
-  if((err = THR_flea_start_https_server(cmdl_args)))
+  while(1)
   {
-    FLEA_PRINTF_TEST_OUTP_2_SWITCHED("error %04x during tls server test\n", err);
-    return 1;
-  }
-  else
-  {
-    FLEA_PRINTF_TEST_OUTP_1_SWITCHED("tls test passed\n");
-    return 0;
+    if((err = THR_flea_start_https_server(cmdl_args)))
+    {
+      FLEA_PRINTF_TEST_OUTP_2_SWITCHED("error %04x during tls server test\n", err);
+    }
+    else
+    {
+      FLEA_PRINTF_TEST_OUTP_1_SWITCHED("tls test passed\n");
+    }
   }
 }

@@ -600,7 +600,7 @@ flea_err_t THR_flea_tls_rec_prot_t__send_record(
 
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(rec_prot__pt, content_type, bytes, bytes_len));
 #ifdef FLEA_TLS_SEND_RECORD_EAGER
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
+  //  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
 #endif
 
   FLEA_THR_FIN_SEC_empty();

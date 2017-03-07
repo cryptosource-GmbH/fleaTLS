@@ -112,8 +112,7 @@ flea_err_t THR_flea_tls__read_client_hello(
   // consistent implementation for the cipher suites yet
   flea_bool_t found = FLEA_FALSE;
   // TODO: LET CALLER SUPPLY THE SUPPORTED SUITES
-  // flea_u8_t supported_cs__au8[2]   = {0x00, 0x3d, 0x00, 0x35}; // RSA AES256 CBC SHA256
-  flea_u16_t supported_cs__au16[]  = {0x003d};
+  flea_u16_t supported_cs__au16[]  = { /*TLS_RSA_WITH_AES_256_CBC_SHA256,*/ TLS_RSA_WITH_AES_256_CBC_SHA};
   flea_u16_t supported_cs_len__u16 = FLEA_NB_ARRAY_ENTRIES(supported_cs__au16);
   flea_u16_t supported_cs_index__u16;
   // flea_u8_t chosen_cs__au8[2];
@@ -152,6 +151,7 @@ flea_err_t THR_flea_tls__read_client_hello(
   {
     FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_GENERIC);
   }
+  printf("agreed on suite %04x\n", tls_ctx->selected_cipher_suite__u16);
 
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &client_compression_methods_len__u8));
 
@@ -242,6 +242,9 @@ static flea_err_t THR_flea_tls__send_server_hello(
   flea_hash_ctx_t* hash_ctx
 )
 {
+  flea_u8_t suite__au8[2];
+  flea_u32_t len = 2 + 32 + 1 + 32 + 2 + 1;
+
   FLEA_THR_BEG_FUNC();
 
   // calculate length for the header
@@ -249,7 +252,6 @@ static flea_err_t THR_flea_tls__send_server_hello(
   // TODO: include extensions length (last place)
   // TODO: change 4th element (32) to the real SessionID length
 
-  flea_u32_t len = 2 + 32 + 1 + 32 + 2 + 1;
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_hdr(
       &tls_ctx->rec_prot__t,
@@ -295,9 +297,16 @@ static flea_err_t THR_flea_tls__send_server_hello(
     )
   );
 
-  // TODO: hard coded
-  flea_u8_t suite[] = {0x00, 0x3d};
-  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, suite, 2));
+  suite__au8[0] = tls_ctx->selected_cipher_suite__u16 >> 8;
+  suite__au8[1] = tls_ctx->selected_cipher_suite__u16;
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      suite__au8,
+      sizeof(suite__au8)
+    )
+  );
 
   // We don't support compression
   flea_u8_t null_byte = 0;

@@ -531,10 +531,11 @@ flea_err_t flea_tls_ctx_t__ctor(
 
   FLEA_CCALL(THR_flea_tls_rec_prot_t__ctor(&ctx->rec_prot__t, ctx->version.major, ctx->version.minor, rw_stream__pt));
   /* set cipher suite values */
-  flea_u8_t TLS_RSA_WITH_AES_256_CBC_SHA256[] = {0x00, 0x3D};
+  // flea_u8_t single_suite[] = {0x00, 0x3D};
+  flea_u8_t single_suite[] = {0x00, 0x35};
 
   // ctx->allowed_cipher_suites = calloc(2, sizeof(flea_u8_t));
-  memcpy(ctx->allowed_cipher_suites, TLS_RSA_WITH_AES_256_CBC_SHA256, 2);
+  memcpy(ctx->allowed_cipher_suites, single_suite, 2);
   ctx->allowed_cipher_suites_len__u8 = 2;
 
   // CipherSuite TLS_NULL_WITH_NULL_NULL = { 0x00,0x00 };
@@ -718,6 +719,11 @@ void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state)
   state->sent_first_round = FLEA_FALSE;
 }
 
+flea_err_t THR_flea_tls__flush_write_app_data(flea_tls_ctx_t* tls_ctx)
+{
+  return THR_flea_tls_rec_prot_t__write_flush(&tls_ctx->rec_prot__t);
+}
+
 flea_err_t THR_flea_tls__send_app_data(
   flea_tls_ctx_t*  tls_ctx,
   const flea_u8_t* data,
@@ -735,6 +741,7 @@ flea_err_t THR_flea_tls__send_app_data(
     )
   );
 
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(&tls_ctx->rec_prot__t));
 
   FLEA_THR_FIN_SEC_empty();
 }

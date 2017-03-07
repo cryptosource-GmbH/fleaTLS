@@ -299,6 +299,7 @@ flea_err_t THR_flea_tls__send_app_data(
   flea_u8_t        data_len
 );
 
+flea_err_t THR_flea_tls__flush_write_app_data(flea_tls_ctx_t* tls_ctx);
 
 #ifdef __cplusplus
 }
