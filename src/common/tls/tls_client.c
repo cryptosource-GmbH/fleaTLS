@@ -89,7 +89,8 @@ flea_err_t THR_flea_tls__read_server_hello(
   // read cipher suites
   FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, ciphersuite__au8, sizeof(ciphersuite__au8)));
 
-  // TODO: CHECK CIPHERSUITE
+  tls_ctx->selected_cipher_suite__u16 = TLS_RSA_WITH_AES_256_CBC_SHA256;
+  // TODO: CHECK / SELECT CIPHERSUITE
   // - must be among presented ones in client hello
   // read compression method
   // server_hello->compression_method = handshake_msg->data[length++];
@@ -477,6 +478,17 @@ flea_err_t THR_flea_tls__client_handshake(
               flea_read_full
             )
           );
+
+          FLEA_CCALL(
+            THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+              &tls_ctx->rec_prot__t,
+              flea_tls_read,
+              FLEA_TLS_CLIENT,
+              tls_ctx->selected_cipher_suite__u16,
+              tls_ctx->key_block
+            )
+          );
+#if 0
           FLEA_CCALL(
             THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
               &tls_ctx->rec_prot__t,
@@ -491,6 +503,7 @@ flea_err_t THR_flea_tls__client_handshake(
               32 /* mac_len */
             )
           );
+#endif /* if 0 */
           handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
 
           continue;
@@ -510,6 +523,7 @@ flea_err_t THR_flea_tls__client_handshake(
     // We don't expect another message so it's our turn to continue
     else // TODO: CONSIDER EXPLICIT MODELLING OF THIS CONDITION
     {
+      flea_al_u8_t key_block_len__alu8;
       if(handshake_state.send_client_cert == FLEA_TRUE)
       {
         // TODO: send certificate message
@@ -539,9 +553,30 @@ flea_err_t THR_flea_tls__client_handshake(
           tls_ctx->security_parameters.master_secret
         )
       );
-      // TODO: CORRECT KEY BLOCK LEN
-      FLEA_CCALL(THR_flea_tls__generate_key_block(&tls_ctx->security_parameters, tls_ctx->key_block, 128));
+      FLEA_CCALL(
+        THR_flea_tls_get_key_block_len_from_cipher_suite_id(
+          tls_ctx->selected_cipher_suite__u16,
+          &key_block_len__alu8
+        )
+      );
+      FLEA_CCALL(
+        THR_flea_tls__generate_key_block(
+          &tls_ctx->security_parameters,
+          tls_ctx->key_block,
+          key_block_len__alu8
+        )
+      );
 
+      FLEA_CCALL(
+        THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+          &tls_ctx->rec_prot__t,
+          flea_tls_write,
+          FLEA_TLS_CLIENT,
+          tls_ctx->selected_cipher_suite__u16,
+          tls_ctx->key_block
+        )
+      );
+#if 0
       FLEA_CCALL(
         THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
           &tls_ctx->rec_prot__t,
@@ -556,6 +591,7 @@ flea_err_t THR_flea_tls__client_handshake(
           32 /* mac_len */
         )
       );
+#endif /* if 0 */
 
       FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &hash_ctx));
 

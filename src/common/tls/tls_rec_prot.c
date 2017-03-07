@@ -204,7 +204,7 @@ void flea_tls_rec_prot_t__set_null_ciphersuite(
   // flea_tls_rec_prot_t__update_max_buf_len(rec_prot__pt);
 }
 
-flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+static flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite_inner(
   flea_tls_rec_prot_t*   rec_prot__pt,
   flea_tls_stream_dir_e  direction,
   flea_block_cipher_id_t block_cipher_id,
@@ -256,6 +256,52 @@ flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
       mac_key__pcu8,
       mac_key_len__alu8,
       mac_size__alu8
+    )
+  );
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite */
+
+flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+  flea_tls_rec_prot_t*        rec_prot__pt,
+  flea_tls_stream_dir_e       direction,
+  flea_tls__connection_end_t  conn_end__e,
+  flea_tls__cipher_suite_id_t suite_id,
+  const flea_u8_t*            key_block__pcu8
+)
+{
+  FLEA_THR_BEG_FUNC();
+  flea_al_u8_t mac_key_len__alu8, mac_len__alu8, cipher_key_len__alu8;
+  flea_al_u8_t mac_key_offs__alu8 = 0, ciph_key_offs__alu8 = 0;
+  const flea_tls__cipher_suite_t* suite__pt = flea_tls_get_cipher_suite_by_id(suite_id);
+  if(suite__pt == NULL)
+  {
+    FLEA_THROW("invalid ciphersuite selected", FLEA_ERR_INT_ERR);
+  }
+  mac_key_len__alu8    = suite__pt->mac_key_size;
+  mac_len__alu8        = suite__pt->mac_size;
+  cipher_key_len__alu8 = suite__pt->enc_key_size;
+  if((direction == flea_tls_write && conn_end__e == FLEA_TLS_SERVER) ||
+    (direction == flea_tls_read && conn_end__e == FLEA_TLS_CLIENT)
+  )
+  {
+    mac_key_offs__alu8  = mac_key_len__alu8;
+    ciph_key_offs__alu8 = cipher_key_len__alu8;
+  }
+
+  FLEA_CCALL(
+    THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite_inner(
+      rec_prot__pt,
+      // flea_tls_read,
+      direction,
+      flea_aes256,
+      // flea_sha256,
+      // flea_hmac_sha256,
+      suite__pt->mac_algorithm,
+      key_block__pcu8 + 2 * mac_key_len__alu8 + ciph_key_offs__alu8,
+      cipher_key_len__alu8,
+      key_block__pcu8 + mac_key_offs__alu8,
+      mac_key_len__alu8, // 32,
+      mac_len__alu8      // 32
     )
   );
   FLEA_THR_FIN_SEC_empty();

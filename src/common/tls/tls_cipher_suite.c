@@ -3,6 +3,8 @@
 #include "internal/common/default.h"
 #include "internal/common/tls_ciph_suite.h"
 #include "flea/types.h"
+#include "flea/error.h"
+#include "flea/error_handling.h"
 #include "flea/array_util.h"
 
 
@@ -29,4 +31,20 @@ const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher
     }
   }
   return NULL;
+}
+
+flea_err_t THR_flea_tls_get_key_block_len_from_cipher_suite_id(
+  flea_tls__cipher_suite_id_t id,
+  flea_al_u8_t*               result_key_block_len__palu8
+)
+{
+  const flea_tls__cipher_suite_t* ct__pt = flea_tls_get_cipher_suite_by_id(id);
+
+  FLEA_THR_BEG_FUNC();
+  if(ct__pt == NULL)
+  {
+    FLEA_THROW("invalid cipher suite id", FLEA_ERR_INT_ERR);
+  }
+  *result_key_block_len__palu8 = ct__pt->mac_key_size * 2 + ct__pt->enc_key_size * 2;
+  FLEA_THR_FIN_SEC_empty();
 }

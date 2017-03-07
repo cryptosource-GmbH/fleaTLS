@@ -155,12 +155,6 @@ typedef struct
 
 typedef enum
 {
-  FLEA_TLS_CLIENT,
-  FLEA_TLS_SERVER
-} flea_tls__connection_end_t;
-
-typedef enum
-{
   FLEA_TLS_HMAC_SHA1,
   FLEA_TLS_HMAC_SHA256
 } flea_tls__mac_algorithm_t;

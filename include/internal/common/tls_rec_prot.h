@@ -9,6 +9,11 @@
 #include "internal/common/tls_conn_state.h"
 #include "flea/rw_stream.h"
 
+typedef enum
+{
+  FLEA_TLS_CLIENT,
+  FLEA_TLS_SERVER
+} flea_tls__connection_end_t;
 
 #ifdef __cplusplus
 extern "C" {
@@ -145,17 +150,25 @@ flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
 );
 
 flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-  flea_tls_rec_prot_t*   rec_prot__pt,
-  flea_tls_stream_dir_e  direction,
-  flea_block_cipher_id_t block_cipher_id,
-  // flea_hash_id_t         hash_id,
-  flea_mac_id_t          mac_id,
-  const flea_u8_t*       cipher_key__pcu8,
-  flea_al_u8_t           cipher_key_len__alu8,
-  const flea_u8_t*       mac_key__pcu8,
-  flea_al_u8_t           mac_key_len__alu8,
-  flea_al_u8_t           mac_size__alu8
+  flea_tls_rec_prot_t*        rec_prot__pt,
+  flea_tls_stream_dir_e       direction,
+  flea_tls__connection_end_t  conn_end__e,
+  flea_tls__cipher_suite_id_t suite_id,
+  const flea_u8_t*            key_block__pcu8
 );
+
+/*flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+ * flea_tls_rec_prot_t*   rec_prot__pt,
+ * flea_tls_stream_dir_e  direction,
+ * flea_block_cipher_id_t block_cipher_id,
+ * // flea_hash_id_t         hash_id,
+ * flea_mac_id_t          mac_id,
+ * const flea_u8_t*       cipher_key__pcu8,
+ * flea_al_u8_t           cipher_key_len__alu8,
+ * const flea_u8_t*       mac_key__pcu8,
+ * flea_al_u8_t           mac_key_len__alu8,
+ * flea_al_u8_t           mac_size__alu8
+ * );*/
 
 flea_err_t THR_flea_tls_rec_prot_t__send_record(
   flea_tls_rec_prot_t* rec_prot__pt,

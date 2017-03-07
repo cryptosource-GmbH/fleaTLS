@@ -541,7 +541,7 @@ flea_err_t flea_tls_ctx_t__ctor(
 
   /*ctx->selected_cipher_suite[0] = 0x00;
    *  ctx->selected_cipher_suite[1] = 0x00;*/
-  ctx->selected_cipher_suite__u16 == 0x00;
+  ctx->selected_cipher_suite__u16 = 0x00;
 
   /* set SessionID */
   if(session_id_len > 32)
