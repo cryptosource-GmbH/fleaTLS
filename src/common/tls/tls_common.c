@@ -721,9 +721,9 @@ void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state)
 }
 
 flea_err_t THR_flea_tls__send_app_data(
-  flea_tls_ctx_t* tls_ctx,
-  flea_u8_t*      data,
-  flea_u8_t       data_len
+  flea_tls_ctx_t*  tls_ctx,
+  const flea_u8_t* data,
+  flea_u8_t        data_len
 )
 {
   FLEA_THR_BEG_FUNC();

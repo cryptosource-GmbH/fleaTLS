@@ -19,7 +19,7 @@
 #include "pltf_support/tcpip_stream.h"
 #include "tls_server_certs.h"
 
-flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
+flea_err_t THR_flea_start_https_server(property_set_t const& cmdl_args)
 {
   flea_rw_stream_t rw_stream__t;
 
@@ -62,6 +62,8 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
 
   while(1)
   {
+    const char* website =
+      "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\"> <TITLE>A study of population dynamics</TITLE>";
     flea_err_t retval = THR_flea_tls__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
     if(retval == FLEA_ERR_TLS_SESSION_CLOSED)
     {
@@ -75,7 +77,8 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
     buf[buf_len] = 0;
     printf("received data: %s\n", buf);
     printf("read_app_data returned\n");
-    FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, buf, buf_len));
+
+    FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (const flea_u8_t*) website, strlen(website) - 1));
     buf_len = sizeof(buf);
   }
   // FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (flea_u8_t *) app_data_www, strlen(app_data_www)));
@@ -88,11 +91,11 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   );
 } // THR_flea_start_tls_server
 
-int flea_start_tls_server(property_set_t const& cmdl_args)
+int flea_start_https_server(property_set_t const& cmdl_args)
 {
   flea_err_t err;
 
-  if((err = THR_flea_start_tls_server(cmdl_args)))
+  if((err = THR_flea_start_https_server(cmdl_args)))
   {
     FLEA_PRINTF_TEST_OUTP_2_SWITCHED("error %04x during tls server test\n", err);
     return 1;

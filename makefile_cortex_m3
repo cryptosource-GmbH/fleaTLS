@@ -19,7 +19,8 @@ endif
 
 ###################################################
 
-INCLUDES = -Iinclude -Iinclude/api -Itest/include -I./build_cfg/general -I./build_cfg/pltf_spec/32bit_default 
+#INCLUDES = -Iinclude -Iinclude/api -Itest/include -I./build_cfg/general -I./build_cfg/pltf_spec/32bit_default 
+INCLUDES = -Iinclude -Iinclude/api -Itest/include -I./build_cfg/lpc1768 -I./build_cfg/pltf_spec/32bit_default 
 
 vpath %.c src/common/asn1 src/common/streams src/common src/common/hash src/common/math src/common/pk_enc src/user src/common/tls pltf_support/workaround_lpc/src
 
@@ -30,7 +31,7 @@ CFLAGS  = -Wall -std=c99 # -Os add about 1/4 of running time compared to -O3
 
 #-g 
 CFLAGS += $(INCLUDES) -DFLEA_PLTF_ARM_32BIT
-CFLAGS += -finline-functions -O3 -fomit-frame-pointer 
+#CFLAGS += -finline-functions -O3 -fomit-frame-pointer 
 CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m3
 #CFLAGS += -mthumb -mcpu=cortex-m3
 
