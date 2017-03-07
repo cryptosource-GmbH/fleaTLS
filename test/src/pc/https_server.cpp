@@ -60,7 +60,7 @@ flea_err_t THR_flea_start_https_server(property_set_t const& cmdl_args)
   FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
   FLEA_CCALL(THR_flea_tls__server_handshake(&tls_ctx, &rw_stream__t, cert_chain, 2, &server_key__t));
 
-  while(1)
+  // while(1)
   {
     buf_len = sizeof(buf);
     // const char* response_hdr_1 = "HTTP/1.1 200 OK\r\nServer: flea https\r\nContent-Type: text/html\r\nContent-Length: 51\r\n";

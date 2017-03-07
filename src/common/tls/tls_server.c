@@ -151,7 +151,6 @@ flea_err_t THR_flea_tls__read_client_hello(
   {
     FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_GENERIC);
   }
-  printf("agreed on suite %04x\n", tls_ctx->selected_cipher_suite__u16);
 
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &client_compression_methods_len__u8));
 
