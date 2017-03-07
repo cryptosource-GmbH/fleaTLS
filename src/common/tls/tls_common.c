@@ -53,7 +53,8 @@ const flea_tls__cipher_suite_t cipher_suites[2] = {
    0, 0,
    0, 0, 0, (flea_mac_id_t) 0, (flea_hash_id_t) 0, (flea_tls__prf_algorithm_t) 0},
   {TLS_RSA_WITH_AES_256_CBC_SHA256, flea_aes256,
-   16, 16, 32, 32, 32, flea_hmac_sha256, flea_sha256, FLEA_TLS_PRF_SHA256}
+   16, 16, 32, 32, 32, flea_hmac_sha256, flea_sha256, FLEA_TLS_PRF_SHA256},
+  //  { TLS_RSA_WITH_AES_256_CBC_SHA
 };
 
 

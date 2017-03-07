@@ -545,7 +545,7 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
 
 flea_err_t THR_flea_tls_rec_prot_t__send_record(
   flea_tls_rec_prot_t* rec_prot__pt,
-  flea_u8_t*           bytes,
+  const flea_u8_t*     bytes,
   flea_u16_t           bytes_len,
   ContentType          content_type
 )

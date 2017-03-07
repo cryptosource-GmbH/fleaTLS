@@ -111,23 +111,28 @@ flea_err_t THR_flea_tls__read_client_hello(
   // TODO: everything declared and defined locally because there is no
   // consistent implementation for the cipher suites yet
   flea_bool_t found = FLEA_FALSE;
-  flea_u8_t curr_cs__au8[2];
-  flea_u8_t supported_cs__au8[2]   = {0x00, 0x3d}; // RSA AES256 CBC SHA256
-  flea_u16_t supported_cs_len__u16 = 2;
+  // TODO: LET CALLER SUPPLY THE SUPPORTED SUITES
+  // flea_u8_t supported_cs__au8[2]   = {0x00, 0x3d, 0x00, 0x35}; // RSA AES256 CBC SHA256
+  flea_u16_t supported_cs__au16[]  = {0x003d};
+  flea_u16_t supported_cs_len__u16 = FLEA_NB_ARRAY_ENTRIES(supported_cs__au16);
   flea_u16_t supported_cs_index__u16;
   // flea_u8_t chosen_cs__au8[2];
   // TODO: mit u16 arbeiten für die Ciphersuites statt mit 2-byte Arrays
   flea_u16_t chosen_cs_index__u16 = supported_cs_len__u16; // TODO: Falko: Off by one  ?
   while(cipher_suites_len__u16)
   {
+    flea_u8_t curr_cs__au8[2];
+    flea_u16_t curr_cs__alu16;
     FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, curr_cs__au8, 2));
+    curr_cs__alu16 = curr_cs__au8[0] << 8 | curr_cs__au8[1];
 
     // iterate over all supported cipher suites
     supported_cs_index__u16 = 0;
     while(supported_cs_index__u16 < supported_cs_len__u16)
     {
-      if(curr_cs__au8[0] == supported_cs__au8[supported_cs_index__u16] &&
-        curr_cs__au8[1] == supported_cs__au8[supported_cs_index__u16 + 1])
+      /*if(curr_cs__au8[0] == supported_cs__au8[supported_cs_index__u16] &&
+       * curr_cs__au8[1] == supported_cs__au8[supported_cs_index__u16 + 1])*/
+      if(curr_cs__alu16 == supported_cs__au16[ supported_cs_index__u16 ])
       {
         if(supported_cs_index__u16 < chosen_cs_index__u16)
         {
@@ -137,7 +142,8 @@ flea_err_t THR_flea_tls__read_client_hello(
           found = FLEA_TRUE;
         }
       }
-      supported_cs_index__u16 += 2;
+      // supported_cs_index__u16 += 2;
+      supported_cs_index__u16 += 1;
     }
     cipher_suites_len__u16 -= 2;
   }
