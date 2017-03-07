@@ -19,18 +19,35 @@ endif
 
 ###################################################
 
+# for debug build, call as
+# -----------------------------------------
+# $ make -f makefile_cortex_m3 mode=debug
+# -----------------------------------------
+ifeq ($(mode),debug)
+CFLAGS += -g3
+#echo "building debug"
+else
+#echo "building release"
+mode = release 
+CFLAGS += -O3 -finline-functions -fomit-frame-pointer 
+endif
+
+
+
+
+
 INCLUDES = -Iinclude -Iinclude/api -Itest/include -I./build_cfg/general -I./build_cfg/pltf_spec/32bit_default 
 
 vpath %.c src/common/asn1 src/common/streams src/common src/common/hash src/common/math src/common/pk_enc src/user src/common/tls pltf_support/workaround_lpc/src
 
 SRC_DIRS = src/common/asn1 src/common/streams src/common src/common/hash src/common/math src/common/pk_enc src/user src/common/tls pltf_support/workaround_lpc/src
 
-#CFLAGS  = -O3 -g -Wall -std=c99
-CFLAGS  = -Wall -std=c99 # -Os add about 1/4 of running time compared to -O3
+#CFLAGS  += -O3 -g -Wall -std=c99
+CFLAGS  += -Wall -std=c99 # -Os add about 1/4 of running time compared to -O3
 
 #-g 
 CFLAGS += $(INCLUDES) -DFLEA_PLTF_ARM_32BIT
-CFLAGS += -finline-functions -O3 -fomit-frame-pointer 
+#CFLAGS += -finline-functions -O3 -fomit-frame-pointer 
 CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m3
 #CFLAGS += -mthumb -mcpu=cortex-m3
 
@@ -87,6 +104,9 @@ libflea_cortex_m3.a: $(OBJS)
 	$(AR) -r $@ $(OBJS)
 	mv libflea_cortex_m3.a build/
 
+debug:
+debug: all
+
 test: libflea_cortex_m3.a
 	@echo "making test"
 	$(MAKE) -C test FLOAT_TYPE=$(FLOAT_TYPE)
@@ -95,6 +115,9 @@ clean:
 	rm -f $(OBJS)  build/libflea_cortex_m3.a 
 	find $(OBJDIR) -name "*.d" | xargs -n1 trash-put
 	$(MAKE) clean -C test
+
+
+
 
 -include $(DEPS)
 
