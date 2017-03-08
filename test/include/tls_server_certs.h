@@ -14,11 +14,11 @@ extern const flea_u8_t server_cert_2048__au8[815];
 
 extern const flea_u8_t server_key_2048__au8[1218];
 
-extern const flea_u8_t trust_anchor_1024__au8[544];
+extern const flea_u8_t trust_anchor_1024__au8[560];
 
-extern const flea_u8_t server_cert_1024__au8[539];
+extern const flea_u8_t server_cert_1024__au8[554];
 
-extern const flea_u8_t server_key_1024__au8[634];
+extern const flea_u8_t server_key_1024__au8[635];
 
 #ifdef __cplusplus
 }
