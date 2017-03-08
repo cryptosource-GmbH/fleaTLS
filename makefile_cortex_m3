@@ -19,17 +19,29 @@ endif
 
 ###################################################
 
-#INCLUDES = -Iinclude -Iinclude/api -Itest/include -I./build_cfg/general -I./build_cfg/pltf_spec/32bit_default 
+# for debug build, call as
+# -----------------------------------------
+# $ make -f makefile_cortex_m3 mode=debug
+# -----------------------------------------
+#ifeq ($(mode),debug)
+#
+#echo "building debug"
+#else
+#echo "building release"
+#mode = release 
+#endif
+
+DBG_CFLAGS += -g3
+REL_CFLAGS += -O3 -finline-functions -fomit-frame-pointer 
+
 INCLUDES = -Iinclude -Iinclude/api -Itest/include -I./build_cfg/lpc1768 -I./build_cfg/pltf_spec/32bit_default 
 
 vpath %.c src/common/asn1 src/common/streams src/common src/common/hash src/common/math src/common/pk_enc src/user src/common/tls pltf_support/workaround_lpc/src
 
 SRC_DIRS = src/common/asn1 src/common/streams src/common src/common/hash src/common/math src/common/pk_enc src/user src/common/tls pltf_support/workaround_lpc/src
 
-CFLAGS  = -O3 -g -Wall -std=c99
-#CFLAGS  = -Wall -std=c99 # -Os add about 1/4 of running time compared to -O3
+CFLAGS  += -Wall -std=c99 
 
-#-g 
 CFLAGS += $(INCLUDES) -DFLEA_PLTF_ARM_32BIT
 #CFLAGS += -finline-functions -O3 -fomit-frame-pointer 
 CFLAGS += -mlittle-endian -mthumb -mcpu=cortex-m3
@@ -63,13 +75,17 @@ SRCS := $(foreach dir,$(SRC_DIRS),$(wildcard $(dir)/*.c))
 #$(info $$SRCS is [${SRCS}])
 
 OBJDIR = build/cortex_m3
+OBJDIR_DBG = build/cortex_m3_d
+
 OBJS_RAW = $(SRCS:.c=.o)
 
 OBJS = $(addprefix $(OBJDIR)/, $(OBJS_RAW))
+OBJS_DBG = $(addprefix $(OBJDIR_DBG)/, $(OBJS_RAW))
 
 DEPS_RAW = $(SRCS:.c=.d)
 
 DEPS = $(addprefix $(OBJDIR)/, $(DEPS_RAW))
+DEPS_DBG = $(addprefix $(OBJDIR_DBG)/, $(DEPS_RAW))
 
 
 	
@@ -82,20 +98,34 @@ all: libflea_cortex_m3.a
 
 $(OBJDIR)/%.o : %.c
 	@mkdir -p $(@D)
-	$(CC) $(CFLAGS) -c $< -o $@ 
+	$(CC) $(REL_CFLAGS) $(CFLAGS) -c $< -o $@ 
+
+
+$(OBJDIR_DBG)/%.o : %.c
+	@mkdir -p $(@D)
+	$(CC) $(DBG_CFLAGS) $(CFLAGS) -c $< -o $@ 
   
 libflea_cortex_m3.a: $(OBJS)
 	$(AR) -r $@ $(OBJS)
 	mv libflea_cortex_m3.a build/
+
+libflea_cortex_m3_d.a: $(OBJS_DBG)
+	$(AR) -r $@ $(OBJS_DBG)
+	mv libflea_cortex_m3_d.a build/
+
+debug: libflea_cortex_m3_d.a
 
 test: libflea_cortex_m3.a
 	@echo "making test"
 	$(MAKE) -C test FLOAT_TYPE=$(FLOAT_TYPE)
 
 clean:
-	rm -f $(OBJS)  build/libflea_cortex_m3.a 
+	rm -f $(OBJS)  build/libflea_cortex_m3.a build/libflea_cortex_m3_d.a
 	find $(OBJDIR) -name "*.d" | xargs -n1 trash-put
 	$(MAKE) clean -C test
+
+
+
 
 -include $(DEPS)
 
