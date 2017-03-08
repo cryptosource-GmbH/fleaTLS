@@ -599,6 +599,7 @@ flea_err_t THR_flea_tls__send_handshake_message(
   FLEA_CCALL(THR_flea_tls__send_handshake_message_hdr(rec_prot__pt, hash_ctx_mbn__pt, type, msg_bytes_len));
 
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(rec_prot__pt, hash_ctx_mbn__pt, msg_bytes, msg_bytes_len));
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_handshake_message */
 
