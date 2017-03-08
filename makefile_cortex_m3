@@ -77,7 +77,8 @@ DEPS_DBG = $(addprefix $(OBJDIR_DBG)/, $(DEPS_RAW))
 	
 .PHONY: libflea_cortex_m3.a
 
-all: libflea_cortex_m3.a 
+all: libflea_cortex_m3.a libflea_cortex_m3_d.a 
+
 
 # $< = "prerequisite": right hand side in target def
 # $@ = left hand side of the target def
@@ -106,7 +107,7 @@ test: libflea_cortex_m3.a
 	$(MAKE) -C test FLOAT_TYPE=$(FLOAT_TYPE)
 
 clean:
-	rm -f $(OBJS)  build/libflea_cortex_m3.a build/libflea_cortex_m3_d.a
+	rm -f $(OBJS) $(OBJS_DBG)  build/libflea_cortex_m3.a build/libflea_cortex_m3_d.a
 	find $(OBJDIR) -name "*.d" | xargs -n1 trash-put
 	$(MAKE) clean -C test
 

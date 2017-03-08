@@ -67,8 +67,9 @@ static flea_err_t THR_open_socket_server(void* ctx__pv)
   addr.sin_family      = AF_INET;
   addr.sin_port        = htons(4444);
 
-  if(bind(listen_fd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
+  if((bind(listen_fd, (struct sockaddr*) &addr, sizeof(addr))) < 0)
   {
+    printf("bind error %i\n", errno);
     FLEA_THROW("Socket bind failed", FLEA_ERR_TLS_GENERIC);
   }
 
