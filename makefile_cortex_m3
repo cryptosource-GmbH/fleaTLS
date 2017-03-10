@@ -21,7 +21,7 @@ endif
 
 
 DBG_CFLAGS += -g3
-REL_CFLAGS += -O3 -finline-functions -fomit-frame-pointer 
+REL_CFLAGS += -Os -finline-functions -fomit-frame-pointer 
 
 INCLUDES = -Iinclude -Iinclude/api -Itest/include -I./build_cfg/lpc1768 -I./build_cfg/pltf_spec/32bit_default 
 

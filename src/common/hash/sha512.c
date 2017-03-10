@@ -12,6 +12,7 @@
 #include "flea/types.h"
 #include "flea/hash.h"
 
+#ifdef FLEA_HAVE_SHA384_512
 
 static const flea_u32_t K[160] = {
   0x428a2f98UL, 0xd728ae22UL, 0x71374491UL, 0x23ef65cdUL, 0xb5c0fbcfUL, 0xec4d3b2fUL, 0xe9b5dba5UL, 0x8189dbbcUL,
@@ -37,10 +38,10 @@ static const flea_u32_t K[160] = {
 };
 
 
-#define BLOCK_SIZE 128
+# define BLOCK_SIZE 128
 
-#ifdef FLEA_USE_SHA512_ROUND_MACRO
-# define ROR64_n(r, value, w) \
+# ifdef FLEA_USE_SHA512_ROUND_MACRO
+#  define ROR64_n(r, value, w) \
   do { \
     flea_al_u8_t v, u; \
     v       = w - 32;  \
@@ -49,7 +50,7 @@ static const flea_u32_t K[160] = {
     (r)[0] ^= ((value)[0] << u) | (((value)[1]) >> v); \
   } while(0)
 
-# define ROR64_n_small(r, value, w) \
+#  define ROR64_n_small(r, value, w) \
   do { \
     flea_al_u8_t u = 32 - w; \
     (r)[1] ^= ((value)[1] >> w) | ((value)[0] << u);  \
@@ -57,7 +58,7 @@ static const flea_u32_t K[160] = {
   } while(0)
 
 
-#else /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
+# else /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
 void ROR64_n(
   flea_u32_t       r[2],
   const flea_u32_t value[2],
@@ -84,29 +85,29 @@ void ROR64_n_small(
   r[0] ^= (value[0] >> w) | (value[1] << u);
 }
 
-#endif /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
+# endif /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
 
-#define R_n(r, x, w)        \
+# define R_n(r, x, w)        \
   do { \
     (r)[0] ^= (x)[0] >> w; \
     (r)[1] ^= ((x)[1] >> w) | (x)[0] << (32 - w); \
   } while(0)
 
 
-#define Ch_n(r, x, y, z)     \
+# define Ch_n(r, x, y, z)     \
   do { \
     (r)[0] = ((z)[0] ^ ((x)[0] & ((y)[0] ^ (z)[0]))); \
     (r)[1] = ((z)[1] ^ ((x)[1] & ((y)[1] ^ (z)[1]))); \
   } while(0)
 
-#define Maj_n(r, x, y, z)    \
+# define Maj_n(r, x, y, z)    \
   do { \
     (r)[0] = ((((x)[0] | (y)[0]) & (z)[0]) | ((x)[0] & (y)[0])); \
     (r)[1] = ((((x)[1] | (y)[1]) & (z)[1]) | ((x)[1] & (y)[1])); \
   } while(0)
 
 
-#define Sigma1_n(r, x) \
+# define Sigma1_n(r, x) \
   do { \
     (r)[0] = 0; (r)[1] = 0; \
     ROR64_n_small(r, x, 14); \
@@ -114,7 +115,7 @@ void ROR64_n_small(
     ROR64_n(r, x, 41); \
   } while(0)
 
-#define Sigma0_n(r, x) \
+# define Sigma0_n(r, x) \
   do { \
     (r)[0] = 0; (r)[1] = 0; \
     ROR64_n_small(r, x, 28); \
@@ -122,7 +123,7 @@ void ROR64_n_small(
     ROR64_n(r, x, 39); \
   } while(0)
 
-#define Gamma1_n(r, x)    \
+# define Gamma1_n(r, x)    \
   do { \
     flea_u32_t G_sum[2] = {0, 0}; \
     ROR64_n_small(G_sum, x, 19); \
@@ -131,7 +132,7 @@ void ROR64_n_small(
     assn64(r, G_sum); \
   } while(0)
 
-#define Gamma0_n_add(r, x)    \
+# define Gamma0_n_add(r, x)    \
   do { \
     flea_u32_t G_sum[2] = {0, 0}; \
     ROR64_n_small(G_sum, x, 1); \
@@ -139,14 +140,14 @@ void ROR64_n_small(
     R_n(G_sum, x, 7); \
     add64(r, G_sum); \
   } while(0)
-#define Gamma1_old(r, x) r = Gamma1(x)
+# define Gamma1_old(r, x) r = Gamma1(x)
 
-#define add64_old(io, b) io += b
-#define assn64_old(o, b) o   = b
+# define add64_old(io, b) io += b
+# define assn64_old(o, b) o   = b
 
-#define assn64(o, b)     do {(o)[0] = (b)[0]; (o)[1] = (b)[1];} while(0)
+# define assn64(o, b)     do {(o)[0] = (b)[0]; (o)[1] = (b)[1];} while(0)
 
-#define add64(io, b) \
+# define add64(io, b) \
   do { \
     flea_u32_t old; \
     flea_al_u8_t carry = 0; \
@@ -157,9 +158,9 @@ void ROR64_n_small(
     (io)[0] += carry + (b)[0]; \
   } while(0)
 
-#ifdef FLEA_USE_SHA512_ROUND_MACRO
+# ifdef FLEA_USE_SHA512_ROUND_MACRO
 
-# define FLEA_SHA_512_ROUND(a, b, c, d, e, f, g, h, i)       \
+#  define FLEA_SHA_512_ROUND(a, b, c, d, e, f, g, h, i)       \
   Sigma1_n(t0, e); \
   add64(t0, h); \
   Ch_n(tmp, e, f, g); \
@@ -175,7 +176,7 @@ void ROR64_n_small(
   assn64(h, t0); \
   add64(h, t1);
 
-#else /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
+# else /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
 static void Sha512Round(
   flea_u32_t        a[2],
   flea_u32_t        b[2],
@@ -210,7 +211,7 @@ static void Sha512Round(
   add64(h, t1);
 }
 
-#endif /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
+# endif /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
 
 
 flea_err_t THR_flea_sha512_compression_function(
@@ -223,11 +224,11 @@ flea_err_t THR_flea_sha512_compression_function(
   flea_u32_t* S;
   int i;
 
-  flea_u32_t* state = (flea_u32_t *) ctx__pt->hash_state;
+  flea_u32_t* state = (flea_u32_t*) ctx__pt->hash_state;
   FLEA_THR_BEG_FUNC();
   FLEA_ALLOC_BUF(S_and_W, 16 + 160);
-  S = (flea_u32_t *) S_and_W;
-  W = (flea_u32_t *) &S_and_W[16];
+  S = (flea_u32_t*) S_and_W;
+  W = (flea_u32_t*) &S_and_W[16];
   for(i = 0; i < 16; i += 1)
   {
     S[i] = state[i];
@@ -247,7 +248,7 @@ flea_err_t THR_flea_sha512_compression_function(
   }
 
 
-#ifdef FLEA_USE_SHA512_ROUND_MACRO
+# ifdef FLEA_USE_SHA512_ROUND_MACRO
   for(i = 0; i < 80; i += 8)
   {
     flea_u32_t tmp[2];
@@ -264,7 +265,7 @@ flea_err_t THR_flea_sha512_compression_function(
     FLEA_SHA_512_ROUND(&S[4], &S[6], &S[8], &S[10], &S[12], &S[14], &S[0], &S[2], i + 6);
     FLEA_SHA_512_ROUND(&S[2], &S[4], &S[6], &S[8], &S[10], &S[12], &S[14], &S[0], i + 7);
   }
-#else /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
+# else /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
   for(i = 0; i < 80; i += 1)
   {
     flea_u32_t tmp[2];
@@ -279,7 +280,7 @@ flea_err_t THR_flea_sha512_compression_function(
     assn64(&S[4], &S[2]);
     assn64(&S[2], tmp);
   }
-#endif /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
+# endif /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
 
   for(i = 0; i < 8; i++)
   {
@@ -341,10 +342,12 @@ void flea_sha512_encode_hash_state(
 )
 {
   flea_al_u8_t i;
-  flea_u32_t* state = (flea_u32_t *) ctx__pt->hash_state;
+  flea_u32_t* state = (flea_u32_t*) ctx__pt->hash_state;
 
   for(i = 0; i < output_len; i++)
   {
     output[i] = state[i / 4] >> ((3 - (i % 4)) * 8);
   }
 }
+
+#endif /* ifdef FLEA_HAVE_SHA384_512 */
