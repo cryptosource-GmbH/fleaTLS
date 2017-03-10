@@ -7,16 +7,16 @@ __________________
 fleaTLS cryptographic library for embedded systems
 Copyright (C) 2015-2017 cryptosource GmbH
 
-flea license version 2
+flea license version 2.1
 
 1. This source code may be used freely, provided that the following conditions are met:
 
      a. Redistribution of the source code or the header files is not allowed. 
 
-     b. Redistribution of binary code derived from the source code is allowed,
-        provided that it is not distributed in a form that is explicitly prepared
+     b. Redistribution of binary code derived from the source code is only
+        allowed if it is not distributed in a form that is explicitly prepared
         for the purpose of linking other executable code to it in order to create a
-        program that differs from the originally distributed binary code.
+        combined program which extends the originally distributed binary code.
 
      c. Neither the name under which the source code is distributed nor the name of the 
         copyright holder may not be used to endorse or promote products derived from 
