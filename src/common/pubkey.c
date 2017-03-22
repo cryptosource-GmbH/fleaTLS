@@ -432,18 +432,25 @@ flea_err_t THR_flea_determine_public_key_type_from_oid(
   flea_pk_key_type_t* result_key_type__pe
 )
 {
+  const flea_u8_t ec_public_key_oid__au8 []  = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01};
+  const flea_u8_t rsa_public_key_oid__au8 [] = {0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01};
+
   FLEA_THR_BEG_FUNC();
 # ifdef FLEA_HAVE_RSA
-  if(((oid_val_len__dtl == sizeof(pkcs1_oid_prefix__cau8) + 1)) &&
-    !memcmp(oid_val__pcu8, pkcs1_oid_prefix__cau8, sizeof(pkcs1_oid_prefix__cau8)))
+
+  /*if(((oid_val_len__dtl == sizeof(pkcs1_oid_prefix__cau8) + 1)) &&
+   * !memcmp(oid_val__pcu8, pkcs1_oid_prefix__cau8, sizeof(pkcs1_oid_prefix__cau8)))*/
+
+  if(0 == flea_memcmp_wsize(oid_val__pcu8, oid_val_len__dtl, rsa_public_key_oid__au8, sizeof(rsa_public_key_oid__au8)))
   {
     *result_key_type__pe = flea_rsa_key;
   }
   else
 # endif /* ifdef FLEA_HAVE_RSA */
 # ifdef FLEA_HAVE_ECC
-  if(oid_val_len__dtl == sizeof(ecdsa_oid_prefix__acu8) + 2 &&
-    !memcmp(oid_val__pcu8, ecdsa_oid_prefix__acu8, sizeof(ecdsa_oid_prefix__acu8)))
+  // if(oid_val_len__dtl == sizeof(ecdsa_oid_prefix__acu8) + 2 &&
+  // !memcmp(oid_val__pcu8, ecdsa_oid_prefix__acu8, sizeof(ecdsa_oid_prefix__acu8)))
+  if(0 == flea_memcmp_wsize(oid_val__pcu8, oid_val_len__dtl, ec_public_key_oid__au8, sizeof(ec_public_key_oid__au8)))
   {
     *result_key_type__pe = flea_ecc_key;
   }
@@ -461,7 +468,7 @@ flea_err_t THR_flea_public_key_t__ctor_cert(
   const flea_x509_cert_ref_t* cert_ref__pt
 )
 {
-  const flea_byte_vec_t* oid_ref__pt = &cert_ref__pt->tbs_sig_algid__t.oid_ref__t;
+  // const flea_byte_vec_t* oid_ref__pt = &cert_ref__pt->tbs_sig_algid__t.oid_ref__t;
 
   FLEA_THR_BEG_FUNC();
 
@@ -470,7 +477,8 @@ flea_err_t THR_flea_public_key_t__ctor_cert(
       key__pt,
       &cert_ref__pt->subject_public_key_info__t.public_key_as_tlv__t,
       &cert_ref__pt->subject_public_key_info__t.algid__t.params_ref_as_tlv__t,
-      oid_ref__pt
+      &cert_ref__pt->subject_public_key_info__t.algid__t.oid_ref__t
+      // oid_ref__pt // TODO: THIS IS WRONG, NOT RELEVANT FOR PUBKEY TYPE
     )
   );
 # if 0
