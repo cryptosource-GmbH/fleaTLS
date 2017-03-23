@@ -638,37 +638,28 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
 } /* THR_flea_x509_cert_ref_t__ctor */
 
 flea_bool_t flea_x509_has_key_usages(
-  const flea_x509_cert_ref_t*  cert_ref__pt,
-  flea_key_usage_ext_e         ku_type,
+  flea_key_usage_t const*      key_usage__pt,
   flea_key_usage_e             required_usages__u16,
-  flea_key_usage_exlicitness_e explicitness
+  flea_key_usage_exlicitness_e explicitness__e
 )
 {
   flea_al_u16_t ku_val__alu16;
   flea_al_u8_t ku_present_alu8;
 
-  if(ku_type == flea_key_usage_extension)
-  {
-    ku_val__alu16   = cert_ref__pt->extensions__t.key_usage__t.purposes__u16;
-    ku_present_alu8 = cert_ref__pt->extensions__t.key_usage__t.is_present__u8;
-  }
-  else
-  {
-    ku_val__alu16   = cert_ref__pt->extensions__t.ext_key_usage__t.purposes__u16;
-    ku_present_alu8 = cert_ref__pt->extensions__t.ext_key_usage__t.is_present__u8;
-  }
+  ku_val__alu16   = key_usage__pt->purposes__u16;
+  ku_present_alu8 = key_usage__pt->is_present__u8;
   if(!ku_present_alu8)
   {
-    if(explicitness == flea_key_usage_explicit)
+    if(explicitness__e == flea_key_usage_explicit)
     {
       return FLEA_FALSE;
     }
   }
-  if((ku_val__alu16 & required_usages__u16) == required_usages__u16)
+  if(ku_present_alu8 && ((ku_val__alu16 & required_usages__u16) != required_usages__u16))
   {
-    return FLEA_TRUE;
+    return FLEA_FALSE;
   }
-  return FLEA_FALSE;
+  return FLEA_TRUE;
 }
 
 flea_bool_t flea_x509_is_cert_self_issued(const flea_x509_cert_ref_t* cert__pt)

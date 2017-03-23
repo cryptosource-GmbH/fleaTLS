@@ -7,17 +7,25 @@
 #include "flea/tls.h"
 #include "internal/common/tls/handsh_reader.h"
 #include "flea/cert_store.h"
+#include "internal/common/tls_key_usage.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+typedef struct
+{
+  flea_tls_kex_e              kex_type__e;
+  flea_tls_client_cert_type_e client_cert_type__e;
+  flea_tls__connection_end_t  validate_server_or_client__e;
+} flea_tls_cert_path_params_t;
 
 flea_err_t THR_flea_tls__cert_path_validation(
-  flea_tls_ctx_t*          tls_ctx__pt,
-  flea_rw_stream_t*        rd_strm__pt,
-  const flea_cert_store_t* trust_store__pt,
-  flea_public_key_t*       pubkey_to_construct__pt
+  flea_tls_ctx_t*                    tls_ctx__pt,
+  flea_rw_stream_t*                  rd_strm__pt,
+  const flea_cert_store_t*           trust_store__pt,
+  flea_public_key_t*                 pubkey_to_construct__pt,
+  flea_tls_cert_path_params_t const* cert_path_params__pct
 );
 
 

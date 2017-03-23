@@ -135,8 +135,7 @@ flea_err_t THR_flea_test_dec_ca_cert()
     FLEA_THROW("error decoding null params", FLEA_ERR_FAILED_TEST);
   }
   if(!flea_x509_has_key_usages(
-      &cert_ref__t,
-      flea_key_usage_extension,
+      &cert_ref__t.extensions__t.key_usage__t,
       flea_ku_crl_sign | flea_ku_key_cert_sign,
       flea_key_usage_explicit
     ))
@@ -144,8 +143,7 @@ flea_err_t THR_flea_test_dec_ca_cert()
     FLEA_THROW("error positive KU", FLEA_ERR_FAILED_TEST);
   }
   if(!flea_x509_has_key_usages(
-      &cert_ref__t,
-      flea_key_usage_extension,
+      &cert_ref__t.extensions__t.key_usage__t,
       flea_ku_crl_sign | flea_ku_key_cert_sign,
       flea_key_usage_implicit
     ))
@@ -153,8 +151,7 @@ flea_err_t THR_flea_test_dec_ca_cert()
     FLEA_THROW("error positive KU", FLEA_ERR_FAILED_TEST);
   }
   if(flea_x509_has_key_usages(
-      &cert_ref__t,
-      flea_key_usage_extension,
+      &cert_ref__t.extensions__t.key_usage__t,
       flea_ku_data_encipherment,
       flea_key_usage_explicit
     ))
@@ -162,8 +159,7 @@ flea_err_t THR_flea_test_dec_ca_cert()
     FLEA_THROW("error negative KU", FLEA_ERR_FAILED_TEST);
   }
   if(flea_x509_has_key_usages(
-      &cert_ref__t,
-      flea_key_usage_extension,
+      &cert_ref__t.extensions__t.key_usage__t,
       flea_ku_data_encipherment,
       flea_key_usage_implicit
     ))

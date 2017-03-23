@@ -50,7 +50,7 @@ typedef enum { flea_key_usage_explicit, flea_key_usage_implicit } flea_key_usage
  * An identifier for either the key usage or extended key usage extension in a
  * certificate.
  */
-typedef enum { flea_key_usage_extension, flea_extended_key_usage_extension } flea_key_usage_ext_e;
+// typedef enum { flea_key_usage_extension, flea_extended_key_usage_extension } flea_key_usage_ext_type_e;
 
 typedef enum
 {
@@ -224,10 +224,9 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
   flea_al_u16_t         der_encoded_cert_len__alu16
 );
 
-
 flea_bool_t flea_x509_has_key_usages(
-  const flea_x509_cert_ref_t*  cert_ref__pt,
-  flea_key_usage_ext_e         ku_type,
+  flea_key_usage_t const*      key_usage__t,
+  //  flea_key_usage_ext_type_e    ku_type,
   flea_key_usage_e             required_usages__u16,
   flea_key_usage_exlicitness_e explicitness
 );

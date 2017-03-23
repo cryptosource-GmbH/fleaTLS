@@ -5,9 +5,10 @@
 #include "flea/x509.h"
 #include "internal/common/tls_key_usage.h"
 
-flea_err_t THR_flea_tls__check_key_usage_for_tls_server(
-  const flea_x509_cert_ref_t* server_cert__pt,
-  flea_tls_kex_kex_e          kex_type
+flea_err_t THR_flea_tls__check_key_usage_of_tls_server(
+  flea_key_usage_t const* key_usage__pt,
+  flea_key_usage_t const* extended_key_usage__pt,
+  flea_tls_kex_e          kex_type
 )
 {
   flea_key_usage_e required_ku_t  = 0;
@@ -32,10 +33,9 @@ flea_err_t THR_flea_tls__check_key_usage_for_tls_server(
         break;
   }
 
-  if(!flea_x509_has_key_usages(server_cert__pt, flea_key_usage_extension, required_ku_t, flea_key_usage_implicit) ||
+  if(!flea_x509_has_key_usages(key_usage__pt, required_ku_t, flea_key_usage_implicit) ||
     !flea_x509_has_key_usages(
-      server_cert__pt,
-      flea_extended_key_usage_extension,
+      extended_key_usage__pt,
       required_eku_t,
       flea_key_usage_implicit
     ))
@@ -45,8 +45,9 @@ flea_err_t THR_flea_tls__check_key_usage_for_tls_server(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__check_key_usage_for_tls_server */
 
-flea_err_t THR_flea_tls__check_key_usage_for_tls_client(
-  const flea_x509_cert_ref_t* client_cert__pt,
+flea_err_t THR_flea_tls__check_key_usage_of_tls_client(
+  flea_key_usage_t const*     key_usage__pt,
+  flea_key_usage_t const*     extended_key_usage__pt,
   flea_tls_client_cert_type_e cert_type
 )
 {
@@ -63,13 +64,8 @@ flea_err_t THR_flea_tls__check_key_usage_for_tls_client(
       default:
         break;
   }
-  if(!flea_x509_has_key_usages(client_cert__pt, flea_key_usage_extension, required_ku__e, flea_key_usage_implicit) ||
-    !flea_x509_has_key_usages(
-      client_cert__pt,
-      flea_extended_key_usage_extension,
-      required_eku__e,
-      flea_key_usage_implicit
-    ))
+  if(!flea_x509_has_key_usages(key_usage__pt, required_ku__e, flea_key_usage_implicit) ||
+    !flea_x509_has_key_usages(extended_key_usage__pt, required_eku__e, flea_key_usage_implicit))
   {
     FLEA_THROW("invalid key usage for TLS client certificate", FLEA_ERR_TLS_PEER_CERT_INVALID_KEY_USAGE);
   }

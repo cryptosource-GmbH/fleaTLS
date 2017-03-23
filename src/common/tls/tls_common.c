@@ -378,30 +378,18 @@ flea_err_t THR_verify_cert_chain(
 } /* THR_verify_cert_chain */
 
 flea_err_t THR_flea_tls__read_certificate(
-  flea_tls_ctx_t*           tls_ctx,
-  flea_tls_handsh_reader_t* hs_rdr__pt,
-  flea_public_key_t*        pubkey
+  flea_tls_ctx_t*                    tls_ctx,
+  flea_tls_handsh_reader_t*          hs_rdr__pt,
+  flea_public_key_t*                 pubkey,
+  flea_tls_cert_path_params_t const* cert_path_params__pct
 )
 {
-  // flea_u32_t cert_chain_len__u32;
   flea_u8_t dummy__au8_l3[3];
 
   FLEA_THR_BEG_FUNC();
 
 
-  // cert_chain_len__u32 = flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt);
-#if 0
-  FLEA_CCALL(
-    THR_flea_rw_stream_t__read_full(
-      flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
-      cert_chain__bu8,
-      cert_chain_len__u32
-    )
-  );
-  // TODO: UNSAFE ARITHM, WILL BE REPLACED...:
-  FLEA_CCALL(THR_verify_cert_chain(cert_chain__bu8 + 3, cert_chain_len__u32 - 3, pubkey));
-#else
-  // ADD ALSO CRLS
+  // TODO: ADD ALSO CRLS
   //
   // TODO: WHAT IS READ HERE?
   FLEA_CCALL(
@@ -416,10 +404,10 @@ flea_err_t THR_flea_tls__read_certificate(
       tls_ctx,
       flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
       tls_ctx->trust_store__pt,
-      pubkey
+      pubkey,
+      cert_path_params__pct
     )
   );
-#endif /* if 0 */
   FLEA_THR_FIN_SEC_empty(
   );
 } /* THR_flea_tls__read_certificate */

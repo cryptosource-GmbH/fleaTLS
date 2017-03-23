@@ -3,16 +3,20 @@
 #ifndef _flea_tls_common__H_
 #define _flea_tls_common__H_
 
+#include "internal/common/tls/tls_cert_path.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+
 #define NO_COMPRESSION 0
 
 flea_err_t THR_flea_tls__read_certificate(
-  flea_tls_ctx_t*           tls_ctx,
-  flea_tls_handsh_reader_t* hs_rdr__pt,
-  flea_public_key_t*        pubkey
+  flea_tls_ctx_t*                    tls_ctx,
+  flea_tls_handsh_reader_t*          hs_rdr__pt,
+  flea_public_key_t*                 pubkey,
+  flea_tls_cert_path_params_t const* cert_path_params__pct
 );
 
 flea_err_t THR_flea_tls__send_handshake_message_hdr(
