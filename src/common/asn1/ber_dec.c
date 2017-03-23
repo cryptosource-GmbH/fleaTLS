@@ -1041,6 +1041,30 @@ flea_err_t THR_flea_ber_dec_t__get_der_ref_to_oid(
   return THR_flea_ber_dec_t__get_ref_to_raw(dec__pt, FLEA_ASN1_OID, 0, ref__pt, extr_ref_to_v);
 }
 
+flea_err_t THR_flea_ber_dec_t__decode_value_raw_cft_optional(
+  flea_ber_dec_t*  dec__pt,
+  flea_asn1_tag_t  cft,
+  flea_byte_vec_t* res_vec__pt,
+  flea_bool_t*     found__pb
+)
+{
+  flea_bool_t optional_found__b = FLEA_TRUE;
+
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__read_or_ref_raw_opt_cft(
+      dec__pt,
+      cft,
+      res_vec__pt,
+      &optional_found__b,
+      extr_default_v
+    )
+  );
+  *found__pb = optional_found__b;
+  FLEA_THR_FIN_SEC_empty();
+}
+
 flea_err_t THR_flea_ber_dec_t__decode_value_raw_cft_opt(
   flea_ber_dec_t*  dec__pt,
   flea_asn1_tag_t  cft,

@@ -468,6 +468,13 @@ flea_err_t THR_flea_ber_dec_t__decode_value_raw_cft_opt(
   flea_bool_t*     optional_found__pb
 );
 
+flea_err_t THR_flea_ber_dec_t__decode_value_raw_cft_optional(
+  flea_ber_dec_t*  dec__pt,
+  flea_asn1_tag_t  cft,
+  flea_byte_vec_t* res_vec__pt,
+  flea_bool_t*     found__pb
+);
+
 /*flea_err_t THR_flea_ber_dec_t__decode_tlv_raw_optional(
  * flea_ber_dec_t*  dec__pt,
  * flea_byte_vec_t* byte_vec__pt
