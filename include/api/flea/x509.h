@@ -8,8 +8,10 @@
 #include "internal/common/ber_dec.h"
 #include "flea/asn1_date.h"
 
-
-#define ID_UNSUPP_EXT_OID 0
+// TODO: MAKE INTERNAL:
+//
+#define FLEA_X509_MAX_SERIALNUMBER_LEN 20
+#define ID_UNSUPP_EXT_OID              0
 
 /** id-ce **/
 #define ID_CE_INDIC                (0x0100)

@@ -32,7 +32,7 @@ flags = [
 'c++',
 '-isystem',
 '../BoostParts',
-'-isystem',
+#'-isystem',
 # This path will only work on OS X, but extra paths that don't exist are not
 # harmful
 #'/System/Library/Frameworks/Python.framework/Headers',
@@ -54,16 +54,16 @@ flags = [
 './pltf_support/linux/include',
 #'-I',
 #'.',
-'-I',
+#'-I',
 #'./ClangCompleter',
-'-isystem',
-'./tests/gmock/gtest',
-'-isystem',
-'./tests/gmock/gtest/include',
-'-isystem',
-'./tests/gmock',
-'-isystem',
-'./tests/gmock/include',
+#'-isystem',
+#'./tests/gmock/gtest',
+#'-isystem',
+#'./tests/gmock/gtest/include',
+#'-isystem',
+#'./tests/gmock',
+#'-isystem',
+#'./tests/gmock/include',
 ]
 
 

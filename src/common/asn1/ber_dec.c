@@ -164,6 +164,24 @@ static flea_err_t THR_flea_ber_dec_t__handle_hashing(
   FLEA_THR_FIN_SEC_empty();
 }
 
+static flea_err_t THR_flea_ber_dec_t__skip_read_handle_hashing(
+  flea_ber_dec_t* dec__pt,
+  flea_dtl_t      len__dtl
+)
+{
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(dummy__t, 16);
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_byte_vec_t__resize(&dummy__t, 16));
+  while(len__dtl)
+  {
+    flea_al_u8_t to_go__alu8 = FLEA_MIN(len__dtl, 16);
+    FLEA_CCALL(THR_flea_rw_stream_t__read_full(dec__pt->source__pt, dummy__t.data__pu8, to_go__alu8));
+    FLEA_CCALL(THR_flea_ber_dec_t__handle_hashing(dec__pt, dummy__t.data__pu8, to_go__alu8));
+    len__dtl -= to_go__alu8;
+  }
+  FLEA_THR_FIN_SEC_empty();
+}
+
 static flea_err_t THR_flea_ber_dec_t__read_byte_and_consume_length(
   flea_ber_dec_t* dec__pt,
   flea_u8_t*      out_mem__pu8
@@ -614,36 +632,11 @@ static flea_err_t THR_flea_ber_dec_t__read_or_ref_raw_opt_cft(
     *optional__pb = FLEA_FALSE;
     FLEA_THR_RETURN();
   }
-  // #if 0
   if(ref_extract_mode__t == extr_ref_to_tlv)
   {
-    // TODO: HACK FOR MEMORY-READ-STREAMS:
-    // *raw__ppu8 = flea_rw_stream_t__get_memory_pointer_to_current(dec__pt->source__pt);
-    // TODO: instead of providing ref, allocate space, cp the data, and return
-    // that pointer. in case of data source memory however, give direct access.
-    // *raw__ppu8 =
     raw__pu8  = flea_ber_dec_t__get_mem_ptr_to_current(dec__pt);
     raw__pu8 -= dec__pt->stored_tag_nb_bytes__u8;
-    ;
-    // TODO: CAN THIS WORK WITH STORED TAG? ANSWER: NO, OF COURSE NOT
-    //    BUG WOULD BE TRIGGERED IF OPTIONAL DECODING FAILS, AND AFTER THAT A REF TO
-    //    TLS IS REQUESTED.
-    //   -> for mem-rd-stream a solution would be always to store a pointer to the
-    //   next tlv, which is only advanced after successful decoding
-    //   -> for generic streams, which only support cpy decoding, the tag needs to
-    //   be stored, as it is already the case, and be copied to the result vec
-    //   first, followed by L, V.
-    //
-
-    /*if(!*raw__ppu8)
-     * {
-     * FLEA_THROW(
-     *  "trying to get pointer reference to ber obj even though the underlying data source is not of type 'memory'",
-     *  FLEA_ERR_INV_ARG
-     * );
-     * }*/
   }
-  // #endif
   FLEA_CCALL(
     THR_flea_ber_dec_t__verify_next_tag_opt_with_nb_tag_bytes(
       dec__pt,
@@ -668,111 +661,87 @@ static flea_err_t THR_flea_ber_dec_t__read_or_ref_raw_opt_cft(
     )
   );
 
-  /*if(dec__pt->dec_val_handling__e == flea_decode_ref)
-   * {*/
-  if(ref_extract_mode__t == extr_ref_to_v || ref_extract_mode__t == extr_ref_to_tlv)
+  if(((ref_extract_mode__t == extr_ref_to_v) || (ref_extract_mode__t == extr_ref_to_tlv)) && res_vec__pt)
   {
-    // TODO: HACK FOR MEMORY-READ-STREAMS:
-    // p__pu8 = flea_rw_stream_t__get_memory_pointer_to_current(dec__pt->source__pt);
     p__pu8 = flea_ber_dec_t__get_mem_ptr_to_current(dec__pt);
-
-
-    // TODO: FOR EXTR_READ_TLV, THE MEM STARTING AT p__pu8  NEEDS TO BE COPIED
 
     if(ref_extract_mode__t != extr_ref_to_tlv)
     {
-      // *raw__ppu8     = p__pu8;
-      raw__pu8 = p__pu8;
-      // *raw_len__pdtl = length__dtl;
+      raw__pu8     = p__pu8;
       raw_len__dtl = length__dtl;
     }
     else // ref to whole tlv
     {
-      // *raw_len__pdtl = p__pu8 - *raw__ppu8 + length__dtl;
       raw_len__dtl = p__pu8 - raw__pu8 + length__dtl;
     }
     flea_byte_vec_t__set_ref(res_vec__pt, (flea_u8_t*) raw__pu8, raw_len__dtl);
   }
 
-  /*}
-   * else
-   * {
-   * FLEA_THROW("CPY not implemented", FLEA_ERR_INT_ERR);
-   * }*/
   FLEA_CCALL(THR_flea_ber_dec_t__consume_current_length(dec__pt, length__dtl));
   if(ref_extract_mode__t == extr_ref_to_v || ref_extract_mode__t == extr_ref_to_tlv)
   {
-    // FLEA_CCALL(THR_flea_rw_stream_t__skip_read(dec__pt->source__pt, length__dtl));
     FLEA_CCALL(THR_flea_ber_dec_t__skip_input(dec__pt, length__dtl));
   }
   else if(ref_extract_mode__t == extr_read_v) // read_v
   {
-    /*if(length__dtl > *raw_len__pdtl)
-     * {
-     * FLEA_THROW("target memory area for ASN.1 decoding output too small", FLEA_ERR_ASN1_DEC_TRGT_BUF_TOO_SMALL);
-     * }*/
-    flea_byte_vec_t__reset(res_vec__pt);
-    FLEA_CCALL(THR_flea_byte_vec_t__resize(res_vec__pt, length__dtl));
-    // FLEA_CCALL(THR_flea_rw_stream_t__read_full(dec__pt->source__pt, (flea_u8_t*) *raw__ppu8, length__dtl));
-    FLEA_CCALL(THR_flea_rw_stream_t__read_full(dec__pt->source__pt, res_vec__pt->data__pu8, res_vec__pt->len__dtl));
-    FLEA_CCALL(THR_flea_ber_dec_t__handle_hashing(dec__pt, res_vec__pt->data__pu8, res_vec__pt->len__dtl));
-    // *raw_len__pdtl = length__dtl;
+    if(res_vec__pt)
+    {
+      flea_byte_vec_t__reset(res_vec__pt);
+      FLEA_CCALL(THR_flea_byte_vec_t__resize(res_vec__pt, length__dtl));
+      FLEA_CCALL(THR_flea_rw_stream_t__read_full(dec__pt->source__pt, res_vec__pt->data__pu8, res_vec__pt->len__dtl));
+      FLEA_CCALL(THR_flea_ber_dec_t__handle_hashing(dec__pt, res_vec__pt->data__pu8, res_vec__pt->len__dtl));
+    }
+    else
+    {
+      FLEA_CCALL(THR_flea_ber_dec_t__skip_read_handle_hashing(dec__pt, length__dtl));
+    }
   }
   else // read_tlv
   {
     flea_u8_t enc_tag__au8[4];
-    // flea_al_u8_t tag_pos__alu8;
     flea_asn1_tag_t the_type__t;
     flea_al_u8_t cf__alu8;
     flea_al_u8_t tag_nb_bytes__u8;
     flea_al_u8_t tag_pos__alu8;
-    // TODO: wrong code, unreachable, read_tlv not implemented
-    // still missing:
-    // - writing tag when not the stored tag is used
-    // - writing length (in either case)
-    flea_byte_vec_t__reset(res_vec__pt);
-    FLEA_CCALL(THR_flea_byte_vec_t__resize(res_vec__pt, length__dtl + nb_tag_bytes__alu8 + enc_len_nb_bytes__alu8));
-
-    /*if(nb_tag_bytes__alu8)
-     * {
-     * cf__alu8 = dec__pt->stored_tag_class_form__u8;
-     * the_type__t = dec__pt->stored_tag_type__t;
-     * tag_nb_bytes__u8 = nb_tag_bytes__alu8;
-     * }
-     * else*/
+    if(res_vec__pt)
     {
+      flea_byte_vec_t__reset(res_vec__pt);
+      FLEA_CCALL(THR_flea_byte_vec_t__resize(res_vec__pt, length__dtl + nb_tag_bytes__alu8 + enc_len_nb_bytes__alu8));
+
       cf__alu8         = class_form__alu8;
       the_type__t      = type__t;
       tag_nb_bytes__u8 = nb_tag_bytes__alu8;
+
+      tag_pos__alu8 = 4 - tag_nb_bytes__u8;
+      flea__encode_U32_BE(the_type__t, enc_tag__au8);
+      enc_tag__au8[tag_pos__alu8] = enc_tag__au8[tag_pos__alu8] | cf__alu8;
+      memcpy(
+        res_vec__pt->data__pu8,
+        &enc_tag__au8[tag_pos__alu8],
+        tag_nb_bytes__u8
+      );
+
+      memcpy(res_vec__pt->data__pu8 + tag_nb_bytes__u8, enc_len__au8, enc_len_nb_bytes__alu8);
+
+      FLEA_CCALL(
+        THR_flea_rw_stream_t__read_full(
+          dec__pt->source__pt,
+          res_vec__pt->data__pu8 + nb_tag_bytes__alu8 + enc_len_nb_bytes__alu8,
+          length__dtl
+        )
+      );
+      FLEA_CCALL(
+        THR_flea_ber_dec_t__handle_hashing(
+          dec__pt,
+          res_vec__pt->data__pu8 + tag_nb_bytes__u8 + enc_len_nb_bytes__alu8,
+          length__dtl
+        )
+      );
     }
-    tag_pos__alu8 = 4 - tag_nb_bytes__u8;
-    flea__encode_U32_BE(the_type__t, enc_tag__au8);
-    enc_tag__au8[tag_pos__alu8] = enc_tag__au8[tag_pos__alu8] | cf__alu8;
-    memcpy(
-      res_vec__pt->data__pu8,
-      &enc_tag__au8[tag_pos__alu8],
-      tag_nb_bytes__u8
-    );
-
-    memcpy(res_vec__pt->data__pu8 + tag_nb_bytes__u8, enc_len__au8, enc_len_nb_bytes__alu8);
-
-    // TODO: implement append_from_stream for byte_vec
-    // FLEA_CCALL(THR_flea_rw_stream_t__read_full(dec__pt->source__pt, (flea_u8_t*) *raw__ppu8, length__dtl));
-    FLEA_CCALL(
-      THR_flea_rw_stream_t__read_full(
-        dec__pt->source__pt,
-        res_vec__pt->data__pu8 + nb_tag_bytes__alu8 + enc_len_nb_bytes__alu8,
-        length__dtl
-        // res_vec__pt->len__dtl
-      )
-    );
-    FLEA_CCALL(
-      THR_flea_ber_dec_t__handle_hashing(
-        dec__pt,
-        res_vec__pt->data__pu8 + tag_nb_bytes__u8 + enc_len_nb_bytes__alu8,
-        length__dtl
-      )
-    );
+    else
+    {
+      FLEA_CCALL(THR_flea_ber_dec_t__skip_read_handle_hashing(dec__pt, length__dtl));
+    }
     dec__pt->stored_tag_nb_bytes__u8 = 0; // TODO: SUPERFLUOUS
   }
 
@@ -1097,15 +1066,7 @@ flea_err_t THR_flea_ber_dec_t__decode_value_raw_cft(
   access_mode_t am;
   flea_bool_t optional_false__b = FLEA_FALSE;
 
-  // TODO: NOT NECESSARY, SET TO DEFAULT:
-  if(dec__pt->dec_val_handling__e == flea_decode_ref)
-  {
-    am = extr_ref_to_v;
-  }
-  else
-  {
-    am = extr_read_v;
-  }
+  am = extr_default_v;
   return THR_flea_ber_dec_t__read_or_ref_raw_opt_cft(
     dec__pt,
     cft,
@@ -1394,35 +1355,22 @@ static flea_err_t THR_flea_ber_dec_t__decode_implicit_universal_optional_with_in
     if(with_inner__b)
     {
       FLEA_CCALL(
-
-        /*THR_flea_ber_dec_t__get_ref_to_raw(
-         * dec__pt,
-         * encap_type__t,
-         * FLEA_ASN1_UNIVERSAL_PRIMITIVE,
-         * ref__pt,
-         * //extr_ref_to_v
-         * am
-         * )*/
         THR_flea_ber_dec_t__decode_value_raw_cft(
           dec__pt,
           FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, encap_type__t),
           ref__pt
-          // extr_ref_to_v
         )
       );
     }
     else
     {
       flea_bool_t optional_false__b = FLEA_FALSE;
-      // FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(dec__pt, ref__pt));
       FLEA_CCALL(THR_flea_ber_dec_t__decode_tlv_raw_optional(dec__pt, ref__pt, &optional_false__b));
     }
     FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
   }
-  else
+  else if(ref__pt)
   {
-    // TODO: GET RID OF THIS MACRO COMPLETELY:
-    // FLEA_DER_REF_SET_ABSENT(ref__pt);
     ref__pt->len__dtl = 0;
   }
   FLEA_THR_FIN_SEC_empty();
