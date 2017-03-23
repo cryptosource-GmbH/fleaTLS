@@ -631,9 +631,7 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
   );
   FLEA_THR_FIN_SEC(
     flea_rw_stream_t__dtor(&source__t);
-    // flea_rw_stream_t__dtor(&source_tbs__t);
     flea_ber_dec_t__dtor(&dec__t);
-    // flea_ber_dec_t__dtor(&dec_tbs__t);
   );
 } /* THR_flea_x509_cert_ref_t__ctor */
 

@@ -149,6 +149,11 @@
 # define FLEA_X509_NAME_COMPONENT_MAX_BYTE_LEN 256
 
 /**
+ * Relevant only in stack mode.
+ */
+# define FLEA_STKMD_SAN_ELEMENT_MAX_LEN 50
+
+/**
  * Use the "square & multiply always" algorithm for (window-based) modular exponentiation
  * in RSA private operations as a countermeasure against timing attacks.
  */

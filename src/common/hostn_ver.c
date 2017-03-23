@@ -144,6 +144,7 @@ flea_err_t THR_flea_x509__verify_tls_server_id_cstr(
   return THR_flea_x509__verify_tls_server_id(&user_id__rcu8, host_type, server_cert__pt);
 }
 
+// TODO: THIS FUNCTION GOES INTO AN X509 SPECIFIC FILE (standalone x509)
 flea_err_t THR_flea_x509__verify_tls_server_id(
   const flea_byte_vec_t*      user_id__pcrcu8,
   flea_host_id_type_e         host_type,
@@ -152,12 +153,18 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
 {
   FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
-
   const flea_x509_dn_ref_t* cert_subject_dn__pcrcu8 = &server_cert__pt->subject__t;
+
+  flea_mem_read_stream_help_t hlp__t;
+
+
   flea_bool_t contains_dnsname__b = FLEA_FALSE;
   flea_bool_t contains_ipaddr__b  = FLEA_FALSE;
-  // flea_mem_read_stream_help_t hlp__t;
-  flea_mem_read_stream_help_t hlp__t;
+  flea_bool_t id_matched__b;
+
+  // FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(work_spc__t, FLEA_STKMD_SAN_ELEMENT_MAX_LEN);
+  flea_byte_vec_t work_spc__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+
   FLEA_THR_BEG_FUNC();
 
   if(server_cert__pt->extensions__t.san__t.is_present__u8)
@@ -172,144 +179,27 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
       )
     );
 
-    /*THR_flea_rw_stream_t__ctor_memory(
-     * &source__t,
-     * general_names_raw__pcrcu8->data__pcu8,
-     * general_names_raw__pcrcu8->len__dtl,
-     * &hlp__t
-     * )*/
     FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &source__t, 0, flea_decode_ref));
-    FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&cont_dec__t));
+    FLEA_CCALL(
+      THR_flea_x509__parse_san_and_validate_hostn(
+        user_id__pcrcu8,
+        host_type,
+        &cont_dec__t,
+        &work_spc__t,
+        &id_matched__b,
+        &contains_ipaddr__b,
+        &contains_dnsname__b
+      )
+    );
 
-    while(flea_ber_dec_t__has_current_more_data(&cont_dec__t))
+    if(id_matched__b == FLEA_TRUE)
     {
-      flea_byte_vec_t dummy_ref__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
-      flea_bool_t found__b, found_any__b = FLEA_FALSE;
-      flea_byte_vec_t dec_name__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
-
-      /*GeneralName ::= CHOICE {
-       * otherName                 [0]  AnotherName,*/
-      FLEA_CCALL(
-        THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
-          &cont_dec__t,
-          (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 0),
-          &dummy_ref__t,
-          &found__b
-        )
-      );
-      found_any__b |= found__b;
-      /*rfc822Name                [1]  IA5String, */
-      FLEA_CCALL(
-        THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
-          &cont_dec__t,
-          (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 1),
-          &dummy_ref__t,
-          &found__b
-        )
-      );
-      found_any__b |= found__b;
-      /*dNSName                   [2]  IA5String,         supported */
-      FLEA_CCALL(
-        THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
-          &cont_dec__t,
-          (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 2),
-          &dec_name__rcu8,
-          &found__b
-        )
-      );
-      if(found__b && (host_type == flea_host_dnsname))
-      {
-        flea_bool_t names_match__b;
-        FLEA_CCALL(THR_flea_x509__verify_host_name(user_id__pcrcu8, &dec_name__rcu8, FLEA_TRUE, &names_match__b));
-        if(names_match__b)
-        {
-          FLEA_THR_RETURN();
-        }
-      }
-      contains_dnsname__b |= found__b;
-      found_any__b        |= found__b;
-      /*    x400Address               [3]  ORAddress, */
-      FLEA_CCALL(
-        THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
-          &cont_dec__t,
-          (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 3),
-          &dummy_ref__t,
-          &found__b
-        )
-      );
-      found_any__b |= found__b;
-      /* directoryName             [4]  Name,              binary only*/
-      FLEA_CCALL(
-        THR_flea_ber_dec_t__decode_implicit_universal_optional(
-          &cont_dec__t,
-          4, /*dummy*/
-          0,
-          &dummy_ref__t
-        )
-      );
-      found_any__b |= found__b;
-      /*ediPartyName              [5]  EDIPartyName,*/
-      FLEA_CCALL(
-        THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
-          &cont_dec__t,
-          (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 5),
-          &dummy_ref__t,
-          &found__b
-        )
-      );
-      found_any__b |= found__b;
-      /*uniformResourceIdentifier [6]  IA5String,         binary only */
-      FLEA_CCALL(
-        THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
-          &cont_dec__t,
-          (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 6),
-          &dec_name__rcu8,
-          &found__b
-        )
-      );
-      /* URI not yet supported by flea */
-      found_any__b |= found__b;
-      /* iPAddress                 [7]  OCTET STRING,      supported */
-      FLEA_CCALL(
-        THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
-          &cont_dec__t,
-          (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 7),
-          &dec_name__rcu8,
-          &found__b
-        )
-      );
-      if(found__b && (host_type == flea_host_ipaddr))
-      {
-        if((dec_name__rcu8.len__dtl != 4) && (dec_name__rcu8.len__dtl != 16))
-        {
-          FLEA_THROW("invalid ip address format", FLEA_ERR_X509_SAN_DEC_ERR);
-        }
-        // if(!flea_rcu8_cmp(&dec_name__rcu8, user_id__pcrcu8))
-        if(!flea_byte_vec_t__cmp(&dec_name__rcu8, user_id__pcrcu8))
-        {
-          FLEA_THR_RETURN();
-        }
-      }
-      contains_ipaddr__b |= found__b;
-      found_any__b       |= found__b;
-      /* registeredID              [8]  OBJECT IDENTIFIER  supported */
-      FLEA_CCALL(
-        THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
-          &cont_dec__t,
-          (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 7),
-          &dummy_ref__t,
-          &found__b
-        )
-      );
-      found_any__b |= found__b;
-      /*}*/
-      if(!found_any__b)
-      {
-        FLEA_THROW("invalid element in SAN", FLEA_ERR_X509_SAN_DEC_ERR);
-      }
+      FLEA_THR_RETURN();
     }
   }
-  if(!contains_ipaddr__b && !contains_dnsname__b && (host_type == flea_host_dnsname))
+  // if(!contains_ipaddr__b && !contains_dnsname__b && (host_type == flea_host_dnsname))
+  if((!contains_ipaddr__b && (host_type == flea_host_ipaddr)) ||
+    (!contains_dnsname__b && (host_type == flea_host_dnsname)))
   {
     /* as specified in RFC 6125, only use CN if no appropirate SAN elements were
      * found */
@@ -332,4 +222,154 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
     flea_ber_dec_t__dtor(&cont_dec__t);
     flea_rw_stream_t__dtor(&source__t);
   );
+} /* THR_flea_x509__verify_tls_server_id */
+
+flea_err_t THR_flea_x509__parse_san_and_validate_hostn(
+  const flea_byte_vec_t* user_id__pcrcu8,
+  flea_host_id_type_e    host_type,
+  flea_ber_dec_t*        cont_dec__pt,
+  flea_byte_vec_t*       work_spc__pt,
+  flea_bool_t*           result_id_matched__pb,
+  flea_bool_t*           result_contains_ipaddr__pb,
+  flea_bool_t*           result_contains_dnsname__pb
+)
+{
+  FLEA_THR_BEG_FUNC();
+  *result_id_matched__pb       = FLEA_FALSE;
+  *result_contains_ipaddr__pb  = FLEA_FALSE;
+  *result_contains_dnsname__pb = FLEA_FALSE;
+  FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(cont_dec__pt));
+
+  while(flea_ber_dec_t__has_current_more_data(cont_dec__pt))
+  {
+    // flea_byte_vec_t dummy_ref__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+    flea_bool_t found__b, found_any__b = FLEA_FALSE;
+    // flea_byte_vec_t dec_name__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+
+    /*GeneralName ::= CHOICE {
+     * otherName                 [0]  AnotherName,*/
+    FLEA_CCALL(
+      // TODO: DECODE INSTEAD OF GET_REF!
+      THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
+        cont_dec__pt,
+        (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 0),
+        work_spc__pt,
+        &found__b
+      )
+    );
+    found_any__b |= found__b;
+    /*rfc822Name                [1]  IA5String, */
+    FLEA_CCALL(
+      THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
+        cont_dec__pt,
+        (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 1),
+        work_spc__pt,
+        &found__b
+      )
+    );
+    found_any__b |= found__b;
+    /*dNSName                   [2]  IA5String,         supported */
+    FLEA_CCALL(
+      THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
+        cont_dec__pt,
+        (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 2),
+        work_spc__pt,
+        &found__b
+      )
+    );
+    if(found__b && (host_type == flea_host_dnsname))
+    {
+      flea_bool_t names_match__b;
+      FLEA_CCALL(THR_flea_x509__verify_host_name(user_id__pcrcu8, work_spc__pt, FLEA_TRUE, &names_match__b));
+      if(names_match__b)
+      {
+        *result_id_matched__pb = FLEA_TRUE;
+        FLEA_THR_RETURN();
+      }
+    }
+    *result_contains_dnsname__pb |= found__b;
+    found_any__b |= found__b;
+    /*    x400Address               [3]  ORAddress, */
+    FLEA_CCALL(
+      THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
+        cont_dec__pt,
+        (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 3),
+        work_spc__pt,
+        &found__b
+      )
+    );
+    found_any__b |= found__b;
+    /* directoryName             [4]  Name,              binary only*/
+    FLEA_CCALL(
+      THR_flea_ber_dec_t__decode_implicit_universal_optional(
+        cont_dec__pt,
+        4, /*dummy*/
+        0,
+        work_spc__pt
+      )
+    );
+    found_any__b |= found__b;
+    /*ediPartyName              [5]  EDIPartyName,*/
+    FLEA_CCALL(
+      THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
+        cont_dec__pt,
+        (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 5),
+        work_spc__pt,
+        &found__b
+      )
+    );
+    found_any__b |= found__b;
+    /*uniformResourceIdentifier [6]  IA5String,         binary only */
+    FLEA_CCALL(
+      THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
+        cont_dec__pt,
+        (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 6),
+        work_spc__pt,
+        &found__b
+      )
+    );
+    /* URI not yet supported by flea */
+    found_any__b |= found__b;
+    /* iPAddress                 [7]  OCTET STRING,      supported */
+    FLEA_CCALL(
+      THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
+        cont_dec__pt,
+        (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 7),
+        work_spc__pt,
+        &found__b
+      )
+    );
+    if(found__b && (host_type == flea_host_ipaddr))
+    {
+      if((work_spc__pt->len__dtl != 4) && (work_spc__pt->len__dtl != 16))
+      {
+        FLEA_THROW("invalid ip address format", FLEA_ERR_X509_SAN_DEC_ERR);
+      }
+      if(!flea_byte_vec_t__cmp(work_spc__pt, user_id__pcrcu8))
+      {
+        *result_id_matched__pb = FLEA_TRUE;
+        FLEA_THR_RETURN();
+      }
+    }
+    *result_contains_ipaddr__pb |= found__b;
+    found_any__b |= found__b;
+    /* registeredID              [8]  OBJECT IDENTIFIER  supported */
+    FLEA_CCALL(
+      THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
+        cont_dec__pt,
+        (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 7),
+        work_spc__pt,
+        &found__b
+      )
+    );
+    found_any__b |= found__b;
+    /*}*/
+    if(!found_any__b)
+    {
+      FLEA_THROW("invalid element in SAN", FLEA_ERR_X509_SAN_DEC_ERR);
+    }
+  }
+  FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(cont_dec__pt));
+
+  FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_x509__verify_tls_server_id */
