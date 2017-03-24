@@ -354,6 +354,7 @@ static flea_err_t THR_flea_tls__validate_cert(
   flea_key_usage_t extd_key_usage__t = {0};
   flea_hash_id_t sigalg_hash_id;
   flea_pk_key_type_t key_type;
+  flea_bool_t optional__b;
   hostn_validation_info_t hostn_valid_info__t = {.match_info__t = {.id_matched__b = 0, .contains_ipaddr__b = 0, .contains_dnsname__b = 0}, .host_type_id__e = hostn_valid_params__pct->host_id_type__e, .user_id__pct = &hostn_valid_params__pct->host_id__ct};
   flea_bool_t do_validate_host_name__b        = (hostn_valid_params__pct->host_id__ct.data__pcu8 != NULL);
   const flea_al_u16_t previous_non_self_issued_cnt__calu16 = *cnt_non_self_issued_in_path__palu16;
@@ -415,23 +416,27 @@ static flea_err_t THR_flea_tls__validate_cert(
   );
   FLEA_CCALL(THR_flea_ber_dec_t__set_hash_id(&dec__t, sigalg_hash_id));
   // TODO: read_hash, not content
+  optional__b = FLEA_FALSE;
   FLEA_CCALL(
-    // TODO: causes error in first cert
-    THR_flea_ber_dec_t__read_value_raw_cft(
+    // THR_flea_ber_dec_t__read_value_raw_cft(
+    THR_flea_ber_dec_t__decode_tlv_raw_optional(
       &dec__t,
-      FLEA_ASN1_CFT_MAKE2(UNIVERSAL_CONSTRUCTED, SEQUENCE),
-      &local_issuer__t
+      //  FLEA_ASN1_CFT_MAKE2(UNIVERSAL_CONSTRUCTED, SEQUENCE),
+      &local_issuer__t,
+      &optional__b
     )
   );
 
   FLEA_CCALL(THR_flea_tls_check_cert_validity_time(&dec__t, compare_time__pt));
-
+  optional__b = FLEA_FALSE;
   // TODO: read_hash for other than target cert
   FLEA_CCALL(
-    THR_flea_ber_dec_t__read_value_raw_cft(
+    // THR_flea_ber_dec_t__read_value_raw_cft(
+    THR_flea_ber_dec_t__decode_tlv_raw_optional(
       &dec__t,
-      FLEA_ASN1_CFT_MAKE2(UNIVERSAL_CONSTRUCTED, SEQUENCE),
-      &local_subject__t
+      // FLEA_ASN1_CFT_MAKE2(UNIVERSAL_CONSTRUCTED, SEQUENCE),
+      &local_subject__t,
+      &optional__b
     )
   );
   if(have_precursor_to_verify__b && flea_byte_vec_t__cmp(issuer_dn__pt, &local_subject__t))
@@ -590,7 +595,7 @@ static flea_err_t THR_flea_tls__validate_cert(
 
         flea_bool_t names_match__b;
 
-        FLEA_CCALL(THR_flea_x509__decode_dn_ref_elements(&dn_ref__t, local_subject__t.data__pu8, local_subject__t.len__dtl));
+        FLEA_CCALL(THR_flea_x509__decode_dn_ref_elements(&dn_ref__t, local_subject__t.data__pu8, local_subject__t.len__dtl, FLEA_TRUE));
         FLEA_CCALL(
           THR_flea_x509__verify_host_name(
             &hostn_valid_params__pct->host_id__ct,

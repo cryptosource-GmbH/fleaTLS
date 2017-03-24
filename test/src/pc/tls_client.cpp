@@ -5,6 +5,7 @@
 #include <stdlib.h>
 #include <time.h>
 #include <string.h>
+#include <cstring>
 #include <stdio.h>
 #include <sys/time.h> // Linux specific
 
@@ -122,6 +123,9 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   char app_data_www[] = "GET index.html HTTP/1.1\nHost: 127.0.0.1";
 
 
+  flea_ref_cu8_t hostname;
+  flea_ref_cu8_t* hostname_p = NULL;
+
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_t__INIT(&rw_stream__t);
   flea_tls_ctx_t__INIT(&tls_ctx);
@@ -141,9 +145,16 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
       sizeof(trust_anchor_2048__acu8)
     )
   );
+  if(cmdl_args.have_index("hostname"))
+  {
+    hostname_p = &hostname;
+    std::string hostname_s = cmdl_args.get_property_as_string("hostname");
+    hostname.data__pcu8 = reinterpret_cast<const flea_u8_t*>(hostname_s.c_str());
+    hostname.len__dtl   = static_cast<flea_dtl_t>(std::strlen(hostname_s.c_str()));
+  }
   FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_client(&rw_stream__t));
   FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
-  FLEA_CCALL(THR_flea_tls__client_handshake(&tls_ctx, &trust_store__t, NULL, flea_host_dnsname));
+  FLEA_CCALL(THR_flea_tls__client_handshake(&tls_ctx, &trust_store__t, hostname_p, flea_host_dnsname));
 
 
   FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));

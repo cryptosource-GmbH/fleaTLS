@@ -378,7 +378,8 @@ flea_err_t THR_flea_x509__parse_dn_ref(
     THR_flea_x509__decode_dn_ref_elements(
       dn_ref__pt,
       dn_ref__pt->raw_dn_complete__t.data__pu8,
-      dn_ref__pt->raw_dn_complete__t.len__dtl
+      dn_ref__pt->raw_dn_complete__t.len__dtl,
+      FLEA_TRUE
     )
   );
   FLEA_THR_FIN_SEC_empty();
@@ -387,7 +388,8 @@ flea_err_t THR_flea_x509__parse_dn_ref(
 flea_err_t THR_flea_x509__decode_dn_ref_elements(
   flea_x509_dn_ref_t* dn_ref__pt,
   const flea_u8_t*    data__pcu8,
-  flea_dtl_t          data_len__dtl
+  flea_dtl_t          data_len__dtl,
+  flea_bool_t         with_outer_seq__b
 )
 {
   FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
@@ -406,8 +408,10 @@ flea_err_t THR_flea_x509__decode_dn_ref_elements(
     )
   );
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref));
-
-  FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
+  if(with_outer_seq__b)
+  {
+    FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
+  }
   while(flea_ber_dec_t__has_current_more_data(&dec__t))
   {
     flea_byte_vec_t* entry_ref__pt = NULL;
@@ -466,7 +470,11 @@ flea_err_t THR_flea_x509__decode_dn_ref_elements(
     // close the set -- multivalued RDNs are not supported
     FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
   }
-  FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
+
+  if(with_outer_seq__b)
+  {
+    FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
+  }
   FLEA_THR_FIN_SEC(
     flea_rw_stream_t__dtor(&source__t);
     flea_ber_dec_t__dtor(&dec__t);
