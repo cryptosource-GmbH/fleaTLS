@@ -324,7 +324,7 @@ static flea_err_t THR_flea_tls__validate_cert(
   flea_bool_t                           have_precursor_to_verify__b,
   flea_byte_vec_t*                      issuer_dn__pt, // previous issuer on input, gets updated to validated cert's subject
   const flea_gmt_time_t*                compare_time__pt,
-  flea_x509_subj_alt_names_t*           subj_alt_names_mbn__pt,
+  // flea_x509_subj_alt_names_t*           subj_alt_names_mbn__pt,
   flea_al_u16_t*                        cnt_non_self_issued_in_path__palu16,
   flea_tls_cert_path_params_t const*    cert_path_params__pct,
   flea_hostn_validation_params_t const* hostn_valid_params__pct
@@ -678,11 +678,11 @@ flea_err_t THR_flea_tls__cert_path_validation(
   flea_public_key_t* pubkey_ptr__pt = pubkey_to_construct__pt;
 
   // TODO: REMOVE SAN FROM HERE OR INIT IT CORRECTLY BEFORE EACH CALL:
-  flea_x509_subj_alt_names_t san__t = {0};
+  // flea_x509_subj_alt_names_t san__t = {0};
   FLEA_THR_BEG_FUNC();
   // TODO: NEED SOLUTION FOR STACK-USAGE /=> REAL SOLUTION: PROCESS DURING
   // VALIDATION
-  flea_byte_vec_t__ctor_empty_allocatable(&san__t.san_raw__t);
+  // flea_byte_vec_t__ctor_empty_allocatable(&san__t.san_raw__t);
   FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&compare_time__t));
 
   // rd_strm__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
@@ -716,7 +716,7 @@ flea_err_t THR_flea_tls__cert_path_validation(
         !first__b,
         &cycling_issuer_dn,
         &compare_time__t,
-        &san__t,
+        // &san__t,
         &cnt_non_self_issued_in_path__alu16,
         cert_path_params__pct,
         cert_path_params__pct->hostn_valid_params__pt
@@ -749,6 +749,6 @@ flea_err_t THR_flea_tls__cert_path_validation(
     flea_byte_vec_t__dtor(&cycling_signature__t);
     flea_byte_vec_t__dtor(&cycling_issuer_dn);
     flea_byte_vec_t__dtor(&cycling_tbs_hash__t);
-    flea_byte_vec_t__dtor(&san__t.san_raw__t);
+    // flea_byte_vec_t__dtor(&san__t.san_raw__t);
   );
 } /* THR_flea_tls__cert_path_validation */
