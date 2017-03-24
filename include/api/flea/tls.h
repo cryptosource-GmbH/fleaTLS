@@ -13,6 +13,7 @@
 #include "internal/common/tls_rec_prot.h"
 #include "flea/util.h"
 #include "flea/cert_store.h"
+#include "internal/common/hostn_ver_int.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -250,14 +251,15 @@ typedef struct
   /*#ifdef FLEA_USE_STACK_BUF
    * flea_u8_t                   premaster_secret__au8[256];
    #endif*/
-  flea_bool_t              resumption;
-  // TODO: ABSTRACT BUFF:
-  flea_u8_t                key_block[128]; // size for key block for aes256+sha256 - max size for all ciphersuites in RFC
+  flea_bool_t                    resumption;
+  // TODO: ABSTRACT BUFF, AND NOT IN CTX (?):
+  flea_u8_t                      key_block[128]; // size for key block for aes256+sha256 - max size for all ciphersuites in RFC
 
-  flea_rw_stream_t*        rw_stream__pt;
-  flea_tls_rec_prot_t      rec_prot__t;
-  const flea_cert_store_t* trust_store__pt;
-  // int                          socket_fd;
+  flea_rw_stream_t*              rw_stream__pt;
+  flea_tls_rec_prot_t            rec_prot__t;
+  const flea_cert_store_t*       trust_store__pt;
+
+  flea_hostn_validation_params_t hostn_valid_params__t;
 } flea_tls_ctx_t;
 
 
@@ -266,6 +268,8 @@ typedef struct
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt);
 
 // TODO: REMOVE THIS AND MAKE CLIENT AND SERVER HANDSHAKE FUNCTIONS CTORS
+
+
 flea_err_t flea_tls_ctx_t__ctor(
   flea_tls_ctx_t*   ctx,
   flea_rw_stream_t* rw_stream__pt,
@@ -275,7 +279,9 @@ flea_err_t flea_tls_ctx_t__ctor(
 
 flea_err_t THR_flea_tls__client_handshake(
   flea_tls_ctx_t*          tls_ctx,
-  const flea_cert_store_t* trust_store__pt
+  const flea_cert_store_t* trust_store__pt,
+  const flea_ref_cu8_t*    servername__pcrcu8,
+  flea_host_id_type_e      host_name_id__e
 );
 
 flea_err_t THR_flea_tls__server_handshake(

@@ -321,7 +321,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
     {
       // TODO: DETERMINE KEX TYPE DYNAMICALLY:
-      flea_tls_cert_path_params_t cert_path_params__t = {.kex_type__e = flea_tls_kex__rsa, .client_cert_type__e = 0, .validate_server_or_client__e = FLEA_TLS_SERVER};
+      flea_tls_cert_path_params_t cert_path_params__t = {.kex_type__e = flea_tls_kex__rsa, .client_cert_type__e = 0, .validate_server_or_client__e = FLEA_TLS_SERVER, .hostn_valid_params__pt = &tls_ctx->hostn_valid_params__t};
       FLEA_CCALL(
         THR_flea_tls__read_certificate(
           tls_ctx,
@@ -367,15 +367,29 @@ static flea_err_t THR_flea_handle_handsh_msg(
 
 flea_err_t THR_flea_tls__client_handshake(
   flea_tls_ctx_t*          tls_ctx,
-  const flea_cert_store_t* trust_store__pt
+  const flea_cert_store_t* trust_store__pt,
+  const flea_ref_cu8_t*    server_name__pcrcu8,
+  flea_host_id_type_e      host_name_id__e
 )
 {
+  flea_tls__handshake_state_t handshake_state; // TODO: INIT OBJECT
+
   FLEA_THR_BEG_FUNC();
 
   // define and init state
-  flea_tls__handshake_state_t handshake_state; // TODO: INIT OBJECT
   flea_tls__handshake_state_ctor(&handshake_state);
   flea_hash_ctx_t hash_ctx = flea_hash_ctx_t__INIT_VALUE;
+  if(server_name__pcrcu8)
+  {
+    tls_ctx->hostn_valid_params__t.host_id__ct = *server_name__pcrcu8;
+  }
+  else
+  {
+    tls_ctx->hostn_valid_params__t.host_id__ct.data__pcu8 = NULL;
+    tls_ctx->hostn_valid_params__t.host_id__ct.len__dtl   = 0;
+  }
+  // tls_ctx->hostn_valid_params__t.host_id__ct.len__dtl = strlen(server_name__cs);
+  tls_ctx->hostn_valid_params__t.host_id_type__e = host_name_id__e;
 
   tls_ctx->trust_store__pt = trust_store__pt;
 #ifdef FLEA_USE_HEAP_BUF

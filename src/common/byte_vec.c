@@ -119,6 +119,14 @@ void flea_byte_vec_t__reset(flea_byte_vec_t* byte_vec__pt)
   byte_vec__pt->len__dtl = 0;
 }
 
+int flea_byte_vec_t__cmp_with_cref(
+  const flea_byte_vec_t* a,
+  const flea_ref_cu8_t*  b
+)
+{
+  return flea_memcmp_wsize(a->data__pu8, a->len__dtl, b->data__pcu8, b->len__dtl);
+}
+
 int flea_byte_vec_t__cmp(
   const flea_byte_vec_t* a,
   const flea_byte_vec_t* b

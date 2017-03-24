@@ -143,7 +143,7 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   );
   FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_client(&rw_stream__t));
   FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
-  FLEA_CCALL(THR_flea_tls__client_handshake(&tls_ctx, &trust_store__t));
+  FLEA_CCALL(THR_flea_tls__client_handshake(&tls_ctx, &trust_store__t, NULL, flea_host_dnsname));
 
 
   FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));

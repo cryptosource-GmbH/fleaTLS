@@ -107,6 +107,7 @@ typedef struct
   flea_byte_vec_t       public_key_as_tlv__t;
 } flea_x509_public_key_info_t;
 
+// TODO: BACK TO REF_CU8
 typedef struct
 {
   flea_byte_vec_t raw_dn_complete__t;
@@ -236,9 +237,15 @@ flea_err_t THR_flea_x509__decode_algid_ref(
   flea_ber_dec_t*        dec__pt
 );
 
-flea_err_t THR_flea_x509__parse_dn(
+flea_err_t THR_flea_x509__parse_dn_ref(
   flea_x509_dn_ref_t* dn_ref__pt,
   flea_ber_dec_t*     dec__pt
+);
+
+flea_err_t THR_flea_x509__decode_dn_ref_elements(
+  flea_x509_dn_ref_t* dn_ref__pt,
+  const flea_u8_t*    data__pcu8,
+  flea_dtl_t          data_len__dtl
 );
 
 flea_err_t THR_flea_x509__process_alg_ids(

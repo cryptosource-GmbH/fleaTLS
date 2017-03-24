@@ -6,6 +6,7 @@
 
 #include "flea/error.h"
 #include "flea/types.h"
+#include "flea/util.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -66,6 +67,11 @@ void flea_byte_vec_t__ctor_empty_allocatable(flea_byte_vec_t* byte_vec__pt);
 int flea_byte_vec_t__cmp(
   const flea_byte_vec_t* a,
   const flea_byte_vec_t* b
+);
+
+int flea_byte_vec_t__cmp_with_cref(
+  const flea_byte_vec_t* a,
+  const flea_ref_cu8_t*  b
 );
 
 void flea_byte_vec_t__set_ref(
