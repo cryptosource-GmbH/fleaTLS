@@ -599,10 +599,8 @@ static flea_err_t THR_flea_tls__validate_cert(
         FLEA_CCALL(
           THR_flea_x509__verify_host_name(
             &hostn_valid_params__pct->host_id__ct,
-            // &user_id__crcu8,
-            // &cert_subject_dn__pcrcu8->common_name__t,
             &dn_ref__t.common_name__t,
-            (hostn_valid_params__pct->host_id_type__e == flea_host_dnsname) ? FLEA_TRUE : FLEA_FALSE,
+            FLEA_TRUE,
             &names_match__b
           )
         );

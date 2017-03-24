@@ -210,7 +210,7 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
       THR_flea_x509__verify_host_name(
         &user_id__crcu8,
         &cert_subject_dn__pcrcu8->common_name__t,
-        (host_type == flea_host_dnsname) ? FLEA_TRUE : FLEA_FALSE,
+        FLEA_TRUE,
         &names_match__b
       )
     );
