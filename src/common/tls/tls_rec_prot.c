@@ -208,7 +208,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite_inner(
   flea_tls_rec_prot_t*   rec_prot__pt,
   flea_tls_stream_dir_e  direction,
   flea_block_cipher_id_t block_cipher_id,
-  // flea_hash_id_t         hash_id,
   flea_mac_id_t          mac_id,
   const flea_u8_t*       cipher_key__pcu8,
   flea_al_u8_t           cipher_key_len__alu8,
@@ -502,7 +501,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
     padding[k] = padding_len - 1;
   }
 
-  // flea_u8_t encrypted[FLEA_TLS_MAX_RECORD_DATA_SIZE];
   FLEA_CCALL(
     THR_flea_cbc_mode__encrypt_data(
       rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id,
@@ -516,11 +514,9 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
     )
   );
 
-
   length_tot = input_output_len + iv_len;
   rec_prot__pt->send_rec_buf_raw__bu8[3] = length_tot >> 8;
   rec_prot__pt->send_rec_buf_raw__bu8[4] = length_tot;
-  // memcpy(rec_prot__pt->payload_buf__pu8, encrypted, input_output_len);
   *encrypted_len__palu16 = input_output_len;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac */
@@ -564,9 +560,6 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
 
   flea_tls_rec_prot_t__discard_pending_write(rec_prot__pt);
 
-  /*rec_prot__pt->write_ongoing__u8     = 0;
-   *  rec_prot__pt->payload_offset__u16   = 0;
-   *  rec_prot__pt->payload_used_len__u16 = 0;*/
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__write_flush */
 
@@ -678,11 +671,16 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
     {
       local_rd_mode__e = flea_read_full;
 
+      /* TODO: READ_FULL ACTUALLY ONLY NECESSARY WHEN ENCRYPTION IS ON, BUT THIS
+       * DOESN'T HURT MUCH IN THE WAY IT IS HERE
+       */
+
       /* otherwise not a single content byte could be returned (in case of
        * encryption) */
     }
     do
     {
+      /* read the hdr */
       if(rec_prot__pt->read_bytes_from_current_record__u16 < RECORD_HDR_LEN)
       {
         while(rec_prot__pt->read_bytes_from_current_record__u16 < RECORD_HDR_LEN)
@@ -743,7 +741,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         {
           FLEA_THROW("received record does not fit into receive buffer", FLEA_ERR_TLS_EXCSS_REC_LEN);
         }
-      }
+      } /* end of 'read the hdr' */
 
       while(rec_prot__pt->read_bytes_from_current_record__u16 <
         rec_prot__pt->current_record_content_len__u16 + RECORD_HDR_LEN)
@@ -801,10 +799,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
       }
 
-      /*else
-       * {
-       * raw_rec_content_len__alu16 = raw_read_len__dtl;
-       * }*/
       if(rec_prot__pt->is_current_record_alert__u8)
       {
         FLEA_CCALL(THR_flea_tls_rec_prot_t__handle_alert(rec_prot__pt));
