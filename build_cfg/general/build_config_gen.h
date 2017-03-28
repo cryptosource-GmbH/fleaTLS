@@ -172,7 +172,8 @@
 # define FLEA_TLS_CIPH_FILTER_BUF_LEN 65
 
 // TODO: CHECK THE SIZE
-# define FLEA_TLS_TRNSF_BUF_SIZE 16384
+# define FLEA_TLS_TRNSF_BUF_SIZE    16384
+# define FLEA_TLS_ALT_SEND_BUF_SIZE 128
 
 /**
  * if activated, during the handshake, a record is send as soon as a handshake

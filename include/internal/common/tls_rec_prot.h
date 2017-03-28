@@ -87,14 +87,23 @@ typedef struct
   // FLEA_TLS_MAX_RECORD_DATA_SIZE + RECORD_HDR_LEN
 #ifdef FLEA_USE_HEAP_BUF
   flea_u8_t*                   send_rec_buf_raw__bu8;
+  flea_u8_t*                   alt_send_buf__raw__bu8;
 #else
   flea_u8_t                    send_rec_buf_raw__bu8[FLEA_TLS_TRNSF_BUF_SIZE];
+  flea_u8_t                    alt_send_buf__raw__bu8[FLEA_TLS_ALT_SEND_BUF_SIZE];
 #endif
   flea_u16_t                   send_rec_buf_raw_len__u16;
+  flea_u16_t                   send_buf_raw_len__u16;
   flea_u8_t*                   payload_buf__pu8;
+  flea_u8_t*                   send_payload_buf__pu8;
+  flea_u8_t*                   send_buf_raw__pu8;
   flea_u16_t                   payload_max_len__u16;
+  flea_u16_t                   alt_payload_max_len__u16;
+  flea_u16_t                   send_payload_max_len__u16;
   flea_u16_t                   payload_used_len__u16;
+  flea_u16_t                   send_payload_used_len__u16;
   flea_u16_t                   payload_offset__u16;
+  flea_u16_t                   send_payload_offset__u16;
   flea_u8_t                    reserved_iv_len__u8;
   flea_tls__protocol_version_t prot_version__t;
   flea_rw_stream_t*            rw_stream__pt;
@@ -156,19 +165,6 @@ flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
   flea_tls__cipher_suite_id_t suite_id,
   const flea_u8_t*            key_block__pcu8
 );
-
-/*flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
- * flea_tls_rec_prot_t*   rec_prot__pt,
- * flea_tls_stream_dir_e  direction,
- * flea_block_cipher_id_t block_cipher_id,
- * // flea_hash_id_t         hash_id,
- * flea_mac_id_t          mac_id,
- * const flea_u8_t*       cipher_key__pcu8,
- * flea_al_u8_t           cipher_key_len__alu8,
- * const flea_u8_t*       mac_key__pcu8,
- * flea_al_u8_t           mac_key_len__alu8,
- * flea_al_u8_t           mac_size__alu8
- * );*/
 
 flea_err_t THR_flea_tls_rec_prot_t__send_record(
   flea_tls_rec_prot_t* rec_prot__pt,
