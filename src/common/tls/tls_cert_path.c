@@ -173,20 +173,6 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
         case ID_CE_OID_AKI:
         {
           /* authority key identifier */
-#if 0
-          ext_ref__pt->auth_key_id__t.is_present__u8 = FLEA_TRUE;
-
-          FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&cont_dec__t));
-          FLEA_CCALL(
-            THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
-              &cont_dec__t,
-              (flea_asn1_tag_t) FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONTEXT_SPECIFIC, 0),
-              &ext_ref__pt->auth_key_id__t.key_id__t,
-              &found__b
-            )
-          );
-
-#endif /* if 0 */
           break;
         }
         case ID_CE_OID_KEY_USAGE:
@@ -196,33 +182,10 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
         }
         case ID_CE_OID_SUBJ_KEY_ID:
         {
-#if 0
-          FLEA_CCALL(
-            THR_flea_ber_dec_t__get_ref_to_raw_cft(
-              &cont_dec__t,
-              FLEA_ASN1_OCTET_STRING,
-              &ext_ref__pt->subj_key_id__t
-            )
-          );
-#endif
           break;
         }
         case ID_CE_OID_SUBJ_ALT_NAME:
         {
-#if 0
-          if(subj_alt_names_mbn__pt)
-          {
-            flea_bool_t optional_false__b = FLEA_FALSE;
-            subj_alt_names_mbn__pt->is_present__u8 = FLEA_TRUE;
-            FLEA_CCALL(
-              THR_flea_ber_dec_t__decode_tlv_raw_optional(
-                dec__pt,
-                &subj_alt_names_mbn__pt->san_raw__t,
-                &optional_false__b
-              )
-            );
-          }
-#endif /* if 0 */
           if(hostn_valid_info_mbn__pt && (hostn_valid_info_mbn__pt->user_id__pct->data__pcu8 != NULL))
           {
             FLEA_CCALL(
@@ -239,7 +202,7 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
 
         case ID_CE_OID_ISS_ALT_NAME:
         {
-          // nothing to do, flea does not process it
+          /* nothing to do, flea does not process it */
           break;
         }
         case ID_CE_OID_BASIC_CONSTR:
@@ -251,46 +214,6 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
         {
           FLEA_CCALL(THR_flea_x509_cert__parse_eku(dec__pt, extd_key_usage__pt));
           break;
-        }
-        case ID_CE_OID_CRL_DISTR_POINT:
-        {
-          // TODO: CRL PARSING IN TLS
-#if 0
-          ext_ref__pt->crl_distr_point__t.is_present__u8 = FLEA_TRUE;
-          FLEA_CCALL(
-            THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(
-              &cont_dec__t,
-              &ext_ref__pt->crl_distr_point__t.raw_ref__t
-            )
-          );
-          break;
-#endif
-        }
-        case ID_CE_OID_FRESHEST_CRL:
-        {
-#if 0
-          ext_ref__pt->freshest_crl__t.is_present__u8 = FLEA_TRUE;
-          FLEA_CCALL(
-            THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(
-              &cont_dec__t,
-              &ext_ref__pt->freshest_crl__t.raw_ref__t
-            )
-          );
-#endif
-          break;
-        }
-        case ID_PE_OID_AUTH_INF_ACC:
-        {
-#if 0
-          ext_ref__pt->auth_inf_acc__t.is_present__u8 = FLEA_TRUE;
-          FLEA_CCALL(
-            THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(
-              &cont_dec__t,
-              &ext_ref__pt->auth_inf_acc__t.raw_ref__t
-            )
-          );
-          break;
-#endif
         }
         default:
           if(critical__b)
@@ -324,7 +247,6 @@ static flea_err_t THR_flea_tls__validate_cert(
   flea_bool_t                           have_precursor_to_verify__b,
   flea_byte_vec_t*                      issuer_dn__pt, // previous issuer on input, gets updated to validated cert's subject
   const flea_gmt_time_t*                compare_time__pt,
-  // flea_x509_subj_alt_names_t*           subj_alt_names_mbn__pt,
   flea_al_u16_t*                        cnt_non_self_issued_in_path__palu16,
   flea_tls_cert_path_params_t const*    cert_path_params__pct,
   flea_hostn_validation_params_t const* hostn_valid_params__pct
@@ -418,10 +340,8 @@ static flea_err_t THR_flea_tls__validate_cert(
   // TODO: read_hash, not content
   optional__b = FLEA_FALSE;
   FLEA_CCALL(
-    // THR_flea_ber_dec_t__read_value_raw_cft(
     THR_flea_ber_dec_t__decode_tlv_raw_optional(
       &dec__t,
-      //  FLEA_ASN1_CFT_MAKE2(UNIVERSAL_CONSTRUCTED, SEQUENCE),
       &local_issuer__t,
       &optional__b
     )
@@ -431,10 +351,8 @@ static flea_err_t THR_flea_tls__validate_cert(
   optional__b = FLEA_FALSE;
   // TODO: read_hash for other than target cert
   FLEA_CCALL(
-    // THR_flea_ber_dec_t__read_value_raw_cft(
     THR_flea_ber_dec_t__decode_tlv_raw_optional(
       &dec__t,
-      // FLEA_ASN1_CFT_MAKE2(UNIVERSAL_CONSTRUCTED, SEQUENCE),
       &local_subject__t,
       &optional__b
     )
@@ -673,19 +591,12 @@ flea_err_t THR_flea_tls__cert_path_validation(
   );
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(cycling_tbs_hash__t, FLEA_MAX_HASH_OUT_LEN);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(cycling_issuer_dn, 100);
-  // flea_basic_constraints_t basic_constraints__t;
   flea_hash_id_t cycling_hash_id;
   flea_public_key_t* pubkey_ptr__pt = pubkey_to_construct__pt;
 
-  // TODO: REMOVE SAN FROM HERE OR INIT IT CORRECTLY BEFORE EACH CALL:
-  // flea_x509_subj_alt_names_t san__t = {0};
   FLEA_THR_BEG_FUNC();
-  // TODO: NEED SOLUTION FOR STACK-USAGE /=> REAL SOLUTION: PROCESS DURING
-  // VALIDATION
-  // flea_byte_vec_t__ctor_empty_allocatable(&san__t.san_raw__t);
   FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&compare_time__t));
 
-  // rd_strm__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
   do
   {
     flea_bool_t is_cert_trusted__b;

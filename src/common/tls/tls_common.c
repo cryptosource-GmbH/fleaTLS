@@ -39,7 +39,7 @@
 #include "flea/byte_vec.h"
 #include "internal/common/tls_ciph_suite.h"
 
-#include <stdio.h>
+#include "internal/pltf_if/time.h"
 
 
 typedef struct
@@ -80,7 +80,6 @@ static flea_err_t P_Hash(
   FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, seed, seed_length));
   FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&hmac__t, A, &len__alu8));
   flea_mac_ctx_t__dtor(&hmac__t);
-  // FLEA_CCALL(THR_flea_mac__compute_mac(flea_hmac_sha256, secret, secret_length, seed, seed_length, A, &len__alu8));
   while(res_length)
   {
     flea_al_u8_t to_go__alu16 = FLEA_MIN(res_length, hash_out_len__alu8);
@@ -160,9 +159,6 @@ flea_err_t flea_tls__prf(
   const flea_u8_t master_secret[]   = {109, 97, 115, 116, 101, 114, 32, 115, 101, 99, 114, 101, 116};
   const flea_u8_t key_expansion[]   = {107, 101, 121, 32, 101, 120, 112, 97, 110, 115, 105, 111, 110};
 
-  // TODO: REMOVE
-  const flea_u8_t test_label[] = {0x74, 0x65, 0x73, 0x74, 0x20, 0x6c, 0x61, 0x62, 0x65, 0x6c};
-
   const flea_u8_t* label__pcu8;
   flea_al_u8_t label_len__alu8;
   switch(label)
@@ -182,11 +178,6 @@ flea_err_t flea_tls__prf(
       case PRF_LABEL_SERVER_FINISHED:
         label__pcu8     = server_finished;
         label_len__alu8 = sizeof(server_finished);
-        break;
-      // TODO: REMOVE
-      case PRF_LABEL_TEST:
-        label__pcu8     = test_label;
-        label_len__alu8 = sizeof(test_label);
         break;
       default:
         FLEA_THROW("Invalid label!", FLEA_ERR_TLS_GENERIC);
@@ -208,8 +199,6 @@ flea_err_t THR_flea_tls__generate_key_block(
   flea_al_u8_t                           key_block_len__alu8
 )
 {
-  // flea_al_u8_t mac_len__alu8, mac_key_len__alu8, cipher_block_len__alu8, cipher_key_len__alu8;
-
   FLEA_THR_BEG_FUNC();
   flea_u8_t seed[64];
   memcpy(seed, security_parameters__pt->server_random.gmt_unix_time, 4);
@@ -305,77 +294,6 @@ flea_err_t THR_flea_tls__read_finished(
     FLEA_FREE_BUF_FINAL(messages_hash__bu8);
   );
 } /* THR_flea_tls__read_finished */
-
-flea_err_t THR_verify_cert_chain(
-  flea_u8_t*         tls_cert_chain__acu8,
-  flea_u32_t         tls_cert_chain_len__u32,
-  flea_u8_t*         trust_anchor_pu8,
-  flea_u16_t         trust_anchor_len__u16,
-  flea_public_key_t* pubkey__t
-)
-{
-  FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
-  const flea_u8_t date_str[] = "170228200000Z"; // TODO: datumsfunktion aufrufen
-  flea_gmt_time_t time__t;
-  flea_bool_t first__b = FLEA_TRUE;
-  const flea_u8_t* ptr = tls_cert_chain__acu8;
-  flea_al_u16_t len    = tls_cert_chain_len__u32;
-
-  FLEA_THR_BEG_FUNC();
-
-  while(len > 3)
-  {
-    // FLEA_DECL_OBJ(ref__t, flea_x509_cert_ref_t);
-    flea_u32_t new_len = ((flea_u32_t) ptr[0] << 16) | (ptr[1] << 8) | (ptr[2]);
-    ptr += 3;
-    len -= 3;
-    if(new_len > len)
-    {
-      FLEA_THROW("invalid cert chain length", FLEA_ERR_INV_ARG);
-    }
-    // FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&ref__t, ptr, new_len));
-    if(first__b)
-    {
-      // FLEA_CCALL(THR_flea_cert_path_validator_t__ctor_cert_ref(&cert_chain__t, &ref__t));
-      FLEA_CCALL(THR_flea_cert_path_validator_t__ctor_cert(&cert_chain__t, ptr, new_len));
-      first__b = FLEA_FALSE;
-    }
-    else
-    {
-      FLEA_CCALL(THR_flea_cert_path_validator_t__add_cert_without_trust_status(&cert_chain__t, ptr, new_len));
-    }
-    ptr += new_len;
-    len -= new_len;
-  }
-
-  FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) - 1, &time__t));
-
-
-  // add trust anchor
-  // FLEA_DECL_OBJ(trust_ref__t, flea_x509_cert_ref_t);
-  // err = THR_flea_x509_cert_ref_t__ctor(&trust_ref__t, trust_anchor, sizeof(trust_anchor));
-  // err = THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(&cert_chain__t, &trust_ref__t);
-  FLEA_CCALL(
-    THR_flea_cert_path_validator_t__add_trust_anchor_cert(
-      &cert_chain__t,
-      trust_anchor_pu8,
-      trust_anchor_len__u16
-    )
-  );
-  // TODO: ENABLE REVOCATION CHECKING IN TLS
-  flea_cert_path_validator_t__disable_revocation_checking(&cert_chain__t);
-  FLEA_CCALL(
-    THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_pub_key(
-      &cert_chain__t,
-      &time__t,
-      pubkey__t
-    )
-  );
-
-  FLEA_THR_FIN_SEC(
-    flea_cert_path_validator_t__dtor(&cert_chain__t);
-  );
-} /* THR_verify_cert_chain */
 
 flea_err_t THR_flea_tls__read_certificate(
   flea_tls_ctx_t*                    tls_ctx,
