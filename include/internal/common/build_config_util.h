@@ -18,8 +18,15 @@
 # define FLEA_HAVE_PK_CS
 #endif
 
+#if defined FLEA_HAVE_RSA
+# define FLEA_HAVE_TLS
+#endif
+
 #if defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA
 # define FLEA_HAVE_ASYM_SIG
+#endif
+
+#if defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA || defined FLEA_HAVE_ECKA
 # define FLEA_HAVE_ASYM_ALGS
 #endif
 
@@ -34,7 +41,7 @@
 #endif
 
 #if FLEA_CRT_RSA_WINDOW_SIZE > 1
-# define FLEA_DO_IF_RSA_CRT_WINDOW_SIZE_GREATER_ONE(x) do { x } while(0)
+# define FLEA_DO_IF_RSA_CRT_WINDOW_SIZE_GREATER_ONE(x) do {x} while(0)
 #else
 # define FLEA_DO_IF_RSA_CRT_WINDOW_SIZE_GREATER_ONE(x)
 #endif

@@ -21,13 +21,15 @@
 #include "flea/hostn_ver.h"
 #include "internal/common/hostn_ver_int.h"
 
-#define FLEA_TLS_CERT_PATH_MAX_LEN 20
+#ifdef FLEA_HAVE_TLS
+
+# define FLEA_TLS_CERT_PATH_MAX_LEN 20
 
 /**
  * Used in stack mode. This size must be sufficient for a buffer to hold all data of an
  * X.509 certificate up to and including the first SignatureAlgorithm.
  */
-#define FLEA_X509_CERT_PRE_SIGALGID_BUFFER_SIZE 70
+# define FLEA_X509_CERT_PRE_SIGALGID_BUFFER_SIZE 70
 
 typedef struct
 {
@@ -267,7 +269,7 @@ static flea_err_t THR_flea_tls__validate_cert(
   // TODO: EXPLICIT ISSUER ONLY FOR TARGET CERT, FOR THE OTHERS: SHA256 HASH
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_issuer__t, 200);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_subject__t, 200);
-#ifdef FLEA_USE_STACK_BUF
+# ifdef FLEA_USE_STACK_BUF
   flea_u8_t sigalg_oid__au8[10];
   flea_u8_t sigalg_params__au8[10];
   flea_u8_t outer_sigalg_oid__au8[10];
@@ -278,11 +280,11 @@ static flea_err_t THR_flea_tls__validate_cert(
   flea_x509_algid_ref_t sigalg_id__t         = {.oid_ref__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(sigalg_oid__au8), .params_ref_as_tlv__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(sigalg_params__au8)};
   flea_x509_algid_ref_t outer_sigalg_id__t   = {.oid_ref__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(outer_sigalg_oid__au8), .params_ref_as_tlv__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(outer_sigalg_params__au8)};
   flea_x509_algid_ref_t public_key_alg_id__t = {.oid_ref__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(pubkey_oid__au8), .params_ref_as_tlv__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(pubkey_params__au8)};
-#else /* ifdef FLEA_USE_STACK_BUF */
+# else /* ifdef FLEA_USE_STACK_BUF */
   flea_x509_algid_ref_t sigalg_id__t         = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
   flea_x509_algid_ref_t outer_sigalg_id__t   = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
   flea_x509_algid_ref_t public_key_alg_id__t = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
-#endif /* ifdef FLEA_USE_STACK_BUF */
+# endif /* ifdef FLEA_USE_STACK_BUF */
   flea_bool_t optional_found__b;
   flea_basic_constraints_t basic_constraints__t = {0};
   flea_key_usage_t key_usage__t      = {0};
@@ -676,3 +678,5 @@ flea_err_t THR_flea_tls__cert_path_validation(
     // flea_byte_vec_t__dtor(&san__t.san_raw__t);
   );
 } /* THR_flea_tls__cert_path_validation */
+
+#endif /* ifdef FLEA_HAVE_TLS */

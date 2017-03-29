@@ -432,8 +432,12 @@ flea_err_t THR_flea_determine_public_key_type_from_oid(
   flea_pk_key_type_t* result_key_type__pe
 )
 {
-  const flea_u8_t ec_public_key_oid__au8 []  = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01};
+# ifdef FLEA_HAVE_ECC
+  const flea_u8_t ec_public_key_oid__au8 [] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01};
+# endif
+# ifdef FLEA_HAVE_RSA
   const flea_u8_t rsa_public_key_oid__au8 [] = {0x2A, 0x86, 0x48, 0x86, 0xF7, 0x0D, 0x01, 0x01, 0x01};
+# endif
 
   FLEA_THR_BEG_FUNC();
 # ifdef FLEA_HAVE_RSA
@@ -461,7 +465,7 @@ flea_err_t THR_flea_determine_public_key_type_from_oid(
   }
 
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_determine_public_key_type_from_oid */
 
 flea_err_t THR_flea_public_key_t__ctor_cert(
   flea_public_key_t*          key__pt,

@@ -111,7 +111,7 @@ def make_core_flag_list():
      #print "found line with flag:" + m.group(0)
      #print "belongs to group " + m.group(1)
      #print "in line: " + line
-     m2 = re.search('#define\s+([A-Za-z0-9_]+)', line)
+     m2 = re.search('#\s*define\s+([A-Za-z0-9_]+)', line)
      if(m2):
       name = m2.group(1)
       #print("found name = " + name)
@@ -123,11 +123,11 @@ def make_core_flag_list():
       else:
         add_flag_to_combinations(line, m.group(1))
      else:
-      #print "error, could not find flag name"
+      print "error, could not find flag name"
       exit(1)
    elif(m_val_list):
      #m2 = re.search('(#define\s+([A-Za-z0-9_]+))\s+(([0-9]+)\s+)(//[.*]+)', line)
-     m2 = re.search('(#define\s+([A-Za-z0-9_]+))\s+[0-9]+\s+(//\s*([A-Za-z0-9_]+)\s+([0-9 ]+))', line)
+     m2 = re.search('(#\s*define\s+([A-Za-z0-9_]+))\s+[0-9]+\s+(//\s*([A-Za-z0-9_]+)\s+([0-9 ]+))', line)
      if(m2):
       vals = m2.group(5)
       #print "vals = " + vals
@@ -245,11 +245,11 @@ def iterate_through_configs_with_build_and_tests(stripped_file, concrete_flag_va
  #print "build_config_file: lines in stripped_file", len(stripped_file)
  #print "max max_comb_len = " + str(max_combination_len)
  for i in range (0, max_combination_len):
-   #print "testing configuration " + str(i+1) + " of " + str(max_combination_len)
+   print "testing configuration " + str(i+1) + " of " + str(max_combination_len)
    new_file = [] 
    for line in stripped_file:
      #print "processing line of stripped file: " + line
-     if (re.search('#define _flea_build_cfg_gen__H_', line)):
+     if (re.search('#\s*define _flea_build_cfg_gen__H_', line)):
        #print "found insertion tag for flag values"
        new_file.append(line)
        new_file.append("\n")

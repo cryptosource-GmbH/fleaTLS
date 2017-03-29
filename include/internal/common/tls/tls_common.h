@@ -5,12 +5,13 @@
 
 #include "internal/common/tls/tls_cert_path.h"
 
-#ifdef __cplusplus
+#ifdef FLEA_HAVE_TLS
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 
-#define NO_COMPRESSION 0
+# define NO_COMPRESSION 0
 
 flea_err_t THR_flea_tls__read_certificate(
   flea_tls_ctx_t*                    tls_ctx,
@@ -72,9 +73,9 @@ typedef enum
   FLEA_TLS_HANDSHAKE_EXPECT_FINISHED            = 0x400,
   FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC  = 0x800
 } flea_tls__expect_handshake_type_t;
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 flea_err_t THR_flea_tls__send_change_cipher_spec(
   flea_tls_ctx_t* tls_ctx
@@ -118,5 +119,5 @@ flea_err_t THR_flea_tls__handle_tls_error(
   flea_tls_rec_prot_t* rec_prot__pt,
   flea_err_t           err__t
 );
-
+#endif // ifdef FLEA_HAVE_TLS
 #endif /* h-guard */

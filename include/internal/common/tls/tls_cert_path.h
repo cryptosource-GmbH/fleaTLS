@@ -9,9 +9,11 @@
 #include "flea/cert_store.h"
 #include "internal/common/tls_key_usage.h"
 
-#ifdef __cplusplus
+
+#ifdef FLEA_HAVE_TLS
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 typedef struct
 {
@@ -30,7 +32,8 @@ flea_err_t THR_flea_tls__cert_path_validation(
 );
 
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
+#endif // ifdef FLEA_HAVE_TLS
 #endif /* h-guard */

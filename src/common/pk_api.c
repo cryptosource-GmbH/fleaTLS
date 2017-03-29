@@ -576,8 +576,50 @@ flea_err_t THR_flea_pk_api__sign(
   );
 }
 
+/*
+ * bit size = order bit size
+ * output_len >= input_len, former denotes the allocated space, latter the
+ * length of the input data within that space
+ */
+flea_err_t THR_flea_pk_api__encode_message__emsa1(
+  flea_u8_t*     input_output__pcu8,
+  flea_al_u16_t  input_len__alu16,
+  flea_al_u16_t* output_len__palu16,
+  flea_al_u16_t  bit_size
+)
+{
+  flea_al_u16_t output_bytes__alu16;
+
+  FLEA_THR_BEG_FUNC();
+
+  if(8 * input_len__alu16 <= bit_size)
+  {
+    *output_len__palu16 = input_len__alu16;
+    FLEA_THR_RETURN();
+  }
+  // this function never increases the length of the output, so there is no
+  // error condition
+  output_bytes__alu16 = FLEA_CEIL_BYTE_LEN_FROM_BIT_LEN(bit_size);
+  bit_size %= 8;
+  bit_size  = 8 - bit_size;
+  if(bit_size)
+  {
+    flea_u8_t carry = 0;
+    flea_al_u16_t i;
+    for(i = 0; i < output_bytes__alu16; i++)
+    {
+      flea_u8_t x = input_output__pcu8[i];
+      input_output__pcu8[i] = (x >> bit_size) | carry;
+      carry = (x << (8 - bit_size));
+    }
+  }
+  *output_len__palu16 = output_bytes__alu16;
+  FLEA_THR_FIN_SEC_empty();
+}
+
 #endif // #ifdef FLEA_HAVE_ASYM_SIG
 
+#if defined  FLEA_HAVE_ASYM_SIG || defined FLEA_HAVE_PK_CS
 flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5(
   const flea_u8_t* encoded__pcu8,
   flea_al_u16_t    encoded_len__alu16,
@@ -723,13 +765,13 @@ static flea_err_t THR_flea_pk_api__encode_message__pkcs1_v1_5(
   // derive k from bit_size (=rsa-mod bit size)
   // *output_len__palu16 must be k
   // EM = 0x00 || 0x02 || PS || 0x00 || M
-#ifdef FLEA_HAVE_ASYM_SIG
+# ifdef FLEA_HAVE_ASYM_SIG
   if(second_byte_val__alu8 == 0x01)
   {
     tLen__alu16 = flea_pk_api__pkcs1_set_digest_info(input_output__pu8, rem_len__alu16, hash_id__t);
   }
   else
-#endif // #ifdef FLEA_HAVE_ASYM_SIG
+# endif // #ifdef FLEA_HAVE_ASYM_SIG
   {
     tLen__alu16 = input_len__alu16;
   }
@@ -799,46 +841,7 @@ flea_err_t THR_flea_pk_api__encode_message__pkcs1_v1_5_sign(
   );
 }
 
-/*
- * bit size = order bit size
- * output_len >= input_len, former denotes the allocated space, latter the
- * length of the input data within that space
- */
-flea_err_t THR_flea_pk_api__encode_message__emsa1(
-  flea_u8_t*     input_output__pcu8,
-  flea_al_u16_t  input_len__alu16,
-  flea_al_u16_t* output_len__palu16,
-  flea_al_u16_t  bit_size
-)
-{
-  flea_al_u16_t output_bytes__alu16;
-
-  FLEA_THR_BEG_FUNC();
-
-  if(8 * input_len__alu16 <= bit_size)
-  {
-    *output_len__palu16 = input_len__alu16;
-    FLEA_THR_RETURN();
-  }
-  // this function never increases the length of the output, so there is no
-  // error condition
-  output_bytes__alu16 = FLEA_CEIL_BYTE_LEN_FROM_BIT_LEN(bit_size);
-  bit_size %= 8;
-  bit_size  = 8 - bit_size;
-  if(bit_size)
-  {
-    flea_u8_t carry = 0;
-    flea_al_u16_t i;
-    for(i = 0; i < output_bytes__alu16; i++)
-    {
-      flea_u8_t x = input_output__pcu8[i];
-      input_output__pcu8[i] = (x >> bit_size) | carry;
-      carry = (x << (8 - bit_size));
-    }
-  }
-  *output_len__palu16 = output_bytes__alu16;
-  FLEA_THR_FIN_SEC_empty();
-}
+#endif /* if defined  FLEA_HAVE_ASYM_SIG || defined FLEA_HAVE_PK_CS */
 
 #ifdef FLEA_HAVE_PK_CS
 flea_err_t THR_flea_pk_api__encrypt_message(

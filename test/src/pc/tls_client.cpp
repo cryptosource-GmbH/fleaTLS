@@ -19,7 +19,7 @@
 #include "pc/test_pc.h"
 #include "pltf_support/tcpip_stream.h"
 
-
+#ifdef FLEA_HAVE_TLS
 // CA cert to verify the server's certificate
 const flea_u8_t trust_anchor_1024__acu8[] = { // rootCA_cryptosource_1024
   0x30, 0x82, 0x02, 0x2c, 0x30, 0x82, 0x01, 0x95, 0xa0, 0x03, 0x02, 0x01, 0x02, 0x02, 0x09, 0x00, 0x8d, 0x2e, 0x34,
@@ -196,3 +196,5 @@ int flea_start_tls_client(property_set_t const& cmdl_args)
     return 0;
   }
 }
+
+#endif // ifdef FLEA_HAVE_TLS

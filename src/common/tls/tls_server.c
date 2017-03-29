@@ -18,6 +18,8 @@
 #include "flea/rsa.h"
 #include "flea/pk_api.h"
 
+#ifdef FLEA_HAVE_TLS
+
 flea_err_t THR_flea_tls__read_client_hello(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt
@@ -420,6 +422,7 @@ static flea_err_t THR_flea_tls__send_certificate(
  * version negotiated for the connection.
  *
  */
+# ifdef FLEA_HAVE_RSA
 static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
@@ -490,6 +493,8 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
   );
 } /* THR_flea_tls__read_client_key_exchange_rsa */
 
+# endif /* ifdef FLEA_HAVE_RSA */
+
 static flea_err_t THR_flea_tls__read_client_key_exchange(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
@@ -498,8 +503,11 @@ static flea_err_t THR_flea_tls__read_client_key_exchange(
 )
 {
   FLEA_THR_BEG_FUNC();
-
+# ifdef FLEA_HAVE_RSA
   FLEA_CCALL(THR_flea_tls__read_client_key_exchange_rsa(tls_ctx, hs_rdr__pt, server_key__pt, premaster_secret__pt));
+# else
+  FLEA_THROW("unsupported key exchange variant", FLEA_ERR_INV_ALGORITHM);
+# endif
 
   FLEA_THR_FIN_SEC_empty();
 }
@@ -606,15 +614,15 @@ static flea_err_t THR_flea_tls__server_handshake(
 {
   FLEA_THR_BEG_FUNC();
 
-#ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_USE_HEAP_BUF
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
-#else
+# else
   flea_u8_t premaster_secret__au8[256]; // TODO: SET CORRECT SIZE LIMIT
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_EMPTY_ALLOCATABLE(
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
     );
-#endif
+# endif
   // TODO: propably better to do it somewhere else
   tls_ctx->security_parameters.connection_end = FLEA_TLS_SERVER;
 
@@ -833,3 +841,5 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
   FLEA_THR_FIN_SEC_empty();
 }
+
+#endif /* ifdef FLEA_HAVE_TLS */

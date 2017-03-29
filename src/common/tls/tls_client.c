@@ -16,6 +16,7 @@
 #include "flea/rng.h"
 #include <stdio.h>
 
+#ifdef FLEA_HAVE_TLS
 
 flea_err_t THR_flea_tls__read_server_hello(
   flea_tls_ctx_t*           tls_ctx,
@@ -398,15 +399,15 @@ static flea_err_t THR_flea_tls__client_handshake(
   tls_ctx->hostn_valid_params__t.host_id_type__e = host_name_id__e;
 
   tls_ctx->trust_store__pt = trust_store__pt;
-#ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_USE_HEAP_BUF
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
-#else
+# else
   flea_u8_t premaster_secret__au8[FLEA_RSA_MAX_MOD_BYTE_LEN];
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_EMPTY_ALLOCATABLE(
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
     );
-#endif
+# endif
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256)); // TODO: initialize properly
   while(1)
   {
@@ -491,7 +492,7 @@ static flea_err_t THR_flea_tls__client_handshake(
               tls_ctx->key_block
             )
           );
-#if 0
+# if 0
           FLEA_CCALL(
             THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
               &tls_ctx->rec_prot__t,
@@ -506,7 +507,7 @@ static flea_err_t THR_flea_tls__client_handshake(
               32 /* mac_len */
             )
           );
-#endif /* if 0 */
+# endif /* if 0 */
           handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
 
           continue;
@@ -579,7 +580,7 @@ static flea_err_t THR_flea_tls__client_handshake(
           tls_ctx->key_block
         )
       );
-#if 0
+# if 0
       FLEA_CCALL(
         THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
           &tls_ctx->rec_prot__t,
@@ -594,7 +595,7 @@ static flea_err_t THR_flea_tls__client_handshake(
           32 /* mac_len */
         )
       );
-#endif /* if 0 */
+# endif /* if 0 */
 
       FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &hash_ctx));
 
@@ -626,3 +627,5 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
   FLEA_THR_FIN_SEC_empty();
 }
+
+#endif /* ifdef FLEA_HAVE_TLS */

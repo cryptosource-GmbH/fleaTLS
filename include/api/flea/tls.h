@@ -15,18 +15,19 @@
 #include "flea/cert_store.h"
 #include "internal/common/hostn_ver_int.h"
 
-#ifdef __cplusplus
+#ifdef FLEA_HAVE_TLS
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 
 // defines for max sizes to allocate on the stack
 // TODO: cleaner solution?
-#define FLEA_TLS_MAX_MAC_SIZE     32
-#define FLEA_TLS_MAX_MAC_KEY_SIZE 32
-#define FLEA_TLS_MAX_IV_SIZE      32
+# define FLEA_TLS_MAX_MAC_SIZE     32
+# define FLEA_TLS_MAX_MAC_KEY_SIZE 32
+# define FLEA_TLS_MAX_IV_SIZE      32
 // #define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
-#define FLEA_TLS_MAX_PADDING_SIZE 255 // each byte must hold the padding value => 255 is max
+# define FLEA_TLS_MAX_PADDING_SIZE 255 // each byte must hold the padding value => 255 is max
 
 // TODO: ASSIGN FIXED VALUES?
 typedef enum { PRF_LABEL_TEST, PRF_LABEL_CLIENT_FINISHED, PRF_LABEL_SERVER_FINISHED, PRF_LABEL_MASTER_SECRET,
@@ -71,7 +72,7 @@ typedef struct
   flea_u32_t    length; // actually 24 Bit type !!
   flea_u8_t*    data;
 } HandshakeMessage;
-#if 0
+# if 0
 
 typedef struct
 {
@@ -102,7 +103,7 @@ typedef struct
   flea_u8_t* certificate_list;
   flea_u32_t certificate_list_length;
 } Certificate;
-#endif // if 0
+# endif // if 0
 
 typedef enum                 // dhe_dss, dhe_rsa, dh_anon,
 { KEY_EXCHANGE_ALGORITHM_RSA // ,
@@ -216,7 +217,7 @@ typedef struct
  * } flea_tls_record_t;
  */
 
-#define flea_tls_record_t__SET_BUF(__p, __buf, __buf_len) \
+# define flea_tls_record_t__SET_BUF(__p, __buf, __buf_len) \
   do {(__p)->record_hdr__pu8  = (__buf); \
       (__p)->message__pu8     = (__buf) + 5; \
       (__p)->message_len__u16 = 0; \
@@ -263,7 +264,7 @@ typedef struct
 } flea_tls_ctx_t;
 
 
-#define flea_tls_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
+# define flea_tls_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
 
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt);
 
@@ -303,9 +304,10 @@ flea_err_t THR_flea_tls_ctx_t__send_app_data(
 
 flea_err_t THR_flea_tls_ctx_t__flush_write_app_data(flea_tls_ctx_t* tls_ctx);
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
+#endif // ifdef FLEA_HAVE_TLS
 
 #endif /* h-guard */

@@ -13,7 +13,7 @@
 #include <string.h>
 #include "test_data_pkcs8.h"
 
-#if defined FLEA_HAVE_ASYM_ALGS
+#if defined FLEA_HAVE_ASYM_SIG
 static flea_err_t THR_flea_test_pkcs8_inner(
   const flea_u8_t*    pkcs8__pcu8,
   flea_al_u16_t       pkcs8_len__alu16,
@@ -38,7 +38,6 @@ static flea_err_t THR_flea_test_pkcs8_inner(
 
   /*flea_ref_u8_t signature__ru8;
    * flea_ref_cu8_t signature__rcu8;*/
-  // TODO: IN HEAP MODE IMPLEMENT AND TEST REALLOCATION OF VEC
   FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(sig_vec__t, FLEA_PK_MAX_SIGNATURE_LEN);
   FLEA_THR_BEG_FUNC();
   // FLEA_ALLOC_BUF(sig_buf__b_u8, FLEA_PK_MAX_SIGNATURE_LEN);

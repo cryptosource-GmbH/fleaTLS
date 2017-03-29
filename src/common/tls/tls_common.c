@@ -41,6 +41,8 @@
 
 #include "internal/pltf_if/time.h"
 
+#ifdef FLEA_HAVE_TLS
+
 typedef struct
 {
   flea_u16_t error;
@@ -502,15 +504,15 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
 
   ctx->resumption = FLEA_FALSE;
 
-#if 0
-# ifdef FLEA_USE_HEAP_BUF
+# if 0
+#  ifdef FLEA_USE_HEAP_BUF
   // nothing to do
   // ctx->premaster_secret = calloc(256, sizeof(flea_u8_t));
-# else
+#  else
   ctx->premaster_secret =
     flea_byte_vec_t__CONSTR_EXISTING_BUF_EMPTY_ALLOCATABLE(ctx->premaster_secret__au8, sizeof(premaster_secret__au8));
+#  endif
 # endif
-#endif
 
   FLEA_THR_FIN_SEC_empty();
 } /* flea_tls_ctx_t__ctor */
@@ -711,3 +713,5 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
   flea_tls_rec_prot_t__dtor(&tls_ctx__pt->rec_prot__t);
   flea_public_key_t__dtor(&tls_ctx__pt->server_pubkey);
 }
+
+#endif /* ifdef FLEA_HAVE_TLS */

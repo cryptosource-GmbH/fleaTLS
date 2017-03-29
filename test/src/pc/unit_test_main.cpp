@@ -39,15 +39,30 @@ int main(
   }
   if(cmdl_args.have_index("tls_client"))
   {
+#ifdef FLEA_HAVE_TLS
     res = flea_start_tls_client(cmdl_args);
+#else
+    std::cerr << "TLS not configured" << std::endl;
+    exit(1);
+#endif
   }
   else if(cmdl_args.have_index("tls_server"))
   {
+#ifdef FLEA_HAVE_TLS
     res = flea_start_tls_server(cmdl_args);
+#else
+    std::cerr << "TLS not configured" << std::endl;
+    exit(1);
+#endif
   }
   else if(cmdl_args.have_index("https_server"))
   {
+#ifdef FLEA_HAVE_TLS
     res = flea_start_https_server(cmdl_args);
+#else
+    std::cerr << "TLS not configured" << std::endl;
+    exit(1);
+#endif
   }
   else
   {

@@ -7,6 +7,7 @@
 #include "flea/error_handling.h"
 #include "flea/rw_stream.h"
 
+#ifdef FLEA_HAVE_TLS
 flea_err_t THR_flea_tls__read_handsh_hdr(
   flea_rw_stream_t* stream__pt,
   flea_u8_t*        handsh_type__pu8,
@@ -93,3 +94,5 @@ void flea_tls_handsh_reader_t__unset_hasher(flea_tls_handsh_reader_t* handsh_rdr
 {
   handsh_rdr__pt->hlp__t.hash_ctx__pt = NULL;
 }
+
+#endif /* ifdef FLEA_HAVE_TLS */

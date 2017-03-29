@@ -19,6 +19,7 @@
 #include "pltf_support/tcpip_stream.h"
 #include "tls_server_certs.h"
 
+#ifdef FLEA_HAVE_TLS
 flea_err_t THR_flea_start_https_server(property_set_t const& cmdl_args)
 {
   flea_rw_stream_t rw_stream__t;
@@ -30,26 +31,26 @@ flea_err_t THR_flea_start_https_server(property_set_t const& cmdl_args)
   // char app_data_www[] = "GET index.html HTTP/1.1\nHost: 127.0.0.1";
 
 
-  #define SERVER_CERT_1024
+  # define SERVER_CERT_1024
 
 
   flea_ref_cu8_t cert_chain[2];
   flea_ref_cu8_t server_key__t;
-#ifdef SERVER_CERT_1024
+# ifdef SERVER_CERT_1024
   cert_chain[1].data__pcu8 = trust_anchor_1024__au8;
   cert_chain[1].len__dtl   = sizeof(trust_anchor_1024__au8);
   cert_chain[0].data__pcu8 = server_cert_1024__au8;
   cert_chain[0].len__dtl   = sizeof(server_cert_1024__au8);
   server_key__t.data__pcu8 = server_key_1024__au8;
   server_key__t.len__dtl   = sizeof(server_key_1024__au8);
-#else
+# else
   cert_chain[1].data__pcu8 = trust_anchor_2048__au8;
   cert_chain[1].len__dtl   = sizeof(trust_anchor_2048__au8);
   cert_chain[0].data__pcu8 = server_cert_2048__au8;
   cert_chain[0].len__dtl   = sizeof(server_cert_2048__au8);
   server_key__t.data__pcu8 = server_key_2048__au8;
   server_key__t.len__dtl   = sizeof(server_key_2048__au8);
-#endif // ifdef SERVER_CERT_1024
+# endif // ifdef SERVER_CERT_1024
 
   // now read data and echo it back
   flea_u8_t buf[1000];
@@ -115,3 +116,5 @@ int flea_start_https_server(property_set_t const& cmdl_args)
     }
   }
 }
+
+#endif // ifdef FLEA_HAVE_TLS

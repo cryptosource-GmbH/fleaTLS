@@ -1,5 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
+#include "internal/common/default.h"
 #include "internal/common/tls_rec_prot.h"
 #include "internal/common/tls_ciph_suite.h"
 #include "flea/error_handling.h"
@@ -19,6 +20,7 @@
 
 #define RECORD_HDR_LEN            5
 
+#ifdef FLEA_HAVE_TLS
 static void inc_seq_nbr(flea_u32_t* seq__au32)
 {
   seq__au32[0]++;
@@ -159,10 +161,10 @@ flea_err_t THR_flea_tls_rec_prot_t__ctor(
   /* TODO: do all inits except for stream in start_record */
   // rec_prot__pt->send_rec_buf_raw__bu8     = send_rec_buf_raw__bu8;
 
-#ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM_ARR(rec_prot__pt->send_rec_buf_raw__bu8, FLEA_TLS_TRNSF_BUF_SIZE);
   FLEA_ALLOC_MEM_ARR(rec_prot__pt->alt_send_buf__raw__bu8, FLEA_TLS_ALT_SEND_BUF_SIZE);
-#endif
+# endif
   rec_prot__pt->send_rec_buf_raw_len__u16 = FLEA_TLS_TRNSF_BUF_SIZE;
   rec_prot__pt->prot_version__t.major     = prot_vers_major;
   rec_prot__pt->prot_version__t.minor     = prot_vers_minor;
@@ -601,9 +603,9 @@ flea_err_t THR_flea_tls_rec_prot_t__send_record(
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(rec_prot__pt, content_type, bytes, bytes_len));
-#ifdef FLEA_TLS_SEND_RECORD_EAGER
+# ifdef FLEA_TLS_SEND_RECORD_EAGER
   //  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
-#endif
+# endif
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_record */
@@ -932,3 +934,5 @@ void flea_tls_rec_prot_t__dtor(flea_tls_rec_prot_t* rec_prot__pt)
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(rec_prot__pt->send_rec_buf_raw__bu8, FLEA_TLS_TRNSF_BUF_SIZE);
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(rec_prot__pt->alt_send_buf__raw__bu8, FLEA_TLS_ALT_SEND_BUF_SIZE);
 }
+
+#endif /* ifdef FLEA_HAVE_TLS */
