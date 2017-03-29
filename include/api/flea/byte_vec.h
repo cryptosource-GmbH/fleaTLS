@@ -26,6 +26,12 @@ typedef struct
 
 #define flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE {.data__pu8 = NULL, .len__dtl = 0, .allo__dtl = 0, .is_mem_allocable__b = FLEA_FALSE, .is_mem_deallocable__b = FLEA_FALSE}
 
+#ifdef FLEA_USE_HEAP_BUF
+# define flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(dummy)       flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE
+#else
+# define flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(stack_array) {.data__pu8 = stack_array, .len__dtl = 0, .allo__dtl = sizeof(stack_array), .is_mem_allocable__b = FLEA_FALSE, .is_mem_deallocable__b = FLEA_FALSE}
+#endif
+
 /**
  * Declare a byte vector using a stack buffer. The byte vector is not
  * allocatable.

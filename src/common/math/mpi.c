@@ -44,11 +44,11 @@ static flea_u8_t flea_mpi_t__get_byte(
 }
 
 static void flea_mpi_t__inner_multiply(
-  const flea_uword_t * restrict a_ptr,
-  flea_mpi_ulen_t               a_len,
-  const flea_uword_t * restrict b_ptr,
-  flea_mpi_ulen_t               b_len,
-  flea_uword_t * restrict       result_ptr
+  const flea_uword_t* restrict a_ptr,
+  flea_mpi_ulen_t              a_len,
+  const flea_uword_t* restrict b_ptr,
+  flea_mpi_ulen_t              b_len,
+  flea_uword_t* restrict       result_ptr
 )
 {
   flea_mpi_ulen_t i, j;
@@ -132,8 +132,8 @@ flea_err_t THR_flea_mpi_square(
 {
   FLEA_THR_BEG_FUNC();
   flea_mpi_ulen_t i, j;
-  flea_uword_t * restrict result_ptr = p_result->m_words;
-  flea_uword_t * restrict a_ptr      = p_a->m_words;
+  flea_uword_t* restrict result_ptr = p_result->m_words;
+  flea_uword_t* restrict a_ptr      = p_a->m_words;
   flea_uword_t carry = 0;
   if(p_result->m_nb_alloc_words < 2 * p_a->m_nb_used_words)
   {
@@ -289,9 +289,9 @@ flea_err_t THR_flea_mpi_t__montgm_mul(
 )
 {
   FLEA_THR_BEG_FUNC();
-  flea_uword_t * restrict result_ptr = p_result->m_words;
-  flea_uword_t * restrict ws_ptr     = p_ctx->p_ws->m_words;
-  flea_uword_t * restrict mod_ptr    = p_ctx->p_mod->m_words;
+  flea_uword_t* restrict result_ptr = p_result->m_words;
+  flea_uword_t* restrict ws_ptr     = p_ctx->p_ws->m_words;
+  flea_uword_t* restrict mod_ptr    = p_ctx->p_mod->m_words;
   flea_uword_t sub_res;
   flea_uword_t borrow;
   flea_uword_t n_prime_zero = p_ctx->mod_prime;
@@ -862,13 +862,15 @@ flea_err_t THR_flea_mpi_t__mod_exp_window(
   flea_s32_t i;
   flea_mpi_t one;
 
+#ifdef FLEA_USE_HEAP_BUF
   const flea_al_u16_t precomp_arr_dynamic_word_len = p_mod->m_nb_used_words;
+#endif
   const flea_al_u16_t R_dynamic_word_len = p_mod->m_nb_used_words + 1; // R is one word longer than mod
   flea_mpi_ulen_t precomp_dynamic_size;
 
   FLEA_DECL_BUF(R_arr, flea_uword_t, ((FLEA_RSA_MAX_KEY_BIT_SIZE / 8) + 4) / sizeof(flea_uword_t) + 1); // for RSA (CRT/SF) ; + 1 because R potentially longer than mod and another +4 for p-q diff; this array must account for non CRT usage also
 #if defined FLEA_USE_HEAP_BUF
-  FLEA_DECL_BUF(precomp_arrs, flea_uword_t *, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1);
+  FLEA_DECL_BUF(precomp_arrs, flea_uword_t*, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1);
 #else
   flea_uword_t precomp_arrs[(1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1][FLEA_RSA_MAX_KEY_BIT_SIZE / 8 / sizeof(flea_uword_t)
   + 4 / sizeof(flea_uword_t)]; // plus 32-bit because of p-q-diff
@@ -1593,7 +1595,7 @@ flea_err_t THR_flea_mpi_t__random_integer_no_flush(
 
   do
   {
-    flea_rng__randomize_no_flush((flea_u8_t *) p_result->m_words, word_size * sizeof(p_result->m_words[0]));
+    flea_rng__randomize_no_flush((flea_u8_t*) p_result->m_words, word_size * sizeof(p_result->m_words[0]));
     // mask out the excess bits in the highest word
     if(bit_size)
     {

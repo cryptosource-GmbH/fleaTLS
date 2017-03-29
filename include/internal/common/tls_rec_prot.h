@@ -115,7 +115,11 @@ typedef struct
   // flea_u8_t                    current_hdr_offset__u8;
 } flea_tls_rec_prot_t;
 
-#define flea_tls_rec_prot_t__INIT_VALUE {.send_rec_buf_raw__bu8 = 0}
+#ifdef FLEA_USE_HEAP_BUF
+# define flea_tls_rec_prot_t__INIT_VALUE {.send_rec_buf_raw__bu8 = 0}
+#else
+# define flea_tls_rec_prot_t__INIT_VALUE {.send_rec_buf_raw__bu8[0] = 0}
+#endif
 #define flea_tls_rec_prot_t__INIT(__p) memset ((__p), 0, sizeof(*(__p))
 
 void flea_tls_rec_prot_t__dtor(flea_tls_rec_prot_t* rec_prot__pt);

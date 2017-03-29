@@ -63,7 +63,9 @@ static flea_err_t THR_flea_byte_vec_t__grow_to(
   flea_u32_t       grow_allo_to
 )
 {
+#ifndef FLEA_USE_STACK_BUF
   flea_u8_t* tmp = NULL;
+#endif
 
   FLEA_THR_BEG_FUNC();
   if(grow_allo_to <= byte_vec__pt->allo__dtl)

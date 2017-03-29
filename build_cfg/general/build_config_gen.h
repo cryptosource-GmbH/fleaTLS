@@ -176,6 +176,13 @@
 # define FLEA_TLS_ALT_SEND_BUF_SIZE 128
 
 /**
+ * Relevant only in stack mode. Maximal size of public key parameters object in
+ * an X.509 certificate. Mainly relevant for certificates featuring EC public keys.
+ *
+ */
+# define FLEA_STKMD_TLS_CERT_PATH_VLD_PUBKEY_PARAMS_BUF_SIZE 256
+
+/**
  * if activated, during the handshake, a record is send as soon as a handshake
  * or change cipher spec message is complete. otherwise, records are sent only
  * when the next read or a change of record content type happens, which
