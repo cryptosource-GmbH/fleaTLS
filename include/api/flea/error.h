@@ -72,6 +72,11 @@ typedef enum
   FLEA_ERR_TLS_REC_FATAL_ALERT                        = 0x0045,
 
   /**
+   *
+   */
+  FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH                    = 0x0046,
+
+  /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */
   FLEA_ERR_PKCS8_INVALID_KEY_OID                      = 0x0070,

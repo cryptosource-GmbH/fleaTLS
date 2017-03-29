@@ -301,6 +301,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
   {
     FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, hash_ctx__pt));
   }
+  // TODO: WHY COMPARISON WITH '==' ?
   if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO)
   {
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_HELLO)
@@ -346,6 +347,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
     }
     // TODO: NO ERROR WHEN MISSING?
   }
+  // TODO: WHY COMPARISON WITH '==' ?
   else if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED)
   {
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
@@ -359,6 +361,10 @@ static flea_err_t THR_flea_handle_handsh_msg(
     {
       FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
     }
+  }
+  else
+  {
+    FLEA_THROW("Received handshake message when none was expected", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
   }
   FLEA_THR_FIN_SEC(
     flea_tls_handsh_reader_t__dtor(&handsh_rdr__t);

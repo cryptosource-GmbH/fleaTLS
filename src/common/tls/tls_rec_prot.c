@@ -382,6 +382,7 @@ flea_err_t THR_flea_tls_rec_prot_t__write_data(
     if(buf_free_len__alu16 == 0)
     {
       FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
+      buf_free_len__alu16 = rec_prot__pt->send_payload_max_len__u16 - rec_prot__pt->send_payload_used_len__u16;
       // NO NEED TO WRITE NEW HEADER IN THIS CASE: CONTENT STAYS, LENGTH COMES
       // LATER
     }
@@ -848,11 +849,13 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   {
     rec_prot__pt->payload_offset__u16   = 0;
     rec_prot__pt->payload_used_len__u16 = 0;
+    rec_prot__pt->read_bytes_from_current_record__u16 = 0;
   }
   *data_len__palu16 = read_bytes_count__alu16;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__read_data_inner */
 
+/* get the content type of the currently (and not yet completely read) or newly received buffer */
 flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
   flea_tls_rec_prot_t* rec_prot__pt,
   ContentType*         cont_type__pe
@@ -873,7 +876,7 @@ flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
       flea_read_full
     )
   );
-  *cont_type__pe = rec_prot__pt->send_buf_raw__pu8[0];
+  *cont_type__pe = rec_prot__pt->send_rec_buf_raw__bu8[0];
   FLEA_THR_FIN_SEC_empty();
 }
 
