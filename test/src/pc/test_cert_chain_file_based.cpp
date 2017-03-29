@@ -41,9 +41,9 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
   vector<vector<flea_u8_t> > anchors;
   vector<vector<flea_u8_t> > certs;
   vector<vector<flea_u8_t> > crls;
-  std::vector<flea_u8_t *> anchor_ptrs;
-  std::vector<flea_u8_t *> cert_ptrs;
-  std::vector<flea_u8_t *> crl_ptrs;
+  std::vector<flea_u8_t*> anchor_ptrs;
+  std::vector<flea_u8_t*> cert_ptrs;
+  std::vector<flea_u8_t*> crl_ptrs;
   std::vector<flea_u32_t> anchor_lens;
   std::vector<flea_u32_t> cert_lens;
   std::vector<flea_u32_t> crl_lens;
@@ -93,7 +93,7 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
     {
       throw test_utils_exceptn_t(std::string("host_id_type '" + host_id_type_str + "' not supported"));
     }
-    host_id__rcu8.data__pcu8 = reinterpret_cast<const flea_u8_t *>(host_id_str.c_str());
+    host_id__rcu8.data__pcu8 = reinterpret_cast<const flea_u8_t*>(host_id_str.c_str());
     host_id__rcu8.len__dtl   = std::strlen(host_id_str.c_str());
     host_id_mbn__prcu8       = &host_id__rcu8;
   }
@@ -110,7 +110,7 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
     &crl_ptrs[0],
     &crl_lens[0],
     crl_ptrs.size(),
-    (const flea_u8_t *) time_str.c_str(),
+    (const flea_u8_t*) time_str.c_str(),
     time_str.size(),
     disable_revocation_checking,
     host_id_mbn__prcu8,
@@ -196,7 +196,7 @@ flea_err_t THR_flea_test_path_validation_file_based(
   flea_u32_t nb_test_execution_repetitions_due_randomized_cert_order = 5;
   if(cert_path_prefix != nullptr)
   {
-    nb_test_execution_repetitions_due_randomized_cert_order = 1;
+    // nb_test_execution_repetitions_due_randomized_cert_order = 1;
     test_cases = get_entries_of_dir(path_test_main_dir, dir_entries_with_path, "" /*postfix*/, cert_path_prefix);
     if(test_cases.size() == 0)
     {
@@ -211,14 +211,29 @@ flea_err_t THR_flea_test_path_validation_file_based(
   flea_u32_t err_count = 0;
   for(string test: test_cases)
   {
-    // const flea_u32_t nb_test_execution_repetitions_due_randomized_cert_order = 20;
+    bool failure = false;
     for(flea_u32_t i = 0; i < nb_test_execution_repetitions_due_randomized_cert_order; i++)
     {
-      if(THR_flea_execute_path_test_case(test))
+      flea_err_t err = THR_flea_execute_path_test_case(test);
+      if(err)
       {
-        err_count++;
-        break;
+        if(cert_path_prefix != nullptr)
+        {
+          std::cout << "single instance failed with error code = " << err << std::endl;
+        }
+
+        /*err_count++;
+         * break;*/
+        failure = true;
       }
+      else if(cert_path_prefix != nullptr)
+      {
+        std::cout << "single instance of cert_path test passed" << std::endl;
+      }
+    }
+    if(failure)
+    {
+      err_count++;
     }
   }
   if(err_count)
