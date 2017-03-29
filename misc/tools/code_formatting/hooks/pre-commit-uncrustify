@@ -31,8 +31,7 @@ CONFIG="./misc/tools/code_formatting/uncrustify.cfg"
 SOURCE_LANGUAGE="AUTO"
 
 # remove any older patches from previous commits. Set to true or false.
-# DELETE_OLD_PATCHES=false
-DELETE_OLD_PATCHES=false
+DELETE_OLD_PATCHES=true
 
 # only parse files with the extensions in FILE_EXTS. Set to true or false.
 # if false every changed file in the commit will be parsed with Uncrustify.
