@@ -85,6 +85,13 @@ flea_err_t THR_flea_tls__send_finished(
   flea_hash_ctx_t* hash_ctx
 );
 
+flea_err_t THR_flea_tls_ctx_t__construction_helper(
+  flea_tls_ctx_t*   ctx,
+  flea_rw_stream_t* rw_stream__pt,
+  const flea_u8_t*  session_id,
+  flea_al_u8_t      session_id_len
+);
+
 void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state);
 
 flea_err_t THR_flea_tls__create_master_secret(
@@ -101,6 +108,15 @@ flea_err_t THR_flea_tls__generate_key_block(
   const flea_tls__security_parameters_t* security_parameters__pt,
   flea_u8_t*                             key_block,
   flea_al_u8_t                           key_block_len__alu8
+);
+
+/**
+ * Takes care of alert sending based on the type of error that occured. Throws
+ * an error if the TLS session is terminated due to the error.
+ */
+flea_err_t THR_flea_tls__handle_tls_error(
+  flea_tls_rec_prot_t* rec_prot__pt,
+  flea_err_t           err__t
 );
 
 #endif /* h-guard */

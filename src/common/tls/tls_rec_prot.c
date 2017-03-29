@@ -472,7 +472,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
   );
   if(!flea_sec_mem_equal(mac, data + iv_len + data_len, mac_len))
   {
-    FLEA_THROW("MAC failure", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("MAC failure", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
   }
 
   /*
@@ -608,6 +608,27 @@ flea_err_t THR_flea_tls_rec_prot_t__send_record(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_record */
 
+flea_err_t THR_flea_tls_rec_prot_t__send_fatal_alert_and_throw(
+  flea_tls_rec_prot_t*          rec_prot__pt,
+  flea_tls__alert_description_t description,
+  flea_err_t                    err__t
+)
+{
+  FLEA_THR_BEG_FUNC();
+  if(rec_prot__pt->is_session_closed__u8)
+  {
+    FLEA_THROW(
+      "unable to send fatal alert due to session being already closed",
+      FLEA_ERR_TLS_SESSION_CLOSED_WHEN_TRYING_TO_SEND_ALERT
+    );
+  }
+  flea_tls_rec_prot_t__discard_pending_write(rec_prot__pt);
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__send_alert(rec_prot__pt, description, FLEA_TLS_ALERT_LEVEL_FATAL));
+  FLEA_THROW("throwing error after sending fatal TLS alert", err__t);
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
 flea_err_t THR_flea_tls_rec_prot_t__send_alert(
   flea_tls_rec_prot_t*          rec_prot__pt,
   flea_tls__alert_description_t description,
@@ -619,7 +640,6 @@ flea_err_t THR_flea_tls_rec_prot_t__send_alert(
   flea_u8_t alert_bytes[2];
   alert_bytes[0] = level;
   alert_bytes[1] = description;
-
   FLEA_CCALL(THR_flea_tls_rec_prot_t__send_record(rec_prot__pt, alert_bytes, sizeof(alert_bytes), CONTENT_TYPE_ALERT));
 
   FLEA_THR_FIN_SEC_empty();

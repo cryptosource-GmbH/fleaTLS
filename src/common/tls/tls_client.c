@@ -371,7 +371,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
   );
 } /* THR_flea_handle_handsh_msg */
 
-flea_err_t THR_flea_tls__client_handshake(
+static flea_err_t THR_flea_tls__client_handshake(
   flea_tls_ctx_t*          tls_ctx,
   const flea_cert_store_t* trust_store__pt,
   const flea_ref_cu8_t*    server_name__pcrcu8,
@@ -607,3 +607,22 @@ flea_err_t THR_flea_tls__client_handshake(
     flea_hash_ctx_t__dtor(&hash_ctx);
   );
 } /* THR_flea_tls__client_handshake */
+
+flea_err_t THR_flea_tls_ctx_t__ctor_client(
+  flea_tls_ctx_t*          tls_ctx__pt,
+  const flea_cert_store_t* trust_store__pt,
+  const flea_ref_cu8_t*    server_name__pcrcu8,
+  flea_host_id_type_e      host_name_id__e,
+  flea_rw_stream_t*        rw_stream__pt,
+  const flea_u8_t*         session_id__pcu8,
+  flea_al_u8_t             session_id_len__alu8
+)
+{
+  flea_err_t err__t;
+
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt, session_id__pcu8, session_id_len__alu8));
+  err__t = THR_flea_tls__client_handshake(tls_ctx__pt, trust_store__pt, server_name__pcrcu8, host_name_id__e);
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
+  FLEA_THR_FIN_SEC_empty();
+}

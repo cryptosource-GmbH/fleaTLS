@@ -57,12 +57,12 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   FLEA_THR_BEG_FUNC();
   flea_tls_ctx_t__INIT(&tls_ctx);
   FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_server(&rw_stream__t));
-  FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
-  FLEA_CCALL(THR_flea_tls__server_handshake(&tls_ctx, &rw_stream__t, cert_chain, 2, &server_key__t));
+  // FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
+  FLEA_CCALL(THR_flea_tls_ctx_t__ctor_server(&tls_ctx, &rw_stream__t, cert_chain, 2, &server_key__t));
 
   while(1)
   {
-    flea_err_t retval = THR_flea_tls__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
+    flea_err_t retval = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
     if(retval == FLEA_ERR_TLS_SESSION_CLOSED)
     {
       FLEA_THR_RETURN();
@@ -75,7 +75,7 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
     buf[buf_len] = 0;
     printf("received data: %s\n", buf);
     printf("read_app_data returned\n");
-    FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, buf, buf_len));
+    FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
     buf_len = sizeof(buf);
   }
   // FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (flea_u8_t *) app_data_www, strlen(app_data_www)));

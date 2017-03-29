@@ -41,6 +41,35 @@
 
 #include "internal/pltf_if/time.h"
 
+typedef struct
+{
+  flea_u16_t error;
+  flea_u8_t  alert;
+} error_alert_pair_t;
+
+static const error_alert_pair_t error_alert_map__act [] = {
+  {FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC, FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC    },
+  {FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH,        FLEA_TLS_ALERT_DESC_UNEXPECTED_MESSAGE},
+  {FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO,   FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE }
+};
+static flea_bool_t determine_alert_from_error(
+  flea_err_t                     err__t,
+  flea_tls__alert_description_t* alert_desc__pe
+)
+{
+  flea_al_u8_t i;
+
+  for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(error_alert_map__act); i++)
+  {
+    if(err__t == error_alert_map__act[i].error)
+    {
+      *alert_desc__pe = error_alert_map__act[i].alert;
+      return FLEA_TRUE;
+    }
+  }
+  *alert_desc__pe = FLEA_TLS_ALERT_DESC_INTERNAL_ERROR;
+  return FLEA_TRUE;
+}
 
 typedef struct
 {
@@ -149,11 +178,6 @@ flea_err_t flea_tls__prf(
   flea_u8_t*       result
 )
 {
-  FLEA_THR_BEG_FUNC();
-
-  /**
-   * TODO: no fixed sha256
-   */
   const flea_u8_t client_finished[] = {99, 108, 105, 101, 110, 116, 32, 102, 105, 110, 105, 115, 104, 101, 100};
   const flea_u8_t server_finished[] = {115, 101, 114, 118, 101, 114, 32, 102, 105, 110, 105, 115, 104, 101, 100};
   const flea_u8_t master_secret[]   = {109, 97, 115, 116, 101, 114, 32, 115, 101, 99, 114, 101, 116};
@@ -161,6 +185,9 @@ flea_err_t flea_tls__prf(
 
   const flea_u8_t* label__pcu8;
   flea_al_u8_t label_len__alu8;
+
+  FLEA_THR_BEG_FUNC();
+
   switch(label)
   {
       case PRF_LABEL_CLIENT_FINISHED:
@@ -217,6 +244,24 @@ flea_err_t THR_flea_tls__generate_key_block(
       key_block
     )
   );
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_tls__handle_tls_error(
+  flea_tls_rec_prot_t* rec_prot__pt,
+  flea_err_t           err__t
+)
+{
+  FLEA_THR_BEG_FUNC();
+  if(err__t)
+  {
+    flea_tls__alert_description_t alert_desc__e;
+    flea_bool_t do_send_alert__b = determine_alert_from_error(err__t, &alert_desc__e);
+    if(do_send_alert__b)
+    {
+      FLEA_CCALL(THR_flea_tls_rec_prot_t__send_fatal_alert_and_throw(rec_prot__pt, alert_desc__e, err__t));
+    }
+  }
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -403,11 +448,11 @@ flea_err_t THR_flea_tls__create_master_secret(
 
 // TODO: configurable parameters
 // TODO: ctor = handshake function
-flea_err_t flea_tls_ctx_t__ctor(
+flea_err_t THR_flea_tls_ctx_t__construction_helper(
   flea_tls_ctx_t*   ctx,
   flea_rw_stream_t* rw_stream__pt,
-  flea_u8_t*        session_id,
-  flea_u8_t         session_id_len
+  const flea_u8_t*  session_id,
+  flea_al_u8_t      session_id_len
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -612,12 +657,12 @@ void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state)
   state->sent_first_round = FLEA_FALSE;
 }
 
-flea_err_t THR_flea_tls__flush_write_app_data(flea_tls_ctx_t* tls_ctx)
+flea_err_t THR_flea_tls_ctx_t__flush_write_app_data(flea_tls_ctx_t* tls_ctx)
 {
   return THR_flea_tls_rec_prot_t__write_flush(&tls_ctx->rec_prot__t);
 }
 
-flea_err_t THR_flea_tls__send_app_data(
+flea_err_t THR_flea_tls_ctx_t__send_app_data(
   flea_tls_ctx_t*  tls_ctx,
   const flea_u8_t* data,
   flea_u8_t        data_len
@@ -639,7 +684,7 @@ flea_err_t THR_flea_tls__send_app_data(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls__read_app_data(
+flea_err_t THR_flea_tls_ctx_t__read_app_data(
   flea_tls_ctx_t*         tls_ctx_t,
   flea_u8_t*              data__pu8,
   flea_al_u16_t*          data_len__palu16,

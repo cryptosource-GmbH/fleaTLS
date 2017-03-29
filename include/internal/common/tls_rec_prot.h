@@ -179,6 +179,12 @@ flea_err_t THR_flea_tls_rec_prot_t__send_alert(
   flea_tls__alert_level_t       level
 );
 
+flea_err_t THR_flea_tls_rec_prot_t__send_fatal_alert_and_throw(
+  flea_tls_rec_prot_t*          rec_prot__pt,
+  flea_tls__alert_description_t description,
+  flea_err_t                    err__t
+);
+
 flea_err_t THR_flea_tls_rec_prot_t__close_and_send_close_notify(flea_tls_rec_prot_t* rec_prot__pt);
 
 #ifdef __cplusplus

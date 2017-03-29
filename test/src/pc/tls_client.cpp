@@ -153,11 +153,21 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
     hostname.len__dtl   = static_cast<flea_dtl_t>(std::strlen(hostname_s.c_str()));
   }
   FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_client(&rw_stream__t));
-  FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
-  FLEA_CCALL(THR_flea_tls__client_handshake(&tls_ctx, &trust_store__t, hostname_p, flea_host_dnsname));
+  // FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
+  FLEA_CCALL(
+    THR_flea_tls_ctx_t__ctor_client(
+      &tls_ctx,
+      &trust_store__t,
+      hostname_p,
+      flea_host_dnsname,
+      &rw_stream__t,
+      NULL,
+      0
+    )
+  );
 
 
-  FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
+  FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
   // FLEA_CCALL(THR_flea_tls__send_alert(&tls_ctx, FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY, FLEA_TLS_ALERT_LEVEL_WARNING));
 
 

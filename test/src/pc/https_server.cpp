@@ -57,8 +57,7 @@ flea_err_t THR_flea_start_https_server(property_set_t const& cmdl_args)
   FLEA_THR_BEG_FUNC();
   flea_tls_ctx_t__INIT(&tls_ctx);
   FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_server(&rw_stream__t));
-  FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
-  FLEA_CCALL(THR_flea_tls__server_handshake(&tls_ctx, &rw_stream__t, cert_chain, 2, &server_key__t));
+  FLEA_CCALL(THR_flea_tls_ctx_t__ctor_server(&tls_ctx, &rw_stream__t, cert_chain, 2, &server_key__t));
 
   // while(1)
   {
@@ -69,7 +68,7 @@ flea_err_t THR_flea_start_https_server(property_set_t const& cmdl_args)
     // const char* website = "<html><head><body>this is text</body></head></html>    ";
     //  "<!DOCTYPE HTML PUBLIC \"-//W3C//DTD HTML 3.2 Final//EN\"> <TITLE>A study of population dynamics</TITLE>\n";
     // "HTTP/1.1 403 Forbidden\nContent-Length: 185\nConnection: close\nContent-Type: text/html\n\n<html><head>\n<title>403 Forbidden</title>\n</head><body>\n<h1>Forbidden</h1>\nThe requested URL, file type or operation is not allowed on this simple static file webserver.\n</body></html>\n";
-    flea_err_t retval = THR_flea_tls__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
+    flea_err_t retval = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
     if(retval == FLEA_ERR_TLS_SESSION_CLOSED)
     {
       FLEA_THR_RETURN();
@@ -85,7 +84,7 @@ flea_err_t THR_flea_start_https_server(property_set_t const& cmdl_args)
 
     printf("sending:\n");
     printf("%s", response_hdr_1);
-    FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (const flea_u8_t*) response_hdr_1, strlen(response_hdr_1)));
+    FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (const flea_u8_t*) response_hdr_1, strlen(response_hdr_1)));
     // printf("sending:\n");
     // printf("%s", website);
     // FLEA_CCALL(THR_flea_tls__send_app_data(&tls_ctx, (const flea_u8_t*) website, strlen(website)));
