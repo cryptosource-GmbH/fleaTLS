@@ -643,7 +643,7 @@ flea_err_t THR_flea_tls_rec_prot_t__send_alert(
   alert_bytes[0] = level;
   alert_bytes[1] = description;
   FLEA_CCALL(THR_flea_tls_rec_prot_t__send_record(rec_prot__pt, alert_bytes, sizeof(alert_bytes), CONTENT_TYPE_ALERT));
-
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
   FLEA_THR_FIN_SEC_empty();
 }
 

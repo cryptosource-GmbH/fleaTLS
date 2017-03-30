@@ -50,9 +50,10 @@ typedef struct
 } error_alert_pair_t;
 
 static const error_alert_pair_t error_alert_map__act [] = {
-  {FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC, FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC    },
-  {FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH,        FLEA_TLS_ALERT_DESC_UNEXPECTED_MESSAGE},
-  {FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO,   FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE }
+  {FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC,     FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC    },
+  {FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH,            FLEA_TLS_ALERT_DESC_UNEXPECTED_MESSAGE},
+  {FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO,       FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE },
+  {FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE, FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE }
 };
 static flea_bool_t determine_alert_from_error(
   flea_err_t                     err__t,
@@ -664,7 +665,7 @@ flea_err_t THR_flea_tls_ctx_t__flush_write_app_data(flea_tls_ctx_t* tls_ctx)
   return THR_flea_tls_rec_prot_t__write_flush(&tls_ctx->rec_prot__t);
 }
 
-flea_err_t THR_flea_tls_ctx_t__send_app_data(
+static flea_err_t THR_flea_tls_ctx_t__send_app_data_inner(
   flea_tls_ctx_t*  tls_ctx,
   const flea_u8_t* data,
   flea_u8_t        data_len
@@ -686,7 +687,22 @@ flea_err_t THR_flea_tls_ctx_t__send_app_data(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls_ctx_t__read_app_data(
+flea_err_t THR_flea_tls_ctx_t__send_app_data(
+  flea_tls_ctx_t*  tls_ctx__pt,
+  const flea_u8_t* data,
+  flea_u8_t        data_len
+)
+{
+  flea_err_t err__t;
+
+  FLEA_THR_BEG_FUNC();
+  err__t = THR_flea_tls_ctx_t__send_app_data_inner(tls_ctx__pt, data, data_len);
+
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
+  FLEA_THR_FIN_SEC_empty();
+}
+
+static flea_err_t THR_flea_tls_ctx_t__read_app_data_inner(
   flea_tls_ctx_t*         tls_ctx_t,
   flea_u8_t*              data__pu8,
   flea_al_u16_t*          data_len__palu16,
@@ -705,6 +721,22 @@ flea_err_t THR_flea_tls_ctx_t__read_app_data(
     )
   );
 
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_tls_ctx_t__read_app_data(
+  flea_tls_ctx_t*         tls_ctx__pt,
+  flea_u8_t*              data__pu8,
+  flea_al_u16_t*          data_len__palu16,
+  flea_stream_read_mode_e rd_mode__e
+)
+{
+  flea_err_t err__t;
+
+  FLEA_THR_BEG_FUNC();
+  err__t = THR_flea_tls_ctx_t__read_app_data_inner(tls_ctx__pt, data__pu8, data_len__palu16, rd_mode__e);
+
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
   FLEA_THR_FIN_SEC_empty();
 }
 

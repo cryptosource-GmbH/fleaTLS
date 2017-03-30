@@ -172,6 +172,7 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
 
 
   FLEA_THR_FIN_SEC(
+    sleep(100);
     // TODO: tls_ctx dtor, close TLS connection
     // => make sure that stream_close is not called twice in rw_stream_dtor!
     flea_tls_ctx_t__dtor(&tls_ctx);

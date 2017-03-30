@@ -36,10 +36,9 @@ flea_err_t THR_flea_tls__read_client_hello(
   flea_u16_t cipher_suites_len__u16;
   flea_u8_t cipher_suites_len_to_dec__au8[2];
   flea_bool_t found_compression_method;
-  const flea_u16_t max_extension_len__u16 = 100; // max size for one extension
+  // const flea_u16_t max_extension_len__u16 = 100; // max size for one extension
   // FLEA_DECL_BUF(extension__bu8, flea_u8_t, 100); // TODO: think about the max buffer size !
-  flea_u16_t all_extensions_len__u16;
-  flea_u16_t extension_len__u16;
+  // flea_u16_t extension_len__u16;
   flea_u8_t extension_type__au8[2]; // TODO: meaningful representation of extension type
   FLEA_THR_BEG_FUNC();
 
@@ -151,7 +150,7 @@ flea_err_t THR_flea_tls__read_client_hello(
   }
   if(found == FLEA_FALSE)
   {
-    FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE);
   }
 
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &client_compression_methods_len__u8));
@@ -169,18 +168,24 @@ flea_err_t THR_flea_tls__read_client_hello(
   }
   if(found_compression_method == FLEA_FALSE)
   {
-    FLEA_THROW("Could not agree on compression method", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("Could not agree on compression method", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH);
   }
 
   // if there are still bytes left to read, they must be from extensions
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {
+    flea_al_u16_t all_extensions_len__alu16;
+    flea_u8_t byte;
     // read extension length
     // TODO: stream function to read in the length
-    // TODO: Falko: Die wird kommen, aber bis dahin bitte Endianess-unabhängig
-    // dekodieren
-    FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, ((flea_u8_t*) &all_extensions_len__u16) + 1));
-    FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &all_extensions_len__u16));
+
+    FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &byte));
+    all_extensions_len__alu16 = byte << 8;
+    FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &byte));
+    all_extensions_len__alu16 |= byte;
+
+    /*FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, ((flea_u8_t*) &all_extensions_len__u16) + 1));
+     * FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &all_extensions_len__u16));*/
 
     // read extensions
     // FLEA_ALLOC_BUF(extension__bu8, max_extension_len__u16); // TODO/QUESTION: Alloc anew for every extension or simply use the max extension length?
@@ -192,6 +197,7 @@ flea_err_t THR_flea_tls__read_client_hello(
     // geben ('skip').
     while(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) > 0)
     {
+      flea_al_u16_t extension_len__alu16;
       // read type
       FLEA_CCALL(
         THR_flea_rw_stream_t__read_full(
@@ -205,13 +211,17 @@ flea_err_t THR_flea_tls__read_client_hello(
       // TODO: use stream function for decoding
       // TODO: Falko: Die wird kommen, aber bis dahin bitte Endianess-unabhängig
       // dekodieren
-      FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, ((flea_u8_t*) &extension_len__u16) + 1));
-      FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &extension_len__u16));
+      //
 
-      if(extension_len__u16 > max_extension_len__u16)
-      {
-        FLEA_THROW("extension too long to be processed", FLEA_ERR_TLS_GENERIC);
-      }
+      FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &byte));
+      extension_len__alu16 = byte << 8;
+      FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &byte));
+      extension_len__alu16 |= byte;
+
+      /*if(extension_len__u16 > max_extension_len__u16)
+       * {
+       * FLEA_THROW("extension too long to be processed", FLEA_ERR_TLS_GENERIC);
+       * }*/
 
       /*FLEA_CCALL(
        * THR_flea_rw_stream_t__read_full(
@@ -220,7 +230,7 @@ flea_err_t THR_flea_tls__read_client_hello(
        *  extension_len__u16
        * )
        * );*/
-      FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, extension_len__u16));
+      FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, extension_len__alu16));
 
 
       // TODO: implement handle_extension function that processes the extensions

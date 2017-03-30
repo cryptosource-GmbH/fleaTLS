@@ -85,7 +85,13 @@ typedef enum
    *
    */
   FLEA_ERR_TLS_CERT_VER_FAILED                          = 0x0048,
+
+
   FLEA_ERR_TLS_SESSION_CLOSED_WHEN_TRYING_TO_SEND_ALERT = 0x0049,
+
+  FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE           = 0x004A,
+
+  FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH             = 0x004B,
 
   /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
