@@ -72,38 +72,6 @@ typedef struct
   flea_u32_t    length; // actually 24 Bit type !!
   flea_u8_t*    data;
 } HandshakeMessage;
-# if 0
-
-typedef struct
-{
-  flea_tls__protocol_version_t client_version;
-  Random                       random;
-  flea_u8_t*                   session_id;
-  flea_u8_t                    session_id_length;
-  flea_u8_t*                   cipher_suites;
-  flea_u16_t                   cipher_suites_length;
-  // CompressionMethod            *compression_methods;
-  // flea_u8_t                    compression_methods_length;
-  flea_u8_t*                   extensions; // 2^16 bytes
-} flea_tls__client_hello_t;
-typedef struct
-{
-  flea_tls__protocol_version_t server_version;
-  Random                       random;
-  flea_u8_t*                   session_id;
-  flea_u8_t                    session_id_length;
-  flea_u8_t                    cipher_suite;
-  // CompressionMethod            compression_method;
-  // flea_u8_t                    compression_methods_length;
-  flea_u8_t*                   extensions; // 2^16 bytes
-} ServerHello;
-
-typedef struct
-{
-  flea_u8_t* certificate_list;
-  flea_u32_t certificate_list_length;
-} Certificate;
-# endif // if 0
 
 typedef enum                 // dhe_dss, dhe_rsa, dh_anon,
 { KEY_EXCHANGE_ALGORITHM_RSA // ,
@@ -114,27 +82,10 @@ typedef struct
 {
   KeyExchangeAlgorithm algorithm;
 
-  /**
-   * struct {
-   *      ProtocolVersion client_version;
-   *      opaque random[46];
-   *  } PreMasterSecret;
-   *
-   *  client_version
-   *     The latest (newest) version supported by the client.  This is
-   *     used to detect version rollback attacks.
-   *
-   *  random
-   *     46 securely-generated random bytes.
-   *
-   *  struct {
-   *      public-key-encrypted PreMasterSecret pre_master_secret;
-   *  } EncryptedPreMasterSecret;
-   */
-  flea_u8_t  premaster_secret[256]; /* TODO: variable */
-  flea_u8_t* encrypted_premaster_secret;
-  flea_u16_t encrypted_premaster_secret_length;
-  flea_u8_t* ClientDiffieHellmanPublic;
+  flea_u8_t            premaster_secret[256]; /* TODO: variable */
+  flea_u8_t*           encrypted_premaster_secret;
+  flea_u16_t           encrypted_premaster_secret_length;
+  flea_u8_t*           ClientDiffieHellmanPublic;
 } flea_tls__client_key_ex_t;
 
 typedef enum { CHANGE_CIPHER_SPEC_TYPE_CHANGE_CIPHER_SPEC = 1 } CHANGE_CIPHER_SPEC_TYPE;
@@ -175,25 +126,6 @@ typedef enum
   FLEA_TLS_CIPHER_TYPE_AEAD
 } flea_tls__cipher_type_t;
 
-
-/**
- * Security Parameters
- *
- *  PRFAlgorithm           prf_algorithm;
- *  BulkCipherAlgorithm    bulk_cipher_algorithm;
- *  CipherType             cipher_type;
- *  uint8                  enc_key_length;
- *  uint8                  block_length;
- *  uint8                  fixed_iv_length;
- *  uint8                  record_iv_length;
- *  MACAlgorithm           mac_algorithm;
- *  uint8                  mac_length;
- *  uint8                  mac_key_length;
- *  CompressionMethod      compression_algorithm;
- *  opaque                 master_secret[48];
- *  opaque                 client_random[32];
- *  opaque                 server_random[32];
- */
 typedef struct
 {
   flea_tls__connection_end_t connection_end; /* Server or Client */
@@ -261,6 +193,12 @@ typedef struct
   const flea_cert_store_t*       trust_store__pt;
 
   flea_hostn_validation_params_t hostn_valid_params__t;
+
+  flea_ref_cu8_t*                cert_chain__pt;
+  flea_u8_t                      cert_chain_len__u8;
+
+  // TODO: SERVER SHOULD ONLY KEEP THE INSTANTIATED KEY OBJECT
+  flea_ref_cu8_t*                private_key__pt;
 } flea_tls_ctx_t;
 
 
@@ -282,10 +220,10 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
 );
 
 flea_err_t THR_flea_tls_ctx_t__ctor_server(
-  flea_tls_ctx_t*   tls_ctx,
+  flea_tls_ctx_t*   tls_ctx__pt,
   flea_rw_stream_t* rw_stream__pt,
   flea_ref_cu8_t*   cert_chain__pt,
-  flea_u32_t        cert_chain_len__u32,
+  flea_al_u8_t      cert_chain_len__alu8,
   flea_ref_cu8_t*   server_key__pt
 );
 

@@ -372,33 +372,15 @@ static flea_err_t THR_flea_handle_handsh_msg(
   );
 } /* THR_flea_handle_handsh_msg */
 
-static flea_err_t THR_flea_tls__client_handshake(
-  flea_tls_ctx_t*          tls_ctx,
-  const flea_cert_store_t* trust_store__pt,
-  const flea_ref_cu8_t*    server_name__pcrcu8,
-  flea_host_id_type_e      host_name_id__e
-)
+flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
 {
-  flea_tls__handshake_state_t handshake_state; // TODO: INIT OBJECT
+  flea_tls__handshake_state_t handshake_state;
 
   FLEA_THR_BEG_FUNC();
 
   // define and init state
   flea_tls__handshake_state_ctor(&handshake_state);
   flea_hash_ctx_t hash_ctx = flea_hash_ctx_t__INIT_VALUE;
-  if(server_name__pcrcu8)
-  {
-    tls_ctx->hostn_valid_params__t.host_id__ct = *server_name__pcrcu8;
-  }
-  else
-  {
-    tls_ctx->hostn_valid_params__t.host_id__ct.data__pcu8 = NULL;
-    tls_ctx->hostn_valid_params__t.host_id__ct.len__dtl   = 0;
-  }
-  // tls_ctx->hostn_valid_params__t.host_id__ct.len__dtl = strlen(server_name__cs);
-  tls_ctx->hostn_valid_params__t.host_id_type__e = host_name_id__e;
-
-  tls_ctx->trust_store__pt = trust_store__pt;
 # ifdef FLEA_USE_HEAP_BUF
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
 # else
@@ -408,7 +390,7 @@ static flea_err_t THR_flea_tls__client_handshake(
     sizeof(premaster_secret__au8)
     );
 # endif
-  FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256)); // TODO: initialize properly
+  FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256));
   while(1)
   {
     // initialize handshake by sending CLIENT_HELLO
@@ -622,8 +604,23 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   flea_err_t err__t;
 
   FLEA_THR_BEG_FUNC();
+
+  if(server_name__pcrcu8)
+  {
+    tls_ctx__pt->hostn_valid_params__t.host_id__ct = *server_name__pcrcu8;
+  }
+  else
+  {
+    tls_ctx__pt->hostn_valid_params__t.host_id__ct.data__pcu8 = NULL;
+    tls_ctx__pt->hostn_valid_params__t.host_id__ct.len__dtl   = 0;
+  }
+  // tls_ctx->hostn_valid_params__t.host_id__ct.len__dtl = strlen(server_name__cs);
+  tls_ctx__pt->hostn_valid_params__t.host_id_type__e = host_name_id__e;
+
+  tls_ctx__pt->trust_store__pt = trust_store__pt;
+
   FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt, session_id__pcu8, session_id_len__alu8));
-  err__t = THR_flea_tls__client_handshake(tls_ctx__pt, trust_store__pt, server_name__pcrcu8, host_name_id__e);
+  err__t = THR_flea_tls__client_handshake(tls_ctx__pt);
   FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
   FLEA_THR_FIN_SEC_empty();
 }

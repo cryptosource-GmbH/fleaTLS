@@ -8,7 +8,6 @@
 #include "flea/tls.h"
 #include "flea/cbc_filter.h"
 #include "flea/hash_stream.h"
-#include "flea/tee.h"
 #include "internal/common/tls/handsh_reader.h"
 #include "internal/common/tls/tls_rec_prot_rdr.h"
 #include "internal/common/tls/tls_common.h"
@@ -526,7 +525,6 @@ static flea_err_t THR_flea_handle_handsh_msg(
   flea_tls_ctx_t*              tls_ctx,
   flea_tls__handshake_state_t* handshake_state,
   flea_hash_ctx_t*             hash_ctx__pt,
-  flea_ref_cu8_t*              server_key__pt,
   flea_byte_vec_t*             premaster_secret__pt
 )
 {
@@ -576,7 +574,14 @@ static flea_err_t THR_flea_handle_handsh_msg(
       | FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC;
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE)
     {
-      FLEA_CCALL(THR_flea_tls__read_client_key_exchange(tls_ctx, &handsh_rdr__t, server_key__pt, premaster_secret__pt));
+      FLEA_CCALL(
+        THR_flea_tls__read_client_key_exchange(
+          tls_ctx,
+          &handsh_rdr__t,
+          tls_ctx->private_key__pt,
+          premaster_secret__pt
+        )
+      );
       FLEA_THR_RETURN();
     }
   }
@@ -615,11 +620,8 @@ static flea_err_t THR_flea_handle_handsh_msg(
   );
 } /* THR_flea_handle_handsh_msg */
 
-static flea_err_t THR_flea_tls__server_handshake(
-  flea_tls_ctx_t* tls_ctx,
-  flea_ref_cu8_t* cert_chain__pt,
-  flea_u32_t      cert_chain_len__u32,
-  flea_ref_cu8_t* server_key__pt
+flea_err_t THR_flea_tls__server_handshake(
+  flea_tls_ctx_t* tls_ctx
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -667,7 +669,6 @@ static flea_err_t THR_flea_tls__server_handshake(
             tls_ctx,
             &handshake_state,
             &hash_ctx,
-            server_key__pt,
             &premaster_secret__t
           )
         );
@@ -757,7 +758,8 @@ static flea_err_t THR_flea_tls__server_handshake(
       }
       else if(cont_type__e == CONTENT_TYPE_ALERT)
       {
-        // TODO: handle alert message properly
+        // TODO: handle alert message properly | UPDATE (Falko): should be
+        // unneccessary now, can be removed
         FLEA_THROW("Received unhandled alert", FLEA_ERR_TLS_GENERIC);
       }
       else
@@ -772,7 +774,14 @@ static flea_err_t THR_flea_tls__server_handshake(
       {
         FLEA_CCALL(THR_flea_tls__send_server_hello(tls_ctx, &hash_ctx));
 
-        FLEA_CCALL(THR_flea_tls__send_certificate(tls_ctx, &hash_ctx, cert_chain__pt, cert_chain_len__u32));
+        FLEA_CCALL(
+          THR_flea_tls__send_certificate(
+            tls_ctx,
+            &hash_ctx,
+            tls_ctx->cert_chain__pt,
+            tls_ctx->cert_chain_len__u8
+          )
+        );
 
         FLEA_CCALL(
           THR_flea_tls__send_handshake_message(
@@ -839,15 +848,18 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   flea_tls_ctx_t*   tls_ctx__pt,
   flea_rw_stream_t* rw_stream__pt,
   flea_ref_cu8_t*   cert_chain__pt,
-  flea_u32_t        cert_chain_len__u32,
+  flea_al_u8_t      cert_chain_len__alu8,
   flea_ref_cu8_t*   server_key__pt
 )
 {
   flea_err_t err__t;
 
   FLEA_THR_BEG_FUNC();
+  tls_ctx__pt->cert_chain__pt     = cert_chain__pt;
+  tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
+  tls_ctx__pt->private_key__pt    = server_key__pt;
   FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt, NULL, 0));
-  err__t = THR_flea_tls__server_handshake(tls_ctx__pt, cert_chain__pt, cert_chain_len__u32, server_key__pt);
+  err__t = THR_flea_tls__server_handshake(tls_ctx__pt);
   FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
   FLEA_THR_FIN_SEC_empty();
 }

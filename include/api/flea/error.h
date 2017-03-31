@@ -94,6 +94,38 @@ typedef enum
   FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH             = 0x004B,
 
   /**
+   * Indication of internal exceptional control flow.
+   */
+  FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA                   = 0x004C,
+
+  /**
+   * TLS Errors
+   */
+  FLEA_ERR_TLS_GENERIC                                  = 0x004D,
+
+  /**
+   * Invalid contents of a TLS record header.
+   */
+  FLEA_ERR_TLS_INV_REC_HDR                              = 0x004E,
+
+  /**
+   * A received record does not fit into the available buffer.
+   */
+  FLEA_ERR_TLS_EXCSS_REC_LEN                            = 0x004F,
+
+  /*
+   * TODO: replace with internal_error
+   * Error for invalid state transitions, relevant for debugging as they _should_ never happen */
+  FLEA_ERR_TLS_INVALID_STATE                            = 0x0050,
+
+  FLEA_ERR_TLS_INV_REC                                  = 0x0051,
+
+  /**
+   * The fleaTLS client received an invalid algorithm choice in the server hello.
+   */
+  FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO                 = 0x0052,
+
+  /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */
   FLEA_ERR_PKCS8_INVALID_KEY_OID                        = 0x0070,
@@ -235,39 +267,14 @@ typedef enum
   FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED                = 0x00E4,
   FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT                 = 0x00E5,
 
-  /**
-   * TLS Errors
-   */
-  FLEA_ERR_TLS_GENERIC                                  = 0x0100,
-
-  /**
-   * Invalid contents of a TLS record header.
-   */
-  FLEA_ERR_TLS_INV_REC_HDR                              = 0x0101,
-
-  /**
-   * A received record does not fit into the available buffer.
-   */
-  FLEA_ERR_TLS_EXCSS_REC_LEN                            = 0x0102,
-
-  /*
-   * Error for invalid state transitions, relevant for debugging as they _should_ never happen */
-  FLEA_ERR_TLS_INVALID_STATE                            = 0x0103,
-
-  FLEA_ERR_TLS_INV_REC                                  = 0x0104,
-
-  /**
-   * The fleaTLS client received an invalid algorithm choice in the server hello.
-   */
-  FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO                 = 0x0104,
 
   /** The routine for the construction of a valid certification path
    * was cancelled from another thread.
    */
-  FLEA_ERR_X509_USER_CANCELLED                          = 0X00E6,
+  FLEA_ERR_X509_USER_CANCELLED = 0X00E6,
 
 
-  FLEA_ERR_OUT_OF_MEM                                   = 0x00FF,
+  FLEA_ERR_OUT_OF_MEM          = 0x00FF,
 } flea_err_t;
 
 #ifdef __cplusplus

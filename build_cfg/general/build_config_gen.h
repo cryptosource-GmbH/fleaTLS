@@ -14,7 +14,7 @@
 /**
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  */
-# define FLEA_DO_PRINTF_ERRS
+// # define FLEA_DO_PRINTF_ERRS
 
 /**
  * Activate this flag to let flea make heap allocation for buffers. Deactivate
@@ -181,6 +181,7 @@
  *
  */
 # define FLEA_STKMD_TLS_CERT_PATH_VLD_PUBKEY_PARAMS_BUF_SIZE 256
+// #define FLEA_TLS_HAVE_RENEGOTIATION
 
 /**
  * if activated, during the handshake, a record is send as soon as a handshake

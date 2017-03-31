@@ -53,7 +53,8 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC,     FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC    },
   {FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH,            FLEA_TLS_ALERT_DESC_UNEXPECTED_MESSAGE},
   {FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO,       FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE },
-  {FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE, FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE }
+  {FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE, FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE },
+  {FLEA_ERR_TLS_INV_REC_HDR,                    FLEA_TLS_ALERT_DESC_UNEXPECTED_MESSAGE}
 };
 static flea_bool_t determine_alert_from_error(
   flea_err_t                     err__t,
@@ -703,26 +704,59 @@ flea_err_t THR_flea_tls_ctx_t__send_app_data(
 }
 
 static flea_err_t THR_flea_tls_ctx_t__read_app_data_inner(
-  flea_tls_ctx_t*         tls_ctx_t,
+  flea_tls_ctx_t*         tls_ctx__pt,
   flea_u8_t*              data__pu8,
   flea_al_u16_t*          data_len__palu16,
   flea_stream_read_mode_e rd_mode__e
 )
 {
+  flea_err_t err__t;
+
   FLEA_THR_BEG_FUNC();
 
-  FLEA_CCALL(
-    THR_flea_tls_rec_prot_t__read_data(
-      &tls_ctx_t->rec_prot__t,
+  do
+  {
+    err__t = THR_flea_tls_rec_prot_t__read_data(
+      &tls_ctx__pt->rec_prot__t,
       CONTENT_TYPE_APPLICATION_DATA,
       data__pu8,
       data_len__palu16,
       rd_mode__e
-    )
-  );
+      );
+    if(err__t == FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA)
+    {
+      /* assume it's the appropriate ClientHello or HelloRequest in order to
+       * initiate a new handshake. a wrong handshake message type will result in
+       * an error. that record is still held as current record in rec_prot.
+       */
+      if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_SERVER)
+      {
+# ifdef FLEA_TLS_HAVE_RENEGOTIATION
+        FLEA_CCALL(THR_flea_tls__server_handshake(tls_ctx__pt));
+# else
+        flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
+        FLEA_CCALL(
+          THR_flea_tls_rec_prot_t__send_alert(
+            &tls_ctx__pt->rec_prot__t,
+            FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION,
+            FLEA_TLS_ALERT_LEVEL_WARNING
+          )
+        );
+# endif
+      }
+      else
+      {
+        FLEA_CCALL(THR_flea_tls__client_handshake(tls_ctx__pt));
+      }
+    }
+    else
+    {
+      FLEA_THROW("rethrowing invalid message type during read app data", FLEA_ERR_TLS_INV_REC_HDR);
+    }
+  } while(err__t);
 
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls_ctx_t__read_app_data_inner */
 
 flea_err_t THR_flea_tls_ctx_t__read_app_data(
   flea_tls_ctx_t*         tls_ctx__pt,

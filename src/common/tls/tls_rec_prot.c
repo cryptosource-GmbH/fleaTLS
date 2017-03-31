@@ -666,6 +666,13 @@ flea_err_t THR_flea_tls_rec_prot_t__close_and_send_close_notify(flea_tls_rec_pro
   FLEA_THR_FIN_SEC_empty();
 }
 
+void flea_tls_rec_prot_t__discard_current_read_record(flea_tls_rec_prot_t* rec_prot__pt)
+{
+  rec_prot__pt->payload_offset__u16   = 0;
+  rec_prot__pt->payload_used_len__u16 = 0;
+  rec_prot__pt->read_bytes_from_current_record__u16 = 0;
+}
+
 // TODO: ADD ALERT HANDLING TO THIS FUNCTION
 static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   flea_tls_rec_prot_t*          rec_prot__pt,
@@ -680,6 +687,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
 {
   flea_al_u16_t to_cp__alu16, read_bytes_count__alu16 = 0;
   flea_dtl_t data_len__dtl = *data_len__palu16;
+
+  flea_bool_t is_handsh_msg_during_app_data__b = FLEA_FALSE;
 
   FLEA_THR_BEG_FUNC();
   if(rec_prot__pt->is_session_closed__u8)
@@ -707,9 +716,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   // no more data left. this is important for 0-length reads to
   // get the current record type
 
-  // TODO: FOR GETTING ONLY THE CONTENT, THE HEADER WOULD SUFFICE. THUS THE
-  // CONDITIONS FOR ENTERING THE LOOP CAN BE LOOSENED (WOULDN'T HELP IN MUCH IN
-  // PRACTICE THOUGH)
+  /* get new record hdr and content */
   if((current_or_next_record_for_content_type__b &&
     !flea_tls_rec_prot_t__have_pending_read_data(rec_prot__pt)) || data_len__dtl)
   {
@@ -762,6 +769,11 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         if(rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_ALERT)
         {
           rec_prot__pt->is_current_record_alert__u8 = FLEA_TRUE;
+        }
+        else if((cont_type__e == CONTENT_TYPE_APPLICATION_DATA) &&
+          rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_HANDSHAKE)
+        {
+          is_handsh_msg_during_app_data__b = FLEA_TRUE;
         }
         else if(!current_or_next_record_for_content_type__b && (cont_type__e != rec_prot__pt->send_rec_buf_raw__bu8[0]))
         {
@@ -849,7 +861,11 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
       }
 
-      if(rec_prot__pt->is_current_record_alert__u8)
+      if(is_handsh_msg_during_app_data__b)
+      {
+        FLEA_THROW("received tls handshake message when app data was expected", FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA);
+      }
+      else if(rec_prot__pt->is_current_record_alert__u8)
       {
         FLEA_CCALL(THR_flea_tls_rec_prot_t__handle_alert(rec_prot__pt));
       }
@@ -866,12 +882,16 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
       ((rd_mode__e == flea_read_full) && data_len__dtl) ||
       ((rd_mode__e == flea_read_blocking) && !read_bytes_count__alu16)
     );
-  }
+  } /* end of ' get new record hdr and content' */
+
+
   if(!flea_tls_rec_prot_t__have_pending_read_data(rec_prot__pt))
   {
-    rec_prot__pt->payload_offset__u16   = 0;
-    rec_prot__pt->payload_used_len__u16 = 0;
-    rec_prot__pt->read_bytes_from_current_record__u16 = 0;
+    flea_tls_rec_prot_t__discard_current_read_record(rec_prot__pt);
+
+    /*rec_prot__pt->payload_offset__u16   = 0;
+     * rec_prot__pt->payload_used_len__u16 = 0;
+     * rec_prot__pt->read_bytes_from_current_record__u16 = 0;*/
   }
   *data_len__palu16 = read_bytes_count__alu16;
   FLEA_THR_FIN_SEC_empty();

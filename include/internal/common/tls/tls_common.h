@@ -50,6 +50,7 @@ flea_err_t THR_flea_tls__read_finished(
 
 typedef struct
 {
+  // TODO: REDUCE RAM SIZE
   flea_u16_t  expected_messages;
   flea_bool_t finished;
   flea_bool_t initialized;
@@ -119,5 +120,11 @@ flea_err_t THR_flea_tls__handle_tls_error(
   flea_tls_rec_prot_t* rec_prot__pt,
   flea_err_t           err__t
 );
+
+flea_err_t THR_flea_tls__server_handshake(
+  flea_tls_ctx_t* tls_ctx
+);
+
+flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx);
 #endif // ifdef FLEA_HAVE_TLS
 #endif /* h-guard */
