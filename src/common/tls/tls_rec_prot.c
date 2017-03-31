@@ -424,7 +424,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
   flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
   if(data_len < 2 * iv_len)
   {
-    FLEA_THROW("invalid payload length of encrypted TLS_RSA_WITH_AES_256_CBC_SHA256 message", FLEA_ERR_TLS_INV_REC);
+    FLEA_THROW("invalid payload length of encrypted TLS_**_WITH_**_CBC_SHA** message", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
   /*
@@ -460,7 +460,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
   data_len = data_len - (padding_len + 1) - iv_len - mac_len;
   if(data_len > data_len_previous__alu16)
   {
-    FLEA_THROW("insufficient size of hmac-cbc record payload", FLEA_ERR_TLS_INV_REC);
+    FLEA_THROW("insufficient size of hmac-cbc record payload", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
   }
   FLEA_CCALL(
     THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(

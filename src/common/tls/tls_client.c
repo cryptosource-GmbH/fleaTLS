@@ -51,8 +51,7 @@ flea_err_t THR_flea_tls__read_server_hello(
   if(server_version_major_minor__au8[0] != tls_ctx->version.major ||
     server_version_major_minor__au8[1] != tls_ctx->version.minor)
   {
-    // TODO: NEED TO SEND ALERT?
-    FLEA_THROW("version mismatch", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("version mismatch", FLEA_ERR_TLS_UNSUPP_PROT_VERSION);
   }
   // TODO: in this part the client has to decide if he accepts the server's TLS version - implement negotiation
   // read random
@@ -79,7 +78,7 @@ flea_err_t THR_flea_tls__read_server_hello(
   // while(session_id_len__u8 > 0)
   if(session_id_len__u8 > max_session_id_len__alu8)
   {
-    FLEA_THROW("invalid session id length", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("invalid session id length", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
   FLEA_ALLOC_BUF(session_id__bu8, session_id_len__u8);
@@ -125,7 +124,7 @@ flea_err_t THR_flea_tls__read_server_hello(
   // check length in the header field for integrity
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {
-    FLEA_THROW("Header length field mismatch", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("Header length field mismatch", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
   FLEA_THR_FIN_SEC(

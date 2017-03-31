@@ -578,11 +578,11 @@ flea_err_t THR_flea_cert_path__validate_single_cert(
   // verify validity date
   if(1 == flea_asn1_cmp_utc_time(&cert_ref__pt->not_before__t, &compare_time__t))
   {
-    FLEA_THROW("certificate not yet valid", FLEA_ERR_CERT_NOT_YET_VALID);
+    FLEA_THROW("certificate not yet valid", FLEA_ERR_X509_CERT_NOT_YET_VALID);
   }
   if(-1 == flea_asn1_cmp_utc_time(&cert_ref__pt->not_after__t, &compare_time__t))
   {
-    FLEA_THROW("certificate not yet valid", FLEA_ERR_CERT_NOT_YET_VALID);
+    FLEA_THROW("certificate not yet valid", FLEA_ERR_X509_CERT_EXPIRED);
   }
 
 

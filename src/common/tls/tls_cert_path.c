@@ -56,11 +56,11 @@ static flea_err_t THR_flea_tls_check_cert_validity_time(
 
   if(1 == flea_asn1_cmp_utc_time(&not_before__t, compare_time__pt))
   {
-    FLEA_THROW("certificate not yet valid", FLEA_ERR_CERT_NOT_YET_VALID);
+    FLEA_THROW("certificate not yet valid", FLEA_ERR_X509_CERT_NOT_YET_VALID);
   }
   if(-1 == flea_asn1_cmp_utc_time(&not_after__t, compare_time__pt))
   {
-    FLEA_THROW("certificate not yet valid", FLEA_ERR_CERT_NOT_YET_VALID);
+    FLEA_THROW("certificate expired", FLEA_ERR_X509_CERT_EXPIRED);
   }
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
   FLEA_THR_FIN_SEC_empty();
@@ -584,7 +584,7 @@ static flea_err_t THR_flea_tls__validate_cert(
 
 flea_err_t THR_flea_tls__cert_path_validation(
   flea_tls_ctx_t*                    tls_ctx__pt,
-  flea_rw_stream_t*                  rd_strm__pt,
+  flea_tls_handsh_reader_t*          hs_rdr__pt,
   const flea_cert_store_t*           trust_store__pt,
   flea_public_key_t*                 pubkey_to_construct__pt,
   flea_tls_cert_path_params_t const* cert_path_params__pct
@@ -596,9 +596,9 @@ flea_err_t THR_flea_tls__cert_path_validation(
   flea_al_u16_t cert_count__alu16 = 0;
   flea_bool_t first__b = FLEA_TRUE;
   // TODO: can be used to see that last cert is handled:
-  // cert_chain_len__u32 = flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt)
   flea_public_key_t cycling_pubkey__t = flea_public_key_t__INIT_VALUE;
   flea_al_u16_t cnt_non_self_issued_in_path__alu16 = 0;
+  flea_rw_stream_t* rd_strm__pt;
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(
     cycling_signature__t,
@@ -610,6 +610,7 @@ flea_err_t THR_flea_tls__cert_path_validation(
   flea_public_key_t* pubkey_ptr__pt = pubkey_to_construct__pt;
 
   FLEA_THR_BEG_FUNC();
+  rd_strm__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
   FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&compare_time__t));
 
   do
@@ -617,13 +618,17 @@ flea_err_t THR_flea_tls__cert_path_validation(
     flea_bool_t is_cert_trusted__b;
     flea_u32_t new_cert_len__u32;
 
+    if(!flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt))
+    {
+      FLEA_THROW("no trusted certificate found in TLS path validation", FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS);
+    }
     if(!first__b)
     {
       pubkey_ptr__pt = &cycling_pubkey__t;
     }
     if(++cert_count__alu16 > FLEA_TLS_CERT_PATH_MAX_LEN)
     {
-      FLEA_THROW("maximal cert path size for TLS exceeded", FLEA_ERR_INV_ARG);
+      FLEA_THROW("maximal cert path size for TLS exceeded", FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS);
     }
 
     FLEA_CCALL(THR_flea_rw_stream_t__read_full(rd_strm__pt, enc_len__au8, sizeof(enc_len__au8)));
