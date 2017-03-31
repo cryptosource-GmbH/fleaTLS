@@ -749,7 +749,7 @@ static flea_err_t THR_flea_tls_ctx_t__read_app_data_inner(
         FLEA_CCALL(THR_flea_tls__client_handshake(tls_ctx__pt));
       }
     }
-    else
+    else if(err__t)
     {
       FLEA_THROW("rethrowing invalid message type during read app data", FLEA_ERR_TLS_INV_REC_HDR);
     }
