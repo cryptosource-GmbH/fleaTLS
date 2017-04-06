@@ -317,22 +317,34 @@ static flea_err_t THR_flea_handle_handsh_msg(
       FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
     }
   }
-  else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE)
+  else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE &&
+    flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
   {
-    if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
-    {
-      // TODO: DETERMINE KEX TYPE DYNAMICALLY:
-      flea_tls_cert_path_params_t cert_path_params__t = {.kex_type__e = flea_tls_kex__rsa, .client_cert_type__e = 0, .validate_server_or_client__e = FLEA_TLS_SERVER, .hostn_valid_params__pt = &tls_ctx->hostn_valid_params__t};
-      FLEA_CCALL(
-        THR_flea_tls__read_certificate(
-          tls_ctx,
-          &handsh_rdr__t,
-          &tls_ctx->server_pubkey,
-          &cert_path_params__t
-        )
-      );
-    }
+    // TODO: DETERMINE KEX TYPE DYNAMICALLY:
+    flea_tls_cert_path_params_t cert_path_params__t =
+    {.kex_type__e                  = flea_tls_kex__rsa, .client_cert_type__e = 0,
+     .validate_server_or_client__e = FLEA_TLS_SERVER,
+     .hostn_valid_params__pt       = &tls_ctx->hostn_valid_params__t};
+    FLEA_CCALL(
+      THR_flea_tls__read_certificate(
+        tls_ctx,
+        &handsh_rdr__t,
+        &tls_ctx->server_pubkey,
+        &cert_path_params__t
+      )
+    );
     handshake_state->expected_messages ^= FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE;
+  }
+  else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE &&
+    flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_KEY_EXCHANGE)
+  {
+    // TODO: implement
+    handshake_state->expected_messages ^= FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE;
+  }
+  else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE &&
+    flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
+  {
+    handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
   }
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE)
   {
@@ -434,7 +446,7 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
         //    TODO: CALL CTORS FOR ALL OBJECTS
 
         // update hash for all incoming handshake messages
-        // TODO: only include messages sent AFTER ClientHello. At the moment it could include HelloRequest received before sending HelloRequest
+        // TODO: only include messages sent AFTER ClientHello (and ClientHello). At the moment it could include HelloRequest received before sending HelloRequest
 
         // exclude finished message because we must not have it in our hash computation
       }
@@ -618,7 +630,14 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
 
   tls_ctx__pt->trust_store__pt = trust_store__pt;
 
-  FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt, session_id__pcu8, session_id_len__alu8));
+  FLEA_CCALL(
+    THR_flea_tls_ctx_t__construction_helper(
+      tls_ctx__pt,
+      rw_stream__pt,
+      session_id__pcu8,
+      session_id_len__alu8
+    )
+  );
   err__t = THR_flea_tls__client_handshake(tls_ctx__pt);
   FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
   FLEA_THR_FIN_SEC_empty();
