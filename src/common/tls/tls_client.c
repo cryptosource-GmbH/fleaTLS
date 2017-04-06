@@ -333,17 +333,21 @@ static flea_err_t THR_flea_handle_handsh_msg(
         &cert_path_params__t
       )
     );
-    handshake_state->expected_messages ^= FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE;
+    handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
+      | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
+      | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
   }
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE &&
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_KEY_EXCHANGE)
   {
     // TODO: implement
-    handshake_state->expected_messages ^= FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE;
+    handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
+      | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
   }
-  else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE &&
-    flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
+  else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST &&
+    flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_REQUEST)
   {
+    handshake_state->send_client_cert  = FLEA_TRUE;
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
   }
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE)
@@ -360,12 +364,14 @@ static flea_err_t THR_flea_handle_handsh_msg(
     // TODO: NO ERROR WHEN MISSING?
   }
   // TODO: WHY COMPARISON WITH '==' ?
+  // ANSWER (jroth): Da es davor keine
+  // optionalen Nachrichten gibt, muss eigentlich genau diese Nachricht und
+  // keine andere erwartet werden, also '==' statt '&' bildet das genauer ab
   else if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED)
   {
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
     {
       FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, hash_ctx__pt));
-
 
       handshake_state->finished = FLEA_TRUE;
     }
