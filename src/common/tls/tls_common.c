@@ -723,7 +723,7 @@ flea_err_t THR_flea_tls__send_finished(
   FLEA_DECL_OBJ(hash_ctx_copy, flea_hash_ctx_t);
   FLEA_THR_BEG_FUNC();
 
-  // compute hash over handshake messages so far and create struct
+  // compute hash over handshake messages so far
   FLEA_ALLOC_BUF(verify_data__bu8, verify_data_len__alu8 + 32);
   messages_hash__pu8 = verify_data__bu8 + verify_data_len__alu8;
 

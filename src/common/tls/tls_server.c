@@ -751,6 +751,7 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   flea_ref_cu8_t*   cert_chain__pt,
   flea_al_u8_t      cert_chain_len__alu8,
   flea_ref_cu8_t*   server_key__pt
+  // TODO: include trust store for client certs
 )
 {
   flea_err_t err__t;

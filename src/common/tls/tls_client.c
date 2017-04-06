@@ -15,7 +15,7 @@
 #include "internal/common/tls/tls_common.h"
 #include "flea/rng.h"
 #include <stdio.h>
-
+#include "flea/pk_api.h"
 #ifdef FLEA_HAVE_TLS
 
 flea_err_t THR_flea_tls__read_server_hello(
@@ -238,12 +238,18 @@ static flea_err_t THR_flea_tls__read_cert_request(
   FLEA_ALLOC_BUF(cert_authorities__bu8, cert_authorities_len__u16);
   FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, cert_authorities__bu8, cert_authorities_len__u16));
 
+  // check that there are no byes left
+  if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
+  {
+    FLEA_THROW("Unexpected bytes", FLEA_ERR_TLS_GENERIC);
+  }
+
   // TODO: use / store values somehow !!
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(cert_types__bu8);
     FLEA_FREE_BUF_FINAL(sig_algs__bu8);
-    FLEA_FREE_BUF_FINAL(cert_types__bu8);
+    FLEA_FREE_BUF_FINAL(cert_authorities__bu8);
   );
 } /* THR_flea_tls__read_cert_request */
 
@@ -333,6 +339,47 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
   FLEA_THR_FIN_SEC_empty();
 }
 
+static flea_err_t THR_flea_tls__send_cert_verify(
+  flea_tls_ctx_t*  tls_ctx,
+  flea_hash_ctx_t* hash_ctx,
+  flea_ref_cu8_t*  server_key__pt
+)
+{
+  FLEA_DECL_OBJ(hash_ctx_copy, flea_hash_ctx_t);
+  FLEA_DECL_BUF(messages_hash__bu8, flea_u8_t, 64); // MAX_HASH_SIZE parameter?
+  FLEA_DECL_OBJ(key__t, flea_private_key_t);
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_ALLOC_BUF(messages_hash__bu8, 32); // TODO: determine size of hash function that is used
+
+  // use a copy of hash_ctx instead of finalizing the original
+  FLEA_CCALL(THR_flea_hash_ctx_t__ctor_copy(&hash_ctx_copy, hash_ctx));
+  FLEA_CCALL(THR_flea_hash_ctx_t__final(&hash_ctx_copy, messages_hash__bu8));
+
+  // read server key
+  FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&key__t, server_key__pt->data__pcu8, server_key__pt->len__dtl));
+
+  // digitally sign the messages hash
+# if 0
+  FLEA_CCALL(
+    THR_flea_pk_api__sign(
+      const flea_byte_vec_t * message__prcu8,
+      flea_byte_vec_t * signature__pru8,
+      const flea_private_key_t * privkey__pt,
+      flea_pk_scheme_id_t pk_scheme_id__t,
+      flea_hash_id_t hash_id__t
+    )
+  );
+# endif
+
+
+  FLEA_THR_FIN_SEC(
+    flea_hash_ctx_t__dtor(&hash_ctx_copy);
+    flea_private_key_t__dtor(&key__t);
+    FLEA_FREE_BUF_FINAL(messages_hash__bu8);
+  );
+} /* THR_flea_tls__send_cert_verify */
+
 static flea_err_t THR_flea_handle_handsh_msg(
   flea_tls_ctx_t*              tls_ctx,
   flea_tls__handshake_state_t* handshake_state,
@@ -355,12 +402,14 @@ static flea_err_t THR_flea_handle_handsh_msg(
       FLEA_CCALL(THR_flea_tls__read_server_hello(tls_ctx, &handsh_rdr__t));
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE
         | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
-        | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
+ // | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST // only enable this
+ // after the server sent his certificate because only authenticated
+ // servers can ask for client authentication
         | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
     }
     else
     {
-      FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
+      FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
     }
   }
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE &&
@@ -393,6 +442,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST &&
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_REQUEST)
   {
+    FLEA_CCALL(THR_flea_tls__read_cert_request(tls_ctx, &handsh_rdr__t));
     handshake_state->send_client_cert  = FLEA_TRUE;
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
   }
@@ -406,7 +456,10 @@ static flea_err_t THR_flea_handle_handsh_msg(
         FLEA_THROW("invalid length of server hello done", FLEA_ERR_TLS_GENERIC);
       }
     }
-    // TODO: NO ERROR WHEN MISSING?
+    else
+    {
+      FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
+    }
   }
   // TODO: WHY COMPARISON WITH '==' ?
   // ANSWER (jroth): Da es davor keine
@@ -422,12 +475,12 @@ static flea_err_t THR_flea_handle_handsh_msg(
     }
     else
     {
-      FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
+      FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
     }
   }
   else
   {
-    FLEA_THROW("Received handshake message when none was expected", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
+    FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
   }
   FLEA_THR_FIN_SEC(
     flea_tls_handsh_reader_t__dtor(&handsh_rdr__t);
@@ -572,9 +625,20 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
     else // TODO: CONSIDER EXPLICIT MODELLING OF THIS CONDITION
     {
       flea_al_u8_t key_block_len__alu8;
+
+      // if we have to send a certificate, send it now
+# include "tls_server_certs.h"
       if(handshake_state.send_client_cert == FLEA_TRUE)
       {
-        // TODO: send certificate message
+        // TODO: MAKE GENERIC !!
+        // only for testing client auth
+        flea_ref_cu8_t cert_chain[2];
+        cert_chain[1].data__pcu8 = trust_anchor_2048__au8;
+        cert_chain[1].len__dtl   = sizeof(trust_anchor_2048__au8);
+        cert_chain[0].data__pcu8 = server_cert_2048__au8;
+        cert_chain[0].len__dtl   = sizeof(server_cert_2048__au8);
+
+        FLEA_CCALL(THR_flea_tls__send_certificate(tls_ctx, &hash_ctx, cert_chain, 2));
       }
 
       // TODO: INIT PUBKEY IN CTOR!
@@ -586,6 +650,17 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
           &premaster_secret__t
         )
       );
+
+      // send CertificateVerify message if we sent a certificate
+      if(handshake_state.send_client_cert == FLEA_TRUE)
+      {
+        flea_ref_cu8_t server_key__t;
+        server_key__t.data__pcu8 = server_key_2048__au8;
+        server_key__t.len__dtl   = sizeof(server_key_2048__au8);
+        FLEA_CCALL(THR_flea_tls__send_cert_verify(tls_ctx, &hash_ctx, &server_key__t));
+      }
+
+      // send change cipher spec (initiate encryption/authentication)
       FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx));
 
       /*
