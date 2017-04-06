@@ -101,6 +101,7 @@ flea_err_t THR_flea_tls__read_server_hello(
   if(server_compression_meth__u8 != NO_COMPRESSION)
   {
     // TODO: NEED TO SEND ALERT?
+    // jroth: yes, but where? when handling the error or here?
     FLEA_THROW("unsupported compression method from server", FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO);
   }
   // TODO: parse extension
@@ -200,6 +201,51 @@ static flea_err_t THR_flea_tls__send_client_hello(
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_client_hello */
+
+static flea_err_t THR_flea_tls__read_cert_request(
+  flea_tls_ctx_t*           tls_ctx,
+  flea_tls_handsh_reader_t* hs_rdr__pt
+)
+{
+  flea_rw_stream_t* hs_rd_stream__pt;
+
+  FLEA_DECL_BUF(cert_types__bu8, flea_u8_t, 7);         // TODO: define 7 somewhere? (7: number of different cert_types in RFC)
+  FLEA_DECL_BUF(sig_algs__bu8, flea_u8_t, 32);          // TODO same as above + find a reasonable number of bytes
+  FLEA_DECL_BUF(cert_authorities__bu8, flea_u8_t, 512); // TODO same as above
+  flea_u8_t cert_types_len__u8;
+  flea_u8_t sig_algs_len_to_dec__au8[2];
+  flea_u16_t sig_algs_len__u16;
+  flea_u8_t cert_authorities_len_to_dec__au8[2];
+  flea_u16_t cert_authorities_len__u16;
+
+  FLEA_THR_BEG_FUNC();
+  hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
+
+  // read certificate types field
+  FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &cert_types_len__u8));
+  FLEA_ALLOC_BUF(cert_types__bu8, cert_types_len__u8);
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, cert_types__bu8, cert_types_len__u8));
+
+  // read signature algorithms field
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, sig_algs_len_to_dec__au8, 2));
+  sig_algs_len__u16 = flea__decode_U16_BE(sig_algs_len_to_dec__au8);
+  FLEA_ALLOC_BUF(sig_algs__bu8, sig_algs_len__u16);
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, sig_algs__bu8, sig_algs_len__u16));
+
+  // read certificate authorities field
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, cert_authorities_len_to_dec__au8, 2));
+  cert_authorities_len__u16 = flea__decode_U16_BE(cert_authorities_len_to_dec__au8);
+  FLEA_ALLOC_BUF(cert_authorities__bu8, cert_authorities_len__u16);
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, cert_authorities__bu8, cert_authorities_len__u16));
+
+  // TODO: use / store values somehow !!
+
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL(cert_types__bu8);
+    FLEA_FREE_BUF_FINAL(sig_algs__bu8);
+    FLEA_FREE_BUF_FINAL(cert_types__bu8);
+  );
+} /* THR_flea_tls__read_cert_request */
 
 static flea_err_t THR_flea_tls__send_client_key_exchange_rsa(
   flea_tls_ctx_t*    tls_ctx,
@@ -352,7 +398,6 @@ static flea_err_t THR_flea_handle_handsh_msg(
   }
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE)
   {
-    // TODO: include here: FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE and FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_HELLO_DONE)
     {
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
