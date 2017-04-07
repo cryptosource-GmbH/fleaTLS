@@ -348,9 +348,15 @@ static flea_err_t THR_flea_tls__send_cert_verify(
   FLEA_DECL_OBJ(hash_ctx_copy, flea_hash_ctx_t);
   FLEA_DECL_BUF(messages_hash__bu8, flea_u8_t, 64); // MAX_HASH_SIZE parameter?
   FLEA_DECL_OBJ(key__t, flea_private_key_t);
+  flea_u8_t hash_alg = 4; // sha256 // TODO:
+  flea_u8_t sig_alg  = 1; // rsa    // make generic / derive from cert (?)
+  flea_u32_t hdr_len__u32;
+  flea_u8_t sig_len_enc__u8[2];
   FLEA_THR_BEG_FUNC();
 
   FLEA_ALLOC_BUF(messages_hash__bu8, 32); // TODO: determine size of hash function that is used
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(message_vec__t, 32);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, 256);
 
   // use a copy of hash_ctx instead of finalizing the original
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor_copy(&hash_ctx_copy, hash_ctx));
@@ -359,24 +365,72 @@ static flea_err_t THR_flea_tls__send_cert_verify(
   // read server key
   FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&key__t, server_key__pt->data__pcu8, server_key__pt->len__dtl));
 
+
   // digitally sign the messages hash
-# if 0
   FLEA_CCALL(
-    THR_flea_pk_api__sign(
-      const flea_byte_vec_t * message__prcu8,
-      flea_byte_vec_t * signature__pru8,
-      const flea_private_key_t * privkey__pt,
-      flea_pk_scheme_id_t pk_scheme_id__t,
-      flea_hash_id_t hash_id__t
+    THR_flea_byte_vec_t__set_content(
+      &message_vec__t,
+      messages_hash__bu8,
+      32 // TODO make depend on hash function
     )
   );
-# endif
 
+  FLEA_CCALL(
+    THR_flea_pk_api__sign(
+      &message_vec__t,
+      &sig_vec__t,
+      &key__t,
+      flea_rsa_pkcs1_v1_5_sign,
+      flea_sha256
+    )
+  );
+
+  // send handshake message
+  // calculate length to be used for the header first
+  hdr_len__u32 = 2 + 2 + sig_vec__t.len__dtl; // sig/hash alg bytes + sig len bytes + sig
+
+  // send header
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_hdr(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      HANDSHAKE_TYPE_CERTIFICATE_VERIFY,
+      hdr_len__u32
+    )
+  );
+
+  // send signature and hash algorithm bytes
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &hash_alg, 1));
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &sig_alg, 1));
+
+  // send signature length
+  flea__encode_U16_BE(sig_vec__t.len__dtl, sig_len_enc__u8);
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      sig_len_enc__u8,
+      sizeof(sig_len_enc__u8)
+    )
+  );
+
+
+  // send signature
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      sig_vec__t.data__pu8,
+      sig_vec__t.len__dtl
+    )
+  );
 
   FLEA_THR_FIN_SEC(
     flea_hash_ctx_t__dtor(&hash_ctx_copy);
     flea_private_key_t__dtor(&key__t);
     FLEA_FREE_BUF_FINAL(messages_hash__bu8);
+    flea_byte_vec_t__dtor(&message_vec__t);
+    flea_byte_vec_t__dtor(&sig_vec__t);
   );
 } /* THR_flea_tls__send_cert_verify */
 
