@@ -342,7 +342,7 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
 static flea_err_t THR_flea_tls__send_cert_verify(
   flea_tls_ctx_t*  tls_ctx,
   flea_hash_ctx_t* hash_ctx,
-  flea_ref_cu8_t*  server_key__pt
+  flea_ref_cu8_t*  client_key__pt
 )
 {
   FLEA_DECL_OBJ(hash_ctx_copy, flea_hash_ctx_t);
@@ -362,8 +362,8 @@ static flea_err_t THR_flea_tls__send_cert_verify(
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor_copy(&hash_ctx_copy, hash_ctx));
   FLEA_CCALL(THR_flea_hash_ctx_t__final(&hash_ctx_copy, messages_hash__bu8));
 
-  // read server key
-  FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&key__t, server_key__pt->data__pcu8, server_key__pt->len__dtl));
+  // read client key
+  FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&key__t, client_key__pt->data__pcu8, client_key__pt->len__dtl));
 
 
   // digitally sign the messages hash
@@ -374,7 +374,6 @@ static flea_err_t THR_flea_tls__send_cert_verify(
       32 // TODO make depend on hash function
     )
   );
-
   FLEA_CCALL(
     THR_flea_pk_api__sign(
       &message_vec__t,
@@ -413,7 +412,6 @@ static flea_err_t THR_flea_tls__send_cert_verify(
       sizeof(sig_len_enc__u8)
     )
   );
-
 
   // send signature
   FLEA_CCALL(
