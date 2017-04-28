@@ -691,7 +691,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
       enc_key_len,
       iv,
       iv_len,
-      NULL, // header,
+      NULL, // header, (=> additional data)
       0,    // header_len,
       data,
       data, // TODO: works?
@@ -702,7 +702,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   );
 
 
-  length_tot = data_len + iv_len; // + tag_len + header_len
+  length_tot = data_len + iv_len; // + tag_len
   rec_prot__pt->send_buf_raw__pu8[3] = length_tot >> 8;
   rec_prot__pt->send_buf_raw__pu8[4] = length_tot;
   *encrypted_len__palu16 = data_len; // input_output_len;
