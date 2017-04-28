@@ -7,6 +7,7 @@
 #include "flea/types.h"
 #include "flea/mac.h"
 #include "flea/block_cipher.h"
+#include "flea/ae.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -23,7 +24,9 @@ typedef enum
 
   TLS_RSA_WITH_AES_256_CBC_SHA256 = 0x003D,
 
-  TLS_RSA_WITH_AES_256_CBC_SHA    = 0x0035
+  TLS_RSA_WITH_AES_256_CBC_SHA    = 0x0035,
+
+  TLS_RSA_WITH_AES_128_GCM_SHA256 = 0x009C
 } flea_tls__cipher_suite_id_t;
 
 typedef struct
@@ -48,7 +51,7 @@ typedef struct
 } flea_tls__cipher_suite_t;
 
 
-extern const flea_tls__cipher_suite_t cipher_suites[3];
+extern const flea_tls__cipher_suite_t cipher_suites[4];
 
 
 const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher_suite_id_t id);
