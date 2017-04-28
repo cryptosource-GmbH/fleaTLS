@@ -670,9 +670,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
     + rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8;
 
   // copy sequence number to explicit nonce part as suggested in RFC 5288
-  rec_prot__pt->write_state__t.sequence_number__au32
-
-    seq_lo__u32 = rec_prot__pt->write_state__t.sequence_number__au32[0];
+  seq_lo__u32 = rec_prot__pt->write_state__t.sequence_number__au32[0];
   seq_hi__u32 = rec_prot__pt->write_state__t.sequence_number__au32[1];
   flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
   flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
@@ -687,8 +685,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   flea_al_u16_t data_len = rec_prot__pt->send_payload_used_len__u16;
 
   FLEA_CCALL(
-    flea_err_t THR_flea_ae__encrypt(
-      rec_prot__pt->write_state__t.flea_tls_cipher_suite_config_t.suite_specific__u.gcm_config__t.cipher_id,
+    THR_flea_ae__encrypt(
+      rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.cipher_id,
       enc_key,
       enc_key_len,
       iv,
@@ -698,28 +696,16 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
       data,
       data, // TODO: works?
       data_len,
-      flea_u8_t * tag,
-      flea_al_u8_t tag_len
+      NULL,// flea_u8_t * tag,
+      0// flea_al_u8_t tag_len
     )
   );
 
-  FLEA_CCALL(
-    THR_flea_cbc_mode__encrypt_data(
-      rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id,
-      enc_key,
-      enc_key_len,
-      iv,
-      iv_len,
-      data,
-      data,
-      input_output_len
-    )
-  );
 
-  length_tot = input_output_len + iv_len;
+  length_tot = data_len + iv_len; // + tag_len + header_len
   rec_prot__pt->send_buf_raw__pu8[3] = length_tot >> 8;
   rec_prot__pt->send_buf_raw__pu8[4] = length_tot;
-  *encrypted_len__palu16 = input_output_len;
+  *encrypted_len__palu16 = data_len; // input_output_len;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__encrypt_record_gcm */
 
