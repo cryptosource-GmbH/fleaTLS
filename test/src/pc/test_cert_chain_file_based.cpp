@@ -23,9 +23,13 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
 {
   FLEA_THR_BEG_FUNC();
   std::vector<std::string> trust_anchor_files = get_entries_of_dir(dir_path + "/trust_anchors", dir_entries_with_path);
-  std::vector<std::string> cert_files         = get_entries_of_dir(dir_path + "/certs", dir_entries_with_path);
-  std::vector<std::string> target_cert_files  = get_entries_of_dir(dir_path + "/target_cert", dir_entries_with_path);
-  flea_bool_t disable_revocation_checking     = (false == is_dir_existent(dir_path + "/crls")) ? FLEA_TRUE : FLEA_FALSE;
+  std::vector<std::string> cert_files;
+  if(is_dir_existent(dir_path + "/certs"))
+  {
+    cert_files = get_entries_of_dir(dir_path + "/certs", dir_entries_with_path);
+  }
+  std::vector<std::string> target_cert_files = get_entries_of_dir(dir_path + "/target_cert", dir_entries_with_path);
+  flea_bool_t disable_revocation_checking    = (false == is_dir_existent(dir_path + "/crls")) ? FLEA_TRUE : FLEA_FALSE;
   std::vector<std::string> crl_files;
   if(!disable_revocation_checking)
   {
