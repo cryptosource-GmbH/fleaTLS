@@ -244,7 +244,8 @@ static flea_err_t THR_flea_tls__read_cert_request(
     FLEA_THROW("Unexpected bytes", FLEA_ERR_TLS_GENERIC);
   }
 
-  // TODO: use / store values somehow !!
+  // TODO: use / store values somehow !! (choose sig/hash algs, choose root out
+  // of cert_authorities)
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(cert_types__bu8);
