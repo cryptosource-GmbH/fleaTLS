@@ -90,6 +90,7 @@ flea_err_t THR_flea_tls__read_server_hello(
   FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, ciphersuite__au8, sizeof(ciphersuite__au8)));
 
   tls_ctx->selected_cipher_suite__u16 = TLS_RSA_WITH_AES_256_CBC_SHA;
+  tls_ctx->selected_cipher_suite__u16 = TLS_RSA_WITH_AES_128_GCM_SHA256;
   // TODO: CHECK / SELECT CIPHERSUITE
   // - must be among presented ones in client hello
   // read compression method
@@ -142,10 +143,9 @@ static flea_err_t THR_flea_tls__send_client_hello(
 
   // calculate length for the header
   // TODO: include session id in the calculation (the 0 at 3rd place)
-  // TODO: include cipher suites length instead of hard coded 2 (5+6th place)
   // TODO: include extensions length (last place)
 
-  flea_u32_t len = 2 + 1 + 0 + 32 + 2 + 2 + 1 + 1 + 0;
+  flea_u32_t len = 2 + 1 + 0 + 32 + 2 + tls_ctx->allowed_cipher_suites_len__u8 + 1 + 1 + 0;
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_hdr(
       &tls_ctx->rec_prot__t,
@@ -353,12 +353,13 @@ static flea_err_t THR_flea_tls__send_cert_verify(
   flea_u8_t sig_alg  = 1; // rsa    // make generic / derive from cert (?)
   flea_u32_t hdr_len__u32;
   flea_u8_t sig_len_enc__u8[2];
-  FLEA_THR_BEG_FUNC();
-
-  FLEA_ALLOC_BUF(messages_hash__bu8, 32); // TODO: determine size of hash function that is used
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(message_vec__t, 32);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, 256);
 
+
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_ALLOC_BUF(messages_hash__bu8, 32); // TODO: determine size of hash function that is used
   // use a copy of hash_ctx instead of finalizing the original
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor_copy(&hash_ctx_copy, hash_ctx));
   FLEA_CCALL(THR_flea_hash_ctx_t__final(&hash_ctx_copy, messages_hash__bu8));
@@ -633,15 +634,33 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
             )
           );
 
-          FLEA_CCALL(
-            THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-              &tls_ctx->rec_prot__t,
-              flea_tls_read,
-              FLEA_TLS_CLIENT,
-              tls_ctx->selected_cipher_suite__u16,
-              tls_ctx->key_block
-            )
-          );
+
+          // TODO: quick & dirty, use a better way to call the appropriate
+          // function
+          if(tls_ctx->selected_cipher_suite__u16 == 156)
+          {
+            FLEA_CCALL(
+              THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
+                &tls_ctx->rec_prot__t,
+                flea_tls_read,
+                FLEA_TLS_CLIENT,
+                tls_ctx->selected_cipher_suite__u16,
+                tls_ctx->key_block
+              )
+            );
+          }
+          else
+          {
+            FLEA_CCALL(
+              THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+                &tls_ctx->rec_prot__t,
+                flea_tls_read,
+                FLEA_TLS_CLIENT,
+                tls_ctx->selected_cipher_suite__u16,
+                tls_ctx->key_block
+              )
+            );
+          }
 # if 0
           FLEA_CCALL(
             THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
@@ -743,15 +762,34 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
         )
       );
 
-      FLEA_CCALL(
-        THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-          &tls_ctx->rec_prot__t,
-          flea_tls_write,
-          FLEA_TLS_CLIENT,
-          tls_ctx->selected_cipher_suite__u16,
-          tls_ctx->key_block
-        )
-      );
+
+      // TODO: quick & dirty, use a better way to call the appropriate
+      // function
+      if(tls_ctx->selected_cipher_suite__u16 == 156)
+      {
+        FLEA_CCALL(
+          THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
+            &tls_ctx->rec_prot__t,
+            flea_tls_write,
+            FLEA_TLS_CLIENT,
+            tls_ctx->selected_cipher_suite__u16,
+            tls_ctx->key_block
+          )
+        );
+      }
+      else
+      {
+        FLEA_CCALL(
+          THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+            &tls_ctx->rec_prot__t,
+            flea_tls_write,
+            FLEA_TLS_CLIENT,
+            tls_ctx->selected_cipher_suite__u16,
+            tls_ctx->key_block
+          )
+        );
+      }
+
 # if 0
       FLEA_CCALL(
         THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(

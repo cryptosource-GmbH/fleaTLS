@@ -329,11 +329,13 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_gcm_ciphersuite_inner(
   // rec_prot__pt->reserved_iv_len__u8 = flea_block_cipher__get_block_size(block_cipher_id);
   rec_prot__pt->reserved_iv_len__u8 = 12; // TODO: not hardcoded, iv = nonce
 
+
   /* still needed for writing: */
   rec_prot__pt->payload_buf__pu8 = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->reserved_iv_len__u8
     + RECORD_HDR_LEN;
 
-  reserved_payl_len__alu16 = rec_prot__pt->reserved_iv_len__u8;
+  // 16 byte for tag
+  reserved_payl_len__alu16 = 16 + rec_prot__pt->reserved_iv_len__u8;
 
   if(((reserved_payl_len__alu16 + RECORD_HDR_LEN) > rec_prot__pt->send_rec_buf_raw_len__u16) ||
     ((reserved_payl_len__alu16 + RECORD_HDR_LEN) > FLEA_TLS_ALT_SEND_BUF_SIZE))
@@ -656,11 +658,16 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   flea_al_u16_t length_tot;
   flea_u8_t enc_seq_nbr__au8[8];
   flea_u32_t seq_lo__u32, seq_hi__u32;
+  flea_u8_t gcm_tag__au8[16];
+  flea_u8_t gcm_header__au8[13]; // 8+1+2+2
+  flea_u8_t enc_data_len__au8[2];
+
+  FLEA_DECL_BUF(enc_out__bu8, flea_u8_t, 10000); // TODO: do in-place instead of using a new buffer!
 
   FLEA_THR_BEG_FUNC();
   flea_u8_t* enc_key    = rec_prot__pt->write_state__t.suite_specific__u.gcm_conn_state__t.cipher_key__bu8;
   flea_u8_t enc_key_len =
-    rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_key_size__u8;
+    rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.cipher_key_size__u8;
 
 
   // iv = fixed_iv + record_iv (record_iv is directly adjacent in memory)
@@ -675,14 +682,27 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
   flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
   memcpy(
-    rec_prot__pt->write_state__t.suite_specific__u.gcm_conn_state__t.record_iv__bu8,
-    enc_seq_nbr__au8,
+    &rec_prot__pt->write_state__t.suite_specific__u.gcm_conn_state__t.record_iv__bu8,
+    &enc_seq_nbr__au8,
     rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8
   );
 
-
   flea_u8_t* data        = rec_prot__pt->send_payload_buf__pu8;
   flea_al_u16_t data_len = rec_prot__pt->send_payload_used_len__u16;
+
+
+  // copy seq nr, type, version, length into gcm header
+  enc_data_len__au8[0] = data_len >> 8;
+  enc_data_len__au8[1] = data_len;
+  memcpy(gcm_header__au8, enc_seq_nbr__au8, 8);
+  memcpy(gcm_header__au8 + 8, rec_prot__pt->send_rec_buf_raw__bu8, 1);
+  memcpy(gcm_header__au8 + 9, &rec_prot__pt->prot_version__t.major, 1);
+  memcpy(gcm_header__au8 + 10, &rec_prot__pt->prot_version__t.minor, 1);
+  memcpy(gcm_header__au8 + 11, enc_data_len__au8, 2);
+
+  // create buffer for input/output
+  FLEA_ALLOC_BUF(enc_out__bu8, data_len);
+
 
   FLEA_CCALL(
     THR_flea_ae__encrypt(
@@ -691,22 +711,30 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
       enc_key_len,
       iv,
       iv_len,
-      NULL, // header, (=> additional data)
-      0,    // header_len,
+      gcm_header__au8,         // header, (=> additional data)
+      sizeof(gcm_header__au8), // header_len,
       data,
-      data, // TODO: works?
+      enc_out__bu8, // TODO: in-place
       data_len,
-      NULL,// flea_u8_t * tag,
-      0// flea_al_u8_t tag_len
+      gcm_tag__au8,// flea_u8_t * tag,
+      sizeof(gcm_tag__au8)// flea_al_u8_t tag_len
     )
   );
 
+  // copy output back to data, TODO: remove (in-place)
+  memcpy(data, enc_out__bu8, data_len);
 
-  length_tot = data_len + iv_len; // + tag_len
+  // copy authentication tag
+  memcpy(data + data_len, gcm_tag__au8, sizeof(gcm_tag__au8));
+
+  length_tot = data_len + iv_len + sizeof(gcm_tag__au8);
   rec_prot__pt->send_buf_raw__pu8[3] = length_tot >> 8;
   rec_prot__pt->send_buf_raw__pu8[4] = length_tot;
-  *encrypted_len__palu16 = data_len; // input_output_len;
-  FLEA_THR_FIN_SEC_empty();
+  *encrypted_len__palu16 = data_len; // QUESTION: correct?
+
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL(enc_out__bu8);
+  );
 } /* THR_flea_tls_rec_prot_t__encrypt_record_gcm */
 
 flea_err_t THR_flea_tls_rec_prot_t__write_flush(
@@ -732,6 +760,21 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
 
     inc_seq_nbr(rec_prot__pt->write_state__t.sequence_number__au32);
   }
+  else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == TLS_RSA_WITH_AES_128_GCM_SHA256)
+  {
+    flea_al_u16_t encrypted_len__alu16;
+    FLEA_CCALL(THR_flea_tls_rec_prot_t__encrypt_record_gcm(rec_prot__pt, &encrypted_len__alu16));
+    FLEA_CCALL(
+      THR_flea_rw_stream_t__write(
+        rec_prot__pt->rw_stream__pt,
+        rec_prot__pt->send_buf_raw__pu8,
+        encrypted_len__alu16 + RECORD_HDR_LEN + rec_prot__pt->reserved_iv_len__u8
+      )
+    );
+
+    inc_seq_nbr(rec_prot__pt->write_state__t.sequence_number__au32);
+  }
+
   else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == TLS_NULL_WITH_NULL_NULL)
   {
     rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->send_payload_used_len__u16 >> 8;

@@ -17,7 +17,7 @@ const flea_tls__cipher_suite_t cipher_suites[4] = {
    16, 16, 32, 32, 32, flea_hmac_sha256 /*flea_sha256, FLEA_TLS_PRF_SHA256*/},
   {TLS_RSA_WITH_AES_256_CBC_SHA,    flea_aes256,
    16, 16, 32, 20, 20, flea_hmac_sha1},
-  {TLS_RSA_WITH_AES_128_GCM_SHA256, (flea_block_cipher_id_t) 0, 16, 12, 0, 0, (flea_mac_id_t) 0} // TODO: generalize to allow meaningful gcm entry
+  {TLS_RSA_WITH_AES_128_GCM_SHA256, (flea_block_cipher_id_t) 0, 16, 12, 16, 0, (flea_mac_id_t) 0} // TODO: generalize to allow meaningful gcm entry
 };
 
 const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher_suite_id_t id)

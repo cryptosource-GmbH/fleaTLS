@@ -167,7 +167,7 @@ typedef struct
    */
 
   // define 4 parameters independently instead of list of cipher suites
-  flea_u8_t                    allowed_cipher_suites[2]; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
+  flea_u8_t                    allowed_cipher_suites[4]; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
   flea_u8_t                    allowed_cipher_suites_len__u8;
   flea_u16_t                   selected_cipher_suite__u16;
 

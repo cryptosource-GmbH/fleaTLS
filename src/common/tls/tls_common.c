@@ -606,10 +606,15 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
   /* set cipher suite values */
   // flea_u8_t single_suite[] = {0x00, 0x3D};
   flea_u8_t single_suite[] = {0x00, 0x35};
+  flea_u8_t two_suites[]   = {0x00, 0x9c, 0x00, 0x35};
 
   // ctx->allowed_cipher_suites = calloc(2, sizeof(flea_u8_t));
-  memcpy(ctx->allowed_cipher_suites, single_suite, 2);
-  ctx->allowed_cipher_suites_len__u8 = 2;
+  // memcpy(ctx->allowed_cipher_suites, single_suite, 2);
+  // ctx->allowed_cipher_suites_len__u8 = 2;
+
+  memcpy(ctx->allowed_cipher_suites, two_suites, 4);
+  ctx->allowed_cipher_suites_len__u8 = 4;
+
 
   // CipherSuite TLS_NULL_WITH_NULL_NULL = { 0x00,0x00 };
 
