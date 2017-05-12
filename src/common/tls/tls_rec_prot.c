@@ -732,7 +732,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_gcm(
   );
 
 
-  memmove(data, dec_out__bu8, *decrypted_len__palu16);
+  memcpy(data, dec_out__bu8, *decrypted_len__palu16);
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(dec_out__bu8);
   );
