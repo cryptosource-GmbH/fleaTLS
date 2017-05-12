@@ -733,7 +733,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   *encrypted_len__palu16 = data_len; // QUESTION: correct?
 
   FLEA_THR_FIN_SEC(
-    // FLEA_FREE_BUF_FINAL(enc_out__bu8);
+    FLEA_FREE_BUF_FINAL(enc_out__bu8);
   );
 } /* THR_flea_tls_rec_prot_t__encrypt_record_gcm */
 
