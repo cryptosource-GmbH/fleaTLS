@@ -112,7 +112,7 @@ flea_err_t THR_flea_tls__read_client_hello(
   // consistent implementation for the cipher suites yet
   flea_bool_t found = FLEA_FALSE;
   // TODO: LET CALLER SUPPLY THE SUPPORTED SUITES
-  flea_u16_t supported_cs__au16[]  = { /*TLS_RSA_WITH_AES_256_CBC_SHA256,*/ TLS_RSA_WITH_AES_256_CBC_SHA};
+  flea_u16_t supported_cs__au16[]  = { /*TLS_RSA_WITH_AES_256_CBC_SHA256,*/ TLS_RSA_WITH_AES_128_GCM_SHA256, TLS_RSA_WITH_AES_256_CBC_SHA};
   flea_u16_t supported_cs_len__u16 = FLEA_NB_ARRAY_ENTRIES(supported_cs__au16);
   flea_u16_t supported_cs_index__u16;
   // flea_u8_t chosen_cs__au8[2];
@@ -624,15 +624,32 @@ flea_err_t THR_flea_tls__server_handshake(
               key_block_len__alu8
             )
           );
-          FLEA_CCALL(
-            THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-              &tls_ctx->rec_prot__t,
-              flea_tls_read,
-              FLEA_TLS_SERVER,
-              tls_ctx->selected_cipher_suite__u16,
-              tls_ctx->key_block
-            )
-          );
+
+          // TODO: quick & dirty, use a better way to call the appropriate
+          if(tls_ctx->selected_cipher_suite__u16 == 156)
+          {
+            FLEA_CCALL(
+              THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
+                &tls_ctx->rec_prot__t,
+                flea_tls_read,
+                FLEA_TLS_SERVER,
+                tls_ctx->selected_cipher_suite__u16,
+                tls_ctx->key_block
+              )
+            );
+          }
+          else
+          {
+            FLEA_CCALL(
+              THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+                &tls_ctx->rec_prot__t,
+                flea_tls_read,
+                FLEA_TLS_SERVER,
+                tls_ctx->selected_cipher_suite__u16,
+                tls_ctx->key_block
+              )
+            );
+          }
           // enable encryption for read direction
 
           /*FLEA_CCALL(
@@ -703,15 +720,31 @@ flea_err_t THR_flea_tls__server_handshake(
       {
         FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx));
 
-        FLEA_CCALL(
-          THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-            &tls_ctx->rec_prot__t,
-            flea_tls_write,
-            FLEA_TLS_SERVER,
-            tls_ctx->selected_cipher_suite__u16,
-            tls_ctx->key_block
-          )
-        );
+        // TODO: quick & dirty, use a better way to call the appropriate
+        if(tls_ctx->selected_cipher_suite__u16 == 156)
+        {
+          FLEA_CCALL(
+            THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
+              &tls_ctx->rec_prot__t,
+              flea_tls_write,
+              FLEA_TLS_SERVER,
+              tls_ctx->selected_cipher_suite__u16,
+              tls_ctx->key_block
+            )
+          );
+        }
+        else
+        {
+          FLEA_CCALL(
+            THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+              &tls_ctx->rec_prot__t,
+              flea_tls_write,
+              FLEA_TLS_SERVER,
+              tls_ctx->selected_cipher_suite__u16,
+              tls_ctx->key_block
+            )
+          );
+        }
 
         /*FLEA_CCALL(
          * THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(

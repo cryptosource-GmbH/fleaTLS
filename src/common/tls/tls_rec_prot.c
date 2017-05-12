@@ -665,7 +665,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_gcm(
   const flea_u8_t record_iv_len__u8 =
     rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8;
   const flea_u8_t fixed_iv_len__u8 =
-    rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.fixed_iv_length__u8;
+    rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.fixed_iv_length__u8;
 
   FLEA_DECL_BUF(dec_out__bu8, flea_u8_t, 10000); // TODO: do in-place instead of using a new buffer!
 
@@ -706,10 +706,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_gcm(
   memcpy(gcm_header__au8 + 9, &rec_prot__pt->prot_version__t.major, 1);
   memcpy(gcm_header__au8 + 10, &rec_prot__pt->prot_version__t.minor, 1);
   memcpy(gcm_header__au8 + 11, enc_data_len__au8, 2);
-
-  /*
-   * First decrypt
-   */
 
   gcm_tag__pu8 = data + (data_len - gcm_tag_len__u8);
   FLEA_ALLOC_BUF(dec_out__bu8, data_len - record_iv_len__u8 - gcm_tag_len__u8);
