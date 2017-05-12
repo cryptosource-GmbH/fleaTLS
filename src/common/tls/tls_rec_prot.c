@@ -682,8 +682,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
   flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
   memcpy(
-    &rec_prot__pt->write_state__t.suite_specific__u.gcm_conn_state__t.record_iv__bu8,
-    &enc_seq_nbr__au8,
+    rec_prot__pt->write_state__t.suite_specific__u.gcm_conn_state__t.record_iv__bu8,
+    enc_seq_nbr__au8,
     rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8
   );
 
@@ -709,7 +709,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
       rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.cipher_id,
       enc_key,
       enc_key_len,
-      iv,
+      iv, // fixed iv || record iv
       iv_len,
       gcm_header__au8,         // header, (=> additional data)
       sizeof(gcm_header__au8), // header_len,
@@ -733,7 +733,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   *encrypted_len__palu16 = data_len; // QUESTION: correct?
 
   FLEA_THR_FIN_SEC(
-    FLEA_FREE_BUF_FINAL(enc_out__bu8);
+    // FLEA_FREE_BUF_FINAL(enc_out__bu8);
   );
 } /* THR_flea_tls_rec_prot_t__encrypt_record_gcm */
 

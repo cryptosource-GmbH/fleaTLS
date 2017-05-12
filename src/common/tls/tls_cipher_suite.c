@@ -47,5 +47,11 @@ flea_err_t THR_flea_tls_get_key_block_len_from_cipher_suite_id(
     FLEA_THROW("invalid cipher suite id", FLEA_ERR_INT_ERR);
   }
   *result_key_block_len__palu8 = ct__pt->mac_key_size * 2 + ct__pt->enc_key_size * 2;
+
+  // TODO: choose better approach
+  if(id == TLS_RSA_WITH_AES_128_GCM_SHA256)
+  {
+    *result_key_block_len__palu8 = ct__pt->enc_key_size * 2 + 16;
+  }
   FLEA_THR_FIN_SEC_empty();
 }
