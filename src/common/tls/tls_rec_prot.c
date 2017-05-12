@@ -327,7 +327,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_gcm_ciphersuite_inner(
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
   // rec_prot__pt->reserved_iv_len__u8 = flea_block_cipher__get_block_size(block_cipher_id);
-  rec_prot__pt->reserved_iv_len__u8 = 12; // TODO: not hardcoded, iv = nonce
+  rec_prot__pt->reserved_iv_len__u8 = 8; // TODO: not hardcoded, iv = nonce
 
 
   /* still needed for writing: */
@@ -687,6 +687,14 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
     rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8
   );
 
+  // write explicit part of nonce/iv before the encrypted data
+  flea_u8_t* expl_nonce = rec_prot__pt->send_buf_raw__pu8 + RECORD_HDR_LEN;
+  memcpy(
+    expl_nonce,
+    enc_seq_nbr__au8,
+    rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8
+  );
+
   flea_u8_t* data        = rec_prot__pt->send_payload_buf__pu8;
   flea_al_u16_t data_len = rec_prot__pt->send_payload_used_len__u16;
 
@@ -727,10 +735,12 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   // copy authentication tag
   memcpy(data + data_len, gcm_tag__au8, sizeof(gcm_tag__au8));
 
-  length_tot = data_len + iv_len + sizeof(gcm_tag__au8);
+  length_tot = data_len
+    + rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8
+    + sizeof(gcm_tag__au8);
   rec_prot__pt->send_buf_raw__pu8[3] = length_tot >> 8;
   rec_prot__pt->send_buf_raw__pu8[4] = length_tot;
-  *encrypted_len__palu16 = data_len; // QUESTION: correct?
+  *encrypted_len__palu16 = data_len + sizeof(gcm_tag__au8);
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(enc_out__bu8);
