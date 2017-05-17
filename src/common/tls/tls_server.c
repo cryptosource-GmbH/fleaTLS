@@ -491,7 +491,10 @@ static flea_err_t THR_flea_tls__read_cert_verify(
   flea_u8_t sig_len_to_dec__au8[2];
   flea_u16_t sig_len__u16;
 
-  FLEA_DECL_BUF(sig__bu8, flea_u8_t, 512); // TODO: define max sig length
+  FLEA_DECL_BUF(messages_hash__bu8, flea_u8_t, 64);                                // MAX_HASH_SIZE parameter?
+  FLEA_DECL_BUF(sig__bu8, flea_u8_t, 512);                                         // TODO: define max sig length
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(message_vec__t, 32); // TODO: only for SHA256
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, 256);    // TODO see above
 
   FLEA_THR_BEG_FUNC();
 
@@ -528,7 +531,36 @@ static flea_err_t THR_flea_tls__read_cert_verify(
 
   // check signature
   if(sig_hash_alg__au8[0] == 0x04 && sig_hash_alg__au8[1] == 0x01) // TODO: use internal representation / mapping of sig and hash algorithms
-  { }
+  {
+    FLEA_ALLOC_BUF(messages_hash__bu8, 32);
+    FLEA_CCALL(THR_flea_hash_ctx_t__final(hash_ctx, messages_hash__bu8));
+
+    FLEA_CCALL(
+      THR_flea_byte_vec_t__set_content(
+        &message_vec__t,
+        messages_hash__bu8,
+        32 // TODO make depend on hash function
+      )
+    );
+    FLEA_CCALL(
+      THR_flea_byte_vec_t__set_content(
+        &sig_vec__t,
+        sig__bu8,
+        sig_len__u16
+      )
+    );
+    // TODO!: throws FLEA_ERR_INV_SIGNATURE which is mapped to BAD_CERTIFICATE.
+    // => throw better matching error
+    FLEA_CCALL(
+      THR_flea_pk_api__verify_signature(
+        &message_vec__t,
+        &sig_vec__t,
+        &tls_ctx->client_pubkey,
+        flea_rsa_pkcs1_v1_5_sign,
+        flea_sha256
+      )
+    );
+  }
   else // TODO: support other algorithms
   {
     FLEA_THROW("Sig/Hash algorithm not in the sent list of Sig/Hash algorithms", FLEA_ERR_TLS_GENERIC); // TODO: which error is appropriate?
