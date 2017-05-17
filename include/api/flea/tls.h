@@ -173,6 +173,7 @@ typedef struct
 
   /* TODO: Where do I allocate the memory? inside __ctor seems pointless with stack usage */
   flea_public_key_t            server_pubkey; /* Public Key of server to use (Key Exchange) */
+  flea_public_key_t            client_pubkey;
 
   flea_tls__protocol_version_t version; /* max. supported TLS version */
 
@@ -220,11 +221,12 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
 );
 
 flea_err_t THR_flea_tls_ctx_t__ctor_server(
-  flea_tls_ctx_t*   tls_ctx__pt,
-  flea_rw_stream_t* rw_stream__pt,
-  flea_ref_cu8_t*   cert_chain__pt,
-  flea_al_u8_t      cert_chain_len__alu8,
-  flea_ref_cu8_t*   server_key__pt
+  flea_tls_ctx_t*          tls_ctx__pt,
+  flea_rw_stream_t*        rw_stream__pt,
+  flea_ref_cu8_t*          cert_chain__pt,
+  flea_al_u8_t             cert_chain_len__alu8,
+  const flea_cert_store_t* trust_store__t,
+  flea_ref_cu8_t*          server_key__pt
 );
 
 flea_err_t THR_flea_tls_ctx_t__read_app_data(
