@@ -380,13 +380,22 @@ static flea_err_t THR_flea_tls__send_cert_verify(
   );
 
   // TODO!: change (pk_api__sign will hash the hash again)
+  flea_err_t THR_flea_pk_api__sign_digest(
+    const flea_u8_t*          digest__pcu8,
+    flea_al_u8_t              digest_len__alu8,
+    flea_hash_id_t            hash_id__e,
+    flea_pk_scheme_id_t       id__t,
+    const flea_private_key_t* privkey__pt,
+    flea_byte_vec_t*          sig_vec__pt
+  );
   FLEA_CCALL(
-    THR_flea_pk_api__sign(
-      &message_vec__t,
-      &sig_vec__t,
-      &key__t,
+    THR_flea_pk_api__sign_digest(
+      messages_hash__bu8,
+      32,
+      flea_sha256,
       flea_rsa_pkcs1_v1_5_sign,
-      flea_sha256
+      &key__t,
+      &sig_vec__t
     )
   );
 
