@@ -26,7 +26,7 @@ typedef struct
 } flea_ae_gcm_specific_t;
 
 /* fwd declaration */
-// struct flea_ae_config_entry_t;
+struct flea_ae_config_entry_struct;
 
 typedef struct flea_ae_config_entry_struct flea_ae_config_entry_t;
 
