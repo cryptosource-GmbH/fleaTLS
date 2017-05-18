@@ -133,15 +133,45 @@ flea_err_t THR_flea_pk_signer_t__final_sign(
   flea_pk_signer_t*         signer__pt,
   flea_pk_scheme_id_t       id__t,
   const flea_private_key_t* privkey__pt,
+  flea_byte_vec_t*          sig_vec__pt
+)
+{
+  flea_al_u8_t digest_len__alu8;
 
-  /*flea_u8_t*                signature__pu8,
-   * flea_al_u16_t*            signature_len__palu16*/
+  FLEA_DECL_BUF(digest_buf__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
+  FLEA_THR_BEG_FUNC();
+  digest_len__alu8 = flea_hash_ctx_t__get_output_length(&signer__pt->hash_ctx);
+
+  FLEA_ALLOC_BUF(digest_buf__bu8, digest_len__alu8);
+
+  FLEA_CCALL(THR_flea_hash_ctx_t__final(&signer__pt->hash_ctx, digest_buf__bu8));
+  FLEA_CCALL(
+    THR_flea_pk_api__sign_digest(
+      digest_buf__bu8,
+      digest_len__alu8,
+      signer__pt->hash_id__t,
+      id__t,
+      privkey__pt,
+      sig_vec__pt
+    )
+  );
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL(digest_buf__bu8);
+  );
+}
+
+flea_err_t THR_flea_pk_api__sign_digest(
+  const flea_u8_t*          digest__pcu8,
+  flea_al_u8_t              digest_len__alu8,
+  flea_hash_id_t            hash_id__e,
+  flea_pk_scheme_id_t       id__t,
+  const flea_private_key_t* privkey__pt,
   flea_byte_vec_t*          sig_vec__pt
 )
 {
   flea_pk_primitive_id_t primitive_id__t;
   flea_pk_encoding_id_t encoding_id__t;
-  flea_al_u16_t digest_len__alu16;
+  // flea_al_u16_t digest_len__alu16;
   flea_al_u16_t key_bit_size__alu16;
   flea_al_u16_t primitive_input_len__alu16;
 
@@ -160,14 +190,17 @@ flea_err_t THR_flea_pk_signer_t__final_sign(
   }
   FLEA_ALLOC_BUF(primitive_input__bu8, FLEA_MAX(primitive_input_len__alu16, FLEA_MAX_HASH_OUT_LEN));
   // get the final hash value
-  FLEA_CCALL(THR_flea_hash_ctx_t__final(&signer__pt->hash_ctx, primitive_input__bu8));
-  digest_len__alu16 = flea_hash_ctx_t__get_output_length(&signer__pt->hash_ctx);
+  if(digest_len__alu8 > FLEA_MAX_HASH_OUT_LEN)
+  {
+    FLEA_THROW("signature for extraneous digest length requested", FLEA_ERR_INV_ARG);
+  }
+  memcpy(primitive_input__bu8, digest__pcu8, digest_len__alu8);
   if(encoding_id__t == flea_emsa1)
   {
     FLEA_CCALL(
       THR_flea_pk_api__encode_message__emsa1(
         primitive_input__bu8,
-        digest_len__alu16,
+        digest_len__alu8,
         &primitive_input_len__alu16,
         key_bit_size__alu16
       )
@@ -178,10 +211,10 @@ flea_err_t THR_flea_pk_signer_t__final_sign(
     FLEA_CCALL(
       THR_flea_pk_api__encode_message__pkcs1_v1_5_sign(
         primitive_input__bu8,
-        digest_len__alu16,
+        digest_len__alu8,
         &primitive_input_len__alu16,
         key_bit_size__alu16,
-        signer__pt->hash_id__t
+        hash_id__e
       )
     );
   }
