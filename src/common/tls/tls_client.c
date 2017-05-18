@@ -706,15 +706,14 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
 # include "tls_server_certs.h"
       if(handshake_state.send_client_cert == FLEA_TRUE)
       {
-        // TODO: MAKE GENERIC !!
-        // only for testing client auth
-        flea_ref_cu8_t cert_chain[2];
-        cert_chain[1].data__pcu8 = trust_anchor_2048__au8;
-        cert_chain[1].len__dtl   = sizeof(trust_anchor_2048__au8);
-        cert_chain[0].data__pcu8 = server_cert_2048__au8;
-        cert_chain[0].len__dtl   = sizeof(server_cert_2048__au8);
-
-        FLEA_CCALL(THR_flea_tls__send_certificate(tls_ctx, &hash_ctx, cert_chain, 2));
+        FLEA_CCALL(
+          THR_flea_tls__send_certificate(
+            tls_ctx,
+            &hash_ctx,
+            tls_ctx->cert_chain__pt,
+            tls_ctx->cert_chain_len__u8
+          )
+        );
       }
 
       // TODO: INIT PUBKEY IN CTOR!
@@ -730,10 +729,7 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
       // send CertificateVerify message if we sent a certificate
       if(handshake_state.send_client_cert == FLEA_TRUE)
       {
-        flea_ref_cu8_t server_key__t;
-        server_key__t.data__pcu8 = server_key_2048__au8;
-        server_key__t.len__dtl   = sizeof(server_key_2048__au8);
-        FLEA_CCALL(THR_flea_tls__send_cert_verify(tls_ctx, &hash_ctx, &server_key__t));
+        FLEA_CCALL(THR_flea_tls__send_cert_verify(tls_ctx, &hash_ctx, tls_ctx->private_key__pt));
       }
 
       // send change cipher spec (initiate encryption/authentication)
@@ -830,12 +826,18 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   flea_host_id_type_e      host_name_id__e,
   flea_rw_stream_t*        rw_stream__pt,
   const flea_u8_t*         session_id__pcu8,
-  flea_al_u8_t             session_id_len__alu8
+  flea_al_u8_t             session_id_len__alu8,
+  flea_ref_cu8_t*          cert_chain__pt,
+  flea_al_u8_t             cert_chain_len__alu8,
+  flea_ref_cu8_t*          client_key__pt
 )
 {
   flea_err_t err__t;
 
   FLEA_THR_BEG_FUNC();
+  tls_ctx__pt->cert_chain__pt     = cert_chain__pt;
+  tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
+  tls_ctx__pt->private_key__pt    = client_key__pt;
 
   if(server_name__pcrcu8)
   {
@@ -862,6 +864,6 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   err__t = THR_flea_tls__client_handshake(tls_ctx__pt);
   FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls_ctx_t__ctor_client */
 
 #endif /* ifdef FLEA_HAVE_TLS */

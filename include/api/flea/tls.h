@@ -209,7 +209,6 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt);
 
 // TODO: REMOVE THIS AND MAKE CLIENT AND SERVER HANDSHAKE FUNCTIONS CTORS
 
-
 flea_err_t THR_flea_tls_ctx_t__ctor_client(
   flea_tls_ctx_t*          tls_ctx__pt,
   const flea_cert_store_t* trust_store__pt,
@@ -217,7 +216,10 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   flea_host_id_type_e      host_name_id__e,
   flea_rw_stream_t*        rw_stream__pt,
   const flea_u8_t*         session_id__pcu8,
-  flea_al_u8_t             session_id_len__alu8
+  flea_al_u8_t             session_id_len__alu8,
+  flea_ref_cu8_t*          cert_chain__pt,
+  flea_al_u8_t             cert_chain_len__alu8,
+  flea_ref_cu8_t*          client_key__pt
 );
 
 flea_err_t THR_flea_tls_ctx_t__ctor_server(

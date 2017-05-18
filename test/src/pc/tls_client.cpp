@@ -19,6 +19,8 @@
 #include "pc/test_pc.h"
 #include "pltf_support/tcpip_stream.h"
 
+#include "tls_server_certs.h" // reuse server cert as client cert
+
 #ifdef FLEA_HAVE_TLS
 // CA cert to verify the server's certificate
 const flea_u8_t trust_anchor_1024__acu8[] = { // rootCA_cryptosource_1024
@@ -126,6 +128,26 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   flea_ref_cu8_t hostname;
   flea_ref_cu8_t* hostname_p = NULL;
 
+  flea_ref_cu8_t cert_chain[2];
+  flea_ref_cu8_t client_key__t;
+
+  // # define CLIENT_CERT_1024
+# ifdef CLIENT_CERT_1024
+  cert_chain[1].data__pcu8 = trust_anchor_1024__au8;
+  cert_chain[1].len__dtl   = sizeof(trust_anchor_1024__au8);
+  cert_chain[0].data__pcu8 = server_cert_1024__au8;
+  cert_chain[0].len__dtl   = sizeof(server_cert_1024__au8);
+  client_key__t.data__pcu8 = server_key_1024__au8;
+  client_key__t.len__dtl   = sizeof(server_key_1024__au8);
+# else
+  cert_chain[1].data__pcu8 = trust_anchor_2048__au8;
+  cert_chain[1].len__dtl   = sizeof(trust_anchor_2048__au8);
+  cert_chain[0].data__pcu8 = server_cert_2048__au8;
+  cert_chain[0].len__dtl   = sizeof(server_cert_2048__au8);
+  client_key__t.data__pcu8 = server_key_2048__au8;
+  client_key__t.len__dtl   = sizeof(server_key_2048__au8);
+# endif // ifdef CLIENT_CERT_1024
+
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_t__INIT(&rw_stream__t);
   flea_tls_ctx_t__INIT(&tls_ctx);
@@ -162,7 +184,10 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
       flea_host_dnsname,
       &rw_stream__t,
       NULL,
-      0
+      0,
+      cert_chain,
+      2,
+      &client_key__t
     )
   );
 
