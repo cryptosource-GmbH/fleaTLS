@@ -376,6 +376,8 @@ static flea_err_t THR_flea_tls__send_cert_verify(
       32 // TODO make depend on hash function
     )
   );
+
+  // TODO!: change (pk_api__sign will hash the hash again)
   FLEA_CCALL(
     THR_flea_pk_api__sign(
       &message_vec__t,
