@@ -840,7 +840,8 @@ static flea_err_t THR_flea_tls_ctx_t__read_app_data_inner(
     {
       /* assume it's the appropriate ClientHello or HelloRequest in order to
        * initiate a new handshake. a wrong handshake message type will result in
-       * an error. that record is still held as current record in rec_prot.
+       * an error during the invoked handshake processing. the new record which caused the exception is still
+       * held as current record in rec_prot.
        */
       if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_SERVER)
       {
