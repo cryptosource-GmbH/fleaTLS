@@ -549,15 +549,16 @@ static flea_err_t THR_flea_tls__read_cert_verify(
         sig_len__u16
       )
     );
-    // TODO!: throws FLEA_ERR_INV_SIGNATURE which is mapped to BAD_CERTIFICATE.
-    // => throw better matching error
+
     FLEA_CCALL(
-      THR_flea_pk_api__verify_signature(
-        &message_vec__t,
-        &sig_vec__t,
-        &tls_ctx->client_pubkey,
+      THR_flea_pk_api__verify_digest(
+        messages_hash__bu8,
+        32,
+        flea_sha256,
         flea_rsa_pkcs1_v1_5_sign,
-        flea_sha256
+        &tls_ctx->client_pubkey,
+        sig__bu8,
+        sig_len__u16
       )
     );
   }
@@ -622,7 +623,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
        .validate_server_or_client__e = FLEA_TLS_CLIENT,
        .hostn_valid_params__pt       = &tls_ctx->hostn_valid_params__t};
 
-
+      // TODO: also check key usage and other constraints
       FLEA_CCALL(
         THR_flea_tls__read_certificate(
           tls_ctx,
