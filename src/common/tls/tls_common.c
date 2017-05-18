@@ -864,7 +864,7 @@ static flea_err_t THR_flea_tls_ctx_t__read_app_data_inner(
     }
     else if(err__t)
     {
-      FLEA_THROW("rethrowing invalid message type during read app data", FLEA_ERR_TLS_INV_REC_HDR);
+      FLEA_THROW("rethrowing during read app data", err__t);
     }
   } while(err__t);
 
