@@ -32,11 +32,12 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   // char app_data_www[] = "GET index.html HTTP/1.1\nHost: 127.0.0.1";
 
 
-  # define SERVER_CERT_1024
+  // # define SERVER_CERT_1024
 
 
   flea_ref_cu8_t cert_chain[2];
   flea_ref_cu8_t server_key__t;
+
 # ifdef SERVER_CERT_1024
   cert_chain[1].data__pcu8 = trust_anchor_1024__au8;
   cert_chain[1].len__dtl   = sizeof(trust_anchor_1024__au8);

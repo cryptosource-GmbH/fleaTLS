@@ -112,7 +112,7 @@ flea_err_t THR_flea_tls__read_client_hello(
   // consistent implementation for the cipher suites yet
   flea_bool_t found = FLEA_FALSE;
   // TODO: LET CALLER SUPPLY THE SUPPORTED SUITES
-  flea_u16_t supported_cs__au16[]  = { /*TLS_RSA_WITH_AES_256_CBC_SHA256,*/ TLS_RSA_WITH_AES_256_CBC_SHA};
+  flea_u16_t supported_cs__au16[]  = { /*TLS_RSA_WITH_AES_256_CBC_SHA256,*/ TLS_RSA_WITH_AES_128_GCM_SHA256, TLS_RSA_WITH_AES_256_CBC_SHA};
   flea_u16_t supported_cs_len__u16 = FLEA_NB_ARRAY_ENTRIES(supported_cs__au16);
   flea_u16_t supported_cs_index__u16;
   // flea_u8_t chosen_cs__au8[2];
@@ -325,105 +325,6 @@ static flea_err_t THR_flea_tls__send_server_hello(
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_server_hello */
-
-static flea_err_t THR_flea_tls__send_certificate(
-  flea_tls_ctx_t*  tls_ctx,
-  flea_hash_ctx_t* hash_ctx,
-  flea_ref_cu8_t*  cert_chain__pt,
-  flea_u8_t        cert_chain_len__u8
-)
-{
-  flea_u32_t hdr_len__u32;
-  flea_u32_t cert_list_len__u32;
-
-  FLEA_THR_BEG_FUNC();
-
-  // TODO: enable option to exclude the root CA (RFC: MAY be ommited)
-
-  // calculate length for the header
-  hdr_len__u32 = 3; // 3 byte for length of certificate list
-  for(flea_u8_t i = 0; i < cert_chain_len__u8; i++)
-  {
-    hdr_len__u32 += 3; // 3 byte for length encoding of each certificate
-    hdr_len__u32 += cert_chain__pt[i].len__dtl;
-  }
-
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_hdr(
-      &tls_ctx->rec_prot__t,
-      hash_ctx,
-      HANDSHAKE_TYPE_CERTIFICATE,
-      hdr_len__u32
-    )
-  );
-
-  // encode length
-  // TODO use stream function for encoding
-  cert_list_len__u32 = hdr_len__u32 - 3;
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx->rec_prot__t,
-      hash_ctx,
-      &((flea_u8_t*) &cert_list_len__u32)[2],
-      1
-    )
-  );
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx->rec_prot__t,
-      hash_ctx,
-      &((flea_u8_t*) &cert_list_len__u32)[1],
-      1
-    )
-  );
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx->rec_prot__t,
-      hash_ctx,
-      &((flea_u8_t*) &cert_list_len__u32)[0],
-      1
-    )
-  );
-
-  // TODO use stream function for encoding
-  for(flea_u8_t i = 0; i < cert_chain_len__u8; i++)
-  {
-    FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
-        &tls_ctx->rec_prot__t,
-        hash_ctx,
-        &((flea_u8_t*) &(cert_chain__pt[i].len__dtl))[2],
-        1
-      )
-    );
-    FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
-        &tls_ctx->rec_prot__t,
-        hash_ctx,
-        &((flea_u8_t*) &(cert_chain__pt[i].len__dtl))[1],
-        1
-      )
-    );
-    FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
-        &tls_ctx->rec_prot__t,
-        hash_ctx,
-        &((flea_u8_t*) &(cert_chain__pt[i].len__dtl))[0],
-        1
-      )
-    );
-    FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
-        &tls_ctx->rec_prot__t,
-        hash_ctx,
-        cert_chain__pt[i].data__pcu8,
-        cert_chain__pt[i].len__dtl
-      )
-    );
-  }
-
-  FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_tls__send_certificate */
 
 /*
  * Note: The version number in the PreMasterSecret is the version
@@ -723,15 +624,32 @@ flea_err_t THR_flea_tls__server_handshake(
               key_block_len__alu8
             )
           );
-          FLEA_CCALL(
-            THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-              &tls_ctx->rec_prot__t,
-              flea_tls_read,
-              FLEA_TLS_SERVER,
-              tls_ctx->selected_cipher_suite__u16,
-              tls_ctx->key_block
-            )
-          );
+
+          // TODO: quick & dirty, use a better way to call the appropriate
+          if(tls_ctx->selected_cipher_suite__u16 == 156)
+          {
+            FLEA_CCALL(
+              THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
+                &tls_ctx->rec_prot__t,
+                flea_tls_read,
+                FLEA_TLS_SERVER,
+                tls_ctx->selected_cipher_suite__u16,
+                tls_ctx->key_block
+              )
+            );
+          }
+          else
+          {
+            FLEA_CCALL(
+              THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+                &tls_ctx->rec_prot__t,
+                flea_tls_read,
+                FLEA_TLS_SERVER,
+                tls_ctx->selected_cipher_suite__u16,
+                tls_ctx->key_block
+              )
+            );
+          }
           // enable encryption for read direction
 
           /*FLEA_CCALL(
@@ -802,15 +720,31 @@ flea_err_t THR_flea_tls__server_handshake(
       {
         FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx));
 
-        FLEA_CCALL(
-          THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-            &tls_ctx->rec_prot__t,
-            flea_tls_write,
-            FLEA_TLS_SERVER,
-            tls_ctx->selected_cipher_suite__u16,
-            tls_ctx->key_block
-          )
-        );
+        // TODO: quick & dirty, use a better way to call the appropriate
+        if(tls_ctx->selected_cipher_suite__u16 == 156)
+        {
+          FLEA_CCALL(
+            THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
+              &tls_ctx->rec_prot__t,
+              flea_tls_write,
+              FLEA_TLS_SERVER,
+              tls_ctx->selected_cipher_suite__u16,
+              tls_ctx->key_block
+            )
+          );
+        }
+        else
+        {
+          FLEA_CCALL(
+            THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+              &tls_ctx->rec_prot__t,
+              flea_tls_write,
+              FLEA_TLS_SERVER,
+              tls_ctx->selected_cipher_suite__u16,
+              tls_ctx->key_block
+            )
+          );
+        }
 
         /*FLEA_CCALL(
          * THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
@@ -850,6 +784,7 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   flea_ref_cu8_t*   cert_chain__pt,
   flea_al_u8_t      cert_chain_len__alu8,
   flea_ref_cu8_t*   server_key__pt
+  // TODO: include trust store for client certs
 )
 {
   flea_err_t err__t;

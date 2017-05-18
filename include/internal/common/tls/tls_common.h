@@ -20,6 +20,13 @@ flea_err_t THR_flea_tls__read_certificate(
   flea_tls_cert_path_params_t const* cert_path_params__pct
 );
 
+flea_err_t THR_flea_tls__send_certificate(
+  flea_tls_ctx_t*  tls_ctx,
+  flea_hash_ctx_t* hash_ctx,
+  flea_ref_cu8_t*  cert_chain__pt,
+  flea_u8_t        cert_chain_len__u8
+);
+
 flea_err_t THR_flea_tls__send_handshake_message_hdr(
   flea_tls_rec_prot_t* rec_prot__pt,
   flea_hash_ctx_t*     hash_ctx_mbn__pt,

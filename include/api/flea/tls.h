@@ -41,7 +41,7 @@ typedef enum
   HANDSHAKE_TYPE_NEW_SESSION_TICKET  = 4,
   HANDSHAKE_TYPE_CERTIFICATE         = 11,
   HANDSHAKE_TYPE_SERVER_KEY_EXCHANGE = 12,
-  HANDSHAKE_TYPE_CERTIFCATE_REQUEST  = 13,
+  HANDSHAKE_TYPE_CERTIFICATE_REQUEST = 13,
   HANDSHAKE_TYPE_SERVER_HELLO_DONE   = 14,
   HANDSHAKE_TYPE_CERTIFICATE_VERIFY  = 15,
   HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE = 16,
@@ -167,7 +167,7 @@ typedef struct
    */
 
   // define 4 parameters independently instead of list of cipher suites
-  flea_u8_t                    allowed_cipher_suites[2]; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
+  flea_u8_t                    allowed_cipher_suites[4]; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
   flea_u8_t                    allowed_cipher_suites_len__u8;
   flea_u16_t                   selected_cipher_suite__u16;
 

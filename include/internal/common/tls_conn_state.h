@@ -38,10 +38,26 @@ typedef struct
 
 typedef struct
 {
+  flea_ae_id_t cipher_id;
+  flea_u8_t    cipher_key_size__u8;
+  flea_u8_t    fixed_iv_length__u8;
+  flea_u8_t    record_iv_length__u8;
+} flea_tls_gcm_suite_config_t;
+
+typedef struct
+{
+  flea_u8_t* cipher_key__bu8;
+  flea_u8_t* fixed_iv__bu8;
+  flea_u8_t* record_iv__bu8;
+} flea_tls_gcm_conn_t;
+
+typedef struct
+{
   flea_tls__cipher_suite_id_t cipher_suite_id;
   union
   {
     flea_tls_cbc_hmac_suite_config_t cbc_hmac_config__t;
+    flea_tls_gcm_suite_config_t      gcm_config__t;
   } suite_specific__u;
 } flea_tls_cipher_suite_config_t;
 
@@ -52,6 +68,7 @@ typedef struct
   union
   {
     flea_tls_cbc_hmac_conn_t cbc_hmac_conn_state__t;
+    flea_tls_gcm_conn_t      gcm_conn_state__t;
   } suite_specific__u;
 } flea_tls_conn_state_t;
 
@@ -73,6 +90,15 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_cbc_hmac(
   const flea_u8_t*       mac_key__pcu8,
   flea_al_u8_t           mac_key_len__alu8,
   flea_al_u8_t           mac_size__alu8
+);
+
+flea_err_t THR_flea_tls_conn_state_t__ctor_gcm(
+  flea_tls_conn_state_t* conn_state__pt,
+  flea_ae_id_t           ae_cipher_id,
+  const flea_u8_t*       cipher_key__pcu8,
+  flea_al_u8_t           cipher_key_len__alu8,
+  const flea_u8_t*       fixed_iv__pcu8,
+  flea_al_u8_t           fixed_iv_len__alu8
 );
 
 #ifdef __cplusplus

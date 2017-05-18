@@ -412,6 +412,105 @@ flea_err_t THR_flea_tls__read_certificate(
   );
 } /* THR_flea_tls__read_certificate */
 
+flea_err_t THR_flea_tls__send_certificate(
+  flea_tls_ctx_t*  tls_ctx,
+  flea_hash_ctx_t* hash_ctx,
+  flea_ref_cu8_t*  cert_chain__pt,
+  flea_u8_t        cert_chain_len__u8
+)
+{
+  flea_u32_t hdr_len__u32;
+  flea_u32_t cert_list_len__u32;
+
+  FLEA_THR_BEG_FUNC();
+
+  // TODO: enable option to exclude the root CA (RFC: MAY be ommited)
+
+  // calculate length for the header
+  hdr_len__u32 = 3; // 3 byte for length of certificate list
+  for(flea_u8_t i = 0; i < cert_chain_len__u8; i++)
+  {
+    hdr_len__u32 += 3; // 3 byte for length encoding of each certificate
+    hdr_len__u32 += cert_chain__pt[i].len__dtl;
+  }
+
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_hdr(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      HANDSHAKE_TYPE_CERTIFICATE,
+      hdr_len__u32
+    )
+  );
+
+  // encode length
+  // TODO use stream function for encoding
+  cert_list_len__u32 = hdr_len__u32 - 3;
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      &((flea_u8_t*) &cert_list_len__u32)[2],
+      1
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      &((flea_u8_t*) &cert_list_len__u32)[1],
+      1
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx->rec_prot__t,
+      hash_ctx,
+      &((flea_u8_t*) &cert_list_len__u32)[0],
+      1
+    )
+  );
+
+  // TODO use stream function for encoding
+  for(flea_u8_t i = 0; i < cert_chain_len__u8; i++)
+  {
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_content(
+        &tls_ctx->rec_prot__t,
+        hash_ctx,
+        &((flea_u8_t*) &(cert_chain__pt[i].len__dtl))[2],
+        1
+      )
+    );
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_content(
+        &tls_ctx->rec_prot__t,
+        hash_ctx,
+        &((flea_u8_t*) &(cert_chain__pt[i].len__dtl))[1],
+        1
+      )
+    );
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_content(
+        &tls_ctx->rec_prot__t,
+        hash_ctx,
+        &((flea_u8_t*) &(cert_chain__pt[i].len__dtl))[0],
+        1
+      )
+    );
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_content(
+        &tls_ctx->rec_prot__t,
+        hash_ctx,
+        cert_chain__pt[i].data__pcu8,
+        cert_chain__pt[i].len__dtl
+      )
+    );
+  }
+
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_tls__send_certificate */
+
 flea_err_t THR_flea_tls__send_handshake_message_hdr(
   flea_tls_rec_prot_t* rec_prot__pt,
   flea_hash_ctx_t*     hash_ctx_mbn__pt,
@@ -507,10 +606,15 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
   /* set cipher suite values */
   // flea_u8_t single_suite[] = {0x00, 0x3D};
   flea_u8_t single_suite[] = {0x00, 0x35};
+  flea_u8_t two_suites[]   = {0x00, 0x9c, 0x00, 0x35};
 
   // ctx->allowed_cipher_suites = calloc(2, sizeof(flea_u8_t));
-  memcpy(ctx->allowed_cipher_suites, single_suite, 2);
-  ctx->allowed_cipher_suites_len__u8 = 2;
+  // memcpy(ctx->allowed_cipher_suites, single_suite, 2);
+  // ctx->allowed_cipher_suites_len__u8 = 2;
+
+  memcpy(ctx->allowed_cipher_suites, two_suites, 4);
+  ctx->allowed_cipher_suites_len__u8 = 4;
+
 
   // CipherSuite TLS_NULL_WITH_NULL_NULL = { 0x00,0x00 };
 
@@ -624,7 +728,7 @@ flea_err_t THR_flea_tls__send_finished(
   FLEA_DECL_OBJ(hash_ctx_copy, flea_hash_ctx_t);
   FLEA_THR_BEG_FUNC();
 
-  // compute hash over handshake messages so far and create struct
+  // compute hash over handshake messages so far
   FLEA_ALLOC_BUF(verify_data__bu8, verify_data_len__alu8 + 32);
   messages_hash__pu8 = verify_data__bu8 + verify_data_len__alu8;
 
