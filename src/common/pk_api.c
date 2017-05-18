@@ -190,13 +190,11 @@ flea_err_t THR_flea_pk_api__sign_digest(
   }
   FLEA_ALLOC_BUF(primitive_input__bu8, FLEA_MAX(primitive_input_len__alu16, FLEA_MAX_HASH_OUT_LEN));
   // get the final hash value
-  // FLEA_CCALL(THR_flea_hash_ctx_t__final(&signer__pt->hash_ctx, primitive_input__bu8));
   if(digest_len__alu8 > FLEA_MAX_HASH_OUT_LEN)
   {
     FLEA_THROW("signature for extraneous digest length requested", FLEA_ERR_INV_ARG);
   }
   memcpy(primitive_input__bu8, digest__pcu8, digest_len__alu8);
-  // digest_len__alu16 = flea_hash_ctx_t__get_output_length(&signer__pt->hash_ctx);
   if(encoding_id__t == flea_emsa1)
   {
     FLEA_CCALL(
