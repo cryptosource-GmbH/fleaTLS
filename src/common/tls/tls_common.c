@@ -421,6 +421,7 @@ flea_err_t THR_flea_tls__send_certificate(
 {
   flea_u32_t hdr_len__u32;
   flea_u32_t cert_list_len__u32;
+  flea_u8_t enc_len__au8[3];
 
   FLEA_THR_BEG_FUNC();
 
@@ -443,59 +444,34 @@ flea_err_t THR_flea_tls__send_certificate(
     )
   );
 
-  // encode length
-  // TODO use stream function for encoding
+
   cert_list_len__u32 = hdr_len__u32 - 3;
+  enc_len__au8[0]    = cert_list_len__u32 >> 16;
+  enc_len__au8[1]    = cert_list_len__u32 >> 8;
+  enc_len__au8[2]    = cert_list_len__u32;
+
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx->rec_prot__t,
       hash_ctx,
-      &((flea_u8_t*) &cert_list_len__u32)[2],
-      1
-    )
-  );
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx->rec_prot__t,
-      hash_ctx,
-      &((flea_u8_t*) &cert_list_len__u32)[1],
-      1
-    )
-  );
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx->rec_prot__t,
-      hash_ctx,
-      &((flea_u8_t*) &cert_list_len__u32)[0],
-      1
+      enc_len__au8,
+      3
     )
   );
 
   // TODO use stream function for encoding
   for(flea_u8_t i = 0; i < cert_chain_len__u8; i++)
   {
+    enc_len__au8[0] = cert_chain__pt[i].len__dtl >> 16;
+    enc_len__au8[1] = cert_chain__pt[i].len__dtl >> 8;
+    enc_len__au8[2] = cert_chain__pt[i].len__dtl;
+
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_content(
         &tls_ctx->rec_prot__t,
         hash_ctx,
-        &((flea_u8_t*) &(cert_chain__pt[i].len__dtl))[2],
-        1
-      )
-    );
-    FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
-        &tls_ctx->rec_prot__t,
-        hash_ctx,
-        &((flea_u8_t*) &(cert_chain__pt[i].len__dtl))[1],
-        1
-      )
-    );
-    FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
-        &tls_ctx->rec_prot__t,
-        hash_ctx,
-        &((flea_u8_t*) &(cert_chain__pt[i].len__dtl))[0],
-        1
+        enc_len__au8,
+        3
       )
     );
     FLEA_CCALL(

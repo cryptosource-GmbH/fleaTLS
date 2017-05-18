@@ -576,9 +576,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
     FLEA_THROW("MAC failure", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
   }
 
-  /*
-   * adjust record
-   */
   memmove(data, data + iv_len, data_len);
   *decrypted_len__palu16 = data_len;
   FLEA_THR_FIN_SEC_empty();
@@ -667,8 +664,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_gcm(
   const flea_u8_t fixed_iv_len__u8 =
     rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.fixed_iv_length__u8;
 
-  FLEA_DECL_BUF(dec_out__bu8, flea_u8_t, 10000); // TODO: do in-place instead of using a new buffer!
-
 
   FLEA_THR_BEG_FUNC();
   flea_u8_t* enc_key    = rec_prot__pt->read_state__t.suite_specific__u.gcm_conn_state__t.cipher_key__bu8;
@@ -708,7 +703,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_gcm(
   memcpy(gcm_header__au8 + 11, enc_data_len__au8, 2);
 
   gcm_tag__pu8 = data + (data_len - gcm_tag_len__u8);
-  FLEA_ALLOC_BUF(dec_out__bu8, data_len - record_iv_len__u8 - gcm_tag_len__u8);
 
   FLEA_CCALL(
     THR_flea_ae__decrypt(
@@ -720,18 +714,15 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_gcm(
       gcm_header__au8,
       sizeof(gcm_header__au8),
       data + record_iv_len__u8,
-      dec_out__bu8,
+      data + record_iv_len__u8,
       *decrypted_len__palu16,
       gcm_tag__pu8,
       gcm_tag_len__u8
     )
   );
 
-
-  memcpy(data, dec_out__bu8, *decrypted_len__palu16);
-  FLEA_THR_FIN_SEC(
-    FLEA_FREE_BUF_FINAL(dec_out__bu8);
-  );
+  memmove(data, data + record_iv_len__u8, *decrypted_len__palu16);
+  FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__decrypt_record_gcm */
 
 static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
@@ -742,11 +733,11 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   flea_al_u16_t length_tot;
   flea_u8_t enc_seq_nbr__au8[8];
   flea_u32_t seq_lo__u32, seq_hi__u32;
-  flea_u8_t gcm_tag__au8[16];
-  flea_u8_t gcm_header__au8[13]; // 8+1+2+2
+  // flea_u8_t gcm_tag__au8[16];
+  flea_u8_t* gcm_tag__pu8;
+  flea_u8_t gcm_tag_len__u8 = 16; // TODO: define somewhere else
+  flea_u8_t gcm_header__au8[13];  // 8+1+2+2
   flea_u8_t enc_data_len__au8[2];
-
-  FLEA_DECL_BUF(enc_out__bu8, flea_u8_t, 10000); // TODO: do in-place instead of using a new buffer!
 
   FLEA_THR_BEG_FUNC();
   flea_u8_t* enc_key    = rec_prot__pt->write_state__t.suite_specific__u.gcm_conn_state__t.cipher_key__bu8;
@@ -782,7 +773,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   flea_u8_t* data        = rec_prot__pt->send_payload_buf__pu8;
   flea_al_u16_t data_len = rec_prot__pt->send_payload_used_len__u16;
 
-
   // copy seq nr, type, version, length into gcm header
   enc_data_len__au8[0] = data_len >> 8;
   enc_data_len__au8[1] = data_len;
@@ -792,9 +782,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   memcpy(gcm_header__au8 + 10, &rec_prot__pt->prot_version__t.minor, 1);
   memcpy(gcm_header__au8 + 11, enc_data_len__au8, 2);
 
-  // create buffer for input/output
-  FLEA_ALLOC_BUF(enc_out__bu8, data_len);
-
+  // set gcm tag to point "behind the data"
+  gcm_tag__pu8 = data + data_len;
 
   FLEA_CCALL(
     THR_flea_ae__encrypt(
@@ -806,29 +795,24 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
       gcm_header__au8,         // header, (=> additional data)
       sizeof(gcm_header__au8), // header_len,
       data,
-      enc_out__bu8, // TODO: in-place
+      data,
       data_len,
-      gcm_tag__au8,// flea_u8_t * tag,
-      sizeof(gcm_tag__au8)// flea_al_u8_t tag_len
+      gcm_tag__pu8,
+      gcm_tag_len__u8
     )
   );
 
-  // copy output back to data, TODO: remove (in-place)
-  memcpy(data, enc_out__bu8, data_len);
-
   // copy authentication tag
-  memcpy(data + data_len, gcm_tag__au8, sizeof(gcm_tag__au8));
+  // memcpy(data + data_len, gcm_tag__au8, sizeof(gcm_tag__au8));
 
   length_tot = data_len
     + rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8
-    + sizeof(gcm_tag__au8);
+    + gcm_tag_len__u8;
   rec_prot__pt->send_buf_raw__pu8[3] = length_tot >> 8;
   rec_prot__pt->send_buf_raw__pu8[4] = length_tot;
-  *encrypted_len__palu16 = data_len + sizeof(gcm_tag__au8);
+  *encrypted_len__palu16 = data_len + gcm_tag_len__u8;
 
-  FLEA_THR_FIN_SEC(
-    FLEA_FREE_BUF_FINAL(enc_out__bu8);
-  );
+  FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__encrypt_record_gcm */
 
 flea_err_t THR_flea_tls_rec_prot_t__write_flush(

@@ -16,6 +16,8 @@
 #include "flea/rng.h"
 #include <stdio.h>
 #include "flea/pk_api.h"
+#include "flea/pkcs8.h"
+
 #ifdef FLEA_HAVE_TLS
 
 flea_err_t THR_flea_tls__read_server_hello(
