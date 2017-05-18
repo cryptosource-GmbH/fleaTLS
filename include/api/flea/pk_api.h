@@ -181,6 +181,14 @@ flea_err_t THR_flea_pk_signer_t__final_sign(
   flea_byte_vec_t*          sig_vec__pt
 );
 
+flea_err_t THR_flea_pk_api__sign_digest(
+  const flea_u8_t*          digest__pcu8,
+  flea_al_u8_t              digest_len__alu8,
+  flea_hash_id_t            hash_id__e,
+  flea_pk_scheme_id_t       id__t,
+  const flea_private_key_t* privkey__pt,
+  flea_byte_vec_t*          sig_vec__pt
+);
 
 /**
  *  Encrypt a message using a public key scheme.
