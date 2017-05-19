@@ -703,6 +703,7 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
       flea_al_u8_t key_block_len__alu8;
 
       // if we have to send a certificate, send it now
+      // TODO
 # include "tls_server_certs.h"
       if(handshake_state.send_client_cert == FLEA_TRUE)
       {
