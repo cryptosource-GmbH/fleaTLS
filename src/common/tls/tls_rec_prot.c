@@ -265,59 +265,25 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite_inner(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite_inner */
 
-flea_err_t THR_flea_tls_rec_prot_t__set_ciphersuite(
-  flea_tls_rec_prot_t*        rec_prot__pt,
-  flea_tls_stream_dir_e       direction,
-  flea_tls__connection_end_t  conn_end__e,
-  flea_tls__cipher_suite_id_t suite_id,
-  const flea_u8_t*            key_block__pcu8
+static flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+  flea_tls_rec_prot_t*            rec_prot__pt,
+  flea_tls_stream_dir_e           direction,
+  flea_tls__connection_end_t      conn_end__e,
+  // flea_tls__cipher_suite_id_t suite_id,
+  const flea_tls__cipher_suite_t* suite__pt,
+  const flea_u8_t*                key_block__pcu8
 )
 {
-  FLEA_THR_BEG_FUNC();
-  // TODO: THIS BECOMES CHECK FOR AE AND GCM
-  if(suite_id == 156)
-  {
-    FLEA_CCALL(
-      THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
-        rec_prot__pt,
-        direction,
-        conn_end__e,
-        suite_id,
-        key_block__pcu8
-      )
-    );
-  }
-  else
-  {
-    FLEA_CCALL(
-      THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-        rec_prot__pt,
-        direction,
-        conn_end__e,
-        suite_id,
-        key_block__pcu8
-      )
-    );
-  }
-  FLEA_THR_FIN_SEC_empty();
-}
-
-flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-  flea_tls_rec_prot_t*        rec_prot__pt,
-  flea_tls_stream_dir_e       direction,
-  flea_tls__connection_end_t  conn_end__e,
-  flea_tls__cipher_suite_id_t suite_id,
-  const flea_u8_t*            key_block__pcu8
-)
-{
+  // const flea_tls__cipher_suite_t* suite__pt;
   FLEA_THR_BEG_FUNC();
   flea_al_u8_t mac_key_len__alu8, mac_len__alu8, cipher_key_len__alu8;
   flea_al_u8_t mac_key_offs__alu8 = 0, ciph_key_offs__alu8 = 0;
-  const flea_tls__cipher_suite_t* suite__pt = flea_tls_get_cipher_suite_by_id(suite_id);
-  if(suite__pt == NULL)
-  {
-    FLEA_THROW("invalid ciphersuite selected", FLEA_ERR_INT_ERR);
-  }
+
+  /*FLEA_CCALL(THR_flea_tls_get_cipher_suite_by_id(suite_id, &suite__pt));
+   * if(suite__pt == NULL)
+   * {
+   * FLEA_THROW("invalid ciphersuite selected", FLEA_ERR_INT_ERR);
+   * }*/
   mac_key_len__alu8    = suite__pt->mac_key_size;
   mac_len__alu8        = suite__pt->mac_size;
   cipher_key_len__alu8 = suite__pt->enc_key_size;
@@ -406,18 +372,20 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_gcm_ciphersuite_inner(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__set_gcm_ciphersuite_inner */
 
-flea_err_t THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
-  flea_tls_rec_prot_t*        rec_prot__pt,
-  flea_tls_stream_dir_e       direction,
-  flea_tls__connection_end_t  conn_end__e,
-  flea_tls__cipher_suite_id_t suite_id,
-  const flea_u8_t*            key_block__pcu8
+static flea_err_t THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
+  flea_tls_rec_prot_t*            rec_prot__pt,
+  flea_tls_stream_dir_e           direction,
+  flea_tls__connection_end_t      conn_end__e,
+  // flea_tls__cipher_suite_id_t suite_id,
+  const flea_tls__cipher_suite_t* suite__pt,
+  const flea_u8_t*                key_block__pcu8
 )
 {
+  // const flea_tls__cipher_suite_t* suite__pt
   FLEA_THR_BEG_FUNC();
   flea_al_u8_t fixed_iv_len__alu8, cipher_key_len__alu8;
   flea_al_u8_t fixed_iv_offs__alu8 = 0, ciph_key_offs__alu8 = 0;
-  const flea_tls__cipher_suite_t* suite__pt = flea_tls_get_cipher_suite_by_id(suite_id);
+  // = flea_tls_get_cipher_suite_by_id(suite_id);
   if(suite__pt == NULL)
   {
     FLEA_THROW("invalid ciphersuite selected", FLEA_ERR_INT_ERR);
@@ -446,6 +414,45 @@ flea_err_t THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
   );
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__set_gcm_ciphersuite */
+
+flea_err_t THR_flea_tls_rec_prot_t__set_ciphersuite(
+  flea_tls_rec_prot_t*        rec_prot__pt,
+  flea_tls_stream_dir_e       direction,
+  flea_tls__connection_end_t  conn_end__e,
+  flea_tls__cipher_suite_id_t suite_id,
+  const flea_u8_t*            key_block__pcu8
+)
+{
+  const flea_tls__cipher_suite_t* suite__pt;
+
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_tls_get_cipher_suite_by_id(suite_id, &suite__pt));
+  if(FLEA_TLS_IS_AE_CIPHER(suite__pt->cipher))
+  {
+    FLEA_CCALL(
+      THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
+        rec_prot__pt,
+        direction,
+        conn_end__e,
+        suite__pt,
+        key_block__pcu8
+      )
+    );
+  }
+  else
+  {
+    FLEA_CCALL(
+      THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+        rec_prot__pt,
+        direction,
+        conn_end__e,
+        suite__pt,
+        key_block__pcu8
+      )
+    );
+  }
+  FLEA_THR_FIN_SEC_empty();
+}
 
 void flea_tls_rec_prot_t__set_record_header(
   flea_tls_rec_prot_t* rec_prot__pt,

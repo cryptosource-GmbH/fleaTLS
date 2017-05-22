@@ -129,6 +129,8 @@ typedef enum
 
   FLEA_ERR_TLS_PROT_DECODE_ERR                          = 0x54,
 
+  FLEA_ERR_TLS_INV_CIPH_SUITE                           = 0x55,
+
   /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */
