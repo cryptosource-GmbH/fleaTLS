@@ -638,33 +638,15 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
             )
           );
 
-
-          // TODO: quick & dirty, use a better way to call the appropriate
-          // function
-          if(tls_ctx->selected_cipher_suite__u16 == 156)
-          {
-            FLEA_CCALL(
-              THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
-                &tls_ctx->rec_prot__t,
-                flea_tls_read,
-                FLEA_TLS_CLIENT,
-                tls_ctx->selected_cipher_suite__u16,
-                tls_ctx->key_block
-              )
-            );
-          }
-          else
-          {
-            FLEA_CCALL(
-              THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-                &tls_ctx->rec_prot__t,
-                flea_tls_read,
-                FLEA_TLS_CLIENT,
-                tls_ctx->selected_cipher_suite__u16,
-                tls_ctx->key_block
-              )
-            );
-          }
+          FLEA_CCALL(
+            THR_flea_tls_rec_prot_t__set_ciphersuite(
+              &tls_ctx->rec_prot__t,
+              flea_tls_read,
+              FLEA_TLS_CLIENT,
+              tls_ctx->selected_cipher_suite__u16,
+              tls_ctx->key_block
+            )
+          );
           handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
 
           continue;
@@ -747,10 +729,6 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
         )
       );
 
-      // TODO(FS): warum gibt es zwei Stellen an denen die ciphersuite gesetzt wird?
-      // TODO: quick & dirty, use a better way to call the appropriate
-      // function
-      //
       FLEA_CCALL(
         THR_flea_tls_rec_prot_t__set_ciphersuite(
           &tls_ctx->rec_prot__t,
@@ -760,32 +738,6 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
           tls_ctx->key_block
         )
       );
-# if 0
-      if(tls_ctx->selected_cipher_suite__u16 == 156)
-      {
-        FLEA_CCALL(
-          THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
-            &tls_ctx->rec_prot__t,
-            flea_tls_write,
-            FLEA_TLS_CLIENT,
-            tls_ctx->selected_cipher_suite__u16,
-            tls_ctx->key_block
-          )
-        );
-      }
-      else
-      {
-        FLEA_CCALL(
-          THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-            &tls_ctx->rec_prot__t,
-            flea_tls_write,
-            FLEA_TLS_CLIENT,
-            tls_ctx->selected_cipher_suite__u16,
-            tls_ctx->key_block
-          )
-        );
-      }
-# endif /* if 0 */
 
 
       FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &hash_ctx));
