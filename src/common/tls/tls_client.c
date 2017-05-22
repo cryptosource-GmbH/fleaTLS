@@ -31,6 +31,8 @@ flea_err_t THR_flea_tls__read_server_hello(
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_u8_t ciphersuite__au8[2];
 
+  // flea_u16_t cipher_suite_id__u16;
+
   FLEA_DECL_BUF(session_id__bu8, flea_u8_t, 32);
   const flea_al_u8_t max_session_id_len__alu8 = 32;
   FLEA_THR_BEG_FUNC();
@@ -91,10 +93,13 @@ flea_err_t THR_flea_tls__read_server_hello(
   // read cipher suites
   FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, ciphersuite__au8, sizeof(ciphersuite__au8)));
 
-  tls_ctx->selected_cipher_suite__u16 = FLEA_TLS_RSA_WITH_AES_256_CBC_SHA;
-  tls_ctx->selected_cipher_suite__u16 = FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256;
+  tls_ctx->selected_cipher_suite__u16 = flea__decode_U16_BE(ciphersuite__au8);
+  // TODO: CHECK THAT SUITE IS ALLOWED
+
+  /*tls_ctx->selected_cipher_suite__u16 = FLEA_TLS_RSA_WITH_AES_256_CBC_SHA;
+   * tls_ctx->selected_cipher_suite__u16 = FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256;*/
   // TODO: CHECK / SELECT CIPHERSUITE
-  // - must be among presented ones in client hello
+  // - must be among presented ones in client hello => contained in allowed suites AND supported by compile config
   // read compression method
   // server_hello->compression_method = handshake_msg->data[length++];
 
