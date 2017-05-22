@@ -750,7 +750,6 @@ flea_err_t THR_flea_tls__server_handshake(
             &premaster_secret__t
           )
         );
-        // FLEA_CCALL(THR_flea_tls__read_handshake_message(tls_ctx, &recv_handshake, &hash_ctx));
       }
       else if(cont_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
       {
@@ -802,6 +801,7 @@ flea_err_t THR_flea_tls__server_handshake(
             )
           );
 
+          // enable encryption for read direction
           FLEA_CCALL(
             THR_flea_tls_rec_prot_t__set_ciphersuite(
               &tls_ctx->rec_prot__t,
@@ -811,50 +811,6 @@ flea_err_t THR_flea_tls__server_handshake(
               tls_ctx->key_block
             )
           );
-# if 0
-          // TODO: quick & dirty, use a better way to call the appropriate
-          if(tls_ctx->selected_cipher_suite__u16 == 156)
-          {
-            FLEA_CCALL(
-              THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
-                &tls_ctx->rec_prot__t,
-                flea_tls_read,
-                FLEA_TLS_SERVER,
-                tls_ctx->selected_cipher_suite__u16,
-                tls_ctx->key_block
-              )
-            );
-          }
-          else
-          {
-            FLEA_CCALL(
-              THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-                &tls_ctx->rec_prot__t,
-                flea_tls_read,
-                FLEA_TLS_SERVER,
-                tls_ctx->selected_cipher_suite__u16,
-                tls_ctx->key_block
-              )
-            );
-          }
-# endif /* if 0 */
-          // enable encryption for read direction
-
-          /*FLEA_CCALL(
-           * THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-           *  &tls_ctx->rec_prot__t,
-           *  flea_tls_read,
-           *  flea_aes256,
-           *  // flea_sha256,
-           *  // flea_hmac_sha256,
-           *  suite__pt->mac_algorithm,
-           *  tls_ctx->key_block + 2 * mac_key_len__alu8,
-           *  cipher_key_len__alu8,
-           *  tls_ctx->key_block,
-           *  mac_key_len__alu8,// 32,
-           *  mac_len__alu8// 32
-           * )
-           * );*/
 
 
           handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;

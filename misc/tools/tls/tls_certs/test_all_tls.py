@@ -77,3 +77,4 @@ error_cnt += test_flea_client_against_exernal_server('start_ossl_server.sh')
 #print("first 2 passed")
 #out##error_cnt += test_flea_client_against_exernal_server('start_ossl_client.sh') // does not work so far
 print ("there were " + str(error_cnt) + " failed tests")
+subprocess.Popen('killall openssl', shell=True)
