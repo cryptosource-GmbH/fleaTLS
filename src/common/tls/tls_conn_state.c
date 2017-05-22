@@ -7,7 +7,7 @@
 
 static void flea_tls_conn_state_t__unset_cipher_suite(flea_tls_conn_state_t* conn_state__pt)
 {
-  if(conn_state__pt->cipher_suite_config__t.cipher_suite_id == TLS_RSA_WITH_AES_256_CBC_SHA256)
+  if(conn_state__pt->cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256)
   {
     FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(
       conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8,
@@ -15,7 +15,7 @@ static void flea_tls_conn_state_t__unset_cipher_suite(flea_tls_conn_state_t* con
       + conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_key_size__u8
     );
   }
-  else if(conn_state__pt->cipher_suite_config__t.cipher_suite_id == TLS_RSA_WITH_AES_128_GCM_SHA256)
+  else if(conn_state__pt->cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256)
   {
     FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(
       conn_state__pt->suite_specific__u.gcm_conn_state__t.cipher_key__bu8,
@@ -23,12 +23,12 @@ static void flea_tls_conn_state_t__unset_cipher_suite(flea_tls_conn_state_t* con
       + conn_state__pt->cipher_suite_config__t.suite_specific__u.gcm_config__t.cipher_key_size__u8
     );
   }
-  conn_state__pt->cipher_suite_config__t.cipher_suite_id = TLS_NULL_WITH_NULL_NULL;
+  conn_state__pt->cipher_suite_config__t.cipher_suite_id = FLEA_TLS_NULL_WITH_NULL_NULL;
 }
 
 void flea_tls_conn_state_t__ctor_no_cipher(flea_tls_conn_state_t* conn_state__pt)
 {
-  conn_state__pt->cipher_suite_config__t.cipher_suite_id = TLS_NULL_WITH_NULL_NULL;
+  conn_state__pt->cipher_suite_config__t.cipher_suite_id = FLEA_TLS_NULL_WITH_NULL_NULL;
 }
 
 flea_err_t THR_flea_tls_conn_state_t__ctor_cbc_hmac(
@@ -53,7 +53,7 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_cbc_hmac(
     conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8 + cipher_key_len__alu8;
 #endif
   // TODO: hardcoded
-  conn_state__pt->cipher_suite_config__t.cipher_suite_id = TLS_RSA_WITH_AES_256_CBC_SHA256;
+  conn_state__pt->cipher_suite_config__t.cipher_suite_id = FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256;
   conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id = block_cipher_id;
   // conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.hash_id             = hash_id;
   conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_size__u8        = mac_size__alu8;
@@ -101,7 +101,7 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_gcm(
     conn_state__pt->suite_specific__u.gcm_conn_state__t.cipher_key__bu8 + cipher_key_len__alu8 + fixed_iv_len__alu8;
 #endif /* ifdef FLEA_USE_HEAP_BUF */
   // TODO: hardcoded
-  conn_state__pt->cipher_suite_config__t.cipher_suite_id = TLS_RSA_WITH_AES_128_GCM_SHA256;
+  conn_state__pt->cipher_suite_config__t.cipher_suite_id = FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256;
   conn_state__pt->cipher_suite_config__t.suite_specific__u.gcm_config__t.cipher_id = ae_cipher_id;
 
   conn_state__pt->cipher_suite_config__t.suite_specific__u.gcm_config__t.cipher_key_size__u8  = cipher_key_len__alu8;

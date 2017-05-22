@@ -197,6 +197,13 @@ flea_err_t THR_flea_tls_rec_prot_t__send_fatal_alert_and_throw(
   flea_err_t                    err__t
 );
 
+flea_err_t THR_flea_tls_rec_prot_t__set_ciphersuite(
+  flea_tls_rec_prot_t*        rec_prot__pt,
+  flea_tls_stream_dir_e       direction,
+  flea_tls__connection_end_t  conn_end__e,
+  flea_tls__cipher_suite_id_t suite_id,
+  const flea_u8_t*            key_block__pcu8
+);
 
 void flea_tls_rec_prot_t__discard_current_read_record(flea_tls_rec_prot_t* rec_prot__pt);
 

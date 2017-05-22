@@ -265,6 +265,43 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite_inner(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite_inner */
 
+flea_err_t THR_flea_tls_rec_prot_t__set_ciphersuite(
+  flea_tls_rec_prot_t*        rec_prot__pt,
+  flea_tls_stream_dir_e       direction,
+  flea_tls__connection_end_t  conn_end__e,
+  flea_tls__cipher_suite_id_t suite_id,
+  const flea_u8_t*            key_block__pcu8
+)
+{
+  FLEA_THR_BEG_FUNC();
+  // TODO: THIS BECOMES CHECK FOR AE AND GCM
+  if(suite_id == 156)
+  {
+    FLEA_CCALL(
+      THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
+        rec_prot__pt,
+        direction,
+        conn_end__e,
+        suite_id,
+        key_block__pcu8
+      )
+    );
+  }
+  else
+  {
+    FLEA_CCALL(
+      THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
+        rec_prot__pt,
+        direction,
+        conn_end__e,
+        suite_id,
+        key_block__pcu8
+      )
+    );
+  }
+  FLEA_THR_FIN_SEC_empty();
+}
+
 flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
   flea_tls_rec_prot_t*        rec_prot__pt,
   flea_tls_stream_dir_e       direction,
@@ -297,7 +334,7 @@ flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
       rec_prot__pt,
       // flea_tls_read,
       direction,
-      flea_aes256,
+      flea_aes256, // TODO: REPLACE BY DYN VALUE
       // flea_sha256,
       // flea_hmac_sha256,
       suite__pt->mac_algorithm,
@@ -824,7 +861,7 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
   {
     FLEA_THR_RETURN();
   }
-  if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == TLS_RSA_WITH_AES_256_CBC_SHA256)
+  if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256)
   {
     flea_al_u16_t encrypted_len__alu16;
     FLEA_CCALL(THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(rec_prot__pt, &encrypted_len__alu16));
@@ -838,7 +875,7 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
 
     inc_seq_nbr(rec_prot__pt->write_state__t.sequence_number__au32);
   }
-  else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == TLS_RSA_WITH_AES_128_GCM_SHA256)
+  else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256)
   {
     flea_al_u16_t encrypted_len__alu16;
     FLEA_CCALL(THR_flea_tls_rec_prot_t__encrypt_record_gcm(rec_prot__pt, &encrypted_len__alu16));
@@ -853,7 +890,7 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
     inc_seq_nbr(rec_prot__pt->write_state__t.sequence_number__au32);
   }
 
-  else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == TLS_NULL_WITH_NULL_NULL)
+  else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_NULL_WITH_NULL_NULL)
   {
     rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->send_payload_used_len__u16 >> 8;
     rec_prot__pt->send_buf_raw__pu8[4] = rec_prot__pt->send_payload_used_len__u16;
@@ -1127,7 +1164,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
       /* not needed any more, reset: */
       rec_prot__pt->read_bytes_from_current_record__u16 = 0;
       rec_prot__pt->current_record_content_len__u16     = 0;
-      if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_id == TLS_RSA_WITH_AES_256_CBC_SHA256)
+      if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256)
       {
         FLEA_CCALL(
           THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
@@ -1139,7 +1176,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         rec_prot__pt->payload_used_len__u16 = raw_rec_content_len__alu16;
         inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
       }
-      if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_id == TLS_RSA_WITH_AES_128_GCM_SHA256)
+      if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256)
       {
         FLEA_CCALL(
           THR_flea_tls_rec_prot_t__decrypt_record_gcm(

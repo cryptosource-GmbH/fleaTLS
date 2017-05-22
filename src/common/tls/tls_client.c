@@ -91,8 +91,8 @@ flea_err_t THR_flea_tls__read_server_hello(
   // read cipher suites
   FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, ciphersuite__au8, sizeof(ciphersuite__au8)));
 
-  tls_ctx->selected_cipher_suite__u16 = TLS_RSA_WITH_AES_256_CBC_SHA;
-  tls_ctx->selected_cipher_suite__u16 = TLS_RSA_WITH_AES_128_GCM_SHA256;
+  tls_ctx->selected_cipher_suite__u16 = FLEA_TLS_RSA_WITH_AES_256_CBC_SHA;
+  tls_ctx->selected_cipher_suite__u16 = FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256;
   // TODO: CHECK / SELECT CIPHERSUITE
   // - must be among presented ones in client hello
   // read compression method
@@ -665,22 +665,6 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
               )
             );
           }
-# if 0
-          FLEA_CCALL(
-            THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-              &tls_ctx->rec_prot__t,
-              flea_tls_read,
-              flea_aes256,
-              // flea_sha256,
-              flea_hmac_sha256,
-              tls_ctx->key_block + 2 * 32 + 32,               /* cipher_key__pcu8, "2*32" = 2*mac key size, "+ 32" = cipher_key_size */
-              32,                                             /* cipher_key_len */
-              tls_ctx->key_block + 32 /* 32 = mac_key_size*/, /* mac_key__pcu8 */
-              32 /*mac_key_len */,
-              32 /* mac_len */
-            )
-          );
-# endif /* if 0 */
           handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
 
           continue;
@@ -763,9 +747,20 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
         )
       );
 
-
+      // TODO(FS): warum gibt es zwei Stellen an denen die ciphersuite gesetzt wird?
       // TODO: quick & dirty, use a better way to call the appropriate
       // function
+      //
+      FLEA_CCALL(
+        THR_flea_tls_rec_prot_t__set_ciphersuite(
+          &tls_ctx->rec_prot__t,
+          flea_tls_write,
+          FLEA_TLS_CLIENT,
+          tls_ctx->selected_cipher_suite__u16,
+          tls_ctx->key_block
+        )
+      );
+# if 0
       if(tls_ctx->selected_cipher_suite__u16 == 156)
       {
         FLEA_CCALL(
@@ -790,23 +785,8 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
           )
         );
       }
-
-# if 0
-      FLEA_CCALL(
-        THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
-          &tls_ctx->rec_prot__t,
-          flea_tls_write,
-          flea_aes256,
-          // flea_sha256,
-          flea_hmac_sha256,
-          tls_ctx->key_block + 2 * 32, /* cipher_key__pcu8, 32 = mac key size*/
-          32,                          /* cipher_key_len */
-          tls_ctx->key_block,          /* mac_key__pcu8 */
-          32 /*mac_key_len */,
-          32 /* mac_len */
-        )
-      );
 # endif /* if 0 */
+
 
       FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &hash_ctx));
 

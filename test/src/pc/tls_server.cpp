@@ -171,7 +171,8 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_server(&rw_stream__t));
   // FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
   FLEA_CCALL(THR_flea_tls_ctx_t__ctor_server(&tls_ctx, &rw_stream__t, cert_chain, 2, &trust_store__t, &server_key__t));
-
+  std::cout << "handshake done" << std::endl;
+  std::flush(std::cout);
 
   while(1)
   {

@@ -113,7 +113,7 @@ flea_err_t THR_flea_tls__read_client_hello(
   flea_bool_t found = FLEA_FALSE;
   // TODO: LET CALLER SUPPLY THE SUPPORTED SUITES
   flea_u16_t supported_cs__au16[] =
-  { /*TLS_RSA_WITH_AES_256_CBC_SHA256,*/ TLS_RSA_WITH_AES_128_GCM_SHA256, TLS_RSA_WITH_AES_256_CBC_SHA};
+  { /*TLS_RSA_WITH_AES_256_CBC_SHA256,*/ FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256, FLEA_TLS_RSA_WITH_AES_256_CBC_SHA};
   flea_u16_t supported_cs_len__u16 = FLEA_NB_ARRAY_ENTRIES(supported_cs__au16);
   flea_u16_t supported_cs_index__u16;
   // flea_u8_t chosen_cs__au8[2];
