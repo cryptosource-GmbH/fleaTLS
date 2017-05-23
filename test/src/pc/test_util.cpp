@@ -168,6 +168,38 @@ flea_u32_t string_to_u32bit_unchecked(std::string const& str)
   is >> result;
   return result;
 }
+
+std::vector<std::string> tokenize_string(
+  std::string const& value,
+  char             sep
+)
+{
+  size_t pos = 0;
+
+  std::vector<std::string> result;
+  while(pos < value.size())
+  {
+    auto comma_pos = value.find(sep, pos);
+    std::cout << "comma_pos = " << comma_pos << std::endl;
+    string file_name;
+    if(comma_pos == std::string::npos)
+    {
+      file_name = value.substr(pos, value.size() - pos);
+    }
+    else
+    {
+      file_name = value.substr(pos, comma_pos - pos);
+    }
+    std::cout << "file name would be '" << file_name << "'" << std::endl;
+    result.push_back(file_name);
+    if(comma_pos == std::string::npos)
+    {
+      break;
+    }
+    pos = comma_pos + 1;
+  }
+  return result;
+}
 }
 
 
@@ -192,7 +224,7 @@ std::vector<unsigned char> read_bin_file(std::string const& filename)
   size = file.tellg();
   std::vector<unsigned char> result(size);
   file.seekg(0, ios::beg);
-  file.read((char *) (&result[0]), size);
+  file.read((char*) (&result[0]), size);
   file.close();
   return result;
 }
@@ -466,6 +498,25 @@ flea_u32_t property_set_t::get_property_as_u32(std::string const& index) const
     );
   }
   return string_to_u32bit(value);
+}
+
+std::vector<std::vector<unsigned char> > property_set_t::get_bin_file_list_property(std::string const& index) const
+{
+  std::vector<std::vector<unsigned char> > result;
+  if(!have_index(index))
+  {
+    return result;
+  }
+
+  string value = get_property_as_string(index);
+  std::cout << "value = " << value << std::endl;
+
+  std::vector<string> strings = tokenize_string(value, ',');
+  for(auto s : strings)
+  {
+    result.push_back(read_bin_file(s));
+  }
+  return result;
 }
 
 // std::vector<unsigned char> get_file_binary

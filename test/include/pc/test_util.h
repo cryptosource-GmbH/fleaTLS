@@ -19,7 +19,7 @@ public:
   /**
    * Get the message of the exception.
    */
-  const char * what() const throw() {return msg.c_str();}
+  const char* what() const throw() {return msg.c_str();}
 
   test_utils_exceptn_t(const std::string& m = "Unknown error"){set_msg(m);}
 
@@ -88,6 +88,7 @@ public:
   std::string const& get_filename() const
   {return m_filename;};
 
+  std::vector<std::vector<unsigned char> > get_bin_file_list_property(std::string const& index) const;
 private:
 
   void throw_exception(
