@@ -13,7 +13,7 @@ flea_bool_t flea_sec_mem_equal(
   flea_al_u16_t i;
   flea_u8_t diff__u8 = 0;
   flea_u8_t tmp__u8  = 0;
-  volatile flea_u8_t* sink__pvu8 = (volatile flea_u8_t *) &tmp__u8;
+  volatile flea_u8_t* sink__pvu8 = (volatile flea_u8_t*) &tmp__u8;
 
   for(i = 0; i < mem_len__alu16; i++)
   {
@@ -35,7 +35,7 @@ void flea_memzero_secure(
   flea_dtl_t mem_len__dtl
 )
 {
-  volatile flea_u8_t* vm__pu8 = (volatile flea_u8_t *) memory__pu8;
+  volatile flea_u8_t* vm__pu8 = (volatile flea_u8_t*) memory__pu8;
 
   while(mem_len__dtl--)
   {
@@ -78,4 +78,21 @@ int flea_memcmp_wsize(
     return -1;
   }
   return memcmp(mem1__pv, mem2__pv, len_mem1__dtl);
+}
+
+flea_bool_t flea_is_in_u16_list(
+  flea_u16_t             sought_for__u16,
+  const flea_ref_cu16_t* list__prcu16
+)
+{
+  flea_dtl_t i;
+
+  for(i = 0; i < list__prcu16->len__dtl; i++)
+  {
+    if(sought_for__u16 == list__prcu16->data__pcu16[i])
+    {
+      return FLEA_TRUE;
+    }
+  }
+  return FLEA_FALSE;
 }

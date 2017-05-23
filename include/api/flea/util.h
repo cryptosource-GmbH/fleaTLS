@@ -26,6 +26,12 @@ extern "C" {
   } while(0)
 
 
+typedef struct
+{
+  flea_u8_t* data__pcu8;
+  flea_dtl_t len__dtl;
+} flea_ref_u8_t;
+
 /**
  * Type which references to constant strings of u8 in memory.
  */
@@ -38,11 +44,18 @@ typedef struct
 /**
  * Type which references to strings of u8 in memory.
  */
+
 typedef struct
 {
-  flea_u8_t* data__pcu8;
-  flea_dtl_t len__dtl;
-} flea_ref_u8_t;
+  const flea_u16_t* data__pcu16;
+  flea_dtl_t        len__dtl;
+} flea_ref_cu16_t;
+
+typedef struct
+{
+  flea_u16_t* data__pu16;
+  flea_dtl_t  len__dtl;
+} flea_ref_u16_t;
 
 /**
  * Overwrite potentially sensitive data. The function is implemented in such way
@@ -78,6 +91,11 @@ void flea_copy_rcu8_use_mem(
   flea_ref_cu8_t*       trgt__prcu8,
   flea_u8_t*            trgt_mem,
   const flea_ref_cu8_t* src__prcu8
+);
+
+flea_bool_t flea_is_in_u16_list(
+  flea_u16_t             sought_for__u16,
+  const flea_ref_cu16_t* list__prcu16
 );
 
 #ifdef __cplusplus

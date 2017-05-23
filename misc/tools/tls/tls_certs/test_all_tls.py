@@ -72,8 +72,14 @@ def test_flea_server_against_external_client(ext_start_script):
 
 error_cnt = 0
 error_cnt += test_flea_server_against_external_client('start_ossl_client_w_cert.sh') # doesn't work after the 'ossl=server' tests
+error_cnt += test_flea_server_against_external_client('start_ossl_client_gcm_w_cert.sh') # doesn't work after the 'ossl=server' tests
+error_cnt += test_flea_server_against_external_client('start_ossl_client_cbc_w_cert.sh') # doesn't work after the 'ossl=server' tests
 error_cnt += test_flea_client_against_exernal_server('start_ossl_server_request_cert.sh')
 error_cnt += test_flea_client_against_exernal_server('start_ossl_server.sh')
+error_cnt += test_flea_client_against_exernal_server('start_ossl_server_gcm.sh')
+error_cnt += test_flea_client_against_exernal_server('start_ossl_server_cbc.sh')
+
+
 #print("first 2 passed")
 #out##error_cnt += test_flea_client_against_exernal_server('start_ossl_client.sh') // does not work so far
 print ("there were " + str(error_cnt) + " failed tests")

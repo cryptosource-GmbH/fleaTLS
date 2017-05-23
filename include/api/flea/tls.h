@@ -167,8 +167,8 @@ typedef struct
    */
 
   // define 4 parameters independently instead of list of cipher suites
-  flea_u8_t                    allowed_cipher_suites[4]; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
-  flea_u8_t                    allowed_cipher_suites_len__u8;
+  const flea_ref_cu16_t*       allowed_cipher_suites__prcu16; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
+  // flea_u8_t                    allowed_cipher_suites_len__u8;
   flea_u16_t                   selected_cipher_suite__u16;
 
   /* TODO: Where do I allocate the memory? inside __ctor seems pointless with stack usage */
@@ -207,8 +207,6 @@ typedef struct
 
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt);
 
-// TODO: REMOVE THIS AND MAKE CLIENT AND SERVER HANDSHAKE FUNCTIONS CTORS
-
 flea_err_t THR_flea_tls_ctx_t__ctor_client(
   flea_tls_ctx_t*          tls_ctx__pt,
   const flea_cert_store_t* trust_store__pt,
@@ -219,7 +217,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   flea_al_u8_t             session_id_len__alu8,
   flea_ref_cu8_t*          cert_chain__pt,
   flea_al_u8_t             cert_chain_len__alu8,
-  flea_ref_cu8_t*          client_key__pt
+  flea_ref_cu8_t*          client_public_key__pt,
+  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16
 );
 
 flea_err_t THR_flea_tls_ctx_t__ctor_server(
@@ -228,7 +227,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   flea_ref_cu8_t*          cert_chain__pt,
   flea_al_u8_t             cert_chain_len__alu8,
   const flea_cert_store_t* trust_store__t,
-  flea_ref_cu8_t*          server_key__pt
+  flea_ref_cu8_t*          server_key__pt,
+  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16
 );
 
 flea_err_t THR_flea_tls_ctx_t__read_app_data(

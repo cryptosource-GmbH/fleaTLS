@@ -87,7 +87,7 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_X509_CERT_NOT_YET_VALID,            FLEA_TLS_ALERT_DESC_CERTIFICATE_EXPIRED},
   {FLEA_ERR_X509_CERT_EXPIRED,                  FLEA_TLS_ALERT_DESC_CERTIFICATE_EXPIRED},
   {FLEA_ERR_TLS_UNSUPP_PROT_VERSION,            FLEA_TLS_ALERT_DESC_PROTOCOL_VERSION   },
-  {FLEA_ERR_TLS_PROT_DECODE_ERR,                FLEA_TLS_ALERT_DESC_DECODE_ERROR       }
+  {FLEA_ERR_TLS_PROT_DECODE_ERR,                FLEA_TLS_ALERT_DESC_DECODE_ERROR       },
 };
 static flea_bool_t determine_alert_from_error(
   flea_err_t                     err__t,
@@ -581,22 +581,22 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
   FLEA_CCALL(THR_flea_tls_rec_prot_t__ctor(&ctx->rec_prot__t, ctx->version.major, ctx->version.minor, rw_stream__pt));
   /* set cipher suite values */
   // flea_u8_t single_suite[] = {0x00, 0x3D};
-  flea_u8_t single_suite[] = {0x00, 0x35};
-  flea_u8_t two_suites[]   = {0x00, 0x9c, 0x00, 0x35};
+  // flea_u8_t single_suite[] = {0x00, 0x35};
+  // flea_u8_t two_suites[]   = {0x00, 0x9c, 0x00, 0x35};
 
   // ctx->allowed_cipher_suites = calloc(2, sizeof(flea_u8_t));
   // memcpy(ctx->allowed_cipher_suites, single_suite, 2);
   // ctx->allowed_cipher_suites_len__u8 = 2;
 
-  memcpy(ctx->allowed_cipher_suites, two_suites, 4);
-  ctx->allowed_cipher_suites_len__u8 = 4;
+  // memcpy(ctx->allowed_cipher_suites, two_suites, 4);
+  // ctx->allowed_cipher_suites_len__u8 = 4;
 
 
   // CipherSuite TLS_NULL_WITH_NULL_NULL = { 0x00,0x00 };
 
   /*ctx->selected_cipher_suite[0] = 0x00;
    *  ctx->selected_cipher_suite[1] = 0x00;*/
-  ctx->selected_cipher_suite__u16 = 0x00;
+  ctx->selected_cipher_suite__u16 = FLEA_TLS_NULL_WITH_NULL_NULL;
 
   /* set SessionID */
   if(session_id_len > 32)

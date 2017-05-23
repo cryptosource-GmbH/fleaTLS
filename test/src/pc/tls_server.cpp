@@ -18,6 +18,7 @@
 #include "pc/test_pc.h"
 #include "pltf_support/tcpip_stream.h"
 #include "tls_server_certs.h"
+#include "flea/array_util.h"
 
 const flea_u8_t trust_anchor_1024__acu8[] = { // rootCA_cryptosource_1024
   0x30, 0x82, 0x02, 0x2c, 0x30, 0x82, 0x01, 0x95, 0xa0, 0x03, 0x02, 0x01, 0x02, 0x02, 0x09, 0x00, 0x8d, 0x2e, 0x34,
@@ -148,6 +149,8 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   server_key__t.len__dtl   = sizeof(server_key_2048__au8);
 # endif // ifdef SERVER_CERT_1024
 
+  const flea_u16_t cipher_suites [] = {FLEA_TLS_RSA_WITH_AES_256_CBC_SHA, FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256};
+  flea_ref_cu16_t cipher_suites_ref = {cipher_suites, FLEA_NB_ARRAY_ENTRIES(cipher_suites)};
   // now read data and echo it back
   flea_u8_t buf[1000];
   flea_al_u16_t buf_len = sizeof(buf);
@@ -170,7 +173,17 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   flea_tls_ctx_t__INIT(&tls_ctx);
   FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_server(&rw_stream__t));
   // FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
-  FLEA_CCALL(THR_flea_tls_ctx_t__ctor_server(&tls_ctx, &rw_stream__t, cert_chain, 2, &trust_store__t, &server_key__t));
+  FLEA_CCALL(
+    THR_flea_tls_ctx_t__ctor_server(
+      &tls_ctx,
+      &rw_stream__t,
+      cert_chain,
+      2,
+      &trust_store__t,
+      &server_key__t,
+      &cipher_suites_ref
+    )
+  );
   std::cout << "handshake done" << std::endl;
   std::flush(std::cout);
 

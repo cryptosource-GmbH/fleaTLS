@@ -94,7 +94,10 @@ flea_err_t THR_flea_tls__read_server_hello(
   FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, ciphersuite__au8, sizeof(ciphersuite__au8)));
 
   tls_ctx->selected_cipher_suite__u16 = flea__decode_U16_BE(ciphersuite__au8);
-  // TODO: CHECK THAT SUITE IS ALLOWED
+  if(!flea_is_in_u16_list(tls_ctx->selected_cipher_suite__u16, tls_ctx->allowed_cipher_suites__prcu16))
+  {
+    FLEA_THROW("invalid ciphersuite selected by peer", FLEA_ERR_TLS_PROT_DECODE_ERR);
+  }
 
   /*tls_ctx->selected_cipher_suite__u16 = FLEA_TLS_RSA_WITH_AES_256_CBC_SHA;
    * tls_ctx->selected_cipher_suite__u16 = FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256;*/
@@ -108,11 +111,9 @@ flea_err_t THR_flea_tls__read_server_hello(
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &server_compression_meth__u8));
   if(server_compression_meth__u8 != NO_COMPRESSION)
   {
-    // TODO: NEED TO SEND ALERT?
-    // jroth: yes, but where? when handling the error or here?
     FLEA_THROW("unsupported compression method from server", FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO);
   }
-  // TODO: parse extension
+  // TODO: parse extensions
   // for now simply ignore them
 
   // update security parameters
@@ -146,13 +147,16 @@ static flea_err_t THR_flea_tls__send_client_hello(
   flea_hash_ctx_t* hash_ctx
 )
 {
+  flea_al_u16_t i;
+
   FLEA_THR_BEG_FUNC();
 
   // calculate length for the header
   // TODO: include session id in the calculation (the 0 at 3rd place)
   // TODO: include extensions length (last place)
 
-  flea_u32_t len = 2 + 1 + 0 + 32 + 2 + tls_ctx->allowed_cipher_suites_len__u8 + 1 + 1 + 0;
+  // flea_u32_t len = 2 + 1 + 0 + 32 + 2 + tls_ctx->allowed_cipher_suites_len__u8 + 1 + 1 + 0;
+  flea_u32_t len = 2 + 1 + 0 + 32 + 2 + 2 * tls_ctx->allowed_cipher_suites__prcu16->len__dtl + 1 + 1 + 0;
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_hdr(
       &tls_ctx->rec_prot__t,
@@ -187,19 +191,35 @@ static flea_err_t THR_flea_tls__send_client_hello(
   flea_u8_t null_byte[] = {0};
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, null_byte, 1));
 
-  // flea__encode_U32_BE(tls_ctx->allowed_cipher_suites_len, (flea_u8_t*)&buf);
   flea_u8_t cipher_suites_len[2];
-  flea__encode_U16_BE(tls_ctx->allowed_cipher_suites_len__u8, cipher_suites_len);
+  // flea__encode_U16_BE(tls_ctx->allowed_cipher_suites_len__u8, cipher_suites_len);
+  flea__encode_U16_BE(2 * tls_ctx->allowed_cipher_suites__prcu16->len__dtl, cipher_suites_len);
 
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, cipher_suites_len, 2));
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx->rec_prot__t,
-      hash_ctx,
-      tls_ctx->allowed_cipher_suites,
-      tls_ctx->allowed_cipher_suites_len__u8
-    )
-  );
+
+  for(i = 0; i < tls_ctx->allowed_cipher_suites__prcu16->len__dtl; i++)
+  {
+    flea__encode_U16_BE(tls_ctx->allowed_cipher_suites__prcu16->data__pcu16[i], cipher_suites_len);
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_content(
+        &tls_ctx->rec_prot__t,
+        hash_ctx,
+        cipher_suites_len,
+        2
+      )
+    );
+  }
+
+  /*
+   * FLEA_CCALL(
+   * THR_flea_tls__send_handshake_message_content(
+   *   &tls_ctx->rec_prot__t,
+   *   hash_ctx,
+   *   tls_ctx->allowed_cipher_suites,
+   *   tls_ctx->allowed_cipher_suites_len__u8
+   * )
+   * );
+   */
 
   // compression methods: we don't support compression
   flea_u8_t one_byte[] = {1};
@@ -767,7 +787,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   flea_al_u8_t             session_id_len__alu8,
   flea_ref_cu8_t*          cert_chain__pt,
   flea_al_u8_t             cert_chain_len__alu8,
-  flea_ref_cu8_t*          client_key__pt
+  flea_ref_cu8_t*          client_private_key__pt,
+  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16
 )
 {
   flea_err_t err__t;
@@ -775,7 +796,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   FLEA_THR_BEG_FUNC();
   tls_ctx__pt->cert_chain__pt     = cert_chain__pt;
   tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
-  tls_ctx__pt->private_key__pt    = client_key__pt;
+  tls_ctx__pt->private_key__pt    = client_private_key__pt;
+  tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
 
   if(server_name__pcrcu8)
   {

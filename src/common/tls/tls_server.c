@@ -912,7 +912,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   flea_ref_cu8_t*          cert_chain__pt,
   flea_al_u8_t             cert_chain_len__alu8,
   const flea_cert_store_t* trust_store__pt,
-  flea_ref_cu8_t*          server_key__pt
+  flea_ref_cu8_t*          server_key__pt,
+  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16
   // TODO: include trust store for client certs
 )
 {
@@ -923,6 +924,7 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
   tls_ctx__pt->private_key__pt    = server_key__pt;
   tls_ctx__pt->trust_store__pt    = trust_store__pt;
+  tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
   FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt, NULL, 0));
   err__t = THR_flea_tls__server_handshake(tls_ctx__pt);
   FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
