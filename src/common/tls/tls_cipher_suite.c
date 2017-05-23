@@ -9,14 +9,16 @@
 
 
 // TODO: REMOVE BLOCK SIZE, UNIFY MAC_KEY_LEN AND MAC_LEN
-const flea_tls__cipher_suite_t cipher_suites[4] = {
+const flea_tls__cipher_suite_t cipher_suites[5] = {
   {FLEA_TLS_NULL_WITH_NULL_NULL,         FLEA_TLS_NO_CIPHER,
    0, 0,
    0, 0, 0, (flea_mac_id_t) 0}, // needed ?
-  {FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256, FLEA_TLS_BLOCK_CIPHER(flea_aes256),
-   16, 16, 32, 32, 32, flea_hmac_sha256 /*flea_sha256, FLEA_TLS_PRF_SHA256*/},
+  {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA,    FLEA_TLS_BLOCK_CIPHER(flea_aes128),
+   16, 16, 16, 20, 20, flea_hmac_sha1},
   {FLEA_TLS_RSA_WITH_AES_256_CBC_SHA,    FLEA_TLS_BLOCK_CIPHER(flea_aes256),
    16, 16, 32, 20, 20, flea_hmac_sha1},
+  {FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256, FLEA_TLS_BLOCK_CIPHER(flea_aes256),
+   16, 16, 32, 32, 32, flea_hmac_sha256 /*flea_sha256, FLEA_TLS_PRF_SHA256*/},
   {FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256, FLEA_TLS_AE_CIPHER(flea_gcm_aes128), 16, 12, 16, 0, 0, (flea_mac_id_t) 0} // TODO: generalize to allow meaningful gcm entry
 };
 
@@ -50,10 +52,6 @@ flea_err_t THR_flea_tls_get_key_block_len_from_cipher_suite_id(
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_tls_get_cipher_suite_by_id(id, &ct__pt));
-  if(ct__pt == NULL)
-  {
-    FLEA_THROW("invalid cipher suite id", FLEA_ERR_INT_ERR);
-  }
   *result_key_block_len__palu8 = ct__pt->mac_key_size * 2 + ct__pt->enc_key_size * 2;
 
   // TODO: choose better approach

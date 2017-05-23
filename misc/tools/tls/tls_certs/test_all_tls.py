@@ -35,6 +35,8 @@ def test_flea_client_against_exernal_server(ext_start_script):
         print ("error with '" + ext_start_script + "'")
         p.kill()
         return 1 
+    #for line in p.stdout.readlines():
+        #print line
     retval = p_test.wait()
     p.kill()
     return 0

@@ -298,17 +298,14 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
   FLEA_CCALL(
     THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite_inner(
       rec_prot__pt,
-      // flea_tls_read,
       direction,
-      flea_aes256, // TODO: REPLACE BY DYN VALUE
-      // flea_sha256,
-      // flea_hmac_sha256,
+      FLEA_TLS_CIPHER_RAW_ID(suite__pt->cipher),
       suite__pt->mac_algorithm,
       key_block__pcu8 + 2 * mac_key_len__alu8 + ciph_key_offs__alu8,
       cipher_key_len__alu8,
       key_block__pcu8 + mac_key_offs__alu8,
-      mac_key_len__alu8, // 32,
-      mac_len__alu8      // 32
+      mac_key_len__alu8,
+      mac_len__alu8
     )
   );
   FLEA_THR_FIN_SEC_empty();
@@ -405,7 +402,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
       rec_prot__pt,
       // flea_tls_read,
       direction,
-      flea_gcm_aes128,
+      FLEA_TLS_CIPHER_RAW_ID(suite__pt->cipher),
       key_block__pcu8 + ciph_key_offs__alu8,
       cipher_key_len__alu8,
       key_block__pcu8 + 2 * cipher_key_len__alu8 + fixed_iv_offs__alu8,

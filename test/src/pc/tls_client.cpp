@@ -148,7 +148,7 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   client_key__t.data__pcu8 = server_key_2048__au8;
   client_key__t.len__dtl   = sizeof(server_key_2048__au8);
 # endif // ifdef CLIENT_CERT_1024
-  const flea_u16_t cipher_suites [] = {FLEA_TLS_RSA_WITH_AES_256_CBC_SHA, FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256};
+  const flea_u16_t cipher_suites [] = {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA, FLEA_TLS_RSA_WITH_AES_256_CBC_SHA, FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256};
   flea_ref_cu16_t cipher_suites_ref = {cipher_suites, FLEA_NB_ARRAY_ENTRIES(cipher_suites)};
 
   FLEA_THR_BEG_FUNC();

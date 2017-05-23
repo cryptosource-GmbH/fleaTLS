@@ -21,15 +21,15 @@ typedef enum
 typedef enum
 {
   FLEA_TLS_NULL_WITH_NULL_NULL         = 0x0000,
-  FLEA_TLS_RSA_WITH_NULL_SHA           = 0x0002,
+  // FLEA_TLS_RSA_WITH_NULL_SHA           = 0x0002,
   FLEA_TLS_RSA_WITH_NULL_SHA256        = 0x003B,
-  FLEA_TLS_RSA_WITH_3DES_EDE_CBC_SHA   = 0x000A,
+  // FLEA_TLS_RSA_WITH_3DES_EDE_CBC_SHA   = 0x000A,
   FLEA_TLS_RSA_WITH_AES_128_CBC_SHA    = 0x002F,
   FLEA_TLS_RSA_WITH_AES_256_CBC_SHA    = 0x0035,
   FLEA_TLS_RSA_WITH_AES_128_CBC_SHA256 = 0x003C,
   FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256 = 0x003D,
-
-  FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256 = 0x009C
+  FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256 = 0x009C,
+  FLEA_TLS_RSA_WITH_AES_256_GCM_SHA384 = 0x009D
 } flea_tls__cipher_suite_id_t;
 
 #define FLEA_TLS_NO_CIPHER 0
@@ -61,7 +61,7 @@ typedef struct
 } flea_tls__cipher_suite_t;
 
 
-extern const flea_tls__cipher_suite_t cipher_suites[4];
+extern const flea_tls__cipher_suite_t cipher_suites[5];
 
 
 flea_err_t THR_flea_tls_get_cipher_suite_by_id(

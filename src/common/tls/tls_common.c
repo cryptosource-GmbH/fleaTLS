@@ -277,7 +277,7 @@ flea_err_t THR_flea_tls__generate_key_block(
       PRF_LABEL_KEY_EXPANSION,
       seed,
       sizeof(seed),
-      key_block_len__alu8, // 128,
+      key_block_len__alu8,
       key_block
     )
   );
