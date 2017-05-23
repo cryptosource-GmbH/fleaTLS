@@ -123,50 +123,51 @@ static flea_err_t P_Hash(
   const flea_u8_t* seed,
   flea_u16_t       seed_length,
   flea_u8_t*       data_out,
-  flea_u16_t       res_length
+  flea_u16_t       res_length,
+  flea_mac_id_t    mac_id__e
 )
 {
-  const flea_u16_t hash_out_len__alu8 = 32;
+  const flea_u16_t mac_out_len__alu8 = flea_mac__get_output_length_by_id(mac_id__e);
 
-  FLEA_DECL_BUF(a__bu8, flea_u8_t, 64);
+  FLEA_DECL_BUF(a__bu8, flea_u8_t, 2 * FLEA_TLS_MAX_MAC_SIZE);
   flea_u8_t* A;
   flea_u8_t* B;
   flea_u8_t* tmp__pu8;
   flea_mac_ctx_t hmac__t = flea_mac_ctx_t__INIT_VALUE;
 
   // expand to length bytes
-  flea_al_u8_t len__alu8 = hash_out_len__alu8;
+  flea_al_u8_t len__alu8 = mac_out_len__alu8;
   FLEA_THR_BEG_FUNC();
-  FLEA_ALLOC_BUF(a__bu8, 64);
+  FLEA_ALLOC_BUF(a__bu8, 2 * FLEA_TLS_MAX_MAC_SIZE);
   A = a__bu8;
-  B = a__bu8 + 32;
+  B = a__bu8 + FLEA_TLS_MAX_MAC_SIZE;
   flea_mac_ctx_t__INIT(&hmac__t);
-  FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&hmac__t, flea_hmac_sha256, secret, secret_length));
+  FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&hmac__t, mac_id__e, secret, secret_length));
   FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, label__pcu8, label_len__alu8));
   FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, seed, seed_length));
   FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&hmac__t, A, &len__alu8));
   flea_mac_ctx_t__dtor(&hmac__t);
   while(res_length)
   {
-    flea_al_u8_t to_go__alu16 = FLEA_MIN(res_length, hash_out_len__alu8);
+    flea_al_u8_t to_go__alu16 = FLEA_MIN(res_length, mac_out_len__alu8);
     res_length -= to_go__alu16;
     // A(i) = HMAC_hash(secret, A(i-1))
     flea_mac_ctx_t__INIT(&hmac__t);
-    FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&hmac__t, flea_hmac_sha256, secret, secret_length));
-    FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, A, hash_out_len__alu8));
+    FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&hmac__t, mac_id__e, secret, secret_length));
+    FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, A, mac_out_len__alu8));
     FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, label__pcu8, label_len__alu8));
     FLEA_CCALL(THR_flea_mac_ctx_t__update(&hmac__t, seed, seed_length));
     len__alu8 = to_go__alu16;
     FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&hmac__t, data_out, &len__alu8));
     data_out += to_go__alu16;
-    len__alu8 = hash_out_len__alu8;
+    len__alu8 = mac_out_len__alu8;
     FLEA_CCALL(
       THR_flea_mac__compute_mac(
-        flea_hmac_sha256,
+        mac_id__e,
         secret,
         secret_length,
         A,
-        hash_out_len__alu8,
+        mac_out_len__alu8,
         B,
         &len__alu8
       )
@@ -178,7 +179,7 @@ static flea_err_t P_Hash(
   }
   FLEA_THR_FIN_SEC(
     flea_mac_ctx_t__dtor(&hmac__t);
-    FLEA_FREE_BUF_FINAL_SECRET_ARR(a__bu8, 64);
+    FLEA_FREE_BUF_FINAL_SECRET_ARR(a__bu8, 2 * FLEA_TLS_MAX_MAC_SIZE);
   );
 } /* P_Hash */
 
@@ -205,14 +206,15 @@ static flea_err_t P_Hash(
  *              [0..verify_data_length-1];
  */
 // length: how long should the output be. 12 Octets = 96 Bits
-flea_err_t flea_tls__prf(
+static flea_err_t flea_tls__prf(
   const flea_u8_t* secret,
   flea_u8_t        secret_length,
   PRFLabel         label,
   const flea_u8_t* seed,
   flea_u16_t       seed_length,
   flea_u16_t       result_length,
-  flea_u8_t*       result
+  flea_u8_t*       result,
+  flea_mac_id_t    mac_id__e
 )
 {
   const flea_u8_t client_finished[] = {99, 108, 105, 101, 110, 116, 32, 102, 105, 110, 105, 115, 104, 101, 100};
@@ -246,9 +248,31 @@ flea_err_t flea_tls__prf(
       default:
         FLEA_THROW("Invalid label!", FLEA_ERR_TLS_GENERIC);
   }
-  FLEA_CCALL(P_Hash(secret, secret_length, label__pcu8, label_len__alu8, seed, seed_length, result, result_length));
+  FLEA_CCALL(
+    P_Hash(
+      secret,
+      secret_length,
+      label__pcu8,
+      label_len__alu8,
+      seed,
+      seed_length,
+      result,
+      result_length,
+      mac_id__e
+    )
+  );
   FLEA_THR_FIN_SEC_empty();
 } /* flea_tls__prf */
+
+static flea_mac_id_t flea_tls__prf_mac_id_from_suite_id(flea_tls__cipher_suite_id_t ciph)
+{
+  // TODO: NEED TO COVER FURTHER GCM SUITES WITH ECDH,ECDSA
+  if(ciph == FLEA_TLS_RSA_WITH_AES_256_GCM_SHA384)
+  {
+    return flea_hmac_sha384;
+  }
+  return flea_hmac_sha256;
+}
 
 /*
  * key_block = PRF(SecurityParameters.master_secret,
@@ -257,28 +281,29 @@ flea_err_t flea_tls__prf(
  *        SecurityParameters.client_random);
  */
 flea_err_t THR_flea_tls__generate_key_block(
-  // flea_tls_ctx_t* tls_ctx,
-  const flea_tls__security_parameters_t* security_parameters__pt,
-  flea_u8_t*                             key_block,
-  flea_al_u8_t                           key_block_len__alu8
+  const flea_tls_ctx_t* tls_ctx,
+  // const flea_tls__security_parameters_t* security_parameters__pt,
+  flea_u8_t*            key_block,
+  flea_al_u8_t          key_block_len__alu8
 )
 {
   FLEA_THR_BEG_FUNC();
   flea_u8_t seed[64];
-  memcpy(seed, security_parameters__pt->server_random.gmt_unix_time, 4);
-  memcpy(seed + 4, security_parameters__pt->server_random.random_bytes, 28);
-  memcpy(seed + 32, security_parameters__pt->client_random.gmt_unix_time, 4);
-  memcpy(seed + 36, security_parameters__pt->client_random.random_bytes, 28);
+  memcpy(seed, tls_ctx->security_parameters.server_random.gmt_unix_time, 4);
+  memcpy(seed + 4, tls_ctx->security_parameters.server_random.random_bytes, 28);
+  memcpy(seed + 32, tls_ctx->security_parameters.client_random.gmt_unix_time, 4);
+  memcpy(seed + 36, tls_ctx->security_parameters.client_random.random_bytes, 28);
 
   FLEA_CCALL(
     flea_tls__prf(
-      security_parameters__pt->master_secret,
+      tls_ctx->security_parameters.master_secret,
       48,
       PRF_LABEL_KEY_EXPANSION,
       seed,
       sizeof(seed),
-      key_block_len__alu8,
-      key_block
+      key_block_len__alu8, 
+      key_block,
+      flea_tls__prf_mac_id_from_suite_id(tls_ctx->selected_cipher_suite__u16)
     )
   );
   FLEA_THR_FIN_SEC_empty();
@@ -302,17 +327,18 @@ flea_err_t THR_flea_tls__handle_tls_error(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls__create_finished_data(
-  flea_u8_t* messages_hash,
-  flea_u8_t  master_secret[48],
-  PRFLabel   label,
-  flea_u8_t* data,
-  flea_u8_t  data_len
+static flea_err_t THR_flea_tls__create_finished_data(
+  flea_u8_t*    messages_hash,
+  flea_u8_t     master_secret[48],
+  PRFLabel      label,
+  flea_u8_t*    data,
+  flea_u8_t     data_len,
+  flea_mac_id_t mac_id__e
 )
 {
   FLEA_THR_BEG_FUNC();
   // TODO: hardcoded hash-len 32 always correct?
-  FLEA_CCALL(flea_tls__prf(master_secret, 48, label, messages_hash, 32, data_len, data));
+  FLEA_CCALL(flea_tls__prf(master_secret, 48, label, messages_hash, 32, data_len, data, mac_id__e));
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -356,7 +382,8 @@ flea_err_t THR_flea_tls__read_finished(
       tls_ctx->security_parameters.master_secret,
       label,
       finished__pu8,
-      finished_len__alu8
+      finished_len__alu8,
+      flea_tls__prf_mac_id_from_suite_id(tls_ctx->selected_cipher_suite__u16)
     )
   );
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
@@ -523,11 +550,12 @@ flea_err_t THR_flea_tls__send_handshake_message_hdr(
  *    [0..47];
  */
 flea_err_t THR_flea_tls__create_master_secret(
-  Random           client_hello_random,
-  Random           server_hello_random,
+  Random                      client_hello_random,
+  Random                      server_hello_random,
   // flea_u8_t* pre_master_secret,
-  flea_byte_vec_t* premaster_secret__pt,
-  flea_u8_t*       master_secret_res
+  flea_byte_vec_t*            premaster_secret__pt,
+  flea_u8_t*                  master_secret_res,
+  flea_tls__cipher_suite_id_t ciph_id__e
 )
 {
   FLEA_DECL_BUF(random_seed__bu8, flea_u8_t, 64);
@@ -550,7 +578,8 @@ flea_err_t THR_flea_tls__create_master_secret(
       random_seed__bu8,
       64,
       48,
-      master_secret_res
+      master_secret_res,
+      flea_tls__prf_mac_id_from_suite_id(ciph_id__e)
     )
   );
   FLEA_THR_FIN_SEC(
@@ -730,7 +759,8 @@ flea_err_t THR_flea_tls__send_finished(
       tls_ctx->security_parameters.master_secret,
       label,
       verify_data__bu8,
-      verify_data_len__alu8
+      verify_data_len__alu8,
+      flea_tls__prf_mac_id_from_suite_id(tls_ctx->selected_cipher_suite__u16)
     )
   );
 

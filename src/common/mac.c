@@ -140,7 +140,7 @@ static const mac_config_entry_t mac_config__at[] = {
 # endif
 };
 
-const mac_config_entry_t * flea_mac__find_mac_config(flea_mac_id_t id__t)
+const mac_config_entry_t* flea_mac__find_mac_config(flea_mac_id_t id__t)
 {
   flea_al_u8_t i;
 
@@ -604,6 +604,17 @@ flea_err_t THR_flea_mac_ctx_t__final_compute(
     *result_len__palu8 = ctx__pt->output_len__u8;
   }
   FLEA_THR_FIN_SEC_empty();
+}
+
+flea_al_u8_t flea_mac__get_output_length_by_id(flea_mac_id_t mac_id__e)
+{
+  const mac_config_entry_t* config_entry__pt = flea_mac__find_mac_config(mac_id__e);
+
+  if(config_entry__pt == NULL)
+  {
+    return 0;
+  }
+  return config_entry__pt->mac_output_len__u8;
 }
 
 /**

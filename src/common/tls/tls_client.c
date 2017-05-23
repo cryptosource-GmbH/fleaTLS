@@ -737,7 +737,8 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
           tls_ctx->security_parameters.server_random,
           // tls_ctx->premaster_secret,
           &premaster_secret__t,
-          tls_ctx->security_parameters.master_secret
+          tls_ctx->security_parameters.master_secret,
+          tls_ctx->selected_cipher_suite__u16
         )
       );
       FLEA_CCALL(
@@ -748,7 +749,8 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
       );
       FLEA_CCALL(
         THR_flea_tls__generate_key_block(
-          &tls_ctx->security_parameters,
+          // &tls_ctx->security_parameters,
+          tls_ctx,
           tls_ctx->key_block,
           key_block_len__alu8
         )

@@ -23,7 +23,7 @@ extern "C" {
 
 // defines for max sizes to allocate on the stack
 // TODO: cleaner solution?
-# define FLEA_TLS_MAX_MAC_SIZE     32
+# define FLEA_TLS_MAX_MAC_SIZE     (384 / 8)
 # define FLEA_TLS_MAX_MAC_KEY_SIZE 32
 # define FLEA_TLS_MAX_IV_SIZE      32
 // #define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof

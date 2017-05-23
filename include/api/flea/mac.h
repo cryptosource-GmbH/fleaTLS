@@ -44,6 +44,7 @@ struct struct_flea_mac_ctx_t
 
 #endif
 
+flea_al_u8_t flea_mac__get_output_length_by_id(flea_mac_id_t mac_id__e);
 
 /**
  * Create a MAC context object for either MAC computation of verification.
