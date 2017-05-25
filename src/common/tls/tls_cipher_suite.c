@@ -9,7 +9,7 @@
 
 
 // TODO: REMOVE BLOCK SIZE, UNIFY MAC_KEY_LEN AND MAC_LEN
-const flea_tls__cipher_suite_t cipher_suites[5] = {
+static const flea_tls__cipher_suite_t cipher_suites[5] = {
   {FLEA_TLS_NULL_WITH_NULL_NULL,         FLEA_TLS_NO_CIPHER,
    0, 0,
    0, 0, 0, (flea_mac_id_t) 0},

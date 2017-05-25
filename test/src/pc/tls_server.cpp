@@ -45,8 +45,8 @@ flea_err_t THR_flea_start_tls_server(
   flea_ref_cu8_t server_key__t;
   flea_al_u16_t cert_chain_len = FLEA_NB_ARRAY_ENTRIES(cert_chain);
 
-  const flea_u16_t cipher_suites [] = {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA, FLEA_TLS_RSA_WITH_AES_256_CBC_SHA, FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256};
-  flea_ref_cu16_t cipher_suites_ref = {cipher_suites, FLEA_NB_ARRAY_ENTRIES(cipher_suites)};
+  // const flea_u16_t cipher_suites [] = {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA, FLEA_TLS_RSA_WITH_AES_256_CBC_SHA, FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256};
+  flea_ref_cu16_t cipher_suites_ref; // = {cipher_suites, FLEA_NB_ARRAY_ENTRIES(cipher_suites)};
   // now read data and echo it back
   flea_u8_t buf[1000];
   flea_al_u16_t buf_len = sizeof(buf);
@@ -58,10 +58,21 @@ flea_err_t THR_flea_start_tls_server(
   flea_tls_ctx_t__INIT(&tls_ctx);
   flea_cert_store_t__INIT(&trust_store__t);
   FLEA_CCALL(THR_flea_cert_store_t__ctor(&trust_store__t));
-  FLEA_CCALL(THR_flea_tls_tool_set_tls_cfg(&trust_store__t, cert_chain, &cert_chain_len, &server_key__t, cmdl_args, tls_cfg));
+  FLEA_CCALL(
+    THR_flea_tls_tool_set_tls_cfg(
+      &trust_store__t,
+      cert_chain,
+      &cert_chain_len,
+      &server_key__t,
+      cmdl_args,
+      tls_cfg
+    )
+  );
 
   FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_server(&rw_stream__t, cmdl_args.get_property_as_u32("port")));
 
+  cipher_suites_ref.data__pcu16 = &tls_cfg.cipher_suites[0];
+  cipher_suites_ref.len__dtl    = tls_cfg.cipher_suites.size();
   FLEA_CCALL(
     THR_flea_tls_ctx_t__ctor_server(
       &tls_ctx,

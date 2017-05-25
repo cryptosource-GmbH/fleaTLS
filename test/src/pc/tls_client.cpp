@@ -154,8 +154,8 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   client_key__t.len__dtl   = sizeof(server_key_2048__au8);
 #  endif // ifdef CLIENT_CERT_1024
 # endif  // if 0
-  const flea_u16_t cipher_suites [] = {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA, FLEA_TLS_RSA_WITH_AES_256_CBC_SHA, FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256};
-  flea_ref_cu16_t cipher_suites_ref = {cipher_suites, FLEA_NB_ARRAY_ENTRIES(cipher_suites)};
+  //  const flea_u16_t cipher_suites [] = {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA, FLEA_TLS_RSA_WITH_AES_256_CBC_SHA, FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256};
+  flea_ref_cu16_t cipher_suites_ref;// = {cipher_suites, FLEA_NB_ARRAY_ENTRIES(cipher_suites)};
   tls_test_cfg_t tls_cfg;
   flea_host_id_type_e host_type;
   std::string hostname_s;
@@ -218,6 +218,8 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
       tls_cfg
     )
   );
+  cipher_suites_ref.data__pcu16 = &tls_cfg.cipher_suites[0];
+  cipher_suites_ref.len__dtl    = tls_cfg.cipher_suites.size();
   FLEA_CCALL(
     THR_flea_pltfif_tcpip__create_rw_stream_client(
       &rw_stream__t,

@@ -168,6 +168,7 @@ flea_u32_t string_to_u32bit_unchecked(std::string const& str)
   is >> result;
   return result;
 }
+}
 
 std::vector<std::string> tokenize_string(
   std::string const& value,
@@ -200,8 +201,6 @@ std::vector<std::string> tokenize_string(
   }
   return result;
 }
-}
-
 
 flea_u32_t string_to_u32bit(std::string const& str)
 {

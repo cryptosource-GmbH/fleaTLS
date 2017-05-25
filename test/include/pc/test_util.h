@@ -136,6 +136,7 @@ struct tls_test_cfg_t
   std::vector<flea_u8_t>                   server_key_vec;
   std::vector<std::vector<unsigned char> > own_certs;
   std::vector<std::vector<unsigned char> > own_ca_chain;
+  std::vector<flea_u16_t>                  cipher_suites;
 };
 
 flea_err_t THR_flea_tls_tool_set_tls_cfg(
@@ -146,4 +147,11 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   property_set_t const& cmdl_args,
   tls_test_cfg_t      & cfg
 );
+
+
+std::vector<std::string> tokenize_string(
+  std::string const& value,
+  char             sep
+);
+
 #endif // ifndef __flea_test_util_cpp_H_

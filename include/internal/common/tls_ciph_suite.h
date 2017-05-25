@@ -61,9 +61,6 @@ typedef struct
 } flea_tls__cipher_suite_t;
 
 
-extern const flea_tls__cipher_suite_t cipher_suites[5];
-
-
 flea_err_t THR_flea_tls_get_cipher_suite_by_id(
   flea_tls__cipher_suite_id_t      id,
   const flea_tls__cipher_suite_t** result__pt
