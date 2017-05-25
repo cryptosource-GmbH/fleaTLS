@@ -71,7 +71,7 @@ def test_flea_server_against_external_client(ext_start_script, flea_cmdl_args):
     #p_ossl.kill()
     return 0
    
-std_certs_args = "--trusted=misc/tools/tls/tls_certs/rootCA.der --own_certs=misc/tools/tls/tls_certs/server.der --own_private_key=./misc/tools/tls/tls_certs/server.pkcs8 --own_ca_chain=misc/tools/tls/tls_certs/rootCA.der"
+std_certs_args = "--trusted=misc/tools/tls/tls_certs/rootCA.der --own_certs=misc/tools/tls/tls_certs/server.der --own_private_key=./misc/tools/tls/tls_certs/server.pkcs8 --own_ca_chain=misc/tools/tls/tls_certs/rootCA.der --port=4444"
 
 error_cnt = 0
 error_cnt += test_flea_server_against_external_client('start_ossl_client_w_cert.sh', std_certs_args) # doesn't work after the 'ossl=server' tests

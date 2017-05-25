@@ -170,7 +170,7 @@ flea_err_t THR_flea_start_https_server(property_set_t const& cmdl_args)
     )
   );
   flea_tls_ctx_t__INIT(&tls_ctx);
-  FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_server(&rw_stream__t));
+  FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_server(&rw_stream__t, cmdl_args.get_property_as_u32("port")));
   FLEA_CCALL(
     THR_flea_tls_ctx_t__ctor_server(
       &tls_ctx,

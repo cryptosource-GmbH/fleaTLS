@@ -30,15 +30,20 @@ typedef struct
   int         socket_fd__int;
   read_buf_t  read_buf__t;
   write_buf_t write_buf__t;
+  flea_u16_t  port__u16;
 } linux_socket_stream_ctx_t;
 
 static linux_socket_stream_ctx_t stc_sock_stream__t;
 
-static void init_sock_stream(linux_socket_stream_ctx_t* sock_stream__pt)
+static void init_sock_stream(
+  linux_socket_stream_ctx_t* sock_stream__pt,
+  flea_u16_t                 port__u16
+)
 {
   memset(sock_stream__pt, 0, sizeof(*sock_stream__pt));
   sock_stream__pt->read_buf__t.alloc_len__dtl  = sizeof(sock_stream__pt->read_buf__t.buffer__au8);
   sock_stream__pt->write_buf__t.alloc_len__dtl = sizeof(sock_stream__pt->write_buf__t.buffer__au8);
+  sock_stream__pt->port__u16 = port__u16;
 }
 
 static flea_err_t THR_open_socket_server(void* ctx__pv)
@@ -65,7 +70,7 @@ static flea_err_t THR_open_socket_server(void* ctx__pv)
   memset(&addr, 0, sizeof(addr));
   addr.sin_addr.s_addr = htonl(INADDR_ANY);
   addr.sin_family      = AF_INET;
-  addr.sin_port        = htons(4444);
+  addr.sin_port        = htons(ctx__pt->port__u16);
 
   if((bind(listen_fd, (struct sockaddr*) &addr, sizeof(addr))) < 0)
   {
@@ -92,7 +97,7 @@ static flea_err_t THR_open_socket_server(void* ctx__pv)
   );
 } /* THR_open_socket_server */
 
-static flea_err_t THR_open_socket(void* ctx__pv)
+static flea_err_t THR_open_socket_client(void* ctx__pv)
 {
   FLEA_THR_BEG_FUNC();
   linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
@@ -108,14 +113,14 @@ static flea_err_t THR_open_socket(void* ctx__pv)
   memset(&addr, 0, sizeof(addr));
   addr.sin_addr.s_addr = inet_addr("127.0.0.1");
   addr.sin_family      = AF_INET;
-  addr.sin_port        = htons(4444);
+  addr.sin_port        = htons(ctx__pt->port__u16);
 
   if(connect(socket_fd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
   {
-    addr.sin_port = htons(4445);
-    if(connect(socket_fd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
+    // addr.sin_port = htons(4445);
+    // if(connect(socket_fd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
     {
-      FLEA_THROW("Something went wrong!", FLEA_ERR_TLS_GENERIC);
+      FLEA_THROW("coult not open client TCP/IP socket", FLEA_ERR_FAILED_STREAM_WRITE);
     }
   }
   ctx__pt->socket_fd__int = socket_fd;
@@ -302,7 +307,10 @@ static flea_err_t THR_read_socket(
 #endif /* if 0 */
 
 // TODO: merge into create_rw_stream function
-flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(flea_rw_stream_t* stream__pt)
+flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
+  flea_rw_stream_t* stream__pt,
+  flea_u16_t        port__u16
+)
 {
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_open_f open__f         = THR_open_socket_server;
@@ -310,7 +318,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(flea_rw_stream_t* stre
   flea_rw_stream_write_f write__f       = THR_write_socket;
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
-  init_sock_stream(&stc_sock_stream__t);
+  init_sock_stream(&stc_sock_stream__t, port__u16);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,
@@ -330,12 +338,12 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(flea_rw_stream_t* stre
 flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(flea_rw_stream_t* stream__pt)
 {
   FLEA_THR_BEG_FUNC();
-  flea_rw_stream_open_f open__f         = THR_open_socket;
+  flea_rw_stream_open_f open__f         = THR_open_socket_client;
   flea_rw_stream_close_f close__f       = close_socket;
   flea_rw_stream_write_f write__f       = THR_write_socket;
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
-  init_sock_stream(&stc_sock_stream__t);
+  init_sock_stream(&stc_sock_stream__t, 4444);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,
