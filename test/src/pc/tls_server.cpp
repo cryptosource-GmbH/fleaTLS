@@ -45,9 +45,7 @@ flea_err_t THR_flea_start_tls_server(
   flea_ref_cu8_t server_key__t;
   flea_al_u16_t cert_chain_len = FLEA_NB_ARRAY_ENTRIES(cert_chain);
 
-  // const flea_u16_t cipher_suites [] = {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA, FLEA_TLS_RSA_WITH_AES_256_CBC_SHA, FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256};
-  flea_ref_cu16_t cipher_suites_ref; // = {cipher_suites, FLEA_NB_ARRAY_ENTRIES(cipher_suites)};
-  // now read data and echo it back
+  flea_ref_cu16_t cipher_suites_ref;
   flea_u8_t buf[1000];
   flea_al_u16_t buf_len = sizeof(buf);
   tls_test_cfg_t tls_cfg;
