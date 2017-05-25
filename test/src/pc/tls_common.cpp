@@ -40,8 +40,10 @@ std::vector<flea_u16_t> get_cipher_suites_from_cmdl(property_set_t const& cmdl_a
     std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("cipher_suites"), ',');
     for(string s : strings)
     {
+      const flea_tls__cipher_suite_t* ptr;
       auto it = cipher_suite_name_value_map__t.find(s);
-      if(it == cipher_suite_name_value_map__t.end())
+      if(it == cipher_suite_name_value_map__t.end() ||
+        THR_flea_tls_get_cipher_suite_by_id(static_cast<flea_tls__cipher_suite_id_t>(it->second), &ptr))
       {
         throw test_utils_exceptn_t("specified cipher suite '" + s + "' not configured");
       }
