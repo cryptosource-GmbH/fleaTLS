@@ -184,6 +184,11 @@
  */
 # define FLEA_TLS_ALT_SEND_BUF_SIZE 128
 
+# define FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
+# define FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA
+# define FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256
+# define FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
+
 /**
  * Relevant only in stack mode. Maximal size of public key parameters object in
  * an X.509 certificate. Mainly relevant for certificates featuring EC public keys.
