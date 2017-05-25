@@ -1,6 +1,7 @@
 #ifndef _flea_test_pc__H_
 #define _flea_test_pc__H_
 
+#include "test_util.h"
 
 #ifdef __cplusplus
 extern "C" {

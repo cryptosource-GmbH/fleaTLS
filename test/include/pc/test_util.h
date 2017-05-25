@@ -4,6 +4,7 @@
 #define __flea_test_util_cpp_H_
 
 #include "flea/types.h"
+#include "flea/cert_store.h"
 #include "self_test.h"
 #include <vector>
 #include <string>
@@ -128,4 +129,21 @@ std::vector<std::string> get_entries_of_dir(
 
 flea_u32_t string_to_u32bit(std::string const& str);
 
+
+struct tls_test_cfg_t
+{
+  std::vector<std::vector<flea_u8_t> >     trusted_certs;
+  std::vector<flea_u8_t>                   server_key_vec;
+  std::vector<std::vector<unsigned char> > own_certs;
+  std::vector<std::vector<unsigned char> > own_ca_chain;
+};
+
+flea_err_t THR_flea_tls_tool_set_tls_cfg(
+  flea_cert_store_t*  trust_store__pt,
+  flea_ref_cu8_t*     cert_chain,
+  flea_al_u16_t*      cert_chain_len,
+  flea_ref_cu8_t*     server_key,
+  property_set_t const& cmdl_args,
+  tls_test_cfg_t      & cfg
+);
 #endif // ifndef __flea_test_util_cpp_H_

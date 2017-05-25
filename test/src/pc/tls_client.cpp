@@ -23,6 +23,7 @@
 #include "flea/array_util.h"
 
 #ifdef FLEA_HAVE_TLS
+# if 0
 // CA cert to verify the server's certificate
 const flea_u8_t trust_anchor_1024__acu8[] = { // rootCA_cryptosource_1024
   0x30, 0x82, 0x02, 0x2c, 0x30, 0x82, 0x01, 0x95, 0xa0, 0x03, 0x02, 0x01, 0x02, 0x02, 0x09, 0x00, 0x8d, 0x2e, 0x34,
@@ -115,6 +116,7 @@ const flea_u8_t trust_anchor_2048__acu8[] = {
   0x04, 0x14, 0x48, 0xf1, 0x79, 0xab, 0x33, 0xf5, 0xd4, 0xe0, 0xef, 0x1a, 0x62, 0x13, 0x48, 0xda, 0x52, 0x3e, 0x02,
   0x8f, 0x64, 0xba, 0x8e, 0xf1, 0x88
 };
+# endif // if 0
 
 flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
 {
@@ -129,33 +131,38 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   flea_ref_cu8_t hostname;
   flea_ref_cu8_t* hostname_p = NULL;
 
-  flea_ref_cu8_t cert_chain[2];
+  flea_ref_cu8_t cert_chain[10];
   flea_ref_cu8_t client_key__t;
 
+  flea_al_u16_t cert_chain_len = FLEA_NB_ARRAY_ENTRIES(cert_chain);
+
   // # define CLIENT_CERT_1024
-# ifdef CLIENT_CERT_1024
+# if 0
+#  ifdef CLIENT_CERT_1024
   cert_chain[1].data__pcu8 = trust_anchor_1024__au8;
   cert_chain[1].len__dtl   = sizeof(trust_anchor_1024__au8);
   cert_chain[0].data__pcu8 = server_cert_1024__au8;
   cert_chain[0].len__dtl   = sizeof(server_cert_1024__au8);
   client_key__t.data__pcu8 = server_key_1024__au8;
   client_key__t.len__dtl   = sizeof(server_key_1024__au8);
-# else
+#  else
   cert_chain[1].data__pcu8 = trust_anchor_2048__au8;
   cert_chain[1].len__dtl   = sizeof(trust_anchor_2048__au8);
   cert_chain[0].data__pcu8 = server_cert_2048__au8;
   cert_chain[0].len__dtl   = sizeof(server_cert_2048__au8);
   client_key__t.data__pcu8 = server_key_2048__au8;
   client_key__t.len__dtl   = sizeof(server_key_2048__au8);
-# endif // ifdef CLIENT_CERT_1024
+#  endif // ifdef CLIENT_CERT_1024
+# endif  // if 0
   const flea_u16_t cipher_suites [] = {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA, FLEA_TLS_RSA_WITH_AES_256_CBC_SHA, FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256};
   flea_ref_cu16_t cipher_suites_ref = {cipher_suites, FLEA_NB_ARRAY_ENTRIES(cipher_suites)};
-
+  tls_test_cfg_t tls_cfg;
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_t__INIT(&rw_stream__t);
   flea_tls_ctx_t__INIT(&tls_ctx);
   flea_cert_store_t__INIT(&trust_store__t);
   FLEA_CCALL(THR_flea_cert_store_t__ctor(&trust_store__t));
+# if 0
   FLEA_CCALL(
     THR_flea_cert_store_t__add_trusted_cert(
       &trust_store__t,
@@ -170,6 +177,7 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
       sizeof(trust_anchor_2048__acu8)
     )
   );
+# endif // if 0
   if(cmdl_args.have_index("hostname"))
   {
     hostname_p = &hostname;
@@ -177,8 +185,9 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
     hostname.data__pcu8 = reinterpret_cast<const flea_u8_t*>(hostname_s.c_str());
     hostname.len__dtl   = static_cast<flea_dtl_t>(std::strlen(hostname_s.c_str()));
   }
-  FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_client(&rw_stream__t));
-  // FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
+
+  FLEA_CCALL(THR_flea_tls_tool_set_tls_cfg(&trust_store__t, cert_chain, &cert_chain_len, &client_key__t, cmdl_args, tls_cfg));
+  FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_client(&rw_stream__t, cmdl_args.get_property_as_u32("port")));
   FLEA_CCALL(
     THR_flea_tls_ctx_t__ctor_client(
       &tls_ctx,

@@ -5,6 +5,7 @@
 #include "flea/error_handling.h"
 #include "flea/error.h"
 
+#include "pltf_support/tcpip_stream.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <errno.h>
@@ -306,7 +307,6 @@ static flea_err_t THR_read_socket(
 
 #endif /* if 0 */
 
-// TODO: merge into create_rw_stream function
 flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
   flea_rw_stream_t* stream__pt,
   flea_u16_t        port__u16
@@ -331,11 +331,13 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
       0
     )
   );
-  // TODO: set up the buffers initialized!!
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(flea_rw_stream_t* stream__pt)
+flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(
+  flea_rw_stream_t* stream__pt,
+  flea_u16_t        port__u16
+)
 {
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_open_f open__f         = THR_open_socket_client;
@@ -343,7 +345,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(flea_rw_stream_t* stre
   flea_rw_stream_write_f write__f       = THR_write_socket;
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
-  init_sock_stream(&stc_sock_stream__t, 4444);
+  init_sock_stream(&stc_sock_stream__t, port__u16);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,
@@ -356,6 +358,5 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(flea_rw_stream_t* stre
       0
     )
   );
-  // TODO: set up the buffers initialized!!
   FLEA_THR_FIN_SEC_empty();
 }
