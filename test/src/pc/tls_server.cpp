@@ -25,6 +25,70 @@ using namespace std;
 
 #ifdef FLEA_HAVE_TLS
 
+struct tls_test_cfg_t
+{
+  vector<vector<flea_u8_t> >               trusted_certs;
+  vector<flea_u8_t>                        server_key_vec;
+  std::vector<std::vector<unsigned char> > own_certs;
+  std::vector<std::vector<unsigned char> > own_ca_chain;
+};
+
+flea_err_t THR_flea_tls_tool_set_tls_cfg(
+  flea_cert_store_t*  trust_store__pt,
+  flea_ref_cu8_t*     cert_chain,
+  flea_al_u16_t*      cert_chain_len,
+  flea_ref_cu8_t*     server_key,
+  property_set_t const& cmdl_args,
+  tls_test_cfg_t      & cfg
+)
+{
+  cfg.trusted_certs  = cmdl_args.get_bin_file_list_property("trusted");
+  cfg.server_key_vec = cmdl_args.get_bin_file("own_private_key");
+  cfg.own_certs      = cmdl_args.get_bin_file_list_property("own_certs");
+  cfg.own_ca_chain   = cmdl_args.get_bin_file_list_property("own_ca_chain");
+  FLEA_THR_BEG_FUNC();
+
+  if(cfg.trusted_certs.size() == 0)
+  {
+    throw test_utils_exceptn_t("need to provide at least one trusted cert");
+  }
+  for(auto& cert_vec : cfg.trusted_certs)
+  {
+    FLEA_CCALL(
+      THR_flea_cert_store_t__add_trusted_cert(
+        trust_store__pt,
+        &cert_vec[0],
+        cert_vec.size()
+      )
+    );
+  }
+  if(cfg.own_certs.size() != 1)
+  {
+    throw test_utils_exceptn_t("own_certs so far only supports a single cert");
+  }
+
+  if(cfg.own_ca_chain.size() + 1 > *cert_chain_len)
+  {
+    throw test_utils_exceptn_t("number of ca certs too large");
+  }
+  *cert_chain_len = cfg.own_ca_chain.size() + 1;
+
+  cert_chain[0].data__pcu8 = &(cfg.own_certs[0])[0];
+  cert_chain[0].len__dtl   = cfg.own_certs[0].size();
+  for(unsigned i = 0; i < cfg.own_ca_chain.size(); i++)
+  {
+    std::cout << "adding to own_ca_chain" << std::endl;
+    cert_chain[i + 1].data__pcu8 = &(cfg.own_ca_chain[i])[0];
+    cert_chain[i + 1].len__dtl   = cfg.own_ca_chain[i].size();
+  }
+
+
+  server_key->data__pcu8 = &cfg.server_key_vec[0];
+  server_key->len__dtl   = cfg.server_key_vec.size();
+
+  FLEA_THR_FIN_SEC_empty();
+} // THR_flea_tls_tool_set_tls_cfg
+
 flea_err_t THR_flea_start_tls_server(
   property_set_t const& cmdl_args,
   bool                is_https_server
@@ -38,60 +102,22 @@ flea_err_t THR_flea_start_tls_server(
 
   flea_ref_cu8_t cert_chain[10];
   flea_ref_cu8_t server_key__t;
+  flea_al_u16_t cert_chain_len = FLEA_NB_ARRAY_ENTRIES(cert_chain);
 
   const flea_u16_t cipher_suites [] = {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA, FLEA_TLS_RSA_WITH_AES_256_CBC_SHA, FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256};
   flea_ref_cu16_t cipher_suites_ref = {cipher_suites, FLEA_NB_ARRAY_ENTRIES(cipher_suites)};
   // now read data and echo it back
   flea_u8_t buf[1000];
   flea_al_u16_t buf_len = sizeof(buf);
+  tls_test_cfg_t tls_cfg;
 
   FLEA_THR_BEG_FUNC();
 
-  vector<vector<flea_u8_t> > trusted_certs = cmdl_args.get_bin_file_list_property("trusted");
-  vector<flea_u8_t> server_key = cmdl_args.get_bin_file("own_private_key");
-  std::vector<std::vector<unsigned char> > own_certs    = cmdl_args.get_bin_file_list_property("own_certs");
-  std::vector<std::vector<unsigned char> > own_ca_chain = cmdl_args.get_bin_file_list_property("own_ca_chain");
 
   flea_tls_ctx_t__INIT(&tls_ctx);
   flea_cert_store_t__INIT(&trust_store__t);
   FLEA_CCALL(THR_flea_cert_store_t__ctor(&trust_store__t));
-
-  if(trusted_certs.size() == 0)
-  {
-    throw test_utils_exceptn_t("need to provide at least one trusted cert");
-  }
-  for(auto& cert_vec : trusted_certs)
-  {
-    FLEA_CCALL(
-      THR_flea_cert_store_t__add_trusted_cert(
-        &trust_store__t,
-        &cert_vec[0],
-        cert_vec.size()
-      )
-    );
-  }
-  if(own_certs.size() != 1)
-  {
-    throw test_utils_exceptn_t("own_certs so far only supports a single cert");
-  }
-
-  if(own_ca_chain.size() + 1 > FLEA_NB_ARRAY_ENTRIES(cert_chain))
-  {
-    throw test_utils_exceptn_t("number of ca certs too large");
-  }
-
-  cert_chain[0].data__pcu8 = &(own_certs[0])[0];
-  cert_chain[0].len__dtl   = own_certs[0].size();
-  for(unsigned i = 0; i < own_ca_chain.size(); i++)
-  {
-    std::cout << "adding to own_ca_chain" << std::endl;
-    cert_chain[i + 1].data__pcu8 = &(own_ca_chain[i])[0];
-    cert_chain[i + 1].len__dtl   = own_ca_chain[i].size();
-  }
-
-
-  server_key__t.data__pcu8 = &server_key[0];
-  server_key__t.len__dtl   = server_key.size();
+  FLEA_CCALL(THR_flea_tls_tool_set_tls_cfg(&trust_store__t, cert_chain, &cert_chain_len, &server_key__t, cmdl_args, tls_cfg));
 
   FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_server(&rw_stream__t, cmdl_args.get_property_as_u32("port")));
 
@@ -100,7 +126,7 @@ flea_err_t THR_flea_start_tls_server(
       &tls_ctx,
       &rw_stream__t,
       cert_chain,
-      own_ca_chain.size() + 1,
+      cert_chain_len,
       &trust_store__t,
       &server_key__t,
       &cipher_suites_ref
