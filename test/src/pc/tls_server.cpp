@@ -25,7 +25,10 @@ using namespace std;
 
 #ifdef FLEA_HAVE_TLS
 
-flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
+flea_err_t THR_flea_start_tls_server(
+  property_set_t const& cmdl_args,
+  bool                is_https_server
+)
 {
   flea_rw_stream_t rw_stream__t;
   flea_cert_store_t trust_store__t;
@@ -105,9 +108,32 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   );
   std::cout << "handshake done" << std::endl;
   std::flush(std::cout);
-
-  while(1)
+  if(!is_https_server)
   {
+    while(1)
+    {
+      flea_err_t retval = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
+      if(retval == FLEA_ERR_TLS_SESSION_CLOSED)
+      {
+        FLEA_THR_RETURN();
+      }
+      else if(retval)
+      {
+        FLEA_THROW("rethrowing error from read_app_data", retval);
+      }
+      printf("before read_app_data\n");
+      buf[buf_len] = 0;
+      printf("received data: %s\n", buf);
+      printf("read_app_data returned\n");
+      FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
+      buf_len = sizeof(buf);
+    }
+  }
+  else
+  {
+    buf_len = sizeof(buf);
+    const char* response_hdr_1 =
+      "HTTP/1.1 200 OK\r\nDate: Mon, 27 Jul 2009 12:28:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT\r\nContent-Length: 50\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html><head><body>this is text</body></head></html>";
     flea_err_t retval = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
     if(retval == FLEA_ERR_TLS_SESSION_CLOSED)
     {
@@ -117,12 +143,8 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
     {
       FLEA_THROW("rethrowing error from read_app_data", retval);
     }
-    printf("before read_app_data\n");
     buf[buf_len] = 0;
-    printf("received data: %s\n", buf);
-    printf("read_app_data returned\n");
-    FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
-    buf_len = sizeof(buf);
+    FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (const flea_u8_t*) response_hdr_1, strlen(response_hdr_1)));
   }
 
 
@@ -137,7 +159,7 @@ int flea_start_tls_server(property_set_t const& cmdl_args)
 {
   flea_err_t err;
 
-  if((err = THR_flea_start_tls_server(cmdl_args)))
+  if((err = THR_flea_start_tls_server(cmdl_args, false)))
   {
     FLEA_PRINTF_TEST_OUTP_2_SWITCHED("error %04x during tls server test\n", err);
     return 1;
@@ -146,6 +168,23 @@ int flea_start_tls_server(property_set_t const& cmdl_args)
   {
     FLEA_PRINTF_TEST_OUTP_1_SWITCHED("tls test passed\n");
     return 0;
+  }
+}
+
+int flea_start_https_server(property_set_t const& cmdl_args)
+{
+  flea_err_t err;
+
+  while(1)
+  {
+    if((err = THR_flea_start_tls_server(cmdl_args, true)))
+    {
+      FLEA_PRINTF_TEST_OUTP_2_SWITCHED("error %04x during https server test\n", err);
+    }
+    else
+    {
+      FLEA_PRINTF_TEST_OUTP_1_SWITCHED("tls test passed\n");
+    }
   }
 }
 
