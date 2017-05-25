@@ -88,6 +88,8 @@ public:
   std::string const& get_filename() const
   {return m_filename;};
 
+  std::vector<unsigned char> get_bin_file(std::string const& index) const;
+
   std::vector<std::vector<unsigned char> > get_bin_file_list_property(std::string const& index) const;
 private:
 

@@ -41,9 +41,9 @@ def test_flea_client_against_exernal_server(ext_start_script):
     p.kill()
     return 0
 
-def test_flea_server_against_external_client(ext_start_script):
+def test_flea_server_against_external_client(ext_start_script, flea_cmdl_args):
     subprocess.Popen('killall openssl', shell=True)
-    p_flea = subprocess.Popen('./build/unit_test --tls_server', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ut_cwd)
+    p_flea = subprocess.Popen('./build/unit_test --tls_server ' + flea_cmdl_args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ut_cwd)
     time.sleep(1)
     p_ossl = subprocess.Popen(ossl_script_dir + "/" + ext_start_script, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ossl_cwd)
     print ("after p_ossl")
@@ -70,12 +70,13 @@ def test_flea_server_against_external_client(ext_start_script):
     #p_flea.kill()
     #p_ossl.kill()
     return 0
-    
+   
+std_certs_args = "--trusted=misc/tools/tls/tls_certs/rootCA.der --own_certs=misc/tools/tls/tls_certs/server.der --own_private_key=./misc/tools/tls/tls_certs/server.pkcs8 --own_ca_chain=misc/tools/tls/tls_certs/rootCA.der"
 
 error_cnt = 0
-error_cnt += test_flea_server_against_external_client('start_ossl_client_w_cert.sh') # doesn't work after the 'ossl=server' tests
-error_cnt += test_flea_server_against_external_client('start_ossl_client_gcm_w_cert.sh') # doesn't work after the 'ossl=server' tests
-error_cnt += test_flea_server_against_external_client('start_ossl_client_cbc_w_cert.sh') # doesn't work after the 'ossl=server' tests
+error_cnt += test_flea_server_against_external_client('start_ossl_client_w_cert.sh', std_certs_args) # doesn't work after the 'ossl=server' tests
+error_cnt += test_flea_server_against_external_client('start_ossl_client_gcm_w_cert.sh', std_certs_args) 
+error_cnt += test_flea_server_against_external_client('start_ossl_client_cbc_w_cert.sh', std_certs_args)
 error_cnt += test_flea_client_against_exernal_server('start_ossl_server_request_cert.sh')
 error_cnt += test_flea_client_against_exernal_server('start_ossl_server.sh')
 error_cnt += test_flea_client_against_exernal_server('start_ossl_server_gcm.sh')

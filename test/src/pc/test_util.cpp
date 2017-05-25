@@ -180,7 +180,7 @@ std::vector<std::string> tokenize_string(
   while(pos < value.size())
   {
     auto comma_pos = value.find(sep, pos);
-    std::cout << "comma_pos = " << comma_pos << std::endl;
+    // std::cout << "comma_pos = " << comma_pos << std::endl;
     string file_name;
     if(comma_pos == std::string::npos)
     {
@@ -190,7 +190,7 @@ std::vector<std::string> tokenize_string(
     {
       file_name = value.substr(pos, comma_pos - pos);
     }
-    std::cout << "file name would be '" << file_name << "'" << std::endl;
+    // std::cout << "file name would be '" << file_name << "'" << std::endl;
     result.push_back(file_name);
     if(comma_pos == std::string::npos)
     {
@@ -498,6 +498,13 @@ flea_u32_t property_set_t::get_property_as_u32(std::string const& index) const
     );
   }
   return string_to_u32bit(value);
+}
+
+std::vector<unsigned char> property_set_t::get_bin_file(std::string const& index) const
+{
+  string value = get_property_as_string(index);
+
+  return read_bin_file(value);
 }
 
 std::vector<std::vector<unsigned char> > property_set_t::get_bin_file_list_property(std::string const& index) const

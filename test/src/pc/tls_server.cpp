@@ -20,6 +20,9 @@
 #include "tls_server_certs.h"
 #include "flea/array_util.h"
 
+using namespace std;
+
+#if 0
 const flea_u8_t trust_anchor_1024__acu8[] = { // rootCA_cryptosource_1024
   0x30, 0x82, 0x02, 0x2c, 0x30, 0x82, 0x01, 0x95, 0xa0, 0x03, 0x02, 0x01, 0x02, 0x02, 0x09, 0x00, 0x8d, 0x2e, 0x34,
   0x16, 0xc5, 0x14, 0xdf, 0xbe, 0x30, 0x0d, 0x06, 0x09, 0x2a, 0x86,
@@ -111,7 +114,7 @@ const flea_u8_t trust_anchor_2048__acu8[] = {
   0x04, 0x14, 0x48, 0xf1, 0x79, 0xab, 0x33, 0xf5, 0xd4, 0xe0, 0xef, 0x1a, 0x62, 0x13, 0x48, 0xda, 0x52, 0x3e, 0x02,
   0x8f, 0x64, 0xba, 0x8e, 0xf1, 0x88
 };
-
+#endif // if 0
 
 #ifdef FLEA_HAVE_TLS
 
@@ -130,26 +133,26 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   // # define SERVER_CERT_1024
 
 
-  flea_ref_cu8_t cert_chain[2];
+  flea_ref_cu8_t cert_chain[10];
   flea_ref_cu8_t server_key__t;
 
-# ifdef SERVER_CERT_1024
+# if 0
+#  ifdef SERVER_CERT_1024
   cert_chain[1].data__pcu8 = trust_anchor_1024__au8;
   cert_chain[1].len__dtl   = sizeof(trust_anchor_1024__au8);
   cert_chain[0].data__pcu8 = server_cert_1024__au8;
   cert_chain[0].len__dtl   = sizeof(server_cert_1024__au8);
   server_key__t.data__pcu8 = server_key_1024__au8;
   server_key__t.len__dtl   = sizeof(server_key_1024__au8);
-# else
+#  else
   cert_chain[1].data__pcu8 = trust_anchor_2048__au8;
   cert_chain[1].len__dtl   = sizeof(trust_anchor_2048__au8);
   cert_chain[0].data__pcu8 = server_cert_2048__au8;
   cert_chain[0].len__dtl   = sizeof(server_cert_2048__au8);
   server_key__t.data__pcu8 = server_key_2048__au8;
   server_key__t.len__dtl   = sizeof(server_key_2048__au8);
-# endif // ifdef SERVER_CERT_1024
-
-  std::vector<std::vector<unsigned char> > own_certs = cmdl_args.get_bin_file_list_property("own_certs");
+#  endif // ifdef SERVER_CERT_1024
+# endif  // if 0
 
   const flea_u16_t cipher_suites [] = {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA, FLEA_TLS_RSA_WITH_AES_256_CBC_SHA, FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256};
   flea_ref_cu16_t cipher_suites_ref = {cipher_suites, FLEA_NB_ARRAY_ENTRIES(cipher_suites)};
@@ -157,30 +160,86 @@ flea_err_t THR_flea_start_tls_server(property_set_t const& cmdl_args)
   flea_u8_t buf[1000];
   flea_al_u16_t buf_len = sizeof(buf);
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_cert_store_t__ctor(&trust_store__t));
-  FLEA_CCALL(
-    THR_flea_cert_store_t__add_trusted_cert(
-      &trust_store__t,
-      trust_anchor_1024__acu8,
-      sizeof(trust_anchor_1024__acu8)
-    )
-  );
-  FLEA_CCALL(
-    THR_flea_cert_store_t__add_trusted_cert(
-      &trust_store__t,
-      trust_anchor_2048__acu8,
-      sizeof(trust_anchor_2048__acu8)
-    )
-  );
+
+  vector<vector<flea_u8_t> > trusted_certs = cmdl_args.get_bin_file_list_property("trusted");
+  vector<flea_u8_t> server_key = cmdl_args.get_bin_file("own_private_key");
+  std::vector<std::vector<unsigned char> > own_certs    = cmdl_args.get_bin_file_list_property("own_certs");
+  std::vector<std::vector<unsigned char> > own_ca_chain = cmdl_args.get_bin_file_list_property("own_ca_chain");
+
   flea_tls_ctx_t__INIT(&tls_ctx);
+  flea_cert_store_t__INIT(&trust_store__t);
+  FLEA_CCALL(THR_flea_cert_store_t__ctor(&trust_store__t));
+
+  if(trusted_certs.size() == 0)
+  {
+    throw test_utils_exceptn_t("need to provide at least one trusted cert");
+  }
+  for(auto& cert_vec : trusted_certs)
+  {
+    FLEA_CCALL(
+      THR_flea_cert_store_t__add_trusted_cert(
+        &trust_store__t,
+        &cert_vec[0],
+        cert_vec.size()
+      )
+    );
+  }
+  if(own_certs.size() != 1)
+  {
+    throw test_utils_exceptn_t("own_certs so far only supports a single cert");
+  }
+
+  if(own_ca_chain.size() + 1 > FLEA_NB_ARRAY_ENTRIES(cert_chain))
+  {
+    throw test_utils_exceptn_t("number of ca certs too large");
+  }
+
+  cert_chain[0].data__pcu8 = &(own_certs[0])[0];
+  cert_chain[0].len__dtl   = own_certs[0].size();
+  for(unsigned i = 0; i < own_ca_chain.size(); i++)
+  {
+    std::cout << "adding to own_ca_chain" << std::endl;
+    cert_chain[i + 1].data__pcu8 = &(own_ca_chain[i])[0];
+    cert_chain[i + 1].len__dtl   = own_ca_chain[i].size();
+  }
+
+
+  server_key__t.data__pcu8 = &server_key[0];
+  server_key__t.len__dtl   = server_key.size();
+
+  /*
+   * FLEA_CCALL(
+   *  THR_flea_cert_store_t__add_trusted_cert(
+   *    &trust_store__t,
+   *    trust_anchor_1024__acu8,
+   *    sizeof(trust_anchor_1024__acu8)
+   *  )
+   * );
+   * FLEA_CCALL(
+   *  THR_flea_cert_store_t__add_trusted_cert(
+   *    &trust_store__t,
+   *    trust_anchor_2048__acu8,
+   *    sizeof(trust_anchor_2048__acu8)
+   *  )
+   * );
+   */
   FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_server(&rw_stream__t));
   // FLEA_CCALL(flea_tls_ctx_t__ctor(&tls_ctx, &rw_stream__t, NULL, 0));
+  //
+  //
+
+  /*cert_chain[1].data__pcu8 = trust_anchor_2048__au8;
+   * cert_chain[1].len__dtl   = sizeof(trust_anchor_2048__au8);
+   * cert_chain[0].data__pcu8 = server_cert_2048__au8;
+   * cert_chain[0].len__dtl   = sizeof(server_cert_2048__au8);
+   * server_key__t.data__pcu8 = server_key_2048__au8;
+   * server_key__t.len__dtl   = sizeof(server_key_2048__au8);*/
   FLEA_CCALL(
     THR_flea_tls_ctx_t__ctor_server(
       &tls_ctx,
       &rw_stream__t,
       cert_chain,
-      2,
+      own_ca_chain.size() + 1,
       &trust_store__t,
       &server_key__t,
       &cipher_suites_ref
