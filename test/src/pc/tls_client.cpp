@@ -19,7 +19,6 @@
 #include "pc/test_pc.h"
 #include "pltf_support/tcpip_stream.h"
 
-#include "tls_server_certs.h" // reuse server cert as client cert
 #include "flea/array_util.h"
 
 #ifdef FLEA_HAVE_TLS
