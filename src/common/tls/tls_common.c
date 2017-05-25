@@ -922,6 +922,7 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
 {
   flea_tls_rec_prot_t__dtor(&tls_ctx__pt->rec_prot__t);
   flea_public_key_t__dtor(&tls_ctx__pt->server_pubkey);
+  flea_public_key_t__dtor(&tls_ctx__pt->client_pubkey);
 }
 
 #endif /* ifdef FLEA_HAVE_TLS */
