@@ -138,7 +138,7 @@ struct tls_test_cfg_t
   std::vector<std::vector<unsigned char> > own_ca_chain;
   std::vector<flea_u16_t>                  cipher_suites;
 };
-
+#ifdef FLEA_HAVE_ASYM_ALGS
 flea_err_t THR_flea_tls_tool_set_tls_cfg(
   flea_cert_store_t*  trust_store__pt,
   flea_ref_cu8_t*     cert_chain,
@@ -147,6 +147,7 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   property_set_t const& cmdl_args,
   tls_test_cfg_t      & cfg
 );
+#endif
 
 
 std::vector<std::string> tokenize_string(

@@ -15,7 +15,8 @@ using namespace std;
 
 
 // TODO: EVALUATE KEY LEN REQ IN TESTS
-#if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
+#if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) && defined FLEA_HAVE_ECDSA && \
+  (FLEA_ECC_MAX_MOD_BIT_SIZE >= 521)
 static flea_err_t THR_flea_execute_path_test_case_for_properties(
   std::string const   & dir_path,
   property_set_t const& prop
