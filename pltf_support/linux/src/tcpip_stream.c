@@ -5,6 +5,7 @@
 #include "flea/error_handling.h"
 #include "flea/error.h"
 
+
 #include "pltf_support/tcpip_stream.h"
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -32,19 +33,22 @@ typedef struct
   read_buf_t  read_buf__t;
   write_buf_t write_buf__t;
   flea_u16_t  port__u16;
+  const char* hostname;
 } linux_socket_stream_ctx_t;
 
 static linux_socket_stream_ctx_t stc_sock_stream__t;
 
 static void init_sock_stream(
   linux_socket_stream_ctx_t* sock_stream__pt,
-  flea_u16_t                 port__u16
+  flea_u16_t                 port__u16,
+  const char*                hostname
 )
 {
   memset(sock_stream__pt, 0, sizeof(*sock_stream__pt));
   sock_stream__pt->read_buf__t.alloc_len__dtl  = sizeof(sock_stream__pt->read_buf__t.buffer__au8);
   sock_stream__pt->write_buf__t.alloc_len__dtl = sizeof(sock_stream__pt->write_buf__t.buffer__au8);
   sock_stream__pt->port__u16 = port__u16;
+  sock_stream__pt->hostname  = hostname;
 }
 
 static flea_err_t THR_open_socket_server(void* ctx__pv)
@@ -112,7 +116,7 @@ static flea_err_t THR_open_socket_client(void* ctx__pv)
   }
 
   memset(&addr, 0, sizeof(addr));
-  addr.sin_addr.s_addr = inet_addr("127.0.0.1");
+  addr.sin_addr.s_addr = inet_addr(ctx__pt->hostname);
   addr.sin_family      = AF_INET;
   addr.sin_port        = htons(ctx__pt->port__u16);
 
@@ -121,7 +125,7 @@ static flea_err_t THR_open_socket_client(void* ctx__pv)
     // addr.sin_port = htons(4445);
     // if(connect(socket_fd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
     {
-      FLEA_THROW("coult not open client TCP/IP socket", FLEA_ERR_FAILED_STREAM_WRITE);
+      FLEA_THROW("coult not open client TCP/IP socket", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
     }
   }
   ctx__pt->socket_fd__int = socket_fd;
@@ -318,7 +322,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
   flea_rw_stream_write_f write__f       = THR_write_socket;
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
-  init_sock_stream(&stc_sock_stream__t, port__u16);
+  init_sock_stream(&stc_sock_stream__t, port__u16, NULL);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,
@@ -336,7 +340,8 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
 
 flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_rw_stream_t* stream__pt,
-  flea_u16_t        port__u16
+  flea_u16_t        port__u16,
+  const char*       hostname
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -345,7 +350,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_rw_stream_write_f write__f       = THR_write_socket;
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
-  init_sock_stream(&stc_sock_stream__t, port__u16);
+  init_sock_stream(&stc_sock_stream__t, port__u16, hostname);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,

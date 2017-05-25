@@ -157,6 +157,8 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   const flea_u16_t cipher_suites [] = {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA, FLEA_TLS_RSA_WITH_AES_256_CBC_SHA, FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256};
   flea_ref_cu16_t cipher_suites_ref = {cipher_suites, FLEA_NB_ARRAY_ENTRIES(cipher_suites)};
   tls_test_cfg_t tls_cfg;
+  flea_host_id_type_e host_type;
+  std::string hostname_s;
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_t__INIT(&rw_stream__t);
   flea_tls_ctx_t__INIT(&tls_ctx);
@@ -178,22 +180,57 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
     )
   );
 # endif // if 0
-  if(cmdl_args.have_index("hostname"))
+  if(cmdl_args.have_index("hostname") || cmdl_args.have_index("ip_addr"))
   {
-    hostname_p = &hostname;
-    std::string hostname_s = cmdl_args.get_property_as_string("hostname");
-    hostname.data__pcu8 = reinterpret_cast<const flea_u8_t*>(hostname_s.c_str());
-    hostname.len__dtl   = static_cast<flea_dtl_t>(std::strlen(hostname_s.c_str()));
+    std::string index;
+    if(cmdl_args.have_index("hostname"))
+    {
+      index     = "hostname";
+      host_type = flea_host_dnsname;
+    }
+    else
+    {
+      index     = "ip_addr";
+      host_type = flea_host_ipaddr;
+    }
+    hostname_s = cmdl_args.get_property_as_string(index);
+
+    if(!cmdl_args.have_index("no_hostn_ver"))
+    {
+      hostname_p = &hostname;
+      hostname.data__pcu8 = reinterpret_cast<const flea_u8_t*>(hostname_s.c_str());
+      hostname.len__dtl   = static_cast<flea_dtl_t>(std::strlen(hostname_s.c_str()));
+    }
+  }
+  else
+  {
+    throw("neither 'hostname' nor 'ip_addr' provided");
   }
 
-  FLEA_CCALL(THR_flea_tls_tool_set_tls_cfg(&trust_store__t, cert_chain, &cert_chain_len, &client_key__t, cmdl_args, tls_cfg));
-  FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_client(&rw_stream__t, cmdl_args.get_property_as_u32("port")));
+
+  FLEA_CCALL(
+    THR_flea_tls_tool_set_tls_cfg(
+      &trust_store__t,
+      cert_chain,
+      &cert_chain_len,
+      &client_key__t,
+      cmdl_args,
+      tls_cfg
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_pltfif_tcpip__create_rw_stream_client(
+      &rw_stream__t,
+      cmdl_args.get_property_as_u32("port"),
+      hostname_s.c_str()
+    )
+  );
   FLEA_CCALL(
     THR_flea_tls_ctx_t__ctor_client(
       &tls_ctx,
       &trust_store__t,
       hostname_p,
-      flea_host_dnsname,
+      host_type,
       &rw_stream__t,
       NULL,
       0,

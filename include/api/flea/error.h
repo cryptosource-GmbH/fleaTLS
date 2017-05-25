@@ -171,6 +171,7 @@ typedef enum
    * Unspecified error while trying to write to a stream.
    */
   FLEA_ERR_FAILED_STREAM_WRITE                          = 0xAE,
+  FLEA_ERR_FAILED_TO_OPEN_CONNECTION                    = 0xAF,
   FLEA_ERR_PRNG_NVM_WRITE_ERROR                         = 0xB1,
   FLEA_ERR_RNG_NOT_SEEDED                               = 0xB2,
   FLEA_ERR_X509_VERSION_ERROR                           = 0xC0,

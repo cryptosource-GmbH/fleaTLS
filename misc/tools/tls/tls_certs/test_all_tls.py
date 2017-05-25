@@ -22,10 +22,10 @@ def print_string_array(lines):
     for line in lines:
         print (line)
 
-def test_flea_client_against_exernal_server(ext_start_script):
+def test_flea_client_against_exernal_server(ext_start_script, flea_cmdl_args):
     p = subprocess.Popen(ossl_script_dir + "/" + ext_start_script, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ossl_cwd)
     time.sleep(1)
-    p_test = subprocess.Popen('./build/unit_test --tls_client', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ut_cwd)
+    p_test = subprocess.Popen('./build/unit_test --tls_client ' + flea_cmdl_args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ut_cwd)
     ut_output = []
     for line in p_test.stdout.readlines():
         ut_output.append(line)
@@ -71,16 +71,17 @@ def test_flea_server_against_external_client(ext_start_script, flea_cmdl_args):
     #p_ossl.kill()
     return 0
    
-std_certs_args = "--trusted=misc/tools/tls/tls_certs/rootCA.der --own_certs=misc/tools/tls/tls_certs/server.der --own_private_key=./misc/tools/tls/tls_certs/server.pkcs8 --own_ca_chain=misc/tools/tls/tls_certs/rootCA.der --port=4444"
+std_server_args = "--trusted=misc/tools/tls/tls_certs/rootCA.der --own_certs=misc/tools/tls/tls_certs/server.der --own_private_key=./misc/tools/tls/tls_certs/server.pkcs8 --own_ca_chain=misc/tools/tls/tls_certs/rootCA.der --port=4444"
+std_client_args = "--trusted=misc/tools/tls/tls_certs/rootCA.der --own_certs=misc/tools/tls/tls_certs/server.der --own_private_key=./misc/tools/tls/tls_certs/server.pkcs8 --own_ca_chain=misc/tools/tls/tls_certs/rootCA.der --port=4444 --ip_addr=127.0.0.1 --no_hostn_ver"
 
 error_cnt = 0
-error_cnt += test_flea_server_against_external_client('start_ossl_client_w_cert.sh', std_certs_args) # doesn't work after the 'ossl=server' tests
-error_cnt += test_flea_server_against_external_client('start_ossl_client_gcm_w_cert.sh', std_certs_args) 
-error_cnt += test_flea_server_against_external_client('start_ossl_client_cbc_w_cert.sh', std_certs_args)
-error_cnt += test_flea_client_against_exernal_server('start_ossl_server_request_cert.sh')
-error_cnt += test_flea_client_against_exernal_server('start_ossl_server.sh')
-error_cnt += test_flea_client_against_exernal_server('start_ossl_server_gcm.sh')
-error_cnt += test_flea_client_against_exernal_server('start_ossl_server_cbc.sh')
+error_cnt += test_flea_server_against_external_client('start_ossl_client_w_cert.sh', std_server_args) # doesn't work after the 'ossl=server' tests
+error_cnt += test_flea_server_against_external_client('start_ossl_client_gcm_w_cert.sh', std_server_args) 
+error_cnt += test_flea_server_against_external_client('start_ossl_client_cbc_w_cert.sh', std_server_args)
+error_cnt += test_flea_client_against_exernal_server('start_ossl_server_request_cert.sh', std_client_args)
+error_cnt += test_flea_client_against_exernal_server('start_ossl_server.sh', std_client_args)
+error_cnt += test_flea_client_against_exernal_server('start_ossl_server_gcm.sh', std_client_args)
+error_cnt += test_flea_client_against_exernal_server('start_ossl_server_cbc.sh', std_client_args)
 
 
 #print("first 2 passed")
