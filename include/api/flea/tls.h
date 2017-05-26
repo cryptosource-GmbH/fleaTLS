@@ -172,8 +172,7 @@ typedef struct
   flea_u16_t                   selected_cipher_suite__u16;
 
   /* TODO: Where do I allocate the memory? inside __ctor seems pointless with stack usage */
-  flea_public_key_t            server_pubkey; /* Public Key of server to use (Key Exchange) */
-  flea_public_key_t            client_pubkey; // TODO: NEED ONLY SINGLE PUBKEY
+  flea_public_key_t            peer_pubkey; /* public key of peer */
 
   flea_tls__protocol_version_t version; /* max. supported TLS version */
 

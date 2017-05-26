@@ -286,12 +286,11 @@ static flea_err_t THR_flea_tls__send_cert_request(
   // TODO!: change hardcoded values !!!
   flea_u8_t cert_types__au8[1] = {1};
   flea_u8_t sig_algs__au8[2]   = {0x04, 0x01}; // RSA + SHA256
-  // flea_u8_t cert_authorities__au8[] = {};
   flea_u8_t sig_algs_len_enc__au8[2];
   flea_u8_t cert_authorities_len_enc__au8[2];
   flea_u8_t cert_types_len__u8         = sizeof(cert_types__au8);
   flea_u16_t sig_algs_len__u16         = sizeof(sig_algs__au8);
-  flea_u16_t cert_authorities_len__u16 = 0;// sizeof(cert_authorities__au8);
+  flea_u16_t cert_authorities_len__u16 = 0;
 
   flea_u32_t hdr_len__u32 = 1 + cert_types_len__u8 + 2 + sig_algs_len__u16 + 2 + cert_authorities_len__u16;
 
