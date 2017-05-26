@@ -519,6 +519,11 @@ static flea_err_t THR_flea_handle_handsh_msg(
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST &&
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_REQUEST)
   {
+    if(tls_ctx->cert_chain__pt == NULL)
+    {
+      FLEA_THROW("Server requested a certificate but client has none", FLEA_ERR_TLS_GENERIC);
+    }
+
     FLEA_CCALL(THR_flea_tls__read_cert_request(&handsh_rdr__t));
     handshake_state->send_client_cert  = FLEA_TRUE;
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
