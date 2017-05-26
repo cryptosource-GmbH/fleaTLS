@@ -85,10 +85,10 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   cfg.cipher_suites  = get_cipher_suites_from_cmdl(cmdl_args);
   FLEA_THR_BEG_FUNC();
 
-  if(cfg.trusted_certs.size() == 0)
-  {
-    throw test_utils_exceptn_t("need to provide at least one trusted cert");
-  }
+  /*if(cfg.trusted_certs.size() == 0)
+   * {
+   * throw test_utils_exceptn_t("need to provide at least one trusted cert");
+   * }*/
   for(auto& cert_vec : cfg.trusted_certs)
   {
     FLEA_CCALL(

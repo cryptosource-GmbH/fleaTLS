@@ -130,8 +130,7 @@ flea_err_t THR_flea_tls__handle_tls_error(
 );
 
 flea_err_t THR_flea_tls__server_handshake(
-  flea_tls_ctx_t* tls_ctx,
-  flea_bool_t     request_cert__t
+  flea_tls_ctx_t* tls_ctx
 );
 
 flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx);

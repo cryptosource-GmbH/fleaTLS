@@ -501,7 +501,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
       THR_flea_tls__read_certificate(
         tls_ctx,
         &handsh_rdr__t,
-        &tls_ctx->server_pubkey,
+        &tls_ctx->peer_pubkey,
         &cert_path_params__t
       )
     );
@@ -705,7 +705,7 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
         THR_flea_tls__send_client_key_exchange(
           tls_ctx,
           &hash_ctx,
-          &tls_ctx->server_pubkey,
+          &tls_ctx->peer_pubkey,
           &premaster_secret__t
         )
       );

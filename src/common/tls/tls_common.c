@@ -417,8 +417,9 @@ flea_err_t THR_flea_tls__read_certificate(
 
 
   // TODO: ADD ALSO CRLS
-  //
-  // TODO: WHAT IS READ HERE?
+
+  // we don't need the length
+  // TODO: consider checking length consistency with handshake msg length
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
@@ -948,8 +949,7 @@ flea_err_t THR_flea_tls_ctx_t__read_app_data(
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
 {
   flea_tls_rec_prot_t__dtor(&tls_ctx__pt->rec_prot__t);
-  flea_public_key_t__dtor(&tls_ctx__pt->server_pubkey);
-  flea_public_key_t__dtor(&tls_ctx__pt->client_pubkey);
+  flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey);
 }
 
 #endif /* ifdef FLEA_HAVE_TLS */

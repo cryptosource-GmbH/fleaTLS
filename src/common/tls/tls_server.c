@@ -507,7 +507,7 @@ static flea_err_t THR_flea_tls__read_cert_verify(
         32,
         flea_sha256,
         flea_rsa_pkcs1_v1_5_sign,
-        &tls_ctx->client_pubkey,
+        &tls_ctx->peer_pubkey,
         sig__bu8,
         sig_len__u16
       )
@@ -584,7 +584,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
         THR_flea_tls__read_certificate(
           tls_ctx,
           &handsh_rdr__t,
-          &tls_ctx->client_pubkey,
+          &tls_ctx->peer_pubkey,
           &cert_path_params__t
         )
       );
@@ -651,8 +651,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
 } /* THR_flea_handle_handsh_msg */
 
 flea_err_t THR_flea_tls__server_handshake(
-  flea_tls_ctx_t* tls_ctx,
-  flea_bool_t     request_cert__t
+  flea_tls_ctx_t* tls_ctx
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -680,7 +679,14 @@ flea_err_t THR_flea_tls__server_handshake(
 
   handshake_state.initialized       = FLEA_TRUE;
   handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_HELLO;
-  handshake_state.send_client_cert  = request_cert__t;
+  if(tls_ctx->trust_store__pt->nb_set_certs__u16 == 0)
+  {
+    handshake_state.send_client_cert = FLEA_FALSE;
+  }
+  else
+  {
+    handshake_state.send_client_cert = FLEA_TRUE;
+  }
 
   while(handshake_state.finished != FLEA_TRUE)
   {
@@ -868,8 +874,7 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   flea_al_u8_t             cert_chain_len__alu8,
   const flea_cert_store_t* trust_store__pt,
   flea_ref_cu8_t*          server_key__pt,
-  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
-  flea_bool_t              request_cert__t
+  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16
   // TODO: include trust store for client certs
 )
 {
@@ -882,7 +887,7 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   tls_ctx__pt->trust_store__pt    = trust_store__pt;
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
   FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt, NULL, 0));
-  err__t = THR_flea_tls__server_handshake(tls_ctx__pt, request_cert__t);
+  err__t = THR_flea_tls__server_handshake(tls_ctx__pt);
   FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
   FLEA_THR_FIN_SEC_empty();
 }
