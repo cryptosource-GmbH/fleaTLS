@@ -66,6 +66,10 @@ flea_err_t THR_flea_start_tls_server(
       tls_cfg
     )
   );
+  if(cert_chain_len == 0)
+  {
+    throw test_utils_exceptn_t("missing own certificate for tls server");
+  }
 
   FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_server(&rw_stream__t, cmdl_args.get_property_as_u32("port")));
 

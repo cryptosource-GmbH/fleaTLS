@@ -37,6 +37,31 @@ int main(
     FLEA_PRINTF_1_SWITCHED("error with lib init, tests aborted\n");
     return 1;
   }
+
+  if(cmdl_args.have_index("help"))
+  {
+    std::string help(
+      "usage 1 - unit tests: ./build/unit_test: execute unit tests\n"
+      "usage 2 - tls client: ./build/unit_test --tls_client ...   \n"
+      "usage 3 - tls server: ./build/unit_test --tls_server ...   \n"
+      "\n"
+      "usage 2 & 3 support the following further arguments:\n\n"
+      " --trusted=<comma seperated list of file paths of DER encoded certificates which are trusted for the purpose of validating the peer.> This argument is optional for the server.\n\n"
+      " --own_certs=<a single file path to the peer's own DER encoded EE certificate> This argument is optional for the client.\n"
+      " --own_ca_chain=<comma seperated list of file paths of DER encoded certificates that form the chain of certificates beyond the own EE (which must not be part of this list) to be send to the peer during the handshake> The order must be starting from the issuer of the EE ending at the root certificate which is trusted by the peer.\n\n"
+      " --own_private_key=<file path to the PKCS#8 binary file containing this instance's private key> Must be the private key corresponding to the 'own_cert'.\n\n"
+      " --port=<port nr.> The number of the port at which to open the connection / connect to the server\n\n"
+      "\n\n"
+      "for the tls client the following further arguments are supported:\n\n"
+      " --hostname=<hostname of the server>\n\n"
+      " --ip_addr=<IP address of the server> Either this or --hostname must be provided\n\n"
+      " --no_hostn_ver Optional - suppresses the hostname verification\n\n"
+    );
+    std::cout << help << std::endl;
+    return 0;
+  }
+  ;
+
   if(cmdl_args.have_index("tls_client"))
   {
 #ifdef FLEA_HAVE_TLS

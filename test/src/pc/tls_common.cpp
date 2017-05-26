@@ -99,7 +99,7 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
       )
     );
   }
-  if(cfg.own_certs.size() != 1)
+  if(cfg.own_certs.size() > 1)
   {
     throw test_utils_exceptn_t("own_certs so far only supports a single cert");
   }
@@ -108,15 +108,21 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   {
     throw test_utils_exceptn_t("number of ca certs too large");
   }
-  *cert_chain_len = cfg.own_ca_chain.size() + 1;
-
-  cert_chain[0].data__pcu8 = &(cfg.own_certs[0])[0];
-  cert_chain[0].len__dtl   = cfg.own_certs[0].size();
-  for(unsigned i = 0; i < cfg.own_ca_chain.size(); i++)
+  if(cfg.own_certs.size())
   {
-    // std::cout << "adding to own_ca_chain" << std::endl;
-    cert_chain[i + 1].data__pcu8 = &(cfg.own_ca_chain[i])[0];
-    cert_chain[i + 1].len__dtl   = cfg.own_ca_chain[i].size();
+    *cert_chain_len = cfg.own_ca_chain.size() + 1;
+    cert_chain[0].data__pcu8 = &(cfg.own_certs[0])[0];
+    cert_chain[0].len__dtl   = cfg.own_certs[0].size();
+    for(unsigned i = 0; i < cfg.own_ca_chain.size(); i++)
+    {
+      // std::cout << "adding to own_ca_chain" << std::endl;
+      cert_chain[i + 1].data__pcu8 = &(cfg.own_ca_chain[i])[0];
+      cert_chain[i + 1].len__dtl   = cfg.own_ca_chain[i].size();
+    }
+  }
+  else
+  {
+    *cert_chain_len = 0;
   }
 
 

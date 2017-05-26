@@ -106,8 +106,8 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
       &rw_stream__t,
       NULL,
       0,
-      cert_chain,
-      2,
+      cert_chain_len ? cert_chain : NULL,
+      cert_chain_len,
       &client_key__t,
       &cipher_suites_ref
     )
