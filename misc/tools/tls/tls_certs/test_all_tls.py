@@ -23,9 +23,10 @@ def print_string_array(lines):
         print (line)
 
 def test_flea_client_against_exernal_server(ext_start_script, flea_cmdl_args):
-    subprocess.Popen('killall openssl', shell=True)
-    subprocess.Popen('killall unit_test', shell=True)
-    time.sleep(1)
+    p1 = subprocess.Popen('killall openssl', shell=True)
+    p2 = subprocess.Popen('killall unit_test', shell=True)
+    p1.wait()
+    p2.wait()
     p = subprocess.Popen(ossl_script_dir + "/" + ext_start_script, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ossl_cwd)
     time.sleep(1)
     p_test = subprocess.Popen('./build/unit_test --tls_client ' + flea_cmdl_args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ut_cwd)
@@ -45,9 +46,10 @@ def test_flea_client_against_exernal_server(ext_start_script, flea_cmdl_args):
     return 0
 
 def test_flea_server_against_external_client(ext_start_script, flea_cmdl_args):
-    subprocess.Popen('killall openssl', shell=True)
-    subprocess.Popen('killall unit_test', shell=True)
-    time.sleep(1)
+    p1 = subprocess.Popen('killall openssl', shell=True)
+    p2 = subprocess.Popen('killall unit_test', shell=True)
+    p1.wait()
+    p2.wait()
     p_flea = subprocess.Popen('./build/unit_test --tls_server ' + flea_cmdl_args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ut_cwd)
     time.sleep(1)
     p_ossl = subprocess.Popen(ossl_script_dir + "/" + ext_start_script, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ossl_cwd)
