@@ -150,6 +150,21 @@ flea_err_t THR_flea_rw_stream_t__read_byte(
   flea_u8_t*        byte__pu8
 );
 
+/**
+ * read a big endian encoded positive integer from the stream. The width of the integer
+ * may be between one and four bytes.
+ *
+ * @param stream__pt the stream to read from
+ * @param result__pu32 pointer to the integer which will receive the decoded
+ *                value
+ * @param nb_bytes__alu8 the width of the encoded integer in bytes
+ */
+flea_err_t THR_flea_rw_stream_t__read_int_be(
+  flea_rw_stream_t* stream__pt,
+  flea_u32_t*       result__pu32,
+  flea_al_u8_t      nb_bytes__alu8
+);
+
 void flea_rw_stream_t__set_filter(
   flea_rw_stream_t* stream__pt,
   flea_filter_t*    filt__pt,

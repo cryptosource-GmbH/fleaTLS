@@ -134,5 +134,15 @@ flea_err_t THR_flea_tls__server_handshake(
 );
 
 flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx);
+
+/**
+ * send a positive iteger big endian encoded as part of a handshake message.
+ */
+flea_err_t THR_flea_tls__send_handshake_message_int_be(
+  flea_tls_rec_prot_t* rec_prot__pt,
+  flea_hash_ctx_t*     hash_ctx_mbn__pt,
+  flea_u32_t           int__u32,
+  flea_al_u8_t         int_byte_width__alu8
+);
 #endif // ifdef FLEA_HAVE_TLS
 #endif /* h-guard */

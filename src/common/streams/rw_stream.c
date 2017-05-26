@@ -297,6 +297,27 @@ flea_err_t THR_flea_rw_stream_t__read_byte(
   FLEA_THR_FIN_SEC_empty();
 }
 
+flea_err_t THR_flea_rw_stream_t__read_int_be(
+  flea_rw_stream_t* stream__pt,
+  flea_u32_t*       result__pu32,
+  flea_al_u8_t      nb_bytes__alu8
+)
+{
+  flea_u8_t enc__au8[4];
+  flea_u32_t result__u32 = 0;
+  flea_al_u8_t i;
+
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(stream__pt, enc__au8, nb_bytes__alu8));
+  for(i = 0; i < nb_bytes__alu8; i++)
+  {
+    result__u32 <<= 8;
+    result__u32  |= enc__au8[i];
+  }
+  *result__pu32 = result__u32;
+  FLEA_THR_FIN_SEC_empty();
+}
+
 flea_err_t THR_flea_rw_stream_t__read_full(
   flea_rw_stream_t* stream__pt,
   flea_u8_t*        data__pu8,

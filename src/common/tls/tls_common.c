@@ -684,6 +684,33 @@ flea_err_t THR_flea_tls__send_handshake_message_content(
   FLEA_THR_FIN_SEC_empty();
 }
 
+flea_err_t THR_flea_tls__send_handshake_message_int_be(
+  flea_tls_rec_prot_t* rec_prot__pt,
+  flea_hash_ctx_t*     hash_ctx_mbn__pt,
+  flea_u32_t           int__u32,
+  flea_al_u8_t         int_byte_width__alu8
+)
+{
+  flea_u8_t enc__au8[4];
+
+  FLEA_THR_BEG_FUNC();
+  if(int_byte_width__alu8 > 4)
+  {
+    int_byte_width__alu8 = 4;
+  }
+  flea__encode_U32_BE(int__u32, enc__au8);
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      rec_prot__pt,
+      hash_ctx_mbn__pt,
+      enc__au8 + (4 - int_byte_width__alu8),
+      int_byte_width__alu8
+    )
+  );
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
 flea_err_t THR_flea_tls__send_handshake_message(
   flea_tls_rec_prot_t* rec_prot__pt,
   flea_hash_ctx_t*     hash_ctx_mbn__pt,

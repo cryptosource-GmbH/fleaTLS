@@ -590,7 +590,7 @@ flea_err_t THR_flea_tls__cert_path_validation(
   flea_tls_cert_path_params_t const* cert_path_params__pct
 )
 {
-  flea_u8_t enc_len__au8[3];
+  // flea_u8_t enc_len__au8[3];
   flea_bool_t finished__b = FLEA_FALSE;
   flea_gmt_time_t compare_time__t;
   flea_al_u16_t cert_count__alu16 = 0;
@@ -631,8 +631,7 @@ flea_err_t THR_flea_tls__cert_path_validation(
       FLEA_THROW("maximal cert path size for TLS exceeded", FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS);
     }
 
-    FLEA_CCALL(THR_flea_rw_stream_t__read_full(rd_strm__pt, enc_len__au8, sizeof(enc_len__au8)));
-    new_cert_len__u32 = ((flea_u32_t) enc_len__au8[0] << 16) | (enc_len__au8[1] << 8) | (enc_len__au8[2]);
+    FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(rd_strm__pt, &new_cert_len__u32, 3));
 
 
     // TODO: MAKE STRUCT FOR ALL THESE VALUES
