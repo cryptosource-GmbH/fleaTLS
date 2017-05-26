@@ -519,7 +519,12 @@ static flea_err_t THR_flea_tls__read_cert_verify(
   }
 
 
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL(messages_hash__bu8);
+    FLEA_FREE_BUF_FINAL(sig__bu8);
+    flea_byte_vec_t__dtor(&message_vec__t);
+    flea_byte_vec_t__dtor(&sig_vec__t);
+  );
 } /* THR_flea_tls__read_cert_verify */
 
 static flea_err_t THR_flea_handle_handsh_msg(
