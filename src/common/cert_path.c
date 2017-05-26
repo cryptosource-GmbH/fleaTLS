@@ -214,7 +214,8 @@ static flea_err_t THR_validate_cert_path(
     );
   }
 
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC_empty(
+  );
 } /* THR_validate_cert_path */
 
 void flea_cert_path_validator_t__disable_revocation_checking(flea_cert_path_validator_t* cert_cpv__pt)

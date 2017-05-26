@@ -375,7 +375,12 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
   const flea_gmt_time_t*      verification_date__pt,
   flea_bool_t                 is_ca_cert__b,
   flea_revocation_status_e*   rev_stat__pe,
-  flea_gmt_time_t*            latest_this_update__pt
+  flea_gmt_time_t*            latest_this_update__pt,
+  // flea_bool_t is_issuer_crl_signer__b, // TODO: caller must ensure that isser is CRL issuer
+  const flea_byte_vec_t*      subjects_issuer_dn_raw__pt,
+  const flea_byte_vec_t*      subjects_sn__pt,
+  const flea_byte_vec_t*      subjects_crldp_raw_mbn__pt,
+  const flea_public_key_t*    issuers_public_key__pt
 )
 {
   FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
@@ -422,10 +427,10 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
   FLEA_CCALL(THR_flea_asn1_parse_gmt_time(&dec__t, &this_update__t));
   FLEA_CCALL(THR_flea_asn1_parse_gmt_time(&dec__t, &next_update__t));
 
-  // if(flea_rcu8_cmp(&crl_issuer_ref__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t) ||
-  if(flea_byte_vec_t__cmp(&crl_issuer_ref__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t) ||
- // flea_rcu8_cmp(&subject__pt->issuer__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t))
-    flea_byte_vec_t__cmp(&subject__pt->issuer__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t))
+  /*if(flea_byte_vec_t__cmp(&crl_issuer_ref__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t) ||
+   *  flea_byte_vec_t__cmp(&subject__pt->issuer__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t))*/
+  if(flea_byte_vec_t__cmp(&crl_issuer_ref__t.raw_dn_complete__t, subjects_issuer_dn_raw__pt))
+  // flea_byte_vec_t__cmp(&subject__pt->issuer__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t))
   {
     FLEA_THROW("DN's in subject/issuer/crl do not match as required", FLEA_ERR_X509_CRL_NAMES_DONT_MATCH);
   }
@@ -579,6 +584,42 @@ flea_err_t THR_flea_crl__check_revocation_status(
   flea_bool_t                 is_ca_cert__b
 )
 {
+  FLEA_DECL_OBJ(pubkey_for_crl_ver__t, flea_public_key_t);
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_public_key_t__ctor_cert(&pubkey_for_crl_ver__t, issuer__pt));
+  FLEA_CCALL(
+    THR_flea_crl__check_revocation_status_crl_stream(
+      subject__pt,
+      issuer__pt,
+      crl_der__cprcu8,
+      nb_crls__alu16,
+      verification_date__pt,
+      is_ca_cert__b,
+      &subject__pt->issuer__t.raw_dn_complete__t,
+      &subject__pt->serial_number__t,
+      subject__pt->extensions__t.crl_distr_point__t.is_present__u8 ? &subject__pt->extensions__t.crl_distr_point__t.
+      raw_ref__t : NULL,
+      &pubkey_for_crl_ver__t
+    )
+  );
+  FLEA_THR_FIN_SEC(
+    flea_public_key_t__dtor(&pubkey_for_crl_ver__t);
+  );
+}
+
+flea_err_t THR_flea_crl__check_revocation_status_crl_stream(
+  const flea_x509_cert_ref_t* subject__pt,
+  const flea_x509_cert_ref_t* issuer__pt,
+  const flea_byte_vec_t*      crl_der__cprcu8,
+  flea_al_u16_t               nb_crls__alu16,
+  const flea_gmt_time_t*      verification_date__pt,
+  flea_bool_t                 is_ca_cert__b,
+  const flea_byte_vec_t*      subjects_issuer_dn_raw__pt,
+  const flea_byte_vec_t*      subjects_sn__pt,
+  const flea_byte_vec_t*      subjects_crldp_raw__pt,
+  const flea_public_key_t*    issuers_public_key__pt
+)
+{
   flea_al_u16_t i;
   flea_revocation_status_e revstat = flea_revstat_undetermined;
   const flea_u8_t indet_date[]     = "000000000000Z";
@@ -596,7 +637,12 @@ flea_err_t THR_flea_crl__check_revocation_status(
       verification_date__pt,
       is_ca_cert__b,
       &revstat,
-      &latest_this_update__t
+      &latest_this_update__t,
+      // flea_bool_t is_issuer_crl_signer__b, // TODO: caller must ensure that isser is CRL issuer
+      subjects_issuer_dn_raw__pt,
+      subjects_sn__pt,
+      subjects_crldp_raw__pt,
+      issuers_public_key__pt
     );
 
     /* ignore potential errors. called function does not modify the status values in
