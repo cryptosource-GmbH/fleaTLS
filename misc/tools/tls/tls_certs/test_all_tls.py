@@ -25,6 +25,7 @@ def print_string_array(lines):
 def test_flea_client_against_exernal_server(ext_start_script, flea_cmdl_args):
     subprocess.Popen('killall openssl', shell=True)
     subprocess.Popen('killall unit_test', shell=True)
+    time.sleep(1)
     p = subprocess.Popen(ossl_script_dir + "/" + ext_start_script, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ossl_cwd)
     time.sleep(1)
     p_test = subprocess.Popen('./build/unit_test --tls_client ' + flea_cmdl_args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ut_cwd)
@@ -40,12 +41,13 @@ def test_flea_client_against_exernal_server(ext_start_script, flea_cmdl_args):
     #for line in p.stdout.readlines():
         #print line
     retval = p_test.wait()
-    p.kill()
+    #p.kill()
     return 0
 
 def test_flea_server_against_external_client(ext_start_script, flea_cmdl_args):
     subprocess.Popen('killall openssl', shell=True)
     subprocess.Popen('killall unit_test', shell=True)
+    time.sleep(1)
     p_flea = subprocess.Popen('./build/unit_test --tls_server ' + flea_cmdl_args, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ut_cwd)
     time.sleep(1)
     p_ossl = subprocess.Popen(ossl_script_dir + "/" + ext_start_script, shell=True, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ossl_cwd)
@@ -67,8 +69,8 @@ def test_flea_server_against_external_client(ext_start_script, flea_cmdl_args):
     if(not find_in_strings(flea_output, "handshake done")):
         print_string_array(flea_output)
         print ("error with '" + ext_start_script + "'")
-        p_flea.kill()
-        p_ossl.kill()
+        #p_flea.kill()
+        #p_ossl.kill()
         return 1 
     #p_flea.kill()
     #p_ossl.kill()
