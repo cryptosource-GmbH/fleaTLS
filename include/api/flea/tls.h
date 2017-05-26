@@ -228,7 +228,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   flea_al_u8_t             cert_chain_len__alu8,
   const flea_cert_store_t* trust_store__t,
   flea_ref_cu8_t*          server_key__pt,
-  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16
+  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
+  flea_bool_t              request_cert__t
 );
 
 flea_err_t THR_flea_tls_ctx_t__read_app_data(

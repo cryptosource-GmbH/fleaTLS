@@ -38,8 +38,8 @@ flea_err_t THR_flea_start_tls_server(
   flea_rw_stream_t rw_stream__t;
   flea_cert_store_t trust_store__t;
 
-
   flea_tls_ctx_t tls_ctx;
+  flea_bool_t request_cert__t = FLEA_FALSE;
 
   flea_ref_cu8_t cert_chain[10];
   flea_ref_cu8_t server_key__t;
@@ -51,6 +51,12 @@ flea_err_t THR_flea_start_tls_server(
   tls_test_cfg_t tls_cfg;
 
   FLEA_THR_BEG_FUNC();
+
+  std::string req_cert_val = cmdl_args.get_property_as_string("request_cert");
+  if(req_cert_val != "" and req_cert_val != "0" and req_cert_val != "false")
+  {
+    request_cert__t = FLEA_TRUE;
+  }
 
   flea_rw_stream_t__INIT(&rw_stream__t);
   flea_tls_ctx_t__INIT(&tls_ctx);
@@ -79,7 +85,8 @@ flea_err_t THR_flea_start_tls_server(
       cert_chain_len,
       &trust_store__t,
       &server_key__t,
-      &cipher_suites_ref
+      &cipher_suites_ref,
+      request_cert__t
     )
   );
   std::cout << "handshake done" << std::endl;
