@@ -78,11 +78,23 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   tls_test_cfg_t      & cfg
 )
 {
-  cfg.trusted_certs  = cmdl_args.get_bin_file_list_property("trusted");
-  cfg.server_key_vec = cmdl_args.get_bin_file("own_private_key");
-  cfg.own_certs      = cmdl_args.get_bin_file_list_property("own_certs");
-  cfg.own_ca_chain   = cmdl_args.get_bin_file_list_property("own_ca_chain");
-  cfg.cipher_suites  = get_cipher_suites_from_cmdl(cmdl_args);
+  cfg.trusted_certs = cmdl_args.get_bin_file_list_property("trusted");
+  cfg.own_certs     = cmdl_args.get_bin_file_list_property("own_certs");
+  if(cfg.own_certs.size())
+  {
+    cfg.server_key_vec = cmdl_args.get_bin_file("own_private_key");
+    cfg.own_ca_chain   = cmdl_args.get_bin_file_list_property("own_ca_chain");
+  }
+  else
+  {
+    if(cmdl_args.have_index("own_private_key") || cmdl_args.have_index("own_ca_chain"))
+    {
+      throw test_utils_exceptn_t(
+              "neither --own_private_key nor --own_ca_chain may be specified if --own_certs is absent or empty"
+      );
+    }
+  }
+  cfg.cipher_suites = get_cipher_suites_from_cmdl(cmdl_args);
   FLEA_THR_BEG_FUNC();
 
   /*if(cfg.trusted_certs.size() == 0)
@@ -119,15 +131,17 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
       cert_chain[i + 1].data__pcu8 = &(cfg.own_ca_chain[i])[0];
       cert_chain[i + 1].len__dtl   = cfg.own_ca_chain[i].size();
     }
+
+    server_key->data__pcu8 = &cfg.server_key_vec[0];
+    server_key->len__dtl   = cfg.server_key_vec.size();
   }
   else
   {
-    *cert_chain_len = 0;
+    server_key->data__pcu8 = NULL;
+    server_key->len__dtl   = 0;
+    *cert_chain_len        = 0;
   }
 
-
-  server_key->data__pcu8 = &cfg.server_key_vec[0];
-  server_key->len__dtl   = cfg.server_key_vec.size();
 
   FLEA_THR_FIN_SEC_empty();
 } // THR_flea_tls_tool_set_tls_cfg
