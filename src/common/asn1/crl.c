@@ -387,7 +387,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl_stream(
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(source_tbs__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec_tbs__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(pubkey__t, flea_public_key_t);
+  // FLEA_DECL_OBJ(pubkey__t, flea_public_key_t);
   flea_mem_read_stream_help_t hlp__t;
   flea_mem_read_stream_help_t hlp_tbs__t;
   flea_byte_vec_t tbs__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
@@ -500,7 +500,8 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl_stream(
       /* close entry seq */
       FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
       // if(!flea_rcu8_cmp(&serial_number__rcu8, &subject__pt->serial_number__t))
-      if(!flea_byte_vec_t__cmp(&serial_number__rcu8, &subject__pt->serial_number__t))
+      // if(!flea_byte_vec_t__cmp(&serial_number__rcu8, &subject__pt->serial_number__t))
+      if(!flea_byte_vec_t__cmp(&serial_number__rcu8, subjects_sn__pt))
       {
         is_cert_revoked = FLEA_TRUE;
         // break;
@@ -537,7 +538,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl_stream(
       &crl_signature_as_bit_string__rcu8
     )
   );
-  FLEA_CCALL(THR_flea_public_key_t__ctor_cert(&pubkey__t, issuer__pt));
+  // FLEA_CCALL(THR_flea_public_key_t__ctor_cert(&pubkey__t, issuer__pt));
 
   FLEA_CCALL(
     THR_flea_ber_dec__get_ref_to_bit_string_content_no_unused_bits(
@@ -547,7 +548,8 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl_stream(
   );
   FLEA_CCALL(
     THR_flea_public_key_t__verify_signature_use_sigalg_id(
-      &pubkey__t,
+      // &pubkey__t,
+      issuers_public_key__pt,
       &algid_ref_1__t,
       &tbs__rcu8,
       &sig_content__rcu8
@@ -571,7 +573,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl_stream(
     flea_rw_stream_t__dtor(&source_tbs__t);
     flea_ber_dec_t__dtor(&dec__t);
     flea_ber_dec_t__dtor(&dec_tbs__t);
-    flea_public_key_t__dtor(&pubkey__t);
+    // flea_public_key_t__dtor(&pubkey__t);
   );
 } /* THR_flea_crl__update_revocation_status_from_crl */
 
