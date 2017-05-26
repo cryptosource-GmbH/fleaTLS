@@ -9,13 +9,17 @@
 
 
 // TODO: REMOVE BLOCK SIZE, UNIFY MAC_KEY_LEN AND MAC_LEN
-static const flea_tls__cipher_suite_t cipher_suites[5] = {
+static const flea_tls__cipher_suite_t cipher_suites[6] = {
   {FLEA_TLS_NULL_WITH_NULL_NULL,         FLEA_TLS_NO_CIPHER,
    0, 0,
    0, 0, 0, (flea_mac_id_t) 0},
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
   {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA,    FLEA_TLS_BLOCK_CIPHER(flea_aes128),
    16, 16, 16, 20, 20, flea_hmac_sha1},
+#endif
+#ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA256
+  {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA256, FLEA_TLS_BLOCK_CIPHER(flea_aes128),
+   16, 16, 16, 32, 32, flea_hmac_sha256},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA
   {FLEA_TLS_RSA_WITH_AES_256_CBC_SHA,    FLEA_TLS_BLOCK_CIPHER(flea_aes256),
@@ -26,7 +30,8 @@ static const flea_tls__cipher_suite_t cipher_suites[5] = {
    16, 16, 32, 32, 32, flea_hmac_sha256},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
-  {FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256, FLEA_TLS_AE_CIPHER(flea_gcm_aes128), 16, 12, 16, 0, 0, (flea_mac_id_t) 0},
+  {FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256, FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
+   16, 12, 16, 0, 0, (flea_mac_id_t) 0}
 #endif
 };
 
