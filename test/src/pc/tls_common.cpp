@@ -131,15 +131,17 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
       cert_chain[i + 1].data__pcu8 = &(cfg.own_ca_chain[i])[0];
       cert_chain[i + 1].len__dtl   = cfg.own_ca_chain[i].size();
     }
+
+    server_key->data__pcu8 = &cfg.server_key_vec[0];
+    server_key->len__dtl   = cfg.server_key_vec.size();
   }
   else
   {
-    *cert_chain_len = 0;
+    server_key->data__pcu8 = NULL;
+    server_key->len__dtl   = 0;
+    *cert_chain_len        = 0;
   }
 
-
-  server_key->data__pcu8 = &cfg.server_key_vec[0];
-  server_key->len__dtl   = cfg.server_key_vec.size();
 
   FLEA_THR_FIN_SEC_empty();
 } // THR_flea_tls_tool_set_tls_cfg
