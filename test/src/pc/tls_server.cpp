@@ -83,7 +83,10 @@ flea_err_t THR_flea_start_tls_server(
       cert_chain_len,
       &trust_store__t,
       &server_key__t,
-      &cipher_suites_ref
+      &cipher_suites_ref,
+      flea_rev_chk_none,
+      NULL,
+      0
     )
   );
   std::cout << "handshake done" << std::endl;

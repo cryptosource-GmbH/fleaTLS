@@ -32,6 +32,7 @@
  */
 # define FLEA_X509_CERT_PRE_SIGALGID_BUFFER_SIZE 70
 
+
 typedef struct
 {
   flea_hostn_match_info_t match_info__t;
@@ -642,7 +643,8 @@ flea_err_t THR_flea_tls__cert_path_validation(
   flea_bool_t finished__b = FLEA_FALSE;
   flea_gmt_time_t compare_time__t;
   flea_al_u16_t cert_count__alu16 = 0;
-  flea_bool_t first__b = FLEA_TRUE;
+  // flea_bool_t first__b = FLEA_TRUE;
+  flea_al_u16_t iter__alu16 = 0;
   // TODO: can be used to see that last cert is handled:
   flea_public_key_t cycling_pubkey__t = flea_public_key_t__INIT_VALUE;
   flea_al_u16_t cnt_non_self_issued_in_path__alu16 = 0;
@@ -669,11 +671,12 @@ flea_err_t THR_flea_tls__cert_path_validation(
     flea_bool_t is_cert_trusted__b;
     flea_u32_t new_cert_len__u32;
 
+
     if(!flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt))
     {
       FLEA_THROW("no trusted certificate found in TLS path validation", FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS);
     }
-    if(!first__b)
+    if(iter__alu16)
     {
       pubkey_ptr__pt = &cycling_pubkey__t;
     }
@@ -694,24 +697,24 @@ flea_err_t THR_flea_tls__cert_path_validation(
         &cycling_signature__t,
         &cycling_tbs_hash__t,
         &cycling_hash_id,
-        !first__b,
+        iter__alu16, // !first__b,
         &cycling_issuer_dn,
         &compare_time__t,
         // &san__t,
         &cnt_non_self_issued_in_path__alu16,
         cert_path_params__pct,
         cert_path_params__pct->hostn_valid_params__pt,
-        NULL, /*crl_der__cprcu8, */
+        tls_ctx__pt->rev_chk_cfg__t.crl_der__pt, /*crl_der__cprcu8, */
         // <--TODO
-        0,          /*nb_crls__alu16,*/
-                    // <--TODO
-        FLEA_FALSE, // validate_crl_for_issued_by_current__b,*/ // <--TODO
+        tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16, /*nb_crls__alu16,*/
+        // <--TODO
+        tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_none ? FLEA_FALSE : (tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_only_ee ? ((iter__alu16 == 1) ? FLEA_TRUE : FLEA_FALSE) : (iter__alu16 > 0)), // validate_crl_for_issued_by_current__b,*/ // <--TODO
         &sn_buffer__t,
         &previous_crldp__t
       )
     );
 
-    if(!first__b)
+    if(iter__alu16)
     {
       flea_public_key_t__dtor(&cycling_pubkey__t);
     }
@@ -730,7 +733,8 @@ flea_err_t THR_flea_tls__cert_path_validation(
     {
       FLEA_THR_RETURN();
     }
-    first__b = FLEA_FALSE;
+    iter__alu16++;
+    // first__b = FLEA_FALSE;
   } while(!finished__b);
   FLEA_THR_FIN_SEC(
     flea_public_key_t__dtor(&cycling_pubkey__t);

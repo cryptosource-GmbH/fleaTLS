@@ -10,6 +10,7 @@
 #include "flea/mac.h"
 #include "flea/rw_stream.h"
 #include "internal/common/tls_ciph_suite.h"
+// #include "internal/common/tls/tls_common.h"
 #include "internal/common/tls_rec_prot.h"
 #include "flea/util.h"
 #include "flea/cert_store.h"
@@ -28,6 +29,16 @@ extern "C" {
 # define FLEA_TLS_MAX_IV_SIZE      32
 // #define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
 # define FLEA_TLS_MAX_PADDING_SIZE 255 // each byte must hold the padding value => 255 is max
+
+
+typedef enum { flea_rev_chk_all, flea_rev_chk_none, flea_rev_chk_only_ee  } flea_rev_chk_mode_e;
+
+typedef struct
+{
+  flea_rev_chk_mode_e    rev_chk_mode__e;
+  const flea_byte_vec_t* crl_der__pt;
+  flea_u16_t             nb_crls__u16;
+} flea_revoc_chk_cfg_t;
 
 // TODO: ASSIGN FIXED VALUES?
 typedef enum { PRF_LABEL_TEST, PRF_LABEL_CLIENT_FINISHED, PRF_LABEL_SERVER_FINISHED, PRF_LABEL_MASTER_SECRET,
@@ -200,6 +211,8 @@ typedef struct
 
   // TODO: SERVER SHOULD ONLY KEEP THE INSTANTIATED KEY OBJECT
   flea_ref_cu8_t*                private_key__pt;
+
+  flea_revoc_chk_cfg_t           rev_chk_cfg__t;
 } flea_tls_ctx_t;
 
 
@@ -218,7 +231,10 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   flea_ref_cu8_t*          cert_chain__pt,
   flea_al_u8_t             cert_chain_len__alu8,
   flea_ref_cu8_t*          client_public_key__pt,
-  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16
+  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
+  flea_rev_chk_mode_e      rev_chk_mode__e,
+  const flea_byte_vec_t*   crl_der__pt,
+  flea_al_u16_t            nb_crls__alu16
 );
 
 flea_err_t THR_flea_tls_ctx_t__ctor_server(
@@ -228,7 +244,10 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   flea_al_u8_t             cert_chain_len__alu8,
   const flea_cert_store_t* trust_store__t,
   flea_ref_cu8_t*          server_key__pt,
-  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16
+  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
+  flea_rev_chk_mode_e      rev_chk_mode__e,
+  const flea_byte_vec_t*   crl_der__pt,
+  flea_al_u16_t            nb_crls__alu16
 );
 
 flea_err_t THR_flea_tls_ctx_t__read_app_data(
