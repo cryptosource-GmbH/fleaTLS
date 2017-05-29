@@ -7,8 +7,7 @@
 #include "flea/byte_vec.h"
 #include "flea/error_handling.h"
 #include "internal/common/ber_dec.h"
-#include "flea/x509.h"
-#include "flea/pk_api.h"
+#include "flea/x509.h" #include "flea/pk_api.h"
 #include "flea/asn1_date.h"
 #include "flea/namespace_asn1.h"
 #include "flea/tls.h"
@@ -489,6 +488,20 @@ static flea_err_t THR_flea_tls__validate_cert(
     {
       FLEA_THROW("key usage cert sign missing", FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT);
     }
+
+    // TODO: OPTIONAL CRL CHECK, CHECK BC RIGHT HERE:
+
+    /*  if(issuer__pt->extensions__t.key_usage__t.is_present__u8)
+     * {
+     *  if(!(issuer__pt->extensions__t.key_usage__t.purposes__u16 & flea_ku_crl_sign))
+     *  {
+     *    FLEA_THROW(
+     *      "CRL issuer has key usage extension without the CRLSign bit set",
+     *      FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN
+     *    );
+     *  }
+     * }
+     */
   }
   else
   {
