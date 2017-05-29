@@ -127,6 +127,8 @@ static flea_err_t THR_validate_cert_path(
 )
 {
   flea_s32_t i;
+
+  FLEA_DECL_OBJ(pubkey_for_crl_ver__t, flea_public_key_t);
   flea_al_u16_t chain_len__alu16 = cert_cpv__pt->chain_pos__u16 + 1;
   flea_al_u16_t m_path__u16      = chain_len__alu16;
 
@@ -187,11 +189,13 @@ static flea_err_t THR_validate_cert_path(
     flea_x509_cert_info_t* subject__pt = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i]];
     flea_x509_cert_info_t* issuer__pt  = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i + 1]];
 
+    // TODO: REUSE PUBLIC KEY CREATED FOR CRL VERIFICATION
     // verify against subsequent certificate
     FLEA_CCALL(THR_flea_x509_verify_cert_info_signature(subject__pt, issuer__pt));
 
     if(cert_cpv__pt->perform_revocation_checking__b)
     {
+      FLEA_CCALL(THR_flea_public_key_t__ctor_cert(&pubkey_for_crl_ver__t, &issuer__pt->cert_ref__t));
       FLEA_CCALL(
         THR_flea_crl__check_revocation_status(
           &subject__pt->cert_ref__t,
@@ -199,9 +203,17 @@ static flea_err_t THR_validate_cert_path(
           cert_cpv__pt->crl_collection__brcu8,
           cert_cpv__pt->nb_crls__u16,
           arg_compare_time_mbn__pt,
-          is_ca_cert__b
+          is_ca_cert__b,
+          &subject__pt->cert_ref__t.issuer__t.raw_dn_complete__t,
+          &subject__pt->cert_ref__t.serial_number__t,
+          subject__pt->cert_ref__t.extensions__t.crl_distr_point__t.is_present__u8 ? &subject__pt->cert_ref__t.
+          extensions__t.crl_distr_point__t.
+          raw_ref__t : NULL,
+          &pubkey_for_crl_ver__t
+
         )
       );
+      flea_public_key_t__dtor(&pubkey_for_crl_ver__t);
     }
   }
   if(key_to_construct_mbn__pt)
@@ -214,7 +226,8 @@ static flea_err_t THR_validate_cert_path(
     );
   }
 
-  FLEA_THR_FIN_SEC_empty(
+  FLEA_THR_FIN_SEC(
+    flea_public_key_t__dtor(&pubkey_for_crl_ver__t);
   );
 } /* THR_validate_cert_path */
 
