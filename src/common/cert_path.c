@@ -196,10 +196,24 @@ static flea_err_t THR_validate_cert_path(
     if(cert_cpv__pt->perform_revocation_checking__b)
     {
       FLEA_CCALL(THR_flea_public_key_t__ctor_cert(&pubkey_for_crl_ver__t, &issuer__pt->cert_ref__t));
+
+
+      if(issuer__pt->cert_ref__t.extensions__t.key_usage__t.is_present__u8)
+      {
+        if(!(issuer__pt->cert_ref__t.extensions__t.key_usage__t.purposes__u16 & flea_ku_crl_sign))
+        {
+          FLEA_THROW(
+            "CRL issuer has key usage extension without the CRLSign bit set",
+            FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN
+          );
+        }
+      }
+
       FLEA_CCALL(
         THR_flea_crl__check_revocation_status(
-          &subject__pt->cert_ref__t,
-          &issuer__pt->cert_ref__t,
+
+          /*&subject__pt->cert_ref__t,
+           * &issuer__pt->cert_ref__t,*/
           cert_cpv__pt->crl_collection__brcu8,
           cert_cpv__pt->nb_crls__u16,
           arg_compare_time_mbn__pt,

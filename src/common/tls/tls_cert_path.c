@@ -20,6 +20,7 @@
 #include "internal/common/tls/tls_cert_path.h"
 #include "flea/hostn_ver.h"
 #include "internal/common/hostn_ver_int.h"
+#include "flea/crl.h"
 
 #ifdef FLEA_HAVE_TLS
 
@@ -97,10 +98,12 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
   flea_key_usage_t*         key_usage__pt,
   flea_key_usage_t*         extd_key_usage__pt,
   flea_basic_constraints_t* basic_constr__pt,
-  hostn_validation_info_t*  hostn_valid_info_mbn__pt
+  hostn_validation_info_t*  hostn_valid_info_mbn__pt,
+  flea_byte_vec_t*          crl_dp_raw__pt
 )
 {
   flea_bool_t have_extensions__b;
+  flea_bool_t false__b;
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(ext_oid__t, 30); // TODO: MAKE TYPEDEF FOR VALUE
   flea_bool_t critical__b;
@@ -217,6 +220,17 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
           FLEA_CCALL(THR_flea_x509_cert__parse_eku(dec__pt, extd_key_usage__pt));
           break;
         }
+        case ID_CE_OID_CRL_DISTR_POINT:
+        {
+          FLEA_CCALL(
+            THR_flea_ber_dec_t__decode_tlv_raw_optional(
+              dec__pt,
+              crl_dp_raw__pt,
+              &false__b
+            )
+          );
+          break;
+        }
         default:
           if(critical__b)
           {
@@ -251,7 +265,12 @@ static flea_err_t THR_flea_tls__validate_cert(
   const flea_gmt_time_t*                compare_time__pt,
   flea_al_u16_t*                        cnt_non_self_issued_in_path__palu16,
   flea_tls_cert_path_params_t const*    cert_path_params__pct,
-  flea_hostn_validation_params_t const* hostn_valid_params__pct
+  flea_hostn_validation_params_t const* hostn_valid_params__pct, // TODO: already contained in previous container ??
+  const flea_byte_vec_t*                crl_der__cprcu8,
+  flea_al_u16_t                         nb_crls__alu16,
+  flea_bool_t                           validate_crl_for_issued_by_current__b,
+  flea_byte_vec_t*                      sn_buffer__pt,
+  flea_byte_vec_t*                      previous_crldp__pt
 
 )
 {
@@ -265,7 +284,7 @@ static flea_err_t THR_flea_tls__validate_cert(
 
   /* for SN, subject:
    */
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sn_buffer__t, FLEA_X509_MAX_SERIALNUMBER_LEN);
+  // FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sn_buffer__t, FLEA_X509_MAX_SERIALNUMBER_LEN);
   // TODO: EXPLICIT ISSUER ONLY FOR TARGET CERT, FOR THE OTHERS: SHA256 HASH
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_issuer__t, 200);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_subject__t, 200);
@@ -299,9 +318,9 @@ static flea_err_t THR_flea_tls__validate_cert(
     public_key_value__t,
     __FLEA_COMPUTED_PK_MAX_ASYM_PUBKEY_LEN + 1
   );
-
+  // flea_bool_t validate_crl_for_issued_by_current__b;
   FLEA_THR_BEG_FUNC();
-
+  // validate_crl_for_issued_by_current__b =
   flea_public_key_t__dtor(pubkey_out__pt);
   FLEA_CCALL(
     THR_flea_ber_dec_t__ctor_hash_support(
@@ -340,7 +359,7 @@ static flea_err_t THR_flea_tls__validate_cert(
     FLEA_CCALL(THR_flea_byte_vec_t__push_back(&version_vec__t, 1));
   }
   // TODO: USE SN FOR CRL CHECK
-  FLEA_CCALL(THR_flea_ber_dec_t__decode_int(&dec__t, &sn_buffer__t));
+  FLEA_CCALL(THR_flea_ber_dec_t__decode_int(&dec__t, sn_buffer__pt));
 
   FLEA_CCALL(THR_flea_x509__decode_algid_ref(&sigalg_id__t, &dec__t));
   FLEA_CCALL(
@@ -434,6 +453,23 @@ static flea_err_t THR_flea_tls__validate_cert(
         signature_in_out__pt->len__dtl
       )
     );
+
+    // TODO: VERIFY CRL HERE
+    if(validate_crl_for_issued_by_current__b)
+    {
+      FLEA_CCALL(
+        THR_flea_crl__check_revocation_status(
+          crl_der__cprcu8,
+          nb_crls__alu16,
+          compare_time__pt,
+          have_precursor_to_verify__b, // is_ca_cert__b
+          &local_subject__t,
+          sn_buffer__pt,
+          previous_crldp__pt,
+          pubkey_out__pt
+        )
+      );
+    }
   }
 
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
@@ -462,7 +498,8 @@ static flea_err_t THR_flea_tls__validate_cert(
       &key_usage__t,
       &extd_key_usage__t,
       &basic_constraints__t,
-      have_precursor_to_verify__b ? NULL : &hostn_valid_info__t
+      have_precursor_to_verify__b ? NULL : &hostn_valid_info__t,
+      previous_crldp__pt
     )
   );
 
@@ -490,19 +527,16 @@ static flea_err_t THR_flea_tls__validate_cert(
       FLEA_THROW("key usage cert sign missing", FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT);
     }
 
-    // TODO: OPTIONAL CRL CHECK, CHECK BC RIGHT HERE:
-
-    /*  if(issuer__pt->extensions__t.key_usage__t.is_present__u8)
-     * {
-     *  if(!(issuer__pt->extensions__t.key_usage__t.purposes__u16 & flea_ku_crl_sign))
-     *  {
-     *    FLEA_THROW(
-     *      "CRL issuer has key usage extension without the CRLSign bit set",
-     *      FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN
-     *    );
-     *  }
-     * }
-     */
+    if(validate_crl_for_issued_by_current__b && key_usage__t.is_present__u8)
+    {
+      if(!(key_usage__t.purposes__u16 & flea_ku_crl_sign))
+      {
+        FLEA_THROW(
+          "CRL issuer has key usage extension without the CRLSign bit set",
+          FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN
+        );
+      }
+    }
   }
   else
   {
@@ -579,12 +613,12 @@ static flea_err_t THR_flea_tls__validate_cert(
     )
   );
 
-  flea_byte_vec_t__dtor(&sn_buffer__t);
+  // flea_byte_vec_t__dtor(&sn_buffer__t);
   FLEA_THR_FIN_SEC(
     flea_ber_dec_t__dtor(&dec__t);
     flea_byte_vec_t__dtor(&public_key_value__t);
     flea_byte_vec_t__dtor(&local_subject__t);
-    flea_byte_vec_t__dtor(&sn_buffer__t);
+    // flea_byte_vec_t__dtor(&sn_buffer__t);
     flea_byte_vec_t__dtor(&local_issuer__t);
     flea_byte_vec_t__dtor(&back_buffer__t);
     flea_byte_vec_t__dtor(&sigalg_id__t.oid_ref__t);
@@ -613,6 +647,9 @@ flea_err_t THR_flea_tls__cert_path_validation(
   flea_public_key_t cycling_pubkey__t = flea_public_key_t__INIT_VALUE;
   flea_al_u16_t cnt_non_self_issued_in_path__alu16 = 0;
   flea_rw_stream_t* rd_strm__pt;
+
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sn_buffer__t, FLEA_X509_MAX_SERIALNUMBER_LEN);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(previous_crldp__t, FLEA_X509_STCKMD_MAX_CRLDP_LEN);
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(
     cycling_signature__t,
@@ -663,7 +700,14 @@ flea_err_t THR_flea_tls__cert_path_validation(
         // &san__t,
         &cnt_non_self_issued_in_path__alu16,
         cert_path_params__pct,
-        cert_path_params__pct->hostn_valid_params__pt
+        cert_path_params__pct->hostn_valid_params__pt,
+        NULL, /*crl_der__cprcu8, */
+        // <--TODO
+        0,          /*nb_crls__alu16,*/
+                    // <--TODO
+        FLEA_FALSE, // validate_crl_for_issued_by_current__b,*/ // <--TODO
+        &sn_buffer__t,
+        &previous_crldp__t
       )
     );
 

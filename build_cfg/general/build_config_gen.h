@@ -104,6 +104,9 @@
  */
 # define FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT 5 // FBFLAGS__INT_LIST 1 2 3 4 10 20
 
+
+# define FLEA_X509_STCKMD_MAX_CRLDP_LEN 260
+
 /**
  * The maximal capacity (certificate count) of a cert_store_t object. Applies to
  * both the heap and the stack mode as the threshold. In heap mode, the
