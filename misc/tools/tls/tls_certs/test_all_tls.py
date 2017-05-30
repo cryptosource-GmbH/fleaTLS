@@ -79,17 +79,33 @@ def test_flea_server_against_external_client(ext_start_script, flea_cmdl_args):
     #p_ossl.kill()
     return 0
 
-def test_flea_client_against_flea_server(test_name, flea_client_args, flea_server_args):
+def build_cmdl_242_for_server(test_name):
+    test_crl_base_dir = "misc/tools/pki_tool_242/tls/output/"
+    #test_name = "TLS_CRL_EE_UNREV"
+    test_crl_ee_unrev_base_dir = test_crl_base_dir + "/" + test_name + "/"
+    result = "--port=4444 --trusted=" + test_crl_ee_unrev_base_dir + test_name + "_ROOT_CA.TA.crt --own_ca_chain=" + test_crl_ee_unrev_base_dir + test_name + "_SUB_CA.CA.crt," + test_crl_ee_unrev_base_dir + test_name + "_ROOT_CA.TA.crt --own_certs="  + test_crl_ee_unrev_base_dir + test_name + "_EE.TC.crt --own_private_key=" + test_crl_ee_unrev_base_dir + test_name + "_EE.pkcs8"
+    return result
+
+def build_cmdl_242_for_client(test_name, use_ee_crl_bool):
+    test_crl_base_dir = "misc/tools/pki_tool_242/tls/output/"
+    #test_name = "TLS_CRL_EE_UNREV"
+    test_crl_ee_unrev_base_dir = test_crl_base_dir + "/" + test_name + "/"
+    result = "--port=4444 --ip_addr=127.0.0.1 --no_hostn_ver --trusted=" + test_crl_ee_unrev_base_dir + test_name + "_ROOT_CA.TA.crt --own_ca_chain=" + test_crl_ee_unrev_base_dir + test_name + "_SUB_CA.CA.crt," + test_crl_ee_unrev_base_dir + test_name + "_ROOT_CA.TA.crt --own_certs="  + test_crl_ee_unrev_base_dir + test_name + "_EE.TC.crt --own_private_key=" + test_crl_ee_unrev_base_dir + test_name + "_EE.pkcs8"
+    if(use_ee_crl_bool == True):
+        result += " --crls=" + test_crl_ee_unrev_base_dir + "/crls/" + test_name + "_SUB_CA_CRL.crl" + " --rev_chk=only_ee"
+    return result
+
+def test_flea_client_against_flea_server(test_name, use_ee_crl_bool ):
     p1 = subprocess.Popen('killall openssl', shell=True)
     p2 = subprocess.Popen('killall unit_test', shell=True)
     p1.wait()
     p2.wait()
-    server_cmdl = './build/unit_test --tls_server ' + flea_server_args
+    server_cmdl = './build/unit_test --tls_server ' + build_cmdl_242_for_server(test_name) 
     print server_cmdl
     p_server = subprocess.Popen(server_cmdl, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ut_cwd)
     #p = subprocess.Popen(ossl_script_dir + "/" + ext_start_script, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ossl_cwd)
     time.sleep(1)
-    client_cmdl = './build/unit_test --tls_client ' + flea_client_args
+    client_cmdl = './build/unit_test --tls_client ' + build_cmdl_242_for_client(test_name, use_ee_crl_bool=use_ee_crl_bool) 
     print client_cmdl
     p_test = subprocess.Popen(client_cmdl, shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=ut_cwd)
     ut_output = []
@@ -110,13 +126,12 @@ def test_flea_client_against_flea_server(test_name, flea_client_args, flea_serve
 std_server_args = "--trusted=misc/tools/tls/tls_certs/rootCA.der --own_certs=misc/tools/tls/tls_certs/server.der --own_private_key=./misc/tools/tls/tls_certs/server.pkcs8 --own_ca_chain=misc/tools/tls/tls_certs/rootCA.der --port=4444"
 std_client_args = "--trusted=misc/tools/tls/tls_certs/rootCA.der --own_certs=misc/tools/tls/tls_certs/server.der --own_private_key=./misc/tools/tls/tls_certs/server.pkcs8 --own_ca_chain=misc/tools/tls/tls_certs/rootCA.der --port=4444 --ip_addr=127.0.0.1 --no_hostn_ver"
 
-test_crl_base_dir = "misc/tools/pki_tool_242/tls/output/"
-test_crl_ee_unrev_base_dir = test_crl_base_dir + "/TLS_CRL_EE_UNREV/"
-test_crl_ee_unrev_server_cmdl = "--port=4444 --trusted=" + test_crl_ee_unrev_base_dir + "TLS_CRL_EE_UNREV_ROOT_CA.TA.crt --own_ca_chain=" + test_crl_ee_unrev_base_dir + "TLS_CRL_EE_UNREV_SUB_CA.CA.crt," + test_crl_ee_unrev_base_dir + "TLS_CRL_EE_UNREV_ROOT_CA.TA.crt --own_certs="  + test_crl_ee_unrev_base_dir + "TLS_CRL_EE_UNREV_EE.TC.crt --own_private_key=" + test_crl_ee_unrev_base_dir + "TLS_CRL_EE_UNREV_EE.pkcs8"
-test_crl_ee_unrev_client_cmdl = "--port=4444 --ip_addr=127.0.0.1 --no_hostn_ver --trusted=" + test_crl_ee_unrev_base_dir + "TLS_CRL_EE_UNREV_ROOT_CA.TA.crt --own_ca_chain=" + test_crl_ee_unrev_base_dir + "TLS_CRL_EE_UNREV_SUB_CA.CA.crt," + test_crl_ee_unrev_base_dir + "TLS_CRL_EE_UNREV_ROOT_CA.TA.crt --own_certs="  + test_crl_ee_unrev_base_dir + "TLS_CRL_EE_UNREV_EE.TC.crt --own_private_key=" + test_crl_ee_unrev_base_dir + "TLS_CRL_EE_UNREV_EE.pkcs8"
+#test_crl_ee_unrev_client_cmdl = "--port=4444 --ip_addr=127.0.0.1 --no_hostn_ver --trusted=" + test_crl_ee_unrev_base_dir + test_name + "_ROOT_CA.TA.crt --own_ca_chain=" + test_crl_ee_unrev_base_dir + test_name + "_SUB_CA.CA.crt," + test_crl_ee_unrev_base_dir + test_name + "_ROOT_CA.TA.crt --own_certs="  + test_crl_ee_unrev_base_dir + test_name + "_EE.TC.crt --own_private_key=" + test_crl_ee_unrev_base_dir + test_name + "_EE.pkcs8"
 
 error_cnt = 0
-error_cnt += test_flea_client_against_flea_server('TLS_CRL_EE_UNREV', test_crl_ee_unrev_client_cmdl, test_crl_ee_unrev_server_cmdl)
+error_cnt += 1 - test_flea_client_against_flea_server('TLS_CRL_EE_REV',use_ee_crl_bool=True)
+error_cnt += test_flea_client_against_flea_server('TLS_CRL_NO_CRL',use_ee_crl_bool=False)
+error_cnt += test_flea_client_against_flea_server('TLS_CRL_EE_UNREV',use_ee_crl_bool=True)
 error_cnt += test_flea_server_against_external_client('start_ossl_client_w_cert.sh', std_server_args) # doesn't work after the 'ossl=server' tests
 error_cnt += test_flea_server_against_external_client('start_ossl_client_gcm_w_cert.sh', std_server_args) 
 error_cnt += test_flea_server_against_external_client('start_ossl_client_cbc_w_cert.sh', std_server_args)

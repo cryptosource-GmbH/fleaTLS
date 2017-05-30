@@ -270,7 +270,7 @@ static flea_err_t THR_flea_tls__validate_cert(
   const flea_byte_vec_t*                crl_der__cprcu8,
   flea_al_u16_t                         nb_crls__alu16,
   flea_bool_t                           validate_crl_for_issued_by_current__b,
-  flea_byte_vec_t*                      sn_buffer__pt,
+  flea_byte_vec_t*                      prev_sn_buffer__pt,
   flea_byte_vec_t*                      previous_crldp__pt
 
 )
@@ -285,7 +285,7 @@ static flea_err_t THR_flea_tls__validate_cert(
 
   /* for SN, subject:
    */
-  // FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sn_buffer__t, FLEA_X509_MAX_SERIALNUMBER_LEN);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sn_buffer__t, FLEA_X509_MAX_SERIALNUMBER_LEN);
   // TODO: EXPLICIT ISSUER ONLY FOR TARGET CERT, FOR THE OTHERS: SHA256 HASH
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_issuer__t, 200);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_subject__t, 200);
@@ -359,8 +359,8 @@ static flea_err_t THR_flea_tls__validate_cert(
   {
     FLEA_CCALL(THR_flea_byte_vec_t__push_back(&version_vec__t, 1));
   }
-  // TODO: USE SN FOR CRL CHECK
-  FLEA_CCALL(THR_flea_ber_dec_t__decode_int(&dec__t, sn_buffer__pt));
+
+  FLEA_CCALL(THR_flea_ber_dec_t__decode_int(&dec__t, &sn_buffer__t));
 
   FLEA_CCALL(THR_flea_x509__decode_algid_ref(&sigalg_id__t, &dec__t));
   FLEA_CCALL(
@@ -465,13 +465,14 @@ static flea_err_t THR_flea_tls__validate_cert(
           compare_time__pt,
           have_precursor_to_verify__b, // is_ca_cert__b
           &local_subject__t,
-          sn_buffer__pt,
+          prev_sn_buffer__pt,
           previous_crldp__pt,
           pubkey_out__pt
         )
       );
     }
   }
+  FLEA_CCALL(THR_flea_byte_vec_t__set_content(prev_sn_buffer__pt, sn_buffer__t.data__pu8, sn_buffer__t.len__dtl));
 
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
 
@@ -619,7 +620,7 @@ static flea_err_t THR_flea_tls__validate_cert(
     flea_ber_dec_t__dtor(&dec__t);
     flea_byte_vec_t__dtor(&public_key_value__t);
     flea_byte_vec_t__dtor(&local_subject__t);
-    // flea_byte_vec_t__dtor(&sn_buffer__t);
+    flea_byte_vec_t__dtor(&sn_buffer__t);
     flea_byte_vec_t__dtor(&local_issuer__t);
     flea_byte_vec_t__dtor(&back_buffer__t);
     flea_byte_vec_t__dtor(&sigalg_id__t.oid_ref__t);

@@ -1,0 +1,9 @@
+<PKIObjects>
+    <Certificate id="TLS_CRL_NO_CRL_ROOT_CA" refid="TLS_CRL_EE_UNREV_ROOT_CA" overwrite="false" type="TA">
+    </Certificate>
+    <Certificate id="TLS_CRL_NO_CRL_SUB_CA" refid="TLS_CRL_EE_UNREV_SUB_CA" overwrite="false">
+    </Certificate>
+    <Certificate id="TLS_CRL_NO_CRL_EE" refid="TLS_CRL_EE_UNREV_EE" overwrite="false" type="TC">
+    </Certificate>
+</PKIObjects>
+
