@@ -27,7 +27,8 @@
 # define FLEA_TLS_CERT_PATH_MAX_LEN 20
 
 /**
- * Used in stack mode. This size must be sufficient for a buffer to hold all data of an
+ * Used in stack mode for back-buffering during certificate processing until the signature hash algorithm is
+ * known. This size must be sufficient for a buffer to hold all data of an
  * X.509 certificate up to and including the first SignatureAlgorithm.
  */
 # define FLEA_X509_CERT_PRE_SIGALGID_BUFFER_SIZE 70
