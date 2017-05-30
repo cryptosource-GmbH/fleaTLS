@@ -45,6 +45,7 @@ void flea_byte_vec_t__set_ref(
   flea_byte_vec_t__dtor(byte_vec__pt);
   byte_vec__pt->data__pu8 = (flea_u8_t*) data__pcu8;
   byte_vec__pt->len__dtl  = data_len__dtl;
+  byte_vec__pt->is_mem_deallocable__b = FLEA_FALSE;
 }
 
 void flea_byte_vec_t__copy_content_set_ref_use_mem(

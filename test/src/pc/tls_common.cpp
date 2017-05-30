@@ -2,6 +2,7 @@
 
 #include "internal/common/default.h"
 #include "flea/tls.h"
+#include "flea/byte_vec.h"
 #include "pc/test_pc.h"
 #include "pc/test_util.h"
 
@@ -68,6 +69,23 @@ std::vector<flea_u16_t> get_cipher_suites_from_cmdl(property_set_t const& cmdl_a
   }
   return result;
 } // get_cipher_suites_from_cmdl
+
+flea_rev_chk_mode_e string_to_rev_chk_mode(std::string const& s)
+{
+  if(s == "all")
+  {
+    return flea_rev_chk_all;
+  }
+  else if((s == "") || (s == "none"))
+  {
+    return flea_rev_chk_none;
+  }
+  else if(s == "only_ee")
+  {
+    return flea_rev_chk_only_ee;
+  }
+  throw test_utils_exceptn_t("invalid value for property 'rev_chk': '" + s + "'");
+}
 }
 flea_err_t THR_flea_tls_tool_set_tls_cfg(
   flea_cert_store_t*  trust_store__pt,
@@ -94,6 +112,16 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
       );
     }
   }
+  cfg.rev_chk_mode__e = string_to_rev_chk_mode(cmdl_args.get_property_as_string_default_empty("rev_chk"));
+  cfg.crls = cmdl_args.get_bin_file_list_property("crls");
+  for(auto &crl : cfg.crls)
+  {
+    flea_byte_vec_t bv;// = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE ;
+    flea_byte_vec_t__INIT(&bv);
+    flea_byte_vec_t__set_ref(&bv, &crl[0], crl.size());
+    cfg.crls_refs.push_back(bv);
+  }
+
   cfg.cipher_suites = get_cipher_suites_from_cmdl(cmdl_args);
   FLEA_THR_BEG_FUNC();
 
