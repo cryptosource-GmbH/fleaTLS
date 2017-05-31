@@ -509,13 +509,9 @@ static flea_err_t THR_flea_tls__validate_cert(
   /** flea does check the TA to be a CA **/
   if(have_precursor_to_verify__b)
   {
-    if(!basic_constraints__t.is_present__u8)
+    if(!basic_constraints__t.is_present__u8 || !basic_constraints__t.is_ca__b)
     {
       FLEA_THROW("basic constraints missing", FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT);
-    }
-    if(!basic_constraints__t.is_ca__b)
-    {
-      FLEA_THROW("basic constraints does not indicate CA", FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT);
     }
     if(basic_constraints__t.has_path_len__b)
     {
