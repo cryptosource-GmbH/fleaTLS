@@ -11,6 +11,8 @@
 extern "C" {
 #endif
 
+#ifdef FLEA_HAVE_ASYM_ALGS
+
 typedef enum { flea_revstat_undetermined, flea_revstat_revoked, flea_revstat_good } flea_revocation_status_e;
 
 flea_err_t THR_flea_crl__check_revocation_status(
@@ -40,6 +42,9 @@ flea_err_t THR_flea_crl__check_revocation_status(
  * const flea_byte_vec_t*      subjects_crldp_raw__pt,
  * const flea_public_key_t*    issuers_public_key__pt
  * );*/
+
+#endif // ifdef FLEA_HAVE_ASYM_ALGS
+
 #ifdef __cplusplus
 }
 #endif

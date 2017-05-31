@@ -13,26 +13,30 @@ void flea_byte_vec_t__INIT(flea_byte_vec_t* byte_vec__pt)
   byte_vec__pt->data__pu8 = 0;
   byte_vec__pt->len__dtl  = 0;
   byte_vec__pt->allo__dtl = 0;
-  byte_vec__pt->is_mem_allocable__b   = FLEA_FALSE;
-  byte_vec__pt->is_mem_deallocable__b = FLEA_FALSE;
+
+  /*byte_vec__pt->is_mem_allocable__b   = FLEA_FALSE;
+   *  byte_vec__pt->is_mem_deallocable__b = FLEA_FALSE;*/
+  byte_vec__pt->state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK;
 }
 
 void flea_byte_vec_t__dtor(flea_byte_vec_t* byte_vec__pt)
 {
-  if(byte_vec__pt->is_mem_deallocable__b)
+  // if(byte_vec__pt->is_mem_deallocable__b)
+  if(FLEA_BYTEVEC_STATE_IS_DEALLOCATABLE(byte_vec__pt->state__u8))
   {
     FLEA_FREE_MEM_CHK_SET_NULL(byte_vec__pt->data__pu8);
   }
   byte_vec__pt->len__dtl  = 0;
   byte_vec__pt->allo__dtl = 0;
-  byte_vec__pt->is_mem_deallocable__b = FLEA_FALSE;
-  // byte_vec__pt->is_mem_allocable__b = FLEA_FALSE;
+  FLEA_BYTEVEC_STATE_SET_AS_UNDEALLOCATABLE(byte_vec__pt->state__u8);
+  // byte_vec__pt->is_mem_deallocable__b = FLEA_FALSE;
 }
 
 void flea_byte_vec_t__ctor_empty_allocatable(flea_byte_vec_t* byte_vec__pt)
 {
   flea_byte_vec_t__INIT(byte_vec__pt);
-  byte_vec__pt->is_mem_allocable__b = FLEA_TRUE;
+  FLEA_BYTEVEC_STATE_SET_AS_ALLOCATABLE(byte_vec__pt->state__u8);
+  // byte_vec__pt->is_mem_allocable__b = FLEA_TRUE;
   /* nothing to do */
 }
 
@@ -45,7 +49,8 @@ void flea_byte_vec_t__set_ref(
   flea_byte_vec_t__dtor(byte_vec__pt);
   byte_vec__pt->data__pu8 = (flea_u8_t*) data__pcu8;
   byte_vec__pt->len__dtl  = data_len__dtl;
-  byte_vec__pt->is_mem_deallocable__b = FLEA_FALSE;
+  FLEA_BYTEVEC_STATE_SET_AS_UNDEALLOCATABLE(byte_vec__pt->state__u8);
+  // byte_vec__pt->is_mem_deallocable__b = FLEA_FALSE;
 }
 
 void flea_byte_vec_t__copy_content_set_ref_use_mem(
@@ -75,7 +80,8 @@ static flea_err_t THR_flea_byte_vec_t__grow_to(
   }
 
 #ifndef FLEA_USE_STACK_BUF
-  if(!byte_vec__pt->is_mem_allocable__b)
+  // if(!byte_vec__pt->is_mem_allocable__b)
+  if(!FLEA_BYTEVEC_STATE_IS_ALLOCATABLE(byte_vec__pt->state__u8))
 #endif
   {
     FLEA_THROW("static byte buf length is too small", FLEA_ERR_BUFF_TOO_SMALL);
@@ -92,11 +98,13 @@ static flea_err_t THR_flea_byte_vec_t__grow_to(
   }
   FLEA_SWAP(flea_u8_t*, byte_vec__pt->data__pu8, tmp);
 
-  if(byte_vec__pt->is_mem_deallocable__b)
+  // if(byte_vec__pt->is_mem_deallocable__b)
+  if(FLEA_BYTEVEC_STATE_IS_DEALLOCATABLE(byte_vec__pt->state__u8))
   {
     FLEA_FREE_MEM_CHK_NULL(tmp);
   }
-  byte_vec__pt->is_mem_deallocable__b = FLEA_TRUE;
+  // byte_vec__pt->is_mem_deallocable__b = FLEA_TRUE;
+  FLEA_BYTEVEC_STATE_SET_AS_DEALLOCATABLE(byte_vec__pt->state__u8);
 #endif /* ifdef FLEA_USE_STACK_BUF */
   FLEA_THR_FIN_SEC(
   );
@@ -179,6 +187,7 @@ flea_err_t THR_flea_byte_vec_t__reserve(
   FLEA_THR_FIN_SEC();
 }
 
+#if 0
 flea_err_t THR_flea_byte_vec_t__append_constant_bytes(
   flea_byte_vec_t* byte_vec__pt,
   flea_u8_t        value,
@@ -186,11 +195,14 @@ flea_err_t THR_flea_byte_vec_t__append_constant_bytes(
 )
 {
   FLEA_THR_BEG_FUNC();
+  // TODO: OVERFLOW CHECK
   FLEA_CCALL(THR_flea_byte_vec_t__grow_to(byte_vec__pt, byte_vec__pt->len__dtl + repeat));
   memset(byte_vec__pt->data__pu8 + byte_vec__pt->len__dtl, value, repeat);
   byte_vec__pt->len__dtl = byte_vec__pt->len__dtl + repeat;
   FLEA_THR_FIN_SEC_empty();
 }
+
+#endif /* if 0 */
 
 flea_err_t THR_flea_byte_vec_t__set_content(
   flea_byte_vec_t* byte_vec__pt,
@@ -211,7 +223,8 @@ flea_err_t THR_flea_byte_vec_t__append(
 )
 {
   FLEA_THR_BEG_FUNC();
-  flea_u32_t new_len__dtl = byte_vec__pt->len__dtl + len__dtl;
+  // TODO: OVERFLOW CHECK:
+  flea_dtl_t new_len__dtl = byte_vec__pt->len__dtl + len__dtl;
   if(byte_vec__pt->allo__dtl < new_len__dtl)
   {
     FLEA_CCALL(THR_flea_byte_vec_t__grow_to(byte_vec__pt, new_len__dtl));
