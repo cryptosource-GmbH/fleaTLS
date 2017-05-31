@@ -170,6 +170,9 @@
 
 # define FLEA_HAVE_TLS
 
+# define FLEA_HAVE_TLS_CBC_CS
+# define FLEA_HAVE_TLS_GCM_CS
+
 /**
  * Size of the buffer used in the cipher filter used inside TLS. Must be at
  * least 32 bytes. Larger values increase performance.
