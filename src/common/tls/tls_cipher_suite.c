@@ -62,8 +62,8 @@ flea_err_t THR_flea_tls_get_key_block_len_from_cipher_suite_id(
   FLEA_CCALL(THR_flea_tls_get_cipher_suite_by_id(id, &ct__pt));
   *result_key_block_len__palu8 = ct__pt->mac_key_size * 2 + ct__pt->enc_key_size * 2;
 
-  // TODO: choose better approach
-  if(id == FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256)
+  // if(id == FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256)
+  if(FLEA_TLS_IS_AE_CIPHER(ct__pt->cipher))
   {
     *result_key_block_len__palu8 = ct__pt->enc_key_size * 2 + 16;
   }
