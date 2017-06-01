@@ -12,6 +12,8 @@
 extern "C" {
 #endif
 
+#ifdef FLEA_HAVE_TLS
+
 typedef struct
 {
   flea_block_cipher_id_t cipher_id;
@@ -24,13 +26,15 @@ typedef struct
 
 typedef struct
 {
-#ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_USE_HEAP_BUF
   flea_u8_t* cipher_key__bu8;
   flea_u8_t* mac_key__bu8;
-#else
+# else
   flea_u8_t  cipher_key__bu8[__FLEA_COMPUTED_BLOCK_CIPHER_MAX_PLAIN_KEY_LEN];
+#  if FLEA_HAVE_HMAC
   flea_u8_t  mac_key__bu8[__FLEA_COMPUTED_MAX_MAC_HMAC_KEY_SIZE_SWITCHED];
-#endif
+#  endif
+# endif
 
   /*flea_u8_t cipher_key_len__u8;
    * flea_u8_t mac_key_len__u8;*/
@@ -51,9 +55,12 @@ typedef struct
   flea_u8_t* record_iv__bu8;
 } flea_tls_gcm_conn_t;
 
+typedef enum { flea_null_cipher_suite, flea_gcm_cipher_suite, flea_cbc_cipher_suite } flea_cipher_suite_class_e;
+
 typedef struct
 {
-  flea_tls__cipher_suite_id_t cipher_suite_id;
+  // flea_tls__cipher_suite_id_t cipher_suite_id;
+  flea_cipher_suite_class_e cipher_suite_class__e;
   union
   {
     flea_tls_cbc_hmac_suite_config_t cbc_hmac_config__t;
@@ -72,9 +79,9 @@ typedef struct
   } suite_specific__u;
 } flea_tls_conn_state_t;
 
-#define flea_tls_conn_state_t__CONSTR     flea_tls_conn_state_t__INIT_VALUE
-#define flea_tls_conn_state_t__INIT_VALUE {.cipher_suite_config__t.cipher_suite_id = TLS_NULL_WITH_NULL_NULL}
-#define flea_tls_conn_state_t__INIT(__p) {(__p)->cipher_suite_config__t.cipher_suite_id = TLS_NULL_WITH_NULL_NULL}
+# define flea_tls_conn_state_t__CONSTR     flea_tls_conn_state_t__INIT_VALUE
+# define flea_tls_conn_state_t__INIT_VALUE {.cipher_suite_config__t.cipher_suite_class__e = flea_null_cipher_suite}
+# define flea_tls_conn_state_t__INIT(__p) {(__p)->cipher_suite_config__t.cipher_suite_class__e = flea_null_cipher_suite}
 
 void flea_tls_conn_state_t__dtor(flea_tls_conn_state_t* conn_state__pt);
 
@@ -100,6 +107,8 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_gcm(
   const flea_u8_t*       fixed_iv__pcu8,
   flea_al_u8_t           fixed_iv_len__alu8
 );
+
+#endif // ifdef FLEA_HAVE_TLS
 
 #ifdef __cplusplus
 }

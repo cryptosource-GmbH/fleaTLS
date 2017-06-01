@@ -104,6 +104,9 @@
  */
 # define FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT 5 // FBFLAGS__INT_LIST 1 2 3 4 10 20
 
+
+# define FLEA_X509_STCKMD_MAX_CRLDP_LEN 260
+
 /**
  * The maximal capacity (certificate count) of a cert_store_t object. Applies to
  * both the heap and the stack mode as the threshold. In heap mode, the
@@ -164,6 +167,11 @@
  * ECC private operations * as a countermeasure against timing attacks.
  */
 # define FLEA_USE_ECC_ADD_ALWAYS // FBFLAGS_ECC_ADA_ON_OFF
+
+# define FLEA_HAVE_TLS
+
+# define FLEA_HAVE_TLS_CBC_CS
+# define FLEA_HAVE_TLS_GCM_CS
 
 /**
  * Size of the buffer used in the cipher filter used inside TLS. Must be at

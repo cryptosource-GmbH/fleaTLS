@@ -1,0 +1,22 @@
+<PKIObjects>
+    <Certificate id="TLS_CRL_EE_REV_ROOT_CA" refid="TLS_CRL_EE_UNREV_ROOT_CA" overwrite="false" type="TA">
+    </Certificate>
+    <Certificate id="TLS_CRL_EE_REV_SUB_CA" refid="TLS_CRL_EE_UNREV_SUB_CA" overwrite="false">
+    </Certificate>
+    <Certificate id="TLS_CRL_EE_REV_EE" refid="TLS_CRL_EE_UNREV_EE" overwrite="false" type="TC">
+    </Certificate>
+    <CRL id="TLS_CRL_EE_REV_SUB_CA_CRL" refid="TLS_CRL_EE_UNREV_SUB_CA_CRL" overwrite="true">
+      <VerifiedBy>TLS_CRL_EE_REV_SUB_CA</VerifiedBy>
+      <Version>1</Version>
+      <RevokedCertificate refid="TLS_CRL_EE_REV_EE">
+        <RevocationDate>-30H</RevocationDate>
+      </RevokedCertificate>
+      <Signature>1.2.840.113549.1.1.11</Signature>
+      <IssuerDN encoding="UTF8">CN=Test Sub CA, C=DE</IssuerDN>
+      <ThisUpdate>-1D</ThisUpdate>
+      <NextUpdate>+30Y</NextUpdate>
+      <Extension oid="2.5.29.20" critical="false" name="CRL Number" type="pretty">3</Extension>
+      <Extension oid="2.5.29.35" critical="false" name="Authority Key Identifier" type="pretty"></Extension>
+    </CRL> 
+</PKIObjects>
+

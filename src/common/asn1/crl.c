@@ -16,10 +16,11 @@
 # define ISSUING_DISTR_POINT_INDIC 28
 
 static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(
-  const flea_x509_cert_ref_t* subject__pt,
-  const flea_byte_vec_t*      dp_name_raw__cprcu8,
-  flea_bool_t                 relative_to_issuer__b,
-  flea_bool_t*                result_update__pb
+  // const flea_x509_cert_ref_t* subject__pt,
+  const flea_byte_vec_t* subjects_crldp_raw_mbn__pt,
+  const flea_byte_vec_t* dp_name_raw__cprcu8,
+  flea_bool_t            relative_to_issuer__b,
+  flea_bool_t*           result_update__pb
 )
 {
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
@@ -27,7 +28,8 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(
   flea_mem_read_stream_help_t hlp__t;
   flea_bool_t full_name_present__b;
   FLEA_THR_BEG_FUNC();
-  if(!subject__pt->extensions__t.crl_distr_point__t.is_present__u8)
+  // if(subjects_crldp_raw_mbn__pt/*!subject__pt->extensions__t.crl_distr_point__t.is_present__u8*/)
+  if(!subjects_crldp_raw_mbn__pt /*!subject__pt->extensions__t.crl_distr_point__t.is_present__u8*/)
   {
     FLEA_THROW(
       "cannot process CRL with IDP when the certificate doesn't have the CDP",
@@ -37,8 +39,8 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor_memory(
       &source__t,
-      subject__pt->extensions__t.crl_distr_point__t.raw_ref__t.data__pu8,
-      subject__pt->extensions__t.crl_distr_point__t.raw_ref__t.len__dtl,
+      /*subject__pt->extensions__t.crl_distr_point__t.raw_ref__t.*/ subjects_crldp_raw_mbn__pt->data__pu8,
+      /*subject__pt->extensions__t.crl_distr_point__t.raw_ref__t.*/ subjects_crldp_raw_mbn__pt->len__dtl,
       &hlp__t
     )
   );
@@ -160,9 +162,10 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(
 } /* THR_flea_crl__does_cdp_contain_distrib_point */
 
 static flea_err_t THR_flea_crl__ensure_idp_cdp_general_name_match(
-  flea_ber_dec_t*             dec__pt,
-  const flea_x509_cert_ref_t* subject__pt,
-  flea_bool_t*                match_update__pb
+  flea_ber_dec_t*        dec__pt,
+  // const flea_x509_cert_ref_t* subject__pt,
+  const flea_byte_vec_t* subjects_crldp_raw_mbn__pt,
+  flea_bool_t*           match_update__pb
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -171,7 +174,14 @@ static flea_err_t THR_flea_crl__ensure_idp_cdp_general_name_match(
     flea_byte_vec_t raw_tlv__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
     /* decode the raw dp name */
     FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw_optional(dec__pt, &raw_tlv__rcu8));
-    FLEA_CCALL(THR_flea_crl__does_cdp_contain_distrib_point(subject__pt, &raw_tlv__rcu8, FLEA_FALSE, match_update__pb));
+    FLEA_CCALL(
+      THR_flea_crl__does_cdp_contain_distrib_point(
+        subjects_crldp_raw_mbn__pt,
+        &raw_tlv__rcu8,
+        FLEA_FALSE,
+        match_update__pb
+      )
+    );
     if(*match_update__pb)
     {
       FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(dec__pt));
@@ -183,8 +193,9 @@ static flea_err_t THR_flea_crl__ensure_idp_cdp_general_name_match(
 }
 
 static flea_err_t THR_flea_crl__parse_and_check_crl_distribution_point(
-  flea_ber_dec_t*             dec__pt,
-  const flea_x509_cert_ref_t* subject__pt
+  flea_ber_dec_t*        dec__pt,
+  // const flea_x509_cert_ref_t* subject__pt,
+  const flea_byte_vec_t* subjects_crldp_raw_mbn__pt
 )
 {
   flea_bool_t full_name_present__b;
@@ -201,7 +212,13 @@ static flea_err_t THR_flea_crl__parse_and_check_crl_distribution_point(
   );
   if(full_name_present__b)
   {
-    FLEA_CCALL(THR_flea_crl__ensure_idp_cdp_general_name_match(dec__pt, subject__pt, &match_update__b));
+    FLEA_CCALL(
+      THR_flea_crl__ensure_idp_cdp_general_name_match(
+        dec__pt, /*subject__pt*/
+        subjects_crldp_raw_mbn__pt,
+        &match_update__b
+      )
+    );
     if(match_update__b)
     {
       FLEA_THR_RETURN();
@@ -221,7 +238,14 @@ static flea_err_t THR_flea_crl__parse_and_check_crl_distribution_point(
     );
     FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw_optional(dec__pt, &rel_name__rcu8));
     /* CRL-DP must match */
-    FLEA_CCALL(THR_flea_crl__does_cdp_contain_distrib_point(subject__pt, &rel_name__rcu8, FLEA_TRUE, &match_update__b));
+    FLEA_CCALL(
+      THR_flea_crl__does_cdp_contain_distrib_point(
+        /*subject__pt*/ subjects_crldp_raw_mbn__pt,
+        &rel_name__rcu8,
+        FLEA_TRUE,
+        &match_update__b
+      )
+    );
     FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(dec__pt));
     if(match_update__b)
     {
@@ -236,9 +260,10 @@ static flea_err_t THR_flea_crl__parse_and_check_crl_distribution_point(
 } /* THR_flea_crl__parse_and_check_crl_distribution_point */
 
 static flea_err_t THR_flea_crl__parse_extensions(
-  flea_ber_dec_t*             dec__pt,
-  flea_bool_t                 is_ca_cert__b,
-  const flea_x509_cert_ref_t* subject__pt
+  flea_ber_dec_t*        dec__pt,
+  flea_bool_t            is_ca_cert__b,
+  // const flea_x509_cert_ref_t* subject__pt,
+  const flea_byte_vec_t* subjects_crldp_raw_mbn__pt
 )
 {
   FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);
@@ -308,7 +333,12 @@ static flea_err_t THR_flea_crl__parse_extensions(
       /* distributionPoint          [0] DistributionPointName OPTIONAL, */
       if(distrib_point_name_found__b)
       {
-        FLEA_CCALL(THR_flea_crl__parse_and_check_crl_distribution_point(&cont_dec__t, subject__pt));
+        FLEA_CCALL(
+          THR_flea_crl__parse_and_check_crl_distribution_point(
+            &cont_dec__t,
+            subjects_crldp_raw_mbn__pt /*subject__pt*/
+          )
+        );
         FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&cont_dec__t));
       }
       FLEA_CCALL(THR_flea_ber_dec_t__decode_boolean_default(&cont_dec__t, &only_contains_user_certs__b));
@@ -367,22 +397,28 @@ static flea_err_t THR_flea_crl__parse_extensions(
   );
 } /* THR_flea_crl__parse_extensions */
 
-static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
-  const flea_x509_cert_ref_t* subject__pt,
-  const flea_x509_cert_ref_t* issuer__pt,
-  const flea_u8_t*            crl_der__pcu8,
-  flea_dtl_t                  crl_der_len__dtl,
-  const flea_gmt_time_t*      verification_date__pt,
-  flea_bool_t                 is_ca_cert__b,
-  flea_revocation_status_e*   rev_stat__pe,
-  flea_gmt_time_t*            latest_this_update__pt
+static flea_err_t THR_flea_crl__update_revocation_status_from_crl_stream(
+
+  /*const flea_x509_cert_ref_t* subject__pt,
+   * const flea_x509_cert_ref_t* issuer__pt,*/
+  const flea_u8_t*          crl_der__pcu8,
+  flea_dtl_t                crl_der_len__dtl,
+  const flea_gmt_time_t*    verification_date__pt,
+  flea_bool_t               is_ca_cert__b,
+  flea_revocation_status_e* rev_stat__pe,
+  flea_gmt_time_t*          latest_this_update__pt,
+  // flea_bool_t is_issuer_crl_signer__b, // TODO: caller must ensure that isser is CRL issuer
+  const flea_byte_vec_t*    subjects_issuer_dn_raw__pt,
+  const flea_byte_vec_t*    subjects_sn__pt,
+  const flea_byte_vec_t*    subjects_crldp_raw_mbn__pt,
+  const flea_public_key_t*  issuers_public_key__pt
 )
 {
   FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(source_tbs__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec_tbs__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(pubkey__t, flea_public_key_t);
+  // FLEA_DECL_OBJ(pubkey__t, flea_public_key_t);
   flea_mem_read_stream_help_t hlp__t;
   flea_mem_read_stream_help_t hlp_tbs__t;
   flea_byte_vec_t tbs__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
@@ -422,22 +458,9 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
   FLEA_CCALL(THR_flea_asn1_parse_gmt_time(&dec__t, &this_update__t));
   FLEA_CCALL(THR_flea_asn1_parse_gmt_time(&dec__t, &next_update__t));
 
-  // if(flea_rcu8_cmp(&crl_issuer_ref__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t) ||
-  if(flea_byte_vec_t__cmp(&crl_issuer_ref__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t) ||
- // flea_rcu8_cmp(&subject__pt->issuer__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t))
-    flea_byte_vec_t__cmp(&subject__pt->issuer__t.raw_dn_complete__t, &issuer__pt->subject__t.raw_dn_complete__t))
+  if(flea_byte_vec_t__cmp(&crl_issuer_ref__t.raw_dn_complete__t, subjects_issuer_dn_raw__pt))
   {
     FLEA_THROW("DN's in subject/issuer/crl do not match as required", FLEA_ERR_X509_CRL_NAMES_DONT_MATCH);
-  }
-  if(issuer__pt->extensions__t.key_usage__t.is_present__u8)
-  {
-    if(!(issuer__pt->extensions__t.key_usage__t.purposes__u16 & flea_ku_crl_sign))
-    {
-      FLEA_THROW(
-        "CRL issuer has key usage extension without the CRLSign bit set",
-        FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN
-      );
-    }
   }
   if((1 == flea_asn1_cmp_utc_time(verification_date__pt, &next_update__t)) ||
     (-1 == flea_asn1_cmp_utc_time(verification_date__pt, &this_update__t)) ||
@@ -494,8 +517,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
       }
       /* close entry seq */
       FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
-      // if(!flea_rcu8_cmp(&serial_number__rcu8, &subject__pt->serial_number__t))
-      if(!flea_byte_vec_t__cmp(&serial_number__rcu8, &subject__pt->serial_number__t))
+      if(!flea_byte_vec_t__cmp(&serial_number__rcu8, subjects_sn__pt))
       {
         is_cert_revoked = FLEA_TRUE;
         // break;
@@ -514,7 +536,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
   );
   if(have_extensions__b)
   {
-    FLEA_CCALL(THR_flea_crl__parse_extensions(&dec__t, is_ca_cert__b, subject__pt));
+    FLEA_CCALL(THR_flea_crl__parse_extensions(&dec__t, is_ca_cert__b, /*subject__pt*/ subjects_crldp_raw_mbn__pt));
 
     FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
   }
@@ -532,7 +554,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
       &crl_signature_as_bit_string__rcu8
     )
   );
-  FLEA_CCALL(THR_flea_public_key_t__ctor_cert(&pubkey__t, issuer__pt));
+  // FLEA_CCALL(THR_flea_public_key_t__ctor_cert(&pubkey__t, issuer__pt));
 
   FLEA_CCALL(
     THR_flea_ber_dec__get_ref_to_bit_string_content_no_unused_bits(
@@ -542,7 +564,8 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
   );
   FLEA_CCALL(
     THR_flea_public_key_t__verify_signature_use_sigalg_id(
-      &pubkey__t,
+      // &pubkey__t,
+      issuers_public_key__pt,
       &algid_ref_1__t,
       &tbs__rcu8,
       &sig_content__rcu8
@@ -566,10 +589,59 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
     flea_rw_stream_t__dtor(&source_tbs__t);
     flea_ber_dec_t__dtor(&dec__t);
     flea_ber_dec_t__dtor(&dec_tbs__t);
-    flea_public_key_t__dtor(&pubkey__t);
+    // flea_public_key_t__dtor(&pubkey__t);
   );
 } /* THR_flea_crl__update_revocation_status_from_crl */
 
+static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
+
+  /*const flea_x509_cert_ref_t* subject__pt,
+   * const flea_x509_cert_ref_t* issuer__pt,*/
+  const flea_u8_t*          crl_der__pcu8,
+  flea_dtl_t                crl_der_len__dtl,
+  const flea_gmt_time_t*    verification_date__pt,
+  flea_bool_t               is_ca_cert__b,
+  flea_revocation_status_e* rev_stat__pe,
+  flea_gmt_time_t*          latest_this_update__pt,
+  const flea_byte_vec_t*    subjects_issuer_dn_raw__pt,
+  const flea_byte_vec_t*    subjects_sn__pt,
+  const flea_byte_vec_t*    subjects_crldp_raw__pt,
+  const flea_public_key_t*  issuers_public_key__pt
+)
+{
+  // FLEA_DECL_OBJ(pubkey_for_crl_ver__t, flea_public_key_t);
+  FLEA_THR_BEG_FUNC();
+  // FLEA_CCALL(THR_flea_public_key_t__ctor_cert(&pubkey_for_crl_ver__t, issuer__pt));
+  FLEA_CCALL(
+    THR_flea_crl__update_revocation_status_from_crl_stream(
+
+      /*  subject__pt,
+       * issuer__pt,*/
+      crl_der__pcu8,
+      crl_der_len__dtl,
+      verification_date__pt,
+      is_ca_cert__b,
+      rev_stat__pe,
+      latest_this_update__pt,
+      subjects_issuer_dn_raw__pt,
+      subjects_sn__pt,
+      subjects_crldp_raw__pt,
+      issuers_public_key__pt
+
+      /*&subject__pt->issuer__t.raw_dn_complete__t,
+       * &subject__pt->serial_number__t,
+       * subject__pt->extensions__t.crl_distr_point__t.is_present__u8 ? &subject__pt->extensions__t.crl_distr_point__t.
+       * raw_ref__t : NULL,
+       * &pubkey_for_crl_ver__t*/
+    )
+  );
+
+  FLEA_THR_FIN_SEC_empty(
+    // flea_public_key_t__dtor(&pubkey_for_crl_ver__t);
+  );
+}
+
+# if 0
 flea_err_t THR_flea_crl__check_revocation_status(
   const flea_x509_cert_ref_t* subject__pt,
   const flea_x509_cert_ref_t* issuer__pt,
@@ -579,24 +651,65 @@ flea_err_t THR_flea_crl__check_revocation_status(
   flea_bool_t                 is_ca_cert__b
 )
 {
+  FLEA_DECL_OBJ(pubkey_for_crl_ver__t, flea_public_key_t);
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_public_key_t__ctor_cert(&pubkey_for_crl_ver__t, issuer__pt));
+  FLEA_CCALL(
+    THR_flea_crl__check_revocation_status_crl(
+      subject__pt,
+      issuer__pt,
+      crl_der__cprcu8,
+      nb_crls__alu16,
+      verification_date__pt,
+      is_ca_cert__b
+    )
+  );
+  FLEA_THR_FIN_SEC(
+    flea_public_key_t__dtor(&pubkey_for_crl_ver__t);
+  );
+}
+
+# endif /* if 0 */
+
+flea_err_t THR_flea_crl__check_revocation_status(
+
+  /*const flea_x509_cert_ref_t* subject__pt,
+   * const flea_x509_cert_ref_t* issuer__pt,*/
+  const flea_byte_vec_t*   crl_der__cprcu8,
+  flea_al_u16_t            nb_crls__alu16,
+  const flea_gmt_time_t*   verification_date__pt,
+  flea_bool_t              is_ca_cert__b,
+  const flea_byte_vec_t*   subjects_issuer_dn_raw__pt,
+  const flea_byte_vec_t*   subjects_sn__pt,
+  const flea_byte_vec_t*   subjects_crldp_raw__pt,
+  const flea_public_key_t* issuers_public_key__pt
+)
+{
   flea_al_u16_t i;
   flea_revocation_status_e revstat = flea_revstat_undetermined;
   const flea_u8_t indet_date[]     = "000000000000Z";
   flea_gmt_time_t latest_this_update__t;
 
   FLEA_THR_BEG_FUNC();
+
   FLEA_CCALL(THR_flea_asn1_parse_date(flea_asn1_utc_time, indet_date, sizeof(indet_date) - 1, &latest_this_update__t));
   for(i = 0; i < nb_crls__alu16; i++)
   {
     THR_flea_crl__update_revocation_status_from_crl(
-      subject__pt,
-      issuer__pt,
+
+      /*subject__pt,
+       * issuer__pt,*/
       crl_der__cprcu8[i].data__pu8,
       crl_der__cprcu8[i].len__dtl,
       verification_date__pt,
       is_ca_cert__b,
       &revstat,
-      &latest_this_update__t
+      &latest_this_update__t,// ,
+      // flea_bool_t is_issuer_crl_signer__b, // TODO: caller must ensure that isser is CRL issuer (??)
+      subjects_issuer_dn_raw__pt,
+      subjects_sn__pt,
+      subjects_crldp_raw__pt,
+      issuers_public_key__pt
     );
 
     /* ignore potential errors. called function does not modify the status values in

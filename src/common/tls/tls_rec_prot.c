@@ -30,6 +30,7 @@ static void inc_seq_nbr(flea_u32_t* seq__au32)
   }
 }
 
+# ifdef FLEA_HAVE_HMAC
 static flea_err_t THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
   // flea_tls_rec_prot_t*   rec_prot__pt,
   const flea_u8_t*       rec_hdr__pcu8,
@@ -88,6 +89,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
     flea_mac_ctx_t__dtor(&mac__t);
   );
 } /* THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac */
+
+# endif /* ifdef FLEA_HAVE_HMAC */
 
 static void flea_tls_rec_prot_t__discard_pending_write(flea_tls_rec_prot_t* rec_prot__pt)
 {
@@ -205,6 +208,7 @@ void flea_tls_rec_prot_t__set_null_ciphersuite(
   // flea_tls_rec_prot_t__update_max_buf_len(rec_prot__pt);
 }
 
+# ifdef FLEA_HAVE_HMAC
 static flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite_inner(
   flea_tls_rec_prot_t*   rec_prot__pt,
   flea_tls_stream_dir_e  direction,
@@ -310,6 +314,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
   );
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite */
+
+# endif /* ifdef FLEA_HAVE_HMAC */
 
 static flea_err_t THR_flea_tls_rec_prot_t__set_gcm_ciphersuite_inner(
   flea_tls_rec_prot_t*  rec_prot__pt,
@@ -532,6 +538,7 @@ flea_err_t THR_flea_tls_rec_prot_t__write_data(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__write_data */
 
+# ifdef FLEA_HAVE_HMAC
 static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
   flea_tls_rec_prot_t* rec_prot__pt,
   flea_al_u16_t*       decrypted_len__palu16,
@@ -687,6 +694,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
   *encrypted_len__palu16 = input_output_len;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac */
+
+# endif /* ifdef FLEA_HAVE_HMAC */
 
 static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_gcm(
   flea_tls_rec_prot_t* rec_prot__pt,
@@ -865,7 +874,8 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
   {
     FLEA_THR_RETURN();
   }
-  if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256)
+  // if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256)
+  if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
   {
     flea_al_u16_t encrypted_len__alu16;
     FLEA_CCALL(THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(rec_prot__pt, &encrypted_len__alu16));
@@ -879,7 +889,8 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
 
     inc_seq_nbr(rec_prot__pt->write_state__t.sequence_number__au32);
   }
-  else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256)
+  // else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256)
+  else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_gcm_cipher_suite)
   {
     flea_al_u16_t encrypted_len__alu16;
     FLEA_CCALL(THR_flea_tls_rec_prot_t__encrypt_record_gcm(rec_prot__pt, &encrypted_len__alu16));
@@ -893,8 +904,8 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
 
     inc_seq_nbr(rec_prot__pt->write_state__t.sequence_number__au32);
   }
-
-  else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_NULL_WITH_NULL_NULL)
+  // else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_NULL_WITH_NULL_NULL)
+  else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_null_cipher_suite)
   {
     rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->send_payload_used_len__u16 >> 8;
     rec_prot__pt->send_buf_raw__pu8[4] = rec_prot__pt->send_payload_used_len__u16;
@@ -905,6 +916,10 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
         rec_prot__pt->send_payload_used_len__u16 + RECORD_HDR_LEN
       )
     );
+  }
+  else
+  {
+    FLEA_THROW("unsupported ciphersuite", FLEA_ERR_INT_ERR);
   }
   FLEA_CCALL(THR_flea_rw_stream_t__flush_write(rec_prot__pt->rw_stream__pt));
 
@@ -1168,7 +1183,9 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
       /* not needed any more, reset: */
       rec_prot__pt->read_bytes_from_current_record__u16 = 0;
       rec_prot__pt->current_record_content_len__u16     = 0;
-      if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256)
+      // if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256)
+# ifdef FLEA_HAVE_TLS_CBC_CS
+      if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
       {
         FLEA_CCALL(
           THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
@@ -1180,7 +1197,10 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         rec_prot__pt->payload_used_len__u16 = raw_rec_content_len__alu16;
         inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
       }
-      if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256)
+      else
+# endif /* ifdef FLEA_HAVE_TLS_CBC_CS */
+# ifdef FLEA_HAVE_TLS_GCM_CS
+      if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_gcm_cipher_suite)
       {
         FLEA_CCALL(
           THR_flea_tls_rec_prot_t__decrypt_record_gcm(
@@ -1192,6 +1212,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         rec_prot__pt->payload_used_len__u16 = raw_rec_content_len__alu16;
         inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
       }
+# endif /* ifdef FLEA_HAVE_TLS_GCM_CS */
 
 
       if(is_handsh_msg_during_app_data__b)

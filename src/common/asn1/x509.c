@@ -94,21 +94,28 @@ flea_err_t THR_flea_x509_cert__parse_key_usage(
   flea_key_usage_t* key_usage__pt
 )
 {
-  flea_byte_vec_t bit_str_ref__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+  // flea_byte_vec_t bit_str__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+  FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(bit_str__t, 3);
   flea_u16_t ku__u16;
 
   FLEA_THR_BEG_FUNC();
   key_usage__pt->is_present__u8 = FLEA_TRUE;
-  FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_raw_cft(cont_dec__pt, FLEA_ASN1_BIT_STRING, &bit_str_ref__t));
-  if(bit_str_ref__t.len__dtl < 2)
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__read_value_raw_cft(
+      cont_dec__pt,
+      FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, FLEA_ASN1_BIT_STRING),
+      &bit_str__t
+    )
+  );
+  if(bit_str__t.len__dtl < 2)
   {
     FLEA_THROW("empty key usage value", FLEA_ERR_X509_KU_DEC_ERR);
   }
-  ku__u16 = bit_str_ref__t.data__pu8[1] << 8;
-  if(bit_str_ref__t.len__dtl > 2)
+  ku__u16 = bit_str__t.data__pu8[1] << 8;
+  if(bit_str__t.len__dtl > 2)
   {
-    /* unused implicitly set to zero -- in DER unused must be zero */
-    ku__u16 |= bit_str_ref__t.data__pu8[2];
+    /* unused implicitly set to zero -- in DER unused must be encoded as zero */
+    ku__u16 |= bit_str__t.data__pu8[2];
   }
   key_usage__pt->purposes__u16 = ku__u16;
   FLEA_THR_FIN_SEC_empty();

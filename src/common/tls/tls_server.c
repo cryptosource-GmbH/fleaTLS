@@ -874,13 +874,18 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   flea_al_u8_t             cert_chain_len__alu8,
   const flea_cert_store_t* trust_store__pt,
   flea_ref_cu8_t*          server_key__pt,
-  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16
-  // TODO: include trust store for client certs
+  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
+  flea_rev_chk_mode_e      rev_chk_mode__e,
+  const flea_byte_vec_t*   crl_der__pt,
+  flea_al_u16_t            nb_crls__alu16
 )
 {
   flea_err_t err__t;
 
   FLEA_THR_BEG_FUNC();
+  tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = rev_chk_mode__e;
+  tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16    = nb_crls__alu16;
+  tls_ctx__pt->rev_chk_cfg__t.crl_der__pt     = crl_der__pt;
   tls_ctx__pt->cert_chain__pt     = cert_chain__pt;
   tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
   tls_ctx__pt->private_key__pt    = server_key__pt;

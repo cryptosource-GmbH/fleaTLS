@@ -7,6 +7,7 @@
 #include "flea/error.h"
 #include "flea/types.h"
 #include "flea/util.h"
+#include "internal/common/byte_vec_int.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -14,22 +15,27 @@ extern "C" {
 
 typedef struct
 {
-  flea_u8_t*  data__pu8;
-  flea_dtl_t  len__dtl;
-  flea_dtl_t  allo__dtl;
-  flea_bool_t is_mem_allocable__b;
-  flea_bool_t is_mem_deallocable__b;
+  flea_u8_t* data__pu8;
+  flea_dtl_t len__dtl;
+  flea_dtl_t allo__dtl;
+  flea_u8_t  state__u8;
+
+  /*flea_bool_t is_mem_allocable__b;
+   * flea_bool_t is_mem_deallocable__b;*/
 } flea_byte_vec_t;
 
 
-#define flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE     {.data__pu8 = NULL, .len__dtl = 0, .allo__dtl = 0, .is_mem_allocable__b = FLEA_TRUE, .is_mem_deallocable__b = FLEA_FALSE}
+// #define flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE     {.data__pu8 = NULL, .len__dtl = 0, .allo__dtl = 0, .is_mem_allocable__b = FLEA_TRUE, .is_mem_deallocable__b = FLEA_FALSE}
+#define flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE {.data__pu8 = NULL, .len__dtl = 0, .allo__dtl = 0, .state__u8 = FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK}
 
-#define flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE {.data__pu8 = NULL, .len__dtl = 0, .allo__dtl = 0, .is_mem_allocable__b = FLEA_FALSE, .is_mem_deallocable__b = FLEA_FALSE}
+// #define flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE {.data__pu8 = NULL, .len__dtl = 0, .allo__dtl = 0, .is_mem_allocable__b = FLEA_FALSE, .is_mem_deallocable__b = FLEA_FALSE}
+#define flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE {.data__pu8 = NULL, .len__dtl = 0, .allo__dtl = 0, .state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK}
 
 #ifdef FLEA_USE_HEAP_BUF
-# define flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(dummy)       flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE
+# define flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(dummy) flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE
 #else
-# define flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(stack_array) {.data__pu8 = stack_array, .len__dtl = 0, .allo__dtl = sizeof(stack_array), .is_mem_allocable__b = FLEA_FALSE, .is_mem_deallocable__b = FLEA_FALSE}
+// # define flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(stack_array) {.data__pu8 = stack_array, .len__dtl = 0, .allo__dtl = sizeof(stack_array), .is_mem_allocable__b = FLEA_FALSE, .is_mem_deallocable__b = FLEA_FALSE}
+# define flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(stack_array) {.data__pu8 = stack_array, .len__dtl = 0, .allo__dtl = sizeof(stack_array), .state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK}
 #endif
 
 /**
@@ -39,18 +45,18 @@ typedef struct
 #define FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(name, size) \
   flea_u8_t __byte_vec_stack_buf_for_ ## name[size]; \
   flea_byte_vec_t name = {.data__pu8 = __byte_vec_stack_buf_for_ ## name, \
-                          .len__dtl  =                                 0, .allo__dtl= size, .is_mem_allocable__b = FLEA_FALSE, .is_mem_deallocable__b = FLEA_FALSE}
+                          .len__dtl  =                                 0, .allo__dtl= size, .state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK}
 
 #define flea_byte_vec_t__CONSTR_EXISTING_BUF_EMPTY_ALLOCATABLE(name, size) \
   {.data__pu8 = name, \
-   .len__dtl  = 0, .allo__dtl = size, .is_mem_allocable__b = FLEA_TRUE, .is_mem_deallocable__b = FLEA_FALSE}
+   .len__dtl  = 0, .allo__dtl = size, .state__u8 = FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK}
 
 #define FLEA_DECL_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(name, buf, size) \
   flea_byte_vec_t name = flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(buf, size)
 
 #define flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(buf, size) \
   {.data__pu8 = (flea_u8_t*) buf, \
-   .len__dtl  = size, .allo__dtl = size, .is_mem_allocable__b = FLEA_FALSE, .is_mem_deallocable__b = FLEA_FALSE}
+   .len__dtl  = size, .allo__dtl = size, .state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK}
 
 #ifdef FLEA_USE_HEAP_BUF
 # define FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(name, \
@@ -114,11 +120,11 @@ flea_err_t THR_flea_byte_vec_t__set_content(
   flea_dtl_t       len__dtl
 );
 
-flea_err_t THR_flea_byte_vec_t__append_constant_bytes(
-  flea_byte_vec_t* byte_vec__pt,
-  flea_u8_t        value,
-  flea_u32_t       repeat
-);
+/*flea_err_t THR_flea_byte_vec_t__append_constant_bytes(
+ * flea_byte_vec_t* byte_vec__pt,
+ * flea_u8_t        value,
+ * flea_u32_t       repeat
+ * );*/
 
 /**
  * set the vector to the new size. if the new size is smaller than the previous

@@ -8,7 +8,7 @@
 #include "internal/common/tls/handsh_reader.h"
 #include "flea/cert_store.h"
 #include "internal/common/tls_key_usage.h"
-
+#include "internal/common/hostn_ver_int.h"
 
 #ifdef FLEA_HAVE_TLS
 # ifdef __cplusplus

@@ -109,7 +109,10 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
       cert_chain_len ? cert_chain : NULL,
       cert_chain_len,
       &client_key__t,
-      &cipher_suites_ref
+      &cipher_suites_ref,
+      tls_cfg.rev_chk_mode__e,// flea_rev_chk_none,
+      &tls_cfg.crls_refs[0],// NULL,
+      tls_cfg.crls.size()
     )
   );
 

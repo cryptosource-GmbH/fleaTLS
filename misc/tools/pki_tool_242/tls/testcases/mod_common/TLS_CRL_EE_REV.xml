@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF8" standalone="yes"?>
+<testCase id="TLS_CRL_EE_REV" xmlns="http://bsi.bund.de/TR03124">
+    <Title>Test case of TLS_CRL_EE_REV</Title>
+    <Version>1.0</Version>
+    <Purpose>The EE is revoked.</Purpose>
+    <Profile>COMMON</Profile>
+    <Reference>RFC 5280</Reference>
+    <TestStep>
+        <TestDataReference>PO_TLS_CRL_EE_REV.xml</TestDataReference>
+        <ExpectedResult>
+            <Text>INVALID</Text>
+        </ExpectedResult>
+        <Severity>ERROR</Severity>
+    </TestStep>
+</testCase>
+

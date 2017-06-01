@@ -1,0 +1,1 @@
+openssl pkcs8 -inform PEM -topk8 -in TLS_CRL_EE_UNREV_EE.pem -outform DER -out TLS_CRL_EE_UNREV_EE.pkcs8 -nocrypt

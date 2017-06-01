@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF8" standalone="yes"?>
+<testCase id="TLS_CRL_NO_CRL" xmlns="http://bsi.bund.de/TR03124">
+    <Title>Test case of TLS_CRL_NO_CRL</Title>
+    <Version>1.0</Version>
+    <Purpose>No CRLs are provided and the path is valid.</Purpose>
+    <Profile>COMMON</Profile>
+    <Reference>RFC 5280</Reference>
+    <TestStep>
+        <TestDataReference>PO_TLS_CRL_NO_CRL.xml</TestDataReference>
+        <ExpectedResult>
+            <Text>VALID</Text>
+        </ExpectedResult>
+        <Severity>ERROR</Severity>
+    </TestStep>
+</testCase>

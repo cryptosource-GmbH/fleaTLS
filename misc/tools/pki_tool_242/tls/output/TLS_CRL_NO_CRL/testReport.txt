@@ -1,0 +1,31 @@
+Test Case: TLS_CRL_NO_CRL
+
+Purpose: No CRLs are provided and the path is valid.
+
+Test Object (Name): OpenSSL
+
+Test Object (Version): 1.1.0e
+
+Test executed at: ________________________
+
+Test executed by: _______________________
+
+Result: _______________________
+
+Expected Result: VALID
+
+Severity: ERROR
+
+Data:
+TLS_CRL_NO_CRL_ROOT_CA
+TLS_CRL_NO_CRL_SUB_CA
+TLS_CRL_NO_CRL_EE
+
+
+Remarks: __________________________
+
+___________________________________
+
+___________________________________
+
+___________________________________

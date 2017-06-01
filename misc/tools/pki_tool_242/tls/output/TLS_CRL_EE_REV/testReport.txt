@@ -1,0 +1,32 @@
+Test Case: TLS_CRL_EE_REV
+
+Purpose: The EE is revoked.
+
+Test Object (Name): OpenSSL
+
+Test Object (Version): 1.1.0e
+
+Test executed at: ________________________
+
+Test executed by: _______________________
+
+Result: _______________________
+
+Expected Result: INVALID
+
+Severity: ERROR
+
+Data:
+TLS_CRL_EE_REV_ROOT_CA
+TLS_CRL_EE_REV_SUB_CA
+TLS_CRL_EE_REV_EE
+TLS_CRL_EE_REV_SUB_CA_CRL
+
+
+Remarks: __________________________
+
+___________________________________
+
+___________________________________
+
+___________________________________

@@ -1,0 +1,32 @@
+Test Case: TLS_CRL_EE_UNREV
+
+Purpose: A CRL is provided only for the EE. The EE is not on the CRL and thus the path is valid.
+
+Test Object (Name): OpenSSL
+
+Test Object (Version): 1.1.0e
+
+Test executed at: ________________________
+
+Test executed by: _______________________
+
+Result: _______________________
+
+Expected Result: VALID
+
+Severity: ERROR
+
+Data:
+TLS_CRL_EE_UNREV_ROOT_CA
+TLS_CRL_EE_UNREV_SUB_CA
+TLS_CRL_EE_UNREV_EE
+TLS_CRL_EE_UNREV_SUB_CA_CRL
+
+
+Remarks: __________________________
+
+___________________________________
+
+___________________________________
+
+___________________________________
