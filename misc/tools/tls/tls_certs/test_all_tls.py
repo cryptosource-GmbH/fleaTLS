@@ -24,6 +24,7 @@ def print_string_array(lines):
 
 
 def test_flea_client_against_exernal_server(exp_pos_res, ext_start_script, flea_cmdl_args):
+    p1 = subprocess.Popen('killall openssl', shell=True)
     p2 = subprocess.Popen('killall unit_test', shell=True)
     p1.wait()
     p2.wait()
@@ -39,12 +40,12 @@ def test_flea_client_against_exernal_server(exp_pos_res, ext_start_script, flea_
         if exp_pos_res:
             print ("error with '" + ext_start_script + "'")
         p.kill()
-        return 1 
+        return 0 if not exp_pos_res else 1
     #for line in p.stdout.readlines():
         #print line
     retval = p_test.wait()
     #p.kill()
-    return 0
+    return 0 if exp_pos_res else 1
 
 
 def test_flea_server_against_external_client(exp_pos_res, ext_start_script, flea_cmdl_args):
@@ -76,10 +77,10 @@ def test_flea_server_against_external_client(exp_pos_res, ext_start_script, flea
             print ("error with '" + ext_start_script + "'")
         #p_flea.kill()
         #p_ossl.kill()
-        return 1 
+        return 0 if not exp_pos_res else 1
     #p_flea.kill()
     #p_ossl.kill()
-    return 0
+    return 0 if exp_pos_res else 1
 
 def build_cmdl_242_for_server(test_name):
     test_crl_base_dir = "misc/tools/pki_tool_242/tls/output/"
@@ -97,7 +98,7 @@ def build_cmdl_242_for_client(test_name, use_ee_crl_bool):
         result += " --crls=" + test_crl_ee_unrev_base_dir + "/crls/" + test_name + "_SUB_CA_CRL.crl" + " --rev_chk=only_ee"
     return result
 
-def test_flea_client_against_flea_server(test_name, use_ee_crl_bool ):
+def test_flea_client_against_flea_server(exp_pos_res, test_name, use_ee_crl_bool ):
     p1 = subprocess.Popen('killall openssl', shell=True)
     p2 = subprocess.Popen('killall unit_test', shell=True)
     p1.wait()
@@ -116,14 +117,15 @@ def test_flea_client_against_flea_server(test_name, use_ee_crl_bool ):
         # doesn't match so far
     if(not find_in_strings(ut_output, "tls test passed")):
         print_string_array(ut_output)
-        print ("error with '" + test_name  + "'")
+        if exp_pos_res:
+            print ("error with '" + ext_start_script + "'")
         #p_server.kill()
-        return 1 
+        return 0 if not exp_pos_res else 1
     #for line in p.stdout.readlines():
         #print line
     retval = p_test.wait()
     #p.kill()
-    return 0
+    return 0 if exp_pos_res else 1
    
 std_server_args = "--trusted=misc/tools/tls/tls_certs/rootCA.der --own_certs=misc/tools/tls/tls_certs/server.der --own_private_key=./misc/tools/tls/tls_certs/server.pkcs8 --own_ca_chain=misc/tools/tls/tls_certs/rootCA.der --port=4444"
 std_client_args = "--trusted=misc/tools/tls/tls_certs/rootCA.der --own_certs=misc/tools/tls/tls_certs/server.der --own_private_key=./misc/tools/tls/tls_certs/server.pkcs8 --own_ca_chain=misc/tools/tls/tls_certs/rootCA.der --port=4444 --ip_addr=127.0.0.1 --no_hostn_ver"
@@ -134,18 +136,18 @@ no_req_cert_server_args = "--own_certs=misc/tools/tls/tls_certs/server.der --own
 #test_crl_ee_unrev_client_cmdl = "--port=4444 --ip_addr=127.0.0.1 --no_hostn_ver --trusted=" + test_crl_ee_unrev_base_dir + test_name + "_ROOT_CA.TA.crt --own_ca_chain=" + test_crl_ee_unrev_base_dir + test_name + "_SUB_CA.CA.crt," + test_crl_ee_unrev_base_dir + test_name + "_ROOT_CA.TA.crt --own_certs="  + test_crl_ee_unrev_base_dir + test_name + "_EE.TC.crt --own_private_key=" + test_crl_ee_unrev_base_dir + test_name + "_EE.pkcs8"
 
 error_cnt = 0
-error_cnt += 1 - test_flea_client_against_flea_server('TLS_CRL_EE_REV',use_ee_crl_bool=True)
-error_cnt += test_flea_client_against_flea_server('TLS_CRL_NO_CRL',use_ee_crl_bool=False)
-error_cnt += test_flea_client_against_flea_server('TLS_CRL_EE_UNREV',use_ee_crl_bool=True)
-error_cnt += test_flea_server_against_external_client('start_ossl_client_w_cert.sh', std_server_args) # doesn't work after the 'ossl=server' tests
-error_cnt += test_flea_server_against_external_client('start_ossl_client_gcm_w_cert.sh', std_server_args) 
-error_cnt += test_flea_server_against_external_client('start_ossl_client_cbc_w_cert.sh', std_server_args)
-error_cnt += test_flea_client_against_exernal_server('start_ossl_server_request_cert.sh', std_client_args)
-error_cnt += test_flea_client_against_exernal_server('start_ossl_server.sh', std_client_args)
-error_cnt += test_flea_client_against_exernal_server('start_ossl_server_gcm.sh', std_client_args)
-error_cnt += test_flea_client_against_exernal_server('start_ossl_server_cbc.sh', std_client_args + " --cipher_suites=TLS_RSA_WITH_AES_128_CBC_SHA")
+error_cnt += test_flea_client_against_flea_server(False, 'TLS_CRL_EE_REV',use_ee_crl_bool=True)
+error_cnt += test_flea_client_against_flea_server(True, 'TLS_CRL_NO_CRL',use_ee_crl_bool=False)
+error_cnt += test_flea_client_against_flea_server(True, 'TLS_CRL_EE_UNREV',use_ee_crl_bool=True)
+error_cnt += test_flea_server_against_external_client(True, 'start_ossl_client_w_cert.sh', std_server_args) # doesn't work after the 'ossl=server' tests
+error_cnt += test_flea_server_against_external_client(True, 'start_ossl_client_gcm_w_cert.sh', std_server_args) 
+error_cnt += test_flea_server_against_external_client(True, 'start_ossl_client_cbc_w_cert.sh', std_server_args)
+error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_request_cert.sh', std_client_args)
+error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server.sh', std_client_args)
+error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_gcm.sh', std_client_args)
+error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_cbc.sh', std_client_args + " --cipher_suites=TLS_RSA_WITH_AES_128_CBC_SHA")
 
-error_cnt += 1 - test_flea_client_against_exernal_server(False, 'start_ossl_server_request_cert.sh', no_cert_client_args)
+error_cnt += test_flea_client_against_exernal_server(False, 'start_ossl_server_request_cert.sh', no_cert_client_args)
 
 
 
