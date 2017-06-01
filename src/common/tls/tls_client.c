@@ -578,6 +578,7 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
   // define and init state
   flea_tls__handshake_state_ctor(&handshake_state);
   flea_hash_ctx_t hash_ctx = flea_hash_ctx_t__INIT_VALUE;
+  flea_tls_parallel_hash_ctx_t p_hash_ctx;
 # ifdef FLEA_USE_HEAP_BUF
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
 # else
@@ -588,6 +589,8 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
     );
 # endif
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx, flea_sha256));
+  flea_hash_id_t hash_ids[] = {flea_sha256}; // TODO123: not hardcoded!!!!!
+  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__ctor(&p_hash_ctx, hash_ids, sizeof(hash_ids)));
   while(1)
   {
     // initialize handshake by sending CLIENT_HELLO

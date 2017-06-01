@@ -400,6 +400,11 @@ flea_al_u16_t flea_hash_ctx_t__get_output_length(flea_hash_ctx_t* p_ctx)
   return p_ctx->p_config->output_length;
 }
 
+flea_hash_id_t flea_hash_ctx_t__get_hash_id(flea_hash_ctx_t* p_ctx)
+{
+  return p_ctx->p_config->hash_id;
+}
+
 flea_err_t THR_flea_compute_hash_byte_vec(
   flea_hash_id_t   id,
   const flea_u8_t* input_pu8,
