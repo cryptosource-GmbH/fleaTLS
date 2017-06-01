@@ -108,6 +108,29 @@ static flea_bool_t determine_alert_from_error(
   return FLEA_TRUE;
 }
 
+# pragma GCC diagnostic push
+# pragma GCC diagnostic ignored "-Wswitch"
+flea_mac_id_t flea_tls__map_hmac_to_hash(flea_hash_id_t hash)
+{
+  flea_mac_id_t hmac;
+
+  switch(hash)
+  {
+      case flea_sha1: hmac = flea_hmac_sha1;
+        break;
+      case flea_sha256: hmac = flea_hmac_sha256;
+        break;
+      case flea_sha384: hmac = flea_hmac_sha384;
+        break;
+      case flea_sha512: hmac = flea_hmac_sha512;
+        break;
+  }
+  return hmac;
+}
+
+# pragma GCC diagnostic pop
+
+
 typedef struct
 {
   flea_u8_t  type__u8;

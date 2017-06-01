@@ -54,7 +54,7 @@ typedef struct
   flea_u8_t                   mac_size;     // RFC: 8 bits
 
 
-  flea_mac_id_t               mac_algorithm; // default: flea_hmac_sha256
+  flea_hash_id_t              hash_algorithm; // default: flea_sha_sha256
   // flea_hash_id_t              hash_algorithm; // default: flea_sha256
 
   // flea_tls__prf_algorithm_t   prf_algorithm;
