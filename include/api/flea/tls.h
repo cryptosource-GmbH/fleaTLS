@@ -266,40 +266,6 @@ flea_err_t THR_flea_tls_ctx_t__flush_write_app_data(flea_tls_ctx_t* tls_ctx);
 
 flea_mac_id_t flea_tls__map_hmac_to_hash(flea_hash_id_t h);
 
-# define FLEA_TLS_MAX_PARALLEL_HASHES 5 // TODO: -> build_cfg
-
-typedef struct
-{
-# ifdef FLEA_USE_HEAP_BUF
-  flea_hash_ctx_t* hash_ctx__pt;
-# else
-  flea_hash_ctx_t  hash_ctx__pt[FLEA_TLS_MAX_PARALLEL_HASHES];
-# endif
-  flea_u8_t        num_hash_ctx__u8;
-} flea_tls_parallel_hash_ctx_t;
-
-flea_err_t THR_flea_tls_parallel_hash_ctx__ctor(
-  flea_tls_parallel_hash_ctx_t* p_hash_ctx,
-  flea_hash_id_t*               hashes__pt,
-  flea_u8_t                     hashes_len__u8
-);
-
-flea_err_t THR_flea_tls_parallel_hash_ctx__update(
-  flea_tls_parallel_hash_ctx_t* p_hash_ctx,
-  flea_u8_t*                    bytes__u8,
-  flea_dtl_t                    bytes_len__dtl
-);
-
-
-flea_err_t THR_flea_tls_parallel_hash_ctx__final(
-  flea_tls_parallel_hash_ctx_t* p_hash_ctx,
-  flea_hash_id_t                hash_id__t,
-  flea_bool_t                   copy,
-  flea_u8_t*                    output__u8
-);
-
-flea_err_t THR_flea_tls_parallel_hash_ctx__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx);
-
 
 # ifdef __cplusplus
 }
