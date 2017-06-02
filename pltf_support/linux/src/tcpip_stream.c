@@ -79,7 +79,7 @@ static flea_err_t THR_open_socket_server(void* ctx__pv)
 
   if((bind(listen_fd, (struct sockaddr*) &addr, sizeof(addr))) < 0)
   {
-    FLEA_THROW("Socket bind failed", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("Socket bind failed", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
   }
 
   // TODO: second is "backlog" argument. 3 is taken from an example, check if it makes sense
@@ -89,7 +89,7 @@ static flea_err_t THR_open_socket_server(void* ctx__pv)
   client_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
   if(client_fd < 0)
   {
-    FLEA_THROW("Socket accept failed", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("Socket accept failed", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
   }
 
   // TODO: check if we need to close socket_fd ??? (in examples never done)
@@ -154,7 +154,7 @@ static flea_err_t THR_send_socket_inner(
 
   if(send(socket_fd, source_buffer__pcu8, nb_bytes_to_write__dtl, 0) < 0)
   {
-    FLEA_THROW("Send failed!", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("Send failed!", FLEA_ERR_FAILED_STREAM_WRITE);
   }
   FLEA_THR_FIN_SEC_empty();
 }

@@ -739,6 +739,7 @@ flea_err_t THR_flea_tls__cert_path_validation(
     flea_byte_vec_t__dtor(&cycling_signature__t);
     flea_byte_vec_t__dtor(&cycling_issuer_dn);
     flea_byte_vec_t__dtor(&cycling_tbs_hash__t);
+    flea_byte_vec_t__dtor(&sn_buffer__t);
     // flea_byte_vec_t__dtor(&san__t.san_raw__t);
   );
 } /* THR_flea_tls__cert_path_validation */
