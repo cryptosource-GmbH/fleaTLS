@@ -38,7 +38,7 @@ typedef struct
 
 static linux_socket_stream_ctx_t stc_sock_stream__t;
 
-static void init_sock_stream(
+static void init_sock_stream_client(
   linux_socket_stream_ctx_t* sock_stream__pt,
   flea_u16_t                 port__u16,
   const char*                hostname
@@ -51,46 +51,22 @@ static void init_sock_stream(
   sock_stream__pt->hostname  = hostname;
 }
 
+static void init_sock_stream_server(
+  linux_socket_stream_ctx_t* sock_stream__pt,
+  int                        sock_fd
+)
+{
+  memset(sock_stream__pt, 0, sizeof(*sock_stream__pt));
+  sock_stream__pt->read_buf__t.alloc_len__dtl  = sizeof(sock_stream__pt->read_buf__t.buffer__au8);
+  sock_stream__pt->write_buf__t.alloc_len__dtl = sizeof(sock_stream__pt->write_buf__t.buffer__au8);
+  sock_stream__pt->socket_fd__int = sock_fd;
+}
+
+#if 0
 static flea_err_t THR_open_socket_server(void* ctx__pv)
 {
   FLEA_THR_BEG_FUNC();
   linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
-  struct sockaddr_in addr;
-  int listen_fd = -1, client_fd = 0;
-  listen_fd = socket(AF_INET, SOCK_STREAM, 0);
-
-  if(listen_fd == -1)
-  {
-    FLEA_THROW("error opening linux socket", FLEA_ERR_INV_STATE);
-  }
-  // TODO: maybe change this. It SO_REUSEADDR enables us to reuse the same port
-  // even though it is still blocked and waiting for a timeout when not properly
-  // closed
-  if(setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1}, sizeof(int)) < 0)
-  {
-    FLEA_THROW("setsockopt(SO_REUSEADDR) failed", FLEA_ERR_INV_STATE);
-  }
-
-
-  memset(&addr, 0, sizeof(addr));
-  addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  addr.sin_family      = AF_INET;
-  addr.sin_port        = htons(ctx__pt->port__u16);
-
-  if((bind(listen_fd, (struct sockaddr*) &addr, sizeof(addr))) < 0)
-  {
-    FLEA_THROW("Socket bind failed", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
-  }
-
-  // TODO: second is "backlog" argument. 3 is taken from an example, check if it makes sense
-  listen(listen_fd, 3);
-
-  // while(1)
-  client_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
-  if(client_fd < 0)
-  {
-    FLEA_THROW("Socket accept failed", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
-  }
 
   // TODO: check if we need to close socket_fd ??? (in examples never done)
   ctx__pt->socket_fd__int = client_fd;
@@ -101,6 +77,8 @@ static flea_err_t THR_open_socket_server(void* ctx__pv)
   }
   );
 } /* THR_open_socket_server */
+
+#endif /* if 0 */
 
 static flea_err_t THR_open_socket_client(void* ctx__pv)
 {
@@ -152,7 +130,7 @@ static flea_err_t THR_send_socket_inner(
 {
   FLEA_THR_BEG_FUNC();
 
-  if(send(socket_fd, source_buffer__pcu8, nb_bytes_to_write__dtl, 0) < 0)
+  if(send(socket_fd, source_buffer__pcu8, nb_bytes_to_write__dtl, MSG_NOSIGNAL) < 0)
   {
     FLEA_THROW("Send failed!", FLEA_ERR_FAILED_STREAM_WRITE);
   }
@@ -313,16 +291,17 @@ static flea_err_t THR_read_socket(
 
 flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
   flea_rw_stream_t* stream__pt,
-  flea_u16_t        port__u16
+  int               sock_fd
 )
 {
   FLEA_THR_BEG_FUNC();
-  flea_rw_stream_open_f open__f         = THR_open_socket_server;
+  flea_rw_stream_open_f open__f         = NULL; // THR_open_socket_server;
   flea_rw_stream_close_f close__f       = close_socket;
   flea_rw_stream_write_f write__f       = THR_write_socket;
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
-  init_sock_stream(&stc_sock_stream__t, port__u16, NULL);
+  // init_sock_stream(&stc_sock_stream__t, port__u16, NULL);
+  init_sock_stream_server(&stc_sock_stream__t, sock_fd);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,
@@ -350,7 +329,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_rw_stream_write_f write__f       = THR_write_socket;
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
-  init_sock_stream(&stc_sock_stream__t, port__u16, hostname);
+  init_sock_stream_client(&stc_sock_stream__t, port__u16, hostname);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,
