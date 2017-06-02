@@ -602,13 +602,14 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
   /*
    * Check MAC
    */
-  // TODO: CAPTURE UNDERFLOW
+  /* CAPTURE UNDERFLOW */
   data_len_previous__alu16 = data_len;
   data_len = data_len - (padding_len + 1) - iv_len - mac_len;
   if(data_len > data_len_previous__alu16)
   {
     FLEA_THROW("insufficient size of hmac-cbc record payload", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
   }
+  // TODO: PREVENT THIS EXTREME TIMING LEAK
   FLEA_CCALL(
     THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
       rec_prot__pt->send_rec_buf_raw__bu8,
