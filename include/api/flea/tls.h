@@ -182,13 +182,17 @@ typedef struct
   // flea_u8_t                    allowed_cipher_suites_len__u8;
   flea_u16_t                   selected_cipher_suite__u16;
 
-  /* TODO: Where do I allocate the memory? inside __ctor seems pointless with stack usage */
   flea_public_key_t            peer_pubkey; /* public key of peer */
 
   flea_tls__protocol_version_t version; /* max. supported TLS version */
 
   flea_u8_t                    session_id[32]; /* Session ID for later resumption */
   flea_u8_t                    session_id_len;
+
+  flea_hash_id_t               prf_hash_id__t;      // stores hash function to use for the PRF algorithm
+  flea_hash_id_t               cert_vfy_hash_id__t; // hash function to use for signing the cert verify message
+  flea_hash_id_t               dhe_hash_id__t;      // hash function to use for DHE KEX
+  // TODO: could probably do a union for cert_vfy and dhe hash id
 
   // flea_byte_vec_t              premaster_secret__t; // shall be deleted after master_Secret is calculated
 

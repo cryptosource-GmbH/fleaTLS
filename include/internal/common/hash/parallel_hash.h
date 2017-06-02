@@ -33,6 +33,12 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__ctor(
   flea_u8_t                     hashes_ids_len__u8
 );
 
+flea_err_t THR_flea_tls_parallel_hash_ctx__copy(
+  flea_hash_ctx_t*                    hash_ctx_new__pt,
+  const flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
+  flea_hash_id_t                      hash_id__t
+);
+
 flea_err_t THR_flea_tls_parallel_hash_ctx__update(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
   const flea_u8_t*              bytes__u8,

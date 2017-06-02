@@ -1,7 +1,7 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #include "internal/common/hash/parallel_hash.h"
-#include "flea/array_util.h"
+// #include "flea/array_util.h"
 
 #ifdef FLEA_HAVE_TLS
 
@@ -17,8 +17,10 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__ctor(
   FLEA_ALLOC_MEM_ARR(p_hash_ctx->hash_ctx__pt, hash_ids_len__u8);
 # endif
 
-  // TODO123: check if hash_ids_len > MAX_HASHES
-
+  if(hash_ids_len__u8 > FLEA_TLS_MAX_PARALLEL_HASHES)
+  {
+    FLEA_THROW("too many hash algorithms for this configuration", FLEA_ERR_INV_ARG);
+  }
   p_hash_ctx->num_hash_ctx__u8 = hash_ids_len__u8;
 
   for(flea_u8_t i = 0; i < hash_ids_len__u8; i++)
@@ -27,6 +29,25 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__ctor(
     FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&p_hash_ctx->hash_ctx__pt[i], hash_ids__pt[i]));
   }
 
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_tls_parallel_hash_ctx__copy(
+  flea_hash_ctx_t*                    hash_ctx_new__pt,
+  const flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
+  flea_hash_id_t                      hash_id__t
+)
+{
+  FLEA_THR_BEG_FUNC();
+  for(flea_u8_t i = 0; i < p_hash_ctx__pt->num_hash_ctx__u8; i++)
+  {
+    if(hash_id__t == flea_hash_ctx_t__get_hash_id(&p_hash_ctx__pt->hash_ctx__pt[i]))
+    {
+      FLEA_CCALL(THR_flea_hash_ctx_t__ctor_copy(hash_ctx_new__pt, &p_hash_ctx__pt->hash_ctx__pt[i]));
+      FLEA_THR_RETURN();
+    }
+  }
+  FLEA_THROW("hash id not found", FLEA_ERR_INV_ARG);
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -53,13 +74,9 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__final(
   flea_u8_t*                    output__u8
 )
 {
-  flea_hash_ctx_t* hash_ctx__pt;
+  flea_hash_ctx_t* hash_ctx__pt = NULL;
 
-  if(copy == FLEA_TRUE)
-  {
-    FLEA_DECL_OBJ(hash_ctx_t, flea_hash_ctx_t);
-    hash_ctx__pt = &hash_ctx_t;
-  }
+  FLEA_DECL_OBJ(hash_ctx_cpy_t, flea_hash_ctx_t);
 
   FLEA_THR_BEG_FUNC();
 
@@ -73,6 +90,11 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__final(
   }
   if(hash_ctx__pt)
   {
+    if(copy == FLEA_TRUE)
+    {
+      FLEA_CCALL(THR_flea_hash_ctx_t__ctor_copy(&hash_ctx_cpy_t, hash_ctx__pt));
+      hash_ctx__pt = &hash_ctx_cpy_t;
+    }
     FLEA_CCALL(THR_flea_hash_ctx_t__final(hash_ctx__pt, output__u8));
   }
   else
@@ -80,8 +102,10 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__final(
     FLEA_THROW("hash id not matching", FLEA_ERR_INV_ARG);
   }
 
-  FLEA_THR_FIN_SEC_empty();
-}
+  FLEA_THR_FIN_SEC(
+    flea_hash_ctx_t__dtor(&hash_ctx_cpy_t);
+  );
+} /* THR_flea_tls_parallel_hash_ctx__final */
 
 flea_err_t THR_flea_tls_parallel_hash_ctx__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx)
 {

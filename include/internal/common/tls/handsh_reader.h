@@ -6,6 +6,7 @@
 #include "internal/common/tls/handsh_read_stream.h"
 #include "internal/common/tls/tls_rec_prot_rdr.h"
 #include "internal/common/tls_rec_prot.h"
+#include "internal/common/hash/parallel_hash.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -45,8 +46,8 @@ flea_rw_stream_t* flea_tls_handsh_reader_t__get_read_stream(flea_tls_handsh_read
 flea_al_u8_t flea_tls_handsh_reader_t__get_handsh_msg_type(flea_tls_handsh_reader_t* handsh_rdr__pt);
 
 flea_err_t THR_flea_tls_handsh_reader_t__set_hash_ctx(
-  flea_tls_handsh_reader_t* handsh_rdr__pt,
-  flea_hash_ctx_t*          hash_ctx__pt
+  flea_tls_handsh_reader_t*     handsh_rdr__pt,
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
 );
 
 void flea_tls_handsh_reader_t__unset_hasher(flea_tls_handsh_reader_t* handsh_rdr__pt);

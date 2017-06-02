@@ -4,6 +4,7 @@
 #define _flea_tls_common__H_
 
 #include "internal/common/tls/tls_cert_path.h"
+#include "internal/common/hash/parallel_hash.h"
 
 #ifdef FLEA_HAVE_TLS
 # ifdef __cplusplus
@@ -22,32 +23,32 @@ flea_err_t THR_flea_tls__read_certificate(
 );
 
 flea_err_t THR_flea_tls__send_certificate(
-  flea_tls_ctx_t*  tls_ctx,
-  flea_hash_ctx_t* hash_ctx,
-  flea_ref_cu8_t*  cert_chain__pt,
-  flea_u8_t        cert_chain_len__u8
+  flea_tls_ctx_t*               tls_ctx,
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx,
+  flea_ref_cu8_t*               cert_chain__pt,
+  flea_u8_t                     cert_chain_len__u8
 );
 
 flea_err_t THR_flea_tls__send_handshake_message_hdr(
-  flea_tls_rec_prot_t* rec_prot__pt,
-  flea_hash_ctx_t*     hash_ctx_mbn__pt,
-  HandshakeType        type,
-  flea_u32_t           content_len__u32
+  flea_tls_rec_prot_t*          rec_prot__pt,
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx_mbn__pt,
+  HandshakeType                 type,
+  flea_u32_t                    content_len__u32
 );
 
 flea_err_t THR_flea_tls__send_handshake_message_content(
-  flea_tls_rec_prot_t* rec_prot__pt,
-  flea_hash_ctx_t*     hash_ctx_mbn__pt,
-  const flea_u8_t*     msg_bytes,
-  flea_u32_t           msg_bytes_len
+  flea_tls_rec_prot_t*          rec_prot__pt,
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx_mbn__pt,
+  const flea_u8_t*              msg_bytes,
+  flea_u32_t                    msg_bytes_len
 );
 
 flea_err_t THR_flea_tls__send_handshake_message(
-  flea_tls_rec_prot_t* rec_prot__pt,
-  flea_hash_ctx_t*     hash_ctx_mbn__pt,
-  HandshakeType        type,
-  const flea_u8_t*     msg_bytes,
-  flea_u32_t           msg_bytes_len
+  flea_tls_rec_prot_t*          rec_prot__pt,
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx_mbn__pt,
+  HandshakeType                 type,
+  const flea_u8_t*              msg_bytes,
+  flea_u32_t                    msg_bytes_len
 );
 
 flea_err_t THR_flea_tls__read_finished(
@@ -91,8 +92,8 @@ flea_err_t THR_flea_tls__send_change_cipher_spec(
 );
 
 flea_err_t THR_flea_tls__send_finished(
-  flea_tls_ctx_t*  tls_ctx,
-  flea_hash_ctx_t* hash_ctx
+  flea_tls_ctx_t*               tls_ctx,
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx
 );
 
 flea_err_t THR_flea_tls_ctx_t__construction_helper(
@@ -140,10 +141,10 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx);
  * send a positive iteger big endian encoded as part of a handshake message.
  */
 flea_err_t THR_flea_tls__send_handshake_message_int_be(
-  flea_tls_rec_prot_t* rec_prot__pt,
-  flea_hash_ctx_t*     hash_ctx_mbn__pt,
-  flea_u32_t           int__u32,
-  flea_al_u8_t         int_byte_width__alu8
+  flea_tls_rec_prot_t*          rec_prot__pt,
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx_mbn__pt,
+  flea_u32_t                    int__u32,
+  flea_al_u8_t                  int_byte_width__alu8
 );
 #endif // ifdef FLEA_HAVE_TLS
 #endif /* h-guard */
