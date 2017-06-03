@@ -145,5 +145,8 @@ flea_err_t THR_flea_tls__send_handshake_message_int_be(
   flea_u32_t           int__u32,
   flea_al_u8_t         int_byte_width__alu8
 );
+
+void flea_tls_set_tls_random(flea_tls_ctx_t* ctx__pt);
+
 #endif // ifdef FLEA_HAVE_TLS
 #endif /* h-guard */

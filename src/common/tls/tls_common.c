@@ -639,13 +639,7 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
   /* set client_random */
   // TODO: do we need these parameters in the ctx? everything only needed during
   // handshake should be local to that function
-  flea_rng__randomize(ctx->security_parameters.client_random.gmt_unix_time, 4); // TODO: check RFC for correct implementation - actual time?
-  flea_rng__randomize(ctx->security_parameters.client_random.random_bytes, 28);
-
-  /* set server random */
-  flea_rng__randomize(ctx->security_parameters.server_random.gmt_unix_time, 4);
-  flea_rng__randomize(ctx->security_parameters.server_random.random_bytes, 28);
-
+  //
 
   ctx->resumption = FLEA_FALSE;
 
@@ -944,6 +938,16 @@ flea_err_t THR_flea_tls_ctx_t__read_app_data(
 
   FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
   FLEA_THR_FIN_SEC_empty();
+}
+
+void flea_tls_set_tls_random(flea_tls_ctx_t* ctx__pt)
+{
+  flea_rng__randomize(ctx__pt->security_parameters.client_random.gmt_unix_time, 4); // TODO: check RFC for correct implementation - actual time?
+  flea_rng__randomize(ctx__pt->security_parameters.client_random.random_bytes, 28);
+
+  /* set server random */
+  flea_rng__randomize(ctx__pt->security_parameters.server_random.gmt_unix_time, 4);
+  flea_rng__randomize(ctx__pt->security_parameters.server_random.random_bytes, 28);
 }
 
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)

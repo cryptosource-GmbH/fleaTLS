@@ -264,6 +264,19 @@ flea_err_t THR_flea_tls_ctx_t__send_app_data(
 
 flea_err_t THR_flea_tls_ctx_t__flush_write_app_data(flea_tls_ctx_t* tls_ctx);
 
+flea_err_t THR_flea_tls_ctx_t__renegotiate(
+  flea_tls_ctx_t*          tls_ctx__pt,
+  const flea_cert_store_t* trust_store__pt,
+  /* new session id? */
+  flea_ref_cu8_t*          cert_chain__pt,
+  flea_al_u8_t             cert_chain_len__alu8,
+  flea_ref_cu8_t*          private_key__pt,
+  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
+  flea_rev_chk_mode_e      rev_chk_mode__e,
+  const flea_byte_vec_t*   crl_der__pt,
+  flea_al_u16_t            nb_crls__alu16
+);
+
 # ifdef __cplusplus
 }
 # endif

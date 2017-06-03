@@ -149,7 +149,8 @@ static flea_err_t THR_flea_tls__send_client_hello(
 {
   flea_al_u16_t i;
 
-  flea_u8_t null_byte[] = {0};
+  flea_u8_t null_byte[] = {0}; // TODO: NEED JUST ONE ARRAY FOR COMPRESSION
+  flea_u8_t one_byte[]  = {1};
   flea_u32_t len        = 2 + 1 + 0 + 32 + 2 + 2 * tls_ctx->allowed_cipher_suites__prcu16->len__dtl + 1 + 1 + 0;
 
   FLEA_THR_BEG_FUNC();
@@ -214,7 +215,6 @@ static flea_err_t THR_flea_tls__send_client_hello(
   }
 
   // compression methods: we don't support compression
-  flea_u8_t one_byte[] = {1};
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, one_byte, 1));
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, null_byte, 1));
 
@@ -577,6 +577,8 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
 
   // define and init state
   flea_tls__handshake_state_ctor(&handshake_state);
+
+  flea_tls_set_tls_random(tls_ctx);
   flea_hash_ctx_t hash_ctx = flea_hash_ctx_t__INIT_VALUE;
 # ifdef FLEA_USE_HEAP_BUF
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
@@ -830,5 +832,40 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__ctor_client */
+
+flea_err_t THR_flea_tls_ctx_t__renegotiate(
+  flea_tls_ctx_t*          tls_ctx__pt,
+  const flea_cert_store_t* trust_store__pt,
+  /* new session id? */
+  flea_ref_cu8_t*          cert_chain__pt,
+  flea_al_u8_t             cert_chain_len__alu8,
+  flea_ref_cu8_t*          private_key__pt,
+  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
+  flea_rev_chk_mode_e      rev_chk_mode__e,
+  const flea_byte_vec_t*   crl_der__pt,
+  flea_al_u16_t            nb_crls__alu16
+)
+{
+  flea_err_t err__t;
+
+  FLEA_THR_BEG_FUNC();
+  tls_ctx__pt->trust_store__pt = trust_store__pt; // TODO: doesn't seem to have to be part of the ctx
+  tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = rev_chk_mode__e;
+  tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16    = nb_crls__alu16;
+  tls_ctx__pt->rev_chk_cfg__t.crl_der__pt     = crl_der__pt;
+  tls_ctx__pt->cert_chain__pt     = cert_chain__pt;
+  tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
+  tls_ctx__pt->private_key__pt    = private_key__pt;
+  tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
+  flea_tls_set_tls_random(tls_ctx__pt);
+
+  flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey); // TODO: does this really need to be part of the ctx?
+  tls_ctx__pt->resumption = FLEA_FALSE;
+
+  err__t = THR_flea_tls__client_handshake(tls_ctx__pt);
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
+
+  FLEA_THR_FIN_SEC_empty();
+}
 
 #endif /* ifdef FLEA_HAVE_TLS */

@@ -117,6 +117,23 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   );
 
   FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
+  if(cmdl_args.have_index("reneg"))
+  {
+    FLEA_CCALL(
+      THR_flea_tls_ctx_t__renegotiate(
+        &tls_ctx,
+        &trust_store__t,
+        cert_chain,
+        cert_chain_len,
+        &client_key__t,
+        &cipher_suites_ref,
+        tls_cfg.rev_chk_mode__e,
+        &tls_cfg.crls_refs[0],
+        tls_cfg.crls.size()
+      )
+    );
+    FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
+  }
 
   FLEA_THR_FIN_SEC(
     flea_tls_ctx_t__dtor(&tls_ctx);

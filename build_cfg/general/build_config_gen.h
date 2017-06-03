@@ -204,7 +204,7 @@
  *
  */
 # define FLEA_STKMD_TLS_CERT_PATH_VLD_PUBKEY_PARAMS_BUF_SIZE 256
-// #define FLEA_TLS_HAVE_RENEGOTIATION
+# define FLEA_TLS_HAVE_RENEGOTIATION
 
 /**
  * if activated, during the handshake, a record is send as soon as a handshake
