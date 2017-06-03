@@ -67,7 +67,6 @@ static flea_err_t THR_server_cycle(
   flea_ref_cu8_t server_key__t;
   flea_al_u16_t cert_chain_len = FLEA_NB_ARRAY_ENTRIES(cert_chain);
 
-  flea_al_u16_t buf_len = sizeof(buf);
   tls_test_cfg_t tls_cfg;
   int sock_fd;
 
@@ -120,7 +119,8 @@ static flea_err_t THR_server_cycle(
   {
     while(1)
     {
-      flea_err_t retval = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
+      flea_al_u16_t buf_len = sizeof(buf) - 1;
+      flea_err_t retval     = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
       if(retval == FLEA_ERR_TLS_SESSION_CLOSED)
       {
         printf("session closed\n");
@@ -136,12 +136,11 @@ static flea_err_t THR_server_cycle(
       printf("received data: %s\n", buf);
       printf("read_app_data returned\n");
       FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
-      buf_len = sizeof(buf);
     }
   }
   else
   {
-    buf_len = sizeof(buf);
+    flea_al_u16_t buf_len      = sizeof(buf) - 1;
     const char* response_hdr_1 =
       "HTTP/1.1 200 OK\r\nDate: Mon, 27 Jul 2009 12:28:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT\r\nContent-Length: 50\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html><head><body>this is text</body></head></html>";
     flea_err_t retval = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);

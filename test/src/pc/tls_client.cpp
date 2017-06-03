@@ -134,6 +134,14 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
     );
     FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
   }
+  while(cmdl_args.have_index("stay"))
+  {
+    flea_u8_t buf[1000];
+    flea_al_u16_t buf_len = sizeof(buf) - 1;
+    FLEA_CCALL(THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking));
+    buf[buf_len] = 0;
+    printf("received data: %s\n", buf);
+  }
 
   FLEA_THR_FIN_SEC(
     flea_tls_ctx_t__dtor(&tls_ctx);

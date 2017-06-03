@@ -25,8 +25,7 @@
 #include "internal/common/tls/tls_rec_prot_rdr.h"
 #include "internal/common/tls/tls_common.h"
 #include "internal/common/tls/tls_cert_path.h"
-
-#include <string.h>
+#include "internal/common/tls/tls_client_int.h"
 
 #include "flea/pubkey.h"
 #include "flea/asn1_date.h"
@@ -910,9 +909,29 @@ static flea_err_t THR_flea_tls_ctx_t__read_app_data_inner(
         );
 # endif
       }
-      else
+      else // client
       {
+# if 1
+        FLEA_CCALL(THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(tls_ctx__pt));
+# else
+#  ifdef FLEA_TLS_HAVE_RENEGOTIATION
+        // TODO: NOT YET WORKING
+        // TODO: CHECK THAT THE HANDSHAKE MESSAGE IS ACUTALLY A HELLO REQUEST:
+        // create hs message reader and get the type
+        flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
         FLEA_CCALL(THR_flea_tls__client_handshake(tls_ctx__pt));
+#  else
+        // TODO: UNTESTED
+        flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
+        FLEA_CCALL(
+          THR_flea_tls_rec_prot_t__send_alert(
+            &tls_ctx__pt->rec_prot__t,
+            FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION,
+            FLEA_TLS_ALERT_LEVEL_WARNING
+          )
+        );
+#  endif /* ifdef FLEA_TLS_HAVE_RENEGOTIATION */
+# endif  /* if 1 */
       }
     }
     else if(err__t)
