@@ -531,7 +531,8 @@ static flea_err_t THR_flea_handle_handsh_msg(
   flea_tls_ctx_t*              tls_ctx,
   flea_tls__handshake_state_t* handshake_state,
   flea_hash_ctx_t*             hash_ctx__pt,
-  flea_byte_vec_t*             premaster_secret__pt
+  flea_byte_vec_t*             premaster_secret__pt,
+  flea_bool_t                  is_reneg__b
 )
 {
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
@@ -559,6 +560,13 @@ static flea_err_t THR_flea_handle_handsh_msg(
       FLEA_CCALL(THR_flea_tls__read_client_hello(tls_ctx, &handsh_rdr__t));
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
       FLEA_THR_RETURN();
+    }
+    else if(is_reneg__b)
+    {
+      FLEA_THROW(
+        "server received no_renegotiation alert during renegotiation handshake",
+        FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG
+      );
     }
     else
     {
@@ -651,7 +659,8 @@ static flea_err_t THR_flea_handle_handsh_msg(
 } /* THR_flea_handle_handsh_msg */
 
 flea_err_t THR_flea_tls__server_handshake(
-  flea_tls_ctx_t* tls_ctx
+  flea_tls_ctx_t* tls_ctx,
+  flea_bool_t     is_reneg__b
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -707,7 +716,8 @@ flea_err_t THR_flea_tls__server_handshake(
             tls_ctx,
             &handshake_state,
             &hash_ctx,
-            &premaster_secret__t
+            &premaster_secret__t,
+            is_reneg__b
           )
         );
       }
@@ -893,7 +903,7 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   tls_ctx__pt->trust_store__pt    = trust_store__pt;
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
   FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt, NULL, 0));
-  err__t = THR_flea_tls__server_handshake(tls_ctx__pt);
+  err__t = THR_flea_tls__server_handshake(tls_ctx__pt, FLEA_FALSE);
   FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
   FLEA_THR_FIN_SEC_empty();
 }

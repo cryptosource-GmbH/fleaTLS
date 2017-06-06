@@ -131,6 +131,8 @@ typedef enum
 
   FLEA_ERR_TLS_INV_CIPH_SUITE                           = 0x55,
 
+  FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG              = 0x56,
+
   /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */

@@ -136,6 +136,25 @@ static flea_err_t THR_server_cycle(
       printf("received data: %s\n", buf);
       printf("read_app_data returned\n");
       FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
+
+      if(cmdl_args.have_index("reneg"))
+      {
+        std::cout << "renegotiation ...";
+        FLEA_CCALL(
+          THR_flea_tls_ctx_t__renegotiate(
+            &tls_ctx,
+            &trust_store__t,
+            cert_chain,
+            cert_chain_len,
+            &server_key__t,
+            &cipher_suites_ref,
+            tls_cfg.rev_chk_mode__e,
+            &tls_cfg.crls_refs[0],
+            tls_cfg.crls.size()
+          )
+        );
+        std::cout << " done." << std::endl;
+      }
     }
   }
   else
@@ -197,15 +216,17 @@ flea_err_t THR_flea_start_tls_server(
   {
     FLEA_THROW("Socket bind failed", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
   }
-  while(true)
+  // while(true)
+  do
   {
     flea_err_t err__t = THR_server_cycle(cmdl_args, listen_fd, is_https_server);
     printf("connection aborted with error %04x\n", err__t);
-    if(!cmdl_args.have_index("stay"))
-    {
-      break;
-    }
-  }
+
+    /* if(!cmdl_args.have_index("stay"))
+     * {
+     * break;
+     * }*/
+  } while(cmdl_args.have_index("stay"));
 
 
   FLEA_THR_FIN_SEC_empty(
