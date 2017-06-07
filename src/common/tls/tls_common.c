@@ -388,9 +388,16 @@ flea_err_t THR_flea_tls__read_finished(
   );
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
   FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, rec_finished__pu8, finished_len__alu8));
-  if(tls_ctx->security_parameters.connection_end == FLEA_TLS_CLIENT && tls_ctx->sec_reneg_flag__u8)
+  if(tls_ctx->sec_reneg_flag__u8)
   {
-    memcpy(tls_ctx->peer_vfy_data__bu8, rec_finished__pu8, finished_len__alu8);
+    if(tls_ctx->security_parameters.connection_end == FLEA_TLS_CLIENT && tls_ctx->sec_reneg_flag__u8)
+    {
+      memcpy(tls_ctx->peer_vfy_data__bu8, rec_finished__pu8, finished_len__alu8);
+    }
+    else
+    {
+      memcpy(tls_ctx->own_vfy_data__bu8, rec_finished__pu8, finished_len__alu8);
+    }
   }
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {
@@ -797,7 +804,14 @@ flea_err_t THR_flea_tls__send_finished(
 
   if(tls_ctx->sec_reneg_flag__u8)
   {
-    memcpy(tls_ctx->own_vfy_data__bu8, verify_data__bu8, FLEA_TLS_SEC_RENEG_FINISHED_SIZE);
+    if(tls_ctx->security_parameters.connection_end == FLEA_TLS_CLIENT)
+    {
+      memcpy(tls_ctx->own_vfy_data__bu8, verify_data__bu8, FLEA_TLS_SEC_RENEG_FINISHED_SIZE);
+    }
+    else
+    {
+      memcpy(tls_ctx->peer_vfy_data__bu8, verify_data__bu8, FLEA_TLS_SEC_RENEG_FINISHED_SIZE);
+    }
   }
 
   FLEA_THR_FIN_SEC(

@@ -35,7 +35,7 @@ flea_err_t THR_flea_tls__read_client_hello(
   flea_u16_t cipher_suites_len_from_peer__u16;
   flea_u8_t cipher_suites_len_to_dec__au8[2];
   flea_bool_t found_compression_method;
-  flea_u8_t extension_type__au8[2]; // TODO: meaningful representation of extension type
+  // flea_u8_t extension_type__au8[2]; // TODO: meaningful representation of extension type
   FLEA_THR_BEG_FUNC();
 
 
@@ -112,7 +112,10 @@ flea_err_t THR_flea_tls__read_client_hello(
     flea_u16_t curr_cs_from_peer__alu16;
     FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, curr_cs__au8, 2));
     curr_cs_from_peer__alu16 = curr_cs__au8[0] << 8 | curr_cs__au8[1];
-
+    if(curr_cs_from_peer__alu16 == FLEA_TLS_EMPTY_RENEGOTIATION_INFO_SCSV)
+    {
+      tls_ctx->sec_reneg_flag__u8 = FLEA_TRUE;
+    }
     // iterate over all supported cipher suites
     supported_cs_index__u16 = 0;
     while(supported_cs_index__u16 < supported_cs_len__u16)
@@ -157,6 +160,8 @@ flea_err_t THR_flea_tls__read_client_hello(
   // if there are still bytes left to read, they must be from extensions
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {
+    FLEA_CCALL(THR_flea_tls_ctx_t__client_parse_extensions(tls_ctx, hs_rdr__pt));
+# if 0
     flea_al_u16_t all_extensions_len__alu16;
     flea_u8_t byte;
     // read extension length
@@ -169,7 +174,7 @@ flea_err_t THR_flea_tls__read_client_hello(
 
     while(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) > 0)
     {
-      flea_u32_t extension_len__u32;
+      // flea_u32_t extension_len__u32;
       FLEA_CCALL(
         THR_flea_rw_stream_t__read_full(
           hs_rd_stream__pt,
@@ -179,7 +184,8 @@ flea_err_t THR_flea_tls__read_client_hello(
       );
       if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt))
       {
-        FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, &extension_len__u32, 2));
+        FLEA_CCALL(THR_flea_tls_ctx_t__client_parse_extensions(tls_ctx, hs_rdr__pt));
+        // FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, &extension_len__u32, 2));
 
         /* FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &byte));
          * extension_len__alu16 = byte << 8;
@@ -192,9 +198,10 @@ flea_err_t THR_flea_tls__read_client_hello(
         //                                                  NO, just set_sec_reneg_flag to TRUE
         //                                                  (together with
         //                                                  security tests)
-        FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, extension_len__u32));
+        // FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, extension_len__u32));
       }
     }
+# endif /* if 0 */
   }
   // check length in the header field for integrity
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
