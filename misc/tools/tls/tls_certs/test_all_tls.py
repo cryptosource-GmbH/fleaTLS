@@ -39,7 +39,8 @@ def close_valgrind_process(p, test_name):
         vg_err_count += 1
         os.rename("__vg.log", "vg.log")
         #return 0
-    os.remove("__vg.log")
+    else:
+        os.remove("__vg.log")
 
 def test_flea_client_against_exernal_server(exp_pos_res, ext_start_script, flea_cmdl_args):
     #p1 = subprocess.Popen('killall openssl', shell=True)

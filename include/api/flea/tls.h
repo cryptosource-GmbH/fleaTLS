@@ -212,6 +212,15 @@ typedef struct
   flea_ref_cu8_t*                private_key__pt;
 
   flea_revoc_chk_cfg_t           rev_chk_cfg__t;
+  flea_u8_t                      sec_reneg_flag__u8;
+  flea_u8_t                      client_has_sec_reneg__u8;
+# ifdef FLEA_USE_HEAP_BUF
+  flea_u8_t*                     own_vfy_data__bu8;
+  flea_u8_t*                     peer_vfy_data__bu8;
+# else
+  flea_u8_t                      own_vfy_data__bu8[12];
+  flea_u8_t                      peer_vfy_data__bu8[12];
+# endif
 } flea_tls_ctx_t;
 
 

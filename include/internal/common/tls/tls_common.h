@@ -85,7 +85,7 @@ typedef enum
 # ifdef __cplusplus
 }
 # endif
-
+# define FLEA_TLS_SEC_RENEG_FINISHED_SIZE 12
 flea_err_t THR_flea_tls__send_change_cipher_spec(
   flea_tls_ctx_t* tls_ctx
 );
@@ -148,6 +148,23 @@ flea_err_t THR_flea_tls__send_handshake_message_int_be(
   flea_hash_ctx_t*     hash_ctx_mbn__pt,
   flea_u32_t           int__u32,
   flea_al_u8_t         int_byte_width__alu8
+);
+
+flea_err_t THR_flea_tls_ctx_t__client_parse_extensions(
+  flea_tls_ctx_t*           tls_ctx__pt,
+  flea_tls_handsh_reader_t* hs_rdr__pt
+);
+
+flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx__pt);
+
+flea_err_t THR_flea_tls_ctx_t__send_extensions_length(
+  flea_tls_ctx_t*  tls_ctx__pt,
+  flea_hash_ctx_t* hash_ctx_mbn__pt
+);
+
+flea_err_t THR_flea_tls_ctx_t__send_reneg_ext(
+  flea_tls_ctx_t*  tls_ctx__pt,
+  flea_hash_ctx_t* hash_ctx__pt
 );
 
 void flea_tls_set_tls_random(flea_tls_ctx_t* ctx__pt);

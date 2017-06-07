@@ -134,7 +134,9 @@ flea_err_t THR_flea_tls__read_server_hello(
   // check length in the header field for integrity
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {
-    FLEA_THROW("Header length field mismatch", FLEA_ERR_TLS_PROT_DECODE_ERR);
+    FLEA_CCALL(THR_flea_tls_ctx_t__client_parse_extensions(tls_ctx, hs_rdr__pt));
+
+    // FLEA_THROW("Header length field mismatch", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
   FLEA_THR_FIN_SEC(
@@ -148,12 +150,20 @@ static flea_err_t THR_flea_tls__send_client_hello(
 )
 {
   flea_al_u16_t i;
-
+  // flea_u8_t two_byte_array[2];
   flea_u8_t null_byte[] = {0}; // TODO: NEED JUST ONE ARRAY FOR COMPRESSION
   flea_u8_t one_byte[]  = {1};
-  flea_u32_t len        = 2 + 1 + 0 + 32 + 2 + 2 * tls_ctx->allowed_cipher_suites__prcu16->len__dtl + 1 + 1 + 0;
+  flea_u32_t len;
+  flea_al_u16_t ext_len__alu16;
 
   FLEA_THR_BEG_FUNC();
+  ext_len__alu16 = flea_tls_ctx_t__compute_extensions_length(tls_ctx);
+  len = 2 + 1 + 0 + 32 + 2 + 2 * tls_ctx->allowed_cipher_suites__prcu16->len__dtl + 1 + 1 + 0 + ext_len__alu16;
+  if(ext_len__alu16)
+  {
+    /* extension length field */
+    len += 2;
+  }
 
   // calculate length for the header
   // TODO: include session id in the calculation (the 0 at 3rd place)
@@ -169,6 +179,7 @@ static flea_err_t THR_flea_tls__send_client_hello(
     )
   );
 
+  // TODO: MAKE TWO BYTE ARRAY
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.major, 1));
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.minor, 1));
 
@@ -215,9 +226,21 @@ static flea_err_t THR_flea_tls__send_client_hello(
   }
 
   // compression methods: we don't support compression
+  // TODO: USE SINGLE ARRAY
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, one_byte, 1));
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, null_byte, 1));
 
+  /*two_byte_array[0] = 0;
+   * two_byte_array[1] = tls_ctx->sec_reneg_flag__u8 ?
+   * (tls_ctx->security_parameters.connection_end == FLEA_TLS_SERVER ? 24+ */
+
+  /*two_byte_array[0] = 0;
+   * if(tls_ctx->sec_reneg_flag__u8)
+   * {
+   * two_byte_array[1] =
+   * }*/
+  FLEA_CCALL(THR_flea_tls_ctx_t__send_extensions_length(tls_ctx, hash_ctx));
+  FLEA_CCALL(THR_flea_tls_ctx_t__send_reneg_ext(tls_ctx, hash_ctx));
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_client_hello */
 
@@ -550,10 +573,6 @@ static flea_err_t THR_flea_handle_handsh_msg(
       FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
     }
   }
-  // TODO: WHY COMPARISON WITH '==' ?
-  // ANSWER (jroth): Da es davor keine
-  // optionalen Nachrichten gibt, muss eigentlich genau diese Nachricht und
-  // keine andere erwartet werden, also '==' statt '&' bildet das genauer ab
   else if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED)
   {
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)

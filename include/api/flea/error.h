@@ -134,6 +134,12 @@ typedef enum
   FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG              = 0x56,
 
   /**
+   * invalid or missing renegotiation info extension in the client or server
+   * hello message.
+   */
+  FLEA_ERR_TLS_INV_RENEG_INFO                           = 0x57,
+
+  /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */
   FLEA_ERR_PKCS8_INVALID_KEY_OID                        = 0x70,

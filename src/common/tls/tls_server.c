@@ -169,7 +169,7 @@ flea_err_t THR_flea_tls__read_client_hello(
 
     while(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) > 0)
     {
-      flea_al_u16_t extension_len__alu16;
+      flea_u32_t extension_len__u32;
       FLEA_CCALL(
         THR_flea_rw_stream_t__read_full(
           hs_rd_stream__pt,
@@ -177,14 +177,23 @@ flea_err_t THR_flea_tls__read_client_hello(
           2
         )
       );
+      if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt))
+      {
+        FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, &extension_len__u32, 2));
 
-      FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &byte));
-      extension_len__alu16 = byte << 8;
-      FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &byte));
-      extension_len__alu16 |= byte;
+        /* FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &byte));
+         * extension_len__alu16 = byte << 8;
+         * FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &byte));
+         * extension_len__alu16 |= byte;*/
 
-      // TODO: implement handle_extension function that processes the extensions
-      FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, extension_len__alu16));
+        // TODO: implement handle_extension function that processes the extensions
+        //
+        // TODO: HANDLING SI-EXT: if client features SR, then set ctx->client_has_sec_reneg__u8 = TRUE
+        //                                                  NO, just set_sec_reneg_flag to TRUE
+        //                                                  (together with
+        //                                                  security tests)
+        FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, extension_len__u32));
+      }
     }
   }
   // check length in the header field for integrity

@@ -1297,6 +1297,15 @@ flea_err_t THR_flea_tls_rec_prot_t__read_data(
   );
 }
 
+flea_bool_t flea_tls_rec_prot_t__have_done_initial_handshake(const flea_tls_rec_prot_t* rec_prot__pt)
+{
+  if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_class__e != flea_null_cipher_suite)
+  {
+    return FLEA_TRUE;
+  }
+  return FLEA_FALSE;
+}
+
 void flea_tls_rec_prot_t__dtor(flea_tls_rec_prot_t* rec_prot__pt)
 {
   /* no way to handle error here: */
