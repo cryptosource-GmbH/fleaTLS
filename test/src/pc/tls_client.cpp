@@ -117,7 +117,8 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   );
 
   FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
-  if(cmdl_args.have_index("reneg"))
+  for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("reneg", 0); i++)
+  // if(cmdl_args.have_index("reneg"))
   {
     FLEA_CCALL(
       THR_flea_tls_ctx_t__renegotiate(

@@ -137,7 +137,7 @@ static flea_err_t THR_server_cycle(
       printf("read_app_data returned\n");
       FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
 
-      if(cmdl_args.have_index("reneg"))
+      for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("reneg", 0); i++)
       {
         std::cout << "renegotiation ...";
         FLEA_CCALL(
