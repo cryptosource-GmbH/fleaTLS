@@ -388,7 +388,7 @@ flea_err_t THR_flea_tls__read_finished(
   );
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
   FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, rec_finished__pu8, finished_len__alu8));
-  if(tls_ctx->security_parameters.connection_end == FLEA_TLS_SERVER && tls_ctx->sec_reneg_flag__u8)
+  if(tls_ctx->security_parameters.connection_end == FLEA_TLS_CLIENT && tls_ctx->sec_reneg_flag__u8)
   {
     memcpy(tls_ctx->peer_vfy_data__bu8, rec_finished__pu8, finished_len__alu8);
   }
