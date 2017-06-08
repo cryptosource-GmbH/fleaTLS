@@ -850,6 +850,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
 
   tls_ctx__pt->trust_store__pt = trust_store__pt;
 
+  tls_ctx__pt->security_parameters.connection_end = FLEA_TLS_CLIENT;
+
   FLEA_CCALL(
     THR_flea_tls_ctx_t__construction_helper(
       tls_ctx__pt,

@@ -167,6 +167,8 @@ flea_err_t THR_flea_tls_ctx_t__send_reneg_ext(
   flea_hash_ctx_t* hash_ctx__pt
 );
 
+flea_bool_t flea_tls_ctx_t__do_send_sec_reneg_ext(flea_tls_ctx_t* tls_ctx__pt);
+
 void flea_tls_set_tls_random(flea_tls_ctx_t* ctx__pt);
 
 #endif // ifdef FLEA_HAVE_TLS

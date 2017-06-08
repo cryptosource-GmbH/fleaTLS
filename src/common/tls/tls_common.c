@@ -48,6 +48,7 @@ typedef struct
   flea_u8_t  alert;
 } error_alert_pair_t;
 
+
 static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC,     FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC     },
   {FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH,            FLEA_TLS_ALERT_DESC_UNEXPECTED_MESSAGE },
@@ -88,6 +89,8 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_TLS_UNSUPP_PROT_VERSION,            FLEA_TLS_ALERT_DESC_PROTOCOL_VERSION   },
   {FLEA_ERR_TLS_PROT_DECODE_ERR,                FLEA_TLS_ALERT_DESC_DECODE_ERROR       },
   {FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG,    FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
+  {FLEA_ERR_FAILED_STREAM_READ,                 FLEA_TLS_ALERT_NO_ALERT                },
+  {FLEA_ERR_FAILED_STREAM_WRITE,                FLEA_TLS_ALERT_NO_ALERT                }
 };
 static flea_bool_t determine_alert_from_error(
   flea_err_t                     err__t,
@@ -613,9 +616,8 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
   FLEA_THR_BEG_FUNC();
   // ctx->security_parameters = calloc(1, sizeof(flea_tls__security_parameters_t));
   ctx->rw_stream__pt = rw_stream__pt;
-  ctx->client_has_sec_reneg__u8 = FLEA_FALSE;
+  // ctx->client_has_sec_reneg__u8 = FLEA_FALSE;
   /* specify connection end */
-  ctx->security_parameters.connection_end = FLEA_TLS_CLIENT;
 
   /* set TLS version */
   ctx->version.major = 0x03;
@@ -1042,7 +1044,7 @@ flea_bool_t flea_tls_ctx_t__do_send_sec_reneg_ext(flea_tls_ctx_t* tls_ctx__pt)
 {
   if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_SERVER)
   {
-    if(tls_ctx__pt->client_has_sec_reneg__u8 == FLEA_TRUE)
+    if(tls_ctx__pt->sec_reneg_flag__u8 == FLEA_TRUE)
     {
       return FLEA_TRUE;
     }
@@ -1071,7 +1073,7 @@ flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx_
     }
     else /* server */
     {
-      if(tls_ctx__pt->sec_reneg_flag__u8)
+      if(tls_ctx__pt->sec_reneg_flag__u8 && flea_tls_rec_prot_t__have_done_initial_handshake(&tls_ctx__pt->rec_prot__t))
       {
         reneg_conn_len__alu8 += 24;
       }
@@ -1128,12 +1130,12 @@ flea_err_t THR_flea_tls_ctx_t__send_reneg_ext(
     {
       len__u8 = 12;
     }
-    else
+    else if(flea_tls_rec_prot_t__have_done_initial_handshake(&tls_ctx__pt->rec_prot__t))
     {
       len__u8 = 24;
     }
   }
-  else
+  else // TODO: ELSE BLOCK NOT NEEDED
   {
     len__u8 = 0;
   }
@@ -1249,13 +1251,17 @@ flea_err_t THR_flea_tls_ctx_t__client_parse_extensions(
       FLEA_CCALL(THR_flea_tls_ctx__parse_reneg_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
       found_sec_reneg__b = FLEA_TRUE;
     }
+    else
+    {
+      FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, ext_len__u32));
+    }
   }
   if(tls_ctx__pt->sec_reneg_flag__u8 && !found_sec_reneg__b)
   {
     FLEA_THROW("missing renegotiation info in peer's extensions", FLEA_ERR_TLS_INV_RENEG_INFO);
   }
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls_ctx_t__client_parse_extensions */
 
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
 {

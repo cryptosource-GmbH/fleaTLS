@@ -960,9 +960,12 @@ flea_err_t THR_flea_tls_rec_prot_t__send_fatal_alert_and_throw(
       FLEA_ERR_TLS_SESSION_CLOSED_WHEN_TRYING_TO_SEND_ALERT
     );
   }
-  flea_tls_rec_prot_t__discard_pending_write(rec_prot__pt);
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__send_alert(rec_prot__pt, description, FLEA_TLS_ALERT_LEVEL_FATAL));
-  FLEA_THROW("throwing error after sending fatal TLS alert", err__t);
+  if(description != FLEA_TLS_ALERT_NO_ALERT)
+  {
+    flea_tls_rec_prot_t__discard_pending_write(rec_prot__pt);
+    FLEA_CCALL(THR_flea_tls_rec_prot_t__send_alert(rec_prot__pt, description, FLEA_TLS_ALERT_LEVEL_FATAL));
+  }
+  FLEA_THROW("throwing error after (potentially) sending fatal TLS alert", err__t);
 
   FLEA_THR_FIN_SEC_empty();
 }
