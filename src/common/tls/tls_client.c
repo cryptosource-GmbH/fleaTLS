@@ -507,13 +507,14 @@ static flea_err_t THR_flea_handle_handsh_msg(
  // servers can ask for client authentication
         | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
     }
-    else if(is_reneg__b)
-    {
-      FLEA_THROW(
-        "client received no_renegotiation alert during renegotiation handshake",
-        FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG
-      );
-    }
+
+    /*else if(is_reneg__b)
+     * {
+     * FLEA_THROW(
+     *  "client received no_renegotiation alert during renegotiation handshake",
+     *  FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG
+     * );
+     * }*/
     else
     {
       FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);

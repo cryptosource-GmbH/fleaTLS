@@ -624,10 +624,11 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
   ctx->version.major = 0x03;
   ctx->version.minor = 0x03;
 # ifdef FLEA_USE_HEAP_BUF
-  if(ctx->security_parameters.connection_end == FLEA_TLS_SERVER)
-  {
-    sec_reneg_field_size__alu8 = 24;
-  }
+
+  /*if(ctx->security_parameters.connection_end == FLEA_TLS_SERVER)
+   * {*/
+  sec_reneg_field_size__alu8 = 24;
+  // }
   FLEA_ALLOC_MEM(ctx->own_vfy_data__bu8, sec_reneg_field_size__alu8);
   /* not used in case of client: */
   ctx->peer_vfy_data__bu8 = ctx->own_vfy_data__bu8 + 12;

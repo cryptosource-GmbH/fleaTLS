@@ -118,6 +118,9 @@ static flea_err_t THR_server_cycle(
 
   for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("reneg", 0); i++)
   {
+    /*flea_al_u16_t buf_len = sizeof(buf) - 1;
+     * flea_err_t retval     = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_nonblocking);
+     * printf("reading app data prior to renegotiation returned: %04x\n", retval);*/
     std::cout << "renegotiation ...";
     FLEA_CCALL(
       THR_flea_tls_ctx_t__renegotiate(

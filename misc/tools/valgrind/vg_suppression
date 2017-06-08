@@ -1,0 +1,18 @@
+{
+   <Ubuntu C++ stdlib leaks>
+   Memcheck:Leak
+   match-leak-kinds: reachable
+   fun:malloc
+   obj:/usr/lib/*-linux-gnu/libstdc++.so.*
+   fun:call_init.part.?
+   fun:call_init
+   fun:_dl_init
+   obj:/lib/*-linux-gnu/ld-*.so
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+   obj:*
+}

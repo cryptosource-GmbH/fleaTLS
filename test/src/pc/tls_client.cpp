@@ -29,7 +29,7 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   flea_cert_store_t trust_store__t;
 
   flea_tls_ctx_t tls_ctx;
-  char app_data_www[] = "GET index.html HTTP/1.1\nHost: 127.0.0.1";
+  // char app_data_www[] = "GET index.html HTTP/1.1\nHost: 127.0.0.1";
 
 
   flea_ref_cu8_t hostname;
@@ -116,7 +116,7 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
     )
   );
 
-  FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
+  // FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
   for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("reneg", 0); i++)
   // if(cmdl_args.have_index("reneg"))
   {
@@ -133,7 +133,7 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
         tls_cfg.crls.size()
       )
     );
-    FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
+    // FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
   }
   while(cmdl_args.have_index("stay"))
   {
