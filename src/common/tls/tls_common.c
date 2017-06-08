@@ -89,8 +89,9 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_TLS_UNSUPP_PROT_VERSION,            FLEA_TLS_ALERT_DESC_PROTOCOL_VERSION   },
   {FLEA_ERR_TLS_PROT_DECODE_ERR,                FLEA_TLS_ALERT_DESC_DECODE_ERROR       },
   {FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG,    FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
-  {FLEA_ERR_FAILED_STREAM_READ,                 FLEA_TLS_ALERT_NO_ALERT                },
-  {FLEA_ERR_FAILED_STREAM_WRITE,                FLEA_TLS_ALERT_NO_ALERT                }
+  {FLEA_ERR_FAILED_STREAM_READ,                 FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
+  {FLEA_ERR_FAILED_STREAM_WRITE,                FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
+  {FLEA_ERR_TLS_SESSION_CLOSED,                 FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
 };
 static flea_bool_t determine_alert_from_error(
   flea_err_t                     err__t,
