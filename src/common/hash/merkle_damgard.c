@@ -135,7 +135,7 @@ const flea_hash_config_entry_t* flea_hash__get_hash_config_by_id(flea_hash_id_t 
   return NULL;
 }
 
-flea_al_u16_t flea_hash__get_output_length_by_id(flea_hash_id_t id)
+flea_al_u8_t flea_hash__get_output_length_by_id(flea_hash_id_t id)
 {
   const flea_hash_config_entry_t* config = flea_hash__get_hash_config_by_id(id);
 

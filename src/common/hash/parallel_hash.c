@@ -29,6 +29,7 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__ctor(
     FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&p_hash_ctx->hash_ctx__pt[i], hash_ids__pt[i]));
   }
 
+  p_hash_ctx->update_only_one__t = FLEA_FALSE;
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -51,6 +52,15 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__copy(
   FLEA_THR_FIN_SEC_empty();
 }
 
+void flea_tls_parallel_hash_ctx__stop_update_for_all_but_one(
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx,
+  flea_hash_id_t                hash_id__t
+)
+{
+  p_hash_ctx->update_only_one__t     = FLEA_TRUE;
+  p_hash_ctx->update_only_hash_id__t = hash_id__t;
+}
+
 flea_err_t THR_flea_tls_parallel_hash_ctx__update(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
   const flea_u8_t*              bytes__u8,
@@ -61,9 +71,12 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__update(
 
   for(flea_u8_t i = 0; i < p_hash_ctx->num_hash_ctx__u8; i++)
   {
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(&p_hash_ctx->hash_ctx__pt[i], bytes__u8, bytes_len__dtl));
+    if(p_hash_ctx->update_only_one__t == FLEA_FALSE ||
+      p_hash_ctx->update_only_hash_id__t == flea_hash_ctx_t__get_hash_id(&p_hash_ctx->hash_ctx__pt[i]))
+    {
+      FLEA_CCALL(THR_flea_hash_ctx_t__update(&p_hash_ctx->hash_ctx__pt[i], bytes__u8, bytes_len__dtl));
+    }
   }
-
   FLEA_THR_FIN_SEC_empty();
 }
 

@@ -169,7 +169,7 @@ flea_al_u16_t flea_hash_ctx_t__get_output_length(flea_hash_ctx_t* ctx);
  *
  * @return the hash algorithm's output length in bytes
  */
-flea_al_u16_t flea_hash__get_output_length_by_id(flea_hash_id_t id);
+flea_al_u8_t flea_hash__get_output_length_by_id(flea_hash_id_t id);
 
 /**
  * Return the hash id of a given hash_ctx object.

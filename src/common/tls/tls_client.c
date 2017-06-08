@@ -283,7 +283,8 @@ static flea_err_t THR_flea_tls__read_cert_request(
 
   // TODO: use / store values somehow !! (choose sig/hash algs, choose root out
   // of cert_authorities)
-  tls_ctx__pt->cert_vfy_hash_id__t = flea_sha256; // TODO123: not hard coded
+  tls_ctx__pt->cert_vfy_hash_sig__t.hash_id__t      = flea_sha256;              // TODO: actually choose a matching algorithm pair
+  tls_ctx__pt->cert_vfy_hash_sig__t.pk_scheme_id__t = flea_rsa_pkcs1_v1_5_sign; // TODO: not hard coded, determine from certificate
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(cert_types__bu8);
@@ -403,13 +404,13 @@ static flea_err_t THR_flea_tls__send_cert_verify(
 
   FLEA_THR_BEG_FUNC();
 
-  hash_len__u8 = flea_hash__get_output_length_by_id(tls_ctx->cert_vfy_hash_id__t);
+  hash_len__u8 = flea_hash__get_output_length_by_id(tls_ctx->cert_vfy_hash_sig__t.hash_id__t);
   FLEA_ALLOC_BUF(messages_hash__bu8, hash_len__u8); // TODO: determine size of hash function that is used
 
   FLEA_CCALL(
     THR_flea_tls_parallel_hash_ctx__final(
       p_hash_ctx,
-      tls_ctx->cert_vfy_hash_id__t,
+      tls_ctx->cert_vfy_hash_sig__t.hash_id__t,
       FLEA_TRUE,
       messages_hash__bu8
     )
@@ -432,8 +433,8 @@ static flea_err_t THR_flea_tls__send_cert_verify(
     THR_flea_pk_api__sign_digest(
       messages_hash__bu8,
       hash_len__u8,
-      flea_sha256,
-      flea_rsa_pkcs1_v1_5_sign,
+      tls_ctx->cert_vfy_hash_sig__t.hash_id__t,
+      tls_ctx->cert_vfy_hash_sig__t.pk_scheme_id__t, // flea_rsa_pkcs1_v1_5_sign,
       &key__t,
       &sig_vec__t
     )
@@ -495,6 +496,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
 {
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
   FLEA_DECL_OBJ(hash_ctx_copy__t, flea_hash_ctx_t);
+  flea_hash_id_t hash_id__t;
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t));
@@ -585,7 +587,8 @@ static flea_err_t THR_flea_handle_handsh_msg(
       // TODO: actually we don't need a copy since this is the last message.
       // Alternatively implement a 'select' method to get the pointer to the appropriate
       // hash_ctx and use this
-      FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__copy(&hash_ctx_copy__t, p_hash_ctx__pt, flea_sha256));
+      hash_id__t = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
+      FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__copy(&hash_ctx_copy__t, p_hash_ctx__pt, hash_id__t));
       FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx_copy__t));
 
       handshake_state->finished = FLEA_TRUE;
@@ -623,8 +626,8 @@ flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx)
     sizeof(premaster_secret__au8)
     );
 # endif
-  flea_hash_id_t hash_ids[] = {flea_sha256}; // TODO123: not hardcoded!!!!!
-  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__ctor(&p_hash_ctx, hash_ids, 1));
+  flea_hash_id_t hash_ids[] = {flea_sha256, flea_sha1, flea_sha384}; // TODO123: not hardcoded!!!!!
+  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__ctor(&p_hash_ctx, hash_ids, 3));
   while(1)
   {
     // initialize handshake by sending CLIENT_HELLO

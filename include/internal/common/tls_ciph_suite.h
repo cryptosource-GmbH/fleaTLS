@@ -66,6 +66,8 @@ flea_err_t THR_flea_tls_get_cipher_suite_by_id(
   const flea_tls__cipher_suite_t** result__pt
 );
 
+flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
+
 flea_err_t THR_flea_tls_get_key_block_len_from_cipher_suite_id(
   flea_tls__cipher_suite_id_t id,
   flea_al_u8_t*               result_key_block_len__palu8

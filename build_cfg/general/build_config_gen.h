@@ -39,6 +39,7 @@
 # define FLEA_HAVE_SHA384_512        // FBFLAGS_HAVE_SHA512_ON_OFF
 # define FLEA_HAVE_DAVIES_MEYER_HASH // FBFLAGS_DAVIES_MEYER_HASH_ON_OFF
 
+
 /**
  * Configuration
  */
@@ -197,6 +198,7 @@
 # define FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA
 # define FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256
 # define FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
+# define FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384
 
 /**
  * Relevant only in stack mode. Maximal size of public key parameters object in

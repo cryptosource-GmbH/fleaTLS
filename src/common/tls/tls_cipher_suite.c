@@ -9,7 +9,9 @@
 
 
 // TODO: REMOVE BLOCK SIZE, UNIFY MAC_KEY_LEN AND MAC_LEN
-static const flea_tls__cipher_suite_t cipher_suites[6] = {
+// TODO: the last entry (hash id) is actually mac id and we only use it for mac.
+// => change back to mac id, hash id for PRF is given by the function below
+static const flea_tls__cipher_suite_t cipher_suites[7] = {
   {FLEA_TLS_NULL_WITH_NULL_NULL,         FLEA_TLS_NO_CIPHER,
    0, 0,
    0, 0, 0, (flea_mac_id_t) 0},
@@ -31,9 +33,23 @@ static const flea_tls__cipher_suite_t cipher_suites[6] = {
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
   {FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256, FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
-   16, 12, 16, 0, 0, flea_sha256}
+   16, 12, 16, 0, 0, flea_sha256},
+#endif
+#ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384
+  {FLEA_TLS_RSA_WITH_AES_256_GCM_SHA384, FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
+   16, 12, 32, 32, 0, flea_sha384}
 #endif
 };
+
+
+flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t)
+{
+  if(id__t == FLEA_TLS_RSA_WITH_AES_256_GCM_SHA384)
+  {
+    return flea_sha384;
+  }
+  return flea_sha256;
+}
 
 flea_err_t THR_flea_tls_get_cipher_suite_by_id(
   flea_tls__cipher_suite_id_t      id,

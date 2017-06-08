@@ -434,8 +434,8 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
 
   FLEA_CCALL(
     THR_flea_pk_api__decrypt_message(
-      flea_rsa_pkcs1_v1_5_encr,
-      flea_sha256,
+      flea_rsa_pkcs1_v1_5_encr, // TODO: derive from cert
+      flea_sha256,              // TODO: derive from cert
       enc_premaster_secret__bu8,
       enc_premaster_secret_len__u16,
       premaster_secret__pt,
@@ -473,11 +473,13 @@ static flea_err_t THR_flea_tls__read_client_key_exchange(
   FLEA_THR_FIN_SEC_empty();
 }
 
+// TODO: define in build cfg or even better: calculate max possible sig size
+# define FLEA_MAX_SIG_SIZE 512
 static flea_err_t THR_flea_tls__read_cert_verify(
-  flea_tls_ctx_t*           tls_ctx,
-  flea_tls_handsh_reader_t* hs_rdr__pt,
-  flea_hash_ctx_t*          hash_ctx
-
+  flea_tls_ctx_t*               tls_ctx,
+  flea_tls_handsh_reader_t*     hs_rdr__pt,
+  flea_hash_ctx_t*              hash_ctx,
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
 )
 {
   flea_rw_stream_t* hs_rd_stream__pt;
@@ -485,11 +487,15 @@ static flea_err_t THR_flea_tls__read_cert_verify(
   flea_u8_t sig_len_to_dec__au8[2];
   flea_u16_t sig_len__u16;
 
-  FLEA_DECL_BUF(messages_hash__bu8, flea_u8_t, 64);                                // MAX_HASH_SIZE parameter?
-  FLEA_DECL_BUF(sig__bu8, flea_u8_t, 512);                                         // TODO: define max sig length
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(message_vec__t, 32); // TODO: only for SHA256
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, 256);    // TODO see above
+  FLEA_DECL_BUF(messages_hash__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
+  FLEA_DECL_BUF(sig__bu8, flea_u8_t, FLEA_MAX_SIG_SIZE);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(message_vec__t, FLEA_MAX_HASH_OUT_LEN);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, FLEA_MAX_SIG_SIZE);
   // TODO: avoid overhead of creating and deleting vectors?
+
+  flea_hash_id_t hash_id__t;
+  flea_pk_scheme_id_t pk_scheme_id__t;
+  flea_u16_t hash_len__u8;
 
   FLEA_THR_BEG_FUNC();
 
@@ -524,44 +530,48 @@ static flea_err_t THR_flea_tls__read_cert_verify(
     )
   );
 
-  // check signature
-  if(sig_hash_alg__au8[0] == 0x04 && sig_hash_alg__au8[1] == 0x01) // TODO: use internal representation / mapping of sig and hash algorithms
+  FLEA_CCALL(flea_tls__get_hash_id_from_tls_id(sig_hash_alg__au8[0], &hash_id__t));
+  FLEA_CCALL(flea_tls__get_pk_id_from_tls_sig_id(sig_hash_alg__au8[1], &pk_scheme_id__t));
+  hash_len__u8 = flea_hash__get_output_length_by_id(hash_id__t);
+
+  // check if we use the PRF hash function (copy is in hash_ctx) or one of the
+  // functions in the p_hash_ctx
+  FLEA_ALLOC_BUF(messages_hash__bu8, hash_len__u8);
+  if(hash_id__t == flea_hash_ctx_t__get_hash_id(hash_ctx))
   {
-    // TODO124: hardcoded length of hash
-    FLEA_ALLOC_BUF(messages_hash__bu8, 32);
     FLEA_CCALL(THR_flea_hash_ctx_t__final(hash_ctx, messages_hash__bu8));
-
-    FLEA_CCALL(
-      THR_flea_byte_vec_t__set_content(
-        &message_vec__t,
-        messages_hash__bu8,
-        32 // TODO make depend on hash function
-      )
-    );
-    FLEA_CCALL(
-      THR_flea_byte_vec_t__set_content(
-        &sig_vec__t,
-        sig__bu8,
-        sig_len__u16
-      )
-    );
-
-    FLEA_CCALL(
-      THR_flea_pk_api__verify_digest(
-        messages_hash__bu8,
-        32,
-        flea_sha256,
-        flea_rsa_pkcs1_v1_5_sign,
-        &tls_ctx->peer_pubkey,
-        sig__bu8,
-        sig_len__u16
-      )
-    );
   }
-  else // TODO: support other algorithms
+  else
   {
-    FLEA_THROW("Sig/Hash algorithm not in the sent list of Sig/Hash algorithms", FLEA_ERR_TLS_GENERIC); // TODO: which error is appropriate?
+    FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__final(p_hash_ctx__pt, hash_id__t, FLEA_FALSE, messages_hash__bu8));
   }
+
+  FLEA_CCALL(
+    THR_flea_byte_vec_t__set_content(
+      &message_vec__t,
+      messages_hash__bu8,
+      hash_len__u8
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_byte_vec_t__set_content(
+      &sig_vec__t,
+      sig__bu8,
+      sig_len__u16
+    )
+  );
+
+  FLEA_CCALL(
+    THR_flea_pk_api__verify_digest(
+      messages_hash__bu8,
+      hash_len__u8,
+      hash_id__t,
+      pk_scheme_id__t,
+      &tls_ctx->peer_pubkey,
+      sig__bu8,
+      sig_len__u16
+    )
+  );
 
 
   FLEA_THR_FIN_SEC(
@@ -581,6 +591,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
 {
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
   FLEA_DECL_OBJ(hash_ctx_copy__t, flea_hash_ctx_t);
+  flea_hash_id_t hash_id__t;
 
   FLEA_THR_BEG_FUNC();
 
@@ -590,10 +601,22 @@ static flea_err_t THR_flea_handle_handsh_msg(
   {
     /*
      * for read_finished use a copy of hash_ctx where the finished message is not included yet
-     * same for certificate verify message
+     * same for certificate verify message but use the appropriate hash function
+     * instead of PRF hash
      */
-    // TODO123: hard coded hash alg, remove old code above
-    FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__copy(&hash_ctx_copy__t, p_hash_ctx__pt, flea_sha256));
+    if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_VERIFY)
+    {
+      // stop hashing for all functions but the one for PRF which is the only
+      // one we will need in the following messages
+      flea_tls_parallel_hash_ctx__stop_update_for_all_but_one(
+        p_hash_ctx__pt,
+        flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16)
+      );
+
+      // TODO: exclude this from the if, its a seperate case !
+    }
+    hash_id__t = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
+    FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__copy(&hash_ctx_copy__t, p_hash_ctx__pt, hash_id__t));
   }
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, p_hash_ctx__pt));
 
@@ -667,7 +690,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
 
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_VERIFY)
     {
-      FLEA_CCALL(THR_flea_tls__read_cert_verify(tls_ctx, &handsh_rdr__t, &hash_ctx_copy__t));
+      FLEA_CCALL(THR_flea_tls__read_cert_verify(tls_ctx, &handsh_rdr__t, &hash_ctx_copy__t, p_hash_ctx__pt));
       FLEA_THR_RETURN();
     }
   }
@@ -718,8 +741,8 @@ flea_err_t THR_flea_tls__server_handshake(
   flea_tls__handshake_state_t handshake_state;
   flea_tls__handshake_state_ctor(&handshake_state);
   flea_tls_parallel_hash_ctx_t p_hash_ctx;
-  flea_hash_id_t hash_ids[] = {flea_sha256}; // TODO123: not hardcoded!!!!!
-  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__ctor(&p_hash_ctx, hash_ids, 1));
+  flea_hash_id_t hash_ids[] = {flea_sha256, flea_sha1, flea_sha384}; // TODO123: not hardcoded!!!!!
+  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__ctor(&p_hash_ctx, hash_ids, 3));
 
 
   // flea_public_key_t pubkey; // TODO: -> tls_ctx

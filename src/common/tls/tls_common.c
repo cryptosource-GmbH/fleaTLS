@@ -353,6 +353,7 @@ flea_err_t THR_flea_tls__handle_tls_error(
 
 static flea_err_t THR_flea_tls__create_finished_data(
   flea_u8_t*    messages_hash,
+  flea_u8_t     messages_hash_len__u8,
   flea_u8_t     master_secret[48],
   PRFLabel      label,
   flea_u8_t*    data,
@@ -361,8 +362,8 @@ static flea_err_t THR_flea_tls__create_finished_data(
 )
 {
   FLEA_THR_BEG_FUNC();
-  // TODO: hardcoded hash-len 32 always correct?
-  FLEA_CCALL(flea_tls__prf(master_secret, 48, label, messages_hash, 32, data_len, data, mac_id__e));
+
+  FLEA_CCALL(flea_tls__prf(master_secret, 48, label, messages_hash, messages_hash_len__u8, data_len, data, mac_id__e));
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -376,11 +377,16 @@ flea_err_t THR_flea_tls__read_finished(
   // TODO: need to generalize 12byte ? (botan doesn't do it either) -  avoiding "magical number" would be better
   const flea_al_u8_t finished_len__alu8 = 12;
   flea_rw_stream_t* hs_rd_stream__pt;
+  flea_hash_id_t hash_id__t;
+  flea_u8_t hash_len__u8;
   FLEA_THR_BEG_FUNC();
 
-  FLEA_ALLOC_BUF(messages_hash__bu8, __FLEA_COMPUTED_MAX_HASH_OUT_LEN + 2 * 12);
-  flea_u8_t* finished__pu8     = messages_hash__bu8 + __FLEA_COMPUTED_MAX_HASH_OUT_LEN;
-  flea_u8_t* rec_finished__pu8 = messages_hash__bu8 + __FLEA_COMPUTED_MAX_HASH_OUT_LEN + finished_len__alu8;
+  hash_id__t   = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
+  hash_len__u8 = flea_hash__get_output_length_by_id(hash_id__t);
+
+  FLEA_ALLOC_BUF(messages_hash__bu8, hash_len__u8 + 2 * 12);
+  flea_u8_t* finished__pu8     = messages_hash__bu8 + hash_len__u8;
+  flea_u8_t* rec_finished__pu8 = messages_hash__bu8 + hash_len__u8 + finished_len__alu8;
 
   // we are working on a copy so we can finalize without copying
   FLEA_CCALL(THR_flea_hash_ctx_t__final(hash_ctx, messages_hash__bu8));
@@ -398,6 +404,7 @@ flea_err_t THR_flea_tls__read_finished(
   FLEA_CCALL(
     THR_flea_tls__create_finished_data(
       messages_hash__bu8,
+      hash_len__u8,
       tls_ctx->security_parameters.master_secret,
       label,
       finished__pu8,
@@ -792,20 +799,22 @@ flea_err_t THR_flea_tls__send_finished(
 
 )
 {
-  FLEA_DECL_BUF(verify_data__bu8, flea_u8_t, 12 + 32);
+  FLEA_DECL_BUF(verify_data__bu8, flea_u8_t, 12 + FLEA_MAX_HASH_OUT_LEN);
   const flea_al_u8_t verify_data_len__alu8 = 12;
   flea_u8_t* messages_hash__pu8;
   PRFLabel label;
-
+  flea_hash_id_t hash_id__t;
+  flea_u8_t hash_len__u8;
   FLEA_THR_BEG_FUNC();
 
   // compute hash over handshake messages so far
-  // TODO124: fixed hash length
-  FLEA_ALLOC_BUF(verify_data__bu8, verify_data_len__alu8 + 32);
+  hash_id__t   = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
+  hash_len__u8 = flea_hash__get_output_length_by_id(hash_id__t);
+
+  FLEA_ALLOC_BUF(verify_data__bu8, verify_data_len__alu8 + hash_len__u8);
   messages_hash__pu8 = verify_data__bu8 + verify_data_len__alu8;
 
-  // TODO123: not hardcoded hash alg
-  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__final(p_hash_ctx, flea_sha256, FLEA_TRUE, messages_hash__pu8));
+  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__final(p_hash_ctx, hash_id__t, FLEA_TRUE, messages_hash__pu8));
 
   // TODO: REMOVE LABEL ENUM, USE REF TO LABELS DIRECTLY
   if(tls_ctx->security_parameters.connection_end == FLEA_TLS_CLIENT)
@@ -820,6 +829,7 @@ flea_err_t THR_flea_tls__send_finished(
   FLEA_CCALL(
     THR_flea_tls__create_finished_data(
       messages_hash__pu8,
+      hash_len__u8,
       tls_ctx->security_parameters.master_secret,
       label,
       verify_data__bu8,
@@ -985,6 +995,77 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
 {
   flea_tls_rec_prot_t__dtor(&tls_ctx__pt->rec_prot__t);
   flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey);
+}
+
+flea_err_t flea_tls__get_hash_id_from_tls_id(
+  flea_u8_t       byte__u8,
+  flea_hash_id_t* hash_id__pt
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+# ifdef FLEA_HAVE_SHA1
+  if(byte__u8 == 2)
+  {
+    *hash_id__pt = flea_sha1;
+    FLEA_THR_RETURN();
+  }
+# endif
+# ifdef FLEA_HAVE_SHA224_256
+  if(byte__u8 == 3)
+  {
+    *hash_id__pt = flea_sha224;
+    FLEA_THR_RETURN();
+  }
+  if(byte__u8 == 4)
+  {
+    *hash_id__pt = flea_sha256;
+    FLEA_THR_RETURN();
+  }
+# endif /* ifdef FLEA_HAVE_SHA224_256 */
+# ifdef FLEA_HAVE_SHA384_512
+  if(byte__u8 == 5)
+  {
+    *hash_id__pt = flea_sha384;
+    FLEA_THR_RETURN();
+  }
+  if(byte__u8 == 6)
+  {
+    *hash_id__pt = flea_sha512;
+    FLEA_THR_RETURN();
+  }
+# endif /* ifdef FLEA_HAVE_SHA384_512 */
+
+  // TODO: send some other error that does result in decode_error alert
+  FLEA_THROW("No mapping found", FLEA_ERR_INV_ARG);
+  FLEA_THR_FIN_SEC_empty();
+} /* flea_tls__get_hash_id_from_tls_id */
+
+// TODO: #ifdef HAVE_PK_SCHEME for every algorithm
+flea_err_t flea_tls__get_pk_id_from_tls_sig_id(
+  flea_u8_t            byte__u8,
+  flea_pk_scheme_id_t* pk_id__pt
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+  if(byte__u8 == 1)
+  {
+    *pk_id__pt = flea_rsa_pkcs1_v1_5_sign;
+    FLEA_THR_RETURN();
+  }
+  else if(byte__u8 == 3)
+  {
+    *pk_id__pt = flea_ecdsa_emsa1;
+    FLEA_THR_RETURN();
+  }
+  else
+  {
+    // TODO: send some other error that does result in decode_error alert
+    FLEA_THROW("No mapping found", FLEA_ERR_INV_ARG);
+  }
+
+  FLEA_THR_FIN_SEC_empty();
 }
 
 #endif /* ifdef FLEA_HAVE_TLS */

@@ -25,6 +25,8 @@ typedef struct
   flea_hash_ctx_t  hash_ctx__pt[FLEA_TLS_MAX_PARALLEL_HASHES];
 # endif
   flea_u8_t        num_hash_ctx__u8;
+  flea_bool_t      update_only_one__t; // switch to update only the update_only_hash_id__t hash
+  flea_hash_id_t   update_only_hash_id__t;
 } flea_tls_parallel_hash_ctx_t;
 
 flea_err_t THR_flea_tls_parallel_hash_ctx__ctor(
@@ -55,6 +57,10 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__final(
 
 flea_err_t THR_flea_tls_parallel_hash_ctx__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx);
 
+void flea_tls_parallel_hash_ctx__stop_update_for_all_but_one(
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx,
+  flea_hash_id_t                hash_id__t
+);
 
 # ifdef __cplusplus
 }

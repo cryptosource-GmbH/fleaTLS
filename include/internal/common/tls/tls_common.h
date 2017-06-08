@@ -146,5 +146,15 @@ flea_err_t THR_flea_tls__send_handshake_message_int_be(
   flea_u32_t                    int__u32,
   flea_al_u8_t                  int_byte_width__alu8
 );
+
+flea_err_t flea_tls__get_hash_id_from_tls_id(
+  flea_u8_t       byte__u8,
+  flea_hash_id_t* hash_id__pt
+);
+
+flea_err_t flea_tls__get_pk_id_from_tls_sig_id(
+  flea_u8_t            byte__u8,
+  flea_pk_scheme_id_t* pk_id__pt
+);
 #endif // ifdef FLEA_HAVE_TLS
 #endif /* h-guard */

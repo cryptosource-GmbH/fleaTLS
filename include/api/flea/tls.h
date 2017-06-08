@@ -167,6 +167,13 @@ typedef struct
       (__p)->allocated_message_len__u16 = (__buf_len) - 5; \
   } while(0)
 
+
+typedef struct
+{
+  flea_hash_id_t      hash_id__t;
+  flea_pk_scheme_id_t pk_scheme_id__t;
+} flea_tls__hash_sig_t;
+
 typedef struct
 {
   /* Security Parameters negotiated during handshake */
@@ -180,7 +187,7 @@ typedef struct
   // define 4 parameters independently instead of list of cipher suites
   const flea_ref_cu16_t*       allowed_cipher_suites__prcu16; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
   // flea_u8_t                    allowed_cipher_suites_len__u8;
-  flea_u16_t                   selected_cipher_suite__u16;
+  flea_u16_t                   selected_cipher_suite__u16; // TODO: change to cipher suite id type (already being used as such)
 
   flea_public_key_t            peer_pubkey; /* public key of peer */
 
@@ -189,10 +196,11 @@ typedef struct
   flea_u8_t                    session_id[32]; /* Session ID for later resumption */
   flea_u8_t                    session_id_len;
 
-  flea_hash_id_t               prf_hash_id__t;      // stores hash function to use for the PRF algorithm
-  flea_hash_id_t               cert_vfy_hash_id__t; // hash function to use for signing the cert verify message
-  flea_hash_id_t               dhe_hash_id__t;      // hash function to use for DHE KEX
-  // TODO: could probably do a union for cert_vfy and dhe hash id
+  flea_hash_id_t               prf_hash_id__t; // stores hash function to use for the PRF algorithm
+
+  flea_tls__hash_sig_t         cert_vfy_hash_sig__t; // hash and sig algorithms used for cert verify message
+  flea_tls__hash_sig_t         kex_hash_sig__t;      // hash and sig algorithms used for KEX
+  // TODO: could probably do a union for cert_vfy and kex
 
   // flea_byte_vec_t              premaster_secret__t; // shall be deleted after master_Secret is calculated
 
