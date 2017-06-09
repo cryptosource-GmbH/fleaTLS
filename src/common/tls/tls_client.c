@@ -613,6 +613,9 @@ static flea_err_t THR_flea_handle_handsh_msg(
       // TODO: actually we don't need a copy since this is the last message.
       // Alternatively implement a 'select' method to get the pointer to the appropriate
       // hash_ctx and use this
+      // ___________________
+      // | FS: yes, do this |
+      // -------------------
       hash_id__t = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
       FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__copy(&hash_ctx_copy__t, p_hash_ctx__pt, hash_id__t));
       FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx_copy__t));
@@ -645,6 +648,7 @@ flea_err_t THR_flea_tls__client_handshake(
 
   // define and init state
   flea_tls__handshake_state_ctor(&handshake_state);
+  /** TODO (FS): missing init for this object **/
   flea_tls_parallel_hash_ctx_t p_hash_ctx;
   flea_tls_set_tls_random(tls_ctx);
 # ifdef FLEA_USE_HEAP_BUF
@@ -656,6 +660,11 @@ flea_err_t THR_flea_tls__client_handshake(
     sizeof(premaster_secret__au8)
     );
 # endif
+
+  /** TODO (FS): lass uns besprechen was die Kriterien für die Hash-Funktionen
+   * sind, die hier unterstützt werden müssen. Dann sehen wir, wie wir die Menge
+   * ableiten können.
+   */
   flea_hash_id_t hash_ids[] = {flea_sha256, flea_sha1, flea_sha384}; // TODO123: not hardcoded!!!!!
   FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__ctor(&p_hash_ctx, hash_ids, 3));
   while(1)

@@ -3,8 +3,13 @@
 #include "internal/common/hash/parallel_hash.h"
 // #include "flea/array_util.h"
 
+// TODO (FS): parallel hash sollte in tls-Ordner
+
 #ifdef FLEA_HAVE_TLS
 
+// TODO (FS): bei allen Funktionen fehlt das "_t" nach dem "parallel_hash_ctx".
+// => THR_flea_tls_parallel_hash_ctx_t__ctor
+// TODO (FS): hash_ids__pt const machen
 flea_err_t THR_flea_tls_parallel_hash_ctx__ctor(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
   flea_hash_id_t*               hash_ids__pt,
@@ -25,6 +30,12 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__ctor(
 
   for(flea_u8_t i = 0; i < hash_ids_len__u8; i++)
   {
+    // TODO (FS): wichtig ist, dass der Destruktor mit jedem Zwischenzustand
+    // auch nach einem fehlerhaften ctor-Aufruf klarkommt, d.h. genau erkenne
+    // kann, ob er einen einzelnen hash-ctx dtor aufrufen darf oder nicht. Mir
+    // scheint, dass das derzeit noch nicht richtig modelliert ist.
+    // Sprich mich am besten darauf an, dann erkläre ich Dir das Problem und
+    // zeige Dir wie man es löst.
     flea_hash_ctx_t__INIT(&p_hash_ctx->hash_ctx__pt[i]);
     FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&p_hash_ctx->hash_ctx__pt[i], hash_ids__pt[i]));
   }
@@ -33,6 +44,8 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__ctor(
   FLEA_THR_FIN_SEC_empty();
 }
 
+/* TODO (FS): sollte in etwa heissen: __create_hash_ctx_as_copy
+ * damit klar ist, dass dies sozusagen einen ctor für hash_ctx_t darstellt. */
 flea_err_t THR_flea_tls_parallel_hash_ctx__copy(
   flea_hash_ctx_t*                    hash_ctx_new__pt,
   const flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
@@ -120,15 +133,18 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__final(
   );
 } /* THR_flea_tls_parallel_hash_ctx__final */
 
+/* TODO (FS): dtor sind niemals thrower! */
 flea_err_t THR_flea_tls_parallel_hash_ctx__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx)
 {
   FLEA_THR_BEG_FUNC();
 
+  /* TODO (FS): wichtig: keine nicht-konstruierten hash_ctx zerstoeren (siehe
+   * oben) */
   for(flea_u8_t i = 0; i < p_hash_ctx->num_hash_ctx__u8; i++)
   {
     flea_hash_ctx_t__dtor(&p_hash_ctx->hash_ctx__pt[i]);
   }
-
+  /* eher FREE_MEM_CHK_NULL */
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM(p_hash_ctx->hash_ctx__pt);
 # endif

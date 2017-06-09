@@ -650,6 +650,9 @@ static flea_err_t THR_flea_handle_handsh_msg(
       );
 
       // TODO: exclude this from the if, its a seperate case !
+      // _____________________
+      // | FS: what is meant ?|
+      // ----------------------
     }
     hash_id__t = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
     FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__copy(&hash_ctx_copy__t, p_hash_ctx__pt, hash_id__t));
@@ -782,8 +785,11 @@ flea_err_t THR_flea_tls__server_handshake(
   // define and init state
   flea_tls__handshake_state_t handshake_state;
   flea_tls__handshake_state_ctor(&handshake_state);
+
+  // TODO (FS): missing init of object
   flea_tls_parallel_hash_ctx_t p_hash_ctx;
   flea_hash_id_t hash_ids[] = {flea_sha256, flea_sha1, flea_sha384}; // TODO123: not hardcoded!!!!!
+  // TODO (FS): instead of "3" use FLEA_NB_ARRAY_ENTRIES()
   FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__ctor(&p_hash_ctx, hash_ids, 3));
 
 

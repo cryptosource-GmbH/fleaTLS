@@ -113,6 +113,8 @@ static flea_bool_t determine_alert_from_error(
   return FLEA_TRUE;
 }
 
+/* TODO (FS): wozu das? das funktioniert nur für GCC. Wenn es um den fehlenden
+ * default Wert geht, dann fueg den einfach dazu. */
 # pragma GCC diagnostic push
 # pragma GCC diagnostic ignored "-Wswitch"
 flea_mac_id_t flea_tls__map_hmac_to_hash(flea_hash_id_t hash)
@@ -379,6 +381,10 @@ flea_err_t THR_flea_tls__read_finished(
 {
   FLEA_DECL_BUF(messages_hash__bu8, flea_u8_t, __FLEA_COMPUTED_MAX_HASH_OUT_LEN + 2 * 12);
   // TODO: need to generalize 12byte ? (botan doesn't do it either) -  avoiding "magical number" would be better
+  //  _____________________________________________________________________
+  // | FS: yes, define it as FLEA_TLS_SEC_RENEG_FINISHED_SIZE, that will be|
+  // |renamed later ("_SEC_RENEG" removed)                                 |
+  //  ---------------------------------------------------------------------
   const flea_al_u8_t finished_len__alu8 = 12;
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_hash_id_t hash_id__t;
@@ -1332,6 +1338,7 @@ flea_err_t flea_tls__get_hash_id_from_tls_id(
     *hash_id__pt = flea_sha1;
     FLEA_THR_RETURN();
   }
+  /* TODO (FS): besser else-if Leiter statt so vieler Returns */
 # endif
 # ifdef FLEA_HAVE_SHA224_256
   if(byte__u8 == 3)

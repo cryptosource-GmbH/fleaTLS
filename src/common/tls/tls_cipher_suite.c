@@ -11,6 +11,10 @@
 // TODO: REMOVE BLOCK SIZE, UNIFY MAC_KEY_LEN AND MAC_LEN
 // TODO: the last entry (hash id) is actually mac id and we only use it for mac.
 // => change back to mac id, hash id for PRF is given by the function below
+// __________________________________________________________________
+// | FS: ok, can become mac_id again, if that makes the code simpler |
+// ------------------------------------------------------------------
+//
 static const flea_tls__cipher_suite_t cipher_suites[7] = {
   {FLEA_TLS_NULL_WITH_NULL_NULL,         FLEA_TLS_NO_CIPHER,
    0, 0,
