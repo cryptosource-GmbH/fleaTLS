@@ -86,7 +86,7 @@ typedef enum
 # ifdef __cplusplus
 }
 # endif
-
+# define FLEA_TLS_SEC_RENEG_FINISHED_SIZE 12
 flea_err_t THR_flea_tls__send_change_cipher_spec(
   flea_tls_ctx_t* tls_ctx
 );
@@ -132,10 +132,14 @@ flea_err_t THR_flea_tls__handle_tls_error(
 );
 
 flea_err_t THR_flea_tls__server_handshake(
-  flea_tls_ctx_t* tls_ctx
+  flea_tls_ctx_t* tls_ctx,
+  flea_bool_t     is_reneg__b
 );
 
-flea_err_t THR_flea_tls__client_handshake(flea_tls_ctx_t* tls_ctx);
+flea_err_t THR_flea_tls__client_handshake(
+  flea_tls_ctx_t* tls_ctx,
+  flea_bool_t     is_reneg__b
+);
 
 /**
  * send a positive iteger big endian encoded as part of a handshake message.
@@ -156,5 +160,27 @@ flea_err_t flea_tls__get_pk_id_from_tls_sig_id(
   flea_u8_t            byte__u8,
   flea_pk_scheme_id_t* pk_id__pt
 );
+
+flea_err_t THR_flea_tls_ctx_t__client_parse_extensions(
+  flea_tls_ctx_t*           tls_ctx__pt,
+  flea_tls_handsh_reader_t* hs_rdr__pt
+);
+
+flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx__pt);
+
+flea_err_t THR_flea_tls_ctx_t__send_extensions_length(
+  flea_tls_ctx_t*               tls_ctx__pt,
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx_mbn__pt
+);
+
+flea_err_t THR_flea_tls_ctx_t__send_reneg_ext(
+  flea_tls_ctx_t*               tls_ctx__pt,
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
+);
+
+flea_bool_t flea_tls_ctx_t__do_send_sec_reneg_ext(flea_tls_ctx_t* tls_ctx__pt);
+
+void flea_tls_set_tls_random(flea_tls_ctx_t* ctx__pt);
+
 #endif // ifdef FLEA_HAVE_TLS
 #endif /* h-guard */

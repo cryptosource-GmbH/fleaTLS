@@ -70,7 +70,8 @@ typedef enum
   FLEA_TLS_ALERT_DESC_INTERNAL_ERROR              = 80,
   FLEA_TLS_ALERT_DESC_USER_CANCELED               = 90,
   FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION            = 100,
-  FLEA_TLS_ALERT_DESC_UNSUPPORTED_EXTENSION       = 110
+  FLEA_TLS_ALERT_DESC_UNSUPPORTED_EXTENSION       = 110,
+  FLEA_TLS_ALERT_NO_ALERT                         = 255
 } flea_tls__alert_description_t;
 
 typedef enum
@@ -188,6 +189,8 @@ flea_err_t THR_flea_tls_rec_prot_t__set_ciphersuite(
   flea_tls__cipher_suite_id_t suite_id,
   const flea_u8_t*            key_block__pcu8
 );
+
+flea_bool_t flea_tls_rec_prot_t__have_done_initial_handshake(const flea_tls_rec_prot_t* rec_prot__pt);
 
 void flea_tls_rec_prot_t__discard_current_read_record(flea_tls_rec_prot_t* rec_prot__pt);
 

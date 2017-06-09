@@ -602,13 +602,14 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
   /*
    * Check MAC
    */
-  // TODO: CAPTURE UNDERFLOW
+  /* CAPTURE UNDERFLOW */
   data_len_previous__alu16 = data_len;
   data_len = data_len - (padding_len + 1) - iv_len - mac_len;
   if(data_len > data_len_previous__alu16)
   {
     FLEA_THROW("insufficient size of hmac-cbc record payload", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
   }
+  // TODO: PREVENT THIS EXTREME TIMING LEAK
   FLEA_CCALL(
     THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
       rec_prot__pt->send_rec_buf_raw__bu8,
@@ -959,9 +960,12 @@ flea_err_t THR_flea_tls_rec_prot_t__send_fatal_alert_and_throw(
       FLEA_ERR_TLS_SESSION_CLOSED_WHEN_TRYING_TO_SEND_ALERT
     );
   }
-  flea_tls_rec_prot_t__discard_pending_write(rec_prot__pt);
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__send_alert(rec_prot__pt, description, FLEA_TLS_ALERT_LEVEL_FATAL));
-  FLEA_THROW("throwing error after sending fatal TLS alert", err__t);
+  if(description != FLEA_TLS_ALERT_NO_ALERT)
+  {
+    flea_tls_rec_prot_t__discard_pending_write(rec_prot__pt);
+    FLEA_CCALL(THR_flea_tls_rec_prot_t__send_alert(rec_prot__pt, description, FLEA_TLS_ALERT_LEVEL_FATAL));
+  }
+  FLEA_THROW("throwing error after (potentially) sending fatal TLS alert", err__t);
 
   FLEA_THR_FIN_SEC_empty();
 }
@@ -1294,6 +1298,15 @@ flea_err_t THR_flea_tls_rec_prot_t__read_data(
     FLEA_FALSE,
     rd_mode__e
   );
+}
+
+flea_bool_t flea_tls_rec_prot_t__have_done_initial_handshake(const flea_tls_rec_prot_t* rec_prot__pt)
+{
+  if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_class__e != flea_null_cipher_suite)
+  {
+    return FLEA_TRUE;
+  }
+  return FLEA_FALSE;
 }
 
 void flea_tls_rec_prot_t__dtor(flea_tls_rec_prot_t* rec_prot__pt)

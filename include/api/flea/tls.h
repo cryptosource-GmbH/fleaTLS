@@ -224,6 +224,15 @@ typedef struct
   flea_ref_cu8_t*                private_key__pt;
 
   flea_revoc_chk_cfg_t           rev_chk_cfg__t;
+  flea_u8_t                      sec_reneg_flag__u8;
+  // flea_u8_t                      client_has_sec_reneg__u8;
+# ifdef FLEA_USE_HEAP_BUF
+  flea_u8_t*                     own_vfy_data__bu8;
+  flea_u8_t*                     peer_vfy_data__bu8;
+# else
+  flea_u8_t                      own_vfy_data__bu8[12];
+  flea_u8_t                      peer_vfy_data__bu8[12];
+# endif
 } flea_tls_ctx_t;
 
 
@@ -278,6 +287,18 @@ flea_err_t THR_flea_tls_ctx_t__flush_write_app_data(flea_tls_ctx_t* tls_ctx);
 
 flea_mac_id_t flea_tls__map_hmac_to_hash(flea_hash_id_t h);
 
+flea_err_t THR_flea_tls_ctx_t__renegotiate(
+  flea_tls_ctx_t*          tls_ctx__pt,
+  const flea_cert_store_t* trust_store__pt,
+  /* new session id? */
+  flea_ref_cu8_t*          cert_chain__pt,
+  flea_al_u8_t             cert_chain_len__alu8,
+  flea_ref_cu8_t*          private_key__pt,
+  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
+  flea_rev_chk_mode_e      rev_chk_mode__e,
+  const flea_byte_vec_t*   crl_der__pt,
+  flea_al_u16_t            nb_crls__alu16
+);
 
 # ifdef __cplusplus
 }
