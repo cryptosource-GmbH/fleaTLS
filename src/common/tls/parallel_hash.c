@@ -1,6 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
-#include "internal/common/hash/parallel_hash.h"
+#include "internal/common/tls/parallel_hash.h"
 // #include "flea/array_util.h"
 
 // TODO (FS): parallel hash sollte in tls-Ordner

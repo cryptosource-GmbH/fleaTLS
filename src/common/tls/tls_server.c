@@ -16,7 +16,7 @@
 #include "flea/pkcs8.h"
 #include "flea/rsa.h"
 #include "flea/pk_api.h"
-#include "internal/common/hash/parallel_hash.h"
+#include "internal/common/tls/parallel_hash.h"
 
 #ifdef FLEA_HAVE_TLS
 

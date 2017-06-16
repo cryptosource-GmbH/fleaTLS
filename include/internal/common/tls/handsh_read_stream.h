@@ -7,7 +7,7 @@
 #include "flea/types.h"
 #include "flea/rw_stream.h"
 #include "flea/hash.h"
-#include "internal/common/hash/parallel_hash.h"
+#include "internal/common/tls/parallel_hash.h"
 
 #ifdef __cplusplus
 extern "C" {

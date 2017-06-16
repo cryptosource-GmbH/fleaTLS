@@ -37,7 +37,7 @@
 #include "flea/cert_store.h"
 #include "flea/byte_vec.h"
 #include "internal/common/tls_ciph_suite.h"
-#include "internal/common/hash/parallel_hash.h"
+#include "internal/common/tls/parallel_hash.h"
 
 #include "internal/pltf_if/time.h"
 

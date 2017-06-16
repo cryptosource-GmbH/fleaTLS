@@ -6,7 +6,7 @@
 #include "internal/common/tls/handsh_read_stream.h"
 #include "internal/common/tls/tls_rec_prot_rdr.h"
 #include "internal/common/tls_rec_prot.h"
-#include "internal/common/hash/parallel_hash.h"
+#include "internal/common/tls/parallel_hash.h"
 
 #ifdef __cplusplus
 extern "C" {

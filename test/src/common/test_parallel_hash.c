@@ -3,7 +3,7 @@
 #include "flea/error.h"
 #include "flea/alloc.h"
 #include "self_test.h"
-#include "internal/common/hash/parallel_hash.h"
+#include "internal/common/tls/parallel_hash.h"
 #include "flea/hash.h"
 
 #ifdef FLEA_HAVE_TLS

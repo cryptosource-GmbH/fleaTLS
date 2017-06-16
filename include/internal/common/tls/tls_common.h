@@ -4,7 +4,7 @@
 #define _flea_tls_common__H_
 
 #include "internal/common/tls/tls_cert_path.h"
-#include "internal/common/hash/parallel_hash.h"
+#include "internal/common/tls/parallel_hash.h"
 
 #ifdef FLEA_HAVE_TLS
 # ifdef __cplusplus
