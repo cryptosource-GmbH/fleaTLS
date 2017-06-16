@@ -400,7 +400,7 @@ flea_al_u16_t flea_hash_ctx_t__get_output_length(flea_hash_ctx_t* p_ctx)
   return p_ctx->p_config->output_length;
 }
 
-flea_hash_id_t flea_hash_ctx_t__get_hash_id(flea_hash_ctx_t* p_ctx)
+flea_hash_id_t flea_hash_ctx_t__get_hash_id(const flea_hash_ctx_t* p_ctx)
 {
   return p_ctx->p_config->hash_id;
 }

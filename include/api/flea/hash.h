@@ -178,7 +178,7 @@ flea_al_u8_t flea_hash__get_output_length_by_id(flea_hash_id_t id);
  *
  * @return the hash id used by the hash context object
  */
-flea_hash_id_t flea_hash_ctx_t__get_hash_id(flea_hash_ctx_t* p_ctx);
+flea_hash_id_t flea_hash_ctx_t__get_hash_id(const flea_hash_ctx_t* p_ctx);
 
 
 /**
