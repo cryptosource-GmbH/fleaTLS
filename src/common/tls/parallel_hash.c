@@ -3,14 +3,11 @@
 #include "internal/common/tls/parallel_hash.h"
 // #include "flea/array_util.h"
 
-// TODO (FS): parallel hash sollte in tls-Ordner
 
 #ifdef FLEA_HAVE_TLS
 
-// TODO (FS): bei allen Funktionen fehlt das "_t" nach dem "parallel_hash_ctx".
-// => THR_flea_tls_parallel_hash_ctx_t__ctor
 // TODO (FS): hash_ids__pt const machen
-flea_err_t THR_flea_tls_parallel_hash_ctx__ctor(
+flea_err_t THR_flea_tls_parallel_hash_ctx_t__ctor(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
   flea_hash_id_t*               hash_ids__pt,
   flea_u8_t                     hash_ids_len__u8
@@ -46,7 +43,7 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__ctor(
 
 /* TODO (FS): sollte in etwa heissen: __create_hash_ctx_as_copy
  * damit klar ist, dass dies sozusagen einen ctor für hash_ctx_t darstellt. */
-flea_err_t THR_flea_tls_parallel_hash_ctx__copy(
+flea_err_t THR_flea_tls_parallel_hash_ctx_t__copy(
   flea_hash_ctx_t*                    hash_ctx_new__pt,
   const flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
   flea_hash_id_t                      hash_id__t
@@ -65,7 +62,7 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__copy(
   FLEA_THR_FIN_SEC_empty();
 }
 
-void flea_tls_parallel_hash_ctx__stop_update_for_all_but_one(
+void flea_tls_parallel_hash_ctx_t__stop_update_for_all_but_one(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
   flea_hash_id_t                hash_id__t
 )
@@ -74,7 +71,7 @@ void flea_tls_parallel_hash_ctx__stop_update_for_all_but_one(
   p_hash_ctx->update_only_hash_id__t = hash_id__t;
 }
 
-flea_err_t THR_flea_tls_parallel_hash_ctx__update(
+flea_err_t THR_flea_tls_parallel_hash_ctx_t__update(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
   const flea_u8_t*              bytes__u8,
   flea_dtl_t                    bytes_len__dtl
@@ -93,7 +90,7 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__update(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls_parallel_hash_ctx__final(
+flea_err_t THR_flea_tls_parallel_hash_ctx_t__final(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
   flea_hash_id_t                hash_id__t,
   flea_bool_t                   copy,
@@ -133,11 +130,8 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__final(
   );
 } /* THR_flea_tls_parallel_hash_ctx__final */
 
-/* TODO (FS): dtor sind niemals thrower! */
-flea_err_t THR_flea_tls_parallel_hash_ctx__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx)
+void flea_tls_parallel_hash_ctx_t__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx)
 {
-  FLEA_THR_BEG_FUNC();
-
   /* TODO (FS): wichtig: keine nicht-konstruierten hash_ctx zerstoeren (siehe
    * oben) */
   for(flea_u8_t i = 0; i < p_hash_ctx->num_hash_ctx__u8; i++)
@@ -146,9 +140,8 @@ flea_err_t THR_flea_tls_parallel_hash_ctx__dtor(flea_tls_parallel_hash_ctx_t* p_
   }
   /* eher FREE_MEM_CHK_NULL */
 # ifdef FLEA_USE_HEAP_BUF
-  FLEA_FREE_MEM(p_hash_ctx->hash_ctx__pt);
+  FLEA_FREE_MEM_CHK_NULL(p_hash_ctx->hash_ctx__pt);
 # endif
-  FLEA_THR_FIN_SEC_empty();
 }
 
 #endif /* ifdef FLEA_HAVE_TLS */

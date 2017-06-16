@@ -431,7 +431,7 @@ static flea_err_t THR_flea_tls__send_cert_verify(
   FLEA_ALLOC_BUF(messages_hash__bu8, hash_len__u8); // TODO: determine size of hash function that is used
 
   FLEA_CCALL(
-    THR_flea_tls_parallel_hash_ctx__final(
+    THR_flea_tls_parallel_hash_ctx_t__final(
       p_hash_ctx,
       tls_ctx->cert_vfy_hash_sig__t.hash_id__t,
       FLEA_TRUE,
@@ -617,7 +617,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
       // | FS: yes, do this |
       // -------------------
       hash_id__t = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
-      FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__copy(&hash_ctx_copy__t, p_hash_ctx__pt, hash_id__t));
+      FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__copy(&hash_ctx_copy__t, p_hash_ctx__pt, hash_id__t));
       FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx_copy__t));
 
       handshake_state->finished = FLEA_TRUE;
@@ -666,7 +666,7 @@ flea_err_t THR_flea_tls__client_handshake(
    * ableiten können.
    */
   flea_hash_id_t hash_ids[] = {flea_sha256, flea_sha1, flea_sha384}; // TODO123: not hardcoded!!!!!
-  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__ctor(&p_hash_ctx, hash_ids, 3));
+  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__ctor(&p_hash_ctx, hash_ids, 3));
   while(1)
   {
     // initialize handshake by sending CLIENT_HELLO
@@ -852,7 +852,7 @@ flea_err_t THR_flea_tls__client_handshake(
   }
   FLEA_THR_FIN_SEC(
     flea_byte_vec_t__dtor(&premaster_secret__t);
-    THR_flea_tls_parallel_hash_ctx__dtor(&p_hash_ctx);
+    flea_tls_parallel_hash_ctx_t__dtor(&p_hash_ctx);
   );
 } /* THR_flea_tls__client_handshake */
 

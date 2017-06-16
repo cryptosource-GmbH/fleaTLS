@@ -578,7 +578,7 @@ static flea_err_t THR_flea_tls__read_cert_verify(
   }
   else
   {
-    FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__final(p_hash_ctx__pt, hash_id__t, FLEA_FALSE, messages_hash__bu8));
+    FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__final(p_hash_ctx__pt, hash_id__t, FLEA_FALSE, messages_hash__bu8));
   }
 
   FLEA_CCALL(
@@ -644,7 +644,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
     {
       // stop hashing for all functions but the one for PRF which is the only
       // one we will need in the following messages
-      flea_tls_parallel_hash_ctx__stop_update_for_all_but_one(
+      flea_tls_parallel_hash_ctx_t__stop_update_for_all_but_one(
         p_hash_ctx__pt,
         flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16)
       );
@@ -655,7 +655,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
       // ----------------------
     }
     hash_id__t = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
-    FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__copy(&hash_ctx_copy__t, p_hash_ctx__pt, hash_id__t));
+    FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__copy(&hash_ctx_copy__t, p_hash_ctx__pt, hash_id__t));
   }
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, p_hash_ctx__pt));
 
@@ -790,7 +790,7 @@ flea_err_t THR_flea_tls__server_handshake(
   flea_tls_parallel_hash_ctx_t p_hash_ctx;
   flea_hash_id_t hash_ids[] = {flea_sha256, flea_sha1, flea_sha384}; // TODO123: not hardcoded!!!!!
   // TODO (FS): instead of "3" use FLEA_NB_ARRAY_ENTRIES()
-  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__ctor(&p_hash_ctx, hash_ids, 3));
+  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__ctor(&p_hash_ctx, hash_ids, 3));
 
 
   flea_tls_set_tls_random(tls_ctx);
@@ -983,7 +983,7 @@ flea_err_t THR_flea_tls__server_handshake(
     }
   }
   FLEA_THR_FIN_SEC(
-    THR_flea_tls_parallel_hash_ctx__dtor(&p_hash_ctx);
+    flea_tls_parallel_hash_ctx_t__dtor(&p_hash_ctx);
     flea_byte_vec_t__dtor(&premaster_secret__t);
   );
 } /* THR_flea_tls__server_handshake */

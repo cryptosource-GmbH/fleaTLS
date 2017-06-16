@@ -588,7 +588,7 @@ flea_err_t THR_flea_tls__send_handshake_message_hdr(
   if(p_hash_ctx_mbn__pt)
   {
     FLEA_CCALL(
-      THR_flea_tls_parallel_hash_ctx__update(
+      THR_flea_tls_parallel_hash_ctx_t__update(
         p_hash_ctx_mbn__pt,
         enc_for_hash__au8,
         sizeof(enc_for_hash__au8)
@@ -721,7 +721,7 @@ flea_err_t THR_flea_tls__send_handshake_message_content(
   );
   if(p_hash_ctx_mbn__pt)
   {
-    FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__update(p_hash_ctx_mbn__pt, msg_bytes, msg_bytes_len));
+    FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__update(p_hash_ctx_mbn__pt, msg_bytes, msg_bytes_len));
   }
   FLEA_THR_FIN_SEC_empty();
 }
@@ -824,7 +824,7 @@ flea_err_t THR_flea_tls__send_finished(
   FLEA_ALLOC_BUF(verify_data__bu8, verify_data_len__alu8 + hash_len__u8);
   messages_hash__pu8 = verify_data__bu8 + verify_data_len__alu8;
 
-  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__final(p_hash_ctx, hash_id__t, FLEA_TRUE, messages_hash__pu8));
+  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__final(p_hash_ctx, hash_id__t, FLEA_TRUE, messages_hash__pu8));
 
   // TODO: REMOVE LABEL ENUM, USE REF TO LABELS DIRECTLY
   if(tls_ctx->security_parameters.connection_end == FLEA_TLS_CLIENT)

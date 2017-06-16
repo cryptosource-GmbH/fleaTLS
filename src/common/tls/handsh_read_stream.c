@@ -43,7 +43,7 @@ static flea_err_t THR_flea_tls_handsh_read_stream_t__read(
   if(rdr_hlp__pt->p_hash_ctx__pt)
   {
     FLEA_CCALL(
-      THR_flea_tls_parallel_hash_ctx__update(
+      THR_flea_tls_parallel_hash_ctx_t__update(
         rdr_hlp__pt->p_hash_ctx__pt,
         target_buffer__pu8,
         *nb_bytes_to_read__pdtl

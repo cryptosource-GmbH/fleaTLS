@@ -86,7 +86,7 @@ flea_err_t THR_flea_tls_handsh_reader_t__set_hash_ctx(
 {
   FLEA_THR_BEG_FUNC();
   handsh_rdr__pt->hlp__t.p_hash_ctx__pt = p_hash_ctx__pt;
-  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx__update(p_hash_ctx__pt, handsh_rdr__pt->hlp__t.handsh_hdr__au8, 4));
+  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__update(p_hash_ctx__pt, handsh_rdr__pt->hlp__t.handsh_hdr__au8, 4));
   FLEA_THR_FIN_SEC_empty();
 }
 
