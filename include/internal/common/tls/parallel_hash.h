@@ -35,7 +35,7 @@ flea_err_t THR_flea_tls_parallel_hash_ctx_t__ctor(
   flea_u8_t                     hashes_ids_len__u8
 );
 
-flea_err_t THR_flea_tls_parallel_hash_ctx_t__copy(
+flea_err_t THR_flea_tls_parallel_hash_ctx_t__create_hash_ctx_as_copy(
   flea_hash_ctx_t*                    hash_ctx_new__pt,
   const flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
   flea_hash_id_t                      hash_id__t
@@ -59,6 +59,12 @@ void flea_tls_parallel_hash_ctx_t__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx
 
 void flea_tls_parallel_hash_ctx_t__stop_update_for_all_but_one(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
+  flea_hash_id_t                hash_id__t
+);
+
+flea_err_t THR_flea_tls_parallel_hash_ctx_t__select_hash_ctx(
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
+  flea_hash_ctx_t**             hash_ctx__ppt,
   flea_hash_id_t                hash_id__t
 );
 

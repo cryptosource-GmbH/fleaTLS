@@ -41,9 +41,7 @@ flea_err_t THR_flea_tls_parallel_hash_ctx_t__ctor(
   FLEA_THR_FIN_SEC_empty();
 }
 
-/* TODO (FS): sollte in etwa heissen: __create_hash_ctx_as_copy
- * damit klar ist, dass dies sozusagen einen ctor für hash_ctx_t darstellt. */
-flea_err_t THR_flea_tls_parallel_hash_ctx_t__copy(
+flea_err_t THR_flea_tls_parallel_hash_ctx_t__create_hash_ctx_as_copy(
   flea_hash_ctx_t*                    hash_ctx_new__pt,
   const flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
   flea_hash_id_t                      hash_id__t
@@ -138,10 +136,32 @@ void flea_tls_parallel_hash_ctx_t__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx
   {
     flea_hash_ctx_t__dtor(&p_hash_ctx->hash_ctx__pt[i]);
   }
-  /* eher FREE_MEM_CHK_NULL */
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_NULL(p_hash_ctx->hash_ctx__pt);
 # endif
+}
+
+flea_err_t THR_flea_tls_parallel_hash_ctx_t__select_hash_ctx(
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
+  flea_hash_ctx_t**             hash_ctx__ppt,
+  flea_hash_id_t                hash_id__t
+)
+{
+  FLEA_THR_BEG_FUNC();
+  *hash_ctx__ppt = 0;
+  for(flea_u8_t i = 0; i < p_hash_ctx__pt->num_hash_ctx__u8; i++)
+  {
+    if(hash_id__t == flea_hash_ctx_t__get_hash_id(&p_hash_ctx__pt->hash_ctx__pt[i]))
+    {
+      *hash_ctx__ppt = &p_hash_ctx__pt->hash_ctx__pt[i];
+      break;
+    }
+  }
+  if(!(*hash_ctx__ppt))
+  {
+    FLEA_THROW("hash id not matching", FLEA_ERR_INV_ARG);
+  }
+  FLEA_THR_FIN_SEC_empty();
 }
 
 #endif /* ifdef FLEA_HAVE_TLS */

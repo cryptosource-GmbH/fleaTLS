@@ -648,14 +648,15 @@ static flea_err_t THR_flea_handle_handsh_msg(
         p_hash_ctx__pt,
         flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16)
       );
-
-      // TODO: exclude this from the if, its a seperate case !
-      // _____________________
-      // | FS: what is meant ?|
-      // ----------------------
     }
     hash_id__t = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
-    FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__copy(&hash_ctx_copy__t, p_hash_ctx__pt, hash_id__t));
+    FLEA_CCALL(
+      THR_flea_tls_parallel_hash_ctx_t__create_hash_ctx_as_copy(
+        &hash_ctx_copy__t,
+        p_hash_ctx__pt,
+        hash_id__t
+      )
+    );
   }
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, p_hash_ctx__pt));
 
@@ -789,8 +790,7 @@ flea_err_t THR_flea_tls__server_handshake(
   // TODO (FS): missing init of object
   flea_tls_parallel_hash_ctx_t p_hash_ctx;
   flea_hash_id_t hash_ids[] = {flea_sha256, flea_sha1, flea_sha384}; // TODO123: not hardcoded!!!!!
-  // TODO (FS): instead of "3" use FLEA_NB_ARRAY_ENTRIES()
-  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__ctor(&p_hash_ctx, hash_ids, 3));
+  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__ctor(&p_hash_ctx, hash_ids, FLEA_NB_ARRAY_ENTRIES(hash_ids)));
 
 
   flea_tls_set_tls_random(tls_ctx);

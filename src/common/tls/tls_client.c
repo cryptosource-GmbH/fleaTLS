@@ -520,6 +520,8 @@ static flea_err_t THR_flea_handle_handsh_msg(
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
   FLEA_DECL_OBJ(hash_ctx_copy__t, flea_hash_ctx_t);
   flea_hash_id_t hash_id__t;
+  flea_hash_ctx_t** hash_ctx_t_ptr__ppt;
+  flea_hash_ctx_t* hash_ctx_t_ptr__pt;
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t));
@@ -610,15 +612,17 @@ static flea_err_t THR_flea_handle_handsh_msg(
   {
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
     {
-      // TODO: actually we don't need a copy since this is the last message.
-      // Alternatively implement a 'select' method to get the pointer to the appropriate
-      // hash_ctx and use this
-      // ___________________
-      // | FS: yes, do this |
-      // -------------------
-      hash_id__t = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
-      FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__copy(&hash_ctx_copy__t, p_hash_ctx__pt, hash_id__t));
-      FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx_copy__t));
+      hash_id__t          = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
+      hash_ctx_t_ptr__pt  = &hash_ctx_copy__t;
+      hash_ctx_t_ptr__ppt = &hash_ctx_t_ptr__pt;
+      FLEA_CCALL(
+        THR_flea_tls_parallel_hash_ctx_t__select_hash_ctx(
+          p_hash_ctx__pt,
+          hash_ctx_t_ptr__ppt,
+          hash_id__t
+        )
+      );
+      FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, *hash_ctx_t_ptr__ppt));
 
       handshake_state->finished = FLEA_TRUE;
     }
@@ -666,7 +670,7 @@ flea_err_t THR_flea_tls__client_handshake(
    * ableiten können.
    */
   flea_hash_id_t hash_ids[] = {flea_sha256, flea_sha1, flea_sha384}; // TODO123: not hardcoded!!!!!
-  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__ctor(&p_hash_ctx, hash_ids, 3));
+  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__ctor(&p_hash_ctx, hash_ids, FLEA_NB_ARRAY_ENTRIES(hash_ids)));
   while(1)
   {
     // initialize handshake by sending CLIENT_HELLO

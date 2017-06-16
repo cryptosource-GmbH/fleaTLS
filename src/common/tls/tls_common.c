@@ -113,10 +113,6 @@ static flea_bool_t determine_alert_from_error(
   return FLEA_TRUE;
 }
 
-/* TODO (FS): wozu das? das funktioniert nur für GCC. Wenn es um den fehlenden
- * default Wert geht, dann fueg den einfach dazu. */
-# pragma GCC diagnostic push
-# pragma GCC diagnostic ignored "-Wswitch"
 flea_mac_id_t flea_tls__map_hmac_to_hash(flea_hash_id_t hash)
 {
   flea_mac_id_t hmac;
@@ -131,12 +127,11 @@ flea_mac_id_t flea_tls__map_hmac_to_hash(flea_hash_id_t hash)
         break;
       case flea_sha512: hmac = flea_hmac_sha512;
         break;
+      default:
+        break;
   }
   return hmac;
 }
-
-# pragma GCC diagnostic pop
-
 
 typedef struct
 {
