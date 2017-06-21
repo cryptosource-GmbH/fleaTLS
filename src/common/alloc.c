@@ -17,8 +17,8 @@ flea_err_t THR_flea_alloc__realloc_mem(
   void* orig__pv = *mem_in_out__ppv;
 
   FLEA_ALLOC_MEM(new_mem__pv, new_size__u32);
+  memset(((flea_u8_t*) new_mem__pv) + orig_size__u32, 0, new_size__u32 - orig_size__u32);
   memcpy(new_mem__pv, orig__pv, orig_size__u32);
-
   FLEA_FREE_MEM(orig__pv);
   *mem_in_out__ppv = new_mem__pv;
 

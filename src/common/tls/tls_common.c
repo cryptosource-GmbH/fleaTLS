@@ -295,12 +295,10 @@ flea_err_t THR_flea_tls__generate_key_block(
   FLEA_THR_BEG_FUNC();
   // TODO: MUST BE ABSTRACT BUF:
   flea_u8_t seed[64];
-  // memcpy(seed, tls_ctx->security_parameters.server_random.gmt_unix_time, 4);
-  // memcpy(seed + 4, tls_ctx->security_parameters.server_random.random_bytes, 28);
-  // memcpy(seed, tls_ctx->security_parameters.server_random, 32);
-  // memcpy(seed + 32, tls_ctx->security_parameters.client_random.gmt_unix_time, 4);
-  // memcpy(seed + 36, tls_ctx->security_parameters.client_random.random_bytes, 28);
-  // TODO: REDUNDANT ARRAY ?:
+  // TODO: REDUNDANT ARRAY ?( could swap values and swap them back in fin-sec,
+  // but this increases the code size) // Better: hand through 2 seed parts down
+  // to the prf, this should not effectively increase code size too much (save 2
+  // memcpy and add one function call parameter)
   memcpy(
     seed,
     security_parameters__pt->client_and_server_random + FLEA_TLS_HELLO_RANDOM_SIZE,
@@ -319,7 +317,7 @@ flea_err_t THR_flea_tls__generate_key_block(
       48,
       PRF_LABEL_KEY_EXPANSION,
       seed,
-      sizeof(seed),
+      2 * FLEA_TLS_HELLO_RANDOM_SIZE,// sizeof(seed),
       key_block_len__alu8,
       key_block,
       // flea_tls__prf_mac_id_from_suite_id(tls_ctx->selected_cipher_suite__u16)
