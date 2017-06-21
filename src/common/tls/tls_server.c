@@ -805,8 +805,9 @@ flea_err_t THR_flea_tls__server_handshake(
           // TODO: key block need not be a member => make local
           FLEA_CCALL(
             THR_flea_tls__generate_key_block(
-              // &tls_ctx->security_parameters,
-              tls_ctx,
+              tls_ctx->selected_cipher_suite__u16,
+              &tls_ctx->security_parameters,
+              // tls_ctx,
               tls_ctx->key_block,
               key_block_len__alu8
             )

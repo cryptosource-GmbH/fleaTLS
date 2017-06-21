@@ -285,10 +285,11 @@ static flea_mac_id_t flea_tls__prf_mac_id_from_suite_id(flea_tls__cipher_suite_i
  *        SecurityParameters.client_random);
  */
 flea_err_t THR_flea_tls__generate_key_block(
-  const flea_tls_ctx_t* tls_ctx,
-  // const flea_tls__security_parameters_t* security_parameters__pt,
-  flea_u8_t*            key_block,
-  flea_al_u8_t          key_block_len__alu8
+  // const flea_tls_ctx_t* tls_ctx,
+  flea_al_u16_t                          selected_cipher_suite__alu16,
+  const flea_tls__security_parameters_t* security_parameters__pt,
+  flea_u8_t*                             key_block,
+  flea_al_u8_t                           key_block_len__alu8
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -302,25 +303,27 @@ flea_err_t THR_flea_tls__generate_key_block(
   // TODO: REDUNDANT ARRAY ?:
   memcpy(
     seed,
-    tls_ctx->security_parameters.client_and_server_random + FLEA_TLS_HELLO_RANDOM_SIZE,
+    security_parameters__pt->client_and_server_random + FLEA_TLS_HELLO_RANDOM_SIZE,
     FLEA_TLS_HELLO_RANDOM_SIZE
   );
   memcpy(
     seed + FLEA_TLS_HELLO_RANDOM_SIZE,
-    tls_ctx->security_parameters.client_and_server_random,
+    security_parameters__pt->client_and_server_random,
     FLEA_TLS_HELLO_RANDOM_SIZE
   );
 
   FLEA_CCALL(
     flea_tls__prf(
-      tls_ctx->security_parameters.master_secret,
+      // tls_ctx->security_parameters.master_secret,
+      security_parameters__pt->master_secret,
       48,
       PRF_LABEL_KEY_EXPANSION,
       seed,
       sizeof(seed),
       key_block_len__alu8,
       key_block,
-      flea_tls__prf_mac_id_from_suite_id(tls_ctx->selected_cipher_suite__u16)
+      // flea_tls__prf_mac_id_from_suite_id(tls_ctx->selected_cipher_suite__u16)
+      flea_tls__prf_mac_id_from_suite_id(selected_cipher_suite__alu16)
     )
   );
   FLEA_THR_FIN_SEC_empty();
