@@ -105,8 +105,8 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
 void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state);
 
 flea_err_t THR_flea_tls__create_master_secret(
-  Random                      client_hello_random,
-  Random                      server_hello_random,
+  const flea_u8_t*            client_and_server_random,
+  // const flea_u8_t * server_hello_random,
   // flea_u8_t* pre_master_secret,
   flea_byte_vec_t*            premaster_secret__pt,
   flea_u8_t*                  master_secret_res,

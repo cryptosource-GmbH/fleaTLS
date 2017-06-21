@@ -65,18 +65,19 @@ flea_err_t THR_flea_tls__read_client_hello(
 
   // read random
   // TODO: CHECK HOW TIME IS TO BE USED AND THEN ENCODE IT CORRECTLY
+
+  /*  FLEA_CCALL(
+   *  THR_flea_rw_stream_t__read_full(
+   *    hs_rd_stream__pt,
+   *    tls_ctx->security_parameters.client_random.gmt_unix_time,
+   *    4
+   *  )
+   * );*/
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
-      tls_ctx->security_parameters.client_random.gmt_unix_time,
-      4
-    )
-  );
-  FLEA_CCALL(
-    THR_flea_rw_stream_t__read_full(
-      hs_rd_stream__pt,
-      tls_ctx->security_parameters.client_random.random_bytes,
-      28
+      tls_ctx->security_parameters.client_and_server_random,
+      32
     )
   );
 
@@ -256,20 +257,23 @@ static flea_err_t THR_flea_tls__send_server_hello(
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.major, 1));
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.minor, 1));
 
+  /*FLEA_CCALL(
+   * THR_flea_tls__send_handshake_message_content(
+   *  &tls_ctx->rec_prot__t,
+   *  hash_ctx,
+   *  tls_ctx->security_parameters.server_random.gmt_unix_time,
+   *  sizeof(tls_ctx->security_parameters.server_random.gmt_unix_time)
+   * )
+   * );*/
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx->rec_prot__t,
       hash_ctx,
-      tls_ctx->security_parameters.server_random.gmt_unix_time,
-      sizeof(tls_ctx->security_parameters.server_random.gmt_unix_time)
-    )
-  );
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx->rec_prot__t,
-      hash_ctx,
-      tls_ctx->security_parameters.server_random.random_bytes,
-      sizeof(tls_ctx->security_parameters.server_random.random_bytes)
+
+      /*tls_ctx->security_parameters.server_random.random_bytes,
+       * sizeof(tls_ctx->security_parameters.server_random.random_bytes)*/
+      tls_ctx->security_parameters.client_and_server_random + FLEA_TLS_HELLO_RANDOM_SIZE,
+      FLEA_TLS_HELLO_RANDOM_SIZE
     )
   );
 
@@ -782,8 +786,10 @@ flea_err_t THR_flea_tls__server_handshake(
           // setup key material
           FLEA_CCALL(
             THR_flea_tls__create_master_secret(
-              tls_ctx->security_parameters.client_random,
-              tls_ctx->security_parameters.server_random,
+              tls_ctx->security_parameters.client_and_server_random,
+
+              /* tls_ctx->security_parameters.client_random,
+               * tls_ctx->security_parameters.server_random,*/
               &premaster_secret__t,
               // tls_ctx->premaster_secret,
               tls_ctx->security_parameters.master_secret,

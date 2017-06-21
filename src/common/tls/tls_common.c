@@ -292,11 +292,24 @@ flea_err_t THR_flea_tls__generate_key_block(
 )
 {
   FLEA_THR_BEG_FUNC();
+  // TODO: MUST BE ABSTRACT BUF:
   flea_u8_t seed[64];
-  memcpy(seed, tls_ctx->security_parameters.server_random.gmt_unix_time, 4);
-  memcpy(seed + 4, tls_ctx->security_parameters.server_random.random_bytes, 28);
-  memcpy(seed + 32, tls_ctx->security_parameters.client_random.gmt_unix_time, 4);
-  memcpy(seed + 36, tls_ctx->security_parameters.client_random.random_bytes, 28);
+  // memcpy(seed, tls_ctx->security_parameters.server_random.gmt_unix_time, 4);
+  // memcpy(seed + 4, tls_ctx->security_parameters.server_random.random_bytes, 28);
+  // memcpy(seed, tls_ctx->security_parameters.server_random, 32);
+  // memcpy(seed + 32, tls_ctx->security_parameters.client_random.gmt_unix_time, 4);
+  // memcpy(seed + 36, tls_ctx->security_parameters.client_random.random_bytes, 28);
+  // TODO: REDUNDANT ARRAY ?:
+  memcpy(
+    seed,
+    tls_ctx->security_parameters.client_and_server_random + FLEA_TLS_HELLO_RANDOM_SIZE,
+    FLEA_TLS_HELLO_RANDOM_SIZE
+  );
+  memcpy(
+    seed + FLEA_TLS_HELLO_RANDOM_SIZE,
+    tls_ctx->security_parameters.client_and_server_random,
+    FLEA_TLS_HELLO_RANDOM_SIZE
+  );
 
   FLEA_CCALL(
     flea_tls__prf(
@@ -311,7 +324,7 @@ flea_err_t THR_flea_tls__generate_key_block(
     )
   );
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls__generate_key_block */
 
 flea_err_t THR_flea_tls__handle_tls_error(
   flea_tls_rec_prot_t* rec_prot__pt,
@@ -566,8 +579,11 @@ flea_err_t THR_flea_tls__send_handshake_message_hdr(
  *    [0..47];
  */
 flea_err_t THR_flea_tls__create_master_secret(
-  Random                      client_hello_random,
-  Random                      server_hello_random,
+  const flea_u8_t*            client_and_server_hello_random,
+  // const flea_u8_t * server_hello_random,
+
+  /*Random                      client_hello_random,
+   *  Random                      server_hello_random,*/
   // flea_u8_t* pre_master_secret,
   flea_byte_vec_t*            premaster_secret__pt,
   flea_u8_t*                  master_secret_res,
@@ -578,10 +594,13 @@ flea_err_t THR_flea_tls__create_master_secret(
   FLEA_THR_BEG_FUNC();
   FLEA_ALLOC_BUF(random_seed__bu8, 64);
   // flea_u8_t random_seed[64];
-  memcpy(random_seed__bu8, client_hello_random.gmt_unix_time, 4);
-  memcpy(random_seed__bu8 + 4, client_hello_random.random_bytes, 28);
-  memcpy(random_seed__bu8 + 32, server_hello_random.gmt_unix_time, 4);
-  memcpy(random_seed__bu8 + 36, server_hello_random.random_bytes, 28);
+  // memcpy(random_seed__bu8, client_hello_random.gmt_unix_time, 4);
+  // memcpy(random_seed__bu8 + 4, client_hello_random.random_bytes, 28);
+  // memcpy(random_seed__bu8, client_hello_random, 32);
+  // memcpy(random_seed__bu8 + 32, server_hello_random.gmt_unix_time, 4);
+  // memcpy(random_seed__bu8 + 36, server_hello_random.random_bytes, 28);
+  // TODO: REDUNDANT ARRAY
+  memcpy(random_seed__bu8, client_and_server_hello_random, 64);
 
   // pre_master_secret is 48 bytes, master_secret is desired to be 48 bytes
   // FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, 48));
@@ -1034,12 +1053,15 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
 
 void flea_tls_set_tls_random(flea_tls_ctx_t* ctx__pt)
 {
+# if 0
   flea_rng__randomize(ctx__pt->security_parameters.client_random.gmt_unix_time, 4); // TODO: check RFC for correct implementation - actual time?
   flea_rng__randomize(ctx__pt->security_parameters.client_random.random_bytes, 28);
 
   /* set server random */
   flea_rng__randomize(ctx__pt->security_parameters.server_random.gmt_unix_time, 4);
   flea_rng__randomize(ctx__pt->security_parameters.server_random.random_bytes, 28);
+# endif
+  flea_rng__randomize(ctx__pt->security_parameters.client_and_server_random, 2 * FLEA_TLS_HELLO_RANDOM_SIZE);
 }
 
 flea_bool_t flea_tls_ctx_t__do_send_sec_reneg_ext(flea_tls_ctx_t* tls_ctx__pt)

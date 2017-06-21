@@ -15,6 +15,7 @@
 #include "flea/util.h"
 #include "flea/cert_store.h"
 #include "internal/common/hostn_ver_int.h"
+#include "internal/common/tls/tls_int.h"
 
 #ifdef FLEA_HAVE_TLS
 # ifdef __cplusplus
@@ -68,11 +69,11 @@ typedef struct
   flea_u8_t*                   data;
 } Record;
 
-typedef struct
-{
-  flea_u8_t gmt_unix_time[4];
-  flea_u8_t random_bytes[28];
-} Random;
+/*typedef struct
+ * {
+ * //flea_u8_t gmt_unix_time[4];
+ * flea_u8_t random_bytes[32];
+ * } Random;*/
 
 
 // TODO: Extensions
@@ -146,9 +147,10 @@ typedef struct
    * flea_u8_t mac_key_length;*/
   // CompressionMethod *compression_methods; /* Pool of compression methods that can be negotiated. Priority (in case of server): Prefer first over second and so on */
   // flea_u32_t        compression_methods_len;
-  flea_u8_t master_secret[48]; /* symmetric keys are derived from this */
-  Random    client_random;     /* random value that the client sends */
-  Random    server_random;     /* random value that the server sends */
+  // TODO: MAKE ABSTRACT BUFS:
+  flea_u8_t master_secret[48];                                         /* symmetric keys are derived from this */
+  flea_u8_t client_and_server_random [2 * FLEA_TLS_HELLO_RANDOM_SIZE]; /* random value that the client sends */
+  // flea_u8_t server_random [32];     /* random value that the server sends */
 } flea_tls__security_parameters_t;
 
 /*typedef struct
