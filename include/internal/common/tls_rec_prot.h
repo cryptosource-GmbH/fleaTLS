@@ -7,7 +7,9 @@
 #include "flea/error.h"
 #include "internal/common/tls_ciph_suite.h"
 #include "internal/common/tls_conn_state.h"
+#include "internal/common/tls/tls_int.h"
 #include "flea/rw_stream.h"
+#include "flea/tls_session_mngr.h"
 
 typedef enum
 {
@@ -19,7 +21,6 @@ typedef enum
 extern "C" {
 #endif
 
-typedef enum { flea_tls_write, flea_tls_read } flea_tls_stream_dir_e;
 
 typedef struct
 {

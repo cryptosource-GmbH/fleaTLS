@@ -65,18 +65,19 @@ flea_err_t THR_flea_tls__read_client_hello(
 
   // read random
   // TODO: CHECK HOW TIME IS TO BE USED AND THEN ENCODE IT CORRECTLY
+
+  /*  FLEA_CCALL(
+   *  THR_flea_rw_stream_t__read_full(
+   *    hs_rd_stream__pt,
+   *    tls_ctx->security_parameters.client_random.gmt_unix_time,
+   *    4
+   *  )
+   * );*/
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
-      tls_ctx->security_parameters.client_random.gmt_unix_time,
-      4
-    )
-  );
-  FLEA_CCALL(
-    THR_flea_rw_stream_t__read_full(
-      hs_rd_stream__pt,
-      tls_ctx->security_parameters.client_random.random_bytes,
-      28
+      tls_ctx->security_parameters.client_and_server_random,
+      32
     )
   );
 
@@ -256,20 +257,23 @@ static flea_err_t THR_flea_tls__send_server_hello(
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.major, 1));
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, &tls_ctx->version.minor, 1));
 
+  /*FLEA_CCALL(
+   * THR_flea_tls__send_handshake_message_content(
+   *  &tls_ctx->rec_prot__t,
+   *  hash_ctx,
+   *  tls_ctx->security_parameters.server_random.gmt_unix_time,
+   *  sizeof(tls_ctx->security_parameters.server_random.gmt_unix_time)
+   * )
+   * );*/
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx->rec_prot__t,
       hash_ctx,
-      tls_ctx->security_parameters.server_random.gmt_unix_time,
-      sizeof(tls_ctx->security_parameters.server_random.gmt_unix_time)
-    )
-  );
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx->rec_prot__t,
-      hash_ctx,
-      tls_ctx->security_parameters.server_random.random_bytes,
-      sizeof(tls_ctx->security_parameters.server_random.random_bytes)
+
+      /*tls_ctx->security_parameters.server_random.random_bytes,
+       * sizeof(tls_ctx->security_parameters.server_random.random_bytes)*/
+      tls_ctx->security_parameters.client_and_server_random + FLEA_TLS_HELLO_RANDOM_SIZE,
+      FLEA_TLS_HELLO_RANDOM_SIZE
     )
   );
 
@@ -782,8 +786,10 @@ flea_err_t THR_flea_tls__server_handshake(
           // setup key material
           FLEA_CCALL(
             THR_flea_tls__create_master_secret(
-              tls_ctx->security_parameters.client_random,
-              tls_ctx->security_parameters.server_random,
+              tls_ctx->security_parameters.client_and_server_random,
+
+              /* tls_ctx->security_parameters.client_random,
+               * tls_ctx->security_parameters.server_random,*/
               &premaster_secret__t,
               // tls_ctx->premaster_secret,
               tls_ctx->security_parameters.master_secret,
@@ -799,8 +805,9 @@ flea_err_t THR_flea_tls__server_handshake(
           // TODO: key block need not be a member => make local
           FLEA_CCALL(
             THR_flea_tls__generate_key_block(
-              // &tls_ctx->security_parameters,
-              tls_ctx,
+              tls_ctx->selected_cipher_suite__u16,
+              &tls_ctx->security_parameters,
+              // tls_ctx,
               tls_ctx->key_block,
               key_block_len__alu8
             )
@@ -936,9 +943,10 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   tls_ctx__pt->trust_store__pt    = trust_store__pt;
   tls_ctx__pt->allowed_cipher_suites__prcu16      = allowed_cipher_suites__prcu16;
   tls_ctx__pt->security_parameters.connection_end = FLEA_TLS_SERVER;
-  FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt, NULL, 0));
+  tls_ctx__pt->client_session_mbn__pt = NULL;
+  FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt));
   err__t = THR_flea_tls__server_handshake(tls_ctx__pt, FLEA_FALSE);
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t));
   FLEA_THR_FIN_SEC_empty();
 }
 

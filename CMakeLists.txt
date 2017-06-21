@@ -20,7 +20,7 @@ SET(MINOR_VERSION 1)
 SET(PATCH_VERSION 0)
 
 SET(CMAKE_C_FLAGS "-std=c99 -pedantic")
-SET(CMAKE_CXX_FLAGS "-std=c++11 -pedantic")
+SET(CMAKE_CXX_FLAGS "-std=c++11 ")
 
 
 ADD_DEFINITIONS( 
