@@ -77,7 +77,7 @@ flea_u32_t flea__decode_U32_BE(const flea_u8_t enc[4]);
  *
  * @return the big endian decoded value of the input data
  */
-flea_u16_t flea__decode_U16_BE(flea_u8_t enc[2]);
+flea_u16_t flea__decode_U16_BE(const flea_u8_t enc[2]);
 
 
 /**

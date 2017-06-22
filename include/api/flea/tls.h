@@ -17,6 +17,7 @@
 #include "internal/common/hostn_ver_int.h"
 #include "internal/common/tls/tls_int.h"
 #include "flea/tls_session_mngr.h"
+#include "flea/tls_client_session.h"
 
 #ifdef FLEA_HAVE_TLS
 # ifdef __cplusplus

@@ -2,6 +2,7 @@
 #include "flea/error_handling.h"
 #include "flea/error.h"
 #include "flea/alloc.h"
+#include "flea/bin_utils.h"
 
 #define FLEA_TLS_SESSION_MNGR_INITIAL_ALLOC_SESSIONS  2
 #define FLEA_TLS_SESSION_MNGR_PREALLOC_ALLOC_SESSIONS 2

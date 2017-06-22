@@ -4,33 +4,15 @@
 #include "internal/common/default.h"
 #include "flea/types.h"
 #include "internal/common/tls/tls_int.h"
+#include "internal/common/tls/tls_session_int.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define FLEA_CONST_TLS_SESSION_ID_MAX_LEN 32
 
 // TODO: SPLIT STANDALONE SESSION (FOR CLIENT)  AND MNGR (FOR SERVER)
-typedef struct
-{
-  // #ifdef FLEA_USE_STACK_BUF
-  // #else
-  // flea_u8_t *session_id__bu8;
-  // #endif
-  flea_u16_t cipher_suite_id__u16;
-  flea_u32_t rd_sequence_number__au32[2];
-  flea_u32_t wr_sequence_number__au32[2];
-  flea_u8_t  master_secret__au8[48];
-} flea_tls_session_data_t;
 
-typedef struct
-{
-  flea_tls_session_data_t session__t;
-  flea_u8_t               session_id__au8[FLEA_CONST_TLS_SESSION_ID_MAX_LEN];
-  flea_u8_t               session_id_len__u8;
-  flea_u8_t               for_resumption__u8;
-} flea_tls_client_session_t;
 
 typedef struct
 {
@@ -81,6 +63,7 @@ flea_tls_session_entry_t* flea_tls_session_mngr_t__session_cache_lookup(
 );
 
 void flea_tls_session_data_t__invalidate_session(flea_tls_session_data_t* session__pt);
+
 
 #ifdef __cplusplus
 }

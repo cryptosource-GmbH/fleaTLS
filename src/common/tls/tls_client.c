@@ -164,6 +164,10 @@ static flea_err_t THR_flea_tls__send_client_hello(
     /* extension length field */
     len += 2;
   }
+  if(session_mbn__pt && flea_tls_session_data_t__is_valid_session(&session_mbn__pt->session__t))
+  {
+    len += session_mbn__pt->session_id_len__u8 + 1;
+  }
 
   // calculate length for the header
   // TODO: include session id in the calculation (the 0 at 3rd place)
