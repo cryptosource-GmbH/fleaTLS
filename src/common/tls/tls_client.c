@@ -217,7 +217,7 @@ static flea_err_t THR_flea_tls__send_client_hello(
       THR_flea_tls__send_handshake_message_int_be(
         &tls_ctx->rec_prot__t,
         hash_ctx,
-        FLEA_TLS_SESSION_ID_LEN,
+        session_mbn__pt->session_id_len__u8,
         1
       )
     );
