@@ -37,7 +37,7 @@
 #include "flea/cert_store.h"
 #include "flea/byte_vec.h"
 #include "internal/common/tls_ciph_suite.h"
-
+#include "flea/tls_session_mngr.h"
 #include "internal/pltf_if/time.h"
 
 #ifdef FLEA_HAVE_TLS
@@ -327,9 +327,22 @@ flea_err_t THR_flea_tls__generate_key_block(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__generate_key_block */
 
+void flea_tls_ctx_t__invalidate_session(flea_tls_ctx_t* tls_ctx__pt)
+{
+  if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT && tls_ctx__pt->client_session_mbn__pt)
+  {
+    flea_tls_session_data_t__invalidate_session(&tls_ctx__pt->client_session_mbn__pt->session__t);
+  }
+  else
+  {
+    // TODO: server
+  }
+}
+
 flea_err_t THR_flea_tls__handle_tls_error(
-  flea_tls_rec_prot_t* rec_prot__pt,
-  flea_err_t           err__t
+  // flea_tls_rec_prot_t* rec_prot__pt,
+  flea_tls_ctx_t* tls_ctx__pt,
+  flea_err_t      err__t
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -339,7 +352,8 @@ flea_err_t THR_flea_tls__handle_tls_error(
     flea_bool_t do_send_alert__b = determine_alert_from_error(err__t, &alert_desc__e);
     if(do_send_alert__b)
     {
-      FLEA_CCALL(THR_flea_tls_rec_prot_t__send_fatal_alert_and_throw(rec_prot__pt, alert_desc__e, err__t));
+      flea_tls_ctx_t__invalidate_session(tls_ctx__pt);
+      FLEA_CCALL(THR_flea_tls_rec_prot_t__send_fatal_alert_and_throw(&tls_ctx__pt->rec_prot__t, alert_desc__e, err__t));
     }
   }
   FLEA_THR_FIN_SEC_empty();
@@ -627,9 +641,7 @@ flea_err_t THR_flea_tls__create_master_secret(
 // TODO: ctor = handshake function
 flea_err_t THR_flea_tls_ctx_t__construction_helper(
   flea_tls_ctx_t*   ctx,
-  flea_rw_stream_t* rw_stream__pt,
-  const flea_u8_t*  session_id,
-  flea_al_u8_t      session_id_len
+  flea_rw_stream_t* rw_stream__pt
 )
 {
   flea_al_u8_t sec_reneg_field_size__alu8 = 12;
@@ -659,19 +671,20 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
   ctx->selected_cipher_suite__u16 = FLEA_TLS_NULL_WITH_NULL_NULL;
 
   /* set SessionID */
-  if(session_id_len > 32)
-  {
-    FLEA_THROW("session id too large", FLEA_ERR_TLS_GENERIC);
-  }
-  memcpy(&ctx->session_id, session_id, session_id_len);
-  ctx->session_id_len = session_id_len;
+
+  /*if(session_id_len > 32)
+   * {
+   * FLEA_THROW("session id too large", FLEA_ERR_TLS_GENERIC);
+   * }*/
+  // memcpy(&ctx->session_id, session_id, session_id_len);
+  // ctx->session_id_len = session_id_len;
 
   /* set client_random */
   // TODO: do we need these parameters in the ctx? everything only needed during
   // handshake should be local to that function
   //
 
-  ctx->resumption = FLEA_FALSE;
+  // ctx->resumption = FLEA_FALSE;
 
 # if 0
 #  ifdef FLEA_USE_HEAP_BUF
@@ -905,7 +918,7 @@ flea_err_t THR_flea_tls_ctx_t__send_app_data(
   FLEA_THR_BEG_FUNC();
   err__t = THR_flea_tls_ctx_t__send_app_data_inner(tls_ctx__pt, data, data_len);
 
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t));
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -997,7 +1010,7 @@ flea_err_t THR_flea_tls_ctx_t__read_app_data(
   FLEA_THR_BEG_FUNC();
   err__t = THR_flea_tls_ctx_t__read_app_data_inner(tls_ctx__pt, data__pu8, data_len__palu16, rd_mode__e);
 
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t));
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -1028,11 +1041,11 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   flea_tls_set_tls_random(tls_ctx__pt);
 
   flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey); // TODO: does this really need to be part of the ctx?
-  tls_ctx__pt->resumption = FLEA_FALSE;
+  // tls_ctx__pt->resumption = FLEA_FALSE;
   // TODO: discard pending read (/ flush pending write (done automatically))
   if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT)
   {
-    err__t = THR_flea_tls__client_handshake(tls_ctx__pt, FLEA_TRUE);
+    err__t = THR_flea_tls__client_handshake(tls_ctx__pt, FLEA_TRUE, tls_ctx__pt->client_session_mbn__pt);
   }
   else
   {
@@ -1047,7 +1060,7 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
     );
     err__t = THR_flea_tls__server_handshake(tls_ctx__pt, FLEA_TRUE);
   }
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t));
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__renegotiate */
@@ -1292,6 +1305,14 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
 {
   flea_tls_rec_prot_t__dtor(&tls_ctx__pt->rec_prot__t);
   flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey);
+  if(tls_ctx__pt->client_session_mbn__pt && tls_ctx__pt->client_session_mbn__pt->session_id_len__u8)
+  {
+    flea_tls_session_data_t__set_seqs(
+      &tls_ctx__pt->client_session_mbn__pt->session__t,
+      tls_ctx__pt->rec_prot__t.read_state__t.sequence_number__au32,
+      tls_ctx__pt->rec_prot__t.write_state__t.sequence_number__au32
+    );
+  }
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_NULL(tls_ctx__pt->own_vfy_data__bu8);
 # endif

@@ -943,9 +943,10 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   tls_ctx__pt->trust_store__pt    = trust_store__pt;
   tls_ctx__pt->allowed_cipher_suites__prcu16      = allowed_cipher_suites__prcu16;
   tls_ctx__pt->security_parameters.connection_end = FLEA_TLS_SERVER;
-  FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt, NULL, 0));
+  tls_ctx__pt->client_session_mbn__pt = NULL;
+  FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt));
   err__t = THR_flea_tls__server_handshake(tls_ctx__pt, FLEA_FALSE);
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t));
   FLEA_THR_FIN_SEC_empty();
 }
 
