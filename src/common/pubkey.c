@@ -16,6 +16,24 @@
 #include "flea/mem_read_stream.h"
 
 #ifdef FLEA_HAVE_ASYM_ALGS
+
+flea_ref_cu8_t flea_public_key__get_encoded_public_component(flea_public_key_t* pk)
+{
+  flea_ref_cu8_t ref__cu8;
+
+  if(pk->key_type__t == flea_ecc_key)
+  {
+    ref__cu8.data__pcu8 = pk->pubkey_with_params__u.ec_public_val__t.public_point_encoded__rcu8.data__pu8;
+    ref__cu8.len__dtl   = pk->pubkey_with_params__u.ec_public_val__t.public_point_encoded__rcu8.len__dtl;
+  }
+  else if(pk->key_type__t == flea_rsa_key)
+  {
+    ref__cu8.data__pcu8 = pk->pubkey_with_params__u.rsa_public_val__t.mod__rcu8.data__pcu8;
+    ref__cu8.len__dtl   = pk->pubkey_with_params__u.rsa_public_val__t.mod__rcu8.len__dtl;
+  }
+  return ref__cu8;
+}
+
 //
 /* ANSI X9.62 Elliptic Curve Digital Signature Algorithm (ECDSA) algorithm with Secure Hash Algorithm, revision 2 (SHA2)  */
 const flea_u8_t ecdsa_oid_prefix__acu8[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04};

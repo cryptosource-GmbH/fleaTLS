@@ -421,8 +421,8 @@ static flea_err_t THR_flea_tls__send_cert_verify(
   flea_u8_t sig_alg  = 1; // rsa    // make generic / derive from cert (?)
   flea_u32_t hdr_len__u32;
   flea_u8_t sig_len_enc__u8[2];
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(message_vec__t, 32); // TODO
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, 256);    // TODO
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(message_vec__t, 32); // TODO MAX_HASH_SIZE
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, 256);    // TODO MAX_SIG_SIZE
   flea_u8_t hash_len__u8;
 
   FLEA_THR_BEG_FUNC();

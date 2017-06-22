@@ -199,6 +199,7 @@
 # define FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256
 # define FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
 # define FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384
+# define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
 
 /**
  * Relevant only in stack mode. Maximal size of public key parameters object in

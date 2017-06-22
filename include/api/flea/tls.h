@@ -15,6 +15,7 @@
 #include "flea/util.h"
 #include "flea/cert_store.h"
 #include "internal/common/hostn_ver_int.h"
+#include "flea/pk_api.h"
 
 #ifdef FLEA_HAVE_TLS
 # ifdef __cplusplus
@@ -226,6 +227,10 @@ typedef struct
   flea_revoc_chk_cfg_t           rev_chk_cfg__t;
   flea_u8_t                      sec_reneg_flag__u8;
   // flea_u8_t                      client_has_sec_reneg__u8;
+
+  flea_private_key_t             ecdhe_priv_key;
+  flea_public_key_t              ecdhe_pub_key;
+
 # ifdef FLEA_USE_HEAP_BUF
   flea_u8_t*                     own_vfy_data__bu8;
   flea_u8_t*                     peer_vfy_data__bu8;

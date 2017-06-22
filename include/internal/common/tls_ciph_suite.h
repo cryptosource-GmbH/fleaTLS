@@ -20,17 +20,19 @@ typedef enum
 
 typedef enum
 {
-  FLEA_TLS_NULL_WITH_NULL_NULL           = 0x0000,
+  FLEA_TLS_NULL_WITH_NULL_NULL            = 0x0000,
   // FLEA_TLS_RSA_WITH_NULL_SHA           = 0x0002,
-  FLEA_TLS_RSA_WITH_NULL_SHA256          = 0x003B,
+  FLEA_TLS_RSA_WITH_NULL_SHA256           = 0x003B,
   // FLEA_TLS_RSA_WITH_3DES_EDE_CBC_SHA   = 0x000A,
-  FLEA_TLS_RSA_WITH_AES_128_CBC_SHA      = 0x002F,
-  FLEA_TLS_RSA_WITH_AES_256_CBC_SHA      = 0x0035,
-  FLEA_TLS_RSA_WITH_AES_128_CBC_SHA256   = 0x003C,
-  FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256   = 0x003D,
-  FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256   = 0x009C,
-  FLEA_TLS_RSA_WITH_AES_256_GCM_SHA384   = 0x009D,
-  FLEA_TLS_EMPTY_RENEGOTIATION_INFO_SCSV = 0x00FF,
+  FLEA_TLS_RSA_WITH_AES_128_CBC_SHA       = 0x002F,
+  FLEA_TLS_RSA_WITH_AES_256_CBC_SHA       = 0x0035,
+  FLEA_TLS_RSA_WITH_AES_128_CBC_SHA256    = 0x003C,
+  FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256    = 0x003D,
+  FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256    = 0x009C,
+  FLEA_TLS_RSA_WITH_AES_256_GCM_SHA384    = 0x009D,
+  FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA = 0xC013,
+
+  FLEA_TLS_EMPTY_RENEGOTIATION_INFO_SCSV  = 0x00FF,
 } flea_tls__cipher_suite_id_t;
 
 #define FLEA_TLS_NO_CIPHER 0
@@ -39,6 +41,12 @@ typedef enum
 #define FLEA_TLS_IS_AE_CIPHER(enc)    ((1 << 7) & enc)
 #define FLEA_TLS_IS_BLOCK_CIPHER(enc) (!((1 << 7) & enc))
 #define FLEA_TLS_CIPHER_RAW_ID(enc)   (enc & 0x7F)
+
+typedef enum
+{
+  FLEA_TLS_KEX_RSA,
+  FLEA_TLS_KEX_ECDHE,
+} flea_tls__kex_method_t;
 
 typedef struct
 {
@@ -68,6 +76,8 @@ flea_err_t THR_flea_tls_get_cipher_suite_by_id(
 );
 
 flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
+
+flea_tls__kex_method_t flea_tls_get_kex_method_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
 
 flea_err_t THR_flea_tls_get_key_block_len_from_cipher_suite_id(
   flea_tls__cipher_suite_id_t id,

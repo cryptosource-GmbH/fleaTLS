@@ -685,7 +685,7 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
 # endif
 
   FLEA_THR_FIN_SEC_empty();
-} /* flea_tls_ctx_t__ctor */
+} /* THR_flea_tls_ctx_t__construction_helper */
 
 flea_err_t THR_flea_tls__send_handshake_message_content(
   flea_tls_rec_prot_t*          rec_prot__pt,
@@ -1304,6 +1304,9 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
 {
   flea_tls_rec_prot_t__dtor(&tls_ctx__pt->rec_prot__t);
   flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey);
+  flea_public_key_t__dtor(&tls_ctx__pt->ecdhe_pub_key);
+  flea_private_key_t__dtor(&tls_ctx__pt->ecdhe_priv_key);
+
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_NULL(tls_ctx__pt->own_vfy_data__bu8);
 # endif

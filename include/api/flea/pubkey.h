@@ -78,6 +78,7 @@ typedef struct
 
 # endif /* FLEA_HAVE_RSA */
 
+
 typedef union
 {
 # ifdef FLEA_HAVE_RSA
@@ -96,6 +97,8 @@ typedef struct
   flea_public_key_val_with_params_u pubkey_with_params__u;
 } flea_public_key_t;
 
+
+flea_ref_cu8_t flea_public_key__get_encoded_public_component(flea_public_key_t* pk);
 
 # define flea_public_key_t__INIT_VALUE {.key_bit_size__u16 = 0}
 
