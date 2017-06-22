@@ -29,6 +29,13 @@ typedef struct
   flea_hash_id_t   update_only_hash_id__t;
 } flea_tls_parallel_hash_ctx_t;
 
+
+# define flea_tls_parallel_hash_ctx_t__INIT(__p) \
+  do {(__p)->num_hash_ctx__u8 = 0;} while(0)
+
+# define flea_tls_parallel_hash_ctx_t__INIT_VALUE \
+  {.num_hash_ctx__u8 = 0}
+
 flea_err_t THR_flea_tls_parallel_hash_ctx_t__ctor(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
   flea_hash_id_t*               hash_ids__pt,
@@ -62,6 +69,7 @@ void flea_tls_parallel_hash_ctx_t__stop_update_for_all_but_one(
   flea_hash_id_t                hash_id__t
 );
 
+// get pointer to hash_ctx with corresponding hash_id
 flea_err_t THR_flea_tls_parallel_hash_ctx_t__select_hash_ctx(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
   flea_hash_ctx_t**             hash_ctx__ppt,

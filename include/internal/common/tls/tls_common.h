@@ -87,6 +87,7 @@ typedef enum
 }
 # endif
 # define FLEA_TLS_SEC_RENEG_FINISHED_SIZE 12
+# define FLEA_TLS_VERIFY_DATA_SIZE        12
 flea_err_t THR_flea_tls__send_change_cipher_spec(
   flea_tls_ctx_t* tls_ctx
 );

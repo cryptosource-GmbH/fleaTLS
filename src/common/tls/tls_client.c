@@ -664,6 +664,7 @@ flea_err_t THR_flea_tls__client_handshake(
     sizeof(premaster_secret__au8)
     );
 # endif
+  flea_tls_parallel_hash_ctx_t__INIT(&p_hash_ctx);
 
   /** TODO (FS): lass uns besprechen was die Kriterien für die Hash-Funktionen
    * sind, die hier unterstützt werden müssen. Dann sehen wir, wie wir die Menge

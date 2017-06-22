@@ -23,17 +23,11 @@ flea_err_t THR_flea_tls_parallel_hash_ctx_t__ctor(
   {
     FLEA_THROW("too many hash algorithms for this configuration", FLEA_ERR_INV_ARG);
   }
-  p_hash_ctx->num_hash_ctx__u8 = hash_ids_len__u8;
 
   for(flea_u8_t i = 0; i < hash_ids_len__u8; i++)
   {
-    // TODO (FS): wichtig ist, dass der Destruktor mit jedem Zwischenzustand
-    // auch nach einem fehlerhaften ctor-Aufruf klarkommt, d.h. genau erkenne
-    // kann, ob er einen einzelnen hash-ctx dtor aufrufen darf oder nicht. Mir
-    // scheint, dass das derzeit noch nicht richtig modelliert ist.
-    // Sprich mich am besten darauf an, dann erkläre ich Dir das Problem und
-    // zeige Dir wie man es löst.
     flea_hash_ctx_t__INIT(&p_hash_ctx->hash_ctx__pt[i]);
+    p_hash_ctx->num_hash_ctx__u8++;
     FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&p_hash_ctx->hash_ctx__pt[i], hash_ids__pt[i]));
   }
 
@@ -130,14 +124,12 @@ flea_err_t THR_flea_tls_parallel_hash_ctx_t__final(
 
 void flea_tls_parallel_hash_ctx_t__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx)
 {
-  /* TODO (FS): wichtig: keine nicht-konstruierten hash_ctx zerstoeren (siehe
-   * oben) */
   for(flea_u8_t i = 0; i < p_hash_ctx->num_hash_ctx__u8; i++)
   {
     flea_hash_ctx_t__dtor(&p_hash_ctx->hash_ctx__pt[i]);
   }
 # ifdef FLEA_USE_HEAP_BUF
-  FLEA_FREE_MEM_CHK_NULL(p_hash_ctx->hash_ctx__pt);
+  FLEA_FREE_MEM_CHK_SET_NULL(p_hash_ctx->hash_ctx__pt);
 # endif
 }
 

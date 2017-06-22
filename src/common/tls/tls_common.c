@@ -1,17 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 
-/*
- * TODO: compute hashes for all possible hmac algorithms during handshake (?)
- * TODO: read_next_handshake_message: handle the case that one record contains more than one handshake message
- * TODO: const for input values
- * TODO: proper error handling (-> distinct errors)
- * TODO: process alerts and send alerts
- * QUESTION: do we need the structs at all? Simply save the important parts in the tls_ctx (e.g. security_parameters)
- * TODO: Cipher Suites: use new struct and array of supported ciphersuites. (see "Implementing SSL/TLS" page 340f)f
- */
-
-
 #include "internal/common/default.h"
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
@@ -380,7 +369,7 @@ flea_err_t THR_flea_tls__read_finished(
   // | FS: yes, define it as FLEA_TLS_SEC_RENEG_FINISHED_SIZE, that will be|
   // |renamed later ("_SEC_RENEG" removed)                                 |
   //  ---------------------------------------------------------------------
-  const flea_al_u8_t finished_len__alu8 = 12;
+  const flea_al_u8_t finished_len__alu8 = FLEA_TLS_VERIFY_DATA_SIZE;
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_hash_id_t hash_id__t;
   flea_u8_t hash_len__u8;
@@ -1331,37 +1320,35 @@ flea_err_t flea_tls__get_hash_id_from_tls_id(
   if(byte__u8 == 2)
   {
     *hash_id__pt = flea_sha1;
-    FLEA_THR_RETURN();
   }
-  /* TODO (FS): besser else-if Leiter statt so vieler Returns */
+  else
 # endif
 # ifdef FLEA_HAVE_SHA224_256
   if(byte__u8 == 3)
   {
     *hash_id__pt = flea_sha224;
-    FLEA_THR_RETURN();
   }
-  if(byte__u8 == 4)
+  else if(byte__u8 == 4)
   {
     *hash_id__pt = flea_sha256;
-    FLEA_THR_RETURN();
   }
+  else
 # endif /* ifdef FLEA_HAVE_SHA224_256 */
 # ifdef FLEA_HAVE_SHA384_512
   if(byte__u8 == 5)
   {
     *hash_id__pt = flea_sha384;
-    FLEA_THR_RETURN();
   }
-  if(byte__u8 == 6)
+  else if(byte__u8 == 6)
   {
     *hash_id__pt = flea_sha512;
-    FLEA_THR_RETURN();
   }
+  else
 # endif /* ifdef FLEA_HAVE_SHA384_512 */
-
-  // TODO: send some other error that does result in decode_error alert
-  FLEA_THROW("No mapping found", FLEA_ERR_INV_ARG);
+  {
+    // TODO: send some other error that does result in decode_error alert
+    FLEA_THROW("No mapping found", FLEA_ERR_INV_ARG);
+  }
   FLEA_THR_FIN_SEC_empty();
 } /* flea_tls__get_hash_id_from_tls_id */
 

@@ -787,9 +787,10 @@ flea_err_t THR_flea_tls__server_handshake(
   flea_tls__handshake_state_t handshake_state;
   flea_tls__handshake_state_ctor(&handshake_state);
 
-  // TODO (FS): missing init of object
   flea_tls_parallel_hash_ctx_t p_hash_ctx;
   flea_hash_id_t hash_ids[] = {flea_sha256, flea_sha1, flea_sha384}; // TODO123: not hardcoded!!!!!
+
+  flea_tls_parallel_hash_ctx_t__INIT(&p_hash_ctx);
   FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__ctor(&p_hash_ctx, hash_ids, FLEA_NB_ARRAY_ENTRIES(hash_ids)));
 
 
