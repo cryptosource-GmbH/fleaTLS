@@ -285,6 +285,8 @@ flea_err_t THR_flea_tls_ctx_t__send_app_data(
 
 flea_err_t THR_flea_tls_ctx_t__flush_write_app_data(flea_tls_ctx_t* tls_ctx);
 
+// TODO (FS): so eine Funktion gehört in einen internen Header, z.B.
+// tls_common.h
 flea_mac_id_t flea_tls__map_hmac_to_hash(flea_hash_id_t h);
 
 flea_err_t THR_flea_tls_ctx_t__renegotiate(
