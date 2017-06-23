@@ -128,6 +128,9 @@ void flea_tls_parallel_hash_ctx_t__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx
   {
     flea_hash_ctx_t__dtor(&p_hash_ctx->hash_ctx__pt[i]);
   }
+  // TODO (FS): da der Pointer nicht initialisert wird, darfst Du das free nur
+  // konditional machen. Meine Empfehlung ist es, auch den Pointer zu
+  // initialisieren, sonst wird es kompliziert.
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_SET_NULL(p_hash_ctx->hash_ctx__pt);
 # endif
