@@ -100,7 +100,7 @@ std::vector<flea_u8_t> parse_line(
   if(line.find(line_start) != 0)
   {
     std::cout << "line error, name = " << std::string(name) << std::endl;
-    throw std::exception();
+    throw test_utils_exceptn_t("line error, name = " + std::string(name));
   }
   std::string value = line.substr(line_start.size());
   if(value.size() % 2)
@@ -584,7 +584,6 @@ std::vector<std::vector<unsigned char> > property_set_t::get_bin_file_list_prope
   }
 
   string value = get_property_as_string(index);
-  std::cout << "value = " << value << std::endl;
 
   std::vector<string> strings = tokenize_string(value, ',');
   for(auto s : strings)

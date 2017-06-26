@@ -754,7 +754,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_gcm(
   memcpy(gcm_header__au8 + 11, enc_data_len__au8, 2);
 
   gcm_tag__pu8 = data + (data_len - gcm_tag_len__u8);
-
   FLEA_CCALL(
     THR_flea_ae__decrypt(
       rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.cipher_id,

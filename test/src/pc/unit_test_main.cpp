@@ -23,13 +23,16 @@ int main(
   flea_u32_t rnd = 0;
   property_set_t cmdl_args(argc, argv);
 
-  if(cmdl_args.have_index("random"))
+  if(!cmdl_args.have_index("deterministic"))
   {
-    printf("flea test: running randomized tests\n");
     struct timeval tv;
     gettimeofday(&tv, NULL);
     rnd = (tv.tv_sec * tv.tv_usec) ^ tv.tv_sec ^ tv.tv_usec;
     printf("rnd = %u\n", rnd);
+  }
+  else
+  {
+    printf("flea test: running deterministic tests\n");
   }
 
   if(THR_flea_lib__init() || THR_flea_rng__reseed_volatile((flea_u8_t*) &rnd, sizeof(rnd)))

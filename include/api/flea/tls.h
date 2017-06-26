@@ -228,6 +228,9 @@ typedef struct
   flea_u8_t                      peer_vfy_data__bu8[12];
 # endif
   flea_tls_client_session_t*     client_session_mbn__pt;
+  flea_tls_session_mngr_t*       session_mngr_mbn__pt;
+  flea_tls_session_entry_t*      server_active_sess_mbn__pt;
+  flea_u8_t                      server_resume_session__u8;
 } flea_tls_ctx_t;
 
 
@@ -264,7 +267,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
   flea_rev_chk_mode_e      rev_chk_mode__e,
   const flea_byte_vec_t*   crl_der__pt,
-  flea_al_u16_t            nb_crls__alu16
+  flea_al_u16_t            nb_crls__alu16,
+  flea_tls_session_mngr_t* session_mngr_mbn__pt
 );
 
 flea_err_t THR_flea_tls_ctx_t__read_app_data(

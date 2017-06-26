@@ -20,45 +20,19 @@ flea_err_t THR_flea_tls_session_mngr_t__ctor(flea_tls_session_mngr_t* session_mn
   FLEA_THR_FIN_SEC_empty();
 }
 
-void flea_tls_session_data_t__export_seq(
-  flea_tls_session_data_t const* session__pt,
-  flea_tls_stream_dir_e          dir,
-  flea_u32_t                     result__pu32[2]
-)
+void flea_tls_session_data_t__set_session_as_valid(flea_tls_session_data_t* session__pt)
 {
-  if(dir == flea_tls_write)
-  {
-    result__pu32[0] = session__pt->wr_sequence_number__au32[0];
-    result__pu32[1] = session__pt->wr_sequence_number__au32[1];
-  }
-  else
-  {
-    result__pu32[0] = session__pt->rd_sequence_number__au32[0];
-    result__pu32[1] = session__pt->rd_sequence_number__au32[1];
-  }
+  session__pt->is_valid_session__u8 = 1;
 }
 
 void flea_tls_session_data_t__invalidate_session(flea_tls_session_data_t* session__pt)
 {
-  session__pt->rd_sequence_number__au32[0] = 0;
-  session__pt->rd_sequence_number__au32[1] = 0;
-}
-
-void flea_tls_session_data_t__set_seqs(
-  flea_tls_session_data_t* session_data__pt,
-  flea_u32_t               rd_seqs[2],
-  flea_u32_t               wr_seqs[2]
-)
-{
-  session_data__pt->rd_sequence_number__au32[0] = rd_seqs[0];
-  session_data__pt->rd_sequence_number__au32[1] = rd_seqs[1];
-  session_data__pt->wr_sequence_number__au32[0] = wr_seqs[0];
-  session_data__pt->wr_sequence_number__au32[1] = wr_seqs[1];
+  session__pt->is_valid_session__u8 = 0;
 }
 
 flea_bool_t flea_tls_session_data_t__is_valid_session(const flea_tls_session_data_t* session__pt)
 {
-  return (session__pt->rd_sequence_number__au32[0] != 0 || session__pt->rd_sequence_number__au32[1] != 0);
+  return session__pt->is_valid_session__u8;
 }
 
 flea_err_t THR_flea_tls_session_mngr_t__get_free_session_slot(
@@ -67,46 +41,37 @@ flea_err_t THR_flea_tls_session_mngr_t__get_free_session_slot(
 )
 {
   flea_al_u16_t i;
-  // flea_al_u16_t min_use_cnt__alu16 = 0xFFFF;
   flea_tls_session_entry_t* least_frequently_used_session__pt;
 
   FLEA_THR_BEG_FUNC();
   for(i = 0; i < session_mngr__pt->nb_used_sessions__u16; i++)
   {
-    if(session_mngr__pt->sessions__bt[i].session__t.rd_sequence_number__au32[0] == 0 &&
-      session_mngr__pt->sessions__bt[i].session__t.rd_sequence_number__au32[1] == 0)
+    if(!flea_tls_session_data_t__is_valid_session(&session_mngr__pt->sessions__bt[i].session__t))
     {
+      session_mngr__pt->sessions__bt[i].use_cnt__u16 = 0;
       *result__ppt = &session_mngr__pt->sessions__bt[i];
       FLEA_THR_RETURN();
     }
   }
   /* no free session among used session, add one more if capacity allows it */
+  if(session_mngr__pt->nb_alloc_sessions__dtl < FLEA_TLS_MAX_NB_MNGD_SESSIONS)
+  {
+    FLEA_CCALL(
+      THR_flea_alloc__ensure_buffer_capacity(
+        (void**) &session_mngr__pt->sessions__bt,
+        &session_mngr__pt->nb_alloc_sessions__dtl,
+        session_mngr__pt->nb_used_sessions__u16,
+        1,
+        FLEA_TLS_SESSION_MNGR_PREALLOC_ALLOC_SESSIONS,
+        FLEA_TLS_MAX_NB_MNGD_SESSIONS,
+        sizeof(session_mngr__pt->sessions__bt[0])
+      )
+    );
+  }
 
-  FLEA_CCALL(
-    THR_flea_alloc__ensure_buffer_capacity(
-      (void**) &session_mngr__pt->sessions__bt,
-      &session_mngr__pt->nb_alloc_sessions__dtl,
-      session_mngr__pt->nb_used_sessions__u16,
-      1,
-      FLEA_TLS_SESSION_MNGR_PREALLOC_ALLOC_SESSIONS,
-      FLEA_TLS_MAX_NB_MNGD_SESSIONS,
-      sizeof(session_mngr__pt->sessions__bt[0])
-    )
-  );
-
-  /*FLEA_CCALL(
-   * THR_flea_alloc__ensure_buffer_capacity(
-   *  (void**) &session_mngr__pt->use_cnt__bu16,
-   *  &session_mngr__pt->nb_alloc_sessions__dtl,
-   *  session_mngr__pt->nb_used_sessions__u16,
-   *  1,
-   *  FLEA_TLS_SESSION_MNGR_PREALLOC_ALLOC_SESSIONS,
-   *  FLEA_TLS_MAX_NB_MNGD_SESSIONS,
-   *  sizeof(session_mngr__pt->use_cnt__bu16[0])
-   * )
-   * );*/
   if(session_mngr__pt->nb_used_sessions__u16 < session_mngr__pt->nb_alloc_sessions__dtl)
   {
+    session_mngr__pt->sessions__bt[session_mngr__pt->nb_used_sessions__u16].use_cnt__u16 = 0;
     *result__ppt = &session_mngr__pt->sessions__bt[session_mngr__pt->nb_used_sessions__u16];
     session_mngr__pt->nb_used_sessions__u16 += 1;
     FLEA_THR_RETURN();
@@ -117,14 +82,12 @@ flea_err_t THR_flea_tls_session_mngr_t__get_free_session_slot(
   {
     if(session_mngr__pt->sessions__bt[i].use_cnt__u16 < least_frequently_used_session__pt->use_cnt__u16)
     {
-      // min_use_cnt__alu16 = session_mngr__pt->use_cnt__bu16[i];
+      session_mngr__pt->sessions__bt[i].use_cnt__u16 = 0;
       least_frequently_used_session__pt = &session_mngr__pt->sessions__bt[i];
     }
   }
   flea_tls_session_data_t__invalidate_session(&least_frequently_used_session__pt->session__t);
 
-  /*least_frequently_used_session__pt->session__t.rd_sequence_number__au32[0] = 0;
-   * least_frequently_used_session__pt->session__t.sequence_number__au32[1] = 0;*/
   *result__ppt = least_frequently_used_session__pt;
 
   FLEA_THR_FIN_SEC_empty();
@@ -144,7 +107,6 @@ static void flea_tls_session_mngr_t__incr_use_cnt(
     }
   }
   session_mngr__pt->sessions__bt[pos].use_cnt__u16 += 1;
-  // session_mngr__pt->use_cnt__bu16[pos] += 1;
 }
 
 flea_tls_session_entry_t* flea_tls_session_mngr_t__session_cache_lookup(

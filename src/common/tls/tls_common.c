@@ -92,6 +92,7 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_FAILED_STREAM_READ,                 FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
   {FLEA_ERR_FAILED_STREAM_WRITE,                FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
   {FLEA_ERR_TLS_SESSION_CLOSED,                 FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
+  {FLEA_ERR_TLS_HANDSHK_FAILURE,                FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  },
 };
 static flea_bool_t determine_alert_from_error(
   flea_err_t                     err__t,
@@ -394,8 +395,14 @@ flea_err_t THR_flea_tls__read_finished(
   /*
    * use a copy of hash_ctx for send_finished instead of finalizing the original
    */
-  FLEA_CCALL(THR_flea_hash_ctx_t__ctor_copy(&hash_ctx_copy, hash_ctx));
-  FLEA_CCALL(THR_flea_hash_ctx_t__final(&hash_ctx_copy, messages_hash__bu8));
+  // TODO: CHECK IF THE COPY IS NEEDED AT ALL:
+  if(tls_ctx->security_parameters.connection_end == FLEA_TLS_SERVER)
+  {
+    FLEA_CCALL(THR_flea_hash_ctx_t__ctor_copy(&hash_ctx_copy, hash_ctx));
+    // FLEA_CCALL(THR_flea_hash_ctx_t__final(&hash_ctx_copy, messages_hash__bu8));
+    hash_ctx = &hash_ctx_copy;
+  }
+  FLEA_CCALL(THR_flea_hash_ctx_t__final(hash_ctx, messages_hash__bu8));
 
 
   PRFLabel label;
@@ -437,7 +444,7 @@ flea_err_t THR_flea_tls__read_finished(
   }
   if(!flea_sec_mem_equal(rec_finished__pu8, finished__pu8, finished_len__alu8))
   {
-    FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
 
 
@@ -1307,11 +1314,14 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
   flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey);
   if(tls_ctx__pt->client_session_mbn__pt && tls_ctx__pt->client_session_mbn__pt->session_id_len__u8)
   {
-    flea_tls_session_data_t__set_seqs(
-      &tls_ctx__pt->client_session_mbn__pt->session__t,
-      tls_ctx__pt->rec_prot__t.read_state__t.sequence_number__au32,
-      tls_ctx__pt->rec_prot__t.write_state__t.sequence_number__au32
-    );
+    /*flea_tls_session_data_t__set_seqs(
+     * &tls_ctx__pt->client_session_mbn__pt->session__t,
+     * tls_ctx__pt->rec_prot__t.read_state__t.sequence_number__au32,
+     * tls_ctx__pt->rec_prot__t.write_state__t.sequence_number__au32
+     * );*/
+    // TODO: THIS CAN ALREADY BE DONE AFTER SETTING THE MASTER SECRET AND THE
+    // CIPHER SUITE
+    flea_tls_session_data_t__set_session_as_valid(&tls_ctx__pt->client_session_mbn__pt->session__t);
   }
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_NULL(tls_ctx__pt->own_vfy_data__bu8);

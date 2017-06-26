@@ -25,7 +25,7 @@ typedef struct
 {
 #ifdef FLEA_USE_STACK_BUF
   flea_tls_session_entry_t  sessions__bt[FLEA_TLS_MAX_NB_MNGD_SESSIONS ];
-  flea_u16_t                use_cnt__bu16[FLEA_TLS_MAX_NB_MNGD_SESSIONS ];
+  // flea_u16_t                use_cnt__bu16[FLEA_TLS_MAX_NB_MNGD_SESSIONS ];
 #else
   flea_tls_session_entry_t* sessions__bt;
   // flea_u16_t*         use_cnt__bu16;
@@ -35,10 +35,16 @@ typedef struct
   flea_u16_t nb_used_sessions__u16;
 } flea_tls_session_mngr_t;
 
+
 void flea_tls_session_mngr_t__dtor(flea_tls_session_mngr_t* session_mngr__pt);
 
-#define flea_tls_session_t_INIT(__p) memset(p, sizeof(flea_tls_session_mngr_t), 0)
-#define flea_tls_session_t_INIT_VALUE {.session_id__bu8 = 0}
+#ifdef FLEA_USE_HEAP_BUF
+# define flea_tls_session_mngr_t__INIT(__p) memset(p, sizeof(flea_tls_session_mngr_t), 0)
+# define flea_tls_session_mngr_t__INIT_VALUE {.sessions__bt = 0, .nb_alloc_sessions__dtl = 0, .nb_used_sessions__u16 = 0}
+#else
+# define flea_tls_session_mngr_t__INIT(__p)
+# define flea_tls_session_mngr_t__INIT_VALUE {.nb_used_sessions__u16 = 0}
+#endif
 
 void flea_tls_session_data_t__export_seq(
   flea_tls_session_data_t const* session__pt,
@@ -64,6 +70,7 @@ flea_tls_session_entry_t* flea_tls_session_mngr_t__session_cache_lookup(
 
 void flea_tls_session_data_t__invalidate_session(flea_tls_session_data_t* session__pt);
 
+void flea_tls_session_data_t__set_session_as_valid(flea_tls_session_data_t* session__pt);
 
 #ifdef __cplusplus
 }

@@ -14,7 +14,7 @@
 /**
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  */
-# define FLEA_DO_PRINTF_ERRS
+// # define FLEA_DO_PRINTF_ERRS
 
 /**
  * Activate this flag to let flea make heap allocation for buffers. Deactivate
@@ -174,7 +174,7 @@
  * Length of the session IDs that are used by the TLS server.
  */
 # define FLEA_TLS_SESSION_ID_LEN       16 // FBFLAGS__INT_LIST 1 2 16 31 32
-# define FLEA_TLS_MAX_NB_MNGD_SESSIONS 10 // FBFLAGS__INT_LIST 1 2 10 31 257
+# define FLEA_TLS_MAX_NB_MNGD_SESSIONS 2  // FBFLAGS__INT_LIST 1 2 10 31 257
 # define FLEA_HAVE_TLS_CBC_CS
 # define FLEA_HAVE_TLS_GCM_CS
 
