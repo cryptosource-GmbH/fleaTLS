@@ -166,7 +166,7 @@ static flea_err_t THR_flea_tls__send_client_hello(
   }
   if(session_mbn__pt && flea_tls_session_data_t__is_valid_session(&session_mbn__pt->session__t))
   {
-    len += session_mbn__pt->session_id_len__u8 + 1;
+    len += session_mbn__pt->session_id_len__u8;
   }
 
   // calculate length for the header
