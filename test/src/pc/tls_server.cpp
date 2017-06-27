@@ -23,6 +23,8 @@
 #include "pltf_support/tcpip_stream.h"
 #include "tls_server_certs.h"
 #include "flea/array_util.h"
+#include "flea/alloc.h"
+#include "flea/tls_session_mngr.h"
 
 using namespace std;
 
@@ -50,9 +52,10 @@ flea_err_t THR_unix_tcpip_listen_accept(
 }
 
 static flea_err_t THR_server_cycle(
-  property_set_t const& cmdl_args,
-  int                 listen_fd,
-  bool                is_https_server
+  property_set_t const     & cmdl_args,
+  int                      listen_fd,
+  bool                     is_https_server,
+  flea_tls_session_mngr_t* sess_man__pt
 )
 {
   flea_u8_t buf[1000];
@@ -110,7 +113,8 @@ static flea_err_t THR_server_cycle(
       &cipher_suites_ref,
       tls_cfg.rev_chk_mode__e,
       &tls_cfg.crls_refs[0],
-      tls_cfg.crls.size()
+      tls_cfg.crls.size(),
+      sess_man__pt
     )
   );
   std::cout << "handshake done" << std::endl;
@@ -185,9 +189,10 @@ static flea_err_t THR_server_cycle(
   );
 } // THR_server_cycle
 
-flea_err_t THR_flea_start_tls_server(
-  property_set_t const& cmdl_args,
-  bool                is_https_server
+static flea_err_t THR_flea_start_tls_server(
+  property_set_t const     & cmdl_args,
+  bool                     is_https_server,
+  flea_tls_session_mngr_t* sess_man__pt
 )
 {
   struct sockaddr_in addr;
@@ -224,7 +229,7 @@ flea_err_t THR_flea_start_tls_server(
   // while(true)
   do
   {
-    err__t = THR_server_cycle(cmdl_args, listen_fd, is_https_server);
+    err__t = THR_server_cycle(cmdl_args, listen_fd, is_https_server, sess_man__pt);
     printf("connection aborted with error %04x\n", err__t);
     if(!err__t)
     {
@@ -246,19 +251,30 @@ int flea_start_tls_server(property_set_t const& cmdl_args)
 {
   flea_err_t err;
 
-  if((err = THR_flea_start_tls_server(cmdl_args, false)))
+  // int result = 0;
+
+  FLEA_DECL_OBJ(sess_man__t, flea_tls_session_mngr_t);
+
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_tls_session_mngr_t__ctor(&sess_man__t));
+  if((err = THR_flea_start_tls_server(cmdl_args, false, &sess_man__t)))
   {
     /** this case currently only captures errors during the opening of the listening
      * socket
      */
     FLEA_PRINTF_TEST_OUTP_2_SWITCHED("error %04x during tls server test\n", err);
-    return 1;
+    // return 1;
+    // result = 1;
+    FLEA_THROW("error during tls server test", err);
   }
   else
   {
     // FLEA_PRINTF_TEST_OUTP_1_SWITCHED("tls test passed\n");
-    return 0;
+    // return 0;
   }
+  FLEA_THR_FIN_SEC(
+    flea_tls_session_mngr_t__dtor(&sess_man__t);
+  );
 }
 
 int flea_start_https_server(property_set_t const& cmdl_args)
@@ -267,7 +283,7 @@ int flea_start_https_server(property_set_t const& cmdl_args)
 
   while(1)
   {
-    if((err = THR_flea_start_tls_server(cmdl_args, true)))
+    if((err = THR_flea_start_tls_server(cmdl_args, true, NULL)))
     {
       FLEA_PRINTF_TEST_OUTP_2_SWITCHED("error %04x during https server test\n", err);
     }

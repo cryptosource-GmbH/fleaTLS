@@ -159,4 +159,10 @@ std::vector<std::string> tokenize_string(
   char             sep
 );
 
+std::vector<flea_u8_t> hex_to_bin(std::string const& hex);
+std::string bin_to_hex(
+  const unsigned char* bin,
+  size_t               len
+);
+
 #endif // ifndef __flea_test_util_cpp_H_

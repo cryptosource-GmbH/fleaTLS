@@ -16,6 +16,75 @@
 
 using namespace std;
 
+std::vector<flea_u8_t> hex_to_bin(std::string const& hex)
+{
+  std::vector<flea_u8_t> result;
+  unsigned cnt = 0;
+  flea_u8_t current_char = 0;
+
+  for(char c : hex)
+  {
+    flea_u8_t offset = 0;
+    if(c == ' ')
+    {
+      continue;
+    }
+    if(c >= 0x30 && c <= 0x39)
+    {
+      offset = 0x30;
+    }
+    else if(c >= 0x41 && c <= 0x46)
+    {
+      offset = 0x41 - 10;
+    }
+    else if(c >= 0x61 && c <= 0x66)
+    {
+      offset = 0x61 - 10;
+    }
+    else
+    {
+      throw test_utils_exceptn_t("illegal character in hex string '" + hex + "'");
+    }
+    current_char |= c - offset;
+    if(cnt % 2) // one byte completed
+    {
+      result.push_back(current_char);
+      current_char = 0;
+    }
+    else
+    {
+      current_char <<= 4;
+    }
+    cnt++;
+  }
+  if(cnt % 2)
+  {
+    throw test_utils_exceptn_t("odd number of nibles: " + hex);
+  }
+  return result;
+} // hex_to_bin
+
+std::string bin_to_hex(
+  const unsigned char* bin,
+  size_t               len
+)
+{
+  std::string result;
+  for(size_t i = 0; i < len; i++)
+  {
+    char byte_chars [3] = {0, 0, 0};
+    sprintf(byte_chars, "%02x", bin[i]);
+
+    result += std::string(const_cast<const char*>(byte_chars));
+
+    /*if(with_ws)
+     * {
+     * result += " ";
+     * }*/
+  }
+  return result;
+}
+
 std::vector<flea_u8_t> parse_line(
   const char*   name,
   flea_u16_t    result_size,
@@ -31,7 +100,7 @@ std::vector<flea_u8_t> parse_line(
   if(line.find(line_start) != 0)
   {
     std::cout << "line error, name = " << std::string(name) << std::endl;
-    throw std::exception();
+    throw test_utils_exceptn_t("line error, name = " + std::string(name));
   }
   std::string value = line.substr(line_start.size());
   if(value.size() % 2)
@@ -83,91 +152,91 @@ std::vector<flea_u8_t> parse_line(
 } // parse_line
 
 namespace {
-bool string_ends_with(
-  std::string const &fullString,
-  std::string const &ending
-)
-{
-  if(fullString.length() >= ending.length())
+  bool string_ends_with(
+    std::string const &fullString,
+    std::string const &ending
+  )
   {
-    return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
-  }
-  else
-  {
-    return false;
-  }
-}
-
-std::string remove_ws(std::string const& s)
-{
-  std::string result;
-  for(char c : s)
-  {
-    if(c != ' ')
+    if(fullString.length() >= ending.length())
     {
-      result.push_back(c);
+      return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
     }
-  }
-  return result;
-}
-
-bool is_string_only_whitespaces(std::string const& str)
-{
-  std::string::const_iterator it;
-  for(it = str.begin(); it != str.end(); it++)
-  {
-    if(*it != ' ')
+    else
     {
       return false;
     }
   }
-  return true;
-}
 
-std::vector<std::string> read_file_line_wise(std::string const& filename)
-{
-  // TODO: MUST HANDLE NON EXISTING FILE
-  std::ifstream input(filename);
-  if(!input)
+  std::string remove_ws(std::string const& s)
   {
-    throw test_utils_exceptn_t("could not open file " + filename);
-  }
-  std::vector<std::string> result;
-  for(std::string line; getline(input, line);)
-  {
-    result.push_back(line);
-  }
-  return result;
-}
-
-bool is_string_only_numeric(std::string const& str)
-{
-  for(unsigned i = 0; i < str.size(); i++)
-  {
-    if(str[i] != '0' &&
-      str[i] != '1' &&
-      str[i] != '2' &&
-      str[i] != '3' &&
-      str[i] != '4' &&
-      str[i] != '5' &&
-      str[i] != '6' &&
-      str[i] != '7' &&
-      str[i] != '8' &&
-      str[i] != '9')
+    std::string result;
+    for(char c : s)
     {
-      return false;
+      if(c != ' ')
+      {
+        result.push_back(c);
+      }
     }
+    return result;
   }
-  return true;
-}
 
-flea_u32_t string_to_u32bit_unchecked(std::string const& str)
-{
-  std::istringstream is(str);
-  flea_u32_t result;
-  is >> result;
-  return result;
-}
+  bool is_string_only_whitespaces(std::string const& str)
+  {
+    std::string::const_iterator it;
+    for(it = str.begin(); it != str.end(); it++)
+    {
+      if(*it != ' ')
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  std::vector<std::string> read_file_line_wise(std::string const& filename)
+  {
+    // TODO: MUST HANDLE NON EXISTING FILE
+    std::ifstream input(filename);
+    if(!input)
+    {
+      throw test_utils_exceptn_t("could not open file " + filename);
+    }
+    std::vector<std::string> result;
+    for(std::string line; getline(input, line);)
+    {
+      result.push_back(line);
+    }
+    return result;
+  }
+
+  bool is_string_only_numeric(std::string const& str)
+  {
+    for(unsigned i = 0; i < str.size(); i++)
+    {
+      if(str[i] != '0' &&
+        str[i] != '1' &&
+        str[i] != '2' &&
+        str[i] != '3' &&
+        str[i] != '4' &&
+        str[i] != '5' &&
+        str[i] != '6' &&
+        str[i] != '7' &&
+        str[i] != '8' &&
+        str[i] != '9')
+      {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  flea_u32_t string_to_u32bit_unchecked(std::string const& str)
+  {
+    std::istringstream is(str);
+    flea_u32_t result;
+    is >> result;
+    return result;
+  }
 }
 
 std::vector<std::string> tokenize_string(
@@ -515,7 +584,6 @@ std::vector<std::vector<unsigned char> > property_set_t::get_bin_file_list_prope
   }
 
   string value = get_property_as_string(index);
-  std::cout << "value = " << value << std::endl;
 
   std::vector<string> strings = tokenize_string(value, ',');
   for(auto s : strings)
