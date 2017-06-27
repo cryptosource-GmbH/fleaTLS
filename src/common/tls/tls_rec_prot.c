@@ -945,12 +945,14 @@ flea_err_t THR_flea_tls_rec_prot_t__send_record(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_record */
 
-flea_err_t THR_flea_tls_rec_prot_t__send_fatal_alert_and_throw(
+flea_err_t THR_flea_tls_rec_prot_t__send_alert_and_throw(
   flea_tls_rec_prot_t*          rec_prot__pt,
   flea_tls__alert_description_t description,
   flea_err_t                    err__t
 )
 {
+  flea_tls__alert_level_t lev = FLEA_TLS_ALERT_LEVEL_FATAL;
+
   FLEA_THR_BEG_FUNC();
   if(rec_prot__pt->is_session_closed__u8)
   {
@@ -959,10 +961,14 @@ flea_err_t THR_flea_tls_rec_prot_t__send_fatal_alert_and_throw(
       FLEA_ERR_TLS_SESSION_CLOSED_WHEN_TRYING_TO_SEND_ALERT
     );
   }
+  if(description == FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY)
+  {
+    lev = FLEA_TLS_ALERT_LEVEL_WARNING;
+  }
   if(description != FLEA_TLS_ALERT_NO_ALERT)
   {
     flea_tls_rec_prot_t__discard_pending_write(rec_prot__pt);
-    FLEA_CCALL(THR_flea_tls_rec_prot_t__send_alert(rec_prot__pt, description, FLEA_TLS_ALERT_LEVEL_FATAL));
+    FLEA_CCALL(THR_flea_tls_rec_prot_t__send_alert(rec_prot__pt, description, lev));
   }
   FLEA_THROW("throwing error after (potentially) sending fatal TLS alert", err__t);
 

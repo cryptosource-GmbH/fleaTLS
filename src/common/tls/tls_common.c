@@ -334,14 +334,13 @@ void flea_tls_ctx_t__invalidate_session(flea_tls_ctx_t* tls_ctx__pt)
   {
     flea_tls_session_data_t__invalidate_session(&tls_ctx__pt->client_session_mbn__pt->session__t);
   }
-  else
+  else if(tls_ctx__pt->server_active_sess_mbn__pt)
   {
-    // TODO: server
+    tls_ctx__pt->server_active_sess_mbn__pt->session__t.is_valid_session__u8 = 0;
   }
 }
 
 flea_err_t THR_flea_tls__handle_tls_error(
-  // flea_tls_rec_prot_t* rec_prot__pt,
   flea_tls_ctx_t* tls_ctx__pt,
   flea_err_t      err__t
 )
@@ -354,7 +353,7 @@ flea_err_t THR_flea_tls__handle_tls_error(
     if(do_send_alert__b)
     {
       flea_tls_ctx_t__invalidate_session(tls_ctx__pt);
-      FLEA_CCALL(THR_flea_tls_rec_prot_t__send_fatal_alert_and_throw(&tls_ctx__pt->rec_prot__t, alert_desc__e, err__t));
+      FLEA_CCALL(THR_flea_tls_rec_prot_t__send_alert_and_throw(&tls_ctx__pt->rec_prot__t, alert_desc__e, err__t));
     }
   }
   FLEA_THR_FIN_SEC_empty();
