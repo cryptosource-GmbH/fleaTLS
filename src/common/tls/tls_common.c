@@ -1137,16 +1137,18 @@ flea_err_t THR_flea_tls_ctx_t__send_extensions_length(
 
   FLEA_THR_BEG_FUNC();
   len__alu16 = flea_tls_ctx_t__compute_extensions_length(tls_ctx__pt);
-  flea__encode_U16_BE(len__alu16, enc_len__au8);
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx__pt->rec_prot__t,
-      hash_ctx_mbn__pt,
-      enc_len__au8,
-      sizeof(enc_len__au8)
-    )
-  );
-
+  if(len__alu16)
+  {
+    flea__encode_U16_BE(len__alu16, enc_len__au8);
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_content(
+        &tls_ctx__pt->rec_prot__t,
+        hash_ctx_mbn__pt,
+        enc_len__au8,
+        sizeof(enc_len__au8)
+      )
+    );
+  }
   FLEA_THR_FIN_SEC_empty();
 }
 
