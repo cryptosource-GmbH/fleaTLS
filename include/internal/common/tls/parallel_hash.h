@@ -31,10 +31,10 @@ typedef struct
 
 
 # define flea_tls_parallel_hash_ctx_t__INIT(__p) \
-  do {(__p)->num_hash_ctx__u8 = 0;} while(0)
+  do {(__p)->num_hash_ctx__u8 = 0; (__p)->hash_ctx__pt = NULL;} while(0)
 
 # define flea_tls_parallel_hash_ctx_t__INIT_VALUE \
-  {.num_hash_ctx__u8 = 0}
+  {.num_hash_ctx__u8 = 0, .hash_ctx__pt = NULL}
 
 flea_err_t THR_flea_tls_parallel_hash_ctx_t__ctor(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,

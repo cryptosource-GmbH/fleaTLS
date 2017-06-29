@@ -171,6 +171,11 @@
 
 # define FLEA_HAVE_TLS
 
+/**
+ * Length of the session IDs that are used by the TLS server.
+ */
+# define FLEA_TLS_SESSION_ID_LEN       16 // FBFLAGS__INT_LIST 1 2 16 31 32
+# define FLEA_TLS_MAX_NB_MNGD_SESSIONS 2  // FBFLAGS__INT_LIST 1 2 10 31 257
 # define FLEA_HAVE_TLS_CBC_CS
 # define FLEA_HAVE_TLS_GCM_CS
 

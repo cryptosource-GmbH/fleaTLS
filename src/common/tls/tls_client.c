@@ -14,16 +14,19 @@
 #include "internal/common/tls/tls_rec_prot_rdr.h"
 #include "internal/common/tls/tls_common.h"
 #include "internal/common/tls/parallel_hash.h"
+#include "internal/common/tls/tls_int.h"
 #include "flea/rng.h"
 #include <stdio.h>
 #include "flea/pk_api.h"
 #include "flea/pkcs8.h"
+#include "flea/tls_session_mngr.h"
 
 #ifdef FLEA_HAVE_TLS
 
-flea_err_t THR_flea_tls__read_server_hello(
-  flea_tls_ctx_t*           tls_ctx,
-  flea_tls_handsh_reader_t* hs_rdr__pt
+static flea_err_t THR_flea_tls__read_server_hello(
+  flea_tls_ctx_t*            tls_ctx,
+  flea_tls_handsh_reader_t*  hs_rdr__pt,
+  flea_tls_client_session_t* client_session_mbn__pt
 )
 {
   flea_u8_t server_compression_meth__u8;
@@ -60,19 +63,22 @@ flea_err_t THR_flea_tls__read_server_hello(
   }
   // TODO: in this part the client has to decide if he accepts the server's TLS version - implement negotiation
   // read random
-  FLEA_CCALL(
-    THR_flea_rw_stream_t__read_full(
-      hs_rd_stream__pt,
-      tls_ctx->security_parameters.server_random.gmt_unix_time,
-      4
-    )
-  );
+
+  /*  FLEA_CCALL(
+   *  THR_flea_rw_stream_t__read_full(
+   *    hs_rd_stream__pt,
+   *    tls_ctx->security_parameters.server_random.gmt_unix_time,
+   *    4
+   *  )
+   * );*/
 
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
-      tls_ctx->security_parameters.server_random.random_bytes,
-      28
+      // tls_ctx->security_parameters.server_random.random_bytes,
+      tls_ctx->security_parameters.client_and_server_random + FLEA_TLS_HELLO_RANDOM_SIZE,
+      // 28
+      FLEA_TLS_HELLO_RANDOM_SIZE
     )
   );
 
@@ -86,58 +92,54 @@ flea_err_t THR_flea_tls__read_server_hello(
     FLEA_THROW("invalid session id length", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
-  FLEA_ALLOC_BUF(session_id__bu8, session_id_len__u8);
 
-  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, session_id__bu8, session_id_len__u8));
-  // TODO: STORE SESSION ID
-
+  if(client_session_mbn__pt)
+  {
+    FLEA_ALLOC_BUF(session_id__bu8, session_id_len__u8);
+    client_session_mbn__pt->for_resumption__u8 = 0;
+    FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, session_id__bu8, session_id_len__u8));
+    if(session_id_len__u8 && (0 ==
+      flea_memcmp_wsize(
+        client_session_mbn__pt->session_id__au8,
+        client_session_mbn__pt->session_id_len__u8,
+        session_id__bu8,
+        session_id_len__u8
+      )))
+    {
+      /* resumption case */
+      client_session_mbn__pt->for_resumption__u8 = 1;
+    }
+    else
+    {
+      flea_tls_session_data_t__invalidate_session(&client_session_mbn__pt->session__t);
+    }
+    client_session_mbn__pt->session_id_len__u8 = session_id_len__u8;
+    /* update the session id even if the the server sent one of length zero */
+    memcpy(client_session_mbn__pt->session_id__au8, session_id__bu8, session_id_len__u8);
+    client_session_mbn__pt->session_id_len__u8 = session_id_len__u8;
+  }
+  else
+  {
+    FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, session_id_len__u8));
+  }
   // read cipher suites
   FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, ciphersuite__au8, sizeof(ciphersuite__au8)));
-
+  // TODO: read BE int
   tls_ctx->selected_cipher_suite__u16 = flea__decode_U16_BE(ciphersuite__au8);
   if(!flea_is_in_u16_list(tls_ctx->selected_cipher_suite__u16, tls_ctx->allowed_cipher_suites__prcu16))
   {
     FLEA_THROW("invalid ciphersuite selected by peer", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
-  /*tls_ctx->selected_cipher_suite__u16 = FLEA_TLS_RSA_WITH_AES_256_CBC_SHA;
-   * tls_ctx->selected_cipher_suite__u16 = FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256;*/
-  // TODO: CHECK / SELECT CIPHERSUITE
-  // - must be among presented ones in client hello => contained in allowed suites AND supported by compile config
-  // read compression method
-  // server_hello->compression_method = handshake_msg->data[length++];
-
-  // server_compression_meth__u8 = handshake_msg->data[length++];
-
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &server_compression_meth__u8));
   if(server_compression_meth__u8 != NO_COMPRESSION)
   {
     FLEA_THROW("unsupported compression method from server", FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO);
   }
-  // TODO: parse extensions
-  // for now simply ignore them
 
-  // update security parameters
-
-  // client wants to resume connection and has provided a session id
-  if(tls_ctx->session_id_len != 0)
-  {
-    // TODO: IMPLEMENT "COMPARE IN STREAM" AND ELIMINATE LOCAL BUFFER
-    if(0 == flea_memcmp_wsize(tls_ctx->session_id, tls_ctx->session_id_len, session_id__bu8, session_id_len__u8))
-    {
-      tls_ctx->resumption = FLEA_TRUE;
-    }
-  }
-  // TODO: USE REF AND CPREF
-  memcpy(tls_ctx->session_id, session_id__bu8, session_id_len__u8);
-  tls_ctx->session_id_len = session_id_len__u8;
-
-  // check length in the header field for integrity
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {
     FLEA_CCALL(THR_flea_tls_ctx_t__client_parse_extensions(tls_ctx, hs_rdr__pt));
-
-    // FLEA_THROW("Header length field mismatch", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
   FLEA_THR_FIN_SEC(
@@ -147,7 +149,8 @@ flea_err_t THR_flea_tls__read_server_hello(
 
 static flea_err_t THR_flea_tls__send_client_hello(
   flea_tls_ctx_t*               tls_ctx,
-  flea_tls_parallel_hash_ctx_t* p_hash_ctx
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx,
+  flea_tls_client_session_t*    session_mbn__pt
 )
 {
   flea_al_u16_t i;
@@ -164,6 +167,10 @@ static flea_err_t THR_flea_tls__send_client_hello(
   {
     /* extension length field */
     len += 2;
+  }
+  if(session_mbn__pt && flea_tls_session_data_t__is_valid_session(&session_mbn__pt->session__t))
+  {
+    len += session_mbn__pt->session_id_len__u8;
   }
 
   // calculate length for the header
@@ -197,26 +204,58 @@ static flea_err_t THR_flea_tls__send_client_hello(
       1
     )
   );
+
+  /*FLEA_CCALL(
+   * THR_flea_tls__send_handshake_message_content(
+   *  &tls_ctx->rec_prot__t,
+   *  hash_ctx,
+   *  tls_ctx->security_parameters.client_random.gmt_unix_time,
+   *  sizeof(tls_ctx->security_parameters.client_random.gmt_unix_time)
+   * )
+   * );*/
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx->rec_prot__t,
       p_hash_ctx,
-      tls_ctx->security_parameters.client_random.gmt_unix_time,
-      sizeof(tls_ctx->security_parameters.client_random.gmt_unix_time)
-    )
-  );
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx->rec_prot__t,
-      p_hash_ctx,
-      tls_ctx->security_parameters.client_random.random_bytes,
-      sizeof(tls_ctx->security_parameters.client_random.random_bytes)
+      tls_ctx->security_parameters.client_and_server_random,
+      FLEA_TLS_HELLO_RANDOM_SIZE
+
+      /*tls_ctx->security_parameters.client_random.random_bytes,
+       * sizeof(tls_ctx->security_parameters.client_random.random_bytes)*/
     )
   );
 
   // session ID empty => no resumption (new handshake negotiation)
   // TODO: include possibility to resume a session
-  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, p_hash_ctx, null_byte, 1));
+  if(session_mbn__pt && flea_tls_session_data_t__is_valid_session(&session_mbn__pt->session__t))
+  {
+    // const flea_u8_t session_id_len__u8 = FLEA_TLS_SESSION_ID_LEN;
+    // FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, null_byte, 1));
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_int_be(
+        &tls_ctx->rec_prot__t,
+        p_hash_ctx,
+        session_mbn__pt->session_id_len__u8,
+        1
+      )
+    );
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_content(
+        &tls_ctx->rec_prot__t,
+        p_hash_ctx,
+        session_mbn__pt->session_id__au8,
+        session_mbn__pt->session_id_len__u8
+      )
+    );
+  }
+  else
+  {
+    FLEA_CCALL(THR_flea_tls__send_handshake_message_int_be(&tls_ctx->rec_prot__t, p_hash_ctx, 0, 1));
+    if(session_mbn__pt)
+    {
+      session_mbn__pt->session_id_len__u8 = 0;
+    }
+  }
 
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_int_be(
@@ -514,7 +553,8 @@ static flea_err_t THR_flea_handle_handsh_msg(
   flea_tls_ctx_t*               tls_ctx,
   flea_tls__handshake_state_t*  handshake_state,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
-  flea_bool_t                   is_reneg__b
+  flea_bool_t                   is_reneg__b,
+  flea_tls_client_session_t*    client_session_mbn__pt
 )
 {
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
@@ -522,10 +562,16 @@ static flea_err_t THR_flea_handle_handsh_msg(
   flea_hash_id_t hash_id__t;
   flea_hash_ctx_t** hash_ctx_t_ptr__ppt;
   flea_hash_ctx_t* hash_ctx_t_ptr__pt;
+
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t));
-  if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_FINISHED)
+  // TODO: THESE CONDITIONS SHOULD BE RELAXABLE, SHOULD BE REMOVABLE COMPLETELY,
+  // i.e. always add the hash-ctx:
+
+  if((flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_FINISHED) ||
+    (client_session_mbn__pt && client_session_mbn__pt->for_resumption__u8)
+  )
   {
     FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, p_hash_ctx__pt));
   }
@@ -533,22 +579,21 @@ static flea_err_t THR_flea_handle_handsh_msg(
   {
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_HELLO)
     {
-      FLEA_CCALL(THR_flea_tls__read_server_hello(tls_ctx, &handsh_rdr__t));
-      handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE
-        | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
+      FLEA_CCALL(THR_flea_tls__read_server_hello(tls_ctx, &handsh_rdr__t, client_session_mbn__pt));
+      if(client_session_mbn__pt && client_session_mbn__pt->for_resumption__u8)
+      {
+        handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC;
+      }
+      else
+      {
+        handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE
+          | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
  // | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST // only enable this
  // after the server sent his certificate because only authenticated
  // servers can ask for client authentication
-        | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
+          | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
+      }
     }
-
-    /*else if(is_reneg__b)
-     * {
-     * FLEA_THROW(
-     *  "client received no_renegotiation alert during renegotiation handshake",
-     *  FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG
-     * );
-     * }*/
     else
     {
       FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
@@ -624,7 +669,14 @@ static flea_err_t THR_flea_handle_handsh_msg(
       );
       FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, *hash_ctx_t_ptr__ppt));
 
-      handshake_state->finished = FLEA_TRUE;
+      if(client_session_mbn__pt && client_session_mbn__pt->for_resumption__u8)
+      {
+        handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
+      }
+      else
+      {
+        handshake_state->finished = FLEA_TRUE;
+      }
     }
     else
     {
@@ -642,8 +694,9 @@ static flea_err_t THR_flea_handle_handsh_msg(
 } /* THR_flea_handle_handsh_msg */
 
 flea_err_t THR_flea_tls__client_handshake(
-  flea_tls_ctx_t* tls_ctx,
-  flea_bool_t     is_reneg__b
+  flea_tls_ctx_t*            tls_ctx,
+  flea_bool_t                is_reneg__b,
+  flea_tls_client_session_t* session_mbn__pt
 )
 {
   flea_tls__handshake_state_t handshake_state;
@@ -678,7 +731,7 @@ flea_err_t THR_flea_tls__client_handshake(
     if(handshake_state.initialized == FLEA_FALSE)
     {
       // send client hello
-      FLEA_CCALL(THR_flea_tls__send_client_hello(tls_ctx, &p_hash_ctx));
+      FLEA_CCALL(THR_flea_tls__send_client_hello(tls_ctx, &p_hash_ctx, session_mbn__pt));
       handshake_state.initialized       = FLEA_TRUE;
       handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO;
     }
@@ -706,7 +759,8 @@ flea_err_t THR_flea_tls__client_handshake(
             tls_ctx,
             &handshake_state,
             &p_hash_ctx,
-            is_reneg__b
+            is_reneg__b,
+            session_mbn__pt
           )
         );
         if(handshake_state.finished == FLEA_TRUE)
@@ -746,7 +800,33 @@ flea_err_t THR_flea_tls__client_handshake(
               flea_read_full
             )
           );
-
+          if(session_mbn__pt && session_mbn__pt->for_resumption__u8)
+          {
+            flea_al_u8_t key_block_len__alu8;
+            // TODO: REMOVE THAT ASSIGNEMENT, THAT MUST BE DONE CORRECTLY BY THE
+            // SERVER / SET IN READ SERVER HELLO
+            tls_ctx->selected_cipher_suite__u16 = session_mbn__pt->session__t.cipher_suite_id__u16;
+            memcpy(
+              tls_ctx->security_parameters.master_secret,
+              session_mbn__pt->session__t.master_secret__au8,
+              FLEA_CONST_TLS_MASTER_SECRET_SIZE
+            );
+            FLEA_CCALL(
+              THR_flea_tls_get_key_block_len_from_cipher_suite_id(
+                tls_ctx->selected_cipher_suite__u16,
+                &key_block_len__alu8
+              )
+            );
+            FLEA_CCALL(
+              THR_flea_tls__generate_key_block(
+                tls_ctx->selected_cipher_suite__u16,
+                &tls_ctx->security_parameters,
+                // tls_ctx,
+                tls_ctx->key_block,
+                key_block_len__alu8
+              )
+            );
+          }
           FLEA_CCALL(
             THR_flea_tls_rec_prot_t__set_ciphersuite(
               &tls_ctx->rec_prot__t,
@@ -756,6 +836,14 @@ flea_err_t THR_flea_tls__client_handshake(
               tls_ctx->key_block
             )
           );
+          if(session_mbn__pt && session_mbn__pt->for_resumption__u8)
+          {
+            /*flea_tls_session_data_t__export_seq(
+             * &session_mbn__pt->session__t,
+             * flea_tls_read,
+             * tls_ctx->rec_prot__t.read_state__t.sequence_number__au32
+             * );*/
+          }
           handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
 
           continue;
@@ -773,70 +861,102 @@ flea_err_t THR_flea_tls__client_handshake(
       }
     }
     // We don't expect another message so it's our turn to continue
-    else // TODO: CONSIDER EXPLICIT MODELLING OF THIS CONDITION
+    else
     {
       flea_al_u8_t key_block_len__alu8;
 
-      // if we have to send a certificate, send it now
-      if(handshake_state.send_client_cert == FLEA_TRUE)
+      if(!session_mbn__pt || !session_mbn__pt->for_resumption__u8)
       {
+        // if we have to send a certificate, send it now
+        if(handshake_state.send_client_cert == FLEA_TRUE)
+        {
+          FLEA_CCALL(
+            THR_flea_tls__send_certificate(
+              tls_ctx,
+              &p_hash_ctx,
+              tls_ctx->cert_chain__pt,
+              tls_ctx->cert_chain_len__u8
+            )
+          );
+        }
+        // TODO: INIT PUBKEY IN CTOR!
         FLEA_CCALL(
-          THR_flea_tls__send_certificate(
+          THR_flea_tls__send_client_key_exchange(
             tls_ctx,
             &p_hash_ctx,
-            tls_ctx->cert_chain__pt,
-            tls_ctx->cert_chain_len__u8
+            &tls_ctx->peer_pubkey,
+            &premaster_secret__t
           )
         );
+
+        // send CertificateVerify message if we sent a certificate
+        if(handshake_state.send_client_cert == FLEA_TRUE)
+        {
+          FLEA_CCALL(THR_flea_tls__send_cert_verify(tls_ctx, &p_hash_ctx, tls_ctx->private_key__pt));
+          handshake_state.send_client_cert = FLEA_FALSE;
+        }
       }
-
-      // TODO: INIT PUBKEY IN CTOR!
-      FLEA_CCALL(
-        THR_flea_tls__send_client_key_exchange(
-          tls_ctx,
-          &p_hash_ctx,
-          &tls_ctx->peer_pubkey,
-          &premaster_secret__t
-        )
-      );
-
-      // send CertificateVerify message if we sent a certificate
-      if(handshake_state.send_client_cert == FLEA_TRUE)
-      {
-        FLEA_CCALL(THR_flea_tls__send_cert_verify(tls_ctx, &p_hash_ctx, tls_ctx->private_key__pt));
-      }
-
       // send change cipher spec (initiate encryption/authentication)
       FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx));
 
       /*
        * Enable encryption for outgoing messages
        */
-
-      FLEA_CCALL(
-        THR_flea_tls__create_master_secret(
-          tls_ctx->security_parameters.client_random,
-          tls_ctx->security_parameters.server_random,
-          // tls_ctx->premaster_secret,
-          &premaster_secret__t,
+      if(!session_mbn__pt || !session_mbn__pt->for_resumption__u8)
+      {
+        // TODO: MASTER SECRET NEED NOT BE IN TLS_CTX
+        FLEA_CCALL(
+          THR_flea_tls__create_master_secret(
+            // tls_ctx->security_parameters.client_random,
+            tls_ctx->security_parameters.client_and_server_random,
+            // tls_ctx->security_parameters.server_random,
+            // tls_ctx->security_parameters.client_and_server_random + FLEA_TLS_HELLO_RANDOM_SIZE,
+            // tls_ctx->premaster_secret,
+            &premaster_secret__t,
+            tls_ctx->security_parameters.master_secret,
+            tls_ctx->selected_cipher_suite__u16
+          )
+        );
+        if(session_mbn__pt && session_mbn__pt->session_id_len__u8)
+        {
+          // store the PM and ciphersuite and later (after the finished) the seq
+          memcpy(
+            session_mbn__pt->session__t.master_secret__au8,
+            tls_ctx->security_parameters.master_secret,
+            FLEA_CONST_TLS_MASTER_SECRET_SIZE
+          );
+          session_mbn__pt->session__t.cipher_suite_id__u16 = tls_ctx->selected_cipher_suite__u16;
+        }
+      }
+      else
+      {
+        // TODO: NOT NEEDED ANYMORE HERE
+        /* it is a resumption */
+        tls_ctx->selected_cipher_suite__u16 = session_mbn__pt->session__t.cipher_suite_id__u16;
+        memcpy(
           tls_ctx->security_parameters.master_secret,
-          tls_ctx->selected_cipher_suite__u16
-        )
-      );
-      FLEA_CCALL(
-        THR_flea_tls_get_key_block_len_from_cipher_suite_id(
-          tls_ctx->selected_cipher_suite__u16,
-          &key_block_len__alu8
-        )
-      );
-      FLEA_CCALL(
-        THR_flea_tls__generate_key_block(
-          // &tls_ctx->security_parameters,
-          tls_ctx,
-          tls_ctx->key_block,
-          key_block_len__alu8
-        )
-      );
+          session_mbn__pt->session__t.master_secret__au8,
+          FLEA_CONST_TLS_MASTER_SECRET_SIZE
+        );
+      }
+      if(!session_mbn__pt || !session_mbn__pt->for_resumption__u8)
+      {
+        FLEA_CCALL(
+          THR_flea_tls_get_key_block_len_from_cipher_suite_id(
+            tls_ctx->selected_cipher_suite__u16,
+            &key_block_len__alu8
+          )
+        );
+        FLEA_CCALL(
+          THR_flea_tls__generate_key_block(
+            tls_ctx->selected_cipher_suite__u16,
+            &tls_ctx->security_parameters,
+            // tls_ctx,
+            tls_ctx->key_block,
+            key_block_len__alu8
+          )
+        );
+      }
 
       FLEA_CCALL(
         THR_flea_tls_rec_prot_t__set_ciphersuite(
@@ -848,11 +968,27 @@ flea_err_t THR_flea_tls__client_handshake(
         )
       );
 
+      // TODO: MAKE A SINGLE BOOL FOR THIS CONDITION:
+      if(session_mbn__pt && session_mbn__pt->for_resumption__u8)
+      {
+        /*flea_tls_session_data_t__export_seq(
+         * &session_mbn__pt->session__t,
+         * flea_tls_write,
+         * tls_ctx->rec_prot__t.write_state__t.sequence_number__au32
+         * );*/
+      }
 
       FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &p_hash_ctx));
-
-      handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC;
-      continue;
+      if(!session_mbn__pt || !session_mbn__pt->for_resumption__u8)
+      {
+        handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC;
+        continue;
+      }
+      else
+      {
+        handshake_state.finished = FLEA_TRUE;
+        break;
+      }
     }
   }
   FLEA_THR_FIN_SEC(
@@ -862,20 +998,22 @@ flea_err_t THR_flea_tls__client_handshake(
 } /* THR_flea_tls__client_handshake */
 
 flea_err_t THR_flea_tls_ctx_t__ctor_client(
-  flea_tls_ctx_t*          tls_ctx__pt,
-  const flea_cert_store_t* trust_store__pt,
-  const flea_ref_cu8_t*    server_name__pcrcu8,
-  flea_host_id_type_e      host_name_id__e,
-  flea_rw_stream_t*        rw_stream__pt,
-  const flea_u8_t*         session_id__pcu8,
-  flea_al_u8_t             session_id_len__alu8,
-  flea_ref_cu8_t*          cert_chain__pt,
-  flea_al_u8_t             cert_chain_len__alu8,
-  flea_ref_cu8_t*          client_private_key__pt,
-  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
-  flea_rev_chk_mode_e      rev_chk_mode__e,
-  const flea_byte_vec_t*   crl_der__pt,
-  flea_al_u16_t            nb_crls__alu16
+  flea_tls_ctx_t*            tls_ctx__pt,
+  const flea_cert_store_t*   trust_store__pt,
+  const flea_ref_cu8_t*      server_name__pcrcu8,
+  flea_host_id_type_e        host_name_id__e,
+  flea_rw_stream_t*          rw_stream__pt,
+
+  /* const flea_u8_t*         session_id__pcu8,
+   * flea_al_u8_t             session_id_len__alu8,*/
+  flea_ref_cu8_t*            cert_chain__pt,
+  flea_al_u8_t               cert_chain_len__alu8,
+  flea_ref_cu8_t*            client_private_key__pt,
+  const flea_ref_cu16_t*     allowed_cipher_suites__prcu16,
+  flea_rev_chk_mode_e        rev_chk_mode__e,
+  const flea_byte_vec_t*     crl_der__pt,
+  flea_al_u16_t              nb_crls__alu16,
+  flea_tls_client_session_t* session_mbn__pt
 )
 {
   flea_err_t err__t;
@@ -888,6 +1026,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
   tls_ctx__pt->private_key__pt    = client_private_key__pt;
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
+  tls_ctx__pt->client_session_mbn__pt        = session_mbn__pt;
+  tls_ctx__pt->session_mngr_mbn__pt = NULL;
 
   if(server_name__pcrcu8)
   {
@@ -908,13 +1048,15 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   FLEA_CCALL(
     THR_flea_tls_ctx_t__construction_helper(
       tls_ctx__pt,
-      rw_stream__pt,
-      session_id__pcu8,
-      session_id_len__alu8
+      rw_stream__pt
+
+      /*session_id__pcu8,
+       * session_id_len__alu8*/
     )
   );
-  err__t = THR_flea_tls__client_handshake(tls_ctx__pt, FLEA_FALSE);
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
+  // TODO: REMOVE SESSION-OBJ AGAIN FROM FUNCTION SIGNATURES
+  err__t = THR_flea_tls__client_handshake(tls_ctx__pt, FLEA_FALSE, session_mbn__pt);
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t));
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__ctor_client */
 
@@ -933,7 +1075,7 @@ flea_err_t THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
     FLEA_THROW("unexpected handshake message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
   }
 # ifdef FLEA_TLS_HAVE_RENEGOTIATION
-  FLEA_CCALL(THR_flea_tls__client_handshake(tls_ctx__pt, FLEA_TRUE));
+  FLEA_CCALL(THR_flea_tls__client_handshake(tls_ctx__pt, FLEA_TRUE, tls_ctx__pt->client_session_mbn__pt));
 # else
   flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
   FLEA_CCALL(

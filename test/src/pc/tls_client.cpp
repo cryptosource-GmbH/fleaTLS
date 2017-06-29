@@ -20,10 +20,14 @@
 #include "pltf_support/tcpip_stream.h"
 
 #include "flea/array_util.h"
+#include "flea/byte_vec.h"
 
 #ifdef FLEA_HAVE_TLS
 
-flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
+static flea_err_t THR_flea_start_tls_client(
+  property_set_t const       & cmdl_args,
+  flea_tls_client_session_t* client_session__pt
+)
 {
   flea_rw_stream_t rw_stream__t;
   flea_cert_store_t trust_store__t;
@@ -43,6 +47,7 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
   flea_ref_cu16_t cipher_suites_ref;
   tls_test_cfg_t tls_cfg;
   flea_host_id_type_e host_type;
+
 
   std::string hostname_s;
   FLEA_THR_BEG_FUNC();
@@ -104,18 +109,20 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
       hostname_p,
       host_type,
       &rw_stream__t,
-      NULL,
-      0,
+
+      /*  NULL,
+       * 0,*/
       cert_chain_len ? cert_chain : NULL,
       cert_chain_len,
       &client_key__t,
       &cipher_suites_ref,
       tls_cfg.rev_chk_mode__e,// flea_rev_chk_none,
       &tls_cfg.crls_refs[0],// NULL,
-      tls_cfg.crls.size()
+      tls_cfg.crls.size(),
+      client_session__pt
     )
   );
-
+  printf("session was resumed = %u\n", client_session__pt->for_resumption__u8);
   // FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
   for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("reneg", 0); i++)
   // if(cmdl_args.have_index("reneg"))
@@ -154,18 +161,51 @@ flea_err_t THR_flea_start_tls_client(property_set_t const& cmdl_args)
 
 int flea_start_tls_client(property_set_t const& cmdl_args)
 {
-  flea_err_t err;
+  flea_err_t err = FLEA_ERR_FINE;
+  flea_tls_client_session_t client_session__t;
+  int retval = 0;
 
-  if((err = THR_flea_start_tls_client(cmdl_args)))
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(serialized_session_t, 200);
+  flea_tls_client_session_t__INIT(&client_session__t);
+
+  flea_tls_client_session_t__ctor(&client_session__t);
+
+  if(cmdl_args.have_index("session"))
   {
-    FLEA_PRINTF_TEST_OUTP_2_SWITCHED("error %04x during tls client test\n", err);
-    return 1;
+    std::string s = cmdl_args.get_property_as_string("session");
+    std::vector<flea_u8_t> sid = hex_to_bin(s);
+    err = THR_flea_tls_client_session_t_deserialize(&client_session__t, &sid[0], sid.size());
+  }
+  if(err != FLEA_ERR_FINE)
+  {
+    FLEA_PRINTF_TEST_OUTP_1_SWITCHED("error deserializing provided session");
   }
   else
   {
-    FLEA_PRINTF_TEST_OUTP_1_SWITCHED("tls test passed\n");
-    return 0;
+    if((err = THR_flea_start_tls_client(cmdl_args, &client_session__t)))
+    {
+      FLEA_PRINTF_TEST_OUTP_2_SWITCHED("error %04x during tls client test\n", err);
+      retval = 1;
+    }
+    else
+    {
+      err = THR_flea_tls_client_session_t__serialize(&client_session__t, &serialized_session_t);
+      if(err)
+      {
+        FLEA_PRINTF_TEST_OUTP_1_SWITCHED("error when serializing stored session\n");
+      }
+      else
+      {
+        FLEA_PRINTF_TEST_OUTP_1_SWITCHED("session for resumption = ");
+        std::string s = bin_to_hex(serialized_session_t.data__pu8, serialized_session_t.len__dtl);
+        std::cout << s << std::endl;
+      }
+      FLEA_PRINTF_TEST_OUTP_1_SWITCHED("tls test passed\n");
+    }
   }
-}
+  flea_tls_client_session_t__dtor(&client_session__t);
+  flea_byte_vec_t__dtor(&serialized_session_t);
+  return retval;
+} // flea_start_tls_client
 
 #endif // ifdef FLEA_HAVE_TLS

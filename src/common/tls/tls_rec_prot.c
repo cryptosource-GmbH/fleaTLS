@@ -11,6 +11,7 @@
 #include "flea/util.h"
 #include "flea/tls.h"
 #include <stdio.h>
+#include "internal/common/tls/tls_common.h"
 
 // TODO: REMOVE ALL OF THESE DEFINES EXCEPT MAX_PADDING_SIZE ?
 #define FLEA_TLS_MAX_MAC_KEY_SIZE 32
@@ -754,7 +755,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_gcm(
   memcpy(gcm_header__au8 + 11, enc_data_len__au8, 2);
 
   gcm_tag__pu8 = data + (data_len - gcm_tag_len__u8);
-
   FLEA_CCALL(
     THR_flea_ae__decrypt(
       rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.cipher_id,
@@ -946,12 +946,14 @@ flea_err_t THR_flea_tls_rec_prot_t__send_record(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_record */
 
-flea_err_t THR_flea_tls_rec_prot_t__send_fatal_alert_and_throw(
+flea_err_t THR_flea_tls_rec_prot_t__send_alert_and_throw(
   flea_tls_rec_prot_t*          rec_prot__pt,
   flea_tls__alert_description_t description,
   flea_err_t                    err__t
 )
 {
+  flea_tls__alert_level_t lev = FLEA_TLS_ALERT_LEVEL_FATAL;
+
   FLEA_THR_BEG_FUNC();
   if(rec_prot__pt->is_session_closed__u8)
   {
@@ -960,10 +962,14 @@ flea_err_t THR_flea_tls_rec_prot_t__send_fatal_alert_and_throw(
       FLEA_ERR_TLS_SESSION_CLOSED_WHEN_TRYING_TO_SEND_ALERT
     );
   }
+  if(description == FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY)
+  {
+    lev = FLEA_TLS_ALERT_LEVEL_WARNING;
+  }
   if(description != FLEA_TLS_ALERT_NO_ALERT)
   {
     flea_tls_rec_prot_t__discard_pending_write(rec_prot__pt);
-    FLEA_CCALL(THR_flea_tls_rec_prot_t__send_alert(rec_prot__pt, description, FLEA_TLS_ALERT_LEVEL_FATAL));
+    FLEA_CCALL(THR_flea_tls_rec_prot_t__send_alert(rec_prot__pt, description, lev));
   }
   FLEA_THROW("throwing error after (potentially) sending fatal TLS alert", err__t);
 

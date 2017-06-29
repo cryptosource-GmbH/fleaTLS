@@ -27,7 +27,7 @@
 #include "flea/byte_vec.h"
 #include "internal/common/tls_ciph_suite.h"
 #include "internal/common/tls/parallel_hash.h"
-
+#include "flea/tls_session_mngr.h"
 #include "internal/pltf_if/time.h"
 
 #ifdef FLEA_HAVE_TLS
@@ -82,6 +82,7 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_FAILED_STREAM_READ,                 FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
   {FLEA_ERR_FAILED_STREAM_WRITE,                FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
   {FLEA_ERR_TLS_SESSION_CLOSED,                 FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
+  {FLEA_ERR_TLS_HANDSHK_FAILURE,                FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  },
 };
 static flea_bool_t determine_alert_from_error(
   flea_err_t                     err__t,
@@ -295,37 +296,63 @@ static flea_mac_id_t flea_tls__prf_mac_id_from_suite_id(flea_tls__cipher_suite_i
  *        SecurityParameters.client_random);
  */
 flea_err_t THR_flea_tls__generate_key_block(
-  const flea_tls_ctx_t* tls_ctx,
-  // const flea_tls__security_parameters_t* security_parameters__pt,
-  flea_u8_t*            key_block,
-  flea_al_u8_t          key_block_len__alu8
+  // const flea_tls_ctx_t* tls_ctx,
+  flea_al_u16_t                          selected_cipher_suite__alu16,
+  const flea_tls__security_parameters_t* security_parameters__pt,
+  flea_u8_t*                             key_block,
+  flea_al_u8_t                           key_block_len__alu8
 )
 {
   FLEA_THR_BEG_FUNC();
+  // TODO: MUST BE ABSTRACT BUF:
   flea_u8_t seed[64];
-  memcpy(seed, tls_ctx->security_parameters.server_random.gmt_unix_time, 4);
-  memcpy(seed + 4, tls_ctx->security_parameters.server_random.random_bytes, 28);
-  memcpy(seed + 32, tls_ctx->security_parameters.client_random.gmt_unix_time, 4);
-  memcpy(seed + 36, tls_ctx->security_parameters.client_random.random_bytes, 28);
+  // TODO: REDUNDANT ARRAY ?( could swap values and swap them back in fin-sec,
+  // but this increases the code size) // Better: hand through 2 seed parts down
+  // to the prf, this should not effectively increase code size too much (save 2
+  // memcpy and add one function call parameter)
+  memcpy(
+    seed,
+    security_parameters__pt->client_and_server_random + FLEA_TLS_HELLO_RANDOM_SIZE,
+    FLEA_TLS_HELLO_RANDOM_SIZE
+  );
+  memcpy(
+    seed + FLEA_TLS_HELLO_RANDOM_SIZE,
+    security_parameters__pt->client_and_server_random,
+    FLEA_TLS_HELLO_RANDOM_SIZE
+  );
 
   FLEA_CCALL(
     flea_tls__prf(
-      tls_ctx->security_parameters.master_secret,
+      // tls_ctx->security_parameters.master_secret,
+      security_parameters__pt->master_secret,
       48,
       PRF_LABEL_KEY_EXPANSION,
       seed,
-      sizeof(seed),
+      2 * FLEA_TLS_HELLO_RANDOM_SIZE,// sizeof(seed),
       key_block_len__alu8,
       key_block,
-      flea_tls__prf_mac_id_from_suite_id(tls_ctx->selected_cipher_suite__u16)
+      // flea_tls__prf_mac_id_from_suite_id(tls_ctx->selected_cipher_suite__u16)
+      flea_tls__prf_mac_id_from_suite_id(selected_cipher_suite__alu16)
     )
   );
   FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_tls__generate_key_block */
+
+void flea_tls_ctx_t__invalidate_session(flea_tls_ctx_t* tls_ctx__pt)
+{
+  if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT && tls_ctx__pt->client_session_mbn__pt)
+  {
+    flea_tls_session_data_t__invalidate_session(&tls_ctx__pt->client_session_mbn__pt->session__t);
+  }
+  else if(tls_ctx__pt->server_active_sess_mbn__pt)
+  {
+    tls_ctx__pt->server_active_sess_mbn__pt->session__t.is_valid_session__u8 = 0;
+  }
 }
 
 flea_err_t THR_flea_tls__handle_tls_error(
-  flea_tls_rec_prot_t* rec_prot__pt,
-  flea_err_t           err__t
+  flea_tls_ctx_t* tls_ctx__pt,
+  flea_err_t      err__t
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -335,7 +362,8 @@ flea_err_t THR_flea_tls__handle_tls_error(
     flea_bool_t do_send_alert__b = determine_alert_from_error(err__t, &alert_desc__e);
     if(do_send_alert__b)
     {
-      FLEA_CCALL(THR_flea_tls_rec_prot_t__send_fatal_alert_and_throw(rec_prot__pt, alert_desc__e, err__t));
+      flea_tls_ctx_t__invalidate_session(tls_ctx__pt);
+      FLEA_CCALL(THR_flea_tls_rec_prot_t__send_alert_and_throw(&tls_ctx__pt->rec_prot__t, alert_desc__e, err__t));
     }
   }
   FLEA_THR_FIN_SEC_empty();
@@ -382,6 +410,10 @@ flea_err_t THR_flea_tls__read_finished(
   flea_u8_t* finished__pu8     = messages_hash__bu8 + hash_len__u8;
   flea_u8_t* rec_finished__pu8 = messages_hash__bu8 + hash_len__u8 + finished_len__alu8;
 
+  /*
+   * use a copy of hash_ctx for send_finished instead of finalizing the original
+   */
+
   // we are working on a copy so we can finalize without copying
   FLEA_CCALL(THR_flea_hash_ctx_t__final(hash_ctx, messages_hash__bu8));
 
@@ -425,7 +457,7 @@ flea_err_t THR_flea_tls__read_finished(
   }
   if(!flea_sec_mem_equal(rec_finished__pu8, finished__pu8, finished_len__alu8))
   {
-    FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("Finished message not verifiable", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
 
 
@@ -587,8 +619,11 @@ flea_err_t THR_flea_tls__send_handshake_message_hdr(
  *    [0..47];
  */
 flea_err_t THR_flea_tls__create_master_secret(
-  Random                      client_hello_random,
-  Random                      server_hello_random,
+  const flea_u8_t*            client_and_server_hello_random,
+  // const flea_u8_t * server_hello_random,
+
+  /*Random                      client_hello_random,
+   *  Random                      server_hello_random,*/
   // flea_u8_t* pre_master_secret,
   flea_byte_vec_t*            premaster_secret__pt,
   flea_u8_t*                  master_secret_res,
@@ -599,10 +634,13 @@ flea_err_t THR_flea_tls__create_master_secret(
   FLEA_THR_BEG_FUNC();
   FLEA_ALLOC_BUF(random_seed__bu8, 64);
   // flea_u8_t random_seed[64];
-  memcpy(random_seed__bu8, client_hello_random.gmt_unix_time, 4);
-  memcpy(random_seed__bu8 + 4, client_hello_random.random_bytes, 28);
-  memcpy(random_seed__bu8 + 32, server_hello_random.gmt_unix_time, 4);
-  memcpy(random_seed__bu8 + 36, server_hello_random.random_bytes, 28);
+  // memcpy(random_seed__bu8, client_hello_random.gmt_unix_time, 4);
+  // memcpy(random_seed__bu8 + 4, client_hello_random.random_bytes, 28);
+  // memcpy(random_seed__bu8, client_hello_random, 32);
+  // memcpy(random_seed__bu8 + 32, server_hello_random.gmt_unix_time, 4);
+  // memcpy(random_seed__bu8 + 36, server_hello_random.random_bytes, 28);
+  // TODO: REDUNDANT ARRAY
+  memcpy(random_seed__bu8, client_and_server_hello_random, 64);
 
   // pre_master_secret is 48 bytes, master_secret is desired to be 48 bytes
   // FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, 48));
@@ -628,9 +666,7 @@ flea_err_t THR_flea_tls__create_master_secret(
 // TODO: ctor = handshake function
 flea_err_t THR_flea_tls_ctx_t__construction_helper(
   flea_tls_ctx_t*   ctx,
-  flea_rw_stream_t* rw_stream__pt,
-  const flea_u8_t*  session_id,
-  flea_al_u8_t      session_id_len
+  flea_rw_stream_t* rw_stream__pt
 )
 {
   flea_al_u8_t sec_reneg_field_size__alu8 = 12;
@@ -660,19 +696,20 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
   ctx->selected_cipher_suite__u16 = FLEA_TLS_NULL_WITH_NULL_NULL;
 
   /* set SessionID */
-  if(session_id_len > 32)
-  {
-    FLEA_THROW("session id too large", FLEA_ERR_TLS_GENERIC);
-  }
-  memcpy(&ctx->session_id, session_id, session_id_len);
-  ctx->session_id_len = session_id_len;
+
+  /*if(session_id_len > 32)
+   * {
+   * FLEA_THROW("session id too large", FLEA_ERR_TLS_GENERIC);
+   * }*/
+  // memcpy(&ctx->session_id, session_id, session_id_len);
+  // ctx->session_id_len = session_id_len;
 
   /* set client_random */
   // TODO: do we need these parameters in the ctx? everything only needed during
   // handshake should be local to that function
   //
 
-  ctx->resumption = FLEA_FALSE;
+  // ctx->resumption = FLEA_FALSE;
 
 # if 0
 #  ifdef FLEA_USE_HEAP_BUF
@@ -920,7 +957,7 @@ flea_err_t THR_flea_tls_ctx_t__send_app_data(
   FLEA_THR_BEG_FUNC();
   err__t = THR_flea_tls_ctx_t__send_app_data_inner(tls_ctx__pt, data, data_len);
 
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t));
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -1012,7 +1049,7 @@ flea_err_t THR_flea_tls_ctx_t__read_app_data(
   FLEA_THR_BEG_FUNC();
   err__t = THR_flea_tls_ctx_t__read_app_data_inner(tls_ctx__pt, data__pu8, data_len__palu16, rd_mode__e);
 
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t));
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -1043,11 +1080,11 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   flea_tls_set_tls_random(tls_ctx__pt);
 
   flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey); // TODO: does this really need to be part of the ctx?
-  tls_ctx__pt->resumption = FLEA_FALSE;
+  // tls_ctx__pt->resumption = FLEA_FALSE;
   // TODO: discard pending read (/ flush pending write (done automatically))
   if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT)
   {
-    err__t = THR_flea_tls__client_handshake(tls_ctx__pt, FLEA_TRUE);
+    err__t = THR_flea_tls__client_handshake(tls_ctx__pt, FLEA_TRUE, tls_ctx__pt->client_session_mbn__pt);
   }
   else
   {
@@ -1062,19 +1099,22 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
     );
     err__t = THR_flea_tls__server_handshake(tls_ctx__pt, FLEA_TRUE);
   }
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(&tls_ctx__pt->rec_prot__t, err__t));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t));
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__renegotiate */
 
 void flea_tls_set_tls_random(flea_tls_ctx_t* ctx__pt)
 {
+# if 0
   flea_rng__randomize(ctx__pt->security_parameters.client_random.gmt_unix_time, 4); // TODO: check RFC for correct implementation - actual time?
   flea_rng__randomize(ctx__pt->security_parameters.client_random.random_bytes, 28);
 
   /* set server random */
   flea_rng__randomize(ctx__pt->security_parameters.server_random.gmt_unix_time, 4);
   flea_rng__randomize(ctx__pt->security_parameters.server_random.random_bytes, 28);
+# endif
+  flea_rng__randomize(ctx__pt->security_parameters.client_and_server_random, 2 * FLEA_TLS_HELLO_RANDOM_SIZE);
 }
 
 flea_bool_t flea_tls_ctx_t__do_send_sec_reneg_ext(flea_tls_ctx_t* tls_ctx__pt)
@@ -1130,16 +1170,19 @@ flea_err_t THR_flea_tls_ctx_t__send_extensions_length(
 
   FLEA_THR_BEG_FUNC();
   len__alu16 = flea_tls_ctx_t__compute_extensions_length(tls_ctx__pt);
-  flea__encode_U16_BE(len__alu16, enc_len__au8);
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx__pt->rec_prot__t,
-      p_hash_ctx_mbn__pt,
-      enc_len__au8,
-      sizeof(enc_len__au8)
-    )
-  );
 
+  if(len__alu16)
+  {
+    flea__encode_U16_BE(len__alu16, enc_len__au8);
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_content(
+        &tls_ctx__pt->rec_prot__t,
+        p_hash_ctx_mbn__pt,
+        enc_len__au8,
+        sizeof(enc_len__au8)
+      )
+    );
+  }
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -1308,6 +1351,17 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
   flea_public_key_t__dtor(&tls_ctx__pt->ecdhe_pub_key);
   flea_private_key_t__dtor(&tls_ctx__pt->ecdhe_priv_key);
 
+  if(tls_ctx__pt->client_session_mbn__pt && tls_ctx__pt->client_session_mbn__pt->session_id_len__u8)
+  {
+    /*flea_tls_session_data_t__set_seqs(
+     * &tls_ctx__pt->client_session_mbn__pt->session__t,
+     * tls_ctx__pt->rec_prot__t.read_state__t.sequence_number__au32,
+     * tls_ctx__pt->rec_prot__t.write_state__t.sequence_number__au32
+     * );*/
+    // TODO: THIS CAN ALREADY BE DONE AFTER SETTING THE MASTER SECRET AND THE
+    // CIPHER SUITE
+    flea_tls_session_data_t__set_session_as_valid(&tls_ctx__pt->client_session_mbn__pt->session__t);
+  }
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_NULL(tls_ctx__pt->own_vfy_data__bu8);
 # endif
