@@ -223,6 +223,7 @@ typedef struct
 
   // TODO: SERVER SHOULD ONLY KEEP THE INSTANTIATED KEY OBJECT
   flea_ref_cu8_t*                private_key__pt;
+  flea_private_key_t             private_key__t;
 
   flea_revoc_chk_cfg_t           rev_chk_cfg__t;
   flea_u8_t                      sec_reneg_flag__u8;

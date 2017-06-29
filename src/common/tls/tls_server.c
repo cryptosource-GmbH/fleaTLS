@@ -351,9 +351,9 @@ static flea_err_t THR_flea_tls__send_server_kex(
   flea_pub_key_param_u param__u;
   flea_u8_t ec_curve_type__u8[] = {3}; // named_curve has value 3
 
-  FLEA_DECL_BUF(msg__bu8, flea_u8_t, 256 + 3);                                      // max 256B pub point + 3B for named curve
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(msg_hash_vec__t, 20); // SHA1 used
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, 256);     // TODO MAX_SIG_SIZE
+  FLEA_DECL_BUF(msg__bu8, flea_u8_t, 256 + 3);                                  // max 256B pub point + 3B for named curve
+  FLEA_DECL_BUF(msg_hash__bu8, flea_u8_t, 20);                                  // SHA1 used
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, 256); // TODO MAX_SIG_SIZE
 
   FLEA_DECL_OBJ(key__t, flea_private_key_t);
 
@@ -407,11 +407,7 @@ static flea_err_t THR_flea_tls__send_server_kex(
     pub_point__rcu8 = flea_public_key__get_encoded_public_component(&tls_ctx__pt->ecdhe_pub_key);
 
     // TODO: derive signature length from cert
-    hdr_len__u32 = +3 + 1 + pub_point__rcu8.len__dtl + 2 + 256; // 3 for named curve + 1 for pub point length + 2 for sig/hash alg + 256 for sha256 sig
-
-    // curve type (3)
-    // named curve (?)
-    // signature
+    hdr_len__u32 = 3 + 1 + pub_point__rcu8.len__dtl + 2 + 2 + 256; // 3 for named curve + 1 for pub point length + 2 for sig/hash alg + 2 sig length + 256 for sha256 sig
 
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_hdr(
@@ -473,33 +469,24 @@ static flea_err_t THR_flea_tls__send_server_kex(
     flea_u8_t sig_and_hash_alg[] = {0x04, 0x01};
 
     // write server ec params into msg__bu8
+    FLEA_ALLOC_BUF(msg__bu8, 3 + pub_point__rcu8.len__dtl);
     memcpy(msg__bu8, ec_curve_type__u8, 1);
     memcpy(msg__bu8 + 1, secp256r1, 2);
     memcpy(msg__bu8 + 3, pub_point__rcu8.data__pcu8, pub_point__rcu8.len__dtl);
 
     // hash params
-    FLEA_CCALL(THR_flea_byte_vec_t__reserve(&msg_hash_vec__t, 20));
-    FLEA_CCALL(THR_flea_compute_hash(flea_sha1, msg__bu8, pub_point__rcu8.len__dtl + 3, msg_hash_vec__t.data__pu8, 20));
+    FLEA_ALLOC_BUF(msg_hash__bu8, 20);
+    FLEA_CCALL(THR_flea_compute_hash(flea_sha1, msg__bu8, pub_point__rcu8.len__dtl + 3, msg_hash__bu8, 20));
 
-    // sign hash
-    // TODO: create the key one time and store it in the tls_ctx instead of the
-    // reference to the raw pkcs8 data
-    FLEA_CCALL(
-      THR_flea_private_key_t__ctor_pkcs8(
-        &key__t,
-        tls_ctx__pt->private_key__pt->data__pcu8,
-        tls_ctx__pt->private_key__pt->len__dtl
-      )
-    );
 
     // create signature
     FLEA_CCALL(
       THR_flea_pk_api__sign_digest(
-        msg_hash_vec__t.data__pu8, // TODO: don't need a vector for msg_hash
-        msg_hash_vec__t.len__dtl,
+        msg_hash__bu8,
+        20,
         flea_sha256,              // TODO: derive from cert
         flea_rsa_pkcs1_v1_5_sign, // TODO: derive from cert
-        &key__t,
+        &tls_ctx__pt->private_key__t,
         &sig_vec__t
       )
     );
@@ -515,12 +502,17 @@ static flea_err_t THR_flea_tls__send_server_kex(
       )
     );
 
+
+    flea_u16_t sig_len__u16 = 256; // TODO: derive from cert
+    flea_u8_t sig_len_enc__bu8[2];
+    flea__encode_U16_BE(sig_len__u16, sig_len_enc__bu8);
+
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
-        sig_vec__t.data__pu8,
-        256
+        sig_len_enc__bu8,
+        sizeof(sig_len_enc__bu8)
       )
     );
 
@@ -529,8 +521,8 @@ static flea_err_t THR_flea_tls__send_server_kex(
       THR_flea_tls__send_handshake_message_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
-        &pub_point_len__u8,
-        1
+        sig_vec__t.data__pu8,
+        sig_vec__t.len__dtl
       )
     );
   }

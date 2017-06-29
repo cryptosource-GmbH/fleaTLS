@@ -18,18 +18,19 @@ using namespace std;
  * } ;*/
 
 std::map<string, flea_u16_t> cipher_suite_name_value_map__t = {
-  {"TLS_RSA_WITH_NULL_MD5",           0x0001},
-  {"TLS_RSA_WITH_NULL_SHA",           0x0002},
-  {"TLS_RSA_WITH_NULL_SHA256",        0x003B},
-  {"TLS_RSA_WITH_RC4_128_MD5",        0x0004},
-  {"TLS_RSA_WITH_RC4_128_SHA",        0x0005},
-  {"TLS_RSA_WITH_3DES_EDE_CBC_SHA",   0x000A},
-  {"TLS_RSA_WITH_AES_128_CBC_SHA",    0x002F},
-  {"TLS_RSA_WITH_AES_256_CBC_SHA",    0x0035},
-  {"TLS_RSA_WITH_AES_128_CBC_SHA256", 0x003C},
-  {"TLS_RSA_WITH_AES_256_CBC_SHA256", 0x003D},
-  {"TLS_RSA_WITH_AES_128_GCM_SHA256", 0x009C},
-  {"TLS_RSA_WITH_AES_256_GCM_SHA384", 0x009D}
+  {"TLS_RSA_WITH_NULL_MD5",                   0x0001},
+  {"TLS_RSA_WITH_NULL_SHA",                   0x0002},
+  {"TLS_RSA_WITH_NULL_SHA256",                0x003B},
+  {"TLS_RSA_WITH_RC4_128_MD5",                0x0004},
+  {"TLS_RSA_WITH_RC4_128_SHA",                0x0005},
+  {"TLS_RSA_WITH_3DES_EDE_CBC_SHA",           0x000A},
+  {"TLS_RSA_WITH_AES_128_CBC_SHA",            0x002F},
+  {"TLS_RSA_WITH_AES_256_CBC_SHA",            0x0035},
+  {"TLS_RSA_WITH_AES_128_CBC_SHA256",         0x003C},
+  {"TLS_RSA_WITH_AES_256_CBC_SHA256",         0x003D},
+  {"TLS_RSA_WITH_AES_128_GCM_SHA256",         0x009C},
+  {"TLS_RSA_WITH_AES_256_GCM_SHA384",         0x009D},
+  {"FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA", 0xC013}
 };
 
 namespace {
