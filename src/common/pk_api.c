@@ -188,6 +188,10 @@ flea_err_t THR_flea_pk_api__sign_digest(
   {
     FLEA_THROW("invalid key length for signature", FLEA_ERR_INV_KEY_SIZE);
   }
+  if(digest_len__alu8 != flea_hash__get_output_length_by_id(hash_id__e))
+  {
+    FLEA_THROW("digest length does not fit to hash id", FLEA_ERR_INV_ARG);
+  }
   FLEA_ALLOC_BUF(primitive_input__bu8, FLEA_MAX(primitive_input_len__alu16, FLEA_MAX_HASH_OUT_LEN));
   // get the final hash value
   if(digest_len__alu8 > FLEA_MAX_HASH_OUT_LEN)

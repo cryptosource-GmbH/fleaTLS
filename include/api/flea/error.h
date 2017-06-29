@@ -139,6 +139,8 @@ typedef enum
    */
   FLEA_ERR_TLS_INV_RENEG_INFO                           = 0x57,
 
+  FLEA_ERR_TLS_HANDSHK_FAILURE                          = 0x58,
+
   /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */

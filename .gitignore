@@ -8,3 +8,8 @@ test/flea_test_stm32f4.elf
 test/stm32f4.map
 *.swp
 libflea_lpc1768.a
+cscope.out
+misc/tools/tls/tls_certs/saved_session
+tags
+types_c.taghl
+types_py.taghl
