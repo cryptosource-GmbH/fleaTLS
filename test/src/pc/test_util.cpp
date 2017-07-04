@@ -297,6 +297,18 @@ std::vector<unsigned char> read_bin_file(std::string const& filename)
   return result;
 }
 
+void write_bin_file(
+  std::string const    & filename,
+  const unsigned char* data,
+  size_t               data_len
+)
+{
+  fstream myfile(filename, ios::out | ios::binary);
+
+  myfile.write((const char*) &data[0], data_len);
+  myfile.close();
+}
+
 bool is_dir_existent(std::string const& dir_name)
 {
   DIR* dir = opendir(dir_name.c_str());

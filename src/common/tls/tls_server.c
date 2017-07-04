@@ -93,7 +93,8 @@ static flea_err_t THR_flea_tls__read_client_hello(
   FLEA_ALLOC_BUF(session_id__bu8, session_id_len__u8);
   // TODO: SKIP DATA IF LONGER THAN DEFINED SERVER SESSION ID LEN
   FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, session_id__bu8, session_id_len__u8));
-  tls_ctx->server_resume_session__u8 = 0;
+  tls_ctx->server_resume_session__u8  = 0;
+  tls_ctx->server_active_sess_mbn__pt = NULL;
   if(session_id_len__u8 && tls_ctx->session_mngr_mbn__pt)
   {
     tls_ctx->server_active_sess_mbn__pt = flea_tls_session_mngr_t__session_cache_lookup(
@@ -1006,6 +1007,10 @@ flea_err_t THR_flea_tls__server_handshake(
 
       continue;
     }
+  }
+  if(tls_ctx->session_mngr_mbn__pt && tls_ctx->server_active_sess_mbn__pt)
+  {
+    flea_tls_session_data_t__set_session_as_valid(&tls_ctx->server_active_sess_mbn__pt->session__t);
   }
   FLEA_THR_FIN_SEC(
     flea_hash_ctx_t__dtor(&hash_ctx);

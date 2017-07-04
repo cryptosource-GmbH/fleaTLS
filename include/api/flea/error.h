@@ -141,6 +141,8 @@ typedef enum
 
   FLEA_ERR_TLS_HANDSHK_FAILURE                          = 0x58,
 
+  FLEA_ERR_TLS_REC_CLOSE_NOTIFY                         = 0x59,
+
   /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */

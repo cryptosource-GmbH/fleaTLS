@@ -169,11 +169,22 @@ int flea_start_tls_client(property_set_t const& cmdl_args)
   flea_tls_client_session_t__INIT(&client_session__t);
 
   flea_tls_client_session_t__ctor(&client_session__t);
-
-  if(cmdl_args.have_index("session"))
+  if(cmdl_args.have_index("session") && cmdl_args.have_index("session_in"))
   {
-    std::string s = cmdl_args.get_property_as_string("session");
-    std::vector<flea_u8_t> sid = hex_to_bin(s);
+    throw test_utils_exceptn_t("provided both 'session' and 'session_in', which is not allowed");
+  }
+  else if(cmdl_args.have_index("session") || cmdl_args.have_index("session_in"))
+  {
+    std::vector<flea_u8_t> sid;
+    if(cmdl_args.have_index("session"))
+    {
+      std::string s = cmdl_args.get_property_as_string("session");
+      sid = hex_to_bin(s);
+    }
+    else if(cmdl_args.have_index("session_in"))
+    {
+      sid = read_bin_file(cmdl_args.get_property_as_string("session_in"));
+    }
     err = THR_flea_tls_client_session_t_deserialize(&client_session__t, &sid[0], sid.size());
   }
   if(err != FLEA_ERR_FINE)
@@ -187,19 +198,31 @@ int flea_start_tls_client(property_set_t const& cmdl_args)
       FLEA_PRINTF_TEST_OUTP_2_SWITCHED("error %04x during tls client test\n", err);
       retval = 1;
     }
+
+    err = THR_flea_tls_client_session_t__serialize(&client_session__t, &serialized_session_t);
+    if(err)
+    {
+      FLEA_PRINTF_TEST_OUTP_1_SWITCHED("error when serializing stored session\n");
+    }
     else
     {
-      err = THR_flea_tls_client_session_t__serialize(&client_session__t, &serialized_session_t);
-      if(err)
+      FLEA_PRINTF_TEST_OUTP_1_SWITCHED("session for resumption = ");
+      std::string s = bin_to_hex(serialized_session_t.data__pu8, serialized_session_t.len__dtl);
+      std::cout << s << std::endl;
+
+      if(cmdl_args.have_index("session_out"))
       {
-        FLEA_PRINTF_TEST_OUTP_1_SWITCHED("error when serializing stored session\n");
+        write_bin_file(
+          cmdl_args.get_property_as_string(
+            "session_out"
+          ),
+          serialized_session_t.data__pu8,
+          serialized_session_t.len__dtl
+        );
       }
-      else
-      {
-        FLEA_PRINTF_TEST_OUTP_1_SWITCHED("session for resumption = ");
-        std::string s = bin_to_hex(serialized_session_t.data__pu8, serialized_session_t.len__dtl);
-        std::cout << s << std::endl;
-      }
+    }
+    if(!retval)
+    {
       FLEA_PRINTF_TEST_OUTP_1_SWITCHED("tls test passed\n");
     }
   }

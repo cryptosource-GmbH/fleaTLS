@@ -143,7 +143,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__handle_alert(flea_tls_rec_prot_t* rec
   }
   else if(rec_prot__pt->payload_buf__pu8[1] == FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY)
   {
-    FLEA_THROW("received fatal alert", FLEA_ERR_TLS_SESSION_CLOSED);
+    FLEA_THROW("received close notify", FLEA_ERR_TLS_REC_CLOSE_NOTIFY);
   }
 
   rec_prot__pt->payload_offset__u16   = 0;

@@ -92,6 +92,7 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_FAILED_STREAM_READ,                 FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
   {FLEA_ERR_FAILED_STREAM_WRITE,                FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
   {FLEA_ERR_TLS_SESSION_CLOSED,                 FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
+  {FLEA_ERR_TLS_REC_CLOSE_NOTIFY,               FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
   {FLEA_ERR_TLS_HANDSHK_FAILURE,                FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  },
 };
 static flea_bool_t determine_alert_from_error(
@@ -352,7 +353,10 @@ flea_err_t THR_flea_tls__handle_tls_error(
     flea_bool_t do_send_alert__b = determine_alert_from_error(err__t, &alert_desc__e);
     if(do_send_alert__b)
     {
-      flea_tls_ctx_t__invalidate_session(tls_ctx__pt);
+      if(err__t != FLEA_ERR_TLS_REC_CLOSE_NOTIFY)
+      {
+        flea_tls_ctx_t__invalidate_session(tls_ctx__pt);
+      }
       FLEA_CCALL(THR_flea_tls_rec_prot_t__send_alert_and_throw(&tls_ctx__pt->rec_prot__t, alert_desc__e, err__t));
     }
   }
