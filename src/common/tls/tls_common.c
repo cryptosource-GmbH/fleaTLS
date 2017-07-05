@@ -337,7 +337,7 @@ void flea_tls_ctx_t__invalidate_session(flea_tls_ctx_t* tls_ctx__pt)
   }
   else if(tls_ctx__pt->server_active_sess_mbn__pt)
   {
-    tls_ctx__pt->server_active_sess_mbn__pt->session__t.is_valid_session__u8 = 0;
+    flea_tls_session_data_t__invalidate_session(&tls_ctx__pt->server_active_sess_mbn__pt->session__t);// .is_valid_session__u8 = 0;
   }
 }
 
@@ -1317,17 +1317,12 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
 {
   flea_tls_rec_prot_t__dtor(&tls_ctx__pt->rec_prot__t);
   flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey);
+# if 0
   if(tls_ctx__pt->client_session_mbn__pt && tls_ctx__pt->client_session_mbn__pt->session_id_len__u8)
   {
-    /*flea_tls_session_data_t__set_seqs(
-     * &tls_ctx__pt->client_session_mbn__pt->session__t,
-     * tls_ctx__pt->rec_prot__t.read_state__t.sequence_number__au32,
-     * tls_ctx__pt->rec_prot__t.write_state__t.sequence_number__au32
-     * );*/
-    // TODO: THIS CAN ALREADY BE DONE AFTER SETTING THE MASTER SECRET AND THE
-    // CIPHER SUITE
     flea_tls_session_data_t__set_session_as_valid(&tls_ctx__pt->client_session_mbn__pt->session__t);
   }
+# endif
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_NULL(tls_ctx__pt->own_vfy_data__bu8);
 # endif

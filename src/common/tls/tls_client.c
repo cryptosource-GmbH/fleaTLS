@@ -943,6 +943,10 @@ flea_err_t THR_flea_tls__client_handshake(
       }
     }
   }
+  if(tls_ctx->client_session_mbn__pt && tls_ctx->client_session_mbn__pt->session_id_len__u8)
+  {
+    flea_tls_session_data_t__set_session_as_valid(&tls_ctx->client_session_mbn__pt->session__t);
+  }
   FLEA_THR_FIN_SEC(
     flea_byte_vec_t__dtor(&premaster_secret__t);
     flea_hash_ctx_t__dtor(&hash_ctx);

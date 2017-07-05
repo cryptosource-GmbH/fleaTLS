@@ -202,7 +202,7 @@ int flea_start_tls_client(property_set_t const& cmdl_args)
     err = THR_flea_tls_client_session_t__serialize(&client_session__t, &serialized_session_t);
     if(err)
     {
-      FLEA_PRINTF_TEST_OUTP_1_SWITCHED("error when serializing stored session\n");
+      FLEA_PRINTF_TEST_OUTP_1_SWITCHED("no valid session established, cannot generate session to store\n");
     }
     else
     {

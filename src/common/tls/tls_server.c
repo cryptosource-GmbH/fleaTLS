@@ -1010,6 +1010,7 @@ flea_err_t THR_flea_tls__server_handshake(
   }
   if(tls_ctx->session_mngr_mbn__pt && tls_ctx->server_active_sess_mbn__pt)
   {
+    printf("server setting session as valid\n");
     flea_tls_session_data_t__set_session_as_valid(&tls_ctx->server_active_sess_mbn__pt->session__t);
   }
   FLEA_THR_FIN_SEC(
