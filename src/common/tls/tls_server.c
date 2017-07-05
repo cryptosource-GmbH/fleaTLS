@@ -190,47 +190,6 @@ static flea_err_t THR_flea_tls__read_client_hello(
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {
     FLEA_CCALL(THR_flea_tls_ctx_t__parse_hello_extensions(tls_ctx, hs_rdr__pt, &found_sec_reneg__b));
-# if 0
-    flea_al_u16_t all_extensions_len__alu16;
-    flea_u8_t byte;
-    // read extension length
-    // TODO: stream function to read in the length
-
-    FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &byte));
-    all_extensions_len__alu16 = byte << 8;
-    FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &byte));
-    all_extensions_len__alu16 |= byte;
-
-    while(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) > 0)
-    {
-      // flea_u32_t extension_len__u32;
-      FLEA_CCALL(
-        THR_flea_rw_stream_t__read_full(
-          hs_rd_stream__pt,
-          extension_type__au8,
-          2
-        )
-      );
-      if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt))
-      {
-        FLEA_CCALL(THR_flea_tls_ctx_t__client_parse_extensions(tls_ctx, hs_rdr__pt));
-        // FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, &extension_len__u32, 2));
-
-        /* FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &byte));
-         * extension_len__alu16 = byte << 8;
-         * FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &byte));
-         * extension_len__alu16 |= byte;*/
-
-        // TODO: implement handle_extension function that processes the extensions
-        //
-        // TODO: HANDLING SI-EXT: if client features SR, then set ctx->client_has_sec_reneg__u8 = TRUE
-        //                                                  NO, just set_sec_reneg_flag to TRUE
-        //                                                  (together with
-        //                                                  security tests)
-        // FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, extension_len__u32));
-      }
-    }
-# endif /* if 0 */
   }
   if(tls_ctx->sec_reneg_flag__u8 && !found_sec_reneg__b)
   {
