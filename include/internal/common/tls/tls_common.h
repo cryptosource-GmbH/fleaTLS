@@ -161,9 +161,10 @@ flea_err_t THR_flea_tls__send_handshake_message_int_be(
   flea_al_u8_t         int_byte_width__alu8
 );
 
-flea_err_t THR_flea_tls_ctx_t__client_parse_extensions(
+flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
   flea_tls_ctx_t*           tls_ctx__pt,
-  flea_tls_handsh_reader_t* hs_rdr__pt
+  flea_tls_handsh_reader_t* hs_rdr__pt,
+  flea_bool_t*              found_sec_reneg__pb
 );
 
 flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx__pt);

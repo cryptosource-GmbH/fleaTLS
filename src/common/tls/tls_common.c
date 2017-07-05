@@ -1232,7 +1232,7 @@ static flea_err_t THR_flea_tls_ctx__parse_reneg_ext(
   }
   if(len__u8 != exp_len__alu8)
   {
-    FLEA_THROW("invalid renegotiation info size", FLEA_ERR_TLS_INV_RENEG_INFO);
+    FLEA_THROW("invalid renegotiation info size", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
   FLEA_CCALL(THR_flea_rw_stream_t__read_full(rd_strm__pt, cmp__bu8, exp_len__alu8));
 
@@ -1240,7 +1240,7 @@ static flea_err_t THR_flea_tls_ctx__parse_reneg_ext(
    * {*/
   if(!flea_sec_mem_equal(tls_ctx__pt->own_vfy_data__bu8, cmp__bu8, exp_len__alu8))
   {
-    FLEA_THROW("invalid renegotiation info content", FLEA_ERR_TLS_INV_RENEG_INFO);
+    FLEA_THROW("invalid renegotiation info content", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
 
   /*}
@@ -1255,9 +1255,8 @@ static flea_err_t THR_flea_tls_ctx__parse_reneg_ext(
 
   if(flea_tls_rec_prot_t__have_done_initial_handshake(&tls_ctx__pt->rec_prot__t) && !len__u8)
   {
-    FLEA_THROW("empty renegotiation info provided during handshake after the first", FLEA_ERR_TLS_INV_RENEG_INFO);
+    FLEA_THROW("empty renegotiation info provided during handshake after the first", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
-  tls_ctx__pt->sec_reneg_flag__u8 = FLEA_TRUE;
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(cmp__bu8);
   );
@@ -1267,13 +1266,13 @@ static flea_err_t THR_flea_tls_ctx__parse_reneg_ext(
  * {
  * tls_ctx__pt->sec_reneg_flag__u8 = FLEA_FALSE;
  * }*/
-flea_err_t THR_flea_tls_ctx_t__client_parse_extensions(
+flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
   flea_tls_ctx_t*           tls_ctx__pt,
-  flea_tls_handsh_reader_t* hs_rdr__pt
+  flea_tls_handsh_reader_t* hs_rdr__pt,
+  flea_bool_t*              found_sec_reneg__pb
 ) // flea_rw_stream_t* hs_read_strm__pt)
 {
   flea_u32_t extensions_len__u32;
-  flea_bool_t found_sec_reneg__b = FLEA_FALSE;
   flea_rw_stream_t* hs_rd_stream__pt;
 
   FLEA_THR_BEG_FUNC();
@@ -1299,16 +1298,12 @@ flea_err_t THR_flea_tls_ctx_t__client_parse_extensions(
     if(ext_type_be__u32 == 0xff01)
     {
       FLEA_CCALL(THR_flea_tls_ctx__parse_reneg_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
-      found_sec_reneg__b = FLEA_TRUE;
+      *found_sec_reneg__pb = FLEA_TRUE;
     }
     else
     {
       FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, ext_len__u32));
     }
-  }
-  if(tls_ctx__pt->sec_reneg_flag__u8 && !found_sec_reneg__b)
-  {
-    FLEA_THROW("missing renegotiation info in peer's extensions", FLEA_ERR_TLS_INV_RENEG_INFO);
   }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__client_parse_extensions */

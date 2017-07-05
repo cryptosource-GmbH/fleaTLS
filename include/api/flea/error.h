@@ -137,138 +137,138 @@ typedef enum
    * invalid or missing renegotiation info extension in the client or server
    * hello message.
    */
-  FLEA_ERR_TLS_INV_RENEG_INFO                           = 0x57,
+  // FLEA_ERR_TLS_INV_RENEG_INFO                           = 0x57,
 
-  FLEA_ERR_TLS_HANDSHK_FAILURE                          = 0x58,
+  FLEA_ERR_TLS_HANDSHK_FAILURE                        = 0x58,
 
-  FLEA_ERR_TLS_REC_CLOSE_NOTIFY                         = 0x59,
+  FLEA_ERR_TLS_REC_CLOSE_NOTIFY                       = 0x59,
 
   /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */
-  FLEA_ERR_PKCS8_INVALID_KEY_OID                        = 0x70,
+  FLEA_ERR_PKCS8_INVALID_KEY_OID                      = 0x70,
 
   /**
    * An optional element in a PKCS#8 structure (optional in the ASN.1 specification) is missing which is necessary for the requested operation, e.g. for the creation of a public key.
    */
-  FLEA_ERR_PKCS8_MISSING_OPT_ELEMENT                    = 0x71,
+  FLEA_ERR_PKCS8_MISSING_OPT_ELEMENT                  = 0x71,
 
   /**
    * A requested operation on a flea_rw_stream_t object is not supported by that
    * object.
    */
-  FLEA_ERR_STREAM_FUNC_NOT_SUPPORTED                    = 0x90,
+  FLEA_ERR_STREAM_FUNC_NOT_SUPPORTED                  = 0x90,
 
   /**
    * A read stream has reached end-of-file.
    */
-  FLEA_ERR_STREAM_EOF                                   = 0x91,
+  FLEA_ERR_STREAM_EOF                                 = 0x91,
 
-  FLEA_ERR_BUFF_TOO_SMALL                               = 0xA0,
-  FLEA_ERR_DECODING_FAILURE                             = 0xA1,
-  FLEA_ERR_ASN1_DER_DEC_ERR                             = 0xA3,
-  FLEA_ERR_ASN1_DER_UNEXP_TAG                           = 0xA4,
-  FLEA_ERR_ASN1_DER_EXCSS_LEN                           = 0xA5,
-  FLEA_ERR_ASN1_DER_EXCSS_NST                           = 0xA6,
-  FLEA_ERR_ASN1_DEC_TRGT_BUF_TOO_SMALL                  = 0xA7,
-  FLEA_ERR_ASN1_DER_CALL_SEQ_ERR                        = 0xA8,
-  FLEA_ERR_ASN1_DER_CST_LEN_LIMIT_EXCEEDED              = 0xA9,
+  FLEA_ERR_BUFF_TOO_SMALL                             = 0xA0,
+  FLEA_ERR_DECODING_FAILURE                           = 0xA1,
+  FLEA_ERR_ASN1_DER_DEC_ERR                           = 0xA3,
+  FLEA_ERR_ASN1_DER_UNEXP_TAG                         = 0xA4,
+  FLEA_ERR_ASN1_DER_EXCSS_LEN                         = 0xA5,
+  FLEA_ERR_ASN1_DER_EXCSS_NST                         = 0xA6,
+  FLEA_ERR_ASN1_DEC_TRGT_BUF_TOO_SMALL                = 0xA7,
+  FLEA_ERR_ASN1_DER_CALL_SEQ_ERR                      = 0xA8,
+  FLEA_ERR_ASN1_DER_CST_LEN_LIMIT_EXCEEDED            = 0xA9,
 
   /**
    * Unspecified error while trying to read from a stream.
    */
-  FLEA_ERR_FAILED_STREAM_READ                           = 0xAD,
+  FLEA_ERR_FAILED_STREAM_READ                         = 0xAD,
 
   /**
    * Unspecified error while trying to write to a stream.
    */
-  FLEA_ERR_FAILED_STREAM_WRITE                          = 0xAE,
-  FLEA_ERR_FAILED_TO_OPEN_CONNECTION                    = 0xAF,
-  FLEA_ERR_PRNG_NVM_WRITE_ERROR                         = 0xB1,
-  FLEA_ERR_RNG_NOT_SEEDED                               = 0xB2,
-  FLEA_ERR_X509_VERSION_ERROR                           = 0xC0,
-  FLEA_ERR_X509_DN_ERROR                                = 0xC1,
-  FLEA_ERR_X509_ERR_UNSUP_CRIT_EXT                      = 0xC2,
-  FLEA_ERR_X509_KU_DEC_ERR                              = 0xC3,
-  FLEA_ERR_X509_SAN_DEC_ERR                             = 0xC4,
-  FLEA_ERR_X509_NEG_INT                                 = 0xC5,
-  FLEA_ERR_X509_BC_EXCSS_PATH_LEN                       = 0xC6,
-  FLEA_ERR_X509_ERR_UNSUP_CRIT_NAME_CONSTRAINTS_EXT     = 0xC7,
-  FLEA_ERR_X509_ERR_UNSUP_CRIT_POLICY_CONSTRAINTS_EXT   = 0xC8,
-  FLEA_ERR_X509_EKU_VAL_ERR                             = 0xC9,
-  FLEA_ERR_X509_SIG_ALG_ERR                             = 0xCA,
-  FLEA_ERR_X509_UNSUPP_PRIMITIVE                        = 0xCB,
-  FLEA_ERR_X509_BIT_STR_ERR                             = 0xCC,
+  FLEA_ERR_FAILED_STREAM_WRITE                        = 0xAE,
+  FLEA_ERR_FAILED_TO_OPEN_CONNECTION                  = 0xAF,
+  FLEA_ERR_PRNG_NVM_WRITE_ERROR                       = 0xB1,
+  FLEA_ERR_RNG_NOT_SEEDED                             = 0xB2,
+  FLEA_ERR_X509_VERSION_ERROR                         = 0xC0,
+  FLEA_ERR_X509_DN_ERROR                              = 0xC1,
+  FLEA_ERR_X509_ERR_UNSUP_CRIT_EXT                    = 0xC2,
+  FLEA_ERR_X509_KU_DEC_ERR                            = 0xC3,
+  FLEA_ERR_X509_SAN_DEC_ERR                           = 0xC4,
+  FLEA_ERR_X509_NEG_INT                               = 0xC5,
+  FLEA_ERR_X509_BC_EXCSS_PATH_LEN                     = 0xC6,
+  FLEA_ERR_X509_ERR_UNSUP_CRIT_NAME_CONSTRAINTS_EXT   = 0xC7,
+  FLEA_ERR_X509_ERR_UNSUP_CRIT_POLICY_CONSTRAINTS_EXT = 0xC8,
+  FLEA_ERR_X509_EKU_VAL_ERR                           = 0xC9,
+  FLEA_ERR_X509_SIG_ALG_ERR                           = 0xCA,
+  FLEA_ERR_X509_UNSUPP_PRIMITIVE                      = 0xCB,
+  FLEA_ERR_X509_BIT_STR_ERR                           = 0xCC,
 
   /**
    * The hash function indicated by the encoding in an OID is not recognized.
    * This error is to be distinguished from INV_ALGORITHM, can indicate
    * that the support for an algorithm is not configured in flea
    */
-  FLEA_ERR_X509_UNRECOG_HASH_FUNCTION                   = 0xCD,
+  FLEA_ERR_X509_UNRECOG_HASH_FUNCTION                 = 0xCD,
 
   /**
    * For a supported primitive the specified variant in an OID is not supported
    * or known.
    */
-  FLEA_ERR_X509_UNSUPP_ALGO_VARIANT                     = 0xCE,
+  FLEA_ERR_X509_UNSUPP_ALGO_VARIANT                   = 0xCE,
 
   /**
    * Error with the decoded public ECC parameters. Is also used to
    * indicate missing parameters.
    */
-  FLEA_ERR_X509_INV_ECC_KEY_PARAMS                      = 0xCF,
-  FLEA_ERR_X509_INV_ECC_FIELD_TYPE                      = 0xD0,
-  FLEA_ERR_X509_IMPLICT_ECC_KEY_PARAMS                  = 0xD1,
+  FLEA_ERR_X509_INV_ECC_KEY_PARAMS                    = 0xCF,
+  FLEA_ERR_X509_INV_ECC_FIELD_TYPE                    = 0xD0,
+  FLEA_ERR_X509_IMPLICT_ECC_KEY_PARAMS                = 0xD1,
 
   /**
    * Error with the ECC point format, e.g. invalid length or unknown/unsupported
    * encoding.
    */
-  FLEA_ERR_X509_INV_ECC_POINT_ENCODING                  = 0xD2,
+  FLEA_ERR_X509_INV_ECC_POINT_ENCODING                = 0xD2,
 
   /**
    * An encoded ECC cofactor has size larger than FLEA_ECC_MAX_COFACTOR_BIT_SIZE
    */
-  FLEA_ERR_X509_EXCSS_COFACTOR_SIZE                     = 0xD3,
+  FLEA_ERR_X509_EXCSS_COFACTOR_SIZE                   = 0xD3,
 
   /**
    * An unsupported critical CRL extension was encountered.
    */
-  FLEA_ERR_X509_UNSUPP_CRIT_CRL_EXT                     = 0xD4,
+  FLEA_ERR_X509_UNSUPP_CRIT_CRL_EXT                   = 0xD4,
 
   /**
    * A Delta CRL, which is not supported by flea, was encountered.
    */
-  FLEA_ERR_X509_UNSUPP_DELTA_CRL                        = 0xD5,
+  FLEA_ERR_X509_UNSUPP_DELTA_CRL                      = 0xD5,
 
   /**
    * An indirect CRL, which is not supported by flea, was encountered.
    */
-  FLEA_ERR_X509_UNSUPP_INDIR_CRL                        = 0xD6,
+  FLEA_ERR_X509_UNSUPP_INDIR_CRL                      = 0xD6,
 
   /**
    * In the Issuing Distribution Point CRL Extension, onlySomeReasons was
    * specified and did not include all reasons. This is not supported by flea.
    */
-  FLEA_ERR_X509_CRL_INCOMPL_REASONS                     = 0xD7,
+  FLEA_ERR_X509_CRL_INCOMPL_REASONS                   = 0xD7,
 
   /**
    * At least one of the issuer DNs of the CRL and the checked certificate does not match the
    * subject DN of the issuer of both.
    */
-  FLEA_ERR_X509_CRL_NAMES_DONT_MATCH                    = 0xD8,
+  FLEA_ERR_X509_CRL_NAMES_DONT_MATCH                  = 0xD8,
 
-  FLEA_ERR_X509_CRL_NEXT_UPDATE_PASSED                  = 0xD9,
-  FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN                  = 0xDA,
+  FLEA_ERR_X509_CRL_NEXT_UPDATE_PASSED                = 0xD9,
+  FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN                = 0xDA,
 
   /**
    * The CRL is issued for the wrong type of certificate according to the
    * Issuing Distribution Point CRL Extension.
    */
-  FLEA_ERR_X509_UNSUITABLE_CRL                          = 0xDB,
-  FLEA_ERR_X509_CERT_REV_STAT_UNDET                     = 0xDC,
-  FLEA_ERR_X509_CERT_REVOKED                            = 0xDD,
+  FLEA_ERR_X509_UNSUITABLE_CRL                        = 0xDB,
+  FLEA_ERR_X509_CERT_REV_STAT_UNDET                   = 0xDC,
+  FLEA_ERR_X509_CERT_REVOKED                          = 0xDD,
 
   /**
    * There is a mismatch between the CRL Distribution Points extension in
@@ -277,14 +277,14 @@ typedef enum
    *  - a certificate doesn't have the CDP,
    *  but the CRL has an IDP which contains a DP name
    */
-  FLEA_ERR_X509_CRL_CDP_IDP_MISMATCH                    = 0xDE,
+  FLEA_ERR_X509_CRL_CDP_IDP_MISMATCH                  = 0xDE,
 
-  FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS                   = 0xE0,
-  FLEA_ERR_CERT_PATH_NOT_FOUND                          = 0xE1,
-  FLEA_ERR_X509_CERT_EXPIRED                            = 0xE2,
-  FLEA_ERR_X509_CERT_NOT_YET_VALID                      = 0xE3,
-  FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED                = 0xE4,
-  FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT                 = 0xE5,
+  FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS                 = 0xE0,
+  FLEA_ERR_CERT_PATH_NOT_FOUND                        = 0xE1,
+  FLEA_ERR_X509_CERT_EXPIRED                          = 0xE2,
+  FLEA_ERR_X509_CERT_NOT_YET_VALID                    = 0xE3,
+  FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED              = 0xE4,
+  FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT               = 0xE5,
 
 
   /** The routine for the construction of a valid certification path
