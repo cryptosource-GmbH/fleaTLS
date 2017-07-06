@@ -238,17 +238,18 @@ typedef struct
   flea_private_key_t             ecdhe_priv_key;
   flea_public_key_t              ecdhe_pub_key;
 
+
 # ifdef FLEA_USE_HEAP_BUF
-  flea_u8_t*                     own_vfy_data__bu8;
-  flea_u8_t*                     peer_vfy_data__bu8;
+  flea_u8_t*                 own_vfy_data__bu8;
+  flea_u8_t*                 peer_vfy_data__bu8;
 # else
-  flea_u8_t                      own_vfy_data__bu8[12];
-  flea_u8_t                      peer_vfy_data__bu8[12];
+  flea_u8_t                  own_vfy_data__bu8[12];
+  flea_u8_t                  peer_vfy_data__bu8[12];
 # endif
-  flea_tls_client_session_t*     client_session_mbn__pt;
-  flea_tls_session_mngr_t*       session_mngr_mbn__pt;
-  flea_tls_session_entry_t*      server_active_sess_mbn__pt;
-  flea_u8_t                      server_resume_session__u8;
+  flea_tls_client_session_t* client_session_mbn__pt;
+  flea_tls_session_mngr_t*   session_mngr_mbn__pt;
+  flea_tls_session_entry_t*  server_active_sess_mbn__pt;
+  flea_u8_t                  server_resume_session__u8;
 } flea_tls_ctx_t;
 
 

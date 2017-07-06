@@ -17,8 +17,10 @@
 #include "flea/rsa.h"
 #include "flea/pk_api.h"
 #include "internal/common/tls/parallel_hash.h"
+#include "flea/hash.h"
 #include "flea/ec_key_gen.h"
 #include "flea/byte_vec.h"
+#include "flea/ecka.h"
 
 #ifdef FLEA_HAVE_TLS
 
@@ -336,6 +338,24 @@ static flea_err_t THR_flea_tls__send_server_hello(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_server_hello */
 
+// TODO: move to tls_common or somewhere where it makes more sense
+static flea_err_t THR_flea_tls_get_sig_length_of_priv_key(
+  flea_private_key_t* priv_key__pt,
+  flea_u32_t*         length
+)
+{
+  FLEA_THR_BEG_FUNC();
+  if(priv_key__pt->key_type__t == flea_rsa_key)
+  {
+    *length = priv_key__pt->key_bit_size__u16 / 8;
+  }
+  else
+  {
+    FLEA_THROW("not yet implemented", FLEA_ERR_INV_ARG);
+  }
+  FLEA_THR_FIN_SEC_empty();
+}
+
 static flea_err_t THR_flea_tls__send_server_kex(
   flea_tls_ctx_t*               tls_ctx__pt,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
@@ -345,32 +365,53 @@ static flea_err_t THR_flea_tls__send_server_kex(
 
   FLEA_DECL_BUF(pub_key__b_u8, flea_u8_t, FLEA_PK_MAX_INTERNAL_FORMAT_PUBKEY_LEN);
   FLEA_DECL_BUF(priv_key__b_u8, flea_u8_t, FLEA_ECC_MAX_ENCODED_POINT_LEN); // only used ECD
+  FLEA_DECL_OBJ(params_hash_ctx__t, flea_hash_ctx_t);
+  FLEA_DECL_BUF(hash__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, FLEA_MAX_SIG_SIZE);
+  flea_u8_t hash_out_len__u8;
   flea_u32_t hdr_len__u32;
   flea_ref_cu8_t pub_point__rcu8;
   flea_pub_key_param_u param__u;
-  flea_u8_t ec_curve_type__u8[] = {3}; // named_curve has value 3
+  flea_u8_t ec_curve_type__au8[] = {3}; // named_curve has value 3
+  flea_hash_id_t hash_id__t;
+  flea_pk_scheme_id_t pk_scheme_id__t;
+  flea_u8_t sig_and_hash_alg[2];
+  flea_u32_t sig_len__u32;
+  flea_u8_t ecc_curve__au8[] = {0, 23}; // secp256r1 => TODO: not hardcoded
+  flea_u8_t sig_len_enc__au8[2];
+  flea_u8_t pub_point_len__u8;
 
-  FLEA_DECL_BUF(msg__bu8, flea_u8_t, 2 * 32 + 256 + 3 + 1);                         // max 2*32B for client/server random, 256B pub point + 3B for named curve (+1 for length of pubpoint)
-  FLEA_DECL_BUF(msg_hash__bu8, flea_u8_t, 20);                                      // SHA1 used
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(msg_hash_vec__t, 20); // SHA1 used
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, 256);     // TODO MAX_SIG_SIZE
-
-  FLEA_DECL_OBJ(key__t, flea_private_key_t);
+  flea_al_u8_t priv_key_len__al_u8;
+  flea_byte_vec_t scalar_vec__t   = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+  flea_byte_vec_t pubpoint_vec__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+  flea_al_u8_t pub_key_len__al_u8 = FLEA_ECC_MAX_ENCODED_POINT_LEN;
 
   FLEA_THR_BEG_FUNC();
+
+  flea_hash_ctx_t__INIT(&params_hash_ctx__t);
+
+  // TODO: not hardcoded flea_sha256. Choose appropriate hash function from
+  // sig/hash alg extension (or sha1 if not present?)
+  // TODO: also check if sig alg is supported by client
+  hash_id__t      = flea_sha256;
+  pk_scheme_id__t = flea_rsa_pkcs1_v1_5_sign;
+  FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&params_hash_ctx__t, hash_id__t));
+  hash_out_len__u8 = flea_hash_ctx_t__get_output_length(&params_hash_ctx__t);
+
+  // TODO: not hardcoded
+  sig_and_hash_alg[0] = 0x04;                                                                       // sha256
+  sig_and_hash_alg[1] = 0x01;                                                                       // rsa
+  FLEA_CCALL(THR_flea_tls_get_sig_length_of_priv_key(&tls_ctx__pt->private_key__t, &sig_len__u32)); // can only be known precisely for RSA
 
   kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx__pt->selected_cipher_suite__u16);
   if(kex_method__t == FLEA_TLS_KEX_ECDHE)
   {
     // set domain parameters
     FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_secp256r1));
-    // TODO (JR): not fixed!
+    // TODO (JR): not fixed! => create mapping from curve to 2-byte value used
+    // in tls
 
 
-    flea_al_u8_t priv_key_len__al_u8;
-    flea_byte_vec_t scalar_vec__t   = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
-    flea_byte_vec_t pubpoint_vec__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
-    flea_al_u8_t pub_key_len__al_u8 = FLEA_ECC_MAX_ENCODED_POINT_LEN;
     priv_key_len__al_u8 = FLEA_ECC_MAX_ORDER_BYTE_SIZE;
     FLEA_ALLOC_BUF(pub_key__b_u8, pub_key_len__al_u8);
     FLEA_ALLOC_BUF(priv_key__b_u8, priv_key_len__al_u8);
@@ -406,8 +447,8 @@ static flea_err_t THR_flea_tls__send_server_kex(
     // send parameters (curve) and public point
     pub_point__rcu8 = flea_public_key__get_encoded_public_component(&tls_ctx__pt->ecdhe_pub_key);
 
-    // TODO: derive signature length from cert
-    hdr_len__u32 = 3 + 1 + pub_point__rcu8.len__dtl + 2 + 2 + 256; // 3 for named curve + 1 for pub point length + 2 for sig/hash alg + 2 sig length + 256 for sha256 sig
+    // TODO: derive signature length from cert/pk
+    hdr_len__u32 = 3 + 1 + pub_point__rcu8.len__dtl + 2 + 2 + sig_len__u32; // 3 for named curve + 1 for pub point length + 2 for sig/hash alg + 2 sig length + 256 for sha256 sig
 
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_hdr(
@@ -422,23 +463,22 @@ static flea_err_t THR_flea_tls__send_server_kex(
       THR_flea_tls__send_handshake_message_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
-        ec_curve_type__u8,
+        ec_curve_type__au8,
         1
       )
     );
 
-    flea_u8_t secp256r1[] = {0, 23}; // TODO: not hardcoded, choose curve
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
-        secp256r1,
+        ecc_curve__au8,
         2
       )
     );
 
 
-    flea_u8_t pub_point_len__u8 = pub_point__rcu8.len__dtl;
+    pub_point_len__u8 = pub_point__rcu8.len__dtl;
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_content(
         &tls_ctx__pt->rec_prot__t,
@@ -457,54 +497,37 @@ static flea_err_t THR_flea_tls__send_server_kex(
       )
     );
 
-    // TODO: not hardcoded
-    flea_u8_t sig_and_hash_alg[] = {0x02, 0x01}; // 0x02: sha1, 0x04: sha256
-    flea_u16_t sig_len__u16      = 256;          // TODO: derive from cert/key
-    flea_u8_t sig_len_enc__bu8[2];
-    flea__encode_U16_BE(sig_len__u16, sig_len_enc__bu8);
-    flea_u8_t pubkey_len__u8 = pub_point__rcu8.len__dtl;
 
-    // TODO!: use hasher instead of large buffer
-    // write client+server random and server ec params into msg__bu8
-    FLEA_ALLOC_BUF(msg__bu8, 2 * FLEA_TLS_HELLO_RANDOM_SIZE + 3 + 1 + pub_point__rcu8.len__dtl); // 2 * random + named curve + pub point
-    memcpy(msg__bu8, tls_ctx__pt->security_parameters.client_and_server_random, 2 * FLEA_TLS_HELLO_RANDOM_SIZE);
-    memcpy(msg__bu8 + 2 * FLEA_TLS_HELLO_RANDOM_SIZE, ec_curve_type__u8, 1);
-    memcpy(msg__bu8 + 2 * FLEA_TLS_HELLO_RANDOM_SIZE + 1, secp256r1, 2);
-    memcpy(msg__bu8 + 2 * FLEA_TLS_HELLO_RANDOM_SIZE + 3, &pub_point_len__u8, 1);
-    memcpy(msg__bu8 + 2 * FLEA_TLS_HELLO_RANDOM_SIZE + 4, pub_point__rcu8.data__pcu8, pub_point__rcu8.len__dtl);
+    flea__encode_U16_BE(sig_len__u32, sig_len_enc__au8);
 
-    // hash params
-    FLEA_ALLOC_BUF(msg_hash__bu8, 20);
+    // write client+server random and server ec params into hash
     FLEA_CCALL(
-      THR_flea_compute_hash(
-        flea_sha1,
-        msg__bu8,
-        2 * FLEA_TLS_HELLO_RANDOM_SIZE + 3 + 1 + pub_point__rcu8.len__dtl,
-        msg_hash__bu8,
-        20
+      THR_flea_hash_ctx_t__update(
+        &params_hash_ctx__t,
+        tls_ctx__pt->security_parameters.client_and_server_random,
+        2 * FLEA_TLS_HELLO_RANDOM_SIZE
       )
     );
-    FLEA_CCALL(
-      THR_flea_byte_vec_t__set_content(
-        &msg_hash_vec__t,
-        msg__bu8,
-        2 * FLEA_TLS_HELLO_RANDOM_SIZE + 3 + pub_point__rcu8.len__dtl
-      )
-    );
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, ec_curve_type__au8, sizeof(ec_curve_type__au8)));
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, ecc_curve__au8, sizeof(ecc_curve__au8)));
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, &pub_point_len__u8, 1));
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, pub_point__rcu8.data__pcu8, pub_point__rcu8.len__dtl));
+
+    FLEA_ALLOC_BUF(hash__bu8, flea_hash_ctx_t__get_output_length(&params_hash_ctx__t));
+    FLEA_CCALL(THR_flea_hash_ctx_t__final(&params_hash_ctx__t, hash__bu8));
+
 
     // create signature
     FLEA_CCALL(
       THR_flea_pk_api__sign_digest(
-        msg_hash__bu8,
-        20,
-        flea_sha1,                // TODO correct? TODO: not hardcoded, derive from cs
-        flea_rsa_pkcs1_v1_5_sign, // TODO: derive from cert
+        hash__bu8,
+        hash_out_len__u8,
+        hash_id__t,      // TODO: not hardcoded, negotiate with sig/hash algs extension
+        pk_scheme_id__t, // TODO: derive from cert
         &tls_ctx__pt->private_key__t,
         &sig_vec__t
       )
     );
-
-    // FLEA_CCALL(THR_flea_pk_api__sign(&msg_hash_vec__t, &sig_vec__t, &tls_ctx__pt->private_key__t, flea_rsa_pkcs1_v1_5_sign, flea_sha1));
 
     // send sig_hash alg + sig
 
@@ -522,8 +545,8 @@ static flea_err_t THR_flea_tls__send_server_kex(
       THR_flea_tls__send_handshake_message_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
-        sig_len_enc__bu8,
-        sizeof(sig_len_enc__bu8)
+        sig_len_enc__au8,
+        sizeof(sig_len_enc__au8)
       )
     );
 
@@ -545,6 +568,10 @@ static flea_err_t THR_flea_tls__send_server_kex(
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(pub_key__b_u8);
     FLEA_FREE_BUF_FINAL(priv_key__b_u8);
+    flea_hash_ctx_t__dtor(&params_hash_ctx__t);
+    FLEA_FREE_BUF_FINAL(hash__bu8);
+    flea_byte_vec_t__dtor(&sig_vec__t);
+
   );
 } /* THR_flea_tls__send_server_kex */
 
@@ -632,6 +659,7 @@ static flea_err_t THR_flea_tls__send_cert_request(
  *
  */
 # ifdef FLEA_HAVE_RSA
+// TODO: remove server_key__pt and use key in tls_ctx
 static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
@@ -642,7 +670,6 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_u16_t enc_premaster_secret_len__u16;
 
-  FLEA_DECL_OBJ(key__t, flea_private_key_t);
 
   // TODO: FIX HARDCODED LENGTH!
   const flea_u16_t max_enc_premaster_secret_len__u16 = 256;
@@ -676,10 +703,6 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
     )
   );
 
-  // read server key
-  // TODO: do one time when initializing TLS?
-  FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&key__t, server_key__pt->data__pcu8, server_key__pt->len__dtl));
-
 
   FLEA_CCALL(
     THR_flea_pk_api__decrypt_message(
@@ -705,6 +728,84 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
 
 # endif /* ifdef FLEA_HAVE_RSA */
 
+# ifdef FLEA_HAVE_ECKA
+static flea_err_t THR_flea_tls__read_client_key_exchange_ecdhe(
+  flea_tls_ctx_t*           tls_ctx__pt,
+  flea_tls_handsh_reader_t* hs_rdr__pt,
+  flea_byte_vec_t*          premaster_secret__pt
+)
+{
+  flea_rw_stream_t* hs_rd_stream__pt;
+  flea_u8_t pub_point_enc_len__u8;
+  flea_public_key_t client_key__t;
+
+  FLEA_DECL_BUF(pub_point_enc__bu8, flea_u8_t, FLEA_MAX(FLEA_ECC_MAX_ENCODED_POINT_LEN, 256));
+  flea_byte_vec_t pub_point_enc_vec__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+  flea_pub_key_param_u param__u;
+
+  FLEA_THR_BEG_FUNC();
+
+
+  hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
+
+  FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &pub_point_enc_len__u8));
+  if(pub_point_enc_len__u8 > FLEA_ECC_MAX_ENCODED_POINT_LEN)
+  {
+    FLEA_THROW("pub point too large", FLEA_ERR_INV_ARG);
+  }
+  FLEA_ALLOC_BUF(pub_point_enc__bu8, pub_point_enc_len__u8);
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, pub_point_enc__bu8, pub_point_enc_len__u8));
+
+  flea_byte_vec_t__set_ref(&pub_point_enc_vec__t, pub_point_enc__bu8, pub_point_enc_len__u8);
+  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_secp256r1)); // TODO: not hardcoded
+  FLEA_CCALL(
+    THR_flea_public_key_t__ctor_ecc(
+      &client_key__t,
+      &pub_point_enc_vec__t,
+      &param__u.ecc_dom_par__t
+    )
+  );
+
+  flea_al_u8_t result_length__alu8 = 256;
+  flea_u8_t result__au8[256];
+
+  if(pub_point_enc_len__u8 == 0)
+  {
+    FLEA_THROW("invalid public point length for ecka kdf-ansi-X9.63", FLEA_ERR_INV_ARG);
+  }
+
+  // TODO: correct like this?
+  // TODO: initialize premaster_secret with MAX(48, FLEA_ECC_MAX_MOD_BYTE_SIZE)
+  // for stack mode and ALLOC here for heap mode
+  // # ifdef FLEA_USE_STACK_BUF
+  if((pub_point_enc_len__u8 - 1) / 2 > FLEA_ECC_MAX_MOD_BYTE_SIZE)
+  {
+    FLEA_THROW("field size not supported", FLEA_ERR_INV_ARG);
+  }
+  // # endif
+
+  FLEA_CCALL(
+    THR_flea_ecka__compute_raw(
+      pub_point_enc__bu8,
+      pub_point_enc_len__u8,
+      tls_ctx__pt->ecdhe_priv_key.privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8.data__pu8,
+      tls_ctx__pt->ecdhe_priv_key.privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8.len__dtl,
+      result__au8,
+      &result_length__alu8,
+      &param__u.ecc_dom_par__t
+    )
+  );
+
+  THR_flea_byte_vec_t__set_content(premaster_secret__pt, result__au8, result_length__alu8);
+
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL(pub_point_enc__bu8);
+    flea_public_key_t__dtor(&client_key__t);
+  );
+} /* THR_flea_tls__read_client_key_exchange_ecdhe */
+
+# endif /* ifdef FLEA_HAVE_ECKA */
+
 static flea_err_t THR_flea_tls__read_client_key_exchange(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
@@ -712,13 +813,26 @@ static flea_err_t THR_flea_tls__read_client_key_exchange(
   flea_byte_vec_t*          premaster_secret__pt
 )
 {
-  FLEA_THR_BEG_FUNC();
-# ifdef FLEA_HAVE_RSA
-  FLEA_CCALL(THR_flea_tls__read_client_key_exchange_rsa(tls_ctx, hs_rdr__pt, server_key__pt, premaster_secret__pt));
-# else
-  FLEA_THROW("unsupported key exchange variant", FLEA_ERR_INV_ALGORITHM);
-# endif
+  flea_tls__kex_method_t kex_method__t;
 
+  FLEA_THR_BEG_FUNC();
+  kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
+  if(kex_method__t == FLEA_TLS_KEX_RSA)
+  {
+# ifdef FLEA_HAVE_RSA
+    FLEA_CCALL(THR_flea_tls__read_client_key_exchange_rsa(tls_ctx, hs_rdr__pt, server_key__pt, premaster_secret__pt));
+# else
+    FLEA_THROW("unsupported key exchange variant", FLEA_ERR_INV_ALGORITHM);
+# endif
+  }
+  else if(kex_method__t == FLEA_TLS_KEX_ECDHE)
+  {
+# ifdef FLEA_HAVE_ECKA
+    FLEA_CCALL(THR_flea_tls__read_client_key_exchange_ecdhe(tls_ctx, hs_rdr__pt, premaster_secret__pt));
+# else
+    FLEA_THROW("unsupported key exchange variant", FLEA_ERR_INV_ALGORITHM);
+# endif
+  }
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -999,6 +1113,7 @@ flea_err_t THR_flea_tls__server_handshake(
 # else
   flea_u8_t premaster_secret__au8[256]; // TODO: SET CORRECT SIZE LIMIT
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_EMPTY_ALLOCATABLE(
+    n
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
     );
