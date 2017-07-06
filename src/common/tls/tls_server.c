@@ -743,6 +743,8 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_ecdhe(
   flea_byte_vec_t pub_point_enc_vec__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
   flea_pub_key_param_u param__u;
 
+  flea_al_u8_t result_len__alu8;
+
   FLEA_THR_BEG_FUNC();
 
 
@@ -766,23 +768,21 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_ecdhe(
     )
   );
 
-  flea_al_u8_t result_length__alu8 = 256;
-  flea_u8_t result__au8[256];
 
   if(pub_point_enc_len__u8 == 0)
   {
     FLEA_THROW("invalid public point length for ecka kdf-ansi-X9.63", FLEA_ERR_INV_ARG);
   }
 
-  // TODO: correct like this?
-  // TODO: initialize premaster_secret with MAX(48, FLEA_ECC_MAX_MOD_BYTE_SIZE)
-  // for stack mode and ALLOC here for heap mode
-  // # ifdef FLEA_USE_STACK_BUF
-  if((pub_point_enc_len__u8 - 1) / 2 > FLEA_ECC_MAX_MOD_BYTE_SIZE)
+  result_len__alu8 = (pub_point_enc_len__u8 - 1) / 2;
+#  ifdef FLEA_USE_STACK_BUF
+  if(result_len__alu8 > FLEA_ECC_MAX_MOD_BYTE_SIZE)
   {
     FLEA_THROW("field size not supported", FLEA_ERR_INV_ARG);
   }
-  // # endif
+#  endif
+  FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, result_len__alu8));
+
 
   FLEA_CCALL(
     THR_flea_ecka__compute_raw(
@@ -790,13 +790,15 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_ecdhe(
       pub_point_enc_len__u8,
       tls_ctx__pt->ecdhe_priv_key.privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8.data__pu8,
       tls_ctx__pt->ecdhe_priv_key.privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8.len__dtl,
-      result__au8,
-      &result_length__alu8,
+      premaster_secret__pt->data__pu8,
+      &result_len__alu8,
       &param__u.ecc_dom_par__t
     )
   );
 
-  THR_flea_byte_vec_t__set_content(premaster_secret__pt, result__au8, result_length__alu8);
+  // TODO: necessary?
+  FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, result_len__alu8));
+
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(pub_point_enc__bu8);
@@ -1111,9 +1113,8 @@ flea_err_t THR_flea_tls__server_handshake(
 # ifdef FLEA_USE_HEAP_BUF
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
 # else
-  flea_u8_t premaster_secret__au8[256]; // TODO: SET CORRECT SIZE LIMIT
+  flea_u8_t premaster_secret__au8[FLEA_MAX(48, FLEA_ECC_MAX_ENCODED_POINT_LEN)];
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_EMPTY_ALLOCATABLE(
-    n
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
     );
