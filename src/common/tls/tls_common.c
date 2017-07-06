@@ -82,6 +82,7 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_FAILED_STREAM_READ,                 FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
   {FLEA_ERR_FAILED_STREAM_WRITE,                FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
   {FLEA_ERR_TLS_SESSION_CLOSED,                 FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
+  {FLEA_ERR_TLS_REC_CLOSE_NOTIFY,               FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
   {FLEA_ERR_TLS_HANDSHK_FAILURE,                FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  },
 };
 static flea_bool_t determine_alert_from_error(
@@ -346,7 +347,7 @@ void flea_tls_ctx_t__invalidate_session(flea_tls_ctx_t* tls_ctx__pt)
   }
   else if(tls_ctx__pt->server_active_sess_mbn__pt)
   {
-    tls_ctx__pt->server_active_sess_mbn__pt->session__t.is_valid_session__u8 = 0;
+    flea_tls_session_data_t__invalidate_session(&tls_ctx__pt->server_active_sess_mbn__pt->session__t);// .is_valid_session__u8 = 0;
   }
 }
 
@@ -362,7 +363,10 @@ flea_err_t THR_flea_tls__handle_tls_error(
     flea_bool_t do_send_alert__b = determine_alert_from_error(err__t, &alert_desc__e);
     if(do_send_alert__b)
     {
-      flea_tls_ctx_t__invalidate_session(tls_ctx__pt);
+      if(err__t != FLEA_ERR_TLS_REC_CLOSE_NOTIFY)
+      {
+        flea_tls_ctx_t__invalidate_session(tls_ctx__pt);
+      }
       FLEA_CCALL(THR_flea_tls_rec_prot_t__send_alert_and_throw(&tls_ctx__pt->rec_prot__t, alert_desc__e, err__t));
     }
   }
@@ -1262,7 +1266,7 @@ static flea_err_t THR_flea_tls_ctx__parse_reneg_ext(
   }
   if(len__u8 != exp_len__alu8)
   {
-    FLEA_THROW("invalid renegotiation info size", FLEA_ERR_TLS_INV_RENEG_INFO);
+    FLEA_THROW("invalid renegotiation info size", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
   FLEA_CCALL(THR_flea_rw_stream_t__read_full(rd_strm__pt, cmp__bu8, exp_len__alu8));
 
@@ -1270,7 +1274,7 @@ static flea_err_t THR_flea_tls_ctx__parse_reneg_ext(
    * {*/
   if(!flea_sec_mem_equal(tls_ctx__pt->own_vfy_data__bu8, cmp__bu8, exp_len__alu8))
   {
-    FLEA_THROW("invalid renegotiation info content", FLEA_ERR_TLS_INV_RENEG_INFO);
+    FLEA_THROW("invalid renegotiation info content", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
 
   /*}
@@ -1285,9 +1289,8 @@ static flea_err_t THR_flea_tls_ctx__parse_reneg_ext(
 
   if(flea_tls_rec_prot_t__have_done_initial_handshake(&tls_ctx__pt->rec_prot__t) && !len__u8)
   {
-    FLEA_THROW("empty renegotiation info provided during handshake after the first", FLEA_ERR_TLS_INV_RENEG_INFO);
+    FLEA_THROW("empty renegotiation info provided during handshake after the first", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
-  tls_ctx__pt->sec_reneg_flag__u8 = FLEA_TRUE;
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(cmp__bu8);
   );
@@ -1297,13 +1300,13 @@ static flea_err_t THR_flea_tls_ctx__parse_reneg_ext(
  * {
  * tls_ctx__pt->sec_reneg_flag__u8 = FLEA_FALSE;
  * }*/
-flea_err_t THR_flea_tls_ctx_t__client_parse_extensions(
+flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
   flea_tls_ctx_t*           tls_ctx__pt,
-  flea_tls_handsh_reader_t* hs_rdr__pt
+  flea_tls_handsh_reader_t* hs_rdr__pt,
+  flea_bool_t*              found_sec_reneg__pb
 ) // flea_rw_stream_t* hs_read_strm__pt)
 {
   flea_u32_t extensions_len__u32;
-  flea_bool_t found_sec_reneg__b = FLEA_FALSE;
   flea_rw_stream_t* hs_rd_stream__pt;
 
   FLEA_THR_BEG_FUNC();
@@ -1329,16 +1332,12 @@ flea_err_t THR_flea_tls_ctx_t__client_parse_extensions(
     if(ext_type_be__u32 == 0xff01)
     {
       FLEA_CCALL(THR_flea_tls_ctx__parse_reneg_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
-      found_sec_reneg__b = FLEA_TRUE;
+      *found_sec_reneg__pb = FLEA_TRUE;
     }
     else
     {
       FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, ext_len__u32));
     }
-  }
-  if(tls_ctx__pt->sec_reneg_flag__u8 && !found_sec_reneg__b)
-  {
-    FLEA_THROW("missing renegotiation info in peer's extensions", FLEA_ERR_TLS_INV_RENEG_INFO);
   }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__client_parse_extensions */
@@ -1350,18 +1349,12 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
   flea_private_key_t__dtor(&tls_ctx__pt->private_key__t);
   flea_public_key_t__dtor(&tls_ctx__pt->ecdhe_pub_key);
   flea_private_key_t__dtor(&tls_ctx__pt->ecdhe_priv_key);
-
+# if 0
   if(tls_ctx__pt->client_session_mbn__pt && tls_ctx__pt->client_session_mbn__pt->session_id_len__u8)
   {
-    /*flea_tls_session_data_t__set_seqs(
-     * &tls_ctx__pt->client_session_mbn__pt->session__t,
-     * tls_ctx__pt->rec_prot__t.read_state__t.sequence_number__au32,
-     * tls_ctx__pt->rec_prot__t.write_state__t.sequence_number__au32
-     * );*/
-    // TODO: THIS CAN ALREADY BE DONE AFTER SETTING THE MASTER SECRET AND THE
-    // CIPHER SUITE
     flea_tls_session_data_t__set_session_as_valid(&tls_ctx__pt->client_session_mbn__pt->session__t);
   }
+# endif
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_NULL(tls_ctx__pt->own_vfy_data__bu8);
 # endif

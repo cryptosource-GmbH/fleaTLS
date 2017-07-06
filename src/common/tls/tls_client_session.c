@@ -3,6 +3,7 @@
 #include "flea/error.h"
 #include "flea/bin_utils.h"
 #include "internal/common/tls/tls_int.h"
+#include "flea/tls_session_mngr.h"
 
 
 flea_err_t THR_flea_tls_client_session_t__serialize(
@@ -14,9 +15,10 @@ flea_err_t THR_flea_tls_client_session_t__serialize(
 
   FLEA_THR_BEG_FUNC();
   flea_byte_vec_t__reset(result__pt);
-  if(client_session__pt->session_id_len__u8 == 0)
+  if((client_session__pt->session_id_len__u8 == 0) ||
+    !flea_tls_session_data_t__is_valid_session(&client_session__pt->session__t))
   {
-    FLEA_THR_RETURN();
+    FLEA_THROW("session not valid", FLEA_ERR_INV_STATE);
   }
   FLEA_CCALL(THR_flea_byte_vec_t__append(result__pt, &client_session__pt->session_id_len__u8, 1));
   FLEA_CCALL(

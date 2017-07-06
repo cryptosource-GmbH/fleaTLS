@@ -35,6 +35,8 @@ static flea_err_t THR_flea_tls__read_server_hello(
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_u8_t ciphersuite__au8[2];
 
+  flea_bool_t found_sec_reneg__b = FLEA_FALSE;
+
   // flea_u16_t cipher_suite_id__u16;
 
   FLEA_DECL_BUF(session_id__bu8, flea_u8_t, 32);
@@ -139,7 +141,19 @@ static flea_err_t THR_flea_tls__read_server_hello(
 
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {
-    FLEA_CCALL(THR_flea_tls_ctx_t__client_parse_extensions(tls_ctx, hs_rdr__pt));
+    FLEA_CCALL(THR_flea_tls_ctx_t__parse_hello_extensions(tls_ctx, hs_rdr__pt, &found_sec_reneg__b));
+  }
+  if(tls_ctx->sec_reneg_flag__u8 && !found_sec_reneg__b)
+  {
+    FLEA_THROW("missing renegotiation info in peer's extensions", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  }
+  if(found_sec_reneg__b)
+  {
+    tls_ctx->sec_reneg_flag__u8 = FLEA_TRUE;
+  }
+  if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
+  {
+    FLEA_THROW("Header length field mismatch", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
   FLEA_THR_FIN_SEC(
@@ -990,6 +1004,10 @@ flea_err_t THR_flea_tls__client_handshake(
         break;
       }
     }
+  }
+  if(tls_ctx->client_session_mbn__pt && tls_ctx->client_session_mbn__pt->session_id_len__u8)
+  {
+    flea_tls_session_data_t__set_session_as_valid(&tls_ctx->client_session_mbn__pt->session__t);
   }
   FLEA_THR_FIN_SEC(
     flea_byte_vec_t__dtor(&premaster_secret__t);

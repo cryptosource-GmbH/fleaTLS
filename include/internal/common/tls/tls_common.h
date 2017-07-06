@@ -173,9 +173,10 @@ flea_err_t flea_tls__get_pk_id_from_tls_sig_id(
   flea_pk_scheme_id_t* pk_id__pt
 );
 
-flea_err_t THR_flea_tls_ctx_t__client_parse_extensions(
+flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
   flea_tls_ctx_t*           tls_ctx__pt,
-  flea_tls_handsh_reader_t* hs_rdr__pt
+  flea_tls_handsh_reader_t* hs_rdr__pt,
+  flea_bool_t*              found_sec_reneg__pb
 );
 
 flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx__pt);
