@@ -1199,6 +1199,13 @@ flea_err_t THR_flea_tls__server_handshake(
             )
           );
 
+
+          // send server key exchange depending on cipher suite
+          if(flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16) == FLEA_TLS_KEX_ECDHE)
+          {
+            FLEA_CCALL(THR_flea_tls__send_server_kex(tls_ctx, &p_hash_ctx));
+          }
+
           // send certificate request in case we want client authentication
           if(handshake_state.send_client_cert == FLEA_TRUE)
           {
@@ -1209,14 +1216,6 @@ flea_err_t THR_flea_tls__server_handshake(
               )
             );
           }
-
-
-          // send server key exchange depending on cipher suite
-          if(flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16) == FLEA_TLS_KEX_ECDHE)
-          {
-            FLEA_CCALL(THR_flea_tls__send_server_kex(tls_ctx, &p_hash_ctx));
-          }
-
 
           FLEA_CCALL(
             THR_flea_tls__send_handshake_message(

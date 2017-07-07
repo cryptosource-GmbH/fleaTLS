@@ -66,7 +66,7 @@ def test_flea_client_against_exernal_server(exp_pos_res, ext_start_script, flea_
     if(not find_in_strings(ut_output, "tls test passed")):
         print_string_array(ut_output)
         if exp_pos_res:
-            print ("error with '" + ext_start_script + "'")
+            print ("== ERROR == with '" + ext_start_script + "'")
         #return 0 if not exp_pos_res else 1
         if(exp_pos_res):
             result = 1
@@ -122,12 +122,12 @@ def test_flea_server_against_external_client(exp_pos_res, ext_start_script, flea
     if(not find_in_strings(flea_output, "handshake done")):
         print_string_array(flea_output)
         if exp_pos_res:
-            print ("error with '" + ext_start_script + "'")
+            print ("== ERROR == with '" + ext_start_script + "'")
         #return 0 if not exp_pos_res else 1
             result = 1
     else:
         if(not exp_pos_res):
-            print ("error with '" + ext_start_script + "'")
+            print ("== ERROR == with '" + ext_start_script + "'")
             result = 1
     #try: 
         #p_flea.kill()
@@ -182,7 +182,7 @@ def test_flea_client_against_flea_server(exp_pos_res, test_name, use_ee_crl_bool
     if(not find_in_strings(ut_output, "tls test passed")):
         print_string_array(ut_output)
         if exp_pos_res:
-            print ("error with '" + test_name + "'")
+            print ("== ERROR == with '" + test_name + "'")
             result = 1
     else:
         if(not exp_pos_res):
@@ -209,18 +209,20 @@ no_req_cert_server_args = "--own_certs=misc/tools/tls/tls_certs/server.der --own
 #test_crl_ee_unrev_client_cmdl = "--port=4444 --ip_addr=127.0.0.1 --no_hostn_ver --trusted=" + test_crl_ee_unrev_base_dir + test_name + "_ROOT_CA.TA.crt --own_ca_chain=" + test_crl_ee_unrev_base_dir + test_name + "_SUB_CA.CA.crt," + test_crl_ee_unrev_base_dir + test_name + "_ROOT_CA.TA.crt --own_certs="  + test_crl_ee_unrev_base_dir + test_name + "_EE.TC.crt --own_private_key=" + test_crl_ee_unrev_base_dir + test_name + "_EE.pkcs8"
 
 error_cnt = 0
+# tests splitted in groups of 5 to easily match the test number in the output with the actual test
 error_cnt += test_flea_client_against_flea_server(False, 'TLS_CRL_EE_REV',use_ee_crl_bool=True)
 error_cnt += test_flea_client_against_flea_server(True, 'TLS_CRL_NO_CRL',use_ee_crl_bool=False)
 error_cnt += test_flea_client_against_flea_server(True, 'TLS_CRL_EE_UNREV',use_ee_crl_bool=True)
 error_cnt += test_flea_server_against_external_client(True, 'start_ossl_client_w_cert.sh', std_server_args) # doesn't work after the 'ossl=server' tests
 error_cnt += test_flea_server_against_external_client(True, 'start_ossl_client_gcm_w_cert.sh', std_server_args) 
+
 error_cnt += test_flea_server_against_external_client(True, 'start_ossl_client_cbc_w_cert.sh', std_server_args)
 error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_request_cert.sh', std_client_args)
 error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server.sh', std_client_args)
 error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_gcm.sh', std_client_args)
 error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_cbc.sh', std_client_args + " --cipher_suites=TLS_RSA_WITH_AES_128_CBC_SHA")
-error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server.sh', std_client_args + " --cipher_suites=TLS_RSA_WITH_AES_256_GCM_SHA384")
 
+error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server.sh', std_client_args + " --cipher_suites=TLS_RSA_WITH_AES_256_GCM_SHA384")
 error_cnt += test_flea_client_against_exernal_server(False, 'start_ossl_server_request_cert.sh', no_cert_client_args)
 
 
