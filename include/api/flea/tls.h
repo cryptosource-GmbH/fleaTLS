@@ -235,8 +235,8 @@ typedef struct
   flea_u8_t                      sec_reneg_flag__u8;
   // flea_u8_t                      client_has_sec_reneg__u8;
 
-  flea_private_key_t             ecdhe_priv_key;
-  flea_public_key_t              ecdhe_pub_key;
+  flea_private_key_t             ecdhe_priv_key__t; // server needs to store it until the client sends his pubkey
+  flea_public_key_t              ecdhe_pub_key__t;  // client needs to store it to send it afterwards
 
 
 # ifdef FLEA_USE_HEAP_BUF

@@ -14,6 +14,8 @@ extern "C" {
 
 # define NO_COMPRESSION 0
 
+// TODO: define in build cfg or even better: calculate max possible sig size
+# define FLEA_MAX_SIG_SIZE 512
 
 flea_err_t THR_flea_tls__read_certificate(
   flea_tls_ctx_t*                    tls_ctx,
@@ -196,6 +198,31 @@ flea_bool_t flea_tls_ctx_t__do_send_sec_reneg_ext(flea_tls_ctx_t* tls_ctx__pt);
 void flea_tls_set_tls_random(flea_tls_ctx_t* ctx__pt);
 
 flea_mac_id_t flea_tls__map_hmac_to_hash(flea_hash_id_t h);
+
+# ifdef FLEA_HAVE_ECKA
+flea_err_t THR_flea_tls__create_ecdhe_key(
+  flea_private_key_t*  priv_key__pt,
+  flea_public_key_t*   pub_key__pt,
+  flea_ec_dom_par_id_t dom_par_id__t
+);
+# endif
+
+# ifdef FLEA_HAVE_ECKA
+flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
+  flea_tls_ctx_t*     tls_ctx__pt,
+  flea_rw_stream_t*   hs_rd_stream__pt,
+  flea_byte_vec_t*    premaster_secret__pt,
+  flea_private_key_t* priv_key__pt,
+  flea_public_key_t*  peer_pubkey__pt
+);
+# endif
+
+# ifdef FLEA_HAVE_ECKA
+flea_err_t THR_flea_tls__map_curve_bytes_to_flea_curve(
+  flea_u8_t             bytes[2],
+  flea_ec_dom_par_id_t* ec_dom_par_id__pt
+);
+# endif
 
 #endif // ifdef FLEA_HAVE_TLS
 #endif /* h-guard */

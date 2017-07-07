@@ -29,6 +29,8 @@
 #include "internal/common/tls/parallel_hash.h"
 #include "flea/tls_session_mngr.h"
 #include "internal/pltf_if/time.h"
+#include "flea/ec_key_gen.h"
+#include "flea/ecka.h"
 
 #ifdef FLEA_HAVE_TLS
 
@@ -1342,13 +1344,178 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__client_parse_extensions */
 
+# ifdef FLEA_HAVE_ECKA
+flea_err_t THR_flea_tls__create_ecdhe_key(
+  flea_private_key_t*  priv_key__pt,
+  flea_public_key_t*   pub_key__pt,
+  flea_ec_dom_par_id_t dom_par_id__t
+)
+{
+  FLEA_DECL_BUF(pub_key__bu8, flea_u8_t, FLEA_PK_MAX_INTERNAL_FORMAT_PUBKEY_LEN);
+  FLEA_DECL_BUF(priv_key__bu8, flea_u8_t, FLEA_ECC_MAX_ENCODED_POINT_LEN);
+  flea_pub_key_param_u param__u;
+  flea_al_u8_t priv_key_len__alu8;
+  flea_byte_vec_t scalar_vec__t   = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+  flea_byte_vec_t pubpoint_vec__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+  flea_al_u8_t pub_key_len__alu8  = FLEA_ECC_MAX_ENCODED_POINT_LEN;
+
+
+  FLEA_THR_BEG_FUNC();
+
+  // set domain parameters
+  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_secp256r1));
+  // TODO (JR): not fixed => create mapping from curve to 2-byte value that is used in tls
+
+  priv_key_len__alu8 = FLEA_ECC_MAX_ORDER_BYTE_SIZE;
+  FLEA_ALLOC_BUF(pub_key__bu8, pub_key_len__alu8);
+  FLEA_ALLOC_BUF(priv_key__bu8, priv_key_len__alu8);
+  FLEA_CCALL(
+    THR_flea_generate_ecc_key(
+      pub_key__bu8,
+      &pub_key_len__alu8,
+      priv_key__bu8,
+      &priv_key_len__alu8,
+      &param__u.ecc_dom_par__t
+    )
+  );
+
+  flea_byte_vec_t__set_ref(&pubpoint_vec__t, pub_key__bu8, pub_key_len__alu8);
+  flea_byte_vec_t__set_ref(&scalar_vec__t, priv_key__bu8, priv_key_len__alu8);
+
+  // generate keys
+  FLEA_CCALL(
+    THR_flea_private_key_t__ctor_ecc(
+      priv_key__pt,
+      &scalar_vec__t,
+      &param__u.ecc_dom_par__t
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_public_key_t__ctor_ecc(
+      pub_key__pt,
+      &pubpoint_vec__t,
+      &param__u.ecc_dom_par__t
+    )
+  );
+
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL(pub_key__bu8);
+    FLEA_FREE_BUF_FINAL(priv_key__bu8);
+  );
+} /* THR_flea_tls__create_ecdhe_key */
+
+# endif /* ifdef FLEA_HAVE_ECKA */
+
+
+# ifdef FLEA_HAVE_ECKA
+flea_err_t THR_flea_tls__map_curve_bytes_to_flea_curve(
+  flea_u8_t             bytes[2],
+  flea_ec_dom_par_id_t* ec_dom_par_id__pt
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+  if(bytes[0] == 0x00 && bytes[1] == 0x17)
+  {
+    *ec_dom_par_id__pt = flea_secp256r1;
+  }
+  else
+  {
+    FLEA_THROW("Unsupported curve", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  }
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
+# endif /* ifdef FLEA_HAVE_ECKA */
+
+# ifdef FLEA_HAVE_ECKA
+flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
+  flea_tls_ctx_t*     tls_ctx__pt,
+  flea_rw_stream_t*   hs_rd_stream__pt,
+  flea_byte_vec_t*    premaster_secret__pt,
+  flea_private_key_t* priv_key__pt,
+  flea_public_key_t*  peer_pubkey__pt
+)
+{
+  flea_u8_t peer_enc_pubpoint_len__u8;
+
+  FLEA_DECL_BUF(peer_enc_pubpoint__bu8, flea_u8_t, FLEA_ECC_MAX_ENCODED_POINT_LEN);
+  flea_byte_vec_t peer_enc_pubpoint_vec__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+  flea_pub_key_param_u param__u;
+  flea_al_u8_t result_len__alu8;
+
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &peer_enc_pubpoint_len__u8));
+  // QUESTION (JR): correct? Or do we only set a limit for stack usage? (tls
+  // only uses 1 byte length field so 255 is the maximum length supported in
+  // tls)
+  if(peer_enc_pubpoint_len__u8 > FLEA_ECC_MAX_ENCODED_POINT_LEN)
+  {
+    FLEA_THROW("peer pub point too large", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  }
+  FLEA_ALLOC_BUF(peer_enc_pubpoint__bu8, peer_enc_pubpoint_len__u8);
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, peer_enc_pubpoint__bu8, peer_enc_pubpoint_len__u8));
+
+  flea_byte_vec_t__set_ref(&peer_enc_pubpoint_vec__t, peer_enc_pubpoint__bu8, peer_enc_pubpoint_len__u8);
+  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_secp256r1)); // TODO: not hardcoded
+
+  FLEA_CCALL(
+    THR_flea_public_key_t__ctor_ecc(
+      peer_pubkey__pt,
+      &peer_enc_pubpoint_vec__t,
+      &param__u.ecc_dom_par__t
+    )
+  );
+
+
+  if(peer_enc_pubpoint_len__u8 == 0)
+  {
+    FLEA_THROW("invalid public point length for ecka kdf-ansi-X9.63", FLEA_ERR_INV_ARG);
+  }
+
+  result_len__alu8 = (peer_enc_pubpoint_len__u8 - 1) / 2;
+#  ifdef FLEA_USE_STACK_BUF
+  if(result_len__alu8 > FLEA_ECC_MAX_MOD_BYTE_SIZE)
+  {
+    FLEA_THROW("field size not supported", FLEA_ERR_INV_ARG);
+  }
+#  endif
+  FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, result_len__alu8));
+
+
+  FLEA_CCALL(
+    THR_flea_ecka__compute_raw(
+      peer_enc_pubpoint__bu8,
+      peer_enc_pubpoint_len__u8,
+      priv_key__pt->privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8.data__pu8,
+      priv_key__pt->privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8.len__dtl,
+      premaster_secret__pt->data__pu8,
+      &result_len__alu8,
+      &param__u.ecc_dom_par__t
+    )
+  );
+
+  // TODO/QUESTION (JR): necessary?
+  FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, result_len__alu8));
+
+
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL(peer_enc_pubpoint__bu8);
+  );
+} /* THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret */
+
+# endif /* ifdef FLEA_HAVE_ECKA */
+
+
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
 {
   flea_tls_rec_prot_t__dtor(&tls_ctx__pt->rec_prot__t);
   flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey);
   flea_private_key_t__dtor(&tls_ctx__pt->private_key__t);
-  flea_public_key_t__dtor(&tls_ctx__pt->ecdhe_pub_key);
-  flea_private_key_t__dtor(&tls_ctx__pt->ecdhe_priv_key);
+  flea_public_key_t__dtor(&tls_ctx__pt->ecdhe_pub_key__t);
+  flea_private_key_t__dtor(&tls_ctx__pt->ecdhe_priv_key__t);
 # if 0
   if(tls_ctx__pt->client_session_mbn__pt && tls_ctx__pt->client_session_mbn__pt->session_id_len__u8)
   {
