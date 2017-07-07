@@ -24,6 +24,9 @@ flea_err_t THR_flea_tls_parallel_hash_ctx_t__ctor(
     FLEA_THROW("too many hash algorithms for this configuration", FLEA_ERR_INV_ARG);
   }
 
+  // TODO/QUESTION (JR): need this? if INIT is used, it should be zero already.
+  p_hash_ctx->num_hash_ctx__u8 = 0;
+
   for(flea_u8_t i = 0; i < hash_ids_len__u8; i++)
   {
     flea_hash_ctx_t__INIT(&p_hash_ctx->hash_ctx__pt[i]);
