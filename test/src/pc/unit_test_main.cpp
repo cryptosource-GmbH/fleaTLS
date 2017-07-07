@@ -9,6 +9,8 @@
 #include <string.h>
 #include <stdio.h>
 #include <sys/time.h> // Linux specific
+#include <exception>
+#include <iostream>
 
 #include "pc/test_pc.h"
 #include "flea/lib.h"
@@ -29,6 +31,7 @@ int main(
     gettimeofday(&tv, NULL);
     rnd = (tv.tv_sec * tv.tv_usec) ^ tv.tv_sec ^ tv.tv_usec;
     printf("rnd = %u\n", rnd);
+    printf("\n");
   }
   else
   {
@@ -64,58 +67,64 @@ int main(
     return 0;
   }
   ;
-
-  if(cmdl_args.have_index("tls_client"))
+  try
   {
-#ifdef FLEA_HAVE_TLS
-    res = flea_start_tls_client(cmdl_args);
-#else
-    std::cerr << "TLS not configured" << std::endl;
-    exit(1);
-#endif
-  }
-  else if(cmdl_args.have_index("tls_server"))
-  {
-#ifdef FLEA_HAVE_TLS
-    res = flea_start_tls_server(cmdl_args);
-#else
-    std::cerr << "TLS not configured" << std::endl;
-    exit(1);
-#endif
-  }
-  else if(cmdl_args.have_index("https_server"))
-  {
-#ifdef FLEA_HAVE_TLS
-    res = flea_start_https_server(cmdl_args);
-#else
-    std::cerr << "TLS not configured" << std::endl;
-    exit(1);
-#endif
-  }
-  else
-  {
-    flea_u32_t reps = 1;
-    const char* cert_path_prefix = NULL;
-    std::string cert_path_prefix_str;
-    const char* func_prefix = NULL;
-    std::string func_prefix_str;
-    if(cmdl_args.have_index("cert_path_prefix"))
+    if(cmdl_args.have_index("tls_client"))
     {
-      cert_path_prefix_str = cmdl_args.get_property_as_string("cert_path_prefix");
-      cert_path_prefix     = cert_path_prefix_str.c_str();
+#ifdef FLEA_HAVE_TLS
+      res = flea_start_tls_client(cmdl_args);
+#else
+      std::cerr << "TLS not configured" << std::endl;
+      exit(1);
+#endif
     }
-    if(cmdl_args.have_index("func_prefix"))
+    else if(cmdl_args.have_index("tls_server"))
     {
-      func_prefix_str = cmdl_args.get_property_as_string("func_prefix");
-      func_prefix     = func_prefix_str.c_str();
+#ifdef FLEA_HAVE_TLS
+      res = flea_start_tls_server(cmdl_args);
+#else
+      std::cerr << "TLS not configured" << std::endl;
+      exit(1);
+#endif
     }
+    else if(cmdl_args.have_index("https_server"))
+    {
+#ifdef FLEA_HAVE_TLS
+      res = flea_start_https_server(cmdl_args);
+#else
+      std::cerr << "TLS not configured" << std::endl;
+      exit(1);
+#endif
+    }
+    else
+    {
+      flea_u32_t reps = 1;
+      const char* cert_path_prefix = NULL;
+      std::string cert_path_prefix_str;
+      const char* func_prefix = NULL;
+      std::string func_prefix_str;
+      if(cmdl_args.have_index("cert_path_prefix"))
+      {
+        cert_path_prefix_str = cmdl_args.get_property_as_string("cert_path_prefix");
+        cert_path_prefix     = cert_path_prefix_str.c_str();
+      }
+      if(cmdl_args.have_index("func_prefix"))
+      {
+        func_prefix_str = cmdl_args.get_property_as_string("func_prefix");
+        func_prefix     = func_prefix_str.c_str();
+      }
 
-    reps = cmdl_args.get_property_as_u32_default("repeat", 1);
-    bool full = cmdl_args.get_as_bool_default_false("full");
-    flea_bool_t full__b = full ? FLEA_TRUE : FLEA_FALSE;
+      reps = cmdl_args.get_property_as_u32_default("repeat", 1);
+      bool full = cmdl_args.get_as_bool_default_false("full");
+      flea_bool_t full__b = full ? FLEA_TRUE : FLEA_FALSE;
 
 
-    res = flea_unit_tests(reps, cert_path_prefix, func_prefix, full__b);
+      res = flea_unit_tests(reps, cert_path_prefix, func_prefix, full__b);
+    }
+  }
+  catch(std::exception const& e)
+  {
+    std::cerr << "an execption occured during flea test execution: " << e.what() << std::endl;
   }
   flea_lib__deinit();
 

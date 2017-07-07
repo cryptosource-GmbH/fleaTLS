@@ -119,6 +119,12 @@ std::vector<flea_u8_t> parse_line(
 
 std::vector<unsigned char> read_bin_file(std::string const& filename);
 
+void write_bin_file(
+  std::string const    & filename,
+  const unsigned char* data,
+  size_t               data_len
+);
+
 bool is_dir_existent(std::string const& dir_name);
 
 std::vector<std::string> get_entries_of_dir(
