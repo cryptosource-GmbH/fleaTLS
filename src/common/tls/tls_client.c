@@ -170,9 +170,11 @@ static flea_err_t THR_flea_tls__read_server_kex(
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_tls__kex_method_t kex_method__t;
 
-  flea_u8_t curve_type__u8;
+  flea_u8_t ec_curve_type__u8;
   flea_u8_t ec_curve__au8[2];
   flea_ec_dom_par_id_t ec_dom_par_id__t;
+  flea_ref_cu8_t server_pub_point__rcu8;
+
 
   flea_private_key_t ecdhe_priv_key__t  = flea_private_key_t__INIT_VALUE;
   flea_public_key_t ecdhe_server_key__t = flea_private_key_t__INIT_VALUE;
@@ -180,17 +182,23 @@ static flea_err_t THR_flea_tls__read_server_kex(
   flea_u8_t sig_and_hash_alg__au8[2];
   flea_u8_t sig_to_vfy_len_enc__au8[2];
   flea_u16_t sig_to_vfy_len__u16;
+  flea_hash_id_t hash_id__t;
+  flea_pk_scheme_id_t pk_scheme_id__t;
+  flea_u8_t hash_out_len__u8;
 
+  FLEA_DECL_OBJ(params_hash_ctx__t, flea_hash_ctx_t);
+  FLEA_DECL_BUF(hash__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
   FLEA_DECL_BUF(sig_to_vfy__bu8, flea_u8_t, FLEA_MAX_SIG_SIZE);
 
   FLEA_THR_BEG_FUNC();
+
 
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
   kex_method__t    = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx__pt->selected_cipher_suite__u16);
   if(kex_method__t == FLEA_TLS_KEX_ECDHE)
   {
-    FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &curve_type__u8));
-    if(curve_type__u8 != 0x03)
+    FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &ec_curve_type__u8));
+    if(ec_curve_type__u8 != 0x03)
     {
       FLEA_THROW("unsupported curve type", FLEA_ERR_TLS_HANDSHK_FAILURE);
     }
@@ -247,6 +255,51 @@ static flea_err_t THR_flea_tls__read_server_kex(
         sig_to_vfy_len__u16
       )
     );
+
+    /* verify signature */
+    flea_tls__get_hash_id_from_tls_id(sig_and_hash_alg__au8[0], &hash_id__t);
+    pk_scheme_id__t = flea_rsa_pkcs1_v1_5_sign; // TODO: map from sig and hash alg
+
+    // TODO: check if pk_scheme_id__t and tls_ctx->peer_pubkey are compatible
+
+    // calculate hash of ec params
+    FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&params_hash_ctx__t, hash_id__t));
+    server_pub_point__rcu8 = flea_public_key__get_encoded_public_component(&ecdhe_server_key__t);
+    FLEA_CCALL(
+      THR_flea_hash_ctx_t__update(
+        &params_hash_ctx__t,
+        tls_ctx__pt->security_parameters.client_and_server_random,
+        2 * FLEA_TLS_HELLO_RANDOM_SIZE
+      )
+    );
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, &ec_curve_type__u8, 1));
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, ec_curve__au8, sizeof(ec_curve__au8)));
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, (flea_u8_t*) &server_pub_point__rcu8.len__dtl, 1));
+    FLEA_CCALL(
+      THR_flea_hash_ctx_t__update(
+        &params_hash_ctx__t,
+        server_pub_point__rcu8.data__pcu8,
+        server_pub_point__rcu8.len__dtl
+      )
+    );
+
+
+    hash_out_len__u8 = flea_hash_ctx_t__get_output_length(&params_hash_ctx__t);
+    FLEA_ALLOC_BUF(hash__bu8, hash_out_len__u8);
+    FLEA_CCALL(THR_flea_hash_ctx_t__final(&params_hash_ctx__t, hash__bu8));
+
+    // verify if signature matches the calculated hash
+    FLEA_CCALL(
+      THR_flea_pk_api__verify_digest(
+        hash__bu8,
+        hash_out_len__u8,
+        hash_id__t,
+        pk_scheme_id__t,
+        &tls_ctx__pt->peer_pubkey,
+        sig_to_vfy__bu8,
+        sig_to_vfy_len__u16
+      )
+    );
   }
   else
   {
@@ -258,6 +311,8 @@ static flea_err_t THR_flea_tls__read_server_kex(
     flea_private_key_t__dtor(&ecdhe_priv_key__t);
     flea_public_key_t__dtor(&ecdhe_server_key__t);
     FLEA_FREE_BUF_FINAL(sig_to_vfy__bu8);
+    FLEA_FREE_BUF_FINAL(hash__bu8);
+    flea_hash_ctx_t__dtor(&params_hash_ctx__t);
   );
 } /* THR_flea_tls__read_server_kex */
 

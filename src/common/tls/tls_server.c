@@ -380,11 +380,10 @@ static flea_err_t THR_flea_tls__send_server_kex(
 
   FLEA_THR_BEG_FUNC();
 
-  flea_hash_ctx_t__INIT(&params_hash_ctx__t);
 
   // TODO: not hardcoded flea_sha256. Choose appropriate hash function from
-  // sig/hash alg extension (or sha1 if not present?)
-  // TODO: also check if sig alg is supported by client
+  // sig/hash alg extension (or sha1 if not present?) and the available
+  // certificates
   hash_id__t      = flea_sha256;
   pk_scheme_id__t = flea_rsa_pkcs1_v1_5_sign;
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&params_hash_ctx__t, hash_id__t));
@@ -458,7 +457,7 @@ static flea_err_t THR_flea_tls__send_server_kex(
 
     flea__encode_U16_BE(sig_len__u16, sig_len_enc__au8);
 
-    // write client+server random and server ec params into hash
+    // calculate hash of ec params
     FLEA_CCALL(
       THR_flea_hash_ctx_t__update(
         &params_hash_ctx__t,
@@ -471,7 +470,7 @@ static flea_err_t THR_flea_tls__send_server_kex(
     FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, (flea_u8_t*) &pub_point__rcu8.len__dtl, 1));
     FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, pub_point__rcu8.data__pcu8, pub_point__rcu8.len__dtl));
 
-    FLEA_ALLOC_BUF(hash__bu8, flea_hash_ctx_t__get_output_length(&params_hash_ctx__t));
+    FLEA_ALLOC_BUF(hash__bu8, hash_out_len__u8);
     FLEA_CCALL(THR_flea_hash_ctx_t__final(&params_hash_ctx__t, hash__bu8));
 
 
