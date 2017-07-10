@@ -120,6 +120,27 @@ typedef struct
   flea_u32_t len__u32;
 } handshake_header;
 
+static void flea_tls_ctx_t__set_sec_reneg_flags(
+  flea_tls_ctx_t*               tls_ctx__pt,
+  flea_tls_renegotiation_spec_e reneg_spec__e
+)
+{
+  if(reneg_spec__e == flea_tls_only_secure_reneg)
+  {
+    tls_ctx__pt->allow_reneg__u8       = FLEA_TRUE;
+    tls_ctx__pt->allow_insec_reneg__u8 = FLEA_FALSE;
+  }
+  else if(reneg_spec__e == flea_tls_allow_insecure_reneg)
+  {
+    tls_ctx__pt->allow_reneg__u8       = FLEA_TRUE;
+    tls_ctx__pt->allow_insec_reneg__u8 = FLEA_TRUE;
+  }
+  else
+  {
+    tls_ctx__pt->allow_reneg__u8       = FLEA_FALSE;
+    tls_ctx__pt->allow_insec_reneg__u8 = FLEA_FALSE;
+  }
+}
 
 static flea_err_t P_Hash(
   const flea_u8_t* secret,
@@ -650,13 +671,15 @@ flea_err_t THR_flea_tls__create_master_secret(
 // TODO: configurable parameters
 // TODO: ctor = handshake function
 flea_err_t THR_flea_tls_ctx_t__construction_helper(
-  flea_tls_ctx_t*   ctx,
-  flea_rw_stream_t* rw_stream__pt
+  flea_tls_ctx_t*               ctx,
+  flea_rw_stream_t*             rw_stream__pt,
+  flea_tls_renegotiation_spec_e reneg_spec__e
 )
 {
   flea_al_u8_t sec_reneg_field_size__alu8 = 12;
 
   FLEA_THR_BEG_FUNC();
+  flea_tls_ctx_t__set_sec_reneg_flags(ctx, reneg_spec__e);
   // ctx->security_parameters = calloc(1, sizeof(flea_tls__security_parameters_t));
   ctx->rw_stream__pt = rw_stream__pt;
   // ctx->client_has_sec_reneg__u8 = FLEA_FALSE;

@@ -984,17 +984,18 @@ flea_err_t THR_flea_tls__server_handshake(
 } /* THR_flea_tls__server_handshake */
 
 flea_err_t THR_flea_tls_ctx_t__ctor_server(
-  flea_tls_ctx_t*          tls_ctx__pt,
-  flea_rw_stream_t*        rw_stream__pt,
-  flea_ref_cu8_t*          cert_chain__pt,
-  flea_al_u8_t             cert_chain_len__alu8,
-  const flea_cert_store_t* trust_store__pt,
-  flea_ref_cu8_t*          server_key__pt,
-  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
-  flea_rev_chk_mode_e      rev_chk_mode__e,
-  const flea_byte_vec_t*   crl_der__pt,
-  flea_al_u16_t            nb_crls__alu16,
-  flea_tls_session_mngr_t* session_mngr_mbn__pt
+  flea_tls_ctx_t*               tls_ctx__pt,
+  flea_rw_stream_t*             rw_stream__pt,
+  flea_ref_cu8_t*               cert_chain__pt,
+  flea_al_u8_t                  cert_chain_len__alu8,
+  const flea_cert_store_t*      trust_store__pt,
+  flea_ref_cu8_t*               server_key__pt,
+  const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
+  flea_rev_chk_mode_e           rev_chk_mode__e,
+  const flea_byte_vec_t*        crl_der__pt,
+  flea_al_u16_t                 nb_crls__alu16,
+  flea_tls_session_mngr_t*      session_mngr_mbn__pt,
+  flea_tls_renegotiation_spec_e reneg_spec__e
 )
 {
   flea_err_t err__t;
@@ -1011,7 +1012,7 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   tls_ctx__pt->security_parameters.connection_end = FLEA_TLS_SERVER;
   tls_ctx__pt->client_session_mbn__pt = NULL;
   tls_ctx__pt->session_mngr_mbn__pt   = session_mngr_mbn__pt;
-  FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt));
+  FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt, reneg_spec__e));
   err__t = THR_flea_tls__server_handshake(tls_ctx__pt, FLEA_FALSE);
   FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t));
   FLEA_THR_FIN_SEC_empty();

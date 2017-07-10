@@ -33,6 +33,9 @@ extern "C" {
 // #define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
 # define FLEA_TLS_MAX_PADDING_SIZE 255 // each byte must hold the padding value => 255 is max
 
+// TODO: split up secure_reneg into ..._cert_fixed, cert_variable
+typedef enum { flea_tls_no_reneg, flea_tls_only_secure_reneg,
+               flea_tls_allow_insecure_reneg } flea_tls_renegotiation_spec_e;
 
 typedef enum { flea_rev_chk_all, flea_rev_chk_none, flea_rev_chk_only_ee  } flea_rev_chk_mode_e;
 
@@ -231,6 +234,8 @@ typedef struct
   flea_tls_session_mngr_t*       session_mngr_mbn__pt;
   flea_tls_session_entry_t*      server_active_sess_mbn__pt;
   flea_u8_t                      server_resume_session__u8;
+  flea_u8_t                      allow_reneg__u8;
+  flea_u8_t                      allow_insec_reneg__u8;
 } flea_tls_ctx_t;
 
 
@@ -239,36 +244,38 @@ typedef struct
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt);
 
 flea_err_t THR_flea_tls_ctx_t__ctor_client(
-  flea_tls_ctx_t*            tls_ctx__pt,
-  const flea_cert_store_t*   trust_store__pt,
-  const flea_ref_cu8_t*      server_name__pcrcu8,
-  flea_host_id_type_e        host_name_id__e,
-  flea_rw_stream_t*          rw_stream__pt,
+  flea_tls_ctx_t*               tls_ctx__pt,
+  const flea_cert_store_t*      trust_store__pt,
+  const flea_ref_cu8_t*         server_name__pcrcu8,
+  flea_host_id_type_e           host_name_id__e,
+  flea_rw_stream_t*             rw_stream__pt,
 
   /* const flea_u8_t*         session_id__pcu8,
    * flea_al_u8_t             session_id_len__alu8,*/
-  flea_ref_cu8_t*            cert_chain__pt,
-  flea_al_u8_t               cert_chain_len__alu8,
-  flea_ref_cu8_t*            client_public_key__pt,
-  const flea_ref_cu16_t*     allowed_cipher_suites__prcu16,
-  flea_rev_chk_mode_e        rev_chk_mode__e,
-  const flea_byte_vec_t*     crl_der__pt,
-  flea_al_u16_t              nb_crls__alu16,
-  flea_tls_client_session_t* session_mbn__pt
+  flea_ref_cu8_t*               cert_chain__pt,
+  flea_al_u8_t                  cert_chain_len__alu8,
+  flea_ref_cu8_t*               client_public_key__pt,
+  const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
+  flea_rev_chk_mode_e           rev_chk_mode__e,
+  const flea_byte_vec_t*        crl_der__pt,
+  flea_al_u16_t                 nb_crls__alu16,
+  flea_tls_client_session_t*    session_mbn__pt,
+  flea_tls_renegotiation_spec_e reneg_spec__e
 );
 
 flea_err_t THR_flea_tls_ctx_t__ctor_server(
-  flea_tls_ctx_t*          tls_ctx__pt,
-  flea_rw_stream_t*        rw_stream__pt,
-  flea_ref_cu8_t*          cert_chain__pt,
-  flea_al_u8_t             cert_chain_len__alu8,
-  const flea_cert_store_t* trust_store__t,
-  flea_ref_cu8_t*          server_key__pt,
-  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
-  flea_rev_chk_mode_e      rev_chk_mode__e,
-  const flea_byte_vec_t*   crl_der__pt,
-  flea_al_u16_t            nb_crls__alu16,
-  flea_tls_session_mngr_t* session_mngr_mbn__pt
+  flea_tls_ctx_t*               tls_ctx__pt,
+  flea_rw_stream_t*             rw_stream__pt,
+  flea_ref_cu8_t*               cert_chain__pt,
+  flea_al_u8_t                  cert_chain_len__alu8,
+  const flea_cert_store_t*      trust_store__t,
+  flea_ref_cu8_t*               server_key__pt,
+  const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
+  flea_rev_chk_mode_e           rev_chk_mode__e,
+  const flea_byte_vec_t*        crl_der__pt,
+  flea_al_u16_t                 nb_crls__alu16,
+  flea_tls_session_mngr_t*      session_mngr_mbn__pt,
+  flea_tls_renegotiation_spec_e reneg_spec__e
 );
 
 flea_err_t THR_flea_tls_ctx_t__read_app_data(
