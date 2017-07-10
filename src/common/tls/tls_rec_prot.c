@@ -9,10 +9,11 @@
 #include "flea/alloc.h"
 #include "flea/rng.h"
 #include "flea/util.h"
+#include "flea/tls.h"
 #include <stdio.h>
+#include "internal/common/tls/tls_common.h"
 
 // TODO: REMOVE ALL OF THESE DEFINES EXCEPT MAX_PADDING_SIZE ?
-#define FLEA_TLS_MAX_MAC_SIZE     32 // TODO: SAME NAME DEFINED ELSEWHERE
 #define FLEA_TLS_MAX_MAC_KEY_SIZE 32
 #define FLEA_TLS_MAX_IV_SIZE      32
 // #define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
@@ -304,7 +305,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
       rec_prot__pt,
       direction,
       FLEA_TLS_CIPHER_RAW_ID(suite__pt->cipher),
-      suite__pt->mac_algorithm,
+      flea_tls__map_hmac_to_hash(suite__pt->hash_algorithm),
       key_block__pcu8 + 2 * mac_key_len__alu8 + ciph_key_offs__alu8,
       cipher_key_len__alu8,
       key_block__pcu8 + mac_key_offs__alu8,

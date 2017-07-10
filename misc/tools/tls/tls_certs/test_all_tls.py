@@ -8,6 +8,8 @@ import sys
 import shutil
 import subprocess
 
+test_run_nr = 1
+
 ossl_cwd = "."
 ut_cwd = "."
 ossl_script_dir = "./misc/tools/tls/tls_certs/"
@@ -43,6 +45,9 @@ def close_valgrind_process(p, test_name):
         os.remove("__vg.log")
 
 def test_flea_client_against_exernal_server(exp_pos_res, ext_start_script, flea_cmdl_args):
+    global test_run_nr
+    print ("\nTEST NR " + str(test_run_nr))
+    test_run_nr += 1
     #p1 = subprocess.Popen('killall openssl', shell=True)
     #p2 = subprocess.Popen('killall unit_test', shell=True)
     #p1.wait()
@@ -82,6 +87,9 @@ def test_flea_client_against_exernal_server(exp_pos_res, ext_start_script, flea_
     return result
 
 def test_flea_server_against_external_client(exp_pos_res, ext_start_script, flea_cmdl_args):
+    global test_run_nr
+    print ("\nTEST NR " + str(test_run_nr))
+    test_run_nr += 1
     #p1 = subprocess.Popen('killall openssl', shell=True)
     #p2 = subprocess.Popen('killall unit_test', shell=True)
     #p1.wait()
@@ -150,6 +158,9 @@ def build_cmdl_242_for_client(test_name, use_ee_crl_bool):
     return result
 
 def test_flea_client_against_flea_server(exp_pos_res, test_name, use_ee_crl_bool ):
+    global test_run_nr
+    print ("\nTEST NR " + str(test_run_nr))
+    test_run_nr += 1
     #p1 = subprocess.Popen('killall openssl', shell=True)
     #p2 = subprocess.Popen('killall unit_test', shell=True)
     #p1.wait()
@@ -208,6 +219,8 @@ error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_re
 error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server.sh', std_client_args)
 error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_gcm.sh', std_client_args)
 error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_cbc.sh', std_client_args + " --cipher_suites=TLS_RSA_WITH_AES_128_CBC_SHA")
+error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server.sh', std_client_args + " --cipher_suites=TLS_RSA_WITH_AES_256_GCM_SHA384")
+
 error_cnt += test_flea_client_against_exernal_server(False, 'start_ossl_server_request_cert.sh', no_cert_client_args)
 
 

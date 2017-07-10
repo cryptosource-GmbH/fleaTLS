@@ -212,6 +212,8 @@ flea_err_t THR_flea_test_gmt_time();
 
 flea_err_t THR_flea_tls_test_basic();
 
+flea_err_t THR_flea_test_parallel_hash();
+
 int flea_unit_tests(
   flea_u32_t  nb_reps,
   const char* cert_path_prefix,

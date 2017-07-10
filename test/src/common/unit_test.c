@@ -145,6 +145,8 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_test_dec_tls_server_cert_broken());
       CALL_TEST(THR_flea_test_dec_tls_server_issuer_cert());
 
+      CALL_TEST(THR_flea_test_parallel_hash());
+
 #if defined FLEA_HAVE_ASYM_SIG
       CALL_TEST(THR_flea_test_pkcs8());
 #endif

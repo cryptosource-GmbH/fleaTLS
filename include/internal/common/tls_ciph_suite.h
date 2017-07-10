@@ -55,7 +55,7 @@ typedef struct
   flea_u8_t                   mac_size;     // RFC: 8 bits
 
 
-  flea_mac_id_t               mac_algorithm; // default: flea_hmac_sha256
+  flea_hash_id_t              hash_algorithm; // default: flea_sha_sha256
   // flea_hash_id_t              hash_algorithm; // default: flea_sha256
 
   // flea_tls__prf_algorithm_t   prf_algorithm;
@@ -66,6 +66,8 @@ flea_err_t THR_flea_tls_get_cipher_suite_by_id(
   flea_tls__cipher_suite_id_t      id,
   const flea_tls__cipher_suite_t** result__pt
 );
+
+flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
 
 flea_err_t THR_flea_tls_get_key_block_len_from_cipher_suite_id(
   flea_tls__cipher_suite_id_t id,

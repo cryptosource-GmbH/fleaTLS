@@ -135,7 +135,7 @@ const flea_hash_config_entry_t* flea_hash__get_hash_config_by_id(flea_hash_id_t 
   return NULL;
 }
 
-flea_al_u16_t flea_hash__get_output_length_by_id(flea_hash_id_t id)
+flea_al_u8_t flea_hash__get_output_length_by_id(flea_hash_id_t id)
 {
   const flea_hash_config_entry_t* config = flea_hash__get_hash_config_by_id(id);
 
@@ -398,6 +398,11 @@ void flea_hash_ctx_t__dtor(flea_hash_ctx_t* p_ctx)
 flea_al_u16_t flea_hash_ctx_t__get_output_length(flea_hash_ctx_t* p_ctx)
 {
   return p_ctx->p_config->output_length;
+}
+
+flea_hash_id_t flea_hash_ctx_t__get_hash_id(const flea_hash_ctx_t* p_ctx)
+{
+  return p_ctx->p_config->hash_id;
 }
 
 flea_err_t THR_flea_compute_hash_byte_vec(
