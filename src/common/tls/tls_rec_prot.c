@@ -225,7 +225,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite_inner(
   flea_al_u16_t reserved_payl_len__alu16;
 
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
+  // FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
   // rec_prot__pt->read_state__t.reserved_iv_len__u8 = flea_block_cipher__get_block_size(block_cipher_id);
 
   /* still needed for writing: */
@@ -333,7 +333,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_gcm_ciphersuite_inner(
   flea_al_u16_t reserved_payl_len__alu16;
 
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
+  // FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
   // rec_prot__pt->reserved_iv_len__u8 = flea_block_cipher__get_block_size(block_cipher_id);
   // rec_prot__pt->read_state__t.reserved_iv_len__u8 = 8; // TODO: not hardcoded, iv = nonce
 
@@ -434,6 +434,7 @@ flea_err_t THR_flea_tls_rec_prot_t__set_ciphersuite(
   const flea_tls__cipher_suite_t* suite__pt;
 
   FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
   FLEA_CCALL(THR_flea_tls_get_cipher_suite_by_id(suite_id, &suite__pt));
   if(FLEA_TLS_IS_AE_CIPHER(suite__pt->cipher))
   {
@@ -836,7 +837,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   enc_data_len__au8[0] = data_len >> 8;
   enc_data_len__au8[1] = data_len;
   memcpy(gcm_header__au8, enc_seq_nbr__au8, 8);
-  memcpy(gcm_header__au8 + 8, rec_prot__pt->send_rec_buf_raw__bu8, 1);
+  memcpy(gcm_header__au8 + 8, rec_prot__pt->send_buf_raw__pu8, 1);
   memcpy(gcm_header__au8 + 9, &rec_prot__pt->prot_version__t.major, 1);
   memcpy(gcm_header__au8 + 10, &rec_prot__pt->prot_version__t.minor, 1);
   memcpy(gcm_header__au8 + 11, enc_data_len__au8, 2);
@@ -844,6 +845,18 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   // set gcm tag to point "behind the data"
   gcm_tag__pu8 = data + data_len;
 
+  printf("nonce(1) = ");
+  for(unsigned i = 0; i < iv_len; i++)
+  {
+    printf("%02x", iv[i]);
+  }
+  printf("\n");
+  printf("associated data = ");
+  for(unsigned i = 0; i < sizeof(gcm_header__au8); i++)
+  {
+    printf("%02x", gcm_header__au8[i]);
+  }
+  printf("\n");
   FLEA_CCALL(
     THR_flea_ae__encrypt(
       rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.cipher_id,
