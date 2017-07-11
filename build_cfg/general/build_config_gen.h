@@ -195,7 +195,7 @@
  * Alternative send buffer size. This buffer used for sending data when the TRNSF_BUF is filled
  * with pending read data. Should not be smaller than 100 bytes.
  */
-# define FLEA_TLS_ALT_SEND_BUF_SIZE 128
+# define FLEA_TLS_ALT_SEND_BUF_SIZE 1280
 
 # define FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
 # define FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA256
