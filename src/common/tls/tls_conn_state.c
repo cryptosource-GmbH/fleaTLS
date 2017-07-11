@@ -33,6 +33,7 @@ void flea_tls_conn_state_t__ctor_no_cipher(flea_tls_conn_state_t* conn_state__pt
 {
   // conn_state__pt->cipher_suite_config__t.cipher_suite_id = FLEA_TLS_NULL_WITH_NULL_NULL;
   conn_state__pt->cipher_suite_config__t.cipher_suite_class__e = flea_null_cipher_suite;
+  conn_state__pt->reserved_iv_len__u8 = 0;
 }
 
 flea_err_t THR_flea_tls_conn_state_t__ctor_cbc_hmac(
@@ -53,6 +54,8 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_cbc_hmac(
     conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8,
     cipher_key_len__alu8 + mac_key_len__alu8
   );
+
+  conn_state__pt->reserved_iv_len__u8 = flea_block_cipher__get_block_size(block_cipher_id);
   conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.mac_key__bu8 =
     conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8 + cipher_key_len__alu8;
 #endif
@@ -76,7 +79,7 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_cbc_hmac(
   );
 
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls_conn_state_t__ctor_cbc_hmac */
 
 flea_err_t THR_flea_tls_conn_state_t__ctor_gcm(
   flea_tls_conn_state_t* conn_state__pt,
@@ -98,7 +101,7 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_gcm(
     conn_state__pt->suite_specific__u.gcm_conn_state__t.cipher_key__bu8,
     cipher_key_len__alu8 + fixed_iv_len__alu8 + record_iv_len__u8
   );
-
+  conn_state__pt->reserved_iv_len__u8 = 8;
   conn_state__pt->suite_specific__u.gcm_conn_state__t.fixed_iv__bu8 =
     conn_state__pt->suite_specific__u.gcm_conn_state__t.cipher_key__bu8 + cipher_key_len__alu8;
   conn_state__pt->suite_specific__u.gcm_conn_state__t.record_iv__bu8 =

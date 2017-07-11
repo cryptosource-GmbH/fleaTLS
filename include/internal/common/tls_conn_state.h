@@ -76,7 +76,8 @@ typedef struct
   {
     flea_tls_cbc_hmac_conn_t cbc_hmac_conn_state__t;
     flea_tls_gcm_conn_t      gcm_conn_state__t;
-  } suite_specific__u;
+  }         suite_specific__u;
+  flea_u8_t reserved_iv_len__u8;
 } flea_tls_conn_state_t;
 
 # define flea_tls_conn_state_t__CONSTR     flea_tls_conn_state_t__INIT_VALUE
