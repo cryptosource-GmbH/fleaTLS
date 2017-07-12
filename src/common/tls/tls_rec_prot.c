@@ -145,11 +145,15 @@ static flea_err_t THR_flea_tls_rec_prot_t__handle_alert(flea_tls_rec_prot_t* rec
   {
     FLEA_THROW("received close notify", FLEA_ERR_TLS_REC_CLOSE_NOTIFY);
   }
+  else if(rec_prot__pt->payload_buf__pu8[1] == FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION)
+  {
+    FLEA_THROW("received no renegotiation alert", FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG);
+  }
 
   rec_prot__pt->payload_offset__u16   = 0;
   rec_prot__pt->payload_used_len__u16 = 0;
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls_rec_prot_t__handle_alert */
 
 flea_err_t THR_flea_tls_rec_prot_t__ctor(
   flea_tls_rec_prot_t* rec_prot__pt,
