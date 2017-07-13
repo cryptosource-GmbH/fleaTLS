@@ -149,18 +149,13 @@ static flea_err_t THR_flea_tls__read_server_hello(
   {
     tls_ctx->sec_reneg_flag__u8 = FLEA_TRUE;
   }
-
-  // TODO: can remove this since it will be checked in handle_handsh_msg
-  if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
-  {
-    FLEA_THROW("Header length field mismatch", FLEA_ERR_TLS_PROT_DECODE_ERR);
-  }
-
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(session_id__bu8);
   );
 } /* THR_flea_tls__read_server_hello */
 
+// TODO compile only if we support ecdh/ecdhe or any other cipher suites that
+// use server key exchange message
 static flea_err_t THR_flea_tls__read_server_kex(
   flea_tls_ctx_t*           tls_ctx__pt,
   flea_tls_handsh_reader_t* hs_rdr__pt,
