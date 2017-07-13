@@ -46,7 +46,6 @@ static const flea_tls__cipher_suite_t cipher_suites[8] = {
 #ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
   {FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA, FLEA_TLS_BLOCK_CIPHER(flea_aes128),
    16, 16, 16, 20, 20, flea_sha1},
-
 #endif
 };
 

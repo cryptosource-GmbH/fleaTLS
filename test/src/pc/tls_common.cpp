@@ -18,75 +18,75 @@ using namespace std;
  * } ;*/
 
 std::map<string, flea_u16_t> cipher_suite_name_value_map__t = {
-  {"TLS_RSA_WITH_NULL_MD5",                   0x0001},
-  {"TLS_RSA_WITH_NULL_SHA",                   0x0002},
-  {"TLS_RSA_WITH_NULL_SHA256",                0x003B},
-  {"TLS_RSA_WITH_RC4_128_MD5",                0x0004},
-  {"TLS_RSA_WITH_RC4_128_SHA",                0x0005},
-  {"TLS_RSA_WITH_3DES_EDE_CBC_SHA",           0x000A},
-  {"TLS_RSA_WITH_AES_128_CBC_SHA",            0x002F},
-  {"TLS_RSA_WITH_AES_256_CBC_SHA",            0x0035},
-  {"TLS_RSA_WITH_AES_128_CBC_SHA256",         0x003C},
-  {"TLS_RSA_WITH_AES_256_CBC_SHA256",         0x003D},
-  {"TLS_RSA_WITH_AES_128_GCM_SHA256",         0x009C},
-  {"TLS_RSA_WITH_AES_256_GCM_SHA384",         0x009D},
-  {"FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA", 0xC013}
+  {"TLS_RSA_WITH_NULL_MD5",              0x0001},
+  {"TLS_RSA_WITH_NULL_SHA",              0x0002},
+  {"TLS_RSA_WITH_NULL_SHA256",           0x003B},
+  {"TLS_RSA_WITH_RC4_128_MD5",           0x0004},
+  {"TLS_RSA_WITH_RC4_128_SHA",           0x0005},
+  {"TLS_RSA_WITH_3DES_EDE_CBC_SHA",      0x000A},
+  {"TLS_RSA_WITH_AES_128_CBC_SHA",       0x002F},
+  {"TLS_RSA_WITH_AES_256_CBC_SHA",       0x0035},
+  {"TLS_RSA_WITH_AES_128_CBC_SHA256",    0x003C},
+  {"TLS_RSA_WITH_AES_256_CBC_SHA256",    0x003D},
+  {"TLS_RSA_WITH_AES_128_GCM_SHA256",    0x009C},
+  {"TLS_RSA_WITH_AES_256_GCM_SHA384",    0x009D},
+  {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA", 0xC013}
 };
 
 namespace {
-std::vector<flea_u16_t> get_cipher_suites_from_cmdl(property_set_t const& cmdl_args)
-{
-  std::vector<flea_u16_t> result;
-  if(cmdl_args.have_index("cipher_suites"))
+  std::vector<flea_u16_t> get_cipher_suites_from_cmdl(property_set_t const& cmdl_args)
   {
-    std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("cipher_suites"), ',');
-    for(string s : strings)
+    std::vector<flea_u16_t> result;
+    if(cmdl_args.have_index("cipher_suites"))
     {
-      const flea_tls__cipher_suite_t* ptr;
-      auto it = cipher_suite_name_value_map__t.find(s);
-      if(it == cipher_suite_name_value_map__t.end() ||
-        THR_flea_tls_get_cipher_suite_by_id(static_cast<flea_tls__cipher_suite_id_t>(it->second), &ptr))
+      std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("cipher_suites"), ',');
+      for(string s : strings)
       {
-        throw test_utils_exceptn_t("specified cipher suite '" + s + "' not configured");
-      }
-      result.push_back(cipher_suite_name_value_map__t[s]);
-    }
-  }
-  else
-  {
-    for(auto & entry : cipher_suite_name_value_map__t)
-    {
-      flea_u16_t id = entry.second;
-      const flea_tls__cipher_suite_t* ptr;
-      if(!THR_flea_tls_get_cipher_suite_by_id(static_cast<flea_tls__cipher_suite_id_t>(id), &ptr))
-      {
-        result.push_back(id);
+        const flea_tls__cipher_suite_t* ptr;
+        auto it = cipher_suite_name_value_map__t.find(s);
+        if(it == cipher_suite_name_value_map__t.end() ||
+          THR_flea_tls_get_cipher_suite_by_id(static_cast<flea_tls__cipher_suite_id_t>(it->second), &ptr))
+        {
+          throw test_utils_exceptn_t("specified cipher suite '" + s + "' not configured");
+        }
+        result.push_back(cipher_suite_name_value_map__t[s]);
       }
     }
-  }
-  if(result.size() == 0)
-  {
-    throw test_utils_exceptn_t("no cipher_suite specified");
-  }
-  return result;
-} // get_cipher_suites_from_cmdl
+    else
+    {
+      for(auto & entry : cipher_suite_name_value_map__t)
+      {
+        flea_u16_t id = entry.second;
+        const flea_tls__cipher_suite_t* ptr;
+        if(!THR_flea_tls_get_cipher_suite_by_id(static_cast<flea_tls__cipher_suite_id_t>(id), &ptr))
+        {
+          result.push_back(id);
+        }
+      }
+    }
+    if(result.size() == 0)
+    {
+      throw test_utils_exceptn_t("no cipher_suite specified");
+    }
+    return result;
+  } // get_cipher_suites_from_cmdl
 
-flea_rev_chk_mode_e string_to_rev_chk_mode(std::string const& s)
-{
-  if(s == "all")
+  flea_rev_chk_mode_e string_to_rev_chk_mode(std::string const& s)
   {
-    return flea_rev_chk_all;
+    if(s == "all")
+    {
+      return flea_rev_chk_all;
+    }
+    else if((s == "") || (s == "none"))
+    {
+      return flea_rev_chk_none;
+    }
+    else if(s == "only_ee")
+    {
+      return flea_rev_chk_only_ee;
+    }
+    throw test_utils_exceptn_t("invalid value for property 'rev_chk': '" + s + "'");
   }
-  else if((s == "") || (s == "none"))
-  {
-    return flea_rev_chk_none;
-  }
-  else if(s == "only_ee")
-  {
-    return flea_rev_chk_only_ee;
-  }
-  throw test_utils_exceptn_t("invalid value for property 'rev_chk': '" + s + "'");
-}
 }
 flea_err_t THR_flea_tls_tool_set_tls_cfg(
   flea_cert_store_t*  trust_store__pt,
