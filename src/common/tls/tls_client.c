@@ -810,6 +810,16 @@ static flea_err_t THR_flea_handle_handsh_msg(
   // TODO: THESE CONDITIONS SHOULD BE RELAXABLE, SHOULD BE REMOVABLE COMPLETELY,
   // i.e. always add the hash-ctx:
 
+  if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
+  {
+    FLEA_CCALL(
+      THR_flea_tls_parallel_hash_ctx_t__create_hash_ctx_as_copy(
+        &hash_ctx_copy__t,
+        p_hash_ctx__pt,
+        flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16)
+      )
+    );
+  }
   if((flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) != HANDSHAKE_TYPE_FINISHED) ||
     (client_session_mbn__pt && client_session_mbn__pt->for_resumption__u8)
   )
@@ -901,17 +911,18 @@ static flea_err_t THR_flea_handle_handsh_msg(
   {
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
     {
-      hash_id__t          = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
-      hash_ctx_t_ptr__pt  = &hash_ctx_copy__t;
-      hash_ctx_t_ptr__ppt = &hash_ctx_t_ptr__pt;
-      FLEA_CCALL(
-        THR_flea_tls_parallel_hash_ctx_t__select_hash_ctx(
-          p_hash_ctx__pt,
-          hash_ctx_t_ptr__ppt,
-          hash_id__t
-        )
-      );
-      FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, *hash_ctx_t_ptr__ppt));
+      // hash_id__t          = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
+      // hash_ctx_t_ptr__pt  = &hash_ctx_copy__t;
+      // hash_ctx_t_ptr__ppt = &hash_ctx_t_ptr__pt;
+
+      /*FLEA_CCALL(
+       * THR_flea_tls_parallel_hash_ctx_t__select_hash_ctx(
+       *  p_hash_ctx__pt,
+       *  hash_ctx_t_ptr__ppt,
+       *  hash_id__t
+       * )
+       * );*/
+      FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx_copy__t));// *hash_ctx_t_ptr__ppt));
 
       if(client_session_mbn__pt && client_session_mbn__pt->for_resumption__u8)
       {
