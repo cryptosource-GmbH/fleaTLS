@@ -34,8 +34,12 @@ extern "C" {
 # define FLEA_TLS_MAX_PADDING_SIZE 255 // each byte must hold the padding value => 255 is max
 
 // TODO: split up secure_reneg into ..._cert_fixed, cert_variable
-typedef enum { flea_tls_no_reneg, flea_tls_only_secure_reneg,
-               flea_tls_allow_insecure_reneg } flea_tls_renegotiation_spec_e;
+typedef enum
+{
+  flea_tls_no_reneg,
+  flea_tls_only_secure_reneg,
+  flea_tls_allow_insecure_reneg
+} flea_tls_renegotiation_spec_e;
 
 typedef enum { flea_rev_chk_all, flea_rev_chk_none, flea_rev_chk_only_ee  } flea_rev_chk_mode_e;
 
