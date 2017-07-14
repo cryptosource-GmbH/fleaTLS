@@ -221,3 +221,6 @@ print ("there were " + str(vg_err_count) + " valgrind errors")
 
 subprocess.Popen('killall openssl', shell=True).wait()
 subprocess.Popen('killall unit_test', shell=True).wait()
+
+if(error_cnt > 0 or vg_err_count > 0):
+    sys.exit(23)
