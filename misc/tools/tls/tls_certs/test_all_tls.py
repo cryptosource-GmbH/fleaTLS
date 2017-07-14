@@ -219,9 +219,8 @@ error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_re
 error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server.sh', std_client_args)
 error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_gcm.sh', std_client_args + " --cipher_suites=TLS_RSA_WITH_AES_128_GCM_SHA256" )
 error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_cbc.sh', std_client_args + " --cipher_suites=TLS_RSA_WITH_AES_128_CBC_SHA")
-error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server.sh', std_client_args + " --cipher_suites=TLS_RSA_WITH_AES_256_GCM_SHA384")
-
 error_cnt += test_flea_client_against_exernal_server(False, 'start_ossl_server_request_cert.sh', no_cert_client_args)
+
 
 
 
