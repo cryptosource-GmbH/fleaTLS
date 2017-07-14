@@ -1038,7 +1038,6 @@ flea_err_t THR_flea_tls__server_handshake(
     );
 # endif
 
-  flea_hash_ctx_t hash_ctx;
   // define and init state
   flea_tls__handshake_state_t handshake_state;
   FLEA_THR_BEG_FUNC();

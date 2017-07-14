@@ -1330,6 +1330,110 @@ static flea_err_t THR_flea_tls_ctx__parse_reneg_ext(
   );
 } /* THR_flea_tls_ctx__parse_reneg_ext */
 
+flea_u8_t flea_tls_map_tls_hash_to_flea_hash__t[6][2] = {
+  {0x01, flea_md5   },
+  {0x02, flea_sha1  },
+  {0x03, flea_sha224},
+  {0x04, flea_sha256},
+  {0x05, flea_sha384},
+  {0x06, flea_sha512}
+};
+
+flea_u8_t flea_tls_map_tls_sig_to_flea_sig__t[2][2] = {
+  {0x01, flea_rsa_pkcs1_v1_5_sign},
+  {0x03, flea_ecdsa_emsa1        }
+};
+
+flea_bool_t flea_tls_map_tls_sig_to_flea_sig(
+  flea_u8_t            id__u8,
+  flea_pk_scheme_id_t* pk_scheme_id__pt
+)
+{
+  for(flea_u8_t i = 0; i < sizeof(flea_tls_map_tls_sig_to_flea_sig__t); i++)
+  {
+    if(flea_tls_map_tls_sig_to_flea_sig__t[i][0] == id__u8)
+    {
+      *pk_scheme_id__pt = (flea_pk_scheme_id_t) flea_tls_map_tls_sig_to_flea_sig__t[i][1];
+      return FLEA_TRUE;
+    }
+  }
+  return FLEA_FALSE;
+}
+
+flea_bool_t flea_tls_map_flea_sig_to_tls_sig(
+  flea_pk_scheme_id_t pk_scheme_id__t,
+  flea_u8_t*          id__pu8
+)
+{
+  for(flea_u8_t i = 0; i < sizeof(flea_tls_map_tls_sig_to_flea_sig__t); i++)
+  {
+    if(flea_tls_map_tls_sig_to_flea_sig__t[i][1] == pk_scheme_id__t)
+    {
+      *id__pu8 = flea_tls_map_tls_sig_to_flea_sig__t[i][0];
+      return FLEA_TRUE;
+    }
+  }
+  return FLEA_FALSE;
+}
+
+flea_bool_t flea_tls__map_tls_hash_to_flea_hash(
+  flea_u8_t       id__u8,
+  flea_hash_id_t* hash_id__pt
+)
+{
+  for(flea_u8_t i = 0; i < sizeof(flea_tls_map_tls_hash_to_flea_hash__t); i++)
+  {
+    if(flea_tls_map_tls_hash_to_flea_hash__t[i][0] == id__u8)
+    {
+      *hash_id__pt = (flea_hash_id_t) flea_tls_map_tls_hash_to_flea_hash__t[i][1];
+      return FLEA_TRUE;
+    }
+  }
+  return FLEA_FALSE;
+}
+
+flea_bool_t flea__tls_map_flea_hash_to_tls_hash(
+  flea_hash_id_t hash_id__t,
+  flea_u8_t*     id__pu8
+)
+{
+  for(flea_u8_t i = 0; i < sizeof(flea_tls_map_tls_hash_to_flea_hash__t); i++)
+  {
+    if(flea_tls_map_tls_hash_to_flea_hash__t[i][1] == hash_id__t)
+    {
+      *id__pu8 = flea_tls_map_tls_hash_to_flea_hash__t[i][0];
+      return FLEA_TRUE;
+    }
+  }
+  return FLEA_FALSE;
+}
+
+flea_err_t THR_flea_tls__check_sig_alg_compatibility_for_public_key(
+  flea_public_key_t*  pubkey,
+  flea_pk_scheme_id_t pk_scheme_id__t
+)
+{
+  FLEA_THR_BEG_FUNC();
+  if((pubkey->key_type__t == flea_ecc_key && pk_scheme_id__t != flea_ecdsa_emsa1) ||
+    (pubkey->key_type__t == flea_rsa_key && pk_scheme_id__t != flea_rsa_pkcs1_v1_5_sign))
+  {
+    FLEA_THROW("key type and signature algorithm do not match", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  }
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_tls_ctx__parse_sig_alg_ext(
+  flea_tls_ctx_t*   tls_ctx__pt,
+  flea_rw_stream_t* rd_strm__pt,
+  flea_al_u16_t     ext_len__alu16
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
 /*static void flea_tls_ctx_t__reset_extension_state(flea_tls_ctx_t* tls_ctx__pt)
  * {
  * tls_ctx__pt->sec_reneg_flag__u8 = FLEA_FALSE;
@@ -1342,6 +1446,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
 {
   flea_u32_t extensions_len__u32;
   flea_rw_stream_t* hs_rd_stream__pt;
+  flea_bool_t receive_sig_algs_ext__t = FLEA_FALSE;
 
   FLEA_THR_BEG_FUNC();
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
@@ -1368,9 +1473,22 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
       FLEA_CCALL(THR_flea_tls_ctx__parse_reneg_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
       *found_sec_reneg__pb = FLEA_TRUE;
     }
+    else if(ext_type_be__u32 == 0x000d)
+    {
+      FLEA_CCALL(THR_flea_tls_ctx__parse_sig_alg_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
+      receive_sig_algs_ext__t = FLEA_TRUE;
+    }
     else
     {
       FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, ext_len__u32));
+    }
+
+    if(receive_sig_algs_ext__t == FLEA_FALSE)
+    {
+      // we need to set the default signature and hash algorithm because the
+      // client does not support any other
+
+      // TODO
     }
   }
   FLEA_THR_FIN_SEC_empty();

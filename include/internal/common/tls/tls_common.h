@@ -17,6 +17,17 @@ extern "C" {
 // TODO: define in build cfg or even better: calculate max possible sig size
 # define FLEA_MAX_SIG_SIZE 512
 
+/*
+ * enum {
+ *      none(0), md5(1), sha1(2), sha224(3), sha256(4), sha384(5),
+ *      sha512(6), (255)
+ *  } HashAlgorithm;
+ *
+ *  enum { anonymous(0), rsa(1), dsa(2), ecdsa(3), (255) }
+ *    SignatureAlgorithm;
+ */
+
+
 flea_err_t THR_flea_tls__read_certificate(
   flea_tls_ctx_t*                    tls_ctx,
   flea_tls_handsh_reader_t*          hs_rdr__pt,
@@ -223,6 +234,32 @@ flea_err_t THR_flea_tls__map_curve_bytes_to_flea_curve(
   flea_ec_dom_par_id_t* ec_dom_par_id__pt
 );
 # endif
+
+flea_err_t THR_flea_tls__check_sig_alg_compatibility_for_public_key(
+  flea_public_key_t*  pubkey,
+  flea_pk_scheme_id_t pk_scheme_id__t
+);
+
+flea_bool_t flea__tls_map_flea_hash_to_tls_hash(
+  flea_hash_id_t hash_id__t,
+  flea_u8_t*     id__pu8
+);
+
+flea_bool_t flea_tls__map_tls_hash_to_flea_hash(
+  flea_u8_t       id__u8,
+  flea_hash_id_t* hash_id__pt
+);
+
+flea_bool_t flea_tls_map_flea_sig_to_tls_sig(
+  flea_pk_scheme_id_t pk_scheme_id__t,
+  flea_u8_t*          id__pu8
+);
+
+flea_bool_t flea_tls_map_tls_sig_to_flea_sig(
+  flea_u8_t            id__u8,
+  flea_pk_scheme_id_t* pk_scheme_id__pt
+);
+
 
 #endif // ifdef FLEA_HAVE_TLS
 #endif /* h-guard */
