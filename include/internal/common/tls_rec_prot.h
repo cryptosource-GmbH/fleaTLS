@@ -106,7 +106,7 @@ typedef struct
   flea_u16_t                   send_payload_used_len__u16;
   flea_u16_t                   payload_offset__u16;
   flea_u16_t                   send_payload_offset__u16;
-  flea_u8_t                    reserved_iv_len__u8;
+  // flea_u8_t                    reserved_iv_len__u8;
   flea_tls__protocol_version_t prot_version__t;
   flea_rw_stream_t*            rw_stream__pt;
   flea_u8_t                    write_ongoing__u8;

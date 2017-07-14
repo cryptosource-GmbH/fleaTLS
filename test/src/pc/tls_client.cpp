@@ -120,7 +120,7 @@ static flea_err_t THR_flea_start_tls_client(
       &tls_cfg.crls_refs[0],// NULL,
       tls_cfg.crls.size(),
       client_session__pt,
-      flea_tls_allow_insecure_reneg
+      reneg_spec_from_string(cmdl_args.get_property_as_string_default_empty("reneg"))
     )
   );
   printf("session was resumed = %u\n", client_session__pt->for_resumption__u8);

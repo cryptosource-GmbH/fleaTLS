@@ -115,7 +115,7 @@ static flea_err_t THR_server_cycle(
       &tls_cfg.crls_refs[0],
       tls_cfg.crls.size(),
       sess_man__pt,
-      flea_tls_allow_insecure_reneg
+      reneg_spec_from_string(cmdl_args.get_property_as_string_default_empty("reneg"))
     )
   );
   std::cout << "handshake done" << std::endl;

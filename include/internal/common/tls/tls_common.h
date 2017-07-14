@@ -140,19 +140,18 @@ flea_err_t THR_flea_tls__generate_key_block(
  */
 flea_err_t THR_flea_tls__handle_tls_error(
   flea_tls_ctx_t* tls_ctx__pt,
-  // flea_tls_rec_prot_t* rec_prot__pt,
-  flea_err_t      err__t
-  //  flea_tls_session_data_t * session_mbn__pt
+  flea_err_t      err__t,
+  flea_bool_t     is_reneg__b
 );
 
 flea_err_t THR_flea_tls__server_handshake(
-  flea_tls_ctx_t* tls_ctx,
-  flea_bool_t     is_reneg__b
+  flea_tls_ctx_t* tls_ctx
+  // flea_bool_t     is_reneg__b
 );
 
 flea_err_t THR_flea_tls__client_handshake(
   flea_tls_ctx_t*            tls_ctx,
-  flea_bool_t                is_reneg__b,
+  // flea_bool_t                is_reneg__b,
   flea_tls_client_session_t* session_mbn__pt
 );
 

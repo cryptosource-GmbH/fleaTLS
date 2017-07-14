@@ -220,7 +220,7 @@ error_cnt += test_flea_server_against_external_client(True, 'start_ossl_client.s
 error_cnt += test_flea_server_against_external_client(True, 'start_ossl_client_cbc_w_cert.sh', std_server_args)
 error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_request_cert.sh', std_client_args)
 error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server.sh', std_client_args)
-error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_gcm.sh', std_client_args)
+error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_gcm.sh', std_client_args + " --cipher_suites=TLS_RSA_WITH_AES_128_GCM_SHA256" )
 
 error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server_cbc.sh', std_client_args + " --cipher_suites=TLS_RSA_WITH_AES_128_CBC_SHA")
 error_cnt += test_flea_client_against_exernal_server(True, 'start_ossl_server.sh', std_client_args + " --cipher_suites=TLS_RSA_WITH_AES_256_GCM_SHA384")
@@ -239,3 +239,6 @@ print ("there were " + str(vg_err_count) + " valgrind errors")
 
 subprocess.Popen('killall openssl', shell=True).wait()
 subprocess.Popen('killall unit_test', shell=True).wait()
+
+if(error_cnt > 0 or vg_err_count > 0):
+    sys.exit(23)
