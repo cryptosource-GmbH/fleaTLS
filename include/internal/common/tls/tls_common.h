@@ -100,8 +100,9 @@ flea_err_t THR_flea_tls__send_finished(
 );
 
 flea_err_t THR_flea_tls_ctx_t__construction_helper(
-  flea_tls_ctx_t*   ctx,
-  flea_rw_stream_t* rw_stream__pt
+  flea_tls_ctx_t*               ctx,
+  flea_rw_stream_t*             rw_stream__pt,
+  flea_tls_renegotiation_spec_e reneg_spec__e
 
   /*  const flea_u8_t*  session_id,
    * flea_al_u8_t      session_id_len*/
