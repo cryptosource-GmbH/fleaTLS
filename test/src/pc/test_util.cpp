@@ -615,7 +615,7 @@ flea_tls_renegotiation_spec_e reneg_spec_from_string(std::string const& s)
   {
     return flea_tls_only_secure_reneg;
   }
-  else if(s == "flea_tls_allow_insecure_reneg")
+  else if(s == "allow_insecure_reneg")
   {
     return flea_tls_allow_insecure_reneg;
   }
