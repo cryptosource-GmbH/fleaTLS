@@ -171,4 +171,6 @@ std::string bin_to_hex(
   size_t               len
 );
 
+flea_tls_renegotiation_spec_e reneg_spec_from_string(std::string const& s);
+
 #endif // ifndef __flea_test_util_cpp_H_

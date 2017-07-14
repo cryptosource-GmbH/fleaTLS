@@ -98,8 +98,9 @@ flea_err_t THR_flea_tls__send_finished(
 );
 
 flea_err_t THR_flea_tls_ctx_t__construction_helper(
-  flea_tls_ctx_t*   ctx,
-  flea_rw_stream_t* rw_stream__pt
+  flea_tls_ctx_t*               ctx,
+  flea_rw_stream_t*             rw_stream__pt,
+  flea_tls_renegotiation_spec_e reneg_spec__e
 
   /*  const flea_u8_t*  session_id,
    * flea_al_u8_t      session_id_len*/
@@ -137,19 +138,18 @@ flea_err_t THR_flea_tls__generate_key_block(
  */
 flea_err_t THR_flea_tls__handle_tls_error(
   flea_tls_ctx_t* tls_ctx__pt,
-  // flea_tls_rec_prot_t* rec_prot__pt,
-  flea_err_t      err__t
-  //  flea_tls_session_data_t * session_mbn__pt
+  flea_err_t      err__t,
+  flea_bool_t     is_reneg__b
 );
 
 flea_err_t THR_flea_tls__server_handshake(
-  flea_tls_ctx_t* tls_ctx,
-  flea_bool_t     is_reneg__b
+  flea_tls_ctx_t* tls_ctx
+  // flea_bool_t     is_reneg__b
 );
 
 flea_err_t THR_flea_tls__client_handshake(
   flea_tls_ctx_t*            tls_ctx,
-  flea_bool_t                is_reneg__b,
+  // flea_bool_t                is_reneg__b,
   flea_tls_client_session_t* session_mbn__pt
 );
 

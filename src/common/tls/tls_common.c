@@ -87,11 +87,16 @@ static const error_alert_pair_t error_alert_map__act [] = {
 };
 static flea_bool_t determine_alert_from_error(
   flea_err_t                     err__t,
-  flea_tls__alert_description_t* alert_desc__pe
+  flea_tls__alert_description_t* alert_desc__pe,
+  flea_bool_t                    is_reneg__b
 )
 {
   flea_al_u8_t i;
 
+  if(is_reneg__b && err__t == FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG)
+  {
+    *alert_desc__pe = FLEA_TLS_ALERT_NO_ALERT;
+  }
   for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(error_alert_map__act); i++)
   {
     if(err__t == error_alert_map__act[i].error)
@@ -130,6 +135,27 @@ typedef struct
   flea_u32_t len__u32;
 } handshake_header;
 
+static void flea_tls_ctx_t__set_sec_reneg_flags(
+  flea_tls_ctx_t*               tls_ctx__pt,
+  flea_tls_renegotiation_spec_e reneg_spec__e
+)
+{
+  if(reneg_spec__e == flea_tls_only_secure_reneg)
+  {
+    tls_ctx__pt->allow_reneg__u8       = FLEA_TRUE;
+    tls_ctx__pt->allow_insec_reneg__u8 = FLEA_FALSE;
+  }
+  else if(reneg_spec__e == flea_tls_allow_insecure_reneg)
+  {
+    tls_ctx__pt->allow_reneg__u8       = FLEA_TRUE;
+    tls_ctx__pt->allow_insec_reneg__u8 = FLEA_TRUE;
+  }
+  else
+  {
+    tls_ctx__pt->allow_reneg__u8       = FLEA_FALSE;
+    tls_ctx__pt->allow_insec_reneg__u8 = FLEA_FALSE;
+  }
+}
 
 static flea_err_t P_Hash(
   const flea_u8_t* secret,
@@ -353,14 +379,15 @@ void flea_tls_ctx_t__invalidate_session(flea_tls_ctx_t* tls_ctx__pt)
 
 flea_err_t THR_flea_tls__handle_tls_error(
   flea_tls_ctx_t* tls_ctx__pt,
-  flea_err_t      err__t
+  flea_err_t      err__t,
+  flea_bool_t     is_reneg__b
 )
 {
   FLEA_THR_BEG_FUNC();
   if(err__t)
   {
     flea_tls__alert_description_t alert_desc__e;
-    flea_bool_t do_send_alert__b = determine_alert_from_error(err__t, &alert_desc__e);
+    flea_bool_t do_send_alert__b = determine_alert_from_error(err__t, &alert_desc__e, is_reneg__b);
     if(do_send_alert__b)
     {
       if(err__t != FLEA_ERR_TLS_REC_CLOSE_NOTIFY)
@@ -669,13 +696,15 @@ flea_err_t THR_flea_tls__create_master_secret(
 // TODO: configurable parameters
 // TODO: ctor = handshake function
 flea_err_t THR_flea_tls_ctx_t__construction_helper(
-  flea_tls_ctx_t*   ctx,
-  flea_rw_stream_t* rw_stream__pt
+  flea_tls_ctx_t*               ctx,
+  flea_rw_stream_t*             rw_stream__pt,
+  flea_tls_renegotiation_spec_e reneg_spec__e
 )
 {
   flea_al_u8_t sec_reneg_field_size__alu8 = 12;
 
   FLEA_THR_BEG_FUNC();
+  flea_tls_ctx_t__set_sec_reneg_flags(ctx, reneg_spec__e);
   // ctx->security_parameters = calloc(1, sizeof(flea_tls__security_parameters_t));
   ctx->rw_stream__pt = rw_stream__pt;
   // ctx->client_has_sec_reneg__u8 = FLEA_FALSE;
@@ -961,7 +990,7 @@ flea_err_t THR_flea_tls_ctx_t__send_app_data(
   FLEA_THR_BEG_FUNC();
   err__t = THR_flea_tls_ctx_t__send_app_data_inner(tls_ctx__pt, data, data_len);
 
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -992,44 +1021,42 @@ static flea_err_t THR_flea_tls_ctx_t__read_app_data_inner(
        * an error during the invoked handshake processing. the new record which caused the exception is still
        * held as current record in rec_prot.
        */
+
       if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_SERVER)
       {
-# ifdef FLEA_TLS_HAVE_RENEGOTIATION
-        FLEA_CCALL(THR_flea_tls__server_handshake(tls_ctx__pt, FLEA_TRUE));
-# else
-        flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
-        FLEA_CCALL(
-          THR_flea_tls_rec_prot_t__send_alert(
-            &tls_ctx__pt->rec_prot__t,
-            FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION,
-            FLEA_TLS_ALERT_LEVEL_WARNING
-          )
-        );
-# endif
+        if(tls_ctx__pt->allow_reneg__u8)
+        {
+          FLEA_CCALL(THR_flea_tls__server_handshake(tls_ctx__pt));// , FLEA_TRUE));
+        }
+        else
+        {
+          flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
+          FLEA_CCALL(
+            THR_flea_tls_rec_prot_t__send_alert(
+              &tls_ctx__pt->rec_prot__t,
+              FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION,
+              FLEA_TLS_ALERT_LEVEL_WARNING
+            )
+          );
+        }
       }
       else // client
       {
-# if 1
-        FLEA_CCALL(THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(tls_ctx__pt));
-# else
-#  ifdef FLEA_TLS_HAVE_RENEGOTIATION
-        // TODO: NOT YET WORKING
-        // TODO: CHECK THAT THE HANDSHAKE MESSAGE IS ACUTALLY A HELLO REQUEST:
-        // create hs message reader and get the type
-        flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
-        FLEA_CCALL(THR_flea_tls__client_handshake(tls_ctx__pt));
-#  else
-        // TODO: UNTESTED
-        flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
-        FLEA_CCALL(
-          THR_flea_tls_rec_prot_t__send_alert(
-            &tls_ctx__pt->rec_prot__t,
-            FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION,
-            FLEA_TLS_ALERT_LEVEL_WARNING
-          )
-        );
-#  endif /* ifdef FLEA_TLS_HAVE_RENEGOTIATION */
-# endif  /* if 1 */
+        if(tls_ctx__pt->allow_reneg__u8)
+        {
+          FLEA_CCALL(THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(tls_ctx__pt));
+        }
+        else
+        {
+          flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
+          FLEA_CCALL(
+            THR_flea_tls_rec_prot_t__send_alert(
+              &tls_ctx__pt->rec_prot__t,
+              FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION,
+              FLEA_TLS_ALERT_LEVEL_WARNING
+            )
+          );
+        }
       }
     }
     else if(err__t)
@@ -1053,7 +1080,7 @@ flea_err_t THR_flea_tls_ctx_t__read_app_data(
   FLEA_THR_BEG_FUNC();
   err__t = THR_flea_tls_ctx_t__read_app_data_inner(tls_ctx__pt, data__pu8, data_len__palu16, rd_mode__e);
 
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -1073,6 +1100,11 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   flea_err_t err__t;
 
   FLEA_THR_BEG_FUNC();
+
+  if(!tls_ctx__pt->allow_reneg__u8)
+  {
+    FLEA_THROW("renegotiation not allowed in this tls connection", FLEA_ERR_TLS_RENEG_NOT_ALLOWED);
+  }
   tls_ctx__pt->trust_store__pt = trust_store__pt; // TODO: doesn't seem to have to be part of the ctx
   tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = rev_chk_mode__e;
   tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16    = nb_crls__alu16;
@@ -1088,7 +1120,7 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   // TODO: discard pending read (/ flush pending write (done automatically))
   if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT)
   {
-    err__t = THR_flea_tls__client_handshake(tls_ctx__pt, FLEA_TRUE, tls_ctx__pt->client_session_mbn__pt);
+    err__t = THR_flea_tls__client_handshake(tls_ctx__pt, tls_ctx__pt->client_session_mbn__pt);
   }
   else
   {
@@ -1101,9 +1133,9 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
         0
       )
     );
-    err__t = THR_flea_tls__server_handshake(tls_ctx__pt, FLEA_TRUE);
+    err__t = THR_flea_tls__server_handshake(tls_ctx__pt);// , FLEA_TRUE);
   }
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t, FLEA_TRUE));
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__renegotiate */
