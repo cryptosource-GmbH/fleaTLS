@@ -607,11 +607,11 @@ std::vector<std::vector<unsigned char> > property_set_t::get_bin_file_list_prope
 
 flea_tls_renegotiation_spec_e reneg_spec_from_string(std::string const& s)
 {
-  if(s == "none")
+  if(s == "no_reneg")
   {
     return flea_tls_no_reneg;
   }
-  else if(s == "only_sec_reneg" || s == "")
+  else if(s == "only_secure_reneg" || s == "")
   {
     return flea_tls_only_secure_reneg;
   }
