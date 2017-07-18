@@ -223,7 +223,7 @@ static void flea_des_fperm(
  * not the origin-0 numbering used elsewhere in this code)
  * See comments elsewhere about the pre-rotated values of r and Spbox.
  */
-void flea_des_f(
+static void flea_des_f(
   flea_u32_t*       p_l,
   flea_u32_t*       p_r,
   const flea_u32_t* keys

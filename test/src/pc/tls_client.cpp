@@ -120,12 +120,12 @@ static flea_err_t THR_flea_start_tls_client(
       &tls_cfg.crls_refs[0],// NULL,
       tls_cfg.crls.size(),
       client_session__pt,
-      reneg_spec_from_string(cmdl_args.get_property_as_string_default_empty("reneg"))
+      reneg_spec_from_string(cmdl_args.get_property_as_string_default_empty("reneg_mode"))
     )
   );
   printf("session was resumed = %u\n", client_session__pt->for_resumption__u8);
   // FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
-  for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("reneg", 0); i++)
+  for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("do_renegs", 0); i++)
   // if(cmdl_args.have_index("reneg"))
   {
     FLEA_CCALL(
