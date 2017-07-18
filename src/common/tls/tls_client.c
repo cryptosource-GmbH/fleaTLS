@@ -1081,7 +1081,7 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
       reneg_spec__e
     )
   );
-  // TODO: REMOVE SESSION-OBJ AGAIN FROM FUNCTION SIGNATURES, IT IS NO IN THE
+  // TODO: REMOVE SESSION-OBJ AGAIN FROM FUNCTION SIGNATURES, IT IS NOW IN THE
   // TLS_CTX
   err__t = THR_flea_tls__client_handshake(tls_ctx__pt, session_mbn__pt);
   FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t, FLEA_FALSE));
