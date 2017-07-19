@@ -192,7 +192,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
   }
 
   // if there are still bytes left to read, they must be from extensions
-  if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
+  // if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {
     FLEA_CCALL(THR_flea_tls_ctx_t__parse_hello_extensions(tls_ctx, hs_rdr__pt, &found_sec_reneg__b));
   }
@@ -339,6 +339,7 @@ static flea_err_t THR_flea_tls__send_server_hello(
   {
     FLEA_CCALL(THR_flea_tls_ctx_t__send_reneg_ext(tls_ctx, p_hash_ctx));
   }
+  // if(flea_tls_ctx_t__is_ecc_suite(tls_ctx__pt) &&
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_server_hello */
@@ -1038,7 +1039,7 @@ flea_err_t THR_flea_tls__server_handshake(
     );
 # endif
 
-  flea_hash_ctx_t hash_ctx;
+  // flea_hash_ctx_t hash_ctx;
   // define and init state
   flea_tls__handshake_state_t handshake_state;
   FLEA_THR_BEG_FUNC();
@@ -1325,7 +1326,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   const flea_byte_vec_t*        crl_der__pt,
   flea_al_u16_t                 nb_crls__alu16,
   flea_tls_session_mngr_t*      session_mngr_mbn__pt,
-  flea_tls_renegotiation_spec_e reneg_spec__e
+  flea_tls_renegotiation_spec_e reneg_spec__e,
+  flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8
 )
 {
   flea_err_t err__t;
@@ -1334,9 +1336,11 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = rev_chk_mode__e;
   tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16    = nb_crls__alu16;
   tls_ctx__pt->rev_chk_cfg__t.crl_der__pt     = crl_der__pt;
-  tls_ctx__pt->cert_chain__pt     = cert_chain__pt;
-  tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
-  tls_ctx__pt->private_key__pt    = server_key__pt;
+  tls_ctx__pt->cert_chain__pt           = cert_chain__pt;
+  tls_ctx__pt->cert_chain_len__u8       = cert_chain_len__alu8;
+  tls_ctx__pt->private_key__pt          = server_key__pt;
+  tls_ctx__pt->extension_ctrl__u8       = 0;
+  tls_ctx__pt->allowed_ecc_curves__rcu8 = *allowed_ecc_curves_ref__prcu8;
   FLEA_CCALL(
     THR_flea_private_key_t__ctor_pkcs8(
       &tls_ctx__pt->private_key__t,

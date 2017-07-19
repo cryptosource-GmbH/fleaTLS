@@ -259,6 +259,9 @@ typedef struct
   flea_u8_t                  server_resume_session__u8;
   flea_u8_t                  allow_reneg__u8;
   flea_u8_t                  allow_insec_reneg__u8;
+  flea_u8_t                  extension_ctrl__u8;       /* used only by server */
+  flea_ref_cu8_t             allowed_ecc_curves__rcu8; /* by flea_ec_dom_par_id_t */
+  flea_u8_t                  chosen_ecc_dp_internal_id__u8;
 } flea_tls_ctx_t;
 
 
@@ -283,7 +286,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   const flea_byte_vec_t*        crl_der__pt,
   flea_al_u16_t                 nb_crls__alu16,
   flea_tls_client_session_t*    session_mbn__pt,
-  flea_tls_renegotiation_spec_e reneg_spec__e
+  flea_tls_renegotiation_spec_e reneg_spec__e,
+  flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8
 );
 
 flea_err_t THR_flea_tls_ctx_t__ctor_server(
@@ -298,7 +302,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   const flea_byte_vec_t*        crl_der__pt,
   flea_al_u16_t                 nb_crls__alu16,
   flea_tls_session_mngr_t*      session_mngr_mbn__pt,
-  flea_tls_renegotiation_spec_e reneg_spec__e
+  flea_tls_renegotiation_spec_e reneg_spec__e,
+  flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8
 );
 
 flea_err_t THR_flea_tls_ctx_t__read_app_data(

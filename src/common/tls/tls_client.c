@@ -316,6 +316,16 @@ static flea_err_t THR_flea_tls__read_server_kex(
   );
 } /* THR_flea_tls__read_server_kex */
 
+static flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_u16_t suite_id)
+{
+  // TODO: MAKE GENERAL IMPLEMENTATION
+  if(suite_id == FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA)
+  {
+    return FLEA_TRUE;
+  }
+  return FLEA_FALSE;
+}
+
 static flea_err_t THR_flea_tls__send_client_hello(
   flea_tls_ctx_t*               tls_ctx,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
@@ -330,8 +340,22 @@ static flea_err_t THR_flea_tls__send_client_hello(
   flea_al_u16_t ext_len__alu16;
 
   FLEA_THR_BEG_FUNC();
+
+  tls_ctx->extension_ctrl__u8 = 0;
+  for(i = 0; i < tls_ctx->allowed_cipher_suites__prcu16->len__dtl; i++)
+  {
+    if(flea_tls__is_cipher_suite_ecc_suite(tls_ctx->allowed_cipher_suites__prcu16->data__pcu16[i]))
+    {
+      tls_ctx->extension_ctrl__u8 = FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS | FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES;
+    }
+  }
   ext_len__alu16 = flea_tls_ctx_t__compute_extensions_length(tls_ctx);
   len = 2 + 1 + 0 + 32 + 2 + 2 * tls_ctx->allowed_cipher_suites__prcu16->len__dtl + 1 + 1 + 0 + ext_len__alu16;
+
+  /*if(is_ecc_suite__b)
+   * {
+   * len += 8;
+   * }*/
   if(ext_len__alu16)
   {
     /* extension length field */
@@ -437,6 +461,10 @@ static flea_err_t THR_flea_tls__send_client_hello(
 
   for(i = 0; i < tls_ctx->allowed_cipher_suites__prcu16->len__dtl; i++)
   {
+    /*if(flea_tls__is_cipher_suite_ecc_suite(tls_ctx->allowed_cipher_suites__prcu16->data__pcu16[i]))
+     * {
+     * have_ecc_suites__b = FLEA_TRUE;
+     * }*/
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_int_be(
         &tls_ctx->rec_prot__t,
@@ -463,7 +491,19 @@ static flea_err_t THR_flea_tls__send_client_hello(
    * two_byte_array[1] =
    * }*/
   FLEA_CCALL(THR_flea_tls_ctx_t__send_extensions_length(tls_ctx, p_hash_ctx));
+
+  // FLEA_CCALL(THR_flea_tls_ctx_t__send_extensions(tls_ctx, p_hash_ctx));
+
   FLEA_CCALL(THR_flea_tls_ctx_t__send_reneg_ext(tls_ctx, p_hash_ctx));
+
+  /**
+   * both ECC extensions are set or none, so it's sufficient to check one
+   */
+  if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_TYPE__POINT_FORMATS)
+  {
+    FLEA_CCALL(THR_flea_tls_ctx_t__send_ecc_point_format_ext(tls_ctx, p_hash_ctx));
+    FLEA_CCALL(THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(tls_ctx, p_hash_ctx));
+  }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_client_hello */
 
@@ -1264,7 +1304,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   const flea_byte_vec_t*        crl_der__pt,
   flea_al_u16_t                 nb_crls__alu16,
   flea_tls_client_session_t*    session_mbn__pt,
-  flea_tls_renegotiation_spec_e reneg_spec__e
+  flea_tls_renegotiation_spec_e reneg_spec__e,
+  flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8
 )
 {
   flea_err_t err__t;
@@ -1278,8 +1319,9 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   tls_ctx__pt->private_key__pt    = client_private_key__pt;
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
   tls_ctx__pt->client_session_mbn__pt        = session_mbn__pt;
-  tls_ctx__pt->session_mngr_mbn__pt = NULL;
-
+  tls_ctx__pt->session_mngr_mbn__pt     = NULL;
+  tls_ctx__pt->allowed_ecc_curves__rcu8 = *allowed_ecc_curves_ref__prcu8;
+  tls_ctx__pt->extension_ctrl__u8       = 0;
   if(server_name__pcrcu8)
   {
     tls_ctx__pt->hostn_valid_params__t.host_id__ct = *server_name__pcrcu8;

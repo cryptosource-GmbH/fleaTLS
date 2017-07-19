@@ -72,6 +72,8 @@ static flea_err_t THR_server_cycle(
 
   tls_test_cfg_t tls_cfg;
   int sock_fd;
+  const flea_u8_t allowed_ecc_curves__acu8[] = {(flea_u8_t) flea_secp256r1};
+  flea_ref_cu8_t allowed_ecc_curves__rcu8 {allowed_ecc_curves__acu8, sizeof(allowed_ecc_curves__acu8)};
 
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_t__INIT(&rw_stream__t);
@@ -102,6 +104,7 @@ static flea_err_t THR_server_cycle(
 
   cipher_suites_ref.data__pcu16 = &tls_cfg.cipher_suites[0];
   cipher_suites_ref.len__dtl    = tls_cfg.cipher_suites.size();
+
   FLEA_CCALL(
     THR_flea_tls_ctx_t__ctor_server(
       &tls_ctx,
@@ -115,7 +118,8 @@ static flea_err_t THR_server_cycle(
       &tls_cfg.crls_refs[0],
       tls_cfg.crls.size(),
       sess_man__pt,
-      reneg_spec_from_string(cmdl_args.get_property_as_string_default_empty("reneg_mode"))
+      reneg_spec_from_string(cmdl_args.get_property_as_string_default_empty("reneg_mode")),
+      &allowed_ecc_curves__rcu8
     )
   );
   std::cout << "handshake done" << std::endl;
