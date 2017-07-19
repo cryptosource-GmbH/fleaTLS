@@ -67,7 +67,7 @@ static void flea_pk_api__set_pkcs1_digest_info__sha2(
   digest_info__pu8[18] = di_18__u8;
 }
 
-flea_al_u16_t flea_pk_api__pkcs1_set_digest_info(
+static flea_al_u16_t flea_pk_api__pkcs1_set_digest_info(
   flea_u8_t*     target_buffer__pu8,
   flea_al_u16_t  target_buffer_len__alu16,
   flea_hash_id_t hash_id__t

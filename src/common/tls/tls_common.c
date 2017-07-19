@@ -1201,14 +1201,20 @@ flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx_
     }
     len__alu16 += reneg_conn_len__alu8;
   }
-  if(tls_ctx__pt->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES)
+# ifdef FLEA_HAVE_ECC
+  if((tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT) ||
+    flea_tls__is_cipher_suite_ecc_suite(tls_ctx__pt->selected_cipher_suite__u16))
   {
-    len__alu16 += 8; /* supported curves extension */
+    if(tls_ctx__pt->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES)
+    {
+      len__alu16 += 8; /* supported curves extension */
+    }
+    if(tls_ctx__pt->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS)
+    {
+      len__alu16 += 6; /*  point formats extension */
+    }
   }
-  if(tls_ctx__pt->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS)
-  {
-    len__alu16 += 6; /*  point formats extension */
-  }
+# endif /* ifdef FLEA_HAVE_ECC */
   return len__alu16;
 } /* flea_tls_ctx_t__compute_extensions_length */
 
@@ -1422,7 +1428,6 @@ flea_err_t THR_flea_tls_ctx_t__parse_supported_curves_ext(
 )
 {
   flea_u32_t len__u32;
-  flea_bool_t found__b = FLEA_FALSE;
   flea_al_u16_t curve_pos__alu16;
 
   FLEA_THR_BEG_FUNC();
@@ -1512,6 +1517,16 @@ flea_err_t THR_flea_tls_ctx_t__parse_point_formats_ext(
   FLEA_THR_FIN_SEC_empty();
 }
 
+flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_u16_t suite_id)
+{
+  // TODO: MAKE GENERAL IMPLEMENTATION
+  if(suite_id == FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA)
+  {
+    return FLEA_TRUE;
+  }
+  return FLEA_FALSE;
+}
+
 # endif /* ifdef FLEA_HAVE_ECC */
 
 /*static void flea_tls_ctx_t__reset_extension_state(flea_tls_ctx_t* tls_ctx__pt)
@@ -1571,10 +1586,12 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
     else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__POINT_FORMATS)
     {
       FLEA_CCALL(THR_flea_tls_ctx_t__parse_point_formats_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
+      tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS;
     }
     else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__SUPPORTED_CURVES)
     {
       FLEA_CCALL(THR_flea_tls_ctx_t__parse_supported_curves_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
+      tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES;
     }
     else
     {

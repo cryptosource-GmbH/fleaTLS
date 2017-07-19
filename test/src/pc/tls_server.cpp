@@ -31,7 +31,7 @@ using namespace std;
 
 #ifdef FLEA_HAVE_TLS
 
-flea_err_t THR_unix_tcpip_listen_accept(
+static flea_err_t THR_unix_tcpip_listen_accept(
   int  listen_fd,
   int* fd
 )

@@ -132,6 +132,7 @@ flea_err_t THR_flea_test_cipher_block_encr_decr(void);
 // flea_err_t THR_flea_test_des(void);
 
 flea_err_t THR_flea_test_sha256_update(void);
+flea_err_t THR_flea_test_sha256_update2(void);
 
 flea_err_t THR_flea_test_hash(void);
 
@@ -173,6 +174,9 @@ flea_err_t THR_flea_test_cert_verify_rsa();
 flea_err_t THR_flea_test_cert_verify_ecdsa();
 
 flea_err_t THR_test_ecdsa_self_signed_certs_file_based();
+
+/** for timings **/
+flea_err_t THR_flea_test_ecdsa_256bit_sign_loop(unsigned count);
 
 flea_err_t THR_flea_test_asn1_date();
 

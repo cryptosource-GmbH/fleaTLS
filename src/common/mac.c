@@ -8,6 +8,7 @@
 #include "flea/util.h"
 #include "flea/bin_utils.h"
 #include "flea/algo_config.h"
+#include "internal/common/mac_int2.h"
 #include <string.h>
 #include "internal/common/block_cipher/block_cipher_int.h"
 

@@ -43,6 +43,10 @@ static flea_err_t THR_flea_tls__read_client_hello(
   flea_bool_t found_compression_method;
   flea_bool_t client_presented_sec_reneg_fallback_ciph_suite__b = FLEA_FALSE;
 
+# ifdef FLEA_HAVE_ECC
+  // TODO: MAKE BUILDCONFIG FOR LENGTH
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(peer_cipher_suites_u16_be__t, 40);
+# endif
   // flea_u8_t extension_type__au8[2]; // TODO: meaningful representation of extension type
   FLEA_THR_BEG_FUNC();
 
@@ -143,7 +147,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
   while(cipher_suites_len_from_peer__u16)
   {
     flea_u8_t curr_cs__au8[2];
-    flea_u16_t curr_cs_from_peer__alu16;
+    flea_al_u16_t curr_cs_from_peer__alu16;
     FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, curr_cs__au8, 2));
     curr_cs_from_peer__alu16 = curr_cs__au8[0] << 8 | curr_cs__au8[1];
     if(curr_cs_from_peer__alu16 == FLEA_TLS_EMPTY_RENEGOTIATION_INFO_SCSV)
@@ -151,6 +155,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
       client_presented_sec_reneg_fallback_ciph_suite__b = FLEA_TRUE;
     }
     // iterate over all supported cipher suites
+# ifndef FLEA_HAVE_ECC
     supported_cs_index__u16 = 0;
     while(supported_cs_index__u16 < supported_cs_len__u16)
     {
@@ -166,13 +171,17 @@ static flea_err_t THR_flea_tls__read_client_hello(
       }
       supported_cs_index__u16 += 1;
     }
+# else /* ifndef FLEA_HAVE_ECC */
+    FLEA_CCALL(THR_flea_byte_vec_t__append(&peer_cipher_suites_u16_be__t, curr_cs__au8, sizeof(curr_cs__au8)));
+# endif /* ifndef FLEA_HAVE_ECC */
     cipher_suites_len_from_peer__u16 -= 2;
   }
+# ifndef FLEA_HAVE_ECC
   if(found == FLEA_FALSE)
   {
     FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE);
   }
-
+# endif
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &client_compression_methods_len__u8));
 
   flea_u8_t curr_cm;
@@ -193,13 +202,59 @@ static flea_err_t THR_flea_tls__read_client_hello(
 
   // if there are still bytes left to read, they must be from extensions
   // if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
-  {
-    FLEA_CCALL(THR_flea_tls_ctx_t__parse_hello_extensions(tls_ctx, hs_rdr__pt, &found_sec_reneg__b));
-  }
+  // {
+  FLEA_CCALL(THR_flea_tls_ctx_t__parse_hello_extensions(tls_ctx, hs_rdr__pt, &found_sec_reneg__b));
+  // }
   if(tls_ctx->sec_reneg_flag__u8 && !found_sec_reneg__b)
   {
     FLEA_THROW("missing renegotiation info in peer's extensions", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
+
+# ifdef FLEA_HAVE_ECC
+  {
+    flea_al_u16_t curr_cs_from_peer__alu16;
+    flea_al_u16_t i;
+    for(i = 0; i < peer_cipher_suites_u16_be__t.len__dtl; i += 2)
+    {
+      curr_cs_from_peer__alu16 = flea__decode_U16_BE(&peer_cipher_suites_u16_be__t.data__pu8[i]);
+
+      supported_cs_index__u16 = 0;
+      while(supported_cs_index__u16 < supported_cs_len__u16)
+      {
+        if(curr_cs_from_peer__alu16 == tls_ctx->allowed_cipher_suites__prcu16->data__pcu16[ supported_cs_index__u16 ])
+        {
+          if(flea_tls__is_cipher_suite_ecc_suite(curr_cs_from_peer__alu16))
+          {
+            // TODO: if multiple certs are supported, then the choice of the
+            // suite is more complicated:
+            // - server must check that for the candidate cipher suite and the
+            // client-supplied curves a fitting certificate is available
+            // - for this purpose extension_ctrl__u8's UNMATCHING bit must
+            // rather somehow represent a list of ciphersuites resulting from
+            // the available certificates
+            if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__UNMATCHING)
+            {
+              continue;
+            }
+          }
+          if(supported_cs_index__u16 < chosen_cs_index__u16)
+          {
+            chosen_cs_index__u16 = supported_cs_index__u16;
+            tls_ctx->selected_cipher_suite__u16 = curr_cs_from_peer__alu16;
+            found = FLEA_TRUE;
+            break;
+          }
+        }
+        supported_cs_index__u16 += 1;
+      }
+    }
+    if(found == FLEA_FALSE)
+    {
+      FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE);
+    }
+  }
+# endif /* ifdef FLEA_HAVE_ECC */
+
   // check length in the header field for integrity
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {
@@ -218,6 +273,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(session_id__bu8);
+    flea_byte_vec_t__dtor(&peer_cipher_suites_u16_be__t);
   );
 } /* THR_flea_tls__read_client_hello */
 
@@ -230,6 +286,7 @@ static flea_err_t THR_flea_tls__send_server_hello(
   flea_u8_t session_id_len__u8 = 0;
   flea_al_u16_t ext_len__alu16;
   flea_u32_t len = 2 + 32 + 1 + /*32 +*/ 2 + 1;
+  const flea_u8_t null_byte = 0;
 
   FLEA_THR_BEG_FUNC();
   ext_len__alu16 = flea_tls_ctx_t__compute_extensions_length(tls_ctx);
@@ -331,13 +388,23 @@ static flea_err_t THR_flea_tls__send_server_hello(
   );
 
   // We don't support compression
-  flea_u8_t null_byte = 0;
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, p_hash_ctx, &null_byte, 1));
 
   FLEA_CCALL(THR_flea_tls_ctx_t__send_extensions_length(tls_ctx, p_hash_ctx));
   if(flea_tls_ctx_t__do_send_sec_reneg_ext(tls_ctx))
   {
     FLEA_CCALL(THR_flea_tls_ctx_t__send_reneg_ext(tls_ctx, p_hash_ctx));
+  }
+  if(flea_tls__is_cipher_suite_ecc_suite(tls_ctx->selected_cipher_suite__u16))
+  {
+    if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES)
+    {
+      FLEA_CCALL(THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(tls_ctx, p_hash_ctx));
+    }
+    if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS)
+    {
+      FLEA_CCALL(THR_flea_tls_ctx_t__send_ecc_point_format_ext(tls_ctx, p_hash_ctx));
+    }
   }
   // if(flea_tls_ctx_t__is_ecc_suite(tls_ctx__pt) &&
 
@@ -1039,6 +1106,7 @@ flea_err_t THR_flea_tls__server_handshake(
     );
 # endif
 
+  tls_ctx->extension_ctrl__u8 = 0;
   // flea_hash_ctx_t hash_ctx;
   // define and init state
   flea_tls__handshake_state_t handshake_state;

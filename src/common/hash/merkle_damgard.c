@@ -121,7 +121,7 @@ const flea_hash_config_entry_t flea_array_hash_configs[] = {
 #endif /* ifdef FLEA_HAVE_SHA384_512 */
 };
 
-const flea_hash_config_entry_t* flea_hash__get_hash_config_by_id(flea_hash_id_t id)
+static const flea_hash_config_entry_t* flea_hash__get_hash_config_by_id(flea_hash_id_t id)
 {
   flea_al_u16_t i;
 

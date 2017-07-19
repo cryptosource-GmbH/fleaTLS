@@ -44,7 +44,7 @@ const flea_u8_t ecdsa_oid_prefix__acu8[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04};
  *                    4.1 => sha1
  */
 
-flea_err_t THR_get_hash_id_from_x509_id_for_rsa(
+static flea_err_t THR_get_hash_id_from_x509_id_for_rsa(
   flea_u8_t       cert_id__u8,
   flea_hash_id_t* result__pt
 )
@@ -73,7 +73,7 @@ flea_err_t THR_get_hash_id_from_x509_id_for_rsa(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_get_hash_id_from_x509_id_for_ecdsa(
+static flea_err_t THR_get_hash_id_from_x509_id_for_ecdsa(
   const flea_u8_t cert_id__pcu8[2],
   flea_hash_id_t* result__pt
 )
@@ -444,7 +444,7 @@ static flea_err_t THR_flea_public_key_t__create_rsa_key(
 
 # endif /* ifdef FLEA_HAVE_RSA */
 
-flea_err_t THR_flea_determine_public_key_type_from_oid(
+static flea_err_t THR_flea_determine_public_key_type_from_oid(
   const flea_u8_t*    oid_val__pcu8,
   flea_dtl_t          oid_val_len__dtl,
   flea_pk_key_type_t* result_key_type__pe

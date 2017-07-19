@@ -316,16 +316,6 @@ static flea_err_t THR_flea_tls__read_server_kex(
   );
 } /* THR_flea_tls__read_server_kex */
 
-static flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_u16_t suite_id)
-{
-  // TODO: MAKE GENERAL IMPLEMENTATION
-  if(suite_id == FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA)
-  {
-    return FLEA_TRUE;
-  }
-  return FLEA_FALSE;
-}
-
 static flea_err_t THR_flea_tls__send_client_hello(
   flea_tls_ctx_t*               tls_ctx,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
@@ -1007,6 +997,8 @@ flea_err_t THR_flea_tls__client_handshake(
     );
 # endif
   flea_tls_parallel_hash_ctx_t__INIT(&p_hash_ctx);
+
+  tls_ctx->extension_ctrl__u8 = 0;
 
   /** TODO (FS): lass uns besprechen was die Kriterien für die Hash-Funktionen
    * sind, die hier unterstützt werden müssen. Dann sehen wir, wie wir die Menge

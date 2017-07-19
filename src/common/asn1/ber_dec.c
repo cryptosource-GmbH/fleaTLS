@@ -508,7 +508,7 @@ flea_err_t THR_flea_ber_dec_t__open_constructed(
   return THR_flea_ber_dec_t__open_constructed_opt(dec__pt, type__t, class_form__alu8, &optional__b);
 }
 
-flea_err_t THR_flea_ber_dec_t__skip_input(
+static flea_err_t THR_flea_ber_dec_t__skip_input(
   flea_ber_dec_t* dec__pt,
   flea_dtl_t      len__dtl
 )
