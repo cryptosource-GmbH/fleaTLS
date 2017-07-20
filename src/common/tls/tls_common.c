@@ -1736,41 +1736,64 @@ flea_err_t THR_flea_tls__create_ecdhe_key(
 
 # ifdef FLEA_HAVE_ECC
 
+typedef struct
+{
+  flea_u8_t flea_dp_id__u8;
+  flea_u8_t curve_bytes__u8;
+} curve_bytes_dp_id_map_entry_t;
+
+static curve_bytes_dp_id_map_entry_t curve_bytes_flea_id_map[] = {
+  {(flea_u8_t) flea_secp160r1, 16},
+  {(flea_u8_t) flea_secp160r2, 17},
+  {(flea_u8_t) flea_secp192r1, 19},
+  {(flea_u8_t) flea_secp224r1, 21},
+  {(flea_u8_t) flea_secp256r1, 23},
+  {(flea_u8_t) flea_secp384r1, 24},
+  {(flea_u8_t) flea_secp521r1, 25}
+};
+
 flea_err_t THR_flea_tls__map_flea_curve_to_curve_bytes(
-  const flea_ec_dom_par_id_t ec_dom_par_id__pt,
+  const flea_ec_dom_par_id_t ec_dom_par_id__e,
   flea_u8_t                  bytes[2]
 )
 {
-  FLEA_THR_BEG_FUNC();
-  // TODO: complete the list
-  if(ec_dom_par_id__pt == flea_secp256r1)
-  {
-    bytes[0] = 0x00;
-    bytes[1] = 0x17;
-  }
-  else
-  {
-    FLEA_THROW("Unsupported curve, this should not happen", FLEA_ERR_INT_ERR);
-  }
+  flea_al_u8_t i;
 
+  FLEA_THR_BEG_FUNC();
+  bytes[0] = 0;
+  for(i = 0; i < (flea_u8_t) flea_secp521r1; i++)
+  {
+    if(ec_dom_par_id__e == curve_bytes_flea_id_map[i].flea_dp_id__u8)
+    {
+      bytes[1] = curve_bytes_flea_id_map[i].curve_bytes__u8;
+      FLEA_THR_RETURN();
+    }
+  }
+  FLEA_THROW("Unsupported curve, this should not happen", FLEA_ERR_INT_ERR);
   FLEA_THR_FIN_SEC_empty();
 }
 
 flea_err_t THR_flea_tls__map_curve_bytes_to_flea_curve(
   const flea_u8_t       bytes[2],
-  flea_ec_dom_par_id_t* ec_dom_par_id__pt
+  flea_ec_dom_par_id_t* ec_dom_par_id__pe
 )
 {
+  flea_al_u8_t i;
+
   FLEA_THR_BEG_FUNC();
-  // TODO: complete the list
-  if(bytes[0] == 0x00 && bytes[1] == 0x17)
+  if(bytes[0] == 0)
   {
-    *ec_dom_par_id__pt = flea_secp256r1;
+    for(i = 0; i < (flea_u8_t) flea_secp521r1; i++)
+    {
+      if(bytes[1] == curve_bytes_flea_id_map[i].curve_bytes__u8)
+      {
+        *ec_dom_par_id__pe = (flea_ec_dom_par_id_t) curve_bytes_flea_id_map[i].flea_dp_id__u8;
+        FLEA_THR_RETURN();
+      }
+    }
   }
-  else
-  {
-    FLEA_THROW("Unsupported curve", FLEA_ERR_TLS_HANDSHK_FAILURE);
-  }
+
+  FLEA_THROW("Unsupported curve", FLEA_ERR_TLS_HANDSHK_FAILURE);
 
   FLEA_THR_FIN_SEC_empty();
 }
