@@ -1346,8 +1346,8 @@ flea_err_t THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
 {
   FLEA_THR_BEG_FUNC();
   flea_u8_t ext__au8[] = {
-    0x00, 0x0a// , 0x00, 0x04 // , 0x00, 0x02, 0x00, 0x17
-  }; /* supported curves, secp256r1 in the last two bytes */
+    0x00, 0x0a
+  };
 
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
@@ -1683,8 +1683,7 @@ flea_err_t THR_flea_tls__create_ecdhe_key(
   FLEA_THR_BEG_FUNC();
 
   // set domain parameters
-  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_secp256r1));
-  // TODO (JR): not fixed => create mapping from curve to 2-byte value that is used in tls
+  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&param__u.ecc_dom_par__t, dom_par_id__t));
 
   priv_key_len__alu8 = FLEA_ECC_MAX_ORDER_BYTE_SIZE;
   FLEA_ALLOC_BUF(pub_key__bu8, pub_key_len__alu8);

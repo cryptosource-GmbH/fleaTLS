@@ -447,12 +447,13 @@ static flea_err_t THR_flea_tls__send_server_kex(
   flea_pk_scheme_id_t pk_scheme_id__t;
   flea_u8_t sig_and_hash_alg[2];
   flea_u16_t sig_len__u16;
-  flea_u8_t ec_curve__au8[] = {0, 23}; // secp256r1 => TODO: not hardcoded
+  flea_u8_t ec_curve__au8[2];
   flea_u8_t sig_len_enc__au8[2];
   flea_public_key_t ecdhe_pub_key__t = flea_public_key_t__INIT_VALUE;
 
   FLEA_THR_BEG_FUNC();
 
+  FLEA_CCALL(THR_flea_tls__map_flea_curve_to_curve_bytes(tls_ctx__pt->chosen_ecc_dp_internal_id__u8, ec_curve__au8));
 
   // TODO: not hardcoded flea_sha256. Choose appropriate hash function from
   // sig/hash alg extension (or sha1 if not present?) and the available
@@ -467,13 +468,20 @@ static flea_err_t THR_flea_tls__send_server_kex(
   sig_and_hash_alg[1] = 0x01;                                                                       // rsa
   FLEA_CCALL(THR_flea_tls_get_sig_length_of_priv_key(&tls_ctx__pt->private_key__t, &sig_len__u16)); // can only be known precisely for RSA
 
-  kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx__pt->selected_cipher_suite__u16);
+  kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(
+    (flea_tls__cipher_suite_id_t) tls_ctx__pt->selected_cipher_suite__u16
+    );
 
   if(kex_method__t == FLEA_TLS_KEX_ECDHE)
   {
     // create ECDHE key pair
-    // TODO: not hardcoded curve
-    FLEA_CCALL(THR_flea_tls__create_ecdhe_key(&tls_ctx__pt->ecdhe_priv_key__t, &ecdhe_pub_key__t, flea_secp256r1));
+    FLEA_CCALL(
+      THR_flea_tls__create_ecdhe_key(
+        &tls_ctx__pt->ecdhe_priv_key__t,
+        &ecdhe_pub_key__t,
+        (flea_ec_dom_par_id_t) tls_ctx__pt->chosen_ecc_dp_internal_id__u8
+      )
+    );
 
     pub_point__rcu8 = flea_public_key__get_encoded_public_component(&ecdhe_pub_key__t);
 
