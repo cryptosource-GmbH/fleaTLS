@@ -115,7 +115,7 @@ static flea_err_t THR_open_socket_client(void* ctx__pv)
   );
 } /* THR_open_socket */
 
-void close_socket(void* ctx__pv)
+static void close_socket(void* ctx__pv)
 {
   linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
 

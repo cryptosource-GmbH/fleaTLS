@@ -511,8 +511,6 @@ flea_err_t THR_flea_tls__read_certificate(
   FLEA_THR_BEG_FUNC();
 
 
-  // TODO: ADD ALSO CRLS
-
   // we don't need the length
   // TODO: consider checking length consistency with handshake msg length
   FLEA_CCALL(
@@ -1614,6 +1612,10 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
 
   FLEA_THR_BEG_FUNC();
 
+  /**
+   * pre-selection which takes effect in case the peer doesn't send the
+   * supported curves extension.
+   */
   if(tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl)
   {
     tls_ctx__pt->chosen_ecc_dp_internal_id__u8 = tls_ctx__pt->allowed_ecc_curves__rcu8.data__pcu8[0];
@@ -1629,16 +1631,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
   }
 
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
-  // flea_tls_ctx_t__reset_extension_state(tls_ctx__pt);
 
-  /*if(!flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt))
-   * {
-   * if(tls_ctx__pt->sec_reneg_flag__u8)
-   * {
-   * FLEA_THROW("peer behaves inconsistently regarding secure renegotiation", FLEA_ERR_TLS_INCONS_SEC_RENEG);
-   * }
-   * FLEA_THR_RETURN();
-   * }*/
   FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, &extensions_len__u32, 2));
   while(extensions_len__u32)
   {
@@ -1647,7 +1640,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
     FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, &ext_type_be__u32, 2));
     FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, &ext_len__u32, 2));
     extensions_len__u32 -= (((flea_u32_t) 4) + ext_len__u32);
-    // if(ext_type_be__u32 == 0xff01)
+
     if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__RENEG_INFO)
     {
       FLEA_CCALL(THR_flea_tls_ctx__parse_reneg_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));

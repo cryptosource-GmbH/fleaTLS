@@ -80,26 +80,26 @@ static void flea_mpi_t__set_used_words(flea_mpi_t* p_mpi)
   p_mpi->m_nb_used_words = i + 1;
 }
 
-void flea_mpi_swap(
-  flea_mpi_t* p_a,
-  flea_mpi_t* p_b
-)
-{
-  flea_uword_t* p_tmp;
-  flea_al_u16_t tmp_count;
-
-  p_tmp        = p_a->m_words;
-  p_a->m_words = p_b->m_words;
-  p_b->m_words = p_tmp;
-
-  tmp_count = p_a->m_nb_alloc_words;
-  p_a->m_nb_alloc_words = p_b->m_nb_alloc_words;
-  p_b->m_nb_alloc_words = tmp_count;
-
-  tmp_count = p_a->m_nb_used_words;
-  p_a->m_nb_used_words = p_b->m_nb_used_words;
-  p_b->m_nb_used_words = tmp_count;
-}
+/*static void flea_mpi_swap(
+ * flea_mpi_t* p_a,
+ * flea_mpi_t* p_b
+ * )
+ * {
+ * flea_uword_t* p_tmp;
+ * flea_al_u16_t tmp_count;
+ *
+ * p_tmp        = p_a->m_words;
+ * p_a->m_words = p_b->m_words;
+ * p_b->m_words = p_tmp;
+ *
+ * tmp_count = p_a->m_nb_alloc_words;
+ * p_a->m_nb_alloc_words = p_b->m_nb_alloc_words;
+ * p_b->m_nb_alloc_words = tmp_count;
+ *
+ * tmp_count = p_a->m_nb_used_words;
+ * p_a->m_nb_used_words = p_b->m_nb_used_words;
+ * p_b->m_nb_used_words = tmp_count;
+ * }*/
 
 flea_err_t THR_flea_mpi_t__mul(
   flea_mpi_t*       p_result,
@@ -467,19 +467,19 @@ flea_err_t THR_flea_mpi_t__decode(
   FLEA_THR_FIN_SEC();
 }
 
-flea_al_u8_t flea_bin_util__get_sig_bytes_of_word(flea_uword_t word)
-{
-  flea_al_s8_t i;
-
-  for(i = sizeof(word) - 1; i >= 0; i--)
-  {
-    if(word & (0xFF << (i * 8)))
-    {
-      return i + 1;
-    }
-  }
-  return 0; // zero in case the word is zero
-}
+/*static flea_al_u8_t flea_bin_util__get_sig_bytes_of_word(flea_uword_t word)
+ * {
+ * flea_al_s8_t i;
+ *
+ * for(i = sizeof(word) - 1; i >= 0; i--)
+ * {
+ *  if(word & (0xFF << (i * 8)))
+ *  {
+ *    return i + 1;
+ *  }
+ * }
+ * return 0; // zero in case the word is zero
+ * }*/
 
 flea_err_t THR_flea_mpi_t__encode(
   flea_u8_t*        p_result,

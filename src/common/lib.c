@@ -3,6 +3,7 @@
 #include "internal/common/default.h"
 #include "internal/common/rng_int.h"
 #include "flea/error_handling.h"
+#include "flea/lib.h"
 
 flea_err_t THR_flea_lib__init()
 {

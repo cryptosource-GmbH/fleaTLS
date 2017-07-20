@@ -5,8 +5,9 @@
 #include "flea/error_handling.h"
 #include "flea/error.h"
 #include "flea/alloc.h"
-#include  "flea/rsa.h"
-#include  "flea/block_cipher.h"
+#include "flea/rsa.h"
+#include "flea/block_cipher.h"
+#include "self_test.h"
 #include <string.h>
 
 flea_err_t THR_flea_test_cbc_mode()

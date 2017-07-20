@@ -19,6 +19,7 @@
 #include "flea/pk_api.h"
 #include "flea/privkey.h"
 #include "test_data_rsa_key_internal_format.h"
+#include "self_test.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
 static flea_err_t THR_flea_test_pk_signer_init_dtor()

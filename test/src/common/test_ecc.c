@@ -12,6 +12,7 @@
 #include "flea/util.h"
 #include "internal/common/math/curve_gfp.h"
 #include "internal/common/math/point_gfp.h"
+#include "self_test.h"
 
 #if defined FLEA_HAVE_ECC && FLEA_ECC_MAX_MOD_BIT_SIZE >= 160
 flea_err_t THR_flea_test_ecc_point_gfp_mul()

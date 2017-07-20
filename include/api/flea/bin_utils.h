@@ -102,6 +102,8 @@ void flea__encode_U16_BE(
   flea_u8_t  res[2]
 );
 
+flea_u16_t flea__decode_U16_LE(const flea_u8_t enc[2]);
+
 /**
  * Encode a 4-byte value little endian.
  *

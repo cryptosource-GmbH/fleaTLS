@@ -5,8 +5,9 @@
 #include "flea/error.h"
 #include "flea/util.h"
 #include "flea/alloc.h"
-#include  "flea/rsa.h"
-#include  "flea/mac.h"
+#include "flea/rsa.h"
+#include "flea/mac.h"
+#include "self_test.h"
 #include <string.h>
 
 #ifdef FLEA_HAVE_MAC
