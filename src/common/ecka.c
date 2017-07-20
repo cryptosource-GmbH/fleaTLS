@@ -95,6 +95,7 @@ flea_err_t THR_flea_ecka__compute_raw(
   flea_mpi_t mpi_worksp_arr[sign_mpi_ws_count];
   flea_curve_gfp_t curve;
   flea_point_gfp_t Q;
+  flea_al_u8_t tmp_result_len__alu8;
 
 # ifdef FLEA_USE_ECC_ADD_ALWAYS
   const flea_bool_t do_use_add_always__b = FLEA_TRUE;
@@ -227,7 +228,14 @@ flea_err_t THR_flea_ecka__compute_raw(
   FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, do_use_add_always__b));
 
   /* now take x-coord of d */
-  *result_len__palu8 = flea_mpi_t__get_byte_size(&Q.m_x);
+  // *result_len__palu8 = flea_mpi_t__get_byte_size(&Q.m_x);
+  tmp_result_len__alu8 = flea_mpi_t__get_byte_size(&curve.m_p);
+  if(*result_len__palu8 < tmp_result_len__alu8)
+  {
+    FLEA_THROW("insufficient result size", FLEA_ERR_BUFF_TOO_SMALL);
+  }
+  // *result_len__palu8 = flea_mpi_t__get_byte_size(&Q.m_x);
+  *result_len__palu8 = tmp_result_len__alu8;
   FLEA_CCALL(THR_flea_mpi_t__encode(result__pu8, *result_len__palu8, &Q.m_x));
   FLEA_THR_FIN_SEC(
     FLEA_DO_IF_USE_HEAP_BUF(
