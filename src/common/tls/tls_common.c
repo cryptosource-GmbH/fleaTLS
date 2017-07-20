@@ -1735,13 +1735,16 @@ typedef struct
 } curve_bytes_dp_id_map_entry_t;
 
 static curve_bytes_dp_id_map_entry_t curve_bytes_flea_id_map[] = {
-  {(flea_u8_t) flea_secp160r1, 16},
-  {(flea_u8_t) flea_secp160r2, 17},
-  {(flea_u8_t) flea_secp192r1, 19},
-  {(flea_u8_t) flea_secp224r1, 21},
-  {(flea_u8_t) flea_secp256r1, 23},
-  {(flea_u8_t) flea_secp384r1, 24},
-  {(flea_u8_t) flea_secp521r1, 25}
+  {(flea_u8_t) flea_secp160r1,       16},
+  {(flea_u8_t) flea_secp160r2,       17},
+  {(flea_u8_t) flea_secp192r1,       19},
+  {(flea_u8_t) flea_secp224r1,       21},
+  {(flea_u8_t) flea_secp256r1,       23},
+  {(flea_u8_t) flea_secp384r1,       24},
+  {(flea_u8_t) flea_secp521r1,       25},
+  {(flea_u8_t) flea_brainpoolP256r1, 26},
+  {(flea_u8_t) flea_brainpoolP384r1, 27},
+  {(flea_u8_t) flea_brainpoolP512r1, 28}
 };
 
 flea_err_t THR_flea_tls__map_flea_curve_to_curve_bytes(
