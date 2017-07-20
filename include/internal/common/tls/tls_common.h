@@ -245,10 +245,14 @@ flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
 );
 # endif
 
-# ifdef FLEA_HAVE_ECKA
+# ifdef FLEA_HAVE_ECC
 flea_err_t THR_flea_tls__map_curve_bytes_to_flea_curve(
   const flea_u8_t       bytes[2],
   flea_ec_dom_par_id_t* ec_dom_par_id__pt
+);
+flea_err_t THR_flea_tls__map_flea_curve_to_curve_bytes(
+  const flea_ec_dom_par_id_t ec_dom_par_id__pt,
+  flea_u8_t                  bytes[2]
 );
 # endif
 

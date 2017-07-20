@@ -1207,7 +1207,16 @@ flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx_
   {
     if(tls_ctx__pt->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES)
     {
-      len__alu16 += 8; /* supported curves extension */
+      len__alu16 += 6; /* supported curves extension */
+      if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT)
+      {
+        len__alu16 += tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl * 2;
+      }
+      else
+      {
+        /* send only the single highest prio match */
+        len__alu16 += 2;
+      }
     }
     if(tls_ctx__pt->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS)
     {
@@ -1338,19 +1347,80 @@ flea_err_t THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
 )
 {
   FLEA_THR_BEG_FUNC();
-  const flea_u8_t ext__acu8[] = {
-    0x00, 0x0a, 0x00, 0x04, 0x00, 0x02, 0x00, 0x17
+  flea_u8_t ext__au8[] = {
+    0x00, 0x0a// , 0x00, 0x04 // , 0x00, 0x02, 0x00, 0x17
   }; /* supported curves, secp256r1 in the last two bytes */
+
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx__pt->rec_prot__t,
       p_hash_ctx__pt,
-      ext__acu8,
-      sizeof(ext__acu8)
+      ext__au8,
+      sizeof(ext__au8)
     )
   );
+  flea__encode_U16_BE(tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl * 2 + 2, ext__au8);
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx__pt->rec_prot__t,
+      p_hash_ctx__pt,
+      ext__au8,
+      sizeof(ext__au8)
+    )
+  );
+  flea__encode_U16_BE(tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl * 2, ext__au8);
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx__pt->rec_prot__t,
+      p_hash_ctx__pt,
+      ext__au8,
+      sizeof(ext__au8)
+    )
+  );
+  if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT)
+  {
+    flea_al_u16_t i;
+    for(i = 0; i < tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl; i++)
+    {
+      // flea_u8_t curve_bytes__au8[2];
+      FLEA_CCALL(
+        THR_flea_tls__map_flea_curve_to_curve_bytes(
+          (flea_ec_dom_par_id_t) tls_ctx__pt->
+          allowed_ecc_curves__rcu8.data__pcu8[i],
+          ext__au8
+        )
+      );
+      FLEA_CCALL(
+        THR_flea_tls__send_handshake_message_content(
+          &tls_ctx__pt->rec_prot__t,
+          p_hash_ctx__pt,
+          ext__au8,
+          sizeof(ext__au8)
+        )
+      );
+    }
+  }
+  else
+  {
+    flea_u8_t curve_bytes__au8[2];
+    FLEA_CCALL(
+      THR_flea_tls__map_flea_curve_to_curve_bytes(
+        (flea_ec_dom_par_id_t) tls_ctx__pt->
+        chosen_ecc_dp_internal_id__u8,
+        curve_bytes__au8
+      )
+    );
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_content(
+        &tls_ctx__pt->rec_prot__t,
+        p_hash_ctx__pt,
+        curve_bytes__au8,
+        sizeof(curve_bytes__au8)
+      )
+    );
+  }
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls_ctx_t__send_ecc_supported_curves_ext */
 
 # endif /* ifdef FLEA_HAVE_ECC */
 
@@ -1665,6 +1735,27 @@ flea_err_t THR_flea_tls__create_ecdhe_key(
 
 
 # ifdef FLEA_HAVE_ECC
+
+flea_err_t THR_flea_tls__map_flea_curve_to_curve_bytes(
+  const flea_ec_dom_par_id_t ec_dom_par_id__pt,
+  flea_u8_t                  bytes[2]
+)
+{
+  FLEA_THR_BEG_FUNC();
+  // TODO: complete the list
+  if(ec_dom_par_id__pt == flea_secp256r1)
+  {
+    bytes[0] = 0x00;
+    bytes[1] = 0x17;
+  }
+  else
+  {
+    FLEA_THROW("Unsupported curve, this should not happen", FLEA_ERR_INT_ERR);
+  }
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
 flea_err_t THR_flea_tls__map_curve_bytes_to_flea_curve(
   const flea_u8_t       bytes[2],
   flea_ec_dom_par_id_t* ec_dom_par_id__pt
