@@ -48,7 +48,19 @@ static flea_err_t THR_flea_start_tls_client(
   tls_test_cfg_t tls_cfg;
   flea_host_id_type_e host_type;
 
-  const flea_u8_t allowed_ecc_curves__acu8[] = {(flea_u8_t) flea_secp256r1};
+  const flea_u8_t allowed_ecc_curves__acu8[] = {
+    (flea_u8_t) flea_secp160r1,
+    (flea_u8_t) flea_secp160r2,
+    (flea_u8_t) flea_secp192r1,
+    (flea_u8_t) flea_secp224r1,
+    (flea_u8_t) flea_secp256r1,
+    (flea_u8_t) flea_secp384r1,
+    (flea_u8_t) flea_secp521r1,
+    (flea_u8_t) flea_brainpoolP256r1,
+    (flea_u8_t) flea_brainpoolP384r1,
+    (flea_u8_t) flea_brainpoolP512r1
+  };
+
   flea_ref_cu8_t allowed_ecc_curves__rcu8 {allowed_ecc_curves__acu8, sizeof(allowed_ecc_curves__acu8)};
 
   std::string hostname_s;

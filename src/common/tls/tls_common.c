@@ -1200,22 +1200,22 @@ flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx_
     len__alu16 += reneg_conn_len__alu8;
   }
 # ifdef FLEA_HAVE_ECC
-  if((tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT) ||
-    flea_tls__is_cipher_suite_ecc_suite(tls_ctx__pt->selected_cipher_suite__u16))
+
+  if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT)
   {
     if(tls_ctx__pt->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES)
     {
       len__alu16 += 6; /* supported curves extension */
-      if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT)
-      {
-        len__alu16 += tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl * 2;
-      }
-      else
-      {
-        /* send only the single highest prio match */
-        len__alu16 += 2;
-      }
+      len__alu16 += tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl * 2;
     }
+    if(tls_ctx__pt->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS)
+    {
+      len__alu16 += 6; /*  point formats extension */
+    }
+  }
+  /* server: */
+  else if(flea_tls__is_cipher_suite_ecc_suite(tls_ctx__pt->selected_cipher_suite__u16))
+  {
     if(tls_ctx__pt->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS)
     {
       len__alu16 += 6; /*  point formats extension */
@@ -1375,48 +1375,50 @@ flea_err_t THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
       sizeof(ext__au8)
     )
   );
-  if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT)
+
+  /*if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT)
+   * {*/
+  flea_al_u16_t i;
+  for(i = 0; i < tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl; i++)
   {
-    flea_al_u16_t i;
-    for(i = 0; i < tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl; i++)
-    {
-      // flea_u8_t curve_bytes__au8[2];
-      FLEA_CCALL(
-        THR_flea_tls__map_flea_curve_to_curve_bytes(
-          (flea_ec_dom_par_id_t) tls_ctx__pt->
-          allowed_ecc_curves__rcu8.data__pcu8[i],
-          ext__au8
-        )
-      );
-      FLEA_CCALL(
-        THR_flea_tls__send_handshake_message_content(
-          &tls_ctx__pt->rec_prot__t,
-          p_hash_ctx__pt,
-          ext__au8,
-          sizeof(ext__au8)
-        )
-      );
-    }
-  }
-  else
-  {
-    flea_u8_t curve_bytes__au8[2];
+    // flea_u8_t curve_bytes__au8[2];
     FLEA_CCALL(
       THR_flea_tls__map_flea_curve_to_curve_bytes(
         (flea_ec_dom_par_id_t) tls_ctx__pt->
-        chosen_ecc_dp_internal_id__u8,
-        curve_bytes__au8
+        allowed_ecc_curves__rcu8.data__pcu8[i],
+        ext__au8
       )
     );
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
-        curve_bytes__au8,
-        sizeof(curve_bytes__au8)
+        ext__au8,
+        sizeof(ext__au8)
       )
     );
   }
+
+  /*}
+   * else
+   * {
+   * flea_u8_t curve_bytes__au8[2];
+   * FLEA_CCALL(
+   *  THR_flea_tls__map_flea_curve_to_curve_bytes(
+   *    (flea_ec_dom_par_id_t) tls_ctx__pt->
+   *    chosen_ecc_dp_internal_id__u8,
+   *    curve_bytes__au8
+   *  )
+   * );
+   * FLEA_CCALL(
+   *  THR_flea_tls__send_handshake_message_content(
+   *    &tls_ctx__pt->rec_prot__t,
+   *    p_hash_ctx__pt,
+   *    curve_bytes__au8,
+   *    sizeof(curve_bytes__au8)
+   *  )
+   * );
+   * }*/
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__send_ecc_supported_curves_ext */
 
@@ -1651,7 +1653,8 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
       FLEA_CCALL(THR_flea_tls_ctx_t__parse_point_formats_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
       tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS;
     }
-    else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__SUPPORTED_CURVES)
+    else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__SUPPORTED_CURVES &&
+      tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_SERVER)
     {
       FLEA_CCALL(THR_flea_tls_ctx_t__parse_supported_curves_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
       tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES;
@@ -1855,6 +1858,7 @@ flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
 #  endif
   FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, result_len__alu8));
 
+  printf("tls_common.c: flea premaster size = %u\n", premaster_secret__pt->len__dtl);
 
   FLEA_CCALL(
     THR_flea_ecka__compute_raw(
@@ -1867,9 +1871,9 @@ flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
       &param__u.ecc_dom_par__t
     )
   );
+  printf("tls_common.c: after compute_raw\n");
   // FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, result_len__alu8));
 
-  // printf("tls_common.c: flea premaster size = %u\n", premaster_secret__pt->len__dtl);
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(peer_enc_pubpoint__bu8);

@@ -212,6 +212,7 @@ static flea_err_t THR_flea_tls__read_server_kex(
     );
 
     FLEA_CCALL(THR_flea_tls__map_curve_bytes_to_flea_curve(ec_curve__au8, &ec_dom_par_id__t));
+    tls_ctx__pt->chosen_ecc_dp_internal_id__u8 = (flea_u8_t) ec_dom_par_id__t;
 
     FLEA_CCALL(THR_flea_tls__create_ecdhe_key(&ecdhe_priv_key__t, &tls_ctx__pt->ecdhe_pub_key__t, ec_dom_par_id__t));
 
