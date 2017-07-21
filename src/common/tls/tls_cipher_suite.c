@@ -50,10 +50,13 @@ static const flea_tls__cipher_suite_t cipher_suites[] = {
   {FLEA_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,    FLEA_TLS_BLOCK_CIPHER(flea_aes256),
    16, 16, 32, 20, 20, flea_sha1},
 
+  // TODO: fix and enable them:
+#if 0
   /* check if PRF is correct: https://tools.ietf.org/html/rfc5289#section-3.1 */
   {FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, FLEA_TLS_BLOCK_CIPHER(flea_aes128),
    16, 16, 16, 32, 32, flea_sha256},
 
+  /* check if PRF is correct: https://tools.ietf.org/html/rfc5289#section-3.1 */
   {FLEA_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, FLEA_TLS_BLOCK_CIPHER(flea_aes256),
    16, 16, 32, 32, 32, flea_sha384},
 
@@ -62,6 +65,7 @@ static const flea_tls__cipher_suite_t cipher_suites[] = {
 
   {FLEA_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, FLEA_TLS_AE_CIPHER(flea_aes256),
    16, 16, 32, 0, 0, flea_sha384},
+#endif /* if 0 */
 };
 
 
@@ -80,7 +84,8 @@ flea_tls__kex_method_t flea_tls_get_kex_method_by_cipher_suite_id(flea_tls__ciph
   // man könnte ranges definieren, in denen eine bestimmte kex_method
   // zurückgegeben wird
   // => selbiges für get_prf_hash
-  if(id__t == FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA)
+  // if(id__t == FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA)
+  if((id__t >> 8) == 0xC0)
   {
     return FLEA_TLS_KEX_ECDHE;
   }

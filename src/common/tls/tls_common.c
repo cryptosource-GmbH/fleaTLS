@@ -1590,7 +1590,8 @@ flea_err_t THR_flea_tls_ctx_t__parse_point_formats_ext(
 flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_u16_t suite_id)
 {
   // TODO: MAKE GENERAL IMPLEMENTATION
-  if(suite_id == FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA)
+  // if(suite_id == FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA)
+  if((suite_id >> 8) == 0xC0)
   {
     return FLEA_TRUE;
   }
