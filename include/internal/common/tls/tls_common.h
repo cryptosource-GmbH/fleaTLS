@@ -93,9 +93,6 @@ typedef enum
   FLEA_TLS_HANDSHAKE_EXPECT_FINISHED            = 0x400,
   FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC  = 0x800
 } flea_tls__expect_handshake_type_t;
-# ifdef __cplusplus
-}
-# endif
 # define FLEA_TLS_SEC_RENEG_FINISHED_SIZE 12
 # define FLEA_TLS_VERIFY_DATA_SIZE        12
 flea_err_t THR_flea_tls__send_change_cipher_spec(
@@ -275,6 +272,11 @@ flea_err_t THR_flea_tls_ctx_t__parse_point_formats_ext(
   flea_rw_stream_t* rd_strm__pt,
   flea_al_u16_t     ext_len__alu16
 );
+
+
+#  ifdef __cplusplus
+}
+#  endif
 # endif // ifdef FLEA_HAVE_ECC
 
 #endif // ifdef FLEA_HAVE_TLS

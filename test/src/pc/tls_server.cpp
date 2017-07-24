@@ -59,6 +59,7 @@ static flea_err_t THR_server_cycle(
 )
 {
   flea_u8_t buf[1000];
+  flea_ref_cu8_t allowed_ecc_curves__rcu8;
   flea_ref_cu16_t cipher_suites_ref;
   flea_rw_stream_t rw_stream__t;
   flea_tls_ctx_t tls_ctx;
@@ -73,21 +74,22 @@ static flea_err_t THR_server_cycle(
   tls_test_cfg_t tls_cfg;
   int sock_fd;
 
-  const flea_u8_t allowed_ecc_curves__acu8[] = {
-    (flea_u8_t) flea_secp160r1,
-    (flea_u8_t) flea_secp160r2,
-    (flea_u8_t) flea_secp192r1,
-    (flea_u8_t) flea_secp224r1,
-    (flea_u8_t) flea_secp256r1,
-    (flea_u8_t) flea_secp384r1,
-    (flea_u8_t) flea_secp521r1,
-    (flea_u8_t) flea_brainpoolP256r1,
-    (flea_u8_t) flea_brainpoolP384r1,
-    (flea_u8_t) flea_brainpoolP512r1
-  };
+  /*
+   * const flea_u8_t allowed_ecc_curves__acu8[] = {
+   *  (flea_u8_t) flea_secp160r1,
+   *  (flea_u8_t) flea_secp160r2,
+   *  (flea_u8_t) flea_secp192r1,
+   *  (flea_u8_t) flea_secp224r1,
+   *  (flea_u8_t) flea_secp256r1,
+   *  (flea_u8_t) flea_secp384r1,
+   *  (flea_u8_t) flea_secp521r1,
+   *  (flea_u8_t) flea_brainpoolP256r1,
+   *  (flea_u8_t) flea_brainpoolP384r1,
+   *  (flea_u8_t) flea_brainpoolP512r1
+   * };*/
 
   // const flea_u8_t allowed_ecc_curves__acu8[] = {(flea_u8_t) flea_secp256r1};
-  flea_ref_cu8_t allowed_ecc_curves__rcu8 {allowed_ecc_curves__acu8, sizeof(allowed_ecc_curves__acu8)};
+  // flea_ref_cu8_t allowed_ecc_curves__rcu8 {allowed_ecc_curves__acu8, sizeof(allowed_ecc_curves__acu8)};
 
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_t__INIT(&rw_stream__t);
@@ -118,6 +120,9 @@ static flea_err_t THR_server_cycle(
 
   cipher_suites_ref.data__pcu16 = &tls_cfg.cipher_suites[0];
   cipher_suites_ref.len__dtl    = tls_cfg.cipher_suites.size();
+
+  allowed_ecc_curves__rcu8.data__pcu8 = &tls_cfg.allowed_curves[0];
+  allowed_ecc_curves__rcu8.len__dtl   = tls_cfg.allowed_curves.size();
 
   FLEA_CCALL(
     THR_flea_tls_ctx_t__ctor_server(
