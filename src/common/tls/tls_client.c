@@ -185,6 +185,8 @@ static flea_err_t THR_flea_tls__read_server_kex(
   flea_hash_id_t hash_id__t;
   flea_pk_scheme_id_t pk_scheme_id__t;
   flea_u8_t hash_out_len__u8;
+  flea_u8_t i;
+  flea_bool_t found__b = FLEA_FALSE;
 
   FLEA_DECL_OBJ(params_hash_ctx__t, flea_hash_ctx_t);
   FLEA_DECL_BUF(hash__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
@@ -212,7 +214,21 @@ static flea_err_t THR_flea_tls__read_server_kex(
     );
 
     FLEA_CCALL(THR_flea_tls__map_curve_bytes_to_flea_curve(ec_curve__au8, &ec_dom_par_id__t));
+
     tls_ctx__pt->chosen_ecc_dp_internal_id__u8 = (flea_u8_t) ec_dom_par_id__t;
+    // if(tls_ctx__pt->allowed_ecc_curves__rcu8
+    for(i = 0; i < tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl; i++)
+    {
+      if(ec_dom_par_id__t == tls_ctx__pt->allowed_ecc_curves__rcu8.data__pcu8[i])
+      {
+        found__b = FLEA_TRUE;
+        break;
+      }
+    }
+    if(!found__b)
+    {
+      FLEA_THROW("curve chosen by server is not allowed", FLEA_ERR_TLS_HANDSHK_FAILURE);
+    }
 
     FLEA_CCALL(THR_flea_tls__create_ecdhe_key(&ecdhe_priv_key__t, &tls_ctx__pt->ecdhe_pub_key__t, ec_dom_par_id__t));
 
