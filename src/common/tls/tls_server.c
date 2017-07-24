@@ -234,6 +234,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
             // the available certificates
             if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__UNMATCHING)
             {
+              supported_cs_index__u16 += 1;
               continue;
             }
           }

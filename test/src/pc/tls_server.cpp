@@ -72,7 +72,21 @@ static flea_err_t THR_server_cycle(
 
   tls_test_cfg_t tls_cfg;
   int sock_fd;
-  const flea_u8_t allowed_ecc_curves__acu8[] = {(flea_u8_t) flea_secp256r1};
+
+  const flea_u8_t allowed_ecc_curves__acu8[] = {
+    (flea_u8_t) flea_secp160r1,
+    (flea_u8_t) flea_secp160r2,
+    (flea_u8_t) flea_secp192r1,
+    (flea_u8_t) flea_secp224r1,
+    (flea_u8_t) flea_secp256r1,
+    (flea_u8_t) flea_secp384r1,
+    (flea_u8_t) flea_secp521r1,
+    (flea_u8_t) flea_brainpoolP256r1,
+    (flea_u8_t) flea_brainpoolP384r1,
+    (flea_u8_t) flea_brainpoolP512r1
+  };
+
+  // const flea_u8_t allowed_ecc_curves__acu8[] = {(flea_u8_t) flea_secp256r1};
   flea_ref_cu8_t allowed_ecc_curves__rcu8 {allowed_ecc_curves__acu8, sizeof(allowed_ecc_curves__acu8)};
 
   FLEA_THR_BEG_FUNC();
