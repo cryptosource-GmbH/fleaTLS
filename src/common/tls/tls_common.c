@@ -1859,8 +1859,6 @@ flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
 #  endif
   FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, result_len__alu8));
 
-  printf("tls_common.c: flea premaster size = %u\n", premaster_secret__pt->len__dtl);
-
   FLEA_CCALL(
     THR_flea_ecka__compute_raw(
       peer_enc_pubpoint__bu8,
@@ -1872,7 +1870,6 @@ flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
       &param__u.ecc_dom_par__t
     )
   );
-  printf("tls_common.c: after compute_raw\n");
   // FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, result_len__alu8));
 
 
