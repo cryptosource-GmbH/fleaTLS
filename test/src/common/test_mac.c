@@ -530,6 +530,41 @@ flea_err_t THR_flea_test_mac()
 #  endif
 # endif // #ifdef FLEA_HAVE_CMAC
 
+
+# ifdef FLEA_HAVE_HMAC
+#  ifdef FLEA_HAVE_SHA224_256
+  // Test for valgrind error at 64B key as input
+  flea_mac_ctx_t mac_ctx__t = flea_mac_ctx_t__INIT_VALUE;
+  flea_u8_t key[] = {0x1, 0x41, 0xf1, 0x31, 0x33, 0x4e, 0xb4, 0x30, 0xc, 0x5d, 0x7f, 0x66, 0x71, 0xf4, 0xad, 0x22, 0xe0, 0x44, 0x7a, 0xe4, 0x46, 0x85, 0x9a, 0x1b, 0x89, 0xfb, 0xf2, 0x9, 0x71, 0xaa, 0x21, 0x43, 0x7c, 0x3a, 0x9f, 0x98, 0xee, 0xdf, 0x54, 0xa, 0x1b, 0xb8, 0x29, 0x78, 0x5, 0xa2, 0x81, 0xb2, 0x94, 0xff, 0xb3, 0x41, 0x8c, 0x90, 0x25, 0xb4, 0x50, 0xb6, 0x92, 0x9b, 0x30, 0xc8, 0xc, 0xc7};
+  FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&mac_ctx__t, flea_hmac_sha256, key, sizeof(key)));
+  flea_u8_t sha256_hmac[32];
+  flea_u8_t sha256_hash[32];
+  flea_al_u8_t sha256_hmac_len = sizeof(sha256_hmac);
+
+  FLEA_CCALL(THR_flea_mac_ctx_t__update(&mac_ctx__t, key, sizeof(key)));
+  FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&mac_ctx__t, sha256_hmac, &sha256_hmac_len));
+
+  FLEA_CCALL(THR_flea_compute_hash(flea_sha256, sha256_hmac, sizeof(sha256_hmac), sha256_hash, sizeof(sha256_hash)));
+
+  flea_u8_t ctr = 0;
+
+  for(flea_u8_t i = 0; i < sizeof(sha256_hash); i++)
+  {
+    if(sha256_hash[i] == 0)
+    {
+      ctr++;
+    }
+  }
+  if(ctr > sizeof(sha256_hash))
+  {
+    // should never happen since ctr can't reach this value
+    FLEA_THROW("ERROR", FLEA_ERR_INV_MAC);
+  }
+
+  flea_mac_ctx_t__dtor(&mac_ctx__t);
+#  endif /* ifdef FLEA_HAVE_SHA224_256 */
+# endif  /* ifdef FLEA_HAVE_HMAC */
+
   // NOTE: non-full blocks are tested in test_ae.c in EAX mode, which internally
   // uses CMAC
   FLEA_CCALL(THR_flea_test_mac__init_dtor());
