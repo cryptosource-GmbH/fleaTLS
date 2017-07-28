@@ -8,10 +8,13 @@
 #include "flea/mac.h"
 #include "flea/block_cipher.h"
 #include "flea/ae.h"
+#include "flea/pk_api.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+#define FLEA_TLS_CS_MASK__RSA 0x01 // if bit is set if it's an RSA ciphersuite, ECDSA otherwise
 
 typedef enum
 {
@@ -71,6 +74,7 @@ typedef struct
   // flea_hash_id_t              hash_algorithm; // default: flea_sha256
 
   // flea_tls__prf_algorithm_t   prf_algorithm;
+  flea_u8_t mask;
 } flea_tls__cipher_suite_t;
 
 
@@ -78,6 +82,8 @@ flea_err_t THR_flea_tls_get_cipher_suite_by_id(
   flea_tls__cipher_suite_id_t      id,
   const flea_tls__cipher_suite_t** result__pt
 );
+
+flea_pk_key_type_t flea_tls__get_key_type_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
 
 flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
 

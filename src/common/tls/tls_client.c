@@ -278,7 +278,12 @@ static flea_err_t THR_flea_tls__read_server_kex(
     FLEA_CCALL(THR_flea_tls__map_tls_sig_to_flea_sig(sig_and_hash_alg__au8[1], &pk_scheme_id__t));
 
     // check if pk_scheme_id__t and tls_ctx->peer_pubkey are compatible
-    FLEA_CCALL(THR_flea_tls__check_sig_alg_compatibility_for_public_key(&tls_ctx__pt->peer_pubkey, pk_scheme_id__t));
+    FLEA_CCALL(
+      THR_flea_tls__check_sig_alg_compatibility_for_key_type(
+        tls_ctx__pt->peer_pubkey.key_type__t,
+        pk_scheme_id__t
+      )
+    );
 
     // calculate hash of ec params
     FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&params_hash_ctx__t, hash_id__t));
@@ -1315,7 +1320,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   flea_al_u16_t                 nb_crls__alu16,
   flea_tls_client_session_t*    session_mbn__pt,
   flea_tls_renegotiation_spec_e reneg_spec__e,
-  flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8
+  flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8,
+  flea_ref_cu8_t*               allowed_hash_algs_for_sig_ref__prcu8
 )
 {
   flea_err_t err__t;
@@ -1329,9 +1335,10 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   tls_ctx__pt->private_key__pt    = client_private_key__pt;
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
   tls_ctx__pt->client_session_mbn__pt        = session_mbn__pt;
-  tls_ctx__pt->session_mngr_mbn__pt     = NULL;
-  tls_ctx__pt->allowed_ecc_curves__rcu8 = *allowed_ecc_curves_ref__prcu8;
-  tls_ctx__pt->extension_ctrl__u8       = 0;
+  tls_ctx__pt->session_mngr_mbn__pt            = NULL;
+  tls_ctx__pt->allowed_ecc_curves__rcu8        = *allowed_ecc_curves_ref__prcu8;
+  tls_ctx__pt->allowed_hash_algs_for_sig__rcu8 = *allowed_hash_algs_for_sig_ref__prcu8;
+  tls_ctx__pt->extension_ctrl__u8 = 0;
   if(server_name__pcrcu8)
   {
     tls_ctx__pt->hostn_valid_params__t.host_id__ct = *server_name__pcrcu8;

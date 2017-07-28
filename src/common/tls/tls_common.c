@@ -1559,7 +1559,7 @@ flea_err_t THR_flea_tls__map_tls_hash_to_flea_hash(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t flea_tls__map_flea_hash_to_tls_hash(
+flea_err_t THR_flea_tls__map_flea_hash_to_tls_hash(
   flea_hash_id_t hash_id__t,
   flea_u8_t*     id__pu8
 )
@@ -1580,21 +1580,90 @@ flea_err_t flea_tls__map_flea_hash_to_tls_hash(
 // TODO: intention is to check whether an offered sig/hash algorithm pair
 // matches the certificate. Better to not only check the key but the entire
 // certificate which might contain additional constraints
-flea_err_t THR_flea_tls__check_sig_alg_compatibility_for_public_key(
-  flea_public_key_t*  pubkey,
+flea_err_t THR_flea_tls__check_sig_alg_compatibility_for_key_type(
+  flea_pk_key_type_t  key_type__t,
   flea_pk_scheme_id_t pk_scheme_id__t
 )
 {
   FLEA_THR_BEG_FUNC();
-  if((pubkey->key_type__t == flea_ecc_key && pk_scheme_id__t != flea_ecdsa_emsa1) ||
-    (pubkey->key_type__t == flea_rsa_key && pk_scheme_id__t != flea_rsa_pkcs1_v1_5_sign))
+  if((key_type__t == flea_ecc_key && pk_scheme_id__t != flea_ecdsa_emsa1) ||
+    (key_type__t == flea_rsa_key && pk_scheme_id__t != flea_rsa_pkcs1_v1_5_sign))
   {
     FLEA_THROW("key type and signature algorithm do not match", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
   FLEA_THR_FIN_SEC_empty();
 }
 
-// flea_err_t THR_flea_tls_ctx__parse_sig_alg_ext
+flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
+  flea_tls_ctx_t*   tls_ctx__pt,
+  flea_rw_stream_t* rd_strm__pt,
+  flea_al_u16_t     ext_len__alu16
+)
+{
+  flea_al_u16_t len__alu16;
+  flea_al_u8_t hash_alg_pos__alu8;
+
+  FLEA_THR_BEG_FUNC();
+  if(!ext_len__alu16)
+  {
+    FLEA_THROW("No Signature and Hash algorithms offered by client", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  }
+
+  FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(rd_strm__pt, &len__alu16, 2));
+  if((len__alu16 % 2) || (len__alu16 > ext_len__alu16 - 2))
+  {
+    FLEA_THROW("invalid signature algorithms extension", FLEA_ERR_TLS_PROT_DECODE_ERR);
+  }
+
+  // iterate over all algorithm pairs and pick the best matching
+  // TODO/QUESTION: where is he order defined?
+
+  // we can only pick the signature algorithm matching to our certificate
+  hash_alg_pos__alu8 = 0xFF;
+  while(len__alu16)
+  {
+    len__alu16 -= 2;
+    flea_u8_t sig_alg_bytes__au8[2];
+    flea_hash_id_t hash_id__t;
+    flea_pk_scheme_id_t pk_scheme_id__t;
+    flea_al_u8_t i;
+
+    FLEA_CCALL(THR_flea_rw_stream_t__read_full(rd_strm__pt, sig_alg_bytes__au8, sizeof(sig_alg_bytes__au8)));
+
+    if(THR_flea_tls__map_tls_hash_to_flea_hash(
+        sig_alg_bytes__au8[0],
+        &hash_id__t
+      ) || THR_flea_tls__map_tls_sig_to_flea_sig(sig_alg_bytes__au8[1], &pk_scheme_id__t))
+    {
+      continue;
+    }
+    if(THR_flea_tls__check_sig_alg_compatibility_for_key_type(tls_ctx__pt->private_key__t.key_type__t, hash_id__t))
+    {
+      continue;
+    }
+
+    for(i = 0; i < tls_ctx__pt->allowed_hash_algs_for_sig__rcu8.len__dtl; i++)
+    {
+      if(tls_ctx__pt->allowed_hash_algs_for_sig__rcu8.data__pcu8[i] == hash_id__t)
+      {
+        if(i < hash_alg_pos__alu8)
+        {
+          /* update if it has higher priority */
+          hash_alg_pos__alu8 = i;
+          tls_ctx__pt->chosen_hash_algorithm__t = hash_id__t;
+        }
+        break;
+      }
+    }
+  }
+
+  if(hash_alg_pos__alu8 == 0xFF)
+  {
+    FLEA_THROW("Couldn't agree on a Signature+Hash Algorithm", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  }
+
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_tls_ctx_t__parse_sig_alg_ext */
 
 # ifdef FLEA_HAVE_ECC
 flea_err_t THR_flea_tls_ctx_t__parse_supported_curves_ext(
@@ -1718,7 +1787,9 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
 {
   flea_u32_t extensions_len__u32;
   flea_rw_stream_t* hs_rd_stream__pt;
-  flea_bool_t receive_sig_algs_ext__t = FLEA_FALSE;
+  flea_bool_t receive_sig_algs_ext__b = FLEA_FALSE;
+  flea_bool_t support_sha1__b         = FLEA_FALSE;
+  flea_al_u8_t i;
 
   FLEA_THR_BEG_FUNC();
 
@@ -1756,12 +1827,20 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
       FLEA_CCALL(THR_flea_tls_ctx__parse_reneg_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
       *found_sec_reneg__pb = FLEA_TRUE;
     }
-
-    /*else if(ext_type_be__u32 == 0x000d)
-     * {
-     * FLEA_CCALL(THR_flea_tls_ctx__parse_sig_alg_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
-     * receive_sig_algs_ext__t = FLEA_TRUE;
-     * }*/
+    else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__SIGNATURE_ALGORITHMS)
+    {
+      if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT)
+      {
+        // ignoring the extension, standard conforming servers must not send
+        // this
+      }
+      else
+      {
+        FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, ext_len__u32));
+        // FLEA_CCALL(THR_flea_tls_ctx_t__parse_sig_alg_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
+        receive_sig_algs_ext__b = FLEA_TRUE;
+      }
+    }
     else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__POINT_FORMATS)
     {
       FLEA_CCALL(THR_flea_tls_ctx_t__parse_point_formats_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
@@ -1778,12 +1857,27 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
       FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, ext_len__u32));
     }
 
-    if(receive_sig_algs_ext__t == FLEA_FALSE)
+    // no signature_algorithms ext. received from client
+    if(receive_sig_algs_ext__b == FLEA_FALSE && tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_SERVER)
     {
       // we need to set the default signature and hash algorithm because the
-      // client does not support any other
-
-      // TODO
+      // client does not support any other. This means sha1 + signature scheme
+      // of the currently loaded certificate
+      for(i = 0; i < tls_ctx__pt->allowed_hash_algs_for_sig__rcu8.len__dtl; i++)
+      {
+        if(tls_ctx__pt->allowed_hash_algs_for_sig__rcu8.data__pcu8[i] == flea_sha1)
+        {
+          support_sha1__b = FLEA_TRUE;
+          break;
+        }
+      }
+      if(support_sha1__b == FLEA_FALSE)
+      {
+        FLEA_THROW(
+          "Client only supports signatures with hash algorithm SHA1 and server is configred not to accept signatures with SHA1",
+          FLEA_ERR_TLS_HANDSHK_FAILURE
+        );
+      }
     }
   }
   FLEA_THR_FIN_SEC_empty();

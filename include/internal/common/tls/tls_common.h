@@ -21,6 +21,7 @@ extern "C" {
 # define FLEA_TLS_EXT_TYPE__RENEG_INFO            0xff01
 # define FLEA_TLS_EXT_TYPE__SUPPORTED_CURVES      0x000a
 # define FLEA_TLS_EXT_TYPE__POINT_FORMATS         0x000b
+# define FLEA_TLS_EXT_TYPE__SIGNATURE_ALGORITHMS  0x000d
 
 // TODO: define in build cfg or even better: calculate max possible sig size
 # define FLEA_MAX_SIG_SIZE 512
@@ -264,8 +265,8 @@ flea_err_t THR_flea_tls__map_flea_curve_to_curve_bytes(
 );
 # endif
 
-flea_err_t THR_flea_tls__check_sig_alg_compatibility_for_public_key(
-  flea_public_key_t*  pubkey,
+flea_err_t THR_flea_tls__check_sig_alg_compatibility_for_key_type(
+  flea_pk_key_type_t  key_type__t,
   flea_pk_scheme_id_t pk_scheme_id__t
 );
 
@@ -287,6 +288,12 @@ flea_err_t THR_flea_tls__map_flea_sig_to_tls_sig(
 flea_err_t THR_flea_tls__map_tls_sig_to_flea_sig(
   flea_u8_t            id__u8,
   flea_pk_scheme_id_t* pk_scheme_id__pt
+);
+
+flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
+  flea_tls_ctx_t*   tls_ctx__pt,
+  flea_rw_stream_t* rd_strm__pt,
+  flea_al_u16_t     ext_len__alu16
 );
 
 # ifdef FLEA_HAVE_ECC

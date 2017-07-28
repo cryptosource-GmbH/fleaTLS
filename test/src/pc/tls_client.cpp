@@ -47,6 +47,7 @@ static flea_err_t THR_flea_start_tls_client(
   flea_ref_cu16_t cipher_suites_ref;
 
   flea_ref_cu8_t allowed_ecc_curves__rcu8;
+  flea_ref_cu8_t allowed_hash_algs_for_sig__rcu8;
   tls_test_cfg_t tls_cfg;
   flea_host_id_type_e host_type;
 
@@ -108,10 +109,13 @@ static flea_err_t THR_flea_start_tls_client(
       tls_cfg
     )
   );
-  cipher_suites_ref.data__pcu16       = &tls_cfg.cipher_suites[0];
-  cipher_suites_ref.len__dtl          = tls_cfg.cipher_suites.size();
-  allowed_ecc_curves__rcu8.data__pcu8 = &tls_cfg.allowed_curves[0];
-  allowed_ecc_curves__rcu8.len__dtl   = tls_cfg.allowed_curves.size();
+  cipher_suites_ref.data__pcu16              = &tls_cfg.cipher_suites[0];
+  cipher_suites_ref.len__dtl                 = tls_cfg.cipher_suites.size();
+  allowed_ecc_curves__rcu8.data__pcu8        = &tls_cfg.allowed_curves[0];
+  allowed_ecc_curves__rcu8.len__dtl          = tls_cfg.allowed_curves.size();
+  allowed_hash_algs_for_sig__rcu8.data__pcu8 = &tls_cfg.allowed_hash_algs_for_sig[0];
+  allowed_hash_algs_for_sig__rcu8.len__dtl   = tls_cfg.allowed_hash_algs_for_sig.size();
+
   FLEA_CCALL(
     THR_flea_pltfif_tcpip__create_rw_stream_client(
       &rw_stream__t,
@@ -140,7 +144,8 @@ static flea_err_t THR_flea_start_tls_client(
       tls_cfg.crls.size(),
       client_session__pt,
       reneg_spec_from_string(cmdl_args.get_property_as_string_default_empty("reneg_mode")),
-      &allowed_ecc_curves__rcu8
+      &allowed_ecc_curves__rcu8,
+      &allowed_hash_algs_for_sig__rcu8
     )
   );
   printf("session was resumed = %u\n", client_session__pt->for_resumption__u8);

@@ -18,37 +18,37 @@
 static const flea_tls__cipher_suite_t cipher_suites[] = {
   {FLEA_TLS_NULL_WITH_NULL_NULL,               FLEA_TLS_NO_CIPHER,
    0, 0,
-   0, 0, 0, (flea_mac_id_t) 0},
+   0, 0, 0, (flea_mac_id_t) 0, 0}, // TODO: the mask 0 means it's an ECDSA suite. Since this CS is never used, it shouldn't matter but it's not good
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
   {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA,          FLEA_TLS_BLOCK_CIPHER(flea_aes128),
-   16, 16, 16, 20, 20, flea_sha1},
+   16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA256
   {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA256,       FLEA_TLS_BLOCK_CIPHER(flea_aes128),
-   16, 16, 16, 32, 32, flea_sha256},
+   16, 16, 16, 32, 32, flea_sha256, FLEA_TLS_CS_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA
   {FLEA_TLS_RSA_WITH_AES_256_CBC_SHA,          FLEA_TLS_BLOCK_CIPHER(flea_aes256),
-   16, 16, 32, 20, 20, flea_sha1},
+   16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256
   {FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256,       FLEA_TLS_BLOCK_CIPHER(flea_aes256),
-   16, 16, 32, 32, 32, flea_sha256},
+   16, 16, 32, 32, 32, flea_sha256, FLEA_TLS_CS_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
   {FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256,       FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
-   16, 12, 16, 0, 0, flea_sha256},
+   16, 12, 16, 0, 0, flea_sha256, FLEA_TLS_CS_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384
   {FLEA_TLS_RSA_WITH_AES_256_GCM_SHA384,       FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
-   16, 12, 32, 32, 0, flea_sha384},
+   16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
   {FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,    FLEA_TLS_BLOCK_CIPHER(flea_aes128),
-   16, 16, 16, 20, 20, flea_sha1},
+   16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_MASK__RSA},
 #endif
   {FLEA_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,    FLEA_TLS_BLOCK_CIPHER(flea_aes256),
-   16, 16, 32, 20, 20, flea_sha1},
+   16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_MASK__RSA},
 
   // TODO: fix and enable them:
 #if 0
@@ -76,6 +76,33 @@ flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_i
     return flea_sha384;
   }
   return flea_sha256;
+}
+
+static const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher_suite_id_t id__t)
+{
+  flea_u8_t i;
+
+  for(i = 0; i < sizeof(cipher_suites); i++)
+  {
+    if(cipher_suites[i].id == id__t)
+    {
+      return &(cipher_suites[i]);
+    }
+  }
+
+  // should never happen but compiler gives a warning.
+  // TODO: have to make sure that the compiled cs ids are the same as the
+  // compiled cs entries in cipher_suites[]
+  return &(cipher_suites[0]);
+}
+
+flea_pk_key_type_t flea_tls__get_key_type_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t)
+{
+  if(flea_tls_get_cipher_suite_by_id(id__t)->mask & FLEA_TLS_CS_MASK__RSA)
+  {
+    return flea_rsa_key;
+  }
+  return flea_ecc_key;
 }
 
 flea_tls__kex_method_t flea_tls_get_kex_method_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t)

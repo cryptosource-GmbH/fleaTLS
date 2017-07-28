@@ -181,6 +181,7 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
 
   cfg.cipher_suites  = get_cipher_suites_from_cmdl(cmdl_args);
   cfg.allowed_curves = get_allowed_ecc_curves_from_cmdl(cmdl_args);
+  cfg.allowed_hash_algs_for_sig.push_back(0x02); // TODO: command line interface
   FLEA_THR_BEG_FUNC();
 
   /*if(cfg.trusted_certs.size() == 0)

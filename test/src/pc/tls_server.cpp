@@ -60,6 +60,7 @@ static flea_err_t THR_server_cycle(
 {
   flea_u8_t buf[1000];
   flea_ref_cu8_t allowed_ecc_curves__rcu8;
+  flea_ref_cu8_t allowed_hash_algs_for_sig__rcu8;
   flea_ref_cu16_t cipher_suites_ref;
   flea_rw_stream_t rw_stream__t;
   flea_tls_ctx_t tls_ctx;
@@ -124,6 +125,9 @@ static flea_err_t THR_server_cycle(
   allowed_ecc_curves__rcu8.data__pcu8 = &tls_cfg.allowed_curves[0];
   allowed_ecc_curves__rcu8.len__dtl   = tls_cfg.allowed_curves.size();
 
+  allowed_hash_algs_for_sig__rcu8.data__pcu8 = &tls_cfg.allowed_hash_algs_for_sig[0];
+  allowed_hash_algs_for_sig__rcu8.len__dtl   = tls_cfg.allowed_hash_algs_for_sig.size();
+
   FLEA_CCALL(
     THR_flea_tls_ctx_t__ctor_server(
       &tls_ctx,
@@ -138,7 +142,8 @@ static flea_err_t THR_server_cycle(
       tls_cfg.crls.size(),
       sess_man__pt,
       reneg_spec_from_string(cmdl_args.get_property_as_string_default_empty("reneg_mode")),
-      &allowed_ecc_curves__rcu8
+      &allowed_ecc_curves__rcu8,
+      &allowed_hash_algs_for_sig__rcu8
     )
   );
   std::cout << "handshake done" << std::endl;
