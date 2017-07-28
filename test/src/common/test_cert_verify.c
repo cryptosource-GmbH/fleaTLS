@@ -8,6 +8,7 @@
 #include "flea/cert_verify.h"
 #include "internal/common/ber_dec.h"
 #include "test_data_x509_certs.h"
+#include "self_test.h"
 
 #include <string.h>
 

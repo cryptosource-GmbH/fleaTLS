@@ -5,6 +5,7 @@
 #include "flea/array_util.h"
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
+#include "self_test.h"
 
 #ifdef FLEA_HAVE_AE
 # define TEST_MAX_CT_LEN 900

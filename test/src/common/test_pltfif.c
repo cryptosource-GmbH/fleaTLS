@@ -3,6 +3,7 @@
 #include "internal/common/default.h"
 #include "internal/pltf_if/time.h"
 #include "flea/error_handling.h"
+#include "self_test.h"
 
 flea_err_t THR_flea_test_gmt_time()
 {

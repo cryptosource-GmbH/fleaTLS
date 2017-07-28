@@ -2,6 +2,7 @@
 
 #include "internal/common/default.h"
 #include "flea/types.h"
+#include "flea/crc.h"
 
 // computes ~crc16
 // initial remainder shall be zero for CCIT compatibility

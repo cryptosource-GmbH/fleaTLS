@@ -11,6 +11,7 @@
 #include "flea/alloc.h"
 #include "flea/util.h"
 #include "flea/array_util.h"
+#include "self_test.h"
 
 flea_err_t THR_flea_test_mpi_mul()
 {

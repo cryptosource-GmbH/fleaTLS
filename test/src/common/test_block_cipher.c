@@ -4,8 +4,9 @@
 #include "internal/common/default.h"
 #include "flea/error_handling.h"
 #include "flea/error.h"
-#include  "flea/rsa.h"
-#include  "flea/alloc.h"
+#include "flea/rsa.h"
+#include "flea/alloc.h"
+#include "self_test.h"
 #include "internal/common/block_cipher/aes.h"
 #include <string.h>
 

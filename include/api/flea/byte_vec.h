@@ -58,6 +58,10 @@ typedef struct
   {.data__pu8 = (flea_u8_t*) buf, \
    .len__dtl  = size, .allo__dtl = size, .state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK}
 
+/**
+ * Declare a byte vector based on heap memory or a stack buffer of static size,
+ * depending on the mode.
+ */
 #ifdef FLEA_USE_HEAP_BUF
 # define FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(name, \
     size) flea_byte_vec_t name = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE

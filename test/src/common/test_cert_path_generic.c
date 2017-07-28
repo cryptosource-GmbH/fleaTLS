@@ -11,6 +11,7 @@
 #include "test_data_x509_certs.h"
 #include "flea/rng.h"
 #include "flea/hostn_ver.h"
+#include "self_test.h"
 
 #if defined FLEA_HAVE_RSA && (defined FLEA_USE_HEAP_BUF || FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
 flea_err_t THR_flea_test_cert_path_generic(

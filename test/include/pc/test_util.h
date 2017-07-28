@@ -144,6 +144,7 @@ struct tls_test_cfg_t
   std::vector<std::vector<unsigned char> > own_certs;
   std::vector<std::vector<unsigned char> > own_ca_chain;
   std::vector<flea_u16_t>                  cipher_suites;
+  std::vector<flea_u8_t>                   allowed_curves;
   std::vector<std::vector<flea_u8_t> >     crls;
   flea_rev_chk_mode_e                      rev_chk_mode__e;
   std::vector<flea_byte_vec_t>             crls_refs;

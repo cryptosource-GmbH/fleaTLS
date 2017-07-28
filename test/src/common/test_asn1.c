@@ -9,6 +9,7 @@
 #include "test_data_x509_certs.h"
 #include "flea/mem_read_stream.h"
 #include "test_data_pkcs8.h"
+#include "self_test.h"
 
 #include <stdio.h>
 #include <string.h>

@@ -5,6 +5,8 @@
 #include "flea/error_handling.h"
 #include "flea/types.h"
 #include "flea/error.h"
+#include "self_test.h"
+
 flea_err_t THR_flea_test_flea_types()
 {
   FLEA_THR_BEG_FUNC();
@@ -44,7 +46,7 @@ flea_err_t THR_flea_test_flea_types()
   {
     FLEA_THROW("wrong size for type", FLEA_ERR_FAILED_TEST);
   }
-  if(sizeof(flea_pszd_uint_t) != sizeof(void *))
+  if(sizeof(flea_pszd_uint_t) != sizeof(void*))
   {
     FLEA_THROW("wrong size for type", FLEA_ERR_FAILED_TEST);
   }

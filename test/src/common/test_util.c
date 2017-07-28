@@ -5,16 +5,17 @@
 #include "flea/bin_utils.h"
 #include "flea/error.h"
 #include "flea/alloc.h"
+#include "self_test.h"
 
 flea_err_t THR_flea_test_enc_BE_bitlen()
 {
-  const flea_u8_t e1 []  = { 0x01 };
+  const flea_u8_t e1 []  = {0x01};
   const flea_u8_t e1_len = 1;
 
-  const flea_u8_t e2 []  = { 0x80, 0x00 };
+  const flea_u8_t e2 []  = {0x80, 0x00};
   const flea_u8_t e2_len = 16;
 
-  const flea_u8_t e3 []  = { 0x7F, 0x08, 0x01 };
+  const flea_u8_t e3 []  = {0x7F, 0x08, 0x01};
   const flea_u8_t e3_len = 23;
 
   FLEA_THR_BEG_FUNC();
@@ -36,8 +37,8 @@ flea_err_t THR_flea_test_enc_BE_bitlen()
 flea_err_t THR_flea_test_incr_enc_BE_int()
 {
   FLEA_DECL_BUF(block__bu8, flea_u8_t, 4);
-  flea_u8_t exp_1__acu8[4] = { 0, 0, 0, 1 };
-  flea_u8_t exp_2__acu8[4] = { 0, 0, 1, 0 };
+  flea_u8_t exp_1__acu8[4] = {0, 0, 0, 1};
+  flea_u8_t exp_2__acu8[4] = {0, 0, 1, 0};
   FLEA_THR_BEG_FUNC();
   FLEA_ALLOC_BUF(block__bu8, 4);
 

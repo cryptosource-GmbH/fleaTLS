@@ -468,7 +468,7 @@ flea_err_t THR_flea_tls_rec_prot_t__set_ciphersuite(
   FLEA_THR_FIN_SEC_empty();
 }
 
-void flea_tls_rec_prot_t__set_record_header(
+static void flea_tls_rec_prot_t__set_record_header(
   flea_tls_rec_prot_t* rec_prot__pt,
   ContentType          content_type__e
 )

@@ -63,7 +63,7 @@ const flea_ae_config_entry_t ae_config__at[] = {
   }
 };
 
-const flea_ae_config_entry_t * flea_find_ae_config(flea_ae_id_t id__t)
+static const flea_ae_config_entry_t* flea_find_ae_config(flea_ae_id_t id__t)
 {
   flea_al_u16_t i;
 

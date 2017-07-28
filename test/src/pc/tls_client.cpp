@@ -45,8 +45,23 @@ static flea_err_t THR_flea_start_tls_client(
   flea_al_u16_t cert_chain_len = FLEA_NB_ARRAY_ENTRIES(cert_chain);
 
   flea_ref_cu16_t cipher_suites_ref;
+
+  flea_ref_cu8_t allowed_ecc_curves__rcu8;
   tls_test_cfg_t tls_cfg;
   flea_host_id_type_e host_type;
+
+  /*const flea_u8_t allowed_ecc_curves__acu8[] = {
+   * (flea_u8_t) flea_secp160r1,
+   * (flea_u8_t) flea_secp160r2,
+   * (flea_u8_t) flea_secp192r1,
+   * (flea_u8_t) flea_secp224r1,
+   * (flea_u8_t) flea_secp256r1,
+   * (flea_u8_t) flea_secp384r1,
+   * (flea_u8_t) flea_secp521r1,
+   * (flea_u8_t) flea_brainpoolP256r1,
+   * (flea_u8_t) flea_brainpoolP384r1,
+   * (flea_u8_t) flea_brainpoolP512r1
+   * };*/
 
 
   std::string hostname_s;
@@ -93,8 +108,10 @@ static flea_err_t THR_flea_start_tls_client(
       tls_cfg
     )
   );
-  cipher_suites_ref.data__pcu16 = &tls_cfg.cipher_suites[0];
-  cipher_suites_ref.len__dtl    = tls_cfg.cipher_suites.size();
+  cipher_suites_ref.data__pcu16       = &tls_cfg.cipher_suites[0];
+  cipher_suites_ref.len__dtl          = tls_cfg.cipher_suites.size();
+  allowed_ecc_curves__rcu8.data__pcu8 = &tls_cfg.allowed_curves[0];
+  allowed_ecc_curves__rcu8.len__dtl   = tls_cfg.allowed_curves.size();
   FLEA_CCALL(
     THR_flea_pltfif_tcpip__create_rw_stream_client(
       &rw_stream__t,
@@ -102,6 +119,8 @@ static flea_err_t THR_flea_start_tls_client(
       hostname_s.c_str()
     )
   );
+
+
   FLEA_CCALL(
     THR_flea_tls_ctx_t__ctor_client(
       &tls_ctx,
@@ -120,12 +139,13 @@ static flea_err_t THR_flea_start_tls_client(
       &tls_cfg.crls_refs[0],// NULL,
       tls_cfg.crls.size(),
       client_session__pt,
-      reneg_spec_from_string(cmdl_args.get_property_as_string_default_empty("reneg"))
+      reneg_spec_from_string(cmdl_args.get_property_as_string_default_empty("reneg_mode")),
+      &allowed_ecc_curves__rcu8
     )
   );
   printf("session was resumed = %u\n", client_session__pt->for_resumption__u8);
   // FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
-  for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("reneg", 0); i++)
+  for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("do_renegs", 0); i++)
   // if(cmdl_args.have_index("reneg"))
   {
     FLEA_CCALL(

@@ -8,6 +8,7 @@
 #include "flea/util.h"
 #include "flea/bin_utils.h"
 #include "flea/algo_config.h"
+#include "internal/common/mac_int2.h"
 #include <string.h>
 #include "internal/common/block_cipher/block_cipher_int.h"
 
@@ -198,7 +199,7 @@ static flea_err_t THR_flea_mac_ctx_t__ctor_hmac(
     );
     memset(alias_key__pu8 + hash_output_len__u8, 0, key_byte_len__u8 - hash_output_len__u8);
   }
-  else if(key_len__alu16 < key_byte_len__u8)
+  else// if(key_len__alu16 < key_byte_len__u8)
   {
     memcpy(alias_key__pu8, key__pcu8, key_len__alu16);
     memset(alias_key__pu8 + key_len__alu16, 0, key_byte_len__u8 - key_len__alu16);

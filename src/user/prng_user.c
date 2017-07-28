@@ -6,6 +6,8 @@
 #include "flea/error.h"
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
+#include "internal/common/rng_int.h"
+
 static flea_u8_t gl_prng_state__au8[FLEA_AES256_KEY_BYTE_LENGTH] = {0};
 
 flea_err_t THR_flea_user__rng__load_prng_state(

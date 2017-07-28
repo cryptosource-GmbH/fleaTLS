@@ -5,6 +5,7 @@
 #include "flea/error_handling.h"
 #include "flea/error.h"
 #include "flea/alloc.h"
+#include "self_test.h"
 #include <string.h>
 #include <stdio.h>
 

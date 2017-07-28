@@ -8,6 +8,7 @@
 #include "internal/common/math/mpi.h"
 #include "flea/error.h"
 #include "flea/alloc.h"
+#include "self_test.h"
 
 
 #ifdef FLEA_USE_BUF_DBG_CANARIES

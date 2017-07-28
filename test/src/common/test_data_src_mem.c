@@ -7,6 +7,7 @@
 #include "flea/alloc.h"
 #include <string.h>
 #include "flea/mem_read_stream.h"
+#include "self_test.h"
 
 flea_err_t THR_flea_test_mem_read_stream()
 {
