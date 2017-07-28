@@ -1504,70 +1504,82 @@ flea_u8_t flea_tls_map_tls_sig_to_flea_sig__t[2][2] = {
   {0x03, flea_ecdsa_emsa1        }
 };
 
-flea_bool_t flea_tls_map_tls_sig_to_flea_sig(
+flea_err_t THR_flea_tls__map_tls_sig_to_flea_sig(
   flea_u8_t            id__u8,
   flea_pk_scheme_id_t* pk_scheme_id__pt
 )
 {
+  FLEA_THR_BEG_FUNC();
+
   for(flea_u8_t i = 0; i < sizeof(flea_tls_map_tls_sig_to_flea_sig__t); i++)
   {
     if(flea_tls_map_tls_sig_to_flea_sig__t[i][0] == id__u8)
     {
       *pk_scheme_id__pt = (flea_pk_scheme_id_t) flea_tls_map_tls_sig_to_flea_sig__t[i][1];
-      return FLEA_TRUE;
+      FLEA_THR_RETURN();
     }
   }
-  return FLEA_FALSE;
+  FLEA_THROW("unsupported signature algorithm", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  FLEA_THR_FIN_SEC_empty();
 }
 
-flea_bool_t flea_tls_map_flea_sig_to_tls_sig(
+flea_err_t THR_flea_tls__map_flea_sig_to_tls_sig(
   flea_pk_scheme_id_t pk_scheme_id__t,
   flea_u8_t*          id__pu8
 )
 {
+  FLEA_THR_BEG_FUNC();
   for(flea_u8_t i = 0; i < sizeof(flea_tls_map_tls_sig_to_flea_sig__t); i++)
   {
     if(flea_tls_map_tls_sig_to_flea_sig__t[i][1] == pk_scheme_id__t)
     {
       *id__pu8 = flea_tls_map_tls_sig_to_flea_sig__t[i][0];
-      return FLEA_TRUE;
+      FLEA_THR_RETURN();
     }
   }
-  return FLEA_FALSE;
+  FLEA_THROW("signature algorithm has no mapping for tls", FLEA_ERR_INT_ERR);
+  FLEA_THR_FIN_SEC_empty();
 }
 
-flea_bool_t flea_tls__map_tls_hash_to_flea_hash(
+flea_err_t THR_flea_tls__map_tls_hash_to_flea_hash(
   flea_u8_t       id__u8,
   flea_hash_id_t* hash_id__pt
 )
 {
+  FLEA_THR_BEG_FUNC();
   for(flea_u8_t i = 0; i < sizeof(flea_tls_map_tls_hash_to_flea_hash__t); i++)
   {
     if(flea_tls_map_tls_hash_to_flea_hash__t[i][0] == id__u8)
     {
       *hash_id__pt = (flea_hash_id_t) flea_tls_map_tls_hash_to_flea_hash__t[i][1];
-      return FLEA_TRUE;
+      FLEA_THR_RETURN();
     }
   }
-  return FLEA_FALSE;
+  FLEA_THROW("unsupported hash algorithm", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  FLEA_THR_FIN_SEC_empty();
 }
 
-flea_bool_t flea__tls_map_flea_hash_to_tls_hash(
+flea_err_t flea_tls__map_flea_hash_to_tls_hash(
   flea_hash_id_t hash_id__t,
   flea_u8_t*     id__pu8
 )
 {
+  FLEA_THR_BEG_FUNC();
   for(flea_u8_t i = 0; i < sizeof(flea_tls_map_tls_hash_to_flea_hash__t); i++)
   {
     if(flea_tls_map_tls_hash_to_flea_hash__t[i][1] == hash_id__t)
     {
       *id__pu8 = flea_tls_map_tls_hash_to_flea_hash__t[i][0];
-      return FLEA_TRUE;
+      FLEA_THR_RETURN();
     }
   }
-  return FLEA_FALSE;
+  FLEA_THROW("hash algorithm has no mapping for tls", FLEA_ERR_INT_ERR);
+  FLEA_THR_FIN_SEC_empty();
 }
 
+// TODO: intention is to check whether an offered sig/hash algorithm pair
+// matches the certificate. Better to not only check the key but the entire
+// certificate which might contain additional constraints
 flea_err_t THR_flea_tls__check_sig_alg_compatibility_for_public_key(
   flea_public_key_t*  pubkey,
   flea_pk_scheme_id_t pk_scheme_id__t

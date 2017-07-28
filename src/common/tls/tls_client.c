@@ -274,18 +274,11 @@ static flea_err_t THR_flea_tls__read_server_kex(
     );
 
     /* verify signature */
-    if(flea_tls__map_tls_hash_to_flea_hash(sig_and_hash_alg__au8[0], &hash_id__t) == FLEA_FALSE)
-    {
-      FLEA_THROW("unsupported hash algorithm", FLEA_ERR_TLS_HANDSHK_FAILURE);
-    }
-    if(flea_tls_map_tls_sig_to_flea_sig(sig_and_hash_alg__au8[1], &pk_scheme_id__t) == FLEA_FALSE)
-    {
-      FLEA_THROW("unsupported signature algorithm", FLEA_ERR_TLS_HANDSHK_FAILURE);
-    }
+    FLEA_CCALL(THR_flea_tls__map_tls_hash_to_flea_hash(sig_and_hash_alg__au8[0], &hash_id__t));
+    FLEA_CCALL(THR_flea_tls__map_tls_sig_to_flea_sig(sig_and_hash_alg__au8[1], &pk_scheme_id__t));
 
     // check if pk_scheme_id__t and tls_ctx->peer_pubkey are compatible
     FLEA_CCALL(THR_flea_tls__check_sig_alg_compatibility_for_public_key(&tls_ctx__pt->peer_pubkey, pk_scheme_id__t));
-
 
     // calculate hash of ec params
     FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&params_hash_ctx__t, hash_id__t));

@@ -269,22 +269,22 @@ flea_err_t THR_flea_tls__check_sig_alg_compatibility_for_public_key(
   flea_pk_scheme_id_t pk_scheme_id__t
 );
 
-flea_bool_t flea__tls_map_flea_hash_to_tls_hash(
+flea_err_t THR_flea_tls__map_flea_hash_to_tls_hash(
   flea_hash_id_t hash_id__t,
   flea_u8_t*     id__pu8
 );
 
-flea_bool_t flea_tls__map_tls_hash_to_flea_hash(
+flea_err_t THR_flea_tls__map_tls_hash_to_flea_hash(
   flea_u8_t       id__u8,
   flea_hash_id_t* hash_id__pt
 );
 
-flea_bool_t flea_tls_map_flea_sig_to_tls_sig(
+flea_err_t THR_flea_tls__map_flea_sig_to_tls_sig(
   flea_pk_scheme_id_t pk_scheme_id__t,
   flea_u8_t*          id__pu8
 );
 
-flea_bool_t flea_tls_map_tls_sig_to_flea_sig(
+flea_err_t THR_flea_tls__map_tls_sig_to_flea_sig(
   flea_u8_t            id__u8,
   flea_pk_scheme_id_t* pk_scheme_id__pt
 );
