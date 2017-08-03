@@ -179,7 +179,7 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
       )
     );
 
-    FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &source__t, 0, flea_decode_ref));
+    FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &source__t, 0, flea_decode_ref, flea_read_full));
     FLEA_CCALL(
       THR_flea_x509__parse_san_and_validate_hostn(
         &user_id__crcu8,

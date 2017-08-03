@@ -172,7 +172,7 @@ static flea_err_t THR_flea_x509_decode_ecdsa_signature(
       &hlp__t
     )
   );
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref));
+  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref, flea_read_full));
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
   FLEA_CCALL(THR_flea_ber_dec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, &ref_r__t));
   FLEA_CCALL(THR_flea_ber_dec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, &ref_s__t));
@@ -272,7 +272,15 @@ flea_err_t THR_flea_x509_parse_ecc_public_params(
       &hlp__t
     )
   );
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, FLEA_ECC_MAX_MOD_BYTE_SIZE * 10, flea_decode_ref));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__ctor(
+      &dec__t,
+      &source__t,
+      FLEA_ECC_MAX_MOD_BYTE_SIZE * 10,
+      flea_decode_ref,
+      flea_read_full
+    )
+  );
   FLEA_CCALL(
     THR_flea_ber_dec_t__open_constructed_optional_cft(
       &dec__t,
@@ -405,7 +413,7 @@ static flea_err_t THR_flea_x509_parse_rsa_public_key(
       &hlp__t
     )
   );
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref));
+  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref, flea_read_full));
   /* open sequence */
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
   /* decode mod */
@@ -569,7 +577,7 @@ flea_err_t THR_flea_public_key_t__ctor_asn1(
       &hlp__t
     )
   );
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&key_dec__t, &source__t, 0, flea_decode_ref));
+  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&key_dec__t, &source__t, 0, flea_decode_ref, flea_read_full));
 
   FLEA_CCALL(
     THR_flea_ber_dec_t__get_ref_to_raw_cft(

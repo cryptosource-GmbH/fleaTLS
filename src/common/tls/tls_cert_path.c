@@ -272,8 +272,8 @@ static flea_err_t THR_flea_tls__validate_cert(
   flea_al_u16_t                         nb_crls__alu16,
   flea_bool_t                           validate_crl_for_issued_by_current__b,
   flea_byte_vec_t*                      prev_sn_buffer__pt,
-  flea_byte_vec_t*                      previous_crldp__pt
-
+  flea_byte_vec_t*                      previous_crldp__pt,
+  flea_stream_read_mode_e               rd_mode__e
 )
 {
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
@@ -330,6 +330,7 @@ static flea_err_t THR_flea_tls__validate_cert(
       rd_strm__pt,
       new_cert_len__u32,
       flea_decode_copy,
+      rd_mode__e,
       &back_buffer__t,
       &hash__t
     )
@@ -683,7 +684,7 @@ flea_err_t THR_flea_tls__cert_path_validation(
       FLEA_THROW("maximal cert path size for TLS exceeded", FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS);
     }
 
-    FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(rd_strm__pt, &new_cert_len__u32, 3));
+    FLEA_CCALL(THR_flea_rw_stream_t__read_int_be_full_or_timeout(rd_strm__pt, &new_cert_len__u32, 3, tls_ctx__pt->handshake_read_mode__e));
 
 
     // TODO: MAKE STRUCT FOR ALL THESE VALUES
@@ -708,7 +709,8 @@ flea_err_t THR_flea_tls__cert_path_validation(
         // <--TODO
         tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_none ? FLEA_FALSE : (tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_only_ee ? ((iter__alu16 == 1) ? FLEA_TRUE : FLEA_FALSE) : (iter__alu16 > 0)), // validate_crl_for_issued_by_current__b,*/ // <--TODO
         &sn_buffer__t,
-        &previous_crldp__t
+        &previous_crldp__t,
+        tls_ctx__pt->handshake_read_mode__e
       )
     );
 

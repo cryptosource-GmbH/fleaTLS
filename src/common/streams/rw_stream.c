@@ -258,23 +258,40 @@ static flea_err_t THR_flea_rw_stream_t__inner_read(
 // TODO: ALLOW OPTIONAL SKIP FUNCTION TO BE SET IN CTOR, WHICH IS FAVORED OVER
 // GENERIC ONE => not helpful for decoding, since hashing the skipped data is often still
 // necessary!
-flea_err_t THR_flea_rw_stream_t__skip_read(
-  flea_rw_stream_t* stream__pt,
-  flea_dtl_t        skip_len__dtl
+flea_err_t THR_flea_rw_stream_t__skip_read_full_or_timeout(
+  flea_rw_stream_t*       stream__pt,
+  flea_dtl_t              skip_len__dtl,
+  flea_stream_read_mode_e rd_mode__e
 )
 {
   FLEA_DECL_BUF(skip_buf__bu8, flea_u8_t, 16);
   FLEA_THR_BEG_FUNC();
   FLEA_ALLOC_BUF(skip_buf__bu8, 16);
+  if((rd_mode__e != flea_read_full) && (rd_mode__e != flea_read_timeout))
+  {
+    FLEA_THROW("invalid read mode", FLEA_ERR_INV_ARG);
+  }
   while(skip_len__dtl)
   {
     flea_al_u8_t skip__alu8 = FLEA_MIN(16, skip_len__dtl);
-    FLEA_CCALL(THR_flea_rw_stream_t__read_full(stream__pt, skip_buf__bu8, skip__alu8));
+    FLEA_CCALL(THR_flea_rw_stream_t__read_full_or_timeout(stream__pt, skip_buf__bu8, skip__alu8, rd_mode__e));
     skip_len__dtl -= skip__alu8;
   }
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF(skip_buf__bu8);
   );
+}
+
+flea_err_t THR_flea_rw_stream_t__read_full_or_timeout(
+  flea_rw_stream_t*       stream__pt,
+  flea_u8_t*              data__pu8,
+  flea_dtl_t              data_len__dtl,
+  flea_stream_read_mode_e full_or_timeout
+)
+{
+  flea_dtl_t len__dtl = data_len__dtl;
+
+  return THR_flea_rw_stream_t__read(stream__pt, data__pu8, &len__dtl, full_or_timeout);
 }
 
 flea_err_t THR_flea_rw_stream_t__read(
@@ -284,23 +301,31 @@ flea_err_t THR_flea_rw_stream_t__read(
   flea_stream_read_mode_e rd_mode__e
 )
 {
+  // TODO: DON'T NEED INNER READ, JUST CALL READ
   return THR_flea_rw_stream_t__inner_read(stream__pt, data__pu8, data_len__pdtl, rd_mode__e);
 }
 
-flea_err_t THR_flea_rw_stream_t__read_byte(
-  flea_rw_stream_t* stream__pt,
-  flea_u8_t*        byte__pu8
+flea_err_t THR_flea_rw_stream_t__read_byte_full_or_timeout(
+  flea_rw_stream_t*       stream__pt,
+  flea_u8_t*              byte__pu8,
+  flea_stream_read_mode_e rd_mode__e
 )
 {
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_rw_stream_t__read_full(stream__pt, byte__pu8, 1));
+  flea_dtl_t len__dtl = 1;
+  if((rd_mode__e != flea_read_full) && (rd_mode__e != flea_read_timeout))
+  {
+    FLEA_THROW("invalid read mode", FLEA_ERR_INV_ARG);
+  }
+  FLEA_CCALL(THR_flea_rw_stream_t__read(stream__pt, byte__pu8, &len__dtl, rd_mode__e));
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_rw_stream_t__read_int_be(
-  flea_rw_stream_t* stream__pt,
-  flea_u32_t*       result__pu32,
-  flea_al_u8_t      nb_bytes__alu8
+flea_err_t THR_flea_rw_stream_t__read_int_be_full_or_timeout(
+  flea_rw_stream_t*       stream__pt,
+  flea_u32_t*             result__pu32,
+  flea_al_u8_t            nb_bytes__alu8,
+  flea_stream_read_mode_e rd_mode__e
 )
 {
   flea_u8_t enc__au8[4];
@@ -308,7 +333,11 @@ flea_err_t THR_flea_rw_stream_t__read_int_be(
   flea_al_u8_t i;
 
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_rw_stream_t__read_full(stream__pt, enc__au8, nb_bytes__alu8));
+  if((rd_mode__e != flea_read_full) && (rd_mode__e != flea_read_timeout))
+  {
+    FLEA_THROW("invalid read mode", FLEA_ERR_INV_ARG);
+  }
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full_or_timeout(stream__pt, enc__au8, nb_bytes__alu8, rd_mode__e));
   for(i = 0; i < nb_bytes__alu8; i++)
   {
     result__u32 <<= 8;
@@ -324,8 +353,6 @@ flea_err_t THR_flea_rw_stream_t__read_full(
   flea_dtl_t        data_len__dtl
 )
 {
-  // TODO: IMPLEMENT FORCE READ ONLY IN THIS TYPE DIRECTLY:
-  // SUCCESSIVE READS UNTIL ALL REQUESTED DATA HAS BEEN READ.
   FLEA_THR_BEG_FUNC();
   flea_dtl_t len__dtl = data_len__dtl;
 

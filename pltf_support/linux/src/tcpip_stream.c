@@ -9,6 +9,7 @@
 #include "pltf_support/tcpip_stream.h"
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <errno.h>
 #include <arpa/inet.h> // inet_addr
 #include <unistd.h>    // for close
@@ -66,20 +67,22 @@ static void init_sock_stream_server(
 static flea_err_t THR_open_socket_server(void* ctx__pv)
 {
   FLEA_THR_BEG_FUNC();
-  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
 
-  // TODO: check if we need to close socket_fd ??? (in examples never done)
-  ctx__pt->socket_fd__int = client_fd;
-  FLEA_THR_FIN_SEC(
-    if(listen_fd == -1)
-  {
-    close(client_fd);
-  }
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
+  struct timeval tv;
+  tv.tv_sec  = 5; /* 5 seconds timeout for receiving a request */
+  tv.tv_usec = 0;
+  setsockopt(
+    ctx__pt->socket_fd__int,
+    SOL_SOCKET,
+    SO_RCVTIMEO,
+    (struct timeval*) &tv,
+    sizeof(struct timeval)
   );
+  FLEA_THR_FIN_SEC_empty();
 } /* THR_open_socket_server */
 
 #endif /* if 0 */
-
 static flea_err_t THR_open_socket_client(void* ctx__pv)
 {
   FLEA_THR_BEG_FUNC();
@@ -193,6 +196,7 @@ static flea_err_t THR_read_socket(
   int flags = 0;
   flea_dtl_t rem_len__dtl    = *nb_bytes_to_read__pdtl;
   flea_dtl_t read_total__dtl = 0;
+  struct timeval tv;
 
   FLEA_THR_BEG_FUNC();
   if(rem_len__dtl == 0)
@@ -203,29 +207,62 @@ static flea_err_t THR_read_socket(
   {
     flags |= MSG_DONTWAIT;
   }
+  if(rd_mode__e == flea_read_timeout)
+  {
+    /* 5 seconds timeout for receiving a request */
+    tv.tv_sec  = 3;
+    tv.tv_usec = 0;
+
+    /* in principle this is not sufficient, as the a read for many byte could
+     * exceed the timeout by returning bytes successively with a delay in
+     * between that is shorter than the timout set here. this corner case is, however, not
+     * relevant to this example implementation.
+     */
+  }
+  else
+  {
+    /* no timeout */
+    tv.tv_sec  = 0;
+    tv.tv_usec = 0;
+  }
+
+  setsockopt(
+    ctx__pt->socket_fd__int,
+    SOL_SOCKET,
+    SO_RCVTIMEO,
+    (struct timeval*) &tv,
+    sizeof(struct timeval)
+  );
   do
   {
+    // if timeout mode
     did_read_ssz = recv(ctx__pt->socket_fd__int, target_buffer__pu8, rem_len__dtl, flags);
     if(did_read_ssz < 0)
     {
       if((rd_mode__e == flea_read_nonblocking) &&
-        ((did_read_ssz == EAGAIN) || (did_read_ssz == EWOULDBLOCK) || (did_read_ssz == 0)))
+        ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
       {
         FLEA_THR_RETURN();
       }
+      if((rd_mode__e == flea_read_timeout) &&
+        ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
+      {
+        FLEA_THROW("recv timout error", FLEA_ERR_TIMEOUT_ON_STREAM_READ);
+      }
+
       FLEA_THROW("recv err", FLEA_ERR_FAILED_STREAM_READ);
     }
     else if(did_read_ssz == 0)
     {
       FLEA_THROW("recv err", FLEA_ERR_FAILED_STREAM_READ);
     }
-    if(rd_mode__e == flea_read_full)
+    // if(rd_mode__e == flea_read_full)
     {
       target_buffer__pu8 += did_read_ssz;
       rem_len__dtl       -= did_read_ssz;
       read_total__dtl    += did_read_ssz;
     }
-  } while((rd_mode__e == flea_read_full) && rem_len__dtl);
+  } while(((rd_mode__e == flea_read_full) || (rd_mode__e == flea_read_timeout)) && rem_len__dtl);
   *nb_bytes_to_read__pdtl = read_total__dtl;
   // TODO: ^REPLACE BY
   // *nb_bytes_to_read__pdtl -= rem_len__dtl;

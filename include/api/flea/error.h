@@ -165,6 +165,12 @@ typedef enum
    */
   FLEA_ERR_STREAM_EOF                                   = 0x91,
 
+  /**
+   * During a stream read operation in timeout mode (flea_read_timeout), a
+   * timout occured.
+   */
+  FLEA_ERR_TIMEOUT_ON_STREAM_READ                       = 0x92,
+
   FLEA_ERR_BUFF_TOO_SMALL                               = 0xA0,
   FLEA_ERR_DECODING_FAILURE                             = 0xA1,
   FLEA_ERR_ASN1_DER_DEC_ERR                             = 0xA3,

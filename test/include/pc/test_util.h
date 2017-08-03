@@ -148,6 +148,8 @@ struct tls_test_cfg_t
   std::vector<std::vector<flea_u8_t> >     crls;
   flea_rev_chk_mode_e                      rev_chk_mode__e;
   std::vector<flea_byte_vec_t>             crls_refs;
+  flea_stream_read_mode_e                  read_mode_for_app_data;
+  int                                      flags;
 };
 #ifdef FLEA_HAVE_ASYM_ALGS
 flea_err_t THR_flea_tls_tool_set_tls_cfg(

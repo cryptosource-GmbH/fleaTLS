@@ -153,6 +153,35 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   tls_test_cfg_t      & cfg
 )
 {
+  cfg.flags = (flea_tls_flag_e) 0;
+
+
+  std::string read_mode_s = cmdl_args.get_property_as_string_default_empty("app_data_read_mode");
+
+  if(read_mode_s == "" || read_mode_s == "full")
+  {
+    cfg.read_mode_for_app_data = flea_read_full;
+  }
+  else if(read_mode_s == "blocking")
+  {
+    cfg.read_mode_for_app_data = flea_read_blocking;
+  }
+  else if(read_mode_s == "nonblocking")
+  {
+    cfg.read_mode_for_app_data = flea_read_nonblocking;
+  }
+  else if(read_mode_s == "timeout")
+  {
+    cfg.read_mode_for_app_data = flea_read_timeout;
+  }
+
+
+  bool use_read_timeout_during_handshake = cmdl_args.get_as_bool_default_false("handshake_timeout");
+  if(use_read_timeout_during_handshake)
+  {
+    cfg.flags |= flea_tls_flag__read_timeout_during_handshake;
+  }
+
   cfg.trusted_certs = cmdl_args.get_bin_file_list_property("trusted");
   cfg.own_certs     = cmdl_args.get_bin_file_list_property("own_certs");
   if(cfg.own_certs.size())

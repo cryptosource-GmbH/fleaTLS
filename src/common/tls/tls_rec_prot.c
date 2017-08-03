@@ -1063,6 +1063,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   flea_bool_t is_handsh_msg_during_app_data__b = FLEA_FALSE;
 
   FLEA_THR_BEG_FUNC();
+  *data_len__palu16 = 0;
   if(rec_prot__pt->is_session_closed__u8)
   {
     FLEA_THROW("tls session closed", FLEA_ERR_TLS_SESSION_CLOSED);
@@ -1294,8 +1295,9 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
 
 /* get the content type of the currently (and not yet completely read) or newly received buffer */
 flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
-  flea_tls_rec_prot_t* rec_prot__pt,
-  ContentType*         cont_type__pe
+  flea_tls_rec_prot_t*    rec_prot__pt,
+  ContentType*            cont_type__pe,
+  flea_stream_read_mode_e rd_mode__e
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -1310,7 +1312,7 @@ flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
       FLEA_FALSE,
       0 /*dummy_content_type */,
       FLEA_TRUE,
-      flea_read_full
+      rd_mode__e
     )
   );
   *cont_type__pe = rec_prot__pt->send_rec_buf_raw__bu8[0];

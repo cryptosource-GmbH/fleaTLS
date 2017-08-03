@@ -140,7 +140,8 @@ static flea_err_t THR_flea_start_tls_client(
       tls_cfg.crls.size(),
       client_session__pt,
       reneg_spec_from_string(cmdl_args.get_property_as_string_default_empty("reneg_mode")),
-      &allowed_ecc_curves__rcu8
+      &allowed_ecc_curves__rcu8,
+      (flea_tls_flag_e) tls_cfg.flags
     )
   );
   printf("session was resumed = %u\n", client_session__pt->for_resumption__u8);
