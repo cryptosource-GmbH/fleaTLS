@@ -45,10 +45,10 @@ static const flea_tls__cipher_suite_t cipher_suites[] = {
 #endif
 #ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
   {FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,    FLEA_TLS_BLOCK_CIPHER(flea_aes128),
-   16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_MASK__RSA},
+   16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_MASK__RSA | FLEA_TLS_CS_MASK__ECDHE},
 #endif
   {FLEA_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,    FLEA_TLS_BLOCK_CIPHER(flea_aes256),
-   16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_MASK__RSA},
+   16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_MASK__RSA | FLEA_TLS_CS_MASK__ECDHE},
 
   // TODO: fix and enable them:
 #if 0
@@ -78,7 +78,7 @@ flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_i
   return flea_sha256;
 }
 
-static const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher_suite_id_t id__t)
+const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher_suite_id_t id__t)
 {
   flea_u8_t i;
 

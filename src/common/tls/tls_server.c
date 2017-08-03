@@ -241,12 +241,32 @@ static flea_err_t THR_flea_tls__read_client_hello(
             }
           }
 
-          /*if (tls_ctx->private_key__t.key_type__t == flea_tls__get_key_type_by_cipher_suite_id(curr_cs_from_peer__alu16))
-           * {
-           * // cipher suite is not suited for the loaded certificate
-           * supported_cs_index__u16 += 1;
-           * continue;
-           * }*/
+          // we can only use ECDHE if the certificate type matches the kex
+          // type of the cipher suite and if the signature algorithms extension
+          // offers an appropriate signature algorithm
+          if(flea_tls__is_cipher_suite_ecdhe_suite(curr_cs_from_peer__alu16))
+          {
+            // check if we can use ECDHE according to the signature algorithms
+            // extension
+            if(tls_ctx->can_use_ecdhe == FLEA_TRUE)
+            {
+              if(tls_ctx->private_key__t.key_type__t !=
+                flea_tls__get_key_type_by_cipher_suite_id(curr_cs_from_peer__alu16))
+              {
+                // cipher suite is not suited for the loaded certificate
+                // supported_cs_index__u16 += 1;
+                // continue;
+                break;
+              }
+            }
+            else
+            {
+              // supported_cs_index__u16 += 1;
+              // continue;
+              break;
+            }
+          }
+
           if(supported_cs_index__u16 < chosen_cs_index__u16)
           {
             chosen_cs_index__u16 = supported_cs_index__u16;

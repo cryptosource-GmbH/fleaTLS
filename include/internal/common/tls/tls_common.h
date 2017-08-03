@@ -187,6 +187,9 @@ flea_err_t flea_tls__get_hash_id_from_tls_id(
   flea_hash_id_t* hash_id__pt
 );
 
+flea_bool_t flea_tls__is_cipher_suite_ecdhe_suite(flea_u16_t suite_id);
+
+
 flea_err_t flea_tls__get_pk_id_from_tls_sig_id(
   flea_u8_t            byte__u8,
   flea_pk_scheme_id_t* pk_id__pt

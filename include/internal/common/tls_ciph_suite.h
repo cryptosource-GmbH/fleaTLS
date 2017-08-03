@@ -14,7 +14,9 @@
 extern "C" {
 #endif
 
-#define FLEA_TLS_CS_MASK__RSA 0x01 // if bit is set if it's an RSA ciphersuite, ECDSA otherwise
+#define FLEA_TLS_CS_MASK__RSA   0x01 // if bit is set it's an RSA ciphersuite, ECDSA otherwise
+
+#define FLEA_TLS_CS_MASK__ECDHE 0x04 // if bit is set it's an ECDHE ciphersuite
 
 typedef enum
 {
@@ -82,6 +84,8 @@ flea_err_t THR_flea_tls_get_cipher_suite_by_id(
   flea_tls__cipher_suite_id_t      id,
   const flea_tls__cipher_suite_t** result__pt
 );
+
+const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher_suite_id_t id__t);
 
 flea_pk_key_type_t flea_tls__get_key_type_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
 

@@ -267,6 +267,7 @@ typedef struct
   // the loaded certificate
   flea_ref_cu8_t allowed_hash_algs_for_sig__rcu8;
   flea_hash_id_t chosen_hash_algorithm__t;
+  flea_bool_t    can_use_ecdhe;
 } flea_tls_ctx_t;
 
 

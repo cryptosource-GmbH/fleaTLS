@@ -31,6 +31,7 @@
 #include "internal/pltf_if/time.h"
 #include "flea/ec_key_gen.h"
 #include "flea/ecka.h"
+#include "internal/common/tls_ciph_suite.h"
 
 #ifdef FLEA_HAVE_TLS
 
@@ -1616,8 +1617,6 @@ flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
   }
 
   // iterate over all algorithm pairs and pick the best matching
-  // TODO/QUESTION: where is he order defined?
-
   // we can only pick the signature algorithm matching to our certificate
   hash_alg_pos__alu8 = 0xFF;
   while(len__alu16)
@@ -1630,6 +1629,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
 
     FLEA_CCALL(THR_flea_rw_stream_t__read_full(rd_strm__pt, sig_alg_bytes__au8, sizeof(sig_alg_bytes__au8)));
 
+    // map sig and hash alg and also check that the sig alg matches our key
     if(THR_flea_tls__map_tls_hash_to_flea_hash(
         sig_alg_bytes__au8[0],
         &hash_id__t
@@ -1637,11 +1637,12 @@ flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
     {
       continue;
     }
-    if(THR_flea_tls__check_sig_alg_compatibility_for_key_type(tls_ctx__pt->private_key__t.key_type__t, hash_id__t))
+    if(THR_flea_tls__check_sig_alg_compatibility_for_key_type(tls_ctx__pt->private_key__t.key_type__t, pk_scheme_id__t))
     {
       continue;
     }
 
+    // if the sig/hash pair is suitable, use it if it's highest priority
     for(i = 0; i < tls_ctx__pt->allowed_hash_algs_for_sig__rcu8.len__dtl; i++)
     {
       if(tls_ctx__pt->allowed_hash_algs_for_sig__rcu8.data__pcu8[i] == hash_id__t)
@@ -1657,9 +1658,13 @@ flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
     }
   }
 
-  if(hash_alg_pos__alu8 == 0xFF)
+  if(hash_alg_pos__alu8 != 0xFF)
   {
-    FLEA_THROW("Couldn't agree on a Signature+Hash Algorithm", FLEA_ERR_TLS_HANDSHK_FAILURE);
+    tls_ctx__pt->can_use_ecdhe = FLEA_TRUE;
+  }
+  else
+  {
+    tls_ctx__pt->can_use_ecdhe = FLEA_FALSE;
   }
 
   FLEA_THR_FIN_SEC_empty();
@@ -1762,6 +1767,15 @@ flea_err_t THR_flea_tls_ctx_t__parse_point_formats_ext(
   FLEA_THR_FIN_SEC_empty();
 }
 
+flea_bool_t flea_tls__is_cipher_suite_ecdhe_suite(flea_u16_t suite_id)
+{
+  if(flea_tls_get_cipher_suite_by_id(suite_id)->mask & FLEA_TLS_CS_MASK__ECDHE)
+  {
+    return FLEA_TRUE;
+  }
+  return FLEA_FALSE;
+}
+
 flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_u16_t suite_id)
 {
   // TODO: MAKE GENERAL IMPLEMENTATION
@@ -1836,8 +1850,8 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
       }
       else
       {
-        FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, ext_len__u32));
-        // FLEA_CCALL(THR_flea_tls_ctx_t__parse_sig_alg_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
+        // FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, ext_len__u32));
+        FLEA_CCALL(THR_flea_tls_ctx_t__parse_sig_alg_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
         receive_sig_algs_ext__b = FLEA_TRUE;
       }
     }
@@ -1856,28 +1870,29 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
     {
       FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, ext_len__u32));
     }
+  }
 
-    // no signature_algorithms ext. received from client
-    if(receive_sig_algs_ext__b == FLEA_FALSE && tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_SERVER)
+  // no signature_algorithms ext. received from client
+  if(receive_sig_algs_ext__b == FLEA_FALSE && tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_SERVER)
+  {
+    // we need to set the default signature and hash algorithm because the
+    // client does not support any other. This means sha1 + signature scheme
+    // of the currently loaded certificate
+    for(i = 0; i < tls_ctx__pt->allowed_hash_algs_for_sig__rcu8.len__dtl; i++)
     {
-      // we need to set the default signature and hash algorithm because the
-      // client does not support any other. This means sha1 + signature scheme
-      // of the currently loaded certificate
-      for(i = 0; i < tls_ctx__pt->allowed_hash_algs_for_sig__rcu8.len__dtl; i++)
+      if(tls_ctx__pt->allowed_hash_algs_for_sig__rcu8.data__pcu8[i] == flea_sha1)
       {
-        if(tls_ctx__pt->allowed_hash_algs_for_sig__rcu8.data__pcu8[i] == flea_sha1)
-        {
-          support_sha1__b = FLEA_TRUE;
-          break;
-        }
+        support_sha1__b = FLEA_TRUE;
+        break;
       }
-      if(support_sha1__b == FLEA_FALSE)
-      {
-        FLEA_THROW(
-          "Client only supports signatures with hash algorithm SHA1 and server is configred not to accept signatures with SHA1",
-          FLEA_ERR_TLS_HANDSHK_FAILURE
-        );
-      }
+    }
+    if(support_sha1__b == FLEA_FALSE)
+    {
+      tls_ctx__pt->can_use_ecdhe = FLEA_FALSE;
+    }
+    else
+    {
+      tls_ctx__pt->can_use_ecdhe = FLEA_TRUE;
     }
   }
   FLEA_THR_FIN_SEC_empty();
