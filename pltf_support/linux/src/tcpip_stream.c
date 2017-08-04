@@ -209,7 +209,7 @@ static flea_err_t THR_read_socket(
   }
   if(rd_mode__e == flea_read_timeout)
   {
-    /* 5 seconds timeout for receiving a request */
+    /* timeout for receiving data */
     tv.tv_sec  = 3;
     tv.tv_usec = 0;
 
