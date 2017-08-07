@@ -36,7 +36,7 @@ flea_err_t THR_flea_test_ber_dec_basic()
       &hlp__t
     )
   );
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref, flea_read_full));
+  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref));
   FLEA_CCALL(
     THR_flea_ber_dec_t__get_ref_to_raw_optional(
       &dec__t,
@@ -180,7 +180,7 @@ static flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
   {
     strm__t.strm_type__e = flea_strm_type_generic;
   }
-  err__t = THR_flea_ber_dec_t__ctor(&dec__t, &strm__t, 0, dec_val_hndg__e, flea_read_full);
+  err__t = THR_flea_ber_dec_t__ctor(&dec__t, &strm__t, 0, dec_val_hndg__e);
   if(err__t != dec_ctor_exp_err_code)
   {
     FLEA_THROW("unexpected ctor err code", FLEA_ERR_FAILED_TEST);

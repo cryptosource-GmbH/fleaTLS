@@ -240,7 +240,13 @@ static flea_err_t THR_server_cycle(
 
   FLEA_CCALL(THR_unix_tcpip_listen_accept(listen_fd, &sock_fd));
   /** socket will be closed by rw_stream_t__dtor **/
-  FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_server(&rw_stream__t, sock_fd));
+  FLEA_CCALL(
+    THR_flea_pltfif_tcpip__create_rw_stream_server(
+      &rw_stream__t,
+      sock_fd,
+      cmdl_args.get_property_as_u32_default("handshake_timeout", 0)
+    )
+  );
 
 
   FLEA_CCALL(

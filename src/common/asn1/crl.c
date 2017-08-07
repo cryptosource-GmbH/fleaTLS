@@ -44,7 +44,7 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(
       &hlp__t
     )
   );
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref, flea_read_full));
+  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref));
   /* open seq of DPs */
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
   while(flea_ber_dec_t__has_current_more_data(&dec__t))
@@ -292,7 +292,7 @@ static flea_err_t THR_flea_crl__parse_extensions(
     );
 
     FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&source__t, ostr__t.data__pu8, ostr__t.len__dtl, &hlp__t));
-    FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &source__t, 0, flea_decode_ref, flea_read_full));
+    FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &source__t, 0, flea_decode_ref));
     if(!(ext_oid_ref__t.len__dtl == 3 && ext_oid_ref__t.data__pu8[0] == 0x55 && ext_oid_ref__t.data__pu8[1] == 0x1D))
     {
       if(critical__b)
@@ -436,12 +436,12 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl_stream(
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&source_tbs__t, crl_der__pcu8, crl_der_len__dtl, &hlp_tbs__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec_tbs__t, &source_tbs__t, 0, flea_decode_ref, flea_read_full));
+  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec_tbs__t, &source_tbs__t, 0, flea_decode_ref));
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec_tbs__t));
   FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&dec_tbs__t, &tbs__rcu8));
 
   FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&source__t, crl_der__pcu8, crl_der_len__dtl, &hlp__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref, flea_read_full));
+  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref));
 
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t)); // crl seq
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t)); // tbs seq

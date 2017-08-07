@@ -176,12 +176,6 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   }
 
 
-  bool use_read_timeout_during_handshake = cmdl_args.get_as_bool_default_false("handshake_timeout");
-  if(use_read_timeout_during_handshake)
-  {
-    cfg.flags |= flea_tls_flag__read_timeout_during_handshake;
-  }
-
   cfg.trusted_certs = cmdl_args.get_bin_file_list_property("trusted");
   cfg.own_certs     = cmdl_args.get_bin_file_list_property("own_certs");
   if(cfg.own_certs.size())
