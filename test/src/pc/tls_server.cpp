@@ -104,8 +104,9 @@ static flea_err_t THR_check_keyb_input(/*fd_set & keyb_fds*/)
 } // THR_check_keyb_input
 
 static flea_err_t THR_unix_tcpip_listen_accept(
-  int  listen_fd,
-  int* fd
+  int      listen_fd,
+  int*     fd,
+  unsigned timeout_secs
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -232,19 +233,28 @@ static flea_err_t THR_server_cycle(
   flea_tls_ctx_t__INIT(&tls_ctx);
   flea_cert_store_t__INIT(&trust_store__t);
 
+  // flea_u8_t * dbg_leak = (flea_u8_t* )malloc(1);
+
   FLEA_CCALL(THR_flea_cert_store_t__ctor(&trust_store__t));
   if(cert_chain_len == 0)
   {
     throw test_utils_exceptn_t("missing own certificate for tls server");
   }
 
-  FLEA_CCALL(THR_unix_tcpip_listen_accept(listen_fd, &sock_fd));
+  FLEA_CCALL(
+    THR_unix_tcpip_listen_accept(
+      listen_fd,
+      &sock_fd,
+      cmdl_args.get_property_as_u32_default("read_timeout", 1)
+    )
+  );
+
   /** socket will be closed by rw_stream_t__dtor **/
   FLEA_CCALL(
     THR_flea_pltfif_tcpip__create_rw_stream_server(
       &rw_stream__t,
       sock_fd,
-      cmdl_args.get_property_as_u32_default("handshake_timeout", 0)
+      cmdl_args.get_property_as_u32_default("read_timeout", 1)
     )
   );
 
@@ -337,6 +347,7 @@ static flea_err_t THR_server_cycle(
       printf("received data (len = %u): %s\n", buf_len, buf);
       printf("read_app_data returned\n");
       FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
+      usleep(10000);
     }
   }
   else

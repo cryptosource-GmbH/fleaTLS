@@ -158,11 +158,11 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
 
   std::string read_mode_s = cmdl_args.get_property_as_string_default_empty("app_data_read_mode");
 
-  if(read_mode_s == "" || read_mode_s == "full")
+  if(read_mode_s == "full")
   {
     cfg.read_mode_for_app_data = flea_read_full;
   }
-  else if(read_mode_s == "blocking")
+  else if(read_mode_s == "" || read_mode_s == "blocking")
   {
     cfg.read_mode_for_app_data = flea_read_blocking;
   }
@@ -170,9 +170,9 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   {
     cfg.read_mode_for_app_data = flea_read_nonblocking;
   }
-  else if(read_mode_s == "timeout")
+  else
   {
-    cfg.read_mode_for_app_data = flea_read_timeout;
+    throw test_utils_exceptn_t("invalid value for app_data_read_mode");
   }
 
 

@@ -236,10 +236,10 @@ static flea_err_t THR_read_socket(
       if((rd_mode__e == flea_read_nonblocking) &&
         ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
       {
+        *nb_bytes_to_read__pdtl = 0;
         FLEA_THR_RETURN();
       }
-      if((rd_mode__e == flea_read_timeout) &&
-        ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
+      else if(((errno == EAGAIN) || (errno == EWOULDBLOCK)))
       {
         FLEA_THROW("recv timout error", FLEA_ERR_TIMEOUT_ON_STREAM_READ);
       }
@@ -256,7 +256,7 @@ static flea_err_t THR_read_socket(
       rem_len__dtl       -= did_read_ssz;
       read_total__dtl    += did_read_ssz;
     }
-  } while(((rd_mode__e == flea_read_full) || (rd_mode__e == flea_read_timeout)) && rem_len__dtl);
+  } while((rd_mode__e == flea_read_full) && rem_len__dtl);
   *nb_bytes_to_read__pdtl = read_total__dtl;
   // TODO: ^REPLACE BY
   // *nb_bytes_to_read__pdtl -= rem_len__dtl;

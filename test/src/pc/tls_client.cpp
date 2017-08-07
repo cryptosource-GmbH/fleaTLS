@@ -116,7 +116,7 @@ static flea_err_t THR_flea_start_tls_client(
     THR_flea_pltfif_tcpip__create_rw_stream_client(
       &rw_stream__t,
       cmdl_args.get_property_as_u32("port"),
-      cmdl_args.get_property_as_u32_default("handshake_timeout", 0),
+      cmdl_args.get_property_as_u32_default("read_timeout", 0),
       hostname_s.c_str()
     )
   );
@@ -172,6 +172,7 @@ static flea_err_t THR_flea_start_tls_client(
     FLEA_CCALL(THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking));
     buf[buf_len] = 0;
     printf("received data: %s\n", buf);
+    usleep(10000);
   }
 
   FLEA_THR_FIN_SEC(

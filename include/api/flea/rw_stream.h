@@ -27,13 +27,6 @@ typedef enum
    * Read operation will return the exactly the requested number of bytes.
    */
   flea_read_full,
-
-  /**
-   * Read operation tries to read exactly the requested number of bytes like
-   * flea_read_full, but after the expiration of the specified timeout, it
-   * returns with an error
-   */
-  flea_read_timeout
 } flea_stream_read_mode_e;
 
 typedef flea_err_t (* flea_rw_stream_write_f)(

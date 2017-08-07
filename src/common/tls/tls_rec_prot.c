@@ -850,18 +850,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   // set gcm tag to point "behind the data"
   gcm_tag__pu8 = data + data_len;
 
-  printf("nonce(1) = ");
-  for(unsigned i = 0; i < iv_len; i++)
-  {
-    printf("%02x", iv[i]);
-  }
-  printf("\n");
-  printf("associated data = ");
-  for(unsigned i = 0; i < sizeof(gcm_header__au8); i++)
-  {
-    printf("%02x", gcm_header__au8[i]);
-  }
-  printf("\n");
   FLEA_CCALL(
     THR_flea_ae__encrypt(
       rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.cipher_id,
