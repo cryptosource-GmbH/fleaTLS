@@ -480,11 +480,10 @@ flea_err_t THR_flea_tls__read_finished(
   );
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
   FLEA_CCALL(
-    THR_flea_rw_stream_t__read_full_or_timeout(
+    THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
       rec_finished__pu8,
-      finished_len__alu8,
-      tls_ctx->handshake_read_mode__e
+      finished_len__alu8
     )
   );
   if(tls_ctx->sec_reneg_flag__u8)
@@ -528,11 +527,10 @@ flea_err_t THR_flea_tls__read_certificate(
   // we don't need the length
   // TODO: consider checking length consistency with handshake msg length
   FLEA_CCALL(
-    THR_flea_rw_stream_t__read_full_or_timeout(
+    THR_flea_rw_stream_t__read_full(
       flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
       dummy__au8_l3,
-      sizeof(dummy__au8_l3),
-      tls_ctx->handshake_read_mode__e
+      sizeof(dummy__au8_l3)
     )
   );
   FLEA_CCALL(
@@ -754,14 +752,6 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
 
   tls_ctx__pt->selected_cipher_suite__u16 = FLEA_TLS_NULL_WITH_NULL_NULL;
 
-  if(flags__e & flea_tls_flag__read_timeout_during_handshake)
-  {
-    tls_ctx__pt->handshake_read_mode__e = flea_read_timeout;
-  }
-  else
-  {
-    tls_ctx__pt->handshake_read_mode__e = flea_read_full;
-  }
 
   /*if(ctx->flags & flea_tls_flag__read_timeout_during_handshake)
    * {
@@ -1493,10 +1483,9 @@ static flea_err_t THR_flea_tls_ctx__parse_reneg_ext(
   }
   FLEA_ALLOC_BUF(cmp__bu8, exp_len__alu8);
   FLEA_CCALL(
-    THR_flea_rw_stream_t__read_byte_full_or_timeout(
+    THR_flea_rw_stream_t__read_byte(
       rd_strm__pt,
-      &len__u8,
-      tls_ctx__pt->handshake_read_mode__e
+      &len__u8
     )
   );
   if(len__u8 + 1 != ext_len__alu16)
@@ -1508,11 +1497,10 @@ static flea_err_t THR_flea_tls_ctx__parse_reneg_ext(
     FLEA_THROW("invalid renegotiation info size", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
   FLEA_CCALL(
-    THR_flea_rw_stream_t__read_full_or_timeout(
+    THR_flea_rw_stream_t__read_full(
       rd_strm__pt,
       cmp__bu8,
-      exp_len__alu8,
-      tls_ctx__pt->handshake_read_mode__e
+      exp_len__alu8
     )
   );
 
@@ -1559,11 +1547,10 @@ flea_err_t THR_flea_tls_ctx_t__parse_supported_curves_ext(
   }
 
   FLEA_CCALL(
-    THR_flea_rw_stream_t__read_int_be_full_or_timeout(
+    THR_flea_rw_stream_t__read_int_be(
       rd_strm__pt,
       &len__u32,
-      2,
-      tls_ctx__pt->handshake_read_mode__e
+      2
     )
   );
   if((len__u32 % 2) || (len__u32 > ext_len__alu16 - 2))
@@ -1585,11 +1572,10 @@ flea_err_t THR_flea_tls_ctx_t__parse_supported_curves_ext(
     flea_al_u16_t i;
     len__u32 -= 2;
     FLEA_CCALL(
-      THR_flea_rw_stream_t__read_full_or_timeout(
+      THR_flea_rw_stream_t__read_full(
         rd_strm__pt,
         curve_bytes__au8,
-        sizeof(curve_bytes__au8),
-        tls_ctx__pt->handshake_read_mode__e
+        sizeof(curve_bytes__au8)
       )
     );
     if(THR_flea_tls__map_curve_bytes_to_flea_curve(curve_bytes__au8, &dp_id))
@@ -1633,10 +1619,9 @@ flea_err_t THR_flea_tls_ctx_t__parse_point_formats_ext(
   }
 
   FLEA_CCALL(
-    THR_flea_rw_stream_t__read_byte_full_or_timeout(
+    THR_flea_rw_stream_t__read_byte(
       rd_strm__pt,
-      &len__u8,
-      tls_ctx__pt->handshake_read_mode__e
+      &len__u8
     )
   );
   if(len__u8 > ext_len__alu16 - 1)
@@ -1647,10 +1632,9 @@ flea_err_t THR_flea_tls_ctx_t__parse_point_formats_ext(
   {
     flea_u8_t byte;
     FLEA_CCALL(
-      THR_flea_rw_stream_t__read_byte_full_or_timeout(
+      THR_flea_rw_stream_t__read_byte(
         rd_strm__pt,
-        &byte,
-        tls_ctx__pt->handshake_read_mode__e
+        &byte
       )
     );
     if(byte == 0) /* uncompressed */
@@ -1714,11 +1698,10 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
 
   FLEA_CCALL(
-    THR_flea_rw_stream_t__read_int_be_full_or_timeout(
+    THR_flea_rw_stream_t__read_int_be(
       hs_rd_stream__pt,
       &extensions_len__u32,
-      2,
-      tls_ctx__pt->handshake_read_mode__e
+      2
     )
   );
   while(extensions_len__u32)
@@ -1726,19 +1709,17 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
     flea_u32_t ext_type_be__u32;
     flea_u32_t ext_len__u32;
     FLEA_CCALL(
-      THR_flea_rw_stream_t__read_int_be_full_or_timeout(
+      THR_flea_rw_stream_t__read_int_be(
         hs_rd_stream__pt,
         &ext_type_be__u32,
-        2,
-        tls_ctx__pt->handshake_read_mode__e
+        2
       )
     );
     FLEA_CCALL(
-      THR_flea_rw_stream_t__read_int_be_full_or_timeout(
+      THR_flea_rw_stream_t__read_int_be(
         hs_rd_stream__pt,
         &ext_len__u32,
-        2,
-        tls_ctx__pt->handshake_read_mode__e
+        2
       )
     );
     extensions_len__u32 -= (((flea_u32_t) 4) + ext_len__u32);
@@ -1762,10 +1743,9 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
     else
     {
       FLEA_CCALL(
-        THR_flea_rw_stream_t__skip_read_full_or_timeout(
+        THR_flea_rw_stream_t__skip_read(
           hs_rd_stream__pt,
-          ext_len__u32,
-          tls_ctx__pt->handshake_read_mode__e
+          ext_len__u32
         )
       );
     }
@@ -1923,10 +1903,9 @@ flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(
-    THR_flea_rw_stream_t__read_byte_full_or_timeout(
+    THR_flea_rw_stream_t__read_byte(
       hs_rd_stream__pt,
-      &peer_enc_pubpoint_len__u8,
-      tls_ctx__pt->handshake_read_mode__e
+      &peer_enc_pubpoint_len__u8
     )
   );
   // TODO: QUESTION (JR): correct? Or do we only set a limit for stack usage? (tls
@@ -1938,11 +1917,10 @@ flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
   }
   FLEA_ALLOC_BUF(peer_enc_pubpoint__bu8, peer_enc_pubpoint_len__u8);
   FLEA_CCALL(
-    THR_flea_rw_stream_t__read_full_or_timeout(
+    THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
       peer_enc_pubpoint__bu8,
-      peer_enc_pubpoint_len__u8,
-      tls_ctx__pt->handshake_read_mode__e
+      peer_enc_pubpoint_len__u8
     )
   );
 

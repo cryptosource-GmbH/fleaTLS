@@ -266,7 +266,7 @@ typedef struct
   flea_u8_t                  extension_ctrl__u8;       /* used only by server */
   flea_ref_cu8_t             allowed_ecc_curves__rcu8; /* by flea_ec_dom_par_id_t */
   flea_u8_t                  chosen_ecc_dp_internal_id__u8;
-  flea_stream_read_mode_e    handshake_read_mode__e;
+  // flea_stream_read_mode_e    handshake_read_mode__e;
   // flea_tls_flag_e flags;
 } flea_tls_ctx_t;
 

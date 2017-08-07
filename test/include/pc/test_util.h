@@ -149,7 +149,8 @@ struct tls_test_cfg_t
   flea_rev_chk_mode_e                      rev_chk_mode__e;
   std::vector<flea_byte_vec_t>             crls_refs;
   flea_stream_read_mode_e                  read_mode_for_app_data;
-  int                                      flags;
+  int                                      flags = 0;
+  unsigned                                 timeout_secs_during_handshake = 0;
 };
 #ifdef FLEA_HAVE_ASYM_ALGS
 flea_err_t THR_flea_tls_tool_set_tls_cfg(

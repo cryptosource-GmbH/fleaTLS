@@ -35,6 +35,7 @@ typedef struct
   write_buf_t write_buf__t;
   flea_u16_t  port__u16;
   const char* hostname;
+  unsigned    timeout_secs;
 } linux_socket_stream_ctx_t;
 
 static linux_socket_stream_ctx_t stc_sock_stream__t;
@@ -42,25 +43,29 @@ static linux_socket_stream_ctx_t stc_sock_stream__t;
 static void init_sock_stream_client(
   linux_socket_stream_ctx_t* sock_stream__pt,
   flea_u16_t                 port__u16,
+  unsigned                   timeout_secs,
   const char*                hostname
 )
 {
   memset(sock_stream__pt, 0, sizeof(*sock_stream__pt));
   sock_stream__pt->read_buf__t.alloc_len__dtl  = sizeof(sock_stream__pt->read_buf__t.buffer__au8);
   sock_stream__pt->write_buf__t.alloc_len__dtl = sizeof(sock_stream__pt->write_buf__t.buffer__au8);
-  sock_stream__pt->port__u16 = port__u16;
-  sock_stream__pt->hostname  = hostname;
+  sock_stream__pt->port__u16    = port__u16;
+  sock_stream__pt->timeout_secs = timeout_secs;
+  sock_stream__pt->hostname     = hostname;
 }
 
 static void init_sock_stream_server(
   linux_socket_stream_ctx_t* sock_stream__pt,
-  int                        sock_fd
+  int                        sock_fd,
+  unsigned                   timeout_secs
 )
 {
   memset(sock_stream__pt, 0, sizeof(*sock_stream__pt));
   sock_stream__pt->read_buf__t.alloc_len__dtl  = sizeof(sock_stream__pt->read_buf__t.buffer__au8);
   sock_stream__pt->write_buf__t.alloc_len__dtl = sizeof(sock_stream__pt->write_buf__t.buffer__au8);
   sock_stream__pt->socket_fd__int = sock_fd;
+  sock_stream__pt->timeout_secs   = timeout_secs;
 }
 
 #if 0
@@ -207,25 +212,14 @@ static flea_err_t THR_read_socket(
   {
     flags |= MSG_DONTWAIT;
   }
-  if(rd_mode__e == flea_read_timeout)
-  {
-    /* timeout for receiving data */
-    tv.tv_sec  = 3;
-    tv.tv_usec = 0;
+  tv.tv_sec  = ctx__pt->timeout_secs;
+  tv.tv_usec = 0;
 
-    /* in principle this is not sufficient, as the a read for many byte could
-     * exceed the timeout by returning bytes successively with a delay in
-     * between that is shorter than the timout set here. this corner case is, however, not
-     * relevant to this example implementation.
-     */
-  }
-  else
-  {
-    /* no timeout */
-    tv.tv_sec  = 0;
-    tv.tv_usec = 0;
-  }
-
+  /* ^- in principle this is not sufficient, as the a read for many byte could
+   * exceed the timeout by returning bytes successively with a delay in
+   * between that is shorter than the timout set here. this corner case is, however, not
+   * relevant to this example implementation.
+   */
   setsockopt(
     ctx__pt->socket_fd__int,
     SOL_SOCKET,
@@ -328,7 +322,8 @@ static flea_err_t THR_read_socket(
 
 flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
   flea_rw_stream_t* stream__pt,
-  int               sock_fd
+  int               sock_fd,
+  unsigned          timeout_secs
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -338,7 +333,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
   // init_sock_stream(&stc_sock_stream__t, port__u16, NULL);
-  init_sock_stream_server(&stc_sock_stream__t, sock_fd);
+  init_sock_stream_server(&stc_sock_stream__t, sock_fd, timeout_secs);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,
@@ -357,6 +352,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
 flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_rw_stream_t* stream__pt,
   flea_u16_t        port__u16,
+  unsigned          timeout_secs,
   const char*       hostname
 )
 {
@@ -366,7 +362,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_rw_stream_write_f write__f       = THR_write_socket;
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
-  init_sock_stream_client(&stc_sock_stream__t, port__u16, hostname);
+  init_sock_stream_client(&stc_sock_stream__t, port__u16, timeout_secs, hostname);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,

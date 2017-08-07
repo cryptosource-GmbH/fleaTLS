@@ -173,7 +173,7 @@ static flea_err_t THR_flea_create_private_and_or_public_key_from_pkcs8(
   flea_x509_algid_ref_t algid_ref__t = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&source__t, der_key__pcu8, der_key_len__alu16, &hlp__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref, flea_read_full));
+  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref));
 
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
   // FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw(&dec__t, FLEA_ASN1_INT, 0, &version__u8, &version_len__dtl));
@@ -198,7 +198,7 @@ static flea_err_t THR_flea_create_private_and_or_public_key_from_pkcs8(
   );
 
   FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&cont_source__t, ostr__t.data__pu8, ostr__t.len__dtl, &cont_hlp__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &cont_source__t, 0, flea_decode_ref, flea_read_full));
+  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &cont_source__t, 0, flea_decode_ref));
 
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&cont_dec__t));
 # ifdef FLEA_HAVE_RSA

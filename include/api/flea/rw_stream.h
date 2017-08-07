@@ -146,23 +146,14 @@ flea_err_t THR_flea_rw_stream_t__read_full(
   flea_dtl_t        data_len__dtl
 );
 
-flea_err_t THR_flea_rw_stream_t__read_full_or_timeout(
-  flea_rw_stream_t*       stream__pt,
-  flea_u8_t*              data__pu8,
-  flea_dtl_t              data_len__dtl,
-  flea_stream_read_mode_e full_or_timeout
+flea_err_t THR_flea_rw_stream_t__skip_read(
+  flea_rw_stream_t* stream__pt,
+  flea_dtl_t        skip_len__dtl
 );
 
-flea_err_t THR_flea_rw_stream_t__skip_read_full_or_timeout(
-  flea_rw_stream_t*       stream__pt,
-  flea_dtl_t              skip_len__dtl,
-  flea_stream_read_mode_e rd_mode__e
-);
-
-flea_err_t THR_flea_rw_stream_t__read_byte_full_or_timeout(
-  flea_rw_stream_t*       stream__pt,
-  flea_u8_t*              byte__pu8,
-  flea_stream_read_mode_e full_or_timeout__e
+flea_err_t THR_flea_rw_stream_t__read_byte(
+  flea_rw_stream_t* stream__pt,
+  flea_u8_t*        byte__pu8
 );
 
 /*flea_err_t THR_flea_rw_stream_t__read_byte(
@@ -179,11 +170,10 @@ flea_err_t THR_flea_rw_stream_t__read_byte_full_or_timeout(
  *                value
  * @param nb_bytes__alu8 the width of the encoded integer in bytes
  */
-flea_err_t THR_flea_rw_stream_t__read_int_be_full_or_timeout(
-  flea_rw_stream_t*       stream__pt,
-  flea_u32_t*             result__pu32,
-  flea_al_u8_t            nb_bytes__alu8,
-  flea_stream_read_mode_e rd_mode__e
+flea_err_t THR_flea_rw_stream_t__read_int_be(
+  flea_rw_stream_t* stream__pt,
+  flea_u32_t*       result__pu32,
+  flea_al_u8_t      nb_bytes__alu8
 );
 
 void flea_rw_stream_t__set_filter(

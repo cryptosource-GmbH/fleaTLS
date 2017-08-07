@@ -80,7 +80,6 @@ struct struct_flea_ber_dec_t
   flea_u8_t                hash_active__b;
   flea_u8_t                hash_buffering_active__b;
   flea_hash_ctx_t*         hash_ctx__pt;
-  flea_stream_read_mode_e  read_mode__e;
   // flea_u8_t* hasher_constru
   // const flea_u8_t*         next_tlv_ptr__pcu8;
 };
@@ -106,8 +105,7 @@ flea_err_t THR_flea_ber_dec_t__ctor(
   flea_ber_dec_t*          dec__pt,
   flea_rw_stream_t*        read_stream__pt,
   flea_dtl_t               length_limit__dtl,
-  flea_asn1_dec_val_hndg_e dec_val_hndg__e,
-  flea_stream_read_mode_e  full_or_timeout__e
+  flea_asn1_dec_val_hndg_e dec_val_hndg__e
 );
 
 
@@ -116,7 +114,6 @@ flea_err_t THR_flea_ber_dec_t__ctor_hash_support(
   flea_rw_stream_t*        read_stream__pt,
   flea_dtl_t               length_limit__dtl,
   flea_asn1_dec_val_hndg_e dec_val_hndg__e,
-  flea_stream_read_mode_e  full_or_timeout__e,
   flea_byte_vec_t*         back_buffer__pt,
   flea_hash_ctx_t*         unconstructed_hash_ctx__pt
 );
