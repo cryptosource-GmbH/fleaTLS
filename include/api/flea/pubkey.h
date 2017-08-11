@@ -104,100 +104,149 @@ flea_ref_cu8_t flea_public_key__get_encoded_public_component(flea_public_key_t* 
 
 void flea_public_key_t__dtor(flea_public_key_t* key__pt);
 
-flea_err_t THR_flea_x509_parse_ecc_public_params(
-  const flea_byte_vec_t*     encoded_parameters__pt,
-  flea_ec_gfp_dom_par_ref_t* dom_par__pt
-);
 
-/*flea_err_t THR_flea_x509_parse_rsa_public_key(
- * const flea_byte_vec_t* public_key_value__pt,
- * flea_byte_vec_t*       modulus__pt,
- * flea_byte_vec_t*       pub_exp__pt
- * );*/
-
-/*
- * flea_err_t THR_flea_public_key_t__ctor(
- * flea_public_key_t*    key__pt,
- * flea_pk_key_type_t    key_type,
- * const flea_byte_vec_t* key_as_bit_string_tlv__prcu8,
- * const flea_byte_vec_t* encoded_params__prcu8
- * );*/
+/**
+ * create a public key from a the bit string TLV structure found e.g. in an
+ * X.509 certificate.
+ */
 flea_err_t THR_flea_public_key_t__ctor_asn1(
-  flea_public_key_t*     key__pt,
-  const flea_byte_vec_t* key_as_bit_string_tlv__prcu8,
-  const flea_byte_vec_t* encoded_params__prcu8,
-  const flea_byte_vec_t* alg_oid__pt
+  flea_public_key_t*     key,
+  const flea_byte_vec_t* key_as_bit_string_tlv,
+  const flea_byte_vec_t* encoded_params,
+  const flea_byte_vec_t* alg_oid
 );
 
-/*
- * flea_err_t THR_flea_public_key_t__ctor(
- * flea_public_key_t*     key__pt,
- * flea_pk_key_type_t     key_type,
- * const flea_byte_vec_t* key_as_bit_string_tlv__prcu8,
- * const flea_byte_vec_t* encoded_params__prcu8
- * );*/
-
+/**
+ * Create a public key from a certificate.
+ *
+ * @param key the key to construct.
+ * @param cert_ref the certificate structure of the certificate which contains
+ * the encoded public key
+ */
 flea_err_t THR_flea_public_key_t__ctor_cert(
-  flea_public_key_t*          key__pt,
-  const flea_x509_cert_ref_t* cert_ref__pt
+  flea_public_key_t*          key,
+  const flea_x509_cert_ref_t* cert_ref
 );
 
-flea_err_t THR_flea_x509_get_hash_id_and_key_type_from_oid(
-  const flea_u8_t*    oid__pcu8,
-  flea_al_u16_t       oid_len__alu16,
-  flea_hash_id_t*     result_hash_id__pe,
-  flea_pk_key_type_t* result_key_type_e
-);
-
-
+/**
+ * Verify a signature using a public key. In case of ECDSA, an ASN.1/DER encoded
+ * signature is expected.
+ *
+ * @param key the public key to be used for the verification
+ * @param pk_scheme_id the signature scheme to be used for the verification
+ * @param hash_id the id of the hash algorithm used for the signature generation
+ * @param message the message which was signed
+ * @param signature the signature to verify
+ *
+ *
+ */
 flea_err_t THR_flea_public_key_t__verify_signature(
-  const flea_public_key_t* key__pt,
-  flea_pk_scheme_id_t      pk_scheme_id__t,
-  const flea_byte_vec_t*   message__prcu8,
-  const flea_byte_vec_t*   signature__prcu8,
-  flea_hash_id_t           hash_id__t
+  const flea_public_key_t* key,
+  flea_pk_scheme_id_t      pk_scheme_id,
+  flea_hash_id_t           hash_id,
+  const flea_byte_vec_t*   message,
+  const flea_byte_vec_t*   signature
 );
 
+
+/**
+ * Verify a signature using a public key. In case of ECDSA, a raw concatenation
+ * of r and s encoded in the base point order length is expected as the
+ * signature.
+ *
+ * @param key the public key to be used for the verification
+ * @param pk_scheme_id the signature scheme to be used for the verification
+ * @param hash_id the id of the hash algorithm used for the signature generation
+ * @param message the message which was signed
+ * @param signature the signature to verify
+ *
+ */
+// TODO: WITHOUT BYTEVECS
+flea_err_t THR_flea_public_key_t__verify_signature_raw(
+  const flea_public_key_t* key,
+  flea_pk_scheme_id_t      pk_scheme_id,
+  flea_hash_id_t           hash_id,
+  const flea_byte_vec_t*   message,
+  const flea_byte_vec_t*   signature
+);
+
+
+/**
+ * The same operation as THR_flea_public_key_t__verify_signature_raw(), except that the
+ * digest (i.e. hash value) is directly provided by the caller instead of being
+ * computed by the function.
+ *
+ * @param digest the digest to verify
+ * @param digest_len length of digest
+ * @param hash_id id of the hash algorithm that was used to compute digest
+ * @param id the ID of the signature scheme to use
+ * @param pubkey pointer to the public key to be used in the operation
+ * @param signature pointer to the memory area for the signature to be verified.
+ * @param signature_len length of signature
+ */
+flea_err_t THR_flea_public_key_t__verify_digest_raw(
+  const flea_public_key_t* pubkey,
+  flea_pk_scheme_id_t      id,
+  flea_hash_id_t           hash_id,
+  const flea_u8_t*         digest,
+  flea_al_u8_t             digest_len,
+  const flea_u8_t*         signature,
+  flea_al_u16_t            signature_len
+);
+
+/**
+ * Verify a signature using a specific X.509 signature algorithm ID.
+ */
 flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
-  const flea_public_key_t*     public_key__pt,
-  const flea_x509_algid_ref_t* sigalg_id__t,
-  const flea_byte_vec_t*       tbs_data__pt,
-  const flea_byte_vec_t*       signature__pt
+  const flea_public_key_t*     public_key,
+  const flea_x509_algid_ref_t* sigalg_id,
+  const flea_byte_vec_t*       tbs_data,
+  const flea_byte_vec_t*       signature
 );
 
+/**
+ * Encrypt a message using a public key.
+ *
+ * @param key the public key to be used for the verification
+ * @param pk_scheme_id the encryption scheme to be used for the encryption
+ * @param hash_id the id of the hash algorithm used for the signature generation
+ * @param message the message to be encrypted
+ * @param message_len the length of the message to be encrypted
+ * @param result receives the encrypted message after successful completion
+ */
 flea_err_t THR_flea_public_key_t__encrypt_message(
-  const flea_public_key_t* key__pt,
-  flea_pk_scheme_id_t      pk_scheme_id__t,
-  flea_hash_id_t           hash_id__t,
-  const flea_u8_t*         message__pcu8,
-  flea_al_u16_t            message_len__alu16,
-  flea_byte_vec_t*         result__pt
+  const flea_public_key_t* key,
+  flea_pk_scheme_id_t      pk_scheme_id,
+  flea_hash_id_t           hash_id,
+  const flea_u8_t*         message,
+  flea_al_u16_t            message_len,
+  flea_byte_vec_t*         result
 );
 
-/*
- * flea_err_t THR_flea_public_key_t__encrypt_message(
- * const flea_public_key_t* key__pt,
- * flea_pk_scheme_id_t      pk_scheme_id__t,
- * flea_hash_id_t           hash_id__t,
- * const flea_u8_t*         message__pcu8,
- * flea_al_u16_t            message_len__alu16,
- * flea_u8_t*               result__pu8,
- * flea_al_u16_t*           result_len__palu16
- * );*/
-
+/**
+ * Create an RSA public key from the modulus and the public exponent.
+ *
+ * @param key the key to be constructed
+ * @param mod the big endian encoded modulus
+ * @param pub_exp the big endian encoded public exponent
+ */
 flea_err_t THR_flea_public_key_t__ctor_rsa(
-  flea_public_key_t*    key__pt,
-  const flea_ref_cu8_t* mod__pcrcu8,
-  const flea_ref_cu8_t* pub_exp__pcrcu8
-
-  /*const flea_byte_vec_t* mod__pcrcu8,
-   * const flea_byte_vec_t* pub_exp__pcrcu8*/
+  flea_public_key_t*    key,
+  const flea_ref_cu8_t* mod,
+  const flea_ref_cu8_t* pub_exp
 );
 
+/**
+ * Create an ECC public key from the public point and the domain parameters.
+ *
+ * @param key the public key to construct
+ * @param public_key_value the encoded public point
+ * @param dp the ECC domain parameters to be used
+ */
 flea_err_t THR_flea_public_key_t__ctor_ecc(
-  flea_public_key_t*               key__pt,
-  const flea_byte_vec_t*           public_key_value__pt,
-  const flea_ec_gfp_dom_par_ref_t* dp__pt
+  flea_public_key_t*               key,
+  const flea_byte_vec_t*           public_key_value,
+  const flea_ec_gfp_dom_par_ref_t* dp
 );
 
 

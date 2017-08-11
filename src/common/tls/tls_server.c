@@ -967,12 +967,12 @@ static flea_err_t THR_flea_tls__read_cert_verify(
   );
 
   FLEA_CCALL(
-    THR_flea_pk_api__verify_digest(
+    THR_flea_public_key_t__verify_digest_raw(
+      &tls_ctx->peer_pubkey,
+      pk_scheme_id__t,
+      hash_id__t,
       messages_hash__bu8,
       hash_len__u8,
-      hash_id__t,
-      pk_scheme_id__t,
-      &tls_ctx->peer_pubkey,
       sig__bu8,
       sig_len__u16
     )

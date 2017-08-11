@@ -42,12 +42,12 @@ static flea_err_t THR_flea_test_pkcs8_inner_sign_digest(
     )
   );
   FLEA_CCALL(
-    THR_flea_pk_api__verify_digest(
+    THR_flea_public_key_t__verify_digest_raw(
+      &pubkey__t,
+      scheme_id__t,
+      hash_id__t,
       digest__cau8,
       hash_length__alu16,
-      hash_id__t,
-      scheme_id__t,
-      &pubkey__t,
       sig_vec__t.data__pu8,
       sig_vec__t.len__dtl
     )
@@ -97,7 +97,15 @@ static flea_err_t THR_flea_test_pkcs8_inner(
   /*signature__rcu8.data__pcu8 = signature__ru8.data__pcu8;
   * signature__rcu8.len__dtl   = signature__ru8.len__dtl;*/
   // FLEA_CCALL(THR_flea_pk_api__verify_signature(&message__rcu8, &signature__rcu8, &pubkey__t, scheme_id__t, hash_id__t));
-  FLEA_CCALL(THR_flea_pk_api__verify_signature(&message_vec__t, &sig_vec__t, &pubkey__t, scheme_id__t, hash_id__t));
+  FLEA_CCALL(
+    THR_flea_public_key_t__verify_signature_raw(
+      &pubkey__t,
+      scheme_id__t,
+      hash_id__t,
+      &message_vec__t,
+      &sig_vec__t
+    )
+  );
   FLEA_THR_FIN_SEC(
     flea_private_key_t__dtor(&privkey__t);
     flea_public_key_t__dtor(&pubkey__t);

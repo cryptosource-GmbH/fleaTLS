@@ -339,12 +339,12 @@ static flea_err_t THR_flea_tls__read_server_kex(
 
     // verify if signature matches the calculated hash
     FLEA_CCALL(
-      THR_flea_pk_api__verify_digest(
+      THR_flea_public_key_t__verify_digest_raw(
+        &tls_ctx__pt->peer_pubkey,
+        pk_scheme_id__t,
+        hash_id__t,
         hash__bu8,
         hash_out_len__u8,
-        hash_id__t,
-        pk_scheme_id__t,
-        &tls_ctx__pt->peer_pubkey,
         sig_to_vfy__bu8,
         sig_to_vfy_len__u16
       )

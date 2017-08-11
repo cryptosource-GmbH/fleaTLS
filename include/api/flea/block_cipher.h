@@ -21,9 +21,6 @@ typedef enum { flea_encrypt, flea_decrypt } flea_cipher_dir_t;
 
 /* fwd declaration */
 
-/*struct struct_flea_ecb_mode_ctx_t;
- * typedef struct struct_flea_ecb_mode_ctx_t flea_ecb_mode_ctx_t;*/
-
 
 /**
  * Block cipher context type.
