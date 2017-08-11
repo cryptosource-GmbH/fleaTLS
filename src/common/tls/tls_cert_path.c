@@ -445,7 +445,7 @@ static flea_err_t THR_flea_tls__validate_cert(
 
 
     FLEA_CCALL(
-      THR_flea_public_key_t__verify_digest_raw(
+      THR_flea_public_key_t__verify_digest_plain_format(
         pubkey_out__pt,
         scheme_id,
         *tbs_hash_id__pe,
@@ -456,7 +456,6 @@ static flea_err_t THR_flea_tls__validate_cert(
       )
     );
 
-    // TODO: VERIFY CRL HERE
     if(validate_crl_for_issued_by_current__b)
     {
       FLEA_CCALL(
@@ -483,7 +482,7 @@ static flea_err_t THR_flea_tls__validate_cert(
       &dec__t,
       1,
       FLEA_ASN1_BIT_STRING,
-      NULL // &sn_buffer__t
+      NULL
     )
   );
   // subject unique ID
@@ -492,7 +491,7 @@ static flea_err_t THR_flea_tls__validate_cert(
       &dec__t,
       2,
       FLEA_ASN1_BIT_STRING,
-      NULL // &sn_buffer__t
+      NULL
     )
   );
   FLEA_CCALL(

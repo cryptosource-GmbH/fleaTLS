@@ -6,6 +6,7 @@
 #include "flea/util.h"
 #include "flea/error_handling.h"
 #include "flea/rsa.h"
+#include "internal/common/pk_key_int.h"
 #include "flea/alloc.h"
 #include "flea/privkey.h"
 #include "flea/array_util.h"

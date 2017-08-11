@@ -56,19 +56,18 @@ typedef struct
 
 void flea_private_key_t__dtor(flea_private_key_t* privkey__pt);
 
-flea_err_t THR_flea_rsa_raw_operation_crt_private_key(
-  const flea_private_key_t* priv_key__pt,
-  flea_u8_t*                result_enc,
-  const flea_u8_t*          base_enc,
-  flea_al_u16_t             base_length
-);
-
+/**
+ * Create an RSA private key fromt the flea RSA private key internal format.
+ */
 flea_err_t THR_flea_private_key_t__ctor_rsa_internal_format(
   flea_private_key_t*   key__pt,
   const flea_ref_cu8_t* priv_key_enc_internal_format__prcu8,
   flea_al_u16_t         key_bit_size__alu16
 );
 
+/**
+ * Create an RSA key from the CRT key components.
+ */
 flea_err_t THR_flea_private_key_t__ctor_rsa_components(
   flea_private_key_t* key__pt,
   flea_al_u16_t       key_bit_size__alu16,
@@ -84,24 +83,30 @@ flea_err_t THR_flea_private_key_t__ctor_rsa_components(
   flea_al_u16_t       c_len__alu16
 );
 
+/**
+ * Create an ECC public key from the compontents.
+ *
+ */
 flea_err_t THR_flea_private_key_t__ctor_ecc(
-  flea_private_key_t*              key__pt,
-  const flea_byte_vec_t*           scalar__cprcu8,
-  const flea_ec_gfp_dom_par_ref_t* dp_ref__pt
+  flea_private_key_t*              key,
+  const flea_byte_vec_t*           scalar,
+  const flea_ec_gfp_dom_par_ref_t* dp_ref
 );
 
 /**
- * Create a signature.
+ * Create a signature using a private key. In case of ECDSA, the
+ * signature is created in concatendated format with r and s each encoded with
+ * the base point order length.
  *
- * @param message the message to sign
- * @param signature receives the created signature after function completion
  * @param privkey the private key to be used for the signature creation
  * @param pk_scheme_id ID of the signature scheme to be used
  * @param hash_id hash algorithm to be used for the digest computation
+ * @param message the message to sign
+ * @param signature receives the created signature after function completion
  *
  */
 // TODO: WITHOUT BYTEVEC FOR MESSAGE
-flea_err_t THR_flea_private_key_t__sign(
+flea_err_t THR_flea_private_key_t__sign_plain_format(
   const flea_private_key_t* privkey,
   flea_pk_scheme_id_t       pk_scheme_id,
   flea_hash_id_t            hash_id,
@@ -110,7 +115,7 @@ flea_err_t THR_flea_private_key_t__sign(
 );
 
 /**
- * The same operation as THR_flea_pk_signer_t__final_sign, except that the
+ * The same operation as THR_flea_private_key_t__sign_plain_format, except that the
  * digest (i.e. hash value) is directly provided by the caller instead of being
  * computed by the function.
  *
@@ -121,12 +126,12 @@ flea_err_t THR_flea_private_key_t__sign(
  * @param privkey the private key to be used for the signature operation
  * @param signature receives the generated signature after function completion
  */
-flea_err_t THR_flea_pk_api__sign_digest(
+flea_err_t THR_flea_private_key_t__sign_digest_plain_format(
+  const flea_private_key_t* privkey,
+  flea_pk_scheme_id_t       id,
+  flea_hash_id_t            hash_id,
   const flea_u8_t*          digest,
   flea_al_u8_t              digest_len,
-  flea_hash_id_t            hash_id,
-  flea_pk_scheme_id_t       id,
-  const flea_private_key_t* privkey,
   flea_byte_vec_t*          signature
 );
 

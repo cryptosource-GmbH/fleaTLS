@@ -189,7 +189,7 @@ flea_err_t THR_flea_public_key_t__verify_signature(
  *
  */
 // TODO: WITHOUT BYTEVECS
-flea_err_t THR_flea_public_key_t__verify_signature_raw(
+flea_err_t THR_flea_public_key_t__verify_signature_plain_format(
   const flea_public_key_t* key,
   flea_pk_scheme_id_t      pk_scheme_id,
   flea_hash_id_t           hash_id,
@@ -199,7 +199,7 @@ flea_err_t THR_flea_public_key_t__verify_signature_raw(
 
 
 /**
- * The same operation as THR_flea_public_key_t__verify_signature_raw(), except that the
+ * The same operation as THR_flea_public_key_t__verify_signature_plain_format(), except that the
  * digest (i.e. hash value) is directly provided by the caller instead of being
  * computed by the function.
  *
@@ -211,7 +211,7 @@ flea_err_t THR_flea_public_key_t__verify_signature_raw(
  * @param signature pointer to the memory area for the signature to be verified.
  * @param signature_len length of signature
  */
-flea_err_t THR_flea_public_key_t__verify_digest_raw(
+flea_err_t THR_flea_public_key_t__verify_digest_plain_format(
   const flea_public_key_t* pubkey,
   flea_pk_scheme_id_t      id,
   flea_hash_id_t           hash_id,

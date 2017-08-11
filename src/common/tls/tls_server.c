@@ -591,12 +591,12 @@ static flea_err_t THR_flea_tls__send_server_kex(
 
     // create signature
     FLEA_CCALL(
-      THR_flea_pk_api__sign_digest(
+      THR_flea_private_key_t__sign_digest_plain_format(
+        &tls_ctx__pt->private_key__t,
+        pk_scheme_id__t,
+        hash_id__t,
         hash__bu8,
         hash_out_len__u8,
-        hash_id__t,
-        pk_scheme_id__t,
-        &tls_ctx__pt->private_key__t,
         &sig_vec__t
       )
     );
@@ -967,7 +967,7 @@ static flea_err_t THR_flea_tls__read_cert_verify(
   );
 
   FLEA_CCALL(
-    THR_flea_public_key_t__verify_digest_raw(
+    THR_flea_public_key_t__verify_digest_plain_format(
       &tls_ctx->peer_pubkey,
       pk_scheme_id__t,
       hash_id__t,

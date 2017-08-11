@@ -32,17 +32,17 @@ static flea_err_t THR_flea_test_pkcs8_inner_sign_digest(
   FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&privkey__t, pkcs8__pcu8, pkcs8_len__alu16));
   FLEA_CCALL(THR_flea_public_key_t__ctor_pkcs8(&pubkey__t, pkcs8__pcu8, pkcs8_len__alu16));
   FLEA_CCALL(
-    THR_flea_pk_api__sign_digest(
+    THR_flea_private_key_t__sign_digest_plain_format(
+      &privkey__t,
+      scheme_id__t,
+      hash_id__t,
       digest__cau8,
       hash_length__alu16,
-      hash_id__t,
-      scheme_id__t,
-      &privkey__t,
       &sig_vec__t
     )
   );
   FLEA_CCALL(
-    THR_flea_public_key_t__verify_digest_raw(
+    THR_flea_public_key_t__verify_digest_plain_format(
       &pubkey__t,
       scheme_id__t,
       hash_id__t,
@@ -92,13 +92,21 @@ static flea_err_t THR_flea_test_pkcs8_inner(
   FLEA_CCALL(THR_flea_public_key_t__ctor_pkcs8(&pubkey__t, pkcs8__pcu8, pkcs8_len__alu16));
 
   // FLEA_CCALL(THR_flea_pk_api__sign(&message__rcu8, &signature__ru8, &privkey__t, scheme_id__t, hash_id__t));
-  FLEA_CCALL(THR_flea_private_key_t__sign(&privkey__t, scheme_id__t, hash_id__t, &message_vec__t, &sig_vec__t));
+  FLEA_CCALL(
+    THR_flea_private_key_t__sign_plain_format(
+      &privkey__t,
+      scheme_id__t,
+      hash_id__t,
+      &message_vec__t,
+      &sig_vec__t
+    )
+  );
 
   /*signature__rcu8.data__pcu8 = signature__ru8.data__pcu8;
   * signature__rcu8.len__dtl   = signature__ru8.len__dtl;*/
   // FLEA_CCALL(THR_flea_pk_api__verify_signature(&message__rcu8, &signature__rcu8, &pubkey__t, scheme_id__t, hash_id__t));
   FLEA_CCALL(
-    THR_flea_public_key_t__verify_signature_raw(
+    THR_flea_public_key_t__verify_signature_plain_format(
       &pubkey__t,
       scheme_id__t,
       hash_id__t,

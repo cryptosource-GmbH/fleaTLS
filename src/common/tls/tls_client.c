@@ -6,6 +6,7 @@
 #include "flea/array_util.h"
 #include "flea/bin_utils.h"
 #include "flea/tls.h"
+#include "flea/privkey.h"
 #include "flea/cbc_filter.h"
 #include "flea/hash_stream.h"
 #include "flea/tee.h"
@@ -339,7 +340,7 @@ static flea_err_t THR_flea_tls__read_server_kex(
 
     // verify if signature matches the calculated hash
     FLEA_CCALL(
-      THR_flea_public_key_t__verify_digest_raw(
+      THR_flea_public_key_t__verify_digest_plain_format(
         &tls_ctx__pt->peer_pubkey,
         pk_scheme_id__t,
         hash_id__t,
@@ -851,12 +852,12 @@ static flea_err_t THR_flea_tls__send_cert_verify(
   );
 
   FLEA_CCALL(
-    THR_flea_pk_api__sign_digest(
+    THR_flea_private_key_t__sign_digest_plain_format(
+      &key__t,
+      tls_ctx->cert_vfy_hash_sig__t.pk_scheme_id__t,
+      tls_ctx->cert_vfy_hash_sig__t.hash_id__t,
       messages_hash__bu8,
       hash_len__u8,
-      tls_ctx->cert_vfy_hash_sig__t.hash_id__t,
-      tls_ctx->cert_vfy_hash_sig__t.pk_scheme_id__t, // flea_rsa_pkcs1_v1_5_sign,
-      &key__t,
       &sig_vec__t
     )
   );

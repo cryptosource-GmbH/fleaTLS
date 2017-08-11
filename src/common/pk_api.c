@@ -16,6 +16,7 @@
 #include "flea/ec_gfp_dom_par.h"
 #include "flea/bin_utils.h"
 #include "internal/common/mask.h"
+#include "internal/common/pk_key_int.h"
 #include <string.h>
 
 
@@ -144,12 +145,12 @@ flea_err_t THR_flea_pk_signer_t__final_sign(
 
   FLEA_CCALL(THR_flea_hash_ctx_t__final(&signer__pt->hash_ctx, digest_buf__bu8));
   FLEA_CCALL(
-    THR_flea_pk_api__sign_digest(
+    THR_flea_private_key_t__sign_digest_plain_format(
+      privkey__pt,
+      id__t,
+      signer__pt->hash_id__t,
       digest_buf__bu8,
       digest_len__alu8,
-      signer__pt->hash_id__t,
-      id__t,
-      privkey__pt,
       sig_vec__pt
     )
   );
@@ -157,170 +158,6 @@ flea_err_t THR_flea_pk_signer_t__final_sign(
     FLEA_FREE_BUF_FINAL(digest_buf__bu8);
   );
 }
-
-flea_err_t THR_flea_pk_api__sign_digest(
-  const flea_u8_t*          digest__pcu8,
-  flea_al_u8_t              digest_len__alu8,
-  flea_hash_id_t            hash_id__e,
-  flea_pk_scheme_id_t       id__t,
-  const flea_private_key_t* privkey__pt,
-  flea_byte_vec_t*          sig_vec__pt
-)
-{
-  flea_pk_primitive_id_t primitive_id__t;
-  flea_pk_encoding_id_t encoding_id__t;
-  // flea_al_u16_t digest_len__alu16;
-  flea_al_u16_t key_bit_size__alu16;
-  flea_al_u16_t primitive_input_len__alu16;
-
-  FLEA_DECL_BUF(primitive_input__bu8, flea_u8_t, FLEA_MAX(FLEA_PK_MAX_PRIMITIVE_INPUT_LEN, FLEA_MAX_HASH_OUT_LEN));
-
-  FLEA_THR_BEG_FUNC();
-  primitive_id__t     = FLEA_PK_GET_PRIMITIVE_ID_FROM_SCHEME_ID(id__t);
-  key_bit_size__alu16 = privkey__pt->key_bit_size__u16;
-
-  encoding_id__t = FLEA_PK_GET_ENCODING_ID_FROM_SCHEME_ID(id__t);
-
-  primitive_input_len__alu16 = privkey__pt->max_primitive_input_len__u16;
-  if(primitive_input_len__alu16 == 0)
-  {
-    FLEA_THROW("invalid key length for signature", FLEA_ERR_INV_KEY_SIZE);
-  }
-  if(digest_len__alu8 != flea_hash__get_output_length_by_id(hash_id__e))
-  {
-    FLEA_THROW("digest length does not fit to hash id", FLEA_ERR_INV_ARG);
-  }
-  FLEA_ALLOC_BUF(primitive_input__bu8, FLEA_MAX(primitive_input_len__alu16, FLEA_MAX_HASH_OUT_LEN));
-  // get the final hash value
-  if(digest_len__alu8 > FLEA_MAX_HASH_OUT_LEN)
-  {
-    FLEA_THROW("signature for extraneous digest length requested", FLEA_ERR_INV_ARG);
-  }
-  memcpy(primitive_input__bu8, digest__pcu8, digest_len__alu8);
-  if(encoding_id__t == flea_emsa1)
-  {
-    FLEA_CCALL(
-      THR_flea_pk_api__encode_message__emsa1(
-        primitive_input__bu8,
-        digest_len__alu8,
-        &primitive_input_len__alu16,
-        key_bit_size__alu16
-      )
-    );
-  }
-  else if(encoding_id__t == flea_pkcs1_v1_5)
-  {
-    FLEA_CCALL(
-      THR_flea_pk_api__encode_message__pkcs1_v1_5_sign(
-        primitive_input__bu8,
-        digest_len__alu8,
-        &primitive_input_len__alu16,
-        key_bit_size__alu16,
-        hash_id__e
-      )
-    );
-  }
-  else
-  {
-    FLEA_THROW("invalid signature encoding id", FLEA_ERR_INV_ALGORITHM);
-  }
-  if(primitive_id__t == flea_ecdsa)
-  {
-# ifdef FLEA_HAVE_ECDSA
-    flea_u8_t* sig_r__pu8;
-    flea_u8_t* sig_s__pu8;
-    flea_al_u8_t s_len__al_u8;
-    flea_al_u8_t r_len__al_u8;// = (*signature_len__palu16) / 2;
-    flea_u8_t* signature__pu8;
-    flea_al_u8_t max_sig_part_len = privkey__pt->privkey_with_params__u.ec_priv_key_val__t.dp__t.n__ru8.len__dtl;
-    if(privkey__pt->key_type__t != flea_ecc_key)
-    {
-      FLEA_THROW("invalid key type for signing", FLEA_ERR_INV_KEY_TYPE);
-    }
-    FLEA_CCALL(THR_flea_byte_vec_t__resize(sig_vec__pt, 2 * max_sig_part_len));
-    signature__pu8 = sig_vec__pt->data__pu8;
-    r_len__al_u8   = max_sig_part_len;
-    s_len__al_u8   = r_len__al_u8,
-    sig_r__pu8     = signature__pu8;
-    sig_s__pu8     = signature__pu8 + r_len__al_u8;
-    // concat encoding of r and s
-
-    sig_s__pu8   = sig_r__pu8 + max_sig_part_len;
-    s_len__al_u8 = max_sig_part_len;
-    r_len__al_u8 = max_sig_part_len;
-    FLEA_CCALL(
-      THR_flea_ecdsa__raw_sign(
-        sig_r__pu8,
-        &r_len__al_u8,
-        sig_s__pu8,
-        &s_len__al_u8,
-        primitive_input__bu8,
-        primitive_input_len__alu16,
-        privkey__pt->privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8.data__pu8,
-        privkey__pt->privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8.len__dtl,
-        &privkey__pt->privkey_with_params__u.ec_priv_key_val__t.dp__t
-      )
-    );
-    if(s_len__al_u8 < max_sig_part_len)
-    {
-      flea_al_u8_t shift = max_sig_part_len - s_len__al_u8;
-      memmove(sig_s__pu8 + shift, sig_s__pu8, s_len__al_u8);
-      memset(sig_s__pu8, 0, shift);
-    }
-    if(r_len__al_u8 < max_sig_part_len)
-    {
-      flea_al_u8_t shift = max_sig_part_len - r_len__al_u8;
-      memmove(sig_r__pu8 + shift, sig_r__pu8, r_len__al_u8);
-      memset(sig_r__pu8, 0, shift);
-    }
-    // set up the signature with correct length
-    // *signature_len__palu16 = 2 * max_sig_part_len;
-    // sig_vec__pt->len__dtl = 2 * max_sig_part_len; // ALREADY DONE ABOVE
-
-# else // #ifdef FLEA_HAVE_ECDSA
-    FLEA_THROW("ECDSA not supported", FLEA_ERR_INV_ALGORITHM);
-# endif // #else of #ifdef FLEA_HAVE_ECDSA
-  }
-  else if(primitive_id__t == flea_rsa_sign)
-  {
-# ifdef FLEA_HAVE_RSA
-    if(privkey__pt->key_type__t != flea_rsa_key)
-    {
-      FLEA_THROW("invalid key type for signing", FLEA_ERR_INV_KEY_TYPE);
-    }
-    // in RSA, input length = output length
-    FLEA_CCALL(THR_flea_byte_vec_t__resize(sig_vec__pt, primitive_input_len__alu16));
-
-    /* if(*signature_len__palu16 < primitive_input_len__alu16)
-     * {
-     * FLEA_THROW("signature buffer too small for RSA signature", FLEA_ERR_BUFF_TOO_SMALL);
-     * }*/
-    FLEA_CCALL(
-      THR_flea_rsa_raw_operation_crt_private_key(
-        privkey__pt,
-        // signature__pu8,
-        sig_vec__pt->data__pu8,
-        primitive_input__bu8,
-        primitive_input_len__alu16
-      )
-    );
-    // *signature_len__palu16 = (privkey__pt->key_bit_size__u16 + 7) / 8;
-    // TODO: LEAVE RESULT LENGTH AT primitive_input_len__alu16 :
-    sig_vec__pt->len__dtl = (privkey__pt->key_bit_size__u16 + 7) / 8;
-
-
-# else // #ifdef FLEA_HAVE_RSA
-    FLEA_THROW("rsa not supported", FLEA_ERR_INV_ALGORITHM);
-# endif // #else of #ifdef FLEA_HAVE_RSA
-  }
-  else
-  {
-    FLEA_THROW("invalid signature primitive id", FLEA_ERR_INV_ALGORITHM);
-  }
-  FLEA_THR_FIN_SEC(
-    FLEA_FREE_BUF_FINAL(primitive_input__bu8);
-  );
-} /* THR_flea_pk_signer_t__final_sign */
 
 flea_err_t THR_flea_pk_signer_t__final_verify(
   flea_pk_signer_t*        signer__pt,
@@ -340,7 +177,7 @@ flea_err_t THR_flea_pk_signer_t__final_verify(
 
   FLEA_CCALL(THR_flea_hash_ctx_t__final(&signer__pt->hash_ctx, digest_buf__bu8));
   FLEA_CCALL(
-    THR_flea_public_key_t__verify_digest_raw(
+    THR_flea_public_key_t__verify_digest_plain_format(
       pubkey__pt,
       id__t,
       signer__pt->hash_id__t,

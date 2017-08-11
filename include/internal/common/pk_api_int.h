@@ -15,7 +15,6 @@ flea_err_t THR_flea_pk_api__encode_message__emsa1(
   flea_al_u16_t* output_len,
   flea_al_u16_t  bit_size
 );
-
 flea_err_t THR_flea_pk_api__verify_message__pkcs1_v1_5(
   const flea_u8_t* encoded,
   flea_al_u16_t    encoded_len,
