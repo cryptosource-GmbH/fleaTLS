@@ -857,9 +857,6 @@ flea_err_t THR_flea_public_key_t__encrypt_message(
   const flea_u8_t*         message__pcu8,
   flea_al_u16_t            message_len__alu16,
   flea_byte_vec_t*         result__pt
-
-  /*  flea_u8_t*               result__pu8,
-   * flea_al_u16_t*           result_len__palu16*/
 )
 {
   FLEA_THR_BEG_FUNC();

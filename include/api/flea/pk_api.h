@@ -116,25 +116,6 @@ flea_err_t THR_flea_pk_signer_t__final_verify(
 
 
 /**
- * Create a signature.
- *
- * @param message the message to sign
- * @param signature receives the created signature after function completion
- * @param privkey the private key to be used for the signature creation
- * @param pk_scheme_id ID of the signature scheme to be used
- * @param hash_id hash algorithm to be used for the digest computation
- *
- */
-// TODO: WITHOUT BYTEVEC FOR MESSAGE
-flea_err_t THR_flea_pk_api__sign(
-  const flea_byte_vec_t*    message,
-  flea_byte_vec_t*          signature,
-  const flea_private_key_t* privkey,
-  flea_pk_scheme_id_t       pk_scheme_id,
-  flea_hash_id_t            hash_id
-);
-
-/**
  * Finalize the signature generation.
  *
  * @param signer the signer object to use
@@ -148,82 +129,6 @@ flea_err_t THR_flea_pk_signer_t__final_sign(
   flea_pk_scheme_id_t       id,
   const flea_private_key_t* privkey,
   flea_byte_vec_t*          signature
-);
-
-/**
- * The same operation as THR_flea_pk_signer_t__final_sign, except that the
- * digest (i.e. hash value) is directly provided by the caller instead of being
- * computed by the function.
- *
- * @param digest the digest to verify
- * @param digest_len length of digest
- * @param hash_id id of the hash algorithm that was used to compute digest
- * @param id the ID of the signature scheme to use
- * @param privkey the private key to be used for the signature operation
- * @param signature receives the generated signature after function completion
- */
-flea_err_t THR_flea_pk_api__sign_digest(
-  const flea_u8_t*          digest,
-  flea_al_u8_t              digest_len,
-  flea_hash_id_t            hash_id,
-  flea_pk_scheme_id_t       id,
-  const flea_private_key_t* privkey,
-  flea_byte_vec_t*          signature
-);
-
-/**
- *  Encrypt a message using a public key scheme.
- * TODO:UPDATE
- *  @param id ID of the encryption scheme to use
- *  @param hash_id ID of the hash scheme to use (if applicable)
- *  @param message the message to be encrypted
- *  @param message_len the length of message
- *  @param result buffer to store the ciphertext
- *  number of bytes written to result
- *  @param key the public key to use for the encryption
- *  @param key_len the length of key
- *  @param params public parameters associated with the key
- *  @param params_len the length of params
- */
-// TODO: REPLACE THIS WITH THR_flea_public_key_t__encrypt_message
-flea_err_t THR_flea_pk_api__encrypt_message(
-  flea_pk_scheme_id_t id,
-  flea_hash_id_t      hash_id,
-  const flea_u8_t*    message,
-  flea_al_u16_t       message_len,
-  flea_byte_vec_t*    result,
-  const flea_u8_t*    key,
-  flea_al_u16_t       key_len,
-  const flea_u8_t*    params,
-  flea_al_u16_t       params_len
-);
-
-/**
- *  Decrypt a message using a public key scheme.
- *
- *  @param id ID of the encryption scheme to use
- *  @param hash_id ID of the hash scheme to use (if applicable)
- *  @param ciphertext the ciphertext to be encrypted
- *  @param ciphertext_len the length of ciphertext
- *  @param result receives the result after successful operation
- *  @param key the private key to use for the decryption
- *  @param enforced_pkcs1_v1_5_decryption_result_len This value is only interpreted in case of PKCS#1 v1.5 decryption.
- *                                                   For normal PKCS#1 v1.5 decoding,
- *                                                   this must be set to zero. Set this
- *                                                   value to the expected message
- *                                                   length to achieve timing neutral
- *                                                   fake result generation in case of
- *                                                   a padding error (defense against
- *                                                   Bleichenbacher's attack).
- */
-flea_err_t THR_flea_pk_api__decrypt_message(
-  flea_pk_scheme_id_t       id,
-  flea_hash_id_t            hash_id,
-  const flea_u8_t*          ciphertext,
-  flea_al_u16_t             ciphertext_len,
-  flea_byte_vec_t*          result,
-  const flea_private_key_t* privkey,
-  flea_al_u16_t             enforced_decryption_result_len
 );
 
 

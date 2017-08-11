@@ -92,7 +92,7 @@ static flea_err_t THR_flea_test_pkcs8_inner(
   FLEA_CCALL(THR_flea_public_key_t__ctor_pkcs8(&pubkey__t, pkcs8__pcu8, pkcs8_len__alu16));
 
   // FLEA_CCALL(THR_flea_pk_api__sign(&message__rcu8, &signature__ru8, &privkey__t, scheme_id__t, hash_id__t));
-  FLEA_CCALL(THR_flea_pk_api__sign(&message_vec__t, &sig_vec__t, &privkey__t, scheme_id__t, hash_id__t));
+  FLEA_CCALL(THR_flea_private_key_t__sign(&privkey__t, scheme_id__t, hash_id__t, &message_vec__t, &sig_vec__t));
 
   /*signature__rcu8.data__pcu8 = signature__ru8.data__pcu8;
   * signature__rcu8.len__dtl   = signature__ru8.len__dtl;*/

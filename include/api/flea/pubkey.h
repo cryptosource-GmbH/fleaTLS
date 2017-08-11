@@ -129,6 +129,33 @@ flea_err_t THR_flea_public_key_t__ctor_cert(
 );
 
 /**
+ * Create an RSA public key from the modulus and the public exponent.
+ *
+ * @param key the key to be constructed
+ * @param mod the big endian encoded modulus
+ * @param pub_exp the big endian encoded public exponent
+ */
+flea_err_t THR_flea_public_key_t__ctor_rsa(
+  flea_public_key_t*    key,
+  const flea_ref_cu8_t* mod,
+  const flea_ref_cu8_t* pub_exp
+);
+
+/**
+ * Create an ECC public key from the public point and the domain parameters.
+ *
+ * @param key the public key to construct
+ * @param public_key_value the encoded public point
+ * @param dp the ECC domain parameters to be used
+ */
+flea_err_t THR_flea_public_key_t__ctor_ecc(
+  flea_public_key_t*               key,
+  const flea_byte_vec_t*           public_key_value,
+  const flea_ec_gfp_dom_par_ref_t* dp
+);
+
+
+/**
  * Verify a signature using a public key. In case of ECDSA, an ASN.1/DER encoded
  * signature is expected.
  *
@@ -221,32 +248,6 @@ flea_err_t THR_flea_public_key_t__encrypt_message(
   const flea_u8_t*         message,
   flea_al_u16_t            message_len,
   flea_byte_vec_t*         result
-);
-
-/**
- * Create an RSA public key from the modulus and the public exponent.
- *
- * @param key the key to be constructed
- * @param mod the big endian encoded modulus
- * @param pub_exp the big endian encoded public exponent
- */
-flea_err_t THR_flea_public_key_t__ctor_rsa(
-  flea_public_key_t*    key,
-  const flea_ref_cu8_t* mod,
-  const flea_ref_cu8_t* pub_exp
-);
-
-/**
- * Create an ECC public key from the public point and the domain parameters.
- *
- * @param key the public key to construct
- * @param public_key_value the encoded public point
- * @param dp the ECC domain parameters to be used
- */
-flea_err_t THR_flea_public_key_t__ctor_ecc(
-  flea_public_key_t*               key,
-  const flea_byte_vec_t*           public_key_value,
-  const flea_ec_gfp_dom_par_ref_t* dp
 );
 
 

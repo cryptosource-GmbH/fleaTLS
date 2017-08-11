@@ -191,4 +191,29 @@ void flea_private_key_t__dtor(flea_private_key_t* privkey__pt)
 # endif /* ifdef FLEA_USE_HEAP_BUF */
 }
 
+flea_err_t THR_flea_private_key_t__sign(
+  const flea_private_key_t* privkey__pt,
+  flea_pk_scheme_id_t       pk_scheme_id__t,
+  flea_hash_id_t            hash_id__t,
+  const flea_byte_vec_t*    message__prcu8,
+  flea_byte_vec_t*          signature__pru8
+)
+{
+  FLEA_DECL_OBJ(signer__t, flea_pk_signer_t);
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_pk_signer_t__ctor(&signer__t, hash_id__t));
+  FLEA_CCALL(THR_flea_pk_signer_t__update(&signer__t, message__prcu8->data__pu8, message__prcu8->len__dtl));
+  FLEA_CCALL(
+    THR_flea_pk_signer_t__final_sign(
+      &signer__t,
+      pk_scheme_id__t,
+      privkey__pt,
+      signature__pru8
+    )
+  );
+  FLEA_THR_FIN_SEC(
+    flea_pk_signer_t__dtor(&signer__t);
+  );
+}
+
 #endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
