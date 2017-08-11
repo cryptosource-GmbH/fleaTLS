@@ -3,9 +3,12 @@
 #include "internal/common/default.h"
 #include "internal/common/mask.h"
 
+
+typedef long long unsigned flea_pszd_uint_t;
+
 static volatile flea_u32_t optimization_blocker__u32 = 0;
 
-flea_u32_t flea_expand_u32_to_u32_mask(flea_u32_t in)
+static flea_u32_t flea_expand_u32_to_u32_mask(flea_u32_t in)
 {
   flea_al_u8_t i;
   flea_u32_t result = in;
@@ -15,22 +18,22 @@ flea_u32_t flea_expand_u32_to_u32_mask(flea_u32_t in)
     result |= result >> i;
   }
   result &= 1;
-  result  = ~(flea_pszd_uint_t) (result - 1);
+  result  = ~(flea_u32_t) (result - 1);
   optimization_blocker__u32 = result;
   return result;
 }
 
-flea_pszd_uint_t flea_expand_u32_to_ptr_szd_mask(flea_u32_t in)
+static flea_pszd_uint_t flea_expand_u32_to_ptr_szd_mask(flea_u32_t in)
 {
   flea_al_u8_t i;
   flea_pszd_uint_t result = in;
 
-  for(i = 1; i < sizeof(void *) * 8; i *= 2)
+  for(i = 1; i < sizeof(void*) * 8; i *= 2)
   {
     result |= result >> i;
   }
   result &= 1;
-  result  = ~(flea_pszd_uint_t) (result - 1);
+  result  = ~(long long unsigned int /*flea_pszd_uint_t*/) (result - 1);
   optimization_blocker__u32 = result;
   return result;
 }
@@ -46,7 +49,7 @@ flea_u32_t flea_consttime__select_u32_nz_z(
   return ((select_if_zero & ~mask) | (select_if_nonzero & mask));
 }
 
-void * flea_consttime__select_ptr_nz_z(
+void* flea_consttime__select_ptr_nz_z(
   void*      select_if_nonzero,
   void*      select_if_zero,
   flea_u32_t condition
@@ -56,5 +59,5 @@ void * flea_consttime__select_ptr_nz_z(
   flea_pszd_uint_t if_zero__pszd    = (flea_pszd_uint_t) select_if_zero;
   flea_pszd_uint_t if_nonzero__pszd = (flea_pszd_uint_t) select_if_nonzero;
 
-  return (void *) ((if_zero__pszd & ~mask) | (if_nonzero__pszd & mask));
+  return (void*) ((if_zero__pszd & ~mask) | (if_nonzero__pszd & mask));
 }
