@@ -8,6 +8,7 @@
 #include "flea/error_handling.h"
 #include "internal/common/ber_dec.h"
 #include "flea/x509.h"
+#include "internal/common/x509_int.h"
 #include "flea/x509_key.h"
 #include "flea/pk_api.h"
 #include "flea/asn1_date.h"

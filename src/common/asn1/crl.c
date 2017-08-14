@@ -6,6 +6,7 @@
 #include "flea/crl.h"
 #include "flea/alloc.h"
 #include "flea/array_util.h"
+#include "internal/common/x509_int.h"
 #include "flea/namespace_asn1.h"
 #include "flea/asn1_date.h"
 #include "flea/pubkey.h"

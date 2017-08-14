@@ -32,6 +32,7 @@ void flea_byte_vec_t__dtor(flea_byte_vec_t* byte_vec__pt)
   // byte_vec__pt->is_mem_deallocable__b = FLEA_FALSE;
 }
 
+#if 0
 void flea_byte_vec_t__ctor_empty_allocatable(flea_byte_vec_t* byte_vec__pt)
 {
   flea_byte_vec_t__INIT(byte_vec__pt);
@@ -40,6 +41,7 @@ void flea_byte_vec_t__ctor_empty_allocatable(flea_byte_vec_t* byte_vec__pt)
   /* nothing to do */
 }
 
+#endif
 void flea_byte_vec_t__set_ref(
   flea_byte_vec_t* byte_vec__pt,
   const flea_u8_t* data__pcu8,

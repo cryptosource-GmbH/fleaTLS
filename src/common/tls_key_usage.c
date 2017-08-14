@@ -4,6 +4,7 @@
 #include "flea/error.h"
 #include "flea/x509.h"
 #include "internal/common/tls_key_usage.h"
+#include "internal/common/x509_int.h"
 
 flea_err_t THR_flea_tls__check_key_usage_of_tls_server(
   flea_key_usage_t const* key_usage__pt,

@@ -4,6 +4,7 @@
 #include "flea/error_handling.h"
 #include "internal/common/ber_dec.h"
 #include "flea/x509.h"
+#include "internal/common/x509_int.h"
 #include "flea/alloc.h"
 #include "flea/array_util.h"
 #include "flea/namespace_asn1.h"
@@ -257,9 +258,12 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
     FLEA_CCALL(THR_flea_ber_dec_t__ctor(&cont_dec__t, &source__t, 0, flea_decode_ref));
     switch(oid_indicator__alu16)
     {
+#ifdef FLEA_X509_CERT_REF_WITH_DETAILS
       flea_bool_t found__b;
+#endif
         case ID_CE_OID_AKI:
         {
+#ifdef FLEA_X509_CERT_REF_WITH_DETAILS
           /* authority key identifier */
           ext_ref__pt->auth_key_id__t.is_present__u8 = FLEA_TRUE;
 
@@ -272,7 +276,7 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
               &found__b
             )
           );
-
+#endif /* ifdef FLEA_X509_CERT_REF_WITH_DETAILS */
 
           break;
         }
@@ -283,6 +287,7 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
         }
         case ID_CE_OID_SUBJ_KEY_ID:
         {
+#ifdef FLEA_X509_CERT_REF_WITH_DETAILS
           FLEA_CCALL(
             THR_flea_ber_dec_t__get_ref_to_raw_cft(
               &cont_dec__t,
@@ -290,6 +295,7 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
               &ext_ref__pt->subj_key_id__t
             )
           );
+#endif
           break;
         }
         case ID_CE_OID_SUBJ_ALT_NAME:
@@ -325,6 +331,7 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
           );
           break;
         }
+#ifdef FLEA_X509_CERT_REF_WITH_DETAILS
         case ID_CE_OID_FRESHEST_CRL:
         {
           ext_ref__pt->freshest_crl__t.is_present__u8 = FLEA_TRUE;
@@ -334,9 +341,10 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
               &ext_ref__pt->freshest_crl__t.raw_ref__t
             )
           );
-
           break;
         }
+#endif /* ifdef FLEA_X509_CERT_REF_WITH_DETAILS */
+#ifdef FLEA_X509_CERT_REF_WITH_DETAILS
         case ID_PE_OID_AUTH_INF_ACC:
         {
           ext_ref__pt->auth_inf_acc__t.is_present__u8 = FLEA_TRUE;
@@ -348,6 +356,7 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
           );
           break;
         }
+#endif /* ifdef FLEA_X509_CERT_REF_WITH_DETAILS */
         default:
           if(critical__b)
           {
@@ -434,6 +443,9 @@ flea_err_t THR_flea_x509__decode_dn_ref_elements(
     }
     switch(entry_ref__t.data__pu8[2])
     {
+        case 3:
+          entry_ref__pt = &dn_ref__pt->common_name__t;
+          break;
         case 6:
           entry_ref__pt = &dn_ref__pt->country__t;
           break;
@@ -443,14 +455,12 @@ flea_err_t THR_flea_x509__decode_dn_ref_elements(
         case 11:
           entry_ref__pt = &dn_ref__pt->org_unit__t;
           break;
+#ifdef FLEA_HAVE_X509_DN_DETAILS
         case 46:
           entry_ref__pt = &dn_ref__pt->dn_qual__t;
           break;
         case 8:
           entry_ref__pt = &dn_ref__pt->state_or_province_name__t;
-          break;
-        case 3:
-          entry_ref__pt = &dn_ref__pt->common_name__t;
           break;
         case 5:
           entry_ref__pt = &dn_ref__pt->serial_number__t;
@@ -460,6 +470,11 @@ flea_err_t THR_flea_x509__decode_dn_ref_elements(
           break;
         default:
           FLEA_THROW("unsupported distinguished name component", FLEA_ERR_X509_DN_ERROR);
+#else /* ifdef FLEA_HAVE_X509_DN_DETAILS */
+        default:
+          /* skip it */
+          entry_ref__pt = &entry_ref__t;
+#endif /* ifdef FLEA_HAVE_X509_DN_DETAILS */
     }
     if(entry_ref__pt == NULL)
     {
@@ -630,6 +645,8 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
   );
 
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
+
+#ifdef FLEA_X509_CERT_REF_WITH_DETAILS
   FLEA_CCALL(
     THR_flea_ber_dec_t__decode_implicit_universal_optional_with_inner(
       &dec__t,
@@ -638,6 +655,18 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
       &cert_ref__pt->issuer_unique_id_as_bitstr__t
     )
   );
+#else
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__decode_implicit_universal_optional_with_inner(
+      &dec__t,
+      1,
+      FLEA_ASN1_BIT_STRING,
+      &cert_ref__pt->cert_signature_as_bit_string__t
+    )
+  );
+  cert_ref__pt->cert_signature_as_bit_string__t.len__dtl = 0;
+#endif /* ifdef FLEA_X509_CERT_REF_WITH_DETAILS */
+#ifdef FLEA_X509_CERT_REF_WITH_DETAILS
   FLEA_CCALL(
     THR_flea_ber_dec_t__decode_implicit_universal_optional_with_inner(
       &dec__t,
@@ -646,6 +675,17 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
       &cert_ref__pt->subject_unique_id_as_bitstr__t
     )
   );
+#else
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__decode_implicit_universal_optional_with_inner(
+      &dec__t,
+      2,
+      FLEA_ASN1_BIT_STRING,
+      &cert_ref__pt->cert_signature_as_bit_string__t
+    )
+  );
+  cert_ref__pt->cert_signature_as_bit_string__t.len__dtl = 0;
+#endif /* ifdef FLEA_X509_CERT_REF_WITH_DETAILS */
   FLEA_CCALL(THR_flea_x509_cert_ref__t__parse_extensions(&cert_ref__pt->extensions__t, &dec__t));
 
   /* closing the tbs */
@@ -691,6 +731,24 @@ flea_bool_t flea_x509_has_key_usages(
   return FLEA_TRUE;
 }
 
+flea_bool_t flea_x509_cert_ref_t__has_key_usages(
+  flea_x509_cert_ref_t const*  cert_ref__pt,
+  flea_key_usage_e             required_usages__u16,
+  flea_key_usage_exlicitness_e explicitness__e
+)
+{
+  return flea_x509_has_key_usages(&cert_ref__pt->extensions__t.key_usage__t, required_usages__u16, explicitness__e);
+}
+
+flea_bool_t flea_x509_cert_ref_t__has_extended_key_usages(
+  flea_x509_cert_ref_t const*  cert_ref__pt,
+  flea_ext_key_usage_e         required_usages__u16,
+  flea_key_usage_exlicitness_e explicitness__e
+)
+{
+  return flea_x509_has_key_usages(&cert_ref__pt->extensions__t.ext_key_usage__t, required_usages__u16, explicitness__e);
+}
+
 flea_bool_t flea_x509_is_cert_self_issued(const flea_x509_cert_ref_t* cert__pt)
 {
   if(FLEA_DER_REF_IS_ABSENT(&cert__pt->issuer__t.raw_dn_complete__t))
@@ -703,4 +761,97 @@ flea_bool_t flea_x509_is_cert_self_issued(const flea_x509_cert_ref_t* cert__pt)
     return FLEA_TRUE;
   }
   return FLEA_FALSE;
+}
+
+static flea_err_t THR_flea_x509__get_dn_component(
+  flea_x509_dn_ref_t const* dn_ref__pt,
+  flea_dn_cmpnt_e           cmpnt__e,
+  flea_ref_cu8_t*           result__prcu8
+)
+{
+  const flea_byte_vec_t* bv__pt;
+
+  FLEA_THR_BEG_FUNC();
+
+  switch(cmpnt__e)
+  {
+      case flea_dn_cmpnt_cn:
+      {
+        bv__pt = &dn_ref__pt->common_name__t;
+        break;
+      }
+      case flea_dn_cmpnt_country:
+      {
+        bv__pt = &dn_ref__pt->country__t;
+        break;
+      }
+      case flea_dn_cmpnt_org:
+      {
+        bv__pt = &dn_ref__pt->org__t;
+        break;
+      }
+      case flea_dn_cmpnt_org_unit:
+      {
+        bv__pt = &dn_ref__pt->org_unit__t;
+        break;
+      }
+#ifdef FLEA_HAVE_X509_DN_DETAILS
+      case flea_dn_cmpnt_dn_qual:
+      {
+        bv__pt = &dn_ref__pt->dn_qual__t;
+        break;
+      }
+      case flea_dn_cmpnt_locality_name:
+      {
+        bv__pt = &dn_ref__pt->locality_name__t;
+        break;
+      }
+      case flea_dn_cmpnt_state_or_province:
+      {
+        bv__pt = &dn_ref__pt->state_or_province_name__t;
+        break;
+      }
+      case flea_dn_cmpnt_serial_number:
+      {
+        bv__pt = &dn_ref__pt->serial_number__t;
+        break;
+      }
+      case flea_dn_cmpnt_domain_cmpnt_attrib:
+      {
+        bv__pt = &dn_ref__pt->domain_component_attribute__t;
+        break;
+      }
+#endif /* ifdef FLEA_HAVE_X509_DN_DETAILS */
+      default:
+      {
+        FLEA_THROW("invalid DN component specified", FLEA_ERR_INV_ARG);
+      }
+  }
+  result__prcu8->data__pcu8 = bv__pt->data__pu8;
+  result__prcu8->len__dtl   = bv__pt->len__dtl;
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_x509__get_dn_component */
+
+flea_err_t THR_flea_x509_cert_ref_t__get_subject_dn_component(
+  flea_x509_cert_ref_t const* cert_ref__pt,
+  flea_dn_cmpnt_e             cmpnt__e,
+  flea_ref_cu8_t*             result__prcu8
+)
+{
+  FLEA_THR_BEG_FUNC();
+  return THR_flea_x509__get_dn_component(&cert_ref__pt->subject__t, cmpnt__e, result__prcu8);
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_x509_cert_ref_t__get_issuer_dn_component(
+  flea_x509_cert_ref_t const* cert_ref__pt,
+  flea_dn_cmpnt_e             cmpnt__e,
+  flea_ref_cu8_t*             result__prcu8
+)
+{
+  FLEA_THR_BEG_FUNC();
+  return THR_flea_x509__get_dn_component(&cert_ref__pt->issuer__t, cmpnt__e, result__prcu8);
+
+  FLEA_THR_FIN_SEC_empty();
 }

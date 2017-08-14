@@ -116,40 +116,6 @@ static flea_err_t THR_get_hash_id_from_x509_id_for_ecdsa(
 } /* THR_get_hash_id_from_x509_id_for_ecdsa */
 
 # ifdef FLEA_HAVE_ECC
-#  if 0
-static flea_err_t THR_flea_x509_verify_ecdsa_signature(
-  const flea_byte_vec_t*   oid_ref__pt,
-  const flea_public_key_t* ver_key__pt,
-  const flea_byte_vec_t*   der_enc_signature__pt,
-  const flea_byte_vec_t*   tbs_data__pt,
-  flea_hash_id_t           ecdsa_hash_id__t
-)
-{
-  // flea_hash_id_t ecdsa_hash_id__t;
-
-  FLEA_THR_BEG_FUNC();
-
-  /*  FLEA_CCALL(
-   *  THR_get_hash_id_from_x509_id_for_ecdsa(
-   *    oid_ref__pt->data__pu8 + sizeof(ecdsa_oid_prefix__acu8),
-   *    &ecdsa_hash_id__t
-   *  )
-   * );*/
-  FLEA_CCALL(
-    THR_flea_public_key_t__verify_signature(
-      ver_key__pt,
-      flea_ecdsa_emsa1,
-      tbs_data__pt,
-      der_enc_signature__pt,
-      ecdsa_hash_id__t
-    )
-  );
-  // decode the signature:
-  FLEA_THR_FIN_SEC(
-  );
-}
-
-#  endif /* if 0 */
 
 /* assumes that result__pu8 has sufficient length allocated */
 static flea_err_t THR_flea_x509_decode_ecdsa_signature(

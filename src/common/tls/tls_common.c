@@ -753,36 +753,6 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
   tls_ctx__pt->selected_cipher_suite__u16 = FLEA_TLS_NULL_WITH_NULL_NULL;
 
 
-  /*if(ctx->flags & flea_tls_flag__read_timeout_during_handshake)
-   * {
-   *
-   * } */
-  /* set SessionID */
-
-  /*if(session_id_len > 32)
-   * {
-   * FLEA_THROW("session id too large", FLEA_ERR_TLS_GENERIC);
-   * }*/
-  // memcpy(&ctx->session_id, session_id, session_id_len);
-  // ctx->session_id_len = session_id_len;
-
-  /* set client_random */
-  // TODO: do we need these parameters in the ctx? everything only needed during
-  // handshake should be local to that function
-  //
-
-  // ctx->resumption = FLEA_FALSE;
-
-# if 0
-#  ifdef FLEA_USE_HEAP_BUF
-  // nothing to do
-  // ctx->premaster_secret = calloc(256, sizeof(flea_u8_t));
-#  else
-  ctx->premaster_secret =
-    flea_byte_vec_t__CONSTR_EXISTING_BUF_EMPTY_ALLOCATABLE(ctx->premaster_secret__au8, sizeof(premaster_secret__au8));
-#  endif
-# endif
-
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__construction_helper */
 

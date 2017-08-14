@@ -29,6 +29,9 @@
  */
 // #define FLEA_USE_BUF_DBG_CANARIES // FBFLAGS_CORE_ON_OFF
 
+/**
+ * Algorithm support selection
+ */
 # define FLEA_HAVE_HMAC // FBFLAGS_MACALGS_ON_OFF
 # define FLEA_HAVE_CMAC // FBFLAGS_MACALGS_ON_OFF
 # define FLEA_HAVE_EAX  // FBLAGS_AEALGS_ON_OFF
@@ -39,6 +42,11 @@
 # define FLEA_HAVE_SHA384_512        // FBFLAGS_HAVE_SHA512_ON_OFF
 # define FLEA_HAVE_DAVIES_MEYER_HASH // FBFLAGS_DAVIES_MEYER_HASH_ON_OFF
 
+# define FLEA_HAVE_DES       // FBFLAGS_HAVE_DES_ON_OFF
+# define FLEA_HAVE_TDES_2KEY // FBFLAGS_HAVE_TDES_ON_OFF
+# define FLEA_HAVE_TDES_3KEY // FBFLAGS_HAVE_TDES_ON_OFF
+# define FLEA_HAVE_DESX      // FBFLAGS_HAVE_DESX_ON_OFF
+# define FLEA_HAVE_AES       // NOT CONFIGURABLE
 
 /**
  * Configuration
@@ -48,11 +56,6 @@
 # define FLEA_USE_SHA256_ROUND_MACRO // FBFLAGS_SHA256_ON_OFF
 # define FLEA_USE_SHA512_ROUND_MACRO // FBFLAGS_SHA512_ON_OFF
 
-# define FLEA_HAVE_DES       // FBFLAGS_HAVE_DES_ON_OFF
-# define FLEA_HAVE_TDES_2KEY // FBFLAGS_HAVE_TDES_ON_OFF
-# define FLEA_HAVE_TDES_3KEY // FBFLAGS_HAVE_TDES_ON_OFF
-# define FLEA_HAVE_DESX      // FBFLAGS_HAVE_DESX_ON_OFF
-# define FLEA_HAVE_AES       // NOT CONFIGURABLE
 
 /**
  * If set, then AES block decryption and ECB and CBC mode are enabled. Otherwise
@@ -106,8 +109,6 @@
 # define FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT 5 // FBFLAGS__INT_LIST 1 2 3 4 10 20
 
 
-# define FLEA_X509_STCKMD_MAX_CRLDP_LEN 260
-
 /**
  * The maximal capacity (certificate count) of a cert_store_t object. Applies to
  * both the heap and the stack mode as the threshold. In heap mode, the
@@ -119,8 +120,11 @@
  * The initial allocated size and step size for allocation growth for a
  * cert_store_t object. Relevant only in heap mode.
  */
-# define FLEA_CERT_STORE_PREALLOC       5
+# define FLEA_CERT_STORE_PREALLOC 5
 
+/**
+ * Algorithm maximum supported key and parameter sizes.
+ */
 # define FLEA_RSA_MAX_KEY_BIT_SIZE      4096 // FBFLAGS__INT_LIST 1024 1536 2048 4096
 # define FLEA_RSA_MAX_PUB_EXP_BIT_LEN   32
 # define FLEA_ECC_MAX_MOD_BIT_SIZE      521 // FBFLAGS__INT_LIST 160 192 224 256 320 384 521
@@ -129,9 +133,10 @@
 /**
  * Type for the maximal length of data processed by flea in various functions. The effect is that
  * flea_dtl_t, the type that represents data lengths in various API function
- * signatures, is defined with a width of 32 bit if the flag is set and with a width of 16 bit if commented out.
- * Deactivate this flag in order to generate smaller and faster code on 16 and 8
- * bit architectures.
+ * signatures, is defined with a width of 32 bit if the flag is set and with a width of 16 bit if deactivated out.
+ * Deactivate this switch in order to generate smaller and faster code on 16 and 8
+ * bit architectures. Deactivating it also reduces the RAM size of some types
+ * considerable.
  */
 # define FLEA_HAVE_DTL_32BIT // FBFLAGS_DTL_32_BIT_ON_OFF
 
@@ -143,6 +148,12 @@
  */
 // #define FLEA_HAVE_BE_ARCH_OPT // FBFLAGS_ARCH_OPT_ON_OFF
 
+/**
+ * Maximum for CRL Distribution point extension which only takes effect in stack
+ * mode.
+ *
+ */
+# define FLEA_X509_STCKMD_MAX_CRLDP_LEN 260
 
 /**
  * This value defines the maximal accepted length of name components (e.g. in
@@ -151,6 +162,18 @@
  * Must not exceed 0xFFFF.
  */
 # define FLEA_X509_NAME_COMPONENT_MAX_BYTE_LEN 256
+
+/**
+ * If this switch is deactivated, then only the most common certificate
+ * extensions are supported. Saves RAM.
+ */
+# define FLEA_X509_CERT_REF_WITH_DETAILS
+
+/**
+ * If this is switch is deactivated, then only the most typical DN components
+ * are supported in X.509 certificates. Saves RAM and a little bit of code.
+ */
+# define FLEA_HAVE_X509_DN_DETAILS
 
 /**
  * Relevant only in stack mode.

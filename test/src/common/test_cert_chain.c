@@ -290,21 +290,10 @@ const flea_u8_t tls_cert_chain__acu8 [] = {
 flea_err_t THR_flea_test_cert_chain_correct_chain_of_two()
 {
   FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
-  // FLEA_DECL_OBJ(subject, flea_x509_cert_ref_t);
-  // FLEA_DECL_OBJ(issuer, flea_x509_cert_ref_t);
   const flea_u8_t date_str[] = "170228200000Z";
   flea_gmt_time_t time__t;
   flea_err_t err;
   FLEA_THR_BEG_FUNC();
-
-  /*FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&subject, test_cert_tls_server_1, sizeof(test_cert_tls_server_1)));
-   * FLEA_CCALL(
-   * THR_flea_x509_cert_ref_t__ctor(
-   *  &issuer,
-   *  flea_test_cert_issuer_of_tls_server_1__cau8,
-   *  sizeof(flea_test_cert_issuer_of_tls_server_1__cau8)
-   * )
-   * );*/
 
   FLEA_CCALL(
     THR_flea_cert_path_validator_t__ctor_cert(
@@ -313,7 +302,6 @@ flea_err_t THR_flea_test_cert_chain_correct_chain_of_two()
       sizeof(test_cert_tls_server_1)
     )
   );
-  // FLEA_CCALL(THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(&cert_chain__t, &issuer));
   FLEA_CCALL(
     THR_flea_cert_path_validator_t__add_trust_anchor_cert(
       &cert_chain__t,
@@ -434,6 +422,9 @@ flea_err_t THR_flea_test_tls_cert_chain()
   FLEA_THR_BEG_FUNC();
   while(len > 3)
   {
+    /* testing a certificate chain as it is used in the TLS protocol with a length
+     * field before each certificate
+     */
     flea_u32_t new_len = ((flea_u32_t) ptr[0] << 16) | (ptr[1] << 8) | (ptr[2]);
     ptr += 3;
     len -= 3;
