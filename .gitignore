@@ -13,3 +13,8 @@ misc/tools/tls/tls_certs/saved_session
 tags
 types_c.taghl
 types_py.taghl
+misc/doc/flea_manual/flea_manual.aux
+misc/doc/flea_manual/flea_manual.log
+misc/doc/flea_manual/flea_manual.out
+misc/doc/flea_manual/flea_manual.pdf
+misc/doc/flea_manual/flea_manual.toc
