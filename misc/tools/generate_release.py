@@ -11,6 +11,9 @@ import subprocess
 include_dir = "../../include"
 src_dir = "../../src"
 test_dir = "../../test"
+test_data_dir = "../testdata"
+build_cfg_dir = "../../build_cfg"
+pltf_supp_dir = "../../pltf_support"
 generate_dir = "../../../flea_generated_releases"
 cmakelists_file = "../../CMakeLists.txt"
 
@@ -67,12 +70,17 @@ def generate_for_license(license_name, work_dir):
 
 #print files
 
-def generate_with_license(license_name):
+def generate_with_license(license_name, have_test_data):
   shutil.copytree(include_dir, generate_dir + "/" + license_name + "/flea/include", False, ignore_svn_function) 
   shutil.copytree(src_dir, generate_dir + "/" + license_name + "/flea/src", False, ignore_svn_function) 
   shutil.copytree(test_dir, generate_dir + "/" + license_name + "/flea/test", False, ignore_svn_function) 
+  shutil.copytree(build_cfg_dir, generate_dir + "/" + license_name + "/flea/build_cfg", False, ignore_svn_function) 
+  shutil.copytree(pltf_supp_dir, generate_dir + "/" + license_name + "/flea/pltf_support", False, ignore_svn_function) 
   shutil.copy(cmakelists_file, generate_dir + "/" + license_name + "/flea")
-  
+ 
+  if(have_test_data):
+    shutil.copytree(test_data_dir, generate_dir + "/" + license_name + "/flea/misc/testdata", False, ignore_svn_function) 
+
  
   license_file_path = "../../misc/licenses/" + license_name + ".txt"
   shutil.copy(license_file_path, generate_dir + "/" + license_name + "/flea/" + license_name + "_license.txt")
@@ -81,11 +89,18 @@ def generate_with_license(license_name):
   #shutil.rm("../../test/
   generate_for_license(license_name, generate_dir+ "/" + license_name + "/flea")
 
+have_test_data = False
+if(len(sys.argv) == 2):
+    if(sys.argv[1] == "--with_testdata"):
+        have_test_data = True
+    else:
+        print "error: invalid commandline argument"
+        sys.exit(1)
 
 
 shutil.rmtree(generate_dir + "/" + license_name_gpl + "/" + "flea", True)
 shutil.rmtree(generate_dir + "/" + license_name_closed_source + "/" + "flea", True)
 
-generate_with_license(license_name_gpl)
-generate_with_license(license_name_closed_source)
+generate_with_license(license_name_gpl, have_test_data)
+generate_with_license(license_name_closed_source, have_test_data)
 
