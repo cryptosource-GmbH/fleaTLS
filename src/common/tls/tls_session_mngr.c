@@ -1,3 +1,4 @@
+#include "internal/common/default.h"
 #include "flea/tls_session_mngr.h"
 #include "flea/error_handling.h"
 #include "flea/error.h"
@@ -54,6 +55,7 @@ flea_err_t THR_flea_tls_session_mngr_t__get_free_session_slot(
     }
   }
   /* no free session among used session, add one more if capacity allows it */
+#ifdef FLEA_USE_HEAP_BUF
   if(session_mngr__pt->nb_alloc_sessions__dtl < FLEA_TLS_MAX_NB_MNGD_SESSIONS)
   {
     FLEA_CCALL(
@@ -68,6 +70,7 @@ flea_err_t THR_flea_tls_session_mngr_t__get_free_session_slot(
       )
     );
   }
+#endif /* ifdef FLEA_USE_HEAP_BUF */
 
   if(session_mngr__pt->nb_used_sessions__u16 < session_mngr__pt->nb_alloc_sessions__dtl)
   {
@@ -135,5 +138,7 @@ flea_tls_session_entry_t* flea_tls_session_mngr_t__session_cache_lookup(
 
 void flea_tls_session_mngr_t__dtor(flea_tls_session_mngr_t* session_mngr__pt)
 {
+#ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_SET_NULL(session_mngr__pt->sessions__bt);
+#endif
 }

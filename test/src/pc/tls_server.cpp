@@ -445,9 +445,10 @@ int flea_start_tls_server(property_set_t const& cmdl_args)
 
   // int result = 0;
 
-  FLEA_DECL_OBJ(sess_man__t, flea_tls_session_mngr_t);
+  flea_tls_session_mngr_t sess_man__t;
 
   FLEA_THR_BEG_FUNC();
+  flea_tls_session_mngr_t__INIT(&sess_man__t);
   FLEA_CCALL(THR_flea_tls_session_mngr_t__ctor(&sess_man__t));
   if((err = THR_flea_start_tls_server(cmdl_args, false, &sess_man__t)))
   {

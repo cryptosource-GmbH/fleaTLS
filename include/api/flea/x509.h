@@ -12,8 +12,7 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
-// TODO: MAKE INTERNAL:
-//
+
 #define FLEA_X509_MAX_SERIALNUMBER_LEN 20
 #define ID_UNSUPP_EXT_OID              0
 
@@ -126,7 +125,6 @@ typedef struct
   flea_byte_vec_t       public_key_as_tlv__t;
 } flea_x509_public_key_info_t;
 
-// TODO: BACK TO REF_CU8
 typedef struct
 {
   flea_byte_vec_t raw_dn_complete__t;

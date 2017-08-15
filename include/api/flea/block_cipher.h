@@ -19,8 +19,6 @@ extern "C" {
  */
 typedef enum { flea_encrypt, flea_decrypt } flea_cipher_dir_t;
 
-/* fwd declaration */
-
 
 /**
  * Block cipher context type.
@@ -161,12 +159,12 @@ flea_err_t THR_flea_ecb_mode_crypt_data(
  */
 flea_err_t THR_flea_ctr_mode_ctx_t__ctor(
   flea_ctr_mode_ctx_t*   p_ctx,
-  flea_block_cipher_id_t ext_id__t,
+  flea_block_cipher_id_t id,
   const flea_u8_t*       key_pu8,
-  flea_al_u8_t           key_length_al_u8,
+  flea_al_u8_t           key_length,
   const flea_u8_t*       nonce_pu8,
-  flea_al_u8_t           nonce_length_al_u8,
-  flea_al_u8_t           ctr_len__alu8
+  flea_al_u8_t           nonce_length,
+  flea_al_u8_t           ctr_len
 );
 
 /**
@@ -205,24 +203,27 @@ void flea_ctr_mode_ctx_t__crypt(
  * @param input the input data
  * @param output the output data
  * @param input_output_len the length of input and output data
+ * @param ctr_len the length of counter window within the counter block, which is interpreted as a BE integer
+ * ranging from position [max](LSB) to [max - ctr_len](MSB)
  */
 flea_err_t THR_flea_ctr_mode_crypt_data(
-  flea_block_cipher_id_t ext_id__t,
-  const flea_u8_t*       key_pu8,
-  flea_al_u16_t          key_length_al_u16,
-  const flea_u8_t*       nonce__pcu8,
-  flea_al_u8_t           nonce_len__alu8,
-  const flea_u8_t*       input_pu8,
-  flea_u8_t*             output_pu8,
-  flea_dtl_t             input_output_length_al_u16,
-  flea_al_u8_t           ctr_len__alu8
+  flea_block_cipher_id_t id,
+  const flea_u8_t*       key,
+  flea_al_u16_t          key_length,
+  const flea_u8_t*       nonce,
+  flea_al_u8_t           nonce_len,
+  const flea_u8_t*       input,
+  flea_u8_t*             output,
+  flea_dtl_t             input_output_length,
+  flea_al_u8_t           ctr_len
 );
 
 /**
  * Encrypt/decrypt data in counter mode without using a context object and
- * 32-bit nonce value.
+ * with a 32-bit nonce value.
  * The nonce is big endian encoded in the leading part of the counter block.
- * The counter starts at zero.
+ * The counter starts at zero expands over the full counter block (this
+ * corresponds to "ctr_len = block length" in THR_flea_ctr_mode_crypt_data().
  *
  * @param id the id of the cipher to use
  * @param key pointer to the key

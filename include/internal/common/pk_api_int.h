@@ -60,7 +60,6 @@ flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5(
 
 /**
  *  Encrypt a message using a public key scheme.
- * TODO:UPDATE
  *  @param id ID of the encryption scheme to use
  *  @param hash_id ID of the hash scheme to use (if applicable)
  *  @param message the message to be encrypted
@@ -72,7 +71,6 @@ flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5(
  *  @param params public parameters associated with the key
  *  @param params_len the length of params
  */
-// TODO: REPLACE THIS WITH THR_flea_public_key_t__encrypt_message
 flea_err_t THR_flea_pk_api__encrypt_message(
   flea_pk_scheme_id_t id,
   flea_hash_id_t      hash_id,
