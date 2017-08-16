@@ -53,16 +53,28 @@ std::map<string, flea_u8_t> curve_id_name_value_map__t = {
   {"brainpoolP512r1", flea_brainpoolP512r1}
 };
 
+/*std::map<string, flea_u8_t> sig_algs_map__t = {
+ * {"RSA", 0x01}
+ * };
+ *
+ * std::map<string, flea_u8_t> hash_algs_map__t = {
+ * {"SHA1",   0x02},
+ * {"SHA224", 0x03},
+ * {"SHA256", 0x04},
+ * {"SHA384", 0x05},
+ * {"SHA512", 0x06},
+ * };*/
+
 std::map<string, flea_u8_t> sig_algs_map__t = {
-  {"RSA", 0x01}
+  {"RSA", flea_rsa_pkcs1_v1_5_sign}
 };
 
 std::map<string, flea_u8_t> hash_algs_map__t = {
-  {"SHA1",   0x02},
-  {"SHA224", 0x03},
-  {"SHA256", 0x04},
-  {"SHA384", 0x05},
-  {"SHA512", 0x06},
+  {"SHA1",   flea_sha1  },
+  {"SHA224", flea_sha224},
+  {"SHA256", flea_sha256},
+  {"SHA384", flea_sha384},
+  {"SHA512", flea_sha512},
 };
 
 namespace {
