@@ -24,6 +24,7 @@ flea_err_t THR_flea_test_dec_tls_server_cert_broken()
   {
     FLEA_THROW("no excpetion in broken cert", FLEA_ERR_FAILED_TEST);
   }
+  // printf("cert_ref size = %u\n", sizeof(cert_ref__t));
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -85,14 +86,17 @@ flea_err_t THR_flea_test_dec_tls_server_cert()
     FLEA_THROW("wrong server id accepted", FLEA_ERR_FAILED_TEST);
   }
 
-  if(cert_ref__t.extensions__t.basic_constraints__t.has_path_len__b ||
-    cert_ref__t.extensions__t.basic_constraints__t.is_ca__b)
+  if(flea_x509_cert_ref_t__HAS_PATH_LEN_LIMIT(&cert_ref__t) ||
+    flea_x509_cert_ref_t__IS_CA(&cert_ref__t))
   {
     FLEA_THROW("error decoding empty basic_constraints extensions", FLEA_ERR_FAILED_TEST);
   }
-  if((!cert_ref__t.extensions__t.ext_key_usage__t.is_present__u8) ||
-    (cert_ref__t.extensions__t.ext_key_usage__t.purposes__u16 !=
-    ((1 << FLEA_ASN1_EKU_BITP_server_auth) | (1 << FLEA_ASN1_EKU_BITP_client_auth))))
+
+  if(!flea_x509_cert_ref_t__has_extended_key_usages(
+      &cert_ref__t,
+      (flea_ext_key_usage_e) (flea_eku_server_auth | flea_eku_client_auth),
+      flea_key_usage_explicit
+    ))
   {
     FLEA_THROW("error decoding EKU", FLEA_ERR_FAILED_TEST);
   }
@@ -104,72 +108,90 @@ flea_err_t THR_flea_test_dec_tls_server_cert()
 flea_err_t THR_flea_test_dec_ca_cert()
 {
   FLEA_DECL_OBJ(cert_ref__t, flea_x509_cert_ref_t);
+  flea_ref_cu8_t ref__rcu8;
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&cert_ref__t, test_ca_cert_1, sizeof(test_ca_cert_1)));
-  if(cert_ref__t.version__u8 != 3)
+  if(flea_x509_cert_ref_t__GET_CERT_VERSION(&cert_ref__t) != 3)
   {
     FLEA_THROW("parsed version number is incorrect", FLEA_ERR_FAILED_TEST);
   }
-  if(cert_ref__t.serial_number__t.len__dtl != 1 || cert_ref__t.serial_number__t.data__pu8[0] != 62)
+  flea_x509_cert_ref_t__GET_SERIAL_NUMBER(&cert_ref__t, &ref__rcu8);
+  if(ref__rcu8.len__dtl != 1 || ref__rcu8.data__pcu8[0] != 62)
   {
     FLEA_THROW("parsed serial number is incorrect", FLEA_ERR_FAILED_TEST);
   }
-  if(cert_ref__t.tbs_sig_algid__t.oid_ref__t.len__dtl != 9 ||
-    cert_ref__t.tbs_sig_algid__t.oid_ref__t.data__pu8[0] != 0x2A)
+  flea_x509_cert_ref_t__GET_SIGALG_OID(&cert_ref__t, &ref__rcu8);
+  if(ref__rcu8.len__dtl != 9 ||
+    ref__rcu8.data__pcu8[0] != 0x2A)
   {
     FLEA_THROW("parsed tbs sig alg is incorrect", FLEA_ERR_FAILED_TEST);
   }
-  if(cert_ref__t.issuer__t.country__t.len__dtl != 2 || cert_ref__t.issuer__t.country__t.data__pu8[0] != 'U' ||
-    cert_ref__t.issuer__t.country__t.data__pu8[1] != 'S')
+  FLEA_CCALL(THR_flea_x509_cert_ref_t__get_issuer_dn_component(&cert_ref__t, flea_dn_cmpnt_country, &ref__rcu8));
+  if(ref__rcu8.len__dtl != 2 || ref__rcu8.data__pcu8[0] != 'U' ||
+    ref__rcu8.data__pcu8[1] != 'S')
   {
     FLEA_THROW("parsed issuer country is incorrect", FLEA_ERR_FAILED_TEST);
   }
-  if(!FLEA_DER_REF_IS_ABSENT(&cert_ref__t.issuer_unique_id_as_bitstr__t))
+  FLEA_CCALL(THR_flea_x509_cert_ref_t__get_issuer_dn_component(&cert_ref__t, flea_dn_cmpnt_org_unit, &ref__rcu8));
+  if(ref__rcu8.len__dtl != 0)
+  {
+    FLEA_THROW("non existing issuer org unit is incorrect", FLEA_ERR_FAILED_TEST);
+  }
+#ifdef FLEA_X509_CERT_REF_WITH_DETAILS
+  if(flea_x509_cert_ref_t__HAS_ISSUER_UNIQUE_ID(&cert_ref__t))
   {
     FLEA_THROW("issuer unique id error", FLEA_ERR_FAILED_TEST);
   }
+  else
+  {
+    flea_x509_cert_ref_t__GET_REF_TO_ISSUER_UNIQUE_ID_AS_BIT_STRING(&cert_ref__t, &ref__rcu8);
+  }
+#endif
   if(cert_ref__t.subject_public_key_info__t.algid__t.params_ref_as_tlv__t.len__dtl != 2 ||
     cert_ref__t.subject_public_key_info__t.algid__t.params_ref_as_tlv__t.data__pu8[0] != 0x05 ||
     cert_ref__t.subject_public_key_info__t.algid__t.params_ref_as_tlv__t.data__pu8[1] != 0x00)
   {
     FLEA_THROW("error decoding null params", FLEA_ERR_FAILED_TEST);
   }
-  if(!flea_x509_has_key_usages(
-      &cert_ref__t.extensions__t.key_usage__t,
-      flea_ku_crl_sign | flea_ku_key_cert_sign,
+  if(!flea_x509_cert_ref_t__has_key_usages(
+      &cert_ref__t,
+      (flea_key_usage_e) (flea_ku_crl_sign | flea_ku_key_cert_sign),
       flea_key_usage_explicit
     ))
   {
     FLEA_THROW("error positive KU", FLEA_ERR_FAILED_TEST);
   }
-  if(!flea_x509_has_key_usages(
-      &cert_ref__t.extensions__t.key_usage__t,
-      flea_ku_crl_sign | flea_ku_key_cert_sign,
+  if(!flea_x509_cert_ref_t__has_key_usages(
+      &cert_ref__t,
+      (flea_key_usage_e) (flea_ku_crl_sign | flea_ku_key_cert_sign),
       flea_key_usage_implicit
     ))
   {
     FLEA_THROW("error positive KU", FLEA_ERR_FAILED_TEST);
   }
-  if(flea_x509_has_key_usages(
-      &cert_ref__t.extensions__t.key_usage__t,
+  if(flea_x509_cert_ref_t__has_key_usages(
+      &cert_ref__t,
       flea_ku_data_encipherment,
       flea_key_usage_explicit
     ))
   {
     FLEA_THROW("error negative KU", FLEA_ERR_FAILED_TEST);
   }
-  if(flea_x509_has_key_usages(
-      &cert_ref__t.extensions__t.key_usage__t,
+  if(flea_x509_cert_ref_t__has_key_usages(
+      &cert_ref__t,
       flea_ku_data_encipherment,
       flea_key_usage_implicit
     ))
   {
     FLEA_THROW("error negative KU", FLEA_ERR_FAILED_TEST);
   }
+
+#ifdef FLEA_X509_CERT_REF_WITH_DETAILS
   if(cert_ref__t.extensions__t.subj_key_id__t.len__dtl != 20)
   {
     FLEA_THROW("error len of skid", FLEA_ERR_FAILED_TEST);
   }
+#endif
   FLEA_THR_FIN_SEC(
     flea_x509_cert_ref_t__dtor(&cert_ref__t);
   );

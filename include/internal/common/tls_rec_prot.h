@@ -160,8 +160,9 @@ flea_err_t THR_flea_tls_rec_prot_t__read_data(
 
 
 flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
-  flea_tls_rec_prot_t* rec_prot__pt,
-  ContentType*         cont_type__pe
+  flea_tls_rec_prot_t*    rec_prot__pt,
+  ContentType*            cont_type__pe,
+  flea_stream_read_mode_e rd_mode__e
 );
 
 flea_err_t THR_flea_tls_rec_prot_t__send_record(

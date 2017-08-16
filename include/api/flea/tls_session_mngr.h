@@ -25,25 +25,23 @@ typedef struct
 {
 #ifdef FLEA_USE_STACK_BUF
   flea_tls_session_entry_t  sessions__bt[FLEA_TLS_MAX_NB_MNGD_SESSIONS ];
-  // flea_u16_t                use_cnt__bu16[FLEA_TLS_MAX_NB_MNGD_SESSIONS ];
 #else
   flea_tls_session_entry_t* sessions__bt;
-  // flea_u16_t*         use_cnt__bu16;
 #endif
 
-  flea_dtl_t nb_alloc_sessions__dtl;
-  flea_u16_t nb_used_sessions__u16;
+  flea_dtl_t                nb_alloc_sessions__dtl;
+  flea_u16_t                nb_used_sessions__u16;
 } flea_tls_session_mngr_t;
 
 
 void flea_tls_session_mngr_t__dtor(flea_tls_session_mngr_t* session_mngr__pt);
 
 #ifdef FLEA_USE_HEAP_BUF
-# define flea_tls_session_mngr_t__INIT(__p) memset(p, sizeof(flea_tls_session_mngr_t), 0)
+# define flea_tls_session_mngr_t__INIT(__p) memset(__p, 0, sizeof(flea_tls_session_mngr_t))
 # define flea_tls_session_mngr_t__INIT_VALUE {.sessions__bt = 0, .nb_alloc_sessions__dtl = 0, .nb_used_sessions__u16 = 0}
 #else
 # define flea_tls_session_mngr_t__INIT(__p)
-# define flea_tls_session_mngr_t__INIT_VALUE {.nb_used_sessions__u16 = 0}
+////# define flea_tls_session_mngr_t__INIT_VALUE {.sessions__bt[0] = .nb_alloc_sessions__dtl = 0, .nb_used_sessions__u16 = 0}
 #endif
 
 void flea_tls_session_data_t__export_seq(

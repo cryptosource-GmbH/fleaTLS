@@ -8,6 +8,8 @@
 #include "flea/error_handling.h"
 #include "internal/common/ber_dec.h"
 #include "flea/x509.h"
+#include "internal/common/x509_int.h"
+#include "flea/x509_key.h"
 #include "flea/pk_api.h"
 #include "flea/asn1_date.h"
 #include "flea/namespace_asn1.h"
@@ -273,7 +275,6 @@ static flea_err_t THR_flea_tls__validate_cert(
   flea_bool_t                           validate_crl_for_issued_by_current__b,
   flea_byte_vec_t*                      prev_sn_buffer__pt,
   flea_byte_vec_t*                      previous_crldp__pt
-
 )
 {
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
@@ -445,18 +446,17 @@ static flea_err_t THR_flea_tls__validate_cert(
 
 
     FLEA_CCALL(
-      THR_flea_pk_api__verify_digest(
+      THR_flea_public_key_t__verify_digest_plain_format(
+        pubkey_out__pt,
+        scheme_id,
+        *tbs_hash_id__pe,
         tbs_hash_in_out__pt->data__pu8,
         tbs_hash_in_out__pt->len__dtl,
-        *tbs_hash_id__pe,
-        scheme_id,
-        pubkey_out__pt,
         signature_in_out__pt->data__pu8,
         signature_in_out__pt->len__dtl
       )
     );
 
-    // TODO: VERIFY CRL HERE
     if(validate_crl_for_issued_by_current__b)
     {
       FLEA_CCALL(
@@ -483,7 +483,7 @@ static flea_err_t THR_flea_tls__validate_cert(
       &dec__t,
       1,
       FLEA_ASN1_BIT_STRING,
-      NULL // &sn_buffer__t
+      NULL
     )
   );
   // subject unique ID
@@ -492,7 +492,7 @@ static flea_err_t THR_flea_tls__validate_cert(
       &dec__t,
       2,
       FLEA_ASN1_BIT_STRING,
-      NULL // &sn_buffer__t
+      NULL
     )
   );
   FLEA_CCALL(

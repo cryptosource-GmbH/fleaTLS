@@ -26,7 +26,7 @@ typedef enum
   /**
    * Read operation will return the exactly the requested number of bytes.
    */
-  flea_read_full
+  flea_read_full,
 } flea_stream_read_mode_e;
 
 typedef flea_err_t (* flea_rw_stream_write_f)(
@@ -139,7 +139,6 @@ flea_err_t THR_flea_rw_stream_t__read_full(
   flea_dtl_t        data_len__dtl
 );
 
-
 flea_err_t THR_flea_rw_stream_t__skip_read(
   flea_rw_stream_t* stream__pt,
   flea_dtl_t        skip_len__dtl
@@ -149,6 +148,11 @@ flea_err_t THR_flea_rw_stream_t__read_byte(
   flea_rw_stream_t* stream__pt,
   flea_u8_t*        byte__pu8
 );
+
+/*flea_err_t THR_flea_rw_stream_t__read_byte(
+ * flea_rw_stream_t* stream__pt,
+ * flea_u8_t*        byte__pu8
+ * );*/
 
 /**
  * read a big endian encoded positive integer from the stream. The width of the integer

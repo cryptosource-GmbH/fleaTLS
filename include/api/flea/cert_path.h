@@ -20,12 +20,10 @@ typedef struct
 {
 # ifdef FLEA_USE_HEAP_BUF
   flea_byte_vec_t*       crl_collection__brcu8;
-  // flea_x509_cert_ref_t* cert_collection__bt;
   flea_x509_cert_info_t* cert_collection__bt;
   flea_u16_t*            chain__bu16;
 # else
   flea_byte_vec_t        crl_collection__brcu8[FLEA_MAX_CERT_COLLECTION_NB_CRLS];
-  // flea_x509_cert_ref_t  cert_collection__bt[FLEA_MAX_CERT_COLLECTION_SIZE];
   flea_x509_cert_info_t  cert_collection__bt[FLEA_MAX_CERT_COLLECTION_SIZE];
   flea_u16_t             chain__bu16[FLEA_MAX_CERT_CHAIN_DEPTH]; // including target and TA
 # endif
@@ -44,87 +42,123 @@ typedef struct
 
 # define flea_cert_path_validator_t__INIT_VALUE {.cert_collection_size__u16 = 0}
 
-void flea_cert_path_validator_t__dtor(flea_cert_path_validator_t* chain__pt);
+void flea_cert_path_validator_t__dtor(flea_cert_path_validator_t* cpv);
 
 /**
+ * Create a path validator object.
  *
+ * @param cpv the path validator object to create
+ * @param target_cert the DER encoded certificate which shall be validated
+ * @param the length of target_cert
  */
 flea_err_t THR_flea_cert_path_validator_t__ctor_cert(
-  flea_cert_path_validator_t* chain__pt,
-  const flea_u8_t*            target_cert__pcu8,
-  flea_al_u16_t               target_cert_len__alu16
+  flea_cert_path_validator_t* cpv,
+  const flea_u8_t*            target_cert,
+  flea_al_u16_t               target_cert_len
 );
 
-/*flea_err_t THR_flea_cert_path_validator_t__ctor_cert_ref(
- * flea_cert_path_validator_t* chain__pt,
- * flea_x509_cert_ref_t*       target_cert__pt
- * );*/
+/**
+ * Disable revocation checking in a path validator object.
+ *
+ * @param cpv the cert path validator object
+ */
+void flea_cert_path_validator_t__disable_revocation_checking(flea_cert_path_validator_t* cpv);
 
-void flea_cert_path_validator_t__disable_revocation_checking(flea_cert_path_validator_t* cert_chain__pt);
-
+/**
+ * Add a CRL to a cert path validator. The encoded CRL must stay in the same
+ * memory location for the life time of the cert path validator, since it only
+ * stores a reference to that CRL.
+ *
+ * @param cpv the cert path validator object
+ * @param crl_der pointer to the DER encoded CRL
+ * @param crl_der_len length of crl_der
+ */
 flea_err_t THR_flea_cert_path_validator_t__add_crl(
-  flea_cert_path_validator_t* chain__pt,
-  const flea_byte_vec_t*      crl_der__cprcu8
+  flea_cert_path_validator_t* cpv,
+  const flea_u8_t*            crl_der,
+  flea_dtl_t                  crl_der_len
 );
 
+/**
+ * Add an untrusted certificate to a cert path validator. The encoded certificate must stay in the same
+ * memory location for the life time of the cert path validator, since it only
+ * stores a reference to that certificate.
+ *
+ * @param cpv the cert path validator object
+ * @param cert pointer to the DER encoded certificate
+ * @param cert_len length of cert
+ */
 flea_err_t THR_flea_cert_path_validator_t__add_cert_without_trust_status(
-  flea_cert_path_validator_t* chain__pt,
-  const flea_u8_t*            cert__pcu8,
-  flea_al_u16_t               cert_len__alu16
+  flea_cert_path_validator_t* cpv,
+  const flea_u8_t*            cert,
+  flea_al_u16_t               cert_len
 );
-
-/*flea_err_t THR_flea_cert_path_validator_t__add_cert_ref_without_trust_status(
- * flea_cert_path_validator_t* chain__pt,
- * const flea_x509_cert_ref_t* cert_ref__pt
- * );*/
 
 /**
  * Add a trust anchor to object. It is possible to add the target cert itself again if it is trusted. This is
- * the proper way to handle directly trusted EE certificates.
+ * the proper way to handle directly trusted EE certificates. The encoded certificate must stay in the same
+ * memory location for the life time of the cert path validator, since it only
+ * stores a reference to that certificate.
+ *
+ * @param cpv the cert path validator object
+ * @param cert pointer to the DER encoded certificate
+ * @param cert_len length of cert
  */
 flea_err_t THR_flea_cert_path_validator_t__add_trust_anchor_cert(
-  flea_cert_path_validator_t* chain__pt,
-  const flea_u8_t*            cert__pcu8,
-  flea_al_u16_t               cert_len__alu16
+  flea_cert_path_validator_t* cpv,
+  const flea_u8_t*            cert,
+  flea_al_u16_t               cert_len
 );
 
-/*flea_err_t THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(
- * flea_cert_path_validator_t* chain__pt,
- * const flea_x509_cert_ref_t* cert_ref__pt
- * );*/
 
 /**
  * This function tries to build a certificate path from the set target certificate
  * to one of the set trust anchors. Afterwards, it performs certificate path
  * validation including revocation checking for all certificates in the path except for the
  * trust anchor. This function does not check the key usage of the client
- * certificate, which must be performed seperatly.
- * @param time_mbn__pt the current time in timezon GMT. May be null, then the
+ * certificate for any specific purpose, which must be performed seperatly. In
+ * case of a successful path validation the function returns without an error.
+ *
+ * @param cpv the cert path validator object
+ * @param time_mbn__pt the current time in timezone GMT. May be null, then the
  * function determines the current time itself.
  */
 flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain(
-  flea_cert_path_validator_t* cert_chain__pt,
-  const flea_gmt_time_t*      time_mbn__pt
+  flea_cert_path_validator_t* cpv,
+  const flea_gmt_time_t*      time_mbn
 );
 
 /**
+ * The same operation as THR_flea_cert_path_validator__build_and_verify_cert_chain(), but additionally constructs the public key of the the target certificate.
  *
- * @param time_mbn__pt the current time in timezon GMT. May be null, then the
+ * @param cpv the cert path validator object
+ * @param time_mbn__pt the current time in timezone GMT. May be null, then the
  * function determines the current time itself.
+ * @param key_to_construct_mbn pointer to the public key object to construct
  */
 flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_pub_key(
-  flea_cert_path_validator_t* cert_chain__pt,
-  const flea_gmt_time_t*      time_mbn__pt,
-  flea_public_key_t*          key_to_construct_mbn__pt
+  flea_cert_path_validator_t* cpv,
+  const flea_gmt_time_t*      time_mbn,
+  flea_public_key_t*          key_to_construct_mbn
 );
 
-
+/**
+ * The same as THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_pub_key(), but additionally verifies the host ID.
+ *
+ * @param cpv the cert path validator object
+ * @param time_mbn__pt the current time in timezone GMT. May be null, then the
+ * function determines the current time itself.
+ * @param host_id byte string of the host identifiert
+ * @param type of host ID to be used
+ * @param key_to_construct_mbn pointer to the public key object to construct
+ *
+ */
 flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain_and_hostid_and_create_pub_key(
-  flea_cert_path_validator_t* cert_chain__pt,
-  const flea_gmt_time_t*      time_mbn__pt,
-  const flea_byte_vec_t*      host_id__pcrcu8,
+  flea_cert_path_validator_t* cpv,
+  const flea_gmt_time_t*      time_mbn,
+  const flea_byte_vec_t*      host_id,
   flea_host_id_type_e         host_id_type,
-  flea_public_key_t*          key_to_construct_mbn__pt
+  flea_public_key_t*          key_to_construct_mbn
 );
 
 /**
@@ -134,10 +168,10 @@ flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain_and_hostid_
  * stop after the processing of the current path candidate has finished. This
  * allows to implement a timeout for the operation.
  *
- * @param cert_chain__pt pointer to the object which is used for the
+ * @param cpv__pt pointer to the object which is used for the
  * certification path construction which shall be aborted.
  */
-void flea_cert_path_validator_t__abort_cert_path_building(flea_cert_path_validator_t* chain__pt);
+void flea_cert_path_validator_t__abort_cert_path_building(flea_cert_path_validator_t* cpv);
 
 # ifdef __cplusplus
 }

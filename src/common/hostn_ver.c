@@ -1,5 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
+#include "internal/common/default.h"
 #include "flea/hostn_ver.h"
 #include "internal/common/hostn_ver_int.h"
 #include "flea/error_handling.h"
@@ -91,7 +92,11 @@ flea_err_t THR_flea_x509__verify_host_name(
   flea_al_u16_t second_label_offset_cert = 0;
   FLEA_THR_BEG_FUNC();
 
-  if((user_host_name__pcrcu8->len__dtl > 0xFFFF) || !user_host_name__pcrcu8->len__dtl ||
+  if(
+#ifdef FLEA_HAVE_DTL_32BIT
+    (user_host_name__pcrcu8->len__dtl > 0xFFFF) ||
+#endif
+    !user_host_name__pcrcu8->len__dtl ||
     !is_ascii_string(user_host_name__pcrcu8->data__pcu8, user_host_name__pcrcu8->len__dtl))
   {
     FLEA_THROW("invalid user hostname of size 0", FLEA_ERR_X509_INVALID_USER_HOSTN);

@@ -12,19 +12,6 @@ extern "C" {
 #endif
 
 
-#if FLEA_PTR_BYTE_SIZE == 8
-
-typedef flea_u64_t flea_pszd_uint_t;
-#elif FLEA_PTR_BYTE_SIZE == 4
-
-typedef flea_u32_t flea_pszd_uint_t;
-#elif FLEA_PTR_BYTE_SIZE == 2
-
-typedef flea_u16_t flea_pszd_uint_t;
-#else
-# error invalid value for FLEA_PTR_BYTE_SIZE
-#endif
-
 #if FLEA_WORD_BIT_SIZE == 32
 
 
@@ -90,8 +77,6 @@ typedef flea_u32_t flea_dtl_t;
 
 typedef flea_u16_t flea_dtl_t;
 #endif
-
-// typedef flea_al_u16_t flea_x509_len_t;
 
 #define FLEA_FALSE 0
 #define FLEA_TRUE  1

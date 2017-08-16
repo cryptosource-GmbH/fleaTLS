@@ -53,6 +53,18 @@ std::map<string, flea_u8_t> curve_id_name_value_map__t = {
   {"brainpoolP512r1", flea_brainpoolP512r1}
 };
 
+std::map<string, flea_u8_t> sig_algs_map__t = {
+  {"RSA", 0x01}
+};
+
+std::map<string, flea_u8_t> hash_algs_map__t = {
+  {"SHA1",   0x02},
+  {"SHA224", 0x03},
+  {"SHA256", 0x04},
+  {"SHA384", 0x05},
+  {"SHA512", 0x06},
+};
+
 namespace {
   std::vector<flea_u8_t> get_allowed_ecc_curves_from_cmdl(property_set_t const& cmdl_args)
   {
@@ -89,6 +101,55 @@ namespace {
     }
     return result;
   } // get_allowed_ecc_curves_from_cmdl
+
+  std::vector<flea_u8_t> get_allowed_sig_algs_from_cmdl(property_set_t const& cmdl_args)
+  {
+    flea_hash_id_t dummy_hash_id__t;
+    flea_pk_scheme_id_t dummy_scheme_id__t;
+
+    std::vector<flea_u8_t> result;
+    if(cmdl_args.have_index("allowed_sig_algs"))
+    {
+      std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("allowed_sig_algs"), ',');
+      for(string s : strings)
+      {
+        std::vector<string> alg_pair = tokenize_string(s, '-');
+        auto it  = hash_algs_map__t.find(alg_pair[0]);
+        auto it2 = sig_algs_map__t.find(alg_pair[1]);
+        if(it == hash_algs_map__t.end() ||
+          THR_flea_tls__map_tls_hash_to_flea_hash(it->second, &dummy_hash_id__t))
+        {
+          throw test_utils_exceptn_t(
+                  "specified hash algorithm '" + alg_pair[0] + "' (in '" + s + "')" + " not configured"
+          );
+        }
+        result.push_back(it->second);
+
+        if(it2 == sig_algs_map__t.end() ||
+          THR_flea_tls__map_tls_sig_to_flea_sig(it2->second, &dummy_scheme_id__t))
+        {
+          throw test_utils_exceptn_t(
+                  "specified sig algorithm '" + alg_pair[1] + "' (in '" + s + "')" + " not configured"
+          );
+        }
+        result.push_back(it2->second);
+      }
+    }
+    else
+    {
+      // TODO: don't set anything? (=> client can't do ECDHE, will not default
+      // to sha1)
+
+      // for compatibility reasons with other tests, for now add SHA1-RSA,
+      // SHA256-RSA
+      result.push_back(0x02);
+      result.push_back(0x01);
+
+      result.push_back(0x04);
+      result.push_back(0x01);
+    }
+    return result;
+  } // get_allowed_sig_algs_from_cmdl
 
   std::vector<flea_u16_t> get_cipher_suites_from_cmdl(property_set_t const& cmdl_args)
   {
@@ -153,6 +214,29 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   tls_test_cfg_t      & cfg
 )
 {
+  cfg.flags = (flea_tls_flag_e) 0;
+
+
+  std::string read_mode_s = cmdl_args.get_property_as_string_default_empty("app_data_read_mode");
+
+  if(read_mode_s == "full")
+  {
+    cfg.read_mode_for_app_data = flea_read_full;
+  }
+  else if(read_mode_s == "" || read_mode_s == "blocking")
+  {
+    cfg.read_mode_for_app_data = flea_read_blocking;
+  }
+  else if(read_mode_s == "nonblocking")
+  {
+    cfg.read_mode_for_app_data = flea_read_nonblocking;
+  }
+  else
+  {
+    throw test_utils_exceptn_t("invalid value for app_data_read_mode");
+  }
+
+
   cfg.trusted_certs = cmdl_args.get_bin_file_list_property("trusted");
   cfg.own_certs     = cmdl_args.get_bin_file_list_property("own_certs");
   if(cfg.own_certs.size())
@@ -179,9 +263,9 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
     cfg.crls_refs.push_back(bv);
   }
 
-  cfg.cipher_suites  = get_cipher_suites_from_cmdl(cmdl_args);
-  cfg.allowed_curves = get_allowed_ecc_curves_from_cmdl(cmdl_args);
-  // cfg.allowed_hash_algs_for_sig.push_back(0x04); // TODO: command line interface
+  cfg.cipher_suites    = get_cipher_suites_from_cmdl(cmdl_args);
+  cfg.allowed_curves   = get_allowed_ecc_curves_from_cmdl(cmdl_args);
+  cfg.allowed_sig_algs = get_allowed_sig_algs_from_cmdl(cmdl_args);
   FLEA_THR_BEG_FUNC();
 
   /*if(cfg.trusted_certs.size() == 0)

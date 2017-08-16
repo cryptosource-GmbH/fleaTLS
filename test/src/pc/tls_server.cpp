@@ -14,7 +14,7 @@
 #include <sys/socket.h>
 #include <arpa/inet.h> // inet_addr
 #include <unistd.h>    // for close
-
+#include <fcntl.h>
 
 #include "pltf_support/tcpip_stream.h"
 #include "pc/test_util.h"
@@ -31,25 +31,139 @@ using namespace std;
 
 #ifdef FLEA_HAVE_TLS
 
+enum class action_t { none, quit };
+
+std::vector<std::string> stdin_input_lines;
+std::string stdin_current_line;
+
+# define FLEA_TEST_APP_USER_ABORT 0x300
+static flea_err_t THR_check_keyb_input(/*fd_set & keyb_fds*/)
+{
+  // action_t result = action_t::none;
+  FLEA_THR_BEG_FUNC();
+  // FLEA_THR_RETURN();
+
+  /*fd_set keyb_fds;
+   *
+   * FD_ZERO(&keyb_fds);
+   * FD_SET(fileno(stdin), &keyb_fds);
+   * struct timeval timeout = { 0, 0 };
+   * select(fileno(stdin) + 1, &keyb_fds, NULL, NULL, &timeout);
+   */
+  // this is what really causes non-blocking reads:
+  // fcntl(0, F_SETFL, fcntl(0, F_GETFL) | O_NONBLOCK);
+  fcntl(fileno(stdin), F_SETFL, fcntl(fileno(stdin), F_GETFL) | O_NONBLOCK);
+  // if(FD_ISSET(fileno(stdin), &keyb_fds))
+  {
+    flea_u8_t buf[4096];
+    // std::cout << "calling read for stdin\n";
+    ssize_t did_read = read(STDIN_FILENO, buf, sizeof(buf));
+
+    fcntl(fileno(stdin), F_SETFL, fcntl(fileno(stdin), F_GETFL) & ~O_NONBLOCK);
+    // if(FD_ISSET(fileno(stdin), &keyb_fds))
+    if(did_read == -1)
+    {
+      // throw test_utils_exceptn_t("error reading from stdin");
+      FLEA_THR_RETURN();
+    }
+    buf[did_read] = 0;
+    // std::cout << "read " << did_read << " chars of user input: " + std::string((char*) buf) + "\n";
+    for(ssize_t i = 0; i < did_read; i++)
+    {
+      if(buf[i] == '\n')
+      {
+        if(stdin_current_line != "")
+        {
+          stdin_input_lines.push_back(stdin_current_line);
+        }
+        stdin_current_line = "";
+      }
+      else
+      {
+        stdin_current_line.push_back(buf[i]);
+      }
+    }
+  }
+  if(stdin_input_lines.size())
+  {
+    std::string const& s = stdin_input_lines[0];
+    if(s == "q" || s == "Q")
+    {
+      // std::cout << "check keyboard: user abort\n";
+      // result = action_t::quit;
+      FLEA_THROW("user abort requested", (flea_err_t) FLEA_TEST_APP_USER_ABORT);
+    }
+    else
+    {
+      std::cout << "processing user input = " << s << std::endl;
+    }
+    stdin_input_lines.erase(stdin_input_lines.begin());
+  }
+  FLEA_THR_FIN_SEC_empty();
+  // if(result !=
+} // THR_check_keyb_input
+
 static flea_err_t THR_unix_tcpip_listen_accept(
-  int  listen_fd,
-  int* fd
+  int      listen_fd,
+  int*     fd,
+  unsigned timeout_secs
 )
 {
   FLEA_THR_BEG_FUNC();
-  int client_fd;
-  // TODO: second is "backlog" argument. 3 is taken from an example, check if it makes sense
+  int client_fd = -1;
   listen(listen_fd, 3);
 
-  // while(1)
-  client_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
+  struct timeval tv;
+  tv.tv_sec  = 1;
+  tv.tv_usec = 0;
+  setsockopt(
+    listen_fd,
+    SOL_SOCKET,
+    SO_RCVTIMEO,
+    (struct timeval*) &tv,
+    sizeof(struct timeval)
+  );
+
+  do
+  {
+    // std::cout << "before accept\n";
+    client_fd = accept(listen_fd, (struct sockaddr*) NULL, NULL);
+    // std::cout << "after accept\n";
+    FLEA_CCALL(THR_check_keyb_input());
+  } while(client_fd == -1);
+
+# if 0
+  std::future<int> future = std::async(
+    std::launch::async,
+    [&](){
+    return accept(listen_fd, (struct sockaddr*) NULL, NULL);
+  }
+    );
+  std::future_status status;
+  do
+  {
+    status = future.wait_for(std::chrono::seconds(1));
+
+    /*if (status == std::future_status::deferred) {
+     * std::cout << "deferred\n";
+     * } else if (status == std::future_status::timeout) {
+     * std::cout << "timeout\n";
+     * } else if (status == std::future_status::ready) {
+     * std::cout << "ready!\n";
+     * }*/
+    std::cout << "accept-loop, before check_keyb\n";
+    FLEA_CCALL(THR_check_keyb_input(keyb_fds));
+    std::cout << "accept-loop, after check_keyb\n";
+  } while(status != std::future_status::ready);
+  client_fd = future.get();
+# endif // if 0
   if(client_fd < 0)
   {
     FLEA_THROW("Socket accept failed", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
   }
   *fd = client_fd;
   FLEA_THR_FIN_SEC_empty();
-}
+} // THR_unix_tcpip_listen_accept
 
 static flea_err_t THR_server_cycle(
   property_set_t const     & cmdl_args,
@@ -60,7 +174,7 @@ static flea_err_t THR_server_cycle(
 {
   flea_u8_t buf[1000];
   flea_ref_cu8_t allowed_ecc_curves__rcu8;
-  flea_ref_cu8_t allowed_hash_algs_for_sig__rcu8;
+  flea_ref_cu8_t allowed_sig_algs__rcu8;
   flea_ref_cu16_t cipher_suites_ref;
   flea_rw_stream_t rw_stream__t;
   flea_tls_ctx_t tls_ctx;
@@ -74,6 +188,29 @@ static flea_err_t THR_server_cycle(
 
   tls_test_cfg_t tls_cfg;
   int sock_fd;
+
+  // fd_set keyb_fds;
+
+
+  // struct timeval timeout = { 1, 0 };
+
+  /*
+   *
+   * FD_ZERO(&keyb_fds);
+   * FD_SET(STDIN_FILENO, &keyb_fds);
+   *
+   * ::select(STDIN_FILENO+1, &keyb_fds, nullptr, nullptr, &timeout);*/
+
+  ///////////////////////////////
+  //
+
+  /*tv.tv_sec = 1;
+   *      tv.tv_usec = 0;*/
+
+  /*        FD_ZERO(&keyb_fds);
+   *      FD_SET(fileno(stdin), &keyb_fds);
+   *
+   *      select(fileno(stdin)+1, &keyb_fds, NULL, NULL, &timeout);*/
 
   /*
    * const flea_u8_t allowed_ecc_curves__acu8[] = {
@@ -97,15 +234,30 @@ static flea_err_t THR_server_cycle(
   flea_tls_ctx_t__INIT(&tls_ctx);
   flea_cert_store_t__INIT(&trust_store__t);
 
+  // flea_u8_t * dbg_leak = (flea_u8_t* )malloc(1);
+
   FLEA_CCALL(THR_flea_cert_store_t__ctor(&trust_store__t));
   if(cert_chain_len == 0)
   {
     throw test_utils_exceptn_t("missing own certificate for tls server");
   }
 
-  FLEA_CCALL(THR_unix_tcpip_listen_accept(listen_fd, &sock_fd));
+  FLEA_CCALL(
+    THR_unix_tcpip_listen_accept(
+      listen_fd,
+      &sock_fd,
+      cmdl_args.get_property_as_u32_default("read_timeout", 1)
+    )
+  );
+
   /** socket will be closed by rw_stream_t__dtor **/
-  FLEA_CCALL(THR_flea_pltfif_tcpip__create_rw_stream_server(&rw_stream__t, sock_fd));
+  FLEA_CCALL(
+    THR_flea_pltfif_tcpip__create_rw_stream_server(
+      &rw_stream__t,
+      sock_fd,
+      cmdl_args.get_property_as_u32_default("read_timeout", 1)
+    )
+  );
 
 
   FLEA_CCALL(
@@ -125,8 +277,9 @@ static flea_err_t THR_server_cycle(
   allowed_ecc_curves__rcu8.data__pcu8 = &tls_cfg.allowed_curves[0];
   allowed_ecc_curves__rcu8.len__dtl   = tls_cfg.allowed_curves.size();
 
-  allowed_hash_algs_for_sig__rcu8.data__pcu8 = &tls_cfg.allowed_hash_algs_for_sig[0];
-  allowed_hash_algs_for_sig__rcu8.len__dtl   = tls_cfg.allowed_hash_algs_for_sig.size();
+  allowed_sig_algs__rcu8.data__pcu8 = &tls_cfg.allowed_sig_algs[0];
+  allowed_sig_algs__rcu8.len__dtl   = tls_cfg.allowed_sig_algs.size();
+
 
   FLEA_CCALL(
     THR_flea_tls_ctx_t__ctor_server(
@@ -143,12 +296,13 @@ static flea_err_t THR_server_cycle(
       sess_man__pt,
       reneg_spec_from_string(cmdl_args.get_property_as_string_default_empty("reneg_mode")),
       &allowed_ecc_curves__rcu8,
-      &allowed_hash_algs_for_sig__rcu8
+      &allowed_sig_algs__rcu8,
+      (flea_tls_flag_e) tls_cfg.flags
     )
   );
   std::cout << "handshake done" << std::endl;
   std::flush(std::cout);
-
+  FLEA_CCALL(THR_check_keyb_input());
   for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("do_renegs", 0); i++)
   {
     /*flea_al_u16_t buf_len = sizeof(buf) - 1;
@@ -168,7 +322,7 @@ static flea_err_t THR_server_cycle(
         tls_cfg.crls.size()
       )
     );
-    std::cout << " done." << std::endl;
+    std::cout << " ... done." << std::endl;
   }
 
   if(!is_https_server)
@@ -176,7 +330,14 @@ static flea_err_t THR_server_cycle(
     while(1)
     {
       flea_al_u16_t buf_len = sizeof(buf) - 1;
-      flea_err_t retval     = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
+      FLEA_CCALL(THR_check_keyb_input());
+      // flea_err_t retval     = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
+      flea_err_t retval = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, tls_cfg.read_mode_for_app_data);
+      if(retval == FLEA_ERR_TIMEOUT_ON_STREAM_READ)
+      {
+        printf("timeout during read app data\n");
+        continue;
+      }
       if(retval == FLEA_ERR_TLS_SESSION_CLOSED)
       {
         printf("session closed\n");
@@ -187,11 +348,12 @@ static flea_err_t THR_server_cycle(
         printf("received error code from read_app_data: %04x\n", retval);
         FLEA_THROW("rethrowing error from read_app_data", retval);
       }
-      printf("before read_app_data\n");
+      FLEA_CCALL(THR_check_keyb_input());
       buf[buf_len] = 0;
-      printf("received data: %s\n", buf);
+      printf("received data (len = %u): %s\n", buf_len, buf);
       printf("read_app_data returned\n");
       FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
+      usleep(10000);
     }
   }
   else
@@ -199,6 +361,7 @@ static flea_err_t THR_server_cycle(
     flea_al_u16_t buf_len      = sizeof(buf) - 1;
     const char* response_hdr_1 =
       "HTTP/1.1 200 OK\r\nDate: Mon, 27 Jul 2009 12:28:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT\r\nContent-Length: 50\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html><head><body>this is text</body></head></html>";
+    FLEA_CCALL(THR_check_keyb_input());
     flea_err_t retval = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
     if(retval == FLEA_ERR_TLS_SESSION_CLOSED)
     {
@@ -208,6 +371,7 @@ static flea_err_t THR_server_cycle(
     {
       FLEA_THROW("rethrowing error from read_app_data", retval);
     }
+    FLEA_CCALL(THR_check_keyb_input());
     buf[buf_len] = 0;
     FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (const flea_u8_t*) response_hdr_1, strlen(response_hdr_1)));
   }
@@ -264,6 +428,11 @@ static flea_err_t THR_flea_start_tls_server(
     {
       FLEA_PRINTF_TEST_OUTP_1_SWITCHED("tls test passed\n");
     }
+    if(err__t == (flea_err_t) FLEA_TEST_APP_USER_ABORT)
+    {
+      std::cout << "user abort requested" << std::endl;
+      break;
+    }
 
     /* if(!cmdl_args.have_index("stay"))
      * {
@@ -282,9 +451,10 @@ int flea_start_tls_server(property_set_t const& cmdl_args)
 
   // int result = 0;
 
-  FLEA_DECL_OBJ(sess_man__t, flea_tls_session_mngr_t);
+  flea_tls_session_mngr_t sess_man__t;
 
   FLEA_THR_BEG_FUNC();
+  flea_tls_session_mngr_t__INIT(&sess_man__t);
   FLEA_CCALL(THR_flea_tls_session_mngr_t__ctor(&sess_man__t));
   if((err = THR_flea_start_tls_server(cmdl_args, false, &sess_man__t)))
   {

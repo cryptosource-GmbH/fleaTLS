@@ -7,11 +7,14 @@
 #include "flea/alloc.h"
 #include "flea/namespace_asn1.h"
 #include "flea/x509.h"
+#include "flea/x509_key.h"
 #include "flea/ec_key.h"
 #include "flea/util.h"
 #include "flea/bin_utils.h"
 #include "flea/pk_api.h"
 #include "flea/ecc_named_curves.h"
+#include "flea/ecdsa.h"
+#include "flea/rsa.h"
 #include "internal/common/oid.h"
 #include "flea/mem_read_stream.h"
 
@@ -113,40 +116,6 @@ static flea_err_t THR_get_hash_id_from_x509_id_for_ecdsa(
 } /* THR_get_hash_id_from_x509_id_for_ecdsa */
 
 # ifdef FLEA_HAVE_ECC
-#  if 0
-static flea_err_t THR_flea_x509_verify_ecdsa_signature(
-  const flea_byte_vec_t*   oid_ref__pt,
-  const flea_public_key_t* ver_key__pt,
-  const flea_byte_vec_t*   der_enc_signature__pt,
-  const flea_byte_vec_t*   tbs_data__pt,
-  flea_hash_id_t           ecdsa_hash_id__t
-)
-{
-  // flea_hash_id_t ecdsa_hash_id__t;
-
-  FLEA_THR_BEG_FUNC();
-
-  /*  FLEA_CCALL(
-   *  THR_get_hash_id_from_x509_id_for_ecdsa(
-   *    oid_ref__pt->data__pu8 + sizeof(ecdsa_oid_prefix__acu8),
-   *    &ecdsa_hash_id__t
-   *  )
-   * );*/
-  FLEA_CCALL(
-    THR_flea_public_key_t__verify_signature(
-      ver_key__pt,
-      flea_ecdsa_emsa1,
-      tbs_data__pt,
-      der_enc_signature__pt,
-      ecdsa_hash_id__t
-    )
-  );
-  // decode the signature:
-  FLEA_THR_FIN_SEC(
-  );
-}
-
-#  endif /* if 0 */
 
 /* assumes that result__pu8 has sufficient length allocated */
 static flea_err_t THR_flea_x509_decode_ecdsa_signature(
@@ -272,7 +241,14 @@ flea_err_t THR_flea_x509_parse_ecc_public_params(
       &hlp__t
     )
   );
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, FLEA_ECC_MAX_MOD_BYTE_SIZE * 10, flea_decode_ref));
+  FLEA_CCALL(
+    THR_flea_ber_dec_t__ctor(
+      &dec__t,
+      &source__t,
+      FLEA_ECC_MAX_MOD_BYTE_SIZE * 10,
+      flea_decode_ref
+    )
+  );
   FLEA_CCALL(
     THR_flea_ber_dec_t__open_constructed_optional_cft(
       &dec__t,
@@ -680,9 +656,9 @@ flea_err_t THR_flea_public_key_t__ctor_rsa(
 flea_err_t THR_flea_public_key_t__verify_signature(
   const flea_public_key_t* key__pt,
   flea_pk_scheme_id_t      pk_scheme_id__t,
+  flea_hash_id_t           hash_id__t,
   const flea_byte_vec_t*   message__prcu8,
-  const flea_byte_vec_t*   signature__prcu8,
-  flea_hash_id_t           hash_id__t
+  const flea_byte_vec_t*   signature__prcu8
 )
 {
 # ifdef FLEA_HAVE_ECDSA
@@ -701,12 +677,12 @@ flea_err_t THR_flea_public_key_t__verify_signature(
     concat_sig_ref__t.len__dtl  = concat_sig_len__alu16;
 
     FLEA_CCALL(
-      THR_flea_pk_api__verify_signature(
-        message__prcu8,
-        &concat_sig_ref__t,
+      THR_flea_public_key_t__verify_signature_plain_format(
         key__pt,
         flea_ecdsa_emsa1,
-        hash_id__t
+        hash_id__t,
+        message__prcu8,
+        &concat_sig_ref__t
       )
     );
   }
@@ -716,12 +692,12 @@ flea_err_t THR_flea_public_key_t__verify_signature(
   if((key__pt->key_type__t == flea_rsa_key) && (pk_scheme_id__t == flea_rsa_pkcs1_v1_5_sign))
   {
     FLEA_CCALL(
-      THR_flea_pk_api__verify_signature(
-        message__prcu8,
-        signature__prcu8,
+      THR_flea_public_key_t__verify_signature_plain_format(
         key__pt,
         flea_rsa_pkcs1_v1_5_sign,
-        hash_id__t
+        hash_id__t,
+        message__prcu8,
+        signature__prcu8
       )
     );
   }
@@ -815,9 +791,9 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
       THR_flea_public_key_t__verify_signature(
         public_key__pt,
         flea_rsa_pkcs1_v1_5_sign,
+        hash_id,
         tbs_data__pt,
-        signature__pt,
-        hash_id
+        signature__pt
       )
     );
   }
@@ -830,9 +806,9 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
       THR_flea_public_key_t__verify_signature(
         public_key__pt,
         flea_ecdsa_emsa1,
+        hash_id,
         tbs_data__pt,
-        signature__pt,
-        hash_id
+        signature__pt
       )
     );
   }
@@ -847,9 +823,6 @@ flea_err_t THR_flea_public_key_t__encrypt_message(
   const flea_u8_t*         message__pcu8,
   flea_al_u16_t            message_len__alu16,
   flea_byte_vec_t*         result__pt
-
-  /*  flea_u8_t*               result__pu8,
-   * flea_al_u16_t*           result_len__palu16*/
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -879,6 +852,175 @@ flea_err_t THR_flea_public_key_t__encrypt_message(
 # endif /* ifdef FLEA_HAVE_RSA */
   FLEA_THR_FIN_SEC_empty();
 }
+
+flea_err_t THR_flea_public_key_t__verify_signature_plain_format(
+  const flea_public_key_t* pubkey__pt,
+  flea_pk_scheme_id_t      pk_scheme_id__t,
+  flea_hash_id_t           hash_id__t,
+  const flea_byte_vec_t*   message__prcu8,
+  const flea_byte_vec_t*   signature__prcu8
+)
+{
+  FLEA_DECL_OBJ(signer__t, flea_pk_signer_t);
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_pk_signer_t__ctor(&signer__t, hash_id__t));
+  FLEA_CCALL(THR_flea_pk_signer_t__update(&signer__t, message__prcu8->data__pu8, message__prcu8->len__dtl));
+  FLEA_CCALL(
+    THR_flea_pk_signer_t__final_verify(
+      &signer__t,
+      pk_scheme_id__t,
+      pubkey__pt,
+      signature__prcu8->data__pu8,
+      signature__prcu8->len__dtl
+    )
+  );
+  FLEA_THR_FIN_SEC(
+    flea_pk_signer_t__dtor(&signer__t);
+  );
+}
+
+flea_err_t THR_flea_public_key_t__verify_digest_plain_format(
+  const flea_public_key_t* pubkey__pt,
+  flea_pk_scheme_id_t      id__t,
+  flea_hash_id_t           hash_id__t,
+  const flea_u8_t*         digest__pcu8,
+  flea_al_u8_t             digest_len__alu8,
+  const flea_u8_t*         signature__pu8,
+  flea_al_u16_t            signature_len__alu16
+)
+{
+  flea_pk_primitive_id_t primitive_id__t;
+  flea_pk_encoding_id_t encoding_id__t;
+  flea_al_u16_t digest_len__alu16;
+  flea_al_u16_t key_bit_size__alu16 = 0; // avoid warning
+  flea_al_u16_t primitive_input_len__alu16;
+
+  FLEA_DECL_BUF(primitive_input__bu8, flea_u8_t, FLEA_MAX(FLEA_PK_MAX_PRIMITIVE_INPUT_LEN, FLEA_MAX_HASH_OUT_LEN));
+
+  FLEA_DECL_BUF(digest_for_rsa_ver__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
+  FLEA_THR_BEG_FUNC();
+  if(digest_len__alu8 > FLEA_MAX_HASH_OUT_LEN)
+  {
+    FLEA_THROW("excessive digest len", FLEA_ERR_INV_ARG);
+  }
+  primitive_id__t     = FLEA_PK_GET_PRIMITIVE_ID_FROM_SCHEME_ID(id__t);
+  key_bit_size__alu16 = pubkey__pt->key_bit_size__u16;
+
+  encoding_id__t = FLEA_PK_GET_ENCODING_ID_FROM_SCHEME_ID(id__t);
+
+  primitive_input_len__alu16 = pubkey__pt->primitive_input_size__u16;
+  if(primitive_input_len__alu16 == 0)
+  {
+    FLEA_THROW("invalid key length for signature", FLEA_ERR_INV_KEY_SIZE);
+  }
+  FLEA_ALLOC_BUF(primitive_input__bu8, FLEA_MAX(primitive_input_len__alu16, FLEA_MAX_HASH_OUT_LEN));
+  // get the final hash value
+  if(primitive_id__t == flea_rsa_sign)
+  {
+    FLEA_ALLOC_BUF(digest_for_rsa_ver__bu8, digest_len__alu8);
+    // FLEA_CCALL(THR_flea_hash_ctx_t__final(&signer__pt->hash_ctx, digest_for_rsa_ver__bu8));
+    memcpy(digest_for_rsa_ver__bu8, digest__pcu8, digest_len__alu8);
+  }
+  else
+  {
+    // FLEA_CCALL(THR_flea_hash_ctx_t__final(&signer__pt->hash_ctx, primitive_input__bu8));
+    memcpy(primitive_input__bu8, digest__pcu8, digest_len__alu8);
+  }
+  digest_len__alu16 = digest_len__alu8; // flea_hash_ctx_t__get_output_length(&signer__pt->hash_ctx);
+  if(encoding_id__t == flea_emsa1)
+  {
+    FLEA_CCALL(
+      THR_flea_pk_api__encode_message__emsa1(
+        primitive_input__bu8,
+        digest_len__alu16,
+        &primitive_input_len__alu16,
+        key_bit_size__alu16
+      )
+    );
+  }
+  else if(encoding_id__t == flea_pkcs1_v1_5)
+  { }
+  else
+  {
+    FLEA_THROW("invalid signature encoding id", FLEA_ERR_INV_ALGORITHM);
+  }
+  if(primitive_id__t == flea_ecdsa)
+  {
+# ifdef FLEA_HAVE_ECDSA
+    const flea_u8_t* sig_r__pu8;
+    const flea_u8_t* sig_s__pu8;
+    flea_al_u8_t s_len__al_u8;
+    flea_al_u8_t r_len__al_u8 = signature_len__alu16 / 2;
+    s_len__al_u8 = r_len__al_u8;
+    sig_r__pu8   = signature__pu8;
+    sig_s__pu8   = signature__pu8 + r_len__al_u8;
+    // concat encoding of r and s
+
+    sig_r__pu8 = signature__pu8;
+    sig_s__pu8 = signature__pu8 + r_len__al_u8;
+    FLEA_CCALL(
+      THR_flea_ecdsa__raw_verify(
+        sig_r__pu8,
+        r_len__al_u8,
+        sig_s__pu8,
+        s_len__al_u8,
+        primitive_input__bu8,
+        primitive_input_len__alu16,
+        pubkey__pt->pubkey_with_params__u.ec_public_val__t.public_point_encoded__rcu8.data__pu8,
+        pubkey__pt->pubkey_with_params__u.ec_public_val__t.public_point_encoded__rcu8.len__dtl,
+        &pubkey__pt->pubkey_with_params__u.ec_public_val__t.dp__t
+      )
+    );
+
+# else // #ifdef FLEA_HAVE_ECDSA
+    FLEA_THROW("ECDSA not supported", FLEA_ERR_INV_ALGORITHM);
+# endif // #else of #ifdef FLEA_HAVE_ECDSA
+  }
+  else if(primitive_id__t == flea_rsa_sign)
+  {
+# ifdef FLEA_HAVE_RSA
+
+    FLEA_CCALL(
+      THR_flea_rsa_raw_operation(
+        primitive_input__bu8,
+        pubkey__pt->pubkey_with_params__u.rsa_public_val__t.pub_exp__rcu8.data__pcu8,
+        pubkey__pt->pubkey_with_params__u.rsa_public_val__t.pub_exp__rcu8.len__dtl,
+        signature__pu8,
+        signature_len__alu16,
+        pubkey__pt->pubkey_with_params__u.rsa_public_val__t.mod__rcu8.data__pcu8,
+        pubkey__pt->pubkey_with_params__u.rsa_public_val__t.mod__rcu8.len__dtl
+      )
+    );
+    if(encoding_id__t == flea_pkcs1_v1_5)
+    {
+      FLEA_CCALL(
+        THR_flea_pk_api__verify_message__pkcs1_v1_5(
+          primitive_input__bu8,
+          primitive_input_len__alu16,
+          digest_for_rsa_ver__bu8,
+          digest_len__alu16,
+          key_bit_size__alu16,
+          hash_id__t
+        )
+      );
+    }
+    else
+    {
+      FLEA_THROW("invalid RSA encoding method in RSA signature verification", FLEA_ERR_INV_ALGORITHM);
+    }
+# else // #ifdef FLEA_HAVE_RSA
+    FLEA_THROW("scheme not supported", FLEA_ERR_INV_ALGORITHM);
+# endif // #else of #ifdef FLEA_HAVE_RSA
+  }
+  else
+  {
+    FLEA_THROW("invalid signature primitive id", FLEA_ERR_INV_ALGORITHM);
+  }
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL(primitive_input__bu8);
+    FLEA_FREE_BUF_FINAL(digest_for_rsa_ver__bu8);
+  );
+} /* THR_flea_pk_signer_t__final_verify */
 
 void flea_public_key_t__dtor(flea_public_key_t* key__pt)
 {

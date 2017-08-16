@@ -46,9 +46,5 @@ flea_err_t THR_flea_test_flea_types()
   {
     FLEA_THROW("wrong size for type", FLEA_ERR_FAILED_TEST);
   }
-  if(sizeof(flea_pszd_uint_t) != sizeof(void*))
-  {
-    FLEA_THROW("wrong size for type", FLEA_ERR_FAILED_TEST);
-  }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_test_flea_types */

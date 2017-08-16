@@ -28,8 +28,6 @@ typedef enum { flea_davies_meyer_aes128, flea_md5, flea_sha1, flea_sha224, flea_
  */
 struct struct_flea_hash_ctx_t
 {
-  //  flea_u8_t counter_block_arr_len__u8;
-
 #ifdef FLEA_USE_HEAP_BUF
   flea_u8_t*                      pending_buffer;
   flea_u32_t*                     hash_state;
@@ -115,9 +113,19 @@ flea_err_t THR_flea_hash_ctx_t__update(
   flea_dtl_t       input_len
 );
 
+/**
+ * Finalize the hash computation of a context object and generate the hash
+ * value.
+ *
+ * @param ctx pointer to the context object
+ * @param result receives the result. Must have the necessary storage capacity which is at most FLEA_MAX_HASH_OUT_LEN, the
+ * concrete value can be inferred from the hash-id using flea_hash__get_output_length_by_id().
+ *
+ * @return flea erro code (memory allocation failure)
+ */
 flea_err_t THR_flea_hash_ctx_t__final_byte_vec(
   flea_hash_ctx_t* p_ctx,
-  flea_byte_vec_t* result__pt
+  flea_byte_vec_t* result
 );
 
 /**
@@ -192,8 +200,8 @@ flea_hash_id_t flea_hash_ctx_t__get_hash_id(const flea_hash_ctx_t* p_ctx);
  * the employed hash id
  * @param output_len the length of output. if the specified value is smaller
  * than the hash function's output length, then the output will be truncated to
- * the specified length. The output length is at most FLEA_MAX_HASH_OUT_LEN, it
- * can be inferred from the hash-id.
+ * the specified length. The output length is at most FLEA_MAX_HASH_OUT_LEN, the
+ * concrete value can be inferred from the hash-id using flea_hash__get_output_length_by_id().
  *
  * @return flea error code
  */
@@ -205,11 +213,22 @@ flea_err_t THR_flea_compute_hash(
   flea_al_u16_t    output_len
 );
 
+/**
+ * Compute the hash value of a data string.
+ *
+ * @param id id of the hash algorithm to use
+ * @param input pointer to the data to hash
+ * @param input_len the length of input
+ * @param result receives the result. Must have the necessary storage capacity which is at most FLEA_MAX_HASH_OUT_LEN, the
+ * concrete value can be inferred from the hash-id using flea_hash__get_output_length_by_id().
+ *
+ * @return flea error code
+ */
 flea_err_t THR_flea_compute_hash_byte_vec(
   flea_hash_id_t   id,
-  const flea_u8_t* input_pu8,
-  flea_dtl_t       input_len_al_u16,
-  flea_byte_vec_t* result__pt
+  const flea_u8_t* input,
+  flea_dtl_t       input_len,
+  flea_byte_vec_t* result
 );
 
 #ifdef __cplusplus

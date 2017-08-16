@@ -25,13 +25,6 @@ typedef flea_u32_t flea_al_u16_t;
 typedef flea_s32_t flea_al_s16_t;
 
 /**
- * Has to be set to the platforms natural pointer size,
- * i.e. to sizeof(void*).
- * Supported values are 8 (64-bit), 4 (32-bit), and 2 (16-bit).
- */
-#define FLEA_PTR_BYTE_SIZE 8
-
-/**
  * Can be either 16 or 32
  */
 #define FLEA_WORD_BIT_SIZE 32 // FBFLAGS__INT_LIST 16 32

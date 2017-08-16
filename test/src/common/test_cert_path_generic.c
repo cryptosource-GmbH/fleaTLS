@@ -114,8 +114,8 @@ flea_err_t THR_flea_test_cert_path_generic(
     flea_rng__randomize((flea_u8_t*) &i, sizeof(i));
     i %= nb_crls;
     // flea_ref_cu8_t crl_ref = {crl_ptrs[i], crl_lens[i]};
-    flea_byte_vec_t crl_ref = flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(crl_ptrs[i], crl_lens[i]);
-    FLEA_CCALL(THR_flea_cert_path_validator_t__add_crl(&cert_chain__t, &crl_ref));
+    // flea_byte_vec_t crl_ref = flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(crl_ptrs[i], crl_lens[i]);
+    FLEA_CCALL(THR_flea_cert_path_validator_t__add_crl(&cert_chain__t, crl_ptrs[i], crl_lens[i]));
 
     crl_ptrs[i] = crl_ptrs[nb_crls - 1];
     crl_lens[i] = crl_lens[nb_crls - 1];

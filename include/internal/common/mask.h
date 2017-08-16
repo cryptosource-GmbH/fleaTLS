@@ -10,10 +10,11 @@
 extern "C" {
 # endif
 
-flea_u32_t flea_expand_u32_to_u32_mask(flea_u32_t in);
-
-flea_pszd_uint_t flea_expand_u32_to_ptr_szd_mask(flea_u32_t in);
-
+/*
+ * flea_u32_t flea_expand_u32_to_u32_mask(flea_u32_t in);
+ *
+ * flea_pszd_uint_t flea_expand_u32_to_ptr_szd_mask(flea_u32_t in);
+ */
 
 flea_u32_t flea_consttime__select_u32_nz_z(
   flea_u32_t select_if_nonzero,
@@ -21,7 +22,7 @@ flea_u32_t flea_consttime__select_u32_nz_z(
   flea_u32_t condition
 );
 
-void * flea_consttime__select_ptr_nz_z(
+void* flea_consttime__select_ptr_nz_z(
   void*      select_if_nonzero,
   void*      select_if_zero,
   flea_u32_t condition

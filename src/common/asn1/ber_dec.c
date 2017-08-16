@@ -134,8 +134,6 @@ flea_err_t THR_flea_ber_dec_t__set_hash_id(
   FLEA_THR_FIN_SEC_empty();
 }
 
-// TODO: MORE UNIVERSAL, CURRENTLY IT IS PRESUMED THAT BUFFERING STARTS, BUT
-// ALSO HASH ID MIGHT ALREADY BE SET
 void flea_ber_dec_t__activate_hashing(flea_ber_dec_t* dec__pt)
 {
   dec__pt->hash_buffering_active__b = FLEA_TRUE;
@@ -175,7 +173,13 @@ static flea_err_t THR_flea_ber_dec_t__skip_read_handle_hashing(
   while(len__dtl)
   {
     flea_al_u8_t to_go__alu8 = FLEA_MIN(len__dtl, 16);
-    FLEA_CCALL(THR_flea_rw_stream_t__read_full(dec__pt->source__pt, dummy__t.data__pu8, to_go__alu8));
+    FLEA_CCALL(
+      THR_flea_rw_stream_t__read_full(
+        dec__pt->source__pt,
+        dummy__t.data__pu8,
+        to_go__alu8
+      )
+    );
     FLEA_CCALL(THR_flea_ber_dec_t__handle_hashing(dec__pt, dummy__t.data__pu8, to_go__alu8));
     len__dtl -= to_go__alu8;
   }
@@ -188,7 +192,6 @@ static flea_err_t THR_flea_ber_dec_t__read_byte_and_consume_length(
 )
 {
   FLEA_THR_BEG_FUNC();
-  // FLEA_CCALL(THR_flea_rw_stream_t__read_byte(dec__pt->source__pt, out_mem__pu8));
   FLEA_CCALL(THR_flea_rw_stream_t__read_byte(dec__pt->source__pt, out_mem__pu8));
   FLEA_CCALL(THR_flea_ber_dec_t__consume_current_length(dec__pt, 1));
   FLEA_CCALL(THR_flea_ber_dec_t__handle_hashing(dec__pt, out_mem__pu8, 1));
@@ -257,9 +260,6 @@ static flea_err_t THR_flea_ber_dec_t__verify_next_tag_opt_with_nb_tag_bytes(
 
     *nb_tag_bytes__palu8 = count + 1;
   }
-  // TODO: FACTOR OUT STORED TAG BYTES SETTING USING THE INFORMATION RETURNED BY
-  // THIS FUNCTION. USED RETURNED CLASS_FORM AND TYPE FOR THIS: THEY GET UPDATED
-  // ALSO IN CASE OF STORED_TAG
   if(tag_verify_mode__t == flea_be_strict_about_tag && (found_type != type__t || found_class_form != class_form__alu8))
   {
     if(!dec__pt->stored_tag_nb_bytes__u8)
@@ -309,7 +309,6 @@ static flea_err_t THR_flea_ber_dec_t__verify_next_tag_opt(
   );
 }
 
-// TODO: GET RID OF THIS INTERMEDIATE FUNCTION:
 static flea_err_t THR_flea_ber_dec_t__verify_next_tag(
   flea_ber_dec_t* dec__pt,
   flea_asn1_tag_t type__t,
@@ -516,7 +515,6 @@ static flea_err_t THR_flea_ber_dec_t__skip_input(
   FLEA_THR_BEG_FUNC();
   while(len__dtl--)
   {
-    // TODO: INEFFICIENT, IMPLEMENT HASH_CTX_T__UPDATE_FROM_STREAM
     flea_u8_t byte;
     FLEA_CCALL(THR_flea_rw_stream_t__read_full(dec__pt->source__pt, &byte, 1));
     FLEA_CCALL(THR_flea_ber_dec_t__handle_hashing(dec__pt, &byte, 1));
@@ -572,7 +570,7 @@ static flea_err_t THR_flea_ber_dec_t__read_or_ref_raw_opt_cft(
   flea_asn1_tag_t type__t       = CFT_GET_T(cft);
   flea_al_u8_t class_form__alu8 = CFT_GET_CF(cft);
   const flea_u8_t* p__pu8;
-  const flea_u8_t* raw__pu8;
+  const flea_u8_t* raw__pu8 = NULL;
   flea_dtl_t length__dtl;
   flea_dtl_t raw_len__dtl;
   flea_bool_t optional_found__b = *optional__pb;
@@ -688,7 +686,13 @@ static flea_err_t THR_flea_ber_dec_t__read_or_ref_raw_opt_cft(
     {
       flea_byte_vec_t__reset(res_vec__pt);
       FLEA_CCALL(THR_flea_byte_vec_t__resize(res_vec__pt, length__dtl));
-      FLEA_CCALL(THR_flea_rw_stream_t__read_full(dec__pt->source__pt, res_vec__pt->data__pu8, res_vec__pt->len__dtl));
+      FLEA_CCALL(
+        THR_flea_rw_stream_t__read_full(
+          dec__pt->source__pt,
+          res_vec__pt->data__pu8,
+          res_vec__pt->len__dtl
+        )
+      );
       FLEA_CCALL(THR_flea_ber_dec_t__handle_hashing(dec__pt, res_vec__pt->data__pu8, res_vec__pt->len__dtl));
     }
     else
@@ -742,7 +746,7 @@ static flea_err_t THR_flea_ber_dec_t__read_or_ref_raw_opt_cft(
     {
       FLEA_CCALL(THR_flea_ber_dec_t__skip_read_handle_hashing(dec__pt, length__dtl));
     }
-    dec__pt->stored_tag_nb_bytes__u8 = 0; // TODO: SUPERFLUOUS
+    dec__pt->stored_tag_nb_bytes__u8 = 0;
   }
 
   FLEA_THR_FIN_SEC_empty();
@@ -791,7 +795,6 @@ flea_err_t THR_flea_ber_dec_t__read_tlv_raw_optional(
   FLEA_THR_FIN_SEC_empty();
 }
 
-// TODO: THIS FUNCTION MUST ALSO INDICATE THE PRESENCE OF THE DECODED
 flea_err_t THR_flea_ber_dec_t__decode_tlv_raw_optional(
   flea_ber_dec_t*  dec__pt,
   flea_byte_vec_t* byte_vec__pt,
@@ -1241,7 +1244,6 @@ flea_err_t THR_flea_ber_dec_t__decode_date_opt(
     FLEA_THR_RETURN();
   }
 
-  // TODO: should be unneccessary:
   if(!*optional_found__pb)
   {
     FLEA_THROW("non-optional date not present", FLEA_ERR_ASN1_DER_DEC_ERR);

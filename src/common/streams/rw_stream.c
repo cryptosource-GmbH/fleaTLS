@@ -277,6 +277,17 @@ flea_err_t THR_flea_rw_stream_t__skip_read(
   );
 }
 
+flea_err_t THR_flea_rw_stream_t__read_full(
+  flea_rw_stream_t* stream__pt,
+  flea_u8_t*        data__pu8,
+  flea_dtl_t        data_len__dtl
+)
+{
+  flea_dtl_t len__dtl = data_len__dtl;
+
+  return THR_flea_rw_stream_t__read(stream__pt, data__pu8, &len__dtl, flea_read_full);
+}
+
 flea_err_t THR_flea_rw_stream_t__read(
   flea_rw_stream_t*       stream__pt,
   flea_u8_t*              data__pu8,
@@ -284,6 +295,7 @@ flea_err_t THR_flea_rw_stream_t__read(
   flea_stream_read_mode_e rd_mode__e
 )
 {
+  // TODO: DON'T NEED INNER READ, JUST CALL READ
   return THR_flea_rw_stream_t__inner_read(stream__pt, data__pu8, data_len__pdtl, rd_mode__e);
 }
 
@@ -293,7 +305,8 @@ flea_err_t THR_flea_rw_stream_t__read_byte(
 )
 {
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_rw_stream_t__read_full(stream__pt, byte__pu8, 1));
+  flea_dtl_t len__dtl = 1;
+  FLEA_CCALL(THR_flea_rw_stream_t__read(stream__pt, byte__pu8, &len__dtl, flea_read_full));
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -315,22 +328,6 @@ flea_err_t THR_flea_rw_stream_t__read_int_be(
     result__u32  |= enc__au8[i];
   }
   *result__pu32 = result__u32;
-  FLEA_THR_FIN_SEC_empty();
-}
-
-flea_err_t THR_flea_rw_stream_t__read_full(
-  flea_rw_stream_t* stream__pt,
-  flea_u8_t*        data__pu8,
-  flea_dtl_t        data_len__dtl
-)
-{
-  // TODO: IMPLEMENT FORCE READ ONLY IN THIS TYPE DIRECTLY:
-  // SUCCESSIVE READS UNTIL ALL REQUESTED DATA HAS BEEN READ.
-  FLEA_THR_BEG_FUNC();
-  flea_dtl_t len__dtl = data_len__dtl;
-
-  return THR_flea_rw_stream_t__inner_read(stream__pt, data__pu8, &len__dtl, flea_read_full);
-
   FLEA_THR_FIN_SEC_empty();
 }
 

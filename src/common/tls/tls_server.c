@@ -93,7 +93,12 @@ static flea_err_t THR_flea_tls__read_client_hello(
 
 
   // read session id length
-  FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &session_id_len__u8));
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__read_byte(
+      hs_rd_stream__pt,
+      &session_id_len__u8
+    )
+  );
   if(session_id_len__u8 > max_session_id_len__alu8)
   {
     FLEA_THROW("invalid session id length", FLEA_ERR_TLS_PROT_DECODE_ERR);
@@ -102,7 +107,13 @@ static flea_err_t THR_flea_tls__read_client_hello(
   // read session id
   FLEA_ALLOC_BUF(session_id__bu8, session_id_len__u8);
   // TODO: SKIP DATA IF LONGER THAN DEFINED SERVER SESSION ID LEN
-  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, session_id__bu8, session_id_len__u8));
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__read_full(
+      hs_rd_stream__pt,
+      session_id__bu8,
+      session_id_len__u8
+    )
+  );
   tls_ctx->server_resume_session__u8  = 0;
   tls_ctx->server_active_sess_mbn__pt = NULL;
   if(session_id_len__u8 && tls_ctx->session_mngr_mbn__pt)
@@ -131,7 +142,13 @@ static flea_err_t THR_flea_tls__read_client_hello(
 
 
   // TODO: stream function to read in the length
-  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, cipher_suites_len_to_dec__au8, 2));
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__read_full(
+      hs_rd_stream__pt,
+      cipher_suites_len_to_dec__au8,
+      2
+    )
+  );
   cipher_suites_len_from_peer__u16 = flea__decode_U16_BE(cipher_suites_len_to_dec__au8);
 
 
@@ -148,7 +165,13 @@ static flea_err_t THR_flea_tls__read_client_hello(
   {
     flea_u8_t curr_cs__au8[2];
     flea_al_u16_t curr_cs_from_peer__alu16;
-    FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, curr_cs__au8, 2));
+    FLEA_CCALL(
+      THR_flea_rw_stream_t__read_full(
+        hs_rd_stream__pt,
+        curr_cs__au8,
+        2
+      )
+    );
     curr_cs_from_peer__alu16 = curr_cs__au8[0] << 8 | curr_cs__au8[1];
     if(curr_cs_from_peer__alu16 == FLEA_TLS_EMPTY_RENEGOTIATION_INFO_SCSV)
     {
@@ -184,12 +207,23 @@ static flea_err_t THR_flea_tls__read_client_hello(
    *  FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE);
    * }
    # endif*/
-  FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &client_compression_methods_len__u8));
+
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__read_byte(
+      hs_rd_stream__pt,
+      &client_compression_methods_len__u8
+    )
+  );
 
   flea_u8_t curr_cm;
   while(client_compression_methods_len__u8)
   {
-    FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &curr_cm));
+    FLEA_CCALL(
+      THR_flea_rw_stream_t__read_byte(
+        hs_rd_stream__pt,
+        &curr_cm
+      )
+    );
     if(curr_cm == NO_COMPRESSION)
     {
       found_compression_method = FLEA_TRUE;
@@ -236,9 +270,17 @@ static flea_err_t THR_flea_tls__read_client_hello(
             // the available certificates
             if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__UNMATCHING)
             {
+              // TODO replace with break?
               supported_cs_index__u16 += 1;
               continue;
             }
+          }
+
+          // check that key type of cert matches cs kex
+          if(tls_ctx->private_key__t.key_type__t !=
+            flea_tls__get_key_type_by_cipher_suite_id(curr_cs_from_peer__alu16))
+          {
+            break;
           }
 
           // we can only use ECDHE if the certificate type matches the kex
@@ -249,16 +291,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
             // check if we can use ECDHE according to the signature algorithms
             // extension
             if(tls_ctx->can_use_ecdhe == FLEA_TRUE)
-            {
-              if(tls_ctx->private_key__t.key_type__t !=
-                flea_tls__get_key_type_by_cipher_suite_id(curr_cs_from_peer__alu16))
-              {
-                // cipher suite is not suited for the loaded certificate
-                // supported_cs_index__u16 += 1;
-                // continue;
-                break;
-              }
-            }
+            { }
             else
             {
               // supported_cs_index__u16 += 1;
@@ -587,12 +620,12 @@ static flea_err_t THR_flea_tls__send_server_kex(
 
     // create signature
     FLEA_CCALL(
-      THR_flea_pk_api__sign_digest(
+      THR_flea_private_key_t__sign_digest_plain_format(
+        &tls_ctx__pt->private_key__t,
+        pk_scheme_id__t,
+        hash_id__t,
         hash__bu8,
         hash_out_len__u8,
-        hash_id__t,
-        pk_scheme_id__t,
-        &tls_ctx__pt->private_key__t,
         &sig_vec__t
       )
     );
@@ -753,8 +786,18 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
 
   // read encrypted premaster secret length
   // TODO: stream function to read in the length
-  FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, ((flea_u8_t*) &enc_premaster_secret_len__u16) + 1));
-  FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, (flea_u8_t*) &enc_premaster_secret_len__u16));
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__read_byte(
+      hs_rd_stream__pt,
+      ((flea_u8_t*) &enc_premaster_secret_len__u16) + 1
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__read_byte(
+      hs_rd_stream__pt,
+      (flea_u8_t*) &enc_premaster_secret_len__u16
+    )
+  );
   if(enc_premaster_secret_len__u16 > max_enc_premaster_secret_len__u16)
   {
     FLEA_THROW("encrypted premaster secret too long", FLEA_ERR_TLS_GENERIC);
@@ -953,12 +996,12 @@ static flea_err_t THR_flea_tls__read_cert_verify(
   );
 
   FLEA_CCALL(
-    THR_flea_pk_api__verify_digest(
+    THR_flea_public_key_t__verify_digest_plain_format(
+      &tls_ctx->peer_pubkey,
+      pk_scheme_id__t,
+      hash_id__t,
       messages_hash__bu8,
       hash_len__u8,
-      hash_id__t,
-      pk_scheme_id__t,
-      &tls_ctx->peer_pubkey,
       sig__bu8,
       sig_len__u16
     )
@@ -1138,7 +1181,7 @@ flea_err_t THR_flea_tls__server_handshake(
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
 # else
   flea_u8_t premaster_secret__au8[FLEA_MAX(48, FLEA_ECC_MAX_ENCODED_POINT_LEN)];
-  flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_EMPTY_ALLOCATABLE(
+  flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_NOT_ALLOCATABLE(
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
     );
@@ -1182,7 +1225,13 @@ flea_err_t THR_flea_tls__server_handshake(
     if(handshake_state.expected_messages != FLEA_TLS_HANDSHAKE_EXPECT_NONE)
     {
       ContentType cont_type__e;
-      FLEA_CCALL(THR_flea_tls_rec_prot_t__get_current_record_type(&tls_ctx->rec_prot__t, &cont_type__e));
+      FLEA_CCALL(
+        THR_flea_tls_rec_prot_t__get_current_record_type(
+          &tls_ctx->rec_prot__t,
+          &cont_type__e,
+          flea_read_full
+        )
+      );
 
       // TODO: record type argument has to be removed because it's determined by the current connection state in tls_ctx
       if(cont_type__e == CONTENT_TYPE_HANDSHAKE)
@@ -1434,7 +1483,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   flea_tls_session_mngr_t*      session_mngr_mbn__pt,
   flea_tls_renegotiation_spec_e reneg_spec__e,
   flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8,
-  flea_ref_cu8_t*               allowed_hash_algs_for_sig_ref__prcu8
+  flea_ref_cu8_t*               allowed_sig_algs_ref__prcu8,
+  flea_tls_flag_e               flags
 )
 {
   flea_err_t err__t;
@@ -1443,12 +1493,12 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = rev_chk_mode__e;
   tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16    = nb_crls__alu16;
   tls_ctx__pt->rev_chk_cfg__t.crl_der__pt     = crl_der__pt;
-  tls_ctx__pt->cert_chain__pt                  = cert_chain__pt;
-  tls_ctx__pt->cert_chain_len__u8              = cert_chain_len__alu8;
-  tls_ctx__pt->private_key__pt                 = server_key__pt;
-  tls_ctx__pt->extension_ctrl__u8              = 0;
-  tls_ctx__pt->allowed_ecc_curves__rcu8        = *allowed_ecc_curves_ref__prcu8;
-  tls_ctx__pt->allowed_hash_algs_for_sig__rcu8 = *allowed_hash_algs_for_sig_ref__prcu8;
+  tls_ctx__pt->cert_chain__pt           = cert_chain__pt;
+  tls_ctx__pt->cert_chain_len__u8       = cert_chain_len__alu8;
+  tls_ctx__pt->private_key__pt          = server_key__pt;
+  tls_ctx__pt->extension_ctrl__u8       = 0;
+  tls_ctx__pt->allowed_ecc_curves__rcu8 = *allowed_ecc_curves_ref__prcu8;
+  tls_ctx__pt->allowed_sig_algs__rcu8   = *allowed_sig_algs_ref__prcu8;
   FLEA_CCALL(
     THR_flea_private_key_t__ctor_pkcs8(
       &tls_ctx__pt->private_key__t,
@@ -1461,9 +1511,9 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   tls_ctx__pt->security_parameters.connection_end = FLEA_TLS_SERVER;
   tls_ctx__pt->client_session_mbn__pt = NULL;
   tls_ctx__pt->session_mngr_mbn__pt   = session_mngr_mbn__pt;
-  FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt, reneg_spec__e));
+  FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt, reneg_spec__e, flags));
   err__t = THR_flea_tls__server_handshake(tls_ctx__pt);// , FLEA_FALSE);
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t, FLEA_FALSE));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t, FLEA_FALSE, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();
 }
 

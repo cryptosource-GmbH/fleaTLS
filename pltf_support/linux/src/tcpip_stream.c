@@ -9,6 +9,7 @@
 #include "pltf_support/tcpip_stream.h"
 #include <sys/types.h>
 #include <sys/socket.h>
+#include <sys/time.h>
 #include <errno.h>
 #include <arpa/inet.h> // inet_addr
 #include <unistd.h>    // for close
@@ -34,6 +35,7 @@ typedef struct
   write_buf_t write_buf__t;
   flea_u16_t  port__u16;
   const char* hostname;
+  unsigned    timeout_secs;
 } linux_socket_stream_ctx_t;
 
 static linux_socket_stream_ctx_t stc_sock_stream__t;
@@ -41,45 +43,51 @@ static linux_socket_stream_ctx_t stc_sock_stream__t;
 static void init_sock_stream_client(
   linux_socket_stream_ctx_t* sock_stream__pt,
   flea_u16_t                 port__u16,
+  unsigned                   timeout_secs,
   const char*                hostname
 )
 {
   memset(sock_stream__pt, 0, sizeof(*sock_stream__pt));
   sock_stream__pt->read_buf__t.alloc_len__dtl  = sizeof(sock_stream__pt->read_buf__t.buffer__au8);
   sock_stream__pt->write_buf__t.alloc_len__dtl = sizeof(sock_stream__pt->write_buf__t.buffer__au8);
-  sock_stream__pt->port__u16 = port__u16;
-  sock_stream__pt->hostname  = hostname;
+  sock_stream__pt->port__u16    = port__u16;
+  sock_stream__pt->timeout_secs = timeout_secs;
+  sock_stream__pt->hostname     = hostname;
 }
 
 static void init_sock_stream_server(
   linux_socket_stream_ctx_t* sock_stream__pt,
-  int                        sock_fd
+  int                        sock_fd,
+  unsigned                   timeout_secs
 )
 {
   memset(sock_stream__pt, 0, sizeof(*sock_stream__pt));
   sock_stream__pt->read_buf__t.alloc_len__dtl  = sizeof(sock_stream__pt->read_buf__t.buffer__au8);
   sock_stream__pt->write_buf__t.alloc_len__dtl = sizeof(sock_stream__pt->write_buf__t.buffer__au8);
   sock_stream__pt->socket_fd__int = sock_fd;
+  sock_stream__pt->timeout_secs   = timeout_secs;
 }
 
 #if 0
 static flea_err_t THR_open_socket_server(void* ctx__pv)
 {
   FLEA_THR_BEG_FUNC();
-  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
 
-  // TODO: check if we need to close socket_fd ??? (in examples never done)
-  ctx__pt->socket_fd__int = client_fd;
-  FLEA_THR_FIN_SEC(
-    if(listen_fd == -1)
-  {
-    close(client_fd);
-  }
+  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
+  struct timeval tv;
+  tv.tv_sec  = 5; /* 5 seconds timeout for receiving a request */
+  tv.tv_usec = 0;
+  setsockopt(
+    ctx__pt->socket_fd__int,
+    SOL_SOCKET,
+    SO_RCVTIMEO,
+    (struct timeval*) &tv,
+    sizeof(struct timeval)
   );
+  FLEA_THR_FIN_SEC_empty();
 } /* THR_open_socket_server */
 
 #endif /* if 0 */
-
 static flea_err_t THR_open_socket_client(void* ctx__pv)
 {
   FLEA_THR_BEG_FUNC();
@@ -193,6 +201,7 @@ static flea_err_t THR_read_socket(
   int flags = 0;
   flea_dtl_t rem_len__dtl    = *nb_bytes_to_read__pdtl;
   flea_dtl_t read_total__dtl = 0;
+  struct timeval tv;
 
   FLEA_THR_BEG_FUNC();
   if(rem_len__dtl == 0)
@@ -203,23 +212,45 @@ static flea_err_t THR_read_socket(
   {
     flags |= MSG_DONTWAIT;
   }
+  tv.tv_sec  = ctx__pt->timeout_secs;
+  tv.tv_usec = 0;
+
+  /* ^- in principle this is not sufficient, as the a read for many byte could
+   * exceed the timeout by returning bytes successively with a delay in
+   * between that is shorter than the timout set here. this corner case is, however, not
+   * relevant to this example implementation.
+   */
+  setsockopt(
+    ctx__pt->socket_fd__int,
+    SOL_SOCKET,
+    SO_RCVTIMEO,
+    (struct timeval*) &tv,
+    sizeof(struct timeval)
+  );
   do
   {
+    // if timeout mode
     did_read_ssz = recv(ctx__pt->socket_fd__int, target_buffer__pu8, rem_len__dtl, flags);
     if(did_read_ssz < 0)
     {
       if((rd_mode__e == flea_read_nonblocking) &&
-        ((did_read_ssz == EAGAIN) || (did_read_ssz == EWOULDBLOCK) || (did_read_ssz == 0)))
+        ((errno == EAGAIN) || (errno == EWOULDBLOCK)))
       {
+        *nb_bytes_to_read__pdtl = 0;
         FLEA_THR_RETURN();
       }
+      else if(((errno == EAGAIN) || (errno == EWOULDBLOCK)))
+      {
+        FLEA_THROW("recv timout error", FLEA_ERR_TIMEOUT_ON_STREAM_READ);
+      }
+
       FLEA_THROW("recv err", FLEA_ERR_FAILED_STREAM_READ);
     }
     else if(did_read_ssz == 0)
     {
       FLEA_THROW("recv err", FLEA_ERR_FAILED_STREAM_READ);
     }
-    if(rd_mode__e == flea_read_full)
+    // if(rd_mode__e == flea_read_full)
     {
       target_buffer__pu8 += did_read_ssz;
       rem_len__dtl       -= did_read_ssz;
@@ -291,7 +322,8 @@ static flea_err_t THR_read_socket(
 
 flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
   flea_rw_stream_t* stream__pt,
-  int               sock_fd
+  int               sock_fd,
+  unsigned          timeout_secs
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -301,7 +333,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
   // init_sock_stream(&stc_sock_stream__t, port__u16, NULL);
-  init_sock_stream_server(&stc_sock_stream__t, sock_fd);
+  init_sock_stream_server(&stc_sock_stream__t, sock_fd, timeout_secs);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,
@@ -320,6 +352,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
 flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_rw_stream_t* stream__pt,
   flea_u16_t        port__u16,
+  unsigned          timeout_secs,
   const char*       hostname
 )
 {
@@ -329,7 +362,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_rw_stream_write_f write__f       = THR_write_socket;
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
-  init_sock_stream_client(&stc_sock_stream__t, port__u16, hostname);
+  init_sock_stream_client(&stc_sock_stream__t, port__u16, timeout_secs, hostname);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,
