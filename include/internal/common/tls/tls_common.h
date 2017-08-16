@@ -298,6 +298,11 @@ flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
   flea_al_u16_t     ext_len__alu16
 );
 
+flea_err_t THR_flea_tls_ctx_t__send_sig_alg_ext(
+  flea_tls_ctx_t*               tls_ctx__pt,
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
+);
+
 # ifdef FLEA_HAVE_ECC
 flea_err_t THR_flea_tls_ctx_t__send_supported_ec_curves_ext(
   flea_tls_ctx_t*               tls_ctx__pt,

@@ -1915,8 +1915,6 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
   flea_bool_t receive_sig_algs_ext__b = FLEA_FALSE;
   flea_bool_t support_sha1__b         = FLEA_FALSE;
   flea_al_u8_t i;
-  flea_hash_id_t hash_id__t;
-  flea_pk_scheme_id_t scheme_id__t;
 
   FLEA_THR_BEG_FUNC();
 
