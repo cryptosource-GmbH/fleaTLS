@@ -682,14 +682,16 @@ static flea_err_t THR_flea_tls__send_cert_request(
 {
   // TODO!: change hardcoded values !!!
   flea_u8_t cert_types__au8[1] = {1};
-  flea_u8_t sig_algs__au8[2]   = {0x04, 0x01}; // RSA + SHA256
-  flea_u8_t sig_algs_len_enc__au8[2];
+
+  // flea_u8_t sig_algs__au8[2]   = {0x04, 0x01}; // RSA + SHA256
+  // flea_u8_t sig_algs_len_enc__au8[2];
+  FLEA_DECL_BUF(sig_algs_enc_to_tls_ids__bu8, flea_u8_t, 500); // TODO: define
   flea_u8_t cert_authorities_len_enc__au8[2];
   flea_u8_t cert_types_len__u8         = sizeof(cert_types__au8);
-  flea_u16_t sig_algs_len__u16         = sizeof(sig_algs__au8);
   flea_u16_t cert_authorities_len__u16 = 0;
 
-  flea_u32_t hdr_len__u32 = 1 + cert_types_len__u8 + 2 + sig_algs_len__u16 + 2 + cert_authorities_len__u16;
+  flea_u32_t hdr_len__u32 = 1 + cert_types_len__u8 + 2 + tls_ctx->allowed_sig_algs__rcu8.len__dtl + 2
+    + cert_authorities_len__u16;
 
   FLEA_THR_BEG_FUNC();
 
@@ -720,21 +722,41 @@ static flea_err_t THR_flea_tls__send_cert_request(
     )
   );
 
-  flea__encode_U16_BE(sig_algs_len__u16, sig_algs_len_enc__au8);
+  // send sig algs length
   FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
+    THR_flea_tls__send_handshake_message_int_be(
       &tls_ctx->rec_prot__t,
       p_hash_ctx,
-      sig_algs_len_enc__au8,
+      tls_ctx->allowed_sig_algs__rcu8.len__dtl,
       2
     )
   );
+
+  // encode allowed sig algs array to tls ids and send
+  FLEA_ALLOC_BUF(sig_algs_enc_to_tls_ids__bu8, tls_ctx->allowed_sig_algs__rcu8.len__dtl);
+  for(int i = 0; i < tls_ctx->allowed_sig_algs__rcu8.len__dtl; i += 2)
+  {
+    FLEA_CCALL(
+      THR_flea_tls__map_flea_hash_to_tls_hash(
+        (flea_hash_id_t) tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i],
+        &sig_algs_enc_to_tls_ids__bu8[i]
+      )
+    );
+    FLEA_CCALL(
+      THR_flea_tls__map_flea_sig_to_tls_sig(
+        (flea_pk_scheme_id_t) tls_ctx->allowed_sig_algs__rcu8.
+        data__pcu8[i + 1],
+        &sig_algs_enc_to_tls_ids__bu8[i + 1]
+      )
+    );
+  }
+
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx->rec_prot__t,
       p_hash_ctx,
-      sig_algs__au8,
-      sizeof(sig_algs__au8)
+      sig_algs_enc_to_tls_ids__bu8,
+      tls_ctx->allowed_sig_algs__rcu8.len__dtl
     )
   );
 
@@ -749,7 +771,9 @@ static flea_err_t THR_flea_tls__send_cert_request(
   );
   // FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, cert_authorities__au8, sizeof(cert_authorities__au8)));
 
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL(sig_algs_enc_to_tls_ids__bu8);
+  );
 } /* THR_flea_tls__send_cert_request */
 
 /*

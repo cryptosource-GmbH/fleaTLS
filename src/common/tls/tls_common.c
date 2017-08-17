@@ -1628,8 +1628,7 @@ flea_err_t THR_flea_tls_ctx_t__send_sig_alg_ext(
   {
     FLEA_CCALL(
       THR_flea_tls__map_flea_hash_to_tls_hash(
-        (flea_hash_id_t) tls_ctx__pt->allowed_sig_algs__rcu8.data__pcu8[i
-        ],
+        (flea_hash_id_t) tls_ctx__pt->allowed_sig_algs__rcu8.data__pcu8[i],
         &sig_algs_enc_to_tls_ids__bu8[i]
       )
     );
