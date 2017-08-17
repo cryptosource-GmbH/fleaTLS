@@ -562,13 +562,16 @@ static flea_err_t THR_flea_tls__read_cert_request(
   flea_rw_stream_t* hs_rd_stream__pt;
 
   FLEA_DECL_BUF(cert_types__bu8, flea_u8_t, 7);         // TODO: define 7 somewhere? (7: number of different cert_types in RFC)
-  FLEA_DECL_BUF(sig_algs__bu8, flea_u8_t, 32);          // TODO same as above + find a reasonable number of bytes
-  FLEA_DECL_BUF(cert_authorities__bu8, flea_u8_t, 512); // TODO same as above
+  FLEA_DECL_BUF(cert_authorities__bu8, flea_u8_t, 512); // TODO define
   flea_u8_t cert_types_len__u8;
   flea_u8_t sig_algs_len_to_dec__au8[2];
   flea_u16_t sig_algs_len__u16;
+  flea_u8_t curr_sig_alg__au8[2];
   flea_u8_t cert_authorities_len_to_dec__au8[2];
   flea_u16_t cert_authorities_len__u16;
+  flea_hash_id_t hash_id__t;
+  flea_pk_scheme_id_t pk_scheme_id__t;
+  flea_al_u16_t hash_alg_pos__alu16;
 
   FLEA_THR_BEG_FUNC();
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
@@ -580,7 +583,11 @@ static flea_err_t THR_flea_tls__read_cert_request(
       &cert_types_len__u8
     )
   );
-  // TODO(FS): prevent overflow of stack buffer:
+
+  if(cert_types_len__u8 > 7) // TODO: use defined value instead of fixed 128
+  {
+    FLEA_THROW("cert_types__bu8 too large for buffer", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  }
   FLEA_ALLOC_BUF(cert_types__bu8, cert_types_len__u8);
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
@@ -590,7 +597,7 @@ static flea_err_t THR_flea_tls__read_cert_request(
     )
   );
 
-  // read signature algorithms field
+  // read signature algorithms length field
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
@@ -598,16 +605,64 @@ static flea_err_t THR_flea_tls__read_cert_request(
       2
     )
   );
+  // check length
   sig_algs_len__u16 = flea__decode_U16_BE(sig_algs_len_to_dec__au8);
-  // TODO(FS): prevent overflow of stack buffer:
-  FLEA_ALLOC_BUF(sig_algs__bu8, sig_algs_len__u16);
-  FLEA_CCALL(
-    THR_flea_rw_stream_t__read_full(
-      hs_rd_stream__pt,
-      sig_algs__bu8,
-      sig_algs_len__u16
-    )
-  );
+  if(sig_algs_len__u16 % 2 != 0)
+  {
+    FLEA_THROW("Incorrect length for signature algorithms", FLEA_ERR_TLS_PROT_DECODE_ERR);
+  }
+
+  // TODO: can merge into a function? (functionality also used by
+  // tls_common:parse_sig_alg_ext)
+
+  // find matching algorithm for signature
+  hash_alg_pos__alu16 = 0xFFFF;
+  while(sig_algs_len__u16)
+  {
+    sig_algs_len__u16 -= 2;
+    flea_al_u16_t i;
+
+
+    FLEA_CCALL(
+      THR_flea_rw_stream_t__read_full(
+        hs_rd_stream__pt,
+        curr_sig_alg__au8,
+        2
+      )
+    );
+    // map sig and hash alg and also check that the sig alg matches our key
+    if(THR_flea_tls__map_tls_hash_to_flea_hash(
+        curr_sig_alg__au8[0],
+        &hash_id__t
+      ) || THR_flea_tls__map_tls_sig_to_flea_sig(curr_sig_alg__au8[1], &pk_scheme_id__t))
+    {
+      continue;
+    }
+    if(THR_flea_tls__check_sig_alg_compatibility_for_key_type(tls_ctx__pt->private_key__t.key_type__t, pk_scheme_id__t))
+    {
+      continue;
+    }
+
+    // if the sig/hash pair is suitable, use it if it's highest priority
+    for(i = 0; i < tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl; i += 2)
+    {
+      if(hash_id__t == (flea_hash_id_t) tls_ctx__pt->allowed_sig_algs__rcu8.data__pcu8[i])
+      {
+        if(i / 2 < hash_alg_pos__alu16)
+        {
+          /* update if it has higher priority */
+          hash_alg_pos__alu16 = i / 2;
+          tls_ctx__pt->chosen_hash_algorithm__t = hash_id__t;
+        }
+        break;
+      }
+    }
+  }
+
+  if(hash_alg_pos__alu16 == 0xFFFF)
+  {
+    FLEA_THROW("Could not agree on signature algorithm for CertificateVerify", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  }
 
   // read certificate authorities field
   FLEA_CCALL(
@@ -618,7 +673,11 @@ static flea_err_t THR_flea_tls__read_cert_request(
     )
   );
   cert_authorities_len__u16 = flea__decode_U16_BE(cert_authorities_len_to_dec__au8);
-  // TODO(FS): prevent overflow of stack buffer:
+
+  if(cert_authorities_len__u16 > 512) // TODO: use defined value instead of fixed 512
+  {
+    FLEA_THROW("cert_authorities_len__u16 too large for buffer", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  }
   FLEA_ALLOC_BUF(cert_authorities__bu8, cert_authorities_len__u16);
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
@@ -634,14 +693,8 @@ static flea_err_t THR_flea_tls__read_cert_request(
     FLEA_THROW("trailing bytes in certificate request message", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
-  // TODO: use / store values somehow !! (choose sig/hash algs, choose root out
-  // of cert_authorities)
-  tls_ctx__pt->cert_vfy_hash_sig__t.hash_id__t      = flea_sha256;              // TODO: actually choose a matching algorithm pair
-  tls_ctx__pt->cert_vfy_hash_sig__t.pk_scheme_id__t = flea_rsa_pkcs1_v1_5_sign; // TODO: not hard coded, determine from certificate
-
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(cert_types__bu8);
-    FLEA_FREE_BUF_FINAL(sig_algs__bu8);
     FLEA_FREE_BUF_FINAL(cert_authorities__bu8);
   );
 } /* THR_flea_tls__read_cert_request */
@@ -817,37 +870,34 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
 
 static flea_err_t THR_flea_tls__send_cert_verify(
   flea_tls_ctx_t*               tls_ctx,
-  flea_tls_parallel_hash_ctx_t* p_hash_ctx,
-  flea_ref_cu8_t*               client_key__pt
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx
 )
 {
   FLEA_DECL_BUF(messages_hash__bu8, flea_u8_t, 64); // MAX_HASH_SIZE parameter?
-  FLEA_DECL_OBJ(key__t, flea_private_key_t);
-  flea_u8_t hash_alg = 4; // sha256 // TODO:
-  flea_u8_t sig_alg  = 1; // rsa    // make generic / derive from cert (?)
   flea_u32_t hdr_len__u32;
   flea_u8_t sig_len_enc__u8[2];
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(message_vec__t, 32); // TODO MAX_HASH_SIZE
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, 256);    // TODO MAX_SIG_SIZE
   flea_u8_t hash_len__u8;
+  flea_u8_t hash_alg_enc__u8;
+  flea_u8_t sig_alg_enc__u8;
+  flea_pk_scheme_id_t pk_scheme_id__t;
 
   FLEA_THR_BEG_FUNC();
 
-  hash_len__u8 = flea_hash__get_output_length_by_id(tls_ctx->cert_vfy_hash_sig__t.hash_id__t);
+  hash_len__u8 = flea_hash__get_output_length_by_id(tls_ctx->chosen_hash_algorithm__t);
   FLEA_ALLOC_BUF(messages_hash__bu8, hash_len__u8); // TODO: determine size of hash function that is used
+
+  pk_scheme_id__t = flea_tls__get_sig_alg_from_key_type(tls_ctx->private_key__t.key_type__t);
 
   FLEA_CCALL(
     THR_flea_tls_parallel_hash_ctx_t__final(
       p_hash_ctx,
-      tls_ctx->cert_vfy_hash_sig__t.hash_id__t,
+      tls_ctx->chosen_hash_algorithm__t,
       FLEA_TRUE,
       messages_hash__bu8
     )
   );
-
-  // read client key
-  FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&key__t, client_key__pt->data__pcu8, client_key__pt->len__dtl));
-
 
   // digitally sign the messages hash
   FLEA_CCALL(
@@ -860,9 +910,9 @@ static flea_err_t THR_flea_tls__send_cert_verify(
 
   FLEA_CCALL(
     THR_flea_private_key_t__sign_digest_plain_format(
-      &key__t,
-      tls_ctx->cert_vfy_hash_sig__t.pk_scheme_id__t,
-      tls_ctx->cert_vfy_hash_sig__t.hash_id__t,
+      &tls_ctx->private_key__t,
+      pk_scheme_id__t,
+      tls_ctx->chosen_hash_algorithm__t,
       messages_hash__bu8,
       hash_len__u8,
       &sig_vec__t
@@ -884,8 +934,10 @@ static flea_err_t THR_flea_tls__send_cert_verify(
   );
 
   // send signature and hash algorithm bytes
-  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, p_hash_ctx, &hash_alg, 1));
-  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, p_hash_ctx, &sig_alg, 1));
+  FLEA_CCALL(THR_flea_tls__map_flea_hash_to_tls_hash(tls_ctx->chosen_hash_algorithm__t, &hash_alg_enc__u8));
+  FLEA_CCALL(THR_flea_tls__map_flea_sig_to_tls_sig(pk_scheme_id__t, &sig_alg_enc__u8));
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, p_hash_ctx, &hash_alg_enc__u8, 1));
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, p_hash_ctx, &sig_alg_enc__u8, 1));
 
   // send signature length
   flea__encode_U16_BE(sig_vec__t.len__dtl, sig_len_enc__u8);
@@ -909,7 +961,6 @@ static flea_err_t THR_flea_tls__send_cert_verify(
   );
 
   FLEA_THR_FIN_SEC(
-    flea_private_key_t__dtor(&key__t);
     FLEA_FREE_BUF_FINAL(messages_hash__bu8);
     flea_byte_vec_t__dtor(&message_vec__t);
     flea_byte_vec_t__dtor(&sig_vec__t);
@@ -1271,7 +1322,7 @@ flea_err_t THR_flea_tls__client_handshake(
         // send CertificateVerify message if we sent a certificate
         if(handshake_state.send_client_cert == FLEA_TRUE)
         {
-          FLEA_CCALL(THR_flea_tls__send_cert_verify(tls_ctx, &p_hash_ctx, tls_ctx->private_key__pt));
+          FLEA_CCALL(THR_flea_tls__send_cert_verify(tls_ctx, &p_hash_ctx));
           handshake_state.send_client_cert = FLEA_FALSE;
         }
       }
@@ -1408,13 +1459,26 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   tls_ctx__pt->rev_chk_cfg__t.crl_der__pt     = crl_der__pt;
   tls_ctx__pt->cert_chain__pt     = cert_chain__pt;
   tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
-  tls_ctx__pt->private_key__pt    = client_private_key__pt;
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
   tls_ctx__pt->client_session_mbn__pt        = session_mbn__pt;
   tls_ctx__pt->session_mngr_mbn__pt     = NULL;
   tls_ctx__pt->allowed_ecc_curves__rcu8 = *allowed_ecc_curves_ref__prcu8;
   tls_ctx__pt->allowed_sig_algs__rcu8   = *allowed_sig_algs_ref__prcu8;
   tls_ctx__pt->extension_ctrl__u8       = 0;
+
+  // TODO: always construct the key? or only on-demand, if server asks for a
+  // certificate
+  if(cert_chain__pt != NULL && client_private_key__pt != NULL)
+  {
+    FLEA_CCALL(
+      THR_flea_private_key_t__ctor_pkcs8(
+        &tls_ctx__pt->private_key__t,
+        client_private_key__pt->data__pcu8,
+        client_private_key__pt->len__dtl
+      )
+    );
+  }
+
   if(server_name__pcrcu8)
   {
     tls_ctx__pt->hostn_valid_params__t.host_id__ct = *server_name__pcrcu8;

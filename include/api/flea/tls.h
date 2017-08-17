@@ -216,8 +216,8 @@ typedef struct
 
   flea_hash_id_t               prf_hash_id__t; // stores hash function to use for the PRF algorithm
 
-  flea_tls__hash_sig_t         cert_vfy_hash_sig__t; // hash and sig algorithms used for cert verify message
-  flea_tls__hash_sig_t         kex_hash_sig__t;      // hash and sig algorithms used for KEX
+  // flea_tls__hash_sig_t         cert_vfy_hash_sig__t; // hash and sig algorithms used for cert verify message
+  flea_tls__hash_sig_t         kex_hash_sig__t; // hash and sig algorithms used for KEX
   // TODO: could probably do a union for cert_vfy and kex
 
   // flea_byte_vec_t              premaster_secret__t; // shall be deleted after master_Secret is calculated
@@ -239,7 +239,6 @@ typedef struct
   flea_u8_t                      cert_chain_len__u8;
 
   // TODO: SERVER SHOULD ONLY KEEP THE INSTANTIATED KEY OBJECT
-  flea_ref_cu8_t*                private_key__pt;
   flea_private_key_t             private_key__t;
 
   flea_revoc_chk_cfg_t           rev_chk_cfg__t;
@@ -270,8 +269,8 @@ typedef struct
   // chosen hash algorithm in sig_alg extension. Signature algorithm is fixed by
   // the loaded certificate
   flea_ref_cu8_t allowed_sig_algs__rcu8;
-  flea_hash_id_t chosen_hash_algorithm__t;
-  flea_bool_t    can_use_ecdhe;
+  flea_hash_id_t chosen_hash_algorithm__t; // use as hash alg when signing with private key (server and client)
+  flea_bool_t    can_use_ecdhe;            // true if sig alg extension produces a match so we can sign the ECDHE params
   // flea_stream_read_mode_e    handshake_read_mode__e;
   // flea_tls_flag_e flags;
 } flea_tls_ctx_t;
@@ -344,7 +343,6 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   /* new session id? */
   flea_ref_cu8_t*          cert_chain__pt,
   flea_al_u8_t             cert_chain_len__alu8,
-  flea_ref_cu8_t*          private_key__pt,
   const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
   flea_rev_chk_mode_e      rev_chk_mode__e,
   const flea_byte_vec_t*   crl_der__pt,

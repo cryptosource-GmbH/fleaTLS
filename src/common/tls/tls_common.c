@@ -1090,7 +1090,6 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   /* new session id? */
   flea_ref_cu8_t*          cert_chain__pt,
   flea_al_u8_t             cert_chain_len__alu8,
-  flea_ref_cu8_t*          private_key__pt,
   const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
   flea_rev_chk_mode_e      rev_chk_mode__e,
   const flea_byte_vec_t*   crl_der__pt,
@@ -1111,7 +1110,6 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   tls_ctx__pt->rev_chk_cfg__t.crl_der__pt     = crl_der__pt;
   tls_ctx__pt->cert_chain__pt     = cert_chain__pt;
   tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
-  tls_ctx__pt->private_key__pt    = private_key__pt;
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
   flea_tls_set_tls_random(tls_ctx__pt);
 
@@ -1595,6 +1593,20 @@ flea_err_t THR_flea_tls__map_flea_hash_to_tls_hash(
   FLEA_THR_FIN_SEC_empty();
 }
 
+flea_pk_scheme_id_t flea_tls__get_sig_alg_from_key_type(
+  flea_pk_key_type_t key_type__t
+)
+{
+  if(key_type__t == flea_ecc_key)
+  {
+    return flea_ecdsa_emsa1;
+  }
+  else
+  {
+    return flea_rsa_pkcs1_v1_5_sign;
+  }
+}
+
 // TODO: intention is to check whether an offered sig/hash algorithm pair
 // matches the certificate. Better to not only check the key but the entire
 // certificate which might contain additional constraints
@@ -1690,7 +1702,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
 )
 {
   flea_al_u16_t len__alu16;
-  flea_al_u8_t hash_alg_pos__alu8;
+  flea_al_u16_t hash_alg_pos__alu16;
 
   FLEA_THR_BEG_FUNC();
   if(!ext_len__alu16)
@@ -1706,14 +1718,14 @@ flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
 
   // iterate over all algorithm pairs and pick the best matching
   // we can only pick the signature algorithm matching to our certificate
-  hash_alg_pos__alu8 = 0xFF; // TODO alu16
+  hash_alg_pos__alu16 = 0xFFFF;
   while(len__alu16)
   {
     len__alu16 -= 2;
     flea_u8_t sig_alg_bytes__au8[2];
     flea_hash_id_t hash_id__t;
     flea_pk_scheme_id_t pk_scheme_id__t;
-    flea_al_u8_t i;
+    flea_al_u16_t i;
 
     FLEA_CCALL(THR_flea_rw_stream_t__read_full(rd_strm__pt, sig_alg_bytes__au8, sizeof(sig_alg_bytes__au8)));
 
@@ -1735,10 +1747,10 @@ flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
     {
       if(hash_id__t == (flea_hash_id_t) tls_ctx__pt->allowed_sig_algs__rcu8.data__pcu8[i])
       {
-        if(i / 2 < hash_alg_pos__alu8)
+        if(i / 2 < hash_alg_pos__alu16)
         {
           /* update if it has higher priority */
-          hash_alg_pos__alu8 = i / 2;
+          hash_alg_pos__alu16 = i / 2;
           tls_ctx__pt->chosen_hash_algorithm__t = hash_id__t;
         }
         break;
@@ -1746,7 +1758,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
     }
   }
 
-  if(hash_alg_pos__alu8 != 0xFF)
+  if(hash_alg_pos__alu16 != 0xFFFF)
   {
     tls_ctx__pt->can_use_ecdhe = FLEA_TRUE;
   }

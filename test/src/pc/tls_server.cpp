@@ -315,7 +315,6 @@ static flea_err_t THR_server_cycle(
         &trust_store__t,
         cert_chain,
         cert_chain_len,
-        &server_key__t,
         &cipher_suites_ref,
         tls_cfg.rev_chk_mode__e,
         &tls_cfg.crls_refs[0],

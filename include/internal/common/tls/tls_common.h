@@ -303,6 +303,10 @@ flea_err_t THR_flea_tls_ctx_t__send_sig_alg_ext(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
 );
 
+flea_pk_scheme_id_t flea_tls__get_sig_alg_from_key_type(
+  flea_pk_key_type_t key_type__t
+);
+
 # ifdef FLEA_HAVE_ECC
 flea_err_t THR_flea_tls_ctx_t__send_supported_ec_curves_ext(
   flea_tls_ctx_t*               tls_ctx__pt,

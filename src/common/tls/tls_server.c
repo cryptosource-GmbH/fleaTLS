@@ -783,11 +783,9 @@ static flea_err_t THR_flea_tls__send_cert_request(
  *
  */
 # ifdef FLEA_HAVE_RSA
-// TODO: remove server_key__pt and use key in tls_ctx
 static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
-  flea_ref_cu8_t*           server_key__pt,
   flea_byte_vec_t*          premaster_secret__pt
 )
 {
@@ -898,7 +896,6 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_ecdhe(
 static flea_err_t THR_flea_tls__read_client_key_exchange(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
-  flea_ref_cu8_t*           server_key__pt,
   flea_byte_vec_t*          premaster_secret__pt
 )
 {
@@ -909,7 +906,7 @@ static flea_err_t THR_flea_tls__read_client_key_exchange(
   if(kex_method__t == FLEA_TLS_KEX_RSA)
   {
 # ifdef FLEA_HAVE_RSA
-    FLEA_CCALL(THR_flea_tls__read_client_key_exchange_rsa(tls_ctx, hs_rdr__pt, server_key__pt, premaster_secret__pt));
+    FLEA_CCALL(THR_flea_tls__read_client_key_exchange_rsa(tls_ctx, hs_rdr__pt, premaster_secret__pt));
 # else
     // should not happen if everything is properly configured
     FLEA_THROW("unsupported key exchange variant", FLEA_ERR_TLS_INVALID_STATE);
@@ -955,6 +952,8 @@ static flea_err_t THR_flea_tls__read_cert_verify(
   flea_pk_scheme_id_t pk_scheme_id__t;
   flea_u16_t hash_len__u8;
 
+  flea_bool_t check__b;
+
   FLEA_THR_BEG_FUNC();
 
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
@@ -990,6 +989,23 @@ static flea_err_t THR_flea_tls__read_cert_verify(
 
   FLEA_CCALL(flea_tls__get_hash_id_from_tls_id(sig_hash_alg__au8[0], &hash_id__t));
   FLEA_CCALL(flea_tls__get_pk_id_from_tls_sig_id(sig_hash_alg__au8[1], &pk_scheme_id__t));
+
+  // check that we support the combination of hash/sig alg and the client has
+  // indeed responded with a combination that we offered
+  check__b = FLEA_FALSE;
+  for(flea_al_u16_t i = 0; i < tls_ctx->allowed_sig_algs__rcu8.len__dtl; i += 2)
+  {
+    if((flea_hash_id_t) tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i] == hash_id__t &&
+      (flea_pk_scheme_id_t) tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i + 1] == pk_scheme_id__t)
+    {
+      check__b = FLEA_TRUE;
+    }
+  }
+  if(check__b == FLEA_FALSE)
+  {
+    FLEA_THROW("Client didn't respond with a valid signature algorithm pair", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  }
+
   hash_len__u8 = flea_hash__get_output_length_by_id(hash_id__t);
 
   // check if we use the PRF hash function (copy is in hash_ctx) or one of the
@@ -1146,7 +1162,6 @@ static flea_err_t THR_flea_handle_handsh_msg(
         THR_flea_tls__read_client_key_exchange(
           tls_ctx,
           &handsh_rdr__t,
-          tls_ctx->private_key__pt,
           premaster_secret__pt
         )
       );
@@ -1519,7 +1534,6 @@ flea_err_t THR_flea_tls_ctx_t__ctor_server(
   tls_ctx__pt->rev_chk_cfg__t.crl_der__pt     = crl_der__pt;
   tls_ctx__pt->cert_chain__pt           = cert_chain__pt;
   tls_ctx__pt->cert_chain_len__u8       = cert_chain_len__alu8;
-  tls_ctx__pt->private_key__pt          = server_key__pt;
   tls_ctx__pt->extension_ctrl__u8       = 0;
   tls_ctx__pt->allowed_ecc_curves__rcu8 = *allowed_ecc_curves_ref__prcu8;
   tls_ctx__pt->allowed_sig_algs__rcu8   = *allowed_sig_algs_ref__prcu8;
