@@ -1319,7 +1319,7 @@ flea_err_t THR_flea_tls__server_handshake(
       {
         // TODO: handle alert message properly | UPDATE (Falko): should be
         // unneccessary now, can be removed
-        FLEA_THROW("Received unhandled alert", FLEA_ERR_TLS_GENERIC);
+        FLEA_THROW("Received unhandled alert", FLEA_ERR_TLS_HANDSHK_FAILURE);
       }
       else
       {

@@ -55,7 +55,7 @@ static const flea_tls__cipher_suite_t cipher_suites[] = {
 #if 0
   // segfaults
   {FLEA_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, FLEA_TLS_AE_CIPHER(flea_aes128),
-   16, 16, 16, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
+   16, 16, 16, 0, 0, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 
   /* check if PRF is correct: https://tools.ietf.org/html/rfc5289#section-3.1 */
   {FLEA_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, FLEA_TLS_BLOCK_CIPHER(flea_aes256),
