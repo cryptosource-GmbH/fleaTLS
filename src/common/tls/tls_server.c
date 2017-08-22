@@ -47,13 +47,12 @@ static flea_err_t THR_flea_tls__read_client_hello(
   // TODO: MAKE BUILDCONFIG FOR LENGTH
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(peer_cipher_suites_u16_be__t, 40);
 # endif
-  // flea_u8_t extension_type__au8[2]; // TODO: meaningful representation of extension type
   FLEA_THR_BEG_FUNC();
 
 
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) < 34)
   {
-    FLEA_THROW("message too short", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("message too short", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
@@ -70,7 +69,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
   if(client_version_major_minor__au8[0] != tls_ctx->version.major ||
     client_version_major_minor__au8[1] != tls_ctx->version.minor)
   {
-    FLEA_THROW("Version mismatch!", FLEA_ERR_TLS_PROT_DECODE_ERR);
+    FLEA_THROW("Version mismatch!", FLEA_ERR_TLS_UNSUPP_PROT_VERSION);
   }
 
   // read random
@@ -154,7 +153,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
 
   if(cipher_suites_len_from_peer__u16 % 2 != 0)
   {
-    FLEA_THROW("incorrect cipher suites length", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("incorrect cipher suites length", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
   flea_bool_t found = FLEA_FALSE;
@@ -348,11 +347,14 @@ static flea_err_t THR_flea_tls__send_server_hello(
   flea_u8_t suite__au8[2];
   flea_u8_t session_id_len__u8 = 0;
   flea_al_u16_t ext_len__alu16;
-  flea_u32_t len = 2 + 32 + 1 + /*32 +*/ 2 + 1;
+  flea_u32_t len;
   const flea_u8_t null_byte = 0;
+  flea_u8_t version__au8[2];
+
 
   FLEA_THR_BEG_FUNC();
   ext_len__alu16 = flea_tls_ctx_t__compute_extensions_length(tls_ctx);
+  len  = 2 + 32 + 1 + /*32 +*/ 2 + 1;
   len += ext_len__alu16;
   if(ext_len__alu16)
   {
@@ -364,10 +366,6 @@ static flea_err_t THR_flea_tls__send_server_hello(
     session_id_len__u8 = FLEA_TLS_SESSION_ID_LEN;
     len += FLEA_TLS_SESSION_ID_LEN;
   }
-  // calculate length for the header
-  // TODO: include cipher suites length instead of hard coded 2 (5+6th place)
-  // TODO: include extensions length (last place)
-  // TODO: change 4th element (32) to the real SessionID length
 
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_hdr(
@@ -378,22 +376,17 @@ static flea_err_t THR_flea_tls__send_server_hello(
     )
   );
 
+  version__au8[0] = tls_ctx->version.major;
+  version__au8[1] = tls_ctx->version.minor;
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx->rec_prot__t,
       p_hash_ctx,
-      &tls_ctx->version.major,
-      1
+      version__au8,
+      sizeof(version__au8)
     )
   );
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx->rec_prot__t,
-      p_hash_ctx,
-      &tls_ctx->version.minor,
-      1
-    )
-  );
+
 
   /*FLEA_CCALL(
    * THR_flea_tls__send_handshake_message_content(
@@ -407,21 +400,11 @@ static flea_err_t THR_flea_tls__send_server_hello(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx->rec_prot__t,
       p_hash_ctx,
-
-      /*tls_ctx->security_parameters.server_random.random_bytes,
-       * sizeof(tls_ctx->security_parameters.server_random.random_bytes)*/
       tls_ctx->security_parameters.client_and_server_random + FLEA_TLS_HELLO_RANDOM_SIZE,
       FLEA_TLS_HELLO_RANDOM_SIZE
     )
   );
 
-  // TODO: actual implementation, e.g. support renegotiation
-
-
-  /*flea_u8_t dummy_session_id_len = 32;
-   * flea_u8_t dummy_session_id[32];
-   * flea_rng__randomize(dummy_session_id, dummy_session_id_len);
-   */
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, p_hash_ctx, &session_id_len__u8, 1));
   if(tls_ctx->server_active_sess_mbn__pt)
   {
@@ -518,17 +501,15 @@ static flea_err_t THR_flea_tls__send_server_kex(
 
   FLEA_CCALL(THR_flea_tls__map_flea_curve_to_curve_bytes(tls_ctx__pt->chosen_ecc_dp_internal_id__u8, ec_curve__au8));
 
-  // TODO: not hardcoded flea_sha256. Choose appropriate hash function from
-  // sig/hash alg extension (or sha1 if not present?) and the available
-  // certificates
-  hash_id__t      = flea_sha256;
-  pk_scheme_id__t = flea_rsa_pkcs1_v1_5_sign;
+  hash_id__t      = tls_ctx__pt->chosen_hash_algorithm__t;
+  pk_scheme_id__t = flea_tls__get_sig_alg_from_key_type(tls_ctx__pt->private_key__t.key_type__t);
+
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&params_hash_ctx__t, hash_id__t));
   hash_out_len__u8 = flea_hash_ctx_t__get_output_length(&params_hash_ctx__t);
 
-  // TODO: not hardcoded
-  sig_and_hash_alg[0] = 0x04;                                                                       // sha256
-  sig_and_hash_alg[1] = 0x01;                                                                       // rsa
+  THR_flea_tls__map_flea_hash_to_tls_hash(hash_id__t, &sig_and_hash_alg[0]);
+  THR_flea_tls__map_flea_sig_to_tls_sig(pk_scheme_id__t, &sig_and_hash_alg[1]);
+
   FLEA_CCALL(THR_flea_tls_get_sig_length_of_priv_key(&tls_ctx__pt->private_key__t, &sig_len__u16)); // can only be known precisely for RSA
 
   kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(
@@ -631,7 +612,6 @@ static flea_err_t THR_flea_tls__send_server_kex(
     );
 
     // send sig_hash alg + sig
-
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_content(
         &tls_ctx__pt->rec_prot__t,
@@ -680,14 +660,12 @@ static flea_err_t THR_flea_tls__send_cert_request(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx
 )
 {
-  // TODO!: change hardcoded values !!!
-  flea_u8_t cert_types__au8[1] = {1};
+  flea_u8_t cert_types__au8[1] = {flea_tls__get_tls_cert_type_from_flea_key_type(tls_ctx->private_key__t.key_type__t)};
 
-  // flea_u8_t sig_algs__au8[2]   = {0x04, 0x01}; // RSA + SHA256
-  // flea_u8_t sig_algs_len_enc__au8[2];
-  FLEA_DECL_BUF(sig_algs_enc_to_tls_ids__bu8, flea_u8_t, 500); // TODO: define
+  flea_u8_t cert_types_len__u8 = sizeof(cert_types__au8);
+
+  // TODO: hard coded, but will we support sending accepted CAs?
   flea_u8_t cert_authorities_len_enc__au8[2];
-  flea_u8_t cert_types_len__u8         = sizeof(cert_types__au8);
   flea_u16_t cert_authorities_len__u16 = 0;
 
   flea_u32_t hdr_len__u32 = 1 + cert_types_len__u8 + 2 + tls_ctx->allowed_sig_algs__rcu8.len__dtl + 2
@@ -732,33 +710,33 @@ static flea_err_t THR_flea_tls__send_cert_request(
     )
   );
 
-  // encode allowed sig algs array to tls ids and send
-  FLEA_ALLOC_BUF(sig_algs_enc_to_tls_ids__bu8, tls_ctx->allowed_sig_algs__rcu8.len__dtl);
+  // send sig algs
   for(int i = 0; i < tls_ctx->allowed_sig_algs__rcu8.len__dtl; i += 2)
   {
+    flea_u8_t tmp_buf__au8[2];
     FLEA_CCALL(
       THR_flea_tls__map_flea_hash_to_tls_hash(
         (flea_hash_id_t) tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i],
-        &sig_algs_enc_to_tls_ids__bu8[i]
+        &tmp_buf__au8[0]
       )
     );
+
     FLEA_CCALL(
       THR_flea_tls__map_flea_sig_to_tls_sig(
-        (flea_pk_scheme_id_t) tls_ctx->allowed_sig_algs__rcu8.
-        data__pcu8[i + 1],
-        &sig_algs_enc_to_tls_ids__bu8[i + 1]
+        (flea_pk_scheme_id_t) tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i + 1],
+        &tmp_buf__au8[1]
+      )
+    );
+
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_content(
+        &tls_ctx->rec_prot__t,
+        p_hash_ctx,
+        tmp_buf__au8,
+        sizeof(tmp_buf__au8)
       )
     );
   }
-
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx->rec_prot__t,
-      p_hash_ctx,
-      sig_algs_enc_to_tls_ids__bu8,
-      tls_ctx->allowed_sig_algs__rcu8.len__dtl
-    )
-  );
 
   flea__encode_U16_BE(cert_authorities_len__u16, cert_authorities_len_enc__au8);
   FLEA_CCALL(
@@ -769,11 +747,8 @@ static flea_err_t THR_flea_tls__send_cert_request(
       2
     )
   );
-  // FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, hash_ctx, cert_authorities__au8, sizeof(cert_authorities__au8)));
 
-  FLEA_THR_FIN_SEC(
-    FLEA_FREE_BUF_FINAL(sig_algs_enc_to_tls_ids__bu8);
-  );
+  FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_cert_request */
 
 /*
@@ -790,63 +765,38 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
 )
 {
   flea_rw_stream_t* hs_rd_stream__pt;
-  flea_u16_t enc_premaster_secret_len__u16;
+  flea_u32_t enc_premaster_secret_len__u32;
 
-
-  // TODO: FIX HARDCODED LENGTH!
-  const flea_u16_t max_enc_premaster_secret_len__u16 = 256;
-
-  // FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(decrypted__t, FLEA_RSA_MAX_MOD_BYTE_LEN);
-
-  // flea_al_u16_t premaster_secret__len_u16 = 256;
-
-  FLEA_DECL_BUF(enc_premaster_secret__bu8, flea_u8_t, 256); // TODO: need more ?
+  FLEA_DECL_BUF(enc_premaster_secret__bu8, flea_u8_t, FLEA_PK_MAX_PRIMITIVE_OUTPUT_LEN);
   FLEA_THR_BEG_FUNC();
-
 
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
 
-  // read encrypted premaster secret length
-  // TODO: stream function to read in the length
-  FLEA_CCALL(
-    THR_flea_rw_stream_t__read_byte(
-      hs_rd_stream__pt,
-      ((flea_u8_t*) &enc_premaster_secret_len__u16) + 1
-    )
-  );
-  FLEA_CCALL(
-    THR_flea_rw_stream_t__read_byte(
-      hs_rd_stream__pt,
-      (flea_u8_t*) &enc_premaster_secret_len__u16
-    )
-  );
-  if(enc_premaster_secret_len__u16 > max_enc_premaster_secret_len__u16)
+  FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, &enc_premaster_secret_len__u32, 2));
+  // TODO: need to check that the length matches exactly?
+  if(enc_premaster_secret_len__u32 > FLEA_PK_MAX_PRIMITIVE_OUTPUT_LEN)
   {
-    FLEA_THROW("encrypted premaster secret too long", FLEA_ERR_TLS_GENERIC);
+    FLEA_THROW("encrypted premaster secret too long", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
   // read encrypted premaster secret
-  FLEA_ALLOC_BUF(enc_premaster_secret__bu8, enc_premaster_secret_len__u16);
+  FLEA_ALLOC_BUF(enc_premaster_secret__bu8, enc_premaster_secret_len__u32);
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
       enc_premaster_secret__bu8,
-      enc_premaster_secret_len__u16
+      enc_premaster_secret_len__u32
     )
   );
 
-
   FLEA_CCALL(
     THR_flea_pk_api__decrypt_message(
-      flea_rsa_pkcs1_v1_5_encr, // TODO: derive from cert
-      flea_sha256,              // TODO: derive from cert
+      flea_rsa_pkcs1_v1_5_encr,
+      0, // we don't use a hash
       enc_premaster_secret__bu8,
-      enc_premaster_secret_len__u16,
+      enc_premaster_secret_len__u32,
       premaster_secret__pt,
-
-      /*tls_ctx->premaster_secret,
-       * &premaster_secret__len_u16,*/
-      &tls_ctx->private_key__t,// &key__t,
+      &tls_ctx->private_key__t,
       48
     )
   );
@@ -887,7 +837,7 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_ecdhe(
 
   FLEA_THR_FIN_SEC(
     flea_public_key_t__dtor(&ecdhe_client_key__t);
-    flea_private_key_t__dtor(&tls_ctx__pt->ecdhe_priv_key__t); // not needed anymore
+    flea_private_key_t__dtor(&tls_ctx__pt->ecdhe_priv_key__t); // we can destroy the object since we don't need it later
   );
 } /* THR_flea_tls__read_client_key_exchange_ecdhe */
 
@@ -987,8 +937,8 @@ static flea_err_t THR_flea_tls__read_cert_verify(
     )
   );
 
-  FLEA_CCALL(flea_tls__get_hash_id_from_tls_id(sig_hash_alg__au8[0], &hash_id__t));
-  FLEA_CCALL(flea_tls__get_pk_id_from_tls_sig_id(sig_hash_alg__au8[1], &pk_scheme_id__t));
+  FLEA_CCALL(THR_flea_tls__map_tls_hash_to_flea_hash(sig_hash_alg__au8[0], &hash_id__t));
+  FLEA_CCALL(THR_flea_tls__map_tls_sig_to_flea_sig(sig_hash_alg__au8[1], &pk_scheme_id__t));
 
   // check that we support the combination of hash/sig alg and the client has
   // indeed responded with a combination that we offered
@@ -1117,7 +1067,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
      * }*/
     else
     {
-      FLEA_THROW("Unexpected message", FLEA_ERR_TLS_GENERIC);
+      FLEA_THROW("Unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
     }
   }
 
@@ -1199,7 +1149,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
     }
     else
     {
-      FLEA_THROW("Expected finished message, but got something else", FLEA_ERR_TLS_GENERIC);
+      FLEA_THROW("Expected finished message, but got something else", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
     }
   }
 
@@ -1235,14 +1185,15 @@ flea_err_t THR_flea_tls__server_handshake(
   flea_tls__handshake_state_ctor(&handshake_state);
 
   flea_tls_parallel_hash_ctx_t p_hash_ctx;
-  flea_hash_id_t hash_ids[] = {flea_sha256, flea_sha1, flea_sha384}; // TODO123: not hardcoded!!!!!
+
+  // TODO: make configurable
+  flea_hash_id_t hash_ids[] = {flea_sha1, flea_sha224, flea_sha256, flea_sha384, flea_sha512};
 
   flea_tls_parallel_hash_ctx_t__INIT(&p_hash_ctx);
   FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__ctor(&p_hash_ctx, hash_ids, FLEA_NB_ARRAY_ENTRIES(hash_ids)));
 
 
   flea_tls_set_tls_random(tls_ctx);
-  // flea_public_key_t pubkey; // TODO: -> tls_ctx
   tls_ctx->server_active_sess_mbn__pt = NULL;
   tls_ctx->server_resume_session__u8  = 0;
   handshake_state.initialized         = FLEA_TRUE;
@@ -1272,7 +1223,6 @@ flea_err_t THR_flea_tls__server_handshake(
         )
       );
 
-      // TODO: record type argument has to be removed because it's determined by the current connection state in tls_ctx
       if(cont_type__e == CONTENT_TYPE_HANDSHAKE)
       {
         FLEA_CCALL(
@@ -1288,7 +1238,7 @@ flea_err_t THR_flea_tls__server_handshake(
       {
         if(!(handshake_state.expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC))
         {
-          FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
+          FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
         }
         else
         {
@@ -1315,11 +1265,7 @@ flea_err_t THR_flea_tls__server_handshake(
             FLEA_CCALL(
               THR_flea_tls__create_master_secret(
                 tls_ctx->security_parameters.client_and_server_random,
-
-                /* tls_ctx->security_parameters.client_random,
-                 * tls_ctx->security_parameters.server_random,*/
                 &premaster_secret__t,
-                // tls_ctx->premaster_secret,
                 tls_ctx->security_parameters.master_secret,
                 tls_ctx->selected_cipher_suite__u16
               )
@@ -1347,7 +1293,6 @@ flea_err_t THR_flea_tls__server_handshake(
             THR_flea_tls__generate_key_block(
               tls_ctx->selected_cipher_suite__u16,
               &tls_ctx->security_parameters,
-              // tls_ctx,
               tls_ctx->key_block,
               key_block_len__alu8
             )
@@ -1378,7 +1323,7 @@ flea_err_t THR_flea_tls__server_handshake(
       }
       else
       {
-        FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_GENERIC);
+        FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
       }
     }
     // We don't expect another message so it's our turn to continue
@@ -1466,7 +1411,6 @@ flea_err_t THR_flea_tls__server_handshake(
             THR_flea_tls__generate_key_block(
               tls_ctx->selected_cipher_suite__u16,
               &tls_ctx->security_parameters,
-              // tls_ctx,
               tls_ctx->key_block,
               key_block_len__alu8
             )

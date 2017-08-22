@@ -31,10 +31,10 @@ typedef enum
 } flea_tls_flag_e;
 
 // defines for max sizes to allocate on the stack
-// TODO: cleaner solution?
-# define FLEA_TLS_MAX_MAC_SIZE     (384 / 8)
-# define FLEA_TLS_MAX_MAC_KEY_SIZE 32
-# define FLEA_TLS_MAX_IV_SIZE      32
+// TODO: use values in algo_config.h?
+# define FLEA_TLS_MAX_MAC_SIZE     FLEA_MAC_MAX_OUTPUT_LENGTH      // (512 / 8)
+# define FLEA_TLS_MAX_MAC_KEY_SIZE __FLEA_COMPUTED_MAC_MAX_KEY_LEN // 32
+# define FLEA_TLS_MAX_IV_SIZE      64                              // TODO: 64 is probably far too high
 // #define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
 # define FLEA_TLS_MAX_PADDING_SIZE 255 // each byte must hold the padding value => 255 is max
 

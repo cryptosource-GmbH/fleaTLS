@@ -13,13 +13,7 @@
 #include <stdio.h>
 #include "internal/common/tls/tls_common.h"
 
-// TODO: REMOVE ALL OF THESE DEFINES EXCEPT MAX_PADDING_SIZE ?
-#define FLEA_TLS_MAX_MAC_KEY_SIZE 32
-#define FLEA_TLS_MAX_IV_SIZE      32
-// #define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
-#define FLEA_TLS_MAX_PADDING_SIZE 255 // each byte must hold the padding value => 255 is max
-
-#define RECORD_HDR_LEN            5
+#define RECORD_HDR_LEN 5
 
 #ifdef FLEA_HAVE_TLS
 static void inc_seq_nbr(flea_u32_t* seq__au32)

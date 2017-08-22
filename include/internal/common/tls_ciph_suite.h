@@ -14,9 +14,11 @@
 extern "C" {
 #endif
 
-#define FLEA_TLS_CS_MASK__RSA   0x01 // if bit is set it's an RSA ciphersuite, ECDSA otherwise
+#define FLEA_TLS_CS_AUTH_MASK__RSA  0x01
+#define FLEA_TLS_CS_AUTH_MASK__DSA  0x02
 
-#define FLEA_TLS_CS_MASK__ECDHE 0x04 // if bit is set it's an ECDHE ciphersuite
+#define FLEA_TLS_CS_KEX_MASK__ECDHE 0x08
+#define FLEA_TLS_CS_KEX_MASK__RSA   0x10
 
 typedef enum
 {
