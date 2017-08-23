@@ -291,12 +291,17 @@ static flea_err_t flea_tls__prf(
   FLEA_THR_FIN_SEC_empty();
 } /* flea_tls__prf */
 
-static flea_mac_id_t flea_tls__prf_mac_id_from_suite_id(flea_tls__cipher_suite_id_t ciph)
+static flea_mac_id_t flea_tls__prf_mac_id_from_suite_id(flea_tls__cipher_suite_id_t cs_id__t)
 {
-  // TODO: NEED TO COVER FURTHER GCM SUITES WITH ECDH,ECDSA
-  if(ciph == FLEA_TLS_RSA_WITH_AES_256_GCM_SHA384)
+  const flea_tls__cipher_suite_t* cs__pt = flea_tls_get_cipher_suite_by_id(cs_id__t);
+
+  if(cs__pt->hash_algorithm == flea_sha384)
   {
     return flea_hmac_sha384;
+  }
+  else if(cs__pt->hash_algorithm == flea_sha512)
+  {
+    return flea_hmac_sha512;
   }
   return flea_hmac_sha256;
 }
@@ -801,7 +806,7 @@ flea_err_t THR_flea_tls__send_finished(
 
 )
 {
-  FLEA_DECL_BUF(verify_data__bu8, flea_u8_t, 12 + FLEA_MAX_HASH_OUT_LEN);
+  FLEA_DECL_BUF(verify_data__bu8, flea_u8_t, FLEA_TLS_VERIFY_DATA_SIZE + FLEA_MAX_HASH_OUT_LEN);
   flea_u8_t* messages_hash__pu8;
   PRFLabel label;
   flea_hash_id_t hash_id__t;

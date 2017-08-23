@@ -604,7 +604,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
 
 
   /*
-   * Remove padding and read IV
+   * Remove padding
    */
   padding_len = data[data_len - 1];
 

@@ -227,7 +227,11 @@ typedef struct
    #endif*/
   // flea_bool_t                    resumption;
   // TODO: ABSTRACT BUFF, AND NOT IN CTX (?):
-  flea_u8_t                      key_block[128]; // size for key block for aes256+sha256 - max size for all ciphersuites in RFC
+  flea_u8_t key_block[256]; // sufficient for 2 * HMAC-SHA512 keys +  2 * 512 Bit keys
+                            // TODO: 2 * MAX_KEY_SIZE + 2
+                            // * MAX_MAC_KEY_SIZE
+                            // TODO: look at other cases
+                            // (gcm)
 
   flea_rw_stream_t*              rw_stream__pt;
   flea_tls_rec_prot_t            rec_prot__t;

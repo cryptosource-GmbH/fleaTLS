@@ -21,63 +21,75 @@ static const flea_tls__cipher_suite_t cipher_suites[] = {
    0, 0, 0, (flea_mac_id_t) 0, 0},
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
   {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA,          FLEA_TLS_BLOCK_CIPHER(flea_aes128),
-   16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
+   16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA256
   {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA256,       FLEA_TLS_BLOCK_CIPHER(flea_aes128),
-   16, 16, 16, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
+   16, 16, 16, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA
   {FLEA_TLS_RSA_WITH_AES_256_CBC_SHA,          FLEA_TLS_BLOCK_CIPHER(flea_aes256),
-   16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
+   16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256
   {FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256,       FLEA_TLS_BLOCK_CIPHER(flea_aes256),
-   16, 16, 32, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
+   16, 16, 32, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
   {FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256,       FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
-   16, 12, 16, 0, 0, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
+   16, 12, 16, 0, 0, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384
   {FLEA_TLS_RSA_WITH_AES_256_GCM_SHA384,       FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
-   16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
+   16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
   {FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,    FLEA_TLS_BLOCK_CIPHER(flea_aes128),
    16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 #endif
+#ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
   {FLEA_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA,    FLEA_TLS_BLOCK_CIPHER(flea_aes256),
    16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
+#endif
+#ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
   {FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256, FLEA_TLS_BLOCK_CIPHER(flea_aes128),
    16, 16, 16, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
-  // TODO: fix and enable them:
-#if 0
-  // segfaults
-  {FLEA_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, FLEA_TLS_AE_CIPHER(flea_aes128),
-   16, 16, 16, 0, 0, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
-
-  /* check if PRF is correct: https://tools.ietf.org/html/rfc5289#section-3.1 */
+#endif
+#ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+  {FLEA_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256, FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
+   16, 12, 16, 0, 0, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
+#endif
+#ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
   {FLEA_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384, FLEA_TLS_BLOCK_CIPHER(flea_aes256),
-   16, 16, 32, 32, 32, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
-  {FLEA_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, FLEA_TLS_AE_CIPHER(flea_aes256),
-   16, 16, 32, 0, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
-#endif /* if 0 */
+   16, 16, 32, 48, 48, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
+#endif
+#ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+  {FLEA_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384, FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
+   16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
+#endif
 };
 
 
-flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t)
+// TODO: check correctness: so far all cipher suites with hash algorithm > 256
+// also use this as prf
+flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_id_t cs_id__t)
 {
-  if(id__t == FLEA_TLS_RSA_WITH_AES_256_GCM_SHA384)
+  const flea_tls__cipher_suite_t* cs__pt = flea_tls_get_cipher_suite_by_id(cs_id__t);
+
+  if(cs__pt->hash_algorithm == flea_sha384)
   {
     return flea_sha384;
+  }
+  else if(cs__pt->hash_algorithm == flea_sha512)
+  {
+    return flea_sha512;
   }
   return flea_sha256;
 }
 
 const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher_suite_id_t id__t)
 {
-  flea_u32_t i;
+  flea_u16_t i;
 
   for(i = 0; i < sizeof(cipher_suites); i++)
   {
