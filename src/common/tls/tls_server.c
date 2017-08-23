@@ -1076,8 +1076,6 @@ static flea_err_t THR_flea_handle_handsh_msg(
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_KEY_EXCHANGE;
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
     {
-      // TODO/QUESTION: we don't need to check the KEX type for client cert (first
-      // parameter is 0) - Correct?
       // TODO: for client_cert_type: we allow multiple types if we offered them
       // in the Certificate Request message.
       flea_tls_cert_path_params_t cert_path_params__t =
