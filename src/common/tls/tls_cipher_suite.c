@@ -21,27 +21,27 @@ static const flea_tls__cipher_suite_t cipher_suites[] = {
    0, 0, 0, (flea_mac_id_t) 0, 0},
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
   {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA,          FLEA_TLS_BLOCK_CIPHER(flea_aes128),
-   16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA},
+   16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA256
   {FLEA_TLS_RSA_WITH_AES_128_CBC_SHA256,       FLEA_TLS_BLOCK_CIPHER(flea_aes128),
-   16, 16, 16, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA},
+   16, 16, 16, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA
   {FLEA_TLS_RSA_WITH_AES_256_CBC_SHA,          FLEA_TLS_BLOCK_CIPHER(flea_aes256),
-   16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA},
+   16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256
   {FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256,       FLEA_TLS_BLOCK_CIPHER(flea_aes256),
-   16, 16, 32, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA},
+   16, 16, 32, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
   {FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256,       FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
-   16, 12, 16, 0, 0, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA},
+   16, 12, 16, 0, 0, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384
   {FLEA_TLS_RSA_WITH_AES_256_GCM_SHA384,       FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
-   16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA},
+   16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 #endif
 #ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
   {FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA,    FLEA_TLS_BLOCK_CIPHER(flea_aes128),
@@ -114,18 +114,30 @@ flea_pk_key_type_t flea_tls__get_key_type_by_cipher_suite_id(flea_tls__cipher_su
   return flea_ecc_key;
 }
 
+// TODO: we have flea_tls__kex_method_t for the kex algorithm only and
+// flea_tls_kex_e which also includes the authentication
+// => merge or rename one?
 flea_tls__kex_method_t flea_tls_get_kex_method_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t)
 {
-  // TODO (JR): ähnliche CipherSuites haben vermutlich ähnliche hex-values =>
-  // man könnte ranges definieren, in denen eine bestimmte kex_method
-  // zurückgegeben wird
-  // => selbiges für get_prf_hash
-  // if(id__t == FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA)
-  if((id__t >> 8) == 0xC0)
+  if(flea_tls_get_cipher_suite_by_id(id__t)->mask & FLEA_TLS_CS_KEX_MASK__RSA)
   {
-    return FLEA_TLS_KEX_ECDHE;
+    return FLEA_TLS_KEX_RSA;
   }
-  return FLEA_TLS_KEX_RSA;
+  return FLEA_TLS_KEX_ECDHE;
+}
+
+flea_tls_kex_e flea_tls__get_kex_and_auth_method_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t)
+{
+  const flea_tls__cipher_suite_t* cs__pt = flea_tls_get_cipher_suite_by_id(id__t);
+
+  if(cs__pt->mask & FLEA_TLS_CS_AUTH_MASK__RSA)
+  {
+    if(cs__pt->mask & FLEA_TLS_CS_KEX_MASK__RSA)
+    {
+      return flea_tls_kex__rsa;
+    }
+  }
+  return flea_tls_kex__ecdhe_rsa;
 }
 
 flea_err_t THR_flea_tls_get_cipher_suite_by_id(

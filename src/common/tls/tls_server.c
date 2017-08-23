@@ -1076,15 +1076,15 @@ static flea_err_t THR_flea_handle_handsh_msg(
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_KEY_EXCHANGE;
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
     {
-      // flea_public_key_t tmp_pubkey;
-      // memset(&tmp_pubkey, 0, sizeof(tmp_pubkey)); // TODO: call ctor instead?
-      // TODO: DETERMINE KEX TYPE DYNAMICALLY:
+      // TODO/QUESTION: we don't need to check the KEX type for client cert (first
+      // parameter is 0) - Correct?
+      // TODO: for client_cert_type: we allow multiple types if we offered them
+      // in the Certificate Request message.
       flea_tls_cert_path_params_t cert_path_params__t =
-      {.kex_type__e                  = flea_tls_kex__rsa, .client_cert_type__e = flea_tls_cl_cert__rsa_sign,
+      {.kex_type__e                  =               0, .client_cert_type__e = flea_tls_cl_cert__rsa_sign,
        .validate_server_or_client__e = FLEA_TLS_CLIENT,
        .hostn_valid_params__pt       = &tls_ctx->hostn_valid_params__t};
 
-      // TODO: also check key usage and other constraints
       FLEA_CCALL(
         THR_flea_tls__read_certificate(
           tls_ctx,

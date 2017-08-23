@@ -9,6 +9,7 @@
 #include "flea/block_cipher.h"
 #include "flea/ae.h"
 #include "flea/pk_api.h"
+#include "internal/common/tls_key_usage.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -94,6 +95,8 @@ flea_pk_key_type_t flea_tls__get_key_type_by_cipher_suite_id(flea_tls__cipher_su
 flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
 
 flea_tls__kex_method_t flea_tls_get_kex_method_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
+
+flea_tls_kex_e flea_tls__get_kex_and_auth_method_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
 
 flea_err_t THR_flea_tls_get_key_block_len_from_cipher_suite_id(
   flea_tls__cipher_suite_id_t id,
