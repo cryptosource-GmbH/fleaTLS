@@ -1973,6 +1973,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
     }
     else
     {
+      tls_ctx__pt->chosen_hash_algorithm__t = flea_sha1;
       tls_ctx__pt->can_use_ecdhe = FLEA_TRUE;
     }
   }
