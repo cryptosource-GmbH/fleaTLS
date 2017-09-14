@@ -953,7 +953,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
     flea_tls_cert_path_params_t cert_path_params__t =
     {.kex_type__e                  = flea_tls__get_kex_and_auth_method_by_cipher_suite_id(
        tls_ctx->selected_cipher_suite__u16
-       ), .client_cert_type__e     =               0,
+       ), .client_cert_type_mask__u8=                    0,
      .validate_server_or_client__e = FLEA_TLS_SERVER,
      .hostn_valid_params__pt       = &tls_ctx->hostn_valid_params__t};
     FLEA_CCALL(

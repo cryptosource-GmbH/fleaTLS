@@ -322,6 +322,7 @@ static flea_err_t THR_flea_tls__validate_cert(
     __FLEA_COMPUTED_PK_MAX_ASYM_PUBKEY_LEN + 1
   );
   // flea_bool_t validate_crl_for_issued_by_current__b;
+  flea_tls_client_cert_type_e cert_type__e;
   FLEA_THR_BEG_FUNC();
   // validate_crl_for_issued_by_current__b =
   flea_public_key_t__dtor(pubkey_out__pt);
@@ -551,13 +552,33 @@ static flea_err_t THR_flea_tls__validate_cert(
     }
     else if(cert_path_params__pct->validate_server_or_client__e == FLEA_TLS_CLIENT)
     {
-      FLEA_CCALL(
-        THR_flea_tls__check_key_usage_of_tls_client(
-          &key_usage__t,
-          &extd_key_usage__t,
-          cert_path_params__pct->client_cert_type__e
-        )
-      );
+      // see what kind of public key type we got and then check if it is one of the
+      // expected ones. Then check the key usage
+      if(pubkey_out__pt->key_type__t == flea_rsa_key)
+      {
+        cert_type__e = flea_tls_cl_cert__rsa_sign;
+      }
+      else if(pubkey_out__pt->key_type__t == flea_ecc_key)
+      {
+        // TODO: distinguish between ECDSA and ECDH keys? (if we want to support
+        // ECDH at all)
+        cert_type__e = flea_tls_cl_cert__ecdsa_sign;
+      }
+
+      if(cert_path_params__pct->client_cert_type_mask__u8 & cert_type__e)
+      {
+        FLEA_CCALL(
+          THR_flea_tls__check_key_usage_of_tls_client(
+            &key_usage__t,
+            &extd_key_usage__t,
+            cert_type__e
+          )
+        );
+      }
+      else
+      {
+        FLEA_THROW("invalid certificate type, expected other", FLEA_ERR_TLS_CERT_VER_FAILED);
+      }
     }
 
 

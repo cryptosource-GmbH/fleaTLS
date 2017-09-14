@@ -1076,10 +1076,22 @@ static flea_err_t THR_flea_handle_handsh_msg(
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_KEY_EXCHANGE;
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
     {
-      // TODO: for client_cert_type: we allow multiple types if we offered them
-      // in the Certificate Request message.
+      // base allowed cl_certs on allowed signature algorithms
+      flea_u8_t cert_mask__u8 = 0;
+      for(flea_u8_t i = 1; i < tls_ctx->allowed_sig_algs__rcu8.len__dtl; i += 2)
+      {
+        if(tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i] == flea_rsa_pkcs1_v1_5_sign)
+        {
+          cert_mask__u8 |= flea_tls_cl_cert__rsa_sign;
+        }
+        else if(tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i] == flea_ecdsa_emsa1)
+        {
+          cert_mask__u8 |= flea_tls_cl_cert__ecdsa_sign;
+        }
+      }
       flea_tls_cert_path_params_t cert_path_params__t =
-      {.kex_type__e                  =               0, .client_cert_type__e = flea_tls_cl_cert__rsa_sign,
+      {.kex_type__e                  =               0,
+       .client_cert_type_mask__u8    = cert_mask__u8,
        .validate_server_or_client__e = FLEA_TLS_CLIENT,
        .hostn_valid_params__pt       = &tls_ctx->hostn_valid_params__t};
 

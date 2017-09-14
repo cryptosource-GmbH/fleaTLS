@@ -18,7 +18,7 @@ extern "C" {
 typedef struct
 {
   flea_tls_kex_e                        kex_type__e;
-  flea_tls_client_cert_type_e           client_cert_type__e;
+  flea_u8_t                             client_cert_type_mask__u8;
   flea_tls__connection_end_t            validate_server_or_client__e;
   const flea_hostn_validation_params_t* hostn_valid_params__pt;
 } flea_tls_cert_path_params_t;
