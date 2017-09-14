@@ -660,18 +660,47 @@ static flea_err_t THR_flea_tls__send_cert_request(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx
 )
 {
-  flea_u8_t cert_types__au8[1] = {flea_tls__get_tls_cert_type_from_flea_key_type(tls_ctx->private_key__t.key_type__t)};
+  // flea_u8_t cert_types__au8[1] = {flea_tls__get_tls_cert_type_from_flea_key_type(tls_ctx->private_key__t.key_type__t)};
 
-  flea_u8_t cert_types_len__u8 = sizeof(cert_types__au8);
+  // flea_u8_t cert_types_len__u8 = sizeof(cert_types__au8);
+
+
+  flea_u8_t cert_types__au8[4];
+  flea_u8_t cert_types_len__u8;
+  flea_u8_t cert_types_mask__u8 = 0;
+
 
   // TODO: hard coded, but will we support sending accepted CAs?
   flea_u8_t cert_authorities_len_enc__au8[2];
   flea_u16_t cert_authorities_len__u16 = 0;
 
-  flea_u32_t hdr_len__u32 = 1 + cert_types_len__u8 + 2 + tls_ctx->allowed_sig_algs__rcu8.len__dtl + 2
-    + cert_authorities_len__u16;
+  flea_u32_t hdr_len__u32;
 
   FLEA_THR_BEG_FUNC();
+
+  // determine what certificate types we allow
+  for(flea_u8_t i = 1; i < tls_ctx->allowed_sig_algs__rcu8.len__dtl; i += 2)
+  {
+    if(tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i] == flea_rsa_pkcs1_v1_5_sign)
+    {
+      if((cert_types_mask__u8 | flea_tls_cl_cert__rsa_sign) != cert_types_mask__u8)
+      {
+        cert_types_mask__u8 |= flea_tls_cl_cert__rsa_sign;
+        cert_types__au8[cert_types_len__u8++] =
+          flea_tls__get_tls_cert_type_from_flea_pk_scheme(flea_rsa_pkcs1_v1_5_sign);
+      }
+    }
+    else if(tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i] == flea_ecdsa_emsa1)
+    {
+      if((cert_types_mask__u8 | flea_tls_cl_cert__ecdsa_sign) != cert_types_mask__u8)
+      {
+        cert_types_mask__u8 |= flea_tls_cl_cert__ecdsa_sign;
+        cert_types__au8[cert_types_len__u8++] = flea_tls__get_tls_cert_type_from_flea_pk_scheme(flea_ecdsa_emsa1);
+      }
+    }
+  }
+
+  hdr_len__u32 = 1 + cert_types_len__u8 + 2 + tls_ctx->allowed_sig_algs__rcu8.len__dtl + 2 + cert_authorities_len__u16;
 
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_hdr(
@@ -696,7 +725,7 @@ static flea_err_t THR_flea_tls__send_cert_request(
       &tls_ctx->rec_prot__t,
       p_hash_ctx,
       cert_types__au8,
-      1
+      cert_types_len__u8
     )
   );
 

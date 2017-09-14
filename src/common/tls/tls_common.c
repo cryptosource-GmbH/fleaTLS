@@ -1543,12 +1543,23 @@ flea_u8_t flea_tls__get_tls_cert_type_from_flea_key_type(flea_pk_key_type_t key_
   {
     return 1;
   }
-  return 2; // dss_sign / dsa
+  return 64; // ecdsa
 }
 
-// TODO: intention is to check whether an offered sig/hash algorithm pair
-// matches the certificate. Better to not only check the key but the entire
-// certificate which might contain additional constraints
+flea_u8_t flea_tls__get_tls_cert_type_from_flea_pk_scheme(flea_pk_scheme_id_t pk_scheme__t)
+{
+  if(pk_scheme__t == flea_rsa_pkcs1_v1_5_sign)
+  {
+    return 1;
+  }
+  return 64; // ecdsa
+  // TODO: not well designed. Should we return flea_err_t and throw if we can't
+  // map a value?
+}
+
+// check whether an offered sig/hash algorithm pair matches the certificate.
+// Does not check additional constraints
+
 flea_err_t THR_flea_tls__check_sig_alg_compatibility_for_key_type(
   flea_pk_key_type_t  key_type__t,
   flea_pk_scheme_id_t pk_scheme_id__t

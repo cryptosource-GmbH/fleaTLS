@@ -298,6 +298,8 @@ flea_pk_scheme_id_t flea_tls__get_sig_alg_from_key_type(
 
 flea_u8_t flea_tls__get_tls_cert_type_from_flea_key_type(flea_pk_key_type_t key_type__t);
 
+flea_u8_t flea_tls__get_tls_cert_type_from_flea_pk_scheme(flea_pk_scheme_id_t pk_scheme__t);
+
 # ifdef FLEA_HAVE_ECC
 flea_err_t THR_flea_tls_ctx_t__send_supported_ec_curves_ext(
   flea_tls_ctx_t*               tls_ctx__pt,
