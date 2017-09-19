@@ -45,7 +45,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
 
 # ifdef FLEA_HAVE_ECC
   // TODO: MAKE BUILDCONFIG FOR LENGTH
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(peer_cipher_suites_u16_be__t, 40);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(peer_cipher_suites_u16_be__t, 250);
 # endif
   FLEA_THR_BEG_FUNC();
 
@@ -155,6 +155,13 @@ static flea_err_t THR_flea_tls__read_client_hello(
   {
     FLEA_THROW("incorrect cipher suites length", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
+# ifndef FLEA_USE_HEAP_BUF
+  // TODO: replace 250 with allocated length
+  if(cipher_suites_len_from_peer__u16 > 250)
+  {
+    FLEA_THROW("buffer not large enough to store cipher suites", FLEA_ERR_TLS_PROT_DECODE_ERR);
+  }
+# endif
 
   flea_bool_t found = FLEA_FALSE;
   flea_u16_t supported_cs_len__u16 = tls_ctx->allowed_cipher_suites__prcu16->len__dtl;
