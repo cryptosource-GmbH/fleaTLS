@@ -1051,7 +1051,6 @@ flea_err_t THR_flea_tls__client_handshake(
 
   // define and init state
   flea_tls__handshake_state_ctor(&handshake_state);
-  /** TODO (FS): missing init for this object **/
   flea_tls_parallel_hash_ctx_t p_hash_ctx;
   flea_tls_set_tls_random(tls_ctx);
 # ifdef FLEA_USE_HEAP_BUF
@@ -1233,7 +1232,6 @@ flea_err_t THR_flea_tls__client_handshake(
             )
           );
         }
-        // TODO: INIT PUBKEY IN CTOR!
         FLEA_CCALL(
           THR_flea_tls__send_client_key_exchange(
             tls_ctx,

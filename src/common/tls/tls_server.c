@@ -457,7 +457,6 @@ static flea_err_t THR_flea_tls__send_server_hello(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_server_hello */
 
-// TODO: move to tls_common or somewhere where it makes more sense
 static flea_err_t THR_flea_tls_get_sig_length_of_priv_key(
   flea_private_key_t* priv_key__pt,
   flea_u16_t*         len__u16
