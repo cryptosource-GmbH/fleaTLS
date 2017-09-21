@@ -142,6 +142,8 @@ namespace {
 
       // for compatibility reasons with other tests, for now add SHA1-RSA,
       // SHA256-RSA
+      // TODO(FS): use defines! does this refer to TLS values? should be flea
+      // values!
       result.push_back(0x02);
       result.push_back(0x01);
 

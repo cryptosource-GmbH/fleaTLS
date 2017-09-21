@@ -279,6 +279,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
           if(tls_ctx->private_key__t.key_type__t !=
             flea_tls__get_key_type_by_cipher_suite_id(curr_cs_from_peer__alu16))
           {
+            // TODO (FS): why "break", shouldn't this be "continue"?
             break;
           }
 
@@ -295,6 +296,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
             {
               // supported_cs_index__u16 += 1;
               // continue;
+              // TODO (FS): why "break", shouldn't this be "continue"?
               break;
             }
           }
@@ -505,7 +507,7 @@ static flea_err_t THR_flea_tls__send_server_kex(
 
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&params_hash_ctx__t, hash_id__t));
   hash_out_len__u8 = flea_hash_ctx_t__get_output_length(&params_hash_ctx__t);
-
+  // TODO(FS): missing CCALLs?:
   THR_flea_tls__map_flea_hash_to_tls_hash(hash_id__t, &sig_and_hash_alg[0]);
   THR_flea_tls__map_flea_sig_to_tls_sig(pk_scheme_id__t, &sig_and_hash_alg[1]);
 
@@ -663,13 +665,15 @@ static flea_err_t THR_flea_tls__send_cert_request(
 
   // flea_u8_t cert_types_len__u8 = sizeof(cert_types__au8);
 
-
+  // TODO(FS): why "4"?
   flea_u8_t cert_types__au8[4];
   flea_u8_t cert_types_len__u8;
   flea_u8_t cert_types_mask__u8 = 0;
 
 
   // TODO: hard coded, but will we support sending accepted CAs?
+  // FS: we could simply send the trusted certs from the cert store. there
+  // will be a flag in the TLS API for this => #547
   flea_u8_t cert_authorities_len_enc__au8[2];
   flea_u16_t cert_authorities_len__u16 = 0;
 
@@ -689,6 +693,7 @@ static flea_err_t THR_flea_tls__send_cert_request(
           flea_tls__get_tls_cert_type_from_flea_pk_scheme(flea_rsa_pkcs1_v1_5_sign);
       }
     }
+    // TODO(FS): code duplication => make a function for this
     else if(tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i] == flea_ecdsa_emsa1)
     {
       if((cert_types_mask__u8 | flea_tls_cl_cert__ecdsa_sign) != cert_types_mask__u8)

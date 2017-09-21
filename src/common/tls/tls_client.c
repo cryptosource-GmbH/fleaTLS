@@ -476,6 +476,7 @@ static flea_err_t THR_flea_tls__send_client_hello(
   }
 
   // compression methods: we don't support compression
+  // TODO(FS): reuse version array and send in single call
   byte = 1;
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, p_hash_ctx, &byte, 1));
   byte = 0;
@@ -1070,7 +1071,7 @@ flea_err_t THR_flea_tls__client_handshake(
    * sind, die hier unterstützt werden müssen. Dann sehen wir, wie wir die Menge
    * ableiten können.
    */
-  flea_hash_id_t hash_ids[] = {flea_sha256, flea_sha1, flea_sha384}; // TODO123: not hardcoded!!!!!
+  flea_hash_id_t hash_ids[] = {flea_sha256, flea_sha1, flea_sha384}; // TODO 123: not hardcoded!!!!!
 
   FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__ctor(&p_hash_ctx, hash_ids, FLEA_NB_ARRAY_ENTRIES(hash_ids)));
   while(1)
@@ -1385,6 +1386,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
 
   // TODO: always construct the key? or only on-demand, if server asks for a
   // certificate
+  // FS: should always be constructed. We should assume setups where both sides
+  // know whether client auth is used ore not.
   if(cert_chain__pt != NULL && client_private_key__pt != NULL)
   {
     FLEA_CCALL(

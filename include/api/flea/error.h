@@ -101,6 +101,7 @@ typedef enum
   /**
    * TLS Errors
    */
+TODO: REMOVE:
   // FLEA_ERR_TLS_GENERIC                                  = 0x4D,
 
   /**

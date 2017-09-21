@@ -103,6 +103,7 @@ const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher
   // TODO: have to make sure that the compiled cs ids are the same as the
   // compiled cs entries in cipher_suites[]
   return &(cipher_suites[0]);
+  // TODO(FS): warum kann das nie passieren? lass uns das besprechen
 }
 
 flea_pk_key_type_t flea_tls__get_key_type_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t)

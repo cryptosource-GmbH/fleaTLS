@@ -562,6 +562,7 @@ static flea_err_t THR_flea_tls__validate_cert(
       {
         // TODO: distinguish between ECDSA and ECDH keys? (if we want to support
         // ECDH at all)
+        // FS: i don't think they can be distinguished at all...
         cert_type__e = flea_tls_cl_cert__ecdsa_sign;
       }
 

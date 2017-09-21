@@ -16,7 +16,7 @@ extern "C" {
 #endif
 
 #define FLEA_TLS_CS_AUTH_MASK__RSA  0x01
-#define FLEA_TLS_CS_AUTH_MASK__DSA  0x02
+#define FLEA_TLS_CS_AUTH_MASK__DSA  0x02 // TODO(FS): not "__ECDSA"?
 
 #define FLEA_TLS_CS_KEX_MASK__ECDHE 0x08
 #define FLEA_TLS_CS_KEX_MASK__RSA   0x10

@@ -35,6 +35,10 @@ typedef enum
 # define FLEA_TLS_MAX_MAC_SIZE     FLEA_MAC_MAX_OUTPUT_LENGTH      // (512 / 8)
 # define FLEA_TLS_MAX_MAC_KEY_SIZE __FLEA_COMPUTED_MAC_MAX_KEY_LEN // 32
 # define FLEA_TLS_MAX_IV_SIZE      64                              // TODO: 64 is probably far too high
+// Falko:
+// shouldn't
+// the max iv
+// size be 16?
 // #define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
 # define FLEA_TLS_MAX_PADDING_SIZE 255 // each byte must hold the padding value => 255 is max
 
@@ -240,7 +244,6 @@ typedef struct
   flea_ref_cu8_t*                cert_chain__pt;
   flea_u8_t                      cert_chain_len__u8;
 
-  // TODO: SERVER SHOULD ONLY KEEP THE INSTANTIATED KEY OBJECT
   flea_private_key_t             private_key__t;
 
   flea_revoc_chk_cfg_t           rev_chk_cfg__t;
