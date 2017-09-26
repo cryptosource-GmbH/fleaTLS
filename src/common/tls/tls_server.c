@@ -713,15 +713,12 @@ static flea_err_t THR_flea_tls__send_cert_request(
   // algorithms
   // TODO: determine supported (=compiled?) schemes dynamically
   flea_pk_scheme_id_t supported_pk_schemes__at[] = {flea_rsa_pkcs1_v1_5_sign, flea_ecdsa_emsa1};
-  flea_pk_scheme_id_t curr_pk_scheme__t;
   for(flea_u8_t i = 1; i < tls_ctx->allowed_sig_algs__rcu8.len__dtl; i += 2)
   {
-    for(flea_u8_t j = 0; j < sizeof(curr_pk_scheme__t); j++)
+    for(flea_u8_t j = 0; j < sizeof(supported_pk_schemes__at) / sizeof(flea_pk_scheme_id_t); j++)
     {
-      curr_pk_scheme__t = supported_pk_schemes__at[j];
-
       if(flea_tls__is_allowed_cert_type_hlp_fct(
-          curr_pk_scheme__t,
+          supported_pk_schemes__at[j],
           &cert_types_mask__u8,
           tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i]
         ) == FLEA_TRUE)
@@ -733,7 +730,9 @@ static flea_err_t THR_flea_tls__send_cert_request(
             FLEA_ERR_INT_ERR
           );
         }
-        cert_types__au8[cert_types_len__u8++] = flea_tls__get_tls_cert_type_from_flea_pk_scheme(curr_pk_scheme__t);
+        cert_types__au8[cert_types_len__u8++] = flea_tls__get_tls_cert_type_from_flea_pk_scheme(
+          supported_pk_schemes__at[j]
+          );
       }
     }
   }
