@@ -104,8 +104,7 @@ namespace {
 
   std::vector<flea_u8_t> get_allowed_sig_algs_from_cmdl(property_set_t const& cmdl_args)
   {
-    flea_hash_id_t dummy_hash_id__t;
-    flea_pk_scheme_id_t dummy_scheme_id__t;
+    flea_u8_t dummy;
 
     std::vector<flea_u8_t> result;
     if(cmdl_args.have_index("allowed_sig_algs"))
@@ -117,7 +116,7 @@ namespace {
         auto it  = hash_algs_map__t.find(alg_pair[0]);
         auto it2 = sig_algs_map__t.find(alg_pair[1]);
         if(it == hash_algs_map__t.end() ||
-          THR_flea_tls__map_tls_hash_to_flea_hash(it->second, &dummy_hash_id__t))
+          THR_flea_tls__map_flea_hash_to_tls_hash((flea_hash_id_t) it->second, &dummy))
         {
           throw test_utils_exceptn_t(
                   "specified hash algorithm '" + alg_pair[0] + "' (in '" + s + "')" + " not configured"
@@ -126,7 +125,7 @@ namespace {
         result.push_back(it->second);
 
         if(it2 == sig_algs_map__t.end() ||
-          THR_flea_tls__map_tls_sig_to_flea_sig(it2->second, &dummy_scheme_id__t))
+          THR_flea_tls__map_flea_sig_to_tls_sig((flea_pk_scheme_id_t) it2->second, &dummy))
         {
           throw test_utils_exceptn_t(
                   "specified sig algorithm '" + alg_pair[1] + "' (in '" + s + "')" + " not configured"
@@ -142,13 +141,12 @@ namespace {
 
       // for compatibility reasons with other tests, for now add SHA1-RSA,
       // SHA256-RSA
-      // TODO(FS): use defines! does this refer to TLS values? should be flea
-      // values!
-      result.push_back(0x02);
-      result.push_back(0x01);
 
-      result.push_back(0x04);
-      result.push_back(0x01);
+      result.push_back((flea_u8_t) flea_sha256);
+      result.push_back((flea_u8_t) flea_rsa_pkcs1_v1_5_sign);
+
+      result.push_back((flea_u8_t) flea_sha1);
+      result.push_back((flea_u8_t) flea_rsa_pkcs1_v1_5_sign);
     }
     return result;
   } // get_allowed_sig_algs_from_cmdl

@@ -360,7 +360,6 @@ static flea_err_t THR_flea_tls__send_client_hello(
 )
 {
   flea_al_u16_t i;
-  flea_u8_t byte;
   flea_u32_t len;
   flea_al_u16_t ext_len__alu16;
   flea_u8_t version__au8[2];
@@ -476,11 +475,10 @@ static flea_err_t THR_flea_tls__send_client_hello(
   }
 
   // compression methods: we don't support compression
-  // TODO(FS): reuse version array and send in single call
-  byte = 1;
-  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, p_hash_ctx, &byte, 1));
-  byte = 0;
-  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, p_hash_ctx, &byte, 1));
+  // reusing version__au8 array
+  version__au8[0] = 1;
+  version__au8[1] = 0;
+  FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, p_hash_ctx, version__au8, 2));
 
   // send extensions
   FLEA_CCALL(THR_flea_tls_ctx_t__send_extensions_length(tls_ctx, p_hash_ctx));
@@ -1384,10 +1382,6 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   tls_ctx__pt->allowed_sig_algs__rcu8   = *allowed_sig_algs_ref__prcu8;
   tls_ctx__pt->extension_ctrl__u8       = 0;
 
-  // TODO: always construct the key? or only on-demand, if server asks for a
-  // certificate
-  // FS: should always be constructed. We should assume setups where both sides
-  // know whether client auth is used ore not.
   if(cert_chain__pt != NULL && client_private_key__pt != NULL)
   {
     FLEA_CCALL(

@@ -529,10 +529,6 @@ flea_err_t THR_flea_tls__send_certificate(
 
   FLEA_THR_BEG_FUNC();
 
-  // TODO: add option to exclude the root CA (RFC: MAY be ommited)
-  // FS: good to know, since during cert verify it is currently assumed to be
-  // sent! We don't need to implement an option here since the caller can simply
-  // omit the root himself
   // calculate length for the header
   hdr_len__u32 = 3; // 3 byte for length of certificate list
   for(flea_u8_t i = 0; i < cert_chain_len__u8; i++)
@@ -1546,22 +1542,20 @@ flea_pk_scheme_id_t flea_tls__get_sig_alg_from_key_type(
 
 flea_u8_t flea_tls__get_tls_cert_type_from_flea_key_type(flea_pk_key_type_t key_type__t)
 {
-  // TODO(FS): use defines!
   if(key_type__t == flea_rsa_key)
   {
-    return 1;
+    return FLEA_TLS_CERT_TYPE_RSA_SIGN;
   }
-  return 64; // ecdsa
+  return FLEA_TLS_CERT_TYPE_ECDSA_SIGN;
 }
 
 flea_u8_t flea_tls__get_tls_cert_type_from_flea_pk_scheme(flea_pk_scheme_id_t pk_scheme__t)
 {
-  // TODO(FS): use defines!
   if(pk_scheme__t == flea_rsa_pkcs1_v1_5_sign)
   {
-    return 1;
+    return FLEA_TLS_CERT_TYPE_RSA_SIGN;
   }
-  return 64; // ecdsa
+  return FLEA_TLS_CERT_TYPE_ECDSA_SIGN;
   // TODO: not well designed. Should we return flea_err_t and throw if we can't
   // map a value?
   // FS: would be nicer, but actually i think this is sufficient for now. error
@@ -1570,7 +1564,6 @@ flea_u8_t flea_tls__get_tls_cert_type_from_flea_pk_scheme(flea_pk_scheme_id_t pk
 
 // check whether an offered sig/hash algorithm pair matches the certificate.
 // Does not check additional constraints
-
 flea_err_t THR_flea_tls__check_sig_alg_compatibility_for_key_type(
   flea_pk_key_type_t  key_type__t,
   flea_pk_scheme_id_t pk_scheme_id__t
