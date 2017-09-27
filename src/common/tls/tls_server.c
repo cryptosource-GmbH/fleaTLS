@@ -694,7 +694,8 @@ static flea_err_t THR_flea_tls__send_cert_request(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx
 )
 {
-  flea_u8_t cert_types__au8[FLEA_TLS_MAX_CERT_TYPES_IN_CERT_REQ_MSG];
+  const flea_pk_scheme_id_t supported_pk_schemes__at[] = {flea_rsa_pkcs1_v1_5_sign, flea_ecdsa_emsa1};
+  flea_u8_t cert_types__au8[FLEA_NB_ARRAY_ENTRIES(supported_pk_schemes__at)];
   flea_u8_t cert_types_len__u8  = 0;
   flea_u8_t cert_types_mask__u8 = 0;
 
@@ -712,7 +713,6 @@ static flea_err_t THR_flea_tls__send_cert_request(
   // determine what certificate types we allow based on the allowed signature
   // algorithms
   // TODO: determine supported (=compiled?) schemes dynamically
-  flea_pk_scheme_id_t supported_pk_schemes__at[] = {flea_rsa_pkcs1_v1_5_sign, flea_ecdsa_emsa1};
   for(flea_u8_t i = 1; i < tls_ctx->allowed_sig_algs__rcu8.len__dtl; i += 2)
   {
     for(flea_u8_t j = 0; j < sizeof(supported_pk_schemes__at) / sizeof(flea_pk_scheme_id_t); j++)

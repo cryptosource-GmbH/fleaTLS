@@ -5,6 +5,8 @@
 extern "C" {
 #endif
 
+#define FLEA_TLS_CERT_TYPE_RSA_SIGN       1
+#define FLEA_TLS_CERT_TYPE_ECDSA_SIGN     64
 
 #define FLEA_TLS_HELLO_RANDOM_SIZE        32
 #define FLEA_CONST_TLS_MASTER_SECRET_SIZE 48

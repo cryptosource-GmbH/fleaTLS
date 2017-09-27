@@ -254,19 +254,6 @@
 // # define FLEA_TLS_SEND_RECORD_EAGER // FBFLAGS_TLS_RECPROT_ON_OFF
 
 
-/**
- * Some Parameters for internal buffer sizes. Reasonable default values are set but might be optimized in specific scenarios
- */
-# define FLEA_TLS_MAX_CERT_TYPES_IN_CERT_REQ_MSG 2 // the buffer that is used for requested certificate types when sending the certificate request message. Should equal all supported certificate types. An upper bound can probably be determined dynamically by looking at the compiled pk methods (FLEA_HAVE_RSA etc)
-
-
-/*
- * Fixed values that should not be changed but are defined to give meaningful names to numbers
- */
-# define FLEA_TLS_CERT_TYPE_RSA_SIGN   1
-# define FLEA_TLS_CERT_TYPE_ECDSA_SIGN 64
-
-
 /* include must remain at the very end: */
 # include "internal/common/build_config_util.h"
 
