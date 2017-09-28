@@ -103,10 +103,10 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
   flea_key_usage_t*         extd_key_usage__pt,
   flea_basic_constraints_t* basic_constr__pt,
   hostn_validation_info_t*  hostn_valid_info_mbn__pt,
-  flea_byte_vec_t*          crl_dp_raw__pt
+  flea_byte_vec_t*          crl_dp_raw__pt,
+  flea_bool_t*              have_extensions__pb
 )
 {
-  flea_bool_t have_extensions__b;
   flea_bool_t false__b;
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(ext_oid__t, 30); // TODO: MAKE TYPEDEF FOR VALUE
@@ -119,10 +119,10 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
       dec__pt,
       3,
       FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC,
-      &have_extensions__b
+      have_extensions__pb
     )
   );
-  if(!have_extensions__b)
+  if(!*have_extensions__pb)
   {
     FLEA_THR_RETURN();
   }
@@ -277,6 +277,8 @@ static flea_err_t THR_flea_tls__validate_cert(
   flea_byte_vec_t*                      previous_crldp__pt
 )
 {
+  flea_al_u8_t version__u8;
+
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(hash__t, flea_hash_ctx_t);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(
@@ -355,12 +357,17 @@ static flea_err_t THR_flea_tls__validate_cert(
     {
       FLEA_THROW("x.509 version of invalid length", FLEA_ERR_X509_VERSION_ERROR);
     }
-    version_vec__t.data__pu8[0] += 1;
+    // version_vec__t.data__pu8[0] += 1;
+    version__u8 = version_vec__t.data__pu8[0] + 1;
     FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
   }
   else
   {
-    FLEA_CCALL(THR_flea_byte_vec_t__push_back(&version_vec__t, 1));
+    version__u8 = 1;
+  }
+  if(version__u8 > 3)
+  {
+    FLEA_THROW("x.509 version invalid", FLEA_ERR_X509_VERSION_ERROR);
   }
 
   FLEA_CCALL(THR_flea_ber_dec_t__decode_int(&dec__t, &sn_buffer__t));
@@ -503,10 +510,15 @@ static flea_err_t THR_flea_tls__validate_cert(
       &extd_key_usage__t,
       &basic_constraints__t,
       have_precursor_to_verify__b ? NULL : &hostn_valid_info__t,
-      previous_crldp__pt
+      previous_crldp__pt,
+      &optional_found__b
     )
   );
 
+  if(optional_found__b && (version__u8 != 3))
+  {
+    FLEA_THROW("x.509 version does not support extensions", FLEA_ERR_X509_VERSION_ERROR);
+  }
   /** flea does check the TA to be a CA **/
   if(have_precursor_to_verify__b)
   {
