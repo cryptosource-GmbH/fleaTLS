@@ -623,12 +623,7 @@ flea_err_t THR_flea_tls__create_master_secret(
   flea_tls__cipher_suite_id_t ciph_id__e
 )
 {
-  FLEA_DECL_BUF(random_seed__bu8, flea_u8_t, 64);
   FLEA_THR_BEG_FUNC();
-  FLEA_ALLOC_BUF(random_seed__bu8, 64);
-
-  // TODO: REDUNDANT ARRAY
-  memcpy(random_seed__bu8, client_and_server_hello_random, 64);
 
   // pre_master_secret is 48 bytes, master_secret is desired to be 48 bytes
   FLEA_CCALL(
@@ -637,16 +632,14 @@ flea_err_t THR_flea_tls__create_master_secret(
       premaster_secret__pt->data__pu8,
       premaster_secret__pt->len__dtl,
       PRF_LABEL_MASTER_SECRET,
-      random_seed__bu8,
+      client_and_server_hello_random,
       64,
       48,
       master_secret_res,
       flea_tls__prf_mac_id_from_suite_id(ciph_id__e)
     )
   );
-  FLEA_THR_FIN_SEC(
-    FLEA_FREE_BUF_FINAL_SECRET_ARR(random_seed__bu8, 64);
-  );
+  FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__create_master_secret */
 
 /*flea_stream_read_mode_e flea_tls_ctx_t__get_read_mode(const flea_tls_ctx_t * tls_ctx__pt)
