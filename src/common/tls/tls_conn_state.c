@@ -3,7 +3,7 @@
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
 #include "flea/util.h"
-
+#include "internal/common/tls/tls_int.h"
 
 static void flea_tls_conn_state_t__unset_cipher_suite(flea_tls_conn_state_t* conn_state__pt)
 {
@@ -89,8 +89,6 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_gcm(
   flea_al_u8_t           fixed_iv_len__alu8
 )
 {
-  const flea_u8_t record_iv_len__u8 = 8;
-
   FLEA_THR_BEG_FUNC();
 
 #ifdef FLEA_USE_HEAP_BUF
@@ -98,22 +96,22 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_gcm(
   // will be combined for the complete nonce (fixed||record = salt||explicit)
   FLEA_ALLOC_MEM_ARR(
     conn_state__pt->suite_specific__u.gcm_conn_state__t.cipher_key__bu8,
-    cipher_key_len__alu8 + fixed_iv_len__alu8 + record_iv_len__u8
+    cipher_key_len__alu8 + fixed_iv_len__alu8 + FLEA_CONST_TLS_GCM_RECORD_IV_LEN
   );
   conn_state__pt->suite_specific__u.gcm_conn_state__t.fixed_iv__bu8 =
     conn_state__pt->suite_specific__u.gcm_conn_state__t.cipher_key__bu8 + cipher_key_len__alu8;
   conn_state__pt->suite_specific__u.gcm_conn_state__t.record_iv__bu8 =
     conn_state__pt->suite_specific__u.gcm_conn_state__t.cipher_key__bu8 + cipher_key_len__alu8 + fixed_iv_len__alu8;
 #endif /* ifdef FLEA_USE_HEAP_BUF */
-  conn_state__pt->reserved_iv_len__u8 = 8;
-  // TODO: hardcoded
+  conn_state__pt->reserved_iv_len__u8 = FLEA_CONST_TLS_GCM_RECORD_IV_LEN;
   // conn_state__pt->cipher_suite_config__t.cipher_suite_id = ;
   conn_state__pt->cipher_suite_config__t.cipher_suite_class__e = flea_gcm_cipher_suite;
   conn_state__pt->cipher_suite_config__t.suite_specific__u.gcm_config__t.cipher_id = ae_cipher_id;
 
   conn_state__pt->cipher_suite_config__t.suite_specific__u.gcm_config__t.cipher_key_size__u8  = cipher_key_len__alu8;
   conn_state__pt->cipher_suite_config__t.suite_specific__u.gcm_config__t.fixed_iv_length__u8  = fixed_iv_len__alu8;
-  conn_state__pt->cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8 = record_iv_len__u8; // TODO hardcoded
+  conn_state__pt->cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8 =
+    FLEA_CONST_TLS_GCM_RECORD_IV_LEN;
 
   conn_state__pt->sequence_number__au32[0] = 0;
   conn_state__pt->sequence_number__au32[1] = 0;

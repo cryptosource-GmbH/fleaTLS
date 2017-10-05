@@ -1068,9 +1068,7 @@ flea_err_t THR_flea_tls__client_handshake(
         }
         continue;
         //    TODO: CALL CTORS FOR ALL OBJECTS
-
-        // update hash for all incoming handshake messages
-        // TODO: only include messages sent AFTER ClientHello (and ClientHello). At the moment it could include HelloRequest received before sending HelloRequest
+        //    UPDATE(JR): still relevant?
 
         // exclude finished message because we must not have it in our hash computation
       }
@@ -1084,11 +1082,6 @@ flea_err_t THR_flea_tls__client_handshake(
         {
           flea_u8_t dummy_byte;
           flea_al_u16_t len_one__alu16 = 1;
-          // TODO: verify correctness of the message (?)
-
-          /*
-           * Enable encryption for incoming messages
-           */
 
           FLEA_CCALL(
             THR_flea_tls_rec_prot_t__read_data(
@@ -1099,6 +1092,11 @@ flea_err_t THR_flea_tls__client_handshake(
               flea_read_full
             )
           );
+
+          /*
+           * Enable encryption for incoming messages
+           */
+
           if(session_mbn__pt && session_mbn__pt->for_resumption__u8)
           {
             flea_al_u8_t key_block_len__alu8;
@@ -1148,14 +1146,11 @@ flea_err_t THR_flea_tls__client_handshake(
           continue;
         }
       }
-      else if(cont_type__e == CONTENT_TYPE_ALERT)
-      {
-        // TODO: handle alert message properly,i.e. close connection
-        FLEA_THROW("Received unhandled alert", FLEA_ERR_TLS_HANDSHK_FAILURE);
-      }
       else
       {
         // TODO: SEND ALERT, CLOSE CONNECTION
+        // UPDATE(JR): this will be handled in THR_flea_tls__handle_tls_error
+        // right?
         FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
       }
     }

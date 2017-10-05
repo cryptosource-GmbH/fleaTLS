@@ -246,6 +246,13 @@
 # define FLEA_TLS_HAVE_RENEGOTIATION
 
 /**
+ * Relevant in stack mode.
+ * Maximum size of the buffer that reads in the cipher suites offered by the client.
+ * Has to be a multiple of 2 as every cipher suite takes up two bytes.
+ */
+# define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 250
+
+/**
  * if activated, during the handshake, a record is send as soon as a handshake
  * or change cipher spec message is complete. otherwise, records are sent only
  * when the next read or a change of record content type happens, which
