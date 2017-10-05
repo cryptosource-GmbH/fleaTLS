@@ -281,6 +281,12 @@ flea_err_t THR_flea_tls__map_tls_sig_to_flea_sig(
   flea_pk_scheme_id_t* pk_scheme_id__pt
 );
 
+flea_err_t THR_flea_tls__read_sig_algs_field_and_find_best_match(
+  flea_tls_ctx_t*   tls_ctx__pt,
+  flea_rw_stream_t* hs_rd_stream__pt,
+  flea_u16_t        sig_algs_len__u16
+);
+
 flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
   flea_tls_ctx_t*   tls_ctx__pt,
   flea_rw_stream_t* rd_strm__pt,

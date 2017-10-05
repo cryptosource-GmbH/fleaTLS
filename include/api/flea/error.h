@@ -105,43 +105,50 @@ typedef enum
   /**
    * Invalid contents of a TLS record header.
    */
-  FLEA_ERR_TLS_INV_REC_HDR                            = 0x4E,
+  FLEA_ERR_TLS_INV_REC_HDR                 = 0x4E,
 
   /**
    * A received record does not fit into the available buffer.
    */
-  FLEA_ERR_TLS_EXCSS_REC_LEN                          = 0x4F,
+  FLEA_ERR_TLS_EXCSS_REC_LEN               = 0x4F,
 
   /*
    * TODO: replace with internal_error
    * Error for invalid state transitions, relevant for debugging as they _should_ never happen */
-  FLEA_ERR_TLS_INVALID_STATE                          = 0x50,
+  FLEA_ERR_TLS_INVALID_STATE               = 0x50,
 
-  FLEA_ERR_TLS_INV_REC                                = 0x51,
+  FLEA_ERR_TLS_INV_REC                     = 0x51,
 
   /**
    * The fleaTLS client received an invalid algorithm choice in the server hello.
    */
-  FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO               = 0x52,
+  FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO    = 0x52,
 
-  FLEA_ERR_TLS_UNSUPP_PROT_VERSION                    = 0x53,
+  FLEA_ERR_TLS_UNSUPP_PROT_VERSION         = 0x53,
 
-  FLEA_ERR_TLS_PROT_DECODE_ERR                        = 0x54,
+  FLEA_ERR_TLS_PROT_DECODE_ERR             = 0x54,
 
-  FLEA_ERR_TLS_INV_CIPH_SUITE                         = 0x55,
+  FLEA_ERR_TLS_INV_CIPH_SUITE              = 0x55,
 
-  FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG            = 0x56,
+  FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG = 0x56,
+
 
   /**
    * thrown if renegotation is requested through the API but due to the
    * connection's configuration, renegotiation is not allowd. In this case, the
    * TLS ctx object remains unchanged.
    */
-  FLEA_ERR_TLS_RENEG_NOT_ALLOWED                      = 0x57,
+  FLEA_ERR_TLS_RENEG_NOT_ALLOWED = 0x57,
 
-  FLEA_ERR_TLS_HANDSHK_FAILURE                        = 0x58,
+  FLEA_ERR_TLS_HANDSHK_FAILURE   = 0x58,
 
-  FLEA_ERR_TLS_REC_CLOSE_NOTIFY                       = 0x59,
+  FLEA_ERR_TLS_REC_CLOSE_NOTIFY  = 0x59,
+
+  /**
+   * thrown if we couldn't agree on a received SignatureAlgorithms field
+   */
+  FLEA_ERR_TLS_NO_SIG_ALG_MATCH  = 0x60,
+
 
   /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.

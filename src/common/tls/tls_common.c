@@ -1639,45 +1639,38 @@ flea_err_t THR_flea_tls_ctx_t__send_sig_alg_ext(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__send_sig_alg_ext */
 
-flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
+flea_err_t THR_flea_tls__read_sig_algs_field_and_find_best_match(
   flea_tls_ctx_t*   tls_ctx__pt,
-  flea_rw_stream_t* rd_strm__pt,
-  flea_al_u16_t     ext_len__alu16
+  flea_rw_stream_t* hs_rd_stream__pt,
+  flea_u16_t        sig_algs_len__u16
 )
 {
-  flea_al_u16_t len__alu16;
-  flea_al_u16_t hash_alg_pos__alu16;
+  flea_al_u16_t hash_alg_pos__alu16 = 0xFFFF;
+  flea_hash_id_t hash_id__t;
+  flea_pk_scheme_id_t pk_scheme_id__t;
+  flea_u8_t curr_sig_alg__au8[2];
 
   FLEA_THR_BEG_FUNC();
-  if(!ext_len__alu16)
-  {
-    FLEA_THROW("No Signature and Hash algorithms offered by client", FLEA_ERR_TLS_HANDSHK_FAILURE);
-  }
 
-  FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(rd_strm__pt, &len__alu16, 2));
-  if((len__alu16 % 2) || (len__alu16 > ext_len__alu16 - 2))
+  // find matching algorithm for signature
+  while(sig_algs_len__u16)
   {
-    FLEA_THROW("invalid signature algorithms extension", FLEA_ERR_TLS_PROT_DECODE_ERR);
-  }
-
-  // iterate over all algorithm pairs and pick the best matching
-  // we can only pick the signature algorithm matching to our certificate
-  hash_alg_pos__alu16 = 0xFFFF;
-  while(len__alu16)
-  {
-    len__alu16 -= 2;
-    flea_u8_t sig_alg_bytes__au8[2];
-    flea_hash_id_t hash_id__t;
-    flea_pk_scheme_id_t pk_scheme_id__t;
+    sig_algs_len__u16 -= 2;
     flea_al_u16_t i;
 
-    FLEA_CCALL(THR_flea_rw_stream_t__read_full(rd_strm__pt, sig_alg_bytes__au8, sizeof(sig_alg_bytes__au8)));
 
+    FLEA_CCALL(
+      THR_flea_rw_stream_t__read_full(
+        hs_rd_stream__pt,
+        curr_sig_alg__au8,
+        2
+      )
+    );
     // map sig and hash alg and also check that the sig alg matches our key
     if(THR_flea_tls__map_tls_hash_to_flea_hash(
-        sig_alg_bytes__au8[0],
+        curr_sig_alg__au8[0],
         &hash_id__t
-      ) || THR_flea_tls__map_tls_sig_to_flea_sig(sig_alg_bytes__au8[1], &pk_scheme_id__t))
+      ) || THR_flea_tls__map_tls_sig_to_flea_sig(curr_sig_alg__au8[1], &pk_scheme_id__t))
     {
       continue;
     }
@@ -1702,13 +1695,64 @@ flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
     }
   }
 
-  if(hash_alg_pos__alu16 != 0xFFFF)
+  if(hash_alg_pos__alu16 == 0xFFFF)
   {
-    tls_ctx__pt->can_use_ecdhe = FLEA_TRUE;
+    FLEA_THROW("Could not agree on signature algorithm", FLEA_ERR_TLS_NO_SIG_ALG_MATCH);
+  }
+
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_tls__read_sig_algs_field_and_find_best_match */
+
+flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
+  flea_tls_ctx_t*   tls_ctx__pt,
+  flea_rw_stream_t* rd_strm__pt,
+  flea_al_u16_t     ext_len__alu16
+)
+{
+  flea_al_u16_t len__alu16;
+  flea_err_t err__t;
+
+  FLEA_THR_BEG_FUNC();
+  if(!ext_len__alu16)
+  {
+    // TODO: We could silently ignore this non-sense case
+
+    /* However RFC 5246 states:
+     *    If the client provided a "signature_algorithms" extension, then all
+     *    certificates provided by the server MUST be signed by a
+     *    hash/signature algorithm pair that appears in that extension.
+     * which basically means that aborting is the correct behaviour
+     */
+    FLEA_THROW("No Signature and Hash algorithms offered by client", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  }
+
+  FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(rd_strm__pt, &len__alu16, 2));
+  if((len__alu16 % 2) || (len__alu16 > ext_len__alu16 - 2))
+  {
+    FLEA_THROW("invalid signature algorithms extension", FLEA_ERR_TLS_PROT_DECODE_ERR);
+  }
+
+  // find match of received algorithms and configured algorithms
+  err__t = THR_flea_tls__read_sig_algs_field_and_find_best_match(tls_ctx__pt, rd_strm__pt, len__alu16);
+
+  if(err__t)
+  {
+    if(err__t == FLEA_ERR_TLS_NO_SIG_ALG_MATCH)
+    {
+      // we didn't find a matching signature algorithm so we can't use ECDHE
+      // since we can't sign the key.
+      tls_ctx__pt->can_use_ecdhe = FLEA_FALSE;
+    }
+    else
+    {
+      // rethrow error
+      FLEA_THROW("rethrowing error from reading the Signature Algorithms Field", err__t);
+    }
   }
   else
   {
-    tls_ctx__pt->can_use_ecdhe = FLEA_FALSE;
+    // no error, we found a matching signature algorithm
+    tls_ctx__pt->can_use_ecdhe = FLEA_TRUE;
   }
 
   FLEA_THR_FIN_SEC_empty();

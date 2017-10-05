@@ -506,12 +506,8 @@ static flea_err_t THR_flea_tls__read_cert_request(
   flea_u8_t cert_types_len__u8;
   flea_u8_t sig_algs_len_to_dec__au8[2];
   flea_u16_t sig_algs_len__u16;
-  flea_u8_t curr_sig_alg__au8[2];
   flea_u8_t cert_authorities_len_to_dec__au8[2];
   flea_u16_t cert_authorities_len__u16;
-  flea_hash_id_t hash_id__t;
-  flea_pk_scheme_id_t pk_scheme_id__t;
-  flea_al_u16_t hash_alg_pos__alu16;
   flea_u8_t curr_cert_type__u8;
   flea_bool_t found_cert_type__b;
 
@@ -561,57 +557,8 @@ static flea_err_t THR_flea_tls__read_cert_request(
     FLEA_THROW("Incorrect length for signature algorithms", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
-  // TODO: can merge into a function? (functionality also used by
-  // tls_common:parse_sig_alg_ext)
+  FLEA_CCALL(THR_flea_tls__read_sig_algs_field_and_find_best_match(tls_ctx__pt, hs_rd_stream__pt, sig_algs_len__u16));
 
-  // find matching algorithm for signature
-  hash_alg_pos__alu16 = 0xFFFF;
-  while(sig_algs_len__u16)
-  {
-    sig_algs_len__u16 -= 2;
-    flea_al_u16_t i;
-
-
-    FLEA_CCALL(
-      THR_flea_rw_stream_t__read_full(
-        hs_rd_stream__pt,
-        curr_sig_alg__au8,
-        2
-      )
-    );
-    // map sig and hash alg and also check that the sig alg matches our key
-    if(THR_flea_tls__map_tls_hash_to_flea_hash(
-        curr_sig_alg__au8[0],
-        &hash_id__t
-      ) || THR_flea_tls__map_tls_sig_to_flea_sig(curr_sig_alg__au8[1], &pk_scheme_id__t))
-    {
-      continue;
-    }
-    if(THR_flea_tls__check_sig_alg_compatibility_for_key_type(tls_ctx__pt->private_key__t.key_type__t, pk_scheme_id__t))
-    {
-      continue;
-    }
-
-    // if the sig/hash pair is suitable, use it if it's highest priority
-    for(i = 0; i < tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl; i += 2)
-    {
-      if(hash_id__t == (flea_hash_id_t) tls_ctx__pt->allowed_sig_algs__rcu8.data__pcu8[i])
-      {
-        if(i / 2 < hash_alg_pos__alu16)
-        {
-          /* update if it has higher priority */
-          hash_alg_pos__alu16 = i / 2;
-          tls_ctx__pt->chosen_hash_algorithm__t = hash_id__t;
-        }
-        break;
-      }
-    }
-  }
-
-  if(hash_alg_pos__alu16 == 0xFFFF)
-  {
-    FLEA_THROW("Could not agree on signature algorithm for CertificateVerify", FLEA_ERR_TLS_HANDSHK_FAILURE);
-  }
 
   // read certificate authorities field
   FLEA_CCALL(
