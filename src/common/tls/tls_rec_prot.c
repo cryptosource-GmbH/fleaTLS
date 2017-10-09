@@ -332,18 +332,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_gcm_ciphersuite_inner(
   flea_al_u16_t reserved_payl_len__alu16;
 
   FLEA_THR_BEG_FUNC();
-  // FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
-  // rec_prot__pt->reserved_iv_len__u8 = flea_block_cipher__get_block_size(block_cipher_id);
-  // rec_prot__pt->read_state__t.reserved_iv_len__u8 = 8; // TODO: not hardcoded, iv = nonce
 
-
-  /* still needed for writing: */
-
-  /*  rec_prot__pt->payload_buf__pu8 = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->read_state__t.reserved_iv_len__u8
-   + RECORD_HDR_LEN;*/
-
-  // 16 byte for tag
-  //
   if(direction == flea_tls_write)
   {
     conn_state__pt = &rec_prot__pt->write_state__t;
@@ -364,6 +353,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_gcm_ciphersuite_inner(
     )
   );
 
+  // TODO: is 16 == tag length?
   reserved_payl_len__alu16 = 16 + rec_prot__pt->read_state__t.reserved_iv_len__u8;
 
   if(((reserved_payl_len__alu16 + RECORD_HDR_LEN) > rec_prot__pt->send_rec_buf_raw_len__u16) ||
@@ -397,7 +387,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_gcm_ciphersuite(
   {
     FLEA_THROW("invalid ciphersuite selected", FLEA_ERR_INT_ERR);
   }
-  fixed_iv_len__alu8   = 4; // TODO: not hardcoded (or at least define)
+  fixed_iv_len__alu8   = FLEA_CONST_TLS_GCM_FIXED_IV_LEN;
   cipher_key_len__alu8 = suite__pt->enc_key_size;
   if((direction == flea_tls_write && conn_end__e == FLEA_TLS_SERVER) ||
     (direction == flea_tls_read && conn_end__e == FLEA_TLS_CLIENT)
@@ -587,7 +577,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
    * First decrypt
    */
 
-  // TODO: can read and write from/in the same buffer?
   FLEA_CCALL(
     THR_flea_cbc_mode__decrypt_data(
       rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id,
@@ -718,7 +707,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_gcm(
   flea_u8_t gcm_header__au8[13];
   flea_u8_t enc_data_len__au8[2];
   flea_u8_t* gcm_tag__pu8;
-  flea_u8_t gcm_tag_len__u8         = 16; // TODO: save in gcm config struct?
+  flea_u8_t gcm_tag_len__u8         = FLEA_CONST_TLS_GCM_TAG_LEN;
   const flea_u8_t record_iv_len__u8 =
     rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8;
   const flea_u8_t fixed_iv_len__u8 =
@@ -794,8 +783,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   flea_u32_t seq_lo__u32, seq_hi__u32;
   // flea_u8_t gcm_tag__au8[16];
   flea_u8_t* gcm_tag__pu8;
-  flea_u8_t gcm_tag_len__u8 = 16; // TODO: define somewhere else
-  flea_u8_t gcm_header__au8[13];  // 8+1+2+2
+  flea_u8_t gcm_tag_len__u8 = FLEA_CONST_TLS_GCM_TAG_LEN;
+  flea_u8_t gcm_header__au8[13]; // 8+1+2+2
   flea_u8_t enc_data_len__au8[2];
 
   FLEA_THR_BEG_FUNC();
