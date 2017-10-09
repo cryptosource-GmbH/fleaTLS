@@ -121,7 +121,8 @@ static flea_err_t THR_flea_start_tls_client(
       &rw_stream__t,
       cmdl_args.get_property_as_u32("port"),
       cmdl_args.get_property_as_u32_default("read_timeout", 0),
-      hostname_s.c_str()
+      hostname_s.c_str(),
+      host_type == flea_host_dnsname ? FLEA_TRUE : FLEA_FALSE
     )
   );
 

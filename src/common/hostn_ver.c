@@ -288,7 +288,7 @@ flea_err_t THR_flea_x509__parse_san_and_validate_hostn(
       if(names_match__b)
       {
         match_info__pt->id_matched__b = FLEA_TRUE;
-        FLEA_THR_RETURN();
+        break;
       }
     }
     match_info__pt->contains_dnsname__b |= found__b;
@@ -352,7 +352,7 @@ flea_err_t THR_flea_x509__parse_san_and_validate_hostn(
       if(!flea_byte_vec_t__cmp_with_cref(work_spc__pt, user_id__pcrcu8))
       {
         match_info__pt->id_matched__b = FLEA_TRUE;
-        FLEA_THR_RETURN();
+        break;
       }
     }
     match_info__pt->contains_ipaddr__b |= found__b;
@@ -372,8 +372,8 @@ flea_err_t THR_flea_x509__parse_san_and_validate_hostn(
     {
       FLEA_THROW("invalid element in SAN", FLEA_ERR_X509_SAN_DEC_ERR);
     }
-  }
-  FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(cont_dec__pt));
+  } /* while(flea_ber_dec_t__has_current_more_data(cont_dec__pt)) */
+  FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_skip_remaining(cont_dec__pt));
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_x509__verify_tls_server_id */

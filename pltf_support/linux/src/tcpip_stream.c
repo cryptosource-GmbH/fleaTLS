@@ -13,6 +13,7 @@
 #include <errno.h>
 #include <arpa/inet.h> // inet_addr
 #include <unistd.h>    // for close
+#include <netdb.h>
 
 typedef struct
 {
@@ -35,6 +36,7 @@ typedef struct
   write_buf_t write_buf__t;
   flea_u16_t  port__u16;
   const char* hostname;
+  flea_bool_t is_dns_name;
   unsigned    timeout_secs;
 } linux_socket_stream_ctx_t;
 
@@ -44,7 +46,8 @@ static void init_sock_stream_client(
   linux_socket_stream_ctx_t* sock_stream__pt,
   flea_u16_t                 port__u16,
   unsigned                   timeout_secs,
-  const char*                hostname
+  const char*                hostname,
+  flea_bool_t                is_dns_name
 )
 {
   memset(sock_stream__pt, 0, sizeof(*sock_stream__pt));
@@ -53,6 +56,7 @@ static void init_sock_stream_client(
   sock_stream__pt->port__u16    = port__u16;
   sock_stream__pt->timeout_secs = timeout_secs;
   sock_stream__pt->hostname     = hostname;
+  sock_stream__pt->is_dns_name  = is_dns_name;
 }
 
 static void init_sock_stream_server(
@@ -101,10 +105,34 @@ static flea_err_t THR_open_socket_client(void* ctx__pv)
     FLEA_THROW("error opening linux socket", FLEA_ERR_INV_STATE);
   }
 
+
   memset(&addr, 0, sizeof(addr));
-  addr.sin_addr.s_addr = inet_addr(ctx__pt->hostname);
-  addr.sin_family      = AF_INET;
-  addr.sin_port        = htons(ctx__pt->port__u16);
+
+  char ip[100];
+  if(ctx__pt->is_dns_name)
+  {
+    struct hostent* he;
+    struct in_addr** addr_list;
+    if((he = gethostbyname(ctx__pt->hostname)) == NULL)
+    {
+      // get the host info
+      FLEA_THROW("gethostbyname error", FLEA_ERR_INT_ERR);
+    }
+
+    addr_list = (struct in_addr**) he->h_addr_list;
+    if(addr_list[0] == NULL)
+    {
+      FLEA_THROW("gethostbyname error", FLEA_ERR_INT_ERR);
+    }
+    strcpy(ip, inet_ntoa(*addr_list[0]));
+    addr.sin_addr.s_addr = inet_addr(ip);
+  }
+  else
+  {
+    addr.sin_addr.s_addr = inet_addr(ctx__pt->hostname);
+  }
+  addr.sin_family = AF_INET;
+  addr.sin_port   = htons(ctx__pt->port__u16);
 
   if(connect(socket_fd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
   {
@@ -353,7 +381,8 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_rw_stream_t* stream__pt,
   flea_u16_t        port__u16,
   unsigned          timeout_secs,
-  const char*       hostname
+  const char*       hostname,
+  flea_bool_t       is_dns_name
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -362,7 +391,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_rw_stream_write_f write__f       = THR_write_socket;
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
-  init_sock_stream_client(&stc_sock_stream__t, port__u16, timeout_secs, hostname);
+  init_sock_stream_client(&stc_sock_stream__t, port__u16, timeout_secs, hostname, is_dns_name);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,
