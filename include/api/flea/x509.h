@@ -407,6 +407,12 @@ flea_bool_t flea_x509_cert_ref_t__has_key_usages(
   flea_key_usage_exlicitness_e explicitness
 );
 
+flea_bool_t flea_x509_has_extended_key_usages(
+  flea_key_usage_t const*      key_usage__pt,
+  flea_key_usage_e             required_usages__u16,
+  flea_key_usage_exlicitness_e explicitness__e
+);
+
 /**
  * Test for allowed extended key usages in the certificate.
  *
