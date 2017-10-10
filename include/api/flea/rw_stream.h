@@ -6,6 +6,7 @@
 #include "flea/types.h"
 #include "flea/filter.h"
 #include "flea/rw_stream_types.h"
+#include "flea/byte_vec.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -133,6 +134,13 @@ flea_err_t THR_flea_rw_stream_t__read(
   flea_stream_read_mode_e rd_mode__e
 );
 
+flea_err_t THR_flea_rw_stream_t__read_to_byte_vec(
+  flea_rw_stream_t*       read_stream__pt,
+  flea_byte_vec_t*        byte_vec__pt,
+  flea_dtl_t              len__dtl,
+  flea_stream_read_mode_e rd_mode__e
+);
+
 flea_err_t THR_flea_rw_stream_t__read_full(
   flea_rw_stream_t* stream__pt,
   flea_u8_t*        data__pcu8,
@@ -148,11 +156,6 @@ flea_err_t THR_flea_rw_stream_t__read_byte(
   flea_rw_stream_t* stream__pt,
   flea_u8_t*        byte__pu8
 );
-
-/*flea_err_t THR_flea_rw_stream_t__read_byte(
- * flea_rw_stream_t* stream__pt,
- * flea_u8_t*        byte__pu8
- * );*/
 
 /**
  * read a big endian encoded positive integer from the stream. The width of the integer

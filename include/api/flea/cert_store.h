@@ -10,30 +10,40 @@
 extern "C" {
 # endif
 
+
+typedef struct
+{
+  flea_ref_cu8_t data_ref__rcu8;
+  flea_u8_t      trusted_flag;
+} flea_enc_cert_ref_t;
+
 /**
  * Cert store type. Supports only the storage of trusted certs.
  */
 typedef struct
 {
 # ifdef FLEA_USE_HEAP_BUF
-  flea_ref_cu8_t* enc_cert_refs__bcu8;
+  //  flea_ref_cu8_t* enc_cert_refs__bcu8;
+  flea_enc_cert_ref_t* enc_cert_refs__bcu8;
 # else
-  flea_ref_cu8_t  enc_cert_refs__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
+  // flea_ref_cu8_t  enc_cert_refs__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
+  flea_enc_cert_ref_t  enc_cert_refs__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
+  flea_u8_t            trust_flags__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
 # endif
-  flea_dtl_t      nb_alloc_certs__dtl;
-  flea_u16_t      nb_set_certs__u16;
+  flea_dtl_t           nb_alloc_certs__dtl;
+  flea_u16_t           nb_set_certs__u16;
 } flea_cert_store_t;
 
 # ifdef FLEA_USE_HEAP_BUF
 #  define flea_cert_store_t__INIT_VALUE {.enc_cert_refs__bcu8 = NULL}
 #  define flea_cert_store_t__INIT(__p) do {(__p)->enc_cert_refs__bcu8 = NULL;} while(0)
 # else
-#  define flea_cert_store_t__INIT_VALUE {.enc_cert_refs__bcu8[0] = {0, 0}}
+#  define flea_cert_store_t__INIT_VALUE {.enc_cert_refs__bcu8[0] = {{0, 0}, 0}}
 #  define flea_cert_store_t__INIT(__p)
 # endif
 
-# define flea_cert_store_t__GET_PTR_TO_TRUSTED_ENC_CERT(__p, __i) (&(__p)->enc_cert_refs__bcu8[i])
-# define flea_cert_store_t__GET_NB_TRUSTED_CERTS(__p)             ((__p)->nb_set_certs__u16)
+# define flea_cert_store_t__GET_PTR_TO_TRUSTED_ENC_CERT_RCU8(__p, __i) (&(__p)->enc_cert_refs__bcu8[i].data_ref__rcu8)
+# define flea_cert_store_t__GET_NB_TRUSTED_CERTS(__p)                  ((__p)->nb_set_certs__u16)
 
 
 void flea_cert_store_t__dtor(flea_cert_store_t* cert_store);

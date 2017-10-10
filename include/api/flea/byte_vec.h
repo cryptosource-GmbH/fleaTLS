@@ -147,7 +147,7 @@ void flea_byte_vec_t__copy_content_set_ref_use_mem(
 
 /**
  * Append data to the byte vector. If the capacity of the internal buffer is
- * exceeded, in heap mode a reallocation is performed.
+ * exceeded, in heap mode a reallocation is performed if necessary.
  *
  * @param byte_vec pointer to the byte_vector
  * @param data pointer to the data to append
@@ -158,6 +158,7 @@ flea_err_t THR_flea_byte_vec_t__append(
   const flea_u8_t* data,
   flea_dtl_t       len
 );
+
 
 /**
  * Append a single byte to the vector.

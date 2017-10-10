@@ -194,6 +194,8 @@
 
 # define FLEA_HAVE_TLS
 
+# define FLEA_X509_MAX_ISSUER_DN_RAW_BYTE_LEN 256
+
 /**
  * Length of the session IDs that are used by the TLS server.
  */

@@ -37,6 +37,7 @@ flea_err_t THR_flea_cert_store_t__add_trusted_cert(
   FLEA_THR_BEG_FUNC();
   /* this type only supports trusted certs */
 # ifdef FLEA_USE_HEAP_BUF
+
   FLEA_CCALL(
     THR_flea_alloc__ensure_buffer_capacity(
       (void**) &cert_store__pt->enc_cert_refs__bcu8,
