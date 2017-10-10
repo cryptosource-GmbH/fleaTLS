@@ -108,7 +108,12 @@ flea_err_t THR_flea_ber_dec_t__ctor(
   flea_asn1_dec_val_hndg_e dec_val_hndg__e
 );
 
-
+/**
+ *
+ * @param length_limit__dtl maximal length of the data that can be read from the
+ *                           stream. set to zero to disable length limit check.
+ *
+ */
 flea_err_t THR_flea_ber_dec_t__ctor_hash_support(
   flea_ber_dec_t*          dec__pt,
   flea_rw_stream_t*        read_stream__pt,

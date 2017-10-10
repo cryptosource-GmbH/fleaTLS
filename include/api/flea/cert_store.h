@@ -32,6 +32,10 @@ typedef struct
 #  define flea_cert_store_t__INIT(__p)
 # endif
 
+# define flea_cert_store_t__GET_PTR_TO_TRUSTED_ENC_CERT(__p, __i) (&(__p)->enc_cert_refs__bcu8[i])
+# define flea_cert_store_t__GET_NB_TRUSTED_CERTS(__p)             ((__p)->nb_set_certs__u16)
+
+
 void flea_cert_store_t__dtor(flea_cert_store_t* cert_store);
 
 /**
