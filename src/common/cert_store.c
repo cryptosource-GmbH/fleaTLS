@@ -7,31 +7,24 @@
 
 #ifdef FLEA_HAVE_ASYM_SIG
 
-static flea_bool_t flea_cert_store_t__is_cert_trusted(
+flea_bool_t flea_cert_store_t__is_cert_trusted(
   const flea_cert_store_t* cert_store__pt,
   flea_al_u16_t            pos__alu16
 )
 {
+  if((pos__alu16 >= cert_store__pt->nb_set_certs__u16) ||
+    (!cert_store__pt->enc_cert_refs__bcu8[pos__alu16].trusted_flag))
+  {
+    return FLEA_FALSE;
+  }
   return FLEA_TRUE;
 }
 
-flea_err_t THR_flea_cert_store_t__ctor(flea_cert_store_t* cert_store__pt)
-{
-  FLEA_THR_BEG_FUNC();
-# ifdef FLEA_USE_HEAP_BUF
-  FLEA_ALLOC_MEM_ARR(cert_store__pt->enc_cert_refs__bcu8, FLEA_CERT_STORE_PREALLOC);
-  cert_store__pt->nb_alloc_certs__dtl = FLEA_CERT_STORE_PREALLOC;
-# else
-  cert_store__pt->nb_alloc_certs__dtl = FLEA_MAX_CERT_COLLECTION_SIZE;
-# endif
-  cert_store__pt->nb_set_certs__u16 = 0;
-  FLEA_THR_FIN_SEC_empty();
-}
-
-flea_err_t THR_flea_cert_store_t__add_trusted_cert(
+static flea_err_t THR_flea_cert_store_t__add_cert(
   flea_cert_store_t* cert_store__pt,
   const flea_u8_t*   der_enc_cert__pcu8,
-  flea_al_u16_t      der_enc_cert_len__alu16
+  flea_al_u16_t      der_enc_cert_len__alu16,
+  flea_bool_t        trusted__b
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -56,11 +49,56 @@ flea_err_t THR_flea_cert_store_t__add_trusted_cert(
   }
 
 # endif /* ifdef FLEA_USE_HEAP_BUF */
-  cert_store__pt->enc_cert_refs__bcu8[cert_store__pt->nb_set_certs__u16].data__pcu8 = der_enc_cert__pcu8;
-  cert_store__pt->enc_cert_refs__bcu8[cert_store__pt->nb_set_certs__u16].len__dtl   = der_enc_cert_len__alu16;
+  cert_store__pt->enc_cert_refs__bcu8[cert_store__pt->nb_set_certs__u16].data_ref__rcu8.data__pcu8 = der_enc_cert__pcu8;
+  cert_store__pt->enc_cert_refs__bcu8[cert_store__pt->nb_set_certs__u16].data_ref__rcu8.len__dtl   =
+    der_enc_cert_len__alu16;
+  cert_store__pt->enc_cert_refs__bcu8[cert_store__pt->nb_set_certs__u16].trusted_flag = trusted__b;
   cert_store__pt->nb_set_certs__u16++;
 
   FLEA_THR_FIN_SEC_empty();
+}
+
+const flea_u8_t* flea_cert_store_t__get_ptr_to_trusted_enc_cert(
+  flea_cert_store_t* cert_store__pt,
+  flea_al_u16_t      pos__alu16
+)
+{
+  if(flea_cert_store_t__is_cert_trusted(cert_store__pt, pos__alu16))
+  {
+    return flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(cert_store__pt, pos__alu16)->data__pcu8;
+  }
+  return NULL;
+}
+
+flea_err_t THR_flea_cert_store_t__ctor(flea_cert_store_t* cert_store__pt)
+{
+  FLEA_THR_BEG_FUNC();
+# ifdef FLEA_USE_HEAP_BUF
+  FLEA_ALLOC_MEM_ARR(cert_store__pt->enc_cert_refs__bcu8, FLEA_CERT_STORE_PREALLOC);
+  cert_store__pt->nb_alloc_certs__dtl = FLEA_CERT_STORE_PREALLOC;
+# else
+  cert_store__pt->nb_alloc_certs__dtl = FLEA_MAX_CERT_COLLECTION_SIZE;
+# endif
+  cert_store__pt->nb_set_certs__u16 = 0;
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_t THR_flea_cert_store_t__add_trusted_cert(
+  flea_cert_store_t* cert_store__pt,
+  const flea_u8_t*   der_enc_cert__pcu8,
+  flea_al_u16_t      der_enc_cert_len__alu16
+)
+{
+  return THR_flea_cert_store_t__add_cert(cert_store__pt, der_enc_cert__pcu8, der_enc_cert_len__alu16, FLEA_TRUE);
+}
+
+flea_err_t THR_flea_cert_store_t__add_untrusted_cert(
+  flea_cert_store_t* cert_store__pt,
+  const flea_u8_t*   der_enc_cert__pcu8,
+  flea_al_u16_t      der_enc_cert_len__alu16
+)
+{
+  return THR_flea_cert_store_t__add_cert(cert_store__pt, der_enc_cert__pcu8, der_enc_cert_len__alu16, FLEA_FALSE);
 }
 
 flea_err_t THR_flea_cert_store_t__add_trusted_to_path_validator(
@@ -74,13 +112,16 @@ flea_err_t THR_flea_cert_store_t__add_trusted_to_path_validator(
 
   for(i = 0; i < cert_store__pct->nb_set_certs__u16; i++)
   {
-    FLEA_CCALL(
-      THR_flea_cert_path_validator_t__add_trust_anchor_cert(
-        cpv__pt,
-        cert_store__pct->enc_cert_refs__bcu8[i].data__pcu8,
-        cert_store__pct->enc_cert_refs__bcu8[i].len__dtl
-      )
-    );
+    if(cert_store__pct->enc_cert_refs__bcu8[i].trusted_flag)
+    {
+      FLEA_CCALL(
+        THR_flea_cert_path_validator_t__add_trust_anchor_cert(
+          cpv__pt,
+          cert_store__pct->enc_cert_refs__bcu8[i].data_ref__rcu8.data__pcu8,
+          cert_store__pct->enc_cert_refs__bcu8[i].data_ref__rcu8.len__dtl
+        )
+      );
+    }
   }
   FLEA_THR_FIN_SEC_empty();
 }
@@ -106,8 +147,8 @@ flea_err_t THR_flea_cert_store_t__is_tbs_hash_trusted(
       flea_ref_cu8_t tbs_ref__rcu8;
       FLEA_CCALL(
         THR_flea_x509_cert__get_ref_to_tbs(
-          cert_store__pct->enc_cert_refs__bcu8[i].data__pcu8,
-          cert_store__pct->enc_cert_refs__bcu8[i].len__dtl,
+          cert_store__pct->enc_cert_refs__bcu8[i].data_ref__rcu8.data__pcu8,
+          cert_store__pct->enc_cert_refs__bcu8[i].data_ref__rcu8.len__dtl,
           &tbs_ref__rcu8
         )
       );
@@ -152,8 +193,8 @@ flea_err_t THR_flea_cert_store_t__is_cert_trusted(
   for(i = 0; i < nb_certs__alu16; i++)
   {
     if(!flea_memcmp_wsize(
-        cert_store__pct->enc_cert_refs__bcu8[i].data__pcu8,
-        cert_store__pct->enc_cert_refs__bcu8[i].len__dtl,
+        cert_store__pct->enc_cert_refs__bcu8[i].data_ref__rcu8.data__pcu8,
+        cert_store__pct->enc_cert_refs__bcu8[i].data_ref__rcu8.len__dtl,
         cert_to_check__pcu8,
         cert_to_check_len__alu16
       ))

@@ -13,6 +13,8 @@ extern "C" {
 
 #ifdef FLEA_HAVE_ASYM_ALGS
 
+typedef enum { flea_rev_chk_all, flea_rev_chk_none, flea_rev_chk_only_ee  } flea_rev_chk_mode_e;
+
 typedef enum { flea_revstat_undetermined, flea_revstat_revoked, flea_revstat_good } flea_revocation_status_e;
 
 flea_err_t THR_flea_crl__check_revocation_status(

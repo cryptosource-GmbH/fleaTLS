@@ -770,10 +770,14 @@ flea_err_t THR_flea_tls__cert_path_validation(
       /* no trusted cert found and no more following. check whether the trusted
        * root was omitted, i.e. try all possible trusted roots */
       flea_al_u16_t i;
-      for(i = 0; i < flea_cert_store_t__GET_NB_TRUSTED_CERTS(trust_store__pt); i++)
+      for(i = 0; i < flea_cert_store_t__GET_NB_CERTS(trust_store__pt); i++)
       {
         flea_mem_read_stream_help_t mem_hlp__t;
         flea_ref_cu8_t* cert__prcu8 = flea_cert_store_t__GET_PTR_TO_TRUSTED_ENC_CERT(trust_store__pt, i);
+        if(!flea_cert_store_t__is_cert_trusted(trust_store__pt, i))
+        {
+          continue;
+        }
         FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&mem_rd_strm__t, cert__prcu8->data__pcu8, cert__prcu8->len__dtl, &mem_hlp__t));
 
         if(FLEA_ERR_FINE == THR_flea_tls__validate_cert(
@@ -833,12 +837,14 @@ flea_err_t THR_flea_tls__cert_path_validation(
   flea_al_u16_t iter__alu16           = 0;
   flea_public_key_t cycling_pubkey__t = flea_public_key_t__INIT_VALUE;
   flea_rw_stream_t* rd_strm__pt;
-  flea_byte_vec_t cert_chain__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
-
+  // flea_byte_vec_t cert_chain__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
+  flea_al_u16_t i;
+  flea_cert_path_validator_t cpv__t = flea_cert_path_validator_t__INIT_VALUE;
 
   FLEA_THR_BEG_FUNC();
   rd_strm__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
   FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&compare_time__t));
+  flea_byte_vec_t__reset(&tls_ctx__pt->peer_cert_chain_data__t);
   FLEA_CCALL(THR_flea_byte_vec_t__reserve(&cert_chain__t, flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt)));
   do
   {
@@ -858,23 +864,47 @@ flea_err_t THR_flea_tls__cert_path_validation(
 
     FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(rd_strm__pt, &new_cert_len__u32, 3));
 
-    new_cert_ref__rcu8.data__pcu8 = cert_chain__t.data__pu8 + cert_chain__t.len__dtl;
+    new_cert_ref__rcu8.data__pcu8 = tls_ctx__pt->peer_cert_chain_data__t.data__pu8 + tls_ctx__pt->peer_cert_chain_data__t.len__dtl;
     new_cert_ref__rcu8.len__dtl   = new_cert_len__u32;
 
     FLEA_CCALL(
       THR_flea_rw_stream_t__read_to_byte_vec(
-        rd_stream__pt,
-        cert_chain__t,
+        rd_strm__pt,
+        &tls_ctx__pt->cert_chain_data__t,
         (flea_dtl_t) new_cert_len__u32,
         flea_read_full
       )
     );
+
+    FLEA_CCALL(THR_flea_cert_store_t__add_untrusted_cert(&tls_ctx__pt->peer_cert_chain__t, new_cert_ref__rcu8.data__pcu8, new_cert_ref__rcu8.len__dtl));
   } while(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt));
 
-  FLEA_THR_FIN_SEC(
-    flea_byte_vec_t__dtor(&cert_chain__t);
-  );
-} /* THR_flea_tls__cert_path_validation */
+  for(i = 0; i < flea_cert_store_t__GET_NB_CERTS(&tls_ctx__pt->peer_cert_chain__t); i++)
+  {
+    if(i == 0)
+    {
+      flea_ref_cu8_t* x__rcu8 = flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(&tls_ctx__pt->peer_cert_chain__t, i);
+      FLEA_CCALL(
+        THR_flea_cert_path_validator_t__ctor_cert(
+          &cpv__t,
+          x__rcu8->data__pcu8,
+          x__rcu8->len__dtl,
+          tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e
+        )
+      );
+    }
+
+    FLEA_CCALL(THR_flea_cert_store_t__add_trusted_to_path_validator(&tls_ctx__pt->peer_cert_chain__t, &cpv__t));
+
+    for(i = 0; i < tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16; i++)
+    {
+      FLEA_CCALL(THR_flea_cert_path_validator_t__add_crl(&cpv__t, tls_ctx__pt->rev_chk_cfg__t.crl_der__pt.data__pu8, tls_ctx__pt->rev_chk_cfg__t.crl_der__pt.len__dtl));
+    }
+
+    FLEA_THR_FIN_SEC(
+      flea_cert_path_validator_t__dtor(&cpv__t);
+    );
+  } /* THR_flea_tls__cert_path_validation */
 
 # endif /* ifdef FLEA_TLS_STREAM_BASED_CPV */
 
