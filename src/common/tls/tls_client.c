@@ -488,7 +488,7 @@ static flea_err_t THR_flea_tls__send_client_hello(
   /**
    * both ECC extensions are set or none, so it's sufficient to check one
    */
-  if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_TYPE__POINT_FORMATS)
+  if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS)
   {
     FLEA_CCALL(THR_flea_tls_ctx_t__send_ecc_point_format_ext(tls_ctx, p_hash_ctx));
     FLEA_CCALL(THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(tls_ctx, p_hash_ctx));
