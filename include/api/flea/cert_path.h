@@ -32,7 +32,8 @@ typedef struct
   flea_u16_t             nb_crls__u16;
   flea_u16_t             cert_collection_size__u16;
   flea_u16_t             chain_pos__u16; // offset to final element, = length - 1
-  flea_bool_t            perform_revocation_checking__b;
+  // flea_bool_t            perform_revocation_checking__b;
+  flea_rev_chk_mode_e    rev_chk_mode__e;
 
   volatile flea_bool_t   abort_cert_path_finding__vb;
 # ifdef FLEA_USE_HEAP_BUF
@@ -54,7 +55,8 @@ void flea_cert_path_validator_t__dtor(flea_cert_path_validator_t* cpv);
 flea_err_t THR_flea_cert_path_validator_t__ctor_cert(
   flea_cert_path_validator_t* cpv,
   const flea_u8_t*            target_cert,
-  flea_al_u16_t               target_cert_len
+  flea_al_u16_t               target_cert_len,
+  flea_rev_chk_mode_e         rev_chk_mode__e
 );
 
 /**
@@ -62,7 +64,7 @@ flea_err_t THR_flea_cert_path_validator_t__ctor_cert(
  *
  * @param cpv the cert path validator object
  */
-void flea_cert_path_validator_t__disable_revocation_checking(flea_cert_path_validator_t* cpv);
+// void flea_cert_path_validator_t__disable_revocation_checking(flea_cert_path_validator_t* cpv);
 
 /**
  * Add a CRL to a cert path validator. The encoded CRL must stay in the same

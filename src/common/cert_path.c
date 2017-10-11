@@ -193,7 +193,9 @@ static flea_err_t THR_validate_cert_path(
     // verify against subsequent certificate
     FLEA_CCALL(THR_flea_x509_verify_cert_info_signature(subject__pt, issuer__pt));
 
-    if(cert_cpv__pt->perform_revocation_checking__b)
+    // if(cert_cpv__pt->perform_revocation_checking__b)
+    if((((cert_cpv__pt->rev_chk_mode__e == flea_rev_chk_only_ee) && !is_ca_cert__b) ||
+      (cert_cpv__pt->rev_chk_mode__e == flea_rev_chk_all)))
     {
       FLEA_CCALL(THR_flea_public_key_t__ctor_cert(&pubkey_for_crl_ver__t, &issuer__pt->cert_ref__t));
 
@@ -245,10 +247,10 @@ static flea_err_t THR_validate_cert_path(
   );
 } /* THR_validate_cert_path */
 
-void flea_cert_path_validator_t__disable_revocation_checking(flea_cert_path_validator_t* cert_cpv__pt)
-{
-  cert_cpv__pt->perform_revocation_checking__b = FLEA_FALSE;
-}
+/*void flea_cert_path_validator_t__disable_revocation_checking(flea_cert_path_validator_t* cert_cpv__pt)
+ * {
+ * cert_cpv__pt->perform_revocation_checking__b = FLEA_FALSE;
+ * }*/
 
 flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain(
   flea_cert_path_validator_t* cert_cpv__pt,
@@ -436,7 +438,8 @@ flea_err_t THR_flea_cert_path_validator_t__ctor_cert(
   flea_cert_path_validator_t* cpv__pt,
   // flea_x509_cert_ref_t*       target_cert__pt
   const flea_u8_t*            target_cert__pcu8,
-  flea_al_u16_t               target_cert_len__alu16
+  flea_al_u16_t               target_cert_len__alu16,
+  flea_rev_chk_mode_e         rev_chk_mode__e
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -450,9 +453,9 @@ flea_err_t THR_flea_cert_path_validator_t__ctor_cert(
   cpv__pt->crl_collection_allocated__u16  = FLEA_MAX_CERT_COLLECTION_NB_CRLS;
   cpv__pt->cert_collection_allocated__u16 = FLEA_MAX_CERT_COLLECTION_SIZE;
 # endif
-  cpv__pt->nb_crls__u16 = 0;
-  cpv__pt->perform_revocation_checking__b = FLEA_TRUE;
-  cpv__pt->abort_cert_path_finding__vb    = FLEA_FALSE;
+  cpv__pt->nb_crls__u16    = 0;
+  cpv__pt->rev_chk_mode__e = rev_chk_mode__e;
+  cpv__pt->abort_cert_path_finding__vb = FLEA_FALSE;
   FLEA_CCALL(
     THR_flea_cert_path_validator_t__add_cert_without_trust_status(
       cpv__pt,

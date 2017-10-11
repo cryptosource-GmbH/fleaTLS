@@ -50,8 +50,6 @@ typedef enum
   flea_tls_allow_insecure_reneg
 } flea_tls_renegotiation_spec_e;
 
-typedef enum { flea_rev_chk_all, flea_rev_chk_none, flea_rev_chk_only_ee  } flea_rev_chk_mode_e;
-
 typedef struct
 {
   flea_rev_chk_mode_e    rev_chk_mode__e;
@@ -86,15 +84,6 @@ typedef struct
   flea_u16_t                   length;
   flea_u8_t*                   data;
 } Record;
-
-/*typedef struct
- * {
- * //flea_u8_t gmt_unix_time[4];
- * flea_u8_t random_bytes[32];
- * } Random;*/
-
-
-// TODO: Extensions
 
 typedef struct
 {
@@ -278,6 +267,10 @@ typedef struct
   flea_bool_t    can_use_ecdhe;            // true if sig alg extension produces a match so we can sign the ECDHE params
   // flea_stream_read_mode_e    handshake_read_mode__e;
   // flea_tls_flag_e flags;
+# ifndef FLEA_TLS_STREAM_BASED_CPV
+  flea_byte_vec_t   peer_cert_chain_data__t;
+  flea_cert_store_t peer_cert_chain__t
+# endif
 } flea_tls_ctx_t;
 
 

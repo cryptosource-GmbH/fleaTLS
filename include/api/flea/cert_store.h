@@ -10,30 +10,40 @@
 extern "C" {
 # endif
 
+
+typedef struct
+{
+  flea_ref_cu8_t data_ref__rcu8;
+  flea_u8_t      trusted_flag;
+} flea_enc_cert_ref_t;
+
 /**
  * Cert store type. Supports only the storage of trusted certs.
  */
 typedef struct
 {
 # ifdef FLEA_USE_HEAP_BUF
-  flea_ref_cu8_t* enc_cert_refs__bcu8;
+  //  flea_ref_cu8_t* enc_cert_refs__bcu8;
+  flea_enc_cert_ref_t* enc_cert_refs__bcu8;
 # else
-  flea_ref_cu8_t  enc_cert_refs__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
+  // flea_ref_cu8_t  enc_cert_refs__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
+  flea_enc_cert_ref_t  enc_cert_refs__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
+  flea_u8_t            trust_flags__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
 # endif
-  flea_dtl_t      nb_alloc_certs__dtl;
-  flea_u16_t      nb_set_certs__u16;
+  flea_dtl_t           nb_alloc_certs__dtl;
+  flea_u16_t           nb_set_certs__u16;
 } flea_cert_store_t;
 
 # ifdef FLEA_USE_HEAP_BUF
 #  define flea_cert_store_t__INIT_VALUE {.enc_cert_refs__bcu8 = NULL}
 #  define flea_cert_store_t__INIT(__p) do {(__p)->enc_cert_refs__bcu8 = NULL;} while(0)
 # else
-#  define flea_cert_store_t__INIT_VALUE {.enc_cert_refs__bcu8[0] = {0, 0}}
+#  define flea_cert_store_t__INIT_VALUE {.enc_cert_refs__bcu8[0] = {{0, 0}, 0}}
 #  define flea_cert_store_t__INIT(__p)
 # endif
 
-# define flea_cert_store_t__GET_PTR_TO_TRUSTED_ENC_CERT(__p, __i) (&(__p)->enc_cert_refs__bcu8[i])
-# define flea_cert_store_t__GET_NB_TRUSTED_CERTS(__p)             ((__p)->nb_set_certs__u16)
+# define flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(__p, __i) (&(__p)->enc_cert_refs__bcu8[__i].data_ref__rcu8)
+# define flea_cert_store_t__GET_NB_CERTS(__p)                  ((__p)->nb_set_certs__u16)
 
 
 void flea_cert_store_t__dtor(flea_cert_store_t* cert_store);
@@ -62,6 +72,28 @@ flea_err_t THR_flea_cert_store_t__add_trusted_cert(
   flea_al_u16_t      der_enc_cert_len
 );
 
+
+/**
+ * Add an untrusted certificate to the cert store. The encoded certificate must
+ * remain in the same memory location during the lifetime of the cert store
+ * object, since it only stores a reference to the encoded certificate.
+ *
+ * @param cert_store pointer to the cert store object to which to add the
+ * certificate.
+ * @param der_enc_cert DER encoded certificate to add
+ * @param der_enc_cert_len length of der_enc_cert
+ */
+flea_err_t THR_flea_cert_store_t__add_untrusted_cert(
+  flea_cert_store_t* cert_store__pt,
+  const flea_u8_t*   der_enc_cert__pcu8,
+  flea_al_u16_t      der_enc_cert_len__alu16
+);
+
+flea_bool_t flea_cert_store_t__is_cert_trusted(
+  const flea_cert_store_t* cert_store__pt,
+  flea_al_u16_t            pos__alu16
+);
+
 /**
  * Find out whether a certain certificate is contained in a cert store as a trusted certificate.
  *
@@ -76,6 +108,12 @@ flea_err_t THR_flea_cert_store_t__is_cert_trusted(
   const flea_u8_t*         cert_to_check,
   flea_al_u16_t            cert_to_check_len,
   flea_bool_t*             result_is_trusted
+);
+
+
+const flea_u8_t* flea_cert_store_t__get_ptr_to_trusted_enc_cert(
+  flea_cert_store_t* cert_store__pt,
+  flea_al_u16_t      pos__alu16
 );
 
 /**
