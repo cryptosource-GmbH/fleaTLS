@@ -27,7 +27,6 @@ static void inc_seq_nbr(flea_u32_t* seq__au32)
 
 # ifdef FLEA_HAVE_HMAC
 static flea_err_t THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
-  // flea_tls_rec_prot_t*   rec_prot__pt,
   const flea_u8_t*       rec_hdr__pcu8,
   flea_tls_conn_state_t* conn_state__pt,
   flea_u8_t*             data,
@@ -781,7 +780,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   flea_al_u16_t length_tot;
   flea_u8_t enc_seq_nbr__au8[8];
   flea_u32_t seq_lo__u32, seq_hi__u32;
-  // flea_u8_t gcm_tag__au8[16];
   flea_u8_t* gcm_tag__pu8;
   flea_u8_t gcm_tag_len__u8 = FLEA_CONST_TLS_GCM_TAG_LEN;
   flea_u8_t gcm_header__au8[13]; // 8+1+2+2
@@ -851,7 +849,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_gcm(
   );
 
   // copy authentication tag
-  // memcpy(data + data_len, gcm_tag__au8, sizeof(gcm_tag__au8));
 
   length_tot = data_len
     + rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8
@@ -872,7 +869,6 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
   {
     FLEA_THR_RETURN();
   }
-  // if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256)
   if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
   {
     flea_al_u16_t encrypted_len__alu16;
@@ -887,7 +883,6 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
 
     inc_seq_nbr(rec_prot__pt->write_state__t.sequence_number__au32);
   }
-  // else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256)
   else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_gcm_cipher_suite)
   {
     flea_al_u16_t encrypted_len__alu16;
@@ -902,7 +897,6 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
 
     inc_seq_nbr(rec_prot__pt->write_state__t.sequence_number__au32);
   }
-  // else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_NULL_WITH_NULL_NULL)
   else if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_null_cipher_suite)
   {
     rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->send_payload_used_len__u16 >> 8;
@@ -936,9 +930,6 @@ flea_err_t THR_flea_tls_rec_prot_t__send_record(
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(rec_prot__pt, content_type, bytes, bytes_len));
-# ifdef FLEA_TLS_SEND_RECORD_EAGER
-  //  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_flush(rec_prot__pt));
-# endif
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_record */
