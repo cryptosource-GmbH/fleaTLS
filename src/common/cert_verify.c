@@ -22,7 +22,6 @@ static flea_err_t THR_flea_x509_verify_cert_ref_signature_inner(
   const flea_x509_cert_ref_t* subject_cert_ref__pt,
   const flea_byte_vec_t*      subject_tbs_ref__prcu8,
   const flea_x509_cert_ref_t* issuer_cert_ref__pt// ,
-  // flea_byte_vec_t* issuer_tbs_ref__prcu8
 )
 {
   flea_byte_vec_t sig_content__t;
@@ -41,7 +40,6 @@ static flea_err_t THR_flea_x509_verify_cert_ref_signature_inner(
     THR_flea_public_key_t__verify_signature_use_sigalg_id(
       &key__t,
       &subject_cert_ref__pt->tbs_sig_algid__t,
-      // &subject_cert_ref__pt->tbs_ref__t,
       subject_tbs_ref__prcu8,
       &sig_content__t
     )
@@ -88,31 +86,6 @@ flea_err_t THR_flea_x509_verify_cert_info_signature(
     &subject_cert_ref__pt->ref_to_tbs__rcu8,
     &issuer_cert_ref__pt->cert_ref__t
   );
-
-  /*
-   * flea_byte_vec_t sig_content__t;
-   * flea_public_key_t key__t = flea_public_key_t__INIT_VALUE;
-   *
-   * FLEA_THR_BEG_FUNC();
-   * FLEA_CCALL(THR_flea_public_key_t__ctor_cert(&key__t, issuer_cert_ref__pt));
-   * FLEA_CCALL(
-   * THR_flea_ber_dec__get_ref_to_bit_string_content_no_unused_bits(
-   *  &subject_cert_ref__pt->
-   *  cert_signature_as_bit_string__t,
-   *  &sig_content__t
-   * )
-   * );
-   * FLEA_CCALL(
-   * THR_flea_public_key_t__verify_signature_use_sigalg_id(
-   *  &key__t,
-   *  &subject_cert_ref__pt->tbs_sig_algid__t,
-   *  &subject_cert_ref__pt->tbs_ref__t,
-   *  &sig_content__t
-   * )
-   * );
-   * FLEA_THR_FIN_SEC(
-   * flea_public_key_t__dtor(&key__t);
-   * );*/
 }
 
 #endif /* #ifdef FLEA_HAVE_ASYM_SIG */

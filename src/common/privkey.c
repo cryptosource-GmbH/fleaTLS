@@ -49,7 +49,6 @@ flea_err_t THR_flea_private_key_t__ctor_ecc(
 #  else
   dp_concat_len__alu16 = sizeof(key__pt->privkey_with_params__u.ec_priv_key_val__t.dp_mem__bu8);
 #  endif
-  // flea_copy_rcu8_use_mem(
   flea_byte_vec_t__copy_content_set_ref_use_mem(
     &key__pt->privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8,
     key__pt->privkey_with_params__u.ec_priv_key_val__t.priv_scalar__mem__bu8,
@@ -230,7 +229,6 @@ flea_err_t THR_flea_private_key_t__sign_digest_plain_format(
 {
   flea_pk_primitive_id_t primitive_id__t;
   flea_pk_encoding_id_t encoding_id__t;
-  // flea_al_u16_t digest_len__alu16;
   flea_al_u16_t key_bit_size__alu16;
   flea_al_u16_t primitive_input_len__alu16;
 
@@ -334,9 +332,6 @@ flea_err_t THR_flea_private_key_t__sign_digest_plain_format(
       memmove(sig_r__pu8 + shift, sig_r__pu8, r_len__al_u8);
       memset(sig_r__pu8, 0, shift);
     }
-    // set up the signature with correct length
-    // *signature_len__palu16 = 2 * max_sig_part_len;
-    // sig_vec__pt->len__dtl = 2 * max_sig_part_len; // ALREADY DONE ABOVE
 
 # else // #ifdef FLEA_HAVE_ECDSA
     FLEA_THROW("ECDSA not supported", FLEA_ERR_INV_ALGORITHM);
@@ -352,22 +347,15 @@ flea_err_t THR_flea_private_key_t__sign_digest_plain_format(
     // in RSA, input length = output length
     FLEA_CCALL(THR_flea_byte_vec_t__resize(sig_vec__pt, primitive_input_len__alu16));
 
-    /* if(*signature_len__palu16 < primitive_input_len__alu16)
-     * {
-     * FLEA_THROW("signature buffer too small for RSA signature", FLEA_ERR_BUFF_TOO_SMALL);
-     * }*/
     FLEA_CCALL(
       THR_flea_rsa_raw_operation_crt_private_key(
         privkey__pt,
-        // signature__pu8,
         sig_vec__pt->data__pu8,
         primitive_input__bu8,
         primitive_input_len__alu16
       )
     );
-    // *signature_len__palu16 = (privkey__pt->key_bit_size__u16 + 7) / 8;
-    // TODO: LEAVE RESULT LENGTH AT primitive_input_len__alu16 :
-    sig_vec__pt->len__dtl = (privkey__pt->key_bit_size__u16 + 7) / 8;
+    // sig_vec__pt->len__dtl = (privkey__pt->key_bit_size__u16 + 7) / 8;
 
 
 # else // #ifdef FLEA_HAVE_RSA

@@ -73,28 +73,6 @@ flea_err_t THR_flea_rsa_raw_operation_crt(
   flea_mpi_ulen_t  c_enc_len
 );
 
-/**
- *  RSA 2048-bit private raw operation using chinese remainder theorem with the
- *  key given in flea's internal format. This format is given by the
- *  concatenation of the values of p,q,d1,d2,c, each having the half modulus
- *  length, e.g. 128 bytes in case of 2048-bit RSA.
- *
- *  @param result_enc array to receive the big endian encoded exponentiation
- *  result. Must have length of the modulus (modulus_length)
- *  @param base_enc big endian encoded base used in the exponentiation
- *  @param base_length length of the base_enc array
- *  @param modulus_length byte length of the modulus
- *  @param key pointer to the key in flea's internal format
- *  @param key_len the length of key, must be equal to  5*(modulus_length+1)/2
- */
-flea_err_t THR_flea_rsa_raw_operation_crt_internal_key_format(
-  flea_u8_t*       result_enc,
-  const flea_u8_t* base_enc,
-  flea_al_u16_t    base_length,
-  flea_al_u16_t    modulus_length,
-  const flea_u8_t* key,
-  flea_al_u16_t    key_len
-);
 
 #ifdef __cplusplus
 }

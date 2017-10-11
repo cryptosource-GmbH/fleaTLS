@@ -150,7 +150,6 @@ flea_err_t THR_flea_x509__verify_tls_server_id_cstr(
   return THR_flea_x509__verify_tls_server_id(&user_id__rcu8, host_type, server_cert__pt);
 }
 
-// TODO: THIS FUNCTION GOES INTO AN X509 SPECIFIC FILE (standalone x509)
 flea_err_t THR_flea_x509__verify_tls_server_id(
   const flea_byte_vec_t*      user_id_vec__pt,
   flea_host_id_type_e         host_type,
@@ -192,10 +191,6 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
         &cont_dec__t,
         &work_spc__t,
         &match_info__t
-
-        /*&id_matched__b,
-         * &contains_ipaddr__b,
-         * &contains_dnsname__b*/
       )
     );
 
@@ -204,9 +199,7 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
       FLEA_THR_RETURN();
     }
   }
-  // if(!contains_ipaddr__b && !contains_dnsname__b && (host_type == flea_host_dnsname))
-  if(/*(!match_info__t.contains_ipaddr__b && (host_type == flea_host_ipaddr)) ||*/
-    (!match_info__t.contains_dnsname__b && (host_type == flea_host_dnsname)))
+  if((!match_info__t.contains_dnsname__b && (host_type == flea_host_dnsname)))
   {
     /* as specified in RFC 6125, only use CN if no appropirate SAN elements were
      * found */
@@ -247,9 +240,7 @@ flea_err_t THR_flea_x509__parse_san_and_validate_hostn(
 
   while(flea_ber_dec_t__has_current_more_data(cont_dec__pt))
   {
-    // flea_byte_vec_t dummy_ref__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
     flea_bool_t found__b, found_any__b = FLEA_FALSE;
-    // flea_byte_vec_t dec_name__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
 
     /*GeneralName ::= CHOICE {
      * otherName                 [0]  AnotherName,*/
@@ -367,7 +358,6 @@ flea_err_t THR_flea_x509__parse_san_and_validate_hostn(
       )
     );
     found_any__b |= found__b;
-    /*}*/
     if(!found_any__b)
     {
       FLEA_THROW("invalid element in SAN", FLEA_ERR_X509_SAN_DEC_ERR);

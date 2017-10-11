@@ -3,6 +3,8 @@
 
 #include "flea/util.h"
 #include <string.h>
+#include "flea/error_handling.h"
+#include "flea/error.h"
 
 flea_bool_t flea_sec_mem_equal(
   const flea_u8_t* mem1__pcu8,
@@ -95,4 +97,21 @@ flea_bool_t flea_is_in_u16_list(
     }
   }
   return FLEA_FALSE;
+}
+
+flea_err_t THR_flea_add_dtl_with_overflow_check(
+  flea_dtl_t* in_out__pdtl,
+  flea_dtl_t  b__dtl
+)
+{
+  flea_dtl_t in__dtl     = *in_out__pdtl;
+  flea_dtl_t result__dtl = *in_out__pdtl + b__dtl;
+
+  FLEA_THR_BEG_FUNC();
+  if(result__dtl < in__dtl || result__dtl < b__dtl)
+  {
+    FLEA_THROW("integer overflow", FLEA_ERR_INT_OVERFLOW);
+  }
+  *in_out__pdtl = result__dtl;
+  FLEA_THR_FIN_SEC_empty();
 }

@@ -188,7 +188,7 @@
 
 /**
  * Use the "add & double always" algorithm for (window-based) point multiplication in
- * ECC private operations * as a countermeasure against timing attacks.
+ * ECC private operations as a countermeasure against timing attacks.
  */
 # define FLEA_USE_ECC_ADD_ALWAYS // FBFLAGS_ECC_ADA_ON_OFF
 

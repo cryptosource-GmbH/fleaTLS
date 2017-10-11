@@ -15,7 +15,7 @@ typedef enum
   FLEA_ERR_INV_STATE                                    = 0x02,
   FLEA_ERR_FAILED_TEST                                  = 0x03,
   FLEA_ERR_INTEGRITY_FAILURE                            = 0x04,
-
+  FLEA_ERR_INT_OVERFLOW                                 = 0x05,
   FLEA_ERR_INV_ARG                                      = 0x06,
   FLEA_ERR_INV_ALGORITHM                                = 0x08,
   FLEA_ERR_INV_MAC                                      = 0x09,

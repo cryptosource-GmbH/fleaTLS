@@ -42,7 +42,7 @@ flea_err_t THR_flea_filter_t__process_to_stream(
   flea_rw_stream_t* write_stream__pt
 )
 {
-  flea_cbc_filt_hlp_t* hlp__pt = (flea_cbc_filt_hlp_t *) custom_obj__pv;
+  flea_cbc_filt_hlp_t* hlp__pt = (flea_cbc_filt_hlp_t*) custom_obj__pv;
   // flea_cbc_mode_ctx_t *cbc_ctx__pt = hlp__pt->cbc_ctx__pt;
   flea_al_u8_t pend_len__alu8 = hlp__pt->pend_len__u8;
   flea_dtl_t output_len__dtl  = *output_len__pdtl;

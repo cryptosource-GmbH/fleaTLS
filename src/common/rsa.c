@@ -81,45 +81,6 @@ flea_err_t THR_flea_rsa_raw_operation_crt_private_key(
   FLEA_THR_FIN_SEC_empty();
 }
 
-// TODO: REMOVE
-flea_err_t THR_flea_rsa_raw_operation_crt_internal_key_format(
-  flea_u8_t*       result_enc,
-  const flea_u8_t* base_enc,
-  flea_al_u16_t    base_length,
-  flea_al_u16_t    modulus_length,
-  const flea_u8_t* key__pc_u8,
-  flea_al_u16_t    key_len__al_u16
-)
-{
-  flea_al_u16_t half_mod_len__al_u16;
-
-  FLEA_THR_BEG_FUNC();
-  half_mod_len__al_u16 = key_len__al_u16 / 5;
-  if(((modulus_length + 1) / 2 != half_mod_len__al_u16) || key_len__al_u16 % 5)
-  {
-    FLEA_THROW("invalid length of RSA key in internal format", FLEA_ERR_INV_ARG);
-  }
-  FLEA_CCALL(
-    THR_flea_rsa_raw_operation_crt(
-      result_enc,
-      base_enc,
-      base_length,
-      modulus_length,
-      key__pc_u8,
-      half_mod_len__al_u16,
-      key__pc_u8 + half_mod_len__al_u16,
-      half_mod_len__al_u16,
-      key__pc_u8 + 2 * half_mod_len__al_u16,
-      half_mod_len__al_u16,
-      key__pc_u8 + 3 * half_mod_len__al_u16,
-      half_mod_len__al_u16,
-      key__pc_u8 + 4 * half_mod_len__al_u16,
-      half_mod_len__al_u16
-    )
-  );
-  FLEA_THR_FIN_SEC_empty();
-}
-
 // result is of same length as modulus
 flea_err_t THR_flea_rsa_raw_operation_crt(
   flea_u8_t*       result_enc,

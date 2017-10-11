@@ -98,6 +98,11 @@ flea_bool_t flea_is_in_u16_list(
   const flea_ref_cu16_t* list__prcu16
 );
 
+flea_err_t THR_flea_add_dtl_with_overflow_check(
+  flea_dtl_t* in_out__pdtl,
+  flea_dtl_t  b__dtl
+);
+
 #ifdef __cplusplus
 }
 #endif

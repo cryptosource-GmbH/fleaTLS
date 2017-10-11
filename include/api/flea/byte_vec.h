@@ -179,7 +179,7 @@ flea_err_t THR_flea_byte_vec_t__push_back(
  */
 flea_err_t THR_flea_byte_vec_t__reserve(
   flea_byte_vec_t* byte_vec,
-  flea_u32_t       reserve_len
+  flea_dtl_t       reserve_len
 );
 
 /**

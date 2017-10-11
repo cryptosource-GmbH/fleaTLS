@@ -14,13 +14,6 @@
 
 static flea_ctr_mode_prng_t gl_rng_ctx__t;
 
-/*static void flea_rng__randomize_volatile(
- * flea_u8_t* mem__pu8,
- * flea_dtl_t mem_len__dtl
- * )
- * {
- * flea_ctr_mode_prng_t__randomize(&gl_rng_ctx__t, mem__pu8, mem_len__dtl);
- * }*/
 
 void flea_rng__deinit()
 {

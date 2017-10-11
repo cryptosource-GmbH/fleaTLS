@@ -19,18 +19,6 @@ static flea_err_t THR_flea_mem_read_stream__read(
   hlp__pt      = (flea_mem_read_stream_help_t*) hlp__pv;
   to_read__dtl = *nb_bytes_to_read__pdtl;
 
-  if(rd_mode__e != flea_read_full)
-  {
-    if(to_read__dtl > hlp__pt->len__dtl)
-    {
-      to_read__dtl = hlp__pt->len__dtl;
-    }
-  }
-  if(to_read__dtl > hlp__pt->len__dtl)
-  {
-    FLEA_THROW("insufficient data to read in mem_read_stream", FLEA_ERR_STREAM_EOF);
-  }
-  // to_read__dtl = FLEA_MIN(to_read__dtl, hlp__pt->len__dtl);
   memcpy(target_buffer__pu8, &hlp__pt->data__pcu8[hlp__pt->offs__dtl], to_read__dtl);
   hlp__pt->offs__dtl     += to_read__dtl;
   hlp__pt->len__dtl      -= to_read__dtl;
@@ -50,8 +38,6 @@ flea_err_t THR_flea_rw_stream_t__ctor_memory(
 
   hlp_uninit__pt->data__pcu8 = source_mem__pcu8;
   hlp_uninit__pt->offs__dtl  = 0;
-  // TODO: REMOVE THIS LIMIT, LIMIT ALREADY IMPLEMENTED BY READ_STREAM
-  hlp_uninit__pt->len__dtl = source_mem_len__dtl;
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor_detailed(
       rw_stream__pt,
@@ -62,8 +48,7 @@ flea_err_t THR_flea_rw_stream_t__ctor_memory(
       NULL,
       NULL,
       source_mem_len__dtl,
-      flea_strm_type_memory,
-      FLEA_FALSE /* no filter support */
+      flea_strm_type_memory
     )
   );
   FLEA_THR_FIN_SEC_empty();
