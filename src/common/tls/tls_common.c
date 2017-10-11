@@ -686,10 +686,6 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
       rw_stream__pt
     )
   );
-# ifndef FLEA_TLS_STREAM_BASED_CPV
-  FLEA_CCALL(THR_flea_cert_store_t__ctor(&tls_ctx__pt->peer_cert_chain__t));
-  flea_byte_vec_t__INIT(&tls_ctx__pt->peer_cert_chain_data__t);
-# endif
   tls_ctx__pt->selected_cipher_suite__u16 = FLEA_TLS_NULL_WITH_NULL_NULL;
 
 
@@ -2265,16 +2261,6 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
   flea_public_key_t__dtor(&tls_ctx__pt->ecdhe_pub_key__t);
   flea_private_key_t__dtor(&tls_ctx__pt->ecdhe_priv_key__t);
 
-# ifndef FLEA_TLS_STREAM_BASED_CPV
-  flea_byte_vec_t__dtor(&tls_ctx__pt->peer_cert_chain_data__t);
-  flea_cert_store_t__dtor(&tls_ctx__pt->peer_cert_chain__t);
-# endif
-# if 0
-  if(tls_ctx__pt->client_session_mbn__pt && tls_ctx__pt->client_session_mbn__pt->session_id_len__u8)
-  {
-    flea_tls_session_data_t__set_session_as_valid(&tls_ctx__pt->client_session_mbn__pt->session__t);
-  }
-# endif
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_NULL(tls_ctx__pt->own_vfy_data__bu8);
 # endif

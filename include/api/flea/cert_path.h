@@ -8,6 +8,7 @@
 #include "flea/pubkey.h"
 #include "flea/hostn_ver.h"
 #include "flea/cert_info.h"
+#include "flea/crl.h"
 
 #ifdef FLEA_HAVE_ASYM_ALGS
 
@@ -51,6 +52,7 @@ void flea_cert_path_validator_t__dtor(flea_cert_path_validator_t* cpv);
  * @param cpv the path validator object to create
  * @param target_cert the DER encoded certificate which shall be validated
  * @param the length of target_cert
+ * @param rev_chk_mode__e the mode of revocation checking (based on CRLs) to use
  */
 flea_err_t THR_flea_cert_path_validator_t__ctor_cert(
   flea_cert_path_validator_t* cpv,

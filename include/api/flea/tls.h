@@ -267,10 +267,6 @@ typedef struct
   flea_bool_t    can_use_ecdhe;            // true if sig alg extension produces a match so we can sign the ECDHE params
   // flea_stream_read_mode_e    handshake_read_mode__e;
   // flea_tls_flag_e flags;
-# ifndef FLEA_TLS_STREAM_BASED_CPV
-  flea_byte_vec_t   peer_cert_chain_data__t;
-  flea_cert_store_t peer_cert_chain__t
-# endif
 } flea_tls_ctx_t;
 
 

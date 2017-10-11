@@ -28,23 +28,32 @@ flea_err_t THR_flea_test_cert_path_generic(
   flea_u32_t            nb_crls,
   const flea_u8_t*      validation_date_utctime,
   flea_al_u16_t         validation_date_utctime_len,
-  flea_bool_t           disable_revocation_checking,
+  flea_rev_chk_mode_e   rev_chk_mode__e,
   const flea_ref_cu8_t* host_id_mbn__pcrcu8,
   flea_host_id_type_e   host_id_type
 )
 {
   flea_public_key_t target_pubkey__t = flea_public_key_t__INIT_VALUE;
   const flea_bool_t is_valid_chain   = FLEA_TRUE;
-  // flea_x509_cert_ref_t cert_refs[20] = {{.version__u8 = 0}};
-  // flea_u32_t cert_ref_pos = 0;
   flea_err_t err;
 
   FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
   FLEA_THR_BEG_FUNC();
-  // FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&cert_refs[cert_ref_pos], &target_cert_ptr[0], target_cert_len));
-  FLEA_CCALL(THR_flea_cert_path_validator_t__ctor_cert(&cert_chain__t, &target_cert_ptr[0], target_cert_len));
+
+  /*flea_rev_chk_mode_e rev_chk_mode__e = flea_rev_chk_all;
+   * if(disable_revocation_checking)
+   * {
+   * rev_chk_mode__e = flea_rev_chk_none;
+   * }*/
+  FLEA_CCALL(
+    THR_flea_cert_path_validator_t__ctor_cert(
+      &cert_chain__t,
+      &target_cert_ptr[0],
+      target_cert_len,
+      rev_chk_mode__e
+    )
+  );
   flea_gmt_time_t time__t;
-  // cert_ref_pos++;
   while(nb_trust_anchors || nb_certs)
   {
     const flea_u8_t use_the_one_with_some_left = 0;
@@ -69,8 +78,6 @@ flea_err_t THR_flea_test_cert_path_generic(
     if((what_to_use == use_ta) || ((what_to_use == use_the_one_with_some_left) && nb_trust_anchors))
     {
       i %= nb_trust_anchors;
-      // FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&cert_refs[cert_ref_pos], trust_anchor_ptrs[i], trust_anchor_lens[i]));
-      // FLEA_CCALL(THR_flea_cert_path_validator_t__add_trust_anchor_cert_ref(&cert_chain__t, &cert_refs[cert_ref_pos]));
       FLEA_CCALL(
         THR_flea_cert_path_validator_t__add_trust_anchor_cert(
           &cert_chain__t,
@@ -78,7 +85,6 @@ flea_err_t THR_flea_test_cert_path_generic(
           trust_anchor_lens[i]
         )
       );
-      // cert_ref_pos++;
       trust_anchor_ptrs[i] = trust_anchor_ptrs[nb_trust_anchors - 1];
       trust_anchor_lens[i] = trust_anchor_lens[nb_trust_anchors - 1];
       nb_trust_anchors--;
@@ -86,14 +92,6 @@ flea_err_t THR_flea_test_cert_path_generic(
     else
     {
       i %= nb_certs;
-      // FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&cert_refs[cert_ref_pos], cert_ptrs[i], cert_lens[i]));
-
-      /*FLEA_CCALL(
-       * THR_flea_cert_path_validator_t__add_cert_ref_without_trust_status(
-       *  &cert_chain__t,
-       *  &cert_refs[cert_ref_pos]
-       * )
-       * );*/
       FLEA_CCALL(
         THR_flea_cert_path_validator_t__add_cert_without_trust_status(
           &cert_chain__t,
@@ -102,7 +100,6 @@ flea_err_t THR_flea_test_cert_path_generic(
         )
       );
 
-      // cert_ref_pos++;
       cert_ptrs[i] = cert_ptrs[nb_certs - 1];
       cert_lens[i] = cert_lens[nb_certs - 1];
       nb_certs--;
@@ -113,8 +110,6 @@ flea_err_t THR_flea_test_cert_path_generic(
     flea_u32_t i;
     flea_rng__randomize((flea_u8_t*) &i, sizeof(i));
     i %= nb_crls;
-    // flea_ref_cu8_t crl_ref = {crl_ptrs[i], crl_lens[i]};
-    // flea_byte_vec_t crl_ref = flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(crl_ptrs[i], crl_lens[i]);
     FLEA_CCALL(THR_flea_cert_path_validator_t__add_crl(&cert_chain__t, crl_ptrs[i], crl_lens[i]));
 
     crl_ptrs[i] = crl_ptrs[nb_crls - 1];
@@ -122,10 +117,6 @@ flea_err_t THR_flea_test_cert_path_generic(
     nb_crls--;
   }
   FLEA_CCALL(THR_flea_asn1_parse_utc_time(validation_date_utctime, validation_date_utctime_len, &time__t));
-  if(disable_revocation_checking)
-  {
-    flea_cert_path_validator_t__disable_revocation_checking(&cert_chain__t);
-  }
   if(host_id_mbn__pcrcu8)
   {
     flea_byte_vec_t host_id_vec__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(
@@ -135,7 +126,6 @@ flea_err_t THR_flea_test_cert_path_generic(
     err = THR_flea_cert_path_validator__build_and_verify_cert_chain_and_hostid_and_create_pub_key(
       &cert_chain__t,
       &time__t,
-      // host_id_mbn__pcrcu8,
       &host_id_vec__t,
       host_id_type,
       &target_pubkey__t

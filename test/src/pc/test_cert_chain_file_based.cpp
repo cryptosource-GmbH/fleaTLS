@@ -103,6 +103,32 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
     host_id_mbn__prcu8       = &host_id__rcu8;
   }
 
+  flea_rev_chk_mode_e rev_chk_mode__e = flea_rev_chk_none;
+  if(!disable_revocation_checking)
+  {
+    rev_chk_mode__e = flea_rev_chk_all;
+  }
+  string rev_chk_str = prop.get_property_as_string_default_empty("rev_chk_mode");
+  if(rev_chk_str != "")
+  {
+    if(rev_chk_str == "only_ee")
+    {
+      rev_chk_mode__e = flea_rev_chk_only_ee;
+    }
+    else if(rev_chk_str == "all")
+    {
+      rev_chk_mode__e = flea_rev_chk_all;
+    }
+    else if(rev_chk_str == "none")
+    {
+      rev_chk_mode__e = flea_rev_chk_none;
+    }
+    else
+    {
+      throw test_utils_exceptn_t("invalid string for rev_chk_mode: " + rev_chk_str);
+    }
+  }
+
   err = THR_flea_test_cert_path_generic(
     &target_cert[0],
     target_cert.size(),
@@ -117,7 +143,7 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
     crl_ptrs.size(),
     (const flea_u8_t*) time_str.c_str(),
     time_str.size(),
-    disable_revocation_checking,
+    rev_chk_mode__e,
     host_id_mbn__prcu8,
     host_id_type
     );
@@ -172,6 +198,8 @@ static properties_spec_t create_cert_path_ini_file_spec()
   spec.insert(std::make_pair("reason", ""));
   spec.insert(std::make_pair("required_rsa_key_len", ""));
   spec.insert(std::make_pair("suppress_validation_error", ""));
+  spec.insert(std::make_pair("rev_chk_mode", ""));
+
 
   return spec;
 }
