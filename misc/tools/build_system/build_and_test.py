@@ -224,7 +224,7 @@ def parse_vg_output__no_leaks(vg_output):
 
 def call_test_vg():
   vg_output = []
-  p = subprocess.Popen('valgrind --error-exitcode=10 ./build/unit_test', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=make_cwd_str)
+  p = subprocess.Popen('valgrind --error-exitcode=10 --leak-check=full --errors-for-leak-kinds=definite,indirect,possible,reachable ./build/unit_test', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=make_cwd_str)
   #print("VG Test OUTPUT:")
   for line in p.stdout.readlines():
     vg_output.append(line)
@@ -234,9 +234,9 @@ def call_test_vg():
   if(retval != 0):
     print "vg error, exiting"
     exit(1) 
-  if(False == parse_vg_output__no_leaks(vg_output)):
-    print("memory leak detected")
-    exit(1)
+  #if(False == parse_vg_output__no_leaks(vg_output)):
+  #  print("memory leak detected")
+  #  exit(1)
   
 
 def iterate_through_configs_with_build_and_tests(stripped_file, concrete_flag_val_list):
