@@ -191,10 +191,11 @@ flea_err_t THR_flea_x509__process_alg_ids(
  */
 static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
   flea_x509_ext_ref_t* ext_ref__pt,
-  flea_ber_dec_t*      dec__pt
+  flea_ber_dec_t*      dec__pt,
+  flea_bool_t*         have_extensions__pb
 )
 {
-  flea_bool_t have_extensions__b;
+  // flea_bool_t have_extensions__b;
   flea_byte_vec_t ext_oid_ref__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
   flea_bool_t critical__b;
 
@@ -207,10 +208,10 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
       dec__pt,
       3,
       FLEA_ASN1_CONSTRUCTED | FLEA_ASN1_CONTEXT_SPECIFIC,
-      &have_extensions__b
+      have_extensions__pb
     )
   );
-  if(!have_extensions__b)
+  if(!*have_extensions__pb)
   {
     FLEA_THR_RETURN();
   }
@@ -691,7 +692,12 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
   );
   cert_ref__pt->cert_signature_as_bit_string__t.len__dtl = 0;
 #endif /* ifdef FLEA_X509_CERT_REF_WITH_DETAILS */
-  FLEA_CCALL(THR_flea_x509_cert_ref__t__parse_extensions(&cert_ref__pt->extensions__t, &dec__t));
+  FLEA_CCALL(THR_flea_x509_cert_ref__t__parse_extensions(&cert_ref__pt->extensions__t, &dec__t, &found_tag__b));
+  if((found_tag__b && cert_ref__pt->version__u8 != 3) || (cert_ref__pt->version__u8 > 3)
+  )
+  {
+    FLEA_THROW("invalid X.509 version", FLEA_ERR_X509_VERSION_ERROR);
+  }
 
   /* closing the tbs */
   FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
