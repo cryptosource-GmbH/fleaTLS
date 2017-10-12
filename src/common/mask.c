@@ -8,7 +8,7 @@ typedef long long unsigned flea_pszd_uint_t;
 
 static volatile flea_u32_t optimization_blocker__u32 = 0;
 
-static flea_u32_t flea_expand_u32_to_u32_mask(flea_u32_t in)
+flea_u32_t flea_expand_u32_to_u32_mask(flea_u32_t in)
 {
   flea_al_u8_t i;
   flea_u32_t result = in;

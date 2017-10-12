@@ -28,6 +28,8 @@ void* flea_consttime__select_ptr_nz_z(
   flea_u32_t condition
 );
 
+flea_u32_t flea_expand_u32_to_u32_mask(flea_u32_t in);
+
 # ifdef __cplusplus
 }
 # endif
