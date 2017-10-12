@@ -220,6 +220,7 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
   FLEA_THROW("TLS server id does not match server certificate", FLEA_ERR_X509_TLS_SERVER_ID_NO_MATCH);
   FLEA_THR_FIN_SEC(
     flea_ber_dec_t__dtor(&cont_dec__t);
+    flea_byte_vec_t__dtor(&work_spc__t);
     flea_rw_stream_t__dtor(&source__t);
   );
 } /* THR_flea_x509__verify_tls_server_id */

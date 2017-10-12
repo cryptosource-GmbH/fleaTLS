@@ -93,7 +93,9 @@ static flea_err_t THR_flea_tls_cert_path__parse_san_and_validate_hostname(
   );
 
 
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC(
+    flea_byte_vec_t__dtor(&work_spc__t);
+  );
 }
 
 // TODO: USE DECODE FUNCTIONS EVERYWHERE, THEN UNITE THIS WITH X.509 CERT REF
@@ -108,7 +110,7 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
   flea_bool_t*              have_extensions__pb
 )
 {
-  flea_bool_t false__b;
+  flea_bool_t false__b = FLEA_FALSE;
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(ext_oid__t, 30); // TODO: MAKE TYPEDEF FOR VALUE
   flea_bool_t critical__b;
@@ -814,6 +816,7 @@ flea_err_t THR_flea_tls__cert_path_validation(
     flea_byte_vec_t__dtor(&cycling_issuer_dn);
     flea_byte_vec_t__dtor(&cycling_tbs_hash__t);
     flea_byte_vec_t__dtor(&sn_buffer__t);
+    flea_byte_vec_t__dtor(&previous_crldp__t);
     flea_rw_stream_t__dtor(&mem_rd_strm__t);
   );
 } /* THR_flea_tls__cert_path_validation */
