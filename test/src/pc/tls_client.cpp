@@ -21,6 +21,7 @@
 
 #include "flea/array_util.h"
 #include "flea/byte_vec.h"
+#include "flea/pkcs8.h"
 
 #ifdef FLEA_HAVE_TLS
 
@@ -51,6 +52,8 @@ static flea_err_t THR_flea_start_tls_client(
   tls_test_cfg_t tls_cfg;
   flea_host_id_type_e host_type;
 
+  flea_private_key_t privkey__t;
+
   /*const flea_u8_t allowed_ecc_curves__acu8[] = {
    * (flea_u8_t) flea_secp160r1,
    * (flea_u8_t) flea_secp160r2,
@@ -67,6 +70,7 @@ static flea_err_t THR_flea_start_tls_client(
 
   std::string hostname_s;
   FLEA_THR_BEG_FUNC();
+  flea_private_key_t__INIT(&privkey__t);
   flea_rw_stream_t__INIT(&rw_stream__t);
   flea_tls_ctx_t__INIT(&tls_ctx);
   flea_cert_store_t__INIT(&trust_store__t);
@@ -126,7 +130,16 @@ static flea_err_t THR_flea_start_tls_client(
     )
   );
 
-
+  if(client_key__t.len__dtl)
+  {
+    FLEA_CCALL(
+      THR_flea_private_key_t__ctor_pkcs8(
+        &privkey__t,
+        client_key__t.data__pcu8,
+        client_key__t.len__dtl
+      )
+    );
+  }
   FLEA_CCALL(
     THR_flea_tls_ctx_t__ctor_client(
       &tls_ctx,
@@ -139,7 +152,8 @@ static flea_err_t THR_flea_start_tls_client(
        * 0,*/
       cert_chain_len ? cert_chain : NULL,
       cert_chain_len,
-      &client_key__t,
+      // &client_key__t,
+      client_key__t.len__dtl ? &privkey__t : NULL,
       &cipher_suites_ref,
       tls_cfg.rev_chk_mode__e,// flea_rev_chk_none,
       &tls_cfg.crls_refs[0],// NULL,
@@ -184,7 +198,7 @@ static flea_err_t THR_flea_start_tls_client(
     flea_tls_ctx_t__dtor(&tls_ctx);
     flea_rw_stream_t__dtor(&rw_stream__t);
     flea_cert_store_t__dtor(&trust_store__t);
-
+    flea_private_key_t__dtor(&privkey__t);
   );
 } // THR_flea_start_tls_client
 

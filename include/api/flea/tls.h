@@ -183,6 +183,13 @@ typedef struct
   flea_pk_scheme_id_t pk_scheme_id__t;
 } flea_tls__hash_sig_t;
 
+/*typedef struct
+ *  {
+ *  flea_private_key_t private_key__t;
+ *  } flea_tls_server_shared_ctx_t;
+ *
+ *  flea_tls_ctx_t*/
+
 typedef struct
 {
   /* Security Parameters negotiated during handshake */
@@ -218,20 +225,21 @@ typedef struct
 
   flea_hostn_validation_params_t hostn_valid_params__t;
 
-  flea_ref_cu8_t*                cert_chain__pt;
+  flea_ref_cu8_t*                cert_chain_mbn__pt;
   flea_u8_t                      cert_chain_len__u8;
 
   // => SHARED_SERVER_CTX
   flea_private_key_t             private_key__t;
-
+  //
+  // flea_tls_server_shared_ctx_t *server_shared_ctx__pt;
+  flea_private_key_t*            private_key_for_client_mbn__pt;
   flea_revoc_chk_cfg_t           rev_chk_cfg__t;
   flea_u8_t                      sec_reneg_flag__u8;
-  // flea_u8_t                      client_has_sec_reneg__u8;
 
   // => HANDSHAKE_CTX
-  flea_private_key_t ecdhe_priv_key__t; // server needs to store it until the client sends his pubkey
+  flea_private_key_t             ecdhe_priv_key__t; // server needs to store it until the client sends his pubkey
   // => HANDSHAKE_CTX
-  flea_public_key_t  ecdhe_pub_key__t; // client needs to store it to send it afterwards
+  flea_public_key_t              ecdhe_pub_key__t; // client needs to store it to send it afterwards
 
   // STAYS IN TLS_CTX:
 # ifdef FLEA_USE_HEAP_BUF
@@ -258,6 +266,7 @@ typedef struct
   flea_bool_t    can_use_ecdhe;            // true if sig alg extension produces a match so we can sign the ECDHE params
   // flea_stream_read_mode_e    handshake_read_mode__e;
   // flea_tls_flag_e flags;
+  // TODO: MAKE UNION WITH CLIENT PRIVATE KEY:
 } flea_tls_ctx_t;
 
 
@@ -274,9 +283,10 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
 
   /* const flea_u8_t*         session_id__pcu8,
    * flea_al_u8_t             session_id_len__alu8,*/
-  flea_ref_cu8_t*               cert_chain__pt,
+  flea_ref_cu8_t*               cert_chain_mbn__pt,
   flea_al_u8_t                  cert_chain_len__alu8,
-  flea_ref_cu8_t*               client_public_key__pt,
+  // flea_ref_cu8_t*               client_public_key__pt,
+  flea_private_key_t*           private_key_mbn__pt,
   const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
   flea_rev_chk_mode_e           rev_chk_mode__e,
   const flea_byte_vec_t*        crl_der__pt,

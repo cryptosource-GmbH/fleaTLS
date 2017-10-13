@@ -146,7 +146,14 @@ static flea_err_t THR_flea_tls__read_server_hello(
 
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
   {
-    FLEA_CCALL(THR_flea_tls_ctx_t__parse_hello_extensions(tls_ctx, hs_rdr__pt, &found_sec_reneg__b));
+    FLEA_CCALL(
+      THR_flea_tls_ctx_t__parse_hello_extensions(
+        tls_ctx,
+        hs_rdr__pt,
+        &found_sec_reneg__b,
+        tls_ctx->private_key_for_client_mbn__pt
+      )
+    );
   }
   if(tls_ctx->sec_reneg_flag__u8 && !found_sec_reneg__b)
   {
@@ -510,6 +517,16 @@ static flea_err_t THR_flea_tls__read_cert_request(
 
   FLEA_THR_BEG_FUNC();
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
+  if(tls_ctx__pt->private_key_for_client_mbn__pt == NULL)
+  {
+    FLEA_CCALL(
+      THR_flea_rw_stream_t__skip_read(
+        hs_rd_stream__pt,
+        flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt)
+      )
+    );
+    FLEA_THR_RETURN();
+  }
 
   // read certificate types field
   FLEA_CCALL(
@@ -529,7 +546,9 @@ static flea_err_t THR_flea_tls__read_cert_request(
       )
     );
 
-    if(flea_tls__get_tls_cert_type_from_flea_key_type(tls_ctx__pt->private_key__t.key_type__t) == curr_cert_type__u8)
+    // if(flea_tls__get_tls_cert_type_from_flea_key_type(tls_ctx__pt->private_key__t.key_type__t) == curr_cert_type__u8)
+    if(flea_tls__get_tls_cert_type_from_flea_key_type(tls_ctx__pt->private_key_for_client_mbn__pt->key_type__t) ==
+      curr_cert_type__u8)
     {
       found_cert_type__b = FLEA_TRUE;
     }
@@ -554,7 +573,14 @@ static flea_err_t THR_flea_tls__read_cert_request(
     FLEA_THROW("Incorrect length for signature algorithms", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
-  FLEA_CCALL(THR_flea_tls__read_sig_algs_field_and_find_best_match(tls_ctx__pt, hs_rd_stream__pt, sig_algs_len__u16));
+  FLEA_CCALL(
+    THR_flea_tls__read_sig_algs_field_and_find_best_match(
+      tls_ctx__pt,
+      hs_rd_stream__pt,
+      sig_algs_len__u16,
+      tls_ctx__pt->private_key_for_client_mbn__pt
+    )
+  );
 
 
   // read certificate authorities field
@@ -754,7 +780,7 @@ static flea_err_t THR_flea_tls__send_cert_verify(
   hash_len__u8 = flea_hash__get_output_length_by_id(tls_ctx->chosen_hash_algorithm__t);
   FLEA_ALLOC_BUF(messages_hash__bu8, hash_len__u8);
 
-  pk_scheme_id__t = flea_tls__get_sig_alg_from_key_type(tls_ctx->private_key__t.key_type__t);
+  pk_scheme_id__t = flea_tls__get_sig_alg_from_key_type(tls_ctx->private_key_for_client_mbn__pt->key_type__t);
 
   FLEA_CCALL(
     THR_flea_tls_parallel_hash_ctx_t__final(
@@ -776,7 +802,7 @@ static flea_err_t THR_flea_tls__send_cert_verify(
 
   FLEA_CCALL(
     THR_flea_private_key_t__sign_digest_plain_format(
-      &tls_ctx->private_key__t,
+      tls_ctx->private_key_for_client_mbn__pt,
       pk_scheme_id__t,
       tls_ctx->chosen_hash_algorithm__t,
       messages_hash__bu8,
@@ -927,7 +953,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST &&
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_REQUEST)
   {
-    if(tls_ctx->cert_chain__pt == NULL)
+    if(tls_ctx->cert_chain_mbn__pt == NULL)
     {
       FLEA_THROW("Server requested a certificate but client has none", FLEA_ERR_TLS_HANDSHK_FAILURE);
     }
@@ -1159,13 +1185,13 @@ flea_err_t THR_flea_tls__client_handshake(
       if(!session_mbn__pt || !session_mbn__pt->for_resumption__u8)
       {
         // if we have to send a certificate, send it now
-        if(handshake_state.send_client_cert == FLEA_TRUE)
+        if((handshake_state.send_client_cert == FLEA_TRUE) && tls_ctx->cert_chain_mbn__pt)
         {
           FLEA_CCALL(
             THR_flea_tls__send_certificate(
               tls_ctx,
               &p_hash_ctx,
-              tls_ctx->cert_chain__pt,
+              tls_ctx->cert_chain_mbn__pt,
               tls_ctx->cert_chain_len__u8
             )
           );
@@ -1182,7 +1208,10 @@ flea_err_t THR_flea_tls__client_handshake(
         // send CertificateVerify message if we sent a certificate
         if(handshake_state.send_client_cert == FLEA_TRUE)
         {
-          FLEA_CCALL(THR_flea_tls__send_cert_verify(tls_ctx, &p_hash_ctx));
+          if(tls_ctx->private_key_for_client_mbn__pt)
+          {
+            FLEA_CCALL(THR_flea_tls__send_cert_verify(tls_ctx, &p_hash_ctx));
+          }
           handshake_state.send_client_cert = FLEA_FALSE;
         }
       }
@@ -1287,9 +1316,10 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   const flea_ref_cu8_t*         server_name__pcrcu8,
   flea_host_id_type_e           host_name_id__e,
   flea_rw_stream_t*             rw_stream__pt,
-  flea_ref_cu8_t*               cert_chain__pt,
+  flea_ref_cu8_t*               cert_chain_mbn__pt,
   flea_al_u8_t                  cert_chain_len__alu8,
-  flea_ref_cu8_t*               client_private_key__pt,
+  flea_private_key_t*           private_key_mbn__pt,
+  // flea_ref_cu8_t*               client_private_key__pt,
   const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
   flea_rev_chk_mode_e           rev_chk_mode__e,
   const flea_byte_vec_t*        crl_der__pt,
@@ -1307,25 +1337,31 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = rev_chk_mode__e;
   tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16    = nb_crls__alu16;
   tls_ctx__pt->rev_chk_cfg__t.crl_der__pt     = crl_der__pt;
-  tls_ctx__pt->cert_chain__pt     = cert_chain__pt;
+  tls_ctx__pt->cert_chain_mbn__pt = cert_chain_mbn__pt;
   tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
   tls_ctx__pt->client_session_mbn__pt        = session_mbn__pt;
-  tls_ctx__pt->session_mngr_mbn__pt     = NULL;
-  tls_ctx__pt->allowed_ecc_curves__rcu8 = *allowed_ecc_curves_ref__prcu8;
-  tls_ctx__pt->allowed_sig_algs__rcu8   = *allowed_sig_algs_ref__prcu8;
-  tls_ctx__pt->extension_ctrl__u8       = 0;
-
-  if(cert_chain__pt != NULL && client_private_key__pt != NULL)
+  tls_ctx__pt->session_mngr_mbn__pt           = NULL;
+  tls_ctx__pt->allowed_ecc_curves__rcu8       = *allowed_ecc_curves_ref__prcu8;
+  tls_ctx__pt->allowed_sig_algs__rcu8         = *allowed_sig_algs_ref__prcu8;
+  tls_ctx__pt->extension_ctrl__u8             = 0;
+  tls_ctx__pt->private_key_for_client_mbn__pt = private_key_mbn__pt;
+  if(((cert_chain_mbn__pt != NULL) && (private_key_mbn__pt == NULL)) ||
+    ((cert_chain_mbn__pt == NULL) && (private_key_mbn__pt != NULL)))
   {
-    FLEA_CCALL(
-      THR_flea_private_key_t__ctor_pkcs8(
-        &tls_ctx__pt->private_key__t,
-        client_private_key__pt->data__pcu8,
-        client_private_key__pt->len__dtl
-      )
-    );
+    FLEA_THROW("certificate chain and private key must both be provided or neither", FLEA_ERR_INV_ARG);
   }
+
+  /*if(cert_chain__pt != NULL && client_private_key__pt != NULL)
+   * {
+   * FLEA_CCALL(
+   *  THR_flea_private_key_t__ctor_pkcs8(
+   *    &tls_ctx__pt->private_key__t,
+   *    client_private_key__pt->data__pcu8,
+   *    client_private_key__pt->len__dtl
+   *  )
+   * );
+   * }*/
 
   if(server_name__pcrcu8)
   {

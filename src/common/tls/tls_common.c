@@ -1004,8 +1004,7 @@ flea_err_t THR_flea_tls_ctx_t__read_app_data(
 flea_err_t THR_flea_tls_ctx_t__renegotiate(
   flea_tls_ctx_t*          tls_ctx__pt,
   const flea_cert_store_t* trust_store__pt,
-  /* new session id? */
-  flea_ref_cu8_t*          cert_chain__pt,
+  flea_ref_cu8_t*          cert_chain_mbn__pt, /* may only be null for client */
   flea_al_u8_t             cert_chain_len__alu8,
   const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
   flea_rev_chk_mode_e      rev_chk_mode__e,
@@ -1025,7 +1024,7 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = rev_chk_mode__e;
   tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16    = nb_crls__alu16;
   tls_ctx__pt->rev_chk_cfg__t.crl_der__pt     = crl_der__pt;
-  tls_ctx__pt->cert_chain__pt     = cert_chain__pt;
+  tls_ctx__pt->cert_chain_mbn__pt = cert_chain_mbn__pt;
   tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
   flea_tls_set_tls_random(tls_ctx__pt);
@@ -1636,9 +1635,10 @@ flea_err_t THR_flea_tls_ctx_t__send_sig_alg_ext(
 } /* THR_flea_tls_ctx_t__send_sig_alg_ext */
 
 flea_err_t THR_flea_tls__read_sig_algs_field_and_find_best_match(
-  flea_tls_ctx_t*   tls_ctx__pt,
-  flea_rw_stream_t* hs_rd_stream__pt,
-  flea_u16_t        sig_algs_len__u16
+  flea_tls_ctx_t*     tls_ctx__pt,
+  flea_rw_stream_t*   hs_rd_stream__pt,
+  flea_u16_t          sig_algs_len__u16,
+  flea_private_key_t* priv_key_mbn__pt
 )
 {
   flea_al_u16_t hash_alg_pos__alu16 = 0xFFFF;
@@ -1670,7 +1670,8 @@ flea_err_t THR_flea_tls__read_sig_algs_field_and_find_best_match(
     {
       continue;
     }
-    if(THR_flea_tls__check_sig_alg_compatibility_for_key_type(tls_ctx__pt->private_key__t.key_type__t, pk_scheme_id__t))
+    if(priv_key_mbn__pt &&
+      THR_flea_tls__check_sig_alg_compatibility_for_key_type(priv_key_mbn__pt->key_type__t, pk_scheme_id__t))
     {
       continue;
     }
@@ -1729,7 +1730,13 @@ flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
   }
 
   // find match of received algorithms and configured algorithms
-  err__t = THR_flea_tls__read_sig_algs_field_and_find_best_match(tls_ctx__pt, rd_strm__pt, len__alu16);
+  /* this function can only be called by the server */
+  err__t = THR_flea_tls__read_sig_algs_field_and_find_best_match(
+    tls_ctx__pt,
+    rd_strm__pt,
+    len__alu16,
+    &tls_ctx__pt->private_key__t
+    );
 
   if(err__t)
   {
@@ -1902,8 +1909,9 @@ flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_u16_t suite_id)
 flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
   flea_tls_ctx_t*           tls_ctx__pt,
   flea_tls_handsh_reader_t* hs_rdr__pt,
-  flea_bool_t*              found_sec_reneg__pb
-) // flea_rw_stream_t* hs_read_strm__pt)
+  flea_bool_t*              found_sec_reneg__pb,
+  flea_private_key_t*       priv_key_mbn__pt
+)
 {
   flea_u32_t extensions_len__u32;
   flea_rw_stream_t* hs_rd_stream__pt;
@@ -1966,6 +1974,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
       *found_sec_reneg__pb = FLEA_TRUE;
     }
     // skip over ext. if received from server (not allowed)
+    // TODO: IFDEF HAVE SERVER
     else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__SIGNATURE_ALGORITHMS &&
       tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_SERVER)
     {
@@ -2003,8 +2012,8 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
     for(i = 0; i < tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl; i += 2)
     {
       // only check for hash/sig pair which matches our key
-      if(THR_flea_tls__check_sig_alg_compatibility_for_key_type(
-          tls_ctx__pt->private_key__t.key_type__t,
+      if(priv_key_mbn__pt && THR_flea_tls__check_sig_alg_compatibility_for_key_type(
+          priv_key_mbn__pt->key_type__t,
           (flea_pk_scheme_id_t) tls_ctx__pt->allowed_sig_algs__rcu8.data__pcu8[i + 1]
         ))
       {

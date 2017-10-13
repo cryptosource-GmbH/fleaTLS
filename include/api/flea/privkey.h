@@ -54,6 +54,8 @@ typedef struct
 
 # define flea_private_key_t__INIT_VALUE {.key_bit_size__u16 = 0}
 
+# define flea_private_key_t__INIT(__p) memset(__p, 0, sizeof(*(__p)))
+
 void flea_private_key_t__dtor(flea_private_key_t* privkey__pt);
 
 /**

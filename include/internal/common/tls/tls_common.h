@@ -186,7 +186,8 @@ flea_bool_t flea_tls__is_cipher_suite_ecdhe_suite(flea_u16_t suite_id);
 flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
   flea_tls_ctx_t*           tls_ctx__pt,
   flea_tls_handsh_reader_t* hs_rdr__pt,
-  flea_bool_t*              found_sec_reneg__pb
+  flea_bool_t*              found_sec_reneg__pb,
+  flea_private_key_t*       priv_key_mbn__pt
 );
 
 flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx__pt);
@@ -282,9 +283,10 @@ flea_err_t THR_flea_tls__map_tls_sig_to_flea_sig(
 );
 
 flea_err_t THR_flea_tls__read_sig_algs_field_and_find_best_match(
-  flea_tls_ctx_t*   tls_ctx__pt,
-  flea_rw_stream_t* hs_rd_stream__pt,
-  flea_u16_t        sig_algs_len__u16
+  flea_tls_ctx_t*     tls_ctx__pt,
+  flea_rw_stream_t*   hs_rd_stream__pt,
+  flea_u16_t          sig_algs_len__u16,
+  flea_private_key_t* priv_key_mbn__pt
 );
 
 flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
