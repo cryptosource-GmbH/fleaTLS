@@ -6,6 +6,7 @@
 #include "flea/error.h"
 #include "flea/error_handling.h"
 #include "flea/array_util.h"
+#include "internal/common/tls/tls_int.h"
 
 
 // TODO: REMOVE BLOCK SIZE, UNIFY MAC_KEY_LEN AND MAC_LEN
@@ -164,19 +165,18 @@ flea_err_t THR_flea_tls_get_cipher_suite_by_id(
 
 flea_err_t THR_flea_tls_get_key_block_len_from_cipher_suite_id(
   flea_tls__cipher_suite_id_t id,
-  flea_al_u8_t*               result_key_block_len__palu8
+  flea_al_u16_t*              result_key_block_len__palu16
 )
 {
   const flea_tls__cipher_suite_t* ct__pt;
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_tls_get_cipher_suite_by_id(id, &ct__pt));
-  *result_key_block_len__palu8 = ct__pt->mac_key_size * 2 + ct__pt->enc_key_size * 2;
+  *result_key_block_len__palu16 = ct__pt->mac_key_size * 2 + ct__pt->enc_key_size * 2;
 
-  // if(id == FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256)
   if(FLEA_TLS_IS_AE_CIPHER(ct__pt->cipher))
   {
-    *result_key_block_len__palu8 = ct__pt->enc_key_size * 2 + 16;
+    *result_key_block_len__palu16 = ct__pt->enc_key_size * 2 + 2 * FLEA_CONST_TLS_GCM_FIXED_IV_LEN;
   }
   FLEA_THR_FIN_SEC_empty();
 }

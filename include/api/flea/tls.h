@@ -194,35 +194,23 @@ typedef struct
    */
 
   // define 4 parameters independently instead of list of cipher suites
-  const flea_ref_cu16_t*       allowed_cipher_suites__prcu16; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
+  const flea_ref_cu16_t*         allowed_cipher_suites__prcu16; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
   // flea_u8_t                    allowed_cipher_suites_len__u8;
-  flea_u16_t                   selected_cipher_suite__u16; // TODO: change to cipher suite id type (already being used as such)
+  flea_u16_t                     selected_cipher_suite__u16; // TODO: change to cipher suite id type (already being used as such)
 
-  flea_public_key_t            peer_pubkey; /* public key of peer */
+  // => HS_CTX ?
+  flea_public_key_t              peer_pubkey; /* public key of peer */
 
-  flea_tls__protocol_version_t version; /* max. supported TLS version */
+  flea_tls__protocol_version_t   version; /* max. supported TLS version */
 
 # if 0
-  flea_u8_t                    session_id[32]; /* Session ID for later resumption */
-  flea_u8_t                    session_id_len;
+  flea_u8_t                      session_id[32]; /* Session ID for later resumption */
+  flea_u8_t                      session_id_len;
 # endif
 
-  flea_hash_id_t               prf_hash_id__t; // stores hash function to use for the PRF algorithm
+  flea_hash_id_t                 prf_hash_id__t; // stores hash function to use for the PRF algorithm
 
-  // flea_tls__hash_sig_t         cert_vfy_hash_sig__t; // hash and sig algorithms used for cert verify message
-  flea_tls__hash_sig_t         kex_hash_sig__t; // hash and sig algorithms used for KEX
-  // TODO: could probably do a union for cert_vfy and kex
-
-  // flea_byte_vec_t              premaster_secret__t; // shall be deleted after master_Secret is calculated
-
-  /*#ifdef FLEA_USE_STACK_BUF
-   * flea_u8_t                   premaster_secret__au8[256];
-   #endif*/
-  // flea_bool_t                    resumption;
-  // TODO: ABSTRACT BUFF, AND NOT IN CTX (?):
-  flea_u8_t key_block[256]; // sufficient for 2 * HMAC-SHA512 keys +  2 * 512 Bit keys
-                            // TODO: 2 * MAX_ENC_KEY_SIZE + 2 * MAX_MAC_KEY_SIZE
-                            // TODO: look at other cases (gcm) and take the max. value
+  flea_tls__hash_sig_t           kex_hash_sig__t; // hash and sig algorithms used for KEX
 
   flea_rw_stream_t*              rw_stream__pt;
   flea_tls_rec_prot_t            rec_prot__t;
@@ -233,16 +221,19 @@ typedef struct
   flea_ref_cu8_t*                cert_chain__pt;
   flea_u8_t                      cert_chain_len__u8;
 
+  // => SHARED_SERVER_CTX
   flea_private_key_t             private_key__t;
 
   flea_revoc_chk_cfg_t           rev_chk_cfg__t;
   flea_u8_t                      sec_reneg_flag__u8;
   // flea_u8_t                      client_has_sec_reneg__u8;
 
-  flea_private_key_t             ecdhe_priv_key__t; // server needs to store it until the client sends his pubkey
-  flea_public_key_t              ecdhe_pub_key__t;  // client needs to store it to send it afterwards
+  // => HANDSHAKE_CTX
+  flea_private_key_t ecdhe_priv_key__t; // server needs to store it until the client sends his pubkey
+  // => HANDSHAKE_CTX
+  flea_public_key_t  ecdhe_pub_key__t; // client needs to store it to send it afterwards
 
-
+  // STAYS IN TLS_CTX:
 # ifdef FLEA_USE_HEAP_BUF
   flea_u8_t*                 own_vfy_data__bu8;
   flea_u8_t*                 peer_vfy_data__bu8;

@@ -115,7 +115,6 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_gcm(
 
   conn_state__pt->sequence_number__au32[0] = 0;
   conn_state__pt->sequence_number__au32[1] = 0;
-
   memcpy(
     conn_state__pt->suite_specific__u.gcm_conn_state__t.cipher_key__bu8,
     cipher_key__pcu8,

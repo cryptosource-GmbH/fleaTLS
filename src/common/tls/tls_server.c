@@ -1231,9 +1231,10 @@ flea_err_t THR_flea_tls__server_handshake(
     sizeof(premaster_secret__au8)
     );
 # endif
+  // TODO: KEY BLOCK SIZE #596
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, 256);
 
   tls_ctx->extension_ctrl__u8 = 0;
-  // flea_hash_ctx_t hash_ctx;
   // define and init state
   flea_tls__handshake_state_t handshake_state;
   FLEA_THR_BEG_FUNC();
@@ -1242,7 +1243,7 @@ flea_err_t THR_flea_tls__server_handshake(
 
   flea_tls_parallel_hash_ctx_t p_hash_ctx;
 
-  // TODO: make configurable
+  // TODO: make configurable #597
   flea_hash_id_t hash_ids[] = {flea_sha1, flea_sha224, flea_sha256, flea_sha384, flea_sha512};
 
   flea_tls_parallel_hash_ctx_t__INIT(&p_hash_ctx);
@@ -1300,7 +1301,7 @@ flea_err_t THR_flea_tls__server_handshake(
         {
           flea_u8_t dummy_byte;
           flea_al_u16_t len_one__alu16 = 1;
-          flea_al_u8_t key_block_len__alu8;
+          flea_al_u16_t key_block_len__alu16;
 
           FLEA_CCALL(
             THR_flea_tls_rec_prot_t__read_data(
@@ -1341,16 +1342,16 @@ flea_err_t THR_flea_tls__server_handshake(
           FLEA_CCALL(
             THR_flea_tls_get_key_block_len_from_cipher_suite_id(
               tls_ctx->selected_cipher_suite__u16,
-              &key_block_len__alu8
+              &key_block_len__alu16
             )
           );
-          // TODO: key block need not be a member => make local
+          FLEA_CCALL(THR_flea_byte_vec_t__resize(&key_block__t, key_block_len__alu16));
           FLEA_CCALL(
             THR_flea_tls__generate_key_block(
               tls_ctx->selected_cipher_suite__u16,
               &tls_ctx->security_parameters,
-              tls_ctx->key_block,
-              key_block_len__alu8
+              key_block__t.data__pu8,
+              key_block_len__alu16
             )
           );
 
@@ -1361,9 +1362,13 @@ flea_err_t THR_flea_tls__server_handshake(
               flea_tls_read,
               FLEA_TLS_SERVER,
               tls_ctx->selected_cipher_suite__u16,
-              tls_ctx->key_block
+              key_block__t.data__pu8
             )
           );
+          if(tls_ctx->server_resume_session__u8)
+          {
+            flea_byte_vec_t__dtor(&key_block__t);
+          }
 
           handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
 
@@ -1443,7 +1448,7 @@ flea_err_t THR_flea_tls__server_handshake(
         FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx));
         if(tls_ctx->server_resume_session__u8)
         {
-          flea_al_u8_t key_block_len__alu8;
+          flea_al_u16_t key_block_len__alu16;
           memcpy(
             tls_ctx->security_parameters.master_secret,
             tls_ctx->server_active_sess_mbn__pt->session__t.master_secret__au8,
@@ -1453,15 +1458,16 @@ flea_err_t THR_flea_tls__server_handshake(
           FLEA_CCALL(
             THR_flea_tls_get_key_block_len_from_cipher_suite_id(
               tls_ctx->selected_cipher_suite__u16,
-              &key_block_len__alu8
+              &key_block_len__alu16
             )
           );
+          FLEA_CCALL(THR_flea_byte_vec_t__resize(&key_block__t, key_block_len__alu16));
           FLEA_CCALL(
             THR_flea_tls__generate_key_block(
               tls_ctx->selected_cipher_suite__u16,
               &tls_ctx->security_parameters,
-              tls_ctx->key_block,
-              key_block_len__alu8
+              key_block__t.data__pu8,
+              key_block_len__alu16
             )
           );
         }
@@ -1471,7 +1477,7 @@ flea_err_t THR_flea_tls__server_handshake(
             flea_tls_write,
             FLEA_TLS_SERVER,
             tls_ctx->selected_cipher_suite__u16,
-            tls_ctx->key_block
+            key_block__t.data__pu8
           )
         );
 
@@ -1492,12 +1498,12 @@ flea_err_t THR_flea_tls__server_handshake(
   }
   if(tls_ctx->session_mngr_mbn__pt && tls_ctx->server_active_sess_mbn__pt)
   {
-    printf("server setting session as valid\n");
     flea_tls_session_data_t__set_session_as_valid(&tls_ctx->server_active_sess_mbn__pt->session__t);
   }
   FLEA_THR_FIN_SEC(
     flea_tls_parallel_hash_ctx_t__dtor(&p_hash_ctx);
     flea_byte_vec_t__dtor(&premaster_secret__t);
+    flea_byte_vec_t__dtor(&key_block__t);
   );
 } /* THR_flea_tls__server_handshake */
 

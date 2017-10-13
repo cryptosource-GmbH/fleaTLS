@@ -990,6 +990,8 @@ flea_err_t THR_flea_tls__client_handshake(
 {
   flea_tls__handshake_state_t handshake_state;
 
+  // TODO: KEY BLOCK SIZE #596
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, 256);
   FLEA_THR_BEG_FUNC();
 
   // define and init state
@@ -1096,7 +1098,7 @@ flea_err_t THR_flea_tls__client_handshake(
 
           if(session_mbn__pt && session_mbn__pt->for_resumption__u8)
           {
-            flea_al_u8_t key_block_len__alu8;
+            flea_al_u16_t key_block_len__alu16;
             // TODO: REMOVE THAT ASSIGNEMENT, THAT MUST BE DONE CORRECTLY BY THE
             // SERVER / SET IN READ SERVER HELLO
             tls_ctx->selected_cipher_suite__u16 = session_mbn__pt->session__t.cipher_suite_id__u16;
@@ -1108,16 +1110,17 @@ flea_err_t THR_flea_tls__client_handshake(
             FLEA_CCALL(
               THR_flea_tls_get_key_block_len_from_cipher_suite_id(
                 tls_ctx->selected_cipher_suite__u16,
-                &key_block_len__alu8
+                &key_block_len__alu16
               )
             );
+            FLEA_CCALL(THR_flea_byte_vec_t__resize(&key_block__t, key_block_len__alu16));
             FLEA_CCALL(
               THR_flea_tls__generate_key_block(
                 tls_ctx->selected_cipher_suite__u16,
                 &tls_ctx->security_parameters,
-                // tls_ctx,
-                tls_ctx->key_block,
-                key_block_len__alu8
+                // tls_ctx->key_block,
+                key_block__t.data__pu8,
+                key_block_len__alu16
               )
             );
           }
@@ -1127,16 +1130,16 @@ flea_err_t THR_flea_tls__client_handshake(
               flea_tls_read,
               FLEA_TLS_CLIENT,
               tls_ctx->selected_cipher_suite__u16,
-              tls_ctx->key_block
+              key_block__t.data__pu8// tls_ctx->key_block
             )
           );
-          if(session_mbn__pt && session_mbn__pt->for_resumption__u8)
+          if(!session_mbn__pt || !session_mbn__pt->for_resumption__u8)
           {
-            /*flea_tls_session_data_t__export_seq(
-             * &session_mbn__pt->session__t,
-             * flea_tls_read,
-             * tls_ctx->rec_prot__t.read_state__t.sequence_number__au32
-             * );*/
+            /* in case of session resumption, this, the read direction, is the first direction to
+             * switch to the new ciphersuite. thus, the key block is still
+             * needed later on when the new session is set for the write direction.
+             */
+            flea_byte_vec_t__dtor(&key_block__t);
           }
           handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
 
@@ -1145,16 +1148,13 @@ flea_err_t THR_flea_tls__client_handshake(
       }
       else
       {
-        // TODO: SEND ALERT, CLOSE CONNECTION
-        // UPDATE(JR): this will be handled in THR_flea_tls__handle_tls_error
-        // right?
         FLEA_THROW("Received unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
       }
     }
     // We don't expect another message so it's our turn to continue
     else
     {
-      flea_al_u8_t key_block_len__alu8;
+      flea_al_u16_t key_block_len__alu16;
 
       if(!session_mbn__pt || !session_mbn__pt->for_resumption__u8)
       {
@@ -1230,15 +1230,17 @@ flea_err_t THR_flea_tls__client_handshake(
         FLEA_CCALL(
           THR_flea_tls_get_key_block_len_from_cipher_suite_id(
             tls_ctx->selected_cipher_suite__u16,
-            &key_block_len__alu8
+            &key_block_len__alu16
           )
         );
+        FLEA_CCALL(THR_flea_byte_vec_t__resize(&key_block__t, key_block_len__alu16));
         FLEA_CCALL(
           THR_flea_tls__generate_key_block(
             tls_ctx->selected_cipher_suite__u16,
             &tls_ctx->security_parameters,
-            tls_ctx->key_block,
-            key_block_len__alu8
+            // tls_ctx->key_block,
+            key_block__t.data__pu8,
+            key_block_len__alu16
           )
         );
       }
@@ -1249,19 +1251,11 @@ flea_err_t THR_flea_tls__client_handshake(
           flea_tls_write,
           FLEA_TLS_CLIENT,
           tls_ctx->selected_cipher_suite__u16,
-          tls_ctx->key_block
+          key_block__t.data__pu8
+          // tls_ctx->key_block
         )
       );
 
-      // TODO: MAKE A SINGLE BOOL FOR THIS CONDITION:
-      if(session_mbn__pt && session_mbn__pt->for_resumption__u8)
-      {
-        /*flea_tls_session_data_t__export_seq(
-         * &session_mbn__pt->session__t,
-         * flea_tls_write,
-         * tls_ctx->rec_prot__t.write_state__t.sequence_number__au32
-         * );*/
-      }
 
       FLEA_CCALL(THR_flea_tls__send_finished(tls_ctx, &p_hash_ctx));
       if(!session_mbn__pt || !session_mbn__pt->for_resumption__u8)
@@ -1282,6 +1276,7 @@ flea_err_t THR_flea_tls__client_handshake(
   }
   FLEA_THR_FIN_SEC(
     flea_byte_vec_t__dtor(&premaster_secret__t);
+    flea_byte_vec_t__dtor(&key_block__t);
     flea_tls_parallel_hash_ctx_t__dtor(&p_hash_ctx);
   );
 } /* THR_flea_tls__client_handshake */

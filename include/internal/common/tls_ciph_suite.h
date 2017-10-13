@@ -100,7 +100,7 @@ flea_tls_kex_e flea_tls__get_kex_and_auth_method_by_cipher_suite_id(flea_tls__ci
 
 flea_err_t THR_flea_tls_get_key_block_len_from_cipher_suite_id(
   flea_tls__cipher_suite_id_t id,
-  flea_al_u8_t*               result_key_block_len__palu8
+  flea_al_u16_t*              result_key_block_len__palu16
 );
 #ifdef __cplusplus
 }
