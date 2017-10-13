@@ -222,9 +222,9 @@ typedef struct
   flea_rw_stream_t*              rw_stream__pt;
   flea_tls_rec_prot_t            rec_prot__t;
   const flea_cert_store_t*       trust_store__pt;
-
+  // TODO: into client:
   flea_hostn_validation_params_t hostn_valid_params__t;
-
+  // kann bleiben:
   flea_ref_cu8_t*                cert_chain_mbn__pt;
   flea_u8_t                      cert_chain_len__u8;
 
@@ -268,6 +268,17 @@ typedef struct
   // flea_tls_flag_e flags;
   // TODO: MAKE UNION WITH CLIENT PRIVATE KEY:
 } flea_tls_ctx_t;
+
+typedef struct
+{
+  flea_private_key_t server_private_key;
+} flea_tls_shared_server_ctx_t;
+
+typedef struct
+{
+  flea_tls_shared_server_ctx_t* shared_ctx__pt;
+  flea_tls_ctx_t                tls_ctx__t;
+} flea_tls_server_ctx_t;
 
 
 # define flea_tls_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
