@@ -2,6 +2,7 @@
 
 
 #include "internal/common/default.h"
+#include "internal/common/tls/tls_int.h"
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
 #include "flea/array_util.h"
@@ -321,18 +322,18 @@ flea_err_t THR_flea_tls__generate_key_block(
   // memcpy and add one function call parameter)
   memcpy(
     seed,
-    security_parameters__pt->client_and_server_random + FLEA_TLS_HELLO_RANDOM_SIZE,
+    security_parameters__pt->client_and_server_random__bu8 + FLEA_TLS_HELLO_RANDOM_SIZE,
     FLEA_TLS_HELLO_RANDOM_SIZE
   );
   memcpy(
     seed + FLEA_TLS_HELLO_RANDOM_SIZE,
-    security_parameters__pt->client_and_server_random,
+    security_parameters__pt->client_and_server_random__bu8,
     FLEA_TLS_HELLO_RANDOM_SIZE
   );
 
   FLEA_CCALL(
     flea_tls__prf(
-      security_parameters__pt->master_secret,
+      security_parameters__pt->master_secret__bu8,
       48,
       PRF_LABEL_KEY_EXPANSION,
       seed,
@@ -385,7 +386,7 @@ flea_err_t THR_flea_tls__handle_tls_error(
 static flea_err_t THR_flea_tls__create_finished_data(
   flea_u8_t*    messages_hash,
   flea_u8_t     messages_hash_len__u8,
-  flea_u8_t     master_secret[48],
+  flea_u8_t     master_secret[FLEA_TLS_MASTER_SECRET_SIZE],
   PRFLabel      label,
   flea_u8_t*    data,
   flea_u8_t     data_len,
@@ -394,7 +395,18 @@ static flea_err_t THR_flea_tls__create_finished_data(
 {
   FLEA_THR_BEG_FUNC();
 
-  FLEA_CCALL(flea_tls__prf(master_secret, 48, label, messages_hash, messages_hash_len__u8, data_len, data, mac_id__e));
+  FLEA_CCALL(
+    flea_tls__prf(
+      master_secret,
+      FLEA_TLS_MASTER_SECRET_SIZE,
+      label,
+      messages_hash,
+      messages_hash_len__u8,
+      data_len,
+      data,
+      mac_id__e
+    )
+  );
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -439,7 +451,7 @@ flea_err_t THR_flea_tls__read_finished(
     THR_flea_tls__create_finished_data(
       messages_hash__bu8,
       hash_len__u8,
-      tls_ctx->security_parameters.master_secret,
+      tls_ctx->security_parameters.master_secret__bu8,
       label,
       finished__pu8,
       finished_len__alu8,
@@ -655,6 +667,11 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
   flea_al_u8_t sec_reneg_field_size__alu8 = 12;
 
   FLEA_THR_BEG_FUNC();
+# ifdef FLEA_USE_HEAP_BUF
+  FLEA_ALLOC_MEM_ARR(tls_ctx__pt->security_parameters.client_and_server_random__bu8, 2 * FLEA_TLS_HELLO_RANDOM_SIZE);
+  FLEA_ALLOC_MEM_ARR(tls_ctx__pt->security_parameters.master_secret__bu8, FLEA_TLS_MASTER_SECRET_SIZE);
+# endif
+
   flea_tls_ctx_t__set_sec_reneg_flags(tls_ctx__pt, reneg_spec__e);
   // tls_ctx__pt->security_parameters = calloc(1, sizeof(flea_tls__security_parameters_t));
   tls_ctx__pt->rw_stream__pt = rw_stream__pt;
@@ -825,7 +842,7 @@ flea_err_t THR_flea_tls__send_finished(
     THR_flea_tls__create_finished_data(
       messages_hash__pu8,
       hash_len__u8,
-      tls_ctx->security_parameters.master_secret,
+      tls_ctx->security_parameters.master_secret__bu8,
       label,
       verify_data__bu8,
       FLEA_TLS_VERIFY_DATA_SIZE,
@@ -1056,15 +1073,7 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
 
 void flea_tls_set_tls_random(flea_tls_ctx_t* ctx__pt)
 {
-# if 0
-  flea_rng__randomize(ctx__pt->security_parameters.client_random.gmt_unix_time, 4); // TODO: check RFC for correct implementation - actual time?
-  flea_rng__randomize(ctx__pt->security_parameters.client_random.random_bytes, 28);
-
-  /* set server random */
-  flea_rng__randomize(ctx__pt->security_parameters.server_random.gmt_unix_time, 4);
-  flea_rng__randomize(ctx__pt->security_parameters.server_random.random_bytes, 28);
-# endif
-  flea_rng__randomize(ctx__pt->security_parameters.client_and_server_random, 2 * FLEA_TLS_HELLO_RANDOM_SIZE);
+  flea_rng__randomize(ctx__pt->security_parameters.client_and_server_random__bu8, 2 * FLEA_TLS_HELLO_RANDOM_SIZE);
 }
 
 flea_bool_t flea_tls_ctx_t__do_send_sec_reneg_ext(flea_tls_ctx_t* tls_ctx__pt)
@@ -2267,6 +2276,8 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
   flea_public_key_t__dtor(&tls_ctx__pt->ecdhe_pub_key__t);
   flea_private_key_t__dtor(&tls_ctx__pt->ecdhe_priv_key__t);
 
+  FLEA_FREE_BUF_FINAL_SECRET_ARR(tls_ctx__pt->security_parameters.master_secret__bu8, FLEA_TLS_MASTER_SECRET_SIZE);
+  FLEA_FREE_BUF_FINAL(tls_ctx__pt->security_parameters.client_and_server_random__bu8);
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_NULL(tls_ctx__pt->own_vfy_data__bu8);
 # endif

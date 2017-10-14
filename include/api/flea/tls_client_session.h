@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #ifndef _flea_tls_client_session__H_
 #define _flea_tls_client_session__H_
 
@@ -18,9 +20,9 @@ typedef struct
 } flea_tls_client_session_t;
 
 #define flea_tls_client_session_t__INIT(__p)
-#define flea_tls_client_session_t__ctor(__p) memset(__p, 0, sizeof(*(__p)))
 #define flea_tls_client_session_t__INIT_VALUE = {.session__t = {.rd_sequence_number__au32[0] = 0}}
 
+#define flea_tls_client_session_t__ctor(__p) memset(__p, 0, sizeof(*(__p)))
 #define flea_tls_client_session_t__dtor(__p)
 
 

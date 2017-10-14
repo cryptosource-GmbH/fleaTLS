@@ -1,3 +1,6 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
+
 #include "flea/tls_client_session.h"
 #include "flea/error_handling.h"
 #include "flea/error.h"
@@ -31,19 +34,11 @@ flea_err_t THR_flea_tls_client_session_t__serialize(
   flea__encode_U16_BE(client_session__pt->session__t.cipher_suite_id__u16, enc__au8);
   FLEA_CCALL(THR_flea_byte_vec_t__append(result__pt, enc__au8, 2));
 
-  /*flea__encode_U32_BE(client_session__pt->session__t.rd_sequence_number__au32[0], enc__au8);
-   * FLEA_CCALL(THR_flea_byte_vec_t__append(result__pt, enc__au8, 4));
-   * flea__encode_U32_BE(client_session__pt->session__t.rd_sequence_number__au32[1], enc__au8);
-   * FLEA_CCALL(THR_flea_byte_vec_t__append(result__pt, enc__au8, 4));
-   * flea__encode_U32_BE(client_session__pt->session__t.wr_sequence_number__au32[0], enc__au8);
-   * FLEA_CCALL(THR_flea_byte_vec_t__append(result__pt, enc__au8, 4));
-   * flea__encode_U32_BE(client_session__pt->session__t.wr_sequence_number__au32[1], enc__au8);
-   * FLEA_CCALL(THR_flea_byte_vec_t__append(result__pt, enc__au8, 4));*/
   FLEA_CCALL(
     THR_flea_byte_vec_t__append(
       result__pt,
       client_session__pt->session__t.master_secret__au8,
-      FLEA_CONST_TLS_MASTER_SECRET_SIZE
+      FLEA_TLS_MASTER_SECRET_SIZE
     )
   );
 
@@ -63,7 +58,7 @@ flea_err_t THR_flea_tls_client_session_t_deserialize(
   {
     FLEA_THROW("encoded client session data of invalid length", FLEA_ERR_INV_ARG);
   }
-  if(enc_len__alu8 != 1 + enc__pcu8[0] + FLEA_CONST_TLS_MASTER_SECRET_SIZE + 2)
+  if(enc_len__alu8 != 1 + enc__pcu8[0] + FLEA_TLS_MASTER_SECRET_SIZE + 2)
   {
     FLEA_THROW("encoded client session data of invalid format", FLEA_ERR_INV_ARG);
   }
@@ -74,15 +69,7 @@ flea_err_t THR_flea_tls_client_session_t_deserialize(
   client_session__pt->session__t.cipher_suite_id__u16 = flea__decode_U16_BE(ptr__pu8);
   ptr__pu8 += 2;
 
-  /*client_session__pt->session__t.rd_sequence_number__au32[0] = flea__decode_U32_BE(ptr__pu8);
-   * ptr__pu8 += 4;
-   * client_session__pt->session__t.rd_sequence_number__au32[1] = flea__decode_U32_BE(ptr__pu8);
-   * ptr__pu8 += 4;
-   * client_session__pt->session__t.wr_sequence_number__au32[0] = flea__decode_U32_BE(ptr__pu8);
-   * ptr__pu8 += 4;
-   * client_session__pt->session__t.wr_sequence_number__au32[1] = flea__decode_U32_BE(ptr__pu8);
-   * ptr__pu8 += 4;*/
-  memcpy(client_session__pt->session__t.master_secret__au8, ptr__pu8, FLEA_CONST_TLS_MASTER_SECRET_SIZE);
+  memcpy(client_session__pt->session__t.master_secret__au8, ptr__pu8, FLEA_TLS_MASTER_SECRET_SIZE);
   client_session__pt->session__t.is_valid_session__u8 = 1;
   FLEA_THR_FIN_SEC_empty();
 }

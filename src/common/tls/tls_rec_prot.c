@@ -189,8 +189,6 @@ void flea_tls_rec_prot_t__set_null_ciphersuite(
   flea_tls_stream_dir_e direction
 )
 {
-  //  rec_prot__pt->reserved_iv_len__u8      = 0;
-  // rec_prot__pt->payload_buf__pu8         = rec_prot__pt->send_rec_buf_raw__bu8 + RECORD_HDR_LEN;
   rec_prot__pt->payload_max_len__u16     = rec_prot__pt->send_rec_buf_raw_len__u16 - RECORD_HDR_LEN;
   rec_prot__pt->alt_payload_max_len__u16 = FLEA_TLS_ALT_SEND_BUF_SIZE - RECORD_HDR_LEN;
 

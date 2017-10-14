@@ -32,15 +32,8 @@ typedef enum
 
 // defines for max sizes to allocate on the stack
 // TODO: use values in algo_config.h?
-# define FLEA_TLS_MAX_MAC_SIZE     FLEA_MAC_MAX_OUTPUT_LENGTH      // (512 / 8)
-# define FLEA_TLS_MAX_MAC_KEY_SIZE __FLEA_COMPUTED_MAC_MAX_KEY_LEN // 32
-# define FLEA_TLS_MAX_IV_SIZE      64                              // TODO: 64 is probably far too high
-// Falko:
-// shouldn't
-// the max iv
-// size be 16?
 // #define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
-# define FLEA_TLS_MAX_PADDING_SIZE 255 // each byte must hold the padding value => 255 is max
+// # define FLEA_TLS_MAX_PADDING_SIZE 255 // each byte must hold the padding value => 255 is max
 
 // TODO: split up secure_reneg into ..._cert_fixed, cert_variable
 typedef enum
@@ -57,94 +50,6 @@ typedef struct
   flea_u16_t             nb_crls__u16;
 } flea_revoc_chk_cfg_t;
 
-// TODO: ASSIGN FIXED VALUES?
-typedef enum { PRF_LABEL_TEST, PRF_LABEL_CLIENT_FINISHED, PRF_LABEL_SERVER_FINISHED, PRF_LABEL_MASTER_SECRET,
-               PRF_LABEL_KEY_EXPANSION } PRFLabel;
-
-typedef enum
-{
-  HANDSHAKE_TYPE_HELLO_REQUEST       = 0,
-  HANDSHAKE_TYPE_CLIENT_HELLO        = 1,
-  HANDSHAKE_TYPE_SERVER_HELLO        = 2,
-  HANDSHAKE_TYPE_NEW_SESSION_TICKET  = 4,
-  HANDSHAKE_TYPE_CERTIFICATE         = 11,
-  HANDSHAKE_TYPE_SERVER_KEY_EXCHANGE = 12,
-  HANDSHAKE_TYPE_CERTIFICATE_REQUEST = 13,
-  HANDSHAKE_TYPE_SERVER_HELLO_DONE   = 14,
-  HANDSHAKE_TYPE_CERTIFICATE_VERIFY  = 15,
-  HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE = 16,
-  HANDSHAKE_TYPE_FINISHED            = 20
-} HandshakeType;
-
-typedef struct
-{
-  RecordType                   record_type;
-  ContentType                  content_type;
-  flea_tls__protocol_version_t version;
-  flea_u16_t                   length;
-  flea_u8_t*                   data;
-} Record;
-
-typedef struct
-{
-  HandshakeType type;
-  flea_u32_t    length; // actually 24 Bit type !!
-  flea_u8_t*    data;
-} HandshakeMessage;
-
-typedef enum                 // dhe_dss, dhe_rsa, dh_anon,
-{ KEY_EXCHANGE_ALGORITHM_RSA // ,
-  // dh_dss, dh_rsa
-} KeyExchangeAlgorithm;
-
-typedef struct
-{
-  KeyExchangeAlgorithm algorithm;
-
-  flea_u8_t            premaster_secret[256]; /* TODO: variable */
-  flea_u8_t*           encrypted_premaster_secret;
-  flea_u16_t           encrypted_premaster_secret_length;
-  flea_u8_t*           ClientDiffieHellmanPublic;
-} flea_tls__client_key_ex_t;
-
-typedef enum { CHANGE_CIPHER_SPEC_TYPE_CHANGE_CIPHER_SPEC = 1 } CHANGE_CIPHER_SPEC_TYPE;
-
-typedef struct
-{
-  CHANGE_CIPHER_SPEC_TYPE change_cipher_spec;
-} ChangeCipherSpec;
-
-/*typedef struct
- * {
- * flea_u8_t  *verify_data;
- * flea_u32_t verify_data_length; // 12 for all cipher suites defined in TLS 1.2 - RFC 5246. is 24 bit!!
- * } flea_tls__finished_t;
- */
-
-/**
- * ServerHelloDone: no content, no struct needed
- */
-
-typedef enum
-{
-  FLEA_TLS_HMAC_SHA1,
-  FLEA_TLS_HMAC_SHA256
-} flea_tls__mac_algorithm_t;
-
-typedef enum
-{
-  FLEA_TLS_BCA_AES,
-  FLEA_TLS_BCA_TRIPLE_DES,
-  FLEA_TLS_BCA_NULL
-} flea_tls__bulk_cipher_alg_t;
-
-typedef enum
-{
-  FLEA_TLS_CIPHER_TYPE_STREAM,
-  FLEA_TLS_CIPHER_TYPE_BLOCK,
-  FLEA_TLS_CIPHER_TYPE_AEAD
-} flea_tls__cipher_type_t;
-
 typedef struct
 {
   flea_tls__connection_end_t connection_end; /* Server or Client */
@@ -155,8 +60,13 @@ typedef struct
   // CompressionMethod *compression_methods; /* Pool of compression methods that can be negotiated. Priority (in case of server): Prefer first over second and so on */
   // flea_u32_t        compression_methods_len;
   // TODO: MAKE ABSTRACT BUFS:
-  flea_u8_t master_secret[48];                                         /* symmetric keys are derived from this */
-  flea_u8_t client_and_server_random [2 * FLEA_TLS_HELLO_RANDOM_SIZE]; /* random value that the client sends */
+# ifdef FLEA_USE_STACK_BUF
+  flea_u8_t  master_secret__bu8[FLEA_TLS_MASTER_SECRET_SIZE];                /* symmetric keys are derived from this */
+  flea_u8_t  client_and_server_random__bu8 [2 * FLEA_TLS_HELLO_RANDOM_SIZE]; /* random value that the client sends */
+# else
+  flea_u8_t* master_secret__bu8;
+  flea_u8_t* client_and_server_random__bu8;
+# endif
   // flea_u8_t server_random [32];     /* random value that the server sends */
 } flea_tls__security_parameters_t;
 
@@ -169,12 +79,14 @@ typedef struct
  * } flea_tls_record_t;
  */
 
-# define flea_tls_record_t__SET_BUF(__p, __buf, __buf_len) \
+# if 0
+#  define flea_tls_record_t__SET_BUF(__p, __buf, __buf_len) \
   do {(__p)->record_hdr__pu8  = (__buf); \
       (__p)->message__pu8     = (__buf) + 5; \
       (__p)->message_len__u16 = 0; \
       (__p)->allocated_message_len__u16 = (__buf_len) - 5; \
   } while(0)
+# endif
 
 
 typedef struct
@@ -193,6 +105,8 @@ typedef struct
 typedef struct
 {
   /* Security Parameters negotiated during handshake */
+  // TODO: SEE ABOVE, REMOVE RANDOMS, MASTER SECRET => ABSTR. BUF
+  // TODO: WIPE MASTER SECRET
   flea_tls__security_parameters_t security_parameters; // can be deleted from memory (or saved for later resumption?) TODO: check again how it works, maybe only store master secret
 
 
