@@ -99,6 +99,8 @@
 
 /****** begin block cipher lengths *******/
 
+#define FLEA_CIPHER_MAX_BLOCK_LEN 16
+
 /**
  * AES always configured
  */
