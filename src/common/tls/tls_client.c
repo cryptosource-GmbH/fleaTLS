@@ -178,7 +178,8 @@ static flea_err_t THR_flea_tls__read_server_hello(
 static flea_err_t THR_flea_tls__read_server_kex(
   flea_tls_ctx_t*           tls_ctx__pt,
   flea_tls_handsh_reader_t* hs_rdr__pt,
-  flea_byte_vec_t*          premaster_secret__pt
+  flea_byte_vec_t*          premaster_secret__pt,
+  flea_public_key_t*        peer_public_key__pt
 )
 {
   flea_rw_stream_t* hs_rd_stream__pt;
@@ -298,7 +299,8 @@ static flea_err_t THR_flea_tls__read_server_kex(
     // check if pk_scheme_id__t and tls_ctx->peer_pubkey are compatible
     FLEA_CCALL(
       THR_flea_tls__check_sig_alg_compatibility_for_key_type(
-        tls_ctx__pt->peer_pubkey.key_type__t,
+        // tls_ctx__pt->peer_pubkey.key_type__t,
+        peer_public_key__pt->key_type__t,
         pk_scheme_id__t
       )
     );
@@ -332,7 +334,8 @@ static flea_err_t THR_flea_tls__read_server_kex(
     // verify if signature matches the calculated hash
     FLEA_CCALL(
       THR_flea_public_key_t__verify_digest_plain_format(
-        &tls_ctx__pt->peer_pubkey,
+        // &tls_ctx__pt->peer_pubkey,
+        peer_public_key__pt,
         pk_scheme_id__t,
         hash_id__t,
         hash__bu8,
@@ -382,10 +385,6 @@ static flea_err_t THR_flea_tls__send_client_hello(
 
   len = 2 + 1 + 0 + 32 + 2 + 2 * tls_ctx->allowed_cipher_suites__prcu16->len__dtl + 1 + 1 + 0 + ext_len__alu16;
 
-  /*if(is_ecc_suite__b)
-   * {
-   * len += 8;
-   * }*/
   if(ext_len__alu16)
   {
     /* extension length field */
@@ -864,7 +863,8 @@ static flea_err_t THR_flea_handle_handsh_msg(
   flea_tls__handshake_state_t*  handshake_state,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
   flea_tls_client_session_t*    client_session_mbn__pt,
-  flea_byte_vec_t*              premaster_secret__pt
+  flea_byte_vec_t*              premaster_secret__pt,
+  flea_public_key_t*            peer_public_key__pt
 )
 {
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
@@ -929,7 +929,8 @@ static flea_err_t THR_flea_handle_handsh_msg(
       THR_flea_tls__read_certificate(
         tls_ctx,
         &handsh_rdr__t,
-        &tls_ctx->peer_pubkey,
+        // &tls_ctx->peer_pubkey,
+        peer_public_key__pt,
         &cert_path_params__t
       )
     );
@@ -944,7 +945,8 @@ static flea_err_t THR_flea_handle_handsh_msg(
       THR_flea_tls__read_server_kex(
         tls_ctx,
         &handsh_rdr__t,
-        premaster_secret__pt
+        premaster_secret__pt,
+        peer_public_key__pt
       )
     );
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
@@ -1018,10 +1020,14 @@ flea_err_t THR_flea_tls__client_handshake(
 
   // TODO: KEY BLOCK SIZE #596
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, 256);
+
+  flea_public_key_t peer_public_key__t;
   FLEA_THR_BEG_FUNC();
 
   // define and init state
+
   flea_tls__handshake_state_ctor(&handshake_state);
+  flea_public_key_t__INIT(&peer_public_key__t);
   flea_tls_parallel_hash_ctx_t p_hash_ctx;
   flea_tls_set_tls_random(tls_ctx);
 # ifdef FLEA_USE_HEAP_BUF
@@ -1084,7 +1090,8 @@ flea_err_t THR_flea_tls__client_handshake(
             &handshake_state,
             &p_hash_ctx,
             session_mbn__pt,
-            &premaster_secret__t
+            &premaster_secret__t,
+            &peer_public_key__t
           )
         );
         if(handshake_state.finished == FLEA_TRUE)
@@ -1200,7 +1207,7 @@ flea_err_t THR_flea_tls__client_handshake(
           THR_flea_tls__send_client_key_exchange(
             tls_ctx,
             &p_hash_ctx,
-            &tls_ctx->peer_pubkey,
+            &peer_public_key__t,
             &premaster_secret__t
           )
         );
@@ -1307,6 +1314,7 @@ flea_err_t THR_flea_tls__client_handshake(
     flea_byte_vec_t__dtor(&premaster_secret__t);
     flea_byte_vec_t__dtor(&key_block__t);
     flea_tls_parallel_hash_ctx_t__dtor(&p_hash_ctx);
+    flea_public_key_t__dtor(&peer_public_key__t);
   );
 } /* THR_flea_tls__client_handshake */
 
@@ -1319,7 +1327,6 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
   flea_ref_cu8_t*               cert_chain_mbn__pt,
   flea_al_u8_t                  cert_chain_len__alu8,
   flea_private_key_t*           private_key_mbn__pt,
-  // flea_ref_cu8_t*               client_private_key__pt,
   const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
   flea_rev_chk_mode_e           rev_chk_mode__e,
   const flea_byte_vec_t*        crl_der__pt,

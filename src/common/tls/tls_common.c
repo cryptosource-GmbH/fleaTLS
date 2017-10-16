@@ -1046,8 +1046,7 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
   flea_tls_set_tls_random(tls_ctx__pt);
 
-  flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey); // TODO: does this really need to be part of the ctx?
-  // tls_ctx__pt->resumption = FLEA_FALSE;
+  // flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey);
   // TODO: discard pending read (/ flush pending write (done automatically))
   if(tls_ctx__pt->security_parameters.connection_end == FLEA_TLS_CLIENT)
   {
@@ -2271,10 +2270,10 @@ flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
 {
   flea_tls_rec_prot_t__dtor(&tls_ctx__pt->rec_prot__t);
-  flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey);
+  // flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey);
   flea_private_key_t__dtor(&tls_ctx__pt->private_key__t);
   flea_public_key_t__dtor(&tls_ctx__pt->ecdhe_pub_key__t);
-  flea_private_key_t__dtor(&tls_ctx__pt->ecdhe_priv_key__t);
+  // flea_private_key_t__dtor(&tls_ctx__pt->ecdhe_priv_key__t);
 
   FLEA_FREE_BUF_FINAL_SECRET_ARR(tls_ctx__pt->security_parameters.master_secret__bu8, FLEA_TLS_MASTER_SECRET_SIZE);
   FLEA_FREE_BUF_FINAL(tls_ctx__pt->security_parameters.client_and_server_random__bu8);

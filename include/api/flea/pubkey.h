@@ -100,6 +100,7 @@ typedef struct
 
 flea_ref_cu8_t flea_public_key__get_encoded_public_component(flea_public_key_t* pk);
 
+# define flea_public_key_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
 # define flea_public_key_t__INIT_VALUE {.key_bit_size__u16 = 0}
 
 void flea_public_key_t__dtor(flea_public_key_t* key__pt);

@@ -70,25 +70,6 @@ typedef struct
   // flea_u8_t server_random [32];     /* random value that the server sends */
 } flea_tls__security_parameters_t;
 
-/*typedef struct
- * {
- * flea_u8_t* record_hdr__pu8;
- * flea_u8_t* message__pu8;
- * flea_u16_t message_len__u16;
- * flea_u16_t allocated_message_len__u16;
- * } flea_tls_record_t;
- */
-
-# if 0
-#  define flea_tls_record_t__SET_BUF(__p, __buf, __buf_len) \
-  do {(__p)->record_hdr__pu8  = (__buf); \
-      (__p)->message__pu8     = (__buf) + 5; \
-      (__p)->message_len__u16 = 0; \
-      (__p)->allocated_message_len__u16 = (__buf_len) - 5; \
-  } while(0)
-# endif
-
-
 typedef struct
 {
   flea_hash_id_t      hash_id__t;
@@ -119,15 +100,7 @@ typedef struct
   // flea_u8_t                    allowed_cipher_suites_len__u8;
   flea_u16_t                     selected_cipher_suite__u16; // TODO: change to cipher suite id type (already being used as such)
 
-  // => HS_CTX ?
-  flea_public_key_t              peer_pubkey; /* public key of peer */
-
   flea_tls__protocol_version_t   version; /* max. supported TLS version */
-
-# if 0
-  flea_u8_t                      session_id[32]; /* Session ID for later resumption */
-  flea_u8_t                      session_id_len;
-# endif
 
   flea_hash_id_t                 prf_hash_id__t; // stores hash function to use for the PRF algorithm
 
@@ -142,18 +115,19 @@ typedef struct
   flea_ref_cu8_t*                cert_chain_mbn__pt;
   flea_u8_t                      cert_chain_len__u8;
 
-  // => SHARED_SERVER_CTX
+  // => SHARED_SERVER_CTX:
   flea_private_key_t             private_key__t;
   //
   // flea_tls_server_shared_ctx_t *server_shared_ctx__pt;
-  flea_private_key_t*            private_key_for_client_mbn__pt;
-  flea_revoc_chk_cfg_t           rev_chk_cfg__t;
-  flea_u8_t                      sec_reneg_flag__u8;
+  // => client_ctx:
+  flea_private_key_t*  private_key_for_client_mbn__pt;
+  flea_revoc_chk_cfg_t rev_chk_cfg__t;
+  flea_u8_t            sec_reneg_flag__u8;
 
-  // => HANDSHAKE_CTX
-  flea_private_key_t             ecdhe_priv_key__t; // server needs to store it until the client sends his pubkey
-  // => HANDSHAKE_CTX
-  flea_public_key_t              ecdhe_pub_key__t; // client needs to store it to send it afterwards
+  // => HANDSHAKE_CTX / CHECK IF USED AT ALL!
+  // flea_private_key_t             ecdhe_priv_key__t; // server needs to store it until the client sends his pubkey
+  // => HANDSHAKE_CTX / CHECK IF USED AT ALL!
+  flea_public_key_t ecdhe_pub_key__t; // client needs to store it to send it afterwards
 
   // STAYS IN TLS_CTX:
 # ifdef FLEA_USE_HEAP_BUF
