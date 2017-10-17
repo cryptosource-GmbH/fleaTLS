@@ -143,12 +143,11 @@ flea_err_t THR_flea_tls__create_master_secret(
  * flea_al_u8_t          key_block_len__alu8
  * );*/
 flea_err_t THR_flea_tls__generate_key_block(
-  flea_tls_handshake_ctx_t*              hs_ctx__pt,
-  // const flea_tls_ctx_t* tls_ctx,
-  flea_al_u16_t                          selected_cipher_suite__alu16,
-  const flea_tls__security_parameters_t* security_parameters__pt,
-  flea_u8_t*                             key_block,
-  flea_al_u8_t                           key_block_len__alu8
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_al_u16_t             selected_cipher_suite__alu16,
+  // const flea_tls__security_parameters_t* security_parameters__pt,
+  flea_u8_t*                key_block,
+  flea_al_u8_t              key_block_len__alu8
 );
 
 /**

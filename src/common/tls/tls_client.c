@@ -65,7 +65,7 @@ static flea_err_t THR_flea_tls__read_server_hello(
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
-      // tls_ctx->security_parameters.client_and_server_random__bu8 + FLEA_TLS_HELLO_RANDOM_SIZE,
+      // tls_ctx->client_and_server_random__bu8 + FLEA_TLS_HELLO_RANDOM_SIZE,
       hs_ctx__pt->client_and_server_random__pt->data__pu8 + FLEA_TLS_HELLO_RANDOM_SIZE,
       FLEA_TLS_HELLO_RANDOM_SIZE
     )
@@ -314,7 +314,7 @@ static flea_err_t THR_flea_tls__read_server_kex(
     FLEA_CCALL(
       THR_flea_hash_ctx_t__update(
         &params_hash_ctx__t,
-        // tls_ctx__pt->security_parameters.client_and_server_random__bu8,
+        // tls_ctx__pt->client_and_server_random__bu8,
         hs_ctx__pt->client_and_server_random__pt->data__pu8,
         2 * FLEA_TLS_HELLO_RANDOM_SIZE
       )
@@ -424,7 +424,7 @@ static flea_err_t THR_flea_tls__send_client_hello(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx->rec_prot__t,
       p_hash_ctx,
-      // tls_ctx->security_parameters.client_and_server_random__bu8,
+      // tls_ctx->client_and_server_random__bu8,
       hs_ctx__pt->client_and_server_random__pt->data__pu8,
       FLEA_TLS_HELLO_RANDOM_SIZE
     )
@@ -1039,6 +1039,7 @@ flea_err_t THR_flea_tls__client_handshake(
   );
   FLEA_THR_BEG_FUNC();
 
+  hs_ctx__t.tls_ctx__pt = tls_ctx;
   hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
   // define and init state
 
@@ -1154,7 +1155,7 @@ flea_err_t THR_flea_tls__client_handshake(
             // SERVER / SET IN READ SERVER HELLO
             tls_ctx->selected_cipher_suite__u16 = session_mbn__pt->session__t.cipher_suite_id__u16;
             memcpy(
-              tls_ctx->security_parameters.master_secret__bu8,
+              tls_ctx->master_secret__bu8,
               session_mbn__pt->session__t.master_secret__au8,
               FLEA_TLS_MASTER_SECRET_SIZE
             );
@@ -1169,7 +1170,7 @@ flea_err_t THR_flea_tls__client_handshake(
               THR_flea_tls__generate_key_block(
                 &hs_ctx__t,
                 tls_ctx->selected_cipher_suite__u16,
-                &tls_ctx->security_parameters,
+                // &tls_ctx->security_parameters,
                 // tls_ctx->key_block,
                 key_block__t.data__pu8,
                 key_block_len__alu16
@@ -1252,10 +1253,10 @@ flea_err_t THR_flea_tls__client_handshake(
         // TODO: MASTER SECRET NEED NOT BE IN TLS_CTX
         FLEA_CCALL(
           THR_flea_tls__create_master_secret(
-            // tls_ctx->security_parameters.client_and_server_random__bu8,
+            // tls_ctx->client_and_server_random__bu8,
             &hs_ctx__t,
             &premaster_secret__t,
-            tls_ctx->security_parameters.master_secret__bu8,
+            tls_ctx->master_secret__bu8,
             tls_ctx->selected_cipher_suite__u16
           )
         );
@@ -1264,7 +1265,7 @@ flea_err_t THR_flea_tls__client_handshake(
           // store the PM and ciphersuite and later (after the finished) the seq
           memcpy(
             session_mbn__pt->session__t.master_secret__au8,
-            tls_ctx->security_parameters.master_secret__bu8,
+            tls_ctx->master_secret__bu8,
             FLEA_TLS_MASTER_SECRET_SIZE
           );
           session_mbn__pt->session__t.cipher_suite_id__u16 = tls_ctx->selected_cipher_suite__u16;
@@ -1276,7 +1277,7 @@ flea_err_t THR_flea_tls__client_handshake(
         /* it is a resumption */
         tls_ctx->selected_cipher_suite__u16 = session_mbn__pt->session__t.cipher_suite_id__u16;
         memcpy(
-          tls_ctx->security_parameters.master_secret__bu8,
+          tls_ctx->master_secret__bu8,
           session_mbn__pt->session__t.master_secret__au8,
           FLEA_TLS_MASTER_SECRET_SIZE
         );
@@ -1294,7 +1295,7 @@ flea_err_t THR_flea_tls__client_handshake(
           THR_flea_tls__generate_key_block(
             &hs_ctx__t,
             tls_ctx->selected_cipher_suite__u16,
-            &tls_ctx->security_parameters,
+            // &tls_ctx->security_parameters,
             // tls_ctx->key_block,
             key_block__t.data__pu8,
             key_block_len__alu16
@@ -1406,7 +1407,7 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
 
   tls_ctx__pt->trust_store__pt = trust_store__pt;
 
-  tls_ctx__pt->security_parameters.connection_end = FLEA_TLS_CLIENT;
+  tls_ctx__pt->connection_end = FLEA_TLS_CLIENT;
 
   FLEA_CCALL(
     THR_flea_tls_ctx_t__construction_helper(

@@ -50,9 +50,11 @@ typedef struct
   flea_u16_t             nb_crls__u16;
 } flea_revoc_chk_cfg_t;
 
+# if 0
+
 typedef struct
 {
-  flea_tls__connection_end_t connection_end; /* Server or Client */
+  // flea_tls__connection_end_t connection_end; /* Server or Client */
 
 
   /*flea_u8_t mac_length;
@@ -60,15 +62,9 @@ typedef struct
   // CompressionMethod *compression_methods; /* Pool of compression methods that can be negotiated. Priority (in case of server): Prefer first over second and so on */
   // flea_u32_t        compression_methods_len;
   // TODO: MAKE ABSTRACT BUFS:
-# ifdef FLEA_USE_STACK_BUF
-  flea_u8_t  master_secret__bu8[FLEA_TLS_MASTER_SECRET_SIZE]; /* symmetric keys are derived from this */
-  // flea_u8_t  client_and_server_random__bu8 [2 * FLEA_TLS_HELLO_RANDOM_SIZE]; /* random value that the client sends */
-# else
-  flea_u8_t* master_secret__bu8;
-  // flea_u8_t* client_and_server_random__bu8;
-# endif
   // flea_u8_t server_random [32];     /* random value that the server sends */
 } flea_tls__security_parameters_t;
+# endif // if 0
 
 typedef struct
 {
@@ -83,17 +79,17 @@ typedef struct
  *
  *  flea_tls_ctx_t*/
 
-typedef struct
+struct struct_flea_tls_ctx_t
 {
-  /* Security Parameters negotiated during handshake */
-  // TODO: SEE ABOVE, REMOVE RANDOMS, MASTER SECRET => ABSTR. BUF
-  // TODO: WIPE MASTER SECRET
-  flea_tls__security_parameters_t security_parameters; // can be deleted from memory (or saved for later resumption?) TODO: check again how it works, maybe only store master secret
+  flea_tls__connection_end_t connection_end; /* Server or Client */
 
-
-  /*
-   * Other information or configuration
-   */
+# ifdef FLEA_USE_STACK_BUF
+  flea_u8_t                  master_secret__bu8[FLEA_TLS_MASTER_SECRET_SIZE]; /* symmetric keys are derived from this */
+  // flea_u8_t  client_and_server_random__bu8 [2 * FLEA_TLS_HELLO_RANDOM_SIZE]; /* random value that the client sends */
+# else
+  flea_u8_t*                 master_secret__bu8;
+  // flea_u8_t* client_and_server_random__bu8;
+# endif
 
   // define 4 parameters independently instead of list of cipher suites
   const flea_ref_cu16_t*         allowed_cipher_suites__prcu16; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
@@ -155,7 +151,7 @@ typedef struct
   // flea_stream_read_mode_e    handshake_read_mode__e;
   // flea_tls_flag_e flags;
   // TODO: MAKE UNION WITH CLIENT PRIVATE KEY:
-} flea_tls_ctx_t;
+};
 
 typedef struct
 {

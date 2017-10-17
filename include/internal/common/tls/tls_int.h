@@ -9,6 +9,7 @@
 extern "C" {
 #endif
 
+
 #define FLEA_TLS_CERT_TYPE_RSA_SIGN   1
 #define FLEA_TLS_CERT_TYPE_ECDSA_SIGN 64
 
@@ -27,6 +28,9 @@ extern "C" {
 #define FLEA_TLS_MAX_MAC_KEY_SIZE __FLEA_COMPUTED_MAC_MAX_KEY_LEN // 32
 #define FLEA_TLS_MAX_IV_SIZE      FLEA_MAX(FLEA_CIPHER_MAX_BLOCK_LEN, FLEA_CONST_TLS_GCM_RECORD_IV_LEN)
 
+/* fwd declaration */
+
+typedef struct struct_flea_tls_ctx_t flea_tls_ctx_t;
 
 typedef enum { flea_tls_read, flea_tls_write } flea_tls_stream_dir_e;
 
@@ -51,7 +55,7 @@ typedef enum
 typedef struct
 {
   flea_byte_vec_t* client_and_server_random__pt;
-  // flea_tls_ctx_t* tls_ctx__pt;
+  flea_tls_ctx_t*  tls_ctx__pt;
 } flea_tls_handshake_ctx_t;
 
 #ifdef __cplusplus
