@@ -69,6 +69,12 @@ void flea_memzero_secure(
   flea_dtl_t mem_len
 );
 
+void flea_swap_mem(
+  flea_u8_t* mem_a__pu8,
+  flea_u8_t* mem_b__pu8,
+  flea_dtl_t mem_len__dtl
+);
+
 flea_bool_t flea_sec_mem_equal(
   const flea_u8_t* mem1__pcu8,
   const flea_u8_t* mem2__pcu8,

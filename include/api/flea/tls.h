@@ -61,11 +61,11 @@ typedef struct
   // flea_u32_t        compression_methods_len;
   // TODO: MAKE ABSTRACT BUFS:
 # ifdef FLEA_USE_STACK_BUF
-  flea_u8_t  master_secret__bu8[FLEA_TLS_MASTER_SECRET_SIZE];                /* symmetric keys are derived from this */
-  flea_u8_t  client_and_server_random__bu8 [2 * FLEA_TLS_HELLO_RANDOM_SIZE]; /* random value that the client sends */
+  flea_u8_t  master_secret__bu8[FLEA_TLS_MASTER_SECRET_SIZE]; /* symmetric keys are derived from this */
+  // flea_u8_t  client_and_server_random__bu8 [2 * FLEA_TLS_HELLO_RANDOM_SIZE]; /* random value that the client sends */
 # else
   flea_u8_t* master_secret__bu8;
-  flea_u8_t* client_and_server_random__bu8;
+  // flea_u8_t* client_and_server_random__bu8;
 # endif
   // flea_u8_t server_random [32];     /* random value that the server sends */
 } flea_tls__security_parameters_t;

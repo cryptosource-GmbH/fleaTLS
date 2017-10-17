@@ -20,7 +20,7 @@
 #include "internal/common/ber_dec.h"
 #include "flea/rng.h"
 #include "flea/block_cipher.h"
-#include "flea/bin_utils.h"
+#include "flea/util.h"
 #include "flea/cert_store.h"
 #include "flea/byte_vec.h"
 #include "internal/common/tls_ciph_suite.h"
@@ -307,27 +307,37 @@ static flea_mac_id_t flea_tls__prf_mac_id_from_suite_id(flea_tls__cipher_suite_i
 
 flea_err_t THR_flea_tls__generate_key_block(
   // const flea_tls_ctx_t* tls_ctx,
+  flea_tls_handshake_ctx_t*              hs_ctx__pt,
   flea_al_u16_t                          selected_cipher_suite__alu16,
   const flea_tls__security_parameters_t* security_parameters__pt,
   flea_u8_t*                             key_block,
   flea_al_u8_t                           key_block_len__alu8
+  // flea_u8_t* client_and_server_random__pcu8
 )
 {
   FLEA_THR_BEG_FUNC();
   // TODO: MUST BE ABSTRACT BUF:
-  flea_u8_t seed[64];
+  // flea_u8_t seed[64];
   // TODO: REDUNDANT ARRAY ?( could swap values and swap them back in fin-sec,
   // but this increases the code size) // Better: hand through 2 seed parts down
   // to the prf, this should not effectively increase code size too much (save 2
   // memcpy and add one function call parameter)
-  memcpy(
-    seed,
-    security_parameters__pt->client_and_server_random__bu8 + FLEA_TLS_HELLO_RANDOM_SIZE,
-    FLEA_TLS_HELLO_RANDOM_SIZE
-  );
-  memcpy(
-    seed + FLEA_TLS_HELLO_RANDOM_SIZE,
-    security_parameters__pt->client_and_server_random__bu8,
+  // // TODO: ARE THE RANDOMS NEEDED ANYMORE AT ALL AFTERWARDS?
+
+  /*memcpy(
+   * seed,
+   * security_parameters__pt->client_and_server_random__bu8 + FLEA_TLS_HELLO_RANDOM_SIZE,
+   * FLEA_TLS_HELLO_RANDOM_SIZE
+   * );
+   * memcpy(
+   * seed + FLEA_TLS_HELLO_RANDOM_SIZE,
+   * security_parameters__pt->client_and_server_random__bu8,
+   * FLEA_TLS_HELLO_RANDOM_SIZE
+   * );*/
+  // flea_swap_mem(security_parameters__pt->client_and_server_random__bu8, security_parameters__pt->client_and_server_random__bu8 + FLEA_TLS_HELLO_RANDOM_SIZE, FLEA_TLS_HELLO_RANDOM_SIZE);
+  flea_swap_mem(
+    hs_ctx__pt->client_and_server_random__pt->data__pu8,
+    hs_ctx__pt->client_and_server_random__pt->data__pu8 + FLEA_TLS_HELLO_RANDOM_SIZE,
     FLEA_TLS_HELLO_RANDOM_SIZE
   );
 
@@ -336,14 +346,17 @@ flea_err_t THR_flea_tls__generate_key_block(
       security_parameters__pt->master_secret__bu8,
       48,
       PRF_LABEL_KEY_EXPANSION,
-      seed,
+      hs_ctx__pt->client_and_server_random__pt->data__pu8, // security_parameters__pt->client_and_server_random__bu8,
+      // seed,
       2 * FLEA_TLS_HELLO_RANDOM_SIZE,// sizeof(seed),
       key_block_len__alu8,
       key_block,
       flea_tls__prf_mac_id_from_suite_id(selected_cipher_suite__alu16)
     )
   );
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC_empty(
+    // flea_swap_mem(security_parameters__pt->client_and_server_random__bu8, security_parameters__pt->client_and_server_random__bu8 + FLEA_TLS_HELLO_RANDOM_SIZE,FLEA_TLS_HELLO_RANDOM_SIZE);
+  );
 } /* THR_flea_tls__generate_key_block */
 
 static void flea_tls_ctx_t__invalidate_session(flea_tls_ctx_t* tls_ctx__pt)
@@ -621,7 +634,8 @@ flea_err_t THR_flea_tls__send_handshake_message_hdr(
 } /* THR_flea_tls__send_handshake_message_hdr */
 
 flea_err_t THR_flea_tls__create_master_secret(
-  const flea_u8_t*            client_and_server_hello_random,
+  flea_tls_handshake_ctx_t*   hs_ctx__pt,
+  // const flea_u8_t*            client_and_server_hello_random,
   // const flea_u8_t * server_hello_random,
 
   /*Random                      client_hello_random,
@@ -641,9 +655,11 @@ flea_err_t THR_flea_tls__create_master_secret(
       premaster_secret__pt->data__pu8,
       premaster_secret__pt->len__dtl,
       PRF_LABEL_MASTER_SECRET,
-      client_and_server_hello_random,
-      64,
-      48,
+      // client_and_server_hello_random,
+      hs_ctx__pt->client_and_server_random__pt->data__pu8,
+      hs_ctx__pt->client_and_server_random__pt->len__dtl,
+      // 2* FLEA_TLS_HELLO_RANDOM_SIZE,//64,
+      FLEA_TLS_MASTER_SECRET_SIZE,//   48,
       master_secret_res,
       flea_tls__prf_mac_id_from_suite_id(ciph_id__e)
     )
@@ -659,6 +675,7 @@ flea_err_t THR_flea_tls__create_master_secret(
 // TODO: ctor = handshake function
 flea_err_t THR_flea_tls_ctx_t__construction_helper(
   flea_tls_ctx_t*               tls_ctx__pt,
+  // flea_tls_handshake_ctx_t* hs_ctx__pt,
   flea_rw_stream_t*             rw_stream__pt,
   flea_tls_renegotiation_spec_e reneg_spec__e,
   flea_tls_flag_e               flags__e
@@ -668,7 +685,7 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
 
   FLEA_THR_BEG_FUNC();
 # ifdef FLEA_USE_HEAP_BUF
-  FLEA_ALLOC_MEM_ARR(tls_ctx__pt->security_parameters.client_and_server_random__bu8, 2 * FLEA_TLS_HELLO_RANDOM_SIZE);
+  // FLEA_ALLOC_MEM_ARR(tls_ctx__pt->security_parameters.client_and_server_random__bu8, 2 * FLEA_TLS_HELLO_RANDOM_SIZE);
   FLEA_ALLOC_MEM_ARR(tls_ctx__pt->security_parameters.master_secret__bu8, FLEA_TLS_MASTER_SECRET_SIZE);
 # endif
 
@@ -1044,7 +1061,7 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   tls_ctx__pt->cert_chain_mbn__pt = cert_chain_mbn__pt;
   tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
-  flea_tls_set_tls_random(tls_ctx__pt);
+  // flea_tls_set_tls_random(tls_ctx__pt);
 
   // flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey);
   // TODO: discard pending read (/ flush pending write (done automatically))
@@ -1070,9 +1087,9 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__renegotiate */
 
-void flea_tls_set_tls_random(flea_tls_ctx_t* ctx__pt)
+void flea_tls_set_tls_random(flea_tls_handshake_ctx_t* ctx__pt)
 {
-  flea_rng__randomize(ctx__pt->security_parameters.client_and_server_random__bu8, 2 * FLEA_TLS_HELLO_RANDOM_SIZE);
+  flea_rng__randomize(ctx__pt->client_and_server_random__pt->data__pu8, 2 * FLEA_TLS_HELLO_RANDOM_SIZE);
 }
 
 flea_bool_t flea_tls_ctx_t__do_send_sec_reneg_ext(flea_tls_ctx_t* tls_ctx__pt)
@@ -1091,11 +1108,6 @@ flea_bool_t flea_tls_ctx_t__do_send_sec_reneg_ext(flea_tls_ctx_t* tls_ctx__pt)
     return FLEA_TRUE;
   }
 }
-
-/*static flea_bool_t flea_tls_ctx_t__is_ecc_suite(flea_tls_ctx_t* tls_ctx__pt)
- * {
- * return FLEA_TRUE;
- * }*/
 
 flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx__pt)
 {
@@ -2276,7 +2288,7 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
   // flea_private_key_t__dtor(&tls_ctx__pt->ecdhe_priv_key__t);
 
   FLEA_FREE_BUF_FINAL_SECRET_ARR(tls_ctx__pt->security_parameters.master_secret__bu8, FLEA_TLS_MASTER_SECRET_SIZE);
-  FLEA_FREE_BUF_FINAL(tls_ctx__pt->security_parameters.client_and_server_random__bu8);
+  // FLEA_FREE_BUF_FINAL(tls_ctx__pt->security_parameters.client_and_server_random__bu8);
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_NULL(tls_ctx__pt->own_vfy_data__bu8);
 # endif

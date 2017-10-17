@@ -118,6 +118,8 @@ flea_err_t THR_flea_tls__send_finished(
 
 flea_err_t THR_flea_tls_ctx_t__construction_helper(
   flea_tls_ctx_t*               ctx,
+  // flea_tls_handshake_ctx_t* hs_ctx__pt,
+  // flea_tls__handshake_state_t* hs_ctx__pt,
   flea_rw_stream_t*             rw_stream__pt,
   flea_tls_renegotiation_spec_e reneg_spec__e,
   flea_tls_flag_e               flags__e
@@ -126,9 +128,8 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
 void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state);
 
 flea_err_t THR_flea_tls__create_master_secret(
-  const flea_u8_t*            client_and_server_random,
-  // const flea_u8_t * server_hello_random,
-  // flea_u8_t* pre_master_secret,
+  flea_tls_handshake_ctx_t*   hs_ctx__pt,
+  // const flea_u8_t*            client_and_server_random,
   flea_byte_vec_t*            premaster_secret__pt,
   flea_u8_t*                  master_secret_res,
   flea_tls__cipher_suite_id_t ciph_id__e
@@ -142,6 +143,7 @@ flea_err_t THR_flea_tls__create_master_secret(
  * flea_al_u8_t          key_block_len__alu8
  * );*/
 flea_err_t THR_flea_tls__generate_key_block(
+  flea_tls_handshake_ctx_t*              hs_ctx__pt,
   // const flea_tls_ctx_t* tls_ctx,
   flea_al_u16_t                          selected_cipher_suite__alu16,
   const flea_tls__security_parameters_t* security_parameters__pt,
@@ -215,7 +217,7 @@ flea_err_t THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
 );
 
-void flea_tls_set_tls_random(flea_tls_ctx_t* ctx__pt);
+void flea_tls_set_tls_random(flea_tls_handshake_ctx_t* ctx__pt);
 
 flea_mac_id_t flea_tls__map_hmac_to_hash(flea_hash_id_t h);
 
