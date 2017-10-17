@@ -2284,7 +2284,7 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
   flea_tls_rec_prot_t__dtor(&tls_ctx__pt->rec_prot__t);
   // flea_public_key_t__dtor(&tls_ctx__pt->peer_pubkey);
   flea_private_key_t__dtor(&tls_ctx__pt->private_key__t);
-  flea_public_key_t__dtor(&tls_ctx__pt->ecdhe_pub_key__t);
+  // flea_public_key_t__dtor(&tls_ctx__pt->ecdhe_pub_key__t);
   // flea_private_key_t__dtor(&tls_ctx__pt->ecdhe_priv_key__t);
 
   FLEA_FREE_BUF_FINAL_SECRET_ARR(tls_ctx__pt->master_secret__bu8, FLEA_TLS_MASTER_SECRET_SIZE);

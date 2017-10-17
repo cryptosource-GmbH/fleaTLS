@@ -123,7 +123,7 @@ struct struct_flea_tls_ctx_t
   // => HANDSHAKE_CTX / CHECK IF USED AT ALL!
   // flea_private_key_t             ecdhe_priv_key__t; // server needs to store it until the client sends his pubkey
   // => HANDSHAKE_CTX / CHECK IF USED AT ALL!
-  flea_public_key_t ecdhe_pub_key__t; // client needs to store it to send it afterwards
+  // flea_public_key_t ecdhe_pub_key__t; // client needs to store it to send it afterwards
 
   // STAYS IN TLS_CTX:
 # ifdef FLEA_USE_HEAP_BUF

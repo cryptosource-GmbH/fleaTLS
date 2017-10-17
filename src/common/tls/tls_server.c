@@ -1286,8 +1286,10 @@ flea_err_t THR_flea_tls__server_handshake(
     2 * FLEA_TLS_HELLO_RANDOM_SIZE
   );
   FLEA_THR_BEG_FUNC();
+
   hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
   hs_ctx__t.tls_ctx__pt = tls_ctx;
+
   flea_public_key_t__INIT(&peer_public_key__t);
   flea_private_key_t__INIT(&ecdhe_priv_key__t);
   flea_tls_parallel_hash_ctx_t__INIT(&p_hash_ctx);

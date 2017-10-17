@@ -3,6 +3,7 @@
 
 #include "internal/common/algo_len_int.h"
 #include "flea/byte_vec.h"
+#include "flea/pubkey.h"
 
 
 #ifdef __cplusplus
@@ -54,8 +55,11 @@ typedef enum
 
 typedef struct
 {
-  flea_byte_vec_t* client_and_server_random__pt;
-  flea_tls_ctx_t*  tls_ctx__pt;
+  /* only used by tls_client: */
+  flea_public_key_t* ecdhe_pub_key__pt;
+
+  flea_byte_vec_t*   client_and_server_random__pt;
+  flea_tls_ctx_t*    tls_ctx__pt;
 } flea_tls_handshake_ctx_t;
 
 #ifdef __cplusplus
