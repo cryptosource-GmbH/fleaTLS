@@ -19,6 +19,7 @@
 #include "pltf_support/tcpip_stream.h"
 #include "pc/test_util.h"
 #include "flea/tls.h"
+#include "flea/tls_server.h"
 #include "pc/test_pc.h"
 #include "pltf_support/tcpip_stream.h"
 #include "tls_server_certs.h"
@@ -189,50 +190,13 @@ static flea_err_t THR_server_cycle(
   tls_test_cfg_t tls_cfg;
   int sock_fd;
 
-  // fd_set keyb_fds;
-
-
-  // struct timeval timeout = { 1, 0 };
-
-  /*
-   *
-   * FD_ZERO(&keyb_fds);
-   * FD_SET(STDIN_FILENO, &keyb_fds);
-   *
-   * ::select(STDIN_FILENO+1, &keyb_fds, nullptr, nullptr, &timeout);*/
-
-  ///////////////////////////////
-  //
-
-  /*tv.tv_sec = 1;
-   *      tv.tv_usec = 0;*/
-
-  /*        FD_ZERO(&keyb_fds);
-   *      FD_SET(fileno(stdin), &keyb_fds);
-   *
-   *      select(fileno(stdin)+1, &keyb_fds, NULL, NULL, &timeout);*/
-
-  /*
-   * const flea_u8_t allowed_ecc_curves__acu8[] = {
-   *  (flea_u8_t) flea_secp160r1,
-   *  (flea_u8_t) flea_secp160r2,
-   *  (flea_u8_t) flea_secp192r1,
-   *  (flea_u8_t) flea_secp224r1,
-   *  (flea_u8_t) flea_secp256r1,
-   *  (flea_u8_t) flea_secp384r1,
-   *  (flea_u8_t) flea_secp521r1,
-   *  (flea_u8_t) flea_brainpoolP256r1,
-   *  (flea_u8_t) flea_brainpoolP384r1,
-   *  (flea_u8_t) flea_brainpoolP512r1
-   * };*/
-
-  // const flea_u8_t allowed_ecc_curves__acu8[] = {(flea_u8_t) flea_secp256r1};
-  // flea_ref_cu8_t allowed_ecc_curves__rcu8 {allowed_ecc_curves__acu8, sizeof(allowed_ecc_curves__acu8)};
+  flea_tls_shared_server_ctx_t shrd_server_ctx__t;
 
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_t__INIT(&rw_stream__t);
   flea_tls_server_ctx_t__INIT(&tls_ctx);
   flea_cert_store_t__INIT(&trust_store__t);
+  flea_tls_shared_server_ctx_t__INIT(&shrd_server_ctx__t);
 
   // flea_u8_t * dbg_leak = (flea_u8_t* )malloc(1);
 
@@ -280,15 +244,16 @@ static flea_err_t THR_server_cycle(
   allowed_sig_algs__rcu8.data__pcu8 = &tls_cfg.allowed_sig_algs[0];
   allowed_sig_algs__rcu8.len__dtl   = tls_cfg.allowed_sig_algs.size();
 
+  FLEA_CCALL(THR_flea_tls_shared_server_ctx_t__ctor(&shrd_server_ctx__t, &server_key__t));
 
   FLEA_CCALL(
     THR_flea_tls_server_ctx_t__ctor(
       &tls_ctx,
+      &shrd_server_ctx__t,
       &rw_stream__t,
       cert_chain,
       cert_chain_len,
       &trust_store__t,
-      &server_key__t,
       &cipher_suites_ref,
       tls_cfg.rev_chk_mode__e,
       &tls_cfg.crls_refs[0],
@@ -387,6 +352,7 @@ static flea_err_t THR_server_cycle(
   }
   FLEA_THR_FIN_SEC(
     flea_tls_server_ctx_t__dtor(&tls_ctx);
+    flea_tls_shared_server_ctx_t__dtor(&shrd_server_ctx__t);
     flea_cert_store_t__dtor(&trust_store__t);
     flea_rw_stream_t__dtor(&rw_stream__t);
   );

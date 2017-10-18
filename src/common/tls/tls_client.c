@@ -1354,7 +1354,7 @@ flea_err_t THR_flea_tls__client_handshake(
   );
 } /* THR_flea_tls__client_handshake */
 
-flea_err_t THR_flea_tls_ctx_t__ctor_client(
+flea_err_t THR_flea_tls_client_ctx_t__ctor(
   flea_tls_client_ctx_t*        tls_client_ctx__pt,
   // flea_tls_ctx_t*               tls_ctx__pt,
   const flea_cert_store_t*      trust_store__pt,

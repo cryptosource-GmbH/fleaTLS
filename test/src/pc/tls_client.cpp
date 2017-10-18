@@ -141,7 +141,7 @@ static flea_err_t THR_flea_start_tls_client(
     );
   }
   FLEA_CCALL(
-    THR_flea_tls_ctx_t__ctor_client(
+    THR_flea_tls_client_ctx_t__ctor(
       &tls_ctx,
       &trust_store__t,
       hostname_p,
