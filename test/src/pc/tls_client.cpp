@@ -33,7 +33,7 @@ static flea_err_t THR_flea_start_tls_client(
   flea_rw_stream_t rw_stream__t;
   flea_cert_store_t trust_store__t;
 
-  flea_tls_ctx_t tls_ctx;
+  flea_tls_client_ctx_t tls_ctx;
   // char app_data_www[] = "GET index.html HTTP/1.1\nHost: 127.0.0.1";
 
 
@@ -72,7 +72,7 @@ static flea_err_t THR_flea_start_tls_client(
   FLEA_THR_BEG_FUNC();
   flea_private_key_t__INIT(&privkey__t);
   flea_rw_stream_t__INIT(&rw_stream__t);
-  flea_tls_ctx_t__INIT(&tls_ctx);
+  flea_tls_client_ctx_t__INIT(&tls_ctx);
   flea_cert_store_t__INIT(&trust_store__t);
   FLEA_CCALL(THR_flea_cert_store_t__ctor(&trust_store__t));
   if(cmdl_args.have_index("hostname") || cmdl_args.have_index("ip_addr"))
@@ -166,12 +166,10 @@ static flea_err_t THR_flea_start_tls_client(
     )
   );
   printf("session was resumed = %u\n", client_session__pt->for_resumption__u8);
-  // FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
   for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("do_renegs", 0); i++)
-  // if(cmdl_args.have_index("reneg"))
   {
     FLEA_CCALL(
-      THR_flea_tls_ctx_t__renegotiate(
+      THR_flea_tls_client_ctx_t__renegotiate(
         &tls_ctx,
         &trust_store__t,
         cert_chain,
@@ -182,20 +180,19 @@ static flea_err_t THR_flea_start_tls_client(
         tls_cfg.crls.size()
       )
     );
-    // FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (flea_u8_t*) app_data_www, strlen(app_data_www)));
   }
   while(cmdl_args.have_index("stay"))
   {
     flea_u8_t buf[1000];
     flea_al_u16_t buf_len = sizeof(buf) - 1;
-    FLEA_CCALL(THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking));
+    FLEA_CCALL(THR_flea_tls_client_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking));
     buf[buf_len] = 0;
     printf("received data: %s\n", buf);
     usleep(10000);
   }
 
   FLEA_THR_FIN_SEC(
-    flea_tls_ctx_t__dtor(&tls_ctx);
+    flea_tls_client_ctx_t__dtor(&tls_ctx);
     flea_rw_stream_t__dtor(&rw_stream__t);
     flea_cert_store_t__dtor(&trust_store__t);
     flea_private_key_t__dtor(&privkey__t);

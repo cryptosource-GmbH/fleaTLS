@@ -164,13 +164,18 @@ typedef struct
   flea_tls_ctx_t tls_ctx__t;
 } flea_tls_server_ctx_t;
 
+typedef struct
+{
+  flea_tls_ctx_t tls_ctx__t;
+} flea_tls_client_ctx_t;
 
 # define flea_tls_ctx_t__INIT(__p)        do {memset((__p), 0, sizeof(*(__p)));} while(0)
 # define flea_tls_server_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
+# define flea_tls_client_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
 
 
 flea_err_t THR_flea_tls_ctx_t__ctor_client(
-  flea_tls_ctx_t*               tls_ctx__pt,
+  flea_tls_client_ctx_t*        tls_ctx__pt,
   const flea_cert_store_t*      trust_store__pt,
   const flea_ref_cu8_t*         server_name__pcrcu8,
   flea_host_id_type_e           host_name_id__e,
@@ -194,10 +199,9 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
 );
 
 void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx__pt);
+void flea_tls_client_ctx_t__dtor(flea_tls_client_ctx_t* tls_client_ctx__pt);
 
-// TODO: RENAME TO ...tls_server_ctx_t...
 flea_err_t THR_flea_tls_server_ctx_t__ctor(
-  // flea_tls_ctx_t*               tls_ctx__pt,
   flea_tls_server_ctx_t*        tls_ctx__pt,
   flea_rw_stream_t*             rw_stream__pt,
   flea_ref_cu8_t*               cert_chain__pt,
@@ -223,7 +227,7 @@ flea_err_t THR_flea_tls_server_ctx_t__read_app_data(
 );
 
 flea_err_t THR_flea_tls_client_ctx_t__read_app_data(
-  flea_tls_ctx_t*         tls_ctx_t,
+  flea_tls_client_ctx_t*  tls_ctx_t,
   flea_u8_t*              data__pu8,
   flea_al_u16_t*          data_len__palu16,
   flea_stream_read_mode_e rd_mode__e
@@ -235,13 +239,13 @@ flea_err_t THR_flea_tls_server_ctx_t__send_app_data(
 );
 
 flea_err_t THR_flea_tls_client_ctx_t__send_app_data(
-  flea_tls_ctx_t*  tls_ctx,
-  const flea_u8_t* data,
-  flea_u8_t        data_len
+  flea_tls_client_ctx_t* tls_ctx,
+  const flea_u8_t*       data,
+  flea_u8_t              data_len
 );
 
 flea_err_t THR_flea_tls_server_ctx_t__flush_write_app_data(flea_tls_server_ctx_t* tls_ctx);
-flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_ctx_t* tls_ctx);
+flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t* tls_ctx);
 
 
 flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
@@ -257,7 +261,7 @@ flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
 );
 
 flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
-  flea_tls_ctx_t*          tls_ctx__pt,
+  flea_tls_client_ctx_t*   tls_ctx__pt,
   const flea_cert_store_t* trust_store__pt,
   /* new session id? */
   flea_ref_cu8_t*          cert_chain__pt,

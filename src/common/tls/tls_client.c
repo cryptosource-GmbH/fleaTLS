@@ -1355,7 +1355,8 @@ flea_err_t THR_flea_tls__client_handshake(
 } /* THR_flea_tls__client_handshake */
 
 flea_err_t THR_flea_tls_ctx_t__ctor_client(
-  flea_tls_ctx_t*               tls_ctx__pt,
+  flea_tls_client_ctx_t*        tls_client_ctx__pt,
+  // flea_tls_ctx_t*               tls_ctx__pt,
   const flea_cert_store_t*      trust_store__pt,
   const flea_ref_cu8_t*         server_name__pcrcu8,
   flea_host_id_type_e           host_name_id__e,
@@ -1375,6 +1376,8 @@ flea_err_t THR_flea_tls_ctx_t__ctor_client(
 )
 {
   flea_err_t err__t;
+
+  flea_tls_ctx_t* tls_ctx__pt = &tls_client_ctx__pt->tls_ctx__t;
 
   FLEA_THR_BEG_FUNC();
   tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = rev_chk_mode__e;
@@ -1467,6 +1470,58 @@ flea_err_t THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
   FLEA_THR_FIN_SEC(
     flea_tls_handsh_reader_t__dtor(&handsh_rdr__t);
   );
+}
+
+flea_err_t THR_flea_tls_client_ctx_t__read_app_data(
+  flea_tls_client_ctx_t*  tls_client_ctx__pt,
+  flea_u8_t*              data__pu8,
+  flea_al_u16_t*          data_len__palu16,
+  flea_stream_read_mode_e rd_mode__e
+)
+{
+  return THR_flea_tls_ctx_t__read_app_data(&tls_client_ctx__pt->tls_ctx__t, data__pu8, data_len__palu16, rd_mode__e);
+}
+
+flea_err_t THR_flea_tls_client_ctx_t__send_app_data(
+  flea_tls_client_ctx_t* tls_client_ctx__pt,
+  const flea_u8_t*       data,
+  flea_u8_t              data_len
+)
+{
+  return THR_flea_tls_ctx_t__send_app_data(&tls_client_ctx__pt->tls_ctx__t, data, data_len);
+}
+
+flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t* tls_client_ctx__pt)
+{
+  return THR_flea_tls_ctx_t__flush_write_app_data(&tls_client_ctx__pt->tls_ctx__t);
+}
+
+flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
+  flea_tls_client_ctx_t*   tls_client_ctx__pt,
+  const flea_cert_store_t* trust_store__pt,
+  flea_ref_cu8_t*          cert_chain__pt,
+  flea_al_u8_t             cert_chain_len__alu8,
+  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
+  flea_rev_chk_mode_e      rev_chk_mode__e,
+  const flea_byte_vec_t*   crl_der__pt,
+  flea_al_u16_t            nb_crls__alu16
+)
+{
+  return THR_flea_tls_ctx_t__renegotiate(
+    &tls_client_ctx__pt->tls_ctx__t,
+    trust_store__pt,
+    cert_chain__pt,
+    cert_chain_len__alu8,
+    allowed_cipher_suites__prcu16,
+    rev_chk_mode__e,
+    crl_der__pt,
+    nb_crls__alu16
+  );
+}
+
+void flea_tls_client_ctx_t__dtor(flea_tls_client_ctx_t* tls_client_ctx__pt)
+{
+  flea_tls_ctx_t__dtor(&tls_client_ctx__pt->tls_ctx__t);
 }
 
 #endif /* ifdef FLEA_HAVE_TLS */
