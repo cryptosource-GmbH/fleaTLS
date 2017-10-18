@@ -18,7 +18,7 @@
 #include "flea/tls.h"
 #include "pc/test_pc.h"
 #include "pltf_support/tcpip_stream.h"
-
+#include "internal/common/tls/tls_common.h"
 #include "flea/array_util.h"
 #include "flea/byte_vec.h"
 #include "flea/pkcs8.h"

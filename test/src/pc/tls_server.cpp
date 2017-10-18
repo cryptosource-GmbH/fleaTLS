@@ -177,7 +177,7 @@ static flea_err_t THR_server_cycle(
   flea_ref_cu8_t allowed_sig_algs__rcu8;
   flea_ref_cu16_t cipher_suites_ref;
   flea_rw_stream_t rw_stream__t;
-  flea_tls_ctx_t tls_ctx;
+  flea_tls_server_ctx_t tls_ctx;
 
   flea_cert_store_t trust_store__t;
 
@@ -231,7 +231,7 @@ static flea_err_t THR_server_cycle(
 
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_t__INIT(&rw_stream__t);
-  flea_tls_ctx_t__INIT(&tls_ctx);
+  flea_tls_server_ctx_t__INIT(&tls_ctx);
   flea_cert_store_t__INIT(&trust_store__t);
 
   // flea_u8_t * dbg_leak = (flea_u8_t* )malloc(1);
@@ -282,7 +282,7 @@ static flea_err_t THR_server_cycle(
 
 
   FLEA_CCALL(
-    THR_flea_tls_ctx_t__ctor_server(
+    THR_flea_tls_server_ctx_t__ctor(
       &tls_ctx,
       &rw_stream__t,
       cert_chain,
@@ -310,7 +310,7 @@ static flea_err_t THR_server_cycle(
      * printf("reading app data prior to renegotiation returned: %04x\n", retval);*/
     std::cout << "renegotiation ...";
     FLEA_CCALL(
-      THR_flea_tls_ctx_t__renegotiate(
+      THR_flea_tls_server_ctx_t__renegotiate(
         &tls_ctx,
         &trust_store__t,
         cert_chain,
@@ -331,7 +331,12 @@ static flea_err_t THR_server_cycle(
       flea_al_u16_t buf_len = sizeof(buf) - 1;
       FLEA_CCALL(THR_check_keyb_input());
       // flea_err_t retval     = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
-      flea_err_t retval = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, tls_cfg.read_mode_for_app_data);
+      flea_err_t retval = THR_flea_tls_server_ctx_t__read_app_data(
+        &tls_ctx,
+        buf,
+        &buf_len,
+        tls_cfg.read_mode_for_app_data
+        );
       if(retval == FLEA_ERR_TIMEOUT_ON_STREAM_READ)
       {
         printf("timeout during read app data\n");
@@ -351,7 +356,7 @@ static flea_err_t THR_server_cycle(
       buf[buf_len] = 0;
       printf("received data (len = %u): %s\n", buf_len, buf);
       printf("read_app_data returned\n");
-      FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
+      FLEA_CCALL(THR_flea_tls_server_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
       usleep(10000);
     }
   }
@@ -361,7 +366,7 @@ static flea_err_t THR_server_cycle(
     const char* response_hdr_1 =
       "HTTP/1.1 200 OK\r\nDate: Mon, 27 Jul 2009 12:28:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT\r\nContent-Length: 50\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html><head><body>this is text</body></head></html>";
     FLEA_CCALL(THR_check_keyb_input());
-    flea_err_t retval = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
+    flea_err_t retval = THR_flea_tls_server_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
     if(retval == FLEA_ERR_TLS_SESSION_CLOSED)
     {
       FLEA_THR_RETURN();
@@ -372,10 +377,16 @@ static flea_err_t THR_server_cycle(
     }
     FLEA_CCALL(THR_check_keyb_input());
     buf[buf_len] = 0;
-    FLEA_CCALL(THR_flea_tls_ctx_t__send_app_data(&tls_ctx, (const flea_u8_t*) response_hdr_1, strlen(response_hdr_1)));
+    FLEA_CCALL(
+      THR_flea_tls_server_ctx_t__send_app_data(
+        &tls_ctx,
+        (const flea_u8_t*) response_hdr_1,
+        strlen(response_hdr_1)
+      )
+    );
   }
   FLEA_THR_FIN_SEC(
-    flea_tls_ctx_t__dtor(&tls_ctx);
+    flea_tls_server_ctx_t__dtor(&tls_ctx);
     flea_cert_store_t__dtor(&trust_store__t);
     flea_rw_stream_t__dtor(&rw_stream__t);
   );

@@ -1019,6 +1019,20 @@ static flea_err_t THR_flea_tls_ctx_t__read_app_data_inner(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__read_app_data_inner */
 
+flea_err_t THR_flea_tls_server_ctx_t__send_app_data(
+  flea_tls_server_ctx_t* tls_server_ctx__pt,
+  const flea_u8_t*       data,
+  flea_u8_t              data_len
+)
+{
+  return THR_flea_tls_ctx_t__send_app_data(&tls_server_ctx__pt->tls_ctx__t, data, data_len);
+}
+
+flea_err_t THR_flea_tls_server_ctx_t__flush_write_app_data(flea_tls_server_ctx_t* tls_server_ctx__pt)
+{
+  return THR_flea_tls_ctx_t__flush_write_app_data(&tls_server_ctx__pt->tls_ctx__t);
+}
+
 flea_err_t THR_flea_tls_ctx_t__read_app_data(
   flea_tls_ctx_t*         tls_ctx__pt,
   flea_u8_t*              data__pu8,
