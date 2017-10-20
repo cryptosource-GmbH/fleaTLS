@@ -7,26 +7,16 @@
 #include "flea/error.h"
 #include "internal/common/tls_ciph_suite.h"
 #include "internal/common/tls_conn_state.h"
-#include "internal/common/tls/tls_int.h"
+// #include "internal/common/tls/tls_int.h"
+#include "internal/common/tls/tls_common.h"
 #include "flea/rw_stream.h"
-#include "flea/tls_session_mngr.h"
-
-typedef enum
-{
-  FLEA_TLS_CLIENT,
-  FLEA_TLS_SERVER
-} flea_tls__connection_end_t;
+#include "internal/common/tls/tls_rec_prot_fwd.h"
+// #include "flea/tls_session_mngr.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-
-typedef struct
-{
-  flea_u8_t major;
-  flea_u8_t minor;
-} flea_tls__protocol_version_t;
 
 // TODO: RENAME TO TLS_REC_CONT_TYPE (struct and values)
 typedef enum
@@ -81,7 +71,7 @@ typedef enum
   FLEA_TLS_ALERT_LEVEL_FATAL   = 2
 } flea_tls__alert_level_t;
 
-typedef struct
+struct struct_flea_tls_rec_prot_t
 {
   flea_tls_conn_state_t read_state__t;
   flea_tls_conn_state_t write_state__t;
@@ -106,7 +96,6 @@ typedef struct
   flea_u16_t                   send_payload_used_len__u16;
   flea_u16_t                   payload_offset__u16;
   flea_u16_t                   send_payload_offset__u16;
-  // flea_u8_t                    reserved_iv_len__u8;
   flea_tls__protocol_version_t prot_version__t;
   flea_rw_stream_t*            rw_stream__pt;
   flea_u8_t                    write_ongoing__u8;
@@ -114,8 +103,7 @@ typedef struct
   flea_u16_t                   current_record_content_len__u16;
   flea_u8_t                    is_session_closed__u8;
   flea_u8_t                    is_current_record_alert__u8;
-  // flea_u8_t                    current_hdr_offset__u8;
-} flea_tls_rec_prot_t;
+};
 
 #ifdef FLEA_USE_HEAP_BUF
 # define flea_tls_rec_prot_t__INIT_VALUE {.send_rec_buf_raw__bu8 = 0}

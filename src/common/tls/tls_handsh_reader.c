@@ -6,6 +6,7 @@
 #include "flea/error.h"
 #include "flea/error_handling.h"
 #include "flea/rw_stream.h"
+#include "internal/common/tls_rec_prot.h"
 
 #ifdef FLEA_HAVE_TLS
 flea_err_t THR_flea_tls__read_handsh_hdr(

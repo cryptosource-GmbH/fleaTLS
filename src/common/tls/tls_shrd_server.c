@@ -2,6 +2,7 @@
 
 #include "flea/tls_shrd_server.h"
 #include "flea/pkcs8.h"
+#include "flea/error_handling.h"
 
 flea_err_t THR_flea_tls_shared_server_ctx_t__ctor(
   flea_tls_shared_server_ctx_t* shrd_server_ctx__pt,

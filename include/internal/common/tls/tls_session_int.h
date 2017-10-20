@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #ifndef _flea_tls_session_int__H_
 #define _flea_tls_session_int__H_
 
@@ -11,6 +13,7 @@ extern "C" {
 
 typedef struct
 {
+  // TODO: ABSTRACT BUF :
   flea_u8_t  master_secret__au8[48];
   flea_u16_t cipher_suite_id__u16;
   flea_u8_t  is_valid_session__u8;

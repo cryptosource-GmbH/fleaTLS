@@ -2,6 +2,7 @@
 #define _flea_hostn_ver_int__H_
 
 #include "flea/byte_vec.h"
+#include "flea/hostn_ver.h"
 
 #ifdef __cplusplus
 extern "C" {

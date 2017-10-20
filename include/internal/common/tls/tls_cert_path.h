@@ -4,7 +4,9 @@
 #define _flea_tls_cert_path__H_
 
 #include "flea/types.h"
-#include "flea/tls.h"
+// #include "internal/common/tls/tls_int.h"
+#include "internal/common/tls/tls_ctx_fwd.h"
+// #include "flea/tls.h"
 #include "internal/common/tls/handsh_reader.h"
 #include "flea/cert_store.h"
 #include "internal/common/tls_key_usage.h"
