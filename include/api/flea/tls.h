@@ -27,7 +27,7 @@ extern "C" {
 
 typedef enum
 {
-  flea_tls_flag__read_timeout_during_handshake = 1
+  flea_tls_flag__read_timeout_during_handshake__ = 1
 } flea_tls_flag_e;
 
 // defines for max sizes to allocate on the stack

@@ -25,18 +25,18 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   flea_tls_server_ctx_t*        tls_ctx__pt,
   flea_tls_shared_server_ctx_t* shrd_server_ctx__pt,
   flea_rw_stream_t*             rw_stream__pt,
-  flea_ref_cu8_t*               cert_chain__pt,
-  flea_al_u8_t                  cert_chain_len__alu8,
-  const flea_cert_store_t*      trust_store__t,
+  flea_ref_cu8_t*               cert_chain__pt,       // => shrd_ctx_ctor => shared_ctx => tls_pki_info_t
+  flea_al_u8_t                  cert_chain_len__alu8, // -"-
+  const flea_cert_store_t*      trust_store__t,       // provide here, may need to change => shared_ctx => tls_pki_info_t
   const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
-  flea_rev_chk_mode_e           rev_chk_mode__e,
-  const flea_byte_vec_t*        crl_der__pt,
-  flea_al_u16_t                 nb_crls__alu16,
-  flea_tls_session_mngr_t*      session_mngr_mbn__pt,
-  flea_tls_renegotiation_spec_e reneg_spec__e,
-  flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8,
-  flea_ref_cu8_t*               allowed_sig_algs_ref__prcu8,
-  flea_tls_flag_e               flags
+  flea_rev_chk_mode_e           rev_chk_mode__e,               // => flags (?)
+  const flea_byte_vec_t*        crl_der__pt,                   // wie cert_store
+  flea_al_u16_t                 nb_crls__alu16,                // -"-
+  flea_tls_session_mngr_t*      session_mngr_mbn__pt,          // v
+  flea_tls_renegotiation_spec_e reneg_spec__e,                 // => flags (?)
+  flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8, // v
+  flea_ref_cu8_t*               allowed_sig_algs_ref__prcu8,   // v
+  flea_tls_flag_e               flags                          // fill with life
 );
 
 flea_err_t THR_flea_tls_server_ctx_t__read_app_data(

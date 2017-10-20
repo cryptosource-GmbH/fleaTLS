@@ -34,8 +34,6 @@ static flea_err_t THR_flea_start_tls_client(
   flea_cert_store_t trust_store__t;
 
   flea_tls_client_ctx_t tls_ctx;
-  // char app_data_www[] = "GET index.html HTTP/1.1\nHost: 127.0.0.1";
-
 
   flea_ref_cu8_t hostname;
   flea_ref_cu8_t* hostname_p = NULL;
@@ -53,20 +51,6 @@ static flea_err_t THR_flea_start_tls_client(
   flea_host_id_type_e host_type;
 
   flea_private_key_t privkey__t;
-
-  /*const flea_u8_t allowed_ecc_curves__acu8[] = {
-   * (flea_u8_t) flea_secp160r1,
-   * (flea_u8_t) flea_secp160r2,
-   * (flea_u8_t) flea_secp192r1,
-   * (flea_u8_t) flea_secp224r1,
-   * (flea_u8_t) flea_secp256r1,
-   * (flea_u8_t) flea_secp384r1,
-   * (flea_u8_t) flea_secp521r1,
-   * (flea_u8_t) flea_brainpoolP256r1,
-   * (flea_u8_t) flea_brainpoolP384r1,
-   * (flea_u8_t) flea_brainpoolP512r1
-   * };*/
-
 
   std::string hostname_s;
   FLEA_THR_BEG_FUNC();
@@ -147,16 +131,12 @@ static flea_err_t THR_flea_start_tls_client(
       hostname_p,
       host_type,
       &rw_stream__t,
-
-      /*  NULL,
-       * 0,*/
       cert_chain_len ? cert_chain : NULL,
       cert_chain_len,
-      // &client_key__t,
       client_key__t.len__dtl ? &privkey__t : NULL,
       &cipher_suites_ref,
-      tls_cfg.rev_chk_mode__e,// flea_rev_chk_none,
-      &tls_cfg.crls_refs[0],// NULL,
+      tls_cfg.rev_chk_mode__e,
+      &tls_cfg.crls_refs[0],
       tls_cfg.crls.size(),
       client_session__pt,
       reneg_spec_from_string(cmdl_args.get_property_as_string_default_empty("reneg_mode")),
