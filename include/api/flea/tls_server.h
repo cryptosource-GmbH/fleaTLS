@@ -4,6 +4,7 @@
 #define _flea_tls_server__H_
 
 #include "flea/tls.h"
+#include "internal/common/tls/tls_int.h"
 #include "flea/tls_shrd_server.h"
 
 #ifdef __cplusplus

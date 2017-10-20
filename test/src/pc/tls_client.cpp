@@ -22,6 +22,7 @@
 #include "flea/array_util.h"
 #include "flea/byte_vec.h"
 #include "flea/pkcs8.h"
+#include "flea/tls_client.h"
 
 #ifdef FLEA_HAVE_TLS
 

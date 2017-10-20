@@ -5,7 +5,7 @@
 #include "flea/rw_stream.h"
 #include "internal/common/tls/handsh_read_stream.h"
 #include "internal/common/tls/tls_rec_prot_rdr.h"
-#include "internal/common/tls_rec_prot.h"
+#include "internal/common/tls/tls_rec_prot_fwd.h"
 #include "internal/common/tls/parallel_hash.h"
 
 #ifdef __cplusplus

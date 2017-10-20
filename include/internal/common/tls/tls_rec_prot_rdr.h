@@ -5,7 +5,7 @@
 
 #include "flea/types.h"
 #include "flea/rw_stream.h"
-#include "internal/common/tls_rec_prot.h"
+#include "internal/common/tls/tls_rec_prot_fwd.h"
 
 #ifdef __cplusplus
 extern "C" {

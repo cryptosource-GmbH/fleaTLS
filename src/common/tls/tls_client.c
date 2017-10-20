@@ -6,6 +6,7 @@
 #include "flea/array_util.h"
 #include "flea/bin_utils.h"
 #include "flea/tls.h"
+#include "flea/tls_client.h"
 #include "flea/privkey.h"
 #include "flea/cert_store.h"
 #include "internal/common/tls/handsh_reader.h"

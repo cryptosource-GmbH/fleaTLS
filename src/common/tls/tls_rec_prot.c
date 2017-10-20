@@ -13,6 +13,7 @@
 #include <stdio.h>
 #include "internal/common/tls/tls_common.h"
 #include "internal/common/mask.h"
+#include "internal/common/tls/tls_int.h"
 
 #define RECORD_HDR_LEN 5
 

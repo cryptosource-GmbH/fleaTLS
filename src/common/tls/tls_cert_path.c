@@ -24,6 +24,7 @@
 #include "internal/common/hostn_ver_int.h"
 #include "flea/crl.h"
 #include "flea/mem_read_stream.h"
+#include "internal/common/tls/tls_int.h"
 
 #ifdef FLEA_HAVE_TLS
 

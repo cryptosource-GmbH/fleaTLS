@@ -3,8 +3,11 @@
 #ifndef _flea_tls_common__H_
 #define _flea_tls_common__H_
 
+#include "internal/common/tls_ciph_suite.h"
 #include "internal/common/tls/tls_cert_path.h"
 #include "internal/common/tls/parallel_hash.h"
+#include "flea/tls_client_session.h"
+#include "flea/tls.h"
 
 #ifdef FLEA_HAVE_TLS
 # ifdef __cplusplus
@@ -179,12 +182,10 @@ flea_err_t THR_flea_tls_ctx_t__flush_write_app_data(flea_tls_ctx_t* tls_ctx);
 
 flea_err_t THR_flea_tls__server_handshake(
   flea_tls_ctx_t* tls_ctx
-  // flea_bool_t     is_reneg__b
 );
 
 flea_err_t THR_flea_tls__client_handshake(
   flea_tls_ctx_t*                       tls_ctx,
-  // flea_bool_t                is_reneg__b,
   flea_tls_client_session_t*            session_mbn__pt,
   const flea_hostn_validation_params_t* hostn_valid_params__pt
 );
@@ -351,7 +352,6 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt);
 flea_err_t THR_flea_tls_ctx_t__renegotiate(
   flea_tls_ctx_t*                 tls_ctx__pt,
   const flea_cert_store_t*        trust_store__pt,
-  /* new session id? */
   flea_ref_cu8_t*                 cert_chain__pt,
   flea_al_u8_t                    cert_chain_len__alu8,
   const flea_ref_cu16_t*          allowed_cipher_suites__prcu16,

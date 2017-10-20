@@ -3,7 +3,8 @@
 
 #include "internal/common/default.h"
 #include "flea/types.h"
-#include "internal/common/tls/tls_int.h"
+#include "internal/common/tls/tls_rec_prot_fwd.h"
+// #include "internal/common/tls/tls_int.h"
 #include "internal/common/tls/tls_session_int.h"
 
 #ifdef __cplusplus
