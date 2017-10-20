@@ -272,7 +272,6 @@ static flea_err_t THR_flea_tls__validate_cert(
   const flea_gmt_time_t*             compare_time__pt,
   flea_al_u16_t*                     cnt_non_self_issued_in_path__palu16,
   flea_tls_cert_path_params_t const* cert_path_params__pct,
-  // flea_hostn_validation_params_t const* hostn_valid_params__pct, // TODO: already contained in previous container ??
   const flea_byte_vec_t*             crl_der__cprcu8,
   flea_al_u16_t                      nb_crls__alu16,
   flea_bool_t                        validate_crl_for_issued_by_current__b,
@@ -319,8 +318,8 @@ static flea_err_t THR_flea_tls__validate_cert(
   flea_hash_id_t sigalg_hash_id;
   flea_pk_key_type_t key_type;
   flea_bool_t optional__b;
-  hostn_validation_info_t hostn_valid_info__t = {.match_info__t = {.id_matched__b = 0, .contains_ipaddr__b = 0, .contains_dnsname__b = 0}, .host_type_id__e = 0, .user_id__pct = NULL};
-
+  hostn_validation_info_t hostn_valid_info__t         = {.match_info__t = {.id_matched__b = 0, .contains_ipaddr__b = 0, .contains_dnsname__b = 0}, .host_type_id__e = 0, .user_id__pct = NULL};
+  hostn_validation_info_t* hostn_valid_params_mbn__pt = &hostn_valid_info__t;
   flea_bool_t do_validate_host_name__b = (cert_path_params__pct->hostn_valid_params__pt != NULL) && (cert_path_params__pct->hostn_valid_params__pt->host_id__ct.data__pcu8 != NULL);
 
   const flea_al_u16_t previous_non_self_issued_cnt__calu16 = *cnt_non_self_issued_in_path__palu16;
@@ -334,6 +333,10 @@ static flea_err_t THR_flea_tls__validate_cert(
   {
     hostn_valid_info__t.host_type_id__e = cert_path_params__pct->hostn_valid_params__pt->host_id_type__e;
     hostn_valid_info__t.user_id__pct    = &cert_path_params__pct->hostn_valid_params__pt->host_id__ct;
+  }
+  else
+  {
+    hostn_valid_params_mbn__pt = NULL;
   }
   flea_public_key_t__dtor(pubkey_out__pt);
   FLEA_CCALL(
@@ -508,7 +511,7 @@ static flea_err_t THR_flea_tls__validate_cert(
       &key_usage__t,
       &extd_key_usage__t,
       &basic_constraints__t,
-      have_precursor_to_verify__b ? NULL : &hostn_valid_info__t,
+      hostn_valid_params_mbn__pt, //  have_precursor_to_verify__b ? NULL : &hostn_valid_info__t,
       previous_crldp__pt,
       &optional_found__b
     )
