@@ -13,6 +13,7 @@
 #include "internal/common/tls/tls_common.h"
 #include "internal/common/tls/parallel_hash.h"
 #include "internal/common/tls/tls_int.h"
+#include "internal/common/tls/tls_client_int.h"
 #include "flea/rng.h"
 #include <stdio.h>
 #include "flea/pk_api.h"
@@ -875,13 +876,14 @@ static flea_err_t THR_flea_tls__send_cert_verify(
 } /* THR_flea_tls__send_cert_verify */
 
 static flea_err_t THR_flea_handle_handsh_msg(
-  flea_tls_ctx_t*               tls_ctx,
-  flea_tls_handshake_ctx_t*     hs_ctx__pt,
-  flea_tls__handshake_state_t*  handshake_state,
-  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
-  flea_tls_client_session_t*    client_session_mbn__pt,
-  flea_byte_vec_t*              premaster_secret__pt,
-  flea_public_key_t*            peer_public_key__pt
+  flea_tls_ctx_t*                       tls_ctx,
+  flea_tls_handshake_ctx_t*             hs_ctx__pt,
+  flea_tls__handshake_state_t*          handshake_state,
+  flea_tls_parallel_hash_ctx_t*         p_hash_ctx__pt,
+  flea_tls_client_session_t*            client_session_mbn__pt,
+  flea_byte_vec_t*                      premaster_secret__pt,
+  flea_public_key_t*                    peer_public_key__pt,
+  const flea_hostn_validation_params_t* hostn_valid_params__pt
 )
 {
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
@@ -941,7 +943,8 @@ static flea_err_t THR_flea_handle_handsh_msg(
        tls_ctx->selected_cipher_suite__u16
        ), .client_cert_type_mask__u8=                    0,
      .validate_server_or_client__e = FLEA_TLS_SERVER,
-     .hostn_valid_params__pt       = &tls_ctx->hostn_valid_params__t};
+     // .hostn_valid_params__pt       = &tls_ctx->hostn_valid_params__t};
+     .hostn_valid_params__pt       = hostn_valid_params__pt};
     FLEA_CCALL(
       THR_flea_tls__read_certificate(
         tls_ctx,
@@ -1030,8 +1033,9 @@ static flea_err_t THR_flea_handle_handsh_msg(
 } /* THR_flea_handle_handsh_msg */
 
 flea_err_t THR_flea_tls__client_handshake(
-  flea_tls_ctx_t*            tls_ctx,
-  flea_tls_client_session_t* session_mbn__pt
+  flea_tls_ctx_t*                       tls_ctx,
+  flea_tls_client_session_t*            session_mbn__pt,
+  const flea_hostn_validation_params_t* hostn_valid_params__pt
 )
 {
   flea_tls__handshake_state_t handshake_state;
@@ -1122,7 +1126,8 @@ flea_err_t THR_flea_tls__client_handshake(
             &p_hash_ctx,
             session_mbn__pt,
             &premaster_secret__t,
-            &peer_public_key__t
+            &peer_public_key__t,
+            hostn_valid_params__pt
           )
         );
         if(handshake_state.finished == FLEA_TRUE)
@@ -1379,6 +1384,7 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
 
   flea_tls_ctx_t* tls_ctx__pt = &tls_client_ctx__pt->tls_ctx__t;
 
+  // flea_hostn_validation_params_t hostn_valid_params__t;
   FLEA_THR_BEG_FUNC();
   tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = rev_chk_mode__e;
   tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16    = nb_crls__alu16;
@@ -1411,15 +1417,15 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
 
   if(server_name__pcrcu8)
   {
-    tls_ctx__pt->hostn_valid_params__t.host_id__ct = *server_name__pcrcu8;
+    tls_client_ctx__pt->hostn_valid_params__t.host_id__ct = *server_name__pcrcu8;
   }
   else
   {
-    tls_ctx__pt->hostn_valid_params__t.host_id__ct.data__pcu8 = NULL;
-    tls_ctx__pt->hostn_valid_params__t.host_id__ct.len__dtl   = 0;
+    tls_client_ctx__pt->hostn_valid_params__t.host_id__ct.data__pcu8 = NULL;
+    tls_client_ctx__pt->hostn_valid_params__t.host_id__ct.len__dtl   = 0;
   }
   // tls_ctx->hostn_valid_params__t.host_id__ct.len__dtl = strlen(server_name__cs);
-  tls_ctx__pt->hostn_valid_params__t.host_id_type__e = host_name_id__e;
+  tls_client_ctx__pt->hostn_valid_params__t.host_id_type__e = host_name_id__e;
 
   tls_ctx__pt->trust_store__pt = trust_store__pt;
 
@@ -1435,13 +1441,14 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   );
   // TODO: REMOVE SESSION-OBJ AGAIN FROM FUNCTION SIGNATURES, IT IS NOW IN THE
   // TLS_CTX
-  err__t = THR_flea_tls__client_handshake(tls_ctx__pt, session_mbn__pt);
+  err__t = THR_flea_tls__client_handshake(tls_ctx__pt, session_mbn__pt, &tls_client_ctx__pt->hostn_valid_params__t);
   FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t, FLEA_FALSE, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__ctor_client */
 
 flea_err_t THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
-  flea_tls_ctx_t* tls_ctx__pt
+  flea_tls_ctx_t*                       tls_ctx__pt,
+  const flea_hostn_validation_params_t* hostn_valid_params__pt
 )
 {
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
@@ -1455,7 +1462,7 @@ flea_err_t THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
     FLEA_THROW("unexpected handshake message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
   }
   // # ifdef FLEA_TLS_HAVE_RENEGOTIATION
-  FLEA_CCALL(THR_flea_tls__client_handshake(tls_ctx__pt, tls_ctx__pt->client_session_mbn__pt));
+  FLEA_CCALL(THR_flea_tls__client_handshake(tls_ctx__pt, tls_ctx__pt->client_session_mbn__pt, hostn_valid_params__pt));
 
   /*# else
    * flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
@@ -1479,7 +1486,13 @@ flea_err_t THR_flea_tls_client_ctx_t__read_app_data(
   flea_stream_read_mode_e rd_mode__e
 )
 {
-  return THR_flea_tls_ctx_t__read_app_data(&tls_client_ctx__pt->tls_ctx__t, data__pu8, data_len__palu16, rd_mode__e);
+  return THR_flea_tls_ctx_t__read_app_data(
+    &tls_client_ctx__pt->tls_ctx__t,
+    data__pu8,
+    data_len__palu16,
+    rd_mode__e,
+    &tls_client_ctx__pt->hostn_valid_params__t
+  );
 }
 
 flea_err_t THR_flea_tls_client_ctx_t__send_app_data(
@@ -1515,7 +1528,8 @@ flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
     allowed_cipher_suites__prcu16,
     rev_chk_mode__e,
     crl_der__pt,
-    nb_crls__alu16
+    nb_crls__alu16,
+    &tls_client_ctx__pt->hostn_valid_params__t
   );
 }
 

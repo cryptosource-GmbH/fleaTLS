@@ -945,11 +945,16 @@ flea_err_t THR_flea_tls_ctx_t__send_app_data(
   FLEA_THR_FIN_SEC_empty();
 }
 
+/**
+ *
+ * @param hostn_valid_params_mbn__pt null for server, not null for client
+ */
 static flea_err_t THR_flea_tls_ctx_t__read_app_data_inner(
-  flea_tls_ctx_t*         tls_ctx__pt,
-  flea_u8_t*              data__pu8,
-  flea_al_u16_t*          data_len__palu16,
-  flea_stream_read_mode_e rd_mode__e
+  flea_tls_ctx_t*                 tls_ctx__pt,
+  flea_u8_t*                      data__pu8,
+  flea_al_u16_t*                  data_len__palu16,
+  flea_stream_read_mode_e         rd_mode__e,
+  flea_hostn_validation_params_t* hostn_valid_params_mbn__pt
 )
 {
   flea_err_t err__t;
@@ -995,7 +1000,7 @@ static flea_err_t THR_flea_tls_ctx_t__read_app_data_inner(
       {
         if(tls_ctx__pt->allow_reneg__u8)
         {
-          FLEA_CCALL(THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(tls_ctx__pt));
+          FLEA_CCALL(THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(tls_ctx__pt, hostn_valid_params_mbn__pt));
         }
         else
         {
@@ -1020,30 +1025,38 @@ static flea_err_t THR_flea_tls_ctx_t__read_app_data_inner(
 } /* THR_flea_tls_ctx_t__read_app_data_inner */
 
 flea_err_t THR_flea_tls_ctx_t__read_app_data(
-  flea_tls_ctx_t*         tls_ctx__pt,
-  flea_u8_t*              data__pu8,
-  flea_al_u16_t*          data_len__palu16,
-  flea_stream_read_mode_e rd_mode__e
+  flea_tls_ctx_t*                 tls_ctx__pt,
+  flea_u8_t*                      data__pu8,
+  flea_al_u16_t*                  data_len__palu16,
+  flea_stream_read_mode_e         rd_mode__e,
+  flea_hostn_validation_params_t* hostn_valid_params_mbn__pt
 )
 {
   flea_err_t err__t;
 
   FLEA_THR_BEG_FUNC();
-  err__t = THR_flea_tls_ctx_t__read_app_data_inner(tls_ctx__pt, data__pu8, data_len__palu16, rd_mode__e);
+  err__t = THR_flea_tls_ctx_t__read_app_data_inner(
+    tls_ctx__pt,
+    data__pu8,
+    data_len__palu16,
+    rd_mode__e,
+    hostn_valid_params_mbn__pt
+    );
 
   FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t, FLEA_FALSE, FLEA_TRUE));
   FLEA_THR_FIN_SEC_empty();
 }
 
 flea_err_t THR_flea_tls_ctx_t__renegotiate(
-  flea_tls_ctx_t*          tls_ctx__pt,
-  const flea_cert_store_t* trust_store__pt,
-  flea_ref_cu8_t*          cert_chain_mbn__pt, /* may only be null for client */
-  flea_al_u8_t             cert_chain_len__alu8,
-  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
-  flea_rev_chk_mode_e      rev_chk_mode__e,
-  const flea_byte_vec_t*   crl_der__pt,
-  flea_al_u16_t            nb_crls__alu16
+  flea_tls_ctx_t*                 tls_ctx__pt,
+  const flea_cert_store_t*        trust_store__pt,
+  flea_ref_cu8_t*                 cert_chain_mbn__pt, /* may only be null for client */
+  flea_al_u8_t                    cert_chain_len__alu8,
+  const flea_ref_cu16_t*          allowed_cipher_suites__prcu16,
+  flea_rev_chk_mode_e             rev_chk_mode__e,
+  const flea_byte_vec_t*          crl_der__pt,
+  flea_al_u16_t                   nb_crls__alu16,
+  flea_hostn_validation_params_t* hostn_valid_params_mbn__pt
 )
 {
   flea_err_t err__t;
@@ -1067,7 +1080,8 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   // TODO: discard pending read (/ flush pending write (done automatically))
   if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
-    err__t = THR_flea_tls__client_handshake(tls_ctx__pt, tls_ctx__pt->client_session_mbn__pt);
+    err__t =
+      THR_flea_tls__client_handshake(tls_ctx__pt, tls_ctx__pt->client_session_mbn__pt, hostn_valid_params_mbn__pt);
   }
   else
   {

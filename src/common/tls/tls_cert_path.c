@@ -261,23 +261,23 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
 typedef enum { validate_server_cert, validate_client_cert, validate_ca_cert } cert_validation_type_e;
 
 static flea_err_t THR_flea_tls__validate_cert(
-  flea_rw_stream_t*                     rd_strm__pt,
-  flea_u32_t                            new_cert_len__u32,
-  flea_public_key_t*                    pubkey_out__pt,
-  flea_byte_vec_t*                      signature_in_out__pt,
-  flea_byte_vec_t*                      tbs_hash_in_out__pt,
-  flea_hash_id_t*                       tbs_hash_id__pe,
-  flea_bool_t                           have_precursor_to_verify__b,
-  flea_byte_vec_t*                      issuer_dn__pt, // previous issuer on input, gets updated to validated cert's subject
-  const flea_gmt_time_t*                compare_time__pt,
-  flea_al_u16_t*                        cnt_non_self_issued_in_path__palu16,
-  flea_tls_cert_path_params_t const*    cert_path_params__pct,
-  flea_hostn_validation_params_t const* hostn_valid_params__pct, // TODO: already contained in previous container ??
-  const flea_byte_vec_t*                crl_der__cprcu8,
-  flea_al_u16_t                         nb_crls__alu16,
-  flea_bool_t                           validate_crl_for_issued_by_current__b,
-  flea_byte_vec_t*                      prev_sn_buffer__pt,
-  flea_byte_vec_t*                      previous_crldp__pt
+  flea_rw_stream_t*                  rd_strm__pt,
+  flea_u32_t                         new_cert_len__u32,
+  flea_public_key_t*                 pubkey_out__pt,
+  flea_byte_vec_t*                   signature_in_out__pt,
+  flea_byte_vec_t*                   tbs_hash_in_out__pt,
+  flea_hash_id_t*                    tbs_hash_id__pe,
+  flea_bool_t                        have_precursor_to_verify__b,
+  flea_byte_vec_t*                   issuer_dn__pt, // previous issuer on input, gets updated to validated cert's subject
+  const flea_gmt_time_t*             compare_time__pt,
+  flea_al_u16_t*                     cnt_non_self_issued_in_path__palu16,
+  flea_tls_cert_path_params_t const* cert_path_params__pct,
+  // flea_hostn_validation_params_t const* hostn_valid_params__pct, // TODO: already contained in previous container ??
+  const flea_byte_vec_t*             crl_der__cprcu8,
+  flea_al_u16_t                      nb_crls__alu16,
+  flea_bool_t                        validate_crl_for_issued_by_current__b,
+  flea_byte_vec_t*                   prev_sn_buffer__pt,
+  flea_byte_vec_t*                   previous_crldp__pt
 )
 {
   flea_al_u8_t version__u8;
@@ -319,8 +319,10 @@ static flea_err_t THR_flea_tls__validate_cert(
   flea_hash_id_t sigalg_hash_id;
   flea_pk_key_type_t key_type;
   flea_bool_t optional__b;
-  hostn_validation_info_t hostn_valid_info__t = {.match_info__t = {.id_matched__b = 0, .contains_ipaddr__b = 0, .contains_dnsname__b = 0}, .host_type_id__e = hostn_valid_params__pct->host_id_type__e, .user_id__pct = &hostn_valid_params__pct->host_id__ct};
-  flea_bool_t do_validate_host_name__b        = (hostn_valid_params__pct->host_id__ct.data__pcu8 != NULL);
+  hostn_validation_info_t hostn_valid_info__t = {.match_info__t = {.id_matched__b = 0, .contains_ipaddr__b = 0, .contains_dnsname__b = 0}, .host_type_id__e = 0, .user_id__pct = NULL};
+
+  flea_bool_t do_validate_host_name__b = (cert_path_params__pct->hostn_valid_params__pt != NULL) && (cert_path_params__pct->hostn_valid_params__pt->host_id__ct.data__pcu8 != NULL);
+
   const flea_al_u16_t previous_non_self_issued_cnt__calu16 = *cnt_non_self_issued_in_path__palu16;
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(
     public_key_value__t,
@@ -328,6 +330,11 @@ static flea_err_t THR_flea_tls__validate_cert(
   );
   flea_tls_client_cert_type_e cert_type__e;
   FLEA_THR_BEG_FUNC();
+  if(do_validate_host_name__b)
+  {
+    hostn_valid_info__t.host_type_id__e = cert_path_params__pct->hostn_valid_params__pt->host_id_type__e;
+    hostn_valid_info__t.user_id__pct    = &cert_path_params__pct->hostn_valid_params__pt->host_id__ct;
+  }
   flea_public_key_t__dtor(pubkey_out__pt);
   FLEA_CCALL(
     THR_flea_ber_dec_t__ctor_hash_support(
@@ -358,7 +365,6 @@ static flea_err_t THR_flea_tls__validate_cert(
     {
       FLEA_THROW("x.509 version of invalid length", FLEA_ERR_X509_VERSION_ERROR);
     }
-    // version_vec__t.data__pu8[0] += 1;
     version__u8 = version_vec__t.data__pu8[0] + 1;
     FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
   }
@@ -605,7 +611,7 @@ static flea_err_t THR_flea_tls__validate_cert(
         FLEA_CCALL(THR_flea_x509__decode_dn_ref_elements(&dn_ref__t, local_subject__t.data__pu8, local_subject__t.len__dtl, FLEA_TRUE));
         FLEA_CCALL(
           THR_flea_x509__verify_host_name(
-            &hostn_valid_params__pct->host_id__ct,
+            &cert_path_params__pct->hostn_valid_params__pt->host_id__ct,
             &dn_ref__t.common_name__t,
             FLEA_TRUE,
             &names_match__b
@@ -618,7 +624,8 @@ static flea_err_t THR_flea_tls__validate_cert(
       }
       else
       {
-        /* SAN contained the applicable fields, but they did not match */
+        /* SAN contained the applicable fields, but they did not match, or IP
+         * address was not found in SAN */
         FLEA_THROW("TLS hostname verification failed", FLEA_ERR_X509_TLS_SERVER_ID_NO_MATCH);
       }
     }
@@ -729,18 +736,14 @@ flea_err_t THR_flea_tls__cert_path_validation(
         &cycling_signature__t,
         &cycling_tbs_hash__t,
         &cycling_hash_id,
-        iter__alu16, // !first__b,
+        iter__alu16,
         &cycling_issuer_dn,
         &compare_time__t,
-        // &san__t,
         &cnt_non_self_issued_in_path__alu16,
         cert_path_params__pct,
-        cert_path_params__pct->hostn_valid_params__pt,
-        tls_ctx__pt->rev_chk_cfg__t.crl_der__pt, /*crl_der__cprcu8, */
-        // <--TODO
-        tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16, /*nb_crls__alu16,*/
-        // <--TODO
-        tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_none ? FLEA_FALSE : (tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_only_ee ? ((iter__alu16 == 1) ? FLEA_TRUE : FLEA_FALSE) : (iter__alu16 > 0)), // validate_crl_for_issued_by_current__b,*/ // <--TODO
+        tls_ctx__pt->rev_chk_cfg__t.crl_der__pt,
+        tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16,
+        tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_none ? FLEA_FALSE : (tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_only_ee ? ((iter__alu16 == 1) ? FLEA_TRUE : FLEA_FALSE) : (iter__alu16 > 0)),
         &sn_buffer__t,
         &previous_crldp__t
       )
@@ -793,7 +796,7 @@ flea_err_t THR_flea_tls__cert_path_validation(
             &compare_time__t,
             &cnt_non_self_issued_in_path__alu16,
             cert_path_params__pct,
-            cert_path_params__pct->hostn_valid_params__pt,
+            // cert_path_params__pct->hostn_valid_params__pt,
             tls_ctx__pt->rev_chk_cfg__t.crl_der__pt,
             tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16,
             tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_none ? FLEA_FALSE : (tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_only_ee ? ((iter__alu16 == 1) ? FLEA_TRUE : FLEA_FALSE) : (iter__alu16 > 0)),

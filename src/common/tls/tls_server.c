@@ -1171,7 +1171,7 @@ static flea_err_t THR_flea_handle_handsh_msg(
       {.kex_type__e                  =               0,
        .client_cert_type_mask__u8    = cert_mask__u8,
        .validate_server_or_client__e = FLEA_TLS_CLIENT,
-       .hostn_valid_params__pt       = &tls_ctx->hostn_valid_params__t};
+       .hostn_valid_params__pt       = NULL};
 
       FLEA_CCALL(
         THR_flea_tls__read_certificate(
@@ -1576,7 +1576,13 @@ flea_err_t THR_flea_tls_server_ctx_t__read_app_data(
   flea_stream_read_mode_e rd_mode__e
 )
 {
-  return THR_flea_tls_ctx_t__read_app_data(&tls_server_ctx__pt->tls_ctx__t, data__pu8, data_len__palu16, rd_mode__e);
+  return THR_flea_tls_ctx_t__read_app_data(
+    &tls_server_ctx__pt->tls_ctx__t,
+    data__pu8,
+    data_len__palu16,
+    rd_mode__e,
+    NULL
+  );
 }
 
 flea_err_t THR_flea_tls_server_ctx_t__ctor(
@@ -1649,7 +1655,8 @@ flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
     allowed_cipher_suites__prcu16,
     rev_chk_mode__e,
     crl_der__pt,
-    nb_crls__alu16
+    nb_crls__alu16,
+    NULL
   );
 }
 

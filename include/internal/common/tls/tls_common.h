@@ -162,10 +162,11 @@ flea_err_t THR_flea_tls__handle_tls_error(
 );
 
 flea_err_t THR_flea_tls_ctx_t__read_app_data(
-  flea_tls_ctx_t*         tls_ctx__pt,
-  flea_u8_t*              data__pu8,
-  flea_al_u16_t*          data_len__palu16,
-  flea_stream_read_mode_e rd_mode__e
+  flea_tls_ctx_t*                 tls_ctx__pt,
+  flea_u8_t*                      data__pu8,
+  flea_al_u16_t*                  data_len__palu16,
+  flea_stream_read_mode_e         rd_mode__e,
+  flea_hostn_validation_params_t* hostn_valid_params_mbn__pt
 );
 
 flea_err_t THR_flea_tls_ctx_t__send_app_data(
@@ -182,9 +183,10 @@ flea_err_t THR_flea_tls__server_handshake(
 );
 
 flea_err_t THR_flea_tls__client_handshake(
-  flea_tls_ctx_t*            tls_ctx,
+  flea_tls_ctx_t*                       tls_ctx,
   // flea_bool_t                is_reneg__b,
-  flea_tls_client_session_t* session_mbn__pt
+  flea_tls_client_session_t*            session_mbn__pt,
+  const flea_hostn_validation_params_t* hostn_valid_params__pt
 );
 
 /**
@@ -235,9 +237,9 @@ void flea_tls_set_tls_random(flea_tls_handshake_ctx_t* ctx__pt);
 
 flea_mac_id_t flea_tls__map_hmac_to_hash(flea_hash_id_t h);
 
-flea_err_t THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
-  flea_tls_ctx_t* tls_ctx__pt
-);
+/*flea_err_t THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
+ * flea_tls_ctx_t* tls_ctx__pt
+ * );*/
 
 flea_err_t THR_flea_tls_ctx_t__send_extensions(
   flea_tls_ctx_t*               tls_ctx__pt,
@@ -347,15 +349,16 @@ flea_err_t THR_flea_tls_ctx_t__parse_point_formats_ext(
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt);
 
 flea_err_t THR_flea_tls_ctx_t__renegotiate(
-  flea_tls_ctx_t*          tls_ctx__pt,
-  const flea_cert_store_t* trust_store__pt,
+  flea_tls_ctx_t*                 tls_ctx__pt,
+  const flea_cert_store_t*        trust_store__pt,
   /* new session id? */
-  flea_ref_cu8_t*          cert_chain__pt,
-  flea_al_u8_t             cert_chain_len__alu8,
-  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
-  flea_rev_chk_mode_e      rev_chk_mode__e,
-  const flea_byte_vec_t*   crl_der__pt,
-  flea_al_u16_t            nb_crls__alu16
+  flea_ref_cu8_t*                 cert_chain__pt,
+  flea_al_u8_t                    cert_chain_len__alu8,
+  const flea_ref_cu16_t*          allowed_cipher_suites__prcu16,
+  flea_rev_chk_mode_e             rev_chk_mode__e,
+  const flea_byte_vec_t*          crl_der__pt,
+  flea_al_u16_t                   nb_crls__alu16,
+  flea_hostn_validation_params_t* hostn_valid_params_mbn__pt
 );
 # endif // ifdef FLEA_HAVE_ECC
 

@@ -72,12 +72,6 @@ typedef struct
   flea_pk_scheme_id_t pk_scheme_id__t;
 } flea_tls__hash_sig_t;
 
-/*typedef struct
- *  {
- *  flea_private_key_t private_key__t;
- *  } flea_tls_server_shared_ctx_t;
- *
- *  flea_tls_ctx_t*/
 
 struct struct_flea_tls_ctx_t
 {
@@ -85,45 +79,38 @@ struct struct_flea_tls_ctx_t
 
 # ifdef FLEA_USE_STACK_BUF
   flea_u8_t                  master_secret__bu8[FLEA_TLS_MASTER_SECRET_SIZE]; /* symmetric keys are derived from this */
-  // flea_u8_t  client_and_server_random__bu8 [2 * FLEA_TLS_HELLO_RANDOM_SIZE]; /* random value that the client sends */
 # else
   flea_u8_t*                 master_secret__bu8;
-  // flea_u8_t* client_and_server_random__bu8;
 # endif
 
-  // define 4 parameters independently instead of list of cipher suites
-  const flea_ref_cu16_t*         allowed_cipher_suites__prcu16; /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
-  // flea_u8_t                    allowed_cipher_suites_len__u8;
-  flea_u16_t                     selected_cipher_suite__u16; // TODO: change to cipher suite id type (already being used as such)
+  /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
+  const flea_ref_cu16_t*       allowed_cipher_suites__prcu16;
+  flea_u16_t                   selected_cipher_suite__u16;
 
-  flea_tls__protocol_version_t   version; /* max. supported TLS version */
+  /* max. supported TLS version */
+  flea_tls__protocol_version_t version;
 
-  flea_hash_id_t                 prf_hash_id__t; // stores hash function to use for the PRF algorithm
+  /* stores hash function to use for the PRF algorithm */
+  flea_hash_id_t               prf_hash_id__t;
 
-  flea_tls__hash_sig_t           kex_hash_sig__t; // hash and sig algorithms used for KEX
+  /* hash and sig algorithms used for KEX */
+  flea_tls__hash_sig_t         kex_hash_sig__t;
 
-  flea_rw_stream_t*              rw_stream__pt;
-  flea_tls_rec_prot_t            rec_prot__t;
-  const flea_cert_store_t*       trust_store__pt;
+  flea_rw_stream_t*            rw_stream__pt;
+  flea_tls_rec_prot_t          rec_prot__t;
+  const flea_cert_store_t*     trust_store__pt;
   // TODO: into client:
-  flea_hostn_validation_params_t hostn_valid_params__t;
+  // flea_hostn_validation_params_t hostn_valid_params__t;
   // kann bleiben:
-  flea_ref_cu8_t*                cert_chain_mbn__pt;
-  flea_u8_t                      cert_chain_len__u8;
+  flea_ref_cu8_t*      cert_chain_mbn__pt;
+  flea_u8_t            cert_chain_len__u8;
 
-  // => SHARED_SERVER_CTX:
-  flea_private_key_t*            private_key__pt;
+  flea_private_key_t*  private_key__pt;
   //
-  // flea_tls_server_shared_ctx_t *server_shared_ctx__pt;
   // => client_ctx:
   flea_private_key_t*  private_key_for_client_mbn__pt;
   flea_revoc_chk_cfg_t rev_chk_cfg__t;
   flea_u8_t            sec_reneg_flag__u8;
-
-  // => HANDSHAKE_CTX / CHECK IF USED AT ALL!
-  // flea_private_key_t             ecdhe_priv_key__t; // server needs to store it until the client sends his pubkey
-  // => HANDSHAKE_CTX / CHECK IF USED AT ALL!
-  // flea_public_key_t ecdhe_pub_key__t; // client needs to store it to send it afterwards
 
   // STAYS IN TLS_CTX:
 # ifdef FLEA_USE_HEAP_BUF
@@ -156,7 +143,8 @@ struct struct_flea_tls_ctx_t
 
 typedef struct
 {
-  flea_tls_ctx_t tls_ctx__t;
+  flea_tls_ctx_t                 tls_ctx__t;
+  flea_hostn_validation_params_t hostn_valid_params__t;
 } flea_tls_client_ctx_t;
 
 # define flea_tls_ctx_t__INIT(__p)        do {memset((__p), 0, sizeof(*(__p)));} while(0)
