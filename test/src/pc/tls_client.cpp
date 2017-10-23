@@ -136,17 +136,17 @@ static flea_err_t THR_flea_start_tls_client(
       cert_chain_len,
       client_key__t.len__dtl ? &privkey__t : NULL,
       &cipher_suites_ref,
-      tls_cfg.rev_chk_mode__e,
+      // tls_cfg.rev_chk_mode__e,
       &tls_cfg.crls_refs[0],
       tls_cfg.crls.size(),
       client_session__pt,
-      reneg_spec_from_string(cmdl_args.get_property_as_string_default_empty("reneg_mode")),
       &allowed_ecc_curves__rcu8,
       &allowed_sig_algs__rcu8,
-      (flea_tls_flag_e) tls_cfg.flags
+      tls_cfg.flags | FLEA_TLS_CFG_FLAG__SHA1_CERT_SIGALG__ALLOW
     )
   );
   printf("session was resumed = %u\n", client_session__pt->for_resumption__u8);
+  flea_tls_test_tool_print_peer_cert_info(&tls_ctx, nullptr);
   for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("do_renegs", 0); i++)
   {
     FLEA_CCALL(
@@ -156,7 +156,7 @@ static flea_err_t THR_flea_start_tls_client(
         cert_chain,
         cert_chain_len,
         &cipher_suites_ref,
-        tls_cfg.rev_chk_mode__e,
+        // tls_cfg.rev_chk_mode__e,
         &tls_cfg.crls_refs[0],
         tls_cfg.crls.size()
       )

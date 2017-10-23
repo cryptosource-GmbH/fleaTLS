@@ -5,44 +5,36 @@
 
 #include "internal/common/default.h"
 #include "flea/types.h"
-// #include "internal/common/tls/tls_common.h"
 #include "flea/byte_vec.h"
 #include "flea/crl.h"
-// #include "internal/common/tls/tls_int.h"
-// #include "flea/tls_session_mngr.h"
-// #include "flea/tls_client_session.h"
 
 #ifdef FLEA_HAVE_TLS
+
 # ifdef __cplusplus
 extern "C" {
 # endif
 
-typedef enum
-{
-  flea_tls_flag__read_timeout_during_handshake__ = 1
-} flea_tls_flag_e;
+// DONE:
+# define FLEA_TLS_CFG_FLAG__RENEG_MODE__DISALLOW_RENEG       0x0
+# define FLEA_TLS_CFG_FLAG__RENEG_MODE__ALLOW_SECURE_RENEG   0x1
+# define FLEA_TLS_CFG_FLAG__RENEG_MODE__ALLOW_INSECURE_RENEG 0x2
 
-// defines for max sizes to allocate on the stack
-// TODO: use values in algo_config.h?
-// #define FLEA_TLS_MAX_RECORD_DATA_SIZE 16384 // 2^14 max record sizeof
-// # define FLEA_TLS_MAX_PADDING_SIZE 255 // each byte must hold the padding value => 255 is max
+// TODO: NEXT RELEASE
+# define FLEA_TLS_CFG_FLAG__RENEG_CERT_CHANGE__ALLOW 0x4
 
-// TODO: split up secure_reneg into ..._cert_fixed, cert_variable
-typedef enum
-{
-  flea_tls_no_reneg,
-  flea_tls_only_secure_reneg,
-  flea_tls_allow_insecure_reneg
-} flea_tls_renegotiation_spec_e;
+// DONE:
+# define FLEA_TLS_CFG_FLAG__SHA1_CERT_SIGALG__ALLOW 0x8
 
-typedef struct
-{
-  flea_rev_chk_mode_e    rev_chk_mode__e;
-  const flea_byte_vec_t* crl_der__pt;
-  flea_u16_t             nb_crls__u16;
-} flea_revoc_chk_cfg_t;
+// DONE:
+# define FLEA_TLS_CFG_FLAG__REV_CHK_MODE__CHECK_ALL     0x00
+# define FLEA_TLS_CFG_FLAG__REV_CHK_MODE__CHECK_ONLY_EE 0x20
+# define FLEA_TLS_CFG_FLAG__REV_CHK_MODE__CHECK_NONE    0x40
 
-
+// TODO: NEXT RELEASE
+# define FLEA_TLS_CFG_FLAG__MIN_KEY_STRENGTH_SYM_BITS__80  0x380
+# define FLEA_TLS_CFG_FLAG__MIN_KEY_STRENGTH_SYM_BITS__100 0x180
+# define FLEA_TLS_CFG_FLAG__MIN_KEY_STRENGTH_SYM_BITS__128 0x000
+// # define FLEA_TLS_CFG_FLAG__MIN_KEY_STRENGTH_SYM_BITS__256   0x000
 # ifdef __cplusplus
 }
 # endif

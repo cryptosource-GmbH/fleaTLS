@@ -2,6 +2,7 @@
 
 #include "internal/common/default.h"
 #include "flea/tls.h"
+#include "flea/array_util.h"
 #include "flea/byte_vec.h"
 #include "pc/test_pc.h"
 #include "pc/test_util.h"
@@ -188,19 +189,19 @@ namespace {
     return result;
   } // get_cipher_suites_from_cmdl
 
-  flea_rev_chk_mode_e string_to_rev_chk_mode(std::string const& s)
+  static flea_u16_t string_to_rev_chk_flags(std::string const& s)
   {
     if(s == "all")
     {
-      return flea_rev_chk_all;
+      return 0;
     }
     else if((s == "") || (s == "none"))
     {
-      return flea_rev_chk_none;
+      return FLEA_TLS_CFG_FLAG__REV_CHK_MODE__CHECK_NONE;
     }
     else if(s == "only_ee")
     {
-      return flea_rev_chk_only_ee;
+      return FLEA_TLS_CFG_FLAG__REV_CHK_MODE__CHECK_ONLY_EE;
     }
     throw test_utils_exceptn_t("invalid value for property 'rev_chk': '" + s + "'");
   }
@@ -214,7 +215,7 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   tls_test_cfg_t      & cfg
 )
 {
-  cfg.flags = (flea_tls_flag_e) 0;
+  cfg.flags = 0;
 
 
   std::string read_mode_s = cmdl_args.get_property_as_string_default_empty("app_data_read_mode");
@@ -253,8 +254,8 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
       );
     }
   }
-  cfg.rev_chk_mode__e = string_to_rev_chk_mode(cmdl_args.get_property_as_string_default_empty("rev_chk"));
-  cfg.crls = cmdl_args.get_bin_file_list_property("crls");
+  cfg.flags |= string_to_rev_chk_flags(cmdl_args.get_property_as_string_default_empty("rev_chk"));
+  cfg.crls   = cmdl_args.get_bin_file_list_property("crls");
   for(auto &crl : cfg.crls)
   {
     flea_byte_vec_t bv;// = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE ;
@@ -266,6 +267,9 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   cfg.cipher_suites    = get_cipher_suites_from_cmdl(cmdl_args);
   cfg.allowed_curves   = get_allowed_ecc_curves_from_cmdl(cmdl_args);
   cfg.allowed_sig_algs = get_allowed_sig_algs_from_cmdl(cmdl_args);
+
+  cfg.flags |= reneg_flag_from_string(cmdl_args.get_property_as_string_default_empty("reneg_mode"));
+
   FLEA_THR_BEG_FUNC();
 
   /*if(cfg.trusted_certs.size() == 0)
@@ -315,5 +319,128 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
 
   FLEA_THR_FIN_SEC_empty();
 } // THR_flea_tls_tool_set_tls_cfg
+
+static std::string rcu8_to_string(flea_ref_cu8_t* ref__prcu8)
+{
+  char buf__as8[1000];
+
+  if(ref__prcu8->len__dtl >= sizeof(buf__as8))
+  {
+    return std::string("excessiv data length");
+  }
+  memcpy(buf__as8, ref__prcu8->data__pcu8, ref__prcu8->len__dtl);
+  buf__as8[ref__prcu8->len__dtl] = 0;
+  std::string result(static_cast<const char*>(buf__as8));
+  return result;
+}
+
+static void print_cert_info(const flea_x509_cert_ref_t* cert_ref__pt)
+{
+  flea_dn_cmpnt_e dn_comps__ace[] = {
+    flea_dn_cmpnt_cn,
+    flea_dn_cmpnt_country,
+    flea_dn_cmpnt_org,
+    flea_dn_cmpnt_org_unit,
+# ifdef FLEA_HAVE_X509_DN_DETAILS
+    flea_dn_cmpnt_dn_qual,
+    flea_dn_cmpnt_locality_name,
+    flea_dn_cmpnt_state_or_province,
+    flea_dn_cmpnt_serial_number,
+    flea_dn_cmpnt_domain_cmpnt_attrib
+# endif
+  };
+
+  std::string dn_comps_strings[] = {
+    "cn",
+    "country",
+    "org",
+    "org_unit",
+# ifdef FLEA_HAVE_X509_DN_DETAILS
+    "dn_qual",
+    "locality_name",
+    "state_or_province",
+    "serial_number",
+    "domain_cmpnt_attrib"
+# endif
+  };
+  std::string subject_str, issuer_str;
+  for(unsigned i = 0; i < FLEA_NB_ARRAY_ENTRIES(dn_comps__ace); i++)
+  {
+    flea_ref_cu8_t ref__rcu8;
+    std::string this_label;
+    if(i != 0)
+    {
+      this_label += "\n";
+    }
+    this_label  += "    ";
+    this_label  += dn_comps_strings[i] + "=";
+    issuer_str  += this_label;
+    subject_str += this_label;
+    if(THR_flea_x509_cert_ref_t__get_issuer_dn_component(cert_ref__pt, dn_comps__ace[i], &ref__rcu8))
+    {
+      issuer_str += "error accessing dn component\n";
+    }
+    issuer_str += rcu8_to_string(&ref__rcu8);
+    if(THR_flea_x509_cert_ref_t__get_subject_dn_component(cert_ref__pt, dn_comps__ace[i], &ref__rcu8))
+    {
+      subject_str += "error accessing dn component\n";
+    }
+    subject_str += rcu8_to_string(&ref__rcu8);
+  }
+  std::cout << "  subject DN: \n" + subject_str + "\n";
+  std::cout << "  issuer DN: \n" + issuer_str + "\n";
+} // print_cert_info
+
+void flea_tls_test_tool_print_peer_cert_info(
+  flea_tls_client_ctx_t* client_ctx_mbn__pt,
+  flea_tls_server_ctx_t* server_ctx_mbn__pt
+)
+{
+# ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+  const flea_x509_cert_ref_t* ee_ref__pt = nullptr;
+  if(client_ctx_mbn__pt)
+  {
+    if(flea_tls_client_ctx_t__have_peer_ee_cert_ref(client_ctx_mbn__pt))
+    {
+      ee_ref__pt = flea_tls_client_ctx_t__get_peer_ee_cert_ref(client_ctx_mbn__pt);
+    }
+  }
+  else if(server_ctx_mbn__pt)
+  {
+    if(flea_tls_server_ctx_t__have_peer_ee_cert_ref(server_ctx_mbn__pt))
+    {
+      ee_ref__pt = flea_tls_server_ctx_t__get_peer_ee_cert_ref(server_ctx_mbn__pt);
+    }
+  }
+  if(ee_ref__pt)
+  {
+    std::cout << "EE cert:\n";
+    print_cert_info(ee_ref__pt);
+  }
+# endif // ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+# ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
+  const flea_x509_cert_ref_t* root_ref__pt = nullptr;
+  if(client_ctx_mbn__pt)
+  {
+    if(flea_tls_client_ctx_t__have_peer_root_cert_ref(client_ctx_mbn__pt))
+    {
+      root_ref__pt = flea_tls_client_ctx_t__get_peer_root_cert_ref(client_ctx_mbn__pt);
+    }
+  }
+  else if(server_ctx_mbn__pt)
+  {
+    if(flea_tls_server_ctx_t__have_peer_root_cert_ref(server_ctx_mbn__pt))
+    {
+      root_ref__pt = flea_tls_server_ctx_t__get_peer_root_cert_ref(server_ctx_mbn__pt);
+    }
+  }
+  if(root_ref__pt)
+  {
+    std::cout << "root cert:\n";
+    print_cert_info(root_ref__pt);
+  }
+} // flea_tls_test_tool_print_peer_cert_info
+
+# endif // ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 #endif // ifdef FLEA_HAVE_TLS

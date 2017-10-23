@@ -262,6 +262,7 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
 typedef enum { validate_server_cert, validate_client_cert, validate_ca_cert } cert_validation_type_e;
 
 static flea_err_t THR_flea_tls__validate_cert(
+  flea_tls_ctx_t*                    tls_ctx__pt,
   flea_rw_stream_t*                  rd_strm__pt,
   flea_u32_t                         new_cert_len__u32,
   flea_public_key_t*                 pubkey_out__pt,
@@ -457,6 +458,11 @@ static flea_err_t THR_flea_tls__validate_cert(
     }
 
 
+    /* MD5 is generally not supported in flea certificate verification */
+    if(!(tls_ctx__pt->cfg_flags__u16 & FLEA_TLS_CFG_FLAG__SHA1_CERT_SIGALG__ALLOW) && (*tbs_hash_id__pe == flea_sha1))
+    {
+      FLEA_THROW("SHA1 not supported", FLEA_ERR_X509_UNRECOG_HASH_FUNCTION);
+    }
     FLEA_CCALL(
       THR_flea_public_key_t__verify_digest_plain_format(
         pubkey_out__pt,
@@ -704,17 +710,17 @@ flea_err_t THR_flea_tls__cert_path_validation(
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(cycling_issuer_dn, FLEA_X509_MAX_ISSUER_DN_RAW_BYTE_LEN);
   flea_hash_id_t cycling_hash_id;
   flea_public_key_t* pubkey_ptr__pt = pubkey_to_construct__pt;
-
+  const flea_ref_cu8_t* trusted__prcu8;
+  flea_mem_read_stream_help_t mem_hlp__t;
   FLEA_THR_BEG_FUNC();
-  rd_strm__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
   FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&compare_time__t));
 
   do
   {
     flea_bool_t is_cert_trusted__b;
     flea_u32_t new_cert_len__u32;
-
-
+    rd_strm__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
+    flea_al_u16_t trusted_idx__alu16;
     if(!flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt))
     {
       FLEA_THROW("no trusted certificate found in TLS path validation", FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS);
@@ -729,11 +735,24 @@ flea_err_t THR_flea_tls__cert_path_validation(
     }
 
     FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(rd_strm__pt, &new_cert_len__u32, 3));
+# ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+    if(iter__alu16 == 0)
+    {
+      if(new_cert_len__u32 > (flea_dtl_t) -1)
+      {
+        FLEA_THROW("excessive certificate size", FLEA_ERR_ASN1_DER_EXCSS_LEN);
+      }
+      FLEA_CCALL(THR_flea_byte_vec_t__resize(&tls_ctx__pt->peer_ee_cert_data__t, new_cert_len__u32));
+      FLEA_CCALL(THR_flea_rw_stream_t__read_full(rd_strm__pt, tls_ctx__pt->peer_ee_cert_data__t.data__pu8, tls_ctx__pt->peer_ee_cert_data__t.len__dtl));
 
-
+      FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&mem_rd_strm__t, tls_ctx__pt->peer_ee_cert_data__t.data__pu8, tls_ctx__pt->peer_ee_cert_data__t.len__dtl, &mem_hlp__t));
+      rd_strm__pt = &mem_rd_strm__t;
+    }
+# endif /* ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF */
     // TODO: MAKE STRUCT FOR ALL THESE VALUES
     FLEA_CCALL(
       THR_flea_tls__validate_cert(
+        tls_ctx__pt,
         rd_strm__pt, // TODO: ALSO USE LENGTH LIMIT
         new_cert_len__u32,
         pubkey_ptr__pt,
@@ -752,6 +771,9 @@ flea_err_t THR_flea_tls__cert_path_validation(
         &previous_crldp__t
       )
     );
+# ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+    flea_rw_stream_t__dtor(&mem_rd_strm__t);
+# endif
 
     if(iter__alu16)
     {
@@ -765,13 +787,20 @@ flea_err_t THR_flea_tls__cert_path_validation(
         cycling_hash_id,
         cycling_tbs_hash__t.data__pu8,
         cycling_tbs_hash__t.len__dtl,
-        &is_cert_trusted__b
+        &is_cert_trusted__b,
+        &trusted_idx__alu16
       )
     );
     iter__alu16++;
     if(is_cert_trusted__b)
     {
-      FLEA_THR_RETURN();
+      finished__b = FLEA_TRUE;
+# ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
+
+      trusted__prcu8 = flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(trust_store__pt, trusted_idx__alu16);
+
+# endif
+      // FLEA_THR_RETURN();
     }
     else if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) < 4)
     {
@@ -780,17 +809,20 @@ flea_err_t THR_flea_tls__cert_path_validation(
       flea_al_u16_t i;
       for(i = 0; i < flea_cert_store_t__GET_NB_CERTS(trust_store__pt); i++)
       {
-        flea_mem_read_stream_help_t mem_hlp__t;
-        flea_ref_cu8_t* cert__prcu8 = flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(trust_store__pt, i);
+        // flea_ref_cu8_t* cert__prcu8 = flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(trust_store__pt, i);
+        trusted__prcu8 = flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(trust_store__pt, i);
         if(!flea_cert_store_t__is_cert_trusted(trust_store__pt, i))
         {
           continue;
         }
-        FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&mem_rd_strm__t, cert__prcu8->data__pcu8, cert__prcu8->len__dtl, &mem_hlp__t));
+        // FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&mem_rd_strm__t, cert__prcu8->data__pcu8, cert__prcu8->len__dtl, &mem_hlp__t));
+        FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&mem_rd_strm__t, trusted__prcu8->data__pcu8, trusted__prcu8->len__dtl, &mem_hlp__t));
 
         if(FLEA_ERR_FINE == THR_flea_tls__validate_cert(
+            tls_ctx__pt,
             &mem_rd_strm__t,
-            cert__prcu8->len__dtl,
+            // cert__prcu8->len__dtl,
+            trusted__prcu8->len__dtl,
             pubkey_ptr__pt,
             &cycling_signature__t,
             &cycling_tbs_hash__t,
@@ -808,7 +840,8 @@ flea_err_t THR_flea_tls__cert_path_validation(
             &previous_crldp__t
           ))
         {
-          FLEA_THR_RETURN();
+          // FLEA_THR_RETURN();
+          finished__b = FLEA_TRUE;
         }
         flea_rw_stream_t__dtor(&mem_rd_strm__t);
       }
@@ -817,6 +850,16 @@ flea_err_t THR_flea_tls__cert_path_validation(
 
     // iter__alu16++;
   } while(!finished__b);
+
+# ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
+  /* if finished, then a trusted cert was found */
+  FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&tls_ctx__pt->peer_root_cert_ref__t, trusted__prcu8->data__pcu8, trusted__prcu8->len__dtl));
+  tls_ctx__pt->peer_root_cert_set__u8 = FLEA_TRUE;
+# endif
+# ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+  FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&tls_ctx__pt->peer_ee_cert_ref__t, tls_ctx__pt->peer_ee_cert_data__t.data__pu8, tls_ctx__pt->peer_ee_cert_data__t.len__dtl));
+# endif
+
   FLEA_THR_FIN_SEC(
     flea_public_key_t__dtor(&cycling_pubkey__t);
     flea_byte_vec_t__dtor(&cycling_signature__t);

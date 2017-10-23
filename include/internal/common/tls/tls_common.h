@@ -120,12 +120,12 @@ flea_err_t THR_flea_tls__send_finished(
 );
 
 flea_err_t THR_flea_tls_ctx_t__construction_helper(
-  flea_tls_ctx_t*               ctx,
+  flea_tls_ctx_t*   ctx,
   // flea_tls_handshake_ctx_t* hs_ctx__pt,
   // flea_tls__handshake_state_t* hs_ctx__pt,
-  flea_rw_stream_t*             rw_stream__pt,
-  flea_tls_renegotiation_spec_e reneg_spec__e,
-  flea_tls_flag_e               flags__e
+  flea_rw_stream_t* rw_stream__pt
+  // flea_tls_renegotiation_spec_e reneg_spec__e
+  // flea_al_u16_t flags__alu16
 );
 
 void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state);
@@ -346,6 +346,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_point_formats_ext(
   flea_rw_stream_t* rd_strm__pt,
   flea_al_u16_t     ext_len__alu16
 );
+# endif // ifdef FLEA_HAVE_ECC
 
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt);
 
@@ -355,13 +356,14 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   flea_ref_cu8_t*                 cert_chain__pt,
   flea_al_u8_t                    cert_chain_len__alu8,
   const flea_ref_cu16_t*          allowed_cipher_suites__prcu16,
-  flea_rev_chk_mode_e             rev_chk_mode__e,
+  // flea_rev_chk_mode_e             rev_chk_mode__e,
   const flea_byte_vec_t*          crl_der__pt,
   flea_al_u16_t                   nb_crls__alu16,
   flea_hostn_validation_params_t* hostn_valid_params_mbn__pt
 );
-# endif // ifdef FLEA_HAVE_ECC
 
+
+void flea_tls_ctx_t__begin_handshake(flea_tls_ctx_t* tls_ctx__pt);
 # ifdef __cplusplus
 }
 # endif

@@ -5,6 +5,8 @@
 
 #include "flea/types.h"
 #include "flea/cert_store.h"
+#include "flea/tls_client.h"
+#include "flea/tls_server.h"
 #include "self_test.h"
 #include "flea/tls.h"
 #include <vector>
@@ -147,10 +149,10 @@ struct tls_test_cfg_t
   std::vector<flea_u8_t>                   allowed_curves;
   std::vector<flea_u8_t>                   allowed_sig_algs;
   std::vector<std::vector<flea_u8_t> >     crls;
-  flea_rev_chk_mode_e                      rev_chk_mode__e;
+  // flea_rev_chk_mode_e                      rev_chk_mode__e;
   std::vector<flea_byte_vec_t>             crls_refs;
   flea_stream_read_mode_e                  read_mode_for_app_data;
-  int                                      flags = 0;
+  flea_u16_t                               flags = 0;
   unsigned                                 timeout_secs_during_handshake = 0;
 };
 #ifdef FLEA_HAVE_ASYM_ALGS
@@ -164,6 +166,10 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
 );
 #endif
 
+void flea_tls_test_tool_print_peer_cert_info(
+  flea_tls_client_ctx_t* client_ctx_mbn__pt,
+  flea_tls_server_ctx_t* server_ctx_mbn__pt
+);
 
 std::vector<std::string> tokenize_string(
   std::string const& value,
@@ -176,6 +182,6 @@ std::string bin_to_hex(
   size_t               len
 );
 
-flea_tls_renegotiation_spec_e reneg_spec_from_string(std::string const& s);
+flea_u16_t reneg_flag_from_string(std::string const& s);
 
 #endif // ifndef __flea_test_util_cpp_H_

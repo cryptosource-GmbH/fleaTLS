@@ -131,7 +131,8 @@ flea_err_t THR_flea_cert_store_t__is_tbs_hash_trusted(
   flea_hash_id_t           tbs_cert_hash_id,
   const flea_u8_t*         tbs_cert_hash_to_check,
   flea_al_u8_t             tbs_cert_hash_to_check_len,
-  flea_bool_t*             result_is_trusted
+  flea_bool_t*             result_is_trusted,
+  flea_al_u16_t*           trusted_cert_idx__palu16
 );
 
 /**

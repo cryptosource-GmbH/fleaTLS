@@ -21,7 +21,7 @@
  * this flag to let flea only use stack buffers. In the latter case, be sure to
  * correctly define the RSA and EC key sizes.
  */
-# define FLEA_USE_HEAP_BUF // FBFLAGS_CORE_ON_OFF
+// # define FLEA_USE_HEAP_BUF // FBFLAGS_CORE_ON_OFF
 
 /**
  * Activate this flag to make use of the buffer overwrite detection. Should not
@@ -80,6 +80,7 @@
  */
 # define FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE 5 // FBFLAGS__INT_LIST 1 2 3 4 5
 
+# define FLEA_STKMD_X509_MAX_CERT_SIZE       2000
 
 /**
  * The maximum number of certificates in a chain, including the targert
@@ -203,6 +204,18 @@
 # define FLEA_TLS_MAX_NB_MNGD_SESSIONS 2  // FBFLAGS__INT_LIST 1 2 10 31 257
 # define FLEA_HAVE_TLS_CBC_CS
 # define FLEA_HAVE_TLS_GCM_CS
+
+/**
+ * If enabled, the tls client or server context will feature a flea_x509_cert_ref_t of the peer's
+ * EE certificate used during the handshake.
+ */
+# define FLEA_TLS_HAVE_PEER_EE_CERT_REF
+
+/**
+ * If enabled, the tls client or server context will feature a flea_x509_cert_ref_t of the root
+ * certificate used to authenticate the peer's EE certificate used during the handshake.
+ */
+# define FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 /**
  * Size of the buffer used in the cipher filter used inside TLS. Must be at

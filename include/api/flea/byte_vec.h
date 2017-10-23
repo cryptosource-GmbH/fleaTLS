@@ -95,6 +95,24 @@ typedef struct
     size) FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(name, size)
 #endif
 
+#ifdef FLEA_USE_HEAP_BUF
+# define flea_byte_vec_t__CTOR_ALLOCATABLE_OR_STACK_BUF(__byte_vec__pt, __stack_array__au8) \
+  do { \
+    (__byte_vec__pt)->data__pu8 = NULL; \
+    (__byte_vec__pt)->allo__dtl = 0; \
+    (__byte_vec__pt)->len__dtl  = 0; \
+    (__byte_vec__pt)->state__u8 = FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK; \
+  } while(0)
+#else
+# define flea_byte_vec_t__CTOR_ALLOCATABLE_OR_STACK_BUF(__byte_vec__pt, __stack_array__au8) \
+  do { \
+    (__byte_vec__pt)->data__pu8 = __stack_array__au8; \
+    (__byte_vec__pt)->allo__dtl = sizeof(__stack_array__au8); \
+    (__byte_vec__pt)->len__dtl  = 0; \
+    (__byte_vec__pt)->state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK; \
+  } while(0)
+#endif // ifdef FLEA_USE_HEAP_BUF
+
 /**
  * Init a byte vector.
  */

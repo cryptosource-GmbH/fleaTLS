@@ -32,12 +32,17 @@ extern "C" {
 #define FLEA_CONST_TLS_GCM_TAG_LEN             16
 
 
-#define FLEA_TLS_MAX_MAC_SIZE     FLEA_MAC_MAX_OUTPUT_LENGTH      // (512 / 8)
-#define FLEA_TLS_MAX_MAC_KEY_SIZE __FLEA_COMPUTED_MAC_MAX_KEY_LEN // 32
+#define FLEA_TLS_MAX_MAC_SIZE     FLEA_MAC_MAX_OUTPUT_LENGTH
+#define FLEA_TLS_MAX_MAC_KEY_SIZE __FLEA_COMPUTED_MAC_MAX_KEY_LEN
 #define FLEA_TLS_MAX_IV_SIZE      FLEA_MAX(FLEA_CIPHER_MAX_BLOCK_LEN, FLEA_CONST_TLS_GCM_RECORD_IV_LEN)
 
-/* fwd declaration */
 
+typedef struct
+{
+  flea_rev_chk_mode_e    rev_chk_mode__e;
+  const flea_byte_vec_t* crl_der__pt;
+  flea_u16_t             nb_crls__u16;
+} flea_revoc_chk_cfg_t;
 
 typedef enum { PRF_LABEL_TEST, PRF_LABEL_CLIENT_FINISHED, PRF_LABEL_SERVER_FINISHED, PRF_LABEL_MASTER_SECRET,
                PRF_LABEL_KEY_EXPANSION } PRFLabel;
@@ -104,12 +109,24 @@ struct struct_flea_tls_ctx_t
 
   // chosen hash algorithm in sig_alg extension. Signature algorithm is fixed by
   // the loaded certificate
-  flea_ref_cu8_t allowed_sig_algs__rcu8;
-  flea_hash_id_t chosen_hash_algorithm__t; // use as hash alg when signing with private key (server and client)
-  flea_bool_t    can_use_ecdhe;            // true if sig alg extension produces a match so we can sign the ECDHE params
+  flea_ref_cu8_t       allowed_sig_algs__rcu8;
+  flea_hash_id_t       chosen_hash_algorithm__t; // use as hash alg when signing with private key (server and client)
+  flea_bool_t          can_use_ecdhe;            // true if sig alg extension produces a match so we can sign the ECDHE params
   // flea_stream_read_mode_e    handshake_read_mode__e;
   // flea_tls_flag_e flags;
-  // TODO: MAKE UNION WITH CLIENT PRIVATE KEY:
+  flea_u16_t           cfg_flags__u16;
+#ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+# ifdef FLEA_USE_STACK_BUF
+  flea_u8_t            peer_ee_cert__au8[FLEA_STKMD_X509_MAX_CERT_SIZE];
+# endif
+  flea_byte_vec_t      peer_ee_cert_data__t;
+  flea_x509_cert_ref_t peer_ee_cert_ref__t;
+#endif
+#ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
+  // TODO: NEEDS TO BE SET BY TLS CODE
+  flea_x509_cert_ref_t peer_root_cert_ref__t;
+  flea_u8_t            peer_root_cert_set__u8;
+#endif
 };
 
 struct struct_flea_tls_handshake_ctx_t

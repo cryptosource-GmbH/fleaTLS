@@ -131,7 +131,8 @@ flea_err_t THR_flea_cert_store_t__is_tbs_hash_trusted(
   flea_hash_id_t           tbs_cert_hash_id__e,
   const flea_u8_t*         tbs_cert_hash_to_check__pcu8,
   flea_al_u8_t             tbs_cert_hash_to_check_len__alu8,
-  flea_bool_t*             result_is_trusted__pb
+  flea_bool_t*             result_is_trusted__pb,
+  flea_al_u16_t*           trusted_cert_idx__palu16
 )
 {
   flea_al_u16_t i;
@@ -167,7 +168,8 @@ flea_err_t THR_flea_cert_store_t__is_tbs_hash_trusted(
           tbs_cert_hash_to_check_len__alu8
         ))
       {
-        *result_is_trusted__pb = FLEA_TRUE;
+        *result_is_trusted__pb    = FLEA_TRUE;
+        *trusted_cert_idx__palu16 = i;
         break;
       }
     }
