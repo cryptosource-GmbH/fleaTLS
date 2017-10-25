@@ -53,7 +53,6 @@ typedef struct
   flea_pk_scheme_id_t pk_scheme_id__t;
 } flea_tls__hash_sig_t;
 
-
 struct struct_flea_tls_ctx_t
 {
   flea_tls__connection_end_t connection_end; /* Server or Client */
