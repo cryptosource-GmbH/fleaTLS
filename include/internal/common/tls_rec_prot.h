@@ -7,11 +7,10 @@
 #include "flea/error.h"
 #include "internal/common/tls_ciph_suite.h"
 #include "internal/common/tls_conn_state.h"
-// #include "internal/common/tls/tls_int.h"
-#include "internal/common/tls/tls_common.h"
+#include "internal/common/tls/tls_ctx_fwd.h"
+// #include "internal/common/tls/tls_common.h"
 #include "flea/rw_stream.h"
 #include "internal/common/tls/tls_rec_prot_fwd.h"
-// #include "flea/tls_session_mngr.h"
 
 #ifdef __cplusplus
 extern "C" {

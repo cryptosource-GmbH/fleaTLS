@@ -2,6 +2,7 @@
 
 #include "internal/common/default.h"
 #include "flea/error_handling.h"
+#include "flea/tls_session_mngr.h"
 #include "flea/alloc.h"
 #include "flea/array_util.h"
 #include "flea/bin_utils.h"
@@ -16,10 +17,8 @@
 #include "internal/common/tls/tls_int.h"
 #include "internal/common/tls/tls_client_int.h"
 #include "flea/rng.h"
-#include <stdio.h>
 #include "flea/pk_api.h"
 #include "flea/pkcs8.h"
-#include "flea/tls_session_mngr.h"
 
 #ifdef FLEA_HAVE_TLS
 

@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #include "internal/common/default.h"
 #include "flea/tls_session_mngr.h"
 #include "flea/error_handling.h"
@@ -13,7 +15,6 @@ flea_err_t THR_flea_tls_session_mngr_t__ctor(flea_tls_session_mngr_t* session_mn
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM_ARR(session_mngr__pt->sessions__bt, FLEA_TLS_SESSION_MNGR_INITIAL_ALLOC_SESSIONS);
   session_mngr__pt->nb_alloc_sessions__dtl = FLEA_TLS_SESSION_MNGR_INITIAL_ALLOC_SESSIONS;
-  // memset(session_mngr__pt->use_cnt__bu16, 0,
 #else
   session_mngr__pt->nb_alloc_sessions__dtl = FLEA_TLS_MAX_NB_MNGD_SESSIONS;
 #endif

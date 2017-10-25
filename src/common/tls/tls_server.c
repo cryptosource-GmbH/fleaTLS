@@ -20,6 +20,7 @@
 #include "flea/ec_key_gen.h"
 #include "flea/byte_vec.h"
 #include "flea/ecka.h"
+#include "flea/tls_session_mngr.h"
 
 #ifdef FLEA_HAVE_TLS
 

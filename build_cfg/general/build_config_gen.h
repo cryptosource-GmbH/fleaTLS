@@ -21,7 +21,7 @@
  * this flag to let flea only use stack buffers. In the latter case, be sure to
  * correctly define the RSA and EC key sizes.
  */
-// # define FLEA_USE_HEAP_BUF // FBFLAGS_CORE_ON_OFF
+# define FLEA_USE_HEAP_BUF // FBFLAGS_CORE_ON_OFF
 
 /**
  * Activate this flag to make use of the buffer overwrite detection. Should not
@@ -158,8 +158,7 @@
 
 /**
  * This value defines the maximal accepted length of name components (e.g. in
- * the Subject Alternative Name X.509 certificate extension). In stack mode,
- * this determines allocated buffer sizes.
+ * the Subject Alternative Name X.509 certificate extension).
  * Must not exceed 0xFFFF.
  */
 # define FLEA_X509_NAME_COMPONENT_MAX_BYTE_LEN 256
