@@ -15,7 +15,76 @@ const int ASN1_TYPE_GeneralizedTime = 24;
 
 #define ASCII_NUM_OFFSET 48
 
+#define FLEA_HAVE_TLS_SESSION_SUPPORT
+#ifdef FLEA_HAVE_TLS_SESSION_SUPPORT
+static flea_u32_t add_mod_n_return_multiples(
+  flea_u8_t*   io__palu16,
+  flea_u32_t   a__u32,
+  flea_al_u8_t mod
+)
+{
+  flea_u32_t sum__u32 = *io__palu16 + a__u32;
 
+  *io__palu16 = sum__u32 % mod;
+  return sum__u32 / mod;
+}
+
+static flea_al_u8_t days_of_month(
+  flea_al_u8_t month_1_to_12,
+  flea_u16_t   year
+)
+{
+  flea_bool_t odd_month = month_1_to_12 % 2;
+
+  if(month_1_to_12 == 2)
+  {
+    if(year % 4)
+    {
+      return 28;
+    }
+    return 29;
+  }
+  if(month_1_to_12 <= 6)
+  {
+    if(odd_month)
+    {
+      return 31;
+    }
+    return 30;
+  }
+  if(odd_month)
+  {
+    return 30;
+  }
+  return 31;
+}
+
+void flea_gmt_time_t__add_second_to_date(
+  flea_gmt_time_t* date__pt,
+  flea_u32_t       time_span_seconds__u32
+)
+{
+  flea_u32_t carry__u32;
+  flea_al_u8_t month_days__alu8;
+
+  carry__u32  = add_mod_n_return_multiples(&date__pt->seconds, time_span_seconds__u32, 60);
+  carry__u32  = add_mod_n_return_multiples(&date__pt->minutes, carry__u32, 60);
+  carry__u32  = add_mod_n_return_multiples(&date__pt->hours, carry__u32, 24);
+  carry__u32 += date__pt->day;
+  while(carry__u32 > (month_days__alu8 = days_of_month(date__pt->month, date__pt->year)))
+  {
+    carry__u32 -= month_days__alu8;
+    date__pt->month++;
+    if(date__pt->month > 12)
+    {
+      date__pt->month = 1;
+      date__pt->year++;
+    }
+  }
+  date__pt->day = carry__u32;
+}
+
+#endif /* ifdef FLEA_HAVE_TLS_SESSION_SUPPORT */
 flea_err_t THR_flea_asn1_parse_gmt_time_optional(
   flea_ber_dec_t*  dec__t,
   flea_gmt_time_t* utctime__pt,

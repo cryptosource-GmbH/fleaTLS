@@ -9,7 +9,7 @@ extern "C" {
 
 #include "flea/types.h"
 #include "flea/byte_vec.h"
-#include "internal/common/tls/tls_session_int.h"
+#include "internal/common/tls/tls_session_mngr_int.h"
 
 typedef struct
 {

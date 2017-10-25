@@ -5,8 +5,9 @@
 
 #include "internal/common/default.h"
 #include "flea/types.h"
-#include "internal/common/tls/tls_rec_prot_fwd.h"
-#include "internal/common/tls/tls_session_int.h"
+// #include "internal/common/tls/tls_rec_prot_fwd.h"
+// #include "internal/common/tls/tls_session_mngr_int.h"
+#include "internal/common/tls/tls_session_int_fwd.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -35,23 +36,12 @@ void flea_tls_session_data_t__set_seqs(
 );
 #endif // if 0
 
-flea_bool_t flea_tls_session_data_t__is_valid_session(const flea_tls_session_data_t* session__pt);
 
-flea_err_t THR_flea_tls_session_mngr_t__ctor(flea_tls_session_mngr_t* session_mngr__pt);
-
-flea_err_t THR_flea_tls_session_mngr_t__get_free_session_slot(
-  flea_tls_session_mngr_t*   session_mngr__pt,
-  flea_tls_session_entry_t** result__ppt
-);
-flea_tls_session_entry_t* flea_tls_session_mngr_t__session_cache_lookup(
+flea_err_t THR_flea_tls_session_mngr_t__ctor(
   flea_tls_session_mngr_t* session_mngr__pt,
-  const flea_u8_t*         session_id__pcu8,
-  flea_al_u8_t             session_id_len__alu8
+  flea_u32_t               session_validity_period_seconds__u32
 );
 
-void flea_tls_session_data_t__invalidate_session(flea_tls_session_data_t* session__pt);
-
-void flea_tls_session_data_t__set_session_as_valid(flea_tls_session_data_t* session__pt);
 
 #ifdef __cplusplus
 }

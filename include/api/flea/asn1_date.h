@@ -57,6 +57,11 @@ int flea_asn1_cmp_utc_time(
 );
 
 
+void flea_gmt_time_t__add_second_to_date(
+  flea_gmt_time_t* date__pt,
+  flea_u32_t       time_span_seconds__u32
+);
+
 #ifdef __cplusplus
 }
 #endif

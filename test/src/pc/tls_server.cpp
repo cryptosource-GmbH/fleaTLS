@@ -431,7 +431,12 @@ int flea_start_tls_server(property_set_t const& cmdl_args)
 
   FLEA_THR_BEG_FUNC();
   flea_tls_session_mngr_t__INIT(&sess_man__t);
-  FLEA_CCALL(THR_flea_tls_session_mngr_t__ctor(&sess_man__t));
+  FLEA_CCALL(
+    THR_flea_tls_session_mngr_t__ctor(
+      &sess_man__t,
+      cmdl_args.get_property_as_u32_default("session_validity_seconds", 3600)
+    )
+  );
   if((err = THR_flea_start_tls_server(cmdl_args, false, &sess_man__t)))
   {
     /** this case currently only captures errors during the opening of the listening

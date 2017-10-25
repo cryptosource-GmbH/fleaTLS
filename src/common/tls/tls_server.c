@@ -3,6 +3,7 @@
 #include "internal/common/default.h"
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
+#include "internal/common/tls/tls_session_mngr_int.h"
 #include "flea/array_util.h"
 #include "flea/bin_utils.h"
 #include "flea/tls.h"
@@ -11,7 +12,6 @@
 #include "internal/common/tls/tls_rec_prot_rdr.h"
 #include "internal/common/tls/tls_common.h"
 #include "flea/rng.h"
-#include <stdio.h>
 #include "flea/pkcs8.h"
 #include "flea/rsa.h"
 #include "flea/pk_api.h"
@@ -20,7 +20,7 @@
 #include "flea/ec_key_gen.h"
 #include "flea/byte_vec.h"
 #include "flea/ecka.h"
-#include "flea/tls_session_mngr.h"
+// #include "flea/tls_session_mngr.h"
 
 #ifdef FLEA_HAVE_TLS
 
@@ -34,6 +34,10 @@ static flea_err_t THR_flea_tls__read_client_hello(
   flea_u8_t client_version_major_minor__au8[2];
   flea_u8_t session_id_len__u8;
   flea_bool_t found_sec_reneg__b = FLEA_FALSE;
+  flea_bool_t found = FLEA_FALSE;
+  flea_u16_t supported_cs_len__u16 = tls_ctx->allowed_cipher_suites__prcu16->len__dtl;
+  flea_u16_t supported_cs_index__u16;
+  flea_u16_t chosen_cs_index__u16 = supported_cs_len__u16;
 
   // TODO: NEED ONLY THE DEFINED SERVER SESSION ID LEN:
   // UPDATE(JR): so buffer size is FLEA_TLS_SESSION_ID_LEN ? And we need to
@@ -165,10 +169,6 @@ static flea_err_t THR_flea_tls__read_client_hello(
   }
 # endif
 
-  flea_bool_t found = FLEA_FALSE;
-  flea_u16_t supported_cs_len__u16 = tls_ctx->allowed_cipher_suites__prcu16->len__dtl;
-  flea_u16_t supported_cs_index__u16;
-  flea_u16_t chosen_cs_index__u16 = supported_cs_len__u16;
   while(cipher_suites_len_from_peer__u16)
   {
     flea_u8_t curr_cs__au8[2];
