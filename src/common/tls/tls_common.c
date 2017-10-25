@@ -354,8 +354,12 @@ flea_err_t THR_flea_tls__generate_key_block(
       flea_tls__prf_mac_id_from_suite_id((flea_tls__cipher_suite_id_t) selected_cipher_suite__alu16)
     )
   );
-  FLEA_THR_FIN_SEC_empty(
-    // flea_swap_mem(security_parameters__pt->client_and_server_random__bu8, security_parameters__pt->client_and_server_random__bu8 + FLEA_TLS_HELLO_RANDOM_SIZE,FLEA_TLS_HELLO_RANDOM_SIZE);
+  FLEA_THR_FIN_SEC(
+    flea_swap_mem(
+      hs_ctx__pt->client_and_server_random__pt->data__pu8,
+      hs_ctx__pt->client_and_server_random__pt->data__pu8 + FLEA_TLS_HELLO_RANDOM_SIZE,
+      FLEA_TLS_HELLO_RANDOM_SIZE
+    );
   );
 } /* THR_flea_tls__generate_key_block */
 
