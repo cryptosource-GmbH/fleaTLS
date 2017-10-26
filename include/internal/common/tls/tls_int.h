@@ -104,7 +104,6 @@ struct struct_flea_tls_ctx_t
   flea_x509_cert_ref_t peer_ee_cert_ref__t;
 #endif
 #ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
-  // TODO: NEEDS TO BE SET BY TLS CODE
   flea_x509_cert_ref_t peer_root_cert_ref__t;
   flea_u8_t            peer_root_cert_set__u8;
 #endif
