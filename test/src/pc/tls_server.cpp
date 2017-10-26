@@ -173,7 +173,7 @@ static flea_err_t THR_server_cycle(
   flea_tls_session_mngr_t* sess_man__pt
 )
 {
-  flea_u8_t buf[1000];
+  flea_u8_t buf[100000];
   flea_ref_cu8_t allowed_ecc_curves__rcu8;
   flea_ref_cu8_t allowed_sig_algs__rcu8;
   flea_ref_cu16_t cipher_suites_ref;

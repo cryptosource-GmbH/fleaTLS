@@ -164,9 +164,10 @@ static flea_err_t THR_flea_start_tls_client(
   }
   while(cmdl_args.have_index("stay"))
   {
-    flea_u8_t buf[1000];
+    flea_u8_t buf[100000];
     flea_al_u16_t buf_len = sizeof(buf) - 1;
     FLEA_CCALL(THR_flea_tls_client_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking));
+    FLEA_CCALL(THR_flea_tls_client_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
     buf[buf_len] = 0;
     printf("received data: %s\n", buf);
     usleep(10000);
