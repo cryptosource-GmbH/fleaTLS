@@ -163,6 +163,7 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_test_gmt_time());
 
       CALL_TEST(THR_flea_test_asn1_date());
+      CALL_TEST(THR_flea_test_date_addition());
 
 #ifdef __FLEA_HAVE_LINUX_FILESYSTEM
 # if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_MOD_BIT_SIZE >= 224

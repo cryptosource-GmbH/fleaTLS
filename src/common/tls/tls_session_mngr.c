@@ -128,7 +128,7 @@ flea_err_t THR_flea_tls_session_mngr_t__get_free_session_slot(
     *result__ppt = least_frequently_used_session__pt;
   }
   FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&(*result__ppt)->valid_until__t));
-  flea_gmt_time_t__add_second_to_date(
+  flea_gmt_time_t__add_seconds_to_date(
     &(*result__ppt)->valid_until__t,
     session_mngr__pt->session_validity_period_seconds__u32
   );

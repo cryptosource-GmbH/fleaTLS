@@ -21,6 +21,16 @@ typedef struct
   flea_u8_t  seconds;
 } flea_gmt_time_t;
 
+#define flea_gmt_time_t__SET_YMDhms(__gmt_time__pt, Y, M, D, h, m, s) \
+  do { \
+    (__gmt_time__pt)->year    = (Y);  \
+    (__gmt_time__pt)->month   = (M);  \
+    (__gmt_time__pt)->day     = (D);  \
+    (__gmt_time__pt)->hours   = (h);  \
+    (__gmt_time__pt)->minutes = (m);  \
+    (__gmt_time__pt)->seconds = (s);  \
+  } while(0);
+
 flea_err_t THR_flea_asn1_parse_gmt_time(
   flea_ber_dec_t*  dec__t,
   flea_gmt_time_t* utctime__pt
@@ -57,7 +67,7 @@ int flea_asn1_cmp_utc_time(
 );
 
 
-void flea_gmt_time_t__add_second_to_date(
+void flea_gmt_time_t__add_seconds_to_date(
   flea_gmt_time_t* date__pt,
   flea_u32_t       time_span_seconds__u32
 );

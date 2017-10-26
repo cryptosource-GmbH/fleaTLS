@@ -44,7 +44,7 @@ static flea_al_u8_t days_of_month(
     }
     return 29;
   }
-  if(month_1_to_12 <= 6)
+  if(month_1_to_12 <= 7)
   {
     if(odd_month)
     {
@@ -59,7 +59,7 @@ static flea_al_u8_t days_of_month(
   return 31;
 }
 
-void flea_gmt_time_t__add_second_to_date(
+void flea_gmt_time_t__add_seconds_to_date(
   flea_gmt_time_t* date__pt,
   flea_u32_t       time_span_seconds__u32
 )
