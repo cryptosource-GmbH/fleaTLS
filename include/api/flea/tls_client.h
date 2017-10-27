@@ -10,16 +10,17 @@
 #include "internal/common/hostn_ver_int.h"
 #include "flea/tls_client_session.h"
 #include "flea/tls.h"
+#include "internal/common/tls/tls_fwd.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct
+struct struct_flea_tls_client_ctx_t
 {
   flea_tls_ctx_t                 tls_ctx__t;
   flea_hostn_validation_params_t hostn_valid_params__t;
-} flea_tls_client_ctx_t;
+};
 
 
 #define flea_tls_ctx_t__INIT(__p)        do {memset((__p), 0, sizeof(*(__p)));} while(0)

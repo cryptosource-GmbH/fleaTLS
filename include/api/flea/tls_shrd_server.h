@@ -6,15 +6,16 @@
 #include "internal/common/default.h"
 #include "flea/tls.h"
 #include "flea/privkey.h"
+#include "internal/common/tls/tls_fwd.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-typedef struct
+struct struct_flea_tls_shared_server_ctx_t
 {
   flea_private_key_t private_key__t;
-} flea_tls_shared_server_ctx_t;
+};
 
 #define flea_tls_shared_server_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
 

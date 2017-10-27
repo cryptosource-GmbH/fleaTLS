@@ -12,12 +12,6 @@ extern "C" {
 #endif
 
 
-typedef struct
-{
-  flea_tls_shared_server_ctx_t* shared_ctx__pt;
-  flea_tls_ctx_t                tls_ctx__t;
-} flea_tls_server_ctx_t;
-
 #define flea_tls_server_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
 
 void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx__pt);

@@ -13,6 +13,7 @@
 #include "flea/cert_store.h"
 #include "internal/common/tls/tls_ctx_fwd.h"
 #include "internal/common/tls/tls_const.h"
+#include "internal/common/tls/tls_fwd.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -78,10 +79,7 @@ struct struct_flea_tls_ctx_t
   flea_u8_t                    own_vfy_data__bu8[12];
   flea_u8_t                    peer_vfy_data__bu8[12];
 #endif
-  // TODO: into server
-  flea_tls_session_mngr_t*     session_mngr_mbn__pt;
-  flea_tls_session_entry_t*    server_active_sess_mbn__pt;
-  flea_u8_t                    server_resume_session__u8;
+  // flea_tls_session_entry_t*    server_active_sess_mbn__pt;
   flea_u8_t                    allow_reneg__u8;
   flea_u8_t                    allow_insec_reneg__u8;
   flea_u8_t                    extension_ctrl__u8;       /* used only by server */
@@ -116,6 +114,16 @@ struct struct_flea_tls_handshake_ctx_t
 
   flea_byte_vec_t*   client_and_server_random__pt;
   flea_tls_ctx_t*    tls_ctx__pt;
+};
+
+struct struct_flea_tls_server_ctx_t
+{
+  flea_tls_shared_server_ctx_t*  shared_ctx__pt;
+  flea_tls_ctx_t                 tls_ctx__t;
+  flea_tls_session_data_server_t active_session__t;
+  flea_u8_t                      server_resume_session__u8;
+  flea_u8_t                      server_session_id_assigned__u8;
+  flea_tls_session_mngr_t*       session_mngr_mbn__pt;
 };
 
 #ifdef __cplusplus

@@ -8,6 +8,7 @@
 #include "internal/common/tls/parallel_hash.h"
 #include "flea/tls_client_session.h"
 #include "flea/tls.h"
+#include "internal/common/tls/tls_fwd.h"
 
 #ifdef FLEA_HAVE_TLS
 # ifdef __cplusplus
@@ -158,14 +159,16 @@ flea_err_t THR_flea_tls__generate_key_block(
  * an error if the TLS session is terminated due to the error.
  */
 flea_err_t THR_flea_tls__handle_tls_error(
-  flea_tls_ctx_t* tls_ctx__pt,
-  flea_err_t      err__t,
-  flea_bool_t     is_reneg__b,
-  flea_bool_t     is_read_app_data__b
+  flea_tls_server_ctx_t* server_ctx_mbn__pt,
+  flea_tls_client_ctx_t* client_ctx_mbn__pt,
+  flea_err_t             err__t,
+  flea_bool_t            is_reneg__b,
+  flea_bool_t            is_read_app_data__b
 );
 
 flea_err_t THR_flea_tls_ctx_t__read_app_data(
-  flea_tls_ctx_t*                 tls_ctx__pt,
+  flea_tls_server_ctx_t*          server_ctx_mbn__pt,
+  flea_tls_client_ctx_t*          client_ctx_mbn__pt,
   flea_u8_t*                      data__pu8,
   flea_al_u16_t*                  data_len__palu16,
   flea_stream_read_mode_e         rd_mode__e,
@@ -173,15 +176,16 @@ flea_err_t THR_flea_tls_ctx_t__read_app_data(
 );
 
 flea_err_t THR_flea_tls_ctx_t__send_app_data(
-  flea_tls_ctx_t*  tls_ctx,
-  const flea_u8_t* data,
-  flea_u8_t        data_len
+  flea_tls_server_ctx_t* server_ctx_mbn__pt,
+  flea_tls_client_ctx_t* client_ctx_mbn__pt,
+  const flea_u8_t*       data,
+  flea_u8_t              data_len
 );
 
 flea_err_t THR_flea_tls_ctx_t__flush_write_app_data(flea_tls_ctx_t* tls_ctx);
 
 flea_err_t THR_flea_tls__server_handshake(
-  flea_tls_ctx_t* tls_ctx
+  flea_tls_server_ctx_t* server_ctx__pt
 );
 
 flea_err_t THR_flea_tls__client_handshake(
@@ -351,7 +355,8 @@ flea_err_t THR_flea_tls_ctx_t__parse_point_formats_ext(
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt);
 
 flea_err_t THR_flea_tls_ctx_t__renegotiate(
-  flea_tls_ctx_t*                 tls_ctx__pt,
+  flea_tls_server_ctx_t*          server_ctx_mbn__pt,
+  flea_tls_client_ctx_t*          client_ctx_mbn__pt,
   const flea_cert_store_t*        trust_store__pt,
   flea_ref_cu8_t*                 cert_chain__pt,
   flea_al_u8_t                    cert_chain_len__alu8,

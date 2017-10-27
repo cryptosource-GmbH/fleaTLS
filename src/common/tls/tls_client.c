@@ -1396,10 +1396,9 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
   tls_ctx__pt->client_session_mbn__pt        = session_mbn__pt;
-  tls_ctx__pt->session_mngr_mbn__pt           = NULL;
-  tls_ctx__pt->allowed_ecc_curves__rcu8       = *allowed_ecc_curves_ref__prcu8;
-  tls_ctx__pt->allowed_sig_algs__rcu8         = *allowed_sig_algs_ref__prcu8;
-  tls_ctx__pt->extension_ctrl__u8             = 0;
+  tls_ctx__pt->allowed_ecc_curves__rcu8      = *allowed_ecc_curves_ref__prcu8;
+  tls_ctx__pt->allowed_sig_algs__rcu8        = *allowed_sig_algs_ref__prcu8;
+  tls_ctx__pt->extension_ctrl__u8 = 0;
   tls_ctx__pt->private_key_for_client_mbn__pt = private_key_mbn__pt;
   if(((cert_chain_mbn__pt != NULL) && (private_key_mbn__pt == NULL)) ||
     ((cert_chain_mbn__pt == NULL) && (private_key_mbn__pt != NULL)))
@@ -1444,7 +1443,7 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   // TODO: REMOVE SESSION-OBJ AGAIN FROM FUNCTION SIGNATURES, IT IS NOW IN THE
   // TLS_CTX
   err__t = THR_flea_tls__client_handshake(tls_ctx__pt, session_mbn__pt, &tls_client_ctx__pt->hostn_valid_params__t);
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_ctx__pt, err__t, FLEA_FALSE, FLEA_FALSE));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(NULL, tls_client_ctx__pt, err__t, FLEA_FALSE, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__ctor_client */
 
@@ -1489,7 +1488,8 @@ flea_err_t THR_flea_tls_client_ctx_t__read_app_data(
 )
 {
   return THR_flea_tls_ctx_t__read_app_data(
-    &tls_client_ctx__pt->tls_ctx__t,
+    NULL,
+    tls_client_ctx__pt,
     data__pu8,
     data_len__palu16,
     rd_mode__e,
@@ -1503,7 +1503,7 @@ flea_err_t THR_flea_tls_client_ctx_t__send_app_data(
   flea_u8_t              data_len
 )
 {
-  return THR_flea_tls_ctx_t__send_app_data(&tls_client_ctx__pt->tls_ctx__t, data, data_len);
+  return THR_flea_tls_ctx_t__send_app_data(NULL, tls_client_ctx__pt, data, data_len);
 }
 
 flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t* tls_client_ctx__pt)
@@ -1523,7 +1523,8 @@ flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
 )
 {
   return THR_flea_tls_ctx_t__renegotiate(
-    &tls_client_ctx__pt->tls_ctx__t,
+    NULL,
+    tls_client_ctx__pt,
     trust_store__pt,
     cert_chain__pt,
     cert_chain_len__alu8,

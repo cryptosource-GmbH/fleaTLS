@@ -319,7 +319,7 @@ static flea_err_t THR_server_cycle(
       }
       FLEA_CCALL(THR_check_keyb_input());
       buf[buf_len] = 0;
-      printf("received data (len = %u): %s\n", buf_len, buf);
+      printf("received data len = %u\n", buf_len);
       printf("read_app_data returned\n");
       FLEA_CCALL(THR_flea_tls_server_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
       usleep(10000);

@@ -17,6 +17,10 @@ struct struct_flea_tls_session_data_t;
 
 typedef struct struct_flea_tls_session_data_t flea_tls_session_data_t;
 
+struct struct_flea_tls_session_data_server_t;
+
+typedef struct struct_flea_tls_session_data_server_t flea_tls_session_data_server_t;
+
 struct struct_flea_tls_session_mngr_t;
 
 typedef struct struct_flea_tls_session_mngr_t flea_tls_session_mngr_t;

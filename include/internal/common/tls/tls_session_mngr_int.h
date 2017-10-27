@@ -21,12 +21,18 @@ struct struct_flea_tls_session_data_t
   flea_u8_t  is_valid_session__u8;
 };
 
+struct struct_flea_tls_session_data_server_t
+{
+  flea_tls_session_data_t session_data__t;
+  flea_u8_t               session_id__au8[FLEA_TLS_SESSION_ID_LEN];
+  flea_gmt_time_t         valid_until__t;
+};
+
 struct struct_flea_tls_session_entry_t
 {
-  flea_tls_session_data_t session__t;
-  flea_u16_t              use_cnt__u16;
-  flea_gmt_time_t         valid_until__t;
-  flea_u8_t               session_id__au8[FLEA_TLS_SESSION_ID_LEN];
+  //  flea_tls_session_data_t session__t;
+  flea_tls_session_data_server_t session__t;
+  flea_u16_t                     use_cnt__u16;
 };
 
 struct struct_flea_tls_session_mngr_t
@@ -43,16 +49,35 @@ struct struct_flea_tls_session_mngr_t
 
 flea_bool_t flea_tls_session_data_t__is_valid_session(const flea_tls_session_data_t* session__pt);
 
+flea_bool_t flea_tls_session_mngr_t__load_session(
+  flea_tls_session_mngr_t*        session_mngr__pt,
+  const flea_u8_t*                session_id__pcu8,
+  flea_al_u8_t                    session_id_len__alu8,
+  flea_tls_session_data_server_t* result__pt
+);
 
-flea_err_t THR_flea_tls_session_mngr_t__get_free_session_slot(
-  flea_tls_session_mngr_t*   session_mngr__pt,
-  flea_tls_session_entry_t** result__ppt
+flea_err_t THR_flea_tls_session_mngr_t__store_session(
+  flea_tls_session_mngr_t*              session_mngr__pt,
+  const flea_tls_session_data_server_t* server_session_data__pt
 );
-flea_tls_session_entry_t* flea_tls_session_mngr_t__session_cache_lookup(
-  flea_tls_session_mngr_t* session_mngr__pt,
-  const flea_u8_t*         session_id__pcu8,
-  flea_al_u8_t             session_id_len__alu8
+
+flea_bool_t flea_tls_session_mngr_t__load_session(
+  flea_tls_session_mngr_t*        session_mngr__pt,
+  const flea_u8_t*                session_id__pcu8,
+  flea_al_u8_t                    session_id_len__alu8,
+  flea_tls_session_data_server_t* result__pt
 );
+
+/*flea_err_t THR_flea_tls_session_mngr_t__get_free_session_slot(
+ * flea_tls_session_mngr_t*   session_mngr__pt,
+ * flea_tls_session_entry_t** result__ppt
+ * );*/
+
+/*flea_tls_session_entry_t* flea_tls_session_mngr_t__session_cache_lookup(
+ * flea_tls_session_mngr_t* session_mngr__pt,
+ * const flea_u8_t*         session_id__pcu8,
+ * flea_al_u8_t             session_id_len__alu8
+ * );*/
 
 void flea_tls_session_data_t__invalidate_session(flea_tls_session_data_t* session__pt);
 
