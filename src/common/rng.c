@@ -11,12 +11,15 @@
 #include "flea/hash.h"
 #include "flea/types.h"
 #include "string.h"
+#include "pltf_support/mutex.h"
 
 static flea_ctr_mode_prng_t gl_rng_ctx__t;
 
+static FLEA_PLTFIF_MUTEX_TYPE rng_mutex__t;
 
 void flea_rng__deinit()
 {
+  FLEA_PLTFIF_DESTR_MUTEX(&rng_mutex__t);
   flea_ctr_mode_prng_t__dtor(&gl_rng_ctx__t);
 }
 
@@ -46,6 +49,7 @@ flea_err_t THR_flea_rng__reseed_persistent(
   FLEA_DECL_BUF(new_persistent_key__bu8, flea_u8_t, FLEA_AES256_KEY_BYTE_LENGTH);
   FLEA_DECL_BUF(compare__bu8, flea_u8_t, FLEA_AES256_KEY_BYTE_LENGTH);
   FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_FLEA_PLTFIF_LOCK_MUTEX(&rng_mutex__t));
   FLEA_ALLOC_BUF(new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
   FLEA_ALLOC_BUF(compare__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&gl_rng_ctx__t, seed__pcu8, seed_len__dtl));
@@ -59,6 +63,10 @@ flea_err_t THR_flea_rng__reseed_persistent(
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_SECRET_ARR(new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
     FLEA_FREE_BUF_SECRET_ARR(compare__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
+    if(THR_FLEA_PLTFIF_UNLOCK_MUTEX(&rng_mutex__t))
+  {
+    return FLEA_ERR_MUTEX_LOCK;
+  }
   );
 }
 
@@ -67,27 +75,57 @@ flea_err_t THR_flea_rng__reseed_volatile(
   flea_dtl_t       seed_len__dtl
 )
 {
-  return THR_flea_ctr_mode_prng_t__reseed(&gl_rng_ctx__t, seed__pcu8, seed_len__dtl);
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_FLEA_PLTFIF_LOCK_MUTEX(&rng_mutex__t));
+  FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&gl_rng_ctx__t, seed__pcu8, seed_len__dtl));
+
+  FLEA_THR_FIN_SEC(
+    if(THR_FLEA_PLTFIF_UNLOCK_MUTEX(&rng_mutex__t))
+  {
+    return FLEA_ERR_MUTEX_LOCK;
+  }
+  );
 }
 
-void flea_rng__flush()
+flea_err_t THR_flea_rng__flush()
 {
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_FLEA_PLTFIF_LOCK_MUTEX(&rng_mutex__t));
   flea_ctr_mode_prng_t__flush(&gl_rng_ctx__t);
+  FLEA_THR_FIN_SEC(
+    if(THR_FLEA_PLTFIF_UNLOCK_MUTEX(&rng_mutex__t))
+  {
+    return FLEA_ERR_MUTEX_LOCK;
+  }
+  );
 }
 
-void flea_rng__randomize_no_flush(
+flea_err_t THR_flea_rng__randomize_no_flush(
   flea_u8_t* mem__pu8,
   flea_dtl_t mem_len__dtl
 )
 {
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_FLEA_PLTFIF_LOCK_MUTEX(&rng_mutex__t));
   flea_ctr_mode_prng_t__randomize_no_flush(&gl_rng_ctx__t, mem__pu8, mem_len__dtl);
+  FLEA_THR_FIN_SEC(
+    if(THR_FLEA_PLTFIF_UNLOCK_MUTEX(&rng_mutex__t))
+  {
+    return FLEA_ERR_MUTEX_LOCK;
+  }
+  );
 }
 
-void flea_rng__randomize(
+flea_err_t THR_flea_rng__randomize(
   flea_u8_t* mem__pu8,
   flea_dtl_t mem_len__dtl
 )
 {
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_FLEA_PLTFIF_LOCK_MUTEX(&rng_mutex__t));
   flea_ctr_mode_prng_t__randomize_no_flush(&gl_rng_ctx__t, mem__pu8, mem_len__dtl);
-  flea_rng__flush();
+  FLEA_CCALL(THR_FLEA_PLTFIF_UNLOCK_MUTEX(&rng_mutex__t));
+  FLEA_CCALL(THR_flea_rng__flush());
+  FLEA_THR_FIN_SEC_empty(
+  );
 }

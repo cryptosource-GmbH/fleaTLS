@@ -1569,7 +1569,7 @@ flea_err_t THR_flea_mpi_t__random_integer(
 {
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_mpi_t__random_integer_no_flush(p_result, p_limit));
-  flea_rng__flush();
+  FLEA_CCALL(THR_flea_rng__flush());
   FLEA_THR_FIN_SEC(
   );
 }
@@ -1595,7 +1595,12 @@ flea_err_t THR_flea_mpi_t__random_integer_no_flush(
 
   do
   {
-    flea_rng__randomize_no_flush((flea_u8_t*) p_result->m_words, word_size * sizeof(p_result->m_words[0]));
+    FLEA_CCALL(
+      THR_flea_rng__randomize_no_flush(
+        (flea_u8_t*) p_result->m_words,
+        word_size * sizeof(p_result->m_words[0])
+      )
+    );
     // mask out the excess bits in the highest word
     if(bit_size)
     {
@@ -1605,4 +1610,4 @@ flea_err_t THR_flea_mpi_t__random_integer_no_flush(
   } while(0 <= flea_mpi_t__compare_absolute(p_result, p_limit));
 
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_mpi_t__random_integer_no_flush */

@@ -22,7 +22,7 @@ extern "C" {
  * @param mem_len the length of the area to be randomized
  *
  */
-void flea_rng__randomize(
+flea_err_t THR_flea_rng__randomize(
   flea_u8_t* mem,
   flea_dtl_t mem_len
 );

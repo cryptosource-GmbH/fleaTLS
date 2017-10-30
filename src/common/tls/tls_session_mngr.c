@@ -10,6 +10,7 @@
 #include "internal/pltf_if/time.h"
 #include "internal/common/tls/tls_session_mngr_int.h"
 
+
 #define FLEA_TLS_SESSION_MNGR_INITIAL_ALLOC_SESSIONS  2
 #define FLEA_TLS_SESSION_MNGR_PREALLOC_ALLOC_SESSIONS 2
 
@@ -28,16 +29,18 @@ flea_err_t THR_flea_tls_session_mngr_t__ctor(
 #endif
   session_mngr__pt->nb_used_sessions__u16 = 0;
   session_mngr__pt->session_validity_period_seconds__u32 = session_validity_period_seconds__u32;
+  if(THR_FLEA_PLTFIF_INIT_MUTEX(&session_mngr__pt->m_mutex))
+  {
+    FLEA_THROW("error initializing mutex", FLEA_ERR_MUTEX_INIT);
+  }
   FLEA_THR_FIN_SEC_empty();
 }
 
 static void flea_tls_session_mngr_t__incr_use_cnt(
   flea_tls_session_mngr_t*  session_mngr__pt,
   flea_tls_session_entry_t* stored_session__pt
-  // flea_al_u16_t            pos
 )
 {
-  // if(session_mngr__pt->sessions__bt[pos].use_cnt__u16 == 0xFFFF)
   if(stored_session__pt->use_cnt__u16 == 0xFFFF)
   {
     flea_al_u16_t i;
@@ -80,8 +83,7 @@ static flea_err_t THR_flea_tls_session_mngr_t__get_free_session_slot(
     {
       session_mngr__pt->sessions__bt[i].use_cnt__u16 = 0;
       *result__ppt = &session_mngr__pt->sessions__bt[i];
-      // FLEA_THR_RETURN();
-      found__b = FLEA_TRUE;
+      found__b     = FLEA_TRUE;
     }
   }
   if(!found__b)
@@ -109,7 +111,6 @@ static flea_err_t THR_flea_tls_session_mngr_t__get_free_session_slot(
       session_mngr__pt->sessions__bt[session_mngr__pt->nb_used_sessions__u16].use_cnt__u16 = 0;
       *result__ppt = &session_mngr__pt->sessions__bt[session_mngr__pt->nb_used_sessions__u16];
       session_mngr__pt->nb_used_sessions__u16 += 1;
-      // FLEA_THR_RETURN();
       found__b = FLEA_TRUE;
     }
   }
@@ -161,11 +162,36 @@ static flea_tls_session_entry_t* flea_tls_session_mngr_t__session_cache_lookup(
         return NULL;
       }
 
-      // flea_tls_session_mngr_t__incr_use_cnt(session_mngr__pt, i);
       return &session_mngr__pt->sessions__bt[i];
     }
   }
   return NULL;
+}
+
+flea_err_t THR_flea_tls_session_mngr_t__invalidate_session(
+  flea_tls_session_mngr_t* session_mngr__pt,
+  flea_u8_t*               session_id__pcu8,
+  flea_al_u16_t            session_id_len__alu8
+)
+{
+  flea_tls_session_entry_t* entry__pt;
+
+  FLEA_THR_BEG_FUNC();
+  if(THR_FLEA_PLTFIF_LOCK_MUTEX(&session_mngr__pt->m_mutex))
+  {
+    FLEA_THROW("error acquiring mutex", FLEA_ERR_MUTEX_LOCK);
+  }
+  entry__pt = flea_tls_session_mngr_t__session_cache_lookup(session_mngr__pt, session_id__pcu8, session_id_len__alu8);
+  if(entry__pt)
+  {
+    entry__pt->session__t.session_data__t.is_valid_session__u8 = 0;
+  }
+  FLEA_THR_FIN_SEC(
+    if(THR_FLEA_PLTFIF_UNLOCK_MUTEX(&session_mngr__pt->m_mutex))
+  {
+    return FLEA_ERR_MUTEX_LOCK;
+  }
+  );
 }
 
 flea_err_t THR_flea_tls_session_mngr_t__store_session(
@@ -176,6 +202,11 @@ flea_err_t THR_flea_tls_session_mngr_t__store_session(
   flea_tls_session_entry_t* stored_session__pt;
 
   FLEA_THR_BEG_FUNC();
+
+  if(THR_FLEA_PLTFIF_LOCK_MUTEX(&session_mngr__pt->m_mutex))
+  {
+    FLEA_THROW("error acquiring mutex", FLEA_ERR_MUTEX_LOCK);
+  }
   stored_session__pt = flea_tls_session_mngr_t__session_cache_lookup(
     session_mngr__pt,
     server_session_data__pt->session_id__au8,
@@ -198,18 +229,29 @@ flea_err_t THR_flea_tls_session_mngr_t__store_session(
   stored_session__pt->use_cnt__u16 = 1;
   flea_tls_session_data_t__set_session_as_valid(&stored_session__pt->session__t.session_data__t);
 
-  FLEA_THR_FIN_SEC_empty();
-}
+  FLEA_THR_FIN_SEC(
+    if(THR_FLEA_PLTFIF_UNLOCK_MUTEX(&session_mngr__pt->m_mutex))
+  {
+    return FLEA_ERR_MUTEX_LOCK;
+  }
+  );
+} /* THR_flea_tls_session_mngr_t__store_session */
 
-flea_bool_t flea_tls_session_mngr_t__load_session(
+flea_err_t THR_flea_tls_session_mngr_t__load_session(
   flea_tls_session_mngr_t*        session_mngr__pt,
   const flea_u8_t*                session_id__pcu8,
   flea_al_u8_t                    session_id_len__alu8,
-  flea_tls_session_data_server_t* result__pt
+  flea_tls_session_data_server_t* result__pt,
+  flea_bool_t*                    load_successful__pb
 )
 {
   flea_tls_session_entry_t* stored_session__pt;
 
+  FLEA_THR_BEG_FUNC();
+  if(THR_FLEA_PLTFIF_LOCK_MUTEX(&session_mngr__pt->m_mutex))
+  {
+    FLEA_THROW("error acquiring mutex", FLEA_ERR_MUTEX_LOCK);
+  }
   stored_session__pt = flea_tls_session_mngr_t__session_cache_lookup(
     session_mngr__pt,
     session_id__pcu8,
@@ -217,17 +259,29 @@ flea_bool_t flea_tls_session_mngr_t__load_session(
     );
   if(!stored_session__pt)
   {
-    return FLEA_FALSE;
+    *load_successful__pb = FLEA_FALSE;
+  }
+  else
+  {
+    *load_successful__pb = FLEA_TRUE;
+    flea_tls_session_mngr_t__incr_use_cnt(session_mngr__pt, stored_session__pt);
+    memcpy(result__pt, &stored_session__pt->session__t, sizeof(*result__pt));
   }
 
-  flea_tls_session_mngr_t__incr_use_cnt(session_mngr__pt, stored_session__pt);
-  memcpy(result__pt, &stored_session__pt->session__t, sizeof(*result__pt));
-  return FLEA_TRUE;
-}
+
+  FLEA_THR_FIN_SEC(
+
+    if(THR_FLEA_PLTFIF_UNLOCK_MUTEX(&session_mngr__pt->m_mutex))
+  {
+    return FLEA_ERR_MUTEX_LOCK;
+  }
+  );
+} /* THR_flea_tls_session_mngr_t__load_session */
 
 void flea_tls_session_mngr_t__dtor(flea_tls_session_mngr_t* session_mngr__pt)
 {
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_SET_NULL(session_mngr__pt->sessions__bt);
 #endif
+  FLEA_PLTFIF_DESTR_MUTEX(&session_mngr__pt->m_mutex);
 }

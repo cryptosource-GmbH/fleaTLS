@@ -299,14 +299,22 @@ typedef enum
   FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED              = 0xE4,
   FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT               = 0xE5,
 
-
-  /** The routine for the construction of a valid certification path
+  /**
+   * The routine for the construction of a valid certification path
    * was cancelled from another thread.
    */
-  FLEA_ERR_X509_USER_CANCELLED = 0x00E6,
+  FLEA_ERR_X509_USER_CANCELLED                        = 0xE6,
 
+  /**
+   * The initalization of a mutex failed.
+   */
+  FLEA_ERR_MUTEX_INIT                                 = 0xF1,
 
-  FLEA_ERR_OUT_OF_MEM          = 0xFF,
+  /**
+   * Locking or unlocking of a mutex failed.
+   */
+  FLEA_ERR_MUTEX_LOCK                                 = 0xF2,
+  FLEA_ERR_OUT_OF_MEM                                 = 0xFF,
 } flea_err_t;
 
 #ifdef __cplusplus

@@ -13,6 +13,12 @@
 extern "C" {
 #endif
 
+/**
+ * Destroy a TLS session manager object. All tls_server_ctx_t objects that use this session manager instance must be
+ * properly destroyed before the TLS session manager is destroyed.
+ *
+ * @param session_mngr__pt the session manager object to destroy
+ */
 
 void flea_tls_session_mngr_t__dtor(flea_tls_session_mngr_t* session_mngr__pt);
 

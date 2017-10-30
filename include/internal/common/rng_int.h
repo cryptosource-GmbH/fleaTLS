@@ -50,7 +50,7 @@ void flea_rng__deinit(void);
  * @param mem_len the length of the area to be randomized
  *
  */
-void flea_rng__randomize_no_flush(
+flea_err_t THR_flea_rng__randomize_no_flush(
   flea_u8_t* mem,
   flea_dtl_t mem_len
 );
@@ -60,7 +60,7 @@ void flea_rng__randomize_no_flush(
  * After the flushing operation, it is not possible to recover previous output
  * from the RNG state.
  */
-void flea_rng__flush(void);
+flea_err_t THR_flea_rng__flush(void);
 
 
 #endif /* h-guard */

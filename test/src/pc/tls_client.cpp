@@ -50,7 +50,7 @@ static flea_err_t THR_flea_start_tls_client(
   flea_ref_cu8_t allowed_sig_algs__rcu8;
   tls_test_cfg_t tls_cfg;
   flea_host_id_type_e host_type;
-
+  linux_socket_stream_ctx_t sock_stream_ctx;
   flea_private_key_t privkey__t;
 
   std::string hostname_s;
@@ -108,6 +108,7 @@ static flea_err_t THR_flea_start_tls_client(
   FLEA_CCALL(
     THR_flea_pltfif_tcpip__create_rw_stream_client(
       &rw_stream__t,
+      &sock_stream_ctx,
       cmdl_args.get_property_as_u32("port"),
       cmdl_args.get_property_as_u32_default("read_timeout", 0),
       hostname_s.c_str(),
@@ -145,8 +146,9 @@ static flea_err_t THR_flea_start_tls_client(
       tls_cfg.flags | FLEA_TLS_CFG_FLAG__SHA1_CERT_SIGALG__ALLOW
     )
   );
-  printf("session was resumed = %u\n", client_session__pt->for_resumption__u8);
-  flea_tls_test_tool_print_peer_cert_info(&tls_ctx, nullptr);
+
+  // printf("session was resumed = %u\n", client_session__pt->for_resumption__u8);
+  flea_tls_test_tool_print_peer_cert_info(&tls_ctx, nullptr, nullptr);
   for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("do_renegs", 0); i++)
   {
     FLEA_CCALL(

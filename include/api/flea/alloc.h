@@ -122,9 +122,10 @@ flea_err_t THR_flea_alloc__realloc_mem(
  * maximal size of the buffer for reallocation.
  *
  * @param mem_in_out__ppv [in/out] the pointer to the memory array to grow.
- * @param in_out_alloc_units__pdtl [in/out] pointer tothe number of currently allocated buffer elements;
+ * @param in_out_alloc_units__pdtl [in/out] pointer to the number of currently allocated buffer elements;
  *                                          on function return, the pointer target receives the new size,
- *                                          which is at least as large to hold used_units__dtl + min_grow_units__dtl elements.
+ *                                          which is at least large enough to
+ *                                          hold used_units__dtl + min_grow_units__dtl elements.
  * @param used_units__dtl the number of currently used / set  buffer elements
  * @param min_grow_units__dtl the minimal number of new units which must additionally fit into the buffer
  * @param max_grow_units__dtl the maximal number of newly allocated elements

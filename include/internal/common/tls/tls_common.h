@@ -51,7 +51,7 @@ flea_err_t THR_flea_tls__read_certificate(
 flea_err_t THR_flea_tls__send_certificate(
   flea_tls_ctx_t*               tls_ctx,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
-  flea_ref_cu8_t*               cert_chain__pt,
+  const flea_ref_cu8_t*         cert_chain__pt,
   flea_u8_t                     cert_chain_len__u8
 );
 
@@ -358,7 +358,7 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   flea_tls_server_ctx_t*          server_ctx_mbn__pt,
   flea_tls_client_ctx_t*          client_ctx_mbn__pt,
   const flea_cert_store_t*        trust_store__pt,
-  flea_ref_cu8_t*                 cert_chain__pt,
+  const flea_ref_cu8_t*           cert_chain__pt,
   flea_al_u8_t                    cert_chain_len__alu8,
   const flea_ref_cu16_t*          allowed_cipher_suites__prcu16,
   // flea_rev_chk_mode_e             rev_chk_mode__e,

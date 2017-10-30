@@ -681,13 +681,13 @@ static flea_err_t THR_flea_tls__send_client_key_exchange_rsa(
   premaster_secret__pt->data__pu8[1] = tls_ctx->version.minor;
 
   // the last 46 bytes are random
-  flea_rng__randomize(premaster_secret__pt->data__pu8 + 2, premaster_secret_len - 2);
+  FLEA_CCALL(THR_flea_rng__randomize(premaster_secret__pt->data__pu8 + 2, premaster_secret_len - 2));
 
   FLEA_CCALL(
     THR_flea_public_key_t__encrypt_message(
       pubkey,
       flea_rsa_pkcs1_v1_5_encr,
-      0, // we don't use a hash
+      (flea_hash_id_t) 0, /* we don't use a hash */
       premaster_secret__pt->data__pu8,
       premaster_secret_len,
       &encrypted__t
@@ -1083,7 +1083,14 @@ flea_err_t THR_flea_tls__client_handshake(
   flea_hash_id_t hash_ids[] = {flea_sha256, flea_sha1, flea_sha384}; // TODO 123: not hardcoded!!!!!
 
   FLEA_CCALL(THR_flea_byte_vec_t__resize(hs_ctx__t.client_and_server_random__pt, 2 * FLEA_TLS_HELLO_RANDOM_SIZE));
-  flea_tls_set_tls_random(&hs_ctx__t);
+  // flea_tls_set_tls_random(&hs_ctx__t);
+  //
+  FLEA_CCALL(
+    THR_flea_rng__randomize(
+      hs_ctx__t.client_and_server_random__pt->data__pu8,
+      2 * FLEA_TLS_HELLO_RANDOM_SIZE
+    )
+  );
   FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__ctor(&p_hash_ctx, hash_ids, FLEA_NB_ARRAY_ENTRIES(hash_ids)));
   while(1)
   {

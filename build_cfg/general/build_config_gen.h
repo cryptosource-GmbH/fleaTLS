@@ -270,14 +270,6 @@
  */
 # define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 250
 
-/**
- * if activated, during the handshake, a record is send as soon as a handshake
- * or change cipher spec message is complete. otherwise, records are sent only
- * when the next read or a change of record content type happens, which
- * potentially causes multiple handshake messages per record.
- */
-// # define FLEA_TLS_SEND_RECORD_EAGER // FBFLAGS_TLS_RECPROT_ON_OFF
-
 
 /* include must remain at the very end: */
 # include "internal/common/build_config_util.h"

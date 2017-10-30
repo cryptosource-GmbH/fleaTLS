@@ -128,12 +128,18 @@ static flea_err_t THR_flea_tls__read_client_hello(
   server_ctx__pt->server_session_id_assigned__u8 = (session_id_len__u8 != 0);
   if(session_id_len__u8 && server_ctx__pt->session_mngr_mbn__pt)
   {
-    server_ctx__pt->server_resume_session__u8 = flea_tls_session_mngr_t__load_session(
-      server_ctx__pt->session_mngr_mbn__pt,
-      session_id__bu8,
-      session_id_len__u8,
-      &server_ctx__pt->active_session__t
-      );
+    flea_bool_t resume__b;
+    FLEA_CCALL(
+      THR_flea_tls_session_mngr_t__load_session(
+        server_ctx__pt->session_mngr_mbn__pt,
+        session_id__bu8,
+        session_id_len__u8,
+        &server_ctx__pt->active_session__t,
+        &resume__b
+      )
+    );
+
+    server_ctx__pt->server_resume_session__u8 = resume__b;
   }
 
   FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, (flea_u32_t*) &cipher_suites_len_from_peer__u16, 2));
@@ -413,7 +419,7 @@ static flea_err_t THR_flea_tls__send_server_hello(
   // {
   if(!server_ctx__pt->server_resume_session__u8 && server_ctx__pt->session_mngr_mbn__pt)
   {
-    flea_rng__randomize(server_ctx__pt->active_session__t.session_id__au8, FLEA_TLS_SESSION_ID_LEN);
+    FLEA_CCALL(THR_flea_rng__randomize(server_ctx__pt->active_session__t.session_id__au8, FLEA_TLS_SESSION_ID_LEN));
 
     FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&server_ctx__pt->active_session__t.valid_until__t));
     flea_gmt_time_t__add_seconds_to_date(
@@ -1301,7 +1307,13 @@ flea_err_t THR_flea_tls__server_handshake(
 
   FLEA_CCALL(THR_flea_byte_vec_t__resize(hs_ctx__t.client_and_server_random__pt, 2 * FLEA_TLS_HELLO_RANDOM_SIZE));
 
-  flea_tls_set_tls_random(&hs_ctx__t);
+  FLEA_CCALL(
+    THR_flea_rng__randomize(
+      hs_ctx__t.client_and_server_random__pt->data__pu8,
+      2 * FLEA_TLS_HELLO_RANDOM_SIZE
+    )
+  );
+  // flea_tls_set_tls_random(&hs_ctx__t);
   // tls_ctx->server_active_sess_mbn__pt = NULL;
   server_ctx__pt->server_resume_session__u8 = 0;
   handshake_state.initialized       = FLEA_TRUE;
@@ -1610,7 +1622,7 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   flea_tls_server_ctx_t*        tls_server_ctx__pt,
   flea_tls_shared_server_ctx_t* shrd_server_ctx__pt,
   flea_rw_stream_t*             rw_stream__pt,
-  flea_ref_cu8_t*               cert_chain__pt,
+  const flea_ref_cu8_t*         cert_chain__pt,
   flea_al_u8_t                  cert_chain_len__alu8,
   const flea_cert_store_t*      trust_store__pt,
   const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
@@ -1662,7 +1674,7 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
 flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
   flea_tls_server_ctx_t*   tls_server_ctx__pt,
   const flea_cert_store_t* trust_store__pt,
-  flea_ref_cu8_t*          cert_chain__pt, // TODO: if here a new cert chain can be specified, then also the private key needs to change => simply provide a new shared_server_ctx with all this information
+  const flea_ref_cu8_t*    cert_chain__pt, // TODO: if here a new cert chain can be specified, then also the private key needs to change => simply provide a new shared_server_ctx with all this information
   flea_al_u8_t             cert_chain_len__alu8,
   const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
   // flea_rev_chk_mode_e      rev_chk_mode__e,

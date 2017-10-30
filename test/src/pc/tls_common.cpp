@@ -334,7 +334,7 @@ static std::string rcu8_to_string(flea_ref_cu8_t* ref__prcu8)
   return result;
 }
 
-static void print_cert_info(const flea_x509_cert_ref_t* cert_ref__pt)
+static std::string cert_info_to_string(const flea_x509_cert_ref_t* cert_ref__pt)
 {
   flea_dn_cmpnt_e dn_comps__ace[] = {
     flea_dn_cmpnt_cn,
@@ -387,15 +387,18 @@ static void print_cert_info(const flea_x509_cert_ref_t* cert_ref__pt)
     }
     subject_str += rcu8_to_string(&ref__rcu8);
   }
-  std::cout << "  subject DN: \n" + subject_str + "\n";
-  std::cout << "  issuer DN: \n" + issuer_str + "\n";
-} // print_cert_info
+  return "  subject DN: \n" + subject_str + "\n";
+
+  return "  issuer DN: \n" + issuer_str + "\n";
+} // cert_info_to_string
 
 void flea_tls_test_tool_print_peer_cert_info(
   flea_tls_client_ctx_t* client_ctx_mbn__pt,
-  flea_tls_server_ctx_t* server_ctx_mbn__pt
+  flea_tls_server_ctx_t* server_ctx_mbn__pt,
+  server_params_t*       server_params_mbn__pt
 )
 {
+  std::string s;
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
   const flea_x509_cert_ref_t* ee_ref__pt = nullptr;
   if(client_ctx_mbn__pt)
@@ -414,8 +417,8 @@ void flea_tls_test_tool_print_peer_cert_info(
   }
   if(ee_ref__pt)
   {
-    std::cout << "EE cert:\n";
-    print_cert_info(ee_ref__pt);
+    s += "EE cert:\n";
+    s += cert_info_to_string(ee_ref__pt);
   }
 # endif // ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
 # ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
@@ -436,11 +439,18 @@ void flea_tls_test_tool_print_peer_cert_info(
   }
   if(root_ref__pt)
   {
-    std::cout << "root cert:\n";
-    print_cert_info(root_ref__pt);
+    s += "root cert:\n";
+    s += cert_info_to_string(root_ref__pt);
+  }
+# endif // ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
+  if(server_params_mbn__pt)
+  {
+    server_params_mbn__pt->write_output_string(s);
+  }
+  else
+  {
+    std::cout << s;
   }
 } // flea_tls_test_tool_print_peer_cert_info
-
-# endif // ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 #endif // ifdef FLEA_HAVE_TLS

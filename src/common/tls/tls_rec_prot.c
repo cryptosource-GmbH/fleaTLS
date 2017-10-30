@@ -712,7 +712,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
     )
   );
 
-  flea_rng__randomize(iv, iv_len);
+  FLEA_CCALL(THR_flea_rng__randomize(iv, iv_len));
 
   input_output_len = data_len + padding_len + mac_len;
 

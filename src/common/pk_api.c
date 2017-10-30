@@ -469,7 +469,7 @@ static flea_err_t THR_flea_pk_api__encode_message__pkcs1_v1_5(
     {
       do
       {
-        flea_rng__randomize(&input_output__pu8[2 + i], 1);
+        FLEA_CCALL(THR_flea_rng__randomize(&input_output__pu8[2 + i], 1));
       } while(input_output__pu8[2 + i] == 0);
     }
   }

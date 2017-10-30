@@ -2,14 +2,14 @@
 
 #include "internal/common/default.h"
 #include "internal/common/mask.h"
-
+#include "pltf_support/mutex.h"
 
 typedef long long unsigned flea_pszd_uint_t;
 
-static volatile flea_u32_t optimization_blocker__u32 = 0;
 
 flea_u32_t flea_expand_u32_to_u32_mask(flea_u32_t in)
 {
+  volatile flea_u32_t optimization_blocker__u32 = 0;
   flea_al_u8_t i;
   flea_u32_t result = in;
 
@@ -19,12 +19,15 @@ flea_u32_t flea_expand_u32_to_u32_mask(flea_u32_t in)
   }
   result &= 1;
   result  = ~(flea_u32_t) (result - 1);
+
   optimization_blocker__u32 = result;
+  optimization_blocker__u32++;
   return result;
 }
 
 static flea_pszd_uint_t flea_expand_u32_to_ptr_szd_mask(flea_u32_t in)
 {
+  volatile flea_u32_t optimization_blocker__u32 = 0;
   flea_al_u8_t i;
   flea_pszd_uint_t result = in;
 
@@ -35,6 +38,7 @@ static flea_pszd_uint_t flea_expand_u32_to_ptr_szd_mask(flea_u32_t in)
   result &= 1;
   result  = ~(long long unsigned int /*flea_pszd_uint_t*/) (result - 1);
   optimization_blocker__u32 = result;
+  optimization_blocker__u32++;
   return result;
 }
 

@@ -61,11 +61,11 @@ flea_err_t THR_flea_test_cert_path_generic(
     const flea_u8_t use_cert = 2;
     flea_u8_t what_to_use    = use_the_one_with_some_left;
     flea_u32_t i;
-    flea_rng__randomize((flea_u8_t*) &i, sizeof(i));
+    FLEA_CCALL(THR_flea_rng__randomize((flea_u8_t*) &i, sizeof(i)));
     if(nb_trust_anchors && nb_certs)
     {
       flea_u8_t r;
-      flea_rng__randomize(&r, 1);
+      FLEA_CCALL(THR_flea_rng__randomize(&r, 1));
       if(r & 1)
       {
         what_to_use = use_ta;
@@ -108,7 +108,7 @@ flea_err_t THR_flea_test_cert_path_generic(
   while(nb_crls)
   {
     flea_u32_t i;
-    flea_rng__randomize((flea_u8_t*) &i, sizeof(i));
+    FLEA_CCALL(THR_flea_rng__randomize((flea_u8_t*) &i, sizeof(i)));
     i %= nb_crls;
     FLEA_CCALL(THR_flea_cert_path_validator_t__add_crl(&cert_chain__t, crl_ptrs[i], crl_lens[i]));
 

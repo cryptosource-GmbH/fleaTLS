@@ -61,7 +61,7 @@ struct struct_flea_tls_ctx_t
   flea_rw_stream_t*            rw_stream__pt;
   flea_tls_rec_prot_t          rec_prot__t;
   const flea_cert_store_t*     trust_store__pt;
-  flea_ref_cu8_t*              cert_chain_mbn__pt;
+  const flea_ref_cu8_t*        cert_chain_mbn__pt;
   flea_u8_t                    cert_chain_len__u8;
 
   flea_private_key_t*          private_key__pt;
@@ -121,9 +121,9 @@ struct struct_flea_tls_server_ctx_t
   flea_tls_shared_server_ctx_t*  shared_ctx__pt;
   flea_tls_ctx_t                 tls_ctx__t;
   flea_tls_session_data_server_t active_session__t;
+  flea_tls_session_mngr_t*       session_mngr_mbn__pt;
   flea_u8_t                      server_resume_session__u8;
   flea_u8_t                      server_session_id_assigned__u8;
-  flea_tls_session_mngr_t*       session_mngr_mbn__pt;
 };
 
 #ifdef __cplusplus

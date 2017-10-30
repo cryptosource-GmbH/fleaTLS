@@ -108,7 +108,7 @@ flea_err_t THR_flea_pk_api__encode_message__oaep(
   db_len__alu16 = k__alu16 - hash_output_len__alu8 - 1;
 
   // gen seed in output buffer
-  flea_rng__randomize(input_output__pu8 + 1, hash_output_len__alu8);
+  FLEA_CCALL(THR_flea_rng__randomize(input_output__pu8 + 1, hash_output_len__alu8));
 
   FLEA_CCALL(
     THR_flea_pkcs1_mgf1(

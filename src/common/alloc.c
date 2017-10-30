@@ -48,7 +48,7 @@ flea_err_t THR_flea_alloc__ensure_buffer_capacity(
   else if(used_units__dtl + min_grow_units__dtl <= max_alloc_units__dtl)
   {
     flea_dtl_t to_add_max_alloc__dtl = max_alloc_units__dtl - used_units__dtl;
-    to_add__dtl = FLEA_MIN(to_add_max_alloc__dtl, max_grow_units__dtl);
+    to_add__dtl = FLEA_MIN(to_add_max_alloc__dtl, min_grow_units__dtl);
   }
   else
   {
@@ -61,8 +61,8 @@ flea_err_t THR_flea_alloc__ensure_buffer_capacity(
       (used_units__dtl + to_add__dtl) * unit_byte_size__alu16
     )
   );
-  used_units__dtl += to_add__dtl;
-  *in_out_alloc_units__pdtl = used_units__dtl;
+  // used_units__dtl += to_add__dtl;
+  *in_out_alloc_units__pdtl = used_units__dtl + to_add__dtl;
   FLEA_THR_FIN_SEC_empty();
 }
 
