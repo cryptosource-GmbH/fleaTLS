@@ -380,7 +380,6 @@ static void flea_tls_ctx_t__invalidate_session(
 }
 
 flea_err_t THR_flea_tls__handle_tls_error(
-  // flea_tls_ctx_t* tls_ctx__pt,
   flea_tls_server_ctx_t* server_ctx_mbn__pt,
   flea_tls_client_ctx_t* client_ctx_mbn__pt,
   flea_err_t             err__t,

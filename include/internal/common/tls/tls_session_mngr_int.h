@@ -30,7 +30,6 @@ struct struct_flea_tls_session_data_server_t
 
 struct struct_flea_tls_session_entry_t
 {
-  //  flea_tls_session_data_t session__t;
   flea_tls_session_data_server_t session__t;
   flea_u16_t                     use_cnt__u16;
 };

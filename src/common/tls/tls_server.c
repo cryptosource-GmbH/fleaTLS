@@ -126,44 +126,15 @@ static flea_err_t THR_flea_tls__read_client_hello(
   );
   server_ctx__pt->server_resume_session__u8      = 0;
   server_ctx__pt->server_session_id_assigned__u8 = (session_id_len__u8 != 0);
-  // tls_ctx->server_active_sess_mbn__pt = NULL;
   if(session_id_len__u8 && server_ctx__pt->session_mngr_mbn__pt)
   {
-    // TODO: RETRIEVE MASTER SECRET AND CIPHERSUITE ID NOW
-
-    /*tls_ctx->server_active_sess_mbn__pt = flea_tls_session_mngr_t__session_cache_lookup(
-     * tls_ctx->session_mngr_mbn__pt,
-     * session_id__bu8,
-     * session_id_len__u8
-     * );*/
-
-    // if(tls_ctx->server_active_sess_mbn__pt)
-    if(flea_tls_session_mngr_t__load_session(
-        server_ctx__pt->session_mngr_mbn__pt,
-        session_id__bu8,
-        session_id_len__u8,
-        &server_ctx__pt->active_session__t
-      ))
-    {
-      server_ctx__pt->server_resume_session__u8 = 1;
-    }
-
-    /*else
-     * {
-     *  memcpy(server_ctx__pt->active_session__t.session_id__au8session_id__bu8, session_id_len__u8,
-     * }*/
+    server_ctx__pt->server_resume_session__u8 = flea_tls_session_mngr_t__load_session(
+      server_ctx__pt->session_mngr_mbn__pt,
+      session_id__bu8,
+      session_id_len__u8,
+      &server_ctx__pt->active_session__t
+      );
   }
-
-  /*if(tls_ctx->session_mngr_mbn__pt && !tls_ctx->server_active_sess_mbn__pt)
-   * {
-   * // tls_ctx->server_active_sess_mbn__pt = NULL;
-   * FLEA_CCALL(
-   *  THR_flea_tls_session_mngr_t__get_free_session_slot(
-   *    tls_ctx->session_mngr_mbn__pt,
-   *    &tls_ctx->server_active_sess_mbn__pt
-   *  )
-   * );
-   * }*/
 
   FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, (flea_u32_t*) &cipher_suites_len_from_peer__u16, 2));
 
