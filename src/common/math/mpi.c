@@ -146,13 +146,13 @@ flea_err_t THR_flea_mpi_square(
   // compute all elements "below" the diagonal
   for(i = 0; i < p_a->m_nb_used_words; i++)
   {
+    flea_dbl_uword_t a_ptr_i          = ((flea_dbl_uword_t) a_ptr[i]);
+    flea_mpi_ulen_t nb_lead           = p_a->m_nb_used_words - (i + 1);
+    flea_mpi_ulen_t lead_limit        = nb_lead + i + 1;
+    const flea_uword_t combined_iters = 4;
     carry = 0;
-    flea_dbl_uword_t a_ptr_i = ((flea_dbl_uword_t) a_ptr[i]);
-    #define combined_iters 4
     // determine number of leading iters
-    flea_mpi_ulen_t nb_lead = p_a->m_nb_used_words - (i + 1);
     nb_lead %= combined_iters;
-    flea_mpi_ulen_t lead_limit = nb_lead + i + 1;
     for(j = i + 1; j < lead_limit; j++)
     {
       flea_dbl_uword_t carry__res = result_ptr[i + j] + ((flea_dbl_uword_t) a_ptr[j]) * a_ptr_i
@@ -167,11 +167,9 @@ flea_err_t THR_flea_mpi_square(
       result_ptr[i + j] = (flea_uword_t) carry__res; // lower part
       carry = carry__res >> (sizeof(flea_uword_t) * 8);
 
-
       carry__res = result_ptr[i + j + 1] + ((flea_dbl_uword_t) a_ptr[j + 1]) * a_ptr_i + ((flea_dbl_uword_t) carry);
       result_ptr[i + j + 1] = (flea_uword_t) carry__res; // lower part
       carry = carry__res >> (sizeof(flea_uword_t) * 8);
-#if combined_iters == 4
 
       carry__res = result_ptr[i + j + 2] + ((flea_dbl_uword_t) a_ptr[j + 2]) * a_ptr_i + ((flea_dbl_uword_t) carry);
       result_ptr[i + j + 2] = (flea_uword_t) carry__res; // lower part
@@ -180,7 +178,6 @@ flea_err_t THR_flea_mpi_square(
       carry__res = result_ptr[i + j + 3] + ((flea_dbl_uword_t) a_ptr[j + 3]) * a_ptr_i + ((flea_dbl_uword_t) carry);
       result_ptr[i + j + 3] = (flea_uword_t) carry__res; // lower part
       carry = carry__res >> (sizeof(flea_uword_t) * 8);
-#endif
     }
     result_ptr[i + p_a->m_nb_used_words] = carry;
   }
@@ -204,10 +201,10 @@ flea_err_t THR_flea_mpi_square(
     result_ptr[2 * i] = (flea_uword_t) carry__res; // lower part
     carry = carry__res >> (sizeof(flea_uword_t) * 8);
 
-    // add the carry to the following higher word with an odd index, which
-    // doesn't receive a product directly
+    /* add the carry to the following higher word with an odd index, which
+     * doesn't receive a product directly */
     carry__res = a_ptr_i_next_odd + carry;
-    result_ptr[2 * i + 1] = (flea_uword_t) carry__res; // lower part
+    result_ptr[2 * i + 1] = (flea_uword_t) carry__res; /* lower part */
     carry = carry__res >> (sizeof(flea_uword_t) * 8);
   }
 
@@ -617,8 +614,8 @@ flea_err_t THR_flea_mpi_t__divide(
   }
   if(n == 1)
   {
-    k = 0;
     flea_hlf_uword_t v_0 = FLEA_GET_HLF_UWORD(v, 0);
+    k = 0;
     for(j = m - 1; j >= 0; j--)
     {
       flea_hlf_uword_t u_j = FLEA_GET_HLF_UWORD(u, j);
@@ -1592,7 +1589,11 @@ flea_err_t THR_flea_mpi_t__random_integer_no_flush(
   }
   bit_size %= FLEA_BITS_PER_WORD;
   p_result->m_nb_used_words = word_size;
-
+  memset(
+    (void*) (p_result->m_words + word_size),
+    0,
+    (p_result->m_nb_alloc_words - word_size) * sizeof(p_result->m_words[0])
+  );
   do
   {
     FLEA_CCALL(
