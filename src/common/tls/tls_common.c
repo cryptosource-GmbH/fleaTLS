@@ -94,16 +94,21 @@ static const error_alert_pair_t error_alert_map__act [] = {
 static flea_bool_t determine_alert_from_error(
   flea_err_t                     err__t,
   flea_tls__alert_description_t* alert_desc__pe,
-  flea_bool_t                    is_reneg__b,
+  flea_bool_t*                   is_reneg_then_not_null__was_accepted_out___pb,
   flea_bool_t                    is_read_app_data__b
 )
 {
   flea_al_u8_t i;
 
-  if((is_reneg__b && (err__t == FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG)) ||
-    (is_read_app_data__b && (err__t == FLEA_ERR_TIMEOUT_ON_STREAM_READ))
-  )
+  if((is_reneg_then_not_null__was_accepted_out___pb && (err__t == FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG)))
   {
+    *is_reneg_then_not_null__was_accepted_out___pb = FLEA_FALSE;
+    *alert_desc__pe = FLEA_TLS_ALERT_NO_ALERT;
+    return FLEA_FALSE;
+  }
+  else if(is_read_app_data__b && (err__t == FLEA_ERR_TIMEOUT_ON_STREAM_READ))
+  {
+    // TODO: THIS SEEMS TO HAVE TO DEPEND ON THE READ MODE
     *alert_desc__pe = FLEA_TLS_ALERT_NO_ALERT;
     return FLEA_FALSE;
   }
@@ -362,7 +367,7 @@ flea_err_t THR_flea_tls__handle_tls_error(
   flea_tls_server_ctx_t* server_ctx_mbn__pt,
   flea_tls_client_ctx_t* client_ctx_mbn__pt,
   flea_err_t             err__t,
-  flea_bool_t            is_reneg__b,
+  flea_bool_t*           is_reneg_then_not_null__was_accepted_out___pb,
   flea_bool_t            is_read_app_data__b
 )
 {
@@ -371,7 +376,12 @@ flea_err_t THR_flea_tls__handle_tls_error(
   {
     flea_tls__alert_description_t alert_desc__e;
     /* determine alert and exception at the same time: */
-    flea_bool_t do_send_alert__b = determine_alert_from_error(err__t, &alert_desc__e, is_reneg__b, is_read_app_data__b);
+    flea_bool_t do_send_alert__b = determine_alert_from_error(
+      err__t,
+      &alert_desc__e,
+      is_reneg_then_not_null__was_accepted_out___pb,
+      is_read_app_data__b
+      );
     if(do_send_alert__b)
     {
       flea_tls_ctx_t* tls_ctx__pt =
@@ -938,7 +948,7 @@ flea_err_t THR_flea_tls_ctx_t__send_app_data(
   tls_ctx__pt = server_ctx_mbn__pt ? &server_ctx_mbn__pt->tls_ctx__t : &client_ctx_mbn__pt->tls_ctx__t;
   err__t      = THR_flea_tls_ctx_t__send_app_data_inner(tls_ctx__pt, data, data_len);
 
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(server_ctx_mbn__pt, client_ctx_mbn__pt, err__t, FLEA_FALSE, FLEA_FALSE));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(server_ctx_mbn__pt, client_ctx_mbn__pt, err__t, NULL, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -1051,13 +1061,14 @@ flea_err_t THR_flea_tls_ctx_t__read_app_data(
     hostn_valid_params_mbn__pt
     );
 
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(server_ctx_mbn__pt, client_ctx_mbn__pt, err__t, FLEA_FALSE, FLEA_TRUE));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(server_ctx_mbn__pt, client_ctx_mbn__pt, err__t, NULL, FLEA_TRUE));
   FLEA_THR_FIN_SEC_empty();
 }
 
 flea_err_t THR_flea_tls_ctx_t__renegotiate(
   flea_tls_server_ctx_t*          server_ctx_mbn__pt,
   flea_tls_client_ctx_t*          client_ctx_mbn__pt,
+  flea_bool_t*                    result__pb,
   const flea_cert_store_t*        trust_store__pt,
   const flea_ref_cu8_t*           cert_chain_mbn__pt, /* may only be null for client */
   flea_al_u8_t                    cert_chain_len__alu8,
@@ -1068,7 +1079,6 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
 )
 {
   flea_err_t err__t;
-
   flea_tls_ctx_t* tls_ctx__pt;
 
   FLEA_THR_BEG_FUNC();
@@ -1104,7 +1114,8 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
     );
     err__t = THR_flea_tls__server_handshake(server_ctx_mbn__pt);
   }
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(server_ctx_mbn__pt, client_ctx_mbn__pt, err__t, FLEA_TRUE, FLEA_FALSE));
+  *result__pb = FLEA_TRUE; /* might be overriden by handle_tls_error */
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(server_ctx_mbn__pt, client_ctx_mbn__pt, err__t, result__pb, FLEA_FALSE));
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__renegotiate */

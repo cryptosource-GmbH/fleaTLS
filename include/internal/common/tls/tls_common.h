@@ -162,7 +162,8 @@ flea_err_t THR_flea_tls__handle_tls_error(
   flea_tls_server_ctx_t* server_ctx_mbn__pt,
   flea_tls_client_ctx_t* client_ctx_mbn__pt,
   flea_err_t             err__t,
-  flea_bool_t            is_reneg__b,
+  // flea_bool_t            is_reneg__b,
+  flea_bool_t*           is_reneg_in__was_accepted_out_mbn___pb,
   flea_bool_t            is_read_app_data__b
 );
 
@@ -357,11 +358,11 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt);
 flea_err_t THR_flea_tls_ctx_t__renegotiate(
   flea_tls_server_ctx_t*          server_ctx_mbn__pt,
   flea_tls_client_ctx_t*          client_ctx_mbn__pt,
+  flea_bool_t*                    result__pb,
   const flea_cert_store_t*        trust_store__pt,
   const flea_ref_cu8_t*           cert_chain__pt,
   flea_al_u8_t                    cert_chain_len__alu8,
   const flea_ref_cu16_t*          allowed_cipher_suites__prcu16,
-  // flea_rev_chk_mode_e             rev_chk_mode__e,
   const flea_byte_vec_t*          crl_der__pt,
   flea_al_u16_t                   nb_crls__alu16,
   flea_hostn_validation_params_t* hostn_valid_params_mbn__pt

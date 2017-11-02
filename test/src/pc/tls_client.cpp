@@ -151,18 +151,28 @@ static flea_err_t THR_flea_start_tls_client(
   flea_tls_test_tool_print_peer_cert_info(&tls_ctx, nullptr, nullptr);
   for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("do_renegs", 0); i++)
   {
+    std::cout << "renegotiation ...\n";
+    flea_bool_t reneg_done__b;
     FLEA_CCALL(
       THR_flea_tls_client_ctx_t__renegotiate(
         &tls_ctx,
+        &reneg_done__b,
         &trust_store__t,
         cert_chain,
         cert_chain_len,
         &cipher_suites_ref,
-        // tls_cfg.rev_chk_mode__e,
         &tls_cfg.crls_refs[0],
         tls_cfg.crls.size()
       )
     );
+    if(reneg_done__b)
+    {
+      std::cout << "... done.\n";
+    }
+    else
+    {
+      std::cout << "... was rejected\n";
+    }
   }
   while(cmdl_args.have_index("stay"))
   {

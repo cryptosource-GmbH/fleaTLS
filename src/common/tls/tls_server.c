@@ -1654,6 +1654,7 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
 
 flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
   flea_tls_server_ctx_t*   tls_server_ctx__pt,
+  flea_bool_t*             result__pb,
   const flea_cert_store_t* trust_store__pt,
   const flea_ref_cu8_t*    cert_chain__pt, // TODO: if here a new cert chain can be specified, then also the private key needs to change => simply provide a new shared_server_ctx with all this information
   flea_al_u8_t             cert_chain_len__alu8,
@@ -1666,6 +1667,7 @@ flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
   return THR_flea_tls_ctx_t__renegotiate(
     tls_server_ctx__pt,
     NULL,
+    result__pb,
     trust_store__pt,
     cert_chain__pt,
     cert_chain_len__alu8,

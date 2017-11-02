@@ -66,6 +66,7 @@ flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t
 
 flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
   flea_tls_client_ctx_t*   tls_ctx__pt,
+  flea_bool_t*             result__pb,
   const flea_cert_store_t* trust_store__pt,
   flea_ref_cu8_t*          cert_chain__pt,
   flea_al_u8_t             cert_chain_len__alu8,

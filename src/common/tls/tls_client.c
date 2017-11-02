@@ -1450,7 +1450,7 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   // TODO: REMOVE SESSION-OBJ AGAIN FROM FUNCTION SIGNATURES, IT IS NOW IN THE
   // TLS_CTX
   err__t = THR_flea_tls__client_handshake(tls_ctx__pt, session_mbn__pt, &tls_client_ctx__pt->hostn_valid_params__t);
-  FLEA_CCALL(THR_flea_tls__handle_tls_error(NULL, tls_client_ctx__pt, err__t, FLEA_FALSE, FLEA_FALSE));
+  FLEA_CCALL(THR_flea_tls__handle_tls_error(NULL, tls_client_ctx__pt, err__t, NULL, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__ctor_client */
 
@@ -1520,6 +1520,7 @@ flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t
 
 flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
   flea_tls_client_ctx_t*   tls_client_ctx__pt,
+  flea_bool_t*             result__pb,
   const flea_cert_store_t* trust_store__pt,
   flea_ref_cu8_t*          cert_chain__pt,
   flea_al_u8_t             cert_chain_len__alu8,
@@ -1532,6 +1533,7 @@ flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
   return THR_flea_tls_ctx_t__renegotiate(
     NULL,
     tls_client_ctx__pt,
+    result__pb,
     trust_store__pt,
     cert_chain__pt,
     cert_chain_len__alu8,

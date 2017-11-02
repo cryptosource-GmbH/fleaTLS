@@ -244,6 +244,8 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
   FLEA_CCALL(THR_check_user_abort(serv_par__pt));
   for(size_t i = 0; i < serv_par__pt->nb_renegs_to_exec; i++)
   {
+    flea_bool_t reneg_done__b;
+
     /*flea_al_u16_t buf_len = sizeof(buf) - 1;
      * flea_err_t retval     = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_nonblocking);
      * printf("reading app data prior to renegotiation returned: %04x\n", retval);*/
@@ -252,6 +254,7 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
     FLEA_CCALL(
       THR_flea_tls_server_ctx_t__renegotiate(
         &tls_ctx,
+        &reneg_done__b,
         serv_par__pt->cert_store__pt,
         serv_par__pt->cert_chain__pcu8,
         serv_par__pt->cert_chain_len__alu16,
@@ -260,8 +263,15 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
         serv_par__pt->nb_crls__u16
       )
     );
+    if(reneg_done__b)
+    {
+      serv_par__pt->write_output_string(" ... done.\n");
+    }
+    else
+    {
+      serv_par__pt->write_output_string("... was rejected\n");
+    }
     // std::cout << "" << std::endl;
-    serv_par__pt->write_output_string(" ... done.\n");
   }
 
   /*if(!is_https_server)
