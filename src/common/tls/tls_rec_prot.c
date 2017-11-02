@@ -124,7 +124,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__handle_alert(flea_tls_rec_prot_t* rec
     FLEA_CCALL(
       THR_flea_tls_rec_prot_t__close_with_fatal_alert_and_throw(
         rec_prot__pt,
-        FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY,
+        FLEA_TLS_ALERT_DESC_DECODE_ERROR,
         FLEA_ERR_TLS_INV_REC
       )
     );

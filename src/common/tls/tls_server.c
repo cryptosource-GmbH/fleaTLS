@@ -1137,14 +1137,6 @@ static flea_err_t THR_flea_tls_server_handle_handsh_msg(
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
       FLEA_THR_RETURN();
     }
-
-    /*else if(is_reneg__b)
-     * {
-     * FLEA_THROW(
-     *  "server received no_renegotiation alert during renegotiation handshake",
-     *  FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG
-     * );
-     * }*/
     else
     {
       FLEA_THROW("Unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
@@ -1626,14 +1618,11 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   flea_al_u8_t                  cert_chain_len__alu8,
   const flea_cert_store_t*      trust_store__pt,
   const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
-  // flea_rev_chk_mode_e           rev_chk_mode__e,
   const flea_byte_vec_t*        crl_der__pt,
   flea_al_u16_t                 nb_crls__alu16,
   flea_tls_session_mngr_t*      session_mngr_mbn__pt,
-  // flea_tls_renegotiation_spec_e reneg_spec__e,
   flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8,
   flea_ref_cu8_t*               allowed_sig_algs_ref__prcu8,
-  // flea_tls_flag_e               flags
   flea_al_u16_t                 flags__alu16
 )
 {
@@ -1642,7 +1631,6 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   FLEA_THR_BEG_FUNC();
   flea_tls_ctx_t* tls_ctx__pt = &tls_server_ctx__pt->tls_ctx__t;
   tls_ctx__pt->cfg_flags__u16 = flags__alu16;
-  // tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = rev_chk_mode__e;
   tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16 = nb_crls__alu16;
   tls_ctx__pt->rev_chk_cfg__t.crl_der__pt  = crl_der__pt;
   tls_ctx__pt->cert_chain_mbn__pt       = cert_chain__pt;
@@ -1652,13 +1640,6 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   tls_ctx__pt->allowed_sig_algs__rcu8   = *allowed_sig_algs_ref__prcu8;
   tls_ctx__pt->private_key__pt = &shrd_server_ctx__pt->private_key__t;
 
-  /*FLEA_CCALL(
-   * THR_flea_private_key_t__ctor_pkcs8(
-   *  tls_ctx__pt->private_key__pt,
-   *  server_key__pt->data__pcu8,
-   *  server_key__pt->len__dtl
-   * )
-   * );*/
   tls_ctx__pt->trust_store__pt = trust_store__pt;
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
   tls_ctx__pt->connection_end              = FLEA_TLS_SERVER;
