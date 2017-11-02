@@ -449,6 +449,12 @@ static flea_err_t THR_server_cycle(
         serv_par__t.finished__b     = FLEA_FALSE;
         serv_par__t.sock_fd         = sock_fd;
 
+        if(cmdl_args.have_index("no_session_manager"))
+        {
+          serv_par__t.sess_mngr__pt = NULL;
+        }
+
+
         serv_pars.push_back(std::unique_ptr<server_params_t>(new server_params_t(serv_par__t)));
         server_params_t* new_par__pt = serv_pars[serv_pars.size() - 1].get();
         pthread_mutex_init(&new_par__pt->mutex, NULL);

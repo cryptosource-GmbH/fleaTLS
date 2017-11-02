@@ -369,7 +369,7 @@ static flea_err_t THR_flea_tls__send_server_hello(
     /* for encoding of extensions length */
     len += 2;
   }
-  // if(tls_ctx->server_active_sess_mbn__pt)
+  if(server_ctx__pt->session_mngr_mbn__pt)
   {
     session_id_len__u8 = FLEA_TLS_SESSION_ID_LEN;
     len += FLEA_TLS_SESSION_ID_LEN;
