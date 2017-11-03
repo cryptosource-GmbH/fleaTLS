@@ -33,6 +33,8 @@ using namespace std;
 
 #ifdef FLEA_HAVE_TLS
 
+# define CHECK_PTHREAD_ERR(f) if(f) throw test_utils_exceptn_t("error with pthread call");
+
 enum class action_t { none, quit };
 
 std::vector<std::string> stdin_input_lines;
@@ -44,9 +46,9 @@ static flea_err_t THR_check_user_abort(server_params_t* serv_par__pt)
 {
   FLEA_THR_BEG_FUNC();
 
-  pthread_mutex_lock(&serv_par__pt->mutex);
+  CHECK_PTHREAD_ERR(pthread_mutex_lock(&serv_par__pt->mutex));
   bool abort = serv_par__pt->abort__b != 0;
-  pthread_mutex_unlock(&serv_par__pt->mutex);
+  CHECK_PTHREAD_ERR(pthread_mutex_unlock(&serv_par__pt->mutex));
   if(abort)
   {
     serv_par__pt->write_output_string("server thread received user abort request\n");
@@ -353,14 +355,14 @@ static void* flea_tls_server_thread(void* sv__pv)
   serv_par__pt->write_output_string("running server thread\n");
   if((err__t = THR_flea_tls_server_thread_inner(serv_par__pt)))
   {
-    pthread_mutex_lock(&serv_par__pt->mutex);
+    CHECK_PTHREAD_ERR(pthread_mutex_lock(&serv_par__pt->mutex)); // TODO: DBG: THIS FAILS
     serv_par__pt->server_error__e = err__t;
-    pthread_mutex_unlock(&serv_par__pt->mutex);
+    CHECK_PTHREAD_ERR(pthread_mutex_unlock(&serv_par__pt->mutex)); // TODO: DBG: THEN THIS IS A RACE
     serv_par__pt->write_output_string("error from server thread: 0x" + num_to_string_hex(err__t));
   }
-  pthread_mutex_lock(&serv_par__pt->mutex);
+  CHECK_PTHREAD_ERR(pthread_mutex_lock(&serv_par__pt->mutex));
   serv_par__pt->finished__b = FLEA_TRUE;
-  pthread_mutex_unlock(&serv_par__pt->mutex);
+  CHECK_PTHREAD_ERR(pthread_mutex_unlock(&serv_par__pt->mutex));
   return NULL;
 }
 
@@ -494,7 +496,7 @@ static flea_err_t THR_server_cycle(
       for(size_t i = 0; i < serv_pars.size(); i++)
       {
         server_params_t & serv_par__t = *serv_pars[i].get();
-        pthread_mutex_lock(&serv_par__t.mutex);
+        CHECK_PTHREAD_ERR(pthread_mutex_lock(&serv_par__t.mutex));
         if(serv_par__t.string_to_print.size())
         {
           std::cout << "thread with idx: " << i << std::endl;
@@ -503,7 +505,7 @@ static flea_err_t THR_server_cycle(
         }
         // bool abort = serv_par__t.abort__b != 0;
         bool finished = serv_par__t.finished__b != 0;
-        pthread_mutex_unlock(&serv_par__t.mutex);
+        CHECK_PTHREAD_ERR(pthread_mutex_unlock(&serv_par__t.mutex));
         if(finished /*|| abort*/)
         {
           pthread_join(serv_par__t.thread, NULL);
@@ -528,9 +530,9 @@ static flea_err_t THR_server_cycle(
       for(size_t i = 0; i < serv_pars.size(); i++)
       {
         server_params_t & serv_par__t = *serv_pars[i].get();
-        pthread_mutex_lock(&serv_par__t.mutex);
+        CHECK_PTHREAD_ERR(pthread_mutex_lock(&serv_par__t.mutex));
         serv_par__t.abort__b = FLEA_TRUE;
-        pthread_mutex_unlock(&serv_par__t.mutex);
+        CHECK_PTHREAD_ERR(pthread_mutex_unlock(&serv_par__t.mutex));
       }
     }
 

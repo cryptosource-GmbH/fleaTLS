@@ -164,11 +164,13 @@ static flea_err_t THR_write_socket(
     nb_bytes_to_write__dtl--;
     if(ctx__pt->write_buf__t.used_len__dtl == ctx__pt->write_buf__t.alloc_len__dtl)
     {
+      size_t send_len = ctx__pt->write_buf__t.used_len__dtl;
+      ctx__pt->write_buf__t.used_len__dtl = 0;
       FLEA_CCALL(
         THR_send_socket_inner(
           ctx__pt->socket_fd__int,
           ctx__pt->write_buf__t.buffer__au8,
-          ctx__pt->write_buf__t.used_len__dtl
+          send_len
         )
       );
       ctx__pt->write_buf__t.used_len__dtl = 0;
@@ -181,15 +183,18 @@ static flea_err_t THR_write_flush_socket(void* ctx__pv)
 {
   linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
 
+  size_t send_len = ctx__pt->write_buf__t.used_len__dtl;
+
+  ctx__pt->write_buf__t.used_len__dtl = 0;
+  ctx__pt->write_buf__t.used_len__dtl = 0;
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
     THR_send_socket_inner(
       ctx__pt->socket_fd__int,
       ctx__pt->write_buf__t.buffer__au8,
-      ctx__pt->write_buf__t.used_len__dtl
+      send_len
     )
   );
-  ctx__pt->write_buf__t.used_len__dtl = 0;
   FLEA_THR_FIN_SEC_empty();
 }
 
