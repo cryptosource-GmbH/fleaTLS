@@ -155,7 +155,7 @@ flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
 flea_err_t THR_flea_tls_rec_prot_t__send_record(
   flea_tls_rec_prot_t* rec_prot__pt,
   const flea_u8_t*     bytes,
-  flea_u16_t           bytes_len,
+  flea_dtl_t           bytes_len,
   ContentType          content_type
 );
 

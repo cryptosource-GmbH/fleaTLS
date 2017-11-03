@@ -914,7 +914,7 @@ flea_err_t THR_flea_tls_ctx_t__flush_write_app_data(flea_tls_ctx_t* tls_ctx)
 static flea_err_t THR_flea_tls_ctx_t__send_app_data_inner(
   flea_tls_ctx_t*  tls_ctx,
   const flea_u8_t* data,
-  flea_u8_t        data_len
+  flea_dtl_t       data_len__dtl
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -923,7 +923,7 @@ static flea_err_t THR_flea_tls_ctx_t__send_app_data_inner(
     THR_flea_tls_rec_prot_t__send_record(
       &tls_ctx->rec_prot__t,
       data,
-      data_len,
+      data_len__dtl,
       CONTENT_TYPE_APPLICATION_DATA
     )
   );
@@ -936,8 +936,8 @@ static flea_err_t THR_flea_tls_ctx_t__send_app_data_inner(
 flea_err_t THR_flea_tls_ctx_t__send_app_data(
   flea_tls_server_ctx_t* server_ctx_mbn__pt,
   flea_tls_client_ctx_t* client_ctx_mbn__pt,
-  const flea_u8_t*       data,
-  flea_u8_t              data_len
+  const flea_u8_t*       data__pcu8,
+  flea_dtl_t             data_len__dtl
 )
 {
   flea_err_t err__t;
@@ -946,7 +946,7 @@ flea_err_t THR_flea_tls_ctx_t__send_app_data(
 
   FLEA_THR_BEG_FUNC();
   tls_ctx__pt = server_ctx_mbn__pt ? &server_ctx_mbn__pt->tls_ctx__t : &client_ctx_mbn__pt->tls_ctx__t;
-  err__t      = THR_flea_tls_ctx_t__send_app_data_inner(tls_ctx__pt, data, data_len);
+  err__t      = THR_flea_tls_ctx_t__send_app_data_inner(tls_ctx__pt, data__pcu8, data_len__dtl);
 
   FLEA_CCALL(THR_flea_tls__handle_tls_error(server_ctx_mbn__pt, client_ctx_mbn__pt, err__t, NULL, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();

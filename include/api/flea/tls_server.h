@@ -27,7 +27,6 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   // TODO: TURN INTO REF_CU8
   const flea_byte_vec_t*        crl_der__pt,
   flea_al_u16_t                 nb_crls__alu16,
-  // NEEDS CONCURRENCY SUPPORT:
   flea_tls_session_mngr_t*      session_mngr_mbn__pt,
   flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8,
   flea_ref_cu8_t*               allowed_sig_algs_ref__prcu8,
@@ -37,6 +36,7 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
 flea_err_t THR_flea_tls_server_ctx_t__read_app_data(
   flea_tls_server_ctx_t*  tls_ctx_t,
   flea_u8_t*              data__pu8,
+  // TODO: USE dtl for data_len here!
   flea_al_u16_t*          data_len__palu16,
   flea_stream_read_mode_e rd_mode__e
 );
@@ -44,7 +44,7 @@ flea_err_t THR_flea_tls_server_ctx_t__read_app_data(
 flea_err_t THR_flea_tls_server_ctx_t__send_app_data(
   flea_tls_server_ctx_t* tls_ctx,
   const flea_u8_t*       data,
-  flea_u8_t              data_len
+  flea_dtl_t             data_len__dtl
 );
 
 

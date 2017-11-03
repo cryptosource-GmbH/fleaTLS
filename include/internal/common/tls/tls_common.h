@@ -177,10 +177,10 @@ flea_err_t THR_flea_tls_ctx_t__read_app_data(
 );
 
 flea_err_t THR_flea_tls_ctx_t__send_app_data(
-  flea_tls_server_ctx_t* server_ctx_mbn__pt,
-  flea_tls_client_ctx_t* client_ctx_mbn__pt,
+  flea_tls_server_ctx_t* server_ctx_mbn,
+  flea_tls_client_ctx_t* client_ctx_mbn,
   const flea_u8_t*       data,
-  flea_u8_t              data_len
+  flea_dtl_t             data_len
 );
 
 flea_err_t THR_flea_tls_ctx_t__flush_write_app_data(flea_tls_ctx_t* tls_ctx);

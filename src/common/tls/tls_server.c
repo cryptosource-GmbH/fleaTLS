@@ -1686,11 +1686,11 @@ void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx__pt)
 
 flea_err_t THR_flea_tls_server_ctx_t__send_app_data(
   flea_tls_server_ctx_t* tls_server_ctx__pt,
-  const flea_u8_t*       data,
-  flea_u8_t              data_len
+  const flea_u8_t*       data__pcu8,
+  flea_dtl_t             data_len__dtl
 )
 {
-  return THR_flea_tls_ctx_t__send_app_data(tls_server_ctx__pt, NULL, data, data_len);
+  return THR_flea_tls_ctx_t__send_app_data(tls_server_ctx__pt, NULL, data__pcu8, data_len__dtl);
 }
 
 flea_err_t THR_flea_tls_server_ctx_t__flush_write_app_data(flea_tls_server_ctx_t* tls_server_ctx__pt)

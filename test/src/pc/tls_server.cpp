@@ -309,6 +309,7 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
     serv_par__pt->write_output_string("received data len = " + num_to_string(buf_len) + "\n");
     serv_par__pt->write_output_string("read_app_data returned\n");
     FLEA_CCALL(THR_flea_tls_server_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
+    FLEA_CCALL(THR_flea_tls_server_ctx_t__flush_write_app_data(&tls_ctx));
     // usleep(100);
   }
 

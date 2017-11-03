@@ -970,14 +970,14 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
 
 flea_err_t THR_flea_tls_rec_prot_t__send_record(
   flea_tls_rec_prot_t* rec_prot__pt,
-  const flea_u8_t*     bytes,
-  flea_u16_t           bytes_len,
+  const flea_u8_t*     bytes__pcu8,
+  flea_dtl_t           bytes_len__dtl,
   ContentType          content_type
 )
 {
   FLEA_THR_BEG_FUNC();
 
-  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(rec_prot__pt, content_type, bytes, bytes_len));
+  FLEA_CCALL(THR_flea_tls_rec_prot_t__write_data(rec_prot__pt, content_type, bytes__pcu8, bytes_len__dtl));
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_record */

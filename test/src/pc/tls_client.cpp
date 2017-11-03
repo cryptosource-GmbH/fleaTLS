@@ -180,6 +180,7 @@ static flea_err_t THR_flea_start_tls_client(
     flea_al_u16_t buf_len = sizeof(buf) - 1;
     FLEA_CCALL(THR_flea_tls_client_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking));
     FLEA_CCALL(THR_flea_tls_client_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
+    FLEA_CCALL(THR_flea_tls_client_ctx_t__flush_write_app_data(&tls_ctx));
     buf[buf_len] = 0;
     printf("received data: %s\n", buf);
     usleep(10000);

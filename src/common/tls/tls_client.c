@@ -1506,11 +1506,11 @@ flea_err_t THR_flea_tls_client_ctx_t__read_app_data(
 
 flea_err_t THR_flea_tls_client_ctx_t__send_app_data(
   flea_tls_client_ctx_t* tls_client_ctx__pt,
-  const flea_u8_t*       data,
-  flea_u8_t              data_len
+  const flea_u8_t*       data__pcu8,
+  flea_dtl_t             data_len__dtl
 )
 {
-  return THR_flea_tls_ctx_t__send_app_data(NULL, tls_client_ctx__pt, data, data_len);
+  return THR_flea_tls_ctx_t__send_app_data(NULL, tls_client_ctx__pt, data__pcu8, data_len__dtl);
 }
 
 flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t* tls_client_ctx__pt)
