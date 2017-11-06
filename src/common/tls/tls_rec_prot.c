@@ -1059,7 +1059,7 @@ void flea_tls_rec_prot_t__discard_current_read_record(flea_tls_rec_prot_t* rec_p
 static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   flea_tls_rec_prot_t*          rec_prot__pt,
   flea_u8_t*                    data__pu8,
-  flea_al_u16_t*                data_len__palu16,
+  flea_dtl_t*                   data_len__pdtl,
   flea_tls__protocol_version_t* prot_version_mbn__pt,
   flea_bool_t                   do_verify_prot_version__b,
   ContentType                   cont_type__e,
@@ -1067,13 +1067,13 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   flea_stream_read_mode_e       rd_mode__e
 )
 {
-  flea_al_u16_t to_cp__alu16, read_bytes_count__alu16 = 0;
-  flea_dtl_t data_len__dtl = *data_len__palu16;
+  flea_al_u16_t to_cp__alu16, read_bytes_count__dtl = 0;
+  flea_dtl_t data_len__dtl = *data_len__pdtl;
 
   flea_bool_t is_handsh_msg_during_app_data__b = FLEA_FALSE;
 
   FLEA_THR_BEG_FUNC();
-  *data_len__palu16 = 0;
+  *data_len__pdtl = 0;
   if(rec_prot__pt->is_session_closed__u8)
   {
     FLEA_THROW("tls session closed", FLEA_ERR_TLS_SESSION_CLOSED);
@@ -1092,9 +1092,9 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   to_cp__alu16 = FLEA_MIN(data_len__dtl, rec_prot__pt->payload_used_len__u16 - rec_prot__pt->payload_offset__u16);
   memcpy(data__pu8, rec_prot__pt->payload_buf__pu8 + rec_prot__pt->payload_offset__u16, to_cp__alu16);
   rec_prot__pt->payload_offset__u16 += to_cp__alu16;
-  data_len__dtl -= to_cp__alu16;
-  data__pu8     += to_cp__alu16;
-  read_bytes_count__alu16 += to_cp__alu16;
+  data_len__dtl         -= to_cp__alu16;
+  data__pu8             += to_cp__alu16;
+  read_bytes_count__dtl += to_cp__alu16;
   // enter only if
   // - called with current_or_next_record_for_content_type__b
   //   OR
@@ -1142,7 +1142,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
           {
             if(local_rd_mode__e == flea_read_nonblocking)
             {
-              *data_len__palu16 = 0;
+              *data_len__pdtl = 0;
               FLEA_THR_RETURN();
             }
             else
@@ -1215,7 +1215,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         {
           if(local_rd_mode__e == flea_read_nonblocking)
           {
-            *data_len__palu16 = 0;
+            *data_len__pdtl = 0;
             FLEA_THR_RETURN();
           }
           else
@@ -1279,13 +1279,13 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         to_cp__alu16 = FLEA_MIN(raw_rec_content_len__alu16, data_len__dtl);
         memcpy(data__pu8, rec_prot__pt->payload_buf__pu8, to_cp__alu16);
         rec_prot__pt->payload_offset__u16 += to_cp__alu16;
-        read_bytes_count__alu16 += to_cp__alu16;
-        data_len__dtl -= to_cp__alu16;
-        data__pu8     += to_cp__alu16;
+        read_bytes_count__dtl += to_cp__alu16;
+        data_len__dtl         -= to_cp__alu16;
+        data__pu8 += to_cp__alu16;
       }
     } while(
       ((rd_mode__e == flea_read_full) && data_len__dtl) ||
-      ((rd_mode__e == flea_read_blocking) && !read_bytes_count__alu16)
+      ((rd_mode__e == flea_read_blocking) && !read_bytes_count__dtl)
     );
   } /* end of ' get new record hdr and content' */
 
@@ -1298,7 +1298,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
      * rec_prot__pt->payload_used_len__u16 = 0;
      * rec_prot__pt->read_bytes_from_current_record__u16 = 0;*/
   }
-  *data_len__palu16 = read_bytes_count__alu16;
+  *data_len__pdtl = read_bytes_count__dtl;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__read_data_inner */
 
@@ -1332,14 +1332,14 @@ flea_err_t THR_flea_tls_rec_prot_t__read_data(
   flea_tls_rec_prot_t*    rec_prot__pt,
   ContentType             cont_type__e,
   flea_u8_t*              data__pu8,
-  flea_al_u16_t*          data_len__palu16,
+  flea_dtl_t*             data_len__pdtl,
   flea_stream_read_mode_e rd_mode__e
 )
 {
   return THR_flea_tls_rec_prot_t__read_data_inner(
     rec_prot__pt,
     data__pu8,
-    data_len__palu16,
+    data_len__pdtl,
     NULL,
     FLEA_FALSE,
     cont_type__e,

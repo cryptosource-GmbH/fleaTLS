@@ -19,6 +19,7 @@
 
 #include "pltf_support/tcpip_stream.h"
 #include "pc/test_util.h"
+#include "pc/linux_util.h"
 #include "flea/tls.h"
 #include "flea/tls_server.h"
 #include "pc/test_pc.h"
@@ -125,7 +126,8 @@ static flea_err_t THR_check_keyb_input(/*fd_set & keyb_fds*/)
 } // THR_check_keyb_input
 
 static int unix_tcpip_listen_accept(
-  int listen_fd
+  int      listen_fd,
+  unsigned read_timeout_ms
   // int*             fd
   // server_params_t* serv_par__pt
   // unsigned timeout_secs
@@ -135,8 +137,10 @@ static int unix_tcpip_listen_accept(
   // int client_fd = -1;
 
   struct timeval tv;
-  tv.tv_sec  = 1;
-  tv.tv_usec = 0; // 10 * 1000;
+
+  /*tv.tv_sec  = read_timeout_ms / 1000;
+   * tv.tv_usec = (read_timeout_ms % 1000) * 1000;*/
+  set_timeval_from_millisecs(&tv, read_timeout_ms);
   setsockopt(
     listen_fd,
     SOL_SOCKET,
@@ -192,7 +196,7 @@ static int unix_tcpip_listen_accept(
 static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt)
 {
   flea_rw_stream_t rw_stream__t;
-  flea_u8_t buf[100000];
+  flea_u8_t buf[65000];
   flea_tls_server_ctx_t tls_ctx;
 
   // int sock_fd;
@@ -201,14 +205,6 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
   flea_tls_server_ctx_t__INIT(&tls_ctx);
   flea_rw_stream_t__INIT(&rw_stream__t);
 
-  /*FLEA_CCALL(
-   * THR_unix_tcpip_listen_accept(
-   *  serv_par__pt->listen_fd,
-   *  &sock_fd,
-   *  serv_par__pt
-   *  // serv_par__pt->read_timeout
-   * )
-   * );*/
 
   /** socket will be closed by rw_stream_t__dtor **/
   FLEA_CCALL(
@@ -280,10 +276,15 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
    * {*/
   while(1)
   {
-    flea_al_u16_t buf_len = sizeof(buf) - 1;
+    // flea_al_u16_t buf_len         = sizeof(buf) - 1;
+    flea_dtl_t buf_len = serv_par__pt->read_app_data_size >
+      sizeof(buf) ? sizeof(buf) : serv_par__pt->read_app_data_size;
+    if(buf_len == sizeof(buf))
+    {
+      buf_len -= 1;
+    }
     // FLEA_CCALL(THR_check_keyb_input());
     FLEA_CCALL(THR_check_user_abort(serv_par__pt));
-    // flea_err_t retval     = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
     flea_err_t retval = THR_flea_tls_server_ctx_t__read_app_data(
       &tls_ctx,
       buf,
@@ -292,8 +293,9 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
       );
     if(retval == FLEA_ERR_TIMEOUT_ON_STREAM_READ)
     {
+      serv_par__pt->write_output_string("read_mode = " + std::to_string(serv_par__pt->rd_mode__e) + "\n");
       serv_par__pt->write_output_string("timeout during read app data\n");
-      continue;
+      FLEA_THR_RETURN();
     }
     if(retval == FLEA_ERR_TLS_SESSION_CLOSED)
     {
@@ -308,39 +310,13 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
     // FLEA_CCALL(THR_check_keyb_input());
     FLEA_CCALL(THR_check_user_abort(serv_par__pt));
     buf[buf_len] = 0;
-    serv_par__pt->write_output_string("received data len = " + num_to_string(buf_len) + "\n");
-    serv_par__pt->write_output_string("read_app_data returned\n");
+    // serv_par__pt->write_output_string("received data len = " + num_to_string(buf_len) + "\n");
+    // serv_par__pt->write_output_string("read_app_data returned\n");
     FLEA_CCALL(THR_flea_tls_server_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
     FLEA_CCALL(THR_flea_tls_server_ctx_t__flush_write_app_data(&tls_ctx));
     // usleep(100);
   }
 
-  /*}
-   * else
-   * {
-   * flea_al_u16_t buf_len      = sizeof(buf) - 1;
-   * const char* response_hdr_1 =
-   *  "HTTP/1.1 200 OK\r\nDate: Mon, 27 Jul 2009 12:28:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT\r\nContent-Length: 50\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n<html><head><body>this is text</body></head></html>";
-   * FLEA_CCALL(THR_check_keyb_input());
-   * flea_err_t retval = THR_flea_tls_server_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking);
-   * if(retval == FLEA_ERR_TLS_SESSION_CLOSED)
-   * {
-   *  FLEA_THR_RETURN();
-   * }
-   * else if(retval)
-   * {
-   *  FLEA_THROW("rethrowing error from read_app_data", retval);
-   * }
-   * FLEA_CCALL(THR_check_keyb_input());
-   * buf[buf_len] = 0;
-   * FLEA_CCALL(
-   *  THR_flea_tls_server_ctx_t__send_app_data(
-   *    &tls_ctx,
-   *    (const flea_u8_t*) response_hdr_1,
-   *    strlen(response_hdr_1)
-   *  )
-   * );
-   * }*/
   FLEA_THR_FIN_SEC(
     flea_tls_server_ctx_t__dtor(&tls_ctx);
     flea_rw_stream_t__dtor(&rw_stream__t);
@@ -438,7 +414,8 @@ static flea_err_t THR_server_cycle(
     if((serv_pars.size() < thr_max) && !stop && create_new_threads)
     {
       int sock_fd;
-      if(0 <= ((sock_fd = unix_tcpip_listen_accept(listen_fd))))
+      unsigned read_timeout_ms = cmdl_args.get_property_as_u32_default("read_timeout", 1000);
+      if(0 <= ((sock_fd = unix_tcpip_listen_accept(listen_fd, read_timeout_ms))))
       {
         std::cout << "creating threads: max = " << thr_max << ", running currently = " << serv_pars.size() << std::endl;
         server_params_t serv_par__t;
@@ -454,9 +431,10 @@ static flea_err_t THR_server_cycle(
         serv_par__t.allowed_sig_algs__prcu8   = &allowed_sig_algs__rcu8;
         serv_par__t.flags__u16 = tls_cfg.flags;
         // serv_par__t.listen_fd         = listen_fd;
-        serv_par__t.read_timeout      = cmdl_args.get_property_as_u32_default("read_timeout", 1);
-        serv_par__t.nb_renegs_to_exec = cmdl_args.get_property_as_u32_default("do_renegs", 0);
-        serv_par__t.rd_mode__e        = tls_cfg.read_mode_for_app_data;
+        serv_par__t.read_timeout       = read_timeout_ms;
+        serv_par__t.nb_renegs_to_exec  = cmdl_args.get_property_as_u32_default("do_renegs", 0);
+        serv_par__t.rd_mode__e         = tls_cfg.read_mode_for_app_data;
+        serv_par__t.read_app_data_size = tls_cfg.read_size_for_app_data;
         serv_par__t.abort__b        = FLEA_FALSE;
         serv_par__t.server_error__e = FLEA_ERR_FINE;
         serv_par__t.finished__b     = FLEA_FALSE;

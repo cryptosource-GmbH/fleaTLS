@@ -108,7 +108,9 @@ static flea_bool_t determine_alert_from_error(
   }
   else if(is_read_app_data__b && (err__t == FLEA_ERR_TIMEOUT_ON_STREAM_READ))
   {
-    // TODO: THIS SEEMS TO HAVE TO DEPEND ON THE READ MODE
+    /* the read mode is not considered here. instead, the higher functions check
+     * wether sufficient data was returned.
+     */
     *alert_desc__pe = FLEA_TLS_ALERT_NO_ALERT;
     return FLEA_FALSE;
   }
@@ -960,7 +962,7 @@ static flea_err_t THR_flea_tls_ctx_t__read_app_data_inner(
   flea_tls_server_ctx_t*          server_ctx_mbn__pt,
   flea_tls_client_ctx_t*          client_ctx_mbn__pt,
   flea_u8_t*                      data__pu8,
-  flea_al_u16_t*                  data_len__palu16,
+  flea_dtl_t*                     data_len__pdtl,
   flea_stream_read_mode_e         rd_mode__e,
   flea_hostn_validation_params_t* hostn_valid_params_mbn__pt
 )
@@ -978,7 +980,7 @@ static flea_err_t THR_flea_tls_ctx_t__read_app_data_inner(
       &tls_ctx__pt->rec_prot__t,
       CONTENT_TYPE_APPLICATION_DATA,
       data__pu8,
-      data_len__palu16,
+      data_len__pdtl,
       rd_mode__e
       );
     if(err__t == FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA)
@@ -1044,24 +1046,41 @@ flea_err_t THR_flea_tls_ctx_t__read_app_data(
   flea_tls_server_ctx_t*          server_ctx_mbn__pt,
   flea_tls_client_ctx_t*          client_ctx_mbn__pt,
   flea_u8_t*                      data__pu8,
-  flea_al_u16_t*                  data_len__palu16,
+  flea_dtl_t*                     data_len__pdtl,
   flea_stream_read_mode_e         rd_mode__e,
   flea_hostn_validation_params_t* hostn_valid_params_mbn__pt
 )
 {
   flea_err_t err__t;
+  flea_dtl_t requested__dtl = 0;
 
   FLEA_THR_BEG_FUNC();
+
+  /* cover read size requirements, since timeouts are swallowed aleady by called
+   * function read_app_data_inner */
+  if(rd_mode__e == flea_read_full)
+  {
+    requested__dtl = *data_len__pdtl;
+  }
+  else if((rd_mode__e == flea_read_blocking) && *data_len__pdtl)
+  {
+    requested__dtl = 1;
+  }
   err__t = THR_flea_tls_ctx_t__read_app_data_inner(
     server_ctx_mbn__pt,
     client_ctx_mbn__pt,
     data__pu8,
-    data_len__palu16,
+    data_len__pdtl,
     rd_mode__e,
     hostn_valid_params_mbn__pt
     );
 
   FLEA_CCALL(THR_flea_tls__handle_tls_error(server_ctx_mbn__pt, client_ctx_mbn__pt, err__t, NULL, FLEA_TRUE));
+  if(requested__dtl && requested__dtl > *data_len__pdtl)
+  {
+    // TODO: REMOVE
+    FLEA_THROW("requested data could not be read from TLS stream", FLEA_ERR_TIMEOUT_ON_STREAM_READ);
+  }
   FLEA_THR_FIN_SEC_empty();
 }
 

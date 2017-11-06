@@ -30,14 +30,14 @@ typedef struct
   flea_u16_t  port__u16;
   const char* hostname;
   flea_bool_t is_dns_name;
-  unsigned    timeout_secs;
+  unsigned    timeout_millisecs;
 } linux_socket_stream_ctx_t;
 
 flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_rw_stream_t*          stream__pt,
   linux_socket_stream_ctx_t* sock_stream_ctx,
   flea_u16_t                 port__u16,
-  unsigned                   timeout_secs,
+  unsigned                   timeout_millisecs,
   const char*                hostname,
   flea_bool_t                is_dns_name
 );
@@ -45,7 +45,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
   flea_rw_stream_t*          stream__pt,
   linux_socket_stream_ctx_t* sock_stream_ctx,
   int                        sock_fd,
-  unsigned                   timeout_secs
+  unsigned                   timeout_millisecs
 );
 
 

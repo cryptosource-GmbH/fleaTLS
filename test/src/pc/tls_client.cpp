@@ -105,12 +105,13 @@ static flea_err_t THR_flea_start_tls_client(
   allowed_sig_algs__rcu8.data__pcu8   = &tls_cfg.allowed_sig_algs[0];
   allowed_sig_algs__rcu8.len__dtl     = tls_cfg.allowed_sig_algs.size();
 
+  // std::cout << "read_timeout = " << std::to_string(cmdl_args.get_property_as_u32_default("read_timeout", 0)) << "\n";
   FLEA_CCALL(
     THR_flea_pltfif_tcpip__create_rw_stream_client(
       &rw_stream__t,
       &sock_stream_ctx,
       cmdl_args.get_property_as_u32("port"),
-      cmdl_args.get_property_as_u32_default("read_timeout", 0),
+      cmdl_args.get_property_as_u32_default("read_timeout", 1000),
       hostname_s.c_str(),
       host_type == flea_host_dnsname ? FLEA_TRUE : FLEA_FALSE
     )
@@ -176,13 +177,37 @@ static flea_err_t THR_flea_start_tls_client(
   }
   while(cmdl_args.have_index("stay"))
   {
-    flea_u8_t buf[100000];
-    flea_al_u16_t buf_len = sizeof(buf) - 1;
-    FLEA_CCALL(THR_flea_tls_client_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_blocking));
+    flea_u8_t buf[65000];
+    // flea_al_u16_t buf_len = sizeof(buf) - 1;
+    flea_dtl_t buf_len = tls_cfg.read_size_for_app_data > sizeof(buf) ? sizeof(buf) : tls_cfg.read_size_for_app_data;
+    if(buf_len == sizeof(buf))
+    {
+      buf_len -= 1;
+    }
+    // std::cout << "read_mode = " << std::to_string(tls_cfg.read_mode_for_app_data) << "\n";
+    // std::cout << "calling read_app_data with len = " + std::to_string(buf_len) + "\n" << std::flush;
+    flea_err_t retval =
+      THR_flea_tls_client_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, tls_cfg.read_mode_for_app_data);
+    if(retval == FLEA_ERR_TIMEOUT_ON_STREAM_READ)
+    {
+      std::cout << "read_mode = " + std::to_string(tls_cfg.read_mode_for_app_data) + "\n";
+      std::cout << "timeout during read app data\n";
+      FLEA_THR_RETURN();
+    }
+    if(retval == FLEA_ERR_TLS_SESSION_CLOSED)
+    {
+      std::cout << "session closed\n";
+      FLEA_THR_RETURN();
+    }
+    else if(retval)
+    {
+      std::cout << "received error code from read_app_data: " + num_to_string_hex(retval) + "\n";
+      FLEA_THROW("rethrowing error from read_app_data", retval);
+    }
     FLEA_CCALL(THR_flea_tls_client_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
     FLEA_CCALL(THR_flea_tls_client_ctx_t__flush_write_app_data(&tls_ctx));
     buf[buf_len] = 0;
-    printf("received data: %s\n", buf);
+    // printf("received data: %s\n", buf);
     usleep(10000);
   }
 

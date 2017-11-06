@@ -5,7 +5,7 @@
 #include "flea/error_handling.h"
 #include "flea/error.h"
 
-
+#include "pc/linux_util.h"
 #include "pltf_support/tcpip_stream.h"
 #include <sys/types.h>
 #include <sys/socket.h>
@@ -21,7 +21,7 @@
 static void init_sock_stream_client(
   linux_socket_stream_ctx_t* sock_stream__pt,
   flea_u16_t                 port__u16,
-  unsigned                   timeout_secs,
+  unsigned                   timeout_millisecs,
   const char*                hostname,
   flea_bool_t                is_dns_name
 )
@@ -29,23 +29,23 @@ static void init_sock_stream_client(
   memset(sock_stream__pt, 0, sizeof(*sock_stream__pt));
   sock_stream__pt->read_buf__t.alloc_len__dtl  = sizeof(sock_stream__pt->read_buf__t.buffer__au8);
   sock_stream__pt->write_buf__t.alloc_len__dtl = sizeof(sock_stream__pt->write_buf__t.buffer__au8);
-  sock_stream__pt->port__u16    = port__u16;
-  sock_stream__pt->timeout_secs = timeout_secs;
-  sock_stream__pt->hostname     = hostname;
-  sock_stream__pt->is_dns_name  = is_dns_name;
+  sock_stream__pt->port__u16         = port__u16;
+  sock_stream__pt->timeout_millisecs = timeout_millisecs;
+  sock_stream__pt->hostname    = hostname;
+  sock_stream__pt->is_dns_name = is_dns_name;
 }
 
 static void init_sock_stream_server(
   linux_socket_stream_ctx_t* sock_stream__pt,
   int                        sock_fd,
-  unsigned                   timeout_secs
+  unsigned                   timeout_millisecs
 )
 {
   memset(sock_stream__pt, 0, sizeof(*sock_stream__pt));
   sock_stream__pt->read_buf__t.alloc_len__dtl  = sizeof(sock_stream__pt->read_buf__t.buffer__au8);
   sock_stream__pt->write_buf__t.alloc_len__dtl = sizeof(sock_stream__pt->write_buf__t.buffer__au8);
-  sock_stream__pt->socket_fd__int = sock_fd;
-  sock_stream__pt->timeout_secs   = timeout_secs;
+  sock_stream__pt->socket_fd__int    = sock_fd;
+  sock_stream__pt->timeout_millisecs = timeout_millisecs;
 }
 
 #if 0
@@ -221,10 +221,12 @@ static flea_err_t THR_read_socket(
   {
     flags |= MSG_DONTWAIT;
   }
-  tv.tv_sec  = ctx__pt->timeout_secs;
-  tv.tv_usec = 0;
 
-  /* ^- in principle this is not sufficient, as the a read for many byte could
+  /*tv.tv_sec  = ctx__pt->timeout_millisecs / 1000;
+   * tv.tv_usec = (ctx__pt->timeout_millisecs % 1000) * 1000;*/
+  set_timeval_from_millisecs(&tv, ctx__pt->timeout_millisecs);
+
+  /* ^- in principle this is not sufficient, as the a read for many bytes could
    * exceed the timeout by returning bytes successively with a delay in
    * between that is shorter than the timout set here. this corner case is, however, not
    * relevant to this example implementation.
@@ -272,68 +274,11 @@ static flea_err_t THR_read_socket(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_read_socket */
 
-#if 0
-static flea_err_t THR_read_socket(
-  void*       ctx__pv,
-  flea_u8_t*  target_buffer__pu8,
-  flea_dtl_t* nb_bytes_to_read__pdtl,
-  flea_bool_t force_read__b
-)
-{
-  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
-  flea_dtl_t rem_len__dtl = *nb_bytes_to_read__pdtl;
-  read_buf_t* buf__pt     = &ctx__pt->read_buf__t;
-
-  FLEA_THR_BEG_FUNC();
-  // first draw from read buffer.
-  // then directly read from socket, read more and place it into read buffer.
-  // need pointer to read_pos in read buffer to avoid often shifting contents after
-  // read from buffer.
-  if(rem_len__dtl && (buf__pt->offset__dtl < buf__pt->used_len__dtl))
-  {
-    flea_dtl_t left__dtl  = buf__pt->used_len__dtl - buf__pt->offset__dtl;
-    flea_dtl_t to_go__dtl = FLEA_MIN(left__dtl, rem_len__dtl);
-    memcpy(target_buffer__pu8, buf__pt->buffer__au8 + buf__pt->offset__dtl, to_go__dtl);
-    target_buffer__pu8   += to_go__dtl;
-    rem_len__dtl         -= to_go__dtl;
-    buf__pt->offset__dtl += to_go__dtl;
-  }
-  if(rem_len__dtl)
-  {
-    flea_bool_t no_read_at_all__b = FLEA_TRUE;
-    do
-    {
-      buf__pt->offset__dtl   = 0;
-      buf__pt->used_len__dtl = 0;
-      ssize_t did_read_ssz = recv(ctx__pt->socket_fd__int, buf__pt->buffer__au8, buf__pt->alloc_len__dtl, 0);
-      if(did_read_ssz < 0)
-      {
-        FLEA_THROW("recv err", FLEA_ERR_TLS_GENERIC);
-      }
-      if(did_read_ssz > 0)
-      {
-        no_read_at_all__b = FLEA_FALSE;
-      }
-      buf__pt->used_len__dtl = did_read_ssz;
-      flea_dtl_t to_go__dtl = FLEA_MIN(did_read_ssz, rem_len__dtl);
-      memcpy(target_buffer__pu8, buf__pt->buffer__au8, to_go__dtl);
-      buf__pt->offset__dtl = to_go__dtl;
-      target_buffer__pu8  += to_go__dtl;
-      rem_len__dtl        -= to_go__dtl;
-    } while(rem_len__dtl && (force_read__b || no_read_at_all__b));
-  }
-  *nb_bytes_to_read__pdtl -= rem_len__dtl;
-
-  FLEA_THR_FIN_SEC_empty();
-} /* THR_read_socket */
-
-#endif /* if 0 */
-
 flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
   flea_rw_stream_t*          stream__pt,
   linux_socket_stream_ctx_t* sock_stream_ctx,
   int                        sock_fd,
-  unsigned                   timeout_secs
+  unsigned                   timeout_millisecs
 
 )
 {
@@ -344,7 +289,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
   // init_sock_stream(&stc_sock_stream__t, port__u16, NULL);
-  init_sock_stream_server(sock_stream_ctx, sock_fd, timeout_secs);
+  init_sock_stream_server(sock_stream_ctx, sock_fd, timeout_millisecs);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,
@@ -364,7 +309,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_rw_stream_t*          stream__pt,
   linux_socket_stream_ctx_t* sock_stream_ctx,
   flea_u16_t                 port__u16,
-  unsigned                   timeout_secs,
+  unsigned                   timeout_millisecs,
   const char*                hostname,
   flea_bool_t                is_dns_name
 )
@@ -375,7 +320,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_rw_stream_write_f write__f       = THR_write_socket;
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
-  init_sock_stream_client(sock_stream_ctx, port__u16, timeout_secs, hostname, is_dns_name);
+  init_sock_stream_client(sock_stream_ctx, port__u16, timeout_millisecs, hostname, is_dns_name);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,

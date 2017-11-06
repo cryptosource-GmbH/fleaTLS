@@ -219,18 +219,19 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
 
 
   std::string read_mode_s = cmdl_args.get_property_as_string_default_empty("app_data_read_mode");
+  cfg.read_size_for_app_data = cmdl_args.get_property_as_u32_default("app_data_read_size", 20000);
 
   if(read_mode_s == "full")
   {
     cfg.read_mode_for_app_data = flea_read_full;
   }
-  else if(read_mode_s == "" || read_mode_s == "blocking")
-  {
-    cfg.read_mode_for_app_data = flea_read_blocking;
-  }
-  else if(read_mode_s == "nonblocking")
+  else if(read_mode_s == "" || read_mode_s == "nonblocking")
   {
     cfg.read_mode_for_app_data = flea_read_nonblocking;
+  }
+  else if(read_mode_s == "blocking")
+  {
+    cfg.read_mode_for_app_data = flea_read_blocking;
   }
   else
   {

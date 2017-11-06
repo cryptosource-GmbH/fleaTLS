@@ -1596,7 +1596,7 @@ flea_err_t THR_flea_tls__server_handshake(
 flea_err_t THR_flea_tls_server_ctx_t__read_app_data(
   flea_tls_server_ctx_t*  tls_server_ctx__pt,
   flea_u8_t*              data__pu8,
-  flea_al_u16_t*          data_len__palu16,
+  flea_dtl_t*             data_len__pdtl,
   flea_stream_read_mode_e rd_mode__e
 )
 {
@@ -1604,7 +1604,7 @@ flea_err_t THR_flea_tls_server_ctx_t__read_app_data(
     tls_server_ctx__pt,
     NULL,
     data__pu8,
-    data_len__palu16,
+    data_len__pdtl,
     rd_mode__e,
     NULL
   );

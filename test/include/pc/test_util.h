@@ -36,6 +36,7 @@ struct server_params_t
   flea_u32_t                    read_timeout;
   flea_u32_t                    nb_renegs_to_exec;
   flea_stream_read_mode_e       rd_mode__e;
+  size_t                        read_app_data_size;
   linux_socket_stream_ctx_t     sock_stream_ctx;
   int                           sock_fd;
   volatile flea_bool_t          abort__b;
@@ -189,6 +190,7 @@ struct tls_test_cfg_t
   // flea_rev_chk_mode_e                      rev_chk_mode__e;
   std::vector<flea_byte_vec_t>             crls_refs;
   flea_stream_read_mode_e                  read_mode_for_app_data;
+  size_t                                   read_size_for_app_data;
   flea_u16_t                               flags = 0;
   unsigned                                 timeout_secs_during_handshake = 0;
 };

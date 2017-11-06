@@ -36,8 +36,7 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
 flea_err_t THR_flea_tls_server_ctx_t__read_app_data(
   flea_tls_server_ctx_t*  tls_ctx_t,
   flea_u8_t*              data__pu8,
-  // TODO: USE dtl for data_len here!
-  flea_al_u16_t*          data_len__palu16,
+  flea_dtl_t*             data_len__pdtl,
   flea_stream_read_mode_e rd_mode__e
 );
 

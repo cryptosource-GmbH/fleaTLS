@@ -171,7 +171,7 @@ flea_err_t THR_flea_tls_ctx_t__read_app_data(
   flea_tls_server_ctx_t*          server_ctx_mbn__pt,
   flea_tls_client_ctx_t*          client_ctx_mbn__pt,
   flea_u8_t*                      data__pu8,
-  flea_al_u16_t*                  data_len__palu16,
+  flea_dtl_t*                     data_len__pdtl,
   flea_stream_read_mode_e         rd_mode__e,
   flea_hostn_validation_params_t* hostn_valid_params_mbn__pt
 );
