@@ -1138,6 +1138,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
             )
           );
           rec_prot__pt->read_bytes_from_current_record__u16 += raw_read_len__dtl;
+
           if(raw_read_len__dtl == 0)
           {
             if(local_rd_mode__e == flea_read_nonblocking)
@@ -1183,35 +1184,35 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         }
         rec_prot__pt->current_record_content_len__u16  = rec_prot__pt->send_rec_buf_raw__bu8[3] << 8;
         rec_prot__pt->current_record_content_len__u16 |= rec_prot__pt->send_rec_buf_raw__bu8[4];
-        // rec_prot__pt->current_record_content_len__u16 = raw_rec_content_len__alu16;
-        // TODO: CORRECT ALL SIZE ALLOCATIONS / REQUIREMENTS:
         if(rec_prot__pt->current_record_content_len__u16 > FLEA_TLS_TRNSF_BUF_SIZE - RECORD_HDR_LEN)
         {
           FLEA_THROW("received record does not fit into receive buffer", FLEA_ERR_TLS_EXCSS_REC_LEN);
         }
       } /* end of 'read the hdr' */
 
-      while(rec_prot__pt->read_bytes_from_current_record__u16 <
+      if(rec_prot__pt->read_bytes_from_current_record__u16 <
         rec_prot__pt->current_record_content_len__u16 + RECORD_HDR_LEN)
       {
         flea_stream_read_mode_e content_read_mode__e = local_rd_mode__e;
+        flea_al_u16_t needed_read_len__alu16;
         if(rec_prot__pt->is_current_record_alert__u8)
         {
           content_read_mode__e = flea_read_full;
         }
-        raw_read_len__dtl = rec_prot__pt->current_record_content_len__u16
-          - (rec_prot__pt->read_bytes_from_current_record__u16 - RECORD_HDR_LEN);
+        needed_read_len__alu16 = raw_read_len__dtl = rec_prot__pt->current_record_content_len__u16
+            - (rec_prot__pt->read_bytes_from_current_record__u16 - RECORD_HDR_LEN);
         FLEA_CCALL(
           THR_flea_rw_stream_t__read(
             rec_prot__pt->rw_stream__pt,
-            rec_prot__pt->payload_buf__pu8,
+            rec_prot__pt->payload_buf__pu8 + rec_prot__pt->read_bytes_from_current_record__u16 - RECORD_HDR_LEN,
             &raw_read_len__dtl,
             content_read_mode__e
           )
         );
         rec_prot__pt->read_bytes_from_current_record__u16 += raw_read_len__dtl;
 
-        if(raw_read_len__dtl == 0)
+        // if(raw_read_len__dtl == 0)
+        if(raw_read_len__dtl < needed_read_len__alu16)
         {
           if(local_rd_mode__e == flea_read_nonblocking)
           {
@@ -1223,9 +1224,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
             FLEA_THROW("0 bytes returned from blocking read", FLEA_ERR_FAILED_STREAM_READ);
           }
         }
-      }
-      /* read full content */
-
+      } /* did read full content */
       rec_prot__pt->payload_used_len__u16 = rec_prot__pt->read_bytes_from_current_record__u16 - RECORD_HDR_LEN;
       rec_prot__pt->payload_offset__u16   = 0;
 
@@ -1234,7 +1233,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
       /* not needed any more, reset: */
       rec_prot__pt->read_bytes_from_current_record__u16 = 0;
       rec_prot__pt->current_record_content_len__u16     = 0;
-      // if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256)
 # ifdef FLEA_HAVE_TLS_CBC_CS
       if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
       {
@@ -1293,10 +1291,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   if(!flea_tls_rec_prot_t__have_pending_read_data(rec_prot__pt))
   {
     flea_tls_rec_prot_t__discard_current_read_record(rec_prot__pt);
-
-    /*rec_prot__pt->payload_offset__u16   = 0;
-     * rec_prot__pt->payload_used_len__u16 = 0;
-     * rec_prot__pt->read_bytes_from_current_record__u16 = 0;*/
   }
   *data_len__pdtl = read_bytes_count__dtl;
   FLEA_THR_FIN_SEC_empty();
