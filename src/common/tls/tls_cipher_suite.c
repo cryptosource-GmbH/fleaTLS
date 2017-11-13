@@ -92,7 +92,7 @@ const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher
 {
   flea_u16_t i;
 
-  for(i = 0; i < sizeof(cipher_suites) / sizeof(cipher_suites[0]); i++)
+  for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(cipher_suites); i++)
   {
     if(cipher_suites[i].id == id__t)
     {

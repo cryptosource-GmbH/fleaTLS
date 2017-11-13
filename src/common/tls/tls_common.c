@@ -1424,7 +1424,7 @@ static flea_err_t THR_flea_tls_ctx__parse_reneg_ext(
   );
 } /* THR_flea_tls_ctx__parse_reneg_ext */
 
-flea_u8_t flea_tls_map_tls_hash_to_flea_hash__t[6][2] = {
+flea_u8_t flea_tls_map_tls_hash_to_flea_hash__at[6][2] = {
   {0x01, flea_md5   },
   {0x02, flea_sha1  },
   {0x03, flea_sha224},
@@ -1433,7 +1433,7 @@ flea_u8_t flea_tls_map_tls_hash_to_flea_hash__t[6][2] = {
   {0x06, flea_sha512}
 };
 
-flea_u8_t flea_tls_map_tls_sig_to_flea_sig__t[2][2] = {
+flea_u8_t flea_tls_map_tls_sig_to_flea_sig__at[2][2] = {
   {0x01, flea_rsa_pkcs1_v1_5_sign},
   {0x03, flea_ecdsa_emsa1        }
 };
@@ -1446,13 +1446,11 @@ flea_err_t THR_flea_tls__map_tls_sig_to_flea_sig(
 {
   FLEA_THR_BEG_FUNC();
 
-  for(flea_u8_t i = 0;
-    i < sizeof(flea_tls_map_tls_sig_to_flea_sig__t) / sizeof(flea_tls_map_tls_sig_to_flea_sig__t[0]);
-    i++)
+  for(flea_u8_t i = 0; i < FLEA_NB_ARRAY_ENTRIES(flea_tls_map_tls_sig_to_flea_sig__at); i++)
   {
-    if(flea_tls_map_tls_sig_to_flea_sig__t[i][0] == id__u8)
+    if(flea_tls_map_tls_sig_to_flea_sig__at[i][0] == id__u8)
     {
-      *pk_scheme_id__pt = (flea_pk_scheme_id_t) flea_tls_map_tls_sig_to_flea_sig__t[i][1];
+      *pk_scheme_id__pt = (flea_pk_scheme_id_t) flea_tls_map_tls_sig_to_flea_sig__at[i][1];
       FLEA_THR_RETURN();
     }
   }
@@ -1466,13 +1464,11 @@ flea_err_t THR_flea_tls__map_flea_sig_to_tls_sig(
 )
 {
   FLEA_THR_BEG_FUNC();
-  for(flea_u8_t i = 0;
-    i < sizeof(flea_tls_map_tls_sig_to_flea_sig__t) / sizeof(flea_tls_map_tls_sig_to_flea_sig__t[0]);
-    i++)
+  for(flea_u8_t i = 0; i < FLEA_NB_ARRAY_ENTRIES(flea_tls_map_tls_sig_to_flea_sig__at); i++)
   {
-    if(flea_tls_map_tls_sig_to_flea_sig__t[i][1] == pk_scheme_id__t)
+    if(flea_tls_map_tls_sig_to_flea_sig__at[i][1] == pk_scheme_id__t)
     {
-      *id__pu8 = flea_tls_map_tls_sig_to_flea_sig__t[i][0];
+      *id__pu8 = flea_tls_map_tls_sig_to_flea_sig__at[i][0];
       FLEA_THR_RETURN();
     }
   }
@@ -1486,13 +1482,11 @@ flea_err_t THR_flea_tls__map_tls_hash_to_flea_hash(
 )
 {
   FLEA_THR_BEG_FUNC();
-  for(flea_u8_t i = 0;
-    i < sizeof(flea_tls_map_tls_hash_to_flea_hash__t) / sizeof(flea_tls_map_tls_hash_to_flea_hash__t[0]);
-    i++)
+  for(flea_u8_t i = 0; i < FLEA_NB_ARRAY_ENTRIES(flea_tls_map_tls_hash_to_flea_hash__at); i++)
   {
-    if(flea_tls_map_tls_hash_to_flea_hash__t[i][0] == id__u8)
+    if(flea_tls_map_tls_hash_to_flea_hash__at[i][0] == id__u8)
     {
-      *hash_id__pt = (flea_hash_id_t) flea_tls_map_tls_hash_to_flea_hash__t[i][1];
+      *hash_id__pt = (flea_hash_id_t) flea_tls_map_tls_hash_to_flea_hash__at[i][1];
       FLEA_THR_RETURN();
     }
   }
@@ -1506,13 +1500,11 @@ flea_err_t THR_flea_tls__map_flea_hash_to_tls_hash(
 )
 {
   FLEA_THR_BEG_FUNC();
-  for(flea_u8_t i = 0;
-    i < sizeof(flea_tls_map_tls_hash_to_flea_hash__t) / sizeof(flea_tls_map_tls_hash_to_flea_hash__t[0]);
-    i++)
+  for(flea_u8_t i = 0; i < FLEA_NB_ARRAY_ENTRIES(flea_tls_map_tls_hash_to_flea_hash__at); i++)
   {
-    if(flea_tls_map_tls_hash_to_flea_hash__t[i][1] == hash_id__t)
+    if(flea_tls_map_tls_hash_to_flea_hash__at[i][1] == hash_id__t)
     {
-      *id__pu8 = flea_tls_map_tls_hash_to_flea_hash__t[i][0];
+      *id__pu8 = flea_tls_map_tls_hash_to_flea_hash__at[i][0];
       FLEA_THR_RETURN();
     }
   }
