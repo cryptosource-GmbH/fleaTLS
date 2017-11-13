@@ -1446,7 +1446,9 @@ flea_err_t THR_flea_tls__map_tls_sig_to_flea_sig(
 {
   FLEA_THR_BEG_FUNC();
 
-  for(flea_u8_t i = 0; i < sizeof(flea_tls_map_tls_sig_to_flea_sig__t); i++)
+  for(flea_u8_t i = 0;
+    i < sizeof(flea_tls_map_tls_sig_to_flea_sig__t) / sizeof(flea_tls_map_tls_sig_to_flea_sig__t[0]);
+    i++)
   {
     if(flea_tls_map_tls_sig_to_flea_sig__t[i][0] == id__u8)
     {
@@ -1464,7 +1466,9 @@ flea_err_t THR_flea_tls__map_flea_sig_to_tls_sig(
 )
 {
   FLEA_THR_BEG_FUNC();
-  for(flea_u8_t i = 0; i < sizeof(flea_tls_map_tls_sig_to_flea_sig__t); i++)
+  for(flea_u8_t i = 0;
+    i < sizeof(flea_tls_map_tls_sig_to_flea_sig__t) / sizeof(flea_tls_map_tls_sig_to_flea_sig__t[0]);
+    i++)
   {
     if(flea_tls_map_tls_sig_to_flea_sig__t[i][1] == pk_scheme_id__t)
     {
@@ -1482,7 +1486,9 @@ flea_err_t THR_flea_tls__map_tls_hash_to_flea_hash(
 )
 {
   FLEA_THR_BEG_FUNC();
-  for(flea_u8_t i = 0; i < sizeof(flea_tls_map_tls_hash_to_flea_hash__t); i++)
+  for(flea_u8_t i = 0;
+    i < sizeof(flea_tls_map_tls_hash_to_flea_hash__t) / sizeof(flea_tls_map_tls_hash_to_flea_hash__t[0]);
+    i++)
   {
     if(flea_tls_map_tls_hash_to_flea_hash__t[i][0] == id__u8)
     {
@@ -1500,7 +1506,9 @@ flea_err_t THR_flea_tls__map_flea_hash_to_tls_hash(
 )
 {
   FLEA_THR_BEG_FUNC();
-  for(flea_u8_t i = 0; i < sizeof(flea_tls_map_tls_hash_to_flea_hash__t); i++)
+  for(flea_u8_t i = 0;
+    i < sizeof(flea_tls_map_tls_hash_to_flea_hash__t) / sizeof(flea_tls_map_tls_hash_to_flea_hash__t[0]);
+    i++)
   {
     if(flea_tls_map_tls_hash_to_flea_hash__t[i][1] == hash_id__t)
     {

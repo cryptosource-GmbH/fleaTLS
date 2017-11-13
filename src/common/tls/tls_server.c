@@ -47,7 +47,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
   FLEA_DECL_BUF(session_id__bu8, flea_u8_t, 32);
   const flea_al_u8_t max_session_id_len__alu8 = 32;
   flea_u8_t client_compression_methods_len__u8;
-  flea_u16_t cipher_suites_len_from_peer__u16;
+  flea_u32_t cipher_suites_len_from_peer__u32;
   flea_bool_t found_compression_method;
   flea_bool_t client_presented_sec_reneg_fallback_ciph_suite__b = FLEA_FALSE;
 
@@ -142,27 +142,27 @@ static flea_err_t THR_flea_tls__read_client_hello(
     server_ctx__pt->server_resume_session__u8 = resume__b;
   }
 
-  FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, (flea_u32_t*) &cipher_suites_len_from_peer__u16, 2));
+  FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, &cipher_suites_len_from_peer__u32, 2));
 
-  if(cipher_suites_len_from_peer__u16 % 2 != 0)
+  if(cipher_suites_len_from_peer__u32 % 2 != 0)
   {
     FLEA_THROW("incorrect cipher suites length", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
 # ifdef FLEA_USE_HEAP_BUF
-  if(cipher_suites_len_from_peer__u16 > FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE_HEAP)
+  if(cipher_suites_len_from_peer__u32 > FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE_HEAP)
   {
     FLEA_THROW("cipher suites length too large", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 # endif
 # ifndef FLEA_USE_HEAP_BUF
-  if(cipher_suites_len_from_peer__u16 > FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE)
+  if(cipher_suites_len_from_peer__u32 > FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE)
   {
     FLEA_THROW("buffer not large enough to store cipher suites", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 # endif
 
-  while(cipher_suites_len_from_peer__u16)
+  while(cipher_suites_len_from_peer__u32)
   {
     flea_u8_t curr_cs__au8[2];
     flea_al_u16_t curr_cs_from_peer__alu16;
@@ -203,7 +203,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
       FLEA_CCALL(THR_flea_byte_vec_t__append(&peer_cipher_suites_u16_be__t, curr_cs__au8, sizeof(curr_cs__au8)));
 # endif /* ifndef FLEA_HAVE_ECC */
     }
-    cipher_suites_len_from_peer__u16 -= 2;
+    cipher_suites_len_from_peer__u32 -= 2;
   }
 
 # ifndef FLEA_HAVE_ECC
