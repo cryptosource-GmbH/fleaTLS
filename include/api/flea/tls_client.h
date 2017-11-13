@@ -63,7 +63,16 @@ flea_err_t THR_flea_tls_client_ctx_t__send_app_data(
 
 flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t* tls_ctx);
 
-
+/**
+ *
+ * Before this function is called all pending application data or renegotiation requests
+ * sent by the peer should be drained by a call to the read_app_data() function.
+ * Otherwise, this function will return with an error because the pending stale TLS
+ * records will be received instead of the handshake records belonging to the
+ * renegotiation.
+ *
+ *
+ */
 flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
   flea_tls_client_ctx_t*   tls_ctx,
   flea_bool_t*             result,

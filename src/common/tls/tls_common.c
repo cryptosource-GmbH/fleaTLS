@@ -42,6 +42,7 @@ typedef struct
 
 
 static const error_alert_pair_t error_alert_map__act [] = {
+  {FLEA_ERR_TIMEOUT_ON_STREAM_READ,             FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
   {FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC,     FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC     },
   {FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH,            FLEA_TLS_ALERT_DESC_UNEXPECTED_MESSAGE },
   {FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO,       FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  },
@@ -1078,7 +1079,6 @@ flea_err_t THR_flea_tls_ctx_t__read_app_data(
   FLEA_CCALL(THR_flea_tls__handle_tls_error(server_ctx_mbn__pt, client_ctx_mbn__pt, err__t, NULL, FLEA_TRUE));
   if(requested__dtl && requested__dtl > *data_len__pdtl)
   {
-    // TODO: REMOVE
     FLEA_THROW("requested data could not be read from TLS stream", FLEA_ERR_TIMEOUT_ON_STREAM_READ);
   }
   FLEA_THR_FIN_SEC_empty();
@@ -1114,7 +1114,6 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
 
-  // TODO: discard pending read (/ flush pending write (done automatically))
   if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
     err__t =
@@ -1149,7 +1148,6 @@ flea_bool_t flea_tls_ctx_t__do_send_sec_reneg_ext(flea_tls_ctx_t* tls_ctx__pt)
     }
     return FLEA_FALSE;
   }
-  // TODO: NOT NEEDED, SHOULD NOT BE CALLED BY CLIENT AT ALL:
   else
   {
     return FLEA_TRUE;
