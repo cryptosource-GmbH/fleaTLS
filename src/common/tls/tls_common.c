@@ -2150,7 +2150,7 @@ flea_err_t THR_flea_tls__map_curve_bytes_to_flea_curve(
   FLEA_THR_BEG_FUNC();
   if(bytes[0] == 0)
   {
-    for(i = 0; i < (flea_u8_t) flea_secp521r1; i++)
+    for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(curve_bytes_flea_id_map); i++)
     {
       if(bytes[1] == curve_bytes_flea_id_map[i].curve_bytes__u8)
       {
