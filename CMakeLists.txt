@@ -61,14 +61,21 @@ ENDIF()
 
 
 SET(BUILD_STATIC false CACHE STRING
-      "Wether to build also a static version of the library or not: true/false"
+      "Whether to build also a static version of the library or not: true/false"
       )
 IF(BUILD_STATIC STREQUAL true)
     SET(DO_BUILD_STATIC 1)
 ENDIF()
 
+SET(asan false CACHE STRING
+      "Whether to use asan or not: true/false"
+      )
+IF(asan STREQUAL true)
+    SET(DO_USE_ASAN 1)
+ENDIF()
+
 SET(BUILD_SHARED true CACHE STRING
-      "Wether to build also a common (dynamic) version of the library or not: true/false"
+      "Whether to build also a common (dynamic) version of the library or not: true/false"
       )
 IF(BUILD_SHARED STREQUAL true)
     SET(DO_BUILD_SHARED 1)
@@ -112,6 +119,12 @@ ENDIF()
 
 IF(DO_BUILD_STATIC)
     ADD_LIBRARY(${FULL_LIB_STRING_STATIC} STATIC ${FLEA_SRCS})
+ENDIF()
+
+IF(DO_USE_ASAN)
+    #ADD_DEFINITIONS(-fno-omit-frame-pointer -fsanitize=address -static-libasan)
+    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
+    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
 ENDIF()
 
 ADD_EXECUTABLE(unit_test test/src/pc/unit_test_main.cpp ${TEST_SRCS})
