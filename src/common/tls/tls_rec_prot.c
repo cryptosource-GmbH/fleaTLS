@@ -1211,7 +1211,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         );
         rec_prot__pt->read_bytes_from_current_record__u16 += raw_read_len__dtl;
 
-        // if(raw_read_len__dtl == 0)
         if(raw_read_len__dtl < needed_read_len__alu16)
         {
           if(local_rd_mode__e == flea_read_nonblocking)
@@ -1279,7 +1278,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         rec_prot__pt->payload_offset__u16 += to_cp__alu16;
         read_bytes_count__dtl += to_cp__alu16;
         data_len__dtl         -= to_cp__alu16;
-        data__pu8 += to_cp__alu16;
+        data__pu8      += to_cp__alu16;
+        *data_len__pdtl = read_bytes_count__dtl;
       }
     } while(
       ((rd_mode__e == flea_read_full) && data_len__dtl) ||
@@ -1292,7 +1292,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   {
     flea_tls_rec_prot_t__discard_current_read_record(rec_prot__pt);
   }
-  *data_len__pdtl = read_bytes_count__dtl;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_rec_prot_t__read_data_inner */
 

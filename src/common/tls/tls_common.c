@@ -975,70 +975,71 @@ static flea_err_t THR_flea_tls_ctx_t__read_app_data_inner(
   FLEA_THR_BEG_FUNC();
 
   tls_ctx__pt = server_ctx_mbn__pt ? &server_ctx_mbn__pt->tls_ctx__t : &client_ctx_mbn__pt->tls_ctx__t;
-  do
-  {
-    err__t = THR_flea_tls_rec_prot_t__read_data(
-      &tls_ctx__pt->rec_prot__t,
-      CONTENT_TYPE_APPLICATION_DATA,
-      data__pu8,
-      data_len__pdtl,
-      rd_mode__e
-      );
-    if(err__t == FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA)
-    {
-      /* assume it's the appropriate ClientHello or HelloRequest in order to
-       * initiate a new handshake. a wrong handshake message type will result in
-       * an error during the invoked handshake processing. the new record which caused the exception is still
-       * held as current record in rec_prot.
-       */
 
-      if(tls_ctx__pt->connection_end == FLEA_TLS_SERVER)
-      {
-        if(tls_ctx__pt->allow_reneg__u8)
-        {
-          FLEA_CCALL(THR_flea_tls__server_handshake(server_ctx_mbn__pt));
-        }
-        else
-        {
-          flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
-          FLEA_CCALL(
-            THR_flea_tls_rec_prot_t__send_alert(
-              &tls_ctx__pt->rec_prot__t,
-              FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION,
-              FLEA_TLS_ALERT_LEVEL_WARNING
-            )
-          );
-        }
-      }
-      else // client
-      {
-        if(tls_ctx__pt->allow_reneg__u8)
-        {
-          FLEA_CCALL(
-            THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
-              &client_ctx_mbn__pt->tls_ctx__t,
-              hostn_valid_params_mbn__pt
-            )
-          );
-        }
-        else
-        {
-          flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
-          FLEA_CCALL(
-            THR_flea_tls_rec_prot_t__send_alert(
-              &tls_ctx__pt->rec_prot__t,
-              FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION,
-              FLEA_TLS_ALERT_LEVEL_WARNING
-            )
-          );
-        }
-      }
-    }
-    else if(err__t)
+  /*do
+  {*/
+  err__t = THR_flea_tls_rec_prot_t__read_data(
+    &tls_ctx__pt->rec_prot__t,
+    CONTENT_TYPE_APPLICATION_DATA,
+    data__pu8,
+    data_len__pdtl,
+    rd_mode__e
+    );
+  if(err__t == FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA)
+  {
+    /* assume it's the appropriate ClientHello or HelloRequest in order to
+     * initiate a new handshake. a wrong handshake message type will result in
+     * an error during the invoked handshake processing. the new record which caused the exception is still
+     * held as current record in rec_prot.
+     */
+
+    if(tls_ctx__pt->connection_end == FLEA_TLS_SERVER)
     {
-      FLEA_THROW("rethrowing during read app data", err__t);
+      if(tls_ctx__pt->allow_reneg__u8)
+      {
+        FLEA_CCALL(THR_flea_tls__server_handshake(server_ctx_mbn__pt));
+      }
+      else
+      {
+        flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
+        FLEA_CCALL(
+          THR_flea_tls_rec_prot_t__send_alert(
+            &tls_ctx__pt->rec_prot__t,
+            FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION,
+            FLEA_TLS_ALERT_LEVEL_WARNING
+          )
+        );
+      }
     }
-  } while(err__t);
+    else   // client
+    {
+      if(tls_ctx__pt->allow_reneg__u8)
+      {
+        FLEA_CCALL(
+          THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
+            &client_ctx_mbn__pt->tls_ctx__t,
+            hostn_valid_params_mbn__pt
+          )
+        );
+      }
+      else
+      {
+        flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
+        FLEA_CCALL(
+          THR_flea_tls_rec_prot_t__send_alert(
+            &tls_ctx__pt->rec_prot__t,
+            FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION,
+            FLEA_TLS_ALERT_LEVEL_WARNING
+          )
+        );
+      }
+    }
+  }
+  else if(err__t)
+  {
+    FLEA_THROW("rethrowing during read app data", err__t);
+  }
+  // } while(err__t);
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__read_app_data_inner */
