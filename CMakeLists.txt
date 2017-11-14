@@ -43,16 +43,16 @@ IF(NOT CMAKE_BUILD_TYPE)
       FORCE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
-SET(mudflap "false" CACHE STRING "wether to compile in mudflap for gcc")
-IF(${mudflap} STREQUAL "true")
-	ADD_DEFINITIONS(-fmudflap )
-	SET(MUDFLAP_LIB mudflap)
-  SET(MUDFLAP_STR -mf)
-ELSEIF(${mudflap} STREQUAL "false")
+#SET(mudflap "false" CACHE STRING "wether to compile in mudflap for gcc")
+#IF(${mudflap} STREQUAL "true")
+#	ADD_DEFINITIONS(-fmudflap )
+#	SET(MUDFLAP_LIB mudflap)
+SET(ASAN_STR -asan)
+#ELSEIF(${mudflap} STREQUAL "false")
 	
-ELSE()
-	MESSAGE(FATAL_ERROR "mudflap must be either 'true' or 'false'")
-ENDIF()
+#ELSE()
+#	MESSAGE(FATAL_ERROR "mudflap must be either 'true' or 'false'")
+#ENDIF()
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "debug")
     ADD_DEFINITIONS(-g)
@@ -67,12 +67,12 @@ IF(BUILD_STATIC STREQUAL true)
     SET(DO_BUILD_STATIC 1)
 ENDIF()
 
-SET(asan false CACHE STRING
-      "Whether to use asan or not: true/false"
-      )
-IF(asan STREQUAL true)
-    SET(DO_USE_ASAN 1)
-ENDIF()
+#SET(asan false CACHE STRING
+#      "Whether to use asan or not: true/false"
+#      )
+#IF(asan STREQUAL true)
+#    SET(DO_USE_ASAN 1)
+#ENDIF()
 
 SET(BUILD_SHARED true CACHE STRING
       "Whether to build also a common (dynamic) version of the library or not: true/false"
@@ -83,9 +83,10 @@ ENDIF()
 
 SET(VERSION_STRING ${SPECIAL_BUILD}${MAJOR_VERSION}.${MINOR_VERSION}.${PATCH_VERSION}${CM_STRING}${DEBUG_STRING})
 SET(LIB_NAME_STRING flea)
-SET(FULL_LIB_STRING ${LIB_NAME_STRING}-${VERSION_STRING}${MUDFLAP_STR})
-SET(FULL_LIB_STRING_STATIC
-  ${LIB_NAME_STRING}_static-${VERSION_STRING}${MUDFLAP_STR})
+SET(FULL_LIB_STRING ${LIB_NAME_STRING}-${VERSION_STRING}${UDFLAP_STR})
+SET(FULL_LIB_STRING_ASAN ${LIB_NAME_STRING}-${VERSION_STRING}${ASAN_STR})
+SET(FULL_LIB_STRING_STATIC${LIB_NAME_STRING}_static-${VERSION_STRING})
+SET(FULL_LIB_STRING_STATIC_ASAN ${LIB_NAME_STRING}_static-${VERSION_STRING}${ASAN_STR})
 
 SET(PROJECT_BINARY_DIR build)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
@@ -114,20 +115,38 @@ INCLUDE_DIRECTORIES(${INCLUDE_DIR} )
 
 IF(DO_BUILD_SHARED)
     ADD_LIBRARY(${FULL_LIB_STRING} SHARED ${FLEA_SRCS})
-    TARGET_LINK_LIBRARIES(${FULL_LIB_STRING} ${MUDFLAP_LIB} pthread )
+    TARGET_LINK_LIBRARIES(${FULL_LIB_STRING} pthread )
 ENDIF()
 
 IF(DO_BUILD_STATIC)
     ADD_LIBRARY(${FULL_LIB_STRING_STATIC} STATIC ${FLEA_SRCS})
 ENDIF()
 
-IF(DO_USE_ASAN)
-    #ADD_DEFINITIONS(-fno-omit-frame-pointer -fsanitize=address -static-libasan)
-    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
-    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS} -fno-omit-frame-pointer -fsanitize=address")
-ENDIF()
 
 ADD_EXECUTABLE(unit_test test/src/pc/unit_test_main.cpp ${TEST_SRCS})
 TARGET_LINK_LIBRARIES(unit_test ${FULL_LIB_STRING})
 
 
+#    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -static-libasan -fno-omit-frame-pointer -fsanitize=address")
+#    set (CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -static-libasan -fno-omit-frame-pointer -fsanitize=address")
+
+SET(ASAN_FLAGS "-fno-omit-frame-pointer -fsanitize=address")
+
+IF(DO_BUILD_SHARED)
+    ADD_LIBRARY(${FULL_LIB_STRING_ASAN} SHARED ${FLEA_SRCS})
+    TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_ASAN} asan pthread )
+    #TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_ASAN} )
+    #set_target_properties(${FULL_LIB_STRING_ASAN} PROPERTIES COMPILE_FLAGS "-fno-omit-frame-pointer -fsanitize=address")
+    target_compile_options(${FULL_LIB_STRING_ASAN} PUBLIC -fno-omit-frame-pointer -fsanitize=address)
+ENDIF()
+
+#IF(DO_BUILD_STATIC)
+#ADD_LIBRARY(${FULL_LIB_STRING_STATIC_ASAN} STATIC ${FLEA_SRCS})
+#TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_STATIC_ASAN} )
+#set_target_properties(${FULL_LIB_STRING_STATIC_ASAN} PROPERTIES COMPILE_FLAGS ${ASAN_FLAGS})
+#ENDIF()
+
+ADD_EXECUTABLE(unit_test-asan test/src/pc/unit_test_main.cpp ${TEST_SRCS})
+target_compile_options(unit_test-asan PUBLIC -fno-omit-frame-pointer -fsanitize=address)
+#set_target_properties(unit_test-asan PROPERTIES COMPILE_FLAGS ${ASAN_FLAGS})
+TARGET_LINK_LIBRARIES(unit_test-asan asan ${FULL_LIB_STRING_ASAN} )

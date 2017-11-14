@@ -73,6 +73,9 @@ int main(
     {
 #ifdef FLEA_HAVE_TLS
       res = flea_start_tls_client(cmdl_args);
+      std::cout << "tls client stopping with error code = " << std::hex << res << std::dec
+                << " ( exit code suppressed)\n";
+      res = 0;
 #else
       std::cerr << "TLS not configured" << std::endl;
       exit(1);
@@ -82,6 +85,9 @@ int main(
     {
 #ifdef FLEA_HAVE_TLS
       res = flea_start_tls_server(cmdl_args);
+      std::cout << "tls server stopping with error code = " << std::hex << res << std::dec
+                << " ( exit code suppressed)\n";
+      res = 0;
 #else
       std::cerr << "TLS not configured" << std::endl;
       exit(1);
@@ -91,6 +97,9 @@ int main(
     {
 #ifdef FLEA_HAVE_TLS
       res = flea_start_https_server(cmdl_args);
+      std::cout << "https server stopping with error code = " << std::hex << res << std::dec
+                << " ( exit code suppressed)\n";
+      res = 0;
 #else
       std::cerr << "TLS not configured" << std::endl;
       exit(1);
