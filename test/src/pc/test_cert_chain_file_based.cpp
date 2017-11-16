@@ -10,6 +10,7 @@
 #include "pc/test_util.h"
 #include "flea/error_handling.h"
 #include "flea/cert_path.h"
+#include "pc/linux_util.h"
 
 using namespace std;
 
@@ -19,7 +20,8 @@ using namespace std;
   (FLEA_ECC_MAX_MOD_BIT_SIZE >= 521)
 static flea_err_t THR_flea_execute_path_test_case_for_properties(
   std::string const   & dir_path,
-  property_set_t const& prop
+  property_set_t const& prop,
+  std::string         file_path_to_be_replaced_by_std_in
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -53,25 +55,65 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
   std::vector<flea_u32_t> cert_lens;
   std::vector<flea_u32_t> crl_lens;
   // the others may well be empty
-  vector<unsigned char> target_cert = read_bin_file(target_cert_files[0]);
+  //
+  vector<unsigned char> target_cert;
+  // std::cout << "trg_cert_path=" << target_cert_files[0] << "\n";
+  if(file_path_to_be_replaced_by_std_in == target_cert_files[0])
+  {
+    target_cert = read_binary_from_std_in();
+    std::cout << "read file with size " << target_cert.size() << " from stdin\n";
+  }
+  else
+  {
+    target_cert = read_bin_file(target_cert_files[0]);
+  }
   flea_err_t err;
   for(string anchor_file: trust_anchor_files)
   {
-    vector<unsigned char> cert = read_bin_file(anchor_file);
+    vector<unsigned char> cert;
+    // std::string path_to_cmp = "trust_anchors" +
+    if(file_path_to_be_replaced_by_std_in == anchor_file)
+    {
+      cert = read_binary_from_std_in();
+      std::cout << "read file with size " << cert.size() << " from stdin\n";
+    }
+    else
+    {
+      cert = read_bin_file(anchor_file);
+    }
     anchors.push_back(cert);
     anchor_ptrs.push_back(&anchors[anchors.size() - 1][0]);
     anchor_lens.push_back(anchors[anchors.size() - 1].size());
   }
   for(string cert_file: cert_files)
   {
-    vector<unsigned char> cert = read_bin_file(cert_file);
+    vector<unsigned char> cert;
+    // std::string path_to_cmp = "trust_anchors" +
+    if(file_path_to_be_replaced_by_std_in == cert_file)
+    {
+      cert = read_binary_from_std_in();
+      std::cout << "read file with size " << cert.size() << " from stdin\n";
+    }
+    else
+    {
+      cert = read_bin_file(cert_file);
+    }
     certs.push_back(cert);
     cert_ptrs.push_back(&certs[certs.size() - 1][0]);
     cert_lens.push_back(certs[certs.size() - 1].size());
   }
   for(string crl_file: crl_files)
   {
-    vector<unsigned char> crl = read_bin_file(crl_file);
+    vector<unsigned char> crl;
+    if(file_path_to_be_replaced_by_std_in == crl_file)
+    {
+      crl = read_binary_from_std_in();
+      std::cout << "read file with size " << crl.size() << " from stdin\n";
+    }
+    else
+    {
+      crl = read_bin_file(crl_file);
+    }
     crls.push_back(crl);
     crl_ptrs.push_back(&crls[crls.size() - 1][0]);
     crl_lens.push_back(crls[crls.size() - 1].size());
@@ -204,7 +246,10 @@ static properties_spec_t create_cert_path_ini_file_spec()
   return spec;
 }
 
-static flea_err_t THR_flea_execute_path_test_case(std::string const& dir_path)
+static flea_err_t THR_flea_execute_path_test_case(
+  std::string const& dir_path,
+  std::string const& file_path_to_be_replaced_by_std_in
+)
 {
   FLEA_THR_BEG_FUNC();
   properties_spec_t spec    = create_cert_path_ini_file_spec();
@@ -213,20 +258,26 @@ static flea_err_t THR_flea_execute_path_test_case(std::string const& dir_path)
   {
     // std::cout << "using property file " << prop_file << std::endl;
     property_set_t prop(prop_file, spec);
-    FLEA_CCALL(THR_flea_execute_path_test_case_for_properties(dir_path, prop));
+    FLEA_CCALL(THR_flea_execute_path_test_case_for_properties(dir_path, prop, file_path_to_be_replaced_by_std_in));
   }
   FLEA_THR_FIN_SEC_empty();
 }
 
 flea_err_t THR_flea_test_path_validation_file_based(
   const char* cert_path_prefix,
-  flea_u32_t* nb_exec_tests_pu32
+  flea_u32_t* nb_exec_tests_pu32,
+  const char* file_path_to_be_replaced_by_std_in
+  // flea_bool_t verbose
 )
 {
   FLEA_THR_BEG_FUNC();
-  std::string path_test_main_dir = "misc/testdata/cert_paths/";
+  std::string path_test_main_dir = "misc/testdata/cert_paths";
   std::vector<std::string> test_cases;
   flea_u32_t nb_test_execution_repetitions_due_randomized_cert_order = 5;
+  if(file_path_to_be_replaced_by_std_in != NULL)
+  {
+    nb_test_execution_repetitions_due_randomized_cert_order = 1;
+  }
   if(cert_path_prefix != nullptr)
   {
     // nb_test_execution_repetitions_due_randomized_cert_order = 1;
@@ -242,12 +293,16 @@ flea_err_t THR_flea_test_path_validation_file_based(
   }
   *nb_exec_tests_pu32 = test_cases.size();
   flea_u32_t err_count = 0;
-  for(string test: test_cases)
+  for(string const& test: test_cases)
   {
+    /*if(verbose)
+    {
+      std::cout << "executing cert_path_test = " << test << "\n";
+    }*/
     bool failure = false;
     for(flea_u32_t i = 0; i < nb_test_execution_repetitions_due_randomized_cert_order; i++)
     {
-      flea_err_t err = THR_flea_execute_path_test_case(test);
+      flea_err_t err = THR_flea_execute_path_test_case(test, file_path_to_be_replaced_by_std_in);
       if(err)
       {
         if(cert_path_prefix != nullptr)

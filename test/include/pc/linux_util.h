@@ -13,9 +13,9 @@ void set_timeval_from_millisecs(
   size_t          time_millisecs
 );
 
-
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif /* h-guard */

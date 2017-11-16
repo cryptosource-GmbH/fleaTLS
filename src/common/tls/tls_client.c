@@ -875,7 +875,7 @@ static flea_err_t THR_flea_tls__send_cert_verify(
   );
 } /* THR_flea_tls__send_cert_verify */
 
-static flea_err_t THR_flea_handle_handsh_msg(
+static flea_err_t THR_flea_client_handle_handsh_msg(
   flea_tls_ctx_t*                       tls_ctx,
   flea_tls_handshake_ctx_t*             hs_ctx__pt,
   flea_tls__handshake_state_t*          handshake_state,
@@ -924,9 +924,9 @@ static flea_err_t THR_flea_handle_handsh_msg(
       {
         handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE
           | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
- // | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST // only enable this
- // after the server sent his certificate because only authenticated
- // servers can ask for client authentication
+          // | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST // only enable this
+          // after the server sent his certificate because only authenticated
+          // servers can ask for client authentication
           | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
       }
     }
@@ -1127,7 +1127,7 @@ flea_err_t THR_flea_tls__client_handshake(
       if(cont_type__e == CONTENT_TYPE_HANDSHAKE)
       {
         FLEA_CCALL(
-          THR_flea_handle_handsh_msg(
+          THR_flea_client_handle_handsh_msg(
             tls_ctx,
             &hs_ctx__t,
             &handshake_state,

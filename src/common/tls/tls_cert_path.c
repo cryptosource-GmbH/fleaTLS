@@ -587,6 +587,10 @@ static flea_err_t THR_flea_tls__validate_cert(
         // FS: i don't think they can be distinguished at all...
         cert_type__e = flea_tls_cl_cert__ecdsa_sign;
       }
+      else
+      {
+        FLEA_THROW("invalid value of cert type", FLEA_ERR_INV_ARG);
+      }
 
       if(cert_path_params__pct->client_cert_type_mask__u8 & cert_type__e)
       {

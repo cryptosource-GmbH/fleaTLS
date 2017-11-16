@@ -21,7 +21,7 @@ int main(
   const char** argv
 )
 {
-  int res;
+  int res        = 0;
   flea_u32_t rnd = 0;
   property_set_t cmdl_args(argc, argv);
 
@@ -127,8 +127,12 @@ int main(
       bool full = cmdl_args.get_as_bool_default_false("full");
       flea_bool_t full__b = full ? FLEA_TRUE : FLEA_FALSE;
 
+      std::string file_path_to_be_replaced_by_std_in_str = cmdl_args.get_property_as_string_default_empty(
+        "path_rpl_stdin"
+        );
+      const char* file_path_to_be_replaced_by_std_in = file_path_to_be_replaced_by_std_in_str.c_str();
 
-      res = flea_unit_tests(reps, cert_path_prefix, func_prefix, full__b);
+      res = flea_unit_tests(reps, cert_path_prefix, file_path_to_be_replaced_by_std_in, func_prefix, full__b);
     }
   }
   catch(std::exception const& e)

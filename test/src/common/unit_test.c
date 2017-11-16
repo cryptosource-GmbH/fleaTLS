@@ -57,6 +57,7 @@ static unsigned canary_errors = 0;
 int flea_unit_tests(
   flea_u32_t  nb_reps,
   const char* cert_path_prefix,
+  const char* file_path_to_be_replaced_by_std_in,
   const char* func_prefix,
   flea_bool_t full__b
 )
@@ -164,7 +165,7 @@ int flea_unit_tests(
 
       CALL_TEST(THR_flea_test_asn1_date());
       CALL_TEST(THR_flea_test_date_addition());
-
+      CALL_TEST(THR_flea_test_fuzzed_certs());
 #ifdef __FLEA_HAVE_LINUX_FILESYSTEM
 # if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_MOD_BIT_SIZE >= 224
       CALL_TEST(THR_test_ecdsa_self_signed_certs_file_based());
@@ -183,7 +184,7 @@ int flea_unit_tests(
 # if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) && defined FLEA_HAVE_ECDSA && (FLEA_ECC_MAX_MOD_BIT_SIZE >= 521)
     if(!func_prefix)
     {
-      CALL_TEST(THR_flea_test_path_validation_file_based(cert_path_prefix, &nb_cert_path_tests));
+      CALL_TEST(THR_flea_test_path_validation_file_based(cert_path_prefix, &nb_cert_path_tests, file_path_to_be_replaced_by_std_in));
       nb_exec_tests -= 1; // correct the counting of the dispatcher
       nb_exec_tests += nb_cert_path_tests;
     }

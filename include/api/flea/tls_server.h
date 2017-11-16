@@ -49,6 +49,7 @@ flea_err_t THR_flea_tls_server_ctx_t__send_app_data(
 
 flea_err_t THR_flea_tls_server_ctx_t__flush_write_app_data(flea_tls_server_ctx_t* tls_ctx);
 
+// TODO: ADD FUNCTION TO TEST WHETHER RENEG IS ALLOWED ON THIS CONNECTION
 
 flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
   flea_tls_server_ctx_t*   tls_ctx__pt,

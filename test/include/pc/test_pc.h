@@ -3,16 +3,15 @@
 
 #include "test_util.h"
 
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 int flea_start_tls_client(property_set_t const& cmdl_args);
 int flea_start_tls_server(property_set_t const& cmdl_args);
 
 int flea_start_https_server(property_set_t const& cmdl_args);
 
-#ifdef __cplusplus
-}
-#endif
+flea_err_t THR_fleatest_iterate_cert_files_and_verify_as_self_signed(
+  std::string const &dir_name,
+  bool              expect_error
+);
+
 #endif /* h-guard */

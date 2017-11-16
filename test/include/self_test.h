@@ -174,6 +174,8 @@ flea_err_t THR_flea_test_cert_verify_rsa();
 
 flea_err_t THR_flea_test_cert_verify_ecdsa();
 
+flea_err_t THR_flea_test_fuzzed_certs();
+
 flea_err_t THR_test_ecdsa_self_signed_certs_file_based();
 
 /** for timings **/
@@ -212,7 +214,9 @@ flea_err_t THR_flea_test_cert_path_generic(
 
 flea_err_t THR_flea_test_path_validation_file_based(
   const char* cert_path_prefix,
-  flea_u32_t* nb_exec_tests_pu32
+  flea_u32_t* nb_exec_tests_pu32,
+  const char* file_path_to_be_replaced_by_std_in
+  // flea_bool_t verbose
 );
 
 flea_err_t THR_flea_test_gmt_time();
@@ -224,6 +228,7 @@ flea_err_t THR_flea_test_parallel_hash();
 int flea_unit_tests(
   flea_u32_t  nb_reps,
   const char* cert_path_prefix,
+  const char* file_path_to_be_replaced_by_std_in,
   const char* func_prefix,
   flea_bool_t full__b
 );

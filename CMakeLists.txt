@@ -19,8 +19,8 @@ SET(MAJOR_VERSION 0)
 SET(MINOR_VERSION 1)
 SET(PATCH_VERSION 0)
 
-SET(CMAKE_C_FLAGS "-std=c99 -pedantic")
-SET(CMAKE_CXX_FLAGS "-std=c++11 ")
+SET(CMAKE_C_FLAGS "-m32 -std=c99 -pedantic")
+SET(CMAKE_CXX_FLAGS "-m32 -std=c++11 ")
 
 
 ADD_DEFINITIONS( 
@@ -43,6 +43,13 @@ IF(NOT CMAKE_BUILD_TYPE)
       FORCE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
+SET(afl "false" CACHE STRING "wether to compile with afl-gcc")
+IF(${afl} STREQUAL "true")
+  SET($ENV{AFL_USE_ASAN} "1")  
+  SET(CMAKE_C_COMPILER afl-gcc)
+  SET(CMAKE_CXX_COMPILER afl-g++)
+ENDIF()
+
 #SET(mudflap "false" CACHE STRING "wether to compile in mudflap for gcc")
 #IF(${mudflap} STREQUAL "true")
 #	ADD_DEFINITIONS(-fmudflap )
@@ -55,8 +62,11 @@ SET(ASAN_STR -asan)
 #ENDIF()
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "debug")
-    ADD_DEFINITIONS(-g)
-    SET(DEBUG_STRING _d)
+  ADD_DEFINITIONS(-g)
+  SET(DEBUG_STRING _d)
+ELSE()
+  ADD_DEFINITIONS( -O3 )
+  #-fomit-frame-pointer  -momit-leaf-frame-pointer 
 ENDIF()
 
 
@@ -132,21 +142,19 @@ TARGET_LINK_LIBRARIES(unit_test ${FULL_LIB_STRING})
 
 SET(ASAN_FLAGS "-fno-omit-frame-pointer -fsanitize=address")
 
-IF(DO_BUILD_SHARED)
-    ADD_LIBRARY(${FULL_LIB_STRING_ASAN} SHARED ${FLEA_SRCS})
-    TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_ASAN} asan pthread )
-    #TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_ASAN} )
-    #set_target_properties(${FULL_LIB_STRING_ASAN} PROPERTIES COMPILE_FLAGS "-fno-omit-frame-pointer -fsanitize=address")
-    target_compile_options(${FULL_LIB_STRING_ASAN} PUBLIC -fno-omit-frame-pointer -fsanitize=address)
-ENDIF()
+#IF(DO_BUILD_SHARED)
+#ADD_LIBRARY(${FULL_LIB_STRING_ASAN} SHARED ${FLEA_SRCS})
+#TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_ASAN} asan pthread )
+#    target_compile_options(${FULL_LIB_STRING_ASAN} PUBLIC -fno-omit-frame-pointer -fsanitize=address)
+#ENDIF()
 
 #IF(DO_BUILD_STATIC)
-#ADD_LIBRARY(${FULL_LIB_STRING_STATIC_ASAN} STATIC ${FLEA_SRCS})
-#TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_STATIC_ASAN} )
+ADD_LIBRARY(${FULL_LIB_STRING_STATIC_ASAN} STATIC ${FLEA_SRCS})
+TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_STATIC_ASAN}  asan pthread )
 #set_target_properties(${FULL_LIB_STRING_STATIC_ASAN} PROPERTIES COMPILE_FLAGS ${ASAN_FLAGS})
+target_compile_options(${FULL_LIB_STRING_STATIC_ASAN} PUBLIC -fno-omit-frame-pointer -fsanitize=address)
 #ENDIF()
 
 ADD_EXECUTABLE(unit_test-asan test/src/pc/unit_test_main.cpp ${TEST_SRCS})
 target_compile_options(unit_test-asan PUBLIC -fno-omit-frame-pointer -fsanitize=address)
-#set_target_properties(unit_test-asan PROPERTIES COMPILE_FLAGS ${ASAN_FLAGS})
-TARGET_LINK_LIBRARIES(unit_test-asan asan ${FULL_LIB_STRING_ASAN} )
+TARGET_LINK_LIBRARIES(unit_test-asan asan ${FULL_LIB_STRING_STATIC_ASAN} )

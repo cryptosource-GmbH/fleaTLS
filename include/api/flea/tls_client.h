@@ -63,6 +63,9 @@ flea_err_t THR_flea_tls_client_ctx_t__send_app_data(
 
 flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t* tls_ctx);
 
+
+// TODO: ADD FUNCTION TO TEST WHETHER RENEG IS ALLOWED
+
 /**
  *
  * Before this function is called all pending application data or renegotiation requests

@@ -362,6 +362,10 @@ static flea_err_t THR_flea_ber_dec_t__decode_length_with_enc_len(
     flea_al_u8_t i;
     flea_dtl_t length__dtl = 0;
     first_byte &= ~0x80;
+    if(first_byte >= sizeof(length__dtl))
+    {
+      FLEA_THROW("long definite length overflows flea_dtl_t", FLEA_ERR_ASN1_DER_EXCSS_LEN);
+    }
     for(i = 0; i < first_byte; i++)
     {
       flea_u8_t next_byte;

@@ -275,4 +275,6 @@ inline std::string num_to_string_hex<unsigned char>(unsigned char num)
   return str_is;
 }
 
+std::vector<unsigned char> read_binary_from_std_in();
+
 #endif // ifndef __flea_test_util_cpp_H_

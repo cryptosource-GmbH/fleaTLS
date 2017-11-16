@@ -622,4 +622,69 @@ flea_u16_t reneg_flag_from_string(std::string const& s)
   throw test_utils_exceptn_t("invalid value '" + s + "' for argument 'reneg'");
 }
 
+std::vector<unsigned char> read_binary_from_std_in()
+{
+  std::vector<unsigned char> result;
+  const unsigned BLOCK_SIZE = 1024;
+  unsigned char buffer[BLOCK_SIZE];
+  for(;;)
+  {
+    size_t bytes = fread(buffer, sizeof(char), BLOCK_SIZE, stdin);
+    for(unsigned i = 0; i < bytes; i++)
+    {
+      result.push_back(buffer[i]);
+    }
+    // fwrite(buffer, sizeof(char), bytes, stdout);
+    // fflush(stdout);
+    if(bytes < BLOCK_SIZE)
+    {
+      if(feof(stdin))
+        break;
+    }
+  }
+  return result;
+}
+
+#if 0
+std::vector<unsigned char> input;
+try
+{
+  const std::size_t INIT_BUFFER_SIZE = 1024;
+  if(nullptr == std::freopen(NULL, "rb", stdin))
+  {
+    throw test_utils_exceptn_t(std::strerror(errno));
+  }
+
+  if(std::ferror(stdin))
+  {
+    throw test_utils_exceptn_t(std::strerror(errno));
+  }
+
+  std::size_t len;
+  std::array<char, INIT_BUFFER_SIZE> buf;
+
+  // somewhere to store the data
+
+  // use std::fread and remember to only use as many bytes as are returned
+  // according to len
+  while((len = std::fread(buf.data(), sizeof(buf[0]), buf.size(), stdin)) > 0)
+  {
+    // whoopsie
+    if(std::ferror(stdin) && !std::feof(stdin))
+      throw std::runtime_error(std::strerror(errno));
+
+    // use {buf.data(), buf.data() + len} here
+    input.insert(input.end(), buf.data(), buf.data() + len);   // append to vector
+  }
+
+  // use input vector here
+}
+catch(std::exception const& e)
+{
+  std::cerr << e.what() << '\n';
+}
+return input;
+
+#endif // if 0
+
 // std::vector<unsigned char> get_file_binary
