@@ -923,11 +923,12 @@ static flea_err_t THR_flea_client_handle_handsh_msg(
       else
       {
         handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE
-          | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
+          // | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE //
           // | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST // only enable this
           // after the server sent his certificate because only authenticated
           // servers can ask for client authentication
-          | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
+          // | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
+        ;
       }
     }
     else
