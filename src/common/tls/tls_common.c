@@ -567,6 +567,22 @@ flea_err_t THR_flea_tls__send_certificate(
 
   FLEA_THR_BEG_FUNC();
 
+  if(!cert_chain__pt || !cert_chain_len__u8)
+  {
+    hdr_len__u32       = 3;
+    cert_list_len__u32 = 0;
+    FLEA_CCALL(
+      THR_flea_tls__send_handshake_message_hdr(
+        &tls_ctx->rec_prot__t,
+        p_hash_ctx,
+        HANDSHAKE_TYPE_CERTIFICATE,
+        hdr_len__u32
+      )
+    );
+    FLEA_CCALL(THR_flea_tls__send_handshake_message_int_be(&tls_ctx->rec_prot__t, p_hash_ctx, cert_list_len__u32, 3));
+    FLEA_THR_RETURN();
+  }
+
   // calculate length for the header
   hdr_len__u32 = 3; // 3 byte for length of certificate list
   for(flea_u8_t i = 0; i < cert_chain_len__u8; i++)

@@ -1238,7 +1238,7 @@ flea_err_t THR_flea_tls__client_handshake(
       if(!session_mbn__pt || !session_mbn__pt->for_resumption__u8)
       {
         // if we have to send a certificate, send it now
-        if((handshake_state.send_client_cert == FLEA_TRUE) && tls_ctx->cert_chain_mbn__pt)
+        if((handshake_state.send_client_cert == FLEA_TRUE))// && tls_ctx->cert_chain_mbn__pt)
         {
           FLEA_CCALL(
             THR_flea_tls__send_certificate(
