@@ -1179,7 +1179,9 @@ static flea_err_t THR_flea_tls_server_handle_handsh_msg(
       FLEA_THR_RETURN();
     }
   }
-  if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_KEY_EXCHANGE)
+  // else if because if we don't get a certificate when we expect one we also
+  // don't want to process the Cl. KEX
+  else if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_KEY_EXCHANGE)
   {
     if(handshake_state->send_client_cert == FLEA_TRUE)
     {
@@ -1245,7 +1247,7 @@ static flea_err_t THR_flea_tls_server_handle_handsh_msg(
     }
   }
 
-  FLEA_THROW("No handshake message processed", FLEA_ERR_TLS_INVALID_STATE);
+  FLEA_THROW("No handshake message processed", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
 
   FLEA_THR_FIN_SEC(
     flea_tls_handsh_reader_t__dtor(&handsh_rdr__t);
