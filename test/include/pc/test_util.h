@@ -45,7 +45,8 @@ struct server_params_t
   pthread_mutex_t               mutex;
   pthread_t                     thread;
   std::string                   string_to_print;
-
+  std::string                   dir_for_file_based_input;
+  std::string                   filename_to_be_rpld_by_stdin;
   void                          write_output_string(std::string const& s)
   {
     pthread_mutex_lock(&this->mutex);
@@ -276,5 +277,10 @@ inline std::string num_to_string_hex<unsigned char>(unsigned char num)
 }
 
 std::vector<unsigned char> read_binary_from_std_in();
+
+bool string_ends_with(
+  std::string const &fullString,
+  std::string const &ending
+);
 
 #endif // ifndef __flea_test_util_cpp_H_

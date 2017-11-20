@@ -152,21 +152,6 @@ std::vector<flea_u8_t> parse_line(
 } // parse_line
 
 namespace {
-  bool string_ends_with(
-    std::string const &fullString,
-    std::string const &ending
-  )
-  {
-    if(fullString.length() >= ending.length())
-    {
-      return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
-    }
-    else
-    {
-      return false;
-    }
-  }
-
   std::string remove_ws(std::string const& s)
   {
     std::string result;
@@ -236,6 +221,21 @@ namespace {
     flea_u32_t result;
     is >> result;
     return result;
+  }
+}
+
+bool string_ends_with(
+  std::string const &fullString,
+  std::string const &ending
+)
+{
+  if(fullString.length() >= ending.length())
+  {
+    return (0 == fullString.compare(fullString.length() - ending.length(), ending.length(), ending));
+  }
+  else
+  {
+    return false;
   }
 }
 

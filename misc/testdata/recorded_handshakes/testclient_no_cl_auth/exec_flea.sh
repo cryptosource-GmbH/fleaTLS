@@ -1,0 +1,2 @@
+#!/bin/bash
+cat client_hs_tec1/hs_1__rec_1 | ../flea/build/unit_test-asan --tls_server --own_certs=/home/fstrenzke/Dokumente/dev/tls_test_tool/build/.././misc/test_data/rsa_default/server.der --own_private_key=/home/fstrenzke/Dokumente/dev/tls_test_tool/build/.././misc/test_data/rsa_default/server.pkcs8 --own_ca_chain=/home/fstrenzke/Dokumente/dev/tls_test_tool/build/.././misc/test_data/rsa_default/rootCA.der --port=4444 --ip_addr=127.0.0.1 --reneg_mode=no_reneg --rev_chk=none --deterministic --stream_input_file_dir=client_hs_tec1 --path_rpl_stdin=hs_1__rec_1

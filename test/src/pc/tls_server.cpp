@@ -23,6 +23,7 @@
 #include "flea/tls.h"
 #include "flea/tls_server.h"
 #include "pc/test_pc.h"
+#include "pc/file_based_rw_stream.h"
 #include "pltf_support/tcpip_stream.h"
 #include "tls_server_certs.h"
 #include "flea/array_util.h"
@@ -199,23 +200,42 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
   flea_u8_t buf[65000];
   flea_tls_server_ctx_t tls_ctx;
 
+  file_based_rw_stream_ctx_t fb_rws_ctx;
+
   // int sock_fd;
 
   FLEA_THR_BEG_FUNC();
   flea_tls_server_ctx_t__INIT(&tls_ctx);
   flea_rw_stream_t__INIT(&rw_stream__t);
 
-
-  /** socket will be closed by rw_stream_t__dtor **/
-  FLEA_CCALL(
-    THR_flea_pltfif_tcpip__create_rw_stream_server(
-      &rw_stream__t,
-      &serv_par__pt->sock_stream_ctx,
-      serv_par__pt->sock_fd,
-      serv_par__pt->read_timeout
-    )
-  );
-
+  if(serv_par__pt->dir_for_file_based_input != "")
+  {
+    std::string filename_to_be_rpld_by_stdin = serv_par__pt->filename_to_be_rpld_by_stdin;
+    if(filename_to_be_rpld_by_stdin == "")
+    {
+      throw test_utils_exceptn_t("need to provide the property --path_rpl_stdin");
+    }
+    FLEA_CCALL(
+      THR_flea_test_file_based_rw_stream_t__ctor(
+        &rw_stream__t,
+        &fb_rws_ctx,
+        serv_par__pt->dir_for_file_based_input,
+        filename_to_be_rpld_by_stdin
+      )
+    );
+  }
+  else
+  {
+    /** socket will be closed by rw_stream_t__dtor **/
+    FLEA_CCALL(
+      THR_flea_pltfif_tcpip__create_rw_stream_server(
+        &rw_stream__t,
+        &serv_par__pt->sock_stream_ctx,
+        serv_par__pt->sock_fd,
+        serv_par__pt->read_timeout
+      )
+    );
+  }
 
   FLEA_CCALL(
     THR_flea_tls_server_ctx_t__ctor(
@@ -331,9 +351,9 @@ static void* flea_tls_server_thread(void* sv__pv)
   serv_par__pt->write_output_string("running server thread\n");
   if((err__t = THR_flea_tls_server_thread_inner(serv_par__pt)))
   {
-    CHECK_PTHREAD_ERR(pthread_mutex_lock(&serv_par__pt->mutex)); // TODO: DBG: THIS FAILS
+    CHECK_PTHREAD_ERR(pthread_mutex_lock(&serv_par__pt->mutex));
     serv_par__pt->server_error__e = err__t;
-    CHECK_PTHREAD_ERR(pthread_mutex_unlock(&serv_par__pt->mutex)); // TODO: DBG: THEN THIS IS A RACE
+    CHECK_PTHREAD_ERR(pthread_mutex_unlock(&serv_par__pt->mutex));
     serv_par__pt->write_output_string("error from server thread: 0x" + num_to_string_hex(err__t));
   }
   CHECK_PTHREAD_ERR(pthread_mutex_lock(&serv_par__pt->mutex));
@@ -346,7 +366,8 @@ static flea_err_t THR_server_cycle(
   property_set_t const     & cmdl_args,
   int                      listen_fd,
   // bool                     is_https_server,
-  flea_tls_session_mngr_t* sess_man__pt
+  flea_tls_session_mngr_t* sess_man__pt,
+  std::string const        & dir_for_file_based_input
 )
 {
   flea_ref_cu8_t allowed_ecc_curves__rcu8;
@@ -415,49 +436,63 @@ static flea_err_t THR_server_cycle(
     {
       int sock_fd;
       unsigned read_timeout_ms = cmdl_args.get_property_as_u32_default("read_timeout", 1000);
-      if(0 <= ((sock_fd = unix_tcpip_listen_accept(listen_fd, read_timeout_ms))))
+
+      /*if(0 <= ((sock_fd = unix_tcpip_listen_accept(listen_fd, read_timeout_ms))))
+      {*/
+      std::cout << "creating threads: max = " << thr_max << ", running currently = " << serv_pars.size() << std::endl;
+      server_params_t serv_par__t;
+      serv_par__t.shrd_ctx__pt              = &shrd_server_ctx__t;
+      serv_par__t.cert_chain__pcu8          = cert_chain;
+      serv_par__t.cert_chain_len__alu16     = cert_chain_len;
+      serv_par__t.cert_store__pt            = &trust_store__t;
+      serv_par__t.cipher_suites_ref__prcu16 = &cipher_suites_ref;
+      serv_par__t.crl_der__pt   = &tls_cfg.crls_refs[0];
+      serv_par__t.nb_crls__u16  = tls_cfg.crls.size();
+      serv_par__t.sess_mngr__pt = sess_man__pt;
+      serv_par__t.allowed_ecc_curves__prcu8 = &allowed_ecc_curves__rcu8;
+      serv_par__t.allowed_sig_algs__prcu8   = &allowed_sig_algs__rcu8;
+      serv_par__t.flags__u16 = tls_cfg.flags;
+      // serv_par__t.listen_fd         = listen_fd;
+      serv_par__t.read_timeout       = read_timeout_ms;
+      serv_par__t.nb_renegs_to_exec  = cmdl_args.get_property_as_u32_default("do_renegs", 0);
+      serv_par__t.rd_mode__e         = tls_cfg.read_mode_for_app_data;
+      serv_par__t.read_app_data_size = tls_cfg.read_size_for_app_data;
+      serv_par__t.abort__b        = FLEA_FALSE;
+      serv_par__t.server_error__e = FLEA_ERR_FINE;
+      serv_par__t.finished__b     = FLEA_FALSE;
+      if(dir_for_file_based_input == "")
       {
-        std::cout << "creating threads: max = " << thr_max << ", running currently = " << serv_pars.size() << std::endl;
-        server_params_t serv_par__t;
-        serv_par__t.shrd_ctx__pt              = &shrd_server_ctx__t;
-        serv_par__t.cert_chain__pcu8          = cert_chain;
-        serv_par__t.cert_chain_len__alu16     = cert_chain_len;
-        serv_par__t.cert_store__pt            = &trust_store__t;
-        serv_par__t.cipher_suites_ref__prcu16 = &cipher_suites_ref;
-        serv_par__t.crl_der__pt   = &tls_cfg.crls_refs[0];
-        serv_par__t.nb_crls__u16  = tls_cfg.crls.size();
-        serv_par__t.sess_mngr__pt = sess_man__pt;
-        serv_par__t.allowed_ecc_curves__prcu8 = &allowed_ecc_curves__rcu8;
-        serv_par__t.allowed_sig_algs__prcu8   = &allowed_sig_algs__rcu8;
-        serv_par__t.flags__u16 = tls_cfg.flags;
-        // serv_par__t.listen_fd         = listen_fd;
-        serv_par__t.read_timeout       = read_timeout_ms;
-        serv_par__t.nb_renegs_to_exec  = cmdl_args.get_property_as_u32_default("do_renegs", 0);
-        serv_par__t.rd_mode__e         = tls_cfg.read_mode_for_app_data;
-        serv_par__t.read_app_data_size = tls_cfg.read_size_for_app_data;
-        serv_par__t.abort__b        = FLEA_FALSE;
-        serv_par__t.server_error__e = FLEA_ERR_FINE;
-        serv_par__t.finished__b     = FLEA_FALSE;
-        serv_par__t.sock_fd         = sock_fd;
-
-        if(cmdl_args.have_index("no_session_manager"))
+        if((0 <= ((sock_fd = unix_tcpip_listen_accept(listen_fd, read_timeout_ms)))))
         {
-          serv_par__t.sess_mngr__pt = NULL;
+          serv_par__t.sock_fd = sock_fd;
         }
-
-
-        serv_pars.push_back(std::unique_ptr<server_params_t>(new server_params_t(serv_par__t)));
-        server_params_t* new_par__pt = serv_pars[serv_pars.size() - 1].get();
-        pthread_mutex_init(&new_par__pt->mutex, NULL);
-        if(pthread_create(&new_par__pt->thread, NULL, &flea_tls_server_thread, (void*) new_par__pt))
+        else
         {
-          FLEA_THROW("error creating server thread", FLEA_ERR_FAILED_TEST);
-        }
-        if(!stay)
-        {
-          create_new_threads = false;
+          continue;
         }
       }
+      serv_par__t.dir_for_file_based_input = dir_for_file_based_input;
+
+      serv_par__t.filename_to_be_rpld_by_stdin = cmdl_args.get_property_as_string_default_empty("path_rpl_stdin");
+
+      if(cmdl_args.have_index("no_session_manager"))
+      {
+        serv_par__t.sess_mngr__pt = NULL;
+      }
+
+
+      serv_pars.push_back(std::unique_ptr<server_params_t>(new server_params_t(serv_par__t)));
+      server_params_t* new_par__pt = serv_pars[serv_pars.size() - 1].get();
+      pthread_mutex_init(&new_par__pt->mutex, NULL);
+      if(pthread_create(&new_par__pt->thread, NULL, &flea_tls_server_thread, (void*) new_par__pt))
+      {
+        FLEA_THROW("error creating server thread", FLEA_ERR_FAILED_TEST);
+      }
+      if(!stay)
+      {
+        create_new_threads = false;
+      }
+      // }
     }
     if((stop || !create_new_threads) && !serv_pars.size())
     {
@@ -502,7 +537,7 @@ static flea_err_t THR_server_cycle(
         completed = true;
       }
     }
-    if(THR_check_keyb_input())
+    if((dir_for_file_based_input == "") && THR_check_keyb_input())
     {
       stop = true;
       for(size_t i = 0; i < serv_pars.size(); i++)
@@ -536,35 +571,39 @@ static flea_err_t THR_flea_start_tls_server(
 
   FLEA_THR_BEG_FUNC();
 
-  listen_fd = socket(AF_INET, SOCK_STREAM, 0);
-
-  if(listen_fd == -1)
+  std::string dir_for_file_based_input = cmdl_args.get_property_as_string_default_empty("stream_input_file_dir");
+  if(dir_for_file_based_input == "")
   {
-    FLEA_THROW("error opening linux socket", FLEA_ERR_INV_STATE);
-  }
-  // TODO: maybe change this. It SO_REUSEADDR enables us to reuse the same port
-  // even though it is still blocked and waiting for a timeout when not properly
-  // closed
-  if(setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(int)) < 0)
-  {
-    FLEA_THROW("setsockopt(SO_REUSEADDR) failed", FLEA_ERR_INV_STATE);
-  }
+    listen_fd = socket(AF_INET, SOCK_STREAM, 0);
+
+    if(listen_fd == -1)
+    {
+      FLEA_THROW("error opening linux socket", FLEA_ERR_INV_STATE);
+    }
+    // TODO: maybe change this. It SO_REUSEADDR enables us to reuse the same port
+    // even though it is still blocked and waiting for a timeout when not properly
+    // closed
+    if(setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(int)) < 0)
+    {
+      FLEA_THROW("setsockopt(SO_REUSEADDR) failed", FLEA_ERR_INV_STATE);
+    }
 
 
-  memset(&addr, 0, sizeof(addr));
-  addr.sin_addr.s_addr = htonl(INADDR_ANY);
-  addr.sin_family      = AF_INET;
-  addr.sin_port        = htons(cmdl_args.get_property_as_u32("port"));
+    memset(&addr, 0, sizeof(addr));
+    addr.sin_addr.s_addr = htonl(INADDR_ANY);
+    addr.sin_family      = AF_INET;
+    addr.sin_port        = htons(cmdl_args.get_property_as_u32("port"));
 
-  if((bind(listen_fd, (struct sockaddr*) &addr, sizeof(addr))) < 0)
-  {
-    FLEA_THROW("Socket bind failed", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
+    if((bind(listen_fd, (struct sockaddr*) &addr, sizeof(addr))) < 0)
+    {
+      FLEA_THROW("Socket bind failed", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
+    }
+    // while(true)
   }
-  // while(true)
 
   /*do
    * {*/
-  err__t = THR_server_cycle(cmdl_args, listen_fd, /*is_https_server, */ sess_man__pt);
+  err__t = THR_server_cycle(cmdl_args, listen_fd, /*is_https_server, */ sess_man__pt, dir_for_file_based_input);
   printf("connection aborted with error %04x\n", err__t);
   if(!err__t)
   {

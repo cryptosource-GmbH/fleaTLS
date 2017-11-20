@@ -24,6 +24,8 @@
 #include "flea/pkcs8.h"
 #include "flea/tls_client.h"
 
+#include "pc/file_based_rw_stream.h"
+
 #ifdef FLEA_HAVE_TLS
 
 static flea_err_t THR_flea_start_tls_client(
@@ -53,12 +55,17 @@ static flea_err_t THR_flea_start_tls_client(
   linux_socket_stream_ctx_t sock_stream_ctx;
   flea_private_key_t privkey__t;
 
+  file_based_rw_stream_ctx_t fb_rws_ctx;
+
   std::string hostname_s;
   FLEA_THR_BEG_FUNC();
   flea_private_key_t__INIT(&privkey__t);
   flea_rw_stream_t__INIT(&rw_stream__t);
   flea_tls_client_ctx_t__INIT(&tls_ctx);
   flea_cert_store_t__INIT(&trust_store__t);
+
+  std::string dir_for_file_based_input = cmdl_args.get_property_as_string_default_empty("stream_input_file_dir");
+
   FLEA_CCALL(THR_flea_cert_store_t__ctor(&trust_store__t));
   if(cmdl_args.have_index("hostname") || cmdl_args.have_index("ip_addr"))
   {
@@ -87,6 +94,37 @@ static flea_err_t THR_flea_start_tls_client(
     throw("neither 'hostname' nor 'ip_addr' provided");
   }
 
+  std::cout << "dir_for_file_based_input = " << dir_for_file_based_input << std::endl;
+  if(dir_for_file_based_input != "")
+  {
+    std::string filename_to_be_rpld_by_stdin = cmdl_args.get_property_as_string_default_empty("path_rpl_stdin");
+    if(filename_to_be_rpld_by_stdin == "")
+    {
+      throw test_utils_exceptn_t("need to provide the property --path_rpl_stdin");
+    }
+    FLEA_CCALL(
+      THR_flea_test_file_based_rw_stream_t__ctor(
+        &rw_stream__t,
+        &fb_rws_ctx,
+        dir_for_file_based_input,
+        filename_to_be_rpld_by_stdin
+      )
+    );
+  }
+  else
+  {
+    FLEA_CCALL(
+      THR_flea_pltfif_tcpip__create_rw_stream_client(
+        &rw_stream__t,
+        &sock_stream_ctx,
+        cmdl_args.get_property_as_u32("port"),
+        cmdl_args.get_property_as_u32_default("read_timeout", 1000),
+        hostname_s.c_str(),
+        host_type == flea_host_dnsname ? FLEA_TRUE : FLEA_FALSE
+      )
+    );
+  }
+
 
   FLEA_CCALL(
     THR_flea_tls_tool_set_tls_cfg(
@@ -106,16 +144,7 @@ static flea_err_t THR_flea_start_tls_client(
   allowed_sig_algs__rcu8.len__dtl     = tls_cfg.allowed_sig_algs.size();
 
   // std::cout << "read_timeout = " << std::to_string(cmdl_args.get_property_as_u32_default("read_timeout", 0)) << "\n";
-  FLEA_CCALL(
-    THR_flea_pltfif_tcpip__create_rw_stream_client(
-      &rw_stream__t,
-      &sock_stream_ctx,
-      cmdl_args.get_property_as_u32("port"),
-      cmdl_args.get_property_as_u32_default("read_timeout", 1000),
-      hostname_s.c_str(),
-      host_type == flea_host_dnsname ? FLEA_TRUE : FLEA_FALSE
-    )
-  );
+
 
   if(client_key__t.len__dtl)
   {
