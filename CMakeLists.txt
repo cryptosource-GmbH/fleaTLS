@@ -19,8 +19,8 @@ SET(MAJOR_VERSION 0)
 SET(MINOR_VERSION 1)
 SET(PATCH_VERSION 0)
 
-SET(CMAKE_C_FLAGS "-m32 -std=c99 -pedantic")
-SET(CMAKE_CXX_FLAGS "-m32 -std=c++11 ")
+SET(CMAKE_C_FLAGS "-std=c99 -pedantic")
+SET(CMAKE_CXX_FLAGS "-std=c++11 ")
 
 
 ADD_DEFINITIONS( 
@@ -152,9 +152,9 @@ SET(ASAN_FLAGS "-fno-omit-frame-pointer -fsanitize=address")
 ADD_LIBRARY(${FULL_LIB_STRING_STATIC_ASAN} STATIC ${FLEA_SRCS})
 TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_STATIC_ASAN}  asan pthread )
 #set_target_properties(${FULL_LIB_STRING_STATIC_ASAN} PROPERTIES COMPILE_FLAGS ${ASAN_FLAGS})
-target_compile_options(${FULL_LIB_STRING_STATIC_ASAN} PUBLIC -fno-omit-frame-pointer -fsanitize=address)
+target_compile_options(${FULL_LIB_STRING_STATIC_ASAN} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
 #ENDIF()
 
 ADD_EXECUTABLE(unit_test-asan test/src/pc/unit_test_main.cpp ${TEST_SRCS})
-target_compile_options(unit_test-asan PUBLIC -fno-omit-frame-pointer -fsanitize=address)
-TARGET_LINK_LIBRARIES(unit_test-asan asan ${FULL_LIB_STRING_STATIC_ASAN} )
+target_compile_options(unit_test-asan PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
+TARGET_LINK_LIBRARIES(unit_test-asan asan ${FULL_LIB_STRING_STATIC_ASAN} "-m32" )

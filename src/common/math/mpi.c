@@ -441,7 +441,7 @@ flea_err_t THR_flea_mpi_t__decode(
 
   FLEA_THR_BEG_FUNC();
   // strip leading zero bytes in encoded:
-  while(*encoded == 0 && encoded_len > 1)
+  while((encoded_len > 1) && (*encoded == 0))
   {
     encoded++;
     encoded_len--;

@@ -176,10 +176,12 @@ flea_err_t THR_flea_rw_stream_t__read(
       {
         FLEA_THROW("insufficient data left in strea", FLEA_ERR_STREAM_EOF);
       }
-      else
+      if((rd_mode__e == flea_read_blocking) && !stream__pt->read_rem_len__u32)
       {
-        *data_len__pdtl = stream__pt->read_rem_len__u32;
+        FLEA_THROW("insufficient data left in strea", FLEA_ERR_STREAM_EOF);
       }
+
+      *data_len__pdtl = stream__pt->read_rem_len__u32;
     }
   }
 
@@ -190,7 +192,7 @@ flea_err_t THR_flea_rw_stream_t__read(
   FLEA_CCALL(stream__pt->read_func__f(stream__pt->custom_obj__pv, data__pu8, data_len__pdtl, rd_mode__e));
   stream__pt->read_rem_len__u32 -= *data_len__pdtl;
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_rw_stream_t__read */
 
 flea_err_t THR_flea_rw_stream_t__read_byte(
   flea_rw_stream_t* stream__pt,
