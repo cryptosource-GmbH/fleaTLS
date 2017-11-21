@@ -1085,8 +1085,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
     rec_prot__pt->current_record_content_len__u16     = 0;
   }
 
-  rec_prot__pt->payload_buf__pu8 = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->read_state__t.reserved_iv_len__u8
-    + RECORD_HDR_LEN;
+  rec_prot__pt->payload_buf__pu8 = rec_prot__pt->send_rec_buf_raw__bu8 + RECORD_HDR_LEN;
 
   // TODO: MERGE THIS COPYING WITH THE FINAL COPYING
   to_cp__alu16 = FLEA_MIN(data_len__dtl, rec_prot__pt->payload_used_len__u16 - rec_prot__pt->payload_offset__u16);

@@ -32,9 +32,9 @@
 /**
  * Algorithm support selection
  */
-# define FLEA_HAVE_HMAC // FBFLAGS_MACALGS_ON_OFF
-# define FLEA_HAVE_CMAC // FBFLAGS_MACALGS_ON_OFF
-# define FLEA_HAVE_EAX  // FBLAGS_AEALGS_ON_OFF
+# define FLEA_HAVE_HMAC              // FBFLAGS_MACALGS_ON_OFF
+# define FLEA_HAVE_CMAC              // FBFLAGS_MACALGS_ON_OFF
+# define FLEA_HAVE_EAX               // FBLAGS_AEALGS_ON_OFF
 
 # define FLEA_HAVE_MD5               // FBFLAGS_MD5_ON_OFF
 # define FLEA_HAVE_SHA1              // FBFLAGS_SHA1_ON_OFF
@@ -42,11 +42,11 @@
 # define FLEA_HAVE_SHA384_512        // FBFLAGS_HAVE_SHA512_ON_OFF
 # define FLEA_HAVE_DAVIES_MEYER_HASH // FBFLAGS_DAVIES_MEYER_HASH_ON_OFF
 
-# define FLEA_HAVE_DES       // FBFLAGS_HAVE_DES_ON_OFF
-# define FLEA_HAVE_TDES_2KEY // FBFLAGS_HAVE_TDES_ON_OFF
-# define FLEA_HAVE_TDES_3KEY // FBFLAGS_HAVE_TDES_ON_OFF
-# define FLEA_HAVE_DESX      // FBFLAGS_HAVE_DESX_ON_OFF
-# define FLEA_HAVE_AES       // NOT CONFIGURABLE
+# define FLEA_HAVE_DES               // FBFLAGS_HAVE_DES_ON_OFF
+# define FLEA_HAVE_TDES_2KEY         // FBFLAGS_HAVE_TDES_ON_OFF
+# define FLEA_HAVE_TDES_3KEY         // FBFLAGS_HAVE_TDES_ON_OFF
+# define FLEA_HAVE_DESX              // FBFLAGS_HAVE_DESX_ON_OFF
+# define FLEA_HAVE_AES               // NOT CONFIGURABLE
 
 /**
  * Configuration
@@ -65,9 +65,9 @@
 # define FLEA_HAVE_AES_BLOCK_DECR // FBFLAGS_AES_ON_OFF
 # define FLEA_USE_SMALL_AES       // FBFLAGS_AES_ON_OFF
 
-# define FLEA_HAVE_RSA   // FBFLAGS_PKALGS_ON_OFF
-# define FLEA_HAVE_ECDSA // FBFLAGS_PKALGS_ON_OFF
-# define FLEA_HAVE_ECKA  // FBFLAGS_PKALGS_ON_OFF
+# define FLEA_HAVE_RSA            // FBFLAGS_PKALGS_ON_OFF
+# define FLEA_HAVE_ECDSA          // FBFLAGS_PKALGS_ON_OFF
+# define FLEA_HAVE_ECKA           // FBFLAGS_PKALGS_ON_OFF
 
 /**
  * Choose 5 for greatest speed and 1 for smallest RAM footprint.
@@ -227,11 +227,12 @@
 # define FLEA_TLS_CIPH_FILTER_BUF_LEN 65
 
 /**
- *  18384 bytes is the size mandated by the TLS standard. Smaller sizes may only
+ *  18384 bytes is the size mandated by the TLS standard (where 5 is due to the TLS header length).
+ *  Smaller sizes may only
  *  be set if the implementation is used in an application context for which
  *  it is known that only smaller records are sent.
  */
-# define FLEA_TLS_TRNSF_BUF_SIZE 18384
+# define FLEA_TLS_TRNSF_BUF_SIZE (18384 + 5)
 
 /**
  * Alternative send buffer size. This buffer used for sending data when the TRNSF_BUF is filled
