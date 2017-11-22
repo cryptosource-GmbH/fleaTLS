@@ -36,8 +36,8 @@
 
 typedef struct
 {
-  flea_u16_t error;
-  flea_u8_t  alert;
+  flea_u8_t error;
+  flea_u8_t alert;
 } error_alert_pair_t;
 
 
@@ -91,6 +91,7 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_TLS_REC_CLOSE_NOTIFY,               FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
   {FLEA_ERR_TLS_HANDSHK_FAILURE,                FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  },
   {FLEA_ERR_TLS_CERT_VER_FAILED,                FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
+  {FLEA_ERR_TLS_EXCSS_REC_LEN,                  FLEA_TLS_ALERT_DESC_RECORD_OVERFLOW    }
 };
 static flea_bool_t determine_alert_from_error(
   flea_err_t                     err__t,

@@ -227,16 +227,14 @@
 # define FLEA_TLS_CIPH_FILTER_BUF_LEN 65
 
 /**
- *  18384 bytes is the size mandated by the TLS standard (where 5 is due to the TLS header length).
- *  Smaller sizes may only
- *  be set if the implementation is used in an application context for which
+ *  18432 bytes is the size mandated by the TLS standard (here, the additional 5 is due to the TLS header length).
+ *  Smaller sizes may only *  be set if the implementation is used in an application context for which
  *  it is known that only smaller records are sent.
  */
-# define FLEA_TLS_TRNSF_BUF_SIZE (18384 + 5)
+# define FLEA_TLS_TRNSF_BUF_SIZE (18432 + 5)
 
 /**
- * Alternative send buffer size. This buffer used for sending data when the TRNSF_BUF is filled
- * with pending read data. Should not be smaller than 100 bytes.
+ * Send buffer size. This buffer used for sending data. Should not be smaller than 150 bytes.
  */
 # define FLEA_TLS_ALT_SEND_BUF_SIZE 15000
 

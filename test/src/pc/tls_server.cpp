@@ -129,18 +129,12 @@ static flea_err_t THR_check_keyb_input(/*fd_set & keyb_fds*/)
 static int unix_tcpip_listen_accept(
   int      listen_fd,
   unsigned read_timeout_ms
-  // int*             fd
-  // server_params_t* serv_par__pt
-  // unsigned timeout_secs
 )
 {
   FLEA_THR_BEG_FUNC();
-  // int client_fd = -1;
 
   struct timeval tv;
 
-  /*tv.tv_sec  = read_timeout_ms / 1000;
-   * tv.tv_usec = (read_timeout_ms % 1000) * 1000;*/
   set_timeval_from_millisecs(&tv, read_timeout_ms);
   setsockopt(
     listen_fd,
@@ -150,47 +144,9 @@ static int unix_tcpip_listen_accept(
     sizeof(struct timeval)
   );
 
-  /*do
-   * {*/
-  // std::cout << "before accept\n";
   return accept(listen_fd, (struct sockaddr*) NULL, NULL);
 
-  // std::cout << "after accept\n";
-  // FLEA_CCALL(THR_check_keyb_input())
-  // FLEA_CCALL(THR_check_user_abort(serv_par__pt));
-  // } while(client_fd == -1);
 
-# if 0
-  std::future<int> future = std::async(
-    std::launch::async,
-    [&](){
-    return accept(listen_fd, (struct sockaddr*) NULL, NULL);
-  }
-    );
-  std::future_status status;
-  do
-  {
-    status = future.wait_for(std::chrono::seconds(1));
-
-    /*if (status == std::future_status::deferred) {
-     * std::cout << "deferred\n";
-     * } else if (status == std::future_status::timeout) {
-     * std::cout << "timeout\n";
-     * } else if (status == std::future_status::ready) {
-     * std::cout << "ready!\n";
-     * }*/
-    std::cout << "accept-loop, before check_keyb\n";
-    FLEA_CCALL(THR_check_keyb_input(keyb_fds));
-    std::cout << "accept-loop, after check_keyb\n";
-  } while(status != std::future_status::ready);
-  client_fd = future.get();
-# endif // if 0
-
-  /*if(client_fd < 0)
-   * {
-   * FLEA_THROW("Socket accept failed", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
-   * }*/
-  // *fd = client_fd;
   FLEA_THR_FIN_SEC_empty();
 } // THR_unix_tcpip_listen_accept
 
@@ -202,7 +158,6 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
 
   file_based_rw_stream_ctx_t fb_rws_ctx;
 
-  // int sock_fd;
 
   FLEA_THR_BEG_FUNC();
   flea_tls_server_ctx_t__INIT(&tls_ctx);
@@ -465,32 +420,35 @@ static flea_err_t THR_server_cycle(
         if((0 <= ((sock_fd = unix_tcpip_listen_accept(listen_fd, read_timeout_ms)))))
         {
           serv_par__t.sock_fd = sock_fd;
+
+          serv_par__t.dir_for_file_based_input = dir_for_file_based_input;
+
+          serv_par__t.filename_to_be_rpld_by_stdin = cmdl_args.get_property_as_string_default_empty("path_rpl_stdin");
+
+          if(cmdl_args.have_index("no_session_manager"))
+          {
+            serv_par__t.sess_mngr__pt = NULL;
+          }
+
+
+          serv_pars.push_back(std::unique_ptr<server_params_t>(new server_params_t(serv_par__t)));
+          server_params_t* new_par__pt = serv_pars[serv_pars.size() - 1].get();
+          pthread_mutex_init(&new_par__pt->mutex, NULL);
+          if(pthread_create(&new_par__pt->thread, NULL, &flea_tls_server_thread, (void*) new_par__pt))
+          {
+            FLEA_THROW("error creating server thread", FLEA_ERR_FAILED_TEST);
+          }
+          if(!stay)
+          {
+            create_new_threads = false;
+          }
         }
         else
         {
-          continue;
+          // std::cout << "flea server continuing after failed listen/accept\n";
+          std::cout << "flea server: failed listen/accept\n";
+          // continue;
         }
-      }
-      serv_par__t.dir_for_file_based_input = dir_for_file_based_input;
-
-      serv_par__t.filename_to_be_rpld_by_stdin = cmdl_args.get_property_as_string_default_empty("path_rpl_stdin");
-
-      if(cmdl_args.have_index("no_session_manager"))
-      {
-        serv_par__t.sess_mngr__pt = NULL;
-      }
-
-
-      serv_pars.push_back(std::unique_ptr<server_params_t>(new server_params_t(serv_par__t)));
-      server_params_t* new_par__pt = serv_pars[serv_pars.size() - 1].get();
-      pthread_mutex_init(&new_par__pt->mutex, NULL);
-      if(pthread_create(&new_par__pt->thread, NULL, &flea_tls_server_thread, (void*) new_par__pt))
-      {
-        FLEA_THROW("error creating server thread", FLEA_ERR_FAILED_TEST);
-      }
-      if(!stay)
-      {
-        create_new_threads = false;
       }
       // }
     }
