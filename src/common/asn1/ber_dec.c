@@ -899,7 +899,7 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_cft(
 static flea_err_t THR_flea_ber_dec__ensure_pos_int_and_remove_leading_zeros(flea_ref_cu8_t* der_ref__pt)
 {
   FLEA_THR_BEG_FUNC();
-  if(der_ref__pt->data__pcu8[0] & 0x80)
+  if(der_ref__pt->len__dtl && (der_ref__pt->data__pcu8[0] & 0x80))
   {
     FLEA_THROW("negative asn1 integer where positive was expected", FLEA_ERR_X509_NEG_INT);
   }
