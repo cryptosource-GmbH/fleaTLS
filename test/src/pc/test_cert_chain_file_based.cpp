@@ -21,7 +21,7 @@ using namespace std;
 static flea_err_t THR_flea_execute_path_test_case_for_properties(
   std::string const   & dir_path,
   property_set_t const& prop,
-  std::string         file_path_to_be_replaced_by_std_in
+  std::string const   & file_path_to_be_replaced_by_std_in
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -80,6 +80,7 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
     else
     {
       cert = read_bin_file(anchor_file);
+      // std::cout << "read file with size " << cert.size() << " as file\n";
     }
     anchors.push_back(cert);
     anchor_ptrs.push_back(&anchors[anchors.size() - 1][0]);
@@ -97,6 +98,7 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
     else
     {
       cert = read_bin_file(cert_file);
+      // std::cout << "read file with size " << cert.size() << " as file\n";
     }
     certs.push_back(cert);
     cert_ptrs.push_back(&certs[certs.size() - 1][0]);
@@ -113,6 +115,7 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
     else
     {
       crl = read_bin_file(crl_file);
+      // std::cout << "read crl file: " << crl_file << "\n";
     }
     crls.push_back(crl);
     crl_ptrs.push_back(&crls[crls.size() - 1][0]);
@@ -254,6 +257,10 @@ static flea_err_t THR_flea_execute_path_test_case(
   FLEA_THR_BEG_FUNC();
   properties_spec_t spec    = create_cert_path_ini_file_spec();
   vector<string> prop_files = get_entries_of_dir(dir_path, dir_entries_with_path, ".ini");
+  if(prop_files.size() == 0)
+  {
+    throw test_utils_exceptn_t("not a single test.ini file in directory " + dir_path);
+  }
   for(string const& prop_file: prop_files)
   {
     // std::cout << "using property file " << prop_file << std::endl;

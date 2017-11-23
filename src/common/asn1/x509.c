@@ -301,6 +301,11 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
           // nothing to do, flea does not process it
           break;
         }
+        case ID_CE_OID_POLICIES:
+        {
+          // nothing to do, flea does not process it
+          break;
+        }
         case ID_CE_OID_BASIC_CONSTR:
         {
           FLEA_CCALL(THR_flea_x509_cert_parse_basic_constraints(&cont_dec__t, &ext_ref__pt->basic_constraints__t));
