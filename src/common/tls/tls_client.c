@@ -663,6 +663,7 @@ static flea_err_t THR_flea_tls__send_client_key_exchange_ecdhe(
   );
 } /* THR_flea_tls__send_client_key_exchange_ecdhe */
 
+#  ifdef FLEA_HAVE_TLS_RSA
 static flea_err_t THR_flea_tls__send_client_key_exchange_rsa(
   flea_tls_ctx_t*               tls_ctx,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
@@ -726,6 +727,8 @@ static flea_err_t THR_flea_tls__send_client_key_exchange_rsa(
   );
 } /* THR_flea_tls__send_client_key_exchange_rsa */
 
+#  endif /* ifdef FLEA_HAVE_TLS_RSA */
+
 // send_client_key_exchange
 static flea_err_t THR_flea_tls__send_client_key_exchange(
   // flea_tls_ctx_t*               tls_ctx,
@@ -744,7 +747,7 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
   kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx__pt->selected_cipher_suite__u16);
   if(kex_method__t == FLEA_TLS_KEX_RSA)
   {
-#  ifdef FLEA_HAVE_RSA
+#  ifdef FLEA_HAVE_TLS_RSA
     FLEA_CCALL(
       THR_flea_tls__send_client_key_exchange_rsa(
         tls_ctx__pt,
@@ -756,7 +759,7 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
 #  else
     // should not happen if everything is properly configured
     FLEA_THROW("unsupported key exchange variant", FLEA_ERR_TLS_INVALID_STATE);
-#  endif /* ifdef FLEA_HAVE_RSA */
+#  endif /* ifdef FLEA_HAVE_TLS_RSA */
   }
   else if(kex_method__t == FLEA_TLS_KEX_ECDHE)
   {

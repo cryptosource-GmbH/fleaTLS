@@ -196,6 +196,19 @@
 # define FLEA_HAVE_TLS_CLIENT
 # define FLEA_HAVE_TLS_SERVER
 
+# if defined FLEA_HAVE_RSA
+#  define FLEA_HAVE_TLS_RSA
+# endif
+
+# if defined FLEA_HAVE_ECKA
+#  define FLEA_HAVE_TLS_ECDHE
+#  define FLEA_HAVE_TLS_ECDH
+# endif
+
+# if defined FLEA_HAVE_ECDSA
+#  define FLEA_HAVE_TLS_ECDSA
+# endif
+
 # define FLEA_X509_MAX_ISSUER_DN_RAW_BYTE_LEN 256
 
 /**

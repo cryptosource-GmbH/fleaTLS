@@ -715,7 +715,7 @@ static flea_err_t THR_flea_tls__send_cert_request(
 )
 {
   const flea_pk_scheme_id_t supported_pk_schemes__at[] = {
-#  ifdef FLEA_HAVE_RSA
+#  ifdef FLEA_HAVE_TLS_RSA
     flea_rsa_pkcs1_v1_5_sign,
 #  endif
 #  ifdef FLEA_HAVE_ECDSA
@@ -842,7 +842,7 @@ static flea_err_t THR_flea_tls__send_cert_request(
  * version negotiated for the connection.
  *
  */
-#  ifdef FLEA_HAVE_RSA
+#  ifdef FLEA_HAVE_TLS_RSA
 static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
@@ -892,7 +892,7 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
   );
 } /* THR_flea_tls__read_client_key_exchange_rsa */
 
-#  endif /* ifdef FLEA_HAVE_RSA */
+#  endif /* ifdef FLEA_HAVE_TLS_RSA */
 
 
 #  ifdef FLEA_HAVE_ECKA
@@ -943,7 +943,7 @@ static flea_err_t THR_flea_tls__read_client_key_exchange(
   kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
   if(kex_method__t == FLEA_TLS_KEX_RSA)
   {
-#  ifdef FLEA_HAVE_RSA
+#  ifdef FLEA_HAVE_TLS_RSA
     FLEA_CCALL(THR_flea_tls__read_client_key_exchange_rsa(tls_ctx, hs_rdr__pt, premaster_secret__pt));
 #  else
     // should not happen if everything is properly configured
