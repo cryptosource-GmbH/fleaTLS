@@ -145,7 +145,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__handle_alert(flea_tls_rec_prot_t* rec
   {
     FLEA_THROW("received no renegotiation alert", FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG);
   }
-
   rec_prot__pt->payload_offset__u16   = 0;
   rec_prot__pt->payload_used_len__u16 = 0;
   FLEA_THR_FIN_SEC_empty();
@@ -1156,17 +1155,27 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         {
           rec_prot__pt->is_current_record_alert__u8 = FLEA_TRUE;
         }
-        else if((cont_type__e == CONTENT_TYPE_APPLICATION_DATA) &&
-          rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_HANDSHAKE)
+        else
         {
-          is_handsh_msg_during_app_data__b = FLEA_TRUE;
-        }
-        else if(!current_or_next_record_for_content_type__b && (cont_type__e != rec_prot__pt->send_rec_buf_raw__bu8[0]))
-        {
-          FLEA_THROW("content type does not match", FLEA_ERR_TLS_INV_REC_HDR);
+          rec_prot__pt->is_current_record_alert__u8 = 0;
         }
         if(!rec_prot__pt->is_current_record_alert__u8)
         {
+          if(
+            (cont_type__e == CONTENT_TYPE_APPLICATION_DATA) &&
+            (rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_HANDSHAKE))
+          {
+            is_handsh_msg_during_app_data__b = FLEA_TRUE;
+          }
+          else if(!current_or_next_record_for_content_type__b &&
+            (cont_type__e != rec_prot__pt->send_rec_buf_raw__bu8[0]))
+          {
+            FLEA_THROW("content type does not match", FLEA_ERR_TLS_INV_REC_HDR);
+          }
+
+          /* }
+             if(!rec_prot__pt->is_current_record_alert__u8)
+             {*/
           if(do_verify_prot_version__b)
           {
             if((prot_version_mbn__pt->major != rec_prot__pt->send_rec_buf_raw__bu8[1]) ||
@@ -1281,7 +1290,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
         *data_len__pdtl = read_bytes_count__dtl;
       }
     } while(
-      ((rd_mode__e == flea_read_full) && data_len__dtl) ||
+      rec_prot__pt->is_current_record_alert__u8 || ((rd_mode__e == flea_read_full) && data_len__dtl) ||
       ((rd_mode__e == flea_read_blocking) && !read_bytes_count__dtl)
     );
   } /* end of ' get new record hdr and content' */

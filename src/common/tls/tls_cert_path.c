@@ -466,13 +466,8 @@ static flea_err_t THR_flea_tls__validate_cert(
     // only for tls client (for server the sig_algs member is null):
     if(cert_path_params__pct->allowed_sig_algs_mbn__prcu8)
     {
-      printf("checking: hash is = %u\n", *tbs_hash_id__pe);
-      printf("checking: scheme is = %u\n", scheme_id);
       for(i = 0; i < cert_path_params__pct->allowed_sig_algs_mbn__prcu8->len__dtl; i += 2)
       {
-        // TODO: REMOVE:
-        printf("checking: hash array = %u\n", cert_path_params__pct->allowed_sig_algs_mbn__prcu8->data__pcu8[i]);
-        printf("checking: scheme array = %u\n", cert_path_params__pct->allowed_sig_algs_mbn__prcu8->data__pcu8[i + 1]);
         if((cert_path_params__pct->allowed_sig_algs_mbn__prcu8->data__pcu8[i] == *tbs_hash_id__pe) &&
           (cert_path_params__pct->allowed_sig_algs_mbn__prcu8->data__pcu8[i + 1] == scheme_id))
         {
