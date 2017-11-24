@@ -1165,7 +1165,8 @@ static flea_err_t THR_flea_tls_server_handle_handsh_msg(
       {.kex_type__e                  =               0,
        .client_cert_type_mask__u8    = cert_mask__u8,
        .validate_server_or_client__e = FLEA_TLS_CLIENT,
-       .hostn_valid_params__pt       = NULL};
+       .hostn_valid_params__pt       = NULL,
+       .allowed_sig_algs_mbn__prcu8  = NULL};
 
       FLEA_CCALL(
         THR_flea_tls__read_certificate(

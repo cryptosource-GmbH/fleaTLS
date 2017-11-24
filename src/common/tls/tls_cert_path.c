@@ -452,7 +452,8 @@ static flea_err_t THR_flea_tls__validate_cert(
   if(have_precursor_to_verify__b)
   {
     flea_pk_scheme_id_t scheme_id;
-
+    flea_bool_t sig_alg_allowed__b = FLEA_FALSE;
+    flea_dtl_t i;
     if(pubkey_out__pt->key_type__t == flea_rsa_key)
     {
       scheme_id = flea_rsa_pkcs1_v1_5_sign;
@@ -462,6 +463,29 @@ static flea_err_t THR_flea_tls__validate_cert(
       scheme_id = flea_ecdsa_emsa1;
     }
 
+    // only for tls client (for server the sig_algs member is null):
+    if(cert_path_params__pct->allowed_sig_algs_mbn__prcu8)
+    {
+      printf("checking: hash is = %u\n", *tbs_hash_id__pe);
+      printf("checking: scheme is = %u\n", scheme_id);
+      for(i = 0; i < cert_path_params__pct->allowed_sig_algs_mbn__prcu8->len__dtl; i += 2)
+      {
+        // TODO: REMOVE:
+        printf("checking: hash array = %u\n", cert_path_params__pct->allowed_sig_algs_mbn__prcu8->data__pcu8[i]);
+        printf("checking: scheme array = %u\n", cert_path_params__pct->allowed_sig_algs_mbn__prcu8->data__pcu8[i + 1]);
+        if((cert_path_params__pct->allowed_sig_algs_mbn__prcu8->data__pcu8[i] == *tbs_hash_id__pe) &&
+          (cert_path_params__pct->allowed_sig_algs_mbn__prcu8->data__pcu8[i + 1] == scheme_id))
+        {
+          sig_alg_allowed__b = FLEA_TRUE;
+          break;
+        }
+      }
+
+      if(!sig_alg_allowed__b)
+      {
+        FLEA_THROW("signature algorithm not allowed", FLEA_ERR_TLS_CERT_VER_FAILED);
+      }
+    }
 
     /* MD5 is generally not supported in flea certificate verification */
     if(!(tls_ctx__pt->cfg_flags__u16 & FLEA_TLS_CFG_FLAG__SHA1_CERT_SIGALG__ALLOW) && (*tbs_hash_id__pe == flea_sha1))
