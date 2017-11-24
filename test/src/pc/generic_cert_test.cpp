@@ -28,7 +28,7 @@ flea_err_t THR_fleatest_iterate_cert_files_and_verify_as_self_signed(
       {
         continue;
       }
-      printf("%s\n", ent->d_name);
+      // printf("%s\n", ent->d_name);
 
       /*if(s.find("cert") != 0)
       {
