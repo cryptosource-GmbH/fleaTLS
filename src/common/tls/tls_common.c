@@ -1203,7 +1203,7 @@ flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx_
     len__alu16 += 6 + tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl;
   }
 
-# ifdef FLEA_HAVE_ECC
+# ifdef FLEA_HAVE_TLS_ECC
 
   if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
@@ -1225,7 +1225,7 @@ flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx_
       len__alu16 += 6; /*  point formats extension */
     }
   }
-# endif /* ifdef FLEA_HAVE_ECC */
+# endif /* ifdef FLEA_HAVE_TLS_ECC */
   return len__alu16;
 } /* flea_tls_ctx_t__compute_extensions_length */
 
@@ -1300,7 +1300,7 @@ flea_err_t THR_flea_tls_ctx_t__send_reneg_ext(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__send_reneg_ext */
 
-# ifdef FLEA_HAVE_ECC
+# ifdef FLEA_HAVE_TLS_ECC
 
 flea_err_t THR_flea_tls_ctx_t__send_ecc_point_format_ext(
   flea_tls_ctx_t*               tls_ctx__pt,
@@ -1382,7 +1382,7 @@ flea_err_t THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__send_ecc_supported_curves_ext */
 
-# endif /* ifdef FLEA_HAVE_ECC */
+# endif /* ifdef FLEA_HAVE_TLS_ECC */
 
 static flea_err_t THR_flea_tls_ctx__parse_reneg_ext(
   flea_tls_ctx_t*   tls_ctx__pt,
@@ -1775,7 +1775,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__parse_sig_alg_ext */
 
-# ifdef FLEA_HAVE_ECC
+# ifdef FLEA_HAVE_TLS_ECC
 flea_err_t THR_flea_tls_ctx_t__parse_supported_curves_ext(
   flea_tls_ctx_t*   tls_ctx__pt,
   flea_rw_stream_t* rd_strm__pt,
@@ -1914,7 +1914,7 @@ flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_u16_t suite_id)
   return FLEA_FALSE;
 }
 
-# endif /* ifdef FLEA_HAVE_ECC */
+# endif /* ifdef FLEA_HAVE_TLS_ECC */
 
 /*static void flea_tls_ctx_t__reset_extension_state(flea_tls_ctx_t* tls_ctx__pt)
  * {
@@ -2114,7 +2114,7 @@ flea_err_t THR_flea_tls__create_ecdhe_key(
 # endif /* ifdef FLEA_HAVE_TLS_ECDHE */
 
 
-# ifdef FLEA_HAVE_ECC
+# ifdef FLEA_HAVE_TLS_ECC
 
 typedef struct
 {
@@ -2181,7 +2181,7 @@ flea_err_t THR_flea_tls__map_curve_bytes_to_flea_curve(
   FLEA_THR_FIN_SEC_empty();
 }
 
-# endif /* ifdef FLEA_HAVE_ECC */
+# endif /* ifdef FLEA_HAVE_TLS_ECC */
 
 # ifdef FLEA_HAVE_TLS_ECDHE
 flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(

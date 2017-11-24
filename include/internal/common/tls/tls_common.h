@@ -270,7 +270,7 @@ flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
 );
 # endif
 
-# ifdef FLEA_HAVE_ECC
+# ifdef FLEA_HAVE_TLS_ECC
 flea_err_t THR_flea_tls__map_curve_bytes_to_flea_curve(
   const flea_u8_t       bytes[2],
   flea_ec_dom_par_id_t* ec_dom_par_id__pt
@@ -332,7 +332,7 @@ flea_u8_t flea_tls__get_tls_cert_type_from_flea_key_type(flea_pk_key_type_t key_
 
 flea_u8_t flea_tls__get_tls_cert_type_from_flea_pk_scheme(flea_pk_scheme_id_t pk_scheme__t);
 
-# ifdef FLEA_HAVE_ECC
+# ifdef FLEA_HAVE_TLS_ECC
 flea_err_t THR_flea_tls_ctx_t__send_supported_ec_curves_ext(
   flea_tls_ctx_t*               tls_ctx__pt,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
@@ -351,7 +351,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_point_formats_ext(
   flea_rw_stream_t* rd_strm__pt,
   flea_al_u16_t     ext_len__alu16
 );
-# endif // ifdef FLEA_HAVE_ECC
+# endif // ifdef FLEA_HAVE_TLS_ECC
 
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt);
 

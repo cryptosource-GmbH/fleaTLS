@@ -52,7 +52,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
   flea_bool_t found_compression_method;
   flea_bool_t client_presented_sec_reneg_fallback_ciph_suite__b = FLEA_FALSE;
 
-#  ifdef FLEA_HAVE_ECC
+#  ifdef FLEA_HAVE_TLS_ECC
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(
     peer_cipher_suites_u16_be__t,
     FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE
@@ -183,7 +183,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
     // check that key type of cert matches cs kex
     if(tls_ctx->private_key__pt->key_type__t == flea_tls__get_key_type_by_cipher_suite_id(curr_cs_from_peer__alu16))
     {
-#  ifndef FLEA_HAVE_ECC
+#  ifndef FLEA_HAVE_TLS_ECC
       // iterate over all supported cipher suites
       supported_cs_index__u16 = 0;
       while(supported_cs_index__u16 < supported_cs_len__u16)
@@ -200,14 +200,14 @@ static flea_err_t THR_flea_tls__read_client_hello(
         }
         supported_cs_index__u16 += 1;
       }
-#  else /* ifndef FLEA_HAVE_ECC */
+#  else /* ifndef FLEA_HAVE_TLS_ECC */
       FLEA_CCALL(THR_flea_byte_vec_t__append(&peer_cipher_suites_u16_be__t, curr_cs__au8, sizeof(curr_cs__au8)));
-#  endif /* ifndef FLEA_HAVE_ECC */
+#  endif /* ifndef FLEA_HAVE_TLS_ECC */
     }
     cipher_suites_len_from_peer__u32 -= 2;
   }
 
-#  ifndef FLEA_HAVE_ECC
+#  ifndef FLEA_HAVE_TLS_ECC
   if(found == FLEA_FALSE)
   {
     FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE);
@@ -259,7 +259,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
     FLEA_THROW("missing renegotiation info in peer's extensions", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
 
-#  ifdef FLEA_HAVE_ECC
+#  ifdef FLEA_HAVE_TLS_ECC
   {
     flea_al_u16_t curr_cs_from_peer__alu16;
     flea_al_u16_t i;
@@ -322,7 +322,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
       FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE);
     }
   }
-#  endif /* ifdef FLEA_HAVE_ECC */
+#  endif /* ifdef FLEA_HAVE_TLS_ECC */
 
   // check length in the header field for integrity
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
