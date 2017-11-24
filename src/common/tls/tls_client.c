@@ -21,6 +21,7 @@
 #include "flea/pkcs8.h"
 
 #ifdef FLEA_HAVE_TLS
+# ifdef FLEA_HAVE_TLS_CLIENT
 
 static flea_err_t THR_flea_tls__read_server_hello(
   flea_tls_ctx_t*            tls_ctx,
@@ -743,7 +744,7 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
   kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx__pt->selected_cipher_suite__u16);
   if(kex_method__t == FLEA_TLS_KEX_RSA)
   {
-# ifdef FLEA_HAVE_RSA
+#  ifdef FLEA_HAVE_RSA
     FLEA_CCALL(
       THR_flea_tls__send_client_key_exchange_rsa(
         tls_ctx__pt,
@@ -752,19 +753,19 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
         premaster_secret__pt
       )
     );
-# else
+#  else
     // should not happen if everything is properly configured
     FLEA_THROW("unsupported key exchange variant", FLEA_ERR_TLS_INVALID_STATE);
-# endif /* ifdef FLEA_HAVE_RSA */
+#  endif /* ifdef FLEA_HAVE_RSA */
   }
   else if(kex_method__t == FLEA_TLS_KEX_ECDHE)
   {
-# ifdef FLEA_HAVE_ECKA
+#  ifdef FLEA_HAVE_ECKA
     FLEA_CCALL(THR_flea_tls__send_client_key_exchange_ecdhe(tls_ctx__pt, hs_ctx__pt, p_hash_ctx, premaster_secret__pt));
-# else
+#  else
     // should not happen if everything is properly configured
     FLEA_THROW("unsupported key exchange variant", FLEA_ERR_TLS_INVALID_STATE);
-# endif
+#  endif
   }
   else
   {
@@ -1064,15 +1065,15 @@ flea_err_t THR_flea_tls__client_handshake(
   flea_tls__handshake_state_ctor(&handshake_state);
   flea_public_key_t__INIT(&peer_public_key__t);
   flea_tls_parallel_hash_ctx_t p_hash_ctx;
-# ifdef FLEA_USE_HEAP_BUF
+#  ifdef FLEA_USE_HEAP_BUF
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
-# else
+#  else
   flea_u8_t premaster_secret__au8[FLEA_MAX(48, FLEA_ECC_MAX_ENCODED_POINT_LEN)];
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_NOT_ALLOCATABLE(
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
     );
-# endif
+#  endif
   flea_tls_parallel_hash_ctx_t__INIT(&p_hash_ctx);
 
   tls_ctx->extension_ctrl__u8 = 0;
@@ -1546,7 +1547,7 @@ flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
   );
 }
 
-# ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+#  ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
 flea_bool_t flea_tls_client_ctx_t__have_peer_ee_cert_ref(flea_tls_client_ctx_t* client_ctx__pt)
 {
   return client_ctx__pt->tls_ctx__t.peer_ee_cert_data__t.len__dtl != 0;
@@ -1561,9 +1562,9 @@ const flea_x509_cert_ref_t* flea_tls_client_ctx_t__get_peer_ee_cert_ref(flea_tls
   return NULL;
 }
 
-# endif /* ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF */
+#  endif /* ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF */
 
-# ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
+#  ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 flea_bool_t flea_tls_client_ctx_t__have_peer_root_cert_ref(flea_tls_client_ctx_t* client_ctx__pt)
 {
   return client_ctx__pt->tls_ctx__t.peer_root_cert_set__u8;
@@ -1578,10 +1579,11 @@ const flea_x509_cert_ref_t* flea_tls_client_ctx_t__get_peer_root_cert_ref(flea_t
   return NULL;
 }
 
-# endif /* ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF */
+#  endif /* ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF */
 void flea_tls_client_ctx_t__dtor(flea_tls_client_ctx_t* tls_client_ctx__pt)
 {
   flea_tls_ctx_t__dtor(&tls_client_ctx__pt->tls_ctx__t);
 }
 
+# endif /* ifdef FLEA_HAVE_TLS_CLIENT */
 #endif /* ifdef FLEA_HAVE_TLS */

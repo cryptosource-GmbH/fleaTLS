@@ -71,13 +71,13 @@ int main(
   {
     if(cmdl_args.have_index("tls_client"))
     {
-#ifdef FLEA_HAVE_TLS
+#ifdef FLEA_HAVE_TLS_CLIENT
       res = flea_start_tls_client(cmdl_args);
       std::cout << "tls client stopping with error code = " << std::hex << res << std::dec
                 << " ( exit code suppressed)\n";
       res = 0;
 #else
-      std::cerr << "TLS not configured" << std::endl;
+      std::cerr << "TLS Client not configured" << std::endl;
       exit(1);
 #endif
     }

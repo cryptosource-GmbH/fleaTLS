@@ -404,10 +404,12 @@ void flea_tls_test_tool_print_peer_cert_info(
   const flea_x509_cert_ref_t* ee_ref__pt = nullptr;
   if(client_ctx_mbn__pt)
   {
+#  ifdef FLEA_HAVE_TLS_CLIENT
     if(flea_tls_client_ctx_t__have_peer_ee_cert_ref(client_ctx_mbn__pt))
     {
       ee_ref__pt = flea_tls_client_ctx_t__get_peer_ee_cert_ref(client_ctx_mbn__pt);
     }
+#  endif
   }
   else if(server_ctx_mbn__pt)
   {
@@ -426,10 +428,12 @@ void flea_tls_test_tool_print_peer_cert_info(
   const flea_x509_cert_ref_t* root_ref__pt = nullptr;
   if(client_ctx_mbn__pt)
   {
+#  ifdef FLEA_HAVE_TLS_CLIENT
     if(flea_tls_client_ctx_t__have_peer_root_cert_ref(client_ctx_mbn__pt))
     {
       root_ref__pt = flea_tls_client_ctx_t__get_peer_root_cert_ref(client_ctx_mbn__pt);
     }
+#  endif
   }
   else if(server_ctx_mbn__pt)
   {

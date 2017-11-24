@@ -27,6 +27,7 @@
 #include "pc/file_based_rw_stream.h"
 
 #ifdef FLEA_HAVE_TLS
+# ifdef FLEA_HAVE_TLS_CLIENT
 
 static flea_err_t THR_flea_start_tls_client(
   property_set_t const       & cmdl_args,
@@ -320,4 +321,5 @@ int flea_start_tls_client(property_set_t const& cmdl_args)
   return retval;
 } // flea_start_tls_client
 
+# endif // ifdef FLEA_HAVE_TLS_CLIENT
 #endif // ifdef FLEA_HAVE_TLS
