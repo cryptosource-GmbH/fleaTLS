@@ -252,7 +252,7 @@ flea_err_t THR_flea_tls_ctx_t__send_extensions(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
 );
 
-# ifdef FLEA_HAVE_ECKA
+# ifdef FLEA_HAVE_TLS_ECDHE
 flea_err_t THR_flea_tls__create_ecdhe_key(
   flea_private_key_t*  priv_key__pt,
   flea_public_key_t*   pub_key__pt,
@@ -260,7 +260,7 @@ flea_err_t THR_flea_tls__create_ecdhe_key(
 );
 # endif
 
-# ifdef FLEA_HAVE_ECKA
+# ifdef FLEA_HAVE_TLS_ECDHE
 flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
   flea_tls_ctx_t*     tls_ctx__pt,
   flea_rw_stream_t*   hs_rd_stream__pt,

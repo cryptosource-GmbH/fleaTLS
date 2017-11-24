@@ -177,8 +177,7 @@ static flea_err_t THR_flea_tls__read_server_hello(
   );
 } /* THR_flea_tls__read_server_hello */
 
-// TODO compile only if we support ecdh/ecdhe or any other cipher suites that
-// use server key exchange message
+#  if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH
 static flea_err_t THR_flea_tls__read_server_kex(
   flea_tls_ctx_t*           tls_ctx__pt,
   flea_tls_handshake_ctx_t* hs_ctx__pt,
@@ -219,6 +218,7 @@ static flea_err_t THR_flea_tls__read_server_kex(
   kex_method__t    = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx__pt->selected_cipher_suite__u16);
   if(kex_method__t == FLEA_TLS_KEX_ECDHE)
   {
+#   ifdef FLEA_HAVE_TLS_ECDHE
     FLEA_CCALL(
       THR_flea_rw_stream_t__read_byte(
         hs_rd_stream__pt,
@@ -350,6 +350,9 @@ static flea_err_t THR_flea_tls__read_server_kex(
         sig_to_vfy_len__u16
       )
     );
+#   else  /* ifdef FLEA_HAVE_TLS_ECDHE */
+    FLEA_THROW("Invalid State, ECDHE not compiled", FLEA_ERR_TLS_INVALID_STATE);
+#   endif /* ifdef FLEA_HAVE_TLS_ECDHE */
   }
   else
   {
@@ -365,6 +368,8 @@ static flea_err_t THR_flea_tls__read_server_kex(
     flea_hash_ctx_t__dtor(&params_hash_ctx__t);
   );
 } /* THR_flea_tls__read_server_kex */
+
+#  endif /* if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH */
 
 static flea_err_t THR_flea_tls__send_client_hello(
   flea_tls_ctx_t*               tls_ctx,
@@ -763,7 +768,7 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
   }
   else if(kex_method__t == FLEA_TLS_KEX_ECDHE)
   {
-#  ifdef FLEA_HAVE_ECKA
+#  ifdef FLEA_HAVE_TLS_ECDHE
     FLEA_CCALL(THR_flea_tls__send_client_key_exchange_ecdhe(tls_ctx__pt, hs_ctx__pt, p_hash_ctx, premaster_secret__pt));
 #  else
     // should not happen if everything is properly configured
@@ -966,6 +971,7 @@ static flea_err_t THR_flea_client_handle_handsh_msg(
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE &&
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_KEY_EXCHANGE)
   {
+#  if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH
     FLEA_CCALL(
       THR_flea_tls__read_server_kex(
         tls_ctx,
@@ -977,6 +983,9 @@ static flea_err_t THR_flea_client_handle_handsh_msg(
     );
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
       | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
+#  else  /* if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH */
+    FLEA_THROW("Invalid State, ECDH(E) not compiled", FLEA_ERR_TLS_INVALID_STATE);
+#  endif /* if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH */
   }
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST &&
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_REQUEST)

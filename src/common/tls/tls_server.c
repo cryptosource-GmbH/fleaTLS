@@ -490,6 +490,7 @@ static flea_err_t THR_flea_tls_get_sig_length_of_priv_key(
   FLEA_THR_FIN_SEC_empty();
 }
 
+#  ifdef FLEA_HAVE_TLS_ECDHE
 static flea_err_t THR_flea_tls__send_server_kex(
   flea_tls_ctx_t*               tls_ctx__pt,
   flea_tls_handshake_ctx_t*     hs_ctx__pt,
@@ -672,6 +673,8 @@ static flea_err_t THR_flea_tls__send_server_kex(
     flea_public_key_t__dtor(&ecdhe_pub_key__t);
   );
 } /* THR_flea_tls__send_server_kex */
+
+#  endif /* ifdef FLEA_HAVE_TLS_ECDHE */
 
 /*
  *  if 'allowed_sig_algs__u8' is not already accounted for, adjust cert_types_mask__u8 and return true
@@ -895,7 +898,7 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
 #  endif /* ifdef FLEA_HAVE_TLS_RSA */
 
 
-#  ifdef FLEA_HAVE_ECKA
+#  ifdef FLEA_HAVE_TLS_ECDHE
 static flea_err_t THR_flea_tls__read_client_key_exchange_ecdhe(
   flea_tls_ctx_t*           tls_ctx__pt,
   flea_tls_handsh_reader_t* hs_rdr__pt,
@@ -928,7 +931,7 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_ecdhe(
   );
 } /* THR_flea_tls__read_client_key_exchange_ecdhe */
 
-#  endif /* ifdef FLEA_HAVE_ECKA */
+#  endif /* ifdef FLEA_HAVE_TLS_ECDHE */
 
 static flea_err_t THR_flea_tls__read_client_key_exchange(
   flea_tls_ctx_t*           tls_ctx,
@@ -952,7 +955,7 @@ static flea_err_t THR_flea_tls__read_client_key_exchange(
   }
   else if(kex_method__t == FLEA_TLS_KEX_ECDHE)
   {
-#  ifdef FLEA_HAVE_ECKA
+#  ifdef FLEA_HAVE_TLS_ECDHE
     FLEA_CCALL(
       THR_flea_tls__read_client_key_exchange_ecdhe(
         tls_ctx,
@@ -964,7 +967,7 @@ static flea_err_t THR_flea_tls__read_client_key_exchange(
 #  else
     // should not happen if everything is properly configured
     FLEA_THROW("unsupported key exchange variant", FLEA_ERR_TLS_INVALID_STATE);
-#  endif /* ifdef FLEA_HAVE_ECKA */
+#  endif /* ifdef FLEA_HAVE_TLS_ECDHE */
   }
   else
   {
@@ -1481,7 +1484,11 @@ flea_err_t THR_flea_tls__server_handshake(
               selected_cipher_suite__u16
             ) == FLEA_TLS_KEX_ECDHE)
           {
+#  ifdef FLEA_HAVE_TLS_ECDHE
             FLEA_CCALL(THR_flea_tls__send_server_kex(tls_ctx, &hs_ctx__t, &p_hash_ctx, &ecdhe_priv_key__t));
+#  else
+            FLEA_THROW("Invalid State, ECDHE not compiled", FLEA_ERR_TLS_INVALID_STATE);
+#  endif
           }
 
           // send certificate request in case we want client authentication
