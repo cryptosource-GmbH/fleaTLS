@@ -11,8 +11,9 @@
 extern "C" {
 #endif
 
+#ifdef FLEA_HAVE_TLS_SERVER
 
-#define flea_tls_server_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
+# define flea_tls_server_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
 
 void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx__pt);
 
@@ -63,7 +64,7 @@ flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
 );
 
 
-#ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+# ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
 
 /**
  * Find out if the peer's EE certificate is available.
@@ -84,9 +85,9 @@ flea_bool_t flea_tls_server_ctx_t__have_peer_ee_cert_ref(flea_tls_server_ctx_t* 
  * NULL otherwise.
  */
 const flea_x509_cert_ref_t* flea_tls_server_ctx_t__get_peer_ee_cert_ref(flea_tls_server_ctx_t* server_ctx__pt);
-#endif
+# endif
 
-#ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
+# ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 /**
  * Find out if the trusted certificate used to authenticate the peer is available.
@@ -108,7 +109,9 @@ flea_bool_t flea_tls_server_ctx_t__have_peer_root_cert_ref(flea_tls_server_ctx_t
  * NULL otherwise.
  */
 const flea_x509_cert_ref_t* flea_tls_server_ctx_t__get_peer_root_cert_ref(flea_tls_server_ctx_t* server_ctx__pt);
-#endif
+# endif
+
+#endif // ifdef FLEA_HAVE_TLS_SERVER
 
 #ifdef __cplusplus
 }

@@ -34,15 +34,16 @@ using namespace std;
 
 
 #ifdef FLEA_HAVE_TLS
+# ifdef FLEA_HAVE_TLS_SERVER
 
-# define CHECK_PTHREAD_ERR(f) if(f) throw test_utils_exceptn_t("error with pthread call");
+#  define CHECK_PTHREAD_ERR(f) if(f) throw test_utils_exceptn_t("error with pthread call");
 
 enum class action_t { none, quit };
 
 std::vector<std::string> stdin_input_lines;
 std::string stdin_current_line;
 
-# define FLEA_TEST_APP_USER_ABORT 0x300
+#  define FLEA_TEST_APP_USER_ABORT 0x300
 
 static flea_err_t THR_check_user_abort(server_params_t* serv_par__pt)
 {
@@ -637,4 +638,5 @@ int flea_start_https_server(property_set_t const& cmdl_args)
   }
 }
 
+# endif // ifdef FLEA_HAVE_TLS_SERVER
 #endif // ifdef FLEA_HAVE_TLS
