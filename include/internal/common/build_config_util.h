@@ -68,4 +68,44 @@
 /************ End MAC and AE ************/
 
 
+/************ Begin Check Ciphersuite Configuration ************/
+#ifndef FLEA_HAVE_TLS_RSA
+# if defined FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA || defined FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA256 || \
+  defined FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA || defined FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256 || \
+  defined FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256 || defined FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384 || \
+  defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA || defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA || \
+  defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256 || defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 || \
+  defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256 || defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+#  error "RSA is not configured but RSA cipher suites are configured!"
+# endif
+#endif
+
+#ifndef FLEA_HAVE_TLS_ECDHE
+# if defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA || defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA || \
+  defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256 || defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 || \
+  defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256 || defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+#  error "ECDHE is not configured but ECDHE cipher suites are configured!"
+# endif
+#endif
+
+#ifndef FLEA_HAVE_TLS_CBC_CS
+# if defined FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA || defined FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA256 || \
+  defined FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA || defined FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256 || \
+  defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA || defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA || \
+  defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256 || defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+#  error "CBC is not configured but CBC cipher suites are configured!"
+# endif
+#endif
+
+#ifndef FLEA_HAVE_TLS_GCM_CS
+# if defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 || \
+  defined FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 || defined FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384 || \
+  defined FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
+#  error "GCM is not configured but GCM cipher suites are configured!"
+# endif
+#endif
+
+/************ End Check Ciphersuite Configuration ************/
+
+
 #endif /* h-guard */
