@@ -3,9 +3,20 @@
 
 #include <pthread.h>
 
-#define FLEA_PLTFIF_MUTEX_TYPE pthread_mutex_t
+/**
+ * platfrom independent
+ */
 
-#define FLEA_PLTFIF_DECL_MUTEX(__mutex_name) FLEA_PLTFIF_MUTEX_TYPE __mutex_name
+#define FLEA_PLTFIF_DECL_MUTEX(__mutex_name)        FLEA_PLTFIF_MUTEX_TYPE __mutex_name
+
+#define FLEA_PLTFIF_DECL_STATIC_MUTEX(__mutex_name) static FLEA_PLTFIF_DECL_MUTEX(__mutex_name)
+
+
+/**
+ * platfrom dependent
+ */
+
+#define FLEA_PLTFIF_MUTEX_TYPE pthread_mutex_t
 
 #define THR_FLEA_PLTFIF_INIT_MUTEX(__mutex_ptr) \
   (0 == \

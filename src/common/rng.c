@@ -15,7 +15,7 @@
 
 static flea_ctr_mode_prng_t gl_rng_ctx__t;
 
-static FLEA_PLTFIF_MUTEX_TYPE rng_mutex__t;
+FLEA_PLTFIF_DECL_STATIC_MUTEX(rng_mutex__t);
 
 void flea_rng__deinit()
 {
