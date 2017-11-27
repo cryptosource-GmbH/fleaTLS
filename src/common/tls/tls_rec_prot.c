@@ -116,7 +116,10 @@ static flea_err_t THR_flea_tls_rec_prot_t__close_with_fatal_alert_and_throw(
 }
 
 /* potentially sends alerts and throws if the received alert indicates this */
-static flea_err_t THR_flea_tls_rec_prot_t__handle_alert(flea_tls_rec_prot_t* rec_prot__pt)
+static flea_err_t THR_flea_tls_rec_prot_t__handle_alert(
+  flea_tls_rec_prot_t* rec_prot__pt,
+  flea_dtl_t           read_bytes_count__dtl
+)
 {
   FLEA_THR_BEG_FUNC();
   if(rec_prot__pt->payload_used_len__u16 != 2)
@@ -137,10 +140,11 @@ static flea_err_t THR_flea_tls_rec_prot_t__handle_alert(flea_tls_rec_prot_t* rec
     rec_prot__pt->is_session_closed__u8 = FLEA_TRUE;
     FLEA_THROW("received fatal alert", FLEA_ERR_TLS_REC_FATAL_ALERT);
   }
-  else if(rec_prot__pt->payload_buf__pu8[1] == FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY)
+
+  /*else if(rec_prot__pt->payload_buf__pu8[1] == FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY)
   {
     FLEA_THROW("received close notify", FLEA_ERR_TLS_REC_CLOSE_NOTIFY);
-  }
+  }*/
   else if(rec_prot__pt->payload_buf__pu8[1] == FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION)
   {
     FLEA_THROW("received no renegotiation alert", FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG);
@@ -177,7 +181,7 @@ flea_err_t THR_flea_tls_rec_prot_t__ctor(
   rec_prot__pt->current_record_content_len__u16 = 0;
   rec_prot__pt->is_session_closed__u8       = FLEA_FALSE;
   rec_prot__pt->is_current_record_alert__u8 = FLEA_FALSE;
-
+  rec_prot__pt->pending_close_notify__u8    = FLEA_FALSE;
 
   flea_tls_rec_prot_t__set_null_ciphersuite(rec_prot__pt, flea_tls_write);
   flea_tls_rec_prot_t__set_null_ciphersuite(rec_prot__pt, flea_tls_read);
@@ -462,6 +466,11 @@ flea_err_t THR_flea_tls_rec_prot_t__write_data(
   flea_al_u16_t buf_free_len__alu16;
 
   FLEA_THR_BEG_FUNC();
+
+  if(rec_prot__pt->pending_close_notify__u8)
+  {
+    FLEA_THROW("connection closed by peer", FLEA_ERR_TLS_REC_CLOSE_NOTIFY);
+  }
   if(rec_prot__pt->is_session_closed__u8)
   {
     FLEA_THROW("tls session closed", FLEA_ERR_TLS_SESSION_CLOSED);
@@ -1054,7 +1063,6 @@ void flea_tls_rec_prot_t__discard_current_read_record(flea_tls_rec_prot_t* rec_p
   rec_prot__pt->read_bytes_from_current_record__u16 = 0;
 }
 
-// TODO: ADD ALERT HANDLING TO THIS FUNCTION
 static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   flea_tls_rec_prot_t*          rec_prot__pt,
   flea_u8_t*                    data__pu8,
@@ -1073,6 +1081,11 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
 
   FLEA_THR_BEG_FUNC();
   *data_len__pdtl = 0;
+
+  if(rec_prot__pt->pending_close_notify__u8)
+  {
+    FLEA_THROW("connection closed by peer", FLEA_ERR_TLS_REC_CLOSE_NOTIFY);
+  }
   if(rec_prot__pt->is_session_closed__u8)
   {
     FLEA_THROW("tls session closed", FLEA_ERR_TLS_SESSION_CLOSED);
@@ -1086,7 +1099,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
 
   rec_prot__pt->payload_buf__pu8 = rec_prot__pt->send_rec_buf_raw__bu8 + RECORD_HDR_LEN;
 
-  // TODO: MERGE THIS COPYING WITH THE FINAL COPYING
   to_cp__alu16 = FLEA_MIN(data_len__dtl, rec_prot__pt->payload_used_len__u16 - rec_prot__pt->payload_offset__u16);
   memcpy(data__pu8, rec_prot__pt->payload_buf__pu8 + rec_prot__pt->payload_offset__u16, to_cp__alu16);
   rec_prot__pt->payload_offset__u16 += to_cp__alu16;
@@ -1277,7 +1289,21 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
       }
       else if(rec_prot__pt->is_current_record_alert__u8)
       {
-        FLEA_CCALL(THR_flea_tls_rec_prot_t__handle_alert(rec_prot__pt));
+        if(rec_prot__pt->payload_buf__pu8[1] == FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY)
+        {
+          if(((rd_mode__e == flea_read_full) && data_len__dtl) || !read_bytes_count__dtl)
+          {
+            FLEA_THROW("received close notify", FLEA_ERR_TLS_REC_CLOSE_NOTIFY);
+          }
+          else
+          {
+            rec_prot__pt->pending_close_notify__u8 = 1;
+          }
+        }
+
+
+        // TODO: IF CN (WARN) AND READ_BYTES_COUNT>0, THEN GO INTO ERROR STATE AND RETURN THE DATA W/O ERROR
+        FLEA_CCALL(THR_flea_tls_rec_prot_t__handle_alert(rec_prot__pt, read_bytes_count__dtl));
       }
       else
       {

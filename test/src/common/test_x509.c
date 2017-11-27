@@ -24,7 +24,6 @@ flea_err_t THR_flea_test_dec_tls_server_cert_broken()
   {
     FLEA_THROW("no excpetion in broken cert", FLEA_ERR_FAILED_TEST);
   }
-  // printf("cert_ref size = %u\n", sizeof(cert_ref__t));
   FLEA_THR_FIN_SEC_empty();
 }
 
