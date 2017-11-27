@@ -23,8 +23,20 @@ struct struct_flea_tls_client_ctx_t
 };
 
 
-#define flea_tls_ctx_t__INIT(__p)        do {memset((__p), 0, sizeof(*(__p)));} while(0)
 #define flea_tls_client_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
+
+/**
+ * Test whether a tls client ctx is qualified for carrying out a
+ * renegotiation.
+ *
+ * @param tls_client_ctx__pt pointer to the client ctx object
+ *
+ * @return FLEA_TRUE if a renegotiation may be carried out, FLEA_FALSE
+ * otherwise.
+ */
+#define flea_tls_client_ctx_t__is_reneg_allowed(tls_client_ctx__pt) \
+  ((tls_client_ctx__pt)->tls_ctx__t.allow_reneg__u8 ? FLEA_TRUE : \
+  FLEA_FALSE)
 
 flea_err_t THR_flea_tls_client_ctx_t__ctor(
   flea_tls_client_ctx_t*     tls_ctx,
@@ -63,8 +75,6 @@ flea_err_t THR_flea_tls_client_ctx_t__send_app_data(
 
 flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t* tls_ctx);
 
-
-// TODO: ADD FUNCTION TO TEST WHETHER RENEG IS ALLOWED
 
 /**
  *

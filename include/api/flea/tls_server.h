@@ -14,6 +14,19 @@ extern "C" {
 
 #define flea_tls_server_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
 
+/**
+ * Test whether a tls server ctx is qualified for carrying out a
+ * renegotiation.
+ *
+ * @param tls_server_ctx__pt pointer to the server ctx object
+ *
+ * @return FLEA_TRUE if a renegotiation may be carried out, FLEA_FALSE
+ * otherwise.
+ */
+#define flea_tls_server_ctx_t__is_reneg_allowed(tls_server_ctx__pt) \
+  ((tls_server_ctx__pt)->tls_ctx__t.allow_reneg__u8 ? FLEA_TRUE : \
+  FLEA_FALSE)
+
 void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx__pt);
 
 flea_err_t THR_flea_tls_server_ctx_t__ctor(

@@ -19,6 +19,7 @@
 extern "C" {
 #endif
 
+#define flea_tls_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
 
 typedef struct
 {

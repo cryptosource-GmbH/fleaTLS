@@ -181,6 +181,8 @@ static flea_err_t THR_flea_start_tls_client(
   flea_tls_test_tool_print_peer_cert_info(&tls_ctx, nullptr, nullptr);
   for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("do_renegs", 0); i++)
   {
+    int reneg_allowed = flea_tls_client_ctx_t__is_reneg_allowed(&tls_ctx);
+    std::cout << "renegotiation exptected to be successfull = " << std::to_string(reneg_allowed) << " ...\n";
     std::cout << "renegotiation ...\n";
     flea_bool_t reneg_done__b;
     FLEA_CCALL(

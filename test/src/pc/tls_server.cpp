@@ -223,7 +223,12 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
      * flea_err_t retval     = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_nonblocking);
      * printf("reading app data prior to renegotiation returned: %04x\n", retval);*/
     // std::cout << "renegotiation ...";
-    serv_par__pt->write_output_string("renegotiation ...\n");
+    int reneg_allowed = flea_tls_server_ctx_t__is_reneg_allowed(&tls_ctx);
+    serv_par__pt->write_output_string(
+      "renegotiation exptected to be successfull = " + std::to_string(
+        reneg_allowed
+      ) + " ...\n"
+    );
     FLEA_CCALL(
       THR_flea_tls_server_ctx_t__renegotiate(
         &tls_ctx,

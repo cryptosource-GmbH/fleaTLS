@@ -1590,7 +1590,7 @@ flea_err_t THR_flea_tls_ctx_t__send_sig_alg_ext(
     THR_flea_tls__send_handshake_message_int_be(
       &tls_ctx__pt->rec_prot__t,
       p_hash_ctx__pt,
-      tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl + 2,
+      tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl + 2, // TODO: LEN * 2 + 2
       2
     )
   );
@@ -1599,13 +1599,13 @@ flea_err_t THR_flea_tls_ctx_t__send_sig_alg_ext(
     THR_flea_tls__send_handshake_message_int_be(
       &tls_ctx__pt->rec_prot__t,
       p_hash_ctx__pt,
-      tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl,
+      tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl,  // TODO: LEN * 2
       2
     )
   );
 
   // send supported sig algs
-  for(int i = 0; i < tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl; i += 2)
+  for(int i = 0; i < tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl; i += 2) // TODO: i += 1
   {
     FLEA_CCALL(
       THR_flea_tls__map_flea_hash_to_tls_hash(
@@ -1620,7 +1620,9 @@ flea_err_t THR_flea_tls_ctx_t__send_sig_alg_ext(
         &curr_sig_alg_enc__au8[1]
       )
     );
+
     FLEA_CCALL(
+      // TODO: WRITE_U16_BE
       THR_flea_tls__send_handshake_message_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
