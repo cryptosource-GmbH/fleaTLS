@@ -942,11 +942,12 @@ static flea_err_t THR_flea_client_handle_handsh_msg(
     flea_tls_cert_path_params_t cert_path_params__t =
     {.kex_type__e                  = flea_tls__get_kex_and_auth_method_by_cipher_suite_id(
        tls_ctx->selected_cipher_suite__u16
-       ), .client_cert_type_mask__u8=                      0,
+       ), .client_cert_type_mask__u8=                             0,
      .validate_server_or_client__e = FLEA_TLS_SERVER,
      // .hostn_valid_params__pt       = &tls_ctx->hostn_valid_params__t};
-     .hostn_valid_params__pt       = hostn_valid_params__pt,
-     .allowed_sig_algs_mbn__prcu16 = &tls_ctx->allowed_sig_algs__rcu16};
+     .hostn_valid_params__pt     = hostn_valid_params__pt,
+     .allowed_sig_algs_mbn__pe   = tls_ctx->allowed_sig_algs__pe,
+     .nb_allowed_sig_algs__alu16 = tls_ctx->nb_allowed_sig_algs__alu16};
     FLEA_CCALL(
       THR_flea_tls__read_certificate(
         tls_ctx,
@@ -1386,7 +1387,8 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   flea_tls_client_session_t* session_mbn__pt,
   // flea_tls_renegotiation_spec_e reneg_spec__e,
   flea_ref_cu8_t*            allowed_ecc_curves_ref__prcu8,
-  flea_ref_cu16_t*           allowed_sig_algs_ref__prcu16,
+  flea_tls_sigalg_e*         allowed_sig_algs__pe,
+  flea_al_u16_t              nb_allowed_sig_algs__alu16,
   // flea_tls_flag_e               flags
   flea_al_u16_t              flags__alu16
 )
@@ -1406,8 +1408,9 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
   tls_ctx__pt->client_session_mbn__pt        = session_mbn__pt;
   tls_ctx__pt->allowed_ecc_curves__rcu8      = *allowed_ecc_curves_ref__prcu8;
-  tls_ctx__pt->allowed_sig_algs__rcu16       = *allowed_sig_algs_ref__prcu16;
-  tls_ctx__pt->extension_ctrl__u8 = 0;
+  tls_ctx__pt->allowed_sig_algs__pe           = allowed_sig_algs__pe;
+  tls_ctx__pt->nb_allowed_sig_algs__alu16     = nb_allowed_sig_algs__alu16;
+  tls_ctx__pt->extension_ctrl__u8             = 0;
   tls_ctx__pt->private_key_for_client_mbn__pt = private_key_mbn__pt;
   if(((cert_chain_mbn__pt != NULL) && (private_key_mbn__pt == NULL)) ||
     ((cert_chain_mbn__pt == NULL) && (private_key_mbn__pt != NULL)))

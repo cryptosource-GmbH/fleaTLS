@@ -34,7 +34,18 @@ extern "C" {
 # define FLEA_TLS_CFG_FLAG__MIN_KEY_STRENGTH_SYM_BITS__80  0x380
 # define FLEA_TLS_CFG_FLAG__MIN_KEY_STRENGTH_SYM_BITS__100 0x180
 # define FLEA_TLS_CFG_FLAG__MIN_KEY_STRENGTH_SYM_BITS__128 0x000
+
 // # define FLEA_TLS_CFG_FLAG__MIN_KEY_STRENGTH_SYM_BITS__256   0x000
+
+typedef enum
+{
+  flea_tls_sigalg_rsa_sha1   = (flea_sha1 << 8) | flea_rsa_pkcs1_v1_5_sign,
+  flea_tls_sigalg_rsa_sha224 = (flea_sha224 << 8) | flea_rsa_pkcs1_v1_5_sign,
+  flea_tls_sigalg_rsa_sha256 = (flea_sha256 << 8) | flea_rsa_pkcs1_v1_5_sign,
+  flea_tls_sigalg_rsa_sha384 = (flea_sha384 << 8) | flea_rsa_pkcs1_v1_5_sign,
+  flea_tls_sigalg_rsa_sha512 = (flea_sha512 << 8) | flea_rsa_pkcs1_v1_5_sign
+} flea_tls_sigalg_e;
+
 # ifdef __cplusplus
 }
 # endif

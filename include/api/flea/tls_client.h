@@ -53,7 +53,8 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   flea_al_u16_t              nb_crls,
   flea_tls_client_session_t* session_mbn,
   flea_ref_cu8_t*            allowed_ecc_curves_ref,
-  flea_ref_cu16_t*           allowed_sig_algs_ref,
+  flea_tls_sigalg_e*         allowed_sig_algs,
+  flea_al_u16_t              nb_allowed_sig_algs,
   flea_al_u16_t              flags
 );
 

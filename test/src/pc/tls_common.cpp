@@ -103,17 +103,17 @@ namespace {
     return result;
   } // get_allowed_ecc_curves_from_cmdl
 
-  std::vector<flea_u16_t> get_allowed_sig_algs_from_cmdl(property_set_t const& cmdl_args)
+  static std::vector<flea_tls_sigalg_e> get_allowed_sig_algs_from_cmdl(property_set_t const& cmdl_args)
   {
     flea_u8_t dummy;
 
-    std::vector<flea_u16_t> result;
+    std::vector<flea_tls_sigalg_e> result;
     if(cmdl_args.have_index("allowed_sig_algs"))
     {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("allowed_sig_algs"), ',');
       for(string s : strings)
       {
-        flea_u16_t sig_alg;
+        flea_tls_sigalg_e sig_alg;
         std::vector<string> alg_pair = tokenize_string(s, '-');
         auto it  = hash_algs_map__t.find(alg_pair[0]);
         auto it2 = sig_algs_map__t.find(alg_pair[1]);
@@ -125,7 +125,7 @@ namespace {
           );
         }
         // result.push_back(it->second);
-        sig_alg = (it->second << 8);
+        sig_alg = (flea_tls_sigalg_e) (it->second << 8);
         if(it2 == sig_algs_map__t.end() ||
           THR_flea_tls__map_flea_sig_to_tls_sig((flea_pk_scheme_id_t) it2->second, &dummy))
         {
@@ -133,7 +133,7 @@ namespace {
                   "specified sig algorithm '" + alg_pair[1] + "' (in '" + s + "')" + " not configured"
           );
         }
-        sig_alg |= it2->second;
+        sig_alg = (flea_tls_sigalg_e) (((flea_u32_t) sig_alg) | it2->second);
         result.push_back(sig_alg);
       }
     }
@@ -145,11 +145,11 @@ namespace {
       // for compatibility reasons with other tests, for now add SHA1-RSA,
       // SHA256-RSA
 
-      result.push_back(((flea_u8_t) flea_sha256 << 8) | ((flea_u8_t) flea_rsa_pkcs1_v1_5_sign));
-      // result.push_back((flea_u8_t) flea_rsa_pkcs1_v1_5_sign);
+      // result.push_back(((flea_u8_t) flea_sha256 << 8) | ((flea_u8_t) flea_rsa_pkcs1_v1_5_sign));
+      result.push_back(flea_tls_sigalg_rsa_sha256);
 
-      result.push_back(((flea_u8_t) flea_sha1 << 8) | ((flea_u8_t) flea_rsa_pkcs1_v1_5_sign));
-      // result.push_back((flea_u8_t) flea_rsa_pkcs1_v1_5_sign);
+      // result.push_back(((flea_u8_t) flea_sha1 << 8) | ((flea_u8_t) flea_rsa_pkcs1_v1_5_sign));
+      result.push_back(flea_tls_sigalg_rsa_sha1);
     }
     return result;
   } // get_allowed_sig_algs_from_cmdl

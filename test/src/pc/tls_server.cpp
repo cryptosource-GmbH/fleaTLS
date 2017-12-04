@@ -205,7 +205,8 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
       serv_par__pt->nb_crls__u16,
       serv_par__pt->sess_mngr__pt,
       serv_par__pt->allowed_ecc_curves__prcu8,
-      serv_par__pt->allowed_sig_algs__prcu16,
+      serv_par__pt->allowed_sig_algs__pe,
+      serv_par__pt->nb_allowed_sig_algs__alu16,
       serv_par__pt->flags__u16 | FLEA_TLS_CFG_FLAG__SHA1_CERT_SIGALG__ALLOW
     )
   );
@@ -331,7 +332,8 @@ static flea_err_t THR_server_cycle(
 )
 {
   flea_ref_cu8_t allowed_ecc_curves__rcu8;
-  flea_ref_cu16_t allowed_sig_algs__rcu16;
+  flea_tls_sigalg_e* allowed_sig_algs__pe;
+  flea_al_u16_t nb_allowed_sig_algs__alu16;
   flea_ref_cu16_t cipher_suites_ref;
 
   flea_cert_store_t trust_store__t;
@@ -385,8 +387,8 @@ static flea_err_t THR_server_cycle(
   allowed_ecc_curves__rcu8.data__pcu8 = &tls_cfg.allowed_curves[0];
   allowed_ecc_curves__rcu8.len__dtl   = tls_cfg.allowed_curves.size();
 
-  allowed_sig_algs__rcu16.data__pcu16 = &tls_cfg.allowed_sig_algs[0];
-  allowed_sig_algs__rcu16.len__dtl    = tls_cfg.allowed_sig_algs.size();
+  allowed_sig_algs__pe       = &tls_cfg.allowed_sig_algs[0];
+  nb_allowed_sig_algs__alu16 = tls_cfg.allowed_sig_algs.size();
 
   // server_params_t serv_par__t;
 
@@ -409,8 +411,9 @@ static flea_err_t THR_server_cycle(
       serv_par__t.crl_der__pt   = &tls_cfg.crls_refs[0];
       serv_par__t.nb_crls__u16  = tls_cfg.crls.size();
       serv_par__t.sess_mngr__pt = sess_man__pt;
-      serv_par__t.allowed_ecc_curves__prcu8 = &allowed_ecc_curves__rcu8;
-      serv_par__t.allowed_sig_algs__prcu16  = &allowed_sig_algs__rcu16;
+      serv_par__t.allowed_ecc_curves__prcu8  = &allowed_ecc_curves__rcu8;
+      serv_par__t.allowed_sig_algs__pe       = allowed_sig_algs__pe;
+      serv_par__t.nb_allowed_sig_algs__alu16 = nb_allowed_sig_algs__alu16;
       serv_par__t.flags__u16 = tls_cfg.flags;
       // serv_par__t.listen_fd         = listen_fd;
       serv_par__t.read_timeout       = read_timeout_ms;

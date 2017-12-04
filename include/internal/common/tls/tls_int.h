@@ -89,7 +89,8 @@ struct struct_flea_tls_ctx_t
 
   // chosen hash algorithm in sig_alg extension. Signature algorithm is fixed by
   // the loaded certificate
-  flea_ref_cu16_t      allowed_sig_algs__rcu16;
+  flea_tls_sigalg_e*   allowed_sig_algs__pe;
+  flea_al_u16_t        nb_allowed_sig_algs__alu16;
   flea_hash_id_t       chosen_hash_algorithm__t; // use as hash alg when signing with private key (server and client)
   flea_bool_t          can_use_ecdhe;            // true if sig alg extension produces a match so we can sign the ECDHE params
   // flea_stream_read_mode_e    handshake_read_mode__e;
