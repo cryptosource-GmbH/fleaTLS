@@ -52,7 +52,8 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   const flea_byte_vec_t*     crl_der,
   flea_al_u16_t              nb_crls,
   flea_tls_client_session_t* session_mbn,
-  flea_ref_cu8_t*            allowed_ecc_curves_ref,
+  flea_ec_dom_par_id_t*      allowed_ecc_curves__pe,
+  flea_al_u16_t              nb_allowed_curves__alu16,
   flea_tls_sigalg_e*         allowed_sig_algs,
   flea_al_u16_t              nb_allowed_sig_algs,
   flea_al_u16_t              flags

@@ -1,0 +1,29 @@
+
+\tikzstyle{flowBlock} = [
+rectangle, rounded corners=2pt, minimum width=4cm,
+    minimum height=1cm, color=white, draw=darkgray, fill=csblue, node distance
+= 0.1cm]
+
+\tikzstyle{codeBlock} = [
+node distance = 1.1cm, align = left]
+
+\begin{tikzpicture}
+
+\node[flowBlock] at (0,0) (initHs) {Initial Handshake};
+\node[right = of initHs.east] (ctor) {\code{ctor}};
+
+\node[flowBlock, below = of initHs.south] (appData) {send/read app. data};
+\node[right = of appData.east] (ad1) {\code{send\_app\_data},
+\code{read\_app\_data}};
+
+\node[flowBlock, below = of appData.south] (reneg) {renegotiation};
+\node[right = of reneg.east] (ctor) {\code{renegotiate}, \code{read\_app\_data}};
+
+\node[flowBlock, below = of reneg.south] (appData2) {send/read app. data};
+\node[node distance = 0.3cm, below = of appData2.south] (any) {\Huge\ldots};
+
+\node[flowBlock, below = of any.south] (close) {close connection};
+\node[right = of close.east] (dtor) {\code{dtor}, error in any function};
+
+\draw[->, thick] ($(initHs.west) - (1,0)$) -- ($(close.west) - (1,0)$);
+\end{tikzpicture}

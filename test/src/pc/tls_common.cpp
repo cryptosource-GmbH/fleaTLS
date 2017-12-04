@@ -41,7 +41,7 @@ std::map<string, flea_u16_t> cipher_suite_name_value_map__t = {
   {"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", 0xC030}
 };
 
-std::map<string, flea_u8_t> curve_id_name_value_map__t = {
+std::map<string, flea_ec_dom_par_id_t> curve_id_name_value_map__t = {
   {"secp160r1",       flea_secp160r1      },
   {"secp160r2",       flea_secp160r2      },
   {"secp192r1",       flea_secp192r1      },
@@ -67,11 +67,11 @@ std::map<string, flea_u8_t> hash_algs_map__t = {
 };
 
 namespace {
-  std::vector<flea_u8_t> get_allowed_ecc_curves_from_cmdl(property_set_t const& cmdl_args)
+  std::vector<flea_ec_dom_par_id_t> get_allowed_ecc_curves_from_cmdl(property_set_t const& cmdl_args)
   {
     flea_u8_t dummy[2];
 
-    std::vector<flea_u8_t> result;
+    std::vector<flea_ec_dom_par_id_t> result;
     if(cmdl_args.have_index("allowed_curves"))
     {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("allowed_curves"), ',');
@@ -91,7 +91,7 @@ namespace {
     {
       for(auto & entry : curve_id_name_value_map__t)
       {
-        flea_u8_t id = entry.second;
+        flea_ec_dom_par_id_t id = entry.second;
         // const flea_tls__cipher_suite_t* ptr;
         if(!THR_flea_tls__map_flea_curve_to_curve_bytes((flea_ec_dom_par_id_t) id, dummy))
         {
@@ -103,7 +103,7 @@ namespace {
     return result;
   } // get_allowed_ecc_curves_from_cmdl
 
-  static std::vector<flea_tls_sigalg_e> get_allowed_sig_algs_from_cmdl(property_set_t const& cmdl_args)
+  std::vector<flea_tls_sigalg_e> get_allowed_sig_algs_from_cmdl(property_set_t const& cmdl_args)
   {
     flea_u8_t dummy;
 

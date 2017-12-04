@@ -29,7 +29,8 @@ struct server_params_t
   flea_byte_vec_t*              crl_der__pt;
   flea_u16_t                    nb_crls__u16;
   flea_tls_session_mngr_t*      sess_mngr__pt;
-  flea_ref_cu8_t*               allowed_ecc_curves__prcu8;
+  flea_ec_dom_par_id_t*         allowed_ecc_curves__pe;
+  flea_al_u16_t                 allowed_ecc_curves_len__alu16;
   flea_tls_sigalg_e*            allowed_sig_algs__pe;
   flea_al_u16_t                 nb_allowed_sig_algs__alu16;
   flea_u16_t                    flags__u16;
@@ -186,7 +187,7 @@ struct tls_test_cfg_t
   std::vector<std::vector<unsigned char> > own_certs;
   std::vector<std::vector<unsigned char> > own_ca_chain;
   std::vector<flea_u16_t>                  cipher_suites;
-  std::vector<flea_u8_t>                   allowed_curves;
+  std::vector<flea_ec_dom_par_id_t>        allowed_curves;
   std::vector<flea_tls_sigalg_e>           allowed_sig_algs;
   std::vector<std::vector<flea_u8_t> >     crls;
   // flea_rev_chk_mode_e                      rev_chk_mode__e;

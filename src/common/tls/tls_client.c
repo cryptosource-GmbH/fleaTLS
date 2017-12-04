@@ -240,9 +240,9 @@ static flea_err_t THR_flea_tls__read_server_kex(
     FLEA_CCALL(THR_flea_tls__map_curve_bytes_to_flea_curve(ec_curve__au8, &ec_dom_par_id__t));
 
     tls_ctx__pt->chosen_ecc_dp_internal_id__u8 = (flea_u8_t) ec_dom_par_id__t;
-    for(i = 0; i < tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl; i++)
+    for(i = 0; i < tls_ctx__pt->nb_allowed_curves__u16; i++)
     {
-      if(ec_dom_par_id__t == tls_ctx__pt->allowed_ecc_curves__rcu8.data__pcu8[i])
+      if(ec_dom_par_id__t == tls_ctx__pt->allowed_ecc_curves__pe[i])
       {
         found__b = FLEA_TRUE;
         break;
@@ -1386,7 +1386,8 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   flea_al_u16_t              nb_crls__alu16,
   flea_tls_client_session_t* session_mbn__pt,
   // flea_tls_renegotiation_spec_e reneg_spec__e,
-  flea_ref_cu8_t*            allowed_ecc_curves_ref__prcu8,
+  flea_ec_dom_par_id_t*      allowed_ecc_curves__pe,
+  flea_al_u16_t              nb_allowed_curves__alu16,
   flea_tls_sigalg_e*         allowed_sig_algs__pe,
   flea_al_u16_t              nb_allowed_sig_algs__alu16,
   // flea_tls_flag_e               flags
@@ -1407,7 +1408,8 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   tls_ctx__pt->cert_chain_len__u8 = cert_chain_len__alu8;
   tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
   tls_ctx__pt->client_session_mbn__pt        = session_mbn__pt;
-  tls_ctx__pt->allowed_ecc_curves__rcu8      = *allowed_ecc_curves_ref__prcu8;
+  tls_ctx__pt->allowed_ecc_curves__pe        = allowed_ecc_curves__pe;
+  tls_ctx__pt->nb_allowed_curves__u16        = nb_allowed_curves__alu16;
   tls_ctx__pt->allowed_sig_algs__pe           = allowed_sig_algs__pe;
   tls_ctx__pt->nb_allowed_sig_algs__alu16     = nb_allowed_sig_algs__alu16;
   tls_ctx__pt->extension_ctrl__u8             = 0;

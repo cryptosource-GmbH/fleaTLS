@@ -1195,7 +1195,7 @@ flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx_
     if(tls_ctx__pt->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES)
     {
       len__alu16 += 6; /* supported curves extension */
-      len__alu16 += tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl * 2;
+      len__alu16 += tls_ctx__pt->nb_allowed_curves__u16 * 2;
     }
     if(tls_ctx__pt->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS)
     {
@@ -1325,7 +1325,7 @@ flea_err_t THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
       sizeof(ext__au8)
     )
   );
-  flea__encode_U16_BE(tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl * 2 + 2, ext__au8);
+  flea__encode_U16_BE(tls_ctx__pt->nb_allowed_curves__u16 * 2 + 2, ext__au8);
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx__pt->rec_prot__t,
@@ -1334,7 +1334,7 @@ flea_err_t THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
       sizeof(ext__au8)
     )
   );
-  flea__encode_U16_BE(tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl * 2, ext__au8);
+  flea__encode_U16_BE(tls_ctx__pt->nb_allowed_curves__u16 * 2, ext__au8);
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx__pt->rec_prot__t,
@@ -1345,12 +1345,12 @@ flea_err_t THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
   );
 
   flea_al_u16_t i;
-  for(i = 0; i < tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl; i++)
+  for(i = 0; i < tls_ctx__pt->nb_allowed_curves__u16; i++)
   {
     FLEA_CCALL(
       THR_flea_tls__map_flea_curve_to_curve_bytes(
         (flea_ec_dom_par_id_t) tls_ctx__pt->
-        allowed_ecc_curves__rcu8.data__pcu8[i],
+        allowed_ecc_curves__pe[i],
         ext__au8
       )
     );
@@ -1813,9 +1813,9 @@ flea_err_t THR_flea_tls_ctx_t__parse_supported_curves_ext(
     {
       continue;
     }
-    for(i = 0; i < tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl; i++)
+    for(i = 0; i < tls_ctx__pt->nb_allowed_curves__u16; i++)
     {
-      if(tls_ctx__pt->allowed_ecc_curves__rcu8.data__pcu8[i] == dp_id)
+      if(tls_ctx__pt->allowed_ecc_curves__pe[i] == dp_id)
       {
         if(i < curve_pos__alu16)
         {
@@ -1925,9 +1925,9 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
    * pre-selection which takes effect in case the peer doesn't send the
    * supported curves extension.
    */
-  if(tls_ctx__pt->allowed_ecc_curves__rcu8.len__dtl)
+  if(tls_ctx__pt->nb_allowed_curves__u16)
   {
-    tls_ctx__pt->chosen_ecc_dp_internal_id__u8 = tls_ctx__pt->allowed_ecc_curves__rcu8.data__pcu8[0];
+    tls_ctx__pt->chosen_ecc_dp_internal_id__u8 = tls_ctx__pt->allowed_ecc_curves__pe[0];
   }
   else
   {

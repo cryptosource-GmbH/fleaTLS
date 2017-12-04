@@ -1626,7 +1626,8 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   const flea_byte_vec_t*        crl_der__pt,
   flea_al_u16_t                 nb_crls__alu16,
   flea_tls_session_mngr_t*      session_mngr_mbn__pt,
-  flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8,
+  flea_ec_dom_par_id_t*         allowed_ecc_curves__pe,
+  flea_al_u16_t                 nb_allowed_curves__alu16,
   flea_tls_sigalg_e*            allowed_sig_algs__pe,
   flea_al_u16_t                 nb_allowed_sig_algs__alu16,
   flea_al_u16_t                 flags__alu16
@@ -1642,7 +1643,8 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   tls_ctx__pt->cert_chain_mbn__pt         = cert_chain__pt;
   tls_ctx__pt->cert_chain_len__u8         = cert_chain_len__alu8;
   tls_ctx__pt->extension_ctrl__u8         = 0;
-  tls_ctx__pt->allowed_ecc_curves__rcu8   = *allowed_ecc_curves_ref__prcu8;
+  tls_ctx__pt->allowed_ecc_curves__pe     = allowed_ecc_curves__pe;
+  tls_ctx__pt->nb_allowed_curves__u16     = nb_allowed_curves__alu16;
   tls_ctx__pt->allowed_sig_algs__pe       = allowed_sig_algs__pe;
   tls_ctx__pt->nb_allowed_sig_algs__alu16 = nb_allowed_sig_algs__alu16;
   tls_ctx__pt->private_key__pt = &shrd_server_ctx__pt->private_key__t;

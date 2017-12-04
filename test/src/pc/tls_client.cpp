@@ -48,7 +48,8 @@ static flea_err_t THR_flea_start_tls_client(
 
   flea_ref_cu16_t cipher_suites_ref;
 
-  flea_ref_cu8_t allowed_ecc_curves__rcu8;
+  flea_ec_dom_par_id_t* allowed_ecc_curves__pe;
+  flea_al_u16_t allowed_ecc_curves_len__alu16;
   flea_tls_sigalg_e* allowed_sig_algs__pe;
   flea_al_u16_t nb_allowed_sig_algs__alu16;
   tls_test_cfg_t tls_cfg;
@@ -137,10 +138,10 @@ static flea_err_t THR_flea_start_tls_client(
       tls_cfg
     )
   );
-  cipher_suites_ref.data__pcu16       = &tls_cfg.cipher_suites[0];
-  cipher_suites_ref.len__dtl          = tls_cfg.cipher_suites.size();
-  allowed_ecc_curves__rcu8.data__pcu8 = &tls_cfg.allowed_curves[0];
-  allowed_ecc_curves__rcu8.len__dtl   = tls_cfg.allowed_curves.size();
+  cipher_suites_ref.data__pcu16 = &tls_cfg.cipher_suites[0];
+  cipher_suites_ref.len__dtl    = tls_cfg.cipher_suites.size();
+  allowed_ecc_curves__pe        = &tls_cfg.allowed_curves[0];
+  allowed_ecc_curves_len__alu16 = tls_cfg.allowed_curves.size();
   allowed_sig_algs__pe       = &tls_cfg.allowed_sig_algs[0];
   nb_allowed_sig_algs__alu16 = tls_cfg.allowed_sig_algs.size();
 
@@ -172,7 +173,8 @@ static flea_err_t THR_flea_start_tls_client(
       &tls_cfg.crls_refs[0],
       tls_cfg.crls.size(),
       client_session__pt,
-      &allowed_ecc_curves__rcu8,
+      allowed_ecc_curves__pe,
+      allowed_ecc_curves_len__alu16,
       allowed_sig_algs__pe,
       nb_allowed_sig_algs__alu16,
       tls_cfg.flags | FLEA_TLS_CFG_FLAG__SHA1_CERT_SIGALG__ALLOW

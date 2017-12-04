@@ -84,7 +84,8 @@ struct struct_flea_tls_ctx_t
   flea_u8_t                    allow_reneg__u8;
   flea_u8_t                    allow_insec_reneg__u8;
   flea_u8_t                    extension_ctrl__u8;       /* used only by server */
-  flea_ref_cu8_t               allowed_ecc_curves__rcu8; /* by flea_ec_dom_par_id_t */
+  flea_ec_dom_par_id_t*        allowed_ecc_curves__pe; /* by flea_ec_dom_par_id_t */
+  flea_u16_t                   nb_allowed_curves__u16;
   flea_u8_t                    chosen_ecc_dp_internal_id__u8;
 
   // chosen hash algorithm in sig_alg extension. Signature algorithm is fixed by
