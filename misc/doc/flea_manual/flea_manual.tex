@@ -20,7 +20,7 @@
 \usepackage{listings}
 \usepackage{verbatim}
 \usepackage{tikz}
-\usetikzlibrary{calc,shapes,arrows,fit,calc,positioning,automata}
+\usetikzlibrary{shapes,arrows,fit,calc,positioning,automata}
 
 \usepackage{colortbl}
 \usepackage{ulem}
@@ -59,7 +59,7 @@
 \renewcommand{\headrulewidth}{1.2pt}
 \fancyhead[R]{\hspace{-1.9cm}\includegraphics[width=6cm]{cs_logo.eps}}
 \fancyhead[L]{flea cryptographic library 
-\myVersion\\manual}
+\thisFleaVersion\\manual}
 \fancyfoot[C]{\vspace{-0.3cm}\thepage}
 \pagestyle{fancy}
 
@@ -99,10 +99,17 @@
     minimum height=1em, minimum width=6em]
 \tikzstyle{sum} = [draw, fill=blue!20, circle, node distance=1cm]
 
-\newcommand{\myVersion}{v1.1 pre 2017-08-15}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\serverCtx}{\code{flea\_tls\_server\_ctx\_t}}
+%\newcommand{\serverCtx}{\texttt{flea}}
+\newcommand{\clientCtx}{\code{flea\_tls\_client\_ctx\_t}}
+
+\newcommand{\thisFleaVersion}{v1.2\xspace }
+
+\newcommand{\ie}{i\.e\.}
 %\mainmatter              % start of the contributions
 %
-\title{flea cryptographic library \myVersion\\{\LARGE manual} }
+\title{flea cryptographic library \thisFleaVersion\\{\LARGE manual} }
 
 \author{cryptosource GmbH,
   Darmstadt\\\url{flea@cryptosource.de}\\\url{www.cryptosource.de}\vspace{0.5cm}\\\includegraphics[width=7cm]{logo.png}}
@@ -373,6 +380,235 @@ is used to.
 
 %Concurrency support for TLS server session manager: all connections must be
 %closed before the session manager is destroyed.
+
+
+\section{The TLS API}
+
+flea implements the TLS 1.2 protocol for the instantiation of TLS clients and
+server. 
+
+\section{A brief description of the TLS protocol}
+TLS is a protocol which allows for the establishment of secure connections
+between a TLS client and a TLS server. The authenticity of the server, and
+optionally that of the client is ensured by the use of X.509 certificates.
+During the so-called TLS handshake the authenticity of the X.509 certificate of
+the peer is verified and based on the public key presented in that certificate
+a key exchange (KEX) is performed. As a result, after the TLS handshake, both
+sides share a set of symmetric keys for the encryption and authentiation of the
+payload data, also referred to as application data. 
+At this point, both peers
+can send application data to each other in a confidential and authentic manner.
+The concrete cryptographic algorithms that are used during the handshake and for the
+transmission of the application data, are specified by the so-called TLS
+cipher suite.
+
+\subsection{Overview of the TLS Protocol Flow}
+\begin{figure}
+\input{./figures/tlsSeqFlow.tex}
+\caption{Overview of the potential events during the TLS protocol flow and the
+associated functions of the flea TLS Client and Serve API.}
+\label{figTlsSeqFlow}
+\end{figure}
+
+Figure \ref{figTlsSeqFlow} shows the potential events in the TLS protocol flow
+and the associated functions of the fleaTLS client and server API. Any TLS
+connections starts with a call to the ctor function of the TLS client
+(\clientCtx) or server (\serverCtx) context object.
+
+\subsubsection{Initial Handshake and Application Data Transfer}
+After the initial handshake, the TLS channel is established and all subsequent
+data exchanges between the peers take place over the secure TLS channel. The
+main purpose of the TLS channel is the secure exchange of application data,
+which is done using the fleaTLS functions 
+\begin{itemize}
+  \item THR\_flea\_tls\_client\_ctx\_t\_\_read\_app\_data()
+  \item THR\_flea\_tls\_client\_ctx\_t\_\_send\_app\_data()
+  \item THR\_flea\_tls\_server\_ctx\_t\_\_read\_app\_data()
+  \item THR\_flea\_tls\_server\_ctx\_t\_\_send\_app\_data()
+\end{itemize}
+
+Note that in order to ensure the sending of the application over the wire a call
+to 
+\begin{itemize}
+  \item \code{THR\_flea\_tls\_client\_ctx\_t\_\_flush\_write\_app\_data} or
+  \item \code{THR\_flea\_tls\_server\_ctx\_t\_\_flush\_write\_app\_data}
+  \end{itemize}
+  is necessary since the \code{send\_app\_data} functions may buffer the data.
+
+  \subsubsection{Renegotiation}
+A renegotiation can be triggered either by a call to the corresponding
+renegotiation function
+\begin{itemize}
+  \item \code{THR\_flea\_tls\_client\_ctx\_t\_\_renegotiate} or
+\item \code{THR\_flea\_tls\_server\_ctx\_t\_\_renegotiate}
+  \end{itemize}
+  or during a call to a \code{read\_app\_data} function, if the peer initiates a
+  renegotiation during that call which is accepted by flea.
+
+  The conditions for accepting a renegotation request by the  fleaTLS client or
+  server are the following:
+  \begin{itemize}
+    \item If in the TLS client or server context object's ctor call the flag \code{flea\_tls\_flag\_reneg\_\_allow\_insecure\_reneg} is
+      set, then the renegotation request is accepted under any condition.
+    \item If in the TLS client or server context object's ctor call the flag \code{flea\_tls\_flag\_reneg\_\_allow\_only\_secure\_reneg} is
+      set, then the renegotation request is accepted if the peer also supports
+      the Renegotiation Indication Extension and behaves correctly with respect
+      to this extension.
+      \item If in the TLS client or server context object's ctor call the flag \code{flea\_tls\_flag\_reneg\_\_no\_reneg} is
+      set, then the renegotation request is declined unconditionally.
+  \end{itemize}
+
+  The closing of a connection happens when dtor function of the respective tls
+  client or server context object is called. Furthermore, the connection is
+  closed if an error occurs during any of the other TLS client or server context
+  objects.
+%TODO: FIGURE:
+%handshake
+%  client hello
+%  server hello
+%  \ldots
+%tls channel
+%  renegotiate
+%  read/write app data
+
+  \subsubsection{TLS Alert Handling and Sending }
+
+  In the TLS protocol alert messages are specified as a menas to signal error
+  conditions to the peer. The carry a type and a level field. A variety of possible types
+  is specified in the TLS standard. The level can be \emph{fatal}, indicating an error
+  that mandates the ending of the connection, or \emph{warning}, indicating that,
+  depending on the type of the alert, the a specific action may be necessary.
+  fleaTLS completely handles the treatment of incoming
+  TLS alerts and sending of alerts when an error condition is met.
+
+  If fleaTLS receives an alert the reaction is determined according to the
+  following rules:
+  \begin{itemize}
+    \item If the alert has level \emph{fatal}, flea closes the connection and the API
+        function during the execution of which the alert was received returns an
+        error code.
+      \item Otherwise, if the alert has level \emph{warning}, and
+        \begin{itemize}
+          \item if it is of type \emph{close notify}, then the connection is closed as
+            well, \ie fleaTLS sends a \emph{close notify} alert to the peer itself;
+          \item if it is of type \emph{no renegotiation}, and fleaTLS is
+            currently executing the TLS client's or server's
+            \code{renegotate()} function, then it aborts the renegotation and
+            indicates this to the user. The TLS context object remains valid in
+            this case.
+
+  \end{itemize}
+  \end{itemize}
+
+\subsection{Ciphersuites}
+
+The TLS protocol defines a large variety of cipher suites. fleaTLS
+\thisFleaVersion supports the following subset of cipher suites.
+\begin{itemize}
+  \item TLS\_RSA\_WITH\_AES\_128\_CBC\_SHA
+  \item TLS\_RSA\_WITH\_AES\_128\_CBC\_SHA256
+  \item TLS\_RSA\_WITH\_AES\_256\_CBC\_SHA
+  \item TLS\_RSA\_WITH\_AES\_256\_CBC\_SHA256
+  \item TLS\_RSA\_WITH\_AES\_128\_GCM\_SHA256
+  \item TLS\_RSA\_WITH\_AES\_256\_GCM\_SHA384
+  \item TLS\_ECDHE\_RSA\_WITH\_AES\_128\_CBC\_SHA
+  \item TLS\_ECDHE\_RSA\_WITH\_AES\_256\_CBC\_SHA
+  \item TLS\_ECDHE\_RSA\_WITH\_AES\_128\_CBC\_SHA256
+  \item TLS\_ECDHE\_RSA\_WITH\_AES\_128\_GCM\_SHA256
+  \item TLS\_ECDHE\_RSA\_WITH\_AES\_256\_CBC\_SHA384
+  \item TLS\_ECDHE\_RSA\_WITH\_AES\_256\_GCM\_SHA384
+\end{itemize}
+
+These strings specify the cryptorgraphic algorithms that are used during the TLS
+handshake according to the following pattern:
+
+$$
+\mathrm{TLS\_}\underbrace{\mathrm{RSA}}_{\mathrm{KEX}}\mathrm{\_WITH\_}\underbrace{\mathrm{AES\_128}}_{cipher}\_\underbrace{\mathrm{CBC}}_{mode
+}\_\underbrace{\mathrm{SHA}}_{hash }
+$$
+\begin{description}
+  \item[KEX] The key exchange algorithm specifies the algorithm which is used
+    for the exchange of the symmetric keys used in the TLS channel. The current
+    version of fleaTLS supports only the RSA and ECDHE\_RSA KEX. In the former,
+    the RSA key from the certificate of the server is directly used for the KEX,
+    Tin the latter the RSA key of the server signs an ephemeral ECDH key, which
+    in turn is used for the key exchange. This implies that the
+    certificate of the server must be an RSA certificate.
+  \item[cipher] The cipher is the encryption primitive which is used to achieve
+    the confidentiality within the TLS channel. fleaTLS only supports the AES
+    algorithm (with key sizes 128 and 256 as specified in the TLS protocol).
+  \item [mode] The encryption mode in which the cipher is used. 
+  \item[hash] The hash algorithm which is specified here is used for the
+    authentication of the channel data.
+  \end{description}
+The support for the individual cipher suites is configured in the general build
+configuration file with the corresponding defines prefixed with FLEA\ldots .
+
+
+\subsection{Requirements for Server Certificates}
+
+The current version of flea only supports the RSA KEX during the TLS handshake.
+This implies that the server must present an RSA certificate during the
+handshake. This certificate must feature an RSA public key.
+
+The server certificate does not necessarily have to include any certificate
+extensions. However, if certain extensions are present, then the following
+requirements must be fullfilled according to the TLS standard.
+\begin{description}
+  \item [Key Usage Extension] If present, this extension must feature at least
+    the \emph{keyEncipherment} key usage.
+  \item [Extended Key Usage Extension] If present, this extension must feature
+    the key usage \emph{serverAuth} or \emph{any}.
+  \item [Subject Alternative Name] This extension is recommended to be encluded
+    in the certificate and to include either the IP address or the DNS name of
+    the server. If this extension is not present, the client will use the Common
+Name within the certificate to verify the DNS name.
+\end{description}
+
+
+\subsection{Requirements for Client Certificates}
+
+If TLS client authentication is used, then the client also presents a
+certificate chain. In the current version of flea, the client certificate must
+be an RSA certificate. Furthermore the following requirements must be fulfilled
+for the certificate extensions of this certificate according to the TLS standard.
+\begin{description}
+  \item [Key Usage Extension] If present, this extension must feature at least
+    the \emph{digitalSignature} key usage.
+  \item [Extended Key Usage Extension] If present, this extension must feature
+    the key usage \emph{clientAuth} or \emph{any}.
+\end{description}
+
+\subsection{TLS Extensions}
+
+The TLS protocol features a number of so-called TLS extension. These are
+optional extensions of the basic protocol. They are sent during the Client Hello
+and/or Server Hello messages. 
+\subsubsection{Renegotiation Indication Extension}
+Renegotiation Indication Extension is specified in RFC 5746 and has the purpose
+of preventing certain data injection attacks. fleaTLS supports this extension
+according to the standard.  
+
+This extension restricts the possibility of performing a TLS renegotiation under
+certain conditions. This depends on the support of the peer for this extension
+and the configuration of the flea TLS instance. 
+
+TODO:EXPLAIN THE 3 VARIANTS
+
+\subsubsection{Signature Algorithms Extension the TLS Handshake}
+
+
+
+\subsection{TLS Alerts}
+TODO
+
+\section{Instantiating fleaTLS Server and Client}
+
+The fleaTLS server and client API objects are given by the
+\serverCtx and \clientCtx. Their lifecycle is modelled such that their
+constructor call carries out the TLS handshake. The constructed object is thus
+directly in the state where the TLS channel is established and data can be
+exchanged.
 
 \section{Support}
 cryptosource provides commercial support for the flea library. Please visit

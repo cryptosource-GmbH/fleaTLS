@@ -43,6 +43,7 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   flea_tls_session_mngr_t*      session_mngr_mbn__pt,
   flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8,
   flea_ref_cu8_t*               allowed_sig_algs_ref__prcu8,
+  // TODO: flags => enum
   flea_al_u16_t                 flags__alu16
 );
 
