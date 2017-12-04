@@ -49,7 +49,7 @@ static flea_err_t THR_flea_start_tls_client(
   flea_ref_cu16_t cipher_suites_ref;
 
   flea_ref_cu8_t allowed_ecc_curves__rcu8;
-  flea_ref_cu8_t allowed_sig_algs__rcu8;
+  flea_ref_cu16_t allowed_sig_algs__rcu16;
   tls_test_cfg_t tls_cfg;
   flea_host_id_type_e host_type;
   linux_socket_stream_ctx_t sock_stream_ctx;
@@ -140,8 +140,8 @@ static flea_err_t THR_flea_start_tls_client(
   cipher_suites_ref.len__dtl          = tls_cfg.cipher_suites.size();
   allowed_ecc_curves__rcu8.data__pcu8 = &tls_cfg.allowed_curves[0];
   allowed_ecc_curves__rcu8.len__dtl   = tls_cfg.allowed_curves.size();
-  allowed_sig_algs__rcu8.data__pcu8   = &tls_cfg.allowed_sig_algs[0];
-  allowed_sig_algs__rcu8.len__dtl     = tls_cfg.allowed_sig_algs.size();
+  allowed_sig_algs__rcu16.data__pcu16 = &tls_cfg.allowed_sig_algs[0];
+  allowed_sig_algs__rcu16.len__dtl    = tls_cfg.allowed_sig_algs.size();
 
   // std::cout << "read_timeout = " << std::to_string(cmdl_args.get_property_as_u32_default("read_timeout", 0)) << "\n";
 
@@ -172,7 +172,7 @@ static flea_err_t THR_flea_start_tls_client(
       tls_cfg.crls.size(),
       client_session__pt,
       &allowed_ecc_curves__rcu8,
-      &allowed_sig_algs__rcu8,
+      &allowed_sig_algs__rcu16,
       tls_cfg.flags | FLEA_TLS_CFG_FLAG__SHA1_CERT_SIGALG__ALLOW
     )
   );

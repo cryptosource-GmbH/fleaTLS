@@ -464,12 +464,12 @@ static flea_err_t THR_flea_tls__validate_cert(
     }
 
     // only for tls client (for server the sig_algs member is null):
-    if(cert_path_params__pct->allowed_sig_algs_mbn__prcu8)
+    if(cert_path_params__pct->allowed_sig_algs_mbn__prcu16)
     {
-      for(i = 0; i < cert_path_params__pct->allowed_sig_algs_mbn__prcu8->len__dtl; i += 2)
+      for(i = 0; i < cert_path_params__pct->allowed_sig_algs_mbn__prcu16->len__dtl; i += 1)
       {
-        if((cert_path_params__pct->allowed_sig_algs_mbn__prcu8->data__pcu8[i] == *tbs_hash_id__pe) &&
-          (cert_path_params__pct->allowed_sig_algs_mbn__prcu8->data__pcu8[i + 1] == scheme_id))
+        if(((cert_path_params__pct->allowed_sig_algs_mbn__prcu16->data__pcu16[i] >> 8) == *tbs_hash_id__pe) &&
+          ((cert_path_params__pct->allowed_sig_algs_mbn__prcu16->data__pcu16[i] & 0xFF) == scheme_id))
         {
           sig_alg_allowed__b = FLEA_TRUE;
           break;

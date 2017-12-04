@@ -23,7 +23,7 @@ typedef struct
   flea_u8_t                             client_cert_type_mask__u8;
   flea_tls__connection_end_t            validate_server_or_client__e;
   const flea_hostn_validation_params_t* hostn_valid_params__pt;
-  flea_ref_cu8_t*                       allowed_sig_algs_mbn__prcu8;
+  flea_ref_cu16_t*                      allowed_sig_algs_mbn__prcu16;
 } flea_tls_cert_path_params_t;
 
 flea_err_t THR_flea_tls__cert_path_validation(

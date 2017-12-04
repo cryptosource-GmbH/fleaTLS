@@ -1185,7 +1185,7 @@ flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx_
   // signature algorithms extension
   if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
-    len__alu16 += 6 + tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl;
+    len__alu16 += 6 + tls_ctx__pt->allowed_sig_algs__rcu16.len__dtl * 2;
   }
 
 # ifdef FLEA_HAVE_ECC
@@ -1590,7 +1590,7 @@ flea_err_t THR_flea_tls_ctx_t__send_sig_alg_ext(
     THR_flea_tls__send_handshake_message_int_be(
       &tls_ctx__pt->rec_prot__t,
       p_hash_ctx__pt,
-      tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl + 2, // TODO: LEN * 2 + 2
+      tls_ctx__pt->allowed_sig_algs__rcu16.len__dtl * 2 + 2,
       2
     )
   );
@@ -1599,24 +1599,23 @@ flea_err_t THR_flea_tls_ctx_t__send_sig_alg_ext(
     THR_flea_tls__send_handshake_message_int_be(
       &tls_ctx__pt->rec_prot__t,
       p_hash_ctx__pt,
-      tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl,  // TODO: LEN * 2
+      tls_ctx__pt->allowed_sig_algs__rcu16.len__dtl * 2,
       2
     )
   );
 
   // send supported sig algs
-  for(int i = 0; i < tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl; i += 2) // TODO: i += 1
+  for(flea_dtl_t i = 0; i < tls_ctx__pt->allowed_sig_algs__rcu16.len__dtl; i += 1)
   {
     FLEA_CCALL(
       THR_flea_tls__map_flea_hash_to_tls_hash(
-        (flea_hash_id_t) tls_ctx__pt->allowed_sig_algs__rcu8.data__pcu8[i],
+        (flea_hash_id_t) (tls_ctx__pt->allowed_sig_algs__rcu16.data__pcu16[i] >> 8),
         &curr_sig_alg_enc__au8[0]
       )
     );
     FLEA_CCALL(
       THR_flea_tls__map_flea_sig_to_tls_sig(
-        (flea_pk_scheme_id_t) tls_ctx__pt->allowed_sig_algs__rcu8.
-        data__pcu8[i + 1],
+        (flea_pk_scheme_id_t) (tls_ctx__pt->allowed_sig_algs__rcu16.data__pcu16[i] & 0xFF),
         &curr_sig_alg_enc__au8[1]
       )
     );
@@ -1678,9 +1677,9 @@ flea_err_t THR_flea_tls__read_sig_algs_field_and_find_best_match(
     }
 
     // if the sig/hash pair is suitable, use it if it's highest priority
-    for(i = 0; i < tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl; i += 2)
+    for(i = 0; i < tls_ctx__pt->allowed_sig_algs__rcu16.len__dtl; i += 1)
     {
-      if(hash_id__t == (flea_hash_id_t) tls_ctx__pt->allowed_sig_algs__rcu8.data__pcu8[i])
+      if(hash_id__t == (flea_hash_id_t) tls_ctx__pt->allowed_sig_algs__rcu16.data__pcu16[i] >> 8)
       {
         if(i / 2 < hash_alg_pos__alu16)
         {
@@ -2010,17 +2009,17 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
     // we need to set the default signature and hash algorithm because the
     // client does not support any other. This means sha1 + signature scheme
     // of the currently loaded certificate
-    for(i = 0; i < tls_ctx__pt->allowed_sig_algs__rcu8.len__dtl; i += 2)
+    for(i = 0; i < tls_ctx__pt->allowed_sig_algs__rcu16.len__dtl; i += 1)
     {
       // only check for hash/sig pair which matches our key
       if(priv_key_mbn__pt && THR_flea_tls__check_sig_alg_compatibility_for_key_type(
           priv_key_mbn__pt->key_type__t,
-          (flea_pk_scheme_id_t) tls_ctx__pt->allowed_sig_algs__rcu8.data__pcu8[i + 1]
+          (flea_pk_scheme_id_t) (tls_ctx__pt->allowed_sig_algs__rcu16.data__pcu16[i] & 0xFF)
         ))
       {
         continue;
       }
-      if(tls_ctx__pt->allowed_sig_algs__rcu8.data__pcu8[i] == flea_sha1)
+      if((tls_ctx__pt->allowed_sig_algs__rcu16.data__pcu16[i] >> 8) == flea_sha1)
       {
         support_sha1__b = FLEA_TRUE;
         break;

@@ -678,7 +678,7 @@ static flea_err_t THR_flea_tls__send_server_kex(
 static flea_bool_t flea_tls__is_allowed_cert_type_hlp_fct(
   flea_pk_scheme_id_t pk_scheme_id__t,
   flea_u8_t*          cert_types_mask__u8,
-  flea_u8_t           allowed_sig_algs__u8
+  flea_u8_t           allowed_sig_algs__u8 // scheme id part of sig alg
 )
 {
   flea_tls_client_cert_type_e cl_cert_type__e;
@@ -734,14 +734,14 @@ static flea_err_t THR_flea_tls__send_cert_request(
 
   // determine what certificate types we allow based on the allowed signature
   // algorithms
-  for(flea_u8_t i = 1; i < tls_ctx->allowed_sig_algs__rcu8.len__dtl; i += 2)
+  for(flea_u8_t i = 1; i < tls_ctx->allowed_sig_algs__rcu16.len__dtl; i += 1)
   {
     for(flea_u8_t j = 0; j < sizeof(supported_pk_schemes__at) / sizeof(flea_pk_scheme_id_t); j++)
     {
       if(flea_tls__is_allowed_cert_type_hlp_fct(
           supported_pk_schemes__at[j],
           &cert_types_mask__u8,
-          tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i]
+          tls_ctx->allowed_sig_algs__rcu16.data__pcu16[i] & 0xFF
         ) == FLEA_TRUE)
       {
         if(cert_types_len__u8 >= sizeof(cert_types__au8))
@@ -755,7 +755,8 @@ static flea_err_t THR_flea_tls__send_cert_request(
     }
   }
 
-  hdr_len__u32 = 1 + cert_types_len__u8 + 2 + tls_ctx->allowed_sig_algs__rcu8.len__dtl + 2 + cert_authorities_len__u16;
+  hdr_len__u32 = 1 + cert_types_len__u8 + 2 + (tls_ctx->allowed_sig_algs__rcu16.len__dtl * 2) + 2
+    + cert_authorities_len__u16;
 
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_hdr(
@@ -789,25 +790,25 @@ static flea_err_t THR_flea_tls__send_cert_request(
     THR_flea_tls__send_handshake_message_int_be(
       &tls_ctx->rec_prot__t,
       p_hash_ctx,
-      tls_ctx->allowed_sig_algs__rcu8.len__dtl,
+      tls_ctx->allowed_sig_algs__rcu16.len__dtl * 2,
       2
     )
   );
 
   // send sig algs
-  for(int i = 0; i < tls_ctx->allowed_sig_algs__rcu8.len__dtl; i += 2)
+  for(flea_dtl_t i = 0; i < tls_ctx->allowed_sig_algs__rcu16.len__dtl; i += 1)
   {
     flea_u8_t tmp_buf__au8[2];
     FLEA_CCALL(
       THR_flea_tls__map_flea_hash_to_tls_hash(
-        (flea_hash_id_t) tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i],
+        (flea_hash_id_t) (tls_ctx->allowed_sig_algs__rcu16.data__pcu16[i] >> 8),
         &tmp_buf__au8[0]
       )
     );
 
     FLEA_CCALL(
       THR_flea_tls__map_flea_sig_to_tls_sig(
-        (flea_pk_scheme_id_t) tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i + 1],
+        (flea_pk_scheme_id_t) (tls_ctx->allowed_sig_algs__rcu16.data__pcu16[i] & 0xFF),
         &tmp_buf__au8[1]
       )
     );
@@ -1035,10 +1036,10 @@ static flea_err_t THR_flea_tls__read_cert_verify(
   // check that we support the combination of hash/sig alg and the client has
   // indeed responded with a combination that we offered
   check__b = FLEA_FALSE;
-  for(flea_al_u16_t i = 0; i < tls_ctx->allowed_sig_algs__rcu8.len__dtl; i += 2)
+  for(flea_al_u16_t i = 0; i < tls_ctx->allowed_sig_algs__rcu16.len__dtl; i += 1)
   {
-    if((flea_hash_id_t) tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i] == hash_id__t &&
-      (flea_pk_scheme_id_t) tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i + 1] == pk_scheme_id__t)
+    if((flea_hash_id_t) (tls_ctx->allowed_sig_algs__rcu16.data__pcu16[i] >> 8) == hash_id__t &&
+      (flea_pk_scheme_id_t) (tls_ctx->allowed_sig_algs__rcu16.data__pcu16[i] & 0xFF) == pk_scheme_id__t)
     {
       check__b = FLEA_TRUE;
     }
@@ -1150,13 +1151,13 @@ static flea_err_t THR_flea_tls_server_handle_handsh_msg(
     {
       // base allowed cl_certs on allowed signature algorithms
       flea_u8_t cert_mask__u8 = 0;
-      for(flea_u8_t i = 1; i < tls_ctx->allowed_sig_algs__rcu8.len__dtl; i += 2)
+      for(flea_u8_t i = 1; i < tls_ctx->allowed_sig_algs__rcu16.len__dtl; i += 1)
       {
-        if(tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i] == flea_rsa_pkcs1_v1_5_sign)
+        if((tls_ctx->allowed_sig_algs__rcu16.data__pcu16[i] & 0xFF) == flea_rsa_pkcs1_v1_5_sign)
         {
           cert_mask__u8 |= flea_tls_cl_cert__rsa_sign;
         }
-        else if(tls_ctx->allowed_sig_algs__rcu8.data__pcu8[i] == flea_ecdsa_emsa1)
+        else if((tls_ctx->allowed_sig_algs__rcu16.data__pcu16[i] & 0xFF) == flea_ecdsa_emsa1)
         {
           cert_mask__u8 |= flea_tls_cl_cert__ecdsa_sign;
         }
@@ -1166,7 +1167,7 @@ static flea_err_t THR_flea_tls_server_handle_handsh_msg(
        .client_cert_type_mask__u8    = cert_mask__u8,
        .validate_server_or_client__e = FLEA_TLS_CLIENT,
        .hostn_valid_params__pt       = NULL,
-       .allowed_sig_algs_mbn__prcu8  = NULL};
+       .allowed_sig_algs_mbn__prcu16 = NULL};
 
       FLEA_CCALL(
         THR_flea_tls__read_certificate(
@@ -1625,7 +1626,7 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   flea_al_u16_t                 nb_crls__alu16,
   flea_tls_session_mngr_t*      session_mngr_mbn__pt,
   flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8,
-  flea_ref_cu8_t*               allowed_sig_algs_ref__prcu8,
+  flea_ref_cu16_t*              allowed_sig_algs_ref__prcu16,
   flea_al_u16_t                 flags__alu16
 )
 {
@@ -1640,7 +1641,7 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   tls_ctx__pt->cert_chain_len__u8       = cert_chain_len__alu8;
   tls_ctx__pt->extension_ctrl__u8       = 0;
   tls_ctx__pt->allowed_ecc_curves__rcu8 = *allowed_ecc_curves_ref__prcu8;
-  tls_ctx__pt->allowed_sig_algs__rcu8   = *allowed_sig_algs_ref__prcu8;
+  tls_ctx__pt->allowed_sig_algs__rcu16  = *allowed_sig_algs_ref__prcu16;
   tls_ctx__pt->private_key__pt = &shrd_server_ctx__pt->private_key__t;
 
   tls_ctx__pt->trust_store__pt = trust_store__pt;

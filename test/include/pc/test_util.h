@@ -30,7 +30,7 @@ struct server_params_t
   flea_u16_t                    nb_crls__u16;
   flea_tls_session_mngr_t*      sess_mngr__pt;
   flea_ref_cu8_t*               allowed_ecc_curves__prcu8;
-  flea_ref_cu8_t*               allowed_sig_algs__prcu8;
+  flea_ref_cu16_t*              allowed_sig_algs__prcu16;
   flea_u16_t                    flags__u16;
   // int                           listen_fd;
   flea_u32_t                    read_timeout;
@@ -186,7 +186,7 @@ struct tls_test_cfg_t
   std::vector<std::vector<unsigned char> > own_ca_chain;
   std::vector<flea_u16_t>                  cipher_suites;
   std::vector<flea_u8_t>                   allowed_curves;
-  std::vector<flea_u8_t>                   allowed_sig_algs;
+  std::vector<flea_u16_t>                  allowed_sig_algs;
   std::vector<std::vector<flea_u8_t> >     crls;
   // flea_rev_chk_mode_e                      rev_chk_mode__e;
   std::vector<flea_byte_vec_t>             crls_refs;
