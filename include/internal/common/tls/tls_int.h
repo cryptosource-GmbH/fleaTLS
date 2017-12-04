@@ -96,7 +96,7 @@ struct struct_flea_tls_ctx_t
   flea_bool_t          can_use_ecdhe;            // true if sig alg extension produces a match so we can sign the ECDHE params
   // flea_stream_read_mode_e    handshake_read_mode__e;
   // flea_tls_flag_e flags;
-  flea_u16_t           cfg_flags__u16;
+  flea_tls_flag_e      cfg_flags__e;
 #ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
 # ifdef FLEA_USE_STACK_BUF
   flea_u8_t            peer_ee_cert__au8[FLEA_STKMD_X509_MAX_CERT_SIZE];

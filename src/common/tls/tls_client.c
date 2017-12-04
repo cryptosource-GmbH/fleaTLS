@@ -1391,7 +1391,7 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   flea_tls_sigalg_e*         allowed_sig_algs__pe,
   flea_al_u16_t              nb_allowed_sig_algs__alu16,
   // flea_tls_flag_e               flags
-  flea_al_u16_t              flags__alu16
+  flea_tls_flag_e            flags__e
 )
 {
   flea_err_t err__t;
@@ -1400,7 +1400,7 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
 
   // flea_hostn_validation_params_t hostn_valid_params__t;
   FLEA_THR_BEG_FUNC();
-  tls_ctx__pt->cfg_flags__u16 = flags__alu16;
+  tls_ctx__pt->cfg_flags__e = flags__e;
   // tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = rev_chk_mode__e;
   tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16 = nb_crls__alu16;
   tls_ctx__pt->rev_chk_cfg__t.crl_der__pt  = crl_der__pt;

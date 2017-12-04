@@ -605,19 +605,19 @@ std::vector<std::vector<unsigned char> > property_set_t::get_bin_file_list_prope
   return result;
 }
 
-flea_u16_t reneg_flag_from_string(std::string const& s)
+flea_u32_t reneg_flag_from_string(std::string const& s)
 {
   if(s == "no_reneg")
   {
-    return FLEA_TLS_CFG_FLAG__RENEG_MODE__DISALLOW_RENEG;
+    return flea_tls_flag__reneg_mode__disallow_reneg;
   }
   else if(s == "only_secure_reneg" || s == "")
   {
-    return FLEA_TLS_CFG_FLAG__RENEG_MODE__ALLOW_SECURE_RENEG;
+    return flea_tls_flag__reneg_mode__allow_secure_reneg;
   }
   else if(s == "allow_insecure_reneg")
   {
-    return FLEA_TLS_CFG_FLAG__RENEG_MODE__ALLOW_INSECURE_RENEG;
+    return flea_tls_flag__reneg_mode__allow_insecure_reneg;
   }
   throw test_utils_exceptn_t("invalid value '" + s + "' for argument 'reneg'");
 }

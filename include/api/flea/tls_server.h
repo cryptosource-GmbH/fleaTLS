@@ -45,8 +45,7 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   flea_al_u16_t                 nb_allowed_curves,
   flea_tls_sigalg_e*            allowed_sig_algs__pe,
   flea_al_u16_t                 nb_allowed_sig_algs__alu16,
-  // TODO: flags => enum
-  flea_al_u16_t                 flags__alu16
+  flea_tls_flag_e               flags__e
 );
 
 flea_err_t THR_flea_tls_server_ctx_t__read_app_data(

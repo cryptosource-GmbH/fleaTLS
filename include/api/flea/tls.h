@@ -14,26 +14,19 @@
 extern "C" {
 # endif
 
-// DONE:
-# define FLEA_TLS_CFG_FLAG__RENEG_MODE__DISALLOW_RENEG       0x0
-# define FLEA_TLS_CFG_FLAG__RENEG_MODE__ALLOW_SECURE_RENEG   0x1
-# define FLEA_TLS_CFG_FLAG__RENEG_MODE__ALLOW_INSECURE_RENEG 0x2
+typedef enum
+{
+  flea_tls_flag__reneg_mode__disallow_reneg       = 0x0,
+  flea_tls_flag__reneg_mode__allow_secure_reneg   = 0x1,
+  flea_tls_flag__reneg_mode__allow_insecure_reneg = 0x2,
 
-// TODO: NEXT RELEASE
-# define FLEA_TLS_CFG_FLAG__RENEG_CERT_CHANGE__ALLOW 0x4
+  flea_tls_flag__sha1_cert_sigalg__allow          = 0x8,
 
-// DONE:
-# define FLEA_TLS_CFG_FLAG__SHA1_CERT_SIGALG__ALLOW 0x8
+  flea_tls_flag__rev_chk_mode__check_all          = 0x00,
+  flea_tls_flag__rev_chk_mode__check_only_ee      = 0x20,
+  flea_tls_flag__rev_chk_mode__check_none         = 0x40
+} flea_tls_flag_e;
 
-// DONE:
-# define FLEA_TLS_CFG_FLAG__REV_CHK_MODE__CHECK_ALL     0x00
-# define FLEA_TLS_CFG_FLAG__REV_CHK_MODE__CHECK_ONLY_EE 0x20
-# define FLEA_TLS_CFG_FLAG__REV_CHK_MODE__CHECK_NONE    0x40
-
-// TODO: NEXT RELEASE
-# define FLEA_TLS_CFG_FLAG__MIN_KEY_STRENGTH_SYM_BITS__80  0x380
-# define FLEA_TLS_CFG_FLAG__MIN_KEY_STRENGTH_SYM_BITS__100 0x180
-# define FLEA_TLS_CFG_FLAG__MIN_KEY_STRENGTH_SYM_BITS__128 0x000
 
 // # define FLEA_TLS_CFG_FLAG__MIN_KEY_STRENGTH_SYM_BITS__256   0x000
 

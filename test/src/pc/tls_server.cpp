@@ -208,7 +208,7 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
       serv_par__pt->allowed_ecc_curves_len__alu16,
       serv_par__pt->allowed_sig_algs__pe,
       serv_par__pt->nb_allowed_sig_algs__alu16,
-      serv_par__pt->flags__u16 | FLEA_TLS_CFG_FLAG__SHA1_CERT_SIGALG__ALLOW
+      (flea_tls_flag_e) (serv_par__pt->flags__u32 | ((flea_u32_t) flea_tls_flag__sha1_cert_sigalg__allow))
     )
   );
   // std::cout << "handshake done" << std::endl;
@@ -417,7 +417,7 @@ static flea_err_t THR_server_cycle(
       serv_par__t.allowed_ecc_curves_len__alu16 = allowed_ecc_curves_len__alu16;
       serv_par__t.allowed_sig_algs__pe       = allowed_sig_algs__pe;
       serv_par__t.nb_allowed_sig_algs__alu16 = nb_allowed_sig_algs__alu16;
-      serv_par__t.flags__u16 = tls_cfg.flags;
+      serv_par__t.flags__u32 = tls_cfg.flags;
       // serv_par__t.listen_fd         = listen_fd;
       serv_par__t.read_timeout       = read_timeout_ms;
       serv_par__t.nb_renegs_to_exec  = cmdl_args.get_property_as_u32_default("do_renegs", 0);
@@ -456,12 +456,9 @@ static flea_err_t THR_server_cycle(
         }
         else
         {
-          // std::cout << "flea server continuing after failed listen/accept\n";
           std::cout << "flea server: failed listen/accept\n";
-          // continue;
         }
       }
-      // }
     }
     if((stop || !create_new_threads) && !serv_pars.size())
     {

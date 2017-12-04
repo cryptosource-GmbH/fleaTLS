@@ -33,7 +33,7 @@ struct server_params_t
   flea_al_u16_t                 allowed_ecc_curves_len__alu16;
   flea_tls_sigalg_e*            allowed_sig_algs__pe;
   flea_al_u16_t                 nb_allowed_sig_algs__alu16;
-  flea_u16_t                    flags__u16;
+  flea_u32_t                    flags__u32;
   // int                           listen_fd;
   flea_u32_t                    read_timeout;
   flea_u32_t                    nb_renegs_to_exec;
@@ -194,7 +194,7 @@ struct tls_test_cfg_t
   std::vector<flea_byte_vec_t>             crls_refs;
   flea_stream_read_mode_e                  read_mode_for_app_data;
   size_t                                   read_size_for_app_data;
-  flea_u16_t                               flags = 0;
+  flea_u32_t                               flags = (flea_tls_flag_e) 0;
   unsigned                                 timeout_secs_during_handshake = 0;
 };
 #ifdef FLEA_HAVE_ASYM_ALGS
@@ -225,7 +225,7 @@ std::string bin_to_hex(
   size_t               len
 );
 
-flea_u16_t reneg_flag_from_string(std::string const& s);
+flea_u32_t reneg_flag_from_string(std::string const& s);
 
 
 template <typename t>

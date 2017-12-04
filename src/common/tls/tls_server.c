@@ -1630,14 +1630,14 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   flea_al_u16_t                 nb_allowed_curves__alu16,
   flea_tls_sigalg_e*            allowed_sig_algs__pe,
   flea_al_u16_t                 nb_allowed_sig_algs__alu16,
-  flea_al_u16_t                 flags__alu16
+  flea_tls_flag_e               flags__e
 )
 {
   flea_err_t err__t;
 
   FLEA_THR_BEG_FUNC();
   flea_tls_ctx_t* tls_ctx__pt = &tls_server_ctx__pt->tls_ctx__t;
-  tls_ctx__pt->cfg_flags__u16 = flags__alu16;
+  tls_ctx__pt->cfg_flags__e = flags__e;
   tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16 = nb_crls__alu16;
   tls_ctx__pt->rev_chk_cfg__t.crl_der__pt  = crl_der__pt;
   tls_ctx__pt->cert_chain_mbn__pt         = cert_chain__pt;

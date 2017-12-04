@@ -177,7 +177,7 @@ static flea_err_t THR_flea_start_tls_client(
       allowed_ecc_curves_len__alu16,
       allowed_sig_algs__pe,
       nb_allowed_sig_algs__alu16,
-      tls_cfg.flags | FLEA_TLS_CFG_FLAG__SHA1_CERT_SIGALG__ALLOW
+      tls_cfg.flags | flea_tls_flag__sha1_cert_sigalg__allow
     )
   );
 

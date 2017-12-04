@@ -191,7 +191,7 @@ namespace {
     return result;
   } // get_cipher_suites_from_cmdl
 
-  static flea_u16_t string_to_rev_chk_flags(std::string const& s)
+  static flea_u32_t string_to_rev_chk_flags(std::string const& s)
   {
     if(s == "all")
     {
@@ -199,11 +199,11 @@ namespace {
     }
     else if((s == "") || (s == "none"))
     {
-      return FLEA_TLS_CFG_FLAG__REV_CHK_MODE__CHECK_NONE;
+      return flea_tls_flag__rev_chk_mode__check_none;
     }
     else if(s == "only_ee")
     {
-      return FLEA_TLS_CFG_FLAG__REV_CHK_MODE__CHECK_ONLY_EE;
+      return flea_tls_flag__rev_chk_mode__check_only_ee;
     }
     throw test_utils_exceptn_t("invalid value for property 'rev_chk': '" + s + "'");
   }
@@ -217,7 +217,7 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   tls_test_cfg_t      & cfg
 )
 {
-  cfg.flags = 0;
+  cfg.flags = (flea_tls_flag_e) 0;
 
 
   std::string read_mode_s = cmdl_args.get_property_as_string_default_empty("app_data_read_mode");

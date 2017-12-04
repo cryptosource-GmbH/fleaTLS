@@ -167,12 +167,12 @@ static void flea_tls_ctx_t__set_sec_reneg_flags(
   // flea_tls_renegotiation_spec_e reneg_spec__e
 )
 {
-  if(tls_ctx__pt->cfg_flags__u16 & FLEA_TLS_CFG_FLAG__RENEG_MODE__ALLOW_INSECURE_RENEG)
+  if(tls_ctx__pt->cfg_flags__e & flea_tls_flag__reneg_mode__allow_insecure_reneg)
   {
     tls_ctx__pt->allow_reneg__u8       = FLEA_TRUE;
     tls_ctx__pt->allow_insec_reneg__u8 = FLEA_TRUE;
   }
-  else if(tls_ctx__pt->cfg_flags__u16 & FLEA_TLS_CFG_FLAG__RENEG_MODE__ALLOW_SECURE_RENEG)
+  else if(tls_ctx__pt->cfg_flags__e & flea_tls_flag__reneg_mode__allow_secure_reneg)
   {
     tls_ctx__pt->allow_reneg__u8       = FLEA_TRUE;
     tls_ctx__pt->allow_insec_reneg__u8 = FLEA_FALSE;
@@ -685,7 +685,7 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
 # ifdef FLEA_USE_HEAP_BUF
   flea_al_u8_t sec_reneg_field_size__alu8 = 12;
 # endif
-  flea_al_u16_t flags__alu16 = tls_ctx__pt->cfg_flags__u16;
+  flea_al_u16_t flags__e = tls_ctx__pt->cfg_flags__e;
 
   FLEA_THR_BEG_FUNC();
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
@@ -699,11 +699,11 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
   tls_ctx__pt->rw_stream__pt = rw_stream__pt;
   /* specify connection end */
   tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = flea_rev_chk_all;
-  if(flags__alu16 & FLEA_TLS_CFG_FLAG__REV_CHK_MODE__CHECK_ONLY_EE)
+  if(flags__e & flea_tls_flag__rev_chk_mode__check_only_ee)
   {
     tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = flea_rev_chk_only_ee;
   }
-  if(flags__alu16 & FLEA_TLS_CFG_FLAG__REV_CHK_MODE__CHECK_NONE)
+  if(flags__e & flea_tls_flag__rev_chk_mode__check_none)
   {
     tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = flea_rev_chk_none;
   }
