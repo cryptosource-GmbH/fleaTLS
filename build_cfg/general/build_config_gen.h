@@ -21,7 +21,7 @@
  * this flag to let flea only use stack buffers. In the latter case, be sure to
  * correctly define the RSA and EC key sizes.
  */
-// # define FLEA_USE_HEAP_BUF // FBFLAGS_CORE_ON_OFF
+# define FLEA_USE_HEAP_BUF // FBFLAGS_CORE_ON_OFF
 
 /**
  * Activate this flag to make use of the buffer overwrite detection. Should not
