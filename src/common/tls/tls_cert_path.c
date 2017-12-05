@@ -332,7 +332,7 @@ static flea_err_t THR_flea_tls__validate_cert(
   const flea_al_u16_t previous_non_self_issued_cnt__calu16 = *cnt_non_self_issued_in_path__palu16;
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(
     public_key_value__t,
-    __FLEA_COMPUTED_PK_MAX_ASYM_PUBKEY_LEN + 1
+    __FLEA_COMPUTED_PK_MAX_ASYM_PUBKEY_X509_LEN + 1
   );
   flea_tls_client_cert_type_e cert_type__e;
   FLEA_THR_BEG_FUNC();

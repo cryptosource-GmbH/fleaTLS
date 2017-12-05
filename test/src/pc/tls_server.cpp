@@ -398,7 +398,7 @@ static flea_err_t THR_server_cycle(
   {
     if((serv_pars.size() < thr_max) && !stop && create_new_threads)
     {
-      int sock_fd;
+      int sock_fd = -1;
       unsigned read_timeout_ms = cmdl_args.get_property_as_u32_default("read_timeout", 1000);
 
       /*if(0 <= ((sock_fd = unix_tcpip_listen_accept(listen_fd, read_timeout_ms))))
@@ -426,38 +426,39 @@ static flea_err_t THR_server_cycle(
       serv_par__t.abort__b        = FLEA_FALSE;
       serv_par__t.server_error__e = FLEA_ERR_FINE;
       serv_par__t.finished__b     = FLEA_FALSE;
+
       if(dir_for_file_based_input == "")
       {
-        if((0 <= ((sock_fd = unix_tcpip_listen_accept(listen_fd, read_timeout_ms)))))
+        sock_fd = unix_tcpip_listen_accept(listen_fd, read_timeout_ms);
+      }
+      if((dir_for_file_based_input != "") || (0 <= sock_fd))
+      {
+        serv_par__t.sock_fd = sock_fd;
+        serv_par__t.dir_for_file_based_input = dir_for_file_based_input;
+
+        serv_par__t.filename_to_be_rpld_by_stdin = cmdl_args.get_property_as_string_default_empty("path_rpl_stdin");
+
+        if(cmdl_args.have_index("no_session_manager"))
         {
-          serv_par__t.sock_fd = sock_fd;
-
-          serv_par__t.dir_for_file_based_input = dir_for_file_based_input;
-
-          serv_par__t.filename_to_be_rpld_by_stdin = cmdl_args.get_property_as_string_default_empty("path_rpl_stdin");
-
-          if(cmdl_args.have_index("no_session_manager"))
-          {
-            serv_par__t.sess_mngr__pt = NULL;
-          }
-
-
-          serv_pars.push_back(std::unique_ptr<server_params_t>(new server_params_t(serv_par__t)));
-          server_params_t* new_par__pt = serv_pars[serv_pars.size() - 1].get();
-          pthread_mutex_init(&new_par__pt->mutex, NULL);
-          if(pthread_create(&new_par__pt->thread, NULL, &flea_tls_server_thread, (void*) new_par__pt))
-          {
-            FLEA_THROW("error creating server thread", FLEA_ERR_FAILED_TEST);
-          }
-          if(!stay)
-          {
-            create_new_threads = false;
-          }
+          serv_par__t.sess_mngr__pt = NULL;
         }
-        else
+
+
+        serv_pars.push_back(std::unique_ptr<server_params_t>(new server_params_t(serv_par__t)));
+        server_params_t* new_par__pt = serv_pars[serv_pars.size() - 1].get();
+        pthread_mutex_init(&new_par__pt->mutex, NULL);
+        if(pthread_create(&new_par__pt->thread, NULL, &flea_tls_server_thread, (void*) new_par__pt))
         {
-          std::cout << "flea server: failed listen/accept\n";
+          FLEA_THROW("error creating server thread", FLEA_ERR_FAILED_TEST);
         }
+        if(!stay)
+        {
+          create_new_threads = false;
+        }
+      }
+      else
+      {
+        std::cout << "flea server: failed listen/accept\n";
       }
     }
     if((stop || !create_new_threads) && !serv_pars.size())

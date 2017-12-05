@@ -14,14 +14,14 @@
 /**
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  */
-// # define FLEA_DO_PRINTF_ERRS
+# define FLEA_DO_PRINTF_ERRS
 
 /**
  * Activate this flag to let flea make heap allocation for buffers. Deactivate
  * this flag to let flea only use stack buffers. In the latter case, be sure to
  * correctly define the RSA and EC key sizes.
  */
-# define FLEA_USE_HEAP_BUF // FBFLAGS_CORE_ON_OFF
+// # define FLEA_USE_HEAP_BUF // FBFLAGS_CORE_ON_OFF
 
 /**
  * Activate this flag to make use of the buffer overwrite detection. Should not
