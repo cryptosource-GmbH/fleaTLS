@@ -34,7 +34,10 @@ flea_err_t THR_flea_test_cert_path_generic(
 )
 {
   flea_public_key_t target_pubkey__t = flea_public_key_t__INIT_VALUE;
-  const flea_bool_t is_valid_chain   = FLEA_TRUE;
+
+  /** this parameter is actually superflous and misleading, the caller evaluates
+   * the test result: */
+  const flea_bool_t is_valid_chain = FLEA_TRUE;
   flea_err_t err;
 
   FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
@@ -143,12 +146,12 @@ flea_err_t THR_flea_test_cert_path_generic(
   {
     if(err)
     {
-      FLEA_THROW("error in verification of correct certificate path", err);
+      FLEA_THROW("failed cert verification", err);
     }
   }
   else if(!err)
   {
-    FLEA_THROW("accepted an incorrect certificate path", FLEA_ERR_FAILED_TEST);
+    FLEA_THROW("success of cert verification", FLEA_ERR_FAILED_TEST);
   }
   FLEA_THR_FIN_SEC(
     flea_cert_path_validator_t__dtor(&cert_chain__t);

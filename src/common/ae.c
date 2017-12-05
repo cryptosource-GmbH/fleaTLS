@@ -169,8 +169,8 @@ flea_err_t THR_flea_ae_ctx_t__ctor(
         config__pt->cipher_id__t,
         key__pcu8,
         key_len__alu16,
-        nonce__pcu8,
-        nonce_len__alu8,
+        nonce__pcu8, // TODO: SET NULL
+        0,
         flea_block_cipher__get_block_size(config__pt->cipher_id__t)
       )
     );
