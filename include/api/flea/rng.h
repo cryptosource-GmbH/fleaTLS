@@ -11,9 +11,22 @@ extern "C" {
 #endif
 
 /**
- * Function for accessing the static RNG of the flea library.
+ * Function for feeding low entropy value to flea's global RNG's entropy pool.
+ * The function is meant only for adding of low entropy data, e.g. current
+ * processor cycle
+ * counts from asynchronously triggered interrupt routines. The function has a has a small and almost
+ * constant timing cost.
+ *
+ * Note: Do not use to this function to initially seed or reseed flea's global RNG
+ * with high entropy data. Other functions are avaivable for this purpose.
+ *
+ * @param entropy_value random value to feed to the pool
+ * @param estimated_entropy the estimated entropy of entropy_value in bits
  */
-
+void flea_rng__feed_low_entropy_data_to_pool(
+  flea_u32_t   entropy_value,
+  flea_al_u8_t estimated_entropy
+);
 
 /**
  * Fill a memory area with random bytes using the global RNG.
@@ -48,7 +61,8 @@ flea_err_t THR_flea_rng__reseed_volatile(
  * new value. Use this function to let high entropy seed data take a lasting
  * effect on the RNG's entropy level. Note that the persistent state will only
  * be safed if a non-null flea_prng_save_f function was provided to the function
- * THR_flea_lib__init().
+ * THR_flea_lib__init(). Otherwise the effect of this function is the same as
+ * that of THR_flea_rng__reseed_volatile().
  *
  * @param seed the seed data to be added
  * @param seed_len the length of seed

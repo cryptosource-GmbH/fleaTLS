@@ -131,6 +131,8 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_test_cbc_mode());
       CALL_TEST(THR_flea_test_ctr_mode_parts());
       CALL_TEST(THR_flea_test_ctr_mode_prng());
+      CALL_TEST(THR_flea_test_feed_entropy());
+
       CALL_TEST(THR_flea_test_crc16());
       CALL_TEST(THR_flea_test_enc_BE_bitlen());
       CALL_TEST(THR_flea_test_incr_enc_BE_int());
