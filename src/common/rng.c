@@ -103,15 +103,12 @@ flea_err_t THR_flea_rng__init(
   flea_prng_save_f prng_save__f
 )
 {
-  FLEA_DECL_BUF(loaded_state__bu8, flea_u8_t, FLEA_AES256_KEY_BYTE_LENGTH);
   flea_gl_rng_save_mbn__f = prng_save__f;
   FLEA_THR_BEG_FUNC();
   flea_ctr_mode_prng_t__INIT(&flea_gl_rng_ctx__t);
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__ctor(&flea_gl_rng_ctx__t, NULL, 0));
   FLEA_CCALL(THR_flea_rng__reseed_persistent(rng_seed__pcu8, rng_seed_len__alu16));
-  FLEA_THR_FIN_SEC(
-    FLEA_FREE_BUF_FINAL(loaded_state__bu8);
-  );
+  FLEA_THR_FIN_SEC_empty();
 }
 
 flea_err_t THR_flea_rng__reseed_persistent(

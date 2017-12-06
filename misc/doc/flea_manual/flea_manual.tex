@@ -103,10 +103,13 @@
 \newcommand{\serverCtx}{\code{flea\_tls\_server\_ctx\_t}}
 %\newcommand{\serverCtx}{\texttt{flea}}
 \newcommand{\clientCtx}{\code{flea\_tls\_client\_ctx\_t}}
+\newcommand{\funcLibInit}{\code{THR\_flea\_lib\-\_\_init()}\xspace}
+\newcommand{\funcSaveRngState}{\code{flea\_\-prng\_\-save\_f}\xspace}
 
 \newcommand{\thisFleaVersion}{v1.2\xspace }
 
-\newcommand{\ie}{i\.e\.}
+\DeclareRobustCommand{\eg}{e.g.\@\xspace}
+\DeclareRobustCommand{\ie}{i.e.\@\xspace}
 %\mainmatter              % start of the contributions
 %
 \title{flea cryptographic library \thisFleaVersion\\{\LARGE manual} }
@@ -193,43 +196,122 @@ configuration options, such as
 \section{Random Number Generation }
 \label{secRng}
 
-flea features a simple but secure random number generator which is based on
-the management of an RNG state file. In order to use the RNG safely in an
-embedded firmware, the following steps must be taken. 
+As random number generation is a precondition for many cryptographic operations,
+fleaTLS features support for random number generation. On the one hand, there
+are there is the type \code{flea\_ctr\_mode\_prng\_t}, defined in the file
+\code{ctr\_mode\_prng.h}, for the instantiation of
+pseudo random number generator (PRNG) objects, on the other hand there is the flea's
+global random number generator (RNG). Its interface is defined in the file
+\code{flea/rng.h}. flea's global RNG is based on a
+\code{flea\_ctr\_mode\_prng\_t}, but features additional functions and has a
+specific life cycle.
 
-\subsection{Necessary Steps During Implementation}
-During implementation, the in the file \verb#src/user/prng_user.c# the functions
-for loading the PRNG state from the non-volatile memory (NVM)  and saving it to the NVM have to be
-implemented. The developer must allocate an area within the device's NVM for
-this purpose, the size of which is 32 bytes.
+\begin{figure}
+\input{./figures/rngLifeCyc.tex}
+\label{figRngLifeCycle}
+\caption{Overview of the life cycle of fleaTLS' global RNG. The dashed line represents
+fleaTLS' API and shows the direction of time. 
+The functions after \funcLibInit may actually be called in an arbitrary order.
+The sequence shown here serves merely as an example.
+The paths labelled
+with \funcSaveRngState are only actually relevant if the corresponding function
+pointer is provided to the function \funcLibInit. Refer to the text for a
+detailed explanation.}
+\end{figure}
 
-A second requirement is that during the device's startup, prior to the use of any
-other functions of the flea library, the function 
-\begin{verbatim}
-flea_err_t THR_flea_lib__init()
-\end{verbatim}
-must be called, which internally loads the RNG state from NVM into the
-corresponding RAM variable.
+\subsection{fleaTLS' Global RNG's Life Cycle}
+\label{secRngLifeCycle}
+The global RNG's life cycle starts with the call to the function
+\code{THR\_flea\_lib\-\_\_init()}. This function takes an initial seed value for
+the global RNG as its argument. It the caller's responsibility to provide a high
+entropy seed of an appropriate length here. fleaTLS makes no checks in this
+respect. 
+
+The function \funcLibInit also supports the configuration of the seed file
+management support of fleaTLS. For details seed Section \ref{secSeedFile}.
 
 
-\subsection{Necessary Steps During Production and Activation}
-When the devices running the firmware using flea are produced, before the
-execution of any cryptographic operation, the PRNG state must be seeded with a
-high entropy seed different for each device. 
-%This seed should be generated on an
-%external computer which has appropriate entropy sources available for this
-%purpose. 
-The function 
-\begin{verbatim}
-flea_err_t THR_flea_rng__reseed_persistent(const flea_u8_t* seed, flea_dtl_t seed_len);
-\end{verbatim}
-must be called once during the production or activation process with that seed data.
-From that point on, the RNG state will be managed internally by the flea
-library. During startup, when the function \verb#THR_flea_lib__init()# is
-called, the stored RNG state is loaded from NVM to initialize the RNG, then a
-fresh RNG state is created from the RNG's output and stored in the NVM. From
-that point on, the RNG operates efficiently with its RAM state and secure,
-non-repetitive random number generation is ensured even after a reset. 
+After the initialization of the global RNG through the call to
+\code{THR\_flea\_lib\-\_\_init()}, it can be used for the generation of random
+byte arrays by the function \code{THR\_flea\_rng\_\_randomize()}. Furthermore,
+it is possible to reseed the generator using one of the functions
+\code{THR\_flea\_rng\_\_reseed\_volatile()} or 
+\code{THR\_flea\_rng\_\_reseed\_persistent()}. The former updates the global
+RNG's internal state with the provided seed data. The latter does the same, but
+also updates the managed seed file (see Section \ref{secSeedFile}).
+
+\subsection{Reseeding the Global RNG with Low Entropy Data}
+\label{secLowEntropyReseed}
+fleaTLS' global RNG also features a function for the feeding of low entropy seed
+data in the form of 32-bit values, namely
+\code{flea\_rng\_\_feed\_low\_entropy\_data\_to\_pool()}. This function is
+intended to received for instance time stamp counter values from asynchronously
+triggered events in order to provide fresh entropy to the global RNG. The caller
+is required to provide an estimate of the entropy contained in that value in
+bits. This estimation is used for the management of fleaTLS' global RNG's
+entropy pool. In this pool the low entropy feeds are accumulated. Whenever the
+accumulated estimated entropy reaches the threshold of 128 bits, in the next
+call to the function \code{THR\_flea\_rng\_\_randomize()} the global RNG will
+reseed itself with the content of the entropy pool. 
+
+The function \code{flea\_rng\_\_feed\_low\_entropy\_data\_to\_pool()} does not
+use any mutexes to prevent concurrent access. This is intentional, since it is
+expected to be called from interrupt routines which may never be blocked.
+fleaTLS' functions which access the
+entropy pool are written in such a way that a potentially concurrent access does
+not cause program errors. In actual cases of concurrent accesses, it may happen that
+the fed low level entropy is not optimally transferred to the pool or that a
+randomize function prematurely uses the pool for reseeding the RNG state. Any
+such event does not actually degrade security of the RNG state, but only reduces the effect of
+the pooled entropy under certain conditions to a certain degree. If an
+implementer considers the pooling functionality essential to the secure
+operation of his product, and actually expects simultaneous calls to the functions
+\code{flea\_rng\_\_feed\_low\_entropy\_data\_to\_pool()} and
+\code{THR\_flea\_rng\_\_randomize()} with a high frequency, a mutex mechanism should be implemented.
+
+\subsection{Seed Management}
+\label{secSeedFile}
+The default recommended approach is to make use of fleaTLS' support for
+the management of a continously managed seed file. In this case, the caller
+of \funcLibInit should provide the optional parameter for a function of type
+\code{flea\_prng\_save\_f} to \funcLibInit. This function has to be implemented
+by the user of fleaTLS. It will be called by
+fleaTLS whenever the function \code{THR\_flea\_rng\_\_reseed\_volatile()} from
+the global RNG's interface is called. In this case the global RNG produces a new
+random output which is provided to the \code{flea\_prng\_save\_f} as the
+argument. The function is expected to save the byte array it received in its
+argument to non-volatile memory and signal any potentially occurring errors by
+returning appropriate non-zero error values. The size of the byte array provided
+to \funcSaveRngState is always 32 bytes.
+
+If a \funcSaveRngState function is provided to \funcLibInit, the following seed-file-based life cycle model
+is supported by fleaTLS. This model ensures secure random number generation over
+all power cycles of the device under the
+assumption that no malicious entity gained knowlegde of the initial seed, the
+seed file managed by fleaTLS or the global RNG's state directly.
+
+During the unique initial device initialization, \eg
+during production, an initial high entropy seed is provided to the
+function \funcLibInit. Furthermore, the function pointer argument of the type
+\funcSaveRngState, implemented as explained above, is also provided to
+\funcLibInit. In any subsequent call to \funcLibInit, the latest seed value that was
+provided to \funcSaveRngState as its argument is used as the seed file argument.
+
+The function \funcLibInit internally calls the function
+\code{THR\_flea\_rng\_\_reseed\_persistent()}, which causes \funcSaveRngState to
+invoked with freshly generated output from the global RNG. Thus during each
+subsequent call to \funcLibInit, it is ensured that a fresh high entropy seed is
+used to initalize the global RNG.
+
+In order to achieve a lasting of effect of any reseedings of the global RNG
+by calls to the functions  \code{THR\_flea\_rng\_\_reseed\_volatile()} (see
+Section \ref{secRngLifeCycle} or
+\code{flea\_rng\_\_feed\_low\_entropy\_data\_to\_pool()} (see Section
+ref{secLowEntropyReseed}), \ie a subsequent update of the seed file, client code
+should occasionally call the function
+\code{THR\_flea\_rng\_\_reseed\_persistent()}, which triggers a call to the
+function \funcSaveRngState, provided that such a function was specified in the
+call \funcLibInit.
 
 \section{Using flea's API}
 

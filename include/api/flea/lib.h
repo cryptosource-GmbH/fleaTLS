@@ -28,13 +28,16 @@ typedef flea_err_t (* flea_prng_save_f)(
 /**
  * This function must be called prior to any other function of the flea library
  * at the devices startup. If the return value of this function indicates an
- * error, then no cryptographic functions may be used.
+ * error, then no cryptographic functions may be used. Note that a high entropy
+ * seed must be provided to this function, otherwise the operation of flea's
+ * global RNG will be insecure. It is the caller's responsibility to provide a
+ * seed of appropriate length and entropy.
  *
  * @param rng_seed__pcu8 a fresh high-entropy prng seed for the initialization of flea's library RNG. It is recommended to used the value saved by the flea_prng_save_f function provided to THR_flea_lib__init().
  * @param rng_seed_len__alu16 length of rng_seed__pcu8. This function will
  * always be called with the value FLEA_AES256_KEY_BYTE_LENGTH from flea.
- * @param save__f function which saves a freshly generated PRNG state for future
- * loading. This function may be null. In this case it is the necessary to
+ * @param save__f pointer to a function that saves a freshly generated PRNG state for future
+ * use in a call to THR_flea_lib__init(). This function pointer may be null. In this case it is the necessary to
  * ensure by other means that the PRNG receives a fresh seed whenever THR_flea_lib__init() is called.
  */
 flea_err_t THR_flea_lib__init(
