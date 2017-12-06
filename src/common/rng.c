@@ -17,25 +17,26 @@ static flea_ctr_mode_prng_t gl_rng_ctx__t;
 
 FLEA_PLTFIF_DECL_STATIC_MUTEX(rng_mutex__t);
 
+static flea_prng_save_f flea_gl_rng_save_mbn__f;
+
 void flea_rng__deinit()
 {
   FLEA_PLTFIF_DESTR_MUTEX(&rng_mutex__t);
   flea_ctr_mode_prng_t__dtor(&gl_rng_ctx__t);
 }
 
-flea_err_t THR_flea_rng__init()
+flea_err_t THR_flea_rng__init(
+  const flea_u8_t* rng_seed__pcu8,
+  flea_al_u16_t    rng_seed_len__alu16,
+  flea_prng_save_f prng_save__f
+)
 {
   FLEA_DECL_BUF(loaded_state__bu8, flea_u8_t, FLEA_AES256_KEY_BYTE_LENGTH);
+  flea_gl_rng_save_mbn__f = prng_save__f;
   FLEA_THR_BEG_FUNC();
   flea_ctr_mode_prng_t__INIT(&gl_rng_ctx__t);
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__ctor(&gl_rng_ctx__t, NULL, 0));
-
-  FLEA_ALLOC_BUF(loaded_state__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
-  // load the state from the flash
-  FLEA_CCALL(THR_flea_user__rng__load_prng_state(loaded_state__bu8, FLEA_AES256_KEY_BYTE_LENGTH));
-  // update persistent key
-  FLEA_CCALL(THR_flea_rng__reseed_persistent(loaded_state__bu8, FLEA_AES256_KEY_BYTE_LENGTH));
-
+  FLEA_CCALL(THR_flea_rng__reseed_persistent(rng_seed__pcu8, rng_seed_len__alu16));
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(loaded_state__bu8);
   );
@@ -47,22 +48,17 @@ flea_err_t THR_flea_rng__reseed_persistent(
 )
 {
   FLEA_DECL_BUF(new_persistent_key__bu8, flea_u8_t, FLEA_AES256_KEY_BYTE_LENGTH);
-  FLEA_DECL_BUF(compare__bu8, flea_u8_t, FLEA_AES256_KEY_BYTE_LENGTH);
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_FLEA_PLTFIF_LOCK_MUTEX(&rng_mutex__t));
   FLEA_ALLOC_BUF(new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
-  FLEA_ALLOC_BUF(compare__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&gl_rng_ctx__t, seed__pcu8, seed_len__dtl));
   flea_ctr_mode_prng_t__randomize(&gl_rng_ctx__t, new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
-  FLEA_CCALL(THR_flea_user__rng__save_prng_state(new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH));
-  FLEA_CCALL(THR_flea_user__rng__load_prng_state(compare__bu8, FLEA_AES256_KEY_BYTE_LENGTH));
-  if(memcmp(new_persistent_key__bu8, compare__bu8, FLEA_AES256_KEY_BYTE_LENGTH))
+  if(flea_gl_rng_save_mbn__f != NULL)
   {
-    FLEA_THROW("error saving PRNG state in NVM", FLEA_ERR_PRNG_NVM_WRITE_ERROR);
+    FLEA_CCALL(flea_gl_rng_save_mbn__f(new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH));
   }
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_SECRET_ARR(new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
-    FLEA_FREE_BUF_SECRET_ARR(compare__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
     if(THR_FLEA_PLTFIF_UNLOCK_MUTEX(&rng_mutex__t))
   {
     return FLEA_ERR_MUTEX_LOCK;

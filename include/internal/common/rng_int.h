@@ -5,6 +5,7 @@
 #define _flea_rng_int__H_
 
 #include "flea/types.h"
+#include "flea/lib.h"
 
 /**
  * Function which has to be implemented for each platform. It loads the RNG
@@ -32,7 +33,11 @@ flea_err_t THR_flea_user__rng__save_prng_state(
 /**
  * This function must be called prior to using any RNG function.
  */
-flea_err_t THR_flea_rng__init(void);
+flea_err_t THR_flea_rng__init(
+  const flea_u8_t* rng_seed__pcu8,
+  flea_al_u16_t    rng_seed_len__alu16,
+  flea_prng_save_f prng_save_mbn__f
+);
 
 /**
  * Function to be called at a point where no future calls to flea RNG functions are

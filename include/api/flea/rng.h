@@ -46,7 +46,9 @@ flea_err_t THR_flea_rng__reseed_volatile(
 /**
  * Reseed the global RNG state in RAM. The persistent NVM state is also set to a
  * new value. Use this function to let high entropy seed data take a lasting
- * effect on the RNG's entropy level.
+ * effect on the RNG's entropy level. Note that the persistent state will only
+ * be safed if a non-null flea_prng_save_f function was provided to the function
+ * THR_flea_lib__init().
  *
  * @param seed the seed data to be added
  * @param seed_len the length of seed
