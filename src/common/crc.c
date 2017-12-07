@@ -48,7 +48,7 @@ flea_u32_t flea_crc32_compute(
     crc  = crc ^ byte;
     for(j = 7; j >= 0; j--)
     {
-      mask = ~(crc & 1);
+      mask = -(crc & 1);
       crc  = (crc >> 1) ^ (0xEDB88320 & mask);
     }
   }
