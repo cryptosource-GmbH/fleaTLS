@@ -121,11 +121,11 @@ flea_err_t THR_flea_rng__reseed_persistent(
   FLEA_DECL_BUF(new_persistent_key__bu8, flea_u8_t, FLEA_AES256_KEY_BYTE_LENGTH);
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_FLEA_MUTEX_LOCK(&rng_mutex__t));
-  FLEA_ALLOC_BUF(new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&flea_gl_rng_ctx__t, seed__pcu8, seed_len__dtl));
-  flea_ctr_mode_prng_t__randomize(&flea_gl_rng_ctx__t, new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
   if(flea_gl_rng_save_mbn__f != NULL)
   {
+    FLEA_ALLOC_BUF(new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
+    flea_ctr_mode_prng_t__randomize(&flea_gl_rng_ctx__t, new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
     FLEA_CCALL(flea_gl_rng_save_mbn__f(new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH));
   }
   FLEA_THR_FIN_SEC(

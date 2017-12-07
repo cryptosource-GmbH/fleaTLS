@@ -19,11 +19,25 @@ typedef int (* flea_generic_mutex_f)(FLEA_MUTEX_TYPE* mutex);
  * in flea. All functions are expected to return 0 on success and a non-zero error
  * code otherwise. An exception is the destr function, the return value of which will be ignored by flea.
  *
+ * The lifecycle of each mutex object in fleaTLS code is always a sequence
+ * adhering to the pattern
+ *
+ * init
+ * lock
+ * unlock
+ * lock
+ * unlock
+ * ... (further lock-unlock pairs)
+ * destr
+ *
+ * The meaning of locking and unlocking of a mutex follows the common
+ * understanding of mutex functionality.
+ *
  */
 typedef struct
 {
   /**
-   * Function to init a mutex object before locking and unlocking it.
+   * Function to init a mutex object before starting to locking and unlocking it.
    */
   flea_generic_mutex_f init;
 

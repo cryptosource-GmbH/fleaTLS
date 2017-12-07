@@ -12,12 +12,27 @@ extern "C" {
 /**
  * Compute the CRC16 (CCIT) checksum of the given data.
  *
- * @param crc_init CRC start value
+ * @param crc_init CRC start value (normally = 0, or an intermediate CRC32
+ * result)
  * @param data pointer to the data to compute the checksum of
  * @param data_len length of data
  */
 flea_u16_t flea_crc16_ccit_compute(
   flea_u16_t       crc_init,
+  const flea_u8_t* data,
+  flea_dtl_t       data_len
+);
+
+/**
+ * Compute the CRC32 checksum of the given data.
+ *
+ * @param crc_init CRC start value (normally = 0, or an intermediate CRC32
+ * result)
+ * @param data pointer to the data to compute the checksum of
+ * @param data_len length of data
+ */
+flea_u32_t flea_crc32_compute(
+  flea_u32_t       crc_init,
   const flea_u8_t* data,
   flea_dtl_t       data_len
 );
