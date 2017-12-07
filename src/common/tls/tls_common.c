@@ -26,7 +26,7 @@
 #include "flea/byte_vec.h"
 #include "internal/common/tls_ciph_suite.h"
 #include "internal/common/tls/parallel_hash.h"
-#include "internal/pltf_if/time.h"
+#include "internal/common/lib_int.h"
 #include "flea/ec_key_gen.h"
 #include "flea/ecka.h"
 #include "flea/tls_client.h"

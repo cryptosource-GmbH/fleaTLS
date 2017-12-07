@@ -19,6 +19,7 @@
 #include <fcntl.h> // linux specific
 #include <sys/stat.h> // linux specific
 #include <unistd.h>
+#include "pc/linux_util.h"
 
 int main(
   int          argc,
@@ -58,7 +59,7 @@ int main(
   }
   printf("\n");
 
-  if(THR_flea_lib__init((const flea_u8_t*) &rnd, sizeof(rnd), NULL))
+  if(THR_flea_lib__init(&THR_flea_linux__get_current_time, (const flea_u8_t*) &rnd, sizeof(rnd), NULL))
   {
     FLEA_PRINTF_1_SWITCHED("error with lib init, tests aborted\n");
     return 1;

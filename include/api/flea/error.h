@@ -306,6 +306,11 @@ typedef enum
   FLEA_ERR_X509_USER_CANCELLED                        = 0xE6,
 
   /**
+   * A function to deterine the current time was not supplied to THR_flea_lib__init().
+   */
+  FLEA_ERR_NOW_FUNC_IS_NULL                           = 0xE7,
+
+  /**
    * The initalization of a mutex failed.
    */
   FLEA_ERR_MUTEX_INIT                                 = 0xF1,

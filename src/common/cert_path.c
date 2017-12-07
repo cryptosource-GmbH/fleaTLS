@@ -11,10 +11,10 @@
 #include "internal/common/ber_dec.h"
 #include "flea/x509.h"
 #include "flea/crl.h"
-#include "internal/pltf_if/time.h"
 #include "flea/hostn_ver.h"
 #include "flea/cert_path.h"
 #include "internal/common/cert_path_int.h"
+#include "internal/common/lib_int.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
 # define END_OF_COLL 0xFFFF
@@ -539,7 +539,7 @@ flea_err_t THR_flea_cert_path__validate_single_cert(
   }
   else
   {
-    FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&compare_time__t));
+    FLEA_CCALL(THR_flea_lib__get_gmt_time_now(&compare_time__t));
   }
 
   key_usage__pt         = &cert_ref__pt->extensions__t.key_usage__t;

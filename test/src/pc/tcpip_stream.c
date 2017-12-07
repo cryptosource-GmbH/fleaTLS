@@ -6,7 +6,7 @@
 #include "flea/error.h"
 
 #include "pc/linux_util.h"
-#include "pltf_support/tcpip_stream.h"
+#include "pc/tcpip_stream.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>

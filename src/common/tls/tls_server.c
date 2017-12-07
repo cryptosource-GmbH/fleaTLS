@@ -20,7 +20,7 @@
 #include "flea/ec_key_gen.h"
 #include "flea/byte_vec.h"
 #include "flea/ecka.h"
-#include "internal/pltf_if/time.h"
+#include "internal/common/lib_int.h"
 
 #ifdef FLEA_HAVE_TLS
 
@@ -421,7 +421,7 @@ static flea_err_t THR_flea_tls__send_server_hello(
   {
     FLEA_CCALL(THR_flea_rng__randomize(server_ctx__pt->active_session__t.session_id__au8, FLEA_TLS_SESSION_ID_LEN));
 
-    FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&server_ctx__pt->active_session__t.valid_until__t));
+    FLEA_CCALL(THR_flea_lib__get_gmt_time_now(&server_ctx__pt->active_session__t.valid_until__t));
     flea_gmt_time_t__add_seconds_to_date(
       &server_ctx__pt->active_session__t.valid_until__t,
       server_ctx__pt->session_mngr_mbn__pt->session_validity_period_seconds__u32

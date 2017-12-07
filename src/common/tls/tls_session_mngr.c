@@ -7,7 +7,7 @@
 #include "flea/alloc.h"
 #include "flea/bin_utils.h"
 #include "flea/asn1_date.h"
-#include "internal/pltf_if/time.h"
+#include "internal/common/lib_int.h"
 #include "internal/common/tls/tls_session_mngr_int.h"
 
 
@@ -152,7 +152,7 @@ static flea_tls_session_entry_t* flea_tls_session_mngr_t__session_cache_lookup(
       !memcmp(session_id__pcu8, session_mngr__pt->sessions__bt[i].session__t.session_id__au8, FLEA_TLS_SESSION_ID_LEN))
     {
       flea_gmt_time_t now__t;
-      if(THR_flea_pltfif_time__get_current_time(&now__t))
+      if(THR_flea_lib__get_gmt_time_now(&now__t))
       {
         return NULL;
       }

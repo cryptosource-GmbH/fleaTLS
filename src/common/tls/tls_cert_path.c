@@ -18,7 +18,7 @@
 #include "flea/cert_store.h"
 #include "internal/common/cert_path_int.h"
 #include "internal/common/tls/handsh_reader.h"
-#include "internal/pltf_if/time.h"
+#include "internal/common/lib_int.h"
 #include "internal/common/tls/tls_cert_path.h"
 #include "flea/hostn_ver.h"
 #include "internal/common/hostn_ver_int.h"
@@ -741,7 +741,7 @@ flea_err_t THR_flea_tls__cert_path_validation(
   const flea_ref_cu8_t* trusted__prcu8;
   flea_mem_read_stream_help_t mem_hlp__t;
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&compare_time__t));
+  FLEA_CCALL(THR_flea_lib__get_gmt_time_now(&compare_time__t));
 
   do
   {
