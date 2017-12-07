@@ -12,7 +12,7 @@
 #include "flea/types.h"
 #include "flea/crc.h"
 #include "string.h"
-#include "pltf_support/mutex.h"
+#include "internal/common/mutex_int.h"
 
 /**
  * Must be an even number.
@@ -31,7 +31,9 @@ static flea_al_u16_t flea_gl_rng_entropy_cnt__alu16    = 0;
 static flea_al_u8_t flea_gl_rng_entropy_pool_pos__alu8 = 0;
 static flea_al_u16_t flea_gl_rng_current_crc__alu16    = 0;
 
-FLEA_PLTFIF_DECL_STATIC_MUTEX(rng_mutex__t);
+#ifdef FLEA_HAVE_MUTEX
+FLEA_DECL_STATIC_MUTEX(rng_mutex__t);
+#endif
 
 static flea_prng_save_f flea_gl_rng_save_mbn__f;
 
@@ -75,7 +77,7 @@ static flea_err_t THR_flea_rng__harvest_entropy_pool()
 
 void flea_rng__deinit()
 {
-  FLEA_PLTFIF_DESTR_MUTEX(&rng_mutex__t);
+  FLEA_MUTEX_DESTR(&rng_mutex__t);
   flea_ctr_mode_prng_t__dtor(&flea_gl_rng_ctx__t);
 }
 
@@ -118,7 +120,7 @@ flea_err_t THR_flea_rng__reseed_persistent(
 {
   FLEA_DECL_BUF(new_persistent_key__bu8, flea_u8_t, FLEA_AES256_KEY_BYTE_LENGTH);
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_FLEA_PLTFIF_LOCK_MUTEX(&rng_mutex__t));
+  FLEA_CCALL(THR_FLEA_MUTEX_LOCK(&rng_mutex__t));
   FLEA_ALLOC_BUF(new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&flea_gl_rng_ctx__t, seed__pcu8, seed_len__dtl));
   flea_ctr_mode_prng_t__randomize(&flea_gl_rng_ctx__t, new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
@@ -128,7 +130,7 @@ flea_err_t THR_flea_rng__reseed_persistent(
   }
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_SECRET_ARR(new_persistent_key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
-    if(THR_FLEA_PLTFIF_UNLOCK_MUTEX(&rng_mutex__t))
+    if(THR_FLEA_MUTEX_UNLOCK(&rng_mutex__t))
   {
     return FLEA_ERR_MUTEX_LOCK;
   }
@@ -141,11 +143,11 @@ flea_err_t THR_flea_rng__reseed_volatile(
 )
 {
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_FLEA_PLTFIF_LOCK_MUTEX(&rng_mutex__t));
+  FLEA_CCALL(THR_FLEA_MUTEX_LOCK(&rng_mutex__t));
   FLEA_CCALL(THR_flea_rng__reseed_volatile_inner(seed__pcu8, seed_len__dtl));
 
   FLEA_THR_FIN_SEC(
-    if(THR_FLEA_PLTFIF_UNLOCK_MUTEX(&rng_mutex__t))
+    if(THR_FLEA_MUTEX_UNLOCK(&rng_mutex__t))
   {
     return FLEA_ERR_MUTEX_LOCK;
   }
@@ -155,10 +157,10 @@ flea_err_t THR_flea_rng__reseed_volatile(
 flea_err_t THR_flea_rng__flush()
 {
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_FLEA_PLTFIF_LOCK_MUTEX(&rng_mutex__t));
+  FLEA_CCALL(THR_FLEA_MUTEX_LOCK(&rng_mutex__t));
   flea_ctr_mode_prng_t__flush(&flea_gl_rng_ctx__t);
   FLEA_THR_FIN_SEC(
-    if(THR_FLEA_PLTFIF_UNLOCK_MUTEX(&rng_mutex__t))
+    if(THR_FLEA_MUTEX_UNLOCK(&rng_mutex__t))
   {
     return FLEA_ERR_MUTEX_LOCK;
   }
@@ -171,11 +173,11 @@ flea_err_t THR_flea_rng__randomize_no_flush(
 )
 {
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_FLEA_PLTFIF_LOCK_MUTEX(&rng_mutex__t));
+  FLEA_CCALL(THR_FLEA_MUTEX_LOCK(&rng_mutex__t));
   FLEA_CCALL(THR_flea_rng__harvest_entropy_pool());
   flea_ctr_mode_prng_t__randomize_no_flush(&flea_gl_rng_ctx__t, mem__pu8, mem_len__dtl);
   FLEA_THR_FIN_SEC(
-    if(THR_FLEA_PLTFIF_UNLOCK_MUTEX(&rng_mutex__t))
+    if(THR_FLEA_MUTEX_UNLOCK(&rng_mutex__t))
   {
     return FLEA_ERR_MUTEX_LOCK;
   }
@@ -188,10 +190,10 @@ flea_err_t THR_flea_rng__randomize(
 )
 {
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_FLEA_PLTFIF_LOCK_MUTEX(&rng_mutex__t));
+  FLEA_CCALL(THR_FLEA_MUTEX_LOCK(&rng_mutex__t));
   FLEA_CCALL(THR_flea_rng__harvest_entropy_pool());
   flea_ctr_mode_prng_t__randomize_no_flush(&flea_gl_rng_ctx__t, mem__pu8, mem_len__dtl);
-  FLEA_CCALL(THR_FLEA_PLTFIF_UNLOCK_MUTEX(&rng_mutex__t));
+  FLEA_CCALL(THR_FLEA_MUTEX_UNLOCK(&rng_mutex__t));
   FLEA_CCALL(THR_flea_rng__flush());
   FLEA_THR_FIN_SEC_empty(
   );

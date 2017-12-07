@@ -3,6 +3,9 @@
 #include "internal/common/lib_int.h"
 #include "flea/error_handling.h"
 #include <time.h>
+#ifdef FLEA_HAVE_MUTEX
+# include <pthread.h>
+#endif
 
 void set_timeval_from_millisecs(
   struct timeval* tv,
@@ -28,3 +31,11 @@ flea_err_t THR_flea_linux__get_current_time(flea_gmt_time_t* time__t)
   time__t->minutes = ts->tm_min;
   return FLEA_ERR_FINE;
 }
+
+#ifdef FLEA_HAVE_MUTEX
+int flea_linux__pthread_mutex_init(pthread_mutex_t* mutex__pt)
+{
+  return pthread_mutex_init(mutex__pt, NULL);
+}
+
+#endif

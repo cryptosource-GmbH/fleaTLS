@@ -7,7 +7,7 @@
 #include "internal/common/tls/tls_session_int_fwd.h"
 #include "internal/common/tls/tls_const.h"
 #include "flea/asn1_date.h"
-#include "pltf_support/mutex.h"
+#include "internal/common/mutex_int.h"
 
 
 #ifdef __cplusplus
@@ -46,7 +46,9 @@ struct struct_flea_tls_session_mngr_t
   flea_u32_t                session_validity_period_seconds__u32;
   flea_dtl_t                nb_alloc_sessions__dtl;
   flea_u16_t                nb_used_sessions__u16;
-  FLEA_PLTFIF_DECL_MUTEX(m_mutex);
+#ifdef FLEA_HAVE_MUTEX
+  FLEA_DECL_MUTEX(m_mutex);
+#endif
 };
 
 flea_bool_t flea_tls_session_data_t__is_valid_session(const flea_tls_session_data_t* session__pt);

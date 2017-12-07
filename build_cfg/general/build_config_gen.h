@@ -260,15 +260,34 @@
  *
  */
 # define FLEA_STKMD_TLS_CERT_PATH_VLD_PUBKEY_PARAMS_BUF_SIZE 256
-# define FLEA_TLS_HAVE_RENEGOTIATION
 
 /**
  * Relevant in stack mode.
  * Maximum size of the buffer that reads in the cipher suites offered by the client.
  * Has to be a multiple of 2 as every cipher suite takes up two bytes.
  */
-# define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 250
+# define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 40
 
+
+/**************** begin multithreading ******************/
+
+/**
+ * Control if fleaTLS supports concurrency for its global RNG and the TLS server. Remove the
+ * definition in order to deactivate multithreading support in fleaTLS.
+ */
+# define FLEA_HAVE_MUTEX
+
+/**
+ * Include the mutex header. Remove this line if no mutex support is required.
+ */
+# include <pthread.h>
+
+/**
+ * Define the mutex type to be used.
+ */
+# define FLEA_MUTEX_TYPE pthread_mutex_t
+
+/**************** end multithreading ******************/
 
 /* include must remain at the very end: */
 # include "internal/common/build_config_util.h"

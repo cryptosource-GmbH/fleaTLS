@@ -2,7 +2,6 @@
 
 #include "internal/common/default.h"
 #include "internal/common/mask.h"
-#include "pltf_support/mutex.h"
 #include <stdint.h>
 
 typedef uintptr_t flea_pszd_uint_t;

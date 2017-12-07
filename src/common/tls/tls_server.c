@@ -149,12 +149,6 @@ static flea_err_t THR_flea_tls__read_client_hello(
     FLEA_THROW("incorrect cipher suites length", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
-# ifdef FLEA_USE_HEAP_BUF
-  if(cipher_suites_len_from_peer__u32 > FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE_HEAP)
-  {
-    FLEA_THROW("cipher suites length too large", FLEA_ERR_TLS_PROT_DECODE_ERR);
-  }
-# endif
 # ifndef FLEA_USE_HEAP_BUF
   if(cipher_suites_len_from_peer__u32 > FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE)
   {

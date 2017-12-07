@@ -2,6 +2,7 @@
 
 #include "flea/types.h"
 #include "flea/asn1_date.h"
+#include "flea/mutex.h"
 
 #ifndef _flea_lib__H_
 # define _flea_lib__H_
@@ -52,12 +53,22 @@ typedef flea_err_t (* flea_prng_save_f)(
  * @param save_func_mbn pointer to a function that saves a freshly generated PRNG state for future
  * use in a call to THR_flea_lib__init(). This function pointer may be null. In this case it is the necessary to
  * ensure by other means that the PRNG receives a fresh seed whenever THR_flea_lib__init() is called.
+ * @param mutex_func_set__pt a set of functions implementing mutexes for
+ * concurrency support for fleaTLS's global RNG and TLS server. If mutex support
+ * is enabled, all four functions must be supplied as specified in the file
+ * flea/mutex.h
+ *
+ * @return an error value if the function failed
  */
 flea_err_t THR_flea_lib__init(
-  flea_gmt_time_now_f now_func_mbn,
-  const flea_u8_t*    rng_seed,
-  flea_al_u16_t       rng_seed_len,
-  flea_prng_save_f    save_func_mbn
+  flea_gmt_time_now_f          now_func_mbn,
+  const flea_u8_t*             rng_seed,
+  flea_al_u16_t                rng_seed_len,
+  flea_prng_save_f save_func_mbn
+# ifdef                        FLEA_HAVE_MUTEX
+  ,
+  const flea_mutex_func_set_t* mutex_func_set__pt
+# endif
 );
 
 /**

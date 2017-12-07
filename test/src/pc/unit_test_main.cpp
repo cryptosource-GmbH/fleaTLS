@@ -20,6 +20,7 @@
 #include <sys/stat.h> // linux specific
 #include <unistd.h>
 #include "pc/linux_util.h"
+#include "internal/common/default.h"
 
 int main(
   int          argc,
@@ -47,6 +48,7 @@ int main(
       printf("error reading /dev/urandom\n");
       exit(1);
     }
+    close(rand_device);
   }
   else
   {
@@ -59,7 +61,25 @@ int main(
   }
   printf("\n");
 
-  if(THR_flea_lib__init(&THR_flea_linux__get_current_time, (const flea_u8_t*) &rnd, sizeof(rnd), NULL))
+#ifdef FLEA_HAVE_MUTEX
+  flea_mutex_func_set_t mutex_func_set__t = {
+    .init   = flea_linux__pthread_mutex_init,
+    .destr  = pthread_mutex_destroy,
+    .lock   = pthread_mutex_lock,
+    .unlock = pthread_mutex_unlock
+  };
+
+#endif
+  if(THR_flea_lib__init(
+      &THR_flea_linux__get_current_time,
+      (const flea_u8_t*) &rnd,
+      sizeof(rnd),
+      NULL
+#ifdef FLEA_HAVE_MUTEX
+      ,
+      &mutex_func_set__t
+#endif
+    ))
   {
     FLEA_PRINTF_1_SWITCHED("error with lib init, tests aborted\n");
     return 1;
