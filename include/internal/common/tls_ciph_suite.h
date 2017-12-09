@@ -10,6 +10,7 @@
 #include "flea/ae.h"
 #include "flea/pk_api.h"
 #include "internal/common/tls_key_usage.h"
+#include "flea/tls.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,28 +27,10 @@ typedef enum
   FLEA_TLS_PRF_SHA256
 } flea_tls__prf_algorithm_t;
 
-typedef enum
-{
-  FLEA_TLS_NULL_WITH_NULL_NULL               = 0x0000,
-  // FLEA_TLS_RSA_WITH_NULL_SHA           = 0x0002,
-  FLEA_TLS_RSA_WITH_NULL_SHA256              = 0x003B,
-  // FLEA_TLS_RSA_WITH_3DES_EDE_CBC_SHA   = 0x000A,
-  FLEA_TLS_RSA_WITH_AES_128_CBC_SHA          = 0x002F,
-  FLEA_TLS_RSA_WITH_AES_256_CBC_SHA          = 0x0035,
-  FLEA_TLS_RSA_WITH_AES_128_CBC_SHA256       = 0x003C,
-  FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256       = 0x003D,
-  FLEA_TLS_RSA_WITH_AES_128_GCM_SHA256       = 0x009C,
-  FLEA_TLS_RSA_WITH_AES_256_GCM_SHA384       = 0x009D,
-  FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA    = 0xC013,
-  FLEA_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA    = 0xC014,
-  FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256 = 0xC027,
-  FLEA_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384 = 0xC028,
-  FLEA_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256 = 0xC02F,
-  FLEA_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384 = 0xC030,
-  FLEA_TLS_EMPTY_RENEGOTIATION_INFO_SCSV     = 0x00FF,
-} flea_tls__cipher_suite_id_t;
 
-#define FLEA_TLS_NO_CIPHER 0
+#define  FLEA_TLS_EMPTY_RENEGOTIATION_INFO_SCSV 0x00FF
+
+#define FLEA_TLS_NO_CIPHER                      0
 #define FLEA_TLS_AE_CIPHER(raw)       ((1 << 7) | raw)
 #define FLEA_TLS_BLOCK_CIPHER(raw)    (raw)
 #define FLEA_TLS_IS_AE_CIPHER(enc)    ((1 << 7) & enc)

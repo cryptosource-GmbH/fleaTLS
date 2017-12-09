@@ -36,9 +36,9 @@ static flea_err_t THR_flea_tls__read_client_hello(
   flea_u8_t session_id_len__u8;
   flea_bool_t found_sec_reneg__b = FLEA_FALSE;
   flea_bool_t found = FLEA_FALSE;
-  flea_u16_t supported_cs_len__u16 = tls_ctx->allowed_cipher_suites__prcu16->len__dtl;
-  flea_u16_t supported_cs_index__u16;
-  flea_u16_t chosen_cs_index__u16 = supported_cs_len__u16;
+  flea_al_u16_t supported_cs_len__alu16 = tls_ctx->nb_allowed_cipher_suites__u16;
+  flea_al_u16_t supported_cs_index__alu16;
+  flea_al_u16_t chosen_cs_index__alu16 = supported_cs_len__alu16;
 
   // TODO: NEED ONLY THE DEFINED SERVER SESSION ID LEN:
   // UPDATE(JR): so buffer size is FLEA_TLS_SESSION_ID_LEN ? And we need to
@@ -52,6 +52,9 @@ static flea_err_t THR_flea_tls__read_client_hello(
   flea_bool_t client_presented_sec_reneg_fallback_ciph_suite__b = FLEA_FALSE;
 
 # ifdef FLEA_HAVE_ECC
+
+  flea_al_u16_t curr_cs_from_peer__e;
+  flea_al_u16_t i;
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(
     peer_cipher_suites_u16_be__t,
     FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE
@@ -159,7 +162,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
   while(cipher_suites_len_from_peer__u32)
   {
     flea_u8_t curr_cs__au8[2];
-    flea_al_u16_t curr_cs_from_peer__alu16;
+    flea_tls__cipher_suite_id_t curr_cs_from_peer__e;
     FLEA_CCALL(
       THR_flea_rw_stream_t__read_full(
         hs_rd_stream__pt,
@@ -167,31 +170,31 @@ static flea_err_t THR_flea_tls__read_client_hello(
         2
       )
     );
-    curr_cs_from_peer__alu16 = curr_cs__au8[0] << 8 | curr_cs__au8[1];
-    if(curr_cs_from_peer__alu16 == FLEA_TLS_EMPTY_RENEGOTIATION_INFO_SCSV)
+    curr_cs_from_peer__e = (flea_tls__cipher_suite_id_t) (curr_cs__au8[0] << 8 | curr_cs__au8[1]);
+    if(curr_cs_from_peer__e == FLEA_TLS_EMPTY_RENEGOTIATION_INFO_SCSV)
     {
       client_presented_sec_reneg_fallback_ciph_suite__b = FLEA_TRUE;
     }
 
     // check that key type of cert matches cs kex
-    if(tls_ctx->private_key__pt->key_type__t == flea_tls__get_key_type_by_cipher_suite_id(curr_cs_from_peer__alu16))
+    if(tls_ctx->private_key__pt->key_type__t == flea_tls__get_key_type_by_cipher_suite_id(curr_cs_from_peer__e))
     {
 # ifndef FLEA_HAVE_ECC
       // iterate over all supported cipher suites
-      supported_cs_index__u16 = 0;
-      while(supported_cs_index__u16 < supported_cs_len__u16)
+      supported_cs_index__alu16 = 0;
+      while(supported_cs_index__alu16 < supported_cs_len__alu16)
       {
-        if(curr_cs_from_peer__alu16 == tls_ctx->allowed_cipher_suites__prcu16->data__pcu16[ supported_cs_index__u16 ])
+        if(curr_cs_from_peer__e == tls_ctx->allowed_cipher_suites__prcu16->data__pcu16[ supported_cs_index__u16 ])
         {
-          if(supported_cs_index__u16 < chosen_cs_index__u16)
+          if(supported_cs_index__alu16 < chosen_cs_index__alu16)
           {
-            chosen_cs_index__u16 = supported_cs_index__u16;
-            tls_ctx->selected_cipher_suite__u16 = curr_cs_from_peer__alu16;
+            chosen_cs_index__alu16 = supported_cs_index__alu16;
+            tls_ctx->selected_cipher_suite__e = curr_cs_from_peer__e;
             found = FLEA_TRUE;
             break;
           }
         }
-        supported_cs_index__u16 += 1;
+        supported_cs_index__alu16 += 1;
       }
 # else /* ifndef FLEA_HAVE_ECC */
       FLEA_CCALL(THR_flea_byte_vec_t__append(&peer_cipher_suites_u16_be__t, curr_cs__au8, sizeof(curr_cs__au8)));
@@ -235,9 +238,6 @@ static flea_err_t THR_flea_tls__read_client_hello(
     FLEA_THROW("Could not agree on compression method", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH);
   }
 
-  // if there are still bytes left to read, they must be from extensions
-  // if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
-  // {
   FLEA_CCALL(
     THR_flea_tls_ctx_t__parse_hello_extensions(
       tls_ctx,
@@ -246,75 +246,72 @@ static flea_err_t THR_flea_tls__read_client_hello(
       tls_ctx->private_key__pt
     )
   );
-  // }
   if(tls_ctx->sec_reneg_flag__u8 && !found_sec_reneg__b)
   {
     FLEA_THROW("missing renegotiation info in peer's extensions", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
 
 # ifdef FLEA_HAVE_ECC
+
+  for(i = 0; i < peer_cipher_suites_u16_be__t.len__dtl; i += 2)
   {
-    flea_al_u16_t curr_cs_from_peer__alu16;
-    flea_al_u16_t i;
-    for(i = 0; i < peer_cipher_suites_u16_be__t.len__dtl; i += 2)
+    curr_cs_from_peer__e = flea__decode_U16_BE(&peer_cipher_suites_u16_be__t.data__pu8[i]);
+
+    supported_cs_index__alu16 = 0;
+    while(supported_cs_index__alu16 < supported_cs_len__alu16)
     {
-      curr_cs_from_peer__alu16 = flea__decode_U16_BE(&peer_cipher_suites_u16_be__t.data__pu8[i]);
-
-      supported_cs_index__u16 = 0;
-      while(supported_cs_index__u16 < supported_cs_len__u16)
+      if(curr_cs_from_peer__e == tls_ctx->allowed_cipher_suites__pe[ supported_cs_index__alu16 ])
       {
-        if(curr_cs_from_peer__alu16 == tls_ctx->allowed_cipher_suites__prcu16->data__pcu16[ supported_cs_index__u16 ])
+        if(flea_tls__is_cipher_suite_ecc_suite(curr_cs_from_peer__e))
         {
-          if(flea_tls__is_cipher_suite_ecc_suite(curr_cs_from_peer__alu16))
+          // TODO: if multiple certs are supported, then the choice of the
+          // suite is more complicated:
+          // - server must check that for the candidate cipher suite and the
+          // client-supplied curves a fitting certificate is available
+          // - for this purpose extension_ctrl__u8's UNMATCHING bit must
+          // rather somehow represent a list of ciphersuites resulting from
+          // the available certificates
+          if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__UNMATCHING)
           {
-            // TODO: if multiple certs are supported, then the choice of the
-            // suite is more complicated:
-            // - server must check that for the candidate cipher suite and the
-            // client-supplied curves a fitting certificate is available
-            // - for this purpose extension_ctrl__u8's UNMATCHING bit must
-            // rather somehow represent a list of ciphersuites resulting from
-            // the available certificates
-            if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__UNMATCHING)
-            {
-              supported_cs_index__u16 += 1;
-              break;
-            }
-          }
-
-
-          // we can only use ECDHE if the certificate type matches the kex
-          // type of the cipher suite and if the signature algorithms extension
-          // offers an appropriate signature algorithm
-          if(flea_tls__is_cipher_suite_ecdhe_suite(curr_cs_from_peer__alu16))
-          {
-            // check if we can use ECDHE according to the signature algorithms
-            // extension
-            if(tls_ctx->can_use_ecdhe == FLEA_TRUE)
-            { }
-            else
-            {
-              // supported_cs_index__u16 += 1;
-              // continue;
-              break;
-            }
-          }
-
-          if(supported_cs_index__u16 < chosen_cs_index__u16)
-          {
-            chosen_cs_index__u16 = supported_cs_index__u16;
-            tls_ctx->selected_cipher_suite__u16 = curr_cs_from_peer__alu16;
-            found = FLEA_TRUE;
+            supported_cs_index__alu16 += 1;
             break;
           }
         }
-        supported_cs_index__u16 += 1;
+
+
+        // we can only use ECDHE if the certificate type matches the kex
+        // type of the cipher suite and if the signature algorithms extension
+        // offers an appropriate signature algorithm
+        if(flea_tls__is_cipher_suite_ecdhe_suite(curr_cs_from_peer__e))
+        {
+          // check if we can use ECDHE according to the signature algorithms
+          // extension
+          if(tls_ctx->can_use_ecdhe == FLEA_TRUE)
+          { }
+          else
+          {
+            // supported_cs_index__u16 += 1;
+            // continue;
+            break;
+          }
+        }
+
+        if(supported_cs_index__alu16 < chosen_cs_index__alu16)
+        {
+          chosen_cs_index__alu16 = supported_cs_index__alu16;
+          tls_ctx->selected_cipher_suite__e = curr_cs_from_peer__e;
+          found = FLEA_TRUE;
+          break;
+        }
       }
-    }
-    if(found == FLEA_FALSE)
-    {
-      FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE);
+      supported_cs_index__alu16 += 1;
     }
   }
+  if(found == FLEA_FALSE)
+  {
+    FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE);
+  }
+
 # endif /* ifdef FLEA_HAVE_ECC */
 
   // check length in the header field for integrity
@@ -431,8 +428,8 @@ static flea_err_t THR_flea_tls__send_server_hello(
     )
   );
   // }
-  suite__au8[0] = tls_ctx->selected_cipher_suite__u16 >> 8;
-  suite__au8[1] = tls_ctx->selected_cipher_suite__u16;
+  suite__au8[0] = tls_ctx->selected_cipher_suite__e >> 8;
+  suite__au8[1] = tls_ctx->selected_cipher_suite__e;
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx->rec_prot__t,
@@ -450,7 +447,7 @@ static flea_err_t THR_flea_tls__send_server_hello(
   {
     FLEA_CCALL(THR_flea_tls_ctx_t__send_reneg_ext(tls_ctx, p_hash_ctx));
   }
-  if(flea_tls__is_cipher_suite_ecc_suite(tls_ctx->selected_cipher_suite__u16))
+  if(flea_tls__is_cipher_suite_ecc_suite(tls_ctx->selected_cipher_suite__e))
   {
     /*if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES)
      * {
@@ -522,7 +519,7 @@ static flea_err_t THR_flea_tls__send_server_kex(
   FLEA_CCALL(THR_flea_tls_get_sig_length_of_priv_key(tls_ctx__pt->private_key__pt, &sig_len__u16));
 
   kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(
-    (flea_tls__cipher_suite_id_t) tls_ctx__pt->selected_cipher_suite__u16
+    (flea_tls__cipher_suite_id_t) tls_ctx__pt->selected_cipher_suite__e
     );
 
   if(kex_method__t == FLEA_TLS_KEX_ECDHE)
@@ -934,7 +931,7 @@ static flea_err_t THR_flea_tls__read_client_key_exchange(
   flea_tls__kex_method_t kex_method__t;
 
   FLEA_THR_BEG_FUNC();
-  kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
+  kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e);
   if(kex_method__t == FLEA_TLS_KEX_RSA)
   {
 # ifdef FLEA_HAVE_RSA
@@ -1109,10 +1106,10 @@ static flea_err_t THR_flea_tls_server_handle_handsh_msg(
       // one we will need in the following messages
       flea_tls_parallel_hash_ctx_t__stop_update_for_all_but_one(
         p_hash_ctx__pt,
-        flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16)
+        flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e)
       );
     }
-    hash_id__t = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__u16);
+    hash_id__t = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e);
     FLEA_CCALL(
       THR_flea_tls_parallel_hash_ctx_t__create_hash_ctx_as_copy(
         &hash_ctx_copy__t,
@@ -1383,7 +1380,7 @@ flea_err_t THR_flea_tls__server_handshake(
                 &hs_ctx__t,
                 &premaster_secret__t,
                 tls_ctx->master_secret__bu8,
-                tls_ctx->selected_cipher_suite__u16
+                tls_ctx->selected_cipher_suite__e
               )
             );
 
@@ -1396,7 +1393,7 @@ flea_err_t THR_flea_tls__server_handshake(
              * );
              * tls_ctx->server_active_sess_mbn__pt->session__t.is_valid_session__u8 = 1;
              * tls_ctx->server_active_sess_mbn__pt->session__t.cipher_suite_id__u16 =
-             *  tls_ctx->selected_cipher_suite__u16;
+             *  tls_ctx->selected_cipher_suite__e;
              * }*/
 
             memcpy(
@@ -1407,13 +1404,13 @@ flea_err_t THR_flea_tls__server_handshake(
             // tls_ctx->server_active_sess_mbn__pt->session__t.is_valid_session__u8 = 1;
 
             /*tls_ctx->server_active_sess_mbn__pt->session__t.cipher_suite_id__u16 =
-             * tls_ctx->selected_cipher_suite__u16;*/
+             * tls_ctx->selected_cipher_suite__e;*/
             server_ctx__pt->active_session__t.session_data__t.cipher_suite_id__u16 =
-              tls_ctx->selected_cipher_suite__u16;
+              tls_ctx->selected_cipher_suite__e;
           }
           FLEA_CCALL(
             THR_flea_tls_get_key_block_len_from_cipher_suite_id(
-              (flea_tls__cipher_suite_id_t) tls_ctx->selected_cipher_suite__u16,
+              (flea_tls__cipher_suite_id_t) tls_ctx->selected_cipher_suite__e,
               &key_block_len__alu16
             )
           );
@@ -1421,7 +1418,7 @@ flea_err_t THR_flea_tls__server_handshake(
           FLEA_CCALL(
             THR_flea_tls__generate_key_block(
               &hs_ctx__t,
-              tls_ctx->selected_cipher_suite__u16,
+              tls_ctx->selected_cipher_suite__e,
               // &tls_ctx->security_parameters,
               key_block__t.data__pu8,
               key_block_len__alu16
@@ -1434,7 +1431,7 @@ flea_err_t THR_flea_tls__server_handshake(
               &tls_ctx->rec_prot__t,
               flea_tls_read,
               FLEA_TLS_SERVER,
-              (flea_tls__cipher_suite_id_t) tls_ctx->selected_cipher_suite__u16,
+              (flea_tls__cipher_suite_id_t) tls_ctx->selected_cipher_suite__e,
               key_block__t.data__pu8
             )
           );
@@ -1474,7 +1471,7 @@ flea_err_t THR_flea_tls__server_handshake(
           // send server key exchange depending on cipher suite
           if(flea_tls_get_kex_method_by_cipher_suite_id(
               (flea_tls__cipher_suite_id_t) tls_ctx->
-              selected_cipher_suite__u16
+              selected_cipher_suite__e
             ) == FLEA_TLS_KEX_ECDHE)
           {
             FLEA_CCALL(THR_flea_tls__send_server_kex(tls_ctx, &hs_ctx__t, &p_hash_ctx, &ecdhe_priv_key__t));
@@ -1534,7 +1531,7 @@ flea_err_t THR_flea_tls__server_handshake(
           /* set up master secret and key block */
           FLEA_CCALL(
             THR_flea_tls_get_key_block_len_from_cipher_suite_id(
-              tls_ctx->selected_cipher_suite__u16,
+              tls_ctx->selected_cipher_suite__e,
               &key_block_len__alu16
             )
           );
@@ -1542,7 +1539,7 @@ flea_err_t THR_flea_tls__server_handshake(
           FLEA_CCALL(
             THR_flea_tls__generate_key_block(
               &hs_ctx__t,
-              tls_ctx->selected_cipher_suite__u16,
+              tls_ctx->selected_cipher_suite__e,
               key_block__t.data__pu8,
               key_block_len__alu16
             )
@@ -1553,7 +1550,7 @@ flea_err_t THR_flea_tls__server_handshake(
             &tls_ctx->rec_prot__t,
             flea_tls_write,
             FLEA_TLS_SERVER,
-            tls_ctx->selected_cipher_suite__u16,
+            tls_ctx->selected_cipher_suite__e,
             key_block__t.data__pu8
           )
         );
@@ -1610,21 +1607,23 @@ flea_err_t THR_flea_tls_server_ctx_t__read_app_data(
 }
 
 flea_err_t THR_flea_tls_server_ctx_t__ctor(
-  flea_tls_server_ctx_t*        tls_server_ctx__pt,
-  flea_tls_shared_server_ctx_t* shrd_server_ctx__pt,
-  flea_rw_stream_t*             rw_stream__pt,
-  const flea_ref_cu8_t*         cert_chain__pt,
-  flea_al_u8_t                  cert_chain_len__alu8,
-  const flea_cert_store_t*      trust_store__pt,
-  const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
-  const flea_byte_vec_t*        crl_der__pt,
-  flea_al_u16_t                 nb_crls__alu16,
-  flea_tls_session_mngr_t*      session_mngr_mbn__pt,
-  flea_ec_dom_par_id_t*         allowed_ecc_curves__pe,
-  flea_al_u16_t                 nb_allowed_curves__alu16,
-  flea_tls_sigalg_e*            allowed_sig_algs__pe,
-  flea_al_u16_t                 nb_allowed_sig_algs__alu16,
-  flea_tls_flag_e               flags__e
+  flea_tls_server_ctx_t*             tls_server_ctx__pt,
+  flea_tls_shared_server_ctx_t*      shrd_server_ctx__pt,
+  flea_rw_stream_t*                  rw_stream__pt,
+  const flea_ref_cu8_t*              cert_chain__pt,
+  flea_al_u8_t                       cert_chain_len__alu8,
+  const flea_cert_store_t*           trust_store__pt,
+  // const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
+  const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
+  const flea_byte_vec_t*             crl_der__pt,
+  flea_al_u16_t                      nb_crls__alu16,
+  flea_tls_session_mngr_t*           session_mngr_mbn__pt,
+  flea_ec_dom_par_id_t*              allowed_ecc_curves__pe,
+  flea_al_u16_t                      nb_allowed_curves__alu16,
+  flea_tls_sigalg_e*                 allowed_sig_algs__pe,
+  flea_al_u16_t                      nb_allowed_sig_algs__alu16,
+  flea_tls_flag_e                    flags__e
 )
 {
   flea_err_t err__t;
@@ -1644,7 +1643,8 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   tls_ctx__pt->private_key__pt = &shrd_server_ctx__pt->private_key__t;
 
   tls_ctx__pt->trust_store__pt = trust_store__pt;
-  tls_ctx__pt->allowed_cipher_suites__prcu16 = allowed_cipher_suites__prcu16;
+  tls_ctx__pt->allowed_cipher_suites__pe     = allowed_cipher_suites__pe;
+  tls_ctx__pt->nb_allowed_cipher_suites__u16 = nb_allowed_cipher_suites__alu16;
   tls_ctx__pt->connection_end              = FLEA_TLS_SERVER;
   tls_ctx__pt->client_session_mbn__pt      = NULL;
   tls_server_ctx__pt->session_mngr_mbn__pt = session_mngr_mbn__pt;
@@ -1656,15 +1656,16 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
 }
 
 flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
-  flea_tls_server_ctx_t*   tls_server_ctx__pt,
-  flea_bool_t*             result__pb,
-  const flea_cert_store_t* trust_store__pt,
-  const flea_ref_cu8_t*    cert_chain__pt, // TODO: if here a new cert chain can be specified, then also the private key needs to change => simply provide a new shared_server_ctx with all this information
-  flea_al_u8_t             cert_chain_len__alu8,
-  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
+  flea_tls_server_ctx_t*             tls_server_ctx__pt,
+  flea_bool_t*                       result__pb,
+  const flea_cert_store_t*           trust_store__pt,
+  const flea_ref_cu8_t*              cert_chain__pt, // TODO: if here a new cert chain can be specified, then also the private key needs to change => simply provide a new shared_server_ctx with all this information
+  flea_al_u8_t                       cert_chain_len__alu8,
+  const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
   // flea_rev_chk_mode_e      rev_chk_mode__e,
-  const flea_byte_vec_t*   crl_der__pt,
-  flea_al_u16_t            nb_crls__alu16
+  const flea_byte_vec_t*             crl_der__pt,
+  flea_al_u16_t                      nb_crls__alu16
 )
 {
   return THR_flea_tls_ctx_t__renegotiate(
@@ -1674,7 +1675,8 @@ flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
     trust_store__pt,
     cert_chain__pt,
     cert_chain_len__alu8,
-    allowed_cipher_suites__prcu16,
+    allowed_cipher_suites__pe,
+    nb_allowed_cipher_suites__alu16,
     // rev_chk_mode__e,
     crl_der__pt,
     nb_crls__alu16,

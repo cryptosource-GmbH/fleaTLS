@@ -99,11 +99,6 @@ void flea_copy_rcu8_use_mem(
   const flea_ref_cu8_t* src__prcu8
 );
 
-flea_bool_t flea_is_in_u16_list(
-  flea_u16_t             sought_for__u16,
-  const flea_ref_cu16_t* list__prcu16
-);
-
 flea_err_t THR_flea_add_dtl_with_overflow_check(
   flea_dtl_t* in_out__pdtl,
   flea_dtl_t  b__dtl

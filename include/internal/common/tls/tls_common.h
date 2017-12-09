@@ -205,7 +205,7 @@ flea_err_t THR_flea_tls__send_handshake_message_int_be(
   flea_al_u8_t                  int_byte_width__alu8
 );
 
-flea_bool_t flea_tls__is_cipher_suite_ecdhe_suite(flea_u16_t suite_id);
+flea_bool_t flea_tls__is_cipher_suite_ecdhe_suite(flea_tls__cipher_suite_id_t suite_id);
 
 flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
   flea_tls_ctx_t*           tls_ctx__pt,
@@ -338,7 +338,7 @@ flea_err_t THR_flea_tls_ctx_t__send_supported_ec_curves_ext(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
 );
 
-flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_u16_t suite_id);
+flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_tls__cipher_suite_id_t suite_id);
 
 flea_err_t THR_flea_tls_ctx_t__parse_supported_curves_ext(
   flea_tls_ctx_t*   tls_ctx__pt,
@@ -356,18 +356,24 @@ flea_err_t THR_flea_tls_ctx_t__parse_point_formats_ext(
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt);
 
 flea_err_t THR_flea_tls_ctx_t__renegotiate(
-  flea_tls_server_ctx_t*          server_ctx_mbn__pt,
-  flea_tls_client_ctx_t*          client_ctx_mbn__pt,
-  flea_bool_t*                    result__pb,
-  const flea_cert_store_t*        trust_store__pt,
-  const flea_ref_cu8_t*           cert_chain__pt,
-  flea_al_u8_t                    cert_chain_len__alu8,
-  const flea_ref_cu16_t*          allowed_cipher_suites__prcu16,
-  const flea_byte_vec_t*          crl_der__pt,
-  flea_al_u16_t                   nb_crls__alu16,
-  flea_hostn_validation_params_t* hostn_valid_params_mbn__pt
+  flea_tls_server_ctx_t*             server_ctx_mbn__pt,
+  flea_tls_client_ctx_t*             client_ctx_mbn__pt,
+  flea_bool_t*                       result__pb,
+  const flea_cert_store_t*           trust_store__pt,
+  const flea_ref_cu8_t*              cert_chain__pt,
+  flea_al_u8_t                       cert_chain_len__alu8,
+  const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
+  const flea_byte_vec_t*             crl_der__pt,
+  flea_al_u16_t                      nb_crls__alu16,
+  flea_hostn_validation_params_t*    hostn_valid_params_mbn__pt
 );
 
+flea_bool_t flea_is_in_ciph_suite_list(
+  flea_tls__cipher_suite_id_t        sought_for__e,
+  const flea_tls__cipher_suite_id_t* list__pe,
+  flea_al_u16_t                      list_len__alu16
+);
 
 void flea_tls_ctx_t__begin_handshake(flea_tls_ctx_t* tls_ctx__pt);
 # ifdef __cplusplus

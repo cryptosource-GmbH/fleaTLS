@@ -200,7 +200,8 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
       serv_par__pt->cert_chain__pcu8,
       serv_par__pt->cert_chain_len__alu16,
       serv_par__pt->cert_store__pt,
-      serv_par__pt->cipher_suites_ref__prcu16,
+      serv_par__pt->allowed_cipher_suites__pe,
+      serv_par__pt->nb_allowed_cipher_suites__alu16,
       serv_par__pt->crl_der__pt,
       serv_par__pt->nb_crls__u16,
       serv_par__pt->sess_mngr__pt,
@@ -238,7 +239,8 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
         serv_par__pt->cert_store__pt,
         serv_par__pt->cert_chain__pcu8,
         serv_par__pt->cert_chain_len__alu16,
-        serv_par__pt->cipher_suites_ref__prcu16,
+        serv_par__pt->allowed_cipher_suites__pe,
+        serv_par__pt->nb_allowed_cipher_suites__alu16,
         serv_par__pt->crl_der__pt,
         serv_par__pt->nb_crls__u16
       )
@@ -327,7 +329,6 @@ static void* flea_tls_server_thread(void* sv__pv)
 static flea_err_t THR_server_cycle(
   property_set_t const     & cmdl_args,
   int                      listen_fd,
-  // bool                     is_https_server,
   flea_tls_session_mngr_t* sess_man__pt,
   std::string const        & dir_for_file_based_input
 )
@@ -336,7 +337,6 @@ static flea_err_t THR_server_cycle(
   flea_al_u16_t allowed_ecc_curves_len__alu16;
   flea_tls_sigalg_e* allowed_sig_algs__pe;
   flea_al_u16_t nb_allowed_sig_algs__alu16;
-  flea_ref_cu16_t cipher_suites_ref;
 
   flea_cert_store_t trust_store__t;
 
@@ -354,7 +354,6 @@ static flea_err_t THR_server_cycle(
   flea_tls_shared_server_ctx_t__INIT(&shrd_server_ctx__t);
 
   bool stay = cmdl_args.have_index("stay");
-  // flea_u8_t * dbg_leak = (flea_u8_t* )malloc(1);
 
   const unsigned thr_max = cmdl_args.get_property_as_u32_default("threads", 1);
   listen(listen_fd, thr_max);
@@ -383,16 +382,12 @@ static flea_err_t THR_server_cycle(
     throw test_utils_exceptn_t("missing own certificate for tls server");
   }
 
-  cipher_suites_ref.data__pcu16 = &tls_cfg.cipher_suites[0];
-  cipher_suites_ref.len__dtl    = tls_cfg.cipher_suites.size();
-
   allowed_ecc_curves__pe        = &tls_cfg.allowed_curves[0];
   allowed_ecc_curves_len__alu16 = tls_cfg.allowed_curves.size();
 
   allowed_sig_algs__pe       = &tls_cfg.allowed_sig_algs[0];
   nb_allowed_sig_algs__alu16 = tls_cfg.allowed_sig_algs.size();
 
-  // server_params_t serv_par__t;
 
   while(1)
   {
@@ -401,15 +396,14 @@ static flea_err_t THR_server_cycle(
       int sock_fd = -1;
       unsigned read_timeout_ms = cmdl_args.get_property_as_u32_default("read_timeout", 1000);
 
-      /*if(0 <= ((sock_fd = unix_tcpip_listen_accept(listen_fd, read_timeout_ms))))
-      {*/
       std::cout << "creating threads: max = " << thr_max << ", running currently = " << serv_pars.size() << std::endl;
       server_params_t serv_par__t;
-      serv_par__t.shrd_ctx__pt              = &shrd_server_ctx__t;
-      serv_par__t.cert_chain__pcu8          = cert_chain;
-      serv_par__t.cert_chain_len__alu16     = cert_chain_len;
-      serv_par__t.cert_store__pt            = &trust_store__t;
-      serv_par__t.cipher_suites_ref__prcu16 = &cipher_suites_ref;
+      serv_par__t.shrd_ctx__pt                    = &shrd_server_ctx__t;
+      serv_par__t.cert_chain__pcu8                = cert_chain;
+      serv_par__t.cert_chain_len__alu16           = cert_chain_len;
+      serv_par__t.cert_store__pt                  = &trust_store__t;
+      serv_par__t.allowed_cipher_suites__pe       = &tls_cfg.cipher_suites[0];
+      serv_par__t.nb_allowed_cipher_suites__alu16 = tls_cfg.cipher_suites.size();
       serv_par__t.crl_der__pt   = &tls_cfg.crls_refs[0];
       serv_par__t.nb_crls__u16  = tls_cfg.crls.size();
       serv_par__t.sess_mngr__pt = sess_man__pt;
@@ -417,8 +411,7 @@ static flea_err_t THR_server_cycle(
       serv_par__t.allowed_ecc_curves_len__alu16 = allowed_ecc_curves_len__alu16;
       serv_par__t.allowed_sig_algs__pe       = allowed_sig_algs__pe;
       serv_par__t.nb_allowed_sig_algs__alu16 = nb_allowed_sig_algs__alu16;
-      serv_par__t.flags__u32 = tls_cfg.flags;
-      // serv_par__t.listen_fd         = listen_fd;
+      serv_par__t.flags__u32         = tls_cfg.flags;
       serv_par__t.read_timeout       = read_timeout_ms;
       serv_par__t.nb_renegs_to_exec  = cmdl_args.get_property_as_u32_default("do_renegs", 0);
       serv_par__t.rd_mode__e         = tls_cfg.read_mode_for_app_data;
@@ -466,7 +459,6 @@ static flea_err_t THR_server_cycle(
       /* all threads are finished */
       break;
     }
-    // pthread_t server_thread;
     bool completed = false;
     while(!completed)
     {
@@ -483,10 +475,9 @@ static flea_err_t THR_server_cycle(
           std::cout << serv_par__t.string_to_print << "\n";
           serv_par__t.string_to_print = "";
         }
-        // bool abort = serv_par__t.abort__b != 0;
         bool finished = serv_par__t.finished__b != 0;
         CHECK_PTHREAD_ERR(pthread_mutex_unlock(&serv_par__t.mutex));
-        if(finished /*|| abort*/)
+        if(finished)
         {
           pthread_join(serv_par__t.thread, NULL);
           pthread_mutex_destroy(&serv_par__t.mutex);

@@ -39,6 +39,23 @@ typedef enum
   flea_tls_sigalg_rsa_sha512 = (flea_sha512 << 8) | flea_rsa_pkcs1_v1_5_sign
 } flea_tls_sigalg_e;
 
+typedef enum
+{
+  flea_tls_rsa_with_null_sha256              = 0x003B,
+  flea_tls_rsa_with_aes_128_cbc_sha          = 0x002F,
+  flea_tls_rsa_with_aes_256_cbc_sha          = 0x0035,
+  flea_tls_rsa_with_aes_128_cbc_sha256       = 0x003C,
+  flea_tls_rsa_with_aes_256_cbc_sha256       = 0x003D,
+  flea_tls_rsa_with_aes_128_gcm_sha256       = 0x009C,
+  flea_tls_rsa_with_aes_256_gcm_sha384       = 0x009D,
+  flea_tls_ecdhe_rsa_with_aes_128_cbc_sha    = 0xC013,
+  flea_tls_ecdhe_rsa_with_aes_256_cbc_sha    = 0xC014,
+  flea_tls_ecdhe_rsa_with_aes_128_cbc_sha256 = 0xC027,
+  flea_tls_ecdhe_rsa_with_aes_256_cbc_sha384 = 0xC028,
+  flea_tls_ecdhe_rsa_with_aes_128_gcm_sha256 = 0xC02F,
+  flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384 = 0xC030
+} flea_tls__cipher_suite_id_t;
+
 # ifdef __cplusplus
 }
 # endif

@@ -20,25 +20,20 @@ using namespace std;
  * flea_u16_t  value;
  * } ;*/
 
-std::map<string, flea_u16_t> cipher_suite_name_value_map__t = {
-  {"TLS_RSA_WITH_NULL_MD5",                 0x0001},
-  {"TLS_RSA_WITH_NULL_SHA",                 0x0002},
-  {"TLS_RSA_WITH_NULL_SHA256",              0x003B},
-  {"TLS_RSA_WITH_RC4_128_MD5",              0x0004},
-  {"TLS_RSA_WITH_RC4_128_SHA",              0x0005},
-  {"TLS_RSA_WITH_3DES_EDE_CBC_SHA",         0x000A},
-  {"TLS_RSA_WITH_AES_128_CBC_SHA",          0x002F},
-  {"TLS_RSA_WITH_AES_256_CBC_SHA",          0x0035},
-  {"TLS_RSA_WITH_AES_128_CBC_SHA256",       0x003C},
-  {"TLS_RSA_WITH_AES_256_CBC_SHA256",       0x003D},
-  {"TLS_RSA_WITH_AES_128_GCM_SHA256",       0x009C},
-  {"TLS_RSA_WITH_AES_256_GCM_SHA384",       0x009D},
-  {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",    0xC013},
-  {"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",    0xC014},
-  {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256", 0xC027},
-  {"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384", 0xC028},
-  {"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", 0xC02F},
-  {"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", 0xC030}
+std::map<string, flea_tls__cipher_suite_id_t> cipher_suite_name_value_map__t = {
+  {"TLS_RSA_WITH_NULL_SHA256",              flea_tls_rsa_with_null_sha256             },
+  {"TLS_RSA_WITH_AES_128_CBC_SHA",          flea_tls_rsa_with_aes_128_cbc_sha         },
+  {"TLS_RSA_WITH_AES_256_CBC_SHA",          flea_tls_rsa_with_aes_256_cbc_sha         },
+  {"TLS_RSA_WITH_AES_128_CBC_SHA256",       flea_tls_rsa_with_aes_128_cbc_sha256      },
+  {"TLS_RSA_WITH_AES_256_CBC_SHA256",       flea_tls_rsa_with_aes_256_cbc_sha256      },
+  {"TLS_RSA_WITH_AES_128_GCM_SHA256",       flea_tls_rsa_with_aes_128_gcm_sha256      },
+  {"TLS_RSA_WITH_AES_256_GCM_SHA384",       flea_tls_rsa_with_aes_256_gcm_sha384      },
+  {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",    flea_tls_ecdhe_rsa_with_aes_128_cbc_sha   },
+  {"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",    flea_tls_ecdhe_rsa_with_aes_256_cbc_sha   },
+  {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256", flea_tls_ecdhe_rsa_with_aes_128_cbc_sha256},
+  {"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384", flea_tls_ecdhe_rsa_with_aes_256_cbc_sha384},
+  {"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", flea_tls_ecdhe_rsa_with_aes_128_gcm_sha256},
+  {"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384}
 };
 
 std::map<string, flea_ec_dom_par_id_t> curve_id_name_value_map__t = {
@@ -154,9 +149,9 @@ namespace {
     return result;
   } // get_allowed_sig_algs_from_cmdl
 
-  std::vector<flea_u16_t> get_cipher_suites_from_cmdl(property_set_t const& cmdl_args)
+  std::vector<flea_tls__cipher_suite_id_t> get_cipher_suites_from_cmdl(property_set_t const& cmdl_args)
   {
-    std::vector<flea_u16_t> result;
+    std::vector<flea_tls__cipher_suite_id_t> result;
     if(cmdl_args.have_index("cipher_suites"))
     {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("cipher_suites"), ',');
@@ -176,9 +171,9 @@ namespace {
     {
       for(auto & entry : cipher_suite_name_value_map__t)
       {
-        flea_u16_t id = entry.second;
+        flea_tls__cipher_suite_id_t id = entry.second;
         const flea_tls__cipher_suite_t* ptr;
-        if(!THR_flea_tls_get_cipher_suite_by_id(static_cast<flea_tls__cipher_suite_id_t>(id), &ptr))
+        if(!THR_flea_tls_get_cipher_suite_by_id(id, &ptr))
         {
           result.push_back(id);
         }
