@@ -336,6 +336,12 @@ static flea_err_t THR_flea_tls__read_client_hello(
   );
 } /* THR_flea_tls__read_client_hello */
 
+flea_bool_t flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_server_ctx__pt)
+{
+  return ((tls_server_ctx__pt)->tls_ctx__t.allow_reneg__u8 ? FLEA_TRUE :
+         FLEA_FALSE);
+}
+
 static flea_err_t THR_flea_tls__send_server_hello(
   flea_tls_server_ctx_t*        server_ctx__pt,
   flea_tls_handshake_ctx_t*     hs_ctx__pt,

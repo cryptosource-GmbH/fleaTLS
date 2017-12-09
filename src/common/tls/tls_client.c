@@ -1443,6 +1443,12 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__ctor_client */
 
+flea_bool_t flea_tls_client_ctx_t__is_reneg_allowed(flea_tls_client_ctx_t* tls_client_ctx__pt)
+{
+  return ((tls_client_ctx__pt)->tls_ctx__t.allow_reneg__u8 ? FLEA_TRUE :
+         FLEA_FALSE);
+}
+
 flea_err_t THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
   flea_tls_ctx_t*                       tls_ctx__pt,
   const flea_hostn_validation_params_t* hostn_valid_params__pt

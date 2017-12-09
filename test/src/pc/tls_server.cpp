@@ -212,20 +212,13 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
       (flea_tls_flag_e) (serv_par__pt->flags__u32 | ((flea_u32_t) flea_tls_flag__sha1_cert_sigalg__allow))
     )
   );
-  // std::cout << "handshake done" << std::endl;
   serv_par__pt->write_output_string("handshake done\n");
   flea_tls_test_tool_print_peer_cert_info(nullptr, &tls_ctx, serv_par__pt);
-  // std::flush(std::cout);
-  // FLEA_CCALL(THR_check_keyb_input());
   FLEA_CCALL(THR_check_user_abort(serv_par__pt));
   for(size_t i = 0; i < serv_par__pt->nb_renegs_to_exec; i++)
   {
     flea_bool_t reneg_done__b;
 
-    /*flea_al_u16_t buf_len = sizeof(buf) - 1;
-     * flea_err_t retval     = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_nonblocking);
-     * printf("reading app data prior to renegotiation returned: %04x\n", retval);*/
-    // std::cout << "renegotiation ...";
     int reneg_allowed = flea_tls_server_ctx_t__is_reneg_allowed(&tls_ctx);
     serv_par__pt->write_output_string(
       "renegotiation exptected to be successfull = " + std::to_string(
@@ -253,21 +246,16 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
     {
       serv_par__pt->write_output_string("... was rejected\n");
     }
-    // std::cout << "" << std::endl;
   }
 
-  /*if(!is_https_server)
-   * {*/
   while(1)
   {
-    // flea_al_u16_t buf_len         = sizeof(buf) - 1;
     flea_dtl_t buf_len = serv_par__pt->read_app_data_size >
       sizeof(buf) ? sizeof(buf) : serv_par__pt->read_app_data_size;
     if(buf_len == sizeof(buf))
     {
       buf_len -= 1;
     }
-    // FLEA_CCALL(THR_check_keyb_input());
     FLEA_CCALL(THR_check_user_abort(serv_par__pt));
     flea_err_t retval = THR_flea_tls_server_ctx_t__read_app_data(
       &tls_ctx,
@@ -291,11 +279,8 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
       serv_par__pt->write_output_string("received error code from read_app_data: " + num_to_string_hex(retval) + "\n");
       FLEA_THROW("rethrowing error from read_app_data", retval);
     }
-    // FLEA_CCALL(THR_check_keyb_input());
     FLEA_CCALL(THR_check_user_abort(serv_par__pt));
     buf[buf_len] = 0;
-    // serv_par__pt->write_output_string("received data len = " + num_to_string(buf_len) + "\n");
-    // serv_par__pt->write_output_string("read_app_data returned\n");
     FLEA_CCALL(THR_flea_tls_server_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
     FLEA_CCALL(THR_flea_tls_server_ctx_t__flush_write_app_data(&tls_ctx));
     usleep(10 * 1000);

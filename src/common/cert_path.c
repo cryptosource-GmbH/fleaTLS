@@ -446,8 +446,9 @@ flea_err_t THR_flea_cert_path_validator_t__add_crl(
     FLEA_THROW("crl capacity exceeded", FLEA_ERR_BUFF_TOO_SMALL);
 # endif /* ifdef FLEA_USE_HEAP_BUF */
   }
-  flea_byte_vec_t__INIT(&cpv__pt->crl_collection__brcu8[cpv__pt->nb_crls__u16]);
-  flea_byte_vec_t__set_ref(&cpv__pt->crl_collection__brcu8[cpv__pt->nb_crls__u16], crl_der__pcu8, crl_der_len__dtl);
+  // flea_byte_vec_t__INIT(&cpv__pt->crl_collection__brcu8[cpv__pt->nb_crls__u16]);
+  cpv__pt->crl_collection__brcu8[cpv__pt->nb_crls__u16].data__pcu8 = crl_der__pcu8;
+  cpv__pt->crl_collection__brcu8[cpv__pt->nb_crls__u16].len__dtl   = crl_der_len__dtl;
   cpv__pt->nb_crls__u16++;
   FLEA_THR_FIN_SEC_empty();
 }
