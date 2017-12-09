@@ -1433,11 +1433,8 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
     THR_flea_tls_ctx_t__construction_helper(
       tls_ctx__pt,
       rw_stream__pt
-      // reneg_spec__e
     )
   );
-  // TODO: REMOVE SESSION-OBJ AGAIN FROM FUNCTION SIGNATURES, IT IS NOW IN THE
-  // TLS_CTX
   err__t = THR_flea_tls__client_handshake(tls_ctx__pt, session_mbn__pt, &tls_client_ctx__pt->hostn_valid_params__t);
   FLEA_CCALL(THR_flea_tls__handle_tls_error(NULL, tls_client_ctx__pt, err__t, NULL, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();
@@ -1464,19 +1461,8 @@ flea_err_t THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
   {
     FLEA_THROW("unexpected handshake message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
   }
-  // # ifdef FLEA_TLS_HAVE_RENEGOTIATION
   FLEA_CCALL(THR_flea_tls__client_handshake(tls_ctx__pt, tls_ctx__pt->client_session_mbn__pt, hostn_valid_params__pt));
 
-  /*# else
-   * flea_tls_rec_prot_t__discard_current_read_record(&tls_ctx__pt->rec_prot__t);
-   * FLEA_CCALL(
-   *  THR_flea_tls_rec_prot_t__send_alert(
-   *    &tls_ctx__pt->rec_prot__t,
-   *    FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION,
-   *    FLEA_TLS_ALERT_LEVEL_WARNING
-   *  )
-   * );
-   # endif*/
   FLEA_THR_FIN_SEC(
     flea_tls_handsh_reader_t__dtor(&handsh_rdr__t);
   );
