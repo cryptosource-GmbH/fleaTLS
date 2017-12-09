@@ -52,10 +52,10 @@ flea_err_t THR_flea_test_ctr_mode_prng()
 flea_err_t THR_flea_test_feed_entropy()
 {
   FLEA_THR_BEG_FUNC();
-  flea_u32_t pseudo = 42;
+  flea_u16_t pseudo = 42;
   flea_al_u8_t est  = 16;
   flea_al_u8_t i;
-  for(i = 0; i < 8; i++)
+  for(i = 0; i < 16; i++)
   {
     flea_rng__feed_low_entropy_data_to_pool(pseudo, est);
   }

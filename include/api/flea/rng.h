@@ -20,11 +20,11 @@ extern "C" {
  * Note: Do not use to this function to initially seed or reseed flea's global RNG
  * with high entropy data. Other functions are avaivable for this purpose.
  *
- * @param entropy_value random value to feed to the pool
+ * @param entropy_value u16-bit value containing entropy to be feed to the pool
  * @param estimated_entropy the estimated entropy of entropy_value in bits
  */
 void flea_rng__feed_low_entropy_data_to_pool(
-  flea_u32_t   entropy_value,
+  flea_u16_t   entropy,
   flea_al_u8_t estimated_entropy
 );
 

@@ -46,15 +46,15 @@ static flea_err_t THR_flea_rng__reseed_volatile_inner(
 }
 
 static flea_al_u16_t flea_rng_add_2bytes_to_pool(
-  flea_al_u16_t    current_crc__alu16,
-  const flea_u8_t* to_add__pcu8
+  flea_al_u16_t     current_crc__alu16,
+  const flea_u16_t* to_add__u16
 )
 {
   flea_al_u8_t entropy_pool_pos__alu8 = flea_gl_rng_entropy_pool_pos__alu8;
 
-  current_crc__alu16 = flea_crc16_ccit_compute(current_crc__alu16, (const flea_u8_t*) &to_add__pcu8, 2);
-  flea_gl_entropy_pool__au8[entropy_pool_pos__alu8]     ^= to_add__pcu8[1] ^ (current_crc__alu16 >> 8);
-  flea_gl_entropy_pool__au8[entropy_pool_pos__alu8 + 1] ^= to_add__pcu8[0] ^ (current_crc__alu16 & 0xFF);
+  current_crc__alu16 = flea_crc16_ccit_compute(current_crc__alu16, (const flea_u8_t*) &to_add__u16, 2);
+  flea_gl_entropy_pool__au8[entropy_pool_pos__alu8]     ^= (current_crc__alu16 >> 8);
+  flea_gl_entropy_pool__au8[entropy_pool_pos__alu8 + 1] ^= (current_crc__alu16 & 0xFF);
   entropy_pool_pos__alu8 += 2;
   if(entropy_pool_pos__alu8 >= sizeof(flea_gl_entropy_pool__au8))
   {
@@ -82,15 +82,14 @@ void flea_rng__deinit()
 }
 
 void flea_rng__feed_low_entropy_data_to_pool(
-  flea_u32_t   entropy__u32,
+  flea_u16_t   entropy__u16,
   flea_al_u8_t estimated_entropy__alu8
 )
 {
   flea_al_u16_t current_crc__alu16 = flea_gl_rng_current_crc__alu16;
   flea_al_u16_t entropy_cnt__alu16 = flea_gl_rng_entropy_cnt__alu16;
 
-  current_crc__alu16 = flea_rng_add_2bytes_to_pool(current_crc__alu16, (const flea_u8_t*) &entropy__u32);
-  current_crc__alu16 = flea_rng_add_2bytes_to_pool(current_crc__alu16, ((const flea_u8_t*) &entropy__u32) + 2);
+  current_crc__alu16 = flea_rng_add_2bytes_to_pool(current_crc__alu16, &entropy__u16);
   if(entropy_cnt__alu16 < FLEA_RNG_ENTROPY_POOL_ENTROPY_THRESHOLD)
   {
     entropy_cnt__alu16 += estimated_entropy__alu8;
