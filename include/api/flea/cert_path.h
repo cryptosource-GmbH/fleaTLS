@@ -20,7 +20,7 @@ extern "C" {
 typedef struct
 {
 # ifdef FLEA_USE_HEAP_BUF
-  flea_byte_vec_t*       crl_collection__brcu8;
+  flea_ref_cu8_t*        crl_collection__brcu8;
   flea_x509_cert_info_t* cert_collection__bt;
   flea_u16_t*            chain__bu16;
 # else

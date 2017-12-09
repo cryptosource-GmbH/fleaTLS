@@ -256,10 +256,13 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   cfg.crls   = cmdl_args.get_bin_file_list_property("crls");
   for(auto &crl : cfg.crls)
   {
-    flea_byte_vec_t bv;// = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE ;
+    /*flea_byte_vec_t bv;// = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE ;
     flea_byte_vec_t__INIT(&bv);
-    flea_byte_vec_t__set_ref(&bv, &crl[0], crl.size());
-    cfg.crls_refs.push_back(bv);
+    flea_byte_vec_t__set_ref(&bv, &crl[0], crl.size());*/
+    flea_ref_cu8_t ref;
+    ref.data__pcu8 = &crl[0];
+    ref.len__dtl   = crl.size();
+    cfg.crls_refs.push_back(ref);
   }
 
   cfg.cipher_suites    = get_cipher_suites_from_cmdl(cmdl_args);

@@ -27,7 +27,7 @@ struct server_params_t
   const flea_cert_store_t*           cert_store__pt;
   const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe;
   flea_al_u16_t                      nb_allowed_cipher_suites__alu16;
-  flea_byte_vec_t*                   crl_der__pt;
+  flea_ref_cu8_t*                    crl_der__pt;
   flea_u16_t                         nb_crls__u16;
   flea_tls_session_mngr_t*           sess_mngr__pt;
   flea_ec_dom_par_id_t*              allowed_ecc_curves__pe;
@@ -192,7 +192,7 @@ struct tls_test_cfg_t
   std::vector<flea_tls_sigalg_e>           allowed_sig_algs;
   std::vector<std::vector<flea_u8_t> >     crls;
   // flea_rev_chk_mode_e                      rev_chk_mode__e;
-  std::vector<flea_byte_vec_t>             crls_refs;
+  std::vector<flea_ref_cu8_t>              crls_refs;
   flea_stream_read_mode_e                  read_mode_for_app_data;
   size_t                                   read_size_for_app_data;
   flea_u32_t                               flags = (flea_tls_flag_e) 0;

@@ -49,8 +49,7 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   flea_private_key_t*                private_key_mbn,
   const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
   flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
-  // TODO: TURN INTO REF_CU8
-  const flea_byte_vec_t*             crl_der,
+  const flea_ref_cu8_t*              crl_der,
   flea_al_u16_t                      nb_crls,
   flea_tls_client_session_t*         session_mbn,
   flea_ec_dom_par_id_t*              allowed_ecc_curves__pe,
@@ -97,7 +96,7 @@ flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
   flea_al_u8_t                       cert_chain_len,
   const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
   flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
-  const flea_byte_vec_t*             crl_der,
+  const flea_ref_cu8_t*              crl_der,
   flea_al_u16_t                      nb_crls
 );
 

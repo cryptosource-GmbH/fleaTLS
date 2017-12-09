@@ -279,7 +279,7 @@ static flea_err_t THR_flea_tls__validate_cert(
   const flea_gmt_time_t*             compare_time__pt,
   flea_al_u16_t*                     cnt_non_self_issued_in_path__palu16,
   flea_tls_cert_path_params_t const* cert_path_params__pct,
-  const flea_byte_vec_t*             crl_der__cprcu8,
+  const flea_ref_cu8_t*              crl_der__cprcu8,
   flea_al_u16_t                      nb_crls__alu16,
   flea_bool_t                        validate_crl_for_issued_by_current__b,
   flea_byte_vec_t*                   prev_sn_buffer__pt,

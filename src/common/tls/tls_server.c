@@ -1613,10 +1613,9 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   const flea_ref_cu8_t*              cert_chain__pt,
   flea_al_u8_t                       cert_chain_len__alu8,
   const flea_cert_store_t*           trust_store__pt,
-  // const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
   const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
   flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
-  const flea_byte_vec_t*             crl_der__pt,
+  const flea_ref_cu8_t*              crl_der__pt,
   flea_al_u16_t                      nb_crls__alu16,
   flea_tls_session_mngr_t*           session_mngr_mbn__pt,
   flea_ec_dom_par_id_t*              allowed_ecc_curves__pe,
@@ -1664,7 +1663,7 @@ flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
   const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
   flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
   // flea_rev_chk_mode_e      rev_chk_mode__e,
-  const flea_byte_vec_t*             crl_der__pt,
+  const flea_ref_cu8_t*              crl_der__pt,
   flea_al_u16_t                      nb_crls__alu16
 )
 {

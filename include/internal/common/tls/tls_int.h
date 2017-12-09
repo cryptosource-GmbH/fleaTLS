@@ -23,9 +23,9 @@ extern "C" {
 
 typedef struct
 {
-  flea_rev_chk_mode_e    rev_chk_mode__e;
-  const flea_byte_vec_t* crl_der__pt;
-  flea_u16_t             nb_crls__u16;
+  flea_rev_chk_mode_e   rev_chk_mode__e;
+  const flea_ref_cu8_t* crl_der__pt;
+  flea_u16_t            nb_crls__u16;
 } flea_revoc_chk_cfg_t;
 
 typedef enum { PRF_LABEL_TEST, PRF_LABEL_CLIENT_FINISHED, PRF_LABEL_SERVER_FINISHED, PRF_LABEL_MASTER_SECRET,
