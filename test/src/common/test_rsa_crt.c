@@ -8,6 +8,7 @@
 #include "self_test.h"
 #include "flea/alloc.h"
 #include "flea/privkey.h"
+#include "flea/rng.h"
 #include <string.h>
 #ifdef FLEA_HAVE_RSA
 const flea_u8_t pub_exp_arr[] = {0x01, 0x00, 0x01};
@@ -262,19 +263,22 @@ flea_err_t THR_flea_test_rsa_crt_mass_sig(flea_u32_t nb_iters)
 
   for(i = 0; i < nb_iters; i++)
   {
-    flea_u32_t m_pos = i % mod_len;
-    memset(mess_arr, 0, mod_len);
-    mess_arr[m_pos] = i;
-    if(m_pos == mod_len - 1)
-    {
-      // unset the highest bit to
-      mess_arr[m_pos] &= 0x7F;
-    }
+    // flea_u32_t m_pos = i % mod_len;
+    // memset(mess_arr, 0, mod_len);
+    FLEA_CCALL(THR_flea_rng__randomize(&mess_arr[0], mod_len - 1));
+    // mess_arr[m_pos] = i;
+
+    /*if(m_pos == mod_len - 1)
+    {*/
+    // unset the highest bit to
+    mess_arr[0] &= 0x7F;
+    // }
     // vary the low bits of the message
-    mess_arr[0] = i >> 24;
+
+    /*mess_arr[0] = i >> 24;
     mess_arr[2] = i >> 16;
     mess_arr[5] = i >> 8;
-    mess_arr[8] = i & 0xFF;
+    mess_arr[8] = i & 0xFF;*/
     flea_err_t err;
     err = THR_flea_rsa_raw_operation_crt(
       sig_arr,
@@ -304,23 +308,6 @@ flea_err_t THR_flea_test_rsa_crt_mass_sig(flea_u32_t nb_iters)
       FLEA_THROW("error during RSA private OP", FLEA_ERR_FAILED_TEST);
     }
 
-    /*FLEA_CCALL(THR_flea_rsa_raw_operation_crt(
-     *           sig_arr,
-     *           mess_arr,
-     *           mod_len,
-     *           mod_len,
-     *           p_diff_1,
-     *           sizeof(p_diff_1),
-     *           q_diff_1,
-     *           sizeof(q_diff_1),
-     *           d1_diff_1,
-     *           sizeof(d1_diff_1),
-     *           d2_diff_1,
-     *           sizeof(d2_diff_1),
-     *           q_inv_diff_1,
-     *           sizeof(q_inv_diff_1)
-     *           ));
-     */
     FLEA_CCALL(THR_flea_rsa_raw_operation(encrypted_arr, pub_exp_arr, sizeof(pub_exp_arr), sig_arr, mod_len, mod_enc, mod_len));
     if(memcmp(encrypted_arr, mess_arr, mod_len))
     {

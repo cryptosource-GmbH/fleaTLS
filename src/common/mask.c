@@ -53,6 +53,14 @@ flea_u32_t flea_consttime__select_u32_nz_z(
   return ((select_if_zero & ~mask) | (select_if_nonzero & mask));
 }
 
+flea_al_u8_t flea_consttime__x_greater_y(
+  flea_u32_t x,
+  flea_u32_t y
+)
+{
+  return (~y & x) | ((~(y ^ x)) & (y - x));
+}
+
 void* flea_consttime__select_ptr_nz_z(
   void*      select_if_nonzero,
   void*      select_if_zero,

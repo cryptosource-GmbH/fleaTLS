@@ -5,6 +5,7 @@
 #include "internal/common/math/mpi.h"
 #include "flea/error_handling.h"
 #include "internal/common/math/point_gfp.h"
+#include "internal/common/mask.h"
 #include  "flea/alloc.h"
 #include  "flea/array_util.h"
 #include "flea/util.h"
@@ -938,26 +939,21 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(
     {
       // single-mul
 
-      if(exp_bit1)
-      {
-        FLEA_CCALL(
-          THR_flea_point_jac_proj_t__add(
-            &p2,
-            &precomp_points[exp_bit1],
-            &aR_mod_p,
-            &bR_mod_p,
-            &mm_ctx,
-            mpi_worksp_arr_double_mod_size,
-            &montg_const_sq_mod_p
-          )
+      flea_bool_t do_mul__b;
+      flea_point_jac_proj_t* p2_or_fake__pt, * precomp_or_fake__pt;
+      p2_or_fake__pt      = (flea_point_jac_proj_t*) flea_consttime__select_ptr_nz_z(&p2, &p3, exp_bit1);
+      precomp_or_fake__pt = (flea_point_jac_proj_t*) flea_consttime__select_ptr_nz_z(
+        &precomp_points[exp_bit1],
+        &precomp_points[exp_bit1 + 1],
+        exp_bit1
         );
-      }
-      else if(use_add_always__b)
+      do_mul__b = flea_consttime__select_u32_nz_z(1, use_add_always__b, exp_bit1);
+      if(do_mul__b)
       {
         FLEA_CCALL(
           THR_flea_point_jac_proj_t__add(
-            &p3,
-            &precomp_points[exp_bit1 + 1],
+            p2_or_fake__pt,
+            precomp_or_fake__pt,
             &aR_mod_p,
             &bR_mod_p,
             &mm_ctx,

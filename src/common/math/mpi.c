@@ -293,6 +293,7 @@ flea_err_t THR_flea_mpi_t__montgm_mul(
   flea_uword_t borrow;
   flea_uword_t n_prime_zero = p_ctx->mod_prime;
   flea_mpi_ulen_t i, j;
+  flea_mpi_t* src, * dst;
   const flea_mpi_ulen_t mod_len = p_ctx->p_mod->m_nb_used_words;
   if(p_result->m_nb_alloc_words < 2 * mod_len + 1)
   {
@@ -349,24 +350,12 @@ flea_err_t THR_flea_mpi_t__montgm_mul(
   }
 
   sub_res = ws_ptr[mod_len] - borrow;
-  if(sub_res > result_ptr[mod_len])
-  {
-    borrow = 1;
-  }
-  else
-  {
-    borrow = 0;
-  }
+  borrow  = flea_consttime__x_greater_y(sub_res, result_ptr[mod_len]);
 
-  if(borrow == 0)
-  {
-    /* dummy operation */
-    FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_ctx->p_ws, p_result));
-  }
-  else
-  {
-    FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_ctx->p_ws));
-  }
+  p_ctx->p_ws->m_nb_used_words = p_result->m_nb_used_words;
+  src = (flea_mpi_t*) flea_consttime__select_ptr_nz_z(p_ctx->p_ws, p_result, borrow);
+  dst = (flea_mpi_t*) flea_consttime__select_ptr_nz_z(p_result, p_ctx->p_ws, borrow);
+  FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(dst, src));
   flea_mpi_t__set_used_words(p_result);
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_mpi_t__montgm_mul */
