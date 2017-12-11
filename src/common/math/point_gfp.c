@@ -942,7 +942,7 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(
 
 # ifdef FLEA_USE_PUBKEY_USE_RAND_DELAY
     FLEA_CCALL(THR_flea_rng__randomize_no_flush(&real_rnd_bytes__au8[0], sizeof(real_rnd_bytes__au8)));
-    delay_iters__alu16 += (real_rnd_bytes__au8[0] | (real_rnd_bytes__au8[1] << 3));
+    delay_iters__alu16 += (real_rnd_bytes__au8[0] | (real_rnd_bytes__au8[1] << 2));
 # endif
 
 # ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
@@ -964,11 +964,9 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(
         &p2,
         fix_up_i__is_fake_iter__alu8
         );
-      delay_iters__alu16 += (rnd_bytes__au8[1]) | (rnd_bytes__au8[2] << 4);
+      delay_iters__alu16 += (rnd_bytes__au8[1]) | (rnd_bytes__au8[2] << 3);
     }
 # endif /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
-# if defined FLEA_USE_PUBKEY_INPUT_BASED_DELAY
-# endif
 
 # if defined FLEA_USE_PUBKEY_INPUT_BASED_DELAY || defined FLEA_USE_PUBKEY_USE_RAND_DELAY
     flea_waste_cycles(delay_iters__alu16);

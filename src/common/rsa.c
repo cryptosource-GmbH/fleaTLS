@@ -133,7 +133,15 @@ flea_err_t THR_flea_rsa_raw_operation_crt(
   const flea_bool_t do_use_mul_always__b = FLEA_FALSE;
 # endif
 
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  flea_ctr_mode_prng_t delay_prng__t;
+# endif
+
   FLEA_THR_BEG_FUNC();
+
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  flea_ctr_mode_prng_t__INIT(&delay_prng__t);
+# endif
 # ifdef FLEA_USE_HEAP_BUF
   mod_byte_len       = p_enc_len + q_enc_len;
   mod_word_len       = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN(mod_byte_len);
@@ -169,6 +177,10 @@ flea_err_t THR_flea_rsa_raw_operation_crt(
   div_ctx.vn_len = FLEA_HEAP_OR_STACK_CODE(vn_len, FLEA_STACK_BUF_NB_ENTRIES(vn));
   div_ctx.un_len = FLEA_HEAP_OR_STACK_CODE(un_len, FLEA_STACK_BUF_NB_ENTRIES(un));
 
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(THR_flea_ctr_mode_prng_t__ctor(&delay_prng__t, base_enc, base_length));
+  FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&delay_prng__t, d1_enc, d1_enc_len));
+# endif
 
   flea_mpi_t__init(&result, result_arr, FLEA_HEAP_OR_STACK_CODE(result_len, FLEA_STACK_BUF_NB_ENTRIES(result_arr)));
   flea_mpi_t__init(&base, base_arr, FLEA_HEAP_OR_STACK_CODE(base_word_len, FLEA_STACK_BUF_NB_ENTRIES(base_arr)));
@@ -203,6 +215,23 @@ flea_err_t THR_flea_rsa_raw_operation_crt(
   // reduce the base for the first prime
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &base_mod_prime, &base, &p, &div_ctx));
   // result used as workspace here
+
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(
+    THR_flea_mpi_t__mod_exp_window(
+      &j1,
+      &d1,
+      &base_mod_prime,
+      &p,
+      &large_tmp,
+      &div_ctx,
+      &result,
+      FLEA_CRT_RSA_WINDOW_SIZE,
+      do_use_mul_always__b,
+      &delay_prng__t
+    )
+  );
+# else  /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
   FLEA_CCALL(
     THR_flea_mpi_t__mod_exp_window(
       &j1,
@@ -216,10 +245,27 @@ flea_err_t THR_flea_rsa_raw_operation_crt(
       do_use_mul_always__b
     )
   );
+# endif /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
 
   // d1 unused from here, used for j2
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &base_mod_prime, &base, &q, &div_ctx));
   // result used as workspace here
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(
+    THR_flea_mpi_t__mod_exp_window(
+      &d1,
+      &d2,
+      &base_mod_prime,
+      &q,
+      &large_tmp,
+      &div_ctx,
+      &result,
+      FLEA_CRT_RSA_WINDOW_SIZE,
+      do_use_mul_always__b,
+      &delay_prng__t
+    )
+  );
+# else  /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
   FLEA_CCALL(
     THR_flea_mpi_t__mod_exp_window(
       &d1,
@@ -233,6 +279,7 @@ flea_err_t THR_flea_rsa_raw_operation_crt(
       do_use_mul_always__b
     )
   );
+# endif /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
 
 
   // subtract mod cannot be used because d1=j2 may be larger than p
@@ -362,6 +409,23 @@ flea_err_t THR_flea_rsa_raw_operation(
   FLEA_CCALL(THR_flea_mpi_t__decode(&mod, modulus_enc, modulus_length));
   FLEA_CCALL(THR_flea_mpi_t__decode(&exponent, exponent_enc, exponent_length));
   FLEA_CCALL(THR_flea_mpi_t__decode(&base, base_enc, base_length));
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(
+    THR_flea_mpi_t__mod_exp_window(
+      &result,
+      &exponent,
+      &base,
+      &mod,
+      &large_tmp,
+      &div_ctx,
+      &ws_q,
+      1,
+      FLEA_FALSE,
+      NULL
+    )
+  );
+# else  /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
+
   FLEA_CCALL(
     THR_flea_mpi_t__mod_exp_window(
       &result,
@@ -375,6 +439,7 @@ flea_err_t THR_flea_rsa_raw_operation(
       FLEA_FALSE
     )
   );
+# endif /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
   FLEA_CCALL(THR_flea_mpi_t__encode(result_enc, modulus_length, &result));
 
   FLEA_THR_FIN_SEC(

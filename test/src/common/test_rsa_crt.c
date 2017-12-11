@@ -265,7 +265,7 @@ flea_err_t THR_flea_test_rsa_crt_mass_sig(flea_u32_t nb_iters)
   {
     // flea_u32_t m_pos = i % mod_len;
     // memset(mess_arr, 0, mod_len);
-    FLEA_CCALL(THR_flea_rng__randomize(&mess_arr[0], mod_len - 1));
+    FLEA_CCALL(THR_flea_rng__randomize(&mess_arr[0], mod_len));
     // mess_arr[m_pos] = i;
 
     /*if(m_pos == mod_len - 1)

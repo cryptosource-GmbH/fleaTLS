@@ -4,6 +4,7 @@
 #define _flea_mpi__H_
 
 #include "flea/types.h"
+#include "flea/ctr_mode_prng.h"
 
 typedef struct
 {
@@ -168,15 +169,19 @@ flea_err_t THR_flea_mpi_t__copy_no_realloc(
 );
 
 flea_err_t THR_flea_mpi_t__mod_exp_window(
-  flea_mpi_t*         p_result,
-  flea_mpi_t*         p_exp,
-  flea_mpi_t*         p_base,
-  flea_mpi_t*         p_mod,
-  flea_mpi_t*         p_workspace_double_plus_one_sized,
-  flea_mpi_div_ctx_t* p_div_ctx,
-  flea_mpi_t*         p_quotient_ws,
-  flea_al_u8_t        window_size,
-  flea_bool_t         mul_always_cm__b
+  flea_mpi_t*           p_result,
+  flea_mpi_t*           p_exp,
+  flea_mpi_t*           p_base,
+  flea_mpi_t*           p_mod,
+  flea_mpi_t*           p_workspace_double_plus_one_sized,
+  flea_mpi_div_ctx_t*   p_div_ctx,
+  flea_mpi_t*           p_quotient_ws,
+  flea_al_u8_t          window_size,
+  flea_bool_t mul_always_cm__b
+#ifdef                  FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  ,
+  flea_ctr_mode_prng_t* delay_prng__pt
+#endif
 );
 
 
