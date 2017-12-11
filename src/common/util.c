@@ -115,3 +115,15 @@ flea_err_t THR_flea_add_dtl_with_overflow_check(
   *in_out__pdtl = result__dtl;
   FLEA_THR_FIN_SEC_empty();
 }
+
+flea_u32_t flea_waste_cycles(flea_u32_t iters__u32)
+{
+  volatile flea_al_u8_t sink__valu8 = 0;
+  flea_u32_t i;
+
+  for(i = 0; i < iters__u32; i++)
+  {
+    sink__valu8 += iters__u32 * i;
+  }
+  return sink__valu8;
+}

@@ -272,7 +272,9 @@ flea_err_t THR_flea_ecka__compute_raw(
     FLEA_FREE_BUF_SECRET_ARR(d_arr, order_word_len);
     FLEA_FREE_BUF_SECRET_ARR(vn, vn_len);
     FLEA_FREE_BUF_SECRET_ARR(un, un_len);
-    flea_ctr_mode_prng_t__dtor(&delay_prng__t);
+    FLEA_DO_IF_USE_PUBKEY_INPUT_BASED_DELAY(
+      flea_ctr_mode_prng_t__dtor(&delay_prng__t);
+    )
   );
 } /* THR_flea_ecka__compute_raw */
 

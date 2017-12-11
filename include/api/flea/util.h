@@ -104,6 +104,8 @@ flea_err_t THR_flea_add_dtl_with_overflow_check(
   flea_dtl_t  b__dtl
 );
 
+flea_u32_t flea_waste_cycles(flea_u32_t iters__u32);
+
 #ifdef __cplusplus
 }
 #endif
