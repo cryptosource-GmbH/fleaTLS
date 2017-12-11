@@ -15,6 +15,7 @@
 #include "internal/common/math/point_gfp.h"
 #include "flea/ecdsa.h"
 #include "flea/hash.h"
+#include "flea/ctr_mode_prng.h"
 #include "flea/algo_config.h"
 #include "internal/common/ecc_int.h"
 
@@ -181,7 +182,12 @@ flea_err_t THR_flea_ecdsa__raw_verify(
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &mpi_worksp_arr[1], &double_sized_field_elem, &n, &div_ctx)); // reduced u2
 
   // Q = 0 is detected by this function
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(&P, &mpi_worksp_arr[1], &G, &mpi_worksp_arr[0], &curve, FLEA_FALSE, NULL));
+# else
+
   FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(&P, &mpi_worksp_arr[1], &G, &mpi_worksp_arr[0], &curve, FLEA_FALSE));
+# endif
 
 
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &mpi_worksp_arr[1], &P.m_x, &n, &div_ctx));
@@ -262,10 +268,17 @@ flea_err_t THR_flea_ecdsa__raw_sign(
   flea_al_u16_t curve_word_arr_word_len, ecc_ws_mpi_arrs_word_len;
 # endif
 
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  flea_ctr_mode_prng_t delay_prng__t;
+# endif
+
   flea_mpi_div_ctx_t div_ctx;
   flea_al_u8_t i;
   FLEA_THR_BEG_FUNC();
 
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  flea_ctr_mode_prng_t__INIT(&delay_prng__t);
+# endif
 # ifdef FLEA_USE_HEAP_BUF
   enc_field_len  = dom_par__pt->p__ru8.len__dtl;
   enc_order_len  = dom_par__pt->n__ru8.len__dtl;
@@ -286,7 +299,10 @@ flea_err_t THR_flea_ecdsa__raw_sign(
   FLEA_ALLOC_BUF(n_arr, order_word_len);
   FLEA_ALLOC_BUF(curve_word_arr, curve_word_arr_word_len);
 
-
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(THR_flea_ctr_mode_prng_t__ctor(&delay_prng__t, message, message_len));
+  FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&delay_prng__t, priv_key_enc_arr, priv_key_enc_arr_len));
+# endif
   FLEA_CCALL(
     THR_flea_curve_gfp_t__init_dp_array(
       &curve,
@@ -341,7 +357,11 @@ flea_err_t THR_flea_ecdsa__raw_sign(
     } while(flea_mpi_t__is_zero(&k));
 
     // mul Q=k*G
-    FLEA_CCALL(THR_flea_point_gfp_t__mul(&G, &k, &curve, do_use_add_always__b));
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+    FLEA_CCALL(THR_flea_point_gfp_t__mul(&G, &k, &curve, do_use_add_always__b, &delay_prng__t));
+# else
+    FLEA_CCALL(THR_flea_point_gfp_t__mul(&G, &k, &curve, do_use_add_always__b);
+# endif
 
     FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &r, &G.m_x, &n, &div_ctx));
     if(flea_mpi_t__is_zero(&r))
@@ -407,6 +427,7 @@ flea_err_t THR_flea_ecdsa__raw_sign(
     FLEA_FREE_BUF_FINAL(G_arr);
     FLEA_FREE_BUF_SECRET_ARR(vn, FLEA_HEAP_OR_STACK_CODE(vn_len, FLEA_STACK_BUF_NB_ENTRIES(vn)));
     FLEA_FREE_BUF_SECRET_ARR(un, FLEA_HEAP_OR_STACK_CODE(un_len, FLEA_STACK_BUF_NB_ENTRIES(un)));
+    flea_ctr_mode_prng_t__dtor(&delay_prng__t);
   );
 } /* THR_flea_ecdsa__raw_sign */
 

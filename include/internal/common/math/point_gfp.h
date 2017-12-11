@@ -4,6 +4,7 @@
 #define _flea_point_gfp__H_
 
 #include "internal/common/math/curve_gfp.h"
+#include "flea/ctr_mode_prng.h"
 
 #ifdef FLEA_HAVE_ECC
 
@@ -110,7 +111,11 @@ flea_err_t THR_flea_point_gfp_t__mul(
   flea_point_gfp_t*       p_point_in_out,
   const flea_mpi_t*       p_scalar,
   const flea_curve_gfp_t* p_curve,
-  flea_bool_t             use_add_always__b
+  flea_bool_t use_add_always__b
+# ifdef                   FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  ,
+  flea_ctr_mode_prng_t*   delay_prng__t
+# endif
 );
 
 /**
@@ -122,7 +127,11 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(
   const flea_point_gfp_t* p_point_2,
   const flea_mpi_t*       p_scalar_2,
   const flea_curve_gfp_t* p_curve,
-  flea_bool_t             use_add_always__b
+  flea_bool_t use_add_always__b
+# ifdef                   FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  ,
+  flea_ctr_mode_prng_t*   delay_prng__t
+# endif
 );
 
 flea_err_t THR_flea_point_gfp_t__add(
