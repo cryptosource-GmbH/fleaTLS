@@ -13,8 +13,8 @@
 #include "flea/util.h"
 #include "flea/rng.h"
 #include "internal/common/rng_int.h"
+#include "internal/common/mask.h"
 #include <string.h>
-#include <stdio.h>
 
 #define FLEA_SET_HLF_UWORD(__dest, __idx, __val) \
   do { \
@@ -971,7 +971,8 @@ flea_err_t THR_flea_mpi_t__mod_exp_window(
     flea_al_u8_t j;
     flea_mpi_t* p_base_power;
     flea_al_u8_t exp_bit = 0;
-
+    flea_mpi_t* result_or_fake__pt, * base_or_fake__pt;
+    flea_bool_t do_mul__b;
     while(i < window_size && window_size > 1)
     {
       window_size--;
@@ -987,15 +988,13 @@ flea_err_t THR_flea_mpi_t__mod_exp_window(
 
     p_base_power = &precomp[exp_bit - 1];
 
-    if(exp_bit != 0)
+    result_or_fake__pt = flea_consttime__select_ptr_nz_z(p_result, p_workspace_double_plus_one_sized, exp_bit);
+    base_or_fake__pt   = flea_consttime__select_ptr_nz_z(p_base_power, &precomp[0], exp_bit);
+    do_mul__b = flea_consttime__select_u32_nz_z(1, mul_always_cm__b, exp_bit);
+    if(do_mul__b)
     {
-      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_base_power, &mm_ctx));
-      FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
-    }
-    else if(mul_always_cm__b)
-    {
-      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, &precomp[0], &mm_ctx));
-      FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_workspace_double_plus_one_sized, &precomp[0]));
+      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, base_or_fake__pt, &mm_ctx));
+      FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(result_or_fake__pt, p_workspace_double_plus_one_sized));
     }
 
     i -= window_size;
@@ -1081,7 +1080,10 @@ flea_err_t THR_flea_mpi_t__copy_no_realloc(
 )
 {
   FLEA_THR_BEG_FUNC();
-
+  if(p_target == p_source)
+  {
+    FLEA_THR_RETURN();
+  }
   if(p_target->m_nb_alloc_words < p_source->m_nb_used_words)
   {
     FLEA_THROW("mpi_t__copy_no_realloc: not enough space in destination", FLEA_ERR_INV_ARG);
