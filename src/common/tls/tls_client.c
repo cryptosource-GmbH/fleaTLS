@@ -20,8 +20,7 @@
 #include "flea/pk_api.h"
 #include "flea/pkcs8.h"
 
-#ifdef FLEA_HAVE_TLS
-# ifdef FLEA_HAVE_TLS_CLIENT
+#ifdef FLEA_HAVE_TLS_CLIENT
 
 static flea_err_t THR_flea_tls__read_server_hello(
   flea_tls_ctx_t*            tls_ctx,
@@ -177,7 +176,7 @@ static flea_err_t THR_flea_tls__read_server_hello(
   );
 } /* THR_flea_tls__read_server_hello */
 
-#  if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH
+# if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH
 static flea_err_t THR_flea_tls__read_server_kex(
   flea_tls_ctx_t*           tls_ctx__pt,
   flea_tls_handshake_ctx_t* hs_ctx__pt,
@@ -218,7 +217,7 @@ static flea_err_t THR_flea_tls__read_server_kex(
   kex_method__t    = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx__pt->selected_cipher_suite__u16);
   if(kex_method__t == FLEA_TLS_KEX_ECDHE)
   {
-#   ifdef FLEA_HAVE_TLS_ECDHE
+#  ifdef FLEA_HAVE_TLS_ECDHE
     FLEA_CCALL(
       THR_flea_rw_stream_t__read_byte(
         hs_rd_stream__pt,
@@ -350,9 +349,9 @@ static flea_err_t THR_flea_tls__read_server_kex(
         sig_to_vfy_len__u16
       )
     );
-#   else  /* ifdef FLEA_HAVE_TLS_ECDHE */
+#  else   /* ifdef FLEA_HAVE_TLS_ECDHE */
     FLEA_THROW("Invalid State, ECDHE not compiled", FLEA_ERR_TLS_INVALID_STATE);
-#   endif /* ifdef FLEA_HAVE_TLS_ECDHE */
+#  endif  /* ifdef FLEA_HAVE_TLS_ECDHE */
   }
   else
   {
@@ -369,7 +368,7 @@ static flea_err_t THR_flea_tls__read_server_kex(
   );
 } /* THR_flea_tls__read_server_kex */
 
-#  endif /* if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH */
+# endif  /* if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH */
 
 static flea_err_t THR_flea_tls__send_client_hello(
   flea_tls_ctx_t*               tls_ctx,
@@ -668,7 +667,7 @@ static flea_err_t THR_flea_tls__send_client_key_exchange_ecdhe(
   );
 } /* THR_flea_tls__send_client_key_exchange_ecdhe */
 
-#  ifdef FLEA_HAVE_TLS_RSA
+# ifdef FLEA_HAVE_TLS_RSA
 static flea_err_t THR_flea_tls__send_client_key_exchange_rsa(
   flea_tls_ctx_t*               tls_ctx,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
@@ -732,7 +731,7 @@ static flea_err_t THR_flea_tls__send_client_key_exchange_rsa(
   );
 } /* THR_flea_tls__send_client_key_exchange_rsa */
 
-#  endif /* ifdef FLEA_HAVE_TLS_RSA */
+# endif  /* ifdef FLEA_HAVE_TLS_RSA */
 
 // send_client_key_exchange
 static flea_err_t THR_flea_tls__send_client_key_exchange(
@@ -752,7 +751,7 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
   kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx__pt->selected_cipher_suite__u16);
   if(kex_method__t == FLEA_TLS_KEX_RSA)
   {
-#  ifdef FLEA_HAVE_TLS_RSA
+# ifdef FLEA_HAVE_TLS_RSA
     FLEA_CCALL(
       THR_flea_tls__send_client_key_exchange_rsa(
         tls_ctx__pt,
@@ -761,19 +760,19 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
         premaster_secret__pt
       )
     );
-#  else
+# else
     // should not happen if everything is properly configured
     FLEA_THROW("unsupported key exchange variant", FLEA_ERR_TLS_INVALID_STATE);
-#  endif /* ifdef FLEA_HAVE_TLS_RSA */
+# endif  /* ifdef FLEA_HAVE_TLS_RSA */
   }
   else if(kex_method__t == FLEA_TLS_KEX_ECDHE)
   {
-#  ifdef FLEA_HAVE_TLS_ECDHE
+# ifdef FLEA_HAVE_TLS_ECDHE
     FLEA_CCALL(THR_flea_tls__send_client_key_exchange_ecdhe(tls_ctx__pt, hs_ctx__pt, p_hash_ctx, premaster_secret__pt));
-#  else
+# else
     // should not happen if everything is properly configured
     FLEA_THROW("unsupported key exchange variant", FLEA_ERR_TLS_INVALID_STATE);
-#  endif
+# endif
   }
   else
   {
@@ -971,7 +970,7 @@ static flea_err_t THR_flea_client_handle_handsh_msg(
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE &&
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_KEY_EXCHANGE)
   {
-#  if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH
+# if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH
     FLEA_CCALL(
       THR_flea_tls__read_server_kex(
         tls_ctx,
@@ -983,9 +982,9 @@ static flea_err_t THR_flea_client_handle_handsh_msg(
     );
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
       | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
-#  else  /* if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH */
+# else   /* if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH */
     FLEA_THROW("Invalid State, ECDH(E) not compiled", FLEA_ERR_TLS_INVALID_STATE);
-#  endif /* if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH */
+# endif  /* if defined FLEA_HAVE_TLS_ECDHE || defined FLEA_HAVE_TLS_ECDH */
   }
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST &&
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_REQUEST)
@@ -1077,15 +1076,15 @@ flea_err_t THR_flea_tls__client_handshake(
   flea_tls__handshake_state_ctor(&handshake_state);
   flea_public_key_t__INIT(&peer_public_key__t);
   flea_tls_parallel_hash_ctx_t p_hash_ctx;
-#  ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_USE_HEAP_BUF
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
-#  else
+# else
   flea_u8_t premaster_secret__au8[FLEA_MAX(48, FLEA_ECC_MAX_ENCODED_POINT_LEN)];
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_NOT_ALLOCATABLE(
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
     );
-#  endif
+# endif
   flea_tls_parallel_hash_ctx_t__INIT(&p_hash_ctx);
 
   tls_ctx->extension_ctrl__u8 = 0;
@@ -1559,7 +1558,7 @@ flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
   );
 }
 
-#  ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+# ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
 flea_bool_t flea_tls_client_ctx_t__have_peer_ee_cert_ref(flea_tls_client_ctx_t* client_ctx__pt)
 {
   return client_ctx__pt->tls_ctx__t.peer_ee_cert_data__t.len__dtl != 0;
@@ -1574,9 +1573,9 @@ const flea_x509_cert_ref_t* flea_tls_client_ctx_t__get_peer_ee_cert_ref(flea_tls
   return NULL;
 }
 
-#  endif /* ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF */
+# endif  /* ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF */
 
-#  ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
+# ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 flea_bool_t flea_tls_client_ctx_t__have_peer_root_cert_ref(flea_tls_client_ctx_t* client_ctx__pt)
 {
   return client_ctx__pt->tls_ctx__t.peer_root_cert_set__u8;
@@ -1591,11 +1590,10 @@ const flea_x509_cert_ref_t* flea_tls_client_ctx_t__get_peer_root_cert_ref(flea_t
   return NULL;
 }
 
-#  endif /* ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF */
+# endif  /* ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF */
 void flea_tls_client_ctx_t__dtor(flea_tls_client_ctx_t* tls_client_ctx__pt)
 {
   flea_tls_ctx_t__dtor(&tls_client_ctx__pt->tls_ctx__t);
 }
 
-# endif /* ifdef FLEA_HAVE_TLS_CLIENT */
-#endif /* ifdef FLEA_HAVE_TLS */
+#endif  /* ifdef FLEA_HAVE_TLS_CLIENT */
