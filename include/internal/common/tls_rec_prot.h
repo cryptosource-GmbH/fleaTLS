@@ -102,6 +102,7 @@ struct struct_flea_tls_rec_prot_t
   flea_u16_t                   current_record_content_len__u16;
   flea_u8_t                    is_session_closed__u8;
   flea_u8_t                    is_current_record_alert__u8;
+  flea_u8_t                    pending_close_notify__u8;
 };
 
 #ifdef FLEA_USE_HEAP_BUF

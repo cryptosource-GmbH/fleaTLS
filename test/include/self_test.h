@@ -148,6 +148,8 @@ flea_err_t THR_flea_test_ctr_mode_1(void);
 flea_err_t THR_flea_test_ctr_mode_parts(void);
 flea_err_t THR_flea_test_ctr_mode_prng(void);
 
+flea_err_t THR_flea_test_feed_entropy(void);
+
 flea_err_t THR_flea_test_rsa_loop(unsigned loop_cnt);
 
 flea_err_t THR_flea_test_rsa_crt_mass_sig(flea_u32_t nb_iters);
@@ -156,42 +158,42 @@ flea_err_t THR_flea_test_dbg_canaries(void);
 
 flea_err_t THR_flea_test_crc16(void);
 
-flea_err_t THR_flea_test_mem_read_stream();
+flea_err_t THR_flea_test_mem_read_stream(void);
 
-flea_err_t THR_flea_test_ber_dec_basic();
+flea_err_t THR_flea_test_ber_dec_basic(void);
 
-flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy();
+flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy(void);
 
-flea_err_t THR_flea_test_dec_tls_server_cert_broken();
+flea_err_t THR_flea_test_dec_tls_server_cert_broken(void);
 
-flea_err_t THR_flea_test_dec_tls_server_cert();
+flea_err_t THR_flea_test_dec_tls_server_cert(void);
 
-flea_err_t THR_flea_test_dec_ca_cert();
+flea_err_t THR_flea_test_dec_ca_cert(void);
 
-flea_err_t THR_flea_test_dec_tls_server_issuer_cert();
+flea_err_t THR_flea_test_dec_tls_server_issuer_cert(void);
 
-flea_err_t THR_flea_test_cert_verify_rsa();
+flea_err_t THR_flea_test_cert_verify_rsa(void);
 
-flea_err_t THR_flea_test_cert_verify_ecdsa();
+flea_err_t THR_flea_test_cert_verify_ecdsa(void);
 
-flea_err_t THR_flea_test_fuzzed_certs();
+flea_err_t THR_flea_test_fuzzed_certs(void);
 
-flea_err_t THR_test_ecdsa_self_signed_certs_file_based();
+flea_err_t THR_test_ecdsa_self_signed_certs_file_based(void);
 
 /** for timings **/
 flea_err_t THR_flea_test_ecdsa_256bit_sign_loop(unsigned count);
 
-flea_err_t THR_flea_test_asn1_date();
+flea_err_t THR_flea_test_asn1_date(void);
 
-flea_err_t THR_flea_test_date_addition();
+flea_err_t THR_flea_test_date_addition(void);
 
-flea_err_t THR_flea_test_pkcs8();
+flea_err_t THR_flea_test_pkcs8(void);
 
-flea_err_t THR_flea_test_tls_cert_chain();
+flea_err_t THR_flea_test_tls_cert_chain(void);
 
-flea_err_t THR_flea_test_cert_chain_correct_chain_of_two();
+flea_err_t THR_flea_test_cert_chain_correct_chain_of_two(void);
 
-flea_err_t THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store();
+flea_err_t THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store(void);
 
 flea_err_t THR_flea_test_cert_path_generic(
   const flea_u8_t*      target_cert_ptr,
@@ -219,11 +221,11 @@ flea_err_t THR_flea_test_path_validation_file_based(
   // flea_bool_t verbose
 );
 
-flea_err_t THR_flea_test_gmt_time();
+flea_err_t THR_flea_test_gmt_time(void);
 
-flea_err_t THR_flea_tls_test_basic();
+flea_err_t THR_flea_tls_test_basic(void);
 
-flea_err_t THR_flea_test_parallel_hash();
+flea_err_t THR_flea_test_parallel_hash(void);
 
 int flea_unit_tests(
   flea_u32_t  nb_reps,

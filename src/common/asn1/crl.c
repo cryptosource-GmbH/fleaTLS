@@ -612,7 +612,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
 }
 
 flea_err_t THR_flea_crl__check_revocation_status(
-  const flea_byte_vec_t*   crl_der__cprcu8,
+  const flea_ref_cu8_t*    crl_der__cprcu8,
   flea_al_u16_t            nb_crls__alu16,
   const flea_gmt_time_t*   verification_date__pt,
   flea_bool_t              is_ca_cert__b,
@@ -633,7 +633,7 @@ flea_err_t THR_flea_crl__check_revocation_status(
   for(i = 0; i < nb_crls__alu16; i++)
   {
     THR_flea_crl__update_revocation_status_from_crl(
-      crl_der__cprcu8[i].data__pu8,
+      crl_der__cprcu8[i].data__pcu8,
       crl_der__cprcu8[i].len__dtl,
       verification_date__pt,
       is_ca_cert__b,

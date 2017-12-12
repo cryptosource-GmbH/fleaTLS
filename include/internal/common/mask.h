@@ -30,6 +30,11 @@ void* flea_consttime__select_ptr_nz_z(
 
 flea_u32_t flea_expand_u32_to_u32_mask(flea_u32_t in);
 
+flea_al_u8_t flea_consttime__x_greater_y(
+  flea_u32_t x,
+  flea_u32_t y
+);
+
 # ifdef __cplusplus
 }
 # endif

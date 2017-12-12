@@ -2,9 +2,9 @@
 
 #include "internal/common/default.h"
 #include "internal/common/mask.h"
-#include "pltf_support/mutex.h"
+#include <stdint.h>
 
-typedef long long unsigned flea_pszd_uint_t;
+typedef uintptr_t flea_pszd_uint_t;
 
 
 flea_u32_t flea_expand_u32_to_u32_mask(flea_u32_t in)
@@ -36,7 +36,7 @@ static flea_pszd_uint_t flea_expand_u32_to_ptr_szd_mask(flea_u32_t in)
     result |= result >> i;
   }
   result &= 1;
-  result  = ~(long long unsigned int /*flea_pszd_uint_t*/) (result - 1);
+  result  = ~(flea_pszd_uint_t) (result - 1);
   optimization_blocker__u32 = result;
   optimization_blocker__u32++;
   return result;
@@ -51,6 +51,14 @@ flea_u32_t flea_consttime__select_u32_nz_z(
   flea_u32_t mask = flea_expand_u32_to_u32_mask(condition);
 
   return ((select_if_zero & ~mask) | (select_if_nonzero & mask));
+}
+
+flea_al_u8_t flea_consttime__x_greater_y(
+  flea_u32_t x,
+  flea_u32_t y
+)
+{
+  return (~y & x) | ((~(y ^ x)) & (y - x));
 }
 
 void* flea_consttime__select_ptr_nz_z(

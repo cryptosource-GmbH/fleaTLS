@@ -17,14 +17,14 @@
 #include <fcntl.h>
 #include <memory>
 
-#include "pltf_support/tcpip_stream.h"
+#include "pc/tcpip_stream.h"
 #include "pc/test_util.h"
 #include "pc/linux_util.h"
 #include "flea/tls.h"
 #include "flea/tls_server.h"
 #include "pc/test_pc.h"
 #include "pc/file_based_rw_stream.h"
-#include "pltf_support/tcpip_stream.h"
+#include "pc/tcpip_stream.h"
 #include "tls_server_certs.h"
 #include "flea/array_util.h"
 #include "flea/alloc.h"
@@ -201,30 +201,31 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
       serv_par__pt->cert_chain__pcu8,
       serv_par__pt->cert_chain_len__alu16,
       serv_par__pt->cert_store__pt,
-      serv_par__pt->cipher_suites_ref__prcu16,
+      serv_par__pt->allowed_cipher_suites__pe,
+      serv_par__pt->nb_allowed_cipher_suites__alu16,
       serv_par__pt->crl_der__pt,
       serv_par__pt->nb_crls__u16,
       serv_par__pt->sess_mngr__pt,
-      serv_par__pt->allowed_ecc_curves__prcu8,
-      serv_par__pt->allowed_sig_algs__prcu8,
-      serv_par__pt->flags__u16 | FLEA_TLS_CFG_FLAG__SHA1_CERT_SIGALG__ALLOW
+      serv_par__pt->allowed_ecc_curves__pe,
+      serv_par__pt->allowed_ecc_curves_len__alu16,
+      serv_par__pt->allowed_sig_algs__pe,
+      serv_par__pt->nb_allowed_sig_algs__alu16,
+      (flea_tls_flag_e) (serv_par__pt->flags__u32 | ((flea_u32_t) flea_tls_flag__sha1_cert_sigalg__allow))
     )
   );
-  // std::cout << "handshake done" << std::endl;
   serv_par__pt->write_output_string("handshake done\n");
   flea_tls_test_tool_print_peer_cert_info(nullptr, &tls_ctx, serv_par__pt);
-  // std::flush(std::cout);
-  // FLEA_CCALL(THR_check_keyb_input());
   FLEA_CCALL(THR_check_user_abort(serv_par__pt));
   for(size_t i = 0; i < serv_par__pt->nb_renegs_to_exec; i++)
   {
     flea_bool_t reneg_done__b;
 
-    /*flea_al_u16_t buf_len = sizeof(buf) - 1;
-     * flea_err_t retval     = THR_flea_tls_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_nonblocking);
-     * printf("reading app data prior to renegotiation returned: %04x\n", retval);*/
-    // std::cout << "renegotiation ...";
-    serv_par__pt->write_output_string("renegotiation ...\n");
+    int reneg_allowed = flea_tls_server_ctx_t__is_reneg_allowed(&tls_ctx);
+    serv_par__pt->write_output_string(
+      "renegotiation exptected to be successfull = " + std::to_string(
+        reneg_allowed
+      ) + " ...\n"
+    );
     FLEA_CCALL(
       THR_flea_tls_server_ctx_t__renegotiate(
         &tls_ctx,
@@ -232,7 +233,8 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
         serv_par__pt->cert_store__pt,
         serv_par__pt->cert_chain__pcu8,
         serv_par__pt->cert_chain_len__alu16,
-        serv_par__pt->cipher_suites_ref__prcu16,
+        serv_par__pt->allowed_cipher_suites__pe,
+        serv_par__pt->nb_allowed_cipher_suites__alu16,
         serv_par__pt->crl_der__pt,
         serv_par__pt->nb_crls__u16
       )
@@ -245,21 +247,16 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
     {
       serv_par__pt->write_output_string("... was rejected\n");
     }
-    // std::cout << "" << std::endl;
   }
 
-  /*if(!is_https_server)
-   * {*/
   while(1)
   {
-    // flea_al_u16_t buf_len         = sizeof(buf) - 1;
     flea_dtl_t buf_len = serv_par__pt->read_app_data_size >
       sizeof(buf) ? sizeof(buf) : serv_par__pt->read_app_data_size;
     if(buf_len == sizeof(buf))
     {
       buf_len -= 1;
     }
-    // FLEA_CCALL(THR_check_keyb_input());
     FLEA_CCALL(THR_check_user_abort(serv_par__pt));
     flea_err_t retval = THR_flea_tls_server_ctx_t__read_app_data(
       &tls_ctx,
@@ -283,11 +280,8 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
       serv_par__pt->write_output_string("received error code from read_app_data: " + num_to_string_hex(retval) + "\n");
       FLEA_THROW("rethrowing error from read_app_data", retval);
     }
-    // FLEA_CCALL(THR_check_keyb_input());
     FLEA_CCALL(THR_check_user_abort(serv_par__pt));
     buf[buf_len] = 0;
-    // serv_par__pt->write_output_string("received data len = " + num_to_string(buf_len) + "\n");
-    // serv_par__pt->write_output_string("read_app_data returned\n");
     FLEA_CCALL(THR_flea_tls_server_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
     FLEA_CCALL(THR_flea_tls_server_ctx_t__flush_write_app_data(&tls_ctx));
     usleep(10 * 1000);
@@ -321,14 +315,14 @@ static void* flea_tls_server_thread(void* sv__pv)
 static flea_err_t THR_server_cycle(
   property_set_t const     & cmdl_args,
   int                      listen_fd,
-  // bool                     is_https_server,
   flea_tls_session_mngr_t* sess_man__pt,
   std::string const        & dir_for_file_based_input
 )
 {
-  flea_ref_cu8_t allowed_ecc_curves__rcu8;
-  flea_ref_cu8_t allowed_sig_algs__rcu8;
-  flea_ref_cu16_t cipher_suites_ref;
+  flea_ec_dom_par_id_t* allowed_ecc_curves__pe;
+  flea_al_u16_t allowed_ecc_curves_len__alu16;
+  flea_tls_sigalg_e* allowed_sig_algs__pe;
+  flea_al_u16_t nb_allowed_sig_algs__alu16;
 
   flea_cert_store_t trust_store__t;
 
@@ -346,7 +340,6 @@ static flea_err_t THR_server_cycle(
   flea_tls_shared_server_ctx_t__INIT(&shrd_server_ctx__t);
 
   bool stay = cmdl_args.have_index("stay");
-  // flea_u8_t * dbg_leak = (flea_u8_t* )malloc(1);
 
   const unsigned thr_max = cmdl_args.get_property_as_u32_default("threads", 1);
   listen(listen_fd, thr_max);
@@ -375,40 +368,36 @@ static flea_err_t THR_server_cycle(
     throw test_utils_exceptn_t("missing own certificate for tls server");
   }
 
-  cipher_suites_ref.data__pcu16 = &tls_cfg.cipher_suites[0];
-  cipher_suites_ref.len__dtl    = tls_cfg.cipher_suites.size();
+  allowed_ecc_curves__pe        = &tls_cfg.allowed_curves[0];
+  allowed_ecc_curves_len__alu16 = tls_cfg.allowed_curves.size();
 
-  allowed_ecc_curves__rcu8.data__pcu8 = &tls_cfg.allowed_curves[0];
-  allowed_ecc_curves__rcu8.len__dtl   = tls_cfg.allowed_curves.size();
+  allowed_sig_algs__pe       = &tls_cfg.allowed_sig_algs[0];
+  nb_allowed_sig_algs__alu16 = tls_cfg.allowed_sig_algs.size();
 
-  allowed_sig_algs__rcu8.data__pcu8 = &tls_cfg.allowed_sig_algs[0];
-  allowed_sig_algs__rcu8.len__dtl   = tls_cfg.allowed_sig_algs.size();
-
-  // server_params_t serv_par__t;
 
   while(1)
   {
     if((serv_pars.size() < thr_max) && !stop && create_new_threads)
     {
-      int sock_fd;
+      int sock_fd = -1;
       unsigned read_timeout_ms = cmdl_args.get_property_as_u32_default("read_timeout", 1000);
 
-      /*if(0 <= ((sock_fd = unix_tcpip_listen_accept(listen_fd, read_timeout_ms))))
-      {*/
       std::cout << "creating threads: max = " << thr_max << ", running currently = " << serv_pars.size() << std::endl;
       server_params_t serv_par__t;
-      serv_par__t.shrd_ctx__pt              = &shrd_server_ctx__t;
-      serv_par__t.cert_chain__pcu8          = cert_chain;
-      serv_par__t.cert_chain_len__alu16     = cert_chain_len;
-      serv_par__t.cert_store__pt            = &trust_store__t;
-      serv_par__t.cipher_suites_ref__prcu16 = &cipher_suites_ref;
+      serv_par__t.shrd_ctx__pt                    = &shrd_server_ctx__t;
+      serv_par__t.cert_chain__pcu8                = cert_chain;
+      serv_par__t.cert_chain_len__alu16           = cert_chain_len;
+      serv_par__t.cert_store__pt                  = &trust_store__t;
+      serv_par__t.allowed_cipher_suites__pe       = &tls_cfg.cipher_suites[0];
+      serv_par__t.nb_allowed_cipher_suites__alu16 = tls_cfg.cipher_suites.size();
       serv_par__t.crl_der__pt   = &tls_cfg.crls_refs[0];
       serv_par__t.nb_crls__u16  = tls_cfg.crls.size();
       serv_par__t.sess_mngr__pt = sess_man__pt;
-      serv_par__t.allowed_ecc_curves__prcu8 = &allowed_ecc_curves__rcu8;
-      serv_par__t.allowed_sig_algs__prcu8   = &allowed_sig_algs__rcu8;
-      serv_par__t.flags__u16 = tls_cfg.flags;
-      // serv_par__t.listen_fd         = listen_fd;
+      serv_par__t.allowed_ecc_curves__pe        = allowed_ecc_curves__pe;
+      serv_par__t.allowed_ecc_curves_len__alu16 = allowed_ecc_curves_len__alu16;
+      serv_par__t.allowed_sig_algs__pe       = allowed_sig_algs__pe;
+      serv_par__t.nb_allowed_sig_algs__alu16 = nb_allowed_sig_algs__alu16;
+      serv_par__t.flags__u32         = tls_cfg.flags;
       serv_par__t.read_timeout       = read_timeout_ms;
       serv_par__t.nb_renegs_to_exec  = cmdl_args.get_property_as_u32_default("do_renegs", 0);
       serv_par__t.rd_mode__e         = tls_cfg.read_mode_for_app_data;
@@ -416,49 +405,46 @@ static flea_err_t THR_server_cycle(
       serv_par__t.abort__b        = FLEA_FALSE;
       serv_par__t.server_error__e = FLEA_ERR_FINE;
       serv_par__t.finished__b     = FLEA_FALSE;
+
       if(dir_for_file_based_input == "")
       {
-        if((0 <= ((sock_fd = unix_tcpip_listen_accept(listen_fd, read_timeout_ms)))))
+        sock_fd = unix_tcpip_listen_accept(listen_fd, read_timeout_ms);
+      }
+      if((dir_for_file_based_input != "") || (0 <= sock_fd))
+      {
+        serv_par__t.sock_fd = sock_fd;
+        serv_par__t.dir_for_file_based_input = dir_for_file_based_input;
+
+        serv_par__t.filename_to_be_rpld_by_stdin = cmdl_args.get_property_as_string_default_empty("path_rpl_stdin");
+
+        if(cmdl_args.have_index("no_session_manager"))
         {
-          serv_par__t.sock_fd = sock_fd;
-
-          serv_par__t.dir_for_file_based_input = dir_for_file_based_input;
-
-          serv_par__t.filename_to_be_rpld_by_stdin = cmdl_args.get_property_as_string_default_empty("path_rpl_stdin");
-
-          if(cmdl_args.have_index("no_session_manager"))
-          {
-            serv_par__t.sess_mngr__pt = NULL;
-          }
-
-
-          serv_pars.push_back(std::unique_ptr<server_params_t>(new server_params_t(serv_par__t)));
-          server_params_t* new_par__pt = serv_pars[serv_pars.size() - 1].get();
-          pthread_mutex_init(&new_par__pt->mutex, NULL);
-          if(pthread_create(&new_par__pt->thread, NULL, &flea_tls_server_thread, (void*) new_par__pt))
-          {
-            FLEA_THROW("error creating server thread", FLEA_ERR_FAILED_TEST);
-          }
-          if(!stay)
-          {
-            create_new_threads = false;
-          }
+          serv_par__t.sess_mngr__pt = NULL;
         }
-        else
+
+
+        serv_pars.push_back(std::unique_ptr<server_params_t>(new server_params_t(serv_par__t)));
+        server_params_t* new_par__pt = serv_pars[serv_pars.size() - 1].get();
+        pthread_mutex_init(&new_par__pt->mutex, NULL);
+        if(pthread_create(&new_par__pt->thread, NULL, &flea_tls_server_thread, (void*) new_par__pt))
         {
-          // std::cout << "flea server continuing after failed listen/accept\n";
-          std::cout << "flea server: failed listen/accept\n";
-          // continue;
+          FLEA_THROW("error creating server thread", FLEA_ERR_FAILED_TEST);
+        }
+        if(!stay)
+        {
+          create_new_threads = false;
         }
       }
-      // }
+      else
+      {
+        std::cout << "flea server: failed listen/accept\n";
+      }
     }
     if((stop || !create_new_threads) && !serv_pars.size())
     {
       /* all threads are finished */
       break;
     }
-    // pthread_t server_thread;
     bool completed = false;
     while(!completed)
     {
@@ -475,10 +461,9 @@ static flea_err_t THR_server_cycle(
           std::cout << serv_par__t.string_to_print << "\n";
           serv_par__t.string_to_print = "";
         }
-        // bool abort = serv_par__t.abort__b != 0;
         bool finished = serv_par__t.finished__b != 0;
         CHECK_PTHREAD_ERR(pthread_mutex_unlock(&serv_par__t.mutex));
-        if(finished /*|| abort*/)
+        if(finished)
         {
           pthread_join(serv_par__t.thread, NULL);
           pthread_mutex_destroy(&serv_par__t.mutex);

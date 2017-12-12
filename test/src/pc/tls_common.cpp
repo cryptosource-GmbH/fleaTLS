@@ -20,28 +20,23 @@ using namespace std;
  * flea_u16_t  value;
  * } ;*/
 
-std::map<string, flea_u16_t> cipher_suite_name_value_map__t = {
-  {"TLS_RSA_WITH_NULL_MD5",                 0x0001},
-  {"TLS_RSA_WITH_NULL_SHA",                 0x0002},
-  {"TLS_RSA_WITH_NULL_SHA256",              0x003B},
-  {"TLS_RSA_WITH_RC4_128_MD5",              0x0004},
-  {"TLS_RSA_WITH_RC4_128_SHA",              0x0005},
-  {"TLS_RSA_WITH_3DES_EDE_CBC_SHA",         0x000A},
-  {"TLS_RSA_WITH_AES_128_CBC_SHA",          0x002F},
-  {"TLS_RSA_WITH_AES_256_CBC_SHA",          0x0035},
-  {"TLS_RSA_WITH_AES_128_CBC_SHA256",       0x003C},
-  {"TLS_RSA_WITH_AES_256_CBC_SHA256",       0x003D},
-  {"TLS_RSA_WITH_AES_128_GCM_SHA256",       0x009C},
-  {"TLS_RSA_WITH_AES_256_GCM_SHA384",       0x009D},
-  {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",    0xC013},
-  {"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",    0xC014},
-  {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256", 0xC027},
-  {"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384", 0xC028},
-  {"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", 0xC02F},
-  {"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", 0xC030}
+std::map<string, flea_tls__cipher_suite_id_t> cipher_suite_name_value_map__t = {
+  {"TLS_RSA_WITH_NULL_SHA256",              flea_tls_rsa_with_null_sha256             },
+  {"TLS_RSA_WITH_AES_128_CBC_SHA",          flea_tls_rsa_with_aes_128_cbc_sha         },
+  {"TLS_RSA_WITH_AES_256_CBC_SHA",          flea_tls_rsa_with_aes_256_cbc_sha         },
+  {"TLS_RSA_WITH_AES_128_CBC_SHA256",       flea_tls_rsa_with_aes_128_cbc_sha256      },
+  {"TLS_RSA_WITH_AES_256_CBC_SHA256",       flea_tls_rsa_with_aes_256_cbc_sha256      },
+  {"TLS_RSA_WITH_AES_128_GCM_SHA256",       flea_tls_rsa_with_aes_128_gcm_sha256      },
+  {"TLS_RSA_WITH_AES_256_GCM_SHA384",       flea_tls_rsa_with_aes_256_gcm_sha384      },
+  {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",    flea_tls_ecdhe_rsa_with_aes_128_cbc_sha   },
+  {"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",    flea_tls_ecdhe_rsa_with_aes_256_cbc_sha   },
+  {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256", flea_tls_ecdhe_rsa_with_aes_128_cbc_sha256},
+  {"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384", flea_tls_ecdhe_rsa_with_aes_256_cbc_sha384},
+  {"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", flea_tls_ecdhe_rsa_with_aes_128_gcm_sha256},
+  {"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384}
 };
 
-std::map<string, flea_u8_t> curve_id_name_value_map__t = {
+std::map<string, flea_ec_dom_par_id_t> curve_id_name_value_map__t = {
   {"secp160r1",       flea_secp160r1      },
   {"secp160r2",       flea_secp160r2      },
   {"secp192r1",       flea_secp192r1      },
@@ -67,11 +62,11 @@ std::map<string, flea_u8_t> hash_algs_map__t = {
 };
 
 namespace {
-  std::vector<flea_u8_t> get_allowed_ecc_curves_from_cmdl(property_set_t const& cmdl_args)
+  std::vector<flea_ec_dom_par_id_t> get_allowed_ecc_curves_from_cmdl(property_set_t const& cmdl_args)
   {
     flea_u8_t dummy[2];
 
-    std::vector<flea_u8_t> result;
+    std::vector<flea_ec_dom_par_id_t> result;
     if(cmdl_args.have_index("allowed_curves"))
     {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("allowed_curves"), ',');
@@ -91,7 +86,7 @@ namespace {
     {
       for(auto & entry : curve_id_name_value_map__t)
       {
-        flea_u8_t id = entry.second;
+        flea_ec_dom_par_id_t id = entry.second;
         // const flea_tls__cipher_suite_t* ptr;
         if(!THR_flea_tls__map_flea_curve_to_curve_bytes((flea_ec_dom_par_id_t) id, dummy))
         {
@@ -103,16 +98,17 @@ namespace {
     return result;
   } // get_allowed_ecc_curves_from_cmdl
 
-  std::vector<flea_u8_t> get_allowed_sig_algs_from_cmdl(property_set_t const& cmdl_args)
+  std::vector<flea_tls_sigalg_e> get_allowed_sig_algs_from_cmdl(property_set_t const& cmdl_args)
   {
     flea_u8_t dummy;
 
-    std::vector<flea_u8_t> result;
+    std::vector<flea_tls_sigalg_e> result;
     if(cmdl_args.have_index("allowed_sig_algs"))
     {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("allowed_sig_algs"), ',');
       for(string s : strings)
       {
+        flea_tls_sigalg_e sig_alg;
         std::vector<string> alg_pair = tokenize_string(s, '-');
         auto it  = hash_algs_map__t.find(alg_pair[0]);
         auto it2 = sig_algs_map__t.find(alg_pair[1]);
@@ -123,8 +119,8 @@ namespace {
                   "specified hash algorithm '" + alg_pair[0] + "' (in '" + s + "')" + " not configured"
           );
         }
-        result.push_back(it->second);
-
+        // result.push_back(it->second);
+        sig_alg = (flea_tls_sigalg_e) (it->second << 8);
         if(it2 == sig_algs_map__t.end() ||
           THR_flea_tls__map_flea_sig_to_tls_sig((flea_pk_scheme_id_t) it2->second, &dummy))
         {
@@ -132,7 +128,8 @@ namespace {
                   "specified sig algorithm '" + alg_pair[1] + "' (in '" + s + "')" + " not configured"
           );
         }
-        result.push_back(it2->second);
+        sig_alg = (flea_tls_sigalg_e) (((flea_u32_t) sig_alg) | it2->second);
+        result.push_back(sig_alg);
       }
     }
     else
@@ -143,18 +140,18 @@ namespace {
       // for compatibility reasons with other tests, for now add SHA1-RSA,
       // SHA256-RSA
 
-      result.push_back((flea_u8_t) flea_sha256);
-      result.push_back((flea_u8_t) flea_rsa_pkcs1_v1_5_sign);
+      // result.push_back(((flea_u8_t) flea_sha256 << 8) | ((flea_u8_t) flea_rsa_pkcs1_v1_5_sign));
+      result.push_back(flea_tls_sigalg_rsa_sha256);
 
-      result.push_back((flea_u8_t) flea_sha1);
-      result.push_back((flea_u8_t) flea_rsa_pkcs1_v1_5_sign);
+      // result.push_back(((flea_u8_t) flea_sha1 << 8) | ((flea_u8_t) flea_rsa_pkcs1_v1_5_sign));
+      result.push_back(flea_tls_sigalg_rsa_sha1);
     }
     return result;
   } // get_allowed_sig_algs_from_cmdl
 
-  std::vector<flea_u16_t> get_cipher_suites_from_cmdl(property_set_t const& cmdl_args)
+  std::vector<flea_tls__cipher_suite_id_t> get_cipher_suites_from_cmdl(property_set_t const& cmdl_args)
   {
-    std::vector<flea_u16_t> result;
+    std::vector<flea_tls__cipher_suite_id_t> result;
     if(cmdl_args.have_index("cipher_suites"))
     {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("cipher_suites"), ',');
@@ -174,9 +171,9 @@ namespace {
     {
       for(auto & entry : cipher_suite_name_value_map__t)
       {
-        flea_u16_t id = entry.second;
+        flea_tls__cipher_suite_id_t id = entry.second;
         const flea_tls__cipher_suite_t* ptr;
-        if(!THR_flea_tls_get_cipher_suite_by_id(static_cast<flea_tls__cipher_suite_id_t>(id), &ptr))
+        if(!THR_flea_tls_get_cipher_suite_by_id(id, &ptr))
         {
           result.push_back(id);
         }
@@ -189,7 +186,7 @@ namespace {
     return result;
   } // get_cipher_suites_from_cmdl
 
-  static flea_u16_t string_to_rev_chk_flags(std::string const& s)
+  static flea_u32_t string_to_rev_chk_flags(std::string const& s)
   {
     if(s == "all")
     {
@@ -197,11 +194,11 @@ namespace {
     }
     else if((s == "") || (s == "none"))
     {
-      return FLEA_TLS_CFG_FLAG__REV_CHK_MODE__CHECK_NONE;
+      return flea_tls_flag__rev_chk_mode__check_none;
     }
     else if(s == "only_ee")
     {
-      return FLEA_TLS_CFG_FLAG__REV_CHK_MODE__CHECK_ONLY_EE;
+      return flea_tls_flag__rev_chk_mode__check_only_ee;
     }
     throw test_utils_exceptn_t("invalid value for property 'rev_chk': '" + s + "'");
   }
@@ -215,7 +212,7 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   tls_test_cfg_t      & cfg
 )
 {
-  cfg.flags = 0;
+  cfg.flags = (flea_tls_flag_e) 0;
 
 
   std::string read_mode_s = cmdl_args.get_property_as_string_default_empty("app_data_read_mode");
@@ -259,10 +256,13 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   cfg.crls   = cmdl_args.get_bin_file_list_property("crls");
   for(auto &crl : cfg.crls)
   {
-    flea_byte_vec_t bv;// = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE ;
+    /*flea_byte_vec_t bv;// = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE ;
     flea_byte_vec_t__INIT(&bv);
-    flea_byte_vec_t__set_ref(&bv, &crl[0], crl.size());
-    cfg.crls_refs.push_back(bv);
+    flea_byte_vec_t__set_ref(&bv, &crl[0], crl.size());*/
+    flea_ref_cu8_t ref;
+    ref.data__pcu8 = &crl[0];
+    ref.len__dtl   = crl.size();
+    cfg.crls_refs.push_back(ref);
   }
 
   cfg.cipher_suites    = get_cipher_suites_from_cmdl(cmdl_args);

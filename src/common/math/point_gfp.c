@@ -5,12 +5,15 @@
 #include "internal/common/math/mpi.h"
 #include "flea/error_handling.h"
 #include "internal/common/math/point_gfp.h"
+#include "internal/common/mask.h"
 #include  "flea/alloc.h"
 #include  "flea/array_util.h"
 #include "flea/util.h"
 #include "flea/algo_config.h"
 #include <string.h>
 #include "internal/common/ecc_int.h"
+#include "internal/common/rng_int.h"
+#include "flea/ctr_mode_prng.h"
 
 #ifdef FLEA_HAVE_ECC
 
@@ -45,7 +48,11 @@ static flea_err_t THR_flea_point_gfp_t__verify_cofactor(
 
   FLEA_CCALL(THR_flea_point_gfp_t__init_copy(&point__t, point__pt, G_arr, G_arr_word_len));
   /* check that hP != 0, called mul function throws if result = O*/
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&point__t, cofactor__pt, curve__pct, FLEA_FALSE, NULL));
+# else
   FLEA_CCALL(THR_flea_point_gfp_t__mul(&point__t, cofactor__pt, curve__pct, FLEA_FALSE));
+# endif
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(G_arr);
   );
@@ -541,11 +548,29 @@ flea_err_t THR_flea_point_gfp_t__mul(
   flea_point_gfp_t*       p_point_in_out,
   const flea_mpi_t*       p_scalar,
   const flea_curve_gfp_t* p_curve,
-  flea_bool_t             use_add_always__b
+  flea_bool_t use_add_always__b
+# ifdef                   FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  ,
+  flea_ctr_mode_prng_t*   delay_prng__pt
+# endif
 )
 {
   FLEA_THR_BEG_FUNC();
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(
+    THR_flea_point_gfp_t__mul_multi(
+      p_point_in_out,
+      p_scalar,
+      NULL,
+      NULL,
+      p_curve,
+      use_add_always__b,
+      delay_prng__pt
+    )
+  );
+# else  /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
   FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(p_point_in_out, p_scalar, NULL, NULL, p_curve, use_add_always__b));
+# endif /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -555,7 +580,11 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(
   const flea_point_gfp_t* p_point_2,
   const flea_mpi_t*       p_scalar_2,
   const flea_curve_gfp_t* p_curve,
-  flea_bool_t             use_add_always__b
+  flea_bool_t use_add_always__b
+# ifdef                   FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  ,
+  flea_ctr_mode_prng_t*   delay_prng_mbn__pt
+# endif
 )
 {
   flea_point_jac_proj_t p2, p3;
@@ -894,16 +923,59 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(
   {
     flea_u8_t exp_bit1;
     flea_al_u8_t j;
+    flea_point_jac_proj_t* p2_or_fake_iter__pt = &p2;
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+    flea_al_u8_t fix_up_i__is_fake_iter__alu8 = 0;
+    flea_u8_t rnd_bytes__au8[3];
+# endif
+# ifdef FLEA_USE_PUBKEY_USE_RAND_DELAY
+    flea_u8_t real_rnd_bytes__au8[2];
+# endif
+# if defined FLEA_USE_PUBKEY_INPUT_BASED_DELAY || defined FLEA_USE_PUBKEY_USE_RAND_DELAY
+    flea_al_u16_t delay_iters__alu16 = 0;
+# endif
 
     while(i < window_size)
     {
       window_size--;
     }
+
+# ifdef FLEA_USE_PUBKEY_USE_RAND_DELAY
+    FLEA_CCALL(THR_flea_rng__randomize_no_flush(&real_rnd_bytes__au8[0], sizeof(real_rnd_bytes__au8)));
+    delay_iters__alu16 += (real_rnd_bytes__au8[0] | (real_rnd_bytes__au8[1] << 2));
+# endif
+
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+    if(delay_prng_mbn__pt)
+    {
+      flea_ctr_mode_prng_t__randomize_no_flush(delay_prng_mbn__pt, rnd_bytes__au8, sizeof(rnd_bytes__au8));
+      if(!p_scalar_2)
+      {
+        flea_al_u8_t cond__alu8 = rnd_bytes__au8[0] & 0xF;
+#  ifdef FLEA_USE_PUBKEY_USE_RAND_DELAY
+        flea_al_u8_t cond2__alu8 = real_rnd_bytes__au8[0] & 0xF;
+        /* additional random delays */
+        cond__alu8 = ~((~cond__alu8) & (~cond2__alu8));
+#  endif
+        fix_up_i__is_fake_iter__alu8 = flea_consttime__select_u32_nz_z(0, window_size, cond__alu8);
+      }
+      p2_or_fake_iter__pt = (flea_point_jac_proj_t*) flea_consttime__select_ptr_nz_z(
+        &p3,
+        &p2,
+        fix_up_i__is_fake_iter__alu8
+        );
+      delay_iters__alu16 += (rnd_bytes__au8[1]) | (rnd_bytes__au8[2] << 3);
+    }
+# endif /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
+
+# if defined FLEA_USE_PUBKEY_INPUT_BASED_DELAY || defined FLEA_USE_PUBKEY_USE_RAND_DELAY
+    flea_waste_cycles(delay_iters__alu16);
+# endif
     for(j = 0; j < window_size; j++)
     {
       FLEA_CCALL(
         THR_flea_point_jac_proj_t__double(
-          &p2,
+          p2_or_fake_iter__pt,
           &aR_mod_p,
           &bR_mod_p,
           &mm_ctx,
@@ -937,27 +1009,24 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(
     else
     {
       // single-mul
+      flea_bool_t do_mul__b;
+      flea_point_jac_proj_t* p2_or_fake__pt, * precomp_or_fake__pt;
 
-      if(exp_bit1)
-      {
-        FLEA_CCALL(
-          THR_flea_point_jac_proj_t__add(
-            &p2,
-            &precomp_points[exp_bit1],
-            &aR_mod_p,
-            &bR_mod_p,
-            &mm_ctx,
-            mpi_worksp_arr_double_mod_size,
-            &montg_const_sq_mod_p
-          )
+
+      p2_or_fake__pt =
+        (flea_point_jac_proj_t*) flea_consttime__select_ptr_nz_z(p2_or_fake_iter__pt, &p3, exp_bit1);
+      precomp_or_fake__pt = (flea_point_jac_proj_t*) flea_consttime__select_ptr_nz_z(
+        &precomp_points[exp_bit1],
+        &precomp_points[exp_bit1 + 1],
+        exp_bit1
         );
-      }
-      else if(use_add_always__b)
+      do_mul__b = flea_consttime__select_u32_nz_z(1, use_add_always__b, exp_bit1);
+      if(do_mul__b)
       {
         FLEA_CCALL(
           THR_flea_point_jac_proj_t__add(
-            &p3,
-            &precomp_points[exp_bit1 + 1],
+            p2_or_fake__pt,
+            precomp_or_fake__pt,
             &aR_mod_p,
             &bR_mod_p,
             &mm_ctx,
@@ -968,6 +1037,9 @@ flea_err_t THR_flea_point_gfp_t__mul_multi(
       }
     }
     i -= window_size;
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+    i += fix_up_i__is_fake_iter__alu8;
+# endif
   }
 
   FLEA_CCALL(

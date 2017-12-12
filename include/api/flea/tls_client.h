@@ -23,28 +23,27 @@ struct struct_flea_tls_client_ctx_t
 };
 
 
-#ifdef FLEA_HAVE_TLS_CLIENT
-
-# define flea_tls_ctx_t__INIT(__p)        do {memset((__p), 0, sizeof(*(__p)));} while(0)
-# define flea_tls_client_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
+#define flea_tls_client_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
 
 flea_err_t THR_flea_tls_client_ctx_t__ctor(
-  flea_tls_client_ctx_t*     tls_ctx,
-  const flea_cert_store_t*   trust_store,
-  const flea_ref_cu8_t*      server_name,
-  flea_host_id_type_e        host_name_id,
-  flea_rw_stream_t*          rw_stream,
-  flea_ref_cu8_t*            cert_chain_mbn,
-  flea_al_u8_t               cert_chain_len,
-  flea_private_key_t*        private_key_mbn,
-  const flea_ref_cu16_t*     allowed_cipher_suites,
-  // TODO: TURN INTO REF_CU8
-  const flea_byte_vec_t*     crl_der,
-  flea_al_u16_t              nb_crls,
-  flea_tls_client_session_t* session_mbn,
-  flea_ref_cu8_t*            allowed_ecc_curves_ref,
-  flea_ref_cu8_t*            allowed_sig_algs_ref,
-  flea_al_u16_t              flags
+  flea_tls_client_ctx_t*             tls_ctx,
+  const flea_cert_store_t*           trust_store,
+  const flea_ref_cu8_t*              server_name,
+  flea_host_id_type_e                host_name_id,
+  flea_rw_stream_t*                  rw_stream,
+  flea_ref_cu8_t*                    cert_chain_mbn,
+  flea_al_u8_t                       cert_chain_len,
+  flea_private_key_t*                private_key_mbn,
+  const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
+  const flea_ref_cu8_t*              crl_der,
+  flea_al_u16_t                      nb_crls,
+  flea_tls_client_session_t*         session_mbn,
+  flea_ec_dom_par_id_t*              allowed_ecc_curves__pe,
+  flea_al_u16_t                      nb_allowed_curves__alu16,
+  flea_tls_sigalg_e*                 allowed_sig_algs,
+  flea_al_u16_t                      nb_allowed_sig_algs,
+  flea_al_u16_t                      flags
 );
 
 
@@ -66,7 +65,16 @@ flea_err_t THR_flea_tls_client_ctx_t__send_app_data(
 flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t* tls_ctx);
 
 
-// TODO: ADD FUNCTION TO TEST WHETHER RENEG IS ALLOWED
+/**
+ * Test whether a tls client ctx is qualified for carrying out a
+ * renegotiation.
+ *
+ * @param tls_client_ctx__pt pointer to the client ctx object
+ *
+ * @return FLEA_TRUE if a renegotiation may be carried out, FLEA_FALSE
+ * otherwise.
+ */
+flea_bool_t flea_tls_client_ctx_t__is_reneg_allowed(flea_tls_client_ctx_t* tls_client_ctx__pt);
 
 /**
  *
@@ -79,17 +87,18 @@ flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t
  *
  */
 flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
-  flea_tls_client_ctx_t*   tls_ctx,
-  flea_bool_t*             result,
-  const flea_cert_store_t* trust_store,
-  flea_ref_cu8_t*          cert_chain,
-  flea_al_u8_t             cert_chain_len,
-  const flea_ref_cu16_t*   allowed_cipher_suites,
-  const flea_byte_vec_t*   crl_der,
-  flea_al_u16_t            nb_crls
+  flea_tls_client_ctx_t*             tls_ctx,
+  flea_bool_t*                       result,
+  const flea_cert_store_t*           trust_store,
+  flea_ref_cu8_t*                    cert_chain,
+  flea_al_u8_t                       cert_chain_len,
+  const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
+  const flea_ref_cu8_t*              crl_der,
+  flea_al_u16_t                      nb_crls
 );
 
-# ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+#ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
 
 /**
  * Find out if the peer's EE certificate is available.
@@ -110,9 +119,9 @@ flea_bool_t flea_tls_client_ctx_t__have_peer_ee_cert_ref(flea_tls_client_ctx_t* 
  * NULL otherwise.
  */
 const flea_x509_cert_ref_t* flea_tls_client_ctx_t__get_peer_ee_cert_ref(flea_tls_client_ctx_t* client_ctx__pt);
-# endif
+#endif
 
-# ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
+#ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 /**
  * Find out if the trusted certificate used to authenticate the peer is available.
@@ -134,9 +143,7 @@ flea_bool_t flea_tls_client_ctx_t__have_peer_root_cert_ref(flea_tls_client_ctx_t
  * NULL otherwise.
  */
 const flea_x509_cert_ref_t* flea_tls_client_ctx_t__get_peer_root_cert_ref(flea_tls_client_ctx_t* client_ctx__pt);
-# endif
 
-#endif // ifdef FLEA_HAVE_TLS_CLIENT
 
 #ifdef __cplusplus
 }

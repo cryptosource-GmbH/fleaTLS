@@ -17,7 +17,7 @@
 #include "pc/test_util.h"
 #include "flea/tls.h"
 #include "pc/test_pc.h"
-#include "pltf_support/tcpip_stream.h"
+#include "pc/tcpip_stream.h"
 #include "internal/common/tls/tls_common.h"
 #include "flea/array_util.h"
 #include "flea/byte_vec.h"
@@ -47,10 +47,12 @@ static flea_err_t THR_flea_start_tls_client(
 
   flea_al_u16_t cert_chain_len = FLEA_NB_ARRAY_ENTRIES(cert_chain);
 
-  flea_ref_cu16_t cipher_suites_ref;
+  // flea_ref_cu16_t cipher_suites_ref;
 
-  flea_ref_cu8_t allowed_ecc_curves__rcu8;
-  flea_ref_cu8_t allowed_sig_algs__rcu8;
+  flea_ec_dom_par_id_t* allowed_ecc_curves__pe;
+  flea_al_u16_t allowed_ecc_curves_len__alu16;
+  flea_tls_sigalg_e* allowed_sig_algs__pe;
+  flea_al_u16_t nb_allowed_sig_algs__alu16;
   tls_test_cfg_t tls_cfg;
   flea_host_id_type_e host_type;
   linux_socket_stream_ctx_t sock_stream_ctx;
@@ -137,12 +139,13 @@ static flea_err_t THR_flea_start_tls_client(
       tls_cfg
     )
   );
-  cipher_suites_ref.data__pcu16       = &tls_cfg.cipher_suites[0];
-  cipher_suites_ref.len__dtl          = tls_cfg.cipher_suites.size();
-  allowed_ecc_curves__rcu8.data__pcu8 = &tls_cfg.allowed_curves[0];
-  allowed_ecc_curves__rcu8.len__dtl   = tls_cfg.allowed_curves.size();
-  allowed_sig_algs__rcu8.data__pcu8   = &tls_cfg.allowed_sig_algs[0];
-  allowed_sig_algs__rcu8.len__dtl     = tls_cfg.allowed_sig_algs.size();
+
+/*  cipher_suites_ref.data__pcu16 = &tls_cfg.cipher_suites[0];
+  cipher_suites_ref.len__dtl    = tls_cfg.cipher_suites.size();*/
+  allowed_ecc_curves__pe        = &tls_cfg.allowed_curves[0];
+  allowed_ecc_curves_len__alu16 = tls_cfg.allowed_curves.size();
+  allowed_sig_algs__pe       = &tls_cfg.allowed_sig_algs[0];
+  nb_allowed_sig_algs__alu16 = tls_cfg.allowed_sig_algs.size();
 
   // std::cout << "read_timeout = " << std::to_string(cmdl_args.get_property_as_u32_default("read_timeout", 0)) << "\n";
 
@@ -167,14 +170,18 @@ static flea_err_t THR_flea_start_tls_client(
       cert_chain_len ? cert_chain : NULL,
       cert_chain_len,
       client_key__t.len__dtl ? &privkey__t : NULL,
-      &cipher_suites_ref,
+      // &cipher_suites_ref,
+      &tls_cfg.cipher_suites[0],
+      tls_cfg.cipher_suites.size(),
       // tls_cfg.rev_chk_mode__e,
       &tls_cfg.crls_refs[0],
       tls_cfg.crls.size(),
       client_session__pt,
-      &allowed_ecc_curves__rcu8,
-      &allowed_sig_algs__rcu8,
-      tls_cfg.flags | FLEA_TLS_CFG_FLAG__SHA1_CERT_SIGALG__ALLOW
+      allowed_ecc_curves__pe,
+      allowed_ecc_curves_len__alu16,
+      allowed_sig_algs__pe,
+      nb_allowed_sig_algs__alu16,
+      tls_cfg.flags | flea_tls_flag__sha1_cert_sigalg__allow
     )
   );
 
@@ -182,6 +189,8 @@ static flea_err_t THR_flea_start_tls_client(
   flea_tls_test_tool_print_peer_cert_info(&tls_ctx, nullptr, nullptr);
   for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("do_renegs", 0); i++)
   {
+    int reneg_allowed = flea_tls_client_ctx_t__is_reneg_allowed(&tls_ctx);
+    std::cout << "renegotiation exptected to be successfull = " << std::to_string(reneg_allowed) << " ...\n";
     std::cout << "renegotiation ...\n";
     flea_bool_t reneg_done__b;
     FLEA_CCALL(
@@ -191,7 +200,9 @@ static flea_err_t THR_flea_start_tls_client(
         &trust_store__t,
         cert_chain,
         cert_chain_len,
-        &cipher_suites_ref,
+        // &cipher_suites_ref,
+        &tls_cfg.cipher_suites[0],
+        tls_cfg.cipher_suites.size(),
         &tls_cfg.crls_refs[0],
         tls_cfg.crls.size()
       )

@@ -15,23 +15,28 @@ extern "C" {
 
 # define flea_tls_server_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
 
+
 void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx__pt);
 
 flea_err_t THR_flea_tls_server_ctx_t__ctor(
-  flea_tls_server_ctx_t*        tls_ctx__pt,
-  flea_tls_shared_server_ctx_t* shrd_server_ctx__pt,
-  flea_rw_stream_t*             rw_stream__pt,
-  const flea_ref_cu8_t*         cert_chain__pt,
-  flea_al_u8_t                  cert_chain_len__alu8,
-  const flea_cert_store_t*      trust_store__t,
-  const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
+  flea_tls_server_ctx_t*             tls_ctx__pt,
+  flea_tls_shared_server_ctx_t*      shrd_server_ctx__pt,
+  flea_rw_stream_t*                  rw_stream__pt,
+  const flea_ref_cu8_t*              cert_chain__pt,
+  flea_al_u8_t                       cert_chain_len__alu8,
+  const flea_cert_store_t*           trust_store__t,
+  // const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
+  const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
   // TODO: TURN INTO REF_CU8
-  const flea_byte_vec_t*        crl_der__pt,
-  flea_al_u16_t                 nb_crls__alu16,
-  flea_tls_session_mngr_t*      session_mngr_mbn__pt,
-  flea_ref_cu8_t*               allowed_ecc_curves_ref__prcu8,
-  flea_ref_cu8_t*               allowed_sig_algs_ref__prcu8,
-  flea_al_u16_t                 flags__alu16
+  const flea_ref_cu8_t*              crl_der__pt,
+  flea_al_u16_t                      nb_crls__alu16,
+  flea_tls_session_mngr_t*           session_mngr_mbn__pt,
+  flea_ec_dom_par_id_t*              allowed_ecc_curves__pe,
+  flea_al_u16_t                      nb_allowed_curves,
+  flea_tls_sigalg_e*                 allowed_sig_algs__pe,
+  flea_al_u16_t                      nb_allowed_sig_algs__alu16,
+  flea_tls_flag_e                    flags__e
 );
 
 flea_err_t THR_flea_tls_server_ctx_t__read_app_data(
@@ -50,17 +55,29 @@ flea_err_t THR_flea_tls_server_ctx_t__send_app_data(
 
 flea_err_t THR_flea_tls_server_ctx_t__flush_write_app_data(flea_tls_server_ctx_t* tls_ctx);
 
-// TODO: ADD FUNCTION TO TEST WHETHER RENEG IS ALLOWED ON THIS CONNECTION
+
+/**
+ * Test whether a tls server ctx is qualified for carrying out a
+ * renegotiation.
+ *
+ * @param tls_server_ctx__pt pointer to the server ctx object
+ *
+ * @return FLEA_TRUE if a renegotiation may be carried out, FLEA_FALSE
+ * otherwise.
+ */
+flea_bool_t flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_server_ctx__pt);
+
 
 flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
-  flea_tls_server_ctx_t*   tls_ctx__pt,
-  flea_bool_t*             result__pb,
-  const flea_cert_store_t* trust_store__pt,
-  const flea_ref_cu8_t*    cert_chain__pt,
-  flea_al_u8_t             cert_chain_len__alu8,
-  const flea_ref_cu16_t*   allowed_cipher_suites__prcu16,
-  const flea_byte_vec_t*   crl_der__pt,
-  flea_al_u16_t            nb_crls__alu16
+  flea_tls_server_ctx_t*             tls_ctx__pt,
+  flea_bool_t*                       result__pb,
+  const flea_cert_store_t*           trust_store__pt,
+  const flea_ref_cu8_t*              cert_chain__pt,
+  flea_al_u8_t                       cert_chain_len__alu8,
+  const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
+  const flea_ref_cu8_t*              crl_der__pt,
+  flea_al_u16_t                      nb_crls__alu16
 );
 
 

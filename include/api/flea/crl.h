@@ -18,7 +18,7 @@ typedef enum { flea_rev_chk_all, flea_rev_chk_none, flea_rev_chk_only_ee  } flea
 typedef enum { flea_revstat_undetermined, flea_revstat_revoked, flea_revstat_good } flea_revocation_status_e;
 
 flea_err_t THR_flea_crl__check_revocation_status(
-  const flea_byte_vec_t*   crl_der__cprcu8,
+  const flea_ref_cu8_t*    crl_der__cprcu8,
   flea_al_u16_t            nb_crls__alu16,
   const flea_gmt_time_t*   verification_date__pt,
   flea_bool_t              is_ca_cert__b,

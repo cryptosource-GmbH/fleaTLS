@@ -137,8 +137,16 @@ flea_err_t THR_flea_ecka__compute_raw(
 
   flea_mpi_div_ctx_t div_ctx;
   flea_al_u8_t i;
+
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  flea_ctr_mode_prng_t delay_prng__t;
+# endif
+
   FLEA_THR_BEG_FUNC();
 
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  flea_ctr_mode_prng_t__INIT(&delay_prng__t);
+# endif
 # ifdef FLEA_USE_HEAP_BUF
   enc_order_len = dom_par__pt->n__ru8.len__dtl;
   enc_field_len = dom_par__pt->p__ru8.len__dtl;
@@ -159,6 +167,10 @@ flea_err_t THR_flea_ecka__compute_raw(
   FLEA_ALLOC_BUF(Q_arr, Q_arr_word_len);
   FLEA_ALLOC_BUF(curve_word_arr, curve_word_arr_word_len);
 
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(THR_flea_ctr_mode_prng_t__ctor(&delay_prng__t, public_point_enc__pcu8, public_point_enc_len__alu8));
+  FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&delay_prng__t, secret_key__pcu8, secret_key_len__alu8));
+# endif
   FLEA_CCALL(
     THR_flea_curve_gfp_t__init_dp_array(
       &curve,
@@ -189,7 +201,11 @@ flea_err_t THR_flea_ecka__compute_raw(
   FLEA_CCALL(THR_flea_point_gfp_t__validate_point(&Q, &curve, NULL, &div_ctx));
 
   FLEA_CCALL(THR_flea_mpi_t__decode(&d, dom_par__pt->h__ru8.data__pcu8, dom_par__pt->h__ru8.len__dtl));
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, FLEA_FALSE, NULL));
+# else
   FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, FLEA_FALSE));
+# endif
 
   /* l_arr doesn't live in parallel to point multiplication */
   FLEA_ALLOC_BUF(l_arr, 2 * order_word_len);
@@ -225,7 +241,12 @@ flea_err_t THR_flea_ecka__compute_raw(
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &d, &l, &n, &div_ctx));
   FLEA_FREE_BUF_SECRET_ARR(l_arr, 2 * order_word_len);
   /* zero point conversion detected inside this function: */
+
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, do_use_add_always__b, &delay_prng__t));
+# else
   FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, do_use_add_always__b));
+# endif
 
   /* now take x-coord of d */
   // *result_len__palu8 = flea_mpi_t__get_byte_size(&Q.m_x);
@@ -251,6 +272,9 @@ flea_err_t THR_flea_ecka__compute_raw(
     FLEA_FREE_BUF_SECRET_ARR(d_arr, order_word_len);
     FLEA_FREE_BUF_SECRET_ARR(vn, vn_len);
     FLEA_FREE_BUF_SECRET_ARR(un, un_len);
+    FLEA_DO_IF_USE_PUBKEY_INPUT_BASED_DELAY(
+      flea_ctr_mode_prng_t__dtor(&delay_prng__t);
+    )
   );
 } /* THR_flea_ecka__compute_raw */
 

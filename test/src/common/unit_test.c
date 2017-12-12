@@ -72,6 +72,7 @@ int flea_unit_tests(
   {
     if(!cert_path_prefix)
     {
+      flea_u32_t mass_sig_reps__u32 = full__b ? 1000 * 1000 : 100;
       CALL_TEST(THR_flea_test_dbg_canaries());
       CALL_TEST(THR_flea_test_mpi_square());
       CALL_TEST(THR_flea_test_montgm_mul_comp_n_prime());
@@ -85,7 +86,7 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_test_mpi_add_sign());
 #ifdef FLEA_HAVE_RSA
       CALL_TEST(THR_flea_test_rsa_crt());
-      CALL_TEST(THR_flea_test_rsa_crt_mass_sig(10));
+      CALL_TEST(THR_flea_test_rsa_crt_mass_sig(mass_sig_reps__u32));
 #endif
       CALL_TEST(THR_flea_test_mpi_mul());
       CALL_TEST(THR_flea_test_mpi_encode());
@@ -131,6 +132,8 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_test_cbc_mode());
       CALL_TEST(THR_flea_test_ctr_mode_parts());
       CALL_TEST(THR_flea_test_ctr_mode_prng());
+      CALL_TEST(THR_flea_test_feed_entropy());
+
       CALL_TEST(THR_flea_test_crc16());
       CALL_TEST(THR_flea_test_enc_BE_bitlen());
       CALL_TEST(THR_flea_test_incr_enc_BE_int());

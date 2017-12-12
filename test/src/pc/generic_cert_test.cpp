@@ -9,9 +9,11 @@
 #include <dirent.h>
 /* <== linux only */
 
+
 flea_err_t THR_fleatest_iterate_cert_files_and_verify_as_self_signed(
-  std::string const &dir_name,
-  bool              expect_error
+  std::string const          &dir_name,
+  bool                       expect_error,
+  std::vector<unsigned char> issuer
 )
 {
   DIR* dir;
@@ -28,7 +30,7 @@ flea_err_t THR_fleatest_iterate_cert_files_and_verify_as_self_signed(
       {
         continue;
       }
-      printf("%s\n", ent->d_name);
+      // printf("%s\n", ent->d_name);
 
       /*if(s.find("cert") != 0)
       {
@@ -36,7 +38,15 @@ flea_err_t THR_fleatest_iterate_cert_files_and_verify_as_self_signed(
       }*/
       std::vector<unsigned char> cert = read_bin_file(dir_name + "/" + s);
       // std::cout << "calling cert verify\n";
-      if(FLEA_ERR_FINE != THR_flea_x509_verify_cert_signature(&cert[0], cert.size(), &cert[0], cert.size()))
+      const flea_u8_t* issuer_cert = &cert[0];
+      flea_u32_t issuer_cert_len   = cert.size();
+      if(issuer.size())
+      {
+        issuer_cert     = &issuer[0];
+        issuer_cert_len = issuer.size();
+      }
+      // if(FLEA_ERR_FINE != THR_flea_x509_verify_cert_signature(&cert[0], cert.size(), &cert[0], cert.size()))
+      if(FLEA_ERR_FINE != THR_flea_x509_verify_cert_signature(&cert[0], cert.size(), issuer_cert, issuer_cert_len))
       {
         if(!expect_error)
         {

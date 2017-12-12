@@ -18,7 +18,7 @@
 #include "flea/cert_store.h"
 #include "internal/common/cert_path_int.h"
 #include "internal/common/tls/handsh_reader.h"
-#include "internal/pltf_if/time.h"
+#include "internal/common/lib_int.h"
 #include "internal/common/tls/tls_cert_path.h"
 #include "flea/hostn_ver.h"
 #include "internal/common/hostn_ver_int.h"
@@ -279,7 +279,7 @@ static flea_err_t THR_flea_tls__validate_cert(
   const flea_gmt_time_t*             compare_time__pt,
   flea_al_u16_t*                     cnt_non_self_issued_in_path__palu16,
   flea_tls_cert_path_params_t const* cert_path_params__pct,
-  const flea_byte_vec_t*             crl_der__cprcu8,
+  const flea_ref_cu8_t*              crl_der__cprcu8,
   flea_al_u16_t                      nb_crls__alu16,
   flea_bool_t                        validate_crl_for_issued_by_current__b,
   flea_byte_vec_t*                   prev_sn_buffer__pt,
@@ -332,7 +332,7 @@ static flea_err_t THR_flea_tls__validate_cert(
   const flea_al_u16_t previous_non_self_issued_cnt__calu16 = *cnt_non_self_issued_in_path__palu16;
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(
     public_key_value__t,
-    __FLEA_COMPUTED_PK_MAX_ASYM_PUBKEY_LEN + 1
+    __FLEA_COMPUTED_PK_MAX_ASYM_PUBKEY_X509_LEN + 1
   );
   flea_tls_client_cert_type_e cert_type__e;
   FLEA_THR_BEG_FUNC();
@@ -452,7 +452,8 @@ static flea_err_t THR_flea_tls__validate_cert(
   if(have_precursor_to_verify__b)
   {
     flea_pk_scheme_id_t scheme_id;
-
+    flea_bool_t sig_alg_allowed__b = FLEA_FALSE;
+    flea_dtl_t i;
     if(pubkey_out__pt->key_type__t == flea_rsa_key)
     {
       scheme_id = flea_rsa_pkcs1_v1_5_sign;
@@ -462,9 +463,27 @@ static flea_err_t THR_flea_tls__validate_cert(
       scheme_id = flea_ecdsa_emsa1;
     }
 
+    // only for tls client (for server the sig_algs member is null):
+    if(cert_path_params__pct->allowed_sig_algs_mbn__pe)
+    {
+      for(i = 0; i < cert_path_params__pct->nb_allowed_sig_algs__alu16; i += 1)
+      {
+        if(((cert_path_params__pct->allowed_sig_algs_mbn__pe[i] >> 8) == *tbs_hash_id__pe) &&
+          ((cert_path_params__pct->allowed_sig_algs_mbn__pe[i] & 0xFF) == scheme_id))
+        {
+          sig_alg_allowed__b = FLEA_TRUE;
+          break;
+        }
+      }
+
+      if(!sig_alg_allowed__b)
+      {
+        FLEA_THROW("signature algorithm not allowed", FLEA_ERR_TLS_CERT_VER_FAILED);
+      }
+    }
 
     /* MD5 is generally not supported in flea certificate verification */
-    if(!(tls_ctx__pt->cfg_flags__u16 & FLEA_TLS_CFG_FLAG__SHA1_CERT_SIGALG__ALLOW) && (*tbs_hash_id__pe == flea_sha1))
+    if(!(tls_ctx__pt->cfg_flags__e & flea_tls_flag__sha1_cert_sigalg__allow) && (*tbs_hash_id__pe == flea_sha1))
     {
       FLEA_THROW("SHA1 not supported", FLEA_ERR_X509_UNRECOG_HASH_FUNCTION);
     }
@@ -722,7 +741,7 @@ flea_err_t THR_flea_tls__cert_path_validation(
   const flea_ref_cu8_t* trusted__prcu8;
   flea_mem_read_stream_help_t mem_hlp__t;
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_pltfif_time__get_current_time(&compare_time__t));
+  FLEA_CCALL(THR_flea_lib__get_gmt_time_now(&compare_time__t));
 
   do
   {

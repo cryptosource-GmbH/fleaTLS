@@ -10,6 +10,12 @@
 # define FLEA_DO_IF_HAVE_ECDSA(x)
 #endif
 
+#ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# define FLEA_DO_IF_USE_PUBKEY_INPUT_BASED_DELAY(x) x
+#else
+# define FLEA_DO_IF_USE_PUBKEY_INPUT_BASED_DELAY(x)
+#endif
+
 #if defined FLEA_HAVE_ECDSA || defined FLEA_HAVE_ECKA
 # define FLEA_HAVE_ECC
 #endif

@@ -239,11 +239,24 @@
     __FLEA_RSA_CRT_KEY_INTERNAL_FORMAT_MAX_LEN_SWITCHED \
   )
 
+/**
+ * Raw public key length without parameters.
+ */
 #define __FLEA_COMPUTED_PK_MAX_ASYM_PUBKEY_LEN \
   FLEA_MAX( \
     __FLEA_ECC_MAX_ENCODED_POINT_LEN_SWITCHED, \
     __FLEA_RSA_MAX_MOD_LEN_SWITCHED \
   )
+
+/**
+ * encoded X.509 public key length including parameters.
+ */
+#define __FLEA_COMPUTED_PK_MAX_ASYM_PUBKEY_X509_LEN \
+  FLEA_MAX( \
+    (4 * (__FLEA_ECC_MAX_ENCODED_POINT_LEN_SWITCHED) +40), \
+    ((__FLEA_RSA_MAX_MOD_LEN_SWITCHED + 30)) \
+  )
+
 
 #define __FLEA_RSA_MAX_SIG_LEN_SWITCHED __FLEA_RSA_MAX_MOD_LEN_SWITCHED
 

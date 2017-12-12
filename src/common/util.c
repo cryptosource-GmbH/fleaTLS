@@ -99,23 +99,6 @@ int flea_memcmp_wsize(
   return memcmp(mem1__pv, mem2__pv, len_mem1__dtl);
 }
 
-flea_bool_t flea_is_in_u16_list(
-  flea_u16_t             sought_for__u16,
-  const flea_ref_cu16_t* list__prcu16
-)
-{
-  flea_dtl_t i;
-
-  for(i = 0; i < list__prcu16->len__dtl; i++)
-  {
-    if(sought_for__u16 == list__prcu16->data__pcu16[i])
-    {
-      return FLEA_TRUE;
-    }
-  }
-  return FLEA_FALSE;
-}
-
 flea_err_t THR_flea_add_dtl_with_overflow_check(
   flea_dtl_t* in_out__pdtl,
   flea_dtl_t  b__dtl
@@ -131,4 +114,16 @@ flea_err_t THR_flea_add_dtl_with_overflow_check(
   }
   *in_out__pdtl = result__dtl;
   FLEA_THR_FIN_SEC_empty();
+}
+
+flea_u32_t flea_waste_cycles(flea_u32_t iters__u32)
+{
+  volatile flea_al_u8_t sink__valu8 = 0;
+  flea_u32_t i;
+
+  for(i = 0; i < iters__u32; i++)
+  {
+    sink__valu8 += iters__u32 * i;
+  }
+  return sink__valu8;
 }

@@ -80,7 +80,11 @@ flea_err_t THR_flea_generate_ecc_key(
 
   FLEA_CCALL(THR_flea_curve_gfp_t__init_dp_array(&curve, dom_par__pt, curve_word_arr, curve_word_arr_word_len));
 
+# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&pub_point, &sk_mpi, &curve, do_use_add_always__b, NULL));
+# else
   FLEA_CCALL(THR_flea_point_gfp_t__mul(&pub_point, &sk_mpi, &curve, do_use_add_always__b));
+# endif
   FLEA_CCALL(THR_flea_point_gfp_t__encode(result_public__p_u8, result_public_len__p_al_u8, &pub_point, &curve));
   private_byte_len__al_u8 = flea_mpi_t__get_byte_size(&sk_mpi);
   FLEA_CCALL(THR_flea_mpi_t__encode(result_private__p_u8, private_byte_len__al_u8, &sk_mpi));

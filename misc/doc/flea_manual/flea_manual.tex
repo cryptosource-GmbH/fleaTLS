@@ -20,7 +20,7 @@
 \usepackage{listings}
 \usepackage{verbatim}
 \usepackage{tikz}
-\usetikzlibrary{calc,shapes,arrows,fit,calc,positioning,automata}
+\usetikzlibrary{shapes,arrows,fit,calc,positioning,automata}
 
 \usepackage{colortbl}
 \usepackage{ulem}
@@ -59,7 +59,7 @@
 \renewcommand{\headrulewidth}{1.2pt}
 \fancyhead[R]{\hspace{-1.9cm}\includegraphics[width=6cm]{cs_logo.eps}}
 \fancyhead[L]{flea cryptographic library 
-\myVersion\\manual}
+\thisFleaVersion\\manual}
 \fancyfoot[C]{\vspace{-0.3cm}\thepage}
 \pagestyle{fancy}
 
@@ -87,22 +87,27 @@
 %    }
 %}
 
-\tikzstyle{manipblock} = [draw, fill=red!20, rectangle, 
-    minimum height=2em, minimum width=6em]
-\tikzstyle{origblock} = [draw, fill=green!20, rectangle, 
-    minimum height=2em, minimum width=6em]
-\tikzstyle{block} = [draw, fill=blue!20, rectangle, 
-    minimum height=2em, minimum width=6em]
-\tikzstyle{decbox} = [draw, fill=blue!20, rectangle, 
-    minimum height=1em, minimum width=1em]
-\tikzstyle{manipbytebox} = [draw, fill=red!20, rectangle, 
-    minimum height=1em, minimum width=6em]
-\tikzstyle{sum} = [draw, fill=blue!20, circle, node distance=1cm]
 
-\newcommand{\myVersion}{v1.1 pre 2017-08-15}
+
+\lstset{language=C,
+  emph={int,char,double,float,unsigned,flea_u8_t,flea_al_u8_t,flea_u16_t,flea_al_u16_t,flea_u32_t,
+  flea_bool_t, flea_mutex_func_set_t}, emphstyle={\color{csblue}},
+frame=none,basicstyle=\ttfamily\scriptsize,columns=flexible,xleftmargin=0.9cm,float=htb,captionpos=b,breaklines=true }
+
+\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\serverCtx}{\code{flea_tls_server_ctx_t}}
+%\newcommand{\serverCtx}{\texttt{flea}}
+\newcommand{\clientCtx}{\code{flea_tls_client_ctx_t}}
+\newcommand{\funcLibInit}{\code{THR_flea_lib\-__init()}\xspace}
+\newcommand{\funcSaveRngState}{\code{flea_\-prng_\-save_f}\xspace}
+
+\newcommand{\thisFleaVersion}{v1.2\xspace }
+
+\DeclareRobustCommand{\eg}{e.g.\@\xspace}
+\DeclareRobustCommand{\ie}{i.e.\@\xspace}
 %\mainmatter              % start of the contributions
 %
-\title{flea cryptographic library \myVersion\\{\LARGE manual} }
+\title{flea cryptographic library \thisFleaVersion\\{\LARGE manual} }
 
 \author{cryptosource GmbH,
   Darmstadt\\\url{flea@cryptosource.de}\\\url{www.cryptosource.de}\vspace{0.5cm}\\\includegraphics[width=7cm]{logo.png}}
@@ -186,43 +191,122 @@ configuration options, such as
 \section{Random Number Generation }
 \label{secRng}
 
-flea features a simple but secure random number generator which is based on
-the management of an RNG state file. In order to use the RNG safely in an
-embedded firmware, the following steps must be taken. 
+As random number generation is a precondition for many cryptographic operations,
+fleaTLS features support for random number generation. On the one hand, there
+are there is the type \code{flea_ctr_mode_prng_t}, defined in the file
+\code{ctr_mode_prng.h}, for the instantiation of
+pseudo random number generator (PRNG) objects, on the other hand there is the flea's
+global random number generator (RNG). Its interface is defined in the file
+\code{flea/rng.h}. flea's global RNG is based on a
+\code{flea_ctr_mode_prng_t}, but features additional functions and has a
+specific life cycle.
 
-\subsection{Necessary Steps During Implementation}
-During implementation, the in the file \verb#src/user/prng_user.c# the functions
-for loading the PRNG state from the non-volatile memory (NVM)  and saving it to the NVM have to be
-implemented. The developer must allocate an area within the device's NVM for
-this purpose, the size of which is 32 bytes.
+\begin{figure}
+\input{./figures/rngLifeCyc.tex}
+\label{figRngLifeCycle}
+\caption{Overview of the life cycle of fleaTLS' global RNG. The dashed line represents
+fleaTLS' API and shows the direction of time. 
+The functions after \funcLibInit may actually be called in an arbitrary order.
+The sequence shown here serves merely as an example.
+The paths labelled
+with \funcSaveRngState are only actually relevant if the corresponding function
+pointer is provided to the function \funcLibInit. Refer to the text for a
+detailed explanation.}
+\end{figure}
 
-A second requirement is that during the device's startup, prior to the use of any
-other functions of the flea library, the function 
-\begin{verbatim}
-flea_err_t THR_flea_lib__init()
-\end{verbatim}
-must be called, which internally loads the RNG state from NVM into the
-corresponding RAM variable.
+\subsection{fleaTLS' Global RNG's Life Cycle}
+\label{secRngLifeCycle}
+The global RNG's life cycle starts with the call to the function
+\code{THR_flea_lib\-__init()}. This function takes an initial seed value for
+the global RNG as its argument. It the caller's responsibility to provide a high
+entropy seed of an appropriate length here. fleaTLS makes no checks in this
+respect. 
+
+The function \funcLibInit also supports the configuration of the seed file
+management support of fleaTLS. For details seed Section \ref{secSeedFile}.
 
 
-\subsection{Necessary Steps During Production and Activation}
-When the devices running the firmware using flea are produced, before the
-execution of any cryptographic operation, the PRNG state must be seeded with a
-high entropy seed different for each device. 
-%This seed should be generated on an
-%external computer which has appropriate entropy sources available for this
-%purpose. 
-The function 
-\begin{verbatim}
-flea_err_t THR_flea_rng__reseed_persistent(const flea_u8_t* seed, flea_dtl_t seed_len);
-\end{verbatim}
-must be called once during the production or activation process with that seed data.
-From that point on, the RNG state will be managed internally by the flea
-library. During startup, when the function \verb#THR_flea_lib__init()# is
-called, the stored RNG state is loaded from NVM to initialize the RNG, then a
-fresh RNG state is created from the RNG's output and stored in the NVM. From
-that point on, the RNG operates efficiently with its RAM state and secure,
-non-repetitive random number generation is ensured even after a reset. 
+After the initialization of the global RNG through the call to
+\code{THR_flea_lib\-__init()}, it can be used for the generation of random
+byte arrays by the function \code{THR_flea_rng__randomize()}. Furthermore,
+it is possible to reseed the generator using one of the functions
+\code{THR_flea_rng__reseed_volatile()} or 
+\code{THR_flea_rng__reseed_persistent()}. The former updates the global
+RNG's internal state with the provided seed data. The latter does the same, but
+also updates the managed seed file (see Section \ref{secSeedFile}).
+
+\subsection{Reseeding the Global RNG with Low Entropy Data}
+\label{secLowEntropyReseed}
+fleaTLS' global RNG also features a function for the feeding of low entropy seed
+data in the form of 32-bit values, namely
+\code{flea_rng__feed_low_entropy_data_to_pool()}. This function is
+intended to received for instance time stamp counter values from asynchronously
+triggered events in order to provide fresh entropy to the global RNG. The caller
+is required to provide an estimate of the entropy contained in that value in
+bits. This estimation is used for the management of fleaTLS' global RNG's
+entropy pool. In this pool the low entropy feeds are accumulated. Whenever the
+accumulated estimated entropy reaches the threshold of 128 bits, in the next
+call to the function \code{THR_flea_rng__randomize()} the global RNG will
+reseed itself with the content of the entropy pool. 
+
+The function \code{flea_rng__feed_low_entropy_data_to_pool()} does not
+use any mutexes to prevent concurrent access. This is intentional, since it is
+expected to be called from interrupt routines which may never be blocked.
+fleaTLS' functions which access the
+entropy pool are written in such a way that a potentially concurrent access does
+not cause program errors. In actual cases of concurrent accesses, it may happen that
+the fed low level entropy is not optimally transferred to the pool or that a
+randomize function prematurely uses the pool for reseeding the RNG state. Any
+such event does not actually degrade security of the RNG state, but only reduces the effect of
+the pooled entropy under certain conditions to a certain degree. If an
+implementer considers the pooling functionality essential to the secure
+operation of his product, and actually expects simultaneous calls to the functions
+\code{flea_rng__feed_low_entropy_data_to_pool()} and
+\code{THR_flea_rng__randomize()} with a high frequency, a mutex mechanism should be implemented.
+
+\subsection{Seed Management}
+\label{secSeedFile}
+The default recommended approach is to make use of fleaTLS' support for
+the management of a continously managed seed file. In this case, the caller
+of \funcLibInit should provide the optional parameter for a function of type
+\code{flea_prng_save_f} to \funcLibInit. This function has to be implemented
+by the user of fleaTLS. It will be called by
+fleaTLS whenever the function \code{THR_flea_rng__reseed_volatile()} from
+the global RNG's interface is called. In this case the global RNG produces a new
+random output which is provided to the \code{flea_prng_save_f} as the
+argument. The function is expected to save the byte array it received in its
+argument to non-volatile memory and signal any potentially occurring errors by
+returning appropriate non-zero error values. The size of the byte array provided
+to \funcSaveRngState is always 32 bytes.
+
+If a \funcSaveRngState function is provided to \funcLibInit, the following seed-file-based life cycle model
+is supported by fleaTLS. This model ensures secure random number generation over
+all power cycles of the device under the
+assumption that no malicious entity gained knowlegde of the initial seed, the
+seed file managed by fleaTLS or the global RNG's state directly.
+
+During the unique initial device initialization, \eg
+during production, an initial high entropy seed is provided to the
+function \funcLibInit. Furthermore, the function pointer argument of the type
+\funcSaveRngState, implemented as explained above, is also provided to
+\funcLibInit. In any subsequent call to \funcLibInit, the latest seed value that was
+provided to \funcSaveRngState as its argument is used as the seed file argument.
+
+The function \funcLibInit internally calls the function
+\code{THR_flea_rng__reseed_persistent()}, which causes \funcSaveRngState to
+invoked with freshly generated output from the global RNG. Thus during each
+subsequent call to \funcLibInit, it is ensured that a fresh high entropy seed is
+used to initalize the global RNG.
+
+In order to achieve a lasting of effect of any reseedings of the global RNG
+by calls to the functions  \code{THR_flea_rng__reseed_volatile()} (see
+Section \ref{secRngLifeCycle} or
+\code{flea_rng__feed_low_entropy_data_to_pool()} (see Section
+ref{secLowEntropyReseed}), \ie a subsequent update of the seed file, client code
+should occasionally call the function
+\code{THR_flea_rng__reseed_persistent()}, which triggers a call to the
+function \funcSaveRngState, provided that such a function was specified in the
+call \funcLibInit.
 
 \section{Using flea's API}
 
@@ -369,10 +453,333 @@ switching between stack and heap mode in his own code or use the buffer
 canaries, may certainly use any explicit heap or stack buffer allocation as he
 is used to.
 
-%\section{Concurrency Support}
 
-%Concurrency support for TLS server session manager: all connections must be
-%closed before the session manager is destroyed.
+
+\section{The TLS API}
+
+flea implements the TLS 1.2 protocol for the instantiation of TLS clients and
+server. 
+
+\section{A brief description of the TLS protocol}
+TLS is a protocol which allows for the establishment of secure connections
+between a TLS client and a TLS server. The authenticity of the server, and
+optionally that of the client is ensured by the use of X.509 certificates.
+During the so-called TLS handshake the authenticity of the X.509 certificate of
+the peer is verified and based on the public key presented in that certificate
+a key exchange (KEX) is performed. As a result, after the TLS handshake, both
+sides share a set of symmetric keys for the encryption and authentiation of the
+payload data, also referred to as application data. 
+At this point, both peers
+can send application data to each other in a confidential and authentic manner.
+The concrete cryptographic algorithms that are used during the handshake and for the
+transmission of the application data, are specified by the so-called TLS
+cipher suite.
+
+\subsection{Overview of the TLS Protocol Flow}
+\begin{figure}
+\input{./figures/tlsSeqFlow.tex}
+\caption{Overview of the potential events during the TLS protocol flow and the
+associated functions of the flea TLS Client and Serve API.}
+\label{figTlsSeqFlow}
+\end{figure}
+
+Figure \ref{figTlsSeqFlow} shows the potential events in the TLS protocol flow
+and the associated functions of the fleaTLS client and server API. Any TLS
+connections starts with a call to the ctor function of the TLS client
+(\clientCtx) or server (\serverCtx) context object.
+
+\subsubsection{Initial Handshake and Application Data Transfer}
+After the initial handshake, the TLS channel is established and all subsequent
+data exchanges between the peers take place over the secure TLS channel. The
+main purpose of the TLS channel is the secure exchange of application data,
+which is done using the fleaTLS functions 
+\begin{itemize}
+  \item \code{THR_flea_tls_client_ctx_t__read_app_data()}
+\item \code{THR_flea_tls_client_ctx_t__send_app_data()}
+\item \code{THR_flea_tls_server_ctx_t__read_app_data()}
+  \item \code{THR_flea_tls_server_ctx_t__send_app_data()}
+\end{itemize}
+
+Note that in order to ensure the sending of the application over the wire a call
+to 
+\begin{itemize}
+  \item \code{THR_flea_tls_client_ctx_t__flush_write_app_data} or
+  \item \code{THR_flea_tls_server_ctx_t__flush_write_app_data}
+  \end{itemize}
+  is necessary since the \code{send_app_data} functions may buffer the data.
+
+  \subsubsection{Renegotiation}
+A renegotiation can be triggered either by a call to the corresponding
+renegotiation function
+\begin{itemize}
+  \item \code{THR_flea_tls_client_ctx_t__renegotiate} or
+\item \code{THR_flea_tls_server_ctx_t__renegotiate}
+  \end{itemize}
+  or during a call to a \code{read_app_data} function, if the peer initiates a
+  renegotiation during that call which is accepted by flea.
+
+  The conditions for accepting a renegotiation request by the  fleaTLS client or
+  server are the following:
+  \begin{itemize}
+    \item If in the TLS client or server context object's ctor call the flag \code{flea_tls_flag_reneg__allow_insecure_reneg} is
+      set, then the renegotiation request is accepted under any condition.
+    \item If in the TLS client or server context object's ctor call the flag \code{flea_tls_flag_reneg__allow_only_secure_reneg} is
+      set, then the renegotiation request is accepted if the peer also supports
+      the Renegotiation Indication Extension and behaves correctly with respect
+      to this extension.
+      \item If in the TLS client or server context object's ctor call the flag \code{flea_tls_flag_reneg__no_reneg} is
+      set, then the renegotiation request is declined unconditionally.
+  \end{itemize}
+
+  The closing of a connection happens when dtor function of the respective tls
+  client or server context object is called. Furthermore, the connection is
+  closed if an error occurs during any of the other TLS client or server context
+  objects.
+%TODO: FIGURE:
+%handshake
+%  client hello
+%  server hello
+%  \ldots
+%tls channel
+%  renegotiate
+%  read/write app data
+
+  \subsubsection{TLS Alert Handling and Sending }
+
+  In the TLS protocol alert messages are specified as a means to signal error
+  conditions to the peer. The carry a type and a level field. A variety of possible types
+  is specified in the TLS standard. The level can be \emph{fatal}, indicating an error
+  that mandates the ending of the connection, or \emph{warning}, indicating that,
+  depending on the type of the alert, a specific action may be necessary.
+  fleaTLS completely handles the treatment of incoming
+  TLS alerts and sending of alerts when an error condition is met.
+
+  If fleaTLS receives an alert the reaction is determined according to the
+  following rules:
+  \begin{itemize}
+    \item If the alert has level \emph{fatal}, flea closes the connection and the API
+        function during the execution of which the alert was received returns an
+        error code.
+      \item Otherwise, if the alert has level \emph{warning}, and
+        \begin{itemize}
+          \item if it is of type \emph{close notify}, then the connection is closed as
+            well, \ie fleaTLS sends a \emph{close notify} alert to the peer itself;
+          \item if it is of type \emph{no renegotiation}, and fleaTLS is
+            currently executing the TLS client's or server's
+            \code{renegotiate()} function, then it aborts the renegotiation and
+            indicates this to the user. The TLS context object remains valid in
+            this case.
+
+  \end{itemize}
+  \end{itemize}
+
+\subsection{Ciphersuites}
+
+The TLS protocol defines a large variety of cipher suites. fleaTLS
+\thisFleaVersion supports the following subset of cipher suites.
+\begin{itemize}
+  \item \code{TLS_RSA_WITH_AES_128_CBC_SHA}
+  \item \code{TLS_RSA_WITH_AES_128_CBC_SHA256}
+  \item \code{TLS_RSA_WITH_AES_256_CBC_SHA}
+  \item \code{TLS_RSA_WITH_AES_256_CBC_SHA256}
+  \item \code{TLS_RSA_WITH_AES_128_GCM_SHA256}
+  \item \code{TLS_RSA_WITH_AES_256_GCM_SHA384}
+  \item \code{TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA}
+  \item \code{TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA}
+  \item \code{TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256}
+  \item \code{TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256}
+  \item \code{TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384}
+  \item \code{TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384}
+\end{itemize}
+
+These strings specify the cryptorgraphic algorithms that are used during the TLS
+handshake according to the following pattern:
+
+$$
+\mathrm{TLS\_}\underbrace{\mathrm{RSA}}\_{\mathrm{KEX}}\mathrm{\_WITH\_}\underbrace{\mathrm{AES\_128}}\_{cipher}\_\underbrace{\mathrm{CBC}}\_{mode
+}\_\underbrace{\mathrm{SHA}}\_{hash }
+$$
+\begin{description}
+  \item[KEX] The key exchange algorithm specifies the algorithm which is used
+    for the exchange of the symmetric keys used in the TLS channel. The current
+    version of fleaTLS supports only the RSA and ECDHE\_RSA KEX. In the former,
+    the RSA key from the certificate of the server is directly used for the KEX,
+    Tin the latter the RSA key of the server signs an ephemeral ECDH key, which
+    in turn is used for the key exchange. This implies that the
+    certificate of the server must be an RSA certificate.
+  \item[cipher] The cipher is the encryption primitive which is used to achieve
+    the confidentiality within the TLS channel. fleaTLS only supports the AES
+    algorithm (with key sizes 128 and 256 as specified in the TLS protocol).
+  \item [mode] The encryption mode in which the cipher is used. 
+  \item[hash] The hash algorithm which is specified here is used for the
+    authentication of the channel data.
+  \end{description}
+The support for the individual cipher suites is configured in the general build
+configuration file with the corresponding defines prefixed with FLEA\ldots .
+
+
+\subsection{Requirements for Server Certificates}
+
+The current version of flea only supports the RSA KEX during the TLS handshake.
+This implies that the server must present an RSA certificate during the
+handshake. This certificate must feature an RSA public key.
+
+The server certificate does not necessarily have to include any certificate
+extensions. However, if certain extensions are present, then the following
+requirements must be fulfilled according to the TLS standard.
+\begin{description}
+  \item [Key Usage Extension] If present, this extension must feature at least
+    the \emph{keyEncipherment} key usage.
+  \item [Extended Key Usage Extension] If present, this extension must feature
+    the key usage \emph{serverAuth} or \emph{any}.
+  \item [Subject Alternative Name] This extension is recommended to be included
+    in the certificate and to include either the IP address or the DNS name of
+    the server. If this extension is not present, the client will use the Common
+Name within the certificate to verify the DNS name.
+\end{description}
+
+
+\subsection{Requirements for Client Certificates}
+
+If TLS client authentication is used, then the client also presents a
+certificate chain. In the current version of flea, the client certificate must
+be an RSA certificate. Furthermore the following requirements must be fulfilled
+for the certificate extensions of this certificate according to the TLS standard.
+\begin{description}
+  \item [Key Usage Extension] If present, this extension must feature at least
+    the \emph{digitalSignature} key usage.
+  \item [Extended Key Usage Extension] If present, this extension must feature
+    the key usage \emph{clientAuth} or \emph{any}.
+\end{description}
+
+\subsection{TLS Extensions}
+
+The TLS protocol features a number of so-called TLS extension. These are
+optional extensions of the basic protocol. They are sent during the Client Hello
+and/or Server Hello messages. 
+\subsubsection{Renegotiation Indication Extension}
+Renegotiation Indication Extension is specified in RFC 5746 and has the purpose
+of preventing certain data injection attacks. fleaTLS supports this extension
+according to the standard.  
+
+This extension restricts the possibility of performing a TLS renegotiation under
+certain conditions. This depends on the support of the peer for this extension
+and the configuration of the flea TLS instance. 
+
+TODO:EXPLAIN THE 3 VARIANTS
+
+\subsubsection{Signature Algorithms Extension the TLS Handshake}
+
+
+
+\subsection{TLS Alerts}
+TODO
+
+\section{Instantiating fleaTLS Server and Client}
+
+The fleaTLS server and client API objects are given by the
+\serverCtx and \clientCtx. Their life cycle is modelled such that their
+constructor call carries out the TLS handshake. The constructed object is thus
+directly in the state where the TLS channel is established and data can be
+exchanged.
+
+\subsection{Instantiating a TLS Client}
+
+\subsection{Instantiating a TLS Server}
+\label{secTlsServer}
+% to be placed in server section:
+fleaTLS offers concurrency support (see Section \ref{secConcurrency}) for the TLS server session manager object
+that may be shared among different server context objects. Note that in this
+case all connections must be closed -- \ie server context objects destroyed -- before the session manager object is destroyed.
+
+
+\section{Concurrency Support in fleaTLS}
+\label{secConcurrency}
+Generally, fleaTLS objects do not implement any concurrency support. If  
+objects are shared between threads by client code, then the client code is
+required to implement respective measures to prevent concurrent read/write
+access to them.
+
+However, fleaTLS offers concurrency support for its global RNG (see Section \ref{secRng})
+and the TLS server (see Section \ref{secTlsServer}), as these instances are
+commonly used in multithreading contexts. If the global RNG's
+functions for reseeding with high entropy seed data and generating output are
+called from different threads (or interrupt routines), or multiple TLS
+server context objects running in different threads and using a common shared
+\code{flea_tls_session\-_mngr_t} employed, a mutex mechanism needs
+to configured for fleaTLS. This is achieved by providing the appropriate compile
+time and run-time configurations to fleaTLS.
+
+\subsection{Compile-Time Configurations}
+
+In the ``multithreading'' section of the file \code{build_config_gen.h} 
+appropriate configuration settings must be made. In the shipped version of flea,
+the use of Unix pthread mutexes is preconfigured. 
+
+\subsubsection{Enabling Mutex Support}
+In order to enable mutex support in fleaTLS the line 
+
+\begin{verbatim}
+# define FLEA_HAVE_MUTEX
+\end{verbatim}
+must be present.
+
+In the line
+\begin{verbatim}
+# include <pthread.h>
+\end{verbatim}
+the header filename must be replaced by the appropriate header file.
+
+Furthermore, the appropriate mutex type must be set in the line 
+\begin{verbatim}
+# define FLEA_MUTEX_TYPE  the_mutex_type
+\end{verbatim}
+
+\subsubsection{Disabling Mutex Support}
+In order to disable mutex support in fleaTLS, remove the two lines
+\begin{verbatim}
+# define FLEA_HAVE_MUTEX
+\end{verbatim}
+and
+\begin{verbatim}
+# include <pthread.h>
+\end{verbatim}
+
+\subsection{Run-Time Configuration}
+
+The actual implementation of the mutex functionality is provided to fleaTLS in
+the call to the function \funcLibInit. If compile-time support is enabled, a
+\code{flea_mutex_func_set_t} must be provided to that function. In this object,
+all four member function pointers must be set to point to appropriate functions.
+These functions will be called with objects of type \code{FLEA_MUTEX_TYPE}
+defined in the build configuration.
+
+An example for the invocation \funcLibInit for the pthread implementation is
+found in the flea unit test file:
+\begin{lstlisting}
+
+  flea_mutex_func_set_t mutex_func_set__t = {
+    .init   = flea_linux__pthread_mutex_init,
+    .destr  = pthread_mutex_destroy,
+    .lock   = pthread_mutex_lock,
+    .unlock = pthread_mutex_unlock
+  };
+
+  if(THR_flea_lib__init(
+      &THR_flea_linux__get_current_time,
+      (const flea_u8_t*) &rnd,
+      sizeof(rnd),
+      NULL,
+      &mutex_func_set__t
+    ))
+  {
+    // signal error
+    ...
+  }
+  \end{lstlisting}
+
+  The requirements for the implementation of the four mutex related functions
+  are specificed in the API documentation in the file \code{mutex.h}.
 
 \section{Support}
 cryptosource provides commercial support for the flea library. Please visit

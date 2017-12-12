@@ -17,9 +17,6 @@
 // ------------------------------------------------------------------
 //
 static const flea_tls__cipher_suite_t cipher_suites[] = {
-  {FLEA_TLS_NULL_WITH_NULL_NULL,               FLEA_TLS_NO_CIPHER,
-   0, 0,
-   0, 0, 0, (flea_mac_id_t) 0, 0},
 
 #ifdef FLEA_HAVE_TLS_RSA /* Ciphersuites that require RSA */
 

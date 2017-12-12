@@ -5,7 +5,7 @@
 #include "flea/crc.h"
 
 // computes ~crc16
-// initial remainder shall be zero for CCIT compatibility
+// initial init value shall be zero for CCIT compatibility
 flea_u16_t flea_crc16_ccit_compute(
   flea_u16_t       crc_init__u16,
   const flea_u8_t* data__pcu8,
@@ -28,4 +28,29 @@ flea_u16_t flea_crc16_ccit_compute(
     }
   }
   return crc_init__u16;
+}
+
+flea_u32_t flea_crc32_compute(
+  flea_u32_t       crc_init__u32,
+  const flea_u8_t* data__pcu8,
+  flea_dtl_t       data_len__dtl
+)
+{
+  flea_dtl_t i;
+  flea_al_s8_t j;
+  flea_u32_t byte, crc, mask;
+
+  i   = 0;
+  crc = ~crc_init__u32;
+  for(i = 0; i < data_len__dtl; i++)
+  {
+    byte = data__pcu8[i];
+    crc  = crc ^ byte;
+    for(j = 7; j >= 0; j--)
+    {
+      mask = -(crc & 1);
+      crc  = (crc >> 1) ^ (0xEDB88320 & mask);
+    }
+  }
+  return ~crc;
 }

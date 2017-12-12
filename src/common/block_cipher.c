@@ -120,7 +120,7 @@ const flea_block_cipher_config_entry_t block_cipher_config[] = {
 #endif  // #ifdef FLEA_HAVE_DES
 };
 
-static const flea_block_cipher_config_entry_t * flea_find_block_cipher_config(flea_block_cipher_id_t id)
+static const flea_block_cipher_config_entry_t* flea_find_block_cipher_config(flea_block_cipher_id_t id)
 {
   flea_al_u16_t i;
 
@@ -254,7 +254,7 @@ flea_err_t THR_flea_ctr_mode_ctx_t__ctor(
   }
   if(ctr_len__alu8 > block_length_al_u8)
   {
-    FLEA_THROW("nonce length greater than block length", FLEA_ERR_INV_ARG);
+    FLEA_THROW("ctr length greater than block length", FLEA_ERR_INV_ARG);
   }
   FLEA_CCALL(THR_flea_ecb_mode_ctx_t__ctor(&p_ctx->cipher_ctx__t, ext_id__t, key_pu8, key_length_al_u8, flea_encrypt));
 #ifdef FLEA_USE_HEAP_BUF

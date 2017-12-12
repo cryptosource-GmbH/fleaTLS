@@ -16,6 +16,12 @@
 #include "flea/lib.h"
 #include "flea/rng.h"
 
+#include <fcntl.h> // linux specific
+#include <sys/stat.h> // linux specific
+#include <unistd.h>
+#include "pc/linux_util.h"
+#include "internal/common/default.h"
+
 int main(
   int          argc,
   const char** argv
@@ -24,21 +30,56 @@ int main(
   int res        = 0;
   flea_u32_t rnd = 0;
   property_set_t cmdl_args(argc, argv);
+  flea_u8_t rnd_seed__au8 [32] = {0};
 
   if(!cmdl_args.have_index("deterministic"))
   {
-    struct timeval tv;
-    gettimeofday(&tv, NULL);
-    rnd = (tv.tv_sec * tv.tv_usec) ^ tv.tv_sec ^ tv.tv_usec;
-    printf("rnd = %u\n", rnd);
-    printf("\n");
+    /*
+     * Read random bytes from the /dev/urandom. This is used for the test
+     * implementation here. Note that for a productive implementation on a Unix
+     * system the file /dev/random (or /dev/arandom under certain circumstances
+     * and if it is available) should be used instead. An
+     * alternative can be the getrandom() system call if available.
+     */
+    int rand_device        = open("/dev/urandom", O_RDONLY);
+    ssize_t read_rnd_bytes = read(rand_device, rnd_seed__au8, sizeof(rnd_seed__au8));
+    if(read_rnd_bytes != sizeof(rnd_seed__au8))
+    {
+      printf("error reading /dev/urandom\n");
+      exit(1);
+    }
+    close(rand_device);
   }
   else
   {
     printf("flea test: running deterministic tests\n");
   }
+  printf("rng seed = ");
+  for(unsigned i = 0; i < sizeof(rnd_seed__au8); i++)
+  {
+    printf("%02x", rnd_seed__au8[i]);
+  }
+  printf("\n");
 
-  if(THR_flea_lib__init() || THR_flea_rng__reseed_volatile((flea_u8_t*) &rnd, sizeof(rnd)))
+#ifdef FLEA_HAVE_MUTEX
+  flea_mutex_func_set_t mutex_func_set__t = {
+    .init   = flea_linux__pthread_mutex_init,
+    .destr  = pthread_mutex_destroy,
+    .lock   = pthread_mutex_lock,
+    .unlock = pthread_mutex_unlock
+  };
+
+#endif
+  if(THR_flea_lib__init(
+      &THR_flea_linux__get_current_time,
+      (const flea_u8_t*) &rnd,
+      sizeof(rnd),
+      NULL
+#ifdef FLEA_HAVE_MUTEX
+      ,
+      &mutex_func_set__t
+#endif
+    ))
   {
     FLEA_PRINTF_1_SWITCHED("error with lib init, tests aborted\n");
     return 1;
@@ -66,7 +107,7 @@ int main(
     std::cout << help << std::endl;
     return 0;
   }
-  ;
+
   try
   {
     if(cmdl_args.have_index("tls_client"))
