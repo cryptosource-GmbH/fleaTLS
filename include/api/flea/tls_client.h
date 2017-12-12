@@ -143,7 +143,7 @@ flea_bool_t flea_tls_client_ctx_t__have_peer_root_cert_ref(flea_tls_client_ctx_t
  * NULL otherwise.
  */
 const flea_x509_cert_ref_t* flea_tls_client_ctx_t__get_peer_root_cert_ref(flea_tls_client_ctx_t* client_ctx__pt);
-
+#endif
 
 #ifdef __cplusplus
 }

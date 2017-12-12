@@ -8,6 +8,7 @@
 #include "flea/mac.h"
 #include "flea/block_cipher.h"
 #include "flea/ae.h"
+#include "flea/tls.h"
 #include "flea/pk_api.h"
 #include "internal/common/tls_key_usage.h"
 

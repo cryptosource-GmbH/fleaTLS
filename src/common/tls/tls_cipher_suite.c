@@ -17,7 +17,6 @@
 // ------------------------------------------------------------------
 //
 static const flea_tls__cipher_suite_t cipher_suites[] = {
-
 #ifdef FLEA_HAVE_TLS_RSA /* Ciphersuites that require RSA */
 
 # ifdef FLEA_HAVE_TLS_CBC_CS

@@ -52,6 +52,9 @@ static flea_err_t THR_flea_tls__read_client_hello(
   flea_bool_t client_presented_sec_reneg_fallback_ciph_suite__b = FLEA_FALSE;
 
 # ifdef FLEA_HAVE_TLS_ECC
+
+  flea_al_u16_t curr_cs_from_peer__e;
+  flea_al_u16_t i;
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(
     peer_cipher_suites_u16_be__t,
     FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE
@@ -235,9 +238,6 @@ static flea_err_t THR_flea_tls__read_client_hello(
     FLEA_THROW("Could not agree on compression method", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH);
   }
 
-  // if there are still bytes left to read, they must be from extensions
-  // if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
-  // {
   FLEA_CCALL(
     THR_flea_tls_ctx_t__parse_hello_extensions(
       tls_ctx,
@@ -246,7 +246,6 @@ static flea_err_t THR_flea_tls__read_client_hello(
       tls_ctx->private_key__pt
     )
   );
-  // }
   if(tls_ctx->sec_reneg_flag__u8 && !found_sec_reneg__b)
   {
     FLEA_THROW("missing renegotiation info in peer's extensions", FLEA_ERR_TLS_HANDSHK_FAILURE);
@@ -313,7 +312,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
     FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE);
   }
 
-# endif 
+# endif /* ifdef FLEA_HAVE_TLS_ECC */
 
   // check length in the header field for integrity
   if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) != 0)
@@ -660,7 +659,7 @@ static flea_err_t THR_flea_tls__send_server_kex(
   else
   {
     // should never come this far if we don't support the cipher suite / kex
-    FLEA_THROW("Invalid state", FLEA_ERR_TLS_INVALID_STATE);
+    FLEA_THROW("Invalid state", FLEA_ERR_INT_ERR);
   }
 
   FLEA_THR_FIN_SEC(
@@ -948,7 +947,7 @@ static flea_err_t THR_flea_tls__read_client_key_exchange(
     FLEA_CCALL(THR_flea_tls__read_client_key_exchange_rsa(tls_ctx, hs_rdr__pt, premaster_secret__pt));
 # else
     // should not happen if everything is properly configured
-    FLEA_THROW("unsupported key exchange variant", FLEA_ERR_TLS_INVALID_STATE);
+    FLEA_THROW("unsupported key exchange variant", FLEA_ERR_INT_ERR);
 # endif
   }
   else if(kex_method__t == FLEA_TLS_KEX_ECDHE)
@@ -964,13 +963,13 @@ static flea_err_t THR_flea_tls__read_client_key_exchange(
     );
 # else
     // should not happen if everything is properly configured
-    FLEA_THROW("unsupported key exchange variant", FLEA_ERR_TLS_INVALID_STATE);
+    FLEA_THROW("unsupported key exchange variant", FLEA_ERR_INT_ERR);
 # endif  /* ifdef FLEA_HAVE_TLS_ECDHE */
   }
   else
   {
     // should not happen
-    FLEA_THROW("unsupported key exchange variant", FLEA_ERR_TLS_INVALID_STATE);
+    FLEA_THROW("unsupported key exchange variant", FLEA_ERR_INT_ERR);
   }
 
   FLEA_THR_FIN_SEC_empty();
@@ -1541,7 +1540,7 @@ flea_err_t THR_flea_tls__server_handshake(
           /* set up master secret and key block */
           FLEA_CCALL(
             THR_flea_tls_get_key_block_len_from_cipher_suite_id(
-              tls_ctx->selected_cipher_suite__u16,
+              tls_ctx->selected_cipher_suite__e,
               &key_block_len__alu16
             )
           );
@@ -1549,7 +1548,7 @@ flea_err_t THR_flea_tls__server_handshake(
           FLEA_CCALL(
             THR_flea_tls__generate_key_block(
               &hs_ctx__t,
-              tls_ctx->selected_cipher_suite__u16,
+              tls_ctx->selected_cipher_suite__e,
               key_block__t.data__pu8,
               key_block_len__alu16
             )
@@ -1560,7 +1559,7 @@ flea_err_t THR_flea_tls__server_handshake(
             &tls_ctx->rec_prot__t,
             flea_tls_write,
             FLEA_TLS_SERVER,
-            tls_ctx->selected_cipher_suite__u16,
+            tls_ctx->selected_cipher_suite__e,
             key_block__t.data__pu8
           )
         );

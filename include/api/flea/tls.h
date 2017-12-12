@@ -27,9 +27,6 @@ typedef enum
   flea_tls_flag__rev_chk_mode__check_none         = 0x40
 } flea_tls_flag_e;
 
-
-// # define FLEA_TLS_CFG_FLAG__MIN_KEY_STRENGTH_SYM_BITS__256   0x000
-
 typedef enum
 {
   flea_tls_sigalg_rsa_sha1   = (flea_sha1 << 8) | flea_rsa_pkcs1_v1_5_sign,
@@ -41,25 +38,37 @@ typedef enum
 
 typedef enum
 {
-  flea_tls_rsa_with_null_sha256              = 0x003B,
-  flea_tls_rsa_with_aes_128_cbc_sha          = 0x002F,
-  flea_tls_rsa_with_aes_256_cbc_sha          = 0x0035,
-  flea_tls_rsa_with_aes_128_cbc_sha256       = 0x003C,
-  flea_tls_rsa_with_aes_256_cbc_sha256       = 0x003D,
-  flea_tls_rsa_with_aes_128_gcm_sha256       = 0x009C,
-  flea_tls_rsa_with_aes_256_gcm_sha384       = 0x009D,
+# ifdef FLEA_HAVE_TLS_RSA
+  flea_tls_rsa_with_null_sha256        = 0x003B,
+#  ifdef FLEA_HAVE_TLS_CBC_CS
+  flea_tls_rsa_with_aes_128_cbc_sha    = 0x002F,
+  flea_tls_rsa_with_aes_256_cbc_sha    = 0x0035,
+  flea_tls_rsa_with_aes_128_cbc_sha256 = 0x003C,
+  flea_tls_rsa_with_aes_256_cbc_sha256 = 0x003D,
+#  endif
+# endif
+# ifdef FLEA_HAVE_TLS_GCM_CS
+  flea_tls_rsa_with_aes_128_gcm_sha256 = 0x009C,
+  flea_tls_rsa_with_aes_256_gcm_sha384 = 0x009D,
+# endif
+# ifdef FLEA_HAVE_TLS_ECDHE
+#  ifdef FLEA_HAVE_TLS_CBC_CS
   flea_tls_ecdhe_rsa_with_aes_128_cbc_sha    = 0xC013,
   flea_tls_ecdhe_rsa_with_aes_256_cbc_sha    = 0xC014,
   flea_tls_ecdhe_rsa_with_aes_128_cbc_sha256 = 0xC027,
   flea_tls_ecdhe_rsa_with_aes_256_cbc_sha384 = 0xC028,
+#  endif
+#  ifdef FLEA_HAVE_TLS_GCM_CS
   flea_tls_ecdhe_rsa_with_aes_128_gcm_sha256 = 0xC02F,
   flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384 = 0xC030
+#  endif
+# endif   // ifdef FLEA_HAVE_TLS_ECDHE
 } flea_tls__cipher_suite_id_t;
 
 # ifdef __cplusplus
 }
 # endif
 
-#endif // ifdef FLEA_HAVE_TLS
+#endif   // ifdef FLEA_HAVE_TLS
 
-#endif /* h-guard */
+#endif  /* h-guard */
