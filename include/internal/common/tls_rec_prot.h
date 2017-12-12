@@ -16,6 +16,7 @@
 extern "C" {
 #endif
 
+#ifdef FLEA_HAVE_TLS
 
 // TODO: RENAME TO TLS_REC_CONT_TYPE (struct and values)
 typedef enum
@@ -76,13 +77,13 @@ struct struct_flea_tls_rec_prot_t
   flea_tls_conn_state_t write_state__t;
   // TODO: BUFFER OF LEN
   // FLEA_TLS_MAX_RECORD_DATA_SIZE + RECORD_HDR_LEN
-#ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_USE_HEAP_BUF
   flea_u8_t*                   send_rec_buf_raw__bu8;
   flea_u8_t*                   alt_send_buf__raw__bu8;
-#else
+# else
   flea_u8_t                    send_rec_buf_raw__bu8[FLEA_TLS_TRNSF_BUF_SIZE];
   flea_u8_t                    alt_send_buf__raw__bu8[FLEA_TLS_ALT_SEND_BUF_SIZE];
-#endif
+# endif // ifdef FLEA_USE_HEAP_BUF
   flea_u16_t                   send_rec_buf_raw_len__u16;
   flea_u16_t                   send_buf_raw_len__u16;
   flea_u8_t*                   payload_buf__pu8;
@@ -105,12 +106,12 @@ struct struct_flea_tls_rec_prot_t
   flea_u8_t                    pending_close_notify__u8;
 };
 
-#ifdef FLEA_USE_HEAP_BUF
-# define flea_tls_rec_prot_t__INIT_VALUE {.send_rec_buf_raw__bu8 = 0}
-#else
-# define flea_tls_rec_prot_t__INIT_VALUE {.send_rec_buf_raw__bu8[0] = 0}
-#endif
-#define flea_tls_rec_prot_t__INIT(__p) memset ((__p), 0, sizeof(*(__p))
+# ifdef FLEA_USE_HEAP_BUF
+#  define flea_tls_rec_prot_t__INIT_VALUE {.send_rec_buf_raw__bu8 = 0}
+# else
+#  define flea_tls_rec_prot_t__INIT_VALUE {.send_rec_buf_raw__bu8[0] = 0}
+# endif
+# define flea_tls_rec_prot_t__INIT(__p) memset ((__p), 0, sizeof(*(__p))
 
 void flea_tls_rec_prot_t__dtor(flea_tls_rec_prot_t* rec_prot__pt);
 
@@ -185,7 +186,7 @@ flea_bool_t flea_tls_rec_prot_t__have_done_initial_handshake(const flea_tls_rec_
 void flea_tls_rec_prot_t__discard_current_read_record(flea_tls_rec_prot_t* rec_prot__pt);
 
 flea_err_t THR_flea_tls_rec_prot_t__close_and_send_close_notify(flea_tls_rec_prot_t* rec_prot__pt);
-
+#endif // ifdef FLEA_HAVE_TLS
 #ifdef __cplusplus
 }
 #endif

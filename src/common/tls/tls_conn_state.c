@@ -5,6 +5,9 @@
 #include "flea/util.h"
 #include "internal/common/tls/tls_int.h"
 
+
+#ifdef FLEA_HAVE_TLS
+
 static void flea_tls_conn_state_t__unset_cipher_suite(flea_tls_conn_state_t* conn_state__pt)
 {
   // if(conn_state__pt->cipher_suite_config__t.cipher_suite_id == FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256)
@@ -49,14 +52,14 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_cbc_hmac(
 )
 {
   FLEA_THR_BEG_FUNC();
-#ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM_ARR(
     conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8,
     cipher_key_len__alu8 + mac_key_len__alu8
   );
   conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.mac_key__bu8 =
     conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8 + cipher_key_len__alu8;
-#endif
+# endif /* ifdef FLEA_USE_HEAP_BUF */
   conn_state__pt->reserved_iv_len__u8 = flea_block_cipher__get_block_size(block_cipher_id);
   // conn_state__pt->cipher_suite_config__t.cipher_suite_id = FLEA_TLS_RSA_WITH_AES_256_CBC_SHA256;
   conn_state__pt->cipher_suite_config__t.cipher_suite_class__e = flea_cbc_cipher_suite;
@@ -91,7 +94,7 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_gcm(
 {
   FLEA_THR_BEG_FUNC();
 
-#ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_USE_HEAP_BUF
   // note: it is important to keep the order of fixed and record iv since they
   // will be combined for the complete nonce (fixed||record = salt||explicit)
   FLEA_ALLOC_MEM_ARR(
@@ -102,7 +105,7 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_gcm(
     conn_state__pt->suite_specific__u.gcm_conn_state__t.cipher_key__bu8 + cipher_key_len__alu8;
   conn_state__pt->suite_specific__u.gcm_conn_state__t.record_iv__bu8 =
     conn_state__pt->suite_specific__u.gcm_conn_state__t.cipher_key__bu8 + cipher_key_len__alu8 + fixed_iv_len__alu8;
-#endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_USE_HEAP_BUF */
   conn_state__pt->reserved_iv_len__u8 = FLEA_CONST_TLS_GCM_RECORD_IV_LEN;
   // conn_state__pt->cipher_suite_config__t.cipher_suite_id = ;
   conn_state__pt->cipher_suite_config__t.cipher_suite_class__e = flea_gcm_cipher_suite;
@@ -133,3 +136,5 @@ void flea_tls_conn_state_t__dtor(flea_tls_conn_state_t* conn_state__pt)
 {
   flea_tls_conn_state_t__unset_cipher_suite(conn_state__pt);
 }
+
+#endif /* ifdef FLEA_HAVE_TLS */

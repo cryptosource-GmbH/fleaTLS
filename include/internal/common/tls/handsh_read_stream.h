@@ -13,6 +13,7 @@
 extern "C" {
 #endif
 
+#ifdef FLEA_HAVE_TLS
 
 typedef struct
 {
@@ -29,6 +30,7 @@ flea_err_t THR_flea_rw_stream_t__ctor_tls_handsh_reader(
   flea_u32_t                    msg_len__u32
 );
 
+#endif // ifdef FLEA_HAVE_TLS
 #ifdef __cplusplus
 }
 #endif

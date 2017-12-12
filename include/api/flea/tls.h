@@ -38,31 +38,42 @@ typedef enum
 
 typedef enum
 {
-# ifdef FLEA_HAVE_TLS_RSA
-  flea_tls_rsa_with_null_sha256        = 0x003B,
-#  ifdef FLEA_HAVE_TLS_CBC_CS
-  flea_tls_rsa_with_aes_128_cbc_sha    = 0x002F,
-  flea_tls_rsa_with_aes_256_cbc_sha    = 0x0035,
-  flea_tls_rsa_with_aes_128_cbc_sha256 = 0x003C,
-  flea_tls_rsa_with_aes_256_cbc_sha256 = 0x003D,
-#  endif
+# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
+  flea_tls_rsa_with_aes_128_cbc_sha          = 0x002F,
 # endif
-# ifdef FLEA_HAVE_TLS_GCM_CS
-  flea_tls_rsa_with_aes_128_gcm_sha256 = 0x009C,
-  flea_tls_rsa_with_aes_256_gcm_sha384 = 0x009D,
+# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA
+  flea_tls_rsa_with_aes_256_cbc_sha          = 0x0035,
 # endif
-# ifdef FLEA_HAVE_TLS_ECDHE
-#  ifdef FLEA_HAVE_TLS_CBC_CS
+# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA256
+  flea_tls_rsa_with_aes_128_cbc_sha256       = 0x003C,
+# endif
+# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256
+  flea_tls_rsa_with_aes_256_cbc_sha256       = 0x003D,
+# endif
+# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
+  flea_tls_rsa_with_aes_128_gcm_sha256       = 0x009C,
+# endif
+# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384
+  flea_tls_rsa_with_aes_256_gcm_sha384       = 0x009D,
+# endif
+# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
   flea_tls_ecdhe_rsa_with_aes_128_cbc_sha    = 0xC013,
+# endif
+# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
   flea_tls_ecdhe_rsa_with_aes_256_cbc_sha    = 0xC014,
+# endif
+# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
   flea_tls_ecdhe_rsa_with_aes_128_cbc_sha256 = 0xC027,
+# endif
+# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
   flea_tls_ecdhe_rsa_with_aes_256_cbc_sha384 = 0xC028,
-#  endif
-#  ifdef FLEA_HAVE_TLS_GCM_CS
+# endif
+# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
   flea_tls_ecdhe_rsa_with_aes_128_gcm_sha256 = 0xC02F,
+# endif
+# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
   flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384 = 0xC030
-#  endif
-# endif   // ifdef FLEA_HAVE_TLS_ECDHE
+# endif
 } flea_tls__cipher_suite_id_t;
 
 # ifdef __cplusplus

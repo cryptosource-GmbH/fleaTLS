@@ -4,6 +4,7 @@
 #define _flea_pubkey__H_
 
 #include "internal/common/default.h"
+#include "internal/common/pubkey_int.h"
 #include "flea/types.h"
 #include "flea/hash.h"
 #include "flea/x509.h"
@@ -44,40 +45,6 @@ typedef enum
 } flea_pk_scheme_id_t;
 
 typedef enum { flea_ecc_key, flea_rsa_key } flea_pk_key_type_t;
-
-# ifdef FLEA_HAVE_ECC
-
-typedef struct
-{
-  flea_byte_vec_t           public_point_encoded__rcu8;
-  flea_ec_gfp_dom_par_ref_t dp__t;
-#  ifdef FLEA_USE_STACK_BUF
-  flea_u8_t                 dp_mem__bu8[FLEA_ECC_MAX_DP_CONCAT_BYTE_SIZE];
-  flea_u8_t                 pub_point__mem__bu8[FLEA_ECC_MAX_ENCODED_POINT_LEN];
-#  else
-  flea_u8_t*                dp_mem__bu8;
-  flea_u8_t*                pub_point__mem__bu8;
-#  endif
-} flea_ec_pubkey_val_t;
-# endif /* #ifdef FLEA_HAVE_ECC */
-
-# ifdef FLEA_HAVE_RSA
-
-typedef struct
-{
-  flea_ref_cu8_t mod__rcu8;
-  flea_ref_cu8_t pub_exp__rcu8;
-#  ifdef FLEA_USE_STACK_BUF
-  flea_u8_t      mod_mem__bu8[FLEA_RSA_MAX_MOD_BYTE_LEN];
-  flea_u8_t      exp_mem__bu8[FLEA_RSA_MAX_PUB_EXP_BYTE_LEN];
-#  else
-  flea_u8_t*     mod_mem__bu8;
-  flea_u8_t*     exp_mem__bu8;
-#  endif
-} flea_rsa_pubkey_val_t;
-
-# endif /* FLEA_HAVE_RSA */
-
 
 typedef union
 {

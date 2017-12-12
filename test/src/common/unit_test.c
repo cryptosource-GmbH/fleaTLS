@@ -41,9 +41,9 @@ static unsigned canary_errors = 0;
     if(FLEA_IS_DBG_CANARY_ERROR_SIGNALLED()) {FLEA_PRINTF_TEST_OUTP_2_SWITCHED("canary error in test %s\n", # __f); canary_errors++;} \
     FLEA_CLEAR_DBG_CANARY_ERROR(); \
   } while(0)
-#else
+#else  /* ifdef FLEA_USE_BUF_DBG_CANARIES */
 # define CHECK_DBG_CANARIES_FLAG_SWITCHED(__f)
-#endif
+#endif /* ifdef FLEA_USE_BUF_DBG_CANARIES */
 
 #define CALL_TEST(__f) \
   do { \
@@ -65,14 +65,15 @@ int flea_unit_tests(
   unsigned nb_exec_tests = 0;
   unsigned failed_tests  = 0;
   unsigned i;
-  flea_u32_t nb_cert_path_tests = 0;
   flea_err_t rv = 0;
 
   for(i = 0; i < nb_reps; i++)
   {
     if(!cert_path_prefix)
     {
+#ifdef FLEA_HAVE_RSA
       flea_u32_t mass_sig_reps__u32 = full__b ? 1000 * 1000 : 100;
+#endif
       CALL_TEST(THR_flea_test_dbg_canaries());
       CALL_TEST(THR_flea_test_mpi_square());
       CALL_TEST(THR_flea_test_montgm_mul_comp_n_prime());
@@ -117,7 +118,7 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_test_emsa1());
       CALL_TEST(THR_flea_test_pkcs1_v1_5_encoding());
       CALL_TEST(THR_flea_test_oaep());
-#endif
+#endif /* ifdef FLEA_HAVE_PK_CS */
       CALL_TEST(THR_flea_test_cipher_block_encr_decr());
       CALL_TEST(THR_flea_test_davies_meyer_aes128_hash_hash());
       CALL_TEST(THR_flea_test_sha256_update());
@@ -148,8 +149,9 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_test_dec_tls_server_cert());
       CALL_TEST(THR_flea_test_dec_tls_server_cert_broken());
       CALL_TEST(THR_flea_test_dec_tls_server_issuer_cert());
-
+#ifdef FLEA_HAVE_TLS
       CALL_TEST(THR_flea_test_parallel_hash());
+#endif
 
 #if defined FLEA_HAVE_ASYM_SIG
       CALL_TEST(THR_flea_test_pkcs8());
@@ -160,7 +162,7 @@ int flea_unit_tests(
 
       CALL_TEST(THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store());
       CALL_TEST(THR_flea_test_tls_cert_chain());
-#endif
+#endif /* ifdef FLEA_HAVE_RSA */
 #ifdef FLEA_HAVE_ECDSA
       CALL_TEST(THR_flea_test_cert_verify_ecdsa());
 #endif
@@ -179,7 +181,7 @@ int flea_unit_tests(
 #  endif
         CALL_TEST(THR_flea_test_sha256_file_based());
       }
-# endif
+# endif /* if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_MOD_BIT_SIZE >= 224 */
 #endif /* __FLEA_HAVE_LINUX_FILESYSTEM */
       CALL_TEST(THR_flea_tls_test_basic());
     }
@@ -187,11 +189,12 @@ int flea_unit_tests(
 # if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) && defined FLEA_HAVE_ECDSA && (FLEA_ECC_MAX_MOD_BIT_SIZE >= 521)
     if(!func_prefix)
     {
+      flea_u32_t nb_cert_path_tests = 0;
       CALL_TEST(THR_flea_test_path_validation_file_based(cert_path_prefix, &nb_cert_path_tests, file_path_to_be_replaced_by_std_in));
       nb_exec_tests -= 1; // correct the counting of the dispatcher
       nb_exec_tests += nb_cert_path_tests;
     }
-# endif
+# endif /* if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) && defined FLEA_HAVE_ECDSA && (FLEA_ECC_MAX_MOD_BIT_SIZE >= 521) */
 #endif /* __FLEA_HAVE_LINUX_FILESYSTEM */
     if(failed_tests)
     {

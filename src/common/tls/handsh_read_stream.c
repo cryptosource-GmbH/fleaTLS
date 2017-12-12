@@ -6,6 +6,8 @@
 #include "flea/error_handling.h"
 #include "internal/common/tls/handsh_read_stream.h"
 
+#ifdef FLEA_HAVE_TLS
+
 // TODO: IMPLEMENT LENGTH LIMIT USING RW_STREAM'S LIMIT
 static flea_err_t THR_flea_tls_handsh_read_stream_t__read(
   void*                   custom_obj__pv,
@@ -77,3 +79,5 @@ flea_err_t THR_flea_rw_stream_t__ctor_tls_handsh_reader(
   );
   FLEA_THR_FIN_SEC_empty();
 }
+
+#endif /* ifdef FLEA_HAVE_TLS */

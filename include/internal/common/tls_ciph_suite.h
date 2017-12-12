@@ -4,6 +4,7 @@
 #ifndef _flea_tls_ciph_suite__H_
 #define _flea_tls_ciph_suite__H_
 
+#include "internal/common/default.h"
 #include "flea/types.h"
 #include "flea/mac.h"
 #include "flea/block_cipher.h"
@@ -16,11 +17,13 @@
 extern "C" {
 #endif
 
-#define FLEA_TLS_CS_AUTH_MASK__RSA   0x01
-#define FLEA_TLS_CS_AUTH_MASK__ECDSA 0x02
+#ifdef FLEA_HAVE_TLS
 
-#define FLEA_TLS_CS_KEX_MASK__ECDHE  0x08
-#define FLEA_TLS_CS_KEX_MASK__RSA    0x10
+# define FLEA_TLS_CS_AUTH_MASK__RSA   0x01
+# define FLEA_TLS_CS_AUTH_MASK__ECDSA 0x02
+
+# define FLEA_TLS_CS_KEX_MASK__ECDHE  0x08
+# define FLEA_TLS_CS_KEX_MASK__RSA    0x10
 
 typedef enum
 {
@@ -28,14 +31,14 @@ typedef enum
 } flea_tls__prf_algorithm_t;
 
 
-#define  FLEA_TLS_EMPTY_RENEGOTIATION_INFO_SCSV 0x00FF
+# define  FLEA_TLS_EMPTY_RENEGOTIATION_INFO_SCSV 0x00FF
 
-#define FLEA_TLS_NO_CIPHER                      0
-#define FLEA_TLS_AE_CIPHER(raw)       ((1 << 7) | raw)
-#define FLEA_TLS_BLOCK_CIPHER(raw)    (raw)
-#define FLEA_TLS_IS_AE_CIPHER(enc)    ((1 << 7) & enc)
-#define FLEA_TLS_IS_BLOCK_CIPHER(enc) (!((1 << 7) & enc))
-#define FLEA_TLS_CIPHER_RAW_ID(enc)   (enc & 0x7F)
+# define FLEA_TLS_NO_CIPHER                      0
+# define FLEA_TLS_AE_CIPHER(raw)       ((1 << 7) | raw)
+# define FLEA_TLS_BLOCK_CIPHER(raw)    (raw)
+# define FLEA_TLS_IS_AE_CIPHER(enc)    ((1 << 7) & enc)
+# define FLEA_TLS_IS_BLOCK_CIPHER(enc) (!((1 << 7) & enc))
+# define FLEA_TLS_CIPHER_RAW_ID(enc)   (enc & 0x7F)
 
 typedef enum
 {
@@ -85,6 +88,8 @@ flea_err_t THR_flea_tls_get_key_block_len_from_cipher_suite_id(
   flea_tls__cipher_suite_id_t id,
   flea_al_u16_t*              result_key_block_len__palu16
 );
+
+#endif // ifdef FLEA_HAVE_TLS
 #ifdef __cplusplus
 }
 #endif

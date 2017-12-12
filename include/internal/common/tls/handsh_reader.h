@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+#ifdef FLEA_HAVE_TLS
 
 typedef struct
 {
@@ -22,10 +23,10 @@ typedef struct
   flea_rw_stream_t             rec_prot_rd_stream__t;
 } flea_tls_handsh_reader_t;
 
-#define flea_tls_handsh_reader_t__INIT_VALUE {.handshake_read_stream__t.custom_obj__pv = NULL}
-#define flea_tls_handsh_reader_t__INIT(__p)
+# define flea_tls_handsh_reader_t__INIT_VALUE {.handshake_read_stream__t.custom_obj__pv = NULL}
+# define flea_tls_handsh_reader_t__INIT(__p)
 
-#define flea_tls_handsh_reader_t__dtor(__p)
+# define flea_tls_handsh_reader_t__dtor(__p)
 
 flea_err_t THR_flea_tls_handsh_reader_t__ctor(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
@@ -51,6 +52,8 @@ flea_err_t THR_flea_tls_handsh_reader_t__set_hash_ctx(
 );
 
 void flea_tls_handsh_reader_t__unset_hasher(flea_tls_handsh_reader_t* handsh_rdr__pt);
+
+#endif // ifdef FLEA_HAVE_TLS
 
 #ifdef __cplusplus
 }

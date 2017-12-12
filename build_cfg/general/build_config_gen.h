@@ -196,22 +196,33 @@
 
 # define FLEA_USE_PUBKEY_USE_RAND_DELAY
 
-# define FLEA_HAVE_TLS
-# define FLEA_HAVE_TLS_CLIENT
-# define FLEA_HAVE_TLS_SERVER
-
-# if defined FLEA_HAVE_RSA
-#  define FLEA_HAVE_TLS_RSA
+# ifdef FLEA_HAVE_RSA
+#  define FLEA_HAVE_TLS
 # endif
 
-# if defined FLEA_HAVE_ECKA
-#  define FLEA_HAVE_TLS_ECDHE
-#  define FLEA_HAVE_TLS_ECDH
-# endif
+# ifdef FLEA_HAVE_TLS
+#  define FLEA_HAVE_TLS_CLIENT
+#  define FLEA_HAVE_TLS_SERVER
 
-# if defined FLEA_HAVE_ECDSA
-#  define FLEA_HAVE_TLS_ECDSA
-# endif
+#  if defined FLEA_HAVE_ECKA
+#   define FLEA_HAVE_TLS_ECDHE
+#   define FLEA_HAVE_TLS_ECDH
+#  endif
+
+#  if defined FLEA_HAVE_ECDSA
+#   define FLEA_HAVE_TLS_ECDSA
+#  endif
+
+#  if defined FLEA_HAVE_RSA
+#   define FLEA_HAVE_TLS_RSA
+#  endif
+
+#  define FLEA_HAVE_TLS_CBC_CS
+
+#  define FLEA_HAVE_TLS_GCM_CS
+
+# endif // ifdef FLEA_HAVE_TLS
+
 
 # if defined FLEA_HAVE_TLS_ECDSA || defined FLEA_HAVE_TLS_ECDH || defined FLEA_HAVE_TLS_ECDHE
 #  define FLEA_HAVE_TLS_ECC
@@ -220,19 +231,28 @@
 /*
  * Flags to enable cipher suites
  */
-# define FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
-# define FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA256
-# define FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA
-# define FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256
-# define FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
-# define FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384
-# define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
-# define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
-# define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-# define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-# define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
-# define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-
+# ifdef FLEA_HAVE_TLS_RSA /* Ciphersuites that require RSA */
+#  ifdef FLEA_HAVE_TLS_CBC_CS
+#   define FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
+#   define FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA256
+#   define FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA
+#   define FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256
+#  endif // ifdef FLEA_HAVE_TLS_CBC_CS
+#  ifdef FLEA_HAVE_TLS_GCM_CS
+#   define FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
+#   define FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384
+#  endif
+#  ifdef FLEA_HAVE_TLS_ECDHE
+#   define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+#   define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+#   define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+#   define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+#   ifdef FLEA_HAVE_TLS_GCM_CS
+#    define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+#    define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+#   endif
+#  endif // ifdef FLEA_HAVE_TLS_ECDHE
+# endif // ifdef FLEA_HAVE_TLS_RSA
 
 # define FLEA_X509_MAX_ISSUER_DN_RAW_BYTE_LEN 256
 
@@ -245,8 +265,6 @@
  * Maximal number of sessions held be the server session manager (session cache).
  */
 # define FLEA_TLS_MAX_NB_MNGD_SESSIONS 4 // FBFLAGS__INT_LIST 1 2 10 31 257
-# define FLEA_HAVE_TLS_CBC_CS
-# define FLEA_HAVE_TLS_GCM_CS
 
 /**
  * If enabled, the tls client or server context will feature a flea_x509_cert_ref_t of the peer's

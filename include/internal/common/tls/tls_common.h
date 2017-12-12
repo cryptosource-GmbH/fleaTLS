@@ -3,6 +3,7 @@
 #ifndef _flea_tls_common__H_
 #define _flea_tls_common__H_
 
+#include "internal/common/default.h"
 #include "internal/common/tls_ciph_suite.h"
 #include "internal/common/tls/tls_cert_path.h"
 #include "internal/common/tls/parallel_hash.h"
@@ -252,35 +253,6 @@ flea_err_t THR_flea_tls_ctx_t__send_extensions(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
 );
 
-# ifdef FLEA_HAVE_TLS_ECDHE
-flea_err_t THR_flea_tls__create_ecdhe_key(
-  flea_private_key_t*  priv_key__pt,
-  flea_public_key_t*   pub_key__pt,
-  flea_ec_dom_par_id_t dom_par_id__t
-);
-# endif
-
-# ifdef FLEA_HAVE_TLS_ECDHE
-flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
-  flea_tls_ctx_t*     tls_ctx__pt,
-  flea_rw_stream_t*   hs_rd_stream__pt,
-  flea_byte_vec_t*    premaster_secret__pt,
-  flea_private_key_t* priv_key__pt,
-  flea_public_key_t*  peer_pubkey__pt
-);
-# endif
-
-# ifdef FLEA_HAVE_TLS_ECC
-flea_err_t THR_flea_tls__map_curve_bytes_to_flea_curve(
-  const flea_u8_t       bytes[2],
-  flea_ec_dom_par_id_t* ec_dom_par_id__pt
-);
-flea_err_t THR_flea_tls__map_flea_curve_to_curve_bytes(
-  const flea_ec_dom_par_id_t ec_dom_par_id__pt,
-  flea_u8_t                  bytes[2]
-);
-# endif
-
 flea_err_t THR_flea_tls__check_sig_alg_compatibility_for_key_type(
   flea_pk_key_type_t  key_type__t,
   flea_pk_scheme_id_t pk_scheme_id__t
@@ -332,27 +304,6 @@ flea_u8_t flea_tls__get_tls_cert_type_from_flea_key_type(flea_pk_key_type_t key_
 
 flea_u8_t flea_tls__get_tls_cert_type_from_flea_pk_scheme(flea_pk_scheme_id_t pk_scheme__t);
 
-# ifdef FLEA_HAVE_TLS_ECC
-flea_err_t THR_flea_tls_ctx_t__send_supported_ec_curves_ext(
-  flea_tls_ctx_t*               tls_ctx__pt,
-  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
-);
-
-flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_tls__cipher_suite_id_t suite_id);
-
-flea_err_t THR_flea_tls_ctx_t__parse_supported_curves_ext(
-  flea_tls_ctx_t*   tls_ctx__pt,
-  flea_rw_stream_t* rd_strm__pt,
-  flea_al_u16_t     ext_len__alu16
-);
-
-flea_err_t THR_flea_tls_ctx_t__parse_point_formats_ext(
-  flea_tls_ctx_t*   tls_ctx__pt,
-  flea_rw_stream_t* rd_strm__pt,
-  flea_al_u16_t     ext_len__alu16
-);
-# endif // ifdef FLEA_HAVE_TLS_ECC
-
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt);
 
 flea_err_t THR_flea_tls_ctx_t__renegotiate(
@@ -376,6 +327,7 @@ flea_bool_t flea_is_in_ciph_suite_list(
 );
 
 void flea_tls_ctx_t__begin_handshake(flea_tls_ctx_t* tls_ctx__pt);
+
 # ifdef __cplusplus
 }
 # endif

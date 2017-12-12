@@ -163,7 +163,10 @@ static flea_err_t THR_flea_create_private_and_or_public_key_from_pkcs8(
   /*flea_dtl_t version_len__dtl = 1;*/
   flea_u8_t version__u8;
   flea_byte_vec_t ostr__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+
+# ifdef FLEA_HAVE_ECC
   const flea_u8_t ecc_public_key_oid__acu8 [] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01};
+# endif
 
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);

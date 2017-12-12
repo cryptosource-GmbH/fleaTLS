@@ -7,6 +7,7 @@
 #include "pc/test_pc.h"
 #include "pc/test_util.h"
 #include "internal/common/tls/tls_common.h"
+#include "internal/common/tls/tls_common_ecc.h"
 #include <iostream>
 
 using namespace std;
@@ -21,19 +22,42 @@ using namespace std;
  * } ;*/
 
 std::map<string, flea_tls__cipher_suite_id_t> cipher_suite_name_value_map__t = {
-  {"TLS_RSA_WITH_NULL_SHA256",              flea_tls_rsa_with_null_sha256             },
+# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
   {"TLS_RSA_WITH_AES_128_CBC_SHA",          flea_tls_rsa_with_aes_128_cbc_sha         },
+# endif
+# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA
   {"TLS_RSA_WITH_AES_256_CBC_SHA",          flea_tls_rsa_with_aes_256_cbc_sha         },
+# endif
+# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA256
   {"TLS_RSA_WITH_AES_128_CBC_SHA256",       flea_tls_rsa_with_aes_128_cbc_sha256      },
+# endif
+# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256
   {"TLS_RSA_WITH_AES_256_CBC_SHA256",       flea_tls_rsa_with_aes_256_cbc_sha256      },
+# endif
+# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
   {"TLS_RSA_WITH_AES_128_GCM_SHA256",       flea_tls_rsa_with_aes_128_gcm_sha256      },
+# endif
+# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384
   {"TLS_RSA_WITH_AES_256_GCM_SHA384",       flea_tls_rsa_with_aes_256_gcm_sha384      },
+# endif
+# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
   {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",    flea_tls_ecdhe_rsa_with_aes_128_cbc_sha   },
+# endif
+# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
   {"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",    flea_tls_ecdhe_rsa_with_aes_256_cbc_sha   },
+# endif
+# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
   {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256", flea_tls_ecdhe_rsa_with_aes_128_cbc_sha256},
+# endif
+# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
   {"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384", flea_tls_ecdhe_rsa_with_aes_256_cbc_sha384},
+# endif
+# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
   {"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", flea_tls_ecdhe_rsa_with_aes_128_gcm_sha256},
+# endif
+# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
   {"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384}
+# endif
 };
 
 std::map<string, flea_ec_dom_par_id_t> curve_id_name_value_map__t = {
@@ -67,6 +91,7 @@ namespace {
     flea_u8_t dummy[2];
 
     std::vector<flea_ec_dom_par_id_t> result;
+# ifdef FLEA_HAVE_TLS_ECC
     if(cmdl_args.have_index("allowed_curves"))
     {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("allowed_curves"), ',');
@@ -95,6 +120,7 @@ namespace {
         }
       }
     }
+# endif // ifdef FLEA_HAVE_TLS_ECC
     return result;
   } // get_allowed_ecc_curves_from_cmdl
 
@@ -348,7 +374,7 @@ static std::string cert_info_to_string(const flea_x509_cert_ref_t* cert_ref__pt)
     flea_dn_cmpnt_state_or_province,
     flea_dn_cmpnt_serial_number,
     flea_dn_cmpnt_domain_cmpnt_attrib
-# endif
+# endif // ifdef FLEA_HAVE_X509_DN_DETAILS
   };
 
   std::string dn_comps_strings[] = {
@@ -362,7 +388,7 @@ static std::string cert_info_to_string(const flea_x509_cert_ref_t* cert_ref__pt)
     "state_or_province",
     "serial_number",
     "domain_cmpnt_attrib"
-# endif
+# endif // ifdef FLEA_HAVE_X509_DN_DETAILS
   };
   std::string subject_str, issuer_str;
   for(unsigned i = 0; i < FLEA_NB_ARRAY_ENTRIES(dn_comps__ace); i++)
@@ -409,7 +435,7 @@ void flea_tls_test_tool_print_peer_cert_info(
     {
       ee_ref__pt = flea_tls_client_ctx_t__get_peer_ee_cert_ref(client_ctx_mbn__pt);
     }
-#  endif
+#  endif // ifdef FLEA_HAVE_TLS_CLIENT
   }
   else if(server_ctx_mbn__pt)
   {
@@ -418,7 +444,7 @@ void flea_tls_test_tool_print_peer_cert_info(
     {
       ee_ref__pt = flea_tls_server_ctx_t__get_peer_ee_cert_ref(server_ctx_mbn__pt);
     }
-#  endif
+#  endif // ifdef FLEA_HAVE_TLS_SERVER
   }
   if(ee_ref__pt)
   {
@@ -435,7 +461,7 @@ void flea_tls_test_tool_print_peer_cert_info(
     {
       root_ref__pt = flea_tls_client_ctx_t__get_peer_root_cert_ref(client_ctx_mbn__pt);
     }
-#  endif
+#  endif // ifdef FLEA_HAVE_TLS_CLIENT
   }
   else if(server_ctx_mbn__pt)
   {
@@ -444,7 +470,7 @@ void flea_tls_test_tool_print_peer_cert_info(
     {
       root_ref__pt = flea_tls_server_ctx_t__get_peer_root_cert_ref(server_ctx_mbn__pt);
     }
-#  endif
+#  endif // ifdef FLEA_HAVE_TLS_SERVER
   }
   if(root_ref__pt)
   {

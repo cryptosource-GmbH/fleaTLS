@@ -19,6 +19,8 @@
 #include "flea/rng.h"
 #include "flea/pk_api.h"
 #include "flea/pkcs8.h"
+#include "internal/common/tls/tls_client_int_ecc.h"
+#include "internal/common/tls/tls_common_ecc.h"
 
 #ifdef FLEA_HAVE_TLS_CLIENT
 
@@ -389,6 +391,7 @@ static flea_err_t THR_flea_tls__send_client_hello(
   FLEA_THR_BEG_FUNC();
 
   tls_ctx->extension_ctrl__u8 = 0;
+# ifdef FLEA_HAVE_TLS_ECC
   for(i = 0; i < tls_ctx->nb_allowed_cipher_suites__u16; i++)
   {
     if(flea_tls__is_cipher_suite_ecc_suite(tls_ctx->allowed_cipher_suites__pe[i]))
@@ -396,6 +399,7 @@ static flea_err_t THR_flea_tls__send_client_hello(
       tls_ctx->extension_ctrl__u8 = FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS | FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES;
     }
   }
+# endif /* ifdef FLEA_HAVE_TLS_ECC */
   ext_len__alu16 = flea_tls_ctx_t__compute_extensions_length(tls_ctx);
 
   len = 2 + 1 + 0 + 32 + 2 + 2 * tls_ctx->nb_allowed_cipher_suites__u16 + 1 + 1 + 0 + ext_len__alu16;
@@ -502,11 +506,13 @@ static flea_err_t THR_flea_tls__send_client_hello(
   /**
    * both ECC extensions are set or none, so it's sufficient to check one
    */
+# ifdef FLEA_HAVE_TLS_ECC
   if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS)
   {
     FLEA_CCALL(THR_flea_tls_ctx_t__send_ecc_point_format_ext(tls_ctx, p_hash_ctx));
     FLEA_CCALL(THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(tls_ctx, p_hash_ctx));
   }
+# endif /* ifdef FLEA_HAVE_TLS_ECC */
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_client_hello */
 
@@ -613,55 +619,6 @@ static flea_err_t THR_flea_tls__read_cert_request(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__read_cert_request */
 
-static flea_err_t THR_flea_tls__send_client_key_exchange_ecdhe(
-  flea_tls_ctx_t*               tls_ctx__pt,
-  flea_tls_handshake_ctx_t*     hs_ctx__pt,
-  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
-)
-{
-  flea_ref_cu8_t pub_point__rcu8;
-  flea_u32_t hdr_len__u32;
-
-  FLEA_THR_BEG_FUNC();
-
-
-  pub_point__rcu8 = flea_public_key__get_encoded_public_component(hs_ctx__pt->ecdhe_pub_key__pt);
-  hdr_len__u32    = pub_point__rcu8.len__dtl + 1;
-
-
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_hdr(
-      &tls_ctx__pt->rec_prot__t,
-      p_hash_ctx__pt,
-      HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE,
-      hdr_len__u32
-    )
-  );
-
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx__pt->rec_prot__t,
-      p_hash_ctx__pt,
-      (flea_u8_t*) &pub_point__rcu8.len__dtl,
-      1
-    )
-  );
-
-  FLEA_CCALL(
-    THR_flea_tls__send_handshake_message_content(
-      &tls_ctx__pt->rec_prot__t,
-      p_hash_ctx__pt,
-      pub_point__rcu8.data__pcu8,
-      pub_point__rcu8.len__dtl
-    )
-  );
-
-
-  FLEA_THR_FIN_SEC(
-    flea_public_key_t__dtor(hs_ctx__pt->ecdhe_pub_key__pt);
-  );
-} /* THR_flea_tls__send_client_key_exchange_ecdhe */
-
 # ifdef FLEA_HAVE_TLS_RSA
 static flea_err_t THR_flea_tls__send_client_key_exchange_rsa(
   flea_tls_ctx_t*               tls_ctx,
@@ -755,7 +712,7 @@ static flea_err_t THR_flea_tls__send_client_key_exchange(
         premaster_secret__pt
       )
     );
-# else
+# else  /* ifdef FLEA_HAVE_TLS_RSA */
     // should not happen if everything is properly configured
     FLEA_THROW("unsupported key exchange variant", FLEA_ERR_INT_ERR);
 # endif  /* ifdef FLEA_HAVE_TLS_RSA */
@@ -1076,7 +1033,7 @@ flea_err_t THR_flea_tls__client_handshake(
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
     );
-# endif
+# endif /* ifdef FLEA_USE_HEAP_BUF */
   flea_tls_parallel_hash_ctx_t__INIT(&p_hash_ctx);
 
   tls_ctx->extension_ctrl__u8 = 0;
@@ -1374,7 +1331,6 @@ flea_err_t THR_flea_tls__client_handshake(
 
 flea_err_t THR_flea_tls_client_ctx_t__ctor(
   flea_tls_client_ctx_t*             tls_client_ctx__pt,
-  // flea_tls_ctx_t*               tls_ctx__pt,
   const flea_cert_store_t*           trust_store__pt,
   const flea_ref_cu8_t*              server_name__pcrcu8,
   flea_host_id_type_e                host_name_id__e,
@@ -1384,7 +1340,6 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   flea_private_key_t*                private_key_mbn__pt,
   const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
   flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
-  // flea_rev_chk_mode_e           rev_chk_mode__e,
   const flea_ref_cu8_t*              crl_der__pt,
   flea_al_u16_t                      nb_crls__alu16,
   flea_tls_client_session_t*         session_mbn__pt,

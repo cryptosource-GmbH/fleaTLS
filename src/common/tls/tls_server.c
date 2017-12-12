@@ -21,6 +21,8 @@
 #include "flea/byte_vec.h"
 #include "flea/ecka.h"
 #include "internal/common/lib_int.h"
+#include "internal/common/tls/tls_server_int_ecc.h"
+#include "internal/common/tls/tls_common_ecc.h"
 
 #ifdef FLEA_HAVE_TLS_SERVER
 
@@ -59,7 +61,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
     peer_cipher_suites_u16_be__t,
     FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE
   );
-# endif
+# endif /* ifdef FLEA_HAVE_TLS_ECC */
   FLEA_THR_BEG_FUNC();
 
 
@@ -157,7 +159,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
   {
     FLEA_THROW("buffer not large enough to store cipher suites", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
-# endif
+# endif /* ifndef FLEA_USE_HEAP_BUF */
 
   while(cipher_suites_len_from_peer__u32)
   {
@@ -184,7 +186,8 @@ static flea_err_t THR_flea_tls__read_client_hello(
       supported_cs_index__alu16 = 0;
       while(supported_cs_index__alu16 < supported_cs_len__alu16)
       {
-        if(curr_cs_from_peer__e == tls_ctx->allowed_cipher_suites__prcu16->data__pcu16[ supported_cs_index__u16 ])
+        // if(curr_cs_from_peer__e == tls_ctx->allowed_cipher_suites__prcu16->data__pcu16[ supported_cs_index__u16 ])
+        if(curr_cs_from_peer__e == tls_ctx->allowed_cipher_suites__pe[ supported_cs_index__alu16 ])
         {
           if(supported_cs_index__alu16 < chosen_cs_index__alu16)
           {
@@ -208,7 +211,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
   {
     FLEA_THROW("Could not agree on cipher", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE);
   }
-# endif
+# endif /* ifndef FLEA_HAVE_TLS_ECC */
 
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_byte(
@@ -332,7 +335,9 @@ static flea_err_t THR_flea_tls__read_client_hello(
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(session_id__bu8);
-    flea_byte_vec_t__dtor(&peer_cipher_suites_u16_be__t);
+    FLEA_DO_IF_HAVE_TLS_ECC(
+      flea_byte_vec_t__dtor(&peer_cipher_suites_u16_be__t);
+    )
   );
 } /* THR_flea_tls__read_client_hello */
 
@@ -453,6 +458,7 @@ static flea_err_t THR_flea_tls__send_server_hello(
   {
     FLEA_CCALL(THR_flea_tls_ctx_t__send_reneg_ext(tls_ctx, p_hash_ctx));
   }
+# ifdef FLEA_HAVE_TLS_ECC
   if(flea_tls__is_cipher_suite_ecc_suite(tls_ctx->selected_cipher_suite__e))
   {
     /*if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES)
@@ -464,213 +470,11 @@ static flea_err_t THR_flea_tls__send_server_hello(
       FLEA_CCALL(THR_flea_tls_ctx_t__send_ecc_point_format_ext(tls_ctx, p_hash_ctx));
     }
   }
+# endif /* ifdef FLEA_HAVE_TLS_ECC */
   // if(flea_tls_ctx_t__is_ecc_suite(tls_ctx__pt) &&
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_server_hello */
-
-static flea_err_t THR_flea_tls_get_sig_length_of_priv_key(
-  flea_private_key_t* priv_key__pt,
-  flea_u16_t*         len__u16
-)
-{
-  FLEA_THR_BEG_FUNC();
-  if(priv_key__pt->key_type__t == flea_rsa_key)
-  {
-    *len__u16 = (priv_key__pt->key_bit_size__u16 + 7) / 8;
-  }
-  else
-  {
-    FLEA_THROW("not yet implemented", FLEA_ERR_INV_ARG);
-  }
-  FLEA_THR_FIN_SEC_empty();
-}
-
-# ifdef FLEA_HAVE_TLS_ECDHE
-static flea_err_t THR_flea_tls__send_server_kex(
-  flea_tls_ctx_t*               tls_ctx__pt,
-  flea_tls_handshake_ctx_t*     hs_ctx__pt,
-  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
-  flea_private_key_t*           ecdhe_priv_key__pt
-)
-{
-  flea_tls__kex_method_t kex_method__t;
-
-  FLEA_DECL_OBJ(params_hash_ctx__t, flea_hash_ctx_t);
-  FLEA_DECL_BUF(hash__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, FLEA_MAX_SIG_SIZE);
-  flea_u8_t hash_out_len__u8;
-  flea_u32_t hdr_len__u32;
-  flea_ref_cu8_t pub_point__rcu8;
-  flea_u8_t ec_curve_type__au8[] = {3}; // named_curve has value 3
-  flea_hash_id_t hash_id__t;
-  flea_pk_scheme_id_t pk_scheme_id__t;
-  flea_u8_t sig_and_hash_alg[2];
-  flea_u16_t sig_len__u16;
-  flea_u8_t ec_curve__au8[2];
-  flea_u8_t sig_len_enc__au8[2];
-  flea_public_key_t ecdhe_pub_key__t = flea_public_key_t__INIT_VALUE;
-
-  FLEA_THR_BEG_FUNC();
-
-  FLEA_CCALL(THR_flea_tls__map_flea_curve_to_curve_bytes(tls_ctx__pt->chosen_ecc_dp_internal_id__u8, ec_curve__au8));
-
-  hash_id__t      = tls_ctx__pt->chosen_hash_algorithm__t;
-  pk_scheme_id__t = flea_tls__get_sig_alg_from_key_type(tls_ctx__pt->private_key__pt->key_type__t);
-
-  FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&params_hash_ctx__t, hash_id__t));
-  hash_out_len__u8 = flea_hash_ctx_t__get_output_length(&params_hash_ctx__t);
-  FLEA_CCALL(THR_flea_tls__map_flea_hash_to_tls_hash(hash_id__t, &sig_and_hash_alg[0]));
-  FLEA_CCALL(THR_flea_tls__map_flea_sig_to_tls_sig(pk_scheme_id__t, &sig_and_hash_alg[1]));
-
-  FLEA_CCALL(THR_flea_tls_get_sig_length_of_priv_key(tls_ctx__pt->private_key__pt, &sig_len__u16));
-
-  kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(
-    (flea_tls__cipher_suite_id_t) tls_ctx__pt->selected_cipher_suite__e
-    );
-
-  if(kex_method__t == FLEA_TLS_KEX_ECDHE)
-  {
-    // create ECDHE key pair
-    FLEA_CCALL(
-      THR_flea_tls__create_ecdhe_key(
-        // &tls_ctx__pt->ecdhe_priv_key__t,
-        ecdhe_priv_key__pt,
-        &ecdhe_pub_key__t,
-        (flea_ec_dom_par_id_t) tls_ctx__pt->chosen_ecc_dp_internal_id__u8
-      )
-    );
-
-    pub_point__rcu8 = flea_public_key__get_encoded_public_component(&ecdhe_pub_key__t);
-
-    // TODO: for ECDSA send header after calculating sig, because size is
-    // unknown beforehand
-    hdr_len__u32 = 3 + 1 + pub_point__rcu8.len__dtl + 2 + 2 + sig_len__u16; // 3 for named curve + 1 for pub point length + 2 for sig/hash alg + 2 sig length + 256 for sha256 sig
-
-    FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_hdr(
-        &tls_ctx__pt->rec_prot__t,
-        p_hash_ctx__pt,
-        HANDSHAKE_TYPE_SERVER_KEY_EXCHANGE,
-        hdr_len__u32
-      )
-    );
-
-    FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
-        &tls_ctx__pt->rec_prot__t,
-        p_hash_ctx__pt,
-        ec_curve_type__au8,
-        1
-      )
-    );
-
-    FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
-        &tls_ctx__pt->rec_prot__t,
-        p_hash_ctx__pt,
-        ec_curve__au8,
-        2
-      )
-    );
-
-
-    FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
-        &tls_ctx__pt->rec_prot__t,
-        p_hash_ctx__pt,
-        (flea_u8_t*) &pub_point__rcu8.len__dtl,
-        1
-      )
-    );
-
-    FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
-        &tls_ctx__pt->rec_prot__t,
-        p_hash_ctx__pt,
-        pub_point__rcu8.data__pcu8,
-        pub_point__rcu8.len__dtl
-      )
-    );
-
-
-    flea__encode_U16_BE(sig_len__u16, sig_len_enc__au8);
-
-    // calculate hash of ec params
-    FLEA_CCALL(
-      THR_flea_hash_ctx_t__update(
-        &params_hash_ctx__t,
-        // tls_ctx__pt->client_and_server_random__bu8,
-        hs_ctx__pt->client_and_server_random__pt->data__pu8,
-        2 * FLEA_TLS_HELLO_RANDOM_SIZE
-      )
-    );
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, ec_curve_type__au8, sizeof(ec_curve_type__au8)));
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, ec_curve__au8, sizeof(ec_curve__au8)));
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, (flea_u8_t*) &pub_point__rcu8.len__dtl, 1));
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, pub_point__rcu8.data__pcu8, pub_point__rcu8.len__dtl));
-
-    FLEA_ALLOC_BUF(hash__bu8, hash_out_len__u8);
-    FLEA_CCALL(THR_flea_hash_ctx_t__final(&params_hash_ctx__t, hash__bu8));
-
-
-    // create signature
-    FLEA_CCALL(
-      THR_flea_private_key_t__sign_digest_plain_format(
-        tls_ctx__pt->private_key__pt,
-        pk_scheme_id__t,
-        hash_id__t,
-        hash__bu8,
-        hash_out_len__u8,
-        &sig_vec__t
-      )
-    );
-
-    // send sig_hash alg + sig
-    FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
-        &tls_ctx__pt->rec_prot__t,
-        p_hash_ctx__pt,
-        sig_and_hash_alg,
-        2
-      )
-    );
-
-
-    FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
-        &tls_ctx__pt->rec_prot__t,
-        p_hash_ctx__pt,
-        sig_len_enc__au8,
-        sizeof(sig_len_enc__au8)
-      )
-    );
-
-
-    FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
-        &tls_ctx__pt->rec_prot__t,
-        p_hash_ctx__pt,
-        sig_vec__t.data__pu8,
-        sig_vec__t.len__dtl
-      )
-    );
-  }
-  else
-  {
-    // should never come this far if we don't support the cipher suite / kex
-    FLEA_THROW("Invalid state", FLEA_ERR_INT_ERR);
-  }
-
-  FLEA_THR_FIN_SEC(
-    flea_hash_ctx_t__dtor(&params_hash_ctx__t);
-    FLEA_FREE_BUF_FINAL(hash__bu8);
-    flea_byte_vec_t__dtor(&sig_vec__t);
-    flea_public_key_t__dtor(&ecdhe_pub_key__t);
-  );
-} /* THR_flea_tls__send_server_kex */
-
-# endif  /* ifdef FLEA_HAVE_TLS_ECDHE */
 
 /*
  *  if 'allowed_sig_algs__u8' is not already accounted for, adjust cert_types_mask__u8 and return true
@@ -961,7 +765,7 @@ static flea_err_t THR_flea_tls__read_client_key_exchange(
         ecdhe_priv_key__pt
       )
     );
-# else
+# else  /* ifdef FLEA_HAVE_TLS_ECDHE */
     // should not happen if everything is properly configured
     FLEA_THROW("unsupported key exchange variant", FLEA_ERR_INT_ERR);
 # endif  /* ifdef FLEA_HAVE_TLS_ECDHE */
@@ -1272,7 +1076,7 @@ flea_err_t THR_flea_tls__server_handshake(
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
     );
-# endif
+# endif /* ifdef FLEA_USE_HEAP_BUF */
   // TODO: KEY BLOCK SIZE #596
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, 256);
   flea_public_key_t peer_public_key__t;
@@ -1478,6 +1282,7 @@ flea_err_t THR_flea_tls__server_handshake(
 
 
           // send server key exchange depending on cipher suite
+# ifdef FLEA_HAVE_TLS_ECDHE
           if(flea_tls_get_kex_method_by_cipher_suite_id(
               (flea_tls__cipher_suite_id_t) tls_ctx->
               selected_cipher_suite__e
@@ -1485,6 +1290,7 @@ flea_err_t THR_flea_tls__server_handshake(
           {
             FLEA_CCALL(THR_flea_tls__send_server_kex(tls_ctx, &hs_ctx__t, &p_hash_ctx, &ecdhe_priv_key__t));
           }
+# endif /* ifdef FLEA_HAVE_TLS_ECDHE */
 
           // send certificate request in case we want client authentication
           if(handshake_state.send_client_cert == FLEA_TRUE)

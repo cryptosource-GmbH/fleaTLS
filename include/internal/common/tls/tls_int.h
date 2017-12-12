@@ -19,7 +19,8 @@
 extern "C" {
 #endif
 
-#define flea_tls_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
+#ifdef FLEA_HAVE_TLS
+# define flea_tls_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
 
 typedef struct
 {
@@ -40,11 +41,11 @@ typedef struct
 struct struct_flea_tls_ctx_t
 {
   flea_tls__connection_end_t connection_end; /* Server or Client */
-#ifdef FLEA_USE_STACK_BUF
+# ifdef FLEA_USE_STACK_BUF
   flea_u8_t                  master_secret__bu8[FLEA_TLS_MASTER_SECRET_SIZE]; /* symmetric keys are derived from this */
-#else
+# else
   flea_u8_t*                 master_secret__bu8;
-#endif
+# endif
 
   /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
   const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe;
@@ -74,41 +75,35 @@ struct struct_flea_tls_ctx_t
   flea_revoc_chk_cfg_t               rev_chk_cfg__t;
   flea_u8_t                          sec_reneg_flag__u8;
 
-#ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_USE_HEAP_BUF
   flea_u8_t*                         own_vfy_data__bu8;
   flea_u8_t*                         peer_vfy_data__bu8;
-#else
+# else
   flea_u8_t                          own_vfy_data__bu8[12];
   flea_u8_t                          peer_vfy_data__bu8[12];
-#endif
-  // flea_tls_session_entry_t*    server_active_sess_mbn__pt;
+# endif // ifdef FLEA_USE_HEAP_BUF
   flea_u8_t                          allow_reneg__u8;
   flea_u8_t                          allow_insec_reneg__u8;
   flea_u8_t                          extension_ctrl__u8; /* used only by server */
-  flea_ec_dom_par_id_t*              allowed_ecc_curves__pe; /* by flea_ec_dom_par_id_t */
+  flea_ec_dom_par_id_t*              allowed_ecc_curves__pe;
   flea_u16_t                         nb_allowed_curves__u16;
   flea_u8_t                          chosen_ecc_dp_internal_id__u8;
-
-  // chosen hash algorithm in sig_alg extension. Signature algorithm is fixed by
-  // the loaded certificate
-  flea_tls_sigalg_e*   allowed_sig_algs__pe;
-  flea_al_u16_t        nb_allowed_sig_algs__alu16;
-  flea_hash_id_t       chosen_hash_algorithm__t; // use as hash alg when signing with private key (server and client)
-  flea_bool_t          can_use_ecdhe;            // true if sig alg extension produces a match so we can sign the ECDHE params
-  // flea_stream_read_mode_e    handshake_read_mode__e;
-  // flea_tls_flag_e flags;
-  flea_tls_flag_e      cfg_flags__e;
-#ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
-# ifdef FLEA_USE_STACK_BUF
-  flea_u8_t            peer_ee_cert__au8[FLEA_STKMD_X509_MAX_CERT_SIZE];
+  flea_tls_sigalg_e*                 allowed_sig_algs__pe;
+  flea_al_u16_t                      nb_allowed_sig_algs__alu16;
+  flea_hash_id_t                     chosen_hash_algorithm__t; // use as hash alg when signing with private key (server and client)
+  flea_bool_t                        can_use_ecdhe; // true if sig alg extension produces a match so we can sign the ECDHE params
+  flea_tls_flag_e                    cfg_flags__e;
+# ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+#  ifdef FLEA_USE_STACK_BUF
+  flea_u8_t                          peer_ee_cert__au8[FLEA_STKMD_X509_MAX_CERT_SIZE];
+#  endif
+  flea_byte_vec_t                    peer_ee_cert_data__t;
+  flea_x509_cert_ref_t               peer_ee_cert_ref__t;
+# endif // ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+# ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
+  flea_x509_cert_ref_t               peer_root_cert_ref__t;
+  flea_u8_t                          peer_root_cert_set__u8;
 # endif
-  flea_byte_vec_t      peer_ee_cert_data__t;
-  flea_x509_cert_ref_t peer_ee_cert_ref__t;
-#endif
-#ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
-  flea_x509_cert_ref_t peer_root_cert_ref__t;
-  flea_u8_t            peer_root_cert_set__u8;
-#endif
 };
 
 struct struct_flea_tls_handshake_ctx_t
@@ -130,6 +125,7 @@ struct struct_flea_tls_server_ctx_t
   flea_u8_t                      server_session_id_assigned__u8;
 };
 
+#endif // ifdef FLEA_HAVE_TLS
 #ifdef __cplusplus
 }
 #endif

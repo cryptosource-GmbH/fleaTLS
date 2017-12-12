@@ -605,6 +605,7 @@ std::vector<std::vector<unsigned char> > property_set_t::get_bin_file_list_prope
   return result;
 }
 
+#ifdef FLEA_HAVE_TLS
 flea_u32_t reneg_flag_from_string(std::string const& s)
 {
   if(s == "no_reneg")
@@ -621,6 +622,8 @@ flea_u32_t reneg_flag_from_string(std::string const& s)
   }
   throw test_utils_exceptn_t("invalid value '" + s + "' for argument 'reneg'");
 }
+
+#endif // ifdef FLEA_HAVE_TLS
 
 std::vector<unsigned char> read_binary_from_std_in()
 {

@@ -19,6 +19,7 @@
 
 typedef enum { dir_entries_with_path, dir_entries_only_leafs } dir_entry_extract_mode_t;
 
+#ifdef FLEA_HAVE_TLS
 struct server_params_t
 {
   flea_tls_shared_server_ctx_t*      shrd_ctx__pt;
@@ -57,6 +58,26 @@ struct server_params_t
     pthread_mutex_unlock(&this->mutex);
   }
 };
+
+
+struct tls_test_cfg_t
+{
+  std::vector<std::vector<flea_u8_t> >     trusted_certs;
+  std::vector<flea_u8_t>                   server_key_vec;
+  std::vector<std::vector<unsigned char> > own_certs;
+  std::vector<std::vector<unsigned char> > own_ca_chain;
+  std::vector<flea_tls__cipher_suite_id_t> cipher_suites;
+  std::vector<flea_ec_dom_par_id_t>        allowed_curves;
+  std::vector<flea_tls_sigalg_e>           allowed_sig_algs;
+  std::vector<std::vector<flea_u8_t> >     crls;
+  // flea_rev_chk_mode_e                      rev_chk_mode__e;
+  std::vector<flea_ref_cu8_t>              crls_refs;
+  flea_stream_read_mode_e                  read_mode_for_app_data;
+  size_t                                   read_size_for_app_data;
+  flea_u32_t                               flags = (flea_tls_flag_e) 0;
+  unsigned                                 timeout_secs_during_handshake = 0;
+};
+#endif // ifdef FLEA_HAVE_TLS
 
 class test_utils_exceptn_t : public std::exception
 {
@@ -181,24 +202,7 @@ std::vector<std::string> get_entries_of_dir(
 flea_u32_t string_to_u32bit(std::string const& str);
 
 
-struct tls_test_cfg_t
-{
-  std::vector<std::vector<flea_u8_t> >     trusted_certs;
-  std::vector<flea_u8_t>                   server_key_vec;
-  std::vector<std::vector<unsigned char> > own_certs;
-  std::vector<std::vector<unsigned char> > own_ca_chain;
-  std::vector<flea_tls__cipher_suite_id_t> cipher_suites;
-  std::vector<flea_ec_dom_par_id_t>        allowed_curves;
-  std::vector<flea_tls_sigalg_e>           allowed_sig_algs;
-  std::vector<std::vector<flea_u8_t> >     crls;
-  // flea_rev_chk_mode_e                      rev_chk_mode__e;
-  std::vector<flea_ref_cu8_t>              crls_refs;
-  flea_stream_read_mode_e                  read_mode_for_app_data;
-  size_t                                   read_size_for_app_data;
-  flea_u32_t                               flags = (flea_tls_flag_e) 0;
-  unsigned                                 timeout_secs_during_handshake = 0;
-};
-#ifdef FLEA_HAVE_ASYM_ALGS
+#ifdef FLEA_HAVE_TLS
 flea_err_t THR_flea_tls_tool_set_tls_cfg(
   flea_cert_store_t*  trust_store__pt,
   flea_ref_cu8_t*     cert_chain,
@@ -207,13 +211,14 @@ flea_err_t THR_flea_tls_tool_set_tls_cfg(
   property_set_t const& cmdl_args,
   tls_test_cfg_t      & cfg
 );
-#endif
 
 void flea_tls_test_tool_print_peer_cert_info(
   flea_tls_client_ctx_t* client_ctx_mbn__pt,
   flea_tls_server_ctx_t* server_ctx_mbn__pt,
   server_params_t*       serv_par__pt
 );
+#endif // ifdef FLEA_HAVE_TLS
+
 
 std::vector<std::string> tokenize_string(
   std::string const& value,
@@ -285,5 +290,6 @@ bool string_ends_with(
   std::string const &fullString,
   std::string const &ending
 );
+
 
 #endif // ifndef __flea_test_util_cpp_H_
