@@ -153,7 +153,7 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_test_parallel_hash());
 #endif
 
-#if defined FLEA_HAVE_ASYM_SIG
+#if defined FLEA_HAVE_ASYM_SIG && defined FLEA_HAVE_SHA1
       CALL_TEST(THR_flea_test_pkcs8());
 #endif
 #ifdef FLEA_HAVE_RSA

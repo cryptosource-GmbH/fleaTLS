@@ -18,6 +18,12 @@ extern "C" {
 
 void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx__pt);
 
+/**
+ *
+ * @param allowed_cipher_suites a pointer to the array containing the
+ * ciphersuites supported by the server. The lower the index of a suite within
+ * the array, the higher is its priority.
+ */
 flea_err_t THR_flea_tls_server_ctx_t__ctor(
   flea_tls_server_ctx_t*             tls_ctx__pt,
   flea_tls_shared_server_ctx_t*      shrd_server_ctx__pt,
@@ -25,10 +31,8 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   const flea_ref_cu8_t*              cert_chain__pt,
   flea_al_u8_t                       cert_chain_len__alu8,
   const flea_cert_store_t*           trust_store__t,
-  // const flea_ref_cu16_t*        allowed_cipher_suites__prcu16,
-  const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
-  flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
-  // TODO: TURN INTO REF_CU8
+  const flea_tls__cipher_suite_id_t* allowed_cipher_suites,
+  flea_al_u16_t                      nb_allowed_cipher_suites,
   const flea_ref_cu8_t*              crl_der__pt,
   flea_al_u16_t                      nb_crls__alu16,
   flea_tls_session_mngr_t*           session_mngr_mbn__pt,
@@ -102,7 +106,7 @@ flea_bool_t flea_tls_server_ctx_t__have_peer_ee_cert_ref(flea_tls_server_ctx_t* 
  * NULL otherwise.
  */
 const flea_x509_cert_ref_t* flea_tls_server_ctx_t__get_peer_ee_cert_ref(flea_tls_server_ctx_t* server_ctx__pt);
-# endif
+# endif // ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
 
 # ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
@@ -126,7 +130,7 @@ flea_bool_t flea_tls_server_ctx_t__have_peer_root_cert_ref(flea_tls_server_ctx_t
  * NULL otherwise.
  */
 const flea_x509_cert_ref_t* flea_tls_server_ctx_t__get_peer_root_cert_ref(flea_tls_server_ctx_t* server_ctx__pt);
-# endif
+# endif // ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 #endif // ifdef FLEA_HAVE_TLS_SERVER
 

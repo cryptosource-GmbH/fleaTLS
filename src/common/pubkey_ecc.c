@@ -55,10 +55,12 @@ flea_err_t THR_get_hash_id_from_x509_id_for_ecdsa(
           FLEA_THROW("unsupported ECDSA variant", FLEA_ERR_X509_UNSUPP_ALGO_VARIANT);
     }
   }
+# ifdef FLEA_HAVE_SHA1
   else if(cert_id__pcu8[0] == 4 && cert_id__pcu8[1] == 1)
   {
     *result__pt = flea_sha1;
   }
+# endif /* ifdef FLEA_HAVE_SHA1 */
   else
   {
     FLEA_THROW("unsupported ECDSA variant", FLEA_ERR_X509_UNSUPP_ALGO_VARIANT);

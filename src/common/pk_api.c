@@ -83,11 +83,13 @@ static flea_al_u16_t flea_pk_api__pkcs1_set_digest_info(
     len__alu16  = sizeof(flea_pkcs1_digest_info__md5__acu8);
     source__pu8 = flea_pkcs1_digest_info__md5__acu8;
   }
+# ifdef FLEA_HAVE_SHA1
   else if(hash_id__t == flea_sha1)
   {
     len__alu16  = sizeof(flea_pkcs1_digest_info__sha1__acu8);
     source__pu8 = flea_pkcs1_digest_info__sha1__acu8;
   }
+# endif /* ifdef FLEA_HAVE_SHA1 */
   else
   {
     len__alu16  = sizeof(flea_pkcs1_digest_info__sha224__acu8);
@@ -96,12 +98,19 @@ static flea_al_u16_t flea_pk_api__pkcs1_set_digest_info(
   offset__alu16       = target_buffer_len__alu16 - len__alu16;
   target_buffer__pu8 += offset__alu16;
   memcpy(target_buffer__pu8, source__pu8, len__alu16);
-  if(hash_id__t != flea_md5 && hash_id__t != flea_sha1)
+  if(1
+# ifdef FLEA_HAVE_MD5
+    && (hash_id__t != flea_md5)
+# endif
+# ifdef FLEA_HAVE_SHA1
+    && hash_id__t != flea_sha1
+# endif
+  )
   {
     flea_pk_api__set_pkcs1_digest_info__sha2(target_buffer__pu8, hash_id__t);
   }
   return len__alu16 + target_buffer__pu8[len__alu16 - 1];
-}
+} /* flea_pk_api__pkcs1_set_digest_info */
 
 void flea_pk_signer_t__dtor(flea_pk_signer_t* p_destr)
 {

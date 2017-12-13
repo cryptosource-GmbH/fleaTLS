@@ -286,7 +286,7 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
               &ext_ref__pt->subj_key_id__t
             )
           );
-#endif
+#endif /* ifdef FLEA_X509_CERT_REF_WITH_DETAILS */
           break;
         }
         case ID_CE_OID_SUBJ_ALT_NAME:
@@ -625,7 +625,7 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
       &cert_ref__pt->issuer_unique_id_as_bitstr__t
     )
   );
-#else
+#else  /* ifdef FLEA_X509_CERT_REF_WITH_DETAILS */
   FLEA_CCALL(
     THR_flea_ber_dec_t__decode_implicit_universal_optional_with_inner(
       &dec__t,
@@ -645,7 +645,7 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
       &cert_ref__pt->subject_unique_id_as_bitstr__t
     )
   );
-#else
+#else  /* ifdef FLEA_X509_CERT_REF_WITH_DETAILS */
   FLEA_CCALL(
     THR_flea_ber_dec_t__decode_implicit_universal_optional_with_inner(
       &dec__t,
@@ -855,8 +855,15 @@ flea_err_t THR_flea_x509_cert_ref_t__get_issuer_dn_component(
   flea_ref_cu8_t*             result__prcu8
 )
 {
-  FLEA_THR_BEG_FUNC();
   return THR_flea_x509__get_dn_component(&cert_ref__pt->issuer__t, cmpnt__e, result__prcu8);
+}
 
-  FLEA_THR_FIN_SEC_empty();
+const flea_gmt_time_t* flea_x509_cert_ref_t__get_not_after_ref(const flea_x509_cert_ref_t* cert_ref__pt)
+{
+  return &cert_ref__pt->not_after__t;
+}
+
+const flea_gmt_time_t* flea_x509_cert_ref_t__get_not_before_ref(const flea_x509_cert_ref_t* cert_ref__pt)
+{
+  return &cert_ref__pt->not_before__t;
 }

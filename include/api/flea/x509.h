@@ -8,36 +8,12 @@
 #include "flea/types.h"
 #include "internal/common/ber_dec.h"
 #include "flea/asn1_date.h"
+#include "internal/common/x509_const_int.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define FLEA_X509_MAX_SERIALNUMBER_LEN 20
-#define ID_UNSUPP_EXT_OID              0
-
-/** id-ce **/
-#define ID_CE_INDIC                (0x0100)
-#define ID_CE_OID_AKI              (ID_CE_INDIC | 35)
-#define ID_CE_OID_POLICIES         (ID_CE_INDIC | 32)
-#define ID_CE_OID_KEY_USAGE        (ID_CE_INDIC | 15)
-#define ID_CE_OID_SUBJ_KEY_ID      (ID_CE_INDIC | 14)
-#define ID_CE_OID_SUBJ_ALT_NAME    (ID_CE_INDIC | 17)
-#define ID_CE_OID_ISS_ALT_NAME     (ID_CE_INDIC | 18)
-#define ID_CE_OID_BASIC_CONSTR     (ID_CE_INDIC | 19)
-#define ID_CE_OID_NAME_CONSTR      (ID_CE_INDIC | 30)
-#define ID_CE_OID_POLICY_CONSTR    (ID_CE_INDIC | 36)
-#define ID_CE_OID_EXT_KEY_USAGE    (ID_CE_INDIC | 37)
-#define ID_CE_OID_CRL_DISTR_POINT  (ID_CE_INDIC | 31)
-#define ID_CE_OID_INHIB_ANY_POLICY (ID_CE_INDIC | 54)
-#define ID_CE_OID_FRESHEST_CRL     (ID_CE_INDIC | 46)
-
-/** id-pe**/
-#define ID_PE_INDIC            (0x0200)
-#define ID_PE_OID_AUTH_INF_ACC (ID_PE_INDIC | 1)
-#define ID_PE_OID_SUBJ_INF_ACC (ID_PE_INDIC | 11)
-
-extern const flea_u8_t id_pe__cau8 [7];
 
 /**
  * Type to control the checking for specific key usages in key usage extensions (i.e. key usage or
@@ -50,11 +26,8 @@ extern const flea_u8_t id_pe__cau8 [7];
 typedef enum { flea_key_usage_explicit, flea_key_usage_implicit } flea_key_usage_exlicitness_e;
 
 /**
- * An identifier for either the key usage or extended key usage extension in a
- * certificate.
+ * Enumeration of the key usage flags.
  */
-// typedef enum { flea_key_usage_extension, flea_extended_key_usage_extension } flea_key_usage_ext_type_e;
-
 typedef enum
 {
   flea_ku_none_set           = 0,
@@ -69,14 +42,9 @@ typedef enum
   flea_ku_decipher_only      = (1 << 7)
 } flea_key_usage_e;
 
-#define FLEA_ASN1_EKU_BITP_any_ext_ku       0
-#define FLEA_ASN1_EKU_BITP_server_auth      1
-#define FLEA_ASN1_EKU_BITP_client_auth      2
-#define FLEA_ASN1_EKU_BITP_code_signing     3
-#define FLEA_ASN1_EKU_BITP_email_protection 4
-#define FLEA_ASN1_EKU_BITP_time_stamping    8
-#define FLEA_ASN1_EKU_BITP_ocsp_signing     9
-
+/**
+ * Enumeration of the extended key usage flags.
+ */
 typedef enum
 {
   flea_eku_none_set         = 0,
@@ -89,6 +57,9 @@ typedef enum
   flea_eku_ocsp_signing     = (1 << FLEA_ASN1_EKU_BITP_ocsp_signing)
 } flea_ext_key_usage_e;
 
+/**
+ *  Enumeration of the X.509 distinguished name components.
+ */
 typedef enum
 {
   flea_dn_cmpnt_cn,
@@ -101,45 +72,8 @@ typedef enum
   flea_dn_cmpnt_state_or_province,
   flea_dn_cmpnt_serial_number,
   flea_dn_cmpnt_domain_cmpnt_attrib
-#endif
+#endif // ifdef FLEA_HAVE_X509_DN_DETAILS
 } flea_dn_cmpnt_e;
-
-typedef struct
-{
-  const flea_u8_t*      data__pcu8;
-  flea_dtl_t            len__dtl;
-  flea_asn1_time_type_t time_type__t;
-} flea_x509_date_ref_t;
-
-typedef struct
-{
-  flea_byte_vec_t oid_ref__t;
-  flea_byte_vec_t params_ref_as_tlv__t;
-} flea_x509_algid_ref_t;
-
-#define flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE {.oid_ref__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, .params_ref_as_tlv__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE}
-
-typedef struct
-{
-  flea_x509_algid_ref_t algid__t;
-  flea_byte_vec_t       public_key_as_tlv__t;
-} flea_x509_public_key_info_t;
-
-typedef struct
-{
-  flea_byte_vec_t raw_dn_complete__t;
-  flea_byte_vec_t common_name__t;
-  flea_byte_vec_t country__t;
-  flea_byte_vec_t org__t;
-  flea_byte_vec_t org_unit__t;
-#ifdef FLEA_HAVE_X509_DN_DETAILS
-  flea_byte_vec_t dn_qual__t;
-  flea_byte_vec_t state_or_province_name__t;
-  flea_byte_vec_t locality_name__t;
-  flea_byte_vec_t serial_number__t;
-  flea_byte_vec_t domain_component_attribute__t;
-#endif
-} flea_x509_dn_ref_t;
 
 #ifdef FLEA_HAVE_X509_DN_DETAILS
 # define flea_x509_dn_ref_t__CONSTR_EMPTY_ALLOCATABLE \
@@ -165,53 +99,6 @@ typedef struct
     .org_unit__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
   }
 #endif // ifdef FLEA_HAVE_X509_DN_DETAILS
-
-typedef struct
-{
-  flea_u8_t       is_present__u8;
-  flea_byte_vec_t key_id__t;
-} flea_x509_auth_key_id_t;
-
-typedef struct
-{
-  flea_u8_t   is_present__u8;
-  flea_bool_t is_ca__b;
-  flea_bool_t has_path_len__b;
-  flea_u16_t  path_len__u16;
-} flea_basic_constraints_t;
-
-typedef struct
-{
-  flea_u8_t  is_present__u8;
-  flea_u16_t purposes__u16;
-} flea_key_usage_t;
-
-typedef struct
-{
-  flea_u8_t       is_present__u8;
-  flea_byte_vec_t raw_ref__t;
-} flea_x509_raw_ext_t;
-
-typedef struct
-{
-  flea_u8_t       is_present__u8;
-  flea_byte_vec_t san_raw__t;
-} flea_x509_subj_alt_names_t;
-
-typedef struct
-{
-  flea_key_usage_t           key_usage__t;
-  flea_key_usage_t           ext_key_usage__t;
-  flea_x509_subj_alt_names_t san__t;
-  flea_basic_constraints_t   basic_constraints__t;
-  flea_x509_raw_ext_t        crl_distr_point__t;
-#ifdef FLEA_X509_CERT_REF_WITH_DETAILS
-  flea_x509_auth_key_id_t    auth_key_id__t;
-  flea_byte_vec_t            subj_key_id__t;
-  flea_x509_raw_ext_t        auth_inf_acc__t;
-  flea_x509_raw_ext_t        freshest_crl__t;
-#endif
-} flea_x509_ext_ref_t;
 
 typedef struct
 {
@@ -248,6 +135,7 @@ typedef struct
 
 #define flea_x509_cert_ref_t__dtor(__p)
 
+
 /**
  * Check if a path length limit is defined in the certificate's basic
  * constraints extension.
@@ -257,7 +145,9 @@ typedef struct
  * @return FLEA_TRUE if the certificate has a path length limit, FLEA_FALSE
  * otherwise.
  */
-#define flea_x509_cert_ref_t__HAS_PATH_LEN_LIMIT(cert_ref__pt) (((cert_ref__pt)->extensions__t.basic_constraints__t.is_present__u8 && (cert_ref__pt)->extensions__t.basic_constraints__t.has_path_len__b) ? FLEA_TRUE : FLEA_FALSE)
+#define flea_x509_cert_ref_t__HAS_PATH_LEN_LIMIT(cert_ref__pt) \
+  (((cert_ref__pt)->extensions__t.basic_constraints__t. \
+  is_present__u8 && (cert_ref__pt)->extensions__t.basic_constraints__t.has_path_len__b) ? FLEA_TRUE : FLEA_FALSE)
 
 /**
  * Get the path length limit as specified by the basic constraints extension.
@@ -266,7 +156,9 @@ typedef struct
  *
  * @return the path length limit of the certificate.
  */
-#define flea_x509_cert_ref_t__GET_PATH_LEN_LIMIT(cert_ref__pt) ((cert_ref__pt)->extensions__t.basic_constraints__t.path_len__u16)
+#define flea_x509_cert_ref_t__GET_PATH_LEN_LIMIT(cert_ref__pt) \
+  ((cert_ref__pt)->extensions__t.basic_constraints__t. \
+  path_len__u16)
 
 /**
  * Check whether the certificate is a valid CA certificate according to its
@@ -275,7 +167,9 @@ typedef struct
  * @return FLEA_TRUE if the certificate is a CA certificate, FLEA_FALSE
  * otherwise.
  */
-#define flea_x509_cert_ref_t__IS_CA(cert_ref__pt) (((cert_ref__pt)->extensions__t.basic_constraints__t.is_present__u8 && (cert_ref__pt)->extensions__t.basic_constraints__t.is_ca__b) ? FLEA_TRUE : FLEA_FALSE)
+#define flea_x509_cert_ref_t__IS_CA(cert_ref__pt) \
+  (((cert_ref__pt)->extensions__t.basic_constraints__t.is_present__u8 && \
+  (cert_ref__pt)->extensions__t.basic_constraints__t.is_ca__b) ? FLEA_TRUE : FLEA_FALSE)
 
 /**
  * Determine whether the certificate features an issuer unique id.
@@ -283,7 +177,11 @@ typedef struct
  * @return FLEA_TRUE if the certificate has an issuer unique id, FLEA_FALSE
  * otherwise.
  */
-#define flea_x509_cert_ref_t__HAS_ISSUER_UNIQUE_ID(cert_ref__pt) (FLEA_DER_REF_IS_ABSENT(&(cert_ref__pt)->issuer_unique_id_as_bitstr__t) ? FLEA_FALSE : FLEA_TRUE)
+#define flea_x509_cert_ref_t__HAS_ISSUER_UNIQUE_ID(cert_ref__pt) \
+  (FLEA_DER_REF_IS_ABSENT( \
+    &(cert_ref__pt)-> \
+    issuer_unique_id_as_bitstr__t \
+  ) ? FLEA_FALSE : FLEA_TRUE)
 
 
 /**
@@ -305,7 +203,7 @@ typedef struct
         (result_ref)->len__dtl   = (cert_ref__pt)->issuer_unique_id_as_bitstr__t.len__dtl; \
       } \
   } while(0)
-#endif
+#endif // ifdef FLEA_X509_CERT_REF_WITH_DETAILS
 
 /**
  * Get the version of the certificate.
@@ -360,9 +258,29 @@ flea_err_t THR_flea_x509_cert_ref_t__ctor(
 );
 
 /**
+ * Get a pointer to the notBefore time field of the certificate as a reference
+ * to the value in the flea_x509_cert_ref_t.
+ *
+ * @param cert_ref the certificate ref object
+ *
+ * @return pointer refering to the data value
+ */
+const flea_gmt_time_t* flea_x509_cert_ref_t__get_not_before_ref(const flea_x509_cert_ref_t* cert_ref__pt);
+
+/**
+ * Get a pointer to the notAfter time field of the certificate as a reference
+ * to the value in the flea_x509_cert_ref_t.
+ *
+ * @param cert_ref the certificate ref object
+ *
+ * @return pointer refering to the data value
+ */
+const flea_gmt_time_t* flea_x509_cert_ref_t__get_not_after_ref(const flea_x509_cert_ref_t* cert_ref__pt);
+
+/**
  * Get a reference to a subject DN component of a certificate.
  *
- * @param cert_ref__pt the certificate reference object to get the data from
+ * @param cert_ref the certificate reference object to get the data from
  * @param cmpnt identififier of the DN component to get
  * @param result pointer to the object to store the result
  */
@@ -407,11 +325,6 @@ flea_bool_t flea_x509_cert_ref_t__has_key_usages(
   flea_key_usage_exlicitness_e explicitness
 );
 
-flea_bool_t flea_x509_has_extended_key_usages(
-  flea_key_usage_t const*      key_usage__pt,
-  flea_key_usage_e             required_usages__u16,
-  flea_key_usage_exlicitness_e explicitness__e
-);
 
 /**
  * Test for allowed extended key usages in the certificate.
@@ -450,6 +363,8 @@ flea_bool_t flea_x509_is_cert_self_issued(const flea_x509_cert_ref_t* cert_ref);
  * @param der_encoded_cert pointer to the encoded certificate
  * @param der_encoded_cert_len length of the encoded certificate
  * @param ref_to_tbs receives the the result
+ *
+ * @return error code
  */
 flea_err_t THR_flea_x509_cert__get_ref_to_tbs(
   const flea_u8_t* der_encoded_cert,
@@ -458,10 +373,19 @@ flea_err_t THR_flea_x509_cert__get_ref_to_tbs(
 );
 
 
+/**
+ * Get a reference to the to-be-signed part of a DER encoded certificate.
+ *
+ * @param der_encoded_cert pointer to the encoded certificate
+ * @param der_encoded_cert_len length of the encoded certificate
+ * @param ref_to_tbs receives the the result
+ *
+ * @return error code
+ */
 flea_err_t THR_flea_x509_cert__get_ref_to_tbs_byte_vec(
   const flea_u8_t* der_encoded_cert__pu8,
   flea_al_u16_t    der_encoded_cert_len__alu16,
-  flea_byte_vec_t* ref_to_tbs__pt
+  flea_byte_vec_t* ref_to_tbs
 );
 
 

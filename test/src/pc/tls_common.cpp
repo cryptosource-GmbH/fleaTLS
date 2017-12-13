@@ -149,7 +149,6 @@ namespace {
                   "specified hash algorithm '" + alg_pair[0] + "' (in '" + s + "')" + " not configured"
           );
         }
-        // result.push_back(it->second);
         sig_alg = (flea_tls_sigalg_e) (it->second << 8);
         if(it2 == sig_algs_map__t.end() ||
           THR_flea_tls__map_flea_sig_to_tls_sig((flea_pk_scheme_id_t) it2->second, &dummy))
@@ -164,17 +163,10 @@ namespace {
     }
     else
     {
-      // TODO: don't set anything? (=> client can't do ECDHE, will not default
-      // to sha1)
-
-      // for compatibility reasons with other tests, for now add SHA1-RSA,
-      // SHA256-RSA
-
-      // result.push_back(((flea_u8_t) flea_sha256 << 8) | ((flea_u8_t) flea_rsa_pkcs1_v1_5_sign));
       result.push_back(flea_tls_sigalg_rsa_sha256);
-
-      // result.push_back(((flea_u8_t) flea_sha1 << 8) | ((flea_u8_t) flea_rsa_pkcs1_v1_5_sign));
+# ifdef FLEA_HAVE_SHA1
       result.push_back(flea_tls_sigalg_rsa_sha1);
+# endif
     }
     return result;
   } // get_allowed_sig_algs_from_cmdl

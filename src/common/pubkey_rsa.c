@@ -22,9 +22,11 @@ flea_err_t THR_get_hash_id_from_x509_id_for_rsa(
   FLEA_THR_BEG_FUNC();
   switch(cert_id__u8)
   {
+# ifdef FLEA_HAVE_SHA1
       case 5:
         *result__pt = flea_sha1;
         break;
+# endif
       case 14:
         *result__pt = flea_sha224;
         break;

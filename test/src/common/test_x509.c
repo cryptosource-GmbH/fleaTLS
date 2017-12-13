@@ -39,6 +39,16 @@ flea_err_t THR_flea_test_dec_tls_server_issuer_cert()
     )
   );
 
+  if(!flea_x509_cert_ref_t__IS_CA(&cert_ref__t))
+  {
+    FLEA_THROW("error with is ca", FLEA_ERR_FAILED_TEST);
+  }
+
+  if(!flea_x509_cert_ref_t__HAS_PATH_LEN_LIMIT(&cert_ref__t) ||
+    flea_x509_cert_ref_t__GET_PATH_LEN_LIMIT(&cert_ref__t) != 0)
+  {
+    FLEA_THROW("error with path len limit", FLEA_ERR_FAILED_TEST);
+  }
   FLEA_THR_FIN_SEC(
     flea_x509_cert_ref_t__dtor(&cert_ref__t);
   );
@@ -53,8 +63,6 @@ flea_err_t THR_flea_test_dec_tls_server_cert()
   flea_u8_t ipaddr__acu8 []       = {94, 16, 81, 15};
   flea_u8_t wrong_ipaddr__acu8 [] = {94, 16, 81, 14};
 
-  /*flea_ref_cu8_t ipaddr__rcu8       = {ipaddr__acu8, sizeof(ipaddr__acu8)};
-   * flea_ref_cu8_t wrong_ipaddr__rcu8 = {wrong_ipaddr__acu8, sizeof(wrong_ipaddr__acu8)};*/
   FLEA_DECL_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(ipaddr_vec__t, ipaddr__acu8, sizeof(ipaddr__acu8));
   FLEA_DECL_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(
     wrong_ipaddr_vec__t,
@@ -99,6 +107,8 @@ flea_err_t THR_flea_test_dec_tls_server_cert()
   {
     FLEA_THROW("error decoding EKU", FLEA_ERR_FAILED_TEST);
   }
+
+
   FLEA_THR_FIN_SEC(
     flea_x509_cert_ref_t__dtor(&cert_ref__t);
   );
@@ -107,7 +117,9 @@ flea_err_t THR_flea_test_dec_tls_server_cert()
 flea_err_t THR_flea_test_dec_ca_cert()
 {
   FLEA_DECL_OBJ(cert_ref__t, flea_x509_cert_ref_t);
+  flea_x509_cert_ref_t__INIT(&cert_ref__t);
   flea_ref_cu8_t ref__rcu8;
+  const flea_gmt_time_t* time__pt;
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&cert_ref__t, test_ca_cert_1, sizeof(test_ca_cert_1)));
   if(flea_x509_cert_ref_t__GET_CERT_VERSION(&cert_ref__t) != 3)
@@ -124,6 +136,17 @@ flea_err_t THR_flea_test_dec_ca_cert()
     ref__rcu8.data__pcu8[0] != 0x2A)
   {
     FLEA_THROW("parsed tbs sig alg is incorrect", FLEA_ERR_FAILED_TEST);
+  }
+  time__pt = flea_x509_cert_ref_t__get_not_before_ref(&cert_ref__t);
+  if(time__pt->year != 2010 || time__pt->month != 1 || time__pt->day != 1 || time__pt->hours != 8 ||
+    time__pt->minutes != 30 || time__pt->seconds != 0)
+  {
+    FLEA_THROW("error with not after", FLEA_ERR_FAILED_TEST);
+  }
+  time__pt = flea_x509_cert_ref_t__get_not_after_ref(&cert_ref__t);
+  if(time__pt->year != 2030 || time__pt->month != 12 || time__pt->day != 31)
+  {
+    FLEA_THROW("error with not after", FLEA_ERR_FAILED_TEST);
   }
   FLEA_CCALL(THR_flea_x509_cert_ref_t__get_issuer_dn_component(&cert_ref__t, flea_dn_cmpnt_country, &ref__rcu8));
   if(ref__rcu8.len__dtl != 2 || ref__rcu8.data__pcu8[0] != 'U' ||
@@ -145,7 +168,15 @@ flea_err_t THR_flea_test_dec_ca_cert()
   {
     flea_x509_cert_ref_t__GET_REF_TO_ISSUER_UNIQUE_ID_AS_BIT_STRING(&cert_ref__t, &ref__rcu8);
   }
-#endif
+#endif /* ifdef FLEA_X509_CERT_REF_WITH_DETAILS */
+  if(flea_x509_cert_ref_t__HAS_PATH_LEN_LIMIT(&cert_ref__t))
+  {
+    FLEA_THROW("error with path len limit", FLEA_ERR_FAILED_TEST);
+  }
+  if(!flea_x509_cert_ref_t__IS_CA(&cert_ref__t))
+  {
+    FLEA_THROW("error with is ca", FLEA_ERR_FAILED_TEST);
+  }
   if(cert_ref__t.subject_public_key_info__t.algid__t.params_ref_as_tlv__t.len__dtl != 2 ||
     cert_ref__t.subject_public_key_info__t.algid__t.params_ref_as_tlv__t.data__pu8[0] != 0x05 ||
     cert_ref__t.subject_public_key_info__t.algid__t.params_ref_as_tlv__t.data__pu8[1] != 0x00)
@@ -190,7 +221,7 @@ flea_err_t THR_flea_test_dec_ca_cert()
   {
     FLEA_THROW("error len of skid", FLEA_ERR_FAILED_TEST);
   }
-#endif
+#endif /* ifdef FLEA_X509_CERT_REF_WITH_DETAILS */
   FLEA_THR_FIN_SEC(
     flea_x509_cert_ref_t__dtor(&cert_ref__t);
   );

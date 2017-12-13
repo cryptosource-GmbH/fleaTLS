@@ -13,7 +13,7 @@
 #include <string.h>
 #include "test_data_pkcs8.h"
 
-#if defined FLEA_HAVE_ASYM_SIG
+#if defined FLEA_HAVE_ASYM_SIG && defined FLEA_HAVE_SHA1
 
 static flea_err_t THR_flea_test_pkcs8_inner_sign_digest(
   const flea_u8_t*    pkcs8__pcu8,
@@ -122,9 +122,12 @@ static flea_err_t THR_flea_test_pkcs8_inner(
 
 flea_err_t THR_flea_test_pkcs8()
 {
+# ifdef FLEA_HAVE_SHA1
   flea_err_t err__t;
+# endif
 
   FLEA_THR_BEG_FUNC();
+# ifdef FLEA_HAVE_SHA1
   err__t = THR_flea_test_pkcs8_inner(
     flea_testd_pkcs8_rsa_key_2048_crt__au8,
     sizeof(flea_testd_pkcs8_rsa_key_2048_crt__au8),
@@ -132,14 +135,14 @@ flea_err_t THR_flea_test_pkcs8()
     flea_rsa_pkcs1_v1_5_sign
     );
 
-# if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048
+#  if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048
   if(err__t) FLEA_THROW("error in PKCS#8 RSA test", err__t);
-# else
+#  else
   if(!err__t) FLEA_THROW("no error when expecting one in PKCS#8 RSA test", err__t);
-# endif
+#  endif
 
 
-# if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048
+#  if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048
   FLEA_CCALL(
     THR_flea_test_pkcs8_inner_sign_digest(
       flea_testd_pkcs8_rsa_key_2048_crt__au8,
@@ -170,7 +173,7 @@ flea_err_t THR_flea_test_pkcs8()
     FLEA_THROW("did not refuse invalid hash length", FLEA_ERR_FAILED_TEST);
   }
 
-# endif /* if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048 */
+#  endif /* if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048 */
   err__t =
     THR_flea_test_pkcs8_inner(
     flea_testd_pkcs8_ecc_key_secp192r1_explicit_params__au8,
@@ -178,11 +181,11 @@ flea_err_t THR_flea_test_pkcs8()
     flea_sha256,
     flea_ecdsa_emsa1
     );
-# if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 192
+#  if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 192
   if(err__t) FLEA_THROW("error in PKCS#8 ECC test", err__t);
-# else
+#  else
   if(!err__t) FLEA_THROW("no error when expecting one in PKCS#8 ECDSA test", err__t);
-# endif
+#  endif
 
   err__t =
     THR_flea_test_pkcs8_inner(
@@ -191,12 +194,13 @@ flea_err_t THR_flea_test_pkcs8()
     flea_sha256,
     flea_ecdsa_emsa1
     );
-# if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 384
+#  if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 384
   if(err__t) FLEA_THROW("error in PKCS#8 ECC test", err__t);
-# else
+#  else
   if(!err__t) FLEA_THROW("no error when expecting one in PKCS#8 ECDSA test", err__t);
-# endif
+#  endif
+# endif /* ifdef FLEA_HAVE_SHA1 */
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_test_pkcs8 */
 
-#endif /* #if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048 */
+#endif /* if defined FLEA_HAVE_ASYM_SIG && defined FLEA_HAVE_SHA1 */

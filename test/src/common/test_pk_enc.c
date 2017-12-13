@@ -483,6 +483,10 @@ flea_err_t THR_flea_test_emsa1()
 
 flea_err_t THR_flea_test_oaep()
 {
+# ifndef FLEA_HAVE_SHA1
+  return FLEA_ERR_FINE;
+
+# else
   const flea_u8_t input[] =
   {0xB2, 0x20, 0x75, 0x19, 0xBA, 0xFE, 0xA1, 0xFF, 0xA5, 0x56, 0x1C, 0xE4, 0x7F, 0x90, 0x3C, 0xE5, 0x9D, 0xA9, 0xFE,
    0x82, 0xDA, 0x7D, 0x4C, 0x86, 0x7A, 0x92, 0xF2, 0x8F, 0x18, 0x0D};
@@ -495,7 +499,6 @@ flea_err_t THR_flea_test_oaep()
   FLEA_DECL_BUF(enc__b_u8, flea_u8_t, mod_len);
   // FLEA_DECL_BUF(decr__b_u8, flea_u8_t, sizeof(input));
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(decr_vec__t, sizeof(input));
-
   FLEA_THR_BEG_FUNC();
 
   FLEA_ALLOC_BUF(enc__b_u8, mod_len);
@@ -503,16 +506,7 @@ flea_err_t THR_flea_test_oaep()
 
   memcpy(enc__b_u8, input, sizeof(input));
 
-# ifdef FLEA_HAVE_SHA1
   FLEA_CCALL(THR_flea_pk_api__encode_message__oaep(enc__b_u8, sizeof(input), &out_len__al_u16, key_len, flea_sha1));
-# else
-  if(FLEA_ERR_INV_ALGORITHM !=
-    THR_flea_pk_api__encode_message__oaep(enc__b_u8, sizeof(input), &out_len__al_u16, key_len, flea_sha1))
-  {
-    FLEA_THROW("wrong error code for unsupported hash id", FLEA_ERR_FAILED_TEST);
-  }
-  FLEA_THR_RETURN();
-# endif
 
   if(out_len__al_u16 != mod_len)
   {
@@ -544,6 +538,7 @@ flea_err_t THR_flea_test_oaep()
     FLEA_FREE_BUF_FINAL(enc__b_u8);
     flea_byte_vec_t__dtor(&decr_vec__t);
   );
+# endif /* ifndef FLEA_HAVE_SHA1 */
 } /* THR_flea_test_oaep */
 
 flea_err_t THR_flea_test_pkcs1_v1_5_encoding()

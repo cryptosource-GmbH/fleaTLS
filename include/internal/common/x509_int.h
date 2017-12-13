@@ -50,10 +50,16 @@ flea_err_t THR_flea_x509_cert__parse_eku(
 
 flea_bool_t flea_x509_has_key_usages(
   flea_key_usage_t const*      key_usage__t,
-  //  flea_key_usage_ext_type_e    ku_type,
   flea_key_usage_e             required_usages__u16,
   flea_key_usage_exlicitness_e explicitness
 );
+
+flea_bool_t flea_x509_has_extended_key_usages(
+  flea_key_usage_t const*      key_usage__pt,
+  flea_key_usage_e             required_usages__u16,
+  flea_key_usage_exlicitness_e explicitness__e
+);
+
 #ifdef __cplusplus
 }
 #endif

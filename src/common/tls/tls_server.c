@@ -46,8 +46,8 @@ static flea_err_t THR_flea_tls__read_client_hello(
   // UPDATE(JR): so buffer size is FLEA_TLS_SESSION_ID_LEN ? And we need to
   // check for length == 0 or length == FLEA_TLS_SESSION_ID_LEN and discard any
   // other possible length?
-  FLEA_DECL_BUF(session_id__bu8, flea_u8_t, 32);
-  const flea_al_u8_t max_session_id_len__alu8 = 32;
+  FLEA_DECL_BUF(session_id__bu8, flea_u8_t, FLEA_TLS_SESSION_ID_LEN);
+  const flea_al_u8_t max_session_id_len__alu8 = FLEA_TLS_SESSION_ID_LEN;
   flea_u8_t client_compression_methods_len__u8;
   flea_u32_t cipher_suites_len_from_peer__u32;
   flea_bool_t found_compression_method;
@@ -72,7 +72,6 @@ static flea_err_t THR_flea_tls__read_client_hello(
 
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
 
-  // read version
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
@@ -87,20 +86,9 @@ static flea_err_t THR_flea_tls__read_client_hello(
     FLEA_THROW("Version mismatch!", FLEA_ERR_TLS_UNSUPP_PROT_VERSION);
   }
 
-  // read random
-  // TODO: CHECK HOW TIME IS TO BE USED AND THEN ENCODE IT CORRECTLY
-
-  /*  FLEA_CCALL(
-   *  THR_flea_rw_stream_t__read_full(
-   *    hs_rd_stream__pt,
-   *    tls_ctx->client_random.gmt_unix_time,
-   *    4
-   *  )
-   * );*/
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
-      // tls_ctx->client_and_server_random__bu8,
       hs_ctx__pt->client_and_server_random__pt->data__pu8,
       FLEA_TLS_HELLO_RANDOM_SIZE
     )
@@ -119,9 +107,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
     FLEA_THROW("invalid session id length", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
-  // read session id
   FLEA_ALLOC_BUF(session_id__bu8, session_id_len__u8);
-  // TODO: SKIP DATA IF LONGER THAN DEFINED SERVER SESSION ID LEN
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
@@ -191,6 +177,7 @@ static flea_err_t THR_flea_tls__read_client_hello(
         {
           if(supported_cs_index__alu16 < chosen_cs_index__alu16)
           {
+            /* update with the lower index = higher priority */
             chosen_cs_index__alu16 = supported_cs_index__alu16;
             tls_ctx->selected_cipher_suite__e = curr_cs_from_peer__e;
             found = FLEA_TRUE;
@@ -255,7 +242,6 @@ static flea_err_t THR_flea_tls__read_client_hello(
   }
 
 # ifdef FLEA_HAVE_TLS_ECC
-
   for(i = 0; i < peer_cipher_suites_u16_be__t.len__dtl; i += 2)
   {
     curr_cs_from_peer__e = flea__decode_U16_BE(&peer_cipher_suites_u16_be__t.data__pu8[i]);
@@ -267,13 +253,6 @@ static flea_err_t THR_flea_tls__read_client_hello(
       {
         if(flea_tls__is_cipher_suite_ecc_suite(curr_cs_from_peer__e))
         {
-          // TODO: if multiple certs are supported, then the choice of the
-          // suite is more complicated:
-          // - server must check that for the candidate cipher suite and the
-          // client-supplied curves a fitting certificate is available
-          // - for this purpose extension_ctrl__u8's UNMATCHING bit must
-          // rather somehow represent a list of ciphersuites resulting from
-          // the available certificates
           if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__UNMATCHING)
           {
             supported_cs_index__alu16 += 1;
@@ -293,8 +272,6 @@ static flea_err_t THR_flea_tls__read_client_hello(
           { }
           else
           {
-            // supported_cs_index__u16 += 1;
-            // continue;
             break;
           }
         }

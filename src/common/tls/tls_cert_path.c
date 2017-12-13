@@ -482,11 +482,13 @@ static flea_err_t THR_flea_tls__validate_cert(
       }
     }
 
+# ifdef FLEA_HAVE_SHA1
     /* MD5 is generally not supported in flea certificate verification */
     if(!(tls_ctx__pt->cfg_flags__e & flea_tls_flag__sha1_cert_sigalg__allow) && (*tbs_hash_id__pe == flea_sha1))
     {
       FLEA_THROW("SHA1 not supported", FLEA_ERR_X509_UNRECOG_HASH_FUNCTION);
     }
+# endif /* ifdef FLEA_HAVE_SHA1 */
     FLEA_CCALL(
       THR_flea_public_key_t__verify_digest_plain_format(
         pubkey_out__pt,

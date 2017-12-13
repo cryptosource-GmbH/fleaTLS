@@ -92,7 +92,8 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_TLS_REC_CLOSE_NOTIFY,               FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
   {FLEA_ERR_TLS_HANDSHK_FAILURE,                FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  },
   {FLEA_ERR_TLS_CERT_VER_FAILED,                FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_TLS_EXCSS_REC_LEN,                  FLEA_TLS_ALERT_DESC_RECORD_OVERFLOW    }
+  {FLEA_ERR_TLS_EXCSS_REC_LEN,                  FLEA_TLS_ALERT_DESC_RECORD_OVERFLOW    },
+  {FLEA_ERR_TLS_NO_SIG_ALG_MATCH,               FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  }
 };
 
 static flea_bool_t determine_alert_from_error(
@@ -1539,7 +1540,7 @@ flea_err_t THR_flea_tls_ctx_t__send_sig_alg_ext(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
 )
 {
-  flea_u8_t ext__au8[] = {
+  const flea_u8_t ext__au8[] = {
     0x00, 0x0d
   };
   flea_u8_t curr_sig_alg_enc__au8[2];
@@ -1850,11 +1851,13 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
       {
         continue;
       }
+# ifdef FLEA_HAVE_SHA1
       if((tls_ctx__pt->allowed_sig_algs__pe[i] >> 8) == flea_sha1)
       {
         support_sha1__b = FLEA_TRUE;
         break;
       }
+# endif /* ifdef FLEA_HAVE_SHA1 */
     }
     if(support_sha1__b == FLEA_FALSE)
     {
@@ -1862,7 +1865,11 @@ flea_err_t THR_flea_tls_ctx_t__parse_hello_extensions(
     }
     else
     {
+# ifdef FLEA_HAVE_SHA1
       tls_ctx__pt->chosen_hash_algorithm__t = flea_sha1;
+# else
+      FLEA_THROW("no supported hash algorithm found", FLEA_ERR_TLS_HANDSHK_FAILURE);
+# endif
       tls_ctx__pt->can_use_ecdhe = FLEA_TRUE;
     }
   }
