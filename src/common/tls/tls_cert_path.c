@@ -508,11 +508,12 @@ static flea_err_t THR_flea_tls__validate_cert(
           crl_der__cprcu8,
           nb_crls__alu16,
           compare_time__pt,
-          have_precursor_to_verify__b, // is_ca_cert__b
+          have_precursor_to_verify__b,
           &local_subject__t,
           prev_sn_buffer__pt,
           previous_crldp__pt,
-          pubkey_out__pt
+          pubkey_out__pt,
+          tls_ctx__pt->cfg_flags__e & flea_tls_flag__sha1_cert_sigalg__allow ? flea_x509_validation_allow_sha1 : flea_x509_validation_empty_flags
         )
       );
     }

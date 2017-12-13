@@ -109,9 +109,10 @@ void flea_cert_path_validator_t__dtor(flea_cert_path_validator_t* cpv__pt)
 }
 
 static flea_err_t THR_validate_cert_path(
-  flea_cert_path_validator_t* cert_cpv__pt,
-  const flea_gmt_time_t*      arg_compare_time_mbn__pt,
-  flea_public_key_t*          key_to_construct_mbn__pt
+  flea_cert_path_validator_t*  cert_cpv__pt,
+  const flea_gmt_time_t*       arg_compare_time_mbn__pt,
+  flea_public_key_t*           key_to_construct_mbn__pt,
+  flea_x509_validation_flags_e cert_ver_flags__e
 )
 {
   flea_s32_t i;
@@ -173,7 +174,7 @@ static flea_err_t THR_validate_cert_path(
     flea_x509_cert_info_t* issuer__pt  = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i + 1]];
 
     /* verify against subsequent certificate */
-    FLEA_CCALL(THR_flea_x509_verify_cert_info_signature(subject__pt, issuer__pt));
+    FLEA_CCALL(THR_flea_x509_verify_cert_info_signature(subject__pt, issuer__pt, cert_ver_flags__e));
 
     if((((cert_cpv__pt->rev_chk_mode__e == flea_rev_chk_only_ee) && !is_ca_cert__b) ||
       (cert_cpv__pt->rev_chk_mode__e == flea_rev_chk_all)))
@@ -203,8 +204,8 @@ static flea_err_t THR_validate_cert_path(
           subject__pt->cert_ref__t.extensions__t.crl_distr_point__t.is_present__u8 ? &subject__pt->cert_ref__t.
           extensions__t.crl_distr_point__t.
           raw_ref__t : NULL,
-          &pubkey_for_crl_ver__t
-
+          &pubkey_for_crl_ver__t,
+          cert_ver_flags__e
         )
       );
       flea_public_key_t__dtor(&pubkey_for_crl_ver__t);
@@ -318,7 +319,12 @@ flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_
 
     if(is_cert_trusted(subject))
     {
-      flea_err_t validation_error = THR_validate_cert_path(cert_cpv__pt, time_mbn__pt, key_to_construct_mbn__pt);
+      flea_err_t validation_error = THR_validate_cert_path(
+        cert_cpv__pt,
+        time_mbn__pt,
+        key_to_construct_mbn__pt,
+        cert_cpv__pt->cert_ver_flags__e
+        );
       if(validation_error == FLEA_ERR_FINE)
       {
         return FLEA_ERR_FINE;
@@ -388,10 +394,11 @@ flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_
 } /* THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_pub_key */
 
 flea_err_t THR_flea_cert_path_validator_t__ctor_cert(
-  flea_cert_path_validator_t* cpv__pt,
-  const flea_u8_t*            target_cert__pcu8,
-  flea_al_u16_t               target_cert_len__alu16,
-  flea_rev_chk_mode_e         rev_chk_mode__e
+  flea_cert_path_validator_t*  cpv__pt,
+  const flea_u8_t*             target_cert__pcu8,
+  flea_al_u16_t                target_cert_len__alu16,
+  flea_rev_chk_mode_e          rev_chk_mode__e,
+  flea_x509_validation_flags_e cert_ver_flags__e
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -399,12 +406,13 @@ flea_err_t THR_flea_cert_path_validator_t__ctor_cert(
   FLEA_ALLOC_MEM_ARR(cpv__pt->chain__bu16, FLEA_MAX_CERT_CHAIN_DEPTH);
   FLEA_ALLOC_MEM_ARR(cpv__pt->crl_collection__brcu8, FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT);
   FLEA_ALLOC_MEM_ARR(cpv__pt->cert_collection__bt, FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT);
+  cpv__pt->cert_ver_flags__e = cert_ver_flags__e;
   cpv__pt->crl_collection_allocated__u16  = FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT;
   cpv__pt->cert_collection_allocated__u16 = FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT;
-# else
+# else  /* ifdef FLEA_USE_HEAP_BUF */
   cpv__pt->crl_collection_allocated__u16  = FLEA_MAX_CERT_COLLECTION_NB_CRLS;
   cpv__pt->cert_collection_allocated__u16 = FLEA_MAX_CERT_COLLECTION_SIZE;
-# endif
+# endif /* ifdef FLEA_USE_HEAP_BUF */
   cpv__pt->nb_crls__u16    = 0;
   cpv__pt->rev_chk_mode__e = rev_chk_mode__e;
   cpv__pt->abort_cert_path_finding__vb = FLEA_FALSE;
@@ -442,7 +450,7 @@ flea_err_t THR_flea_cert_path_validator_t__add_crl(
       )
     );
     cpv__pt->crl_collection_allocated__u16 += FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT;
-# else
+# else  /* ifdef FLEA_USE_HEAP_BUF */
     FLEA_THROW("crl capacity exceeded", FLEA_ERR_BUFF_TOO_SMALL);
 # endif /* ifdef FLEA_USE_HEAP_BUF */
   }
@@ -471,7 +479,7 @@ static flea_err_t THR_flea_cert_path_validator_t__add_cert_info(
       )
     );
     cpv__pt->cert_collection_allocated__u16 += FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT;
-# else
+# else  /* ifdef FLEA_USE_HEAP_BUF */
     FLEA_THROW("cert collection full", FLEA_ERR_BUFF_TOO_SMALL);
 # endif /* ifdef FLEA_USE_HEAP_BUF */
   }

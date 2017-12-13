@@ -24,10 +24,11 @@ flea_err_t THR_flea_test_cert_verify_rsa()
       test_cert_tls_server_1,
       sizeof(test_cert_tls_server_1),
       flea_test_cert_issuer_of_tls_server_1__cau8,
-      sizeof(flea_test_cert_issuer_of_tls_server_1__cau8)
+      sizeof(flea_test_cert_issuer_of_tls_server_1__cau8),
+      flea_x509_validation_empty_flags
     )
   );
-#  endif
+#  endif /* if FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096 */
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -43,10 +44,11 @@ flea_err_t THR_flea_test_cert_verify_ecdsa()
       test_self_signed_ecdsa_csca_cert__acu8,
       sizeof(test_self_signed_ecdsa_csca_cert__acu8),
       test_self_signed_ecdsa_csca_cert__acu8,
-      sizeof(test_self_signed_ecdsa_csca_cert__acu8)
+      sizeof(test_self_signed_ecdsa_csca_cert__acu8),
+      flea_x509_validation_empty_flags
     )
   );
-#  endif
+#  endif /* if FLEA_ECC_MAX_MOD_BIT_SIZE >= 384 */
   FLEA_THR_FIN_SEC_empty();
 }
 

@@ -20,26 +20,24 @@ extern "C" {
 typedef struct
 {
 # ifdef FLEA_USE_HEAP_BUF
-  flea_ref_cu8_t*        crl_collection__brcu8;
-  flea_x509_cert_info_t* cert_collection__bt;
-  flea_u16_t*            chain__bu16;
+  flea_ref_cu8_t*              crl_collection__brcu8;
+  flea_x509_cert_info_t*       cert_collection__bt;
+  flea_u16_t*                  chain__bu16;
 # else
-  flea_byte_vec_t        crl_collection__brcu8[FLEA_MAX_CERT_COLLECTION_NB_CRLS];
-  flea_x509_cert_info_t  cert_collection__bt[FLEA_MAX_CERT_COLLECTION_SIZE];
-  flea_u16_t             chain__bu16[FLEA_MAX_CERT_CHAIN_DEPTH]; // including target and TA
-# endif
-  flea_u16_t             crl_collection_allocated__u16;
-  flea_u16_t             cert_collection_allocated__u16;
-  flea_u16_t             nb_crls__u16;
-  flea_u16_t             cert_collection_size__u16;
-  flea_u16_t             chain_pos__u16; // offset to final element, = length - 1
+  flea_byte_vec_t              crl_collection__brcu8[FLEA_MAX_CERT_COLLECTION_NB_CRLS];
+  flea_x509_cert_info_t        cert_collection__bt[FLEA_MAX_CERT_COLLECTION_SIZE];
+  flea_u16_t                   chain__bu16[FLEA_MAX_CERT_CHAIN_DEPTH]; // including target and TA
+# endif // ifdef FLEA_USE_HEAP_BUF
+  flea_u16_t                   crl_collection_allocated__u16;
+  flea_u16_t                   cert_collection_allocated__u16;
+  flea_u16_t                   nb_crls__u16;
+  flea_u16_t                   cert_collection_size__u16;
+  flea_u16_t                   chain_pos__u16; // offset to final element, = length - 1
   // flea_bool_t            perform_revocation_checking__b;
-  flea_rev_chk_mode_e    rev_chk_mode__e;
+  flea_rev_chk_mode_e          rev_chk_mode__e;
 
-  volatile flea_bool_t   abort_cert_path_finding__vb;
-# ifdef FLEA_USE_HEAP_BUF
-# else
-# endif
+  volatile flea_bool_t         abort_cert_path_finding__vb;
+  flea_x509_validation_flags_e cert_ver_flags__e;
 } flea_cert_path_validator_t;
 
 # define flea_cert_path_validator_t__INIT_VALUE {.cert_collection_size__u16 = 0}
@@ -55,18 +53,13 @@ void flea_cert_path_validator_t__dtor(flea_cert_path_validator_t* cpv);
  * @param rev_chk_mode__e the mode of revocation checking (based on CRLs) to use
  */
 flea_err_t THR_flea_cert_path_validator_t__ctor_cert(
-  flea_cert_path_validator_t* cpv,
-  const flea_u8_t*            target_cert,
-  flea_al_u16_t               target_cert_len,
-  flea_rev_chk_mode_e         rev_chk_mode__e
+  flea_cert_path_validator_t*  cpv,
+  const flea_u8_t*             target_cert,
+  flea_al_u16_t                target_cert_len,
+  flea_rev_chk_mode_e          rev_chk_mode__e,
+  flea_x509_validation_flags_e cert_ver_flags__e
 );
 
-/**
- * Disable revocation checking in a path validator object.
- *
- * @param cpv the cert path validator object
- */
-// void flea_cert_path_validator_t__disable_revocation_checking(flea_cert_path_validator_t* cpv);
 
 /**
  * Add a CRL to a cert path validator. The encoded CRL must stay in the same

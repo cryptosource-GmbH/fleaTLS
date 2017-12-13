@@ -16,6 +16,8 @@
 # define DELTA_CRL_INDIC_INDIC     27
 # define ISSUING_DISTR_POINT_INDIC 28
 
+typedef enum { flea_revstat_undetermined, flea_revstat_revoked, flea_revstat_good } flea_revocation_status_e;
+
 static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(
   const flea_byte_vec_t* subjects_crldp_raw_mbn__pt,
   const flea_byte_vec_t* dp_name_raw__cprcu8,
@@ -392,16 +394,17 @@ static flea_err_t THR_flea_crl__parse_extensions(
 } /* THR_flea_crl__parse_extensions */
 
 static flea_err_t THR_flea_crl__update_revocation_status_from_crl_stream(
-  const flea_u8_t*          crl_der__pcu8,
-  flea_dtl_t                crl_der_len__dtl,
-  const flea_gmt_time_t*    verification_date__pt,
-  flea_bool_t               is_ca_cert__b,
-  flea_revocation_status_e* rev_stat__pe,
-  flea_gmt_time_t*          latest_this_update__pt,
-  const flea_byte_vec_t*    subjects_issuer_dn_raw__pt,
-  const flea_byte_vec_t*    subjects_sn__pt,
-  const flea_byte_vec_t*    subjects_crldp_raw_mbn__pt,
-  const flea_public_key_t*  issuers_public_key__pt
+  const flea_u8_t*             crl_der__pcu8,
+  flea_dtl_t                   crl_der_len__dtl,
+  const flea_gmt_time_t*       verification_date__pt,
+  flea_bool_t                  is_ca_cert__b,
+  flea_revocation_status_e*    rev_stat__pe,
+  flea_gmt_time_t*             latest_this_update__pt,
+  const flea_byte_vec_t*       subjects_issuer_dn_raw__pt,
+  const flea_byte_vec_t*       subjects_sn__pt,
+  const flea_byte_vec_t*       subjects_crldp_raw_mbn__pt,
+  const flea_public_key_t*     issuers_public_key__pt,
+  flea_x509_validation_flags_e cert_ver_flags__e
 )
 {
   FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
@@ -554,7 +557,8 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl_stream(
       issuers_public_key__pt,
       &algid_ref_1__t,
       &tbs__rcu8,
-      &sig_content__rcu8
+      &sig_content__rcu8,
+      cert_ver_flags__e
     )
   );
 
@@ -579,16 +583,17 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl_stream(
 } /* THR_flea_crl__update_revocation_status_from_crl */
 
 static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
-  const flea_u8_t*          crl_der__pcu8,
-  flea_dtl_t                crl_der_len__dtl,
-  const flea_gmt_time_t*    verification_date__pt,
-  flea_bool_t               is_ca_cert__b,
-  flea_revocation_status_e* rev_stat__pe,
-  flea_gmt_time_t*          latest_this_update__pt,
-  const flea_byte_vec_t*    subjects_issuer_dn_raw__pt,
-  const flea_byte_vec_t*    subjects_sn__pt,
-  const flea_byte_vec_t*    subjects_crldp_raw__pt,
-  const flea_public_key_t*  issuers_public_key__pt
+  const flea_u8_t*             crl_der__pcu8,
+  flea_dtl_t                   crl_der_len__dtl,
+  const flea_gmt_time_t*       verification_date__pt,
+  flea_bool_t                  is_ca_cert__b,
+  flea_revocation_status_e*    rev_stat__pe,
+  flea_gmt_time_t*             latest_this_update__pt,
+  const flea_byte_vec_t*       subjects_issuer_dn_raw__pt,
+  const flea_byte_vec_t*       subjects_sn__pt,
+  const flea_byte_vec_t*       subjects_crldp_raw__pt,
+  const flea_public_key_t*     issuers_public_key__pt,
+  flea_x509_validation_flags_e cert_ver_flags__e
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -603,7 +608,8 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
       subjects_issuer_dn_raw__pt,
       subjects_sn__pt,
       subjects_crldp_raw__pt,
-      issuers_public_key__pt
+      issuers_public_key__pt,
+      cert_ver_flags__e
     )
   );
 
@@ -612,14 +618,15 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
 }
 
 flea_err_t THR_flea_crl__check_revocation_status(
-  const flea_ref_cu8_t*    crl_der__cprcu8,
-  flea_al_u16_t            nb_crls__alu16,
-  const flea_gmt_time_t*   verification_date__pt,
-  flea_bool_t              is_ca_cert__b,
-  const flea_byte_vec_t*   subjects_issuer_dn_raw__pt,
-  const flea_byte_vec_t*   subjects_sn__pt,
-  const flea_byte_vec_t*   subjects_crldp_raw__pt,
-  const flea_public_key_t* issuers_public_key__pt
+  const flea_ref_cu8_t*        crl_der__cprcu8,
+  flea_al_u16_t                nb_crls__alu16,
+  const flea_gmt_time_t*       verification_date__pt,
+  flea_bool_t                  is_ca_cert__b,
+  const flea_byte_vec_t*       subjects_issuer_dn_raw__pt,
+  const flea_byte_vec_t*       subjects_sn__pt,
+  const flea_byte_vec_t*       subjects_crldp_raw__pt,
+  const flea_public_key_t*     issuers_public_key__pt,
+  flea_x509_validation_flags_e cert_ver_flags__e
 )
 {
   flea_al_u16_t i;
@@ -642,7 +649,8 @@ flea_err_t THR_flea_crl__check_revocation_status(
       subjects_issuer_dn_raw__pt,
       subjects_sn__pt,
       subjects_crldp_raw__pt,
-      issuers_public_key__pt
+      issuers_public_key__pt,
+      cert_ver_flags__e
     );
 
     /* ignore potential errors. called function does not modify the status values in

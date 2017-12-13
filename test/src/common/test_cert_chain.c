@@ -300,7 +300,8 @@ flea_err_t THR_flea_test_cert_chain_correct_chain_of_two()
       &cert_chain__t,
       test_cert_tls_server_1,
       sizeof(test_cert_tls_server_1),
-      flea_rev_chk_none
+      flea_rev_chk_none,
+      flea_x509_validation_empty_flags
     )
   );
   FLEA_CCALL(
@@ -317,7 +318,7 @@ flea_err_t THR_flea_test_cert_chain_correct_chain_of_two()
   {
     FLEA_THROW("error when verifying RSA signed cert chain", err);
   }
-# else
+# else  /* if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) */
   if(!err)
   {
     FLEA_THROW(
@@ -348,7 +349,8 @@ flea_err_t THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
       &cert_chain__t,
       test_cert_tls_server_1,
       sizeof(test_cert_tls_server_1),
-      flea_rev_chk_none
+      flea_rev_chk_none,
+      flea_x509_validation_empty_flags
     )
   );
   nb_trusted_certs = (FLEA_MAX_CERT_COLLECTION_SIZE ? (FLEA_MAX_CERT_COLLECTION_SIZE - 1) : 1);
@@ -371,7 +373,7 @@ flea_err_t THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
   {
     FLEA_THROW("error when verifying RSA signed cert chain", err);
   }
-# else
+# else  /* if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) */
   if(!err)
   {
     FLEA_THROW(
@@ -434,7 +436,15 @@ flea_err_t THR_flea_test_tls_cert_chain()
     }
     if(first__b)
     {
-      FLEA_CCALL(THR_flea_cert_path_validator_t__ctor_cert(&cert_chain__t, ptr, new_len, flea_rev_chk_none));
+      FLEA_CCALL(
+        THR_flea_cert_path_validator_t__ctor_cert(
+          &cert_chain__t,
+          ptr,
+          new_len,
+          flea_rev_chk_none,
+          flea_x509_validation_empty_flags
+        )
+      );
       first__b = FLEA_FALSE;
     }
     else

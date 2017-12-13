@@ -4,6 +4,7 @@
 #include "pc/test_pc.h"
 #include "flea/cert_verify.h"
 #include <iostream>
+#include "flea/x509.h"
 /* linux only ==> */
 #include <sys/types.h>
 #include <dirent.h>
@@ -46,7 +47,14 @@ flea_err_t THR_fleatest_iterate_cert_files_and_verify_as_self_signed(
         issuer_cert_len = issuer.size();
       }
       // if(FLEA_ERR_FINE != THR_flea_x509_verify_cert_signature(&cert[0], cert.size(), &cert[0], cert.size()))
-      if(FLEA_ERR_FINE != THR_flea_x509_verify_cert_signature(&cert[0], cert.size(), issuer_cert, issuer_cert_len))
+      if(FLEA_ERR_FINE !=
+        THR_flea_x509_verify_cert_signature(
+          &cert[0],
+          cert.size(),
+          issuer_cert,
+          issuer_cert_len,
+          flea_x509_validation_empty_flags
+        ))
       {
         if(!expect_error)
         {

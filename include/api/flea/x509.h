@@ -25,6 +25,12 @@ extern "C" {
  */
 typedef enum { flea_key_usage_explicit, flea_key_usage_implicit } flea_key_usage_exlicitness_e;
 
+typedef enum
+{
+  flea_x509_validation_empty_flags = 0,
+  flea_x509_validation_allow_sha1  = 0x01
+} flea_x509_validation_flags_e;
+
 /**
  * Enumeration of the key usage flags.
  */

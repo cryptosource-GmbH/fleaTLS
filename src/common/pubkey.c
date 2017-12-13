@@ -18,6 +18,7 @@
 #include "internal/common/oid.h"
 #include "internal/common/pubkey_int.h"
 #include "flea/mem_read_stream.h"
+#include "flea/cert_path.h"
 
 #ifdef FLEA_HAVE_ASYM_ALGS
 
@@ -325,7 +326,8 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
   const flea_public_key_t*     public_key__pt,
   const flea_x509_algid_ref_t* sigalg_id__t,
   const flea_byte_vec_t*       tbs_data__pt,
-  const flea_byte_vec_t*       signature__pt
+  const flea_byte_vec_t*       signature__pt,
+  flea_x509_validation_flags_e cert_ver_flags__e
 )
 {
   const flea_byte_vec_t* oid_ref__pt = &sigalg_id__t->oid_ref__t;
@@ -344,6 +346,10 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
   if(key_type != public_key__pt->key_type__t)
   {
     FLEA_THROW("key type and algorithm don't match", FLEA_ERR_INV_ALGORITHM);
+  }
+  if((hash_id == flea_sha1) && !(cert_ver_flags__e & flea_x509_validation_allow_sha1))
+  {
+    FLEA_THROW("invalid hash algorithm", FLEA_ERR_INV_ALGORITHM);
   }
 
 # ifdef FLEA_HAVE_RSA

@@ -53,7 +53,8 @@ flea_err_t THR_flea_test_cert_path_generic(
       &cert_chain__t,
       &target_cert_ptr[0],
       target_cert_len,
-      rev_chk_mode__e
+      rev_chk_mode__e,
+      flea_x509_validation_allow_sha1
     )
   );
   flea_gmt_time_t time__t;

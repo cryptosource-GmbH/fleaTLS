@@ -196,7 +196,8 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
   const flea_public_key_t*     public_key,
   const flea_x509_algid_ref_t* sigalg_id,
   const flea_byte_vec_t*       tbs_data,
-  const flea_byte_vec_t*       signature
+  const flea_byte_vec_t*       signature,
+  flea_x509_validation_flags_e cert_ver_flags__e
 );
 
 /**
