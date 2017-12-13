@@ -1042,7 +1042,17 @@ flea_err_t THR_flea_tls__client_handshake(
    * sind, die hier unterstützt werden müssen. Dann sehen wir, wie wir die Menge
    * ableiten können.
    */
-  flea_hash_id_t hash_ids[] = {flea_sha256, flea_sha1, flea_sha384}; // TODO 123: not hardcoded!!!!!
+  flea_hash_id_t hash_ids[] = {
+# ifdef FLEA_HAVE_SHA1
+    flea_sha1,
+# endif
+    flea_sha224,
+    flea_sha256,
+# ifdef FLEA_HAVE_SHA384_512
+    flea_sha384,
+    flea_sha512
+# endif
+  };
 
   FLEA_CCALL(THR_flea_byte_vec_t__resize(hs_ctx__t.client_and_server_random__pt, 2 * FLEA_TLS_HELLO_RANDOM_SIZE));
   // flea_tls_set_tls_random(&hs_ctx__t);

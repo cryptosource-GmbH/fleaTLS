@@ -137,21 +137,28 @@ flea_mac_id_t flea_tls__map_hmac_to_hash(flea_hash_id_t hash)
 
   switch(hash)
   {
+# ifdef FLEA_HAVE_SHA1
       case flea_sha1:
         hmac = flea_hmac_sha1;
+        break;
+# endif
+      case flea_sha224:
+        hmac = flea_hmac_sha224;
         break;
       case flea_sha256:
         hmac = flea_hmac_sha256;
         break;
+# ifdef FLEA_HAVE_SHA384_512
       case flea_sha384:
         hmac = flea_hmac_sha384;
         break;
       case flea_sha512:
         hmac = flea_hmac_sha512;
         break;
+# endif /* ifdef FLEA_HAVE_SHA384_512 */
       default:
         /* this cannot happen according to callers. dummy value. */
-        hmac = flea_hmac_sha1;
+        hmac = flea_hmac_sha256;
         break;
   }
   return hmac;
@@ -313,8 +320,12 @@ static flea_err_t flea_tls__prf(
 
 static flea_mac_id_t flea_tls__prf_mac_id_from_suite_id(flea_tls__cipher_suite_id_t cs_id__t)
 {
-  const flea_tls__cipher_suite_t* cs__pt = flea_tls_get_cipher_suite_by_id(cs_id__t);
+# ifdef FLEA_HAVE_SHA384_512
 
+  /** compile time restrictions prevent the instantiation of wrong cipher
+   * suites here
+   */
+  const flea_tls__cipher_suite_t* cs__pt = flea_tls_get_cipher_suite_by_id(cs_id__t);
   if(cs__pt->hash_algorithm == flea_sha384)
   {
     return flea_hmac_sha384;
@@ -323,6 +334,7 @@ static flea_mac_id_t flea_tls__prf_mac_id_from_suite_id(flea_tls__cipher_suite_i
   {
     return flea_hmac_sha512;
   }
+# endif /* ifdef FLEA_HAVE_SHA384_512 */
   return flea_hmac_sha256;
 }
 
@@ -334,13 +346,6 @@ flea_err_t THR_flea_tls__generate_key_block(
 )
 {
   FLEA_THR_BEG_FUNC();
-  // TODO: MUST BE ABSTRACT BUF:
-  // flea_u8_t seed[64];
-  // TODO: REDUNDANT ARRAY ?( could swap values and swap them back in fin-sec,
-  // but this increases the code size) // Better: hand through 2 seed parts down
-  // to the prf, this should not effectively increase code size too much (save 2
-  // memcpy and add one function call parameter)
-  // // TODO: ARE THE RANDOMS NEEDED ANYMORE AT ALL AFTERWARDS?
 
   flea_swap_mem(
     hs_ctx__pt->client_and_server_random__pt->data__pu8,
@@ -1384,12 +1389,18 @@ static flea_err_t THR_flea_tls_ctx__parse_reneg_ext(
 } /* THR_flea_tls_ctx__parse_reneg_ext */
 
 flea_u8_t flea_tls_map_tls_hash_to_flea_hash__at[6][2] = {
+# ifdef FLEA_HAVE_MD5
   {0x01, flea_md5   },
+# endif
+# ifdef FLEA_HAVE_SHA1
   {0x02, flea_sha1  },
+# endif
   {0x03, flea_sha224},
   {0x04, flea_sha256},
+# ifdef FLEA_HAVE_SHA384_512
   {0x05, flea_sha384},
   {0x06, flea_sha512}
+# endif
 };
 
 flea_u8_t flea_tls_map_tls_sig_to_flea_sig__at[2][2] = {

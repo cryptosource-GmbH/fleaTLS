@@ -78,11 +78,15 @@ std::map<string, flea_u8_t> sig_algs_map__t = {
 };
 
 std::map<string, flea_u8_t> hash_algs_map__t = {
+# ifdef FLEA_HAVE_SHA1
   {"SHA1",   flea_sha1  },
+# endif
   {"SHA224", flea_sha224},
   {"SHA256", flea_sha256},
+# ifdef FLEA_HAVE_SHA384_512
   {"SHA384", flea_sha384},
   {"SHA512", flea_sha512},
+# endif
 };
 
 namespace {

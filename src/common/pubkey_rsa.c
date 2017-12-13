@@ -31,12 +31,14 @@ flea_err_t THR_get_hash_id_from_x509_id_for_rsa(
       case 11:
         *result__pt = flea_sha256;
         break;
+# ifdef FLEA_HAVE_SHA384_512
       case 12:
         *result__pt = flea_sha384;
         break;
       case 13:
         *result__pt = flea_sha512;
         break;
+# endif /* ifdef FLEA_HAVE_SHA384_512 */
       default:
         FLEA_THROW("unrecognized hash function", FLEA_ERR_X509_UNRECOG_HASH_FUNCTION);
   }

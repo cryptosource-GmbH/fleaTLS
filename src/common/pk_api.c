@@ -48,6 +48,7 @@ static void flea_pk_api__set_pkcs1_digest_info__sha2(
     di_14__u8 = 0x01;
     di_18__u8 = 0x20;
   }
+# ifdef FLEA_HAVE_SHA384_512
   else if(hash_id__t == flea_sha384)
   {
     di_1__u8  = 0x41;
@@ -60,11 +61,12 @@ static void flea_pk_api__set_pkcs1_digest_info__sha2(
     di_14__u8 = 0x03;
     di_18__u8 = 0x40;
   }
+# endif /* ifdef FLEA_HAVE_SHA384_512 */
 
   digest_info__pu8[1]  = di_1__u8;
   digest_info__pu8[14] = di_14__u8;
   digest_info__pu8[18] = di_18__u8;
-}
+} /* flea_pk_api__set_pkcs1_digest_info__sha2 */
 
 static flea_al_u16_t flea_pk_api__pkcs1_set_digest_info(
   flea_u8_t*     target_buffer__pu8,
@@ -229,7 +231,7 @@ flea_err_t THR_flea_pk_api__verify_message__pkcs1_v1_5(
   {
     FLEA_THROW("key bit size too large", FLEA_ERR_INV_KEY_SIZE);
   }
-# endif
+# endif /* ifdef FLEA_USE_STACK_BUF */
   FLEA_ALLOC_BUF(compare__bu8, compare_val_len__alu16);
   memcpy(compare__bu8, digest__pu8, digest_len__alu16);
   FLEA_CCALL(
@@ -630,7 +632,7 @@ flea_err_t THR_flea_pk_api__decrypt_message(
   {
     FLEA_THROW("key length too large", FLEA_ERR_INV_KEY_SIZE);
   }
-# endif
+# endif /* ifdef FLEA_USE_STACK_BUF */
   if(ciphertext_len__alu16 > mod_len__alu16)
   {
     FLEA_THROW("ciphertext length too large", FLEA_ERR_INV_ARG);

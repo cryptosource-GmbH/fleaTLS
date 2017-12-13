@@ -23,7 +23,7 @@
   | (((flea_u32_t) ptr[(n) * 4 + 3]) << 24))
 # define GET(n) SET(n)
 
-# ifndef FLEA_USE_MD5_ROUND_MACRO
+# ifndef FLEA_USE_MD5_LOOP_UNROLL
 
 typedef flea_u32_t (* flea_md5_round_arithm_f)(
   flea_u32_t x,
@@ -142,7 +142,7 @@ static void flea_md5_round(
   abcd[3] = d;
 }
 
-# endif /* ifndef FLEA_USE_MD5_ROUND_MACRO */
+# endif /* ifndef FLEA_USE_MD5_LOOP_UNROLL */
 
 flea_err_t THR_flea_md5_compression_function(
   flea_hash_ctx_t* ctx__pt,
@@ -152,29 +152,29 @@ flea_err_t THR_flea_md5_compression_function(
   const flea_u8_t* ptr;
   flea_u32_t* state;
 
-# ifdef FLEA_USE_MD5_ROUND_MACRO
+# ifdef FLEA_USE_MD5_LOOP_UNROLL
   flea_u32_t a;
   flea_u32_t b;
   flea_u32_t c;
   flea_u32_t d;
-# else
+# else  /* ifdef FLEA_USE_MD5_LOOP_UNROLL */
   flea_u32_t abcd[4];
-# endif
+# endif /* ifdef FLEA_USE_MD5_LOOP_UNROLL */
 
   FLEA_THR_BEG_FUNC();
 
-  ptr   = (const flea_u8_t *) input;
-  state = (flea_u32_t *) ctx__pt->hash_state;
-# ifdef FLEA_USE_MD5_ROUND_MACRO
+  ptr   = (const flea_u8_t*) input;
+  state = (flea_u32_t*) ctx__pt->hash_state;
+# ifdef FLEA_USE_MD5_LOOP_UNROLL
   a = state[0];
   b = state[1];
   c = state[2];
   d = state[3];
-# else
+# else  /* ifdef FLEA_USE_MD5_LOOP_UNROLL */
   memcpy(abcd, state, sizeof(abcd));
-# endif
+# endif /* ifdef FLEA_USE_MD5_LOOP_UNROLL */
 
-# ifndef FLEA_USE_MD5_ROUND_MACRO
+# ifndef FLEA_USE_MD5_LOOP_UNROLL
   flea_md5_round(abcd, ptr, flea_md5_round_arithm_1, flea_md5_table__au32, flea_md5_s_table__au8, NULL);
   flea_md5_round(
     abcd,
@@ -205,7 +205,7 @@ flea_err_t THR_flea_md5_compression_function(
   state[1] += abcd[1];
   state[2] += abcd[2];
   state[3] += abcd[3];
-# else /* ifndef FLEA_USE_MD5_ROUND_MACRO */
+# else /* ifndef FLEA_USE_MD5_LOOP_UNROLL */
 
   STEP(F, a, b, c, d, SET(0), 0xd76aa478, 7)
   STEP(F, d, a, b, c, SET(1), 0xe8c7b756, 12)
@@ -281,7 +281,7 @@ flea_err_t THR_flea_md5_compression_function(
   state[1] += b;
   state[2] += c;
   state[3] += d;
-# endif /* ifndef FLEA_USE_MD5_ROUND_MACRO */
+# endif /* ifndef FLEA_USE_MD5_LOOP_UNROLL */
 
 
   FLEA_THR_FIN_SEC_empty();
@@ -289,7 +289,7 @@ flea_err_t THR_flea_md5_compression_function(
 
 void flea_md5_init(flea_hash_ctx_t* ctx__pt)
 {
-  flea_u32_t* state = (flea_u32_t *) ctx__pt->hash_state;
+  flea_u32_t* state = (flea_u32_t*) ctx__pt->hash_state;
 
   state[0] = 0x67452301UL;
   state[1] = 0xefcdab89UL;
@@ -304,7 +304,7 @@ void flea_md5_encode_hash_state(
 )
 {
   flea_al_u8_t i;
-  flea_u32_t* state = (flea_u32_t *) ctx__pt->hash_state;
+  flea_u32_t* state = (flea_u32_t*) ctx__pt->hash_state;
 
   output_len = (output_len + 3) / 4;
   for(i = 0; i < output_len; i++)

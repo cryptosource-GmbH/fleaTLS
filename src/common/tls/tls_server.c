@@ -1102,7 +1102,15 @@ flea_err_t THR_flea_tls__server_handshake(
   flea_tls__handshake_state_ctor(&handshake_state);
 
   // TODO: make configurable #597
-  flea_hash_id_t hash_ids[] = {flea_sha1, flea_sha224, flea_sha256, flea_sha384, flea_sha512};
+  flea_hash_id_t hash_ids[] = {
+# ifdef FLEA_HAVE_SHA1
+    flea_sha1,
+# endif
+    flea_sha224,flea_sha256
+# ifdef FLEA_HAVE_SHA384_512
+    ,           flea_sha384, flea_sha512
+# endif
+  };
 
   FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__ctor(&p_hash_ctx, hash_ids, FLEA_NB_ARRAY_ENTRIES(hash_ids)));
 

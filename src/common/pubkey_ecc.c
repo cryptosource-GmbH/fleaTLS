@@ -43,12 +43,14 @@ flea_err_t THR_get_hash_id_from_x509_id_for_ecdsa(
         case 2:
           *result__pt = flea_sha256;
           break;
+# ifdef FLEA_HAVE_SHA384_512
         case 3:
           *result__pt = flea_sha384;
           break;
         case 4:
           *result__pt = flea_sha512;
           break;
+# endif /* ifdef FLEA_HAVE_SHA384_512 */
         default:
           FLEA_THROW("unsupported ECDSA variant", FLEA_ERR_X509_UNSUPP_ALGO_VARIANT);
     }

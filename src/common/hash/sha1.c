@@ -16,14 +16,14 @@
 # define F2(x, y, z) ((x & y) | (z & (x | y)))
 # define F3(x, y, z) (x ^ y ^ z)
 
-# ifdef FLEA_USE_SHA1_ROUND_MACRO
+# ifdef FLEA_USE_SHA1_LOOP_UNROLL
 #  define SHA1_ROUND(F, a, b, c, d, e, k, o) \
   do { \
     e += ROL(a, 5) + F(b, c, d) + W__bu8[i + o] + k; \
     b  = ROL(b, 30); \
   } while(0)
 
-# else
+# else  /* ifdef FLEA_USE_SHA1_LOOP_UNROLL */
 
 typedef flea_u32_t (* F_f)(
   flea_u32_t x,
@@ -98,7 +98,7 @@ static void flea_sha1_20_rounds(
   abcde[4] = e;
 }
 
-# endif /* ifdef FLEA_USE_SHA1_ROUND_MACRO */
+# endif /* ifdef FLEA_USE_SHA1_LOOP_UNROLL */
 
 
 # define FLEA_LOAD_U32_BE(y)       \
@@ -113,7 +113,7 @@ flea_err_t THR_flea_sha1_compression_function(
 {
   flea_u32_t i, j;
 
-# ifdef FLEA_USE_SHA1_ROUND_MACRO
+# ifdef FLEA_USE_SHA1_LOOP_UNROLL
   flea_u32_t a, b, c, d, e;
 # else
   flea_u32_t abcde[5];
@@ -126,20 +126,20 @@ flea_err_t THR_flea_sha1_compression_function(
   {
     W__bu8[i] = FLEA_LOAD_U32_BE(input__pc_u8[i * 4]);
   }
-  state__p_u32 = (flea_u32_t *) ctx__pt->hash_state;
-# ifdef FLEA_USE_SHA1_ROUND_MACRO
+  state__p_u32 = (flea_u32_t*) ctx__pt->hash_state;
+# ifdef FLEA_USE_SHA1_LOOP_UNROLL
   a = state__p_u32[0];
   b = state__p_u32[1];
   c = state__p_u32[2];
   d = state__p_u32[3];
   e = state__p_u32[4];
-# else
+# else  /* ifdef FLEA_USE_SHA1_LOOP_UNROLL */
   abcde[0] = state__p_u32[0];
   abcde[1] = state__p_u32[1];
   abcde[2] = state__p_u32[2];
   abcde[3] = state__p_u32[3];
   abcde[4] = state__p_u32[4];
-# endif /* ifdef FLEA_USE_SHA1_ROUND_MACRO */
+# endif /* ifdef FLEA_USE_SHA1_LOOP_UNROLL */
 
   for(i = 16; i < 80; i++)
   {
@@ -147,7 +147,7 @@ flea_err_t THR_flea_sha1_compression_function(
     W__bu8[i] = ROL(j, 1);
   }
 
-# ifdef FLEA_USE_SHA1_ROUND_MACRO
+# ifdef FLEA_USE_SHA1_LOOP_UNROLL
   for(i = 0; i < 20; i += 5)
   {
     SHA1_ROUND(F0, a, b, c, d, e, 0x5a827999UL, 0);
@@ -185,7 +185,7 @@ flea_err_t THR_flea_sha1_compression_function(
   state__p_u32[2] += c;
   state__p_u32[3] += d;
   state__p_u32[4] += e;
-# else /* ifdef FLEA_USE_SHA1_ROUND_MACRO */
+# else /* ifdef FLEA_USE_SHA1_LOOP_UNROLL */
   flea_sha1_20_rounds(abcde, 0x5a827999UL, W__bu8, F0_f);
   flea_sha1_20_rounds(abcde, 0x6ed9eba1UL, W__bu8 + 20, F1_f);
   flea_sha1_20_rounds(abcde, 0x8f1bbcdcUL, W__bu8 + 40, F2_f);
@@ -195,7 +195,7 @@ flea_err_t THR_flea_sha1_compression_function(
   state__p_u32[2] += abcde[2];
   state__p_u32[3] += abcde[3];
   state__p_u32[4] += abcde[4];
-# endif /* ifdef FLEA_USE_SHA1_ROUND_MACRO */
+# endif /* ifdef FLEA_USE_SHA1_LOOP_UNROLL */
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_SECRET_ARR(W__bu8, 80);
   );
@@ -203,7 +203,7 @@ flea_err_t THR_flea_sha1_compression_function(
 
 void flea_sha1_init(flea_hash_ctx_t* ctx__pt)
 {
-  flea_u32_t* state__p_u32 = (flea_u32_t *) ctx__pt->hash_state;
+  flea_u32_t* state__p_u32 = (flea_u32_t*) ctx__pt->hash_state;
 
   state__p_u32[0] = 0x67452301;
   state__p_u32[1] = 0xefcdab89;

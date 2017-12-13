@@ -40,7 +40,7 @@ static const flea_u32_t K[160] = {
 
 # define BLOCK_SIZE 128
 
-# ifdef FLEA_USE_SHA512_ROUND_MACRO
+# ifdef FLEA_USE_SHA512_LOOP_UNROLL
 #  define ROR64_n(r, value, w) \
   do { \
     flea_al_u8_t v, u; \
@@ -58,8 +58,8 @@ static const flea_u32_t K[160] = {
   } while(0)
 
 
-# else /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
-void ROR64_n(
+# else  /* ifdef FLEA_USE_SHA512_LOOP_UNROLL */
+static void ROR64_n(
   flea_u32_t       r[2],
   const flea_u32_t value[2],
   flea_al_u8_t     w
@@ -73,7 +73,7 @@ void ROR64_n(
   r[0] ^= (value[0] << u) | ((value[1]) >> v);
 }
 
-void ROR64_n_small(
+static void ROR64_n_small(
   flea_u32_t       r[2],
   const flea_u32_t value[2],
   flea_al_u8_t     w
@@ -158,9 +158,8 @@ void ROR64_n_small(
     (io)[0] += carry + (b)[0]; \
   } while(0)
 
-# ifdef FLEA_USE_SHA512_ROUND_MACRO
 
-#  define FLEA_SHA_512_ROUND(a, b, c, d, e, f, g, h, i)       \
+# define FLEA_SHA_512_ROUND(a, b, c, d, e, f, g, h, i)       \
   Sigma1_n(t0, e); \
   add64(t0, h); \
   Ch_n(tmp, e, f, g); \
@@ -175,43 +174,6 @@ void ROR64_n_small(
   add64(d, t0); \
   assn64(h, t0); \
   add64(h, t1);
-
-# else /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
-static void Sha512Round(
-  flea_u32_t        a[2],
-  flea_u32_t        b[2],
-  flea_u32_t        c[2],
-  flea_u32_t        d[2],
-  flea_u32_t        e[2],
-  flea_u32_t        f[2],
-  flea_u32_t        g[2],
-  flea_u32_t        h[2],
-  flea_al_u8_t      i,
-  const flea_u32_t* W
-)
-{
-  flea_u32_t t0[2] = {0, 0};
-  flea_u32_t t1[2] = {0, 0};
-  flea_u32_t tmp[2] = {0, 0};
-  const flea_u32_t* W_p, * K_p;
-
-  Sigma1_n(t0, e);
-  add64(t0, h);
-  Ch_n(tmp, e, f, g);
-  add64(t0, tmp);
-  W_p = &W[2 * (i)];
-  K_p = &K[2 * (i)];
-  add64(t0, K_p);
-  add64(t0, W_p);
-  Sigma0_n(t1, a);
-  Maj_n(tmp, a, b, c);
-  add64(t1, tmp);
-  add64(d, t0);
-  assn64(h, t0);
-  add64(h, t1);
-}
-
-# endif /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
 
 
 flea_err_t THR_flea_sha512_compression_function(
@@ -248,7 +210,7 @@ flea_err_t THR_flea_sha512_compression_function(
   }
 
 
-# ifdef FLEA_USE_SHA512_ROUND_MACRO
+# ifdef FLEA_USE_SHA512_LOOP_UNROLL
   for(i = 0; i < 80; i += 8)
   {
     flea_u32_t tmp[2];
@@ -265,11 +227,15 @@ flea_err_t THR_flea_sha512_compression_function(
     FLEA_SHA_512_ROUND(&S[4], &S[6], &S[8], &S[10], &S[12], &S[14], &S[0], &S[2], i + 6);
     FLEA_SHA_512_ROUND(&S[2], &S[4], &S[6], &S[8], &S[10], &S[12], &S[14], &S[0], i + 7);
   }
-# else /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
+# else  /* ifdef FLEA_USE_SHA512_LOOP_UNROLL */
   for(i = 0; i < 80; i += 1)
   {
     flea_u32_t tmp[2];
-    Sha512Round(&S[0], &S[2], &S[4], &S[6], &S[8], &S[10], &S[12], &S[14], i, W);
+    flea_u32_t t0[2];
+    flea_u32_t t1[2];
+    flea_u32_t* W_p;
+    const flea_u32_t* K_p;
+    FLEA_SHA_512_ROUND(&S[0], &S[2], &S[4], &S[6], &S[8], &S[10], &S[12], &S[14], i);
     assn64(tmp, &S[0]);
     assn64(&S[0], &S[14]);
     assn64(&S[14], &S[12]);
@@ -280,7 +246,7 @@ flea_err_t THR_flea_sha512_compression_function(
     assn64(&S[4], &S[2]);
     assn64(&S[2], tmp);
   }
-# endif /* ifdef FLEA_USE_SHA512_ROUND_MACRO */
+# endif /* ifdef FLEA_USE_SHA512_LOOP_UNROLL */
 
   for(i = 0; i < 8; i++)
   {

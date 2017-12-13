@@ -72,10 +72,13 @@ static const flea_tls__cipher_suite_t cipher_suites[] = {
 };
 
 
-// TODO: check correctness: so far all cipher suites with hash algorithm > 256
-// also use this as prf
 flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_id_t cs_id__t)
 {
+# ifdef FLEA_HAVE_SHA384_512
+
+  /** compile time restrictions prevent the instantiation of wrong cipher
+   * suites here
+   */
   const flea_tls__cipher_suite_t* cs__pt = flea_tls_get_cipher_suite_by_id(cs_id__t);
 
   if(cs__pt->hash_algorithm == flea_sha384)
@@ -86,6 +89,7 @@ flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_i
   {
     return flea_sha512;
   }
+# endif /* ifdef FLEA_HAVE_SHA384_512 */
   return flea_sha256;
 }
 

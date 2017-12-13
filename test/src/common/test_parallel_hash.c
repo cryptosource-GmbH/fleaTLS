@@ -5,13 +5,19 @@
 #include "self_test.h"
 #include "internal/common/tls/parallel_hash.h"
 #include "flea/hash.h"
+#include "flea/array_util.h"
 
 #ifdef FLEA_HAVE_TLS
 
 flea_err_t THR_flea_test_parallel_hash()
 {
-  flea_hash_id_t hash_ids[] = {flea_sha512, flea_sha256, flea_sha384};
-  flea_u8_t hash_ids_len    = 3;
+  flea_hash_id_t hash_ids[] = {flea_sha256,
+
+# ifdef FLEA_HAVE_SHA384_512
+                               flea_sha384, flea_sha512
+# endif
+  };
+  flea_u8_t hash_ids_len = FLEA_NB_ARRAY_ENTRIES(hash_ids);
   flea_tls_parallel_hash_ctx_t p_hash_ctx = flea_tls_parallel_hash_ctx_t__INIT_VALUE;
 
   // FLEA_DECL_OBJ(hash_ctx_sha256, flea_hash_ctx_t);

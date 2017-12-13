@@ -68,45 +68,11 @@ static const flea_u32_t K[64] = {
 # define Gamma0(x)    (S(x, 7) ^ S(x, 18) ^ R(x, 3))
 # define Gamma1(x)    (S(x, 17) ^ S(x, 19) ^ R(x, 10))
 
-# ifdef FLEA_USE_SHA256_ROUND_MACRO
-#  define Sha256Round(a, b, c, d, e, f, g, h, i)       \
+# define Sha256Round(a, b, c, d, e, f, g, h, i)       \
   t0 = h + Sigma1(e) + Ch(e, f, g) + K[i] + W[i];   \
   t1 = Sigma0(a) + Maj(a, b, c);                    \
   d += t0;                                          \
   h  = t0 + t1;
-# else
-static void Sha256Round(
-  flea_u32_t*  a__pu32,
-  flea_u32_t*  b__pu32,
-  flea_u32_t*  c__pu32,
-  flea_u32_t*  d__pu32,
-  flea_u32_t*  e__pu32,
-  flea_u32_t*  f__pu32,
-  flea_u32_t*  g__pu32,
-  flea_u32_t*  h__pu32,
-  flea_al_u8_t i,
-  flea_u32_t*  W
-)
-{
-  flea_u32_t t0, t1;
-  flea_u32_t a = *a__pu32, b = *b__pu32, c = *c__pu32, d = *d__pu32, e = *e__pu32, f = *f__pu32, g = *g__pu32,
-    h = *h__pu32;
-
-  t0       = h + Sigma1(e) + Ch(e, f, g) + K[i] + W[i];
-  t1       = Sigma0(a) + Maj(a, b, c);
-  d       += t0;
-  h        = t0 + t1;
-  *a__pu32 = a;
-  *b__pu32 = b;
-  *c__pu32 = c;
-  *d__pu32 = d;
-  *e__pu32 = e;
-  *f__pu32 = f;
-  *g__pu32 = g;
-  *h__pu32 = h;
-}
-
-# endif /* ifdef FLEA_USE_SHA256_ROUND_MACRO */
 
 flea_err_t THR_flea_sha256_compression_function(
   flea_hash_ctx_t* ctx__pt,
@@ -142,7 +108,7 @@ flea_err_t THR_flea_sha256_compression_function(
   }
 
   // Compress
-# ifdef FLEA_USE_SHA256_ROUND_MACRO
+# ifdef FLEA_USE_SHA256_LOOP_UNROLL
   for(i = 0; i < 64; i += 8)
   {
     flea_u32_t t0;
@@ -156,11 +122,13 @@ flea_err_t THR_flea_sha256_compression_function(
     Sha256Round(S[2], S[3], S[4], S[5], S[6], S[7], S[0], S[1], i + 6);
     Sha256Round(S[1], S[2], S[3], S[4], S[5], S[6], S[7], S[0], i + 7);
   }
-# else /* ifdef FLEA_USE_SHA256_ROUND_MACRO */
+# else  /* ifdef FLEA_USE_SHA256_LOOP_UNROLL */
   for(i = 0; i < 64; i++)
   {
+    flea_u32_t t0;
+    flea_u32_t t1;
     flea_u32_t t;
-    Sha256Round(&S[0], &S[1], &S[2], &S[3], &S[4], &S[5], &S[6], &S[7], i, W);
+    Sha256Round(S[0], S[1], S[2], S[3], S[4], S[5], S[6], S[7], i);
     t    = S[7];
     S[7] = S[6];
     S[6] = S[5];
@@ -171,7 +139,7 @@ flea_err_t THR_flea_sha256_compression_function(
     S[1] = S[0];
     S[0] = t;
   }
-# endif /* ifdef FLEA_USE_SHA256_ROUND_MACRO */
+# endif /* ifdef FLEA_USE_SHA256_LOOP_UNROLL */
 
   for(i = 0; i < 8; i++)
   {
@@ -217,7 +185,7 @@ void flea_sha256_encode_hash_state(
 )
 {
   flea_al_u8_t i;
-  flea_u32_t* state = (flea_u32_t *) ctx__t->hash_state;
+  flea_u32_t* state = (flea_u32_t*) ctx__t->hash_state;
 
   for(i = 0; i < output_len; i++)
   {

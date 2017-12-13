@@ -19,8 +19,24 @@ extern "C" {
 /**
  * Supported hash algorithms.
  */
-typedef enum { flea_davies_meyer_aes128, flea_md5, flea_sha1, flea_sha224, flea_sha256, flea_sha384,
-               flea_sha512 } flea_hash_id_t;
+typedef enum
+{
+#ifdef FLEA_HAVE_DAVIES_MEYER_HASH
+  flea_davies_meyer_aes128,
+#endif
+  flea_md5,
+#ifdef FLEA_HAVE_SHA1
+  flea_sha1,
+#endif
+#ifdef FLEA_HAVE_SHA224_256
+  flea_sha224,
+  flea_sha256,
+#endif
+#ifdef FLEA_HAVE_SHA384_512
+  flea_sha384,
+  flea_sha512
+#endif
+} flea_hash_id_t;
 
 
 /**
@@ -34,7 +50,7 @@ struct struct_flea_hash_ctx_t
 #elif defined FLEA_USE_STACK_BUF
   flea_u8_t                       pending_buffer[__FLEA_COMPUTED_MAX_HASH_BLOCK_LEN];
   flea_u32_t                      hash_state[__FLEA_COMPUTED_MAX_HASH_STATE_LEN / sizeof(flea_u32_t)];
-#endif
+#endif // ifdef FLEA_USE_HEAP_BUF
   flea_u64_t                      total_byte_length;
   const flea_hash_config_entry_t* p_config;
   flea_len_ctr_t                  len_ctr__t;
@@ -49,7 +65,7 @@ struct struct_flea_hash_ctx_t
 # define flea_hash_ctx_t__INIT_VALUE \
   {.p_config   = NULL, .pending_buffer = NULL, .hash_state = NULL, .pending = 0, \
    .len_ctr__t = flea_len_ctr_t__INIT_VALUE}
-#else
+#else // ifdef FLEA_USE_HEAP_BUF
 /* needed for secret wiping */
 # define flea_hash_ctx_t__INIT(__p) do {(__p)->p_config = NULL;} while(0)
 /* needed for secret wiping */
