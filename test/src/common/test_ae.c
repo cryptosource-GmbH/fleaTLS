@@ -14,6 +14,7 @@ static flea_err_t THR_flea_test_ae_init_dtor()
 {
   flea_ae_ctx_t ctx__t = flea_ae_ctx_t__INIT_VALUE;
 
+  flea_ae_ctx_t__INIT(&ctx__t);
   FLEA_THR_BEG_FUNC();
 
   FLEA_THR_FIN_SEC(
@@ -552,6 +553,7 @@ static flea_err_t THR_flea_test_ae_inner(
 
 flea_err_t THR_flea_test_ae()
 {
+# ifdef FLEA_HAVE_EAX
   const flea_u8_t eax_aes128_key_1[] =
   {0xC6, 0x1A, 0x08, 0x51, 0xAB, 0x4E, 0x51, 0x5D, 0x11, 0x52, 0x5B, 0x92, 0xE2, 0xB9, 0xD8, 0x50};
   const flea_u8_t eax_aes128_nonce_1[] =
@@ -632,9 +634,12 @@ flea_err_t THR_flea_test_ae()
   const flea_u8_t eax_aes256_pt_2[]       = {0xab, 0xcd, 0xef};
   const flea_u8_t eax_aes256_exp_ct_2[]   = {0x12, 0x48, 0x6c};
   const flea_u8_t eax_aes256_exp_tag_2 [] = {0x87, 0xbf, 0x9a, 0x7f, 0x22, 0xfa, 0x65, 0xa9, 0x49, 0x3e, 0xc0, 0xf5, 0x7f, 0x80, 0x70, 0xf5};
+# endif /* ifdef FLEA_HAVE_EAX */
+
 // NIST Tests from
 // http://csrc.nist.gov/groups/ST/toolkit/BCM/documents/proposedmodes/gcm/gcm-revised-spec.pdf
 // ====================================
+# ifdef FLEA_HAVE_GCM
   const flea_u8_t gcm_aes128_key_1 [] = {
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
     0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00
@@ -774,10 +779,11 @@ flea_err_t THR_flea_test_ae()
     0xfe, 0xb5, 0x82, 0xd3, 0x39, 0x34, 0xa4, 0xf0, 0x95, 0x4c, 0xc2, 0x36, 0x3b, 0xc7, 0x3f, 0x78,
     0x62, 0xac, 0x43, 0x0e, 0x64, 0xab, 0xe4, 0x99, 0xf4, 0x7c, 0x9b, 0x1f
   };
+# endif /* ifdef FLEA_HAVE_GCM */
 
   // ====================================
   FLEA_THR_BEG_FUNC();
-
+# ifdef FLEA_HAVE_EAX
   FLEA_CCALL(THR_flea_test_ae_inner(flea_eax_aes128, eax_aes128_key_1, sizeof(eax_aes128_key_1), eax_aes128_nonce_1, sizeof(eax_aes128_nonce_1), NULL, 0, eax_aes128_exp_tag_1, sizeof(eax_aes128_exp_tag_1), NULL, 0, NULL, 0, 16));
   FLEA_CCALL(THR_flea_test_ae_inner(flea_eax_aes128, eax_aes128_key_2, sizeof(eax_aes128_key_2), eax_aes128_nonce_2, sizeof(eax_aes128_nonce_2), eax_aes128_pt_2, sizeof(eax_aes128_pt_2), eax_aes128_exp_tag_2, sizeof(eax_aes128_exp_tag_2), eax_aes128_exp_ct_2, sizeof(eax_aes128_exp_ct_2), NULL, 0, 16));
   FLEA_CCALL(THR_flea_test_ae_inner(flea_eax_aes128, eax_aes128_key_4, sizeof(eax_aes128_key_4), eax_aes128_nonce_4, sizeof(eax_aes128_nonce_4), eax_aes128_pt_4, sizeof(eax_aes128_pt_4), eax_aes128_exp_tag_4, sizeof(eax_aes128_exp_tag_4), eax_aes128_exp_ct_4, sizeof(eax_aes128_exp_ct_4), NULL, 0, 16));
@@ -795,7 +801,8 @@ flea_err_t THR_flea_test_ae()
   FLEA_CCALL(THR_flea_test_ae_inner(flea_eax_aes192, eax_aes192_key_5, sizeof(eax_aes192_key_5), eax_aes192_nonce_5, sizeof(eax_aes192_nonce_5), eax_aes192_pt_5, sizeof(eax_aes192_pt_5), eax_aes192_exp_tag_5, sizeof(eax_aes192_exp_tag_5), eax_aes192_exp_ct_5, sizeof(eax_aes192_exp_ct_5), eax_aes192_assoc_5, sizeof(eax_aes192_assoc_5), 16));
 
   FLEA_CCALL(THR_flea_test_ae_inner(flea_eax_aes256, eax_aes256_key_2, sizeof(eax_aes256_key_2), eax_aes256_nonce_2, sizeof(eax_aes256_nonce_2), eax_aes256_pt_2, sizeof(eax_aes256_pt_2), eax_aes256_exp_tag_2, sizeof(eax_aes256_exp_tag_2), eax_aes256_exp_ct_2, sizeof(eax_aes256_exp_ct_2), eax_aes256_assoc_2, sizeof(eax_aes256_assoc_2), 16));
-
+# endif /* ifdef FLEA_HAVE_EAX */
+# ifdef FLEA_HAVE_GCM
   FLEA_CCALL(THR_flea_test_ae_inner(flea_gcm_aes128, gcm_aes128_key_1, sizeof(gcm_aes128_key_1), gcm_aes128_nonce_1, sizeof(gcm_aes128_nonce_1), NULL, 0, gcm_aes128_exp_tag_1, sizeof(gcm_aes128_exp_tag_1), NULL, 0, NULL, 0, 16));
 
   FLEA_CCALL(THR_flea_test_ae_inner(flea_gcm_aes128, gcm_aes128_key_2, sizeof(gcm_aes128_key_2), gcm_aes128_nonce_2, sizeof(gcm_aes128_nonce_2), gcm_aes128_pt_2, sizeof(gcm_aes128_pt_2), gcm_aes128_exp_tag_2, sizeof(gcm_aes128_exp_tag_2), gcm_aes128_exp_ct_2, sizeof(gcm_aes128_exp_ct_2), NULL, 0, 16));
@@ -806,7 +813,7 @@ flea_err_t THR_flea_test_ae()
   FLEA_CCALL(THR_flea_test_ae_inner(flea_gcm_aes192, gcm_aes192_key_12, sizeof(gcm_aes192_key_12), gcm_aes192_nonce_12, sizeof(gcm_aes192_nonce_12), gcm_aes192_pt_12, sizeof(gcm_aes192_pt_12), gcm_aes192_exp_tag_12, sizeof(gcm_aes192_exp_tag_12), gcm_aes192_exp_ct_12, sizeof(gcm_aes192_exp_ct_12), gcm_aes192_assoc_12, sizeof(gcm_aes192_assoc_12), 16));
 
   FLEA_CCALL(THR_flea_test_ae_inner(flea_gcm_aes256, gcm_aes256_key_17, sizeof(gcm_aes256_key_17), gcm_aes256_nonce_17, sizeof(gcm_aes256_nonce_17), gcm_aes256_pt_17, sizeof(gcm_aes256_pt_17), gcm_aes256_exp_tag_17, sizeof(gcm_aes256_exp_tag_17), gcm_aes256_exp_ct_17, sizeof(gcm_aes256_exp_ct_17), gcm_aes256_assoc_17, sizeof(gcm_aes256_assoc_17), 16));
-
+# endif /* ifdef FLEA_HAVE_GCM */
 
   FLEA_CCALL(THR_flea_test_ae_init_dtor());
 

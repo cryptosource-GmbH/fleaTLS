@@ -43,6 +43,7 @@ const flea_ae_config_entry_t ae_config__at[] = {
     .mac_id__t    = flea_cmac_aes256
   },
 # endif /* ifdef FLEA_HAVE_EAX */
+# ifdef FLEA_HAVE_GCM
   {
     .ae_id__t     = flea_gcm_aes128,
     .ae_mode__t   = flea_gcm,
@@ -61,6 +62,7 @@ const flea_ae_config_entry_t ae_config__at[] = {
     .cipher_id__t = flea_aes256,
     .mac_id__t    = 0
   }
+# endif /* ifdef FLEA_HAVE_GCM */
 };
 
 static const flea_ae_config_entry_t* flea_find_ae_config(flea_ae_id_t id__t)
@@ -76,6 +78,8 @@ static const flea_ae_config_entry_t* flea_find_ae_config(flea_ae_id_t id__t)
   }
   return NULL;
 }
+
+# ifdef FLEA_HAVE_EAX
 
 /**
  * Helper function for the setting up of the EAX OMAC values.
@@ -110,6 +114,8 @@ static flea_err_t THR_flea_ae__compute_omac_indexed(
   }
   FLEA_THR_FIN_SEC_empty();
 }
+
+# endif /* ifdef FLEA_HAVE_EAX */
 
 /**
  *
@@ -155,6 +161,7 @@ flea_err_t THR_flea_ae_ctx_t__ctor(
   }
   ctx__pt->config__pt  = config__pt;
   ctx__pt->tag_len__u8 = tag_length__alu8; // indicates to the dtor that members are initialized
+# ifdef FLEA_HAVE_EAX
   if(config__pt->ae_mode__t == flea_eax)
   {
     const mac_config_entry_t* mac_config__pct = flea_mac__find_mac_config(config__pt->mac_id__t);
@@ -188,10 +195,10 @@ flea_err_t THR_flea_ae_ctx_t__ctor(
       FLEA_THROW("specified tag length exceeds CMAC's output length", FLEA_ERR_INV_ARG);
     }
     block_len__alu8 = ctx__pt->mode_specific__u.eax.ctr_ctx__t.cipher_ctx__t.block_length__u8;
-# ifdef FLEA_USE_HEAP_BUF
+#  ifdef FLEA_USE_HEAP_BUF
     FLEA_ALLOC_MEM_ARR(ctx__pt->mode_specific__u.eax.nonce__bu8, block_len__alu8);
     FLEA_ALLOC_MEM_ARR(ctx__pt->mode_specific__u.eax.header_omac__bu8, block_len__alu8);
-# endif
+#  endif
     // use the cmac ctx for the computation of the stored nonce
     FLEA_CCALL(
       THR_flea_ae__compute_omac_indexed(
@@ -231,7 +238,10 @@ flea_err_t THR_flea_ae_ctx_t__ctor(
       )
     );
   }
-  else if(config__pt->ae_mode__t == flea_gcm)
+  else
+# endif /* ifdef FLEA_HAVE_EAX */
+# ifdef FLEA_HAVE_GCM
+  if(config__pt->ae_mode__t == flea_gcm)
   {
     flea_ctr_mode_ctx_t__INIT(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t);
 
@@ -266,6 +276,7 @@ flea_err_t THR_flea_ae_ctx_t__ctor(
     flea__increment_encoded_BE_int(ctx__pt->mode_specific__u.gcm.ctr_ctx__t.ctr_block__bu8 + (16 - 4), 4);
   }
   else
+# endif /* ifdef FLEA_HAVE_GCM */
   {
     FLEA_THROW("invalid AE mode", FLEA_ERR_INV_ARG);
   }
@@ -280,6 +291,7 @@ flea_err_t THR_flea_ae_ctx_t__update_encryption(
 )
 {
   FLEA_THR_BEG_FUNC();
+# ifdef FLEA_HAVE_EAX
   if(ctx__pt->config__pt->ae_mode__t == flea_eax)
   {
     flea_ctr_mode_ctx_t__crypt(
@@ -296,7 +308,9 @@ flea_err_t THR_flea_ae_ctx_t__update_encryption(
       )
     );
   }
-  else if(ctx__pt->config__pt->ae_mode__t == flea_gcm)
+# endif /* ifdef FLEA_HAVE_EAX */
+# ifdef FLEA_HAVE_GCM
+  if(ctx__pt->config__pt->ae_mode__t == flea_gcm)
   {
     flea_ctr_mode_ctx_t__crypt(
       &ctx__pt->mode_specific__u.gcm.ctr_ctx__t,
@@ -312,6 +326,7 @@ flea_err_t THR_flea_ae_ctx_t__update_encryption(
       )
     );
   }
+# endif /* ifdef FLEA_HAVE_GCM */
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_ae_ctx_t__update_encryption */
 
@@ -411,18 +426,21 @@ static flea_err_t THR_flea_ae_ctx_t__update_decryption_inner(
 )
 {
   FLEA_THR_BEG_FUNC();
+# ifdef FLEA_HAVE_EAX
   if(ctx__pt->config__pt->ae_mode__t == flea_eax)
   {
     FLEA_CCALL(THR_flea_mac_ctx_t__update(&ctx__pt->mode_specific__u.eax.cmac_ctx__t, input__pcu8, input_len__dtl));
     flea_ctr_mode_ctx_t__crypt(&ctx__pt->mode_specific__u.eax.ctr_ctx__t, input__pcu8, output__pu8, input_len__dtl);
   }
-  else
+# endif /* ifdef FLEA_HAVE_EAX */
+# ifdef FLEA_HAVE_GCM
+  if(ctx__pt->config__pt->ae_mode__t == flea_gcm)
   {
     // gcm
     FLEA_CCALL(THR_flea_ghash_ctx_t__update(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, input_len__dtl, input__pcu8));
     flea_ctr_mode_ctx_t__crypt(&ctx__pt->mode_specific__u.gcm.ctr_ctx__t, input__pcu8, output__pu8, input_len__dtl);
   }
-
+# endif /* ifdef FLEA_HAVE_GCM */
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -500,17 +518,21 @@ flea_err_t THR_flea_ae_ctx_t__final_encryption(
   {
     FLEA_THROW("output buffer for tag too small", FLEA_ERR_BUFF_TOO_SMALL);
   }
+# ifdef FLEA_HAVE_EAX
   if(ctx__pt->config__pt->ae_mode__t == flea_eax)
   {
     FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&ctx__pt->mode_specific__u.eax.cmac_ctx__t, tag__pu8, tag_len__palu8));
     flea__xor_bytes_in_place(tag__pu8, ctx__pt->mode_specific__u.eax.header_omac__bu8, *tag_len__palu8);
     flea__xor_bytes_in_place(tag__pu8, ctx__pt->mode_specific__u.eax.nonce__bu8, *tag_len__palu8);
   }
-  else
+# endif /* ifdef FLEA_HAVE_EAX */
+# ifdef FLEA_HAVE_GCM
+  if(ctx__pt->config__pt->ae_mode__t == flea_gcm)
   {
     *tag_len__palu8 = ctx__pt->tag_len__u8;
     flea_ghash_ctx_t__finish(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, tag__pu8, *tag_len__palu8);
   }
+# endif /* ifdef FLEA_HAVE_GCM */
 
   FLEA_THR_FIN_SEC_empty();
 }
@@ -527,6 +549,7 @@ flea_err_t THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t* ctx__pt)
     FLEA_THROW("not enough data fed into EAX decryptor", FLEA_ERR_INV_STATE);
   }
   FLEA_ALLOC_BUF(tag__bu8, tag_len__alu8);
+# ifdef FLEA_HAVE_EAX
   if(ctx__pt->config__pt->ae_mode__t == flea_eax)
   {
     flea__xor_bytes_in_place(ctx__pt->buffer__bu8, ctx__pt->mode_specific__u.eax.header_omac__bu8, tag_len__alu8);
@@ -539,7 +562,9 @@ flea_err_t THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t* ctx__pt)
       )
     );
   }
-  else
+# endif /* ifdef FLEA_HAVE_EAX */
+# ifdef FLEA_HAVE_GCM
+  if(ctx__pt->config__pt->ae_mode__t == flea_gcm)
   {
     flea_ghash_ctx_t__finish(&ctx__pt->mode_specific__u.gcm.ghash_ctx__t, tag__bu8, tag_len__alu8);
 
@@ -548,6 +573,7 @@ flea_err_t THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t* ctx__pt)
       FLEA_THROW("gcm tag verification failed", FLEA_ERR_INV_MAC);
     }
   }
+# endif /* ifdef FLEA_HAVE_GCM */
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL_SECRET_ARR(tag__bu8, tag_len__alu8);
   );
@@ -562,21 +588,25 @@ void flea_ae_ctx_t__dtor(flea_ae_ctx_t* ctx__pt)
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_SET_NULL(ctx__pt->buffer__bu8); // not secret, only used to buffer ciphertext
 # endif
+# ifdef FLEA_HAVE_EAX
   if(ctx__pt->config__pt->ae_mode__t == flea_eax)
   {
     flea_mac_ctx_t__dtor_cipher_ctx_ref(&ctx__pt->mode_specific__u.eax.cmac_ctx__t);
     flea_ctr_mode_ctx_t__dtor(&ctx__pt->mode_specific__u.eax.ctr_ctx__t);
-# ifdef FLEA_USE_HEAP_BUF
+#  ifdef FLEA_USE_HEAP_BUF
     FLEA_FREE_MEM_CHK_SET_NULL(ctx__pt->mode_specific__u.eax.nonce__bu8);
     FLEA_FREE_MEM_CHK_SET_NULL(ctx__pt->mode_specific__u.eax.header_omac__bu8);
-# endif
+#  endif
   }
-  else
+# endif /* ifdef FLEA_HAVE_EAX */
+# ifdef FLEA_HAVE_GCM
+  if(ctx__pt->config__pt->ae_mode__t == flea_gcm)
   {
     flea_ae_gcm_specific_t* gcm__pt = &ctx__pt->mode_specific__u.gcm;
     flea_ctr_mode_ctx_t__dtor(&gcm__pt->ctr_ctx__t);
     flea_ghash_ctx_t__dtor(&gcm__pt->ghash_ctx__t);
   }
+# endif /* ifdef FLEA_HAVE_GCM */
 }
 
 #endif // #ifdef FLEA_HAVE_AE

@@ -3,6 +3,7 @@
 #ifndef _flea_ae__H_
 #define _flea_ae__H_
 
+#include "internal/common/default.h"
 #include "flea/block_cipher.h"
 #include "flea/mac.h"
 #include "internal/common/ae_int.h"
@@ -12,12 +13,20 @@
 extern "C" {
 #endif
 
+#ifdef FLEA_HAVE_AE
 
 /**
  * Available AE modes.
  */
-typedef enum { flea_eax_aes128, flea_eax_aes192, flea_eax_aes256, flea_gcm_aes128, flea_gcm_aes192,
-               flea_gcm_aes256 } flea_ae_id_t;
+typedef enum
+{
+# ifdef FLEA_HAVE_EAX
+  flea_eax_aes128, flea_eax_aes192, flea_eax_aes256,
+# endif
+# ifdef FLEA_HAVE_GCM
+  flea_gcm_aes128, flea_gcm_aes192, flea_gcm_aes256
+# endif
+} flea_ae_id_t;
 
 
 /**
@@ -28,11 +37,11 @@ typedef struct
   flea_u8_t                     tag_len__u8;
   const flea_ae_config_entry_t* config__pt;
   flea_u8_t                     pending__u8;
-#ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_USE_HEAP_BUF
   flea_u8_t*                    buffer__bu8;
-#else
+# else
   flea_u8_t                     buffer__bu8[FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
-#endif
+# endif
   union
   {
     flea_ae_eax_specific_t eax;
@@ -40,8 +49,8 @@ typedef struct
   } mode_specific__u;
 } flea_ae_ctx_t;
 
-#define flea_ae_ctx_t__INIT_VALUE {.tag_len__u8 = 0}
-
+# define flea_ae_ctx_t__INIT_VALUE {.tag_len__u8 = 0}
+# define flea_ae_ctx_t__INIT(__p) do {(__p)->tag_len__u8 = 0;} while(0)
 
 /**
  * Create an AE context. The context can be used for either encryption or
@@ -223,8 +232,11 @@ flea_err_t THR_flea_ae__decrypt(
   flea_al_u8_t     tag_len
 );
 
+#endif // ifdef FLEA_HAVE_AE
+
 #ifdef __cplusplus
 }
 #endif
+
 
 #endif /* h-guard */

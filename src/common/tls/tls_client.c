@@ -1282,8 +1282,6 @@ flea_err_t THR_flea_tls__client_handshake(
           THR_flea_tls__generate_key_block(
             &hs_ctx__t,
             tls_ctx->selected_cipher_suite__e,
-            // &tls_ctx->security_parameters,
-            // tls_ctx->key_block,
             key_block__t.data__pu8,
             key_block_len__alu16
           )

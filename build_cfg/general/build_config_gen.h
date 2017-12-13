@@ -33,8 +33,9 @@
  * Algorithm support selection
  */
 # define FLEA_HAVE_HMAC              // FBFLAGS_MACALGS_ON_OFF
-# define FLEA_HAVE_CMAC              // FBFLAGS_MACALGS_ON_OFF
-# define FLEA_HAVE_EAX               // FBLAGS_AEALGS_ON_OFF
+// # define FLEA_HAVE_CMAC              // FBFLAGS_MACALGS_ON_OFF
+// # define FLEA_HAVE_EAX               // FBLAGS_AEALGS_ON_OFF
+# define FLEA_HAVE_GCM
 
 # define FLEA_HAVE_MD5               // FBFLAGS_MD5_ON_OFF
 # define FLEA_HAVE_SHA1              // FBFLAGS_SHA1_ON_OFF
@@ -196,7 +197,7 @@
 
 # define FLEA_USE_PUBKEY_USE_RAND_DELAY
 
-# ifdef FLEA_HAVE_RSA
+# if defined FLEA_HAVE_RSA && defined FLEA_HAVE_HMAC
 #  define FLEA_HAVE_TLS
 # endif
 
@@ -217,9 +218,13 @@
 #   define FLEA_HAVE_TLS_RSA
 #  endif
 
-#  define FLEA_HAVE_TLS_CBC_CS
+#  ifdef FLEA_HAVE_HMAC
+// #  define FLEA_HAVE_TLS_CBC_CS
+#  endif
 
-#  define FLEA_HAVE_TLS_GCM_CS
+#  ifdef FLEA_HAVE_GCM
+#   define FLEA_HAVE_TLS_GCM_CS
+#  endif
 
 # endif // ifdef FLEA_HAVE_TLS
 

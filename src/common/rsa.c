@@ -335,6 +335,9 @@ flea_err_t THR_flea_rsa_raw_operation_crt(
     FLEA_FREE_BUF_SECRET_ARR(j1_arr, FLEA_HEAP_OR_STACK_CODE(prime_word_len, FLEA_STACK_BUF_NB_ENTRIES(j1_arr)));
     FLEA_FREE_BUF_SECRET_ARR(vn, FLEA_HEAP_OR_STACK_CODE(vn_len, FLEA_STACK_BUF_NB_ENTRIES(vn)));
     FLEA_FREE_BUF_SECRET_ARR(un, FLEA_HEAP_OR_STACK_CODE(un_len, FLEA_STACK_BUF_NB_ENTRIES(un)));
+    FLEA_DO_IF_USE_PUBKEY_INPUT_BASED_DELAY(
+      flea_ctr_mode_prng_t__dtor(&delay_prng__t);
+    )
   );
 } /* THR_flea_rsa_raw_operation_crt */
 
@@ -371,7 +374,7 @@ flea_err_t THR_flea_rsa_raw_operation(
   {
     FLEA_THROW("modulus length too large", FLEA_ERR_INV_KEY_SIZE);
   }
-# endif
+# endif /* ifdef FLEA_USE_STACK_BUF */
   mod_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN(modulus_length);
 
   result_word_len    = mod_word_len + 1;

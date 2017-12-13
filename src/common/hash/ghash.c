@@ -8,7 +8,9 @@
 #include "internal/common/hash/ghash.h"
 #include "flea/error_handling.h"
 
-#define __FLEA_GHASH_STATE_U32_ARR_LEN (32 + 32 + 16 / 4 + 16 / 4)
+#ifdef FLEA_HAVE_GCM
+
+# define __FLEA_GHASH_STATE_U32_ARR_LEN (32 + 32 + 16 / 4 + 16 / 4)
 
 static const flea_u16_t ghash_lo[16] = {
   0x0000, 0x1c20, 0x3840, 0x2460, 0x7080, 0x6ca0, 0x48c0, 0x54e0,
@@ -18,14 +20,14 @@ static const flea_u16_t ghash_lo[16] = {
 /**
  * Lshift smaller than shiftwidth 32
  */
-#define FLEA_LSHIFT_U64_AU32_SMALL(in, out, shift) \
+# define FLEA_LSHIFT_U64_AU32_SMALL(in, out, shift) \
   do { \
     out[1] = (in[1] << shift); \
     if(shift <= 32) {out[1] |= (in[0] >> (32 - shift));} \
     out[0] = in[0] << shift; \
   } while(0);
 
-#define FLEA_RSHIFT_U64_AU32_SMALL(in, out, shift) \
+# define FLEA_RSHIFT_U64_AU32_SMALL(in, out, shift) \
   do { \
     out[0] = (in[0] >> shift); \
     if(shift <= 32) {out[0] |= (in[1] << (32 - shift));} \
@@ -35,13 +37,13 @@ static const flea_u16_t ghash_lo[16] = {
 /**
  * Lshift greater or equal than 32
  */
-#define FLEA_LSHIFT_U64_AU32_LARGE(in, out, shift) \
+# define FLEA_LSHIFT_U64_AU32_LARGE(in, out, shift) \
   do { \
     out[1] = (in[0] << (32 - (64 - shift))); \
     out[0] = 0; \
   } while(0);
 
-#define FLEA_U64_OR_AU32(au32_in_out, au32_in) \
+# define FLEA_U64_OR_AU32(au32_in_out, au32_in) \
   do { \
     au32_in_out[0] |= au32_in[0]; \
     au32_in_out[1] |= au32_in[1]; \
@@ -98,17 +100,17 @@ static void ghash_process_block(
     zl_a[1] ^= ctx__pt->hl__bu32[2 * hi + 1];
   }
 
-#ifdef FLEA_HAVE_BE_ARCH_OPT
+# ifdef FLEA_HAVE_BE_ARCH_OPT
   FLEA_ENCODE_U32_BE(zh_a[1], output + 0);
   FLEA_ENCODE_U32_BE(zh_a[0], output + 4);
   FLEA_ENCODE_U32_BE(zl_a[1], output + 8);
   FLEA_ENCODE_U32_BE(zl_a[0], output + 12);
-#else
+# else  /* ifdef FLEA_HAVE_BE_ARCH_OPT */
   flea__encode_U32_BE(zh_a[1], output + 0);
   flea__encode_U32_BE(zh_a[0], output + 4);
   flea__encode_U32_BE(zl_a[1], output + 8);
   flea__encode_U32_BE(zl_a[0], output + 12);
-#endif
+# endif /* ifdef FLEA_HAVE_BE_ARCH_OPT */
 } /* ghash_process_block */
 
 static void ghash_xor_and_process_block(
@@ -132,27 +134,27 @@ flea_err_t THR_flea_ghash_ctx_t__ctor(
   flea_u8_t h[__FLEA_GHASH_BLOCK_SIZE];
 
   FLEA_THR_BEG_FUNC();
-#ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM_ARR(ctx__pt->hl__bu32, __FLEA_GHASH_STATE_U32_ARR_LEN);
   ctx__pt->hh__bu32      = ctx__pt->hl__bu32 + 32;
-  ctx__pt->base_ctr__bu8 = (flea_u8_t *) (ctx__pt->hh__bu32 + 32);
+  ctx__pt->base_ctr__bu8 = (flea_u8_t*) (ctx__pt->hh__bu32 + 32);
   ctx__pt->state__bu8    = ctx__pt->base_ctr__bu8 + 16;
-#endif
+# endif /* ifdef FLEA_USE_HEAP_BUF */
   memset(h, 0, __FLEA_GHASH_BLOCK_SIZE);
   FLEA_CCALL(THR_flea_len_ctr_t__ctor(&ctx__pt->len_ctr__t, 2, 36, 32));
   FLEA_CCALL(THR_flea_ecb_mode_crypt_data(ecb_ctx__pt, h, h, ecb_ctx__pt->block_length__u8));
 
-#ifdef FLEA_HAVE_BE_ARCH_OPT
+# ifdef FLEA_HAVE_BE_ARCH_OPT
   vh_a[1] = FLEA_DECODE_U32_BE(h + 0);
   vh_a[0] = FLEA_DECODE_U32_BE(h + 4);
   vl_a[1] = FLEA_DECODE_U32_BE(h + 8);
   vl_a[0] = FLEA_DECODE_U32_BE(h + 12);
-#else
+# else  /* ifdef FLEA_HAVE_BE_ARCH_OPT */
   vh_a[1] = flea__decode_U32_BE(h);
   vh_a[0] = flea__decode_U32_BE(h + 4);
   vl_a[1] = flea__decode_U32_BE(h + 8);
   vl_a[0] = flea__decode_U32_BE(h + 12);
-#endif
+# endif /* ifdef FLEA_HAVE_BE_ARCH_OPT */
 
   ctx__pt->hl__bu32[16] = vl_a[0];
   ctx__pt->hl__bu32[17] = vl_a[1];
@@ -328,17 +330,17 @@ void flea_ghash_ctx_t__finish(
   if(ctx__pt->len_ctr__t.counter__bu32[0] || ctx__pt->len_ctr__t.counter__bu32[1] || orig_add_len__u32)
   {
     memset(work_buf, 0, __FLEA_GHASH_BLOCK_SIZE);
-#ifdef FLEA_HAVE_BE_ARCH_OPT
+# ifdef FLEA_HAVE_BE_ARCH_OPT
     FLEA_ENCODE_U32_BE(0, work_buf);
     FLEA_ENCODE_U32_BE(orig_add_len__u32, work_buf + 4);
     FLEA_ENCODE_U32_BE(ctx__pt->len_ctr__t.counter__bu32[1], work_buf + 8);
     FLEA_ENCODE_U32_BE(ctx__pt->len_ctr__t.counter__bu32[0], work_buf + 12);
-#else
+# else  /* ifdef FLEA_HAVE_BE_ARCH_OPT */
     flea__encode_U32_BE(0, work_buf);
     flea__encode_U32_BE(orig_add_len__u32, work_buf + 4);
     flea__encode_U32_BE(ctx__pt->len_ctr__t.counter__bu32[1], work_buf + 8);
     flea__encode_U32_BE(ctx__pt->len_ctr__t.counter__bu32[0], work_buf + 12);
-#endif
+# endif /* ifdef FLEA_HAVE_BE_ARCH_OPT */
 
     ghash_xor_and_process_block(ctx__pt, ctx__pt->state__bu8, work_buf, __FLEA_GHASH_BLOCK_SIZE);
     flea__xor_bytes_in_place(tag, ctx__pt->state__bu8, tag_len);
@@ -348,7 +350,9 @@ void flea_ghash_ctx_t__finish(
 void flea_ghash_ctx_t__dtor(flea_ghash_ctx_t* ctx__pt)
 {
   flea_len_ctr_t__dtor(&ctx__pt->len_ctr__t);
-#ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->hl__bu32, __FLEA_GHASH_STATE_U32_ARR_LEN);
-#endif
+# endif
 }
+
+#endif /* ifdef FLEA_HAVE_GCM */
