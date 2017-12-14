@@ -113,7 +113,12 @@ struct struct_flea_tls_handshake_ctx_t
 
   flea_byte_vec_t*   client_and_server_random__pt;
   flea_tls_ctx_t*    tls_ctx__pt;
+  flea_u8_t          silent_alarm__u8;
 };
+
+# define flea_tls_handshake_ctx_t__INIT(__p) \
+  do {(__p)->silent_alarm__u8 = 0; memset((__p), 0, sizeof(*(__p))); \
+  } while(0)
 
 struct struct_flea_tls_server_ctx_t
 {

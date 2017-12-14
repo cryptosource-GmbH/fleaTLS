@@ -93,7 +93,8 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_TLS_HANDSHK_FAILURE,                FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  },
   {FLEA_ERR_TLS_CERT_VER_FAILED,                FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
   {FLEA_ERR_TLS_EXCSS_REC_LEN,                  FLEA_TLS_ALERT_DESC_RECORD_OVERFLOW    },
-  {FLEA_ERR_TLS_NO_SIG_ALG_MATCH,               FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  }
+  {FLEA_ERR_TLS_NO_SIG_ALG_MATCH,               FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  },
+  {FLEA_ERR_INV_MAC,                            FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC     }
 };
 
 static flea_bool_t determine_alert_from_error(

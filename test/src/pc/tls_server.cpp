@@ -382,7 +382,7 @@ static flea_err_t THR_server_cycle(
       int sock_fd = -1;
       unsigned read_timeout_ms = cmdl_args.get_property_as_u32_default("read_timeout", 1000);
 
-      std::cout << "creating threads: max = " << thr_max << ", running currently = " << serv_pars.size() << std::endl;
+      // std::cout << "creating threads: max = " << thr_max << ", running currently = " << serv_pars.size() << std::endl;
       server_params_t serv_par__t;
       serv_par__t.shrd_ctx__pt                    = &shrd_server_ctx__t;
       serv_par__t.cert_chain__pcu8                = cert_chain;
@@ -426,6 +426,9 @@ static flea_err_t THR_server_cycle(
         serv_pars.push_back(std::unique_ptr<server_params_t>(new server_params_t(serv_par__t)));
         server_params_t* new_par__pt = serv_pars[serv_pars.size() - 1].get();
         pthread_mutex_init(&new_par__pt->mutex, NULL);
+
+        std::cout << "creating new server thread for connection: max = " << thr_max
+                  << ", running currently (including newly created thread): " << serv_pars.size() << std::endl;
         if(pthread_create(&new_par__pt->thread, NULL, &flea_tls_server_thread, (void*) new_par__pt))
         {
           FLEA_THROW("error creating server thread", FLEA_ERR_FAILED_TEST);
@@ -437,7 +440,7 @@ static flea_err_t THR_server_cycle(
       }
       else
       {
-        std::cout << "flea server: failed listen/accept\n";
+        // std::cout << "flea server: failed listen/accept\n";
       }
     }
     if((stop || !create_new_threads) && !serv_pars.size())

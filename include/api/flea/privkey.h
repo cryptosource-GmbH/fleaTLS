@@ -27,7 +27,7 @@ typedef struct
 # else
   flea_u8_t*                dp_mem__bu8;
   flea_u8_t*                priv_scalar__mem__bu8;
-# endif
+# endif // ifdef FLEA_USE_STACK_BUF
 } flea_ec_privkey_val_t;
 
 typedef struct
@@ -141,13 +141,13 @@ flea_err_t THR_flea_private_key_t__sign_digest_plain_format(
 /**
  *  Decrypt a message using a public key scheme.
  *
- *  @param id ID of the encryption scheme to use
- *  @param hash_id ID of the hash scheme to use (if applicable)
- *  @param ciphertext the ciphertext to be encrypted
- *  @param ciphertext_len the length of ciphertext
- *  @param result receives the result after successful operation
- *  @param key the private key to use for the decryption
- *  @param enforced_pkcs1_v1_5_decryption_result_len This value is only interpreted in case of PKCS#1 v1.5 decryption.
+ *  @param [in] id ID of the encryption scheme to use
+ *  @param [in] hash_id ID of the hash scheme to use (if applicable)
+ *  @param [in ]ciphertext the ciphertext to be encrypted
+ *  @param [in] ciphertext_len the length of ciphertext
+ *  @param [out] result receives the result after successful operation
+ *  @param [in] key the private key to use for the decryption
+ *  @param [in] enforced_pkcs1_v1_5_decryption_result_len This value is only interpreted in case of PKCS#1 v1.5 decryption.
  *                                                   For normal PKCS#1 v1.5 decoding,
  *                                                   this must be set to zero. Set this
  *                                                   value to the expected message
@@ -155,6 +155,7 @@ flea_err_t THR_flea_private_key_t__sign_digest_plain_format(
  *                                                   fake result generation in case of
  *                                                   a padding error (defense against
  *                                                   Bleichenbacher's attack).
+ *   @param silent_alarm [out] meaning full if enforced_pkcs1_v1_5_decryption_result_len is non-zero. May be set to null. Otherwise, and if enforced_pkcs1_v1_5_decryption_result_len is non-zero, then this value will be set to non-zero if a format/padding error occured during the decryption.
  */
 flea_err_t THR_flea_pk_api__decrypt_message(
   flea_pk_scheme_id_t       id,
@@ -163,7 +164,8 @@ flea_err_t THR_flea_pk_api__decrypt_message(
   flea_al_u16_t             ciphertext_len,
   flea_byte_vec_t*          result,
   const flea_private_key_t* privkey,
-  flea_al_u16_t             enforced_decryption_result_len
+  flea_al_u16_t             enforced_pkcs1_v1_5_decryption_result_len,
+  flea_u8_t*                silent_alarm_mbn
 );
 
 #endif /* h-guard */

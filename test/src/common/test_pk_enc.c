@@ -84,7 +84,8 @@ static flea_err_t THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
        * &decr_len__alu16,*/
       &decr_vec__t,
       &privkey__t,
-      0
+      0,
+      NULL
     )
   );
   if(decr_vec__t.len__dtl != sizeof(exp_res__acu8))
@@ -104,12 +105,10 @@ static flea_err_t THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
       flea_sha1,
       ct_pkcs1_v1_5,
       sizeof(ct_pkcs1_v1_5),
-
-      /*decr__bu8,
-       * &decr_len__alu16,*/
       &decr_vec__t,
       &privkey__t,
-      0
+      0,
+      NULL
     )
   );
   if(decr_vec__t.len__dtl != sizeof(exp_res__acu8))
@@ -145,6 +144,7 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
   // flea_al_u16_t extr_message_len = sizeof(message);
   FLEA_DECL_BUF(res, flea_u8_t, 1536 / 8);
   flea_al_u16_t output_size__alu16 = 1536 / 8, i;
+  flea_u8_t silent_alarm__u8;
   FLEA_THR_BEG_FUNC();
 
   FLEA_ALLOC_BUF(res, output_size__alu16);
@@ -178,7 +178,7 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
   }
 
   /* test decoding of correct ciphertext without Bleichenbacher countermeasure */
-  FLEA_CCALL(THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, &extr_message_vec__t, 1536, 0));
+  FLEA_CCALL(THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, &extr_message_vec__t, 1536, 0, NULL));
   if(extr_message_vec__t.len__dtl != sizeof(message))
   {
     FLEA_THROW("extracted message length of pkcs#1 v1.5 encoding incorrect", FLEA_ERR_FAILED_TEST);
@@ -198,9 +198,14 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
        * &extr_message_len,*/
       &extr_message_vec__t,
       1536,
-      sizeof(message)
+      sizeof(message),
+      &silent_alarm__u8
     )
   );
+  if(silent_alarm__u8)
+  {
+    FLEA_THROW("silent alarm triggered incorrectly", FLEA_ERR_FAILED_TEST);
+  }
   if(extr_message_vec__t.len__dtl != sizeof(message))
   {
     FLEA_THROW("extracted message length of pkcs#1 v1.5 encoding incorrect", FLEA_ERR_FAILED_TEST);
@@ -209,12 +214,11 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
   {
     FLEA_THROW("extracted message content of pkcs#1 v1.5 encoding incorrect", FLEA_ERR_FAILED_TEST);
   }
-  // extr_message_len = sizeof(message);
 
   res[0] = 0x01;
   /* test decoding of incorrect ciphertext without Bleichenbacher countermeasure */
   if(FLEA_ERR_INV_CIPHERTEXT !=
-    THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, &extr_message_vec__t, 1536, 0))
+    THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, &extr_message_vec__t, 1536, 0, NULL))
   {
     FLEA_THROW("invalid error code for invalid PKCS#1 v1.5 message", FLEA_ERR_FAILED_TEST);
   }
@@ -224,14 +228,16 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
     THR_flea_pk_api__decode_message__pkcs1_v1_5(
       res,
       1536 / 8,
-
-      /*   extr_message,
-       * &extr_message_len,*/
       &extr_message_vec__t,
       1536,
-      sizeof(message)
+      sizeof(message),
+      &silent_alarm__u8
     )
   );
+  if(!silent_alarm__u8)
+  {
+    FLEA_THROW("silent alarm not triggered", FLEA_ERR_FAILED_TEST);
+  }
   if(extr_message_vec__t.len__dtl != sizeof(message))
   {
     FLEA_THROW(
@@ -255,7 +261,7 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
   res[1] = 0x01;
   /* test decoding of incorrect ciphertext without Bleichenbacher countermeasure */
   if(FLEA_ERR_INV_CIPHERTEXT !=
-    THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, &extr_message_vec__t, 1536, 0))
+    THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, &extr_message_vec__t, 1536, 0, NULL))
   {
     FLEA_THROW("invalid error code for invalid PKCS#1 v1.5 message", FLEA_ERR_FAILED_TEST);
   }
@@ -265,14 +271,16 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
     THR_flea_pk_api__decode_message__pkcs1_v1_5(
       res,
       1536 / 8,
-
-      /*   extr_message,
-       * &extr_message_len,*/
       &extr_message_vec__t,
       1536,
-      sizeof(message)
+      sizeof(message),
+      &silent_alarm__u8
     )
   );
+  if(!silent_alarm__u8)
+  {
+    FLEA_THROW("silent alarm not triggered", FLEA_ERR_FAILED_TEST);
+  }
   if(extr_message_vec__t.len__dtl != sizeof(message))
   {
     FLEA_THROW(
@@ -291,12 +299,12 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
 
   /* restore correct value in res: */
   output_size__alu16 = 1536 / 8;
-  FLEA_CCALL(THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(res, sizeof(message), &output_size__alu16, 1536, 0));
+  FLEA_CCALL(THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(res, sizeof(message), &output_size__alu16, 1536, (flea_hash_id_t) 0));
 
   memset(&res[2], 0xFF, 1536 / 8 - 2);
   /* test decoding of incorrect ciphertext (this time the zero-separator is not found) without Bleichenbacher countermeasure */
   if(FLEA_ERR_INV_CIPHERTEXT !=
-    THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, &extr_message_vec__t, 1536, 0))
+    THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, &extr_message_vec__t, 1536, 0, NULL))
   {
     FLEA_THROW("invalid error code for invalid PKCS#1 v1.5 message", FLEA_ERR_FAILED_TEST);
   }
@@ -308,11 +316,15 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
       res,
       1536 / 8,
       &extr_message_vec__t,
-      // &extr_message_len,
       1536,
-      sizeof(message)
+      sizeof(message),
+      &silent_alarm__u8
     )
   );
+  if(!silent_alarm__u8)
+  {
+    FLEA_THROW("silent alarm not triggered", FLEA_ERR_FAILED_TEST);
+  }
   if(extr_message_vec__t.len__dtl != sizeof(message))
   {
     FLEA_THROW(
@@ -333,11 +345,10 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
   res[1536 / 8 - 1] = 0;
   /* test decoding of incorrect ciphertext (this time the zero-separator is found at the last position and thus the message size is zero) without Bleichenbacher countermeasure */
   if(FLEA_ERR_INV_CIPHERTEXT !=
-    THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, &extr_message_vec__t, 1536, 0))
+    THR_flea_pk_api__decode_message__pkcs1_v1_5(res, 1536 / 8, &extr_message_vec__t, 1536, 0, NULL))
   {
     FLEA_THROW("invalid error code for invalid PKCS#1 v1.5 message", FLEA_ERR_FAILED_TEST);
   }
-  // extr_message_len = sizeof(message);
 
   /* test decoding of incorrect ciphertext with Bleichenbacher countermeasure */
   FLEA_CCALL(
@@ -345,11 +356,15 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
       res,
       1536 / 8,
       &extr_message_vec__t,
-      //   &extr_message_len,
       1536,
-      sizeof(message)
+      sizeof(message),
+      &silent_alarm__u8
     )
   );
+  if(!silent_alarm__u8)
+  {
+    FLEA_THROW("silent alarm not triggered", FLEA_ERR_FAILED_TEST);
+  }
   if(extr_message_vec__t.len__dtl != sizeof(message))
   {
     FLEA_THROW(
@@ -607,15 +622,10 @@ static flea_err_t THR_flea_inner_test_pk_encryption(
       hash_id__t,
       ciphertext__t.data__pu8,
       ciphertext__t.len__dtl,
-
-      /*decrypted__bu8,
-       * &decrypted_len__alu16,*/
       &decr_vec__t,
-
-      /*rsa_2048_crt_key_internal_format__acu8,
-       * sizeof(rsa_2048_crt_key_internal_format__acu8),*/
       &privkey__t,
-      0
+      0,
+      NULL
     )
   );
   if(decr_vec__t.len__dtl != sizeof(message__acu8))

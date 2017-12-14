@@ -54,7 +54,8 @@ flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5(
   flea_al_u16_t    encoded_len__alu16,
   flea_byte_vec_t* result_vec__pt,
   flea_al_u16_t    bit_size__alu16,
-  flea_al_u16_t    enforced_decoding_result_len__alu16
+  flea_al_u16_t    enforced_decoding_result_len__alu16,
+  flea_u8_t*       silent_alarm_mbn__pu8
 );
 
 

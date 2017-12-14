@@ -662,7 +662,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
   if(padd_err__alu8)
   {
     flea_bool_t found__b = FLEA_FALSE;
-    for(i__alu16 = 1; i__alu16 <= (flea_al_u16_t) max_padd_len__als16; i__alu16++)
+    for(i__alu16 = 0; i__alu16 <= (flea_al_u16_t) max_padd_len__als16; i__alu16++)
     {
       flea_al_u16_t maced_data_len__alu16 = plaintext_len__alu16 - i__alu16 - mac_len;
 

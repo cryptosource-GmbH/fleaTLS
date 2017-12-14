@@ -1015,6 +1015,7 @@ flea_err_t THR_flea_tls__client_handshake(
   );
   FLEA_THR_BEG_FUNC();
 
+  flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
   flea_tls_ctx_t__begin_handshake(tls_ctx);
   hs_ctx__t.tls_ctx__pt = tls_ctx;
   hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
@@ -1038,10 +1039,6 @@ flea_err_t THR_flea_tls__client_handshake(
 
   tls_ctx->extension_ctrl__u8 = 0;
 
-  /** TODO (FS): lass uns besprechen was die Kriterien für die Hash-Funktionen
-   * sind, die hier unterstützt werden müssen. Dann sehen wir, wie wir die Menge
-   * ableiten können.
-   */
   flea_hash_id_t hash_ids[] = {
 # ifdef FLEA_HAVE_SHA1
     flea_sha1,

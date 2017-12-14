@@ -625,13 +625,15 @@ static flea_err_t THR_flea_tls__send_cert_request(
  */
 # ifdef FLEA_HAVE_TLS_RSA
 static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
-  flea_tls_ctx_t*           tls_ctx,
+  // flea_tls_ctx_t*           tls_ctx,
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
   flea_tls_handsh_reader_t* hs_rdr__pt,
   flea_byte_vec_t*          premaster_secret__pt
 )
 {
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_u32_t enc_premaster_secret_len__u32;
+  flea_tls_ctx_t* tls_ctx = hs_ctx__pt->tls_ctx__pt;
 
   FLEA_DECL_BUF(enc_premaster_secret__bu8, flea_u8_t, FLEA_RSA_MAX_MOD_BYTE_LEN);
   FLEA_THR_BEG_FUNC();
@@ -662,9 +664,12 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
       enc_premaster_secret_len__u32,
       premaster_secret__pt,
       tls_ctx->private_key__pt,
-      48
+      48,
+      &hs_ctx__pt->silent_alarm__u8
     )
   );
+  hs_ctx__pt->silent_alarm__u8 |= (premaster_secret__pt->data__pu8[0] ^ 0x03);
+  hs_ctx__pt->silent_alarm__u8 |= (premaster_secret__pt->data__pu8[1] ^ 0x03);
 
 
   FLEA_THR_FIN_SEC(
@@ -696,7 +701,6 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_ecdhe(
       tls_ctx__pt,
       hs_rd_stream__pt,
       premaster_secret__pt,
-      // &tls_ctx__pt->ecdhe_priv_key__t,
       ecdhe_priv_key__pt,
       &ecdhe_client_key__t
     )
@@ -712,7 +716,7 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_ecdhe(
 # endif  /* ifdef FLEA_HAVE_TLS_ECDHE */
 
 static flea_err_t THR_flea_tls__read_client_key_exchange(
-  flea_tls_ctx_t*           tls_ctx,
+  flea_tls_handshake_ctx_t* tls_hs_ctx__pt,
   flea_tls_handsh_reader_t* hs_rdr__pt,
   flea_byte_vec_t*          premaster_secret__pt,
   flea_private_key_t*       ecdhe_priv_key__pt
@@ -720,12 +724,14 @@ static flea_err_t THR_flea_tls__read_client_key_exchange(
 {
   flea_tls__kex_method_t kex_method__t;
 
+  flea_tls_ctx_t* tls_ctx = tls_hs_ctx__pt->tls_ctx__pt;
+
   FLEA_THR_BEG_FUNC();
   kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e);
   if(kex_method__t == FLEA_TLS_KEX_RSA)
   {
 # ifdef FLEA_HAVE_TLS_RSA
-    FLEA_CCALL(THR_flea_tls__read_client_key_exchange_rsa(tls_ctx, hs_rdr__pt, premaster_secret__pt));
+    FLEA_CCALL(THR_flea_tls__read_client_key_exchange_rsa(tls_hs_ctx__pt, hs_rdr__pt, premaster_secret__pt));
 # else
     // should not happen if everything is properly configured
     FLEA_THROW("unsupported key exchange variant", FLEA_ERR_INT_ERR);
@@ -979,7 +985,7 @@ static flea_err_t THR_flea_tls_server_handle_handsh_msg(
     {
       FLEA_CCALL(
         THR_flea_tls__read_client_key_exchange(
-          tls_ctx,
+          hs_ctx__pt,
           &handsh_rdr__t,
           premaster_secret__pt,
           ecdhe_priv_key__pt
@@ -1069,6 +1075,7 @@ flea_err_t THR_flea_tls__server_handshake(
     2 * FLEA_TLS_HELLO_RANDOM_SIZE
   );
   FLEA_THR_BEG_FUNC();
+  flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
   flea_tls_ctx_t__begin_handshake(tls_ctx);
   hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
   hs_ctx__t.tls_ctx__pt = tls_ctx;
@@ -1078,7 +1085,6 @@ flea_err_t THR_flea_tls__server_handshake(
   flea_tls_parallel_hash_ctx_t__INIT(&p_hash_ctx);
   flea_tls__handshake_state_ctor(&handshake_state);
 
-  // TODO: make configurable #597
   flea_hash_id_t hash_ids[] = {
 # ifdef FLEA_HAVE_SHA1
     flea_sha1,
@@ -1099,8 +1105,6 @@ flea_err_t THR_flea_tls__server_handshake(
       2 * FLEA_TLS_HELLO_RANDOM_SIZE
     )
   );
-  // flea_tls_set_tls_random(&hs_ctx__t);
-  // tls_ctx->server_active_sess_mbn__pt = NULL;
   server_ctx__pt->server_resume_session__u8 = 0;
   handshake_state.initialized       = FLEA_TRUE;
   handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_HELLO;
@@ -1174,7 +1178,6 @@ flea_err_t THR_flea_tls__server_handshake(
             // TODO: only one arg:
             FLEA_CCALL(
               THR_flea_tls__create_master_secret(
-                // tls_ctx->client_and_server_random__bu8,
                 &hs_ctx__t,
                 &premaster_secret__t,
                 tls_ctx->master_secret__bu8,
@@ -1182,27 +1185,11 @@ flea_err_t THR_flea_tls__server_handshake(
               )
             );
 
-            /*if(tls_ctx->server_active_sess_mbn__pt)
-             * {
-             * memcpy(
-             *  tls_ctx->server_active_sess_mbn__pt,
-             *  tls_ctx->master_secret__bu8,
-             *  FLEA_TLS_MASTER_SECRET_SIZE
-             * );
-             * tls_ctx->server_active_sess_mbn__pt->session__t.is_valid_session__u8 = 1;
-             * tls_ctx->server_active_sess_mbn__pt->session__t.cipher_suite_id__u16 =
-             *  tls_ctx->selected_cipher_suite__e;
-             * }*/
-
             memcpy(
               server_ctx__pt->active_session__t.session_data__t.master_secret__au8,
               tls_ctx->master_secret__bu8,
               FLEA_TLS_MASTER_SECRET_SIZE
             );
-            // tls_ctx->server_active_sess_mbn__pt->session__t.is_valid_session__u8 = 1;
-
-            /*tls_ctx->server_active_sess_mbn__pt->session__t.cipher_suite_id__u16 =
-             * tls_ctx->selected_cipher_suite__e;*/
             server_ctx__pt->active_session__t.session_data__t.cipher_suite_id__u16 =
               tls_ctx->selected_cipher_suite__e;
           }
@@ -1217,7 +1204,6 @@ flea_err_t THR_flea_tls__server_handshake(
             THR_flea_tls__generate_key_block(
               &hs_ctx__t,
               tls_ctx->selected_cipher_suite__e,
-              // &tls_ctx->security_parameters,
               key_block__t.data__pu8,
               key_block_len__alu16
             )
@@ -1318,13 +1304,16 @@ flea_err_t THR_flea_tls__server_handshake(
       }
       else
       {
+        if(hs_ctx__t.silent_alarm__u8)
+        {
+          FLEA_THROW("silent error in tls handshake", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
+        }
         FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx));
         if(server_ctx__pt->server_resume_session__u8)
         {
           flea_al_u16_t key_block_len__alu16;
           memcpy(
             tls_ctx->master_secret__bu8, // TODO: GET RID OF MASTER SECRET, USE THE ONE FROM THE ACTIVE SESSION
-            // tls_ctx->server_active_sess_mbn__pt->session__t.master_secret__au8,
             server_ctx__pt->active_session__t.session_data__t.master_secret__au8,
             FLEA_TLS_MASTER_SECRET_SIZE
           );
