@@ -15,7 +15,6 @@
 using namespace std;
 
 
-// TODO: EVALUATE KEY LEN REQ IN TESTS
 #if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) && defined FLEA_HAVE_ECDSA && \
   (FLEA_ECC_MAX_MOD_BIT_SIZE >= 521)
 static flea_err_t THR_flea_execute_path_test_case_for_properties(
@@ -39,7 +38,6 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
     crl_files = get_entries_of_dir(dir_path + "/crls", dir_entries_with_path);
   }
 
-  // property_set_t prop(dir_path + "/test.ini");
   FLEA_PRINTF_2_SWITCHED("using ini file %s\n", prop.get_filename().c_str());
   if(target_cert_files.size() != 1)
   {
@@ -54,10 +52,9 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
   std::vector<flea_u32_t> anchor_lens;
   std::vector<flea_u32_t> cert_lens;
   std::vector<flea_u32_t> crl_lens;
-  // the others may well be empty
-  //
+  // the above may well be empty
+
   vector<unsigned char> target_cert;
-  // std::cout << "trg_cert_path=" << target_cert_files[0] << "\n";
   if(file_path_to_be_replaced_by_std_in == target_cert_files[0])
   {
     target_cert = read_binary_from_std_in();
@@ -71,7 +68,6 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
   for(string anchor_file: trust_anchor_files)
   {
     vector<unsigned char> cert;
-    // std::string path_to_cmp = "trust_anchors" +
     if(file_path_to_be_replaced_by_std_in == anchor_file)
     {
       cert = read_binary_from_std_in();
@@ -80,7 +76,6 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
     else
     {
       cert = read_bin_file(anchor_file);
-      // std::cout << "read file with size " << cert.size() << " as file\n";
     }
     anchors.push_back(cert);
     anchor_ptrs.push_back(&anchors[anchors.size() - 1][0]);
@@ -89,7 +84,6 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
   for(string cert_file: cert_files)
   {
     vector<unsigned char> cert;
-    // std::string path_to_cmp = "trust_anchors" +
     if(file_path_to_be_replaced_by_std_in == cert_file)
     {
       cert = read_binary_from_std_in();
@@ -98,7 +92,6 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
     else
     {
       cert = read_bin_file(cert_file);
-      // std::cout << "read file with size " << cert.size() << " as file\n";
     }
     certs.push_back(cert);
     cert_ptrs.push_back(&certs[certs.size() - 1][0]);
@@ -115,7 +108,6 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
     else
     {
       crl = read_bin_file(crl_file);
-      // std::cout << "read crl file: " << crl_file << "\n";
     }
     crls.push_back(crl);
     crl_ptrs.push_back(&crls[crls.size() - 1][0]);

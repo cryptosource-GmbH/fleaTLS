@@ -43,11 +43,6 @@ flea_err_t THR_flea_test_cert_path_generic(
   FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
   FLEA_THR_BEG_FUNC();
 
-  /*flea_rev_chk_mode_e rev_chk_mode__e = flea_rev_chk_all;
-   * if(disable_revocation_checking)
-   * {
-   * rev_chk_mode__e = flea_rev_chk_none;
-   * }*/
   FLEA_CCALL(
     THR_flea_cert_path_validator_t__ctor_cert(
       &cert_chain__t,
