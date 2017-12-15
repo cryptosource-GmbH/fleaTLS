@@ -104,10 +104,13 @@ static flea_err_t THR_flea_tls__read_client_hello(
   );
   if(session_id_len__u8 > max_session_id_len__alu8)
   {
-    FLEA_THROW("invalid session id length", FLEA_ERR_TLS_PROT_DECODE_ERR);
+    FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, session_id_len__u8));
+    session_id_len__u8 = 0;
   }
-
-  FLEA_ALLOC_BUF(session_id__bu8, session_id_len__u8);
+  else
+  {
+    FLEA_ALLOC_BUF(session_id__bu8, session_id_len__u8);
+  }
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,

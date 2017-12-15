@@ -1136,17 +1136,10 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
     /* start reading a new record */
     flea_stream_read_mode_e local_rd_mode__e = rd_mode__e;
     flea_dtl_t raw_read_len__dtl;
-    flea_al_u16_t raw_rec_content_len__alu16; // = raw_read_len__dtl;
+    flea_al_u16_t raw_rec_content_len__alu16;
     if(local_rd_mode__e == flea_read_blocking)
     {
       local_rd_mode__e = flea_read_full;
-
-      /* TODO: READ_FULL ACTUALLY ONLY NECESSARY WHEN ENCRYPTION IS ON, BUT THIS
-       * DOESN'T HURT MUCH IN THE WAY IT IS HERE
-       */
-
-      /* otherwise not a single content byte could be returned (in case of
-       * encryption) */
     }
     do
     {
