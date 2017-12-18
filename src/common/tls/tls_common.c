@@ -97,6 +97,7 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_INV_MAC,                            FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC     },
   {FLEA_ERR_STREAM_EOF,                         FLEA_TLS_ALERT_DESC_DECODE_ERROR       },
   {FLEA_ERR_POINT_NOT_ON_CURVE,                 FLEA_TLS_ALERT_DESC_ILLEGAL_PARAMETER  },
+  {FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN,        FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    }
 };
 
 static flea_bool_t determine_alert_from_error(
