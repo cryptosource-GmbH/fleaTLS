@@ -180,8 +180,6 @@ flea_bool_t flea_tls__is_cipher_suite_ecdhe_suite(flea_tls__cipher_suite_id_t su
 
 flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_tls__cipher_suite_id_t suite_id)
 {
-  // TODO: MAKE GENERAL IMPLEMENTATION
-  // if(suite_id == FLEA_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA)
   if((suite_id >> 8) == 0xC0)
   {
     return FLEA_TRUE;

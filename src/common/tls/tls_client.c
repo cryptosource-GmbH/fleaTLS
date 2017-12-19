@@ -1134,9 +1134,6 @@ flea_err_t THR_flea_tls__client_handshake(
           if(session_mbn__pt && session_mbn__pt->for_resumption__u8)
           {
             flea_al_u16_t key_block_len__alu16;
-            // TODO: REMOVE THAT ASSIGNEMENT, THAT MUST BE DONE CORRECTLY BY THE
-            // SERVER / SET IN READ SERVER HELLO
-            tls_ctx->selected_cipher_suite__e = session_mbn__pt->session__t.cipher_suite_id__u16;
             memcpy(
               tls_ctx->master_secret__bu8,
               session_mbn__pt->session__t.master_secret__au8,
@@ -1153,8 +1150,6 @@ flea_err_t THR_flea_tls__client_handshake(
               THR_flea_tls__generate_key_block(
                 &hs_ctx__t,
                 tls_ctx->selected_cipher_suite__e,
-                // &tls_ctx->security_parameters,
-                // tls_ctx->key_block,
                 key_block__t.data__pu8,
                 key_block_len__alu16
               )
@@ -1233,10 +1228,8 @@ flea_err_t THR_flea_tls__client_handshake(
        */
       if(!session_mbn__pt || !session_mbn__pt->for_resumption__u8)
       {
-        // TODO: MASTER SECRET NEED NOT BE IN TLS_CTX
         FLEA_CCALL(
           THR_flea_tls__create_master_secret(
-            // tls_ctx->client_and_server_random__bu8,
             &hs_ctx__t,
             &premaster_secret__t,
             tls_ctx->master_secret__bu8,
@@ -1245,7 +1238,7 @@ flea_err_t THR_flea_tls__client_handshake(
         );
         if(session_mbn__pt && session_mbn__pt->session_id_len__u8)
         {
-          // store the PM and ciphersuite and later (after the finished) the seq
+          /* store the PM and ciphersuite */
           memcpy(
             session_mbn__pt->session__t.master_secret__au8,
             tls_ctx->master_secret__bu8,
@@ -1256,14 +1249,8 @@ flea_err_t THR_flea_tls__client_handshake(
       }
       else
       {
-        // TODO: NOT NEEDED ANYMORE HERE
         /* it is a resumption */
         tls_ctx->selected_cipher_suite__e = session_mbn__pt->session__t.cipher_suite_id__u16;
-        memcpy(
-          tls_ctx->master_secret__bu8,
-          session_mbn__pt->session__t.master_secret__au8,
-          FLEA_TLS_MASTER_SECRET_SIZE
-        );
       }
       if(!session_mbn__pt || !session_mbn__pt->for_resumption__u8)
       {
@@ -1318,7 +1305,7 @@ flea_err_t THR_flea_tls__client_handshake(
     flea_byte_vec_t__dtor(&key_block__t);
     flea_byte_vec_t__dtor(&client_and_server_random__t);
     flea_tls_parallel_hash_ctx_t__dtor(&p_hash_ctx);
-    flea_public_key_t__dtor(&peer_public_key__t); // TODO: CAN THIS BE REUSED FOR ECDHE KEY?
+    flea_public_key_t__dtor(&peer_public_key__t);
     flea_public_key_t__dtor(&ecdhe_pub_key__t);
   );
 } /* THR_flea_tls__client_handshake */

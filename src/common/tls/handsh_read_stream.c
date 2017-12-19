@@ -8,7 +8,6 @@
 
 #ifdef FLEA_HAVE_TLS
 
-// TODO: IMPLEMENT LENGTH LIMIT USING RW_STREAM'S LIMIT
 static flea_err_t THR_flea_tls_handsh_read_stream_t__read(
   void*                   custom_obj__pv,
   flea_u8_t*              target_buffer__pu8,

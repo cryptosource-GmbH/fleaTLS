@@ -197,6 +197,8 @@
 
 # define FLEA_USE_PUBKEY_USE_RAND_DELAY
 
+# define FLEA_USE_CACHEWARMING_IN_TA_CM
+
 # if defined FLEA_HAVE_RSA && defined FLEA_HAVE_HMAC
 #  define FLEA_HAVE_TLS
 # endif

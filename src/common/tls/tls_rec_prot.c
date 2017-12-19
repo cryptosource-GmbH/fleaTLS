@@ -141,10 +141,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__handle_alert(
     FLEA_THROW("received fatal alert", FLEA_ERR_TLS_REC_FATAL_ALERT);
   }
 
-  /*else if(rec_prot__pt->payload_buf__pu8[1] == FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY)
-  {
-    FLEA_THROW("received close notify", FLEA_ERR_TLS_REC_CLOSE_NOTIFY);
-  }*/
   else if(rec_prot__pt->payload_buf__pu8[1] == FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION)
   {
     FLEA_THROW("received no renegotiation alert", FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG);
@@ -161,11 +157,7 @@ flea_err_t THR_flea_tls_rec_prot_t__ctor(
   flea_rw_stream_t*    rw_stream__pt
 )
 {
-  // TODO: need to implement limit for maximal send buffer size explicitly, since
-  // the actual buffer will be larger for the reserved space
   FLEA_THR_BEG_FUNC();
-  /* TODO: do all inits except for stream in start_record */
-  // rec_prot__pt->send_rec_buf_raw__bu8     = send_rec_buf_raw__bu8;
 
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM_ARR(rec_prot__pt->send_rec_buf_raw__bu8, FLEA_TLS_TRNSF_BUF_SIZE);
@@ -346,7 +338,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__set_gcm_ciphersuite_inner(
     )
   );
 
-  // TODO: is 16 == tag length?
+  /* 16 is the GCM tag length */
   reserved_payl_len__alu16 = 16 + rec_prot__pt->read_state__t.reserved_iv_len__u8;
 
   if(((reserved_payl_len__alu16 + RECORD_HDR_LEN) > rec_prot__pt->send_rec_buf_raw_len__u16) ||
@@ -542,7 +534,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
   flea_al_u8_t left_range_mask__alu8;
   flea_al_u8_t padd_err__alu8;
 
-  FLEA_THR_BEG_FUNC();
   flea_u8_t mac_len =
     rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_size__u8;
   flea_u8_t* enc_key = rec_prot__pt->read_state__t.suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8;
@@ -551,14 +542,15 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
     );
   flea_u8_t enc_key_len =
     rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_key_size__u8;
-  // TODO: ABSTRACT THIS BUFFER, can be up to 64 bytes:
-  flea_u8_t mac[FLEA_TLS_MAX_MAC_SIZE];
+
+  FLEA_DECL_BUF(mac__bu8, flea_u8_t, FLEA_TLS_MAX_MAC_SIZE);
   flea_al_u16_t padding_len__alu16;
   flea_al_u8_t last_padd_byte__alu8;
   flea_u8_t* data        = rec_prot__pt->payload_buf__pu8;
   flea_u8_t* iv          = data;
   flea_al_u16_t data_len = rec_prot__pt->payload_used_len__u16;
 
+  FLEA_THR_BEG_FUNC();
   seq_lo__u32 = rec_prot__pt->read_state__t.sequence_number__au32[0];
   seq_hi__u32 = rec_prot__pt->read_state__t.sequence_number__au32[1];
 
@@ -635,7 +627,8 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
   {
     FLEA_THROW("insufficient size of hmac-cbc record payload", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
   }
-
+  FLEA_ALLOC_BUF(mac__bu8, mac_len);
+#  ifdef FLEA_USE_CACHEWARMING_IN_TA_CM
   /* cache warming */
   FLEA_CCALL(
     THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
@@ -643,9 +636,10 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
       &rec_prot__pt->read_state__t,
       data + iv_len,
       plaintext_len__alu16,
-      mac
+      mac__bu8
     )
   );
+#  endif /* ifdef FLEA_USE_CACHEWARMING_IN_TA_CM */
   /* compute the actual MAC */
   FLEA_CCALL(
     THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
@@ -653,12 +647,12 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
       &rec_prot__pt->read_state__t,
       data + iv_len,
       data_len,
-      mac
+      mac__bu8
     )
   );
 
 
-  padd_err__alu8 |= !flea_sec_mem_equal(mac, data + iv_len + data_len, mac_len);
+  padd_err__alu8 |= !flea_sec_mem_equal(mac__bu8, data + iv_len + data_len, mac_len);
   if(padd_err__alu8)
   {
     flea_bool_t found__b = FLEA_FALSE;
@@ -677,19 +671,22 @@ static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
           &rec_prot__pt->read_state__t,
           data + iv_len,
           maced_data_len__alu16,
-          mac
+          mac__bu8
         )
       );
     }
     if(!found__b)
     {
+      /* this cannot happen */
       FLEA_THROW("internal error", FLEA_ERR_INT_ERR);
     }
     FLEA_THROW("MAC failure", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
   }
   memmove(data, data + iv_len, data_len);
   *decrypted_len__palu16 = data_len;
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL(mac__bu8);
+  );
 } /* THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac */
 
 static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
@@ -1310,8 +1307,6 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
           }
         }
 
-
-        // TODO: IF CN (WARN) AND READ_BYTES_COUNT>0, THEN GO INTO ERROR STATE AND RETURN THE DATA W/O ERROR
         FLEA_CCALL(THR_flea_tls_rec_prot_t__handle_alert(rec_prot__pt, read_bytes_count__dtl));
       }
       else

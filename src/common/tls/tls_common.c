@@ -564,8 +564,6 @@ flea_err_t THR_flea_tls__read_certificate(
   FLEA_THR_BEG_FUNC();
 
 
-  // we don't need the length
-  // TODO: consider checking length consistency with handshake msg length
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt),
@@ -704,8 +702,6 @@ flea_err_t THR_flea_tls__create_master_secret(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__create_master_secret */
 
-// TODO: configurable parameters
-// TODO: ctor = handshake function
 flea_err_t THR_flea_tls_ctx_t__construction_helper(
   flea_tls_ctx_t*   tls_ctx__pt,
   flea_rw_stream_t* rw_stream__pt
@@ -1517,10 +1513,6 @@ flea_u8_t flea_tls__get_tls_cert_type_from_flea_pk_scheme(flea_pk_scheme_id_t pk
     return FLEA_TLS_CERT_TYPE_RSA_SIGN;
   }
   return FLEA_TLS_CERT_TYPE_ECDSA_SIGN;
-  // TODO: not well designed. Should we return flea_err_t and throw if we can't
-  // map a value?
-  // FS: would be nicer, but actually i think this is sufficient for now. error
-  // codes bloat the code...
 }
 
 // check whether an offered sig/hash algorithm pair matches the certificate.
@@ -1595,7 +1587,7 @@ flea_err_t THR_flea_tls_ctx_t__send_sig_alg_ext(
     );
 
     FLEA_CCALL(
-      // TODO: WRITE_U16_BE
+
       THR_flea_tls__send_handshake_message_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
@@ -1686,9 +1678,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_sig_alg_ext(
   FLEA_THR_BEG_FUNC();
   if(!ext_len__alu16)
   {
-    // TODO: We could silently ignore this non-sense case
-
-    /* However RFC 5246 states:
+    /* RFC 5246 states:
      *    If the client provided a "signature_algorithms" extension, then all
      *    certificates provided by the server MUST be signed by a
      *    hash/signature algorithm pair that appears in that extension.
@@ -1971,9 +1961,6 @@ flea_err_t THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
       &peer_enc_pubpoint_len__u8
     )
   );
-  // TODO: QUESTION (JR): correct? Or do we only set a limit for stack usage? (tls
-  // only uses 1 byte length field so 255 is the maximum length supported in
-  // tls)
   if(peer_enc_pubpoint_len__u8 > FLEA_ECC_MAX_ENCODED_POINT_LEN)
   {
     FLEA_THROW("peer pub point too large", FLEA_ERR_TLS_HANDSHK_FAILURE);

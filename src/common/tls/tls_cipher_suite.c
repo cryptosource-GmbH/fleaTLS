@@ -148,9 +148,6 @@ flea_bool_t flea_tls__does_priv_key_type_fit_to_ciphersuite(
   }
 }
 
-// TODO: we have flea_tls__kex_method_t for the kex algorithm only and
-// flea_tls_kex_e which also includes the authentication
-// => merge or rename one?
 flea_tls__kex_method_t flea_tls_get_kex_method_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t)
 {
   if(flea_tls_get_cipher_suite_by_id(id__t)->mask & FLEA_TLS_CS_KEX_MASK__RSA)
