@@ -5,7 +5,6 @@
 
 #include "flea/tls.h"
 #include "internal/common/tls/tls_int.h"
-#include "flea/tls_shrd_server.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -26,7 +25,7 @@ void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx__pt);
  */
 flea_err_t THR_flea_tls_server_ctx_t__ctor(
   flea_tls_server_ctx_t*             tls_ctx__pt,
-  flea_tls_shared_server_ctx_t*      shrd_server_ctx__pt,
+  flea_private_key_t*                private_key__pt,
   flea_rw_stream_t*                  rw_stream__pt,
   const flea_ref_cu8_t*              cert_chain__pt,
   flea_al_u8_t                       cert_chain_len__alu8,
@@ -75,6 +74,7 @@ flea_bool_t flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_s
 flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
   flea_tls_server_ctx_t*             tls_ctx__pt,
   flea_bool_t*                       result__pb,
+  flea_private_key_t*                private_key__pt,
   const flea_cert_store_t*           trust_store__pt,
   const flea_ref_cu8_t*              cert_chain__pt,
   flea_al_u8_t                       cert_chain_len__alu8,

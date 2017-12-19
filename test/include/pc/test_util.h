@@ -22,7 +22,8 @@ typedef enum { dir_entries_with_path, dir_entries_only_leafs } dir_entry_extract
 #ifdef FLEA_HAVE_TLS
 struct server_params_t
 {
-  flea_tls_shared_server_ctx_t*      shrd_ctx__pt;
+  // flea_tls_shared_server_ctx_t*      shrd_ctx__pt;
+  flea_private_key_t*                private_key__pt;
   const flea_ref_cu8_t*              cert_chain__pcu8;
   flea_al_u16_t                      cert_chain_len__alu16;
   const flea_cert_store_t*           cert_store__pt;

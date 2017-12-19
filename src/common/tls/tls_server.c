@@ -1301,14 +1301,14 @@ flea_err_t THR_flea_tls__server_handshake(
       {
         if(hs_ctx__t.silent_alarm__u8)
         {
-          FLEA_THROW("silent error in tls handshake", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
+          FLEA_THROW("delayed error in tls handshake", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
         }
         FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx));
         if(server_ctx__pt->server_resume_session__u8)
         {
           flea_al_u16_t key_block_len__alu16;
           memcpy(
-            tls_ctx->master_secret__bu8, // TODO: GET RID OF MASTER SECRET, USE THE ONE FROM THE ACTIVE SESSION
+            tls_ctx->master_secret__bu8,
             server_ctx__pt->active_session__t.session_data__t.master_secret__au8,
             FLEA_TLS_MASTER_SECRET_SIZE
           );
@@ -1392,7 +1392,8 @@ flea_err_t THR_flea_tls_server_ctx_t__read_app_data(
 
 flea_err_t THR_flea_tls_server_ctx_t__ctor(
   flea_tls_server_ctx_t*             tls_server_ctx__pt,
-  flea_tls_shared_server_ctx_t*      shrd_server_ctx__pt,
+  // flea_tls_shared_server_ctx_t*      shrd_server_ctx__pt,
+  flea_private_key_t*                private_key__pt,
   flea_rw_stream_t*                  rw_stream__pt,
   const flea_ref_cu8_t*              cert_chain__pt,
   flea_al_u8_t                       cert_chain_len__alu8,
@@ -1423,7 +1424,7 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   tls_ctx__pt->nb_allowed_curves__u16     = nb_allowed_curves__alu16;
   tls_ctx__pt->allowed_sig_algs__pe       = allowed_sig_algs__pe;
   tls_ctx__pt->nb_allowed_sig_algs__alu16 = nb_allowed_sig_algs__alu16;
-  tls_ctx__pt->private_key__pt = &shrd_server_ctx__pt->private_key__t;
+  tls_ctx__pt->private_key__pt = private_key__pt;
 
   tls_ctx__pt->trust_store__pt = trust_store__pt;
   tls_ctx__pt->allowed_cipher_suites__pe     = allowed_cipher_suites__pe;
@@ -1441,6 +1442,7 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
 flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
   flea_tls_server_ctx_t*             tls_server_ctx__pt,
   flea_bool_t*                       result__pb,
+  flea_private_key_t*                private_key__pt,
   const flea_cert_store_t*           trust_store__pt,
   const flea_ref_cu8_t*              cert_chain__pt, // TODO: if here a new cert chain can be specified, then also the private key needs to change => simply provide a new shared_server_ctx with all this information
   flea_al_u8_t                       cert_chain_len__alu8,
@@ -1455,6 +1457,7 @@ flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
     tls_server_ctx__pt,
     NULL,
     result__pb,
+    private_key__pt,
     trust_store__pt,
     cert_chain__pt,
     cert_chain_len__alu8,

@@ -96,6 +96,7 @@ flea_bool_t flea_tls_client_ctx_t__is_reneg_allowed(flea_tls_client_ctx_t* tls_c
 flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
   flea_tls_client_ctx_t*             tls_ctx,
   flea_bool_t*                       result,
+  flea_private_key_t*                private_key__pt,
   const flea_cert_store_t*           trust_store,
   flea_ref_cu8_t*                    cert_chain,
   flea_al_u8_t                       cert_chain_len,

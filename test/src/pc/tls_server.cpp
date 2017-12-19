@@ -29,6 +29,7 @@
 #include "flea/array_util.h"
 #include "flea/alloc.h"
 #include "flea/tls_session_mngr.h"
+#include "flea/pkcs8.h"
 
 using namespace std;
 
@@ -196,7 +197,7 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
   FLEA_CCALL(
     THR_flea_tls_server_ctx_t__ctor(
       &tls_ctx,
-      serv_par__pt->shrd_ctx__pt,
+      serv_par__pt->private_key__pt,
       &rw_stream__t,
       serv_par__pt->cert_chain__pcu8,
       serv_par__pt->cert_chain_len__alu16,
@@ -230,6 +231,7 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
       THR_flea_tls_server_ctx_t__renegotiate(
         &tls_ctx,
         &reneg_done__b,
+        serv_par__pt->private_key__pt,
         serv_par__pt->cert_store__pt,
         serv_par__pt->cert_chain__pcu8,
         serv_par__pt->cert_chain_len__alu16,
@@ -333,11 +335,13 @@ static flea_err_t THR_server_cycle(
 
   tls_test_cfg_t tls_cfg;
 
-  flea_tls_shared_server_ctx_t shrd_server_ctx__t;
+  // flea_tls_shared_server_ctx_t shrd_server_ctx__t;
+  flea_private_key_t server_key_obj__t;
 
   FLEA_THR_BEG_FUNC();
   flea_cert_store_t__INIT(&trust_store__t);
-  flea_tls_shared_server_ctx_t__INIT(&shrd_server_ctx__t);
+  // flea_tls_shared_server_ctx_t__INIT(&shrd_server_ctx__t);
+  flea_private_key_t__INIT(&server_key_obj__t);
 
   bool stay = cmdl_args.have_index("stay");
 
@@ -362,7 +366,8 @@ static flea_err_t THR_server_cycle(
       tls_cfg
     )
   );
-  FLEA_CCALL(THR_flea_tls_shared_server_ctx_t__ctor(&shrd_server_ctx__t, &server_key__t));
+  // FLEA_CCALL(THR_flea_tls_shared_server_ctx_t__ctor(&shrd_server_ctx__t, &server_key__t));
+  FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&server_key_obj__t, server_key__t.data__pcu8, server_key__t.len__dtl));
   if(cert_chain_len == 0)
   {
     throw test_utils_exceptn_t("missing own certificate for tls server");
@@ -384,7 +389,8 @@ static flea_err_t THR_server_cycle(
 
       // std::cout << "creating threads: max = " << thr_max << ", running currently = " << serv_pars.size() << std::endl;
       server_params_t serv_par__t;
-      serv_par__t.shrd_ctx__pt                    = &shrd_server_ctx__t;
+      // serv_par__t.shrd_ctx__pt                    = &shrd_server_ctx__t;
+      serv_par__t.private_key__pt                 = &server_key_obj__t;
       serv_par__t.cert_chain__pcu8                = cert_chain;
       serv_par__t.cert_chain_len__alu16           = cert_chain_len;
       serv_par__t.cert_store__pt                  = &trust_store__t;
@@ -500,7 +506,8 @@ static flea_err_t THR_server_cycle(
   }
 
   FLEA_THR_FIN_SEC(
-    flea_tls_shared_server_ctx_t__dtor(&shrd_server_ctx__t);
+    // flea_tls_shared_server_ctx_t__dtor(&shrd_server_ctx__t);
+    flea_private_key_t__dtor(&server_key_obj__t);
     flea_cert_store_t__dtor(&trust_store__t);
   );
 } // THR_server_cycle

@@ -122,7 +122,8 @@ struct struct_flea_tls_handshake_ctx_t
 
 struct struct_flea_tls_server_ctx_t
 {
-  flea_tls_shared_server_ctx_t*  shared_ctx__pt;
+  // flea_tls_shared_server_ctx_t*  shared_ctx__pt;
+  flea_private_key_t*            private_key__pt;
   flea_tls_ctx_t                 tls_ctx__t;
   flea_tls_session_data_server_t active_session__t;
   flea_tls_session_mngr_t*       session_mngr_mbn__pt;

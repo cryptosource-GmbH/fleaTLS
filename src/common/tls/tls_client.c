@@ -1273,7 +1273,6 @@ flea_err_t THR_flea_tls__client_handshake(
           FLEA_TLS_CLIENT,
           tls_ctx->selected_cipher_suite__e,
           key_block__t.data__pu8
-          // tls_ctx->key_block
         )
       );
 
@@ -1440,6 +1439,7 @@ flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t
 flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
   flea_tls_client_ctx_t*             tls_client_ctx__pt,
   flea_bool_t*                       result__pb,
+  flea_private_key_t*                private_key__pt,
   const flea_cert_store_t*           trust_store__pt,
   flea_ref_cu8_t*                    cert_chain__pt,
   flea_al_u8_t                       cert_chain_len__alu8,
@@ -1453,6 +1453,7 @@ flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
     NULL,
     tls_client_ctx__pt,
     result__pb,
+    private_key__pt,
     trust_store__pt,
     cert_chain__pt,
     cert_chain_len__alu8,

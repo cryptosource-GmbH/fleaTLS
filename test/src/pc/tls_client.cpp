@@ -214,6 +214,7 @@ static flea_err_t THR_flea_start_tls_client(
       THR_flea_tls_client_ctx_t__renegotiate(
         &tls_ctx,
         &reneg_done__b,
+        client_key__t.len__dtl ? &privkey__t : NULL,
         &trust_store__t,
         cert_chain,
         cert_chain_len,

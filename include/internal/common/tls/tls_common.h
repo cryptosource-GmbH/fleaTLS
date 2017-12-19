@@ -306,6 +306,7 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   flea_tls_server_ctx_t*             server_ctx_mbn__pt,
   flea_tls_client_ctx_t*             client_ctx_mbn__pt,
   flea_bool_t*                       result__pb,
+  flea_private_key_t*                private_key__pt,
   const flea_cert_store_t*           trust_store__pt,
   const flea_ref_cu8_t*              cert_chain__pt,
   flea_al_u8_t                       cert_chain_len__alu8,

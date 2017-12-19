@@ -1125,6 +1125,7 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   flea_tls_server_ctx_t*             server_ctx_mbn__pt,
   flea_tls_client_ctx_t*             client_ctx_mbn__pt,
   flea_bool_t*                       result__pb,
+  flea_private_key_t*                private_key__pt,
   const flea_cert_store_t*           trust_store__pt,
   const flea_ref_cu8_t*              cert_chain_mbn__pt, /* may only be null for client */
   flea_al_u8_t                       cert_chain_len__alu8,
@@ -1145,6 +1146,7 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   {
     FLEA_THROW("renegotiation not allowed in this tls connection", FLEA_ERR_TLS_RENEG_NOT_ALLOWED);
   }
+  tls_ctx__pt->private_key__pt = private_key__pt;
   tls_ctx__pt->trust_store__pt = trust_store__pt;
   tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16 = nb_crls__alu16;
   tls_ctx__pt->rev_chk_cfg__t.crl_der__pt  = crl_der__pt;
