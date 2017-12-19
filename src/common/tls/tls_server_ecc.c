@@ -78,7 +78,6 @@ flea_err_t THR_flea_tls__send_server_kex(
     // create ECDHE key pair
     FLEA_CCALL(
       THR_flea_tls__create_ecdhe_key(
-        // &tls_ctx__pt->ecdhe_priv_key__t,
         ecdhe_priv_key__pt,
         &ecdhe_pub_key__t,
         (flea_ec_dom_par_id_t) tls_ctx__pt->chosen_ecc_dp_internal_id__u8
@@ -87,9 +86,7 @@ flea_err_t THR_flea_tls__send_server_kex(
 
     pub_point__rcu8 = flea_public_key__get_encoded_public_component(&ecdhe_pub_key__t);
 
-    // TODO: for ECDSA send header after calculating sig, because size is
-    // unknown beforehand
-    hdr_len__u32 = 3 + 1 + pub_point__rcu8.len__dtl + 2 + 2 + sig_len__u16; // 3 for named curve + 1 for pub point length + 2 for sig/hash alg + 2 sig length + 256 for sha256 sig
+    hdr_len__u32 = 3 + 1 + pub_point__rcu8.len__dtl + 2 + 2 + sig_len__u16; // 3 for named curve + 1 for pub point length + 2 for sig/hash alg + 2 sig length + len of sha256 sig
 
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_hdr(

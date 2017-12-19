@@ -1392,7 +1392,6 @@ flea_err_t THR_flea_tls_server_ctx_t__read_app_data(
 
 flea_err_t THR_flea_tls_server_ctx_t__ctor(
   flea_tls_server_ctx_t*             tls_server_ctx__pt,
-  // flea_tls_shared_server_ctx_t*      shrd_server_ctx__pt,
   flea_private_key_t*                private_key__pt,
   flea_rw_stream_t*                  rw_stream__pt,
   const flea_ref_cu8_t*              cert_chain__pt,
@@ -1434,7 +1433,7 @@ flea_err_t THR_flea_tls_server_ctx_t__ctor(
   tls_server_ctx__pt->session_mngr_mbn__pt = session_mngr_mbn__pt;
 
   FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt));
-  err__t = THR_flea_tls__server_handshake(tls_server_ctx__pt);// , FLEA_FALSE);
+  err__t = THR_flea_tls__server_handshake(tls_server_ctx__pt);
   FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_server_ctx__pt, NULL, err__t, FLEA_FALSE, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();
 }
@@ -1444,11 +1443,10 @@ flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
   flea_bool_t*                       result__pb,
   flea_private_key_t*                private_key__pt,
   const flea_cert_store_t*           trust_store__pt,
-  const flea_ref_cu8_t*              cert_chain__pt, // TODO: if here a new cert chain can be specified, then also the private key needs to change => simply provide a new shared_server_ctx with all this information
+  const flea_ref_cu8_t*              cert_chain__pt,
   flea_al_u8_t                       cert_chain_len__alu8,
   const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
   flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
-  // flea_rev_chk_mode_e      rev_chk_mode__e,
   const flea_ref_cu8_t*              crl_der__pt,
   flea_al_u16_t                      nb_crls__alu16
 )
@@ -1463,7 +1461,6 @@ flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
     cert_chain_len__alu8,
     allowed_cipher_suites__pe,
     nb_allowed_cipher_suites__alu16,
-    // rev_chk_mode__e,
     crl_der__pt,
     nb_crls__alu16,
     NULL
