@@ -1,33 +1,32 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #include "internal/common/tls/parallel_hash.h"
-// #include "flea/array_util.h"
+#include "flea/array_util.h"
 
 
 #ifdef FLEA_HAVE_TLS
 
-// TODO (FS): hash_ids__pt const machen
 flea_err_t THR_flea_tls_parallel_hash_ctx_t__ctor(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
-  flea_hash_id_t*               hash_ids__pt,
-  flea_u8_t                     hash_ids_len__u8
+  const flea_hash_id_t*         hash_ids__pt,
+  flea_al_u8_t                  hash_ids_len__alu8
 )
 {
   FLEA_THR_BEG_FUNC();
 
 # ifdef FLEA_USE_HEAP_BUF
-  FLEA_ALLOC_MEM_ARR(p_hash_ctx->hash_ctx__pt, hash_ids_len__u8);
+  FLEA_ALLOC_MEM_ARR(p_hash_ctx->hash_ctx__pt, hash_ids_len__alu8);
+  FLEA_SET_ARR(p_hash_ctx->hash_ctx__pt, 0, hash_ids_len__alu8);
 # endif
 
-  if(hash_ids_len__u8 > FLEA_TLS_MAX_PARALLEL_HASHES)
+  if(hash_ids_len__alu8 > FLEA_TLS_MAX_PARALLEL_HASHES)
   {
     FLEA_THROW("too many hash algorithms for this configuration", FLEA_ERR_INV_ARG);
   }
 
-  // TODO/QUESTION (JR): need this? if INIT is used, it should be zero already.
   p_hash_ctx->num_hash_ctx__u8 = 0;
 
-  for(flea_u8_t i = 0; i < hash_ids_len__u8; i++)
+  for(flea_u8_t i = 0; i < hash_ids_len__alu8; i++)
   {
     flea_hash_ctx_t__INIT(&p_hash_ctx->hash_ctx__pt[i]);
     p_hash_ctx->num_hash_ctx__u8++;
@@ -131,9 +130,6 @@ void flea_tls_parallel_hash_ctx_t__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx
   {
     flea_hash_ctx_t__dtor(&p_hash_ctx->hash_ctx__pt[i]);
   }
-  // TODO (FS): da der Pointer nicht initialisert wird, darfst Du das free nur
-  // konditional machen. Meine Empfehlung ist es, auch den Pointer zu
-  // initialisieren, sonst wird es kompliziert.
 # ifdef FLEA_USE_HEAP_BUF
   FLEA_FREE_MEM_CHK_SET_NULL(p_hash_ctx->hash_ctx__pt);
 # endif

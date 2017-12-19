@@ -19,10 +19,9 @@ static flea_err_t THR_flea_tls_handsh_read_stream_t__read(
   flea_tls_handsh_reader_hlp_t* rdr_hlp__pt = (flea_tls_handsh_reader_hlp_t*) custom_obj__pv;
 
   FLEA_THR_BEG_FUNC();
-  // if(read_full__b)
   if(rd_mode__e == flea_read_full)
   {
-    // TODO: REMOVE THIS, CAN SIMPLY CALL THE GENERIC READ FUNCTION!
+    /* this special case is needed */
     FLEA_CCALL(
       THR_flea_rw_stream_t__read_full(
         rdr_hlp__pt->rec_prot_read_stream__pt,

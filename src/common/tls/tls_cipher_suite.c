@@ -12,13 +12,6 @@
 #ifdef FLEA_HAVE_TLS
 
 
-// TODO: REMOVE BLOCK SIZE, UNIFY MAC_KEY_LEN AND MAC_LEN
-// TODO: the last entry (hash id) is actually mac id and we only use it for mac.
-// => change back to mac id, hash id for PRF is given by the function below
-// __________________________________________________________________
-// | FS: ok, can become mac_id again, if that makes the code simpler |
-// ------------------------------------------------------------------
-//
 static const flea_tls__cipher_suite_t cipher_suites[] = {
 # ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
   {flea_tls_rsa_with_aes_128_cbc_sha,          FLEA_TLS_BLOCK_CIPHER(flea_aes128),

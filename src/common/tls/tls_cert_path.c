@@ -99,8 +99,6 @@ static flea_err_t THR_flea_tls_cert_path__parse_san_and_validate_hostname(
   );
 }
 
-// TODO: USE DECODE FUNCTIONS EVERYWHERE, THEN UNITE THIS WITH X.509 CERT REF
-// CTOR?
 static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
   flea_ber_dec_t*           dec__pt,
   flea_key_usage_t*         key_usage__pt,
@@ -113,7 +111,7 @@ static flea_err_t THR_flea_tls_cert_validation__parse_extensions(
 {
   flea_bool_t false__b = FLEA_FALSE;
 
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(ext_oid__t, 30); // TODO: MAKE TYPEDEF FOR VALUE
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(ext_oid__t, 30);
   flea_bool_t critical__b;
 
   FLEA_THR_BEG_FUNC();
@@ -299,7 +297,6 @@ static flea_err_t THR_flea_tls__validate_cert(
   /* for SN, subject:
    */
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sn_buffer__t, FLEA_X509_MAX_SERIALNUMBER_LEN);
-  // TODO: EXPLICIT ISSUER ONLY FOR TARGET CERT, FOR THE OTHERS: SHA256 HASH
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_issuer__t, 200);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_subject__t, 200);
 # ifdef FLEA_USE_STACK_BUF
@@ -399,7 +396,6 @@ static flea_err_t THR_flea_tls__validate_cert(
     )
   );
   FLEA_CCALL(THR_flea_ber_dec_t__set_hash_id(&dec__t, sigalg_hash_id));
-  // TODO: read_hash, not content
   optional__b = FLEA_FALSE;
   FLEA_CCALL(
     THR_flea_ber_dec_t__decode_tlv_raw_optional(
@@ -411,7 +407,6 @@ static flea_err_t THR_flea_tls__validate_cert(
 
   FLEA_CCALL(THR_flea_tls_check_cert_validity_time(&dec__t, compare_time__pt));
   optional__b = FLEA_FALSE;
-  // TODO: read_hash for other than target cert
   FLEA_CCALL(
     THR_flea_ber_dec_t__decode_tlv_raw_optional(
       &dec__t,
@@ -609,9 +604,6 @@ static flea_err_t THR_flea_tls__validate_cert(
       }
       else if(pubkey_out__pt->key_type__t == flea_ecc_key)
       {
-        // TODO: distinguish between ECDSA and ECDH keys? (if we want to support
-        // ECDH at all)
-        // FS: i don't think they can be distinguished at all...
         cert_type__e = flea_tls_cl_cert__ecdsa_sign;
       }
       else
@@ -780,11 +772,10 @@ flea_err_t THR_flea_tls__cert_path_validation(
       rd_strm__pt = &mem_rd_strm__t;
     }
 # endif /* ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF */
-    // TODO: MAKE STRUCT FOR ALL THESE VALUES
     FLEA_CCALL(
       THR_flea_tls__validate_cert(
         tls_ctx__pt,
-        rd_strm__pt, // TODO: ALSO USE LENGTH LIMIT
+        rd_strm__pt,
         new_cert_len__u32,
         pubkey_ptr__pt,
         &cycling_signature__t,
@@ -810,8 +801,6 @@ flea_err_t THR_flea_tls__cert_path_validation(
     {
       flea_public_key_t__dtor(&cycling_pubkey__t);
     }
-    // TODO: AN EOF ERROR SHOULD BE TRANSFORMED TO A USEFUL ERROR ("UNTRUSTED")
-    // check trusted based on hash
     FLEA_CCALL(
       THR_flea_cert_store_t__is_tbs_hash_trusted(
         trust_store__pt,
@@ -827,11 +816,8 @@ flea_err_t THR_flea_tls__cert_path_validation(
     {
       finished__b = FLEA_TRUE;
 # ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
-
       trusted__prcu8 = flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(trust_store__pt, trusted_idx__alu16);
-
 # endif
-      // FLEA_THR_RETURN();
     }
     else if(flea_tls_handsh_reader_t__get_msg_rem_len(hs_rdr__pt) < 4)
     {
@@ -840,19 +826,16 @@ flea_err_t THR_flea_tls__cert_path_validation(
       flea_al_u16_t i;
       for(i = 0; i < flea_cert_store_t__GET_NB_CERTS(trust_store__pt); i++)
       {
-        // flea_ref_cu8_t* cert__prcu8 = flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(trust_store__pt, i);
         trusted__prcu8 = flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(trust_store__pt, i);
         if(!flea_cert_store_t__is_cert_trusted(trust_store__pt, i))
         {
           continue;
         }
-        // FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&mem_rd_strm__t, cert__prcu8->data__pcu8, cert__prcu8->len__dtl, &mem_hlp__t));
         FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&mem_rd_strm__t, trusted__prcu8->data__pcu8, trusted__prcu8->len__dtl, &mem_hlp__t));
 
         if(FLEA_ERR_FINE == THR_flea_tls__validate_cert(
             tls_ctx__pt,
             &mem_rd_strm__t,
-            // cert__prcu8->len__dtl,
             trusted__prcu8->len__dtl,
             pubkey_ptr__pt,
             &cycling_signature__t,
@@ -863,7 +846,6 @@ flea_err_t THR_flea_tls__cert_path_validation(
             &compare_time__t,
             &cnt_non_self_issued_in_path__alu16,
             cert_path_params__pct,
-            // cert_path_params__pct->hostn_valid_params__pt,
             tls_ctx__pt->rev_chk_cfg__t.crl_der__pt,
             tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16,
             tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_none ? FLEA_FALSE : (tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_only_ee ? ((iter__alu16 == 1) ? FLEA_TRUE : FLEA_FALSE) : (iter__alu16 > 0)),
@@ -871,15 +853,11 @@ flea_err_t THR_flea_tls__cert_path_validation(
             &previous_crldp__t
           ))
         {
-          // FLEA_THR_RETURN();
           finished__b = FLEA_TRUE;
         }
         flea_rw_stream_t__dtor(&mem_rd_strm__t);
       }
     }
-
-
-    // iter__alu16++;
   } while(!finished__b);
 
 # ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF

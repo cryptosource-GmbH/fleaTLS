@@ -38,7 +38,6 @@ static flea_err_t THR_flea_tls__read_server_hello(
   flea_u32_t cipher_suite__u32;
   flea_bool_t found_sec_reneg__b = FLEA_FALSE;
 
-  // flea_u16_t cipher_suite_id__u16;
 
   FLEA_DECL_BUF(session_id__bu8, flea_u8_t, 32);
   const flea_al_u8_t max_session_id_len__alu8 = 32;
@@ -49,7 +48,6 @@ static flea_err_t THR_flea_tls__read_server_hello(
   }
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
 
-  // read version
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
@@ -64,18 +62,15 @@ static flea_err_t THR_flea_tls__read_server_hello(
     FLEA_THROW("version mismatch", FLEA_ERR_TLS_UNSUPP_PROT_VERSION);
   }
 
-  // read random
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
-      // tls_ctx->client_and_server_random__bu8 + FLEA_TLS_HELLO_RANDOM_SIZE,
       hs_ctx__pt->client_and_server_random__pt->data__pu8 + FLEA_TLS_HELLO_RANDOM_SIZE,
       FLEA_TLS_HELLO_RANDOM_SIZE
     )
   );
 
 
-  // read session id length
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_byte(
       hs_rd_stream__pt,
@@ -107,7 +102,6 @@ static flea_err_t THR_flea_tls__read_server_hello(
         session_id_len__u8
       )))
     {
-      /* resumption case */
       client_session_mbn__pt->for_resumption__u8 = 1;
     }
     else
@@ -852,8 +846,6 @@ static flea_err_t THR_flea_client_handle_handsh_msg(
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t));
-  // TODO: THESE CONDITIONS SHOULD BE RELAXABLE, SHOULD BE REMOVABLE COMPLETELY,
-  // i.e. always add the hash-ctx:
 
   if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
   {
@@ -1004,7 +996,6 @@ flea_err_t THR_flea_tls__client_handshake(
   flea_public_key_t ecdhe_pub_key__t;
   flea_tls_handshake_ctx_t hs_ctx__t;
 
-  // TODO: KEY BLOCK SIZE #596
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, 256);
 
   flea_public_key_t peer_public_key__t;
@@ -1112,10 +1103,8 @@ flea_err_t THR_flea_tls__client_handshake(
           break;
         }
         continue;
-        //    TODO: CALL CTORS FOR ALL OBJECTS
-        //    UPDATE(JR): still relevant?
 
-        // exclude finished message because we must not have it in our hash computation
+        /* exclude finished message because we must not have it in our hash computation */
       }
       else if(cont_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
       {
