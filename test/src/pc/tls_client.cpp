@@ -94,7 +94,7 @@ static flea_err_t THR_flea_start_tls_client(
   }
   else
   {
-    throw("neither 'hostname' nor 'ip_addr' provided");
+    throw test_utils_exceptn_t("neither 'hostname' nor 'ip_addr' provided");
   }
 
   std::cout << "dir_for_file_based_input = " << dir_for_file_based_input << std::endl;

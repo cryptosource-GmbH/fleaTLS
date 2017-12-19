@@ -27,8 +27,7 @@ int main(
   const char** argv
 )
 {
-  int res        = 0;
-  flea_u32_t rnd = 0;
+  int res = 0;
   property_set_t cmdl_args(argc, argv);
   flea_u8_t rnd_seed__au8 [32] = {0};
 
@@ -69,11 +68,11 @@ int main(
     .unlock = pthread_mutex_unlock
   };
 
-#endif
+#endif // ifdef FLEA_HAVE_MUTEX
   if(THR_flea_lib__init(
       &THR_flea_linux__get_current_time,
-      (const flea_u8_t*) &rnd,
-      sizeof(rnd),
+      (const flea_u8_t*) &rnd_seed__au8,
+      sizeof(rnd_seed__au8),
       NULL
 #ifdef FLEA_HAVE_MUTEX
       ,
@@ -117,10 +116,10 @@ int main(
       std::cout << "tls client stopping with error code = " << std::hex << res << std::dec
                 << " ( exit code suppressed)\n";
       res = 0;
-#else
+#else // ifdef FLEA_HAVE_TLS_CLIENT
       std::cerr << "TLS Client not configured" << std::endl;
       exit(1);
-#endif
+#endif // ifdef FLEA_HAVE_TLS_CLIENT
     }
     else if(cmdl_args.have_index("tls_server"))
     {
@@ -129,10 +128,10 @@ int main(
       std::cout << "tls server stopping with error code = " << std::hex << res << std::dec
                 << " ( exit code suppressed)\n";
       res = 0;
-#else
+#else // ifdef FLEA_HAVE_TLS_SERVER
       std::cerr << "TLS Server not configured" << std::endl;
       exit(1);
-#endif
+#endif // ifdef FLEA_HAVE_TLS_SERVER
     }
     else if(cmdl_args.have_index("https_server"))
     {
@@ -141,10 +140,10 @@ int main(
       std::cout << "https server stopping with error code = " << std::hex << res << std::dec
                 << " ( exit code suppressed)\n";
       res = 0;
-#else
+#else // ifdef FLEA_HAVE_TLS_SERVER
       std::cerr << "TLS Server not configured" << std::endl;
       exit(1);
-#endif
+#endif // ifdef FLEA_HAVE_TLS_SERVER
     }
     else
     {
