@@ -185,7 +185,7 @@ void flea_sha256_encode_hash_state(
 )
 {
   flea_al_u8_t i;
-  flea_u32_t* state = (flea_u32_t*) ctx__t->hash_state;
+  flea_u32_t* state = ctx__t->hash_state;
 
   for(i = 0; i < output_len; i++)
   {

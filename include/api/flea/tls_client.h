@@ -27,10 +27,15 @@ struct struct_flea_tls_client_ctx_t
 
 # define flea_tls_client_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
 
+/**
+ * @param server_name_mbn name of the server. This parameter may be set to null if no hostname verification shall be carried out. If set as non-null, then in accordance with the value of the parameter host_name_id, this can be either a DNS name of an IP address. A DNS name is provided as a non-null terminated ASCII string within the ref. fleaTLS performs bytewise comparision of the hostname but also interprets wildcard characters ('*'). An IP adress is provided as an encoded byte array. I.e. a an IPv4 address 127.0.0.1 is provided as the four byte array {0x7F, 0x00, 0x00, 0x01}. An IPv6 address is provided analogously as a 16 byte array.
+ * @param host_name_id specifies whether a  DNS name or an IP address. If  server_name_mbn is set to null, then the value of this parameter is not interpreted.
+ * is used as the hostname to verify
+ */
 flea_err_t THR_flea_tls_client_ctx_t__ctor(
   flea_tls_client_ctx_t*             tls_ctx,
   const flea_cert_store_t*           trust_store,
-  const flea_ref_cu8_t*              server_name,
+  const flea_ref_cu8_t*              server_name_mbn,
   flea_host_id_type_e                host_name_id,
   flea_rw_stream_t*                  rw_stream,
   flea_ref_cu8_t*                    cert_chain_mbn,

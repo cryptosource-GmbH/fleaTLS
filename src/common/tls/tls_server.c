@@ -168,7 +168,8 @@ static flea_err_t THR_flea_tls__read_client_hello(
     }
 
     // check that key type of cert matches cs kex
-    if(tls_ctx->private_key__pt->key_type__t == flea_tls__get_key_type_by_cipher_suite_id(curr_cs_from_peer__e))
+    // if(tls_ctx->private_key__pt->key_type__t == flea_tls__get_key_type_by_cipher_suite_id(curr_cs_from_peer__e))
+    if(flea_tls__does_priv_key_type_fit_to_ciphersuite(curr_cs_from_peer__e, tls_ctx->private_key__pt->key_type__t))
     {
 # ifndef FLEA_HAVE_TLS_ECC
       // iterate over all supported cipher suites

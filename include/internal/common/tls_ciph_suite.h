@@ -76,7 +76,10 @@ flea_err_t THR_flea_tls_get_cipher_suite_by_id(
 
 const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher_suite_id_t id__t);
 
-flea_pk_key_type_t flea_tls__get_key_type_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
+flea_bool_t flea_tls__does_priv_key_type_fit_to_ciphersuite(
+  flea_tls__cipher_suite_id_t id__t,
+  flea_pk_key_type_t          key_type__e
+);
 
 flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
 

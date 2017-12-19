@@ -108,13 +108,51 @@ const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher
   return NULL;
 }
 
-flea_pk_key_type_t flea_tls__get_key_type_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t)
+/**
+ * the ciphersuite must be known to flea at compile time in this function.
+ */
+
+/*flea_pk_key_type_t flea_tls__get_key_type_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t)
 {
   if(flea_tls_get_cipher_suite_by_id(id__t)->mask & FLEA_TLS_CS_AUTH_MASK__RSA)
   {
     return flea_rsa_key;
   }
   return flea_ecc_key;
+}*/
+
+flea_bool_t flea_tls__does_priv_key_type_fit_to_ciphersuite(
+  flea_tls__cipher_suite_id_t id__t,
+  flea_pk_key_type_t          key_type__e
+)
+{
+  const flea_tls__cipher_suite_t* cs__pt = flea_tls_get_cipher_suite_by_id(id__t);
+  flea_u32_t is_rsa_cs__u32;
+
+  if(cs__pt == NULL)
+  {
+    return FLEA_FALSE;
+  }
+  is_rsa_cs__u32 = cs__pt->mask & FLEA_TLS_CS_AUTH_MASK__RSA;
+  if(key_type__e == flea_rsa_key)
+  {
+    if(is_rsa_cs__u32)
+    {
+      return FLEA_TRUE;
+    }
+    return FLEA_FALSE;
+  }
+  else  /* EC suite */
+  {
+    if(is_rsa_cs__u32)
+    {
+      return FLEA_FALSE;
+    }
+    else
+    {
+      return FLEA_TRUE;
+    }
+  }
 }
 
 // TODO: we have flea_tls__kex_method_t for the kex algorithm only and

@@ -41,7 +41,7 @@ static flea_err_t THR_flea_start_tls_client(
 
   flea_ref_cu8_t hostname;
   flea_ref_cu8_t* hostname_p = NULL;
-
+  flea_u8_t ipv4__au8[4];
   flea_ref_cu8_t cert_chain[10];
   flea_ref_cu8_t client_key__t;
 
@@ -88,8 +88,25 @@ static flea_err_t THR_flea_start_tls_client(
     if(!cmdl_args.have_index("no_hostn_ver"))
     {
       hostname_p = &hostname;
-      hostname.data__pcu8 = reinterpret_cast<const flea_u8_t*>(hostname_s.c_str());
-      hostname.len__dtl   = static_cast<flea_dtl_t>(std::strlen(hostname_s.c_str()));
+      if(cmdl_args.have_index("hostname"))
+      {
+        hostname.data__pcu8 = reinterpret_cast<const flea_u8_t*>(hostname_s.c_str());
+        hostname.len__dtl   = static_cast<flea_dtl_t>(std::strlen(hostname_s.c_str()));
+      }
+      else if(cmdl_args.have_index("ip_addr"))
+      {
+        std::vector<std::string> tok = tokenize_string(cmdl_args.get_property_as_string(index), '.');
+        if(tok.size() != 4)
+        {
+          throw test_utils_exceptn_t("invalid ipaddress format");
+        }
+        for(unsigned i = 0; i < tok.size(); i++)
+        {
+          ipv4__au8[i] = string_to_u32bit(tok[i]);
+        }
+        hostname.data__pcu8 = ipv4__au8;
+        hostname.len__dtl   = sizeof(ipv4__au8);
+      }
     }
   }
   else
