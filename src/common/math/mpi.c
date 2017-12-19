@@ -800,7 +800,7 @@ void flea_mpi_t__print(const flea_mpi_t* p_mpi)
     FLEA_PRINTF_2_SWITCHED("%04X", p_mpi->m_words[i]);
 #elif FLEA_WORD_BIT_SIZE == 8
     FLEA_PRINTF_2_SWITCHED("%02X", p_mpi->m_words[i]);
-#endif
+#endif /* if FLEA_WORD_BIT_SIZE == 32 */
   }
   FLEA_PRINTF_2_SWITCHED(" (%u words)", p_mpi->m_nb_used_words);
   FLEA_PRINTF_1_SWITCHED("\n");
@@ -894,7 +894,7 @@ flea_err_t THR_flea_mpi_t__mod_exp_window(
   {
     FLEA_ALLOC_MEM_ARR(precomp_arrs[i], precomp_arr_dynamic_word_len);
   }
-#endif
+#endif /* if defined FLEA_USE_HEAP_BUF */
   for(i = 0; i < precomp_dynamic_size; i++)
   {
 #ifdef FLEA_USE_HEAP_BUF
@@ -990,7 +990,7 @@ flea_err_t THR_flea_mpi_t__mod_exp_window(
       /* delay with probability 1/4 */
       delay_iters__alu16 += real_rnd_bytes__au8[0];
     }
-#endif
+#endif /* ifdef FLEA_USE_PUBKEY_USE_RAND_DELAY */
 
 #ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
     if(delay_prng_mbn__pt)
@@ -1651,12 +1651,21 @@ flea_err_t THR_flea_mpi_t__random_integer_no_flush(
   );
   do
   {
-    FLEA_CCALL(
-      THR_flea_rng__randomize_no_flush(
-        (flea_u8_t*) p_result->m_words,
-        word_size * sizeof(p_result->m_words[0])
-      )
-    );
+    flea_mpi_ulen_t i;
+    for(i = 0; i < word_size; i++)
+    {
+      flea_u8_t enc__au8[FLEA_WORD_BIT_SIZE / 8];
+      FLEA_CCALL(
+        THR_flea_rng__randomize_no_flush(enc__au8, sizeof(enc__au8))
+      );
+#if FLEA_WORD_BIT_SIZE == 32
+      p_result->m_words[i] = flea__decode_U32_BE(enc__au8);
+#elif FLEA_WORD_BIT_SIZE == 16
+      p_result->m_words[i] = flea__decode_U16_BE(enc__au8);
+#else
+      p_result->m_words[i] = enc__au8[0];
+#endif /* if FLEA_WORD_BIT_SIZE == 32 */
+    }
     // mask out the excess bits in the highest word
     if(bit_size)
     {
