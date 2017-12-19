@@ -9,13 +9,13 @@
 #include "flea/types.h"
 #include "flea/hash.h"
 
-#ifdef FLEA_HAVE_TLS // TODO: maybe create extra option?
+#ifdef FLEA_HAVE_TLS
 
 # ifdef __cplusplus
 extern "C" {
 # endif
 
-# define FLEA_TLS_MAX_PARALLEL_HASHES 5 // TODO: -> build_cfg
+# define FLEA_TLS_MAX_PARALLEL_HASHES 5
 
 typedef struct
 {

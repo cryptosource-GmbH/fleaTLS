@@ -86,7 +86,6 @@ flea_err_t THR_flea_tls__read_finished(
 
 typedef struct
 {
-  // TODO: REDUCE RAM SIZE
   flea_u16_t  expected_messages;
   flea_bool_t finished;
   flea_bool_t initialized;
@@ -133,11 +132,8 @@ flea_err_t THR_flea_tls_ctx_t__construction_helper(
 void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state);
 
 flea_err_t THR_flea_tls__create_master_secret(
-  flea_tls_handshake_ctx_t*   hs_ctx__pt,
-  // const flea_u8_t*            client_and_server_random,
-  flea_byte_vec_t*            premaster_secret__pt,
-  flea_u8_t*                  master_secret_res,
-  flea_tls__cipher_suite_id_t ciph_id__e
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_byte_vec_t*          premaster_secret__pt
 );
 
 

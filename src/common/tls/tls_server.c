@@ -42,10 +42,6 @@ static flea_err_t THR_flea_tls__read_client_hello(
   flea_al_u16_t supported_cs_index__alu16;
   flea_al_u16_t chosen_cs_index__alu16 = supported_cs_len__alu16;
 
-  // TODO: NEED ONLY THE DEFINED SERVER SESSION ID LEN:
-  // UPDATE(JR): so buffer size is FLEA_TLS_SESSION_ID_LEN ? And we need to
-  // check for length == 0 or length == FLEA_TLS_SESSION_ID_LEN and discard any
-  // other possible length?
   FLEA_DECL_BUF(session_id__bu8, flea_u8_t, FLEA_TLS_SESSION_ID_LEN);
   const flea_al_u8_t max_session_id_len__alu8 = FLEA_TLS_SESSION_ID_LEN;
   flea_u8_t client_compression_methods_len__u8;
@@ -1064,11 +1060,9 @@ flea_err_t THR_flea_tls__server_handshake(
     sizeof(premaster_secret__au8)
     );
 # endif /* ifdef FLEA_USE_HEAP_BUF */
-  // TODO: KEY BLOCK SIZE #596
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, 256);
   flea_public_key_t peer_public_key__t;
   tls_ctx->extension_ctrl__u8 = 0;
-  // define and init state
   flea_tls__handshake_state_t handshake_state;
   flea_private_key_t ecdhe_priv_key__t;
   flea_tls_handshake_ctx_t hs_ctx__t;
@@ -1179,13 +1173,10 @@ flea_err_t THR_flea_tls__server_handshake(
           if(!server_ctx__pt->server_resume_session__u8)
           {
             // setup key material
-            // TODO: only one arg:
             FLEA_CCALL(
               THR_flea_tls__create_master_secret(
                 &hs_ctx__t,
-                &premaster_secret__t,
-                tls_ctx->master_secret__bu8,
-                tls_ctx->selected_cipher_suite__e
+                &premaster_secret__t
               )
             );
 

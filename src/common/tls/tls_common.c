@@ -679,13 +679,14 @@ flea_err_t THR_flea_tls__send_handshake_message_hdr(
 } /* THR_flea_tls__send_handshake_message_hdr */
 
 flea_err_t THR_flea_tls__create_master_secret(
-  flea_tls_handshake_ctx_t*   hs_ctx__pt,
-  flea_byte_vec_t*            premaster_secret__pt,
-  flea_u8_t*                  master_secret_res,
-  flea_tls__cipher_suite_id_t ciph_id__e
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_byte_vec_t*          premaster_secret__pt
+  // flea_u8_t*                  master_secret_res,
+  // flea_tls__cipher_suite_id_t ciph_id__e
 )
 {
   FLEA_THR_BEG_FUNC();
+  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
 
   FLEA_CCALL(
     flea_tls__prf(
@@ -695,8 +696,8 @@ flea_err_t THR_flea_tls__create_master_secret(
       hs_ctx__pt->client_and_server_random__pt->data__pu8,
       hs_ctx__pt->client_and_server_random__pt->len__dtl,
       FLEA_TLS_MASTER_SECRET_SIZE,
-      master_secret_res,
-      flea_tls__prf_mac_id_from_suite_id(ciph_id__e)
+      tls_ctx__pt->master_secret__bu8,
+      flea_tls__prf_mac_id_from_suite_id(tls_ctx__pt->selected_cipher_suite__e)
     )
   );
   FLEA_THR_FIN_SEC_empty();

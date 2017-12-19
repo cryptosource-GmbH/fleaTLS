@@ -1043,8 +1043,6 @@ flea_err_t THR_flea_tls__client_handshake(
   };
 
   FLEA_CCALL(THR_flea_byte_vec_t__resize(hs_ctx__t.client_and_server_random__pt, 2 * FLEA_TLS_HELLO_RANDOM_SIZE));
-  // flea_tls_set_tls_random(&hs_ctx__t);
-  //
   FLEA_CCALL(
     THR_flea_rng__randomize(
       hs_ctx__t.client_and_server_random__pt->data__pu8,
@@ -1068,7 +1066,6 @@ flea_err_t THR_flea_tls__client_handshake(
      *  2) if it's Alert: handle it
      *     if it's Handshake Message or Change Cipher Spec Message: process it if it's among the expected_messages
      */
-
 
     /*
      * read next record
@@ -1231,9 +1228,7 @@ flea_err_t THR_flea_tls__client_handshake(
         FLEA_CCALL(
           THR_flea_tls__create_master_secret(
             &hs_ctx__t,
-            &premaster_secret__t,
-            tls_ctx->master_secret__bu8,
-            (flea_tls__cipher_suite_id_t) tls_ctx->selected_cipher_suite__e
+            &premaster_secret__t
           )
         );
         if(session_mbn__pt && session_mbn__pt->session_id_len__u8)
