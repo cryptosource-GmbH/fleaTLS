@@ -23,7 +23,7 @@ static flea_err_t THR_flea_rec_prot_rdr_t__read(
   FLEA_CCALL(
     THR_flea_tls_rec_prot_t__read_data(
       hlp__pt->rec_prot__pt,
-      (ContentType) hlp__pt->record_type__u8,
+      (flea_tls_rec_cont_type_e) hlp__pt->record_type__u8,
       target_buffer__pu8,
       &nb_bytes_to_read__alu16,
       rd_mode__e

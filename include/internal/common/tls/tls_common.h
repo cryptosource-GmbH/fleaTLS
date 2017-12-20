@@ -28,19 +28,6 @@ extern "C" {
 # define FLEA_TLS_EXT_TYPE__POINT_FORMATS         0x000b
 # define FLEA_TLS_EXT_TYPE__SIGNATURE_ALGORITHMS  0x000d
 
-// TODO: define in build cfg or even better: calculate max possible sig size
-// # define FLEA_MAX_SIG_SIZE 512
-
-/*
- * enum {
- *      none(0), md5(1), sha1(2), sha224(3), sha256(4), sha384(5),
- *      sha512(6), (255)
- *  } HashAlgorithm;
- *
- *  enum { anonymous(0), rsa(1), dsa(2), ecdsa(3), (255) }
- *    SignatureAlgorithm;
- */
-
 
 flea_err_t THR_flea_tls__read_certificate(
   flea_tls_ctx_t*                    tls_ctx,

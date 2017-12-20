@@ -441,8 +441,8 @@ flea_err_t THR_flea_tls_rec_prot_t__set_ciphersuite(
 } /* THR_flea_tls_rec_prot_t__set_ciphersuite */
 
 static void flea_tls_rec_prot_t__set_record_header(
-  flea_tls_rec_prot_t* rec_prot__pt,
-  ContentType          content_type__e
+  flea_tls_rec_prot_t*     rec_prot__pt,
+  flea_tls_rec_cont_type_e content_type__e
 )
 {
   rec_prot__pt->send_buf_raw__pu8[0]       = content_type__e;
@@ -458,10 +458,10 @@ static flea_bool_t flea_tls_rec_prot_t__have_pending_read_data(const flea_tls_re
 }
 
 flea_err_t THR_flea_tls_rec_prot_t__write_data(
-  flea_tls_rec_prot_t* rec_prot__pt,
-  ContentType          content_type__e,
-  const flea_u8_t*     data__pcu8,
-  flea_dtl_t           data_len__dtl
+  flea_tls_rec_prot_t*     rec_prot__pt,
+  flea_tls_rec_cont_type_e content_type__e,
+  const flea_u8_t*         data__pcu8,
+  flea_dtl_t               data_len__dtl
 )
 {
   flea_al_u16_t buf_free_len__alu16;
@@ -521,9 +521,9 @@ flea_err_t THR_flea_tls_rec_prot_t__write_data(
 
 # ifdef FLEA_HAVE_TLS_CBC_CS
 static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
-  flea_tls_rec_prot_t* rec_prot__pt,
-  flea_al_u16_t*       decrypted_len__palu16,
-  ContentType          content_type__e
+  flea_tls_rec_prot_t*     rec_prot__pt,
+  flea_al_u16_t*           decrypted_len__palu16,
+  flea_tls_rec_cont_type_e content_type__e
 )
 {
   flea_u32_t seq_lo__u32, seq_hi__u32;
@@ -759,9 +759,9 @@ static flea_err_t THR_flea_tls_rec_prot_t__encrypt_record_cbc_hmac(
 
 # ifdef FLEA_HAVE_TLS_GCM_CS
 static flea_err_t THR_flea_tls_rec_prot_t__decrypt_record_gcm(
-  flea_tls_rec_prot_t* rec_prot__pt,
-  flea_al_u16_t*       decrypted_len__palu16,
-  ContentType          content_type__e
+  flea_tls_rec_prot_t*     rec_prot__pt,
+  flea_al_u16_t*           decrypted_len__palu16,
+  flea_tls_rec_cont_type_e content_type__e
 )
 {
   flea_u32_t seq_lo__u32, seq_hi__u32;
@@ -991,10 +991,10 @@ flea_err_t THR_flea_tls_rec_prot_t__write_flush(
 } /* THR_flea_tls_rec_prot_t__write_flush */
 
 flea_err_t THR_flea_tls_rec_prot_t__send_record(
-  flea_tls_rec_prot_t* rec_prot__pt,
-  const flea_u8_t*     bytes__pcu8,
-  flea_dtl_t           bytes_len__dtl,
-  ContentType          content_type
+  flea_tls_rec_prot_t*     rec_prot__pt,
+  const flea_u8_t*         bytes__pcu8,
+  flea_dtl_t               bytes_len__dtl,
+  flea_tls_rec_cont_type_e content_type
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -1083,7 +1083,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
   flea_dtl_t*                   data_len__pdtl,
   flea_tls__protocol_version_t* prot_version_mbn__pt,
   flea_bool_t                   do_verify_prot_version__b,
-  ContentType                   cont_type__e,
+  flea_tls_rec_cont_type_e      cont_type__e,
   flea_bool_t                   current_or_next_record_for_content_type__b,
   flea_stream_read_mode_e       rd_mode__e
 )
@@ -1266,7 +1266,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
           THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
             rec_prot__pt,
             &raw_rec_content_len__alu16,
-            (ContentType) rec_prot__pt->send_rec_buf_raw__bu8[0]
+            (flea_tls_rec_cont_type_e) rec_prot__pt->send_rec_buf_raw__bu8[0]
           )
         );
         rec_prot__pt->payload_used_len__u16 = raw_rec_content_len__alu16;
@@ -1280,7 +1280,7 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
           THR_flea_tls_rec_prot_t__decrypt_record_gcm(
             rec_prot__pt,
             &raw_rec_content_len__alu16,
-            (ContentType) rec_prot__pt->send_rec_buf_raw__bu8[0]
+            (flea_tls_rec_cont_type_e) rec_prot__pt->send_rec_buf_raw__bu8[0]
           )
         );
         rec_prot__pt->payload_used_len__u16 = raw_rec_content_len__alu16;
@@ -1335,9 +1335,9 @@ static flea_err_t THR_flea_tls_rec_prot_t__read_data_inner(
 
 /* get the content type of the currently (and not yet completely read) or newly received buffer */
 flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
-  flea_tls_rec_prot_t*    rec_prot__pt,
-  ContentType*            cont_type__pe,
-  flea_stream_read_mode_e rd_mode__e
+  flea_tls_rec_prot_t*      rec_prot__pt,
+  flea_tls_rec_cont_type_e* cont_type__pe,
+  flea_stream_read_mode_e   rd_mode__e
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -1360,11 +1360,11 @@ flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
 }
 
 flea_err_t THR_flea_tls_rec_prot_t__read_data(
-  flea_tls_rec_prot_t*    rec_prot__pt,
-  ContentType             cont_type__e,
-  flea_u8_t*              data__pu8,
-  flea_dtl_t*             data_len__pdtl,
-  flea_stream_read_mode_e rd_mode__e
+  flea_tls_rec_prot_t*     rec_prot__pt,
+  flea_tls_rec_cont_type_e cont_type__e,
+  flea_u8_t*               data__pu8,
+  flea_dtl_t*              data_len__pdtl,
+  flea_stream_read_mode_e  rd_mode__e
 )
 {
   return THR_flea_tls_rec_prot_t__read_data_inner(

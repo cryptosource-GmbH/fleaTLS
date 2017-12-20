@@ -1122,7 +1122,7 @@ flea_err_t THR_flea_tls__server_handshake(
      */
     if(handshake_state.expected_messages != FLEA_TLS_HANDSHAKE_EXPECT_NONE)
     {
-      ContentType cont_type__e;
+      flea_tls_rec_cont_type_e cont_type__e;
       FLEA_CCALL(
         THR_flea_tls_rec_prot_t__get_current_record_type(
           &tls_ctx->rec_prot__t,

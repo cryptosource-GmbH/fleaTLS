@@ -58,10 +58,9 @@ typedef struct
   flea_u8_t* fixed_iv__bu8;
   flea_u8_t* record_iv__bu8;
 #  else
-  flea_u8_t  cipher_key__bu8[__FLEA_COMPUTED_BLOCK_CIPHER_MAX_PLAIN_KEY_LEN]; // TODO(JR): correct? copied from Falko's cbc_hmac
-  flea_u8_t  fixed_iv__bu8[4];                                                // TODO(JR): use #define for numbers
-  flea_u8_t  record_iv__bu8[8];                                               // ^
-  // TODO(JR): do we need the entries at all if we use defines?
+  flea_u8_t  cipher_key__bu8[__FLEA_COMPUTED_BLOCK_CIPHER_MAX_PLAIN_KEY_LEN];
+  flea_u8_t  fixed_iv__bu8[4];
+  flea_u8_t  record_iv__bu8[8];
 #  endif // ifdef FLEA_USE_HEAP_BUF
 } flea_tls_gcm_conn_t;
 
