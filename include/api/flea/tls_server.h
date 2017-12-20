@@ -81,7 +81,11 @@ flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
   const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
   flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
   const flea_ref_cu8_t*              crl_der__pt,
-  flea_al_u16_t                      nb_crls__alu16
+  flea_al_u16_t                      nb_crls__alu16,
+  flea_ec_dom_par_id_t*              allowed_ecc_curves__pe,
+  flea_al_u16_t                      nb_allowed_curves__alu16,
+  flea_tls_sigalg_e*                 allowed_sig_algs__pe,
+  flea_al_u16_t                      nb_allowed_sig_algs__alu16
 );
 
 

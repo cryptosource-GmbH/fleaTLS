@@ -1133,6 +1133,10 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
   const flea_ref_cu8_t*              crl_der__pt,
   flea_al_u16_t                      nb_crls__alu16,
+  flea_ec_dom_par_id_t*              allowed_ecc_curves__pe,
+  flea_al_u16_t                      nb_allowed_curves__alu16,
+  flea_tls_sigalg_e*                 allowed_sig_algs__pe,
+  flea_al_u16_t                      nb_allowed_sig_algs__alu16,
   flea_hostn_validation_params_t*    hostn_valid_params_mbn__pt
 )
 {
@@ -1154,7 +1158,10 @@ flea_err_t THR_flea_tls_ctx_t__renegotiate(
   tls_ctx__pt->cert_chain_len__u8            = cert_chain_len__alu8;
   tls_ctx__pt->allowed_cipher_suites__pe     = allowed_cipher_suites__pe;
   tls_ctx__pt->nb_allowed_cipher_suites__u16 = nb_allowed_cipher_suites__alu16;
-
+  tls_ctx__pt->allowed_ecc_curves__pe        = allowed_ecc_curves__pe;
+  tls_ctx__pt->nb_allowed_curves__u16        = nb_allowed_curves__alu16;
+  tls_ctx__pt->allowed_sig_algs__pe          = allowed_sig_algs__pe;
+  tls_ctx__pt->nb_allowed_sig_algs__alu16    = nb_allowed_sig_algs__alu16;
   if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
 # ifdef FLEA_HAVE_TLS_CLIENT

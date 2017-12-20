@@ -14,16 +14,59 @@
 extern "C" {
 # endif
 
+/**
+ * TLS flags for controlling TLS client and server behaviour. Different flags can be combined by using bitwise or ('|').
+ * Their names are
+ * are follow the pattern  flea_tls_flag__<field>__<value>. For each field,
+ * only one value shall be used. For example, only one of the values flea_tls_flag__reneg_mode__... shall be combined with values of other fields.
+ *
+ */
 typedef enum
 {
+  /**
+   * First value of the field controlling the renegotiation. This is the default
+   * choice. If this value is chosen, then the TLS client or server will deny
+   * any renegotiation request.
+   */
   flea_tls_flag__reneg_mode__disallow_reneg       = 0x0,
+
+  /**
+   * This choice allows renegotiation triggered by the peer as well as by the
+   * flea instance itself only if the peer also supports secure renegotiation.
+   */
   flea_tls_flag__reneg_mode__allow_secure_reneg   = 0x1,
+
+  /**
+   * This choice allows insecure renegotation additionally to secure
+   * renegotation.
+   */
   flea_tls_flag__reneg_mode__allow_insecure_reneg = 0x2,
 
+  /**
+   * The default value for the field controlling the acceptance of SHA-1 in
+   * certificate signatures. This choice disallows the use of SHA-1.
+   */
+  flea_tls_flag__sha1_cert_sigalg__disallow       = 0x0,
+
+  /**
+   * This choice allows the use of SHA-1 in certificate signatures.
+   */
   flea_tls_flag__sha1_cert_sigalg__allow          = 0x8,
 
+  /**
+   * The default value for the field controlling the fleaTLS client's or server's revocation checking behaviour. This choice requires CRLs for each certificate in the certificate chain provided by the peer.
+   */
   flea_tls_flag__rev_chk_mode__check_all          = 0x00,
+
+  /**
+   * This choice requires a CRL only for the peer's end-entity certificate, i.e.
+   * the client or server certificate.
+   */
   flea_tls_flag__rev_chk_mode__check_only_ee      = 0x20,
+
+  /**
+   * This choice disables revocation checking completely.
+   */
   flea_tls_flag__rev_chk_mode__check_none         = 0x40
 } flea_tls_flag_e;
 

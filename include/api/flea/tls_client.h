@@ -50,7 +50,7 @@ flea_err_t THR_flea_tls_client_ctx_t__ctor(
   flea_al_u16_t                      nb_allowed_curves__alu16,
   flea_tls_sigalg_e*                 allowed_sig_algs,
   flea_al_u16_t                      nb_allowed_sig_algs,
-  flea_al_u16_t                      flags
+  flea_tls_flag_e                    flags
 );
 
 
@@ -74,7 +74,7 @@ flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t
 
 /**
  * Test whether a tls client ctx is qualified for carrying out a
- * renegotiation.
+ * renegotiation based on its current status.
  *
  * @param tls_client_ctx__pt pointer to the client ctx object
  *
@@ -103,7 +103,11 @@ flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
   const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
   flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
   const flea_ref_cu8_t*              crl_der,
-  flea_al_u16_t                      nb_crls
+  flea_al_u16_t                      nb_crls,
+  flea_ec_dom_par_id_t*              allowed_ecc_curves__pe,
+  flea_al_u16_t                      nb_allowed_curves__alu16,
+  flea_tls_sigalg_e*                 allowed_sig_algs__pe,
+  flea_al_u16_t                      nb_allowed_sig_algs__alu16
 );
 
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF

@@ -64,35 +64,18 @@ static flea_err_t THR_check_user_abort(server_params_t* serv_par__pt)
 
 static flea_err_t THR_check_keyb_input(/*fd_set & keyb_fds*/)
 {
-  // action_t result = action_t::none;
   FLEA_THR_BEG_FUNC();
-  // FLEA_THR_RETURN();
-
-  /*fd_set keyb_fds;
-   *
-   * FD_ZERO(&keyb_fds);
-   * FD_SET(fileno(stdin), &keyb_fds);
-   * struct timeval timeout = { 0, 0 };
-   * select(fileno(stdin) + 1, &keyb_fds, NULL, NULL, &timeout);
-   */
-  // this is what really causes non-blocking reads:
-  // fcntl(0, F_SETFL, fcntl(0, F_GETFL) | O_NONBLOCK);
   fcntl(fileno(stdin), F_SETFL, fcntl(fileno(stdin), F_GETFL) | O_NONBLOCK);
-  // if(FD_ISSET(fileno(stdin), &keyb_fds))
   {
     flea_u8_t buf[4096];
-    // std::cout << "calling read for stdin\n";
     ssize_t did_read = read(STDIN_FILENO, buf, sizeof(buf));
 
     fcntl(fileno(stdin), F_SETFL, fcntl(fileno(stdin), F_GETFL) & ~O_NONBLOCK);
-    // if(FD_ISSET(fileno(stdin), &keyb_fds))
     if(did_read == -1)
     {
-      // throw test_utils_exceptn_t("error reading from stdin");
       FLEA_THR_RETURN();
     }
     buf[did_read] = 0;
-    // std::cout << "read " << did_read << " chars of user input: " + std::string((char*) buf) + "\n";
     for(ssize_t i = 0; i < did_read; i++)
     {
       if(buf[i] == '\n')
@@ -114,8 +97,6 @@ static flea_err_t THR_check_keyb_input(/*fd_set & keyb_fds*/)
     std::string const& s = stdin_input_lines[0];
     if(s == "q" || s == "Q")
     {
-      // std::cout << "check keyboard: user abort\n";
-      // result = action_t::quit;
       FLEA_THROW("user abort requested", (flea_err_t) FLEA_TEST_APP_USER_ABORT);
     }
     else
@@ -125,7 +106,6 @@ static flea_err_t THR_check_keyb_input(/*fd_set & keyb_fds*/)
     stdin_input_lines.erase(stdin_input_lines.begin());
   }
   FLEA_THR_FIN_SEC_empty();
-  // if(result !=
 } // THR_check_keyb_input
 
 static int unix_tcpip_listen_accept(
@@ -238,7 +218,11 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
         serv_par__pt->allowed_cipher_suites__pe,
         serv_par__pt->nb_allowed_cipher_suites__alu16,
         serv_par__pt->crl_der__pt,
-        serv_par__pt->nb_crls__u16
+        serv_par__pt->nb_crls__u16,
+        serv_par__pt->allowed_ecc_curves__pe,
+        serv_par__pt->allowed_ecc_curves_len__alu16,
+        serv_par__pt->allowed_sig_algs__pe,
+        serv_par__pt->nb_allowed_sig_algs__alu16
       )
     );
     if(reneg_done__b)
@@ -534,9 +518,6 @@ static flea_err_t THR_flea_start_tls_server(
     {
       FLEA_THROW("error opening linux socket", FLEA_ERR_INV_STATE);
     }
-    // TODO: maybe change this. It SO_REUSEADDR enables us to reuse the same port
-    // even though it is still blocked and waiting for a timeout when not properly
-    // closed
     if(setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(int)) < 0)
     {
       FLEA_THROW("setsockopt(SO_REUSEADDR) failed", FLEA_ERR_INV_STATE);
@@ -552,11 +533,8 @@ static flea_err_t THR_flea_start_tls_server(
     {
       FLEA_THROW("Socket bind failed", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
     }
-    // while(true)
   }
 
-  /*do
-   * {*/
   err__t = THR_server_cycle(cmdl_args, listen_fd, /*is_https_server, */ sess_man__pt, dir_for_file_based_input);
   printf("connection aborted with error %04x\n", err__t);
   if(!err__t)
@@ -566,14 +544,7 @@ static flea_err_t THR_flea_start_tls_server(
   if(err__t == (flea_err_t) FLEA_TEST_APP_USER_ABORT)
   {
     std::cout << "user abort requested" << std::endl;
-    // break;
   }
-
-  /* if(!cmdl_args.have_index("stay"))
-   * {
-   * break;
-   * }*/
-  // } while(cmdl_args.have_index("stay"));
 
 
   FLEA_THR_FIN_SEC_empty(
@@ -584,7 +555,6 @@ int flea_start_tls_server(property_set_t const& cmdl_args)
 {
   flea_err_t err;
 
-  // int result = 0;
 
   flea_tls_session_mngr_t sess_man__t;
 
@@ -602,14 +572,11 @@ int flea_start_tls_server(property_set_t const& cmdl_args)
      * socket
      */
     FLEA_PRINTF_TEST_OUTP_2_SWITCHED("error %04x during tls server test\n", err);
-    // return 1;
-    // result = 1;
     FLEA_THROW("error during tls server test", err);
   }
   else
   {
     // FLEA_PRINTF_TEST_OUTP_1_SWITCHED("tls test passed\n");
-    // return 0;
   }
   FLEA_THR_FIN_SEC(
     flea_tls_session_mngr_t__dtor(&sess_man__t);

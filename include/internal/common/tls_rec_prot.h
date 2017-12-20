@@ -18,6 +18,10 @@ extern "C" {
 
 #ifdef FLEA_HAVE_TLS
 
+# define FLEA_TLS_RECORD_HDR_LEN      5
+# define FLEA_TLS_TRNSF_BUF_SIZE      (FLEA_TLS_MAX_RECORD_SIZE + FLEA_TLS_RECORD_HDR_LEN)
+# define FLEA_TLS_STD_MAX_RECORD_SIZE 18432
+
 typedef enum
 {
   CONTENT_TYPE_CHANGE_CIPHER_SPEC = 20,
@@ -26,15 +30,6 @@ typedef enum
   CONTENT_TYPE_APPLICATION_DATA   = 23,
   CONTENT_TYPE_HEARTBEAT          = 24
 } flea_tls_rec_cont_type_e;
-
-/*
-typedef enum
-{
-  RECORD_TYPE_PLAINTEXT,
-  RECORD_TYPE_CIPHERTEXT,
-  RECORD_TYPE_COMPRESSED,
-} RecordType;
-*/
 
 typedef enum
 {
@@ -74,15 +69,13 @@ typedef enum
 
 struct struct_flea_tls_rec_prot_t
 {
-  flea_tls_conn_state_t read_state__t;
-  flea_tls_conn_state_t write_state__t;
-  // TODO: BUFFER OF LEN
-  // FLEA_TLS_MAX_RECORD_DATA_SIZE + RECORD_HDR_LEN
+  flea_tls_conn_state_t        read_state__t;
+  flea_tls_conn_state_t        write_state__t;
 # ifdef FLEA_USE_HEAP_BUF
   flea_u8_t*                   send_rec_buf_raw__bu8;
   flea_u8_t*                   alt_send_buf__raw__bu8;
 # else
-  flea_u8_t                    send_rec_buf_raw__bu8[FLEA_TLS_TRNSF_BUF_SIZE];
+  flea_u8_t                    send_rec_buf_raw__bu8[FLEA_TLS_TRNSF_BUF_SIZE + FLEA_TLS_RECORD_HDR_LEN ];
   flea_u8_t                    alt_send_buf__raw__bu8[FLEA_TLS_ALT_SEND_BUF_SIZE];
 # endif // ifdef FLEA_USE_HEAP_BUF
   flea_u16_t                   send_rec_buf_raw_len__u16;

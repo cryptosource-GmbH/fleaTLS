@@ -261,16 +261,12 @@ static flea_err_t THR_read_socket(
     {
       FLEA_THROW("recv err", FLEA_ERR_FAILED_STREAM_READ);
     }
-    // if(rd_mode__e == flea_read_full)
-    {
-      target_buffer__pu8 += did_read_ssz;
-      rem_len__dtl       -= did_read_ssz;
-      read_total__dtl    += did_read_ssz;
-    }
+
+    target_buffer__pu8 += did_read_ssz;
+    rem_len__dtl       -= did_read_ssz;
+    read_total__dtl    += did_read_ssz;
   } while((rd_mode__e == flea_read_full) && rem_len__dtl);
   *nb_bytes_to_read__pdtl = read_total__dtl;
-  // TODO: ^REPLACE BY
-  // *nb_bytes_to_read__pdtl -= rem_len__dtl;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_read_socket */
 

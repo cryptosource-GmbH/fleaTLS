@@ -180,7 +180,6 @@ namespace {
 
   std::vector<std::string> read_file_line_wise(std::string const& filename)
   {
-    // TODO: MUST HANDLE NON EXISTING FILE
     std::ifstream input(filename);
     if(!input)
     {

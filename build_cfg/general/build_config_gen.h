@@ -296,20 +296,14 @@
 # define FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 /**
- * Size of the buffer used in the cipher filter used inside TLS. Must be at
- * least 32 bytes. Larger values increase performance.
+ *  18432 bytes is the record payload size mandated by the TLS standard.
+ *  Smaller sizes may only be set if the implementation is used in an application context for which
+ *  it is known that only smaller sized records are sent.
  */
-# define FLEA_TLS_CIPH_FILTER_BUF_LEN 65
+# define FLEA_TLS_MAX_RECORD_SIZE (18432)
 
 /**
- *  18432 bytes is the size mandated by the TLS standard (here, the additional 5 is due to the TLS header length).
- *  Smaller sizes may only *  be set if the implementation is used in an application context for which
- *  it is known that only smaller records are sent.
- */
-# define FLEA_TLS_TRNSF_BUF_SIZE (18432 + 5)
-
-/**
- * Send buffer size. This buffer used for sending data. Should not be smaller than 150 bytes.
+ * Send buffer size. This buffer used for sending data. Should not be smaller than 150 bytes. A small size reduces performance. May not be greater than 18432.
  */
 # define FLEA_TLS_ALT_SEND_BUF_SIZE 15000
 

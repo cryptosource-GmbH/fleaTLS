@@ -19,8 +19,6 @@
 const char* test_file_dirs[] = {"misc/testdata/certs/self_ec_certs_only_for_sig_ver/secp224r1__implict_dp/"};
 
 
-// TODO: MOVE ALL OF THESE TESTS TO PATH TESTS WITH ONLY A TRUST ANCHOR, AND ADD OPTION IN FLEA TO VERIFY
-// TRUST ANCHOR'S SIGNATURE
 flea_err_t THR_test_ecdsa_self_signed_certs_file_based()
 {
   FLEA_THR_BEG_FUNC();
