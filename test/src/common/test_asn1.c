@@ -14,7 +14,7 @@
 #include <stdio.h>
 #include <string.h>
 
-flea_err_t THR_flea_test_ber_dec_basic()
+flea_err_e THR_flea_test_ber_dec_basic()
 {
   FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
@@ -125,14 +125,14 @@ flea_err_t THR_flea_test_ber_dec_basic()
 typedef enum { dec_func_default, dec_func_ref,
                dec_func_cpy } dec_func_e;
 
-static flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
+static flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
   flea_bool_t              is_fake_gen_strm__b,
   flea_asn1_dec_val_hndg_e dec_val_hndg__e,
   dec_func_e               first_dec_func__e,
   dec_func_e               second_dec_func__e,
-  flea_err_t               dec_ctor_exp_err_code,
-  flea_err_t               first_func_exp_err_code,
-  flea_err_t               second_func_exp_err_code
+  flea_err_e               dec_ctor_exp_err_code,
+  flea_err_e               first_func_exp_err_code,
+  flea_err_e               second_func_exp_err_code
 )
 {
   FLEA_DECL_OBJ(strm__t, flea_rw_stream_t);
@@ -143,7 +143,7 @@ static flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
 #else
   flea_byte_vec_t dec_vec__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
 #endif
-  flea_err_t err__t;
+  flea_err_e err__t;
   flea_asn1_tag_t false_cft         = FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, FLEA_ASN1_SET);
   flea_u8_t exp_version_tlv__au8 [] = {0x02, 0x01, 0x00};
   flea_bool_t optional_found__b     = FLEA_TRUE;
@@ -249,7 +249,7 @@ static flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
   );
 } /* THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner */
 
-flea_err_t THR_flea_test_ber_dec_opt_and_ref_and_cpy()
+flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy()
 {
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(

@@ -18,7 +18,7 @@ void flea_sha512_init(flea_hash_ctx_t* ctx__pt);
 
 void flea_sha384_init(flea_hash_ctx_t* ctx__pt);
 
-flea_err_t THR_flea_sha512_compression_function(
+flea_err_e THR_flea_sha512_compression_function(
   flea_hash_ctx_t* ctx__pt,
   const flea_u8_t* input
 );

@@ -8,7 +8,7 @@
 
 #ifdef FLEA_HAVE_TLS
 
-static flea_err_t THR_flea_tls_handsh_read_stream_t__read(
+static flea_err_e THR_flea_tls_handsh_read_stream_t__read(
   void*                   custom_obj__pv,
   flea_u8_t*              target_buffer__pu8,
   flea_dtl_t*             nb_bytes_to_read__pdtl,
@@ -53,7 +53,7 @@ static flea_err_t THR_flea_tls_handsh_read_stream_t__read(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_handsh_read_stream_t__read */
 
-flea_err_t THR_flea_rw_stream_t__ctor_tls_handsh_reader(
+flea_err_e THR_flea_rw_stream_t__ctor_tls_handsh_reader(
   flea_rw_stream_t*             handsh_read_stream__pt,
   flea_tls_handsh_reader_hlp_t* hlp__pt,
   flea_rw_stream_t*             rec_prot_read_stream__pt,

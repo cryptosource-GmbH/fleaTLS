@@ -14,7 +14,7 @@
 
 # define CHECK_NOT_NEGATIVE(__f) do {if(__f < 0) {return FLEA_ERR_INT_ERR;}} while(0)
 # define CHECK_ZERO(__f)         do {if(__f != 0) {return FLEA_ERR_INT_ERR;}} while(0)
-static flea_err_t THR_flea_test_crt_rsa_raw_file_based_for_file(std::string const& leaf_name)
+static flea_err_e THR_flea_test_crt_rsa_raw_file_based_for_file(std::string const& leaf_name)
 {
   std::string file_name = "misc/testdata/" + leaf_name; // .dat";
   unsigned mod_byte_len = 2048 / 8;
@@ -87,7 +87,7 @@ static flea_err_t THR_flea_test_crt_rsa_raw_file_based_for_file(std::string cons
   return FLEA_ERR_FINE;
 } // THR_flea_test_crt_rsa_raw_file_based_for_file
 
-flea_err_t THR_flea_test_crt_rsa_raw_file_based()
+flea_err_e THR_flea_test_crt_rsa_raw_file_based()
 {
   CHECK_ZERO(THR_flea_test_crt_rsa_raw_file_based_for_file(std::string("raw_crt_rsa_2048_previous_failure.dat")));
   CHECK_ZERO(THR_flea_test_crt_rsa_raw_file_based_for_file(std::string("raw_crt_rsa_2048_pq_max_32_bit_diff.dat")));

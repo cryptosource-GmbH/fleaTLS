@@ -5,7 +5,7 @@
 #include "flea/util.h"
 
 
-static flea_err_t THR_flea_mem_read_stream__read(
+static flea_err_e THR_flea_mem_read_stream__read(
   void*                   hlp__pv,
   flea_u8_t*              target_buffer__pu8,
   flea_dtl_t*             nb_bytes_to_read__pdtl,
@@ -33,7 +33,7 @@ static flea_err_t THR_flea_mem_read_stream__read(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_rw_stream_t__ctor_memory(
+flea_err_e THR_flea_rw_stream_t__ctor_memory(
   flea_rw_stream_t*            rw_stream__pt,
   const flea_u8_t*             source_mem__pcu8,
   flea_dtl_t                   source_mem_len__dtl,

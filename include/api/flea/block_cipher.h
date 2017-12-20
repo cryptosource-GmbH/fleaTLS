@@ -17,7 +17,7 @@ extern "C" {
 /**
  * General cipher prossing direction.
  */
-typedef enum { flea_encrypt, flea_decrypt } flea_cipher_dir_t;
+typedef enum { flea_encrypt, flea_decrypt } flea_cipher_dir_e;
 
 
 /**
@@ -29,14 +29,14 @@ struct struct_flea_ecb_mode_ctx_t
   flea_u8_t                               key_byte_size__u8;
   flea_u8_t                               block_length__u8;
   flea_u8_t                               nb_rounds__u8;
-  flea_cipher_dir_t                       dir__t;
+  flea_cipher_dir_e                       dir__t;
 #ifdef FLEA_USE_HEAP_BUF
   flea_u32_t*                             expanded_key__bu8;
 #elif defined FLEA_USE_STACK_BUF
   flea_u32_t                              expanded_key__bu8 [FLEA_BLOCK_CIPHER_MAX_EXPANDED_KEY_U32_SIZE];
 #else
 # error MUST DEFINE HEAP OR STACK USAGE FOR FLEA
-#endif
+#endif // ifdef FLEA_USE_HEAP_BUF
   flea_cipher_block_processing_f block_crypt_f;
 };
 
@@ -49,7 +49,7 @@ typedef struct
 #else
   flea_u8_t                               ctr_block__bu8 [FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
   flea_u8_t                               pending_mask__bu8[FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
-#endif
+#endif // ifdef FLEA_USE_HEAP_BUF
   flea_al_u8_t                            pending_offset__alu8;
   flea_al_u8_t                            ctr_len__alu8;
   const flea_block_cipher_config_entry_t* config__pt;
@@ -74,7 +74,7 @@ typedef struct
 # define flea_ecb_mode_ctx_t__INIT_VALUE {.expanded_key__bu8 = NULL, .config__pt = NULL}
 # define flea_ctr_mode_ctx_t__INIT_VALUE {.ctr_block__bu8 = NULL, .pending_mask__bu8 = NULL, .cipher_ctx__t = flea_ecb_mode_ctx_t__INIT_VALUE}
 # define flea_cbc_mode_ctx_t__INIT_VALUE {.iv__bu8 = NULL, .cipher_ctx__t = flea_ecb_mode_ctx_t__INIT_VALUE}
-#else
+#else // ifdef FLEA_USE_HEAP_BUF
 # define flea_ecb_mode_ctx_t__INIT(__p) do {(__p)->config__pt = NULL;} while(0)
 # define flea_ctr_mode_ctx_t__INIT(__p) do {flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
 # define flea_cbc_mode_ctx_t__INIT(__p) do {flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
@@ -90,7 +90,7 @@ typedef struct
  *
  * @return the block byte size
  */
-flea_al_u8_t flea_block_cipher__get_block_size(flea_block_cipher_id_t id);
+flea_al_u8_t flea_block_cipher__get_block_size(flea_block_cipher_id_e id);
 
 /**
  * Find out the key byte size of a given cipher.
@@ -99,7 +99,7 @@ flea_al_u8_t flea_block_cipher__get_block_size(flea_block_cipher_id_t id);
  *
  * @return the key byte size
  */
-flea_al_u8_t flea_block_cipher__get_key_size(flea_block_cipher_id_t id);
+flea_al_u8_t flea_block_cipher__get_key_size(flea_block_cipher_id_e id);
 
 /**
  * Create an ECB mode context.
@@ -110,12 +110,12 @@ flea_al_u8_t flea_block_cipher__get_key_size(flea_block_cipher_id_t id);
  * @param key_len length of key in bytes
  * @param dir cipher direction (either flea_encrypt or flea_decrypt)
  */
-flea_err_t THR_flea_ecb_mode_ctx_t__ctor(
+flea_err_e THR_flea_ecb_mode_ctx_t__ctor(
   flea_ecb_mode_ctx_t*   ctx,
-  flea_block_cipher_id_t id,
+  flea_block_cipher_id_e id,
   const flea_u8_t*       key,
   flea_al_u16_t          key_len,
-  flea_cipher_dir_t      dir
+  flea_cipher_dir_e      dir
 );
 
 /**
@@ -134,7 +134,7 @@ void flea_ecb_mode_ctx_t__dtor(flea_ecb_mode_ctx_t* ctx);
  * @param output the output data, may be equal to input (in-place encryption/decryption), but partial overlapping is not allowed
  * @param input_output_len the length of input and output
  */
-flea_err_t THR_flea_ecb_mode_crypt_data(
+flea_err_e THR_flea_ecb_mode_crypt_data(
   const flea_ecb_mode_ctx_t* ctx,
   const flea_u8_t*           input,
   flea_u8_t*                 output,
@@ -157,13 +157,13 @@ flea_err_t THR_flea_ecb_mode_crypt_data(
  * @param ctr_len the length of counter window within the counter block, which is interpreted as a BE integer
  * ranging from position [max](LSB) to [max - ctr_len](MSB)
  */
-flea_err_t THR_flea_ctr_mode_ctx_t__ctor(
-  flea_ctr_mode_ctx_t*   p_ctx,
-  flea_block_cipher_id_t id,
-  const flea_u8_t*       key_pu8,
-  flea_al_u8_t           key_length,
-  const flea_u8_t*       nonce_pu8,
-  flea_al_u8_t           nonce_length,
+flea_err_e THR_flea_ctr_mode_ctx_t__ctor(
+  flea_ctr_mode_ctx_t*   ctx,
+  flea_block_cipher_id_e id,
+  const flea_u8_t*       key,
+  flea_al_u8_t           key_len,
+  const flea_u8_t*       nonce,
+  flea_al_u8_t           nonce_len,
   flea_al_u8_t           ctr_len
 );
 
@@ -187,7 +187,7 @@ void flea_ctr_mode_ctx_t__dtor(flea_ctr_mode_ctx_t* ctx);
 void flea_ctr_mode_ctx_t__crypt(
   flea_ctr_mode_ctx_t* ctx,
   const flea_u8_t*     input,
-  flea_u8_t*           ouput,
+  flea_u8_t*           output,
   flea_dtl_t           input_output_len
 );
 
@@ -206,15 +206,15 @@ void flea_ctr_mode_ctx_t__crypt(
  * @param ctr_len the length of counter window within the counter block, which is interpreted as a BE integer
  * ranging from position [max](LSB) to [max - ctr_len](MSB)
  */
-flea_err_t THR_flea_ctr_mode_crypt_data(
-  flea_block_cipher_id_t id,
+flea_err_e THR_flea_ctr_mode_crypt_data(
+  flea_block_cipher_id_e id,
   const flea_u8_t*       key,
-  flea_al_u16_t          key_length,
+  flea_al_u16_t          key_len,
   const flea_u8_t*       nonce,
   flea_al_u8_t           nonce_len,
   const flea_u8_t*       input,
   flea_u8_t*             output,
-  flea_dtl_t             input_output_length,
+  flea_dtl_t             input_output_len,
   flea_al_u8_t           ctr_len
 );
 
@@ -233,8 +233,8 @@ flea_err_t THR_flea_ctr_mode_crypt_data(
  * @param output the output data
  * @param input_output_len the length of input and output data
  */
-flea_err_t THR_flea_ctr_mode_crypt_data_short_nonce_full_ctr_len(
-  flea_block_cipher_id_t id,
+flea_err_e THR_flea_ctr_mode_crypt_data_short_nonce_full_ctr_len(
+  flea_block_cipher_id_e id,
   const flea_u8_t*       key,
   flea_al_u16_t          key_len,
   flea_u32_t             nonce,
@@ -255,14 +255,14 @@ flea_err_t THR_flea_ctr_mode_crypt_data_short_nonce_full_ctr_len(
  * @param iv_len the length of iv
  * @param dir cipher direction (either flea_encrypt or flea_decrypt)
  */
-flea_err_t THR_flea_cbc_mode_ctx_t__ctor(
+flea_err_e THR_flea_cbc_mode_ctx_t__ctor(
   flea_cbc_mode_ctx_t*   ctx,
-  flea_block_cipher_id_t id,
+  flea_block_cipher_id_e id,
   const flea_u8_t*       key,
   flea_al_u8_t           key_len,
   const flea_u8_t*       iv,
   flea_al_u8_t           iv_len,
-  flea_cipher_dir_t      dir
+  flea_cipher_dir_e      dir
 );
 
 /**
@@ -281,7 +281,7 @@ void flea_cbc_mode_ctx_t__dtor(flea_cbc_mode_ctx_t* ctx);
  * @param output pointer to the output data, may be equal to input, but partial overlapping is not allowed
  * @param input_output_len the length of input and output
  */
-flea_err_t THR_flea_cbc_mode_ctx_t__crypt(
+flea_err_e THR_flea_cbc_mode_ctx_t__crypt(
   flea_cbc_mode_ctx_t* ctx,
   const flea_u8_t*     input,
   flea_u8_t*           output,
@@ -301,13 +301,13 @@ flea_err_t THR_flea_cbc_mode_ctx_t__crypt(
  * @param output pointer to the output data, may be equal to input, but partial overlapping is not allowed
  * @param input_output_len the length of input and output
  */
-flea_err_t THR_flea_cbc_mode__crypt_data(
-  flea_block_cipher_id_t id,
+flea_err_e THR_flea_cbc_mode__crypt_data(
+  flea_block_cipher_id_e id,
   const flea_u8_t*       key,
   flea_al_u8_t           key_len,
   const flea_u8_t*       iv,
   flea_al_u8_t           iv_len,
-  flea_cipher_dir_t      dir,
+  flea_cipher_dir_e      dir,
   flea_u8_t*             output,
   const flea_u8_t*       input,
   flea_dtl_t             input_output_len
@@ -325,8 +325,8 @@ flea_err_t THR_flea_cbc_mode__crypt_data(
  * @param output pointer to the output data, may be equal to input, but partial overlapping is not allowed
  * @param input_output_len the length of input and output
  */
-flea_err_t THR_flea_cbc_mode__encrypt_data(
-  flea_block_cipher_id_t id,
+flea_err_e THR_flea_cbc_mode__encrypt_data(
+  flea_block_cipher_id_e id,
   const flea_u8_t*       key,
   flea_al_u8_t           key_len,
   const flea_u8_t*       iv,
@@ -348,8 +348,8 @@ flea_err_t THR_flea_cbc_mode__encrypt_data(
  * @param output pointer to the output data, may be equal to input, but partial overlapping is not allowed
  * @param input_output_len the length of input and output
  */
-flea_err_t THR_flea_cbc_mode__decrypt_data(
-  flea_block_cipher_id_t id,
+flea_err_e THR_flea_cbc_mode__decrypt_data(
+  flea_block_cipher_id_e id,
   const flea_u8_t*       key,
   flea_al_u8_t           key_len,
   const flea_u8_t*       iv,

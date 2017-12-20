@@ -27,8 +27,8 @@ extern "C" {
  *
  * @return flea error code
  */
-flea_err_t THR_flea_kdf_X9_63(
-  flea_hash_id_t   id,
+flea_err_e THR_flea_kdf_X9_63(
+  flea_hash_id_e   hash_id,
   const flea_u8_t* input,
   flea_al_u16_t    input_len,
   const flea_u8_t* shared_info,

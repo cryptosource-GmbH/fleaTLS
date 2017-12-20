@@ -20,7 +20,7 @@
 #include "internal/common/ecc_int.h"
 
 #ifdef FLEA_HAVE_ECDSA
-flea_err_t THR_flea_ecdsa__raw_verify(
+flea_err_e THR_flea_ecdsa__raw_verify(
   const flea_u8_t*                 enc_r,
   flea_al_u8_t                     enc_r_len,
   const flea_u8_t*                 enc_s,
@@ -46,7 +46,7 @@ flea_err_t THR_flea_ecdsa__raw_verify(
   flea_al_u8_t enc_order_len;
   flea_al_u8_t enc_field_len;
   flea_uword_t* ecc_ws_mpi_arrs [ECDSA_VERIFY_MPI_WS_COUNT];
-# endif
+# endif /* ifdef FLEA_USE_STACK_BUF */
   FLEA_DECL_BUF(vn, flea_hlf_uword_t, FLEA_MPI_DIV_VN_HLFW_LEN_FROM_DIVISOR_W_LEN(FLEA_ECC_MAX_ORDER_WORD_SIZE));
   FLEA_DECL_BUF(
     un,
@@ -218,7 +218,7 @@ flea_err_t THR_flea_ecdsa__raw_verify(
   );
 } /* THR_flea_ecdsa__raw_verify */
 
-flea_err_t THR_flea_ecdsa__raw_sign(
+flea_err_e THR_flea_ecdsa__raw_sign(
   flea_u8_t*                       res_r_arr,
   flea_al_u8_t*                    res_r_arr_len,
   flea_u8_t*                       res_s_arr,
@@ -374,7 +374,7 @@ flea_err_t THR_flea_ecdsa__raw_sign(
     {
       FLEA_ALLOC_MEM_ARR(ecc_ws_mpi_arrs[i], ecc_ws_mpi_arrs_word_len);
     }
-# endif
+# endif /* ifdef FLEA_USE_HEAP_BUF */
     for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs); i++)
     {
       flea_mpi_t__init(
@@ -404,7 +404,7 @@ flea_err_t THR_flea_ecdsa__raw_sign(
     {
       FLEA_FREE_MEM_SET_NULL(ecc_ws_mpi_arrs[i]);
     }
-# endif
+# endif /* ifdef FLEA_USE_HEAP_BUF */
   }
   *res_r_arr_len = flea_mpi_t__get_byte_size(&r);
   *res_s_arr_len = flea_mpi_t__get_byte_size(&s);

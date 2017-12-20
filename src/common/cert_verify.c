@@ -18,7 +18,7 @@
 #include "flea/cert_info.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
-static flea_err_t THR_flea_x509_verify_cert_ref_signature_inner(
+static flea_err_e THR_flea_x509_verify_cert_ref_signature_inner(
   const flea_x509_cert_ref_t*  subject_cert_ref__pt,
   const flea_byte_vec_t*       subject_tbs_ref__prcu8,
   const flea_x509_cert_ref_t*  issuer_cert_ref__pt,
@@ -51,7 +51,7 @@ static flea_err_t THR_flea_x509_verify_cert_ref_signature_inner(
   );
 }
 
-flea_err_t THR_flea_x509_verify_cert_signature(
+flea_err_e THR_flea_x509_verify_cert_signature(
   const flea_u8_t*             enc_subject_cert__pcu8,
   flea_dtl_t                   enc_subject_cert_len__dtl,
   const flea_u8_t*             enc_issuer_cert__pcu8,
@@ -86,7 +86,7 @@ flea_err_t THR_flea_x509_verify_cert_signature(
   );
 }
 
-flea_err_t THR_flea_x509_verify_cert_info_signature(
+flea_err_e THR_flea_x509_verify_cert_info_signature(
   const flea_x509_cert_info_t* subject_cert_ref__pt,
   const flea_x509_cert_info_t* issuer_cert_ref__pt,
   flea_x509_validation_flags_e cert_ver_flags__e

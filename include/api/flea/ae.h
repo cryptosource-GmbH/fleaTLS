@@ -26,7 +26,7 @@ typedef enum
 # ifdef FLEA_HAVE_GCM
   flea_gcm_aes128, flea_gcm_aes192, flea_gcm_aes256
 # endif
-} flea_ae_id_t;
+} flea_ae_id_e;
 
 
 /**
@@ -71,9 +71,9 @@ typedef struct
  *
  * @return flea error code
  * */
-flea_err_t THR_flea_ae_ctx_t__ctor(
+flea_err_e THR_flea_ae_ctx_t__ctor(
   flea_ae_ctx_t*   ctx__pt,
-  flea_ae_id_t     id__t,
+  flea_ae_id_e     id__t,
   const flea_u8_t* key__pcu8,
   flea_al_u16_t    key_len__alu16,
   const flea_u8_t* nonce__pcu8,
@@ -101,7 +101,7 @@ void flea_ae_ctx_t__dtor(flea_ae_ctx_t* ctx);
  *
  * @return flea error code
  */
-flea_err_t THR_flea_ae_ctx_t__update_encryption(
+flea_err_e THR_flea_ae_ctx_t__update_encryption(
   flea_ae_ctx_t*   ctx,
   const flea_u8_t* input,
   flea_u8_t*       output,
@@ -118,7 +118,7 @@ flea_err_t THR_flea_ae_ctx_t__update_encryption(
  *
  * @return flea error code
  */
-flea_err_t THR_flea_ae_ctx_t__final_encryption(
+flea_err_e THR_flea_ae_ctx_t__final_encryption(
   flea_ae_ctx_t* ctx,
   flea_u8_t*     tag,
   flea_al_u8_t*  tag_len
@@ -139,7 +139,7 @@ flea_err_t THR_flea_ae_ctx_t__final_encryption(
  *
  * @return flea error code
  */
-flea_err_t THR_flea_ae_ctx_t__update_decryption(
+flea_err_e THR_flea_ae_ctx_t__update_decryption(
   flea_ae_ctx_t*   ctx,
   const flea_u8_t* input,
   flea_dtl_t       input_len,
@@ -160,7 +160,7 @@ flea_err_t THR_flea_ae_ctx_t__update_decryption(
  * returned. if it succeeded, FLEA_ERR_FINE is returned.
  *
  */
-flea_err_t THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t* ctx__pt);
+flea_err_e THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t* ctx__pt);
 
 /**
  * Encrypt a complete plaintext using an AE scheme.
@@ -181,8 +181,8 @@ flea_err_t THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t* ctx__pt);
  *
  * @return flea error code
  */
-flea_err_t THR_flea_ae__encrypt(
-  flea_ae_id_t     id,
+flea_err_e THR_flea_ae__encrypt(
+  flea_ae_id_e     id,
   const flea_u8_t* key,
   flea_dtl_t       key_len,
   const flea_u8_t* nonce,
@@ -217,8 +217,8 @@ flea_err_t THR_flea_ae__encrypt(
  * @return flea error code. If the MAC verification failed, FLEA_ERR_INV_MAC is
  * returned. if it succeeded, FLEA_ERR_FINE is returned.
  */
-flea_err_t THR_flea_ae__decrypt(
-  flea_ae_id_t     id,
+flea_err_e THR_flea_ae__decrypt(
+  flea_ae_id_e     id,
   const flea_u8_t* key,
   flea_dtl_t       key_len,
   const flea_u8_t* nonce,

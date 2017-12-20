@@ -6,9 +6,9 @@
 
 #ifdef FLEA_HAVE_TLS
 
-flea_err_t THR_flea_tls_parallel_hash_ctx_t__ctor(
+flea_err_e THR_flea_tls_parallel_hash_ctx_t__ctor(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
-  const flea_hash_id_t*         hash_ids__pt,
+  const flea_hash_id_e*         hash_ids__pt,
   flea_al_u8_t                  hash_ids_len__alu8
 )
 {
@@ -37,10 +37,10 @@ flea_err_t THR_flea_tls_parallel_hash_ctx_t__ctor(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls_parallel_hash_ctx_t__create_hash_ctx_as_copy(
+flea_err_e THR_flea_tls_parallel_hash_ctx_t__create_hash_ctx_as_copy(
   flea_hash_ctx_t*                    hash_ctx_new__pt,
   const flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
-  flea_hash_id_t                      hash_id__t
+  flea_hash_id_e                      hash_id__t
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -58,14 +58,14 @@ flea_err_t THR_flea_tls_parallel_hash_ctx_t__create_hash_ctx_as_copy(
 
 void flea_tls_parallel_hash_ctx_t__stop_update_for_all_but_one(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
-  flea_hash_id_t                hash_id__t
+  flea_hash_id_e                hash_id__t
 )
 {
   p_hash_ctx->update_only_one__t     = FLEA_TRUE;
   p_hash_ctx->update_only_hash_id__t = hash_id__t;
 }
 
-flea_err_t THR_flea_tls_parallel_hash_ctx_t__update(
+flea_err_e THR_flea_tls_parallel_hash_ctx_t__update(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
   const flea_u8_t*              bytes__u8,
   flea_dtl_t                    bytes_len__dtl
@@ -84,9 +84,9 @@ flea_err_t THR_flea_tls_parallel_hash_ctx_t__update(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls_parallel_hash_ctx_t__final(
+flea_err_e THR_flea_tls_parallel_hash_ctx_t__final(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
-  flea_hash_id_t                hash_id__t,
+  flea_hash_id_e                hash_id__t,
   flea_bool_t                   copy,
   flea_u8_t*                    output__u8
 )
@@ -135,10 +135,10 @@ void flea_tls_parallel_hash_ctx_t__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx
 # endif
 }
 
-flea_err_t THR_flea_tls_parallel_hash_ctx_t__select_hash_ctx(
+flea_err_e THR_flea_tls_parallel_hash_ctx_t__select_hash_ctx(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
   flea_hash_ctx_t**             hash_ctx__ppt,
-  flea_hash_id_t                hash_id__t
+  flea_hash_id_e                hash_id__t
 )
 {
   FLEA_THR_BEG_FUNC();

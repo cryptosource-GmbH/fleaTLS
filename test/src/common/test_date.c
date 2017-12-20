@@ -7,7 +7,7 @@
 #include "flea/alloc.h"
 #include "self_test.h"
 
-flea_err_t THR_flea_test_date_addition()
+flea_err_e THR_flea_test_date_addition()
 {
   const flea_u32_t seconds_of_1_day__u32    = 24 * 3600;
   const flea_u32_t seconds_of_365_days__u32 = 365 * seconds_of_1_day__u32; // 31536000;

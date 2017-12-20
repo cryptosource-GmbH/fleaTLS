@@ -26,7 +26,7 @@ typedef struct
 # endif
   flea_u8_t        num_hash_ctx__u8;
   flea_bool_t      update_only_one__t; // switch to update only the update_only_hash_id__t hash
-  flea_hash_id_t   update_only_hash_id__t;
+  flea_hash_id_e   update_only_hash_id__t;
 } flea_tls_parallel_hash_ctx_t;
 
 
@@ -47,28 +47,28 @@ typedef struct
 # endif // ifdef FLEA_USE_HEAP_BUF
 
 
-flea_err_t THR_flea_tls_parallel_hash_ctx_t__ctor(
+flea_err_e THR_flea_tls_parallel_hash_ctx_t__ctor(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
-  const flea_hash_id_t*         hash_ids__pt,
+  const flea_hash_id_e*         hash_ids__pt,
   flea_al_u8_t                  hashes_ids_len__alu8
 );
 
-flea_err_t THR_flea_tls_parallel_hash_ctx_t__create_hash_ctx_as_copy(
+flea_err_e THR_flea_tls_parallel_hash_ctx_t__create_hash_ctx_as_copy(
   flea_hash_ctx_t*                    hash_ctx_new__pt,
   const flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
-  flea_hash_id_t                      hash_id__t
+  flea_hash_id_e                      hash_id__t
 );
 
-flea_err_t THR_flea_tls_parallel_hash_ctx_t__update(
+flea_err_e THR_flea_tls_parallel_hash_ctx_t__update(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
   const flea_u8_t*              bytes__u8,
   flea_dtl_t                    bytes_len__dtl
 );
 
 
-flea_err_t THR_flea_tls_parallel_hash_ctx_t__final(
+flea_err_e THR_flea_tls_parallel_hash_ctx_t__final(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
-  flea_hash_id_t                hash_id__t,
+  flea_hash_id_e                hash_id__t,
   flea_bool_t                   copy,
   flea_u8_t*                    output__u8
 );
@@ -77,14 +77,14 @@ void flea_tls_parallel_hash_ctx_t__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx
 
 void flea_tls_parallel_hash_ctx_t__stop_update_for_all_but_one(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
-  flea_hash_id_t                hash_id__t
+  flea_hash_id_e                hash_id__t
 );
 
 // get pointer to hash_ctx with corresponding hash_id
-flea_err_t THR_flea_tls_parallel_hash_ctx_t__select_hash_ctx(
+flea_err_e THR_flea_tls_parallel_hash_ctx_t__select_hash_ctx(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
   flea_hash_ctx_t**             hash_ctx__ppt,
-  flea_hash_id_t                hash_id__t
+  flea_hash_id_e                hash_id__t
 );
 
 # ifdef __cplusplus

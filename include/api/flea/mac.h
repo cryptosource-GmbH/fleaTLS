@@ -19,7 +19,7 @@ extern "C" {
  */
 typedef enum { flea_hmac_md5, flea_hmac_sha1, flea_hmac_sha224, flea_hmac_sha256, flea_hmac_sha384, flea_hmac_sha512,
                flea_cmac_des, flea_cmac_tdes_2key, flea_cmac_tdes_3key, flea_cmac_aes128, flea_cmac_aes192,
-               flea_cmac_aes256 } flea_mac_id_t;
+               flea_cmac_aes256 } flea_mac_id_e;
 
 /**
  * MAC context type
@@ -44,7 +44,7 @@ struct struct_flea_mac_ctx_t
 
 #endif
 
-flea_al_u8_t flea_mac__get_output_length_by_id(flea_mac_id_t mac_id__e);
+flea_al_u8_t flea_mac__get_output_length_by_id(flea_mac_id_e mac_id__e);
 
 /**
  * Create a MAC context object for either MAC computation of verification.
@@ -56,9 +56,9 @@ flea_al_u8_t flea_mac__get_output_length_by_id(flea_mac_id_t mac_id__e);
  *
  * @return flea error code
  */
-flea_err_t THR_flea_mac_ctx_t__ctor(
+flea_err_e THR_flea_mac_ctx_t__ctor(
   flea_mac_ctx_t*  ctx,
-  flea_mac_id_t    id,
+  flea_mac_id_e    id,
   const flea_u8_t* key,
   flea_al_u16_t    key_len
 );
@@ -80,10 +80,10 @@ void flea_mac_ctx_t__dtor(flea_mac_ctx_t* ctx);
  *
  * @return flea error code
  */
-flea_err_t THR_flea_mac_ctx_t__update(
+flea_err_e THR_flea_mac_ctx_t__update(
   flea_mac_ctx_t*  ctx,
   const flea_u8_t* dta,
-  flea_dtl_t       data_len
+  flea_dtl_t       dta_len
 );
 
 /**
@@ -102,7 +102,7 @@ flea_err_t THR_flea_mac_ctx_t__update(
  *
  * @return flea error code
  */
-flea_err_t THR_flea_mac_ctx_t__final_compute(
+flea_err_e THR_flea_mac_ctx_t__final_compute(
   flea_mac_ctx_t* ctx,
   flea_u8_t*      result,
   flea_al_u8_t*   result_len
@@ -118,7 +118,7 @@ flea_err_t THR_flea_mac_ctx_t__final_compute(
  * @return flea error code: FLEA_ERR_FINE if the verification succeeded,
  * FLEA_ERR_INV_MAC if it failed
  */
-flea_err_t THR_flea_mac_ctx_t__final_verify(
+flea_err_e THR_flea_mac_ctx_t__final_verify(
   flea_mac_ctx_t*  ctx,
   const flea_u8_t* mac,
   flea_al_u8_t     mac_len
@@ -140,8 +140,8 @@ flea_err_t THR_flea_mac_ctx_t__final_verify(
  *
  * @return flea error code
  */
-flea_err_t THR_flea_mac__compute_mac(
-  flea_mac_id_t    id,
+flea_err_e THR_flea_mac__compute_mac(
+  flea_mac_id_e    id,
   const flea_u8_t* key,
   flea_al_u16_t    key_len,
   const flea_u8_t* dta,
@@ -163,8 +163,8 @@ flea_err_t THR_flea_mac__compute_mac(
  *
  * @return flea error code: FLEA_ERR_FINE if the verification succeeded, FLEA_ERR_INV_MAC if it failed
  */
-flea_err_t THR_flea_mac__verify_mac(
-  flea_mac_id_t    id,
+flea_err_e THR_flea_mac__verify_mac(
+  flea_mac_id_e    id,
   const flea_u8_t* key,
   flea_al_u16_t    key_len,
   const flea_u8_t* dta,

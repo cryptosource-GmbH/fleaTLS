@@ -21,7 +21,7 @@ using namespace std;
  * flea_u16_t  value;
  * } ;*/
 
-std::map<string, flea_tls__cipher_suite_id_t> cipher_suite_name_value_map__t = {
+std::map<string, flea_tls_cipher_suite_id_t> cipher_suite_name_value_map__t = {
 # ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
   {"TLS_RSA_WITH_AES_128_CBC_SHA",          flea_tls_rsa_with_aes_128_cbc_sha         },
 # endif
@@ -60,7 +60,7 @@ std::map<string, flea_tls__cipher_suite_id_t> cipher_suite_name_value_map__t = {
 # endif
 };
 
-std::map<string, flea_ec_dom_par_id_t> curve_id_name_value_map__t = {
+std::map<string, flea_ec_dom_par_id_e> curve_id_name_value_map__t = {
   {"secp160r1",       flea_secp160r1      },
   {"secp160r2",       flea_secp160r2      },
   {"secp192r1",       flea_secp192r1      },
@@ -90,21 +90,21 @@ std::map<string, flea_u8_t> hash_algs_map__t = {
 };
 
 namespace {
-  std::vector<flea_ec_dom_par_id_t> get_allowed_ecc_curves_from_cmdl(property_set_t const& cmdl_args)
+  std::vector<flea_ec_dom_par_id_e> get_allowed_ecc_curves_from_cmdl(property_set_t const& cmdl_args)
   {
     flea_u8_t dummy[2];
 
-    std::vector<flea_ec_dom_par_id_t> result;
+    std::vector<flea_ec_dom_par_id_e> result;
 # ifdef FLEA_HAVE_TLS_ECC
     if(cmdl_args.have_index("allowed_curves"))
     {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("allowed_curves"), ',');
       for(string s : strings)
       {
-        // const flea_ec_dom_par_id_t* ptr;
+        // const flea_ec_dom_par_id_e* ptr;
         auto it = curve_id_name_value_map__t.find(s);
         if(it == curve_id_name_value_map__t.end() ||
-          THR_flea_tls__map_flea_curve_to_curve_bytes((flea_ec_dom_par_id_t) it->second, dummy))
+          THR_flea_tls__map_flea_curve_to_curve_bytes((flea_ec_dom_par_id_e) it->second, dummy))
         {
           throw test_utils_exceptn_t("specified cipher suite '" + s + "' not configured");
         }
@@ -115,9 +115,9 @@ namespace {
     {
       for(auto & entry : curve_id_name_value_map__t)
       {
-        flea_ec_dom_par_id_t id = entry.second;
+        flea_ec_dom_par_id_e id = entry.second;
         // const flea_tls__cipher_suite_t* ptr;
-        if(!THR_flea_tls__map_flea_curve_to_curve_bytes((flea_ec_dom_par_id_t) id, dummy))
+        if(!THR_flea_tls__map_flea_curve_to_curve_bytes((flea_ec_dom_par_id_e) id, dummy))
         {
           // std::cout << "adding curve " << entry.first << std::endl;
           result.push_back(id);
@@ -143,7 +143,7 @@ namespace {
         auto it  = hash_algs_map__t.find(alg_pair[0]);
         auto it2 = sig_algs_map__t.find(alg_pair[1]);
         if(it == hash_algs_map__t.end() ||
-          THR_flea_tls__map_flea_hash_to_tls_hash((flea_hash_id_t) it->second, &dummy))
+          THR_flea_tls__map_flea_hash_to_tls_hash((flea_hash_id_e) it->second, &dummy))
         {
           throw test_utils_exceptn_t(
                   "specified hash algorithm '" + alg_pair[0] + "' (in '" + s + "')" + " not configured"
@@ -151,7 +151,7 @@ namespace {
         }
         sig_alg = (flea_tls_sigalg_e) (it->second << 8);
         if(it2 == sig_algs_map__t.end() ||
-          THR_flea_tls__map_flea_sig_to_tls_sig((flea_pk_scheme_id_t) it2->second, &dummy))
+          THR_flea_tls__map_flea_sig_to_tls_sig((flea_pk_scheme_id_e) it2->second, &dummy))
         {
           throw test_utils_exceptn_t(
                   "specified sig algorithm '" + alg_pair[1] + "' (in '" + s + "')" + " not configured"
@@ -171,9 +171,9 @@ namespace {
     return result;
   } // get_allowed_sig_algs_from_cmdl
 
-  std::vector<flea_tls__cipher_suite_id_t> get_cipher_suites_from_cmdl(property_set_t const& cmdl_args)
+  std::vector<flea_tls_cipher_suite_id_t> get_cipher_suites_from_cmdl(property_set_t const& cmdl_args)
   {
-    std::vector<flea_tls__cipher_suite_id_t> result;
+    std::vector<flea_tls_cipher_suite_id_t> result;
     if(cmdl_args.have_index("cipher_suites"))
     {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("cipher_suites"), ',');
@@ -182,7 +182,7 @@ namespace {
         const flea_tls__cipher_suite_t* ptr;
         auto it = cipher_suite_name_value_map__t.find(s);
         if(it == cipher_suite_name_value_map__t.end() ||
-          THR_flea_tls_get_cipher_suite_by_id(static_cast<flea_tls__cipher_suite_id_t>(it->second), &ptr))
+          THR_flea_tls_get_cipher_suite_by_id(static_cast<flea_tls_cipher_suite_id_t>(it->second), &ptr))
         {
           throw test_utils_exceptn_t("specified cipher suite '" + s + "' not configured");
         }
@@ -193,7 +193,7 @@ namespace {
     {
       for(auto & entry : cipher_suite_name_value_map__t)
       {
-        flea_tls__cipher_suite_id_t id = entry.second;
+        flea_tls_cipher_suite_id_t id = entry.second;
         const flea_tls__cipher_suite_t* ptr;
         if(!THR_flea_tls_get_cipher_suite_by_id(id, &ptr))
         {
@@ -225,7 +225,7 @@ namespace {
     throw test_utils_exceptn_t("invalid value for property 'rev_chk': '" + s + "'");
   }
 }
-flea_err_t THR_flea_tls_tool_set_tls_cfg(
+flea_err_e THR_flea_tls_tool_set_tls_cfg(
   flea_cert_store_t*  trust_store__pt,
   flea_ref_cu8_t*     cert_chain,
   flea_al_u16_t*      cert_chain_len,

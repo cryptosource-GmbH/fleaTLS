@@ -15,7 +15,7 @@
 
 const flea_u8_t id_pe__cau8 [7] = {0x2B, 0x06, 0x01, 0x05, 0x05, 0x07, 0x01};
 
-flea_err_t THR_flea_x509_cert_parse_basic_constraints(
+flea_err_e THR_flea_x509_cert_parse_basic_constraints(
   flea_ber_dec_t*           cont_dec__pt,
   flea_basic_constraints_t* basic_constraints__pt
 )
@@ -48,7 +48,7 @@ flea_err_t THR_flea_x509_cert_parse_basic_constraints(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_x509_cert__parse_eku(
+flea_err_e THR_flea_x509_cert__parse_eku(
   flea_ber_dec_t*   cont_dec__pt,
   flea_key_usage_t* ext_key_usage__pt
 )
@@ -93,7 +93,7 @@ flea_err_t THR_flea_x509_cert__parse_eku(
   );
 } /* THR_flea_x509_cert__parse_eku */
 
-flea_err_t THR_flea_x509_cert__parse_key_usage(
+flea_err_e THR_flea_x509_cert__parse_key_usage(
   flea_ber_dec_t*   cont_dec__pt,
   flea_key_usage_t* key_usage__pt
 )
@@ -124,7 +124,7 @@ flea_err_t THR_flea_x509_cert__parse_key_usage(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_x509__decode_algid_ref(
+flea_err_e THR_flea_x509__decode_algid_ref(
   flea_x509_algid_ref_t* algid_ref__pt,
   flea_ber_dec_t*        dec__pt
 )
@@ -154,7 +154,7 @@ flea_err_t THR_flea_x509__decode_algid_ref(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_x509__process_alg_ids(
+flea_err_e THR_flea_x509__process_alg_ids(
   flea_x509_algid_ref_t*       tbs_ref__pt,
   const flea_x509_algid_ref_t* outer_ref__pt
 )
@@ -175,7 +175,7 @@ flea_err_t THR_flea_x509__process_alg_ids(
  *
  * id-pe  OBJECT IDENTIFIER  ::=  { id-pkix 1 }
  */
-static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
+static flea_err_e THR_flea_x509_cert_ref__t__parse_extensions(
   flea_x509_ext_ref_t* ext_ref__pt,
   flea_ber_dec_t*      dec__pt,
   flea_bool_t*         have_extensions__pb
@@ -378,7 +378,7 @@ static flea_err_t THR_flea_x509_cert_ref__t__parse_extensions(
   );
 } /* THR_flea_x509_cert_ref__t__parse_extensions */
 
-flea_err_t THR_flea_x509__parse_dn_ref(
+flea_err_e THR_flea_x509__parse_dn_ref(
   flea_x509_dn_ref_t* dn_ref__pt,
   flea_ber_dec_t*     dec__pt
 )
@@ -397,7 +397,7 @@ flea_err_t THR_flea_x509__parse_dn_ref(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_x509__decode_dn_ref_elements(
+flea_err_e THR_flea_x509__decode_dn_ref_elements(
   flea_x509_dn_ref_t* dn_ref__pt,
   const flea_u8_t*    data__pcu8,
   flea_dtl_t          data_len__dtl,
@@ -496,7 +496,7 @@ flea_err_t THR_flea_x509__decode_dn_ref_elements(
   );
 } /* THR_flea_x509__parse_dn_ref */
 
-flea_err_t THR_flea_x509_cert__get_ref_to_tbs_byte_vec(
+flea_err_e THR_flea_x509_cert__get_ref_to_tbs_byte_vec(
   const flea_u8_t* der_encoded_cert__pu8,
   flea_al_u16_t    der_encoded_cert_len__alu16,
   flea_byte_vec_t* ref_to_tbs__pt
@@ -510,7 +510,7 @@ flea_err_t THR_flea_x509_cert__get_ref_to_tbs_byte_vec(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_x509_cert__get_ref_to_tbs(
+flea_err_e THR_flea_x509_cert__get_ref_to_tbs(
   const flea_u8_t* der_encoded_cert__pu8,
   flea_al_u16_t    der_encoded_cert_len__alu16,
   flea_ref_cu8_t*  ref_to_tbs__pt
@@ -542,7 +542,7 @@ flea_err_t THR_flea_x509_cert__get_ref_to_tbs(
   );
 }
 
-flea_err_t THR_flea_x509_cert_ref_t__ctor(
+flea_err_e THR_flea_x509_cert_ref_t__ctor(
   flea_x509_cert_ref_t* cert_ref__pt,
   const flea_u8_t*      der_encoded_cert__pu8,
   flea_al_u16_t         der_encoded_cert_len__alu16
@@ -768,7 +768,7 @@ flea_bool_t flea_x509_is_cert_self_issued(const flea_x509_cert_ref_t* cert__pt)
   return FLEA_FALSE;
 }
 
-static flea_err_t THR_flea_x509__get_dn_component(
+static flea_err_e THR_flea_x509__get_dn_component(
   flea_x509_dn_ref_t const* dn_ref__pt,
   flea_dn_cmpnt_e           cmpnt__e,
   flea_ref_cu8_t*           result__prcu8
@@ -837,7 +837,7 @@ static flea_err_t THR_flea_x509__get_dn_component(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_x509__get_dn_component */
 
-flea_err_t THR_flea_x509_cert_ref_t__get_subject_dn_component(
+flea_err_e THR_flea_x509_cert_ref_t__get_subject_dn_component(
   flea_x509_cert_ref_t const* cert_ref__pt,
   flea_dn_cmpnt_e             cmpnt__e,
   flea_ref_cu8_t*             result__prcu8
@@ -849,7 +849,7 @@ flea_err_t THR_flea_x509_cert_ref_t__get_subject_dn_component(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_x509_cert_ref_t__get_issuer_dn_component(
+flea_err_e THR_flea_x509_cert_ref_t__get_issuer_dn_component(
   flea_x509_cert_ref_t const* cert_ref__pt,
   flea_dn_cmpnt_e             cmpnt__e,
   flea_ref_cu8_t*             result__prcu8

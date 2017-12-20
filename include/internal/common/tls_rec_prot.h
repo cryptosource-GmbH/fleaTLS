@@ -109,7 +109,7 @@ struct struct_flea_tls_rec_prot_t
 
 void flea_tls_rec_prot_t__dtor(flea_tls_rec_prot_t* rec_prot__pt);
 
-flea_err_t THR_flea_tls_rec_prot_t__ctor(
+flea_err_e THR_flea_tls_rec_prot_t__ctor(
   flea_tls_rec_prot_t* rec_prot__pt,
   flea_al_u8_t         prot_vers_major,
   flea_al_u8_t         prot_vers_minor,
@@ -122,18 +122,18 @@ void flea_tls_rec_prot_t__set_null_ciphersuite(
 );
 
 
-flea_err_t THR_flea_tls_rec_prot_t__write_data(
+flea_err_e THR_flea_tls_rec_prot_t__write_data(
   flea_tls_rec_prot_t*     rec_prot__pt,
   flea_tls_rec_cont_type_e content_type__e,
   const flea_u8_t*         data__pcu8,
   flea_dtl_t               data_len__dtl
 );
 
-flea_err_t THR_flea_tls_rec_prot_t__write_flush(
+flea_err_e THR_flea_tls_rec_prot_t__write_flush(
   flea_tls_rec_prot_t* rec_prot__pt
 );
 
-flea_err_t THR_flea_tls_rec_prot_t__read_data(
+flea_err_e THR_flea_tls_rec_prot_t__read_data(
   flea_tls_rec_prot_t*     rec_prot__pt,
   flea_tls_rec_cont_type_e cont_type__e,
   flea_u8_t*               data__pu8,
@@ -142,44 +142,44 @@ flea_err_t THR_flea_tls_rec_prot_t__read_data(
 );
 
 
-flea_err_t THR_flea_tls_rec_prot_t__get_current_record_type(
+flea_err_e THR_flea_tls_rec_prot_t__get_current_record_type(
   flea_tls_rec_prot_t*      rec_prot__pt,
   flea_tls_rec_cont_type_e* cont_type__pe,
   flea_stream_read_mode_e   rd_mode__e
 );
 
-flea_err_t THR_flea_tls_rec_prot_t__send_record(
+flea_err_e THR_flea_tls_rec_prot_t__send_record(
   flea_tls_rec_prot_t*     rec_prot__pt,
   const flea_u8_t*         bytes,
   flea_dtl_t               bytes_len,
   flea_tls_rec_cont_type_e content_type
 );
 
-flea_err_t THR_flea_tls_rec_prot_t__send_alert(
+flea_err_e THR_flea_tls_rec_prot_t__send_alert(
   flea_tls_rec_prot_t*          rec_prot__pt,
   flea_tls__alert_description_t description,
   flea_tls__alert_level_t       level
 );
 
-flea_err_t THR_flea_tls_rec_prot_t__send_alert_and_throw(
+flea_err_e THR_flea_tls_rec_prot_t__send_alert_and_throw(
   flea_tls_rec_prot_t*          rec_prot__pt,
   flea_tls__alert_description_t description,
-  flea_err_t                    err__t
+  flea_err_e                    err__t
 );
 
-flea_err_t THR_flea_tls_rec_prot_t__set_ciphersuite(
-  flea_tls_rec_prot_t*        rec_prot__pt,
-  flea_tls_stream_dir_e       direction,
-  flea_tls__connection_end_t  conn_end__e,
-  flea_tls__cipher_suite_id_t suite_id,
-  const flea_u8_t*            key_block__pcu8
+flea_err_e THR_flea_tls_rec_prot_t__set_ciphersuite(
+  flea_tls_rec_prot_t*       rec_prot__pt,
+  flea_tls_stream_dir_e      direction,
+  flea_tls__connection_end_t conn_end__e,
+  flea_tls_cipher_suite_id_t suite_id,
+  const flea_u8_t*           key_block__pcu8
 );
 
 flea_bool_t flea_tls_rec_prot_t__have_done_initial_handshake(const flea_tls_rec_prot_t* rec_prot__pt);
 
 void flea_tls_rec_prot_t__discard_current_read_record(flea_tls_rec_prot_t* rec_prot__pt);
 
-flea_err_t THR_flea_tls_rec_prot_t__close_and_send_close_notify(flea_tls_rec_prot_t* rec_prot__pt);
+flea_err_e THR_flea_tls_rec_prot_t__close_and_send_close_notify(flea_tls_rec_prot_t* rec_prot__pt);
 #endif // ifdef FLEA_HAVE_TLS
 #ifdef __cplusplus
 }

@@ -26,9 +26,9 @@ const flea_u8_t ecdsa_oid_prefix__acu8[6] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04}
  */
 
 
-flea_err_t THR_get_hash_id_from_x509_id_for_ecdsa(
+flea_err_e THR_get_hash_id_from_x509_id_for_ecdsa(
   const flea_u8_t cert_id__pcu8[2],
-  flea_hash_id_t* result__pt
+  flea_hash_id_e* result__pt
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -70,7 +70,7 @@ flea_err_t THR_get_hash_id_from_x509_id_for_ecdsa(
 } /* THR_get_hash_id_from_x509_id_for_ecdsa */
 
 /* assumes that result__pu8 has sufficient length allocated */
-flea_err_t THR_flea_x509_decode_ecdsa_signature(
+flea_err_e THR_flea_x509_decode_ecdsa_signature(
   flea_u8_t*             result__pu8,
   flea_al_u16_t*         result_len__palu16,
   const flea_byte_vec_t* x509_enc_sig__pt
@@ -131,7 +131,7 @@ flea_err_t THR_flea_x509_decode_ecdsa_signature(
   );
 } /* THR_flea_x509_decode_ecdsa_signature */
 
-flea_err_t THR_flea_public_key_t__create_ecdsa_key(
+flea_err_e THR_flea_public_key_t__create_ecdsa_key(
   flea_ec_pubkey_val_t*            ecc_key__pt,
   const flea_byte_vec_t*           public_point_encoded__pcrcu8,
   const flea_ec_gfp_dom_par_ref_t* dp_ref__pt
@@ -173,7 +173,7 @@ flea_err_t THR_flea_public_key_t__create_ecdsa_key(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_public_key_t__create_ecdsa_key */
 
-flea_err_t THR_flea_x509_parse_ecc_public_params(
+flea_err_e THR_flea_x509_parse_ecc_public_params(
   const flea_byte_vec_t*     encoded_parameters__pt,
   flea_ec_gfp_dom_par_ref_t* dom_par__pt
 )

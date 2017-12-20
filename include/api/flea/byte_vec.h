@@ -93,7 +93,7 @@ typedef struct
 #else
 # define FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(name, \
     size) FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(name, size)
-#endif
+#endif // ifdef FLEA_USE_HEAP_BUF
 
 #ifdef FLEA_USE_HEAP_BUF
 # define flea_byte_vec_t__CTOR_ALLOCATABLE_OR_STACK_BUF(__byte_vec__pt, __stack_array__au8) \
@@ -103,7 +103,7 @@ typedef struct
     (__byte_vec__pt)->len__dtl  = 0; \
     (__byte_vec__pt)->state__u8 = FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK; \
   } while(0)
-#else
+#else // ifdef FLEA_USE_HEAP_BUF
 # define flea_byte_vec_t__CTOR_ALLOCATABLE_OR_STACK_BUF(__byte_vec__pt, __stack_array__au8) \
   do { \
     (__byte_vec__pt)->data__pu8 = __stack_array__au8; \
@@ -171,7 +171,7 @@ void flea_byte_vec_t__copy_content_set_ref_use_mem(
  * @param data pointer to the data to append
  * @param len the length of data
  */
-flea_err_t THR_flea_byte_vec_t__append(
+flea_err_e THR_flea_byte_vec_t__append(
   flea_byte_vec_t* byte_vec,
   const flea_u8_t* data,
   flea_dtl_t       len
@@ -184,7 +184,7 @@ flea_err_t THR_flea_byte_vec_t__append(
  * @param byte_vec pointer to the byte_vector
  * @param byte the byte to append
  */
-flea_err_t THR_flea_byte_vec_t__push_back(
+flea_err_e THR_flea_byte_vec_t__push_back(
   flea_byte_vec_t* byte_vec,
   flea_u8_t        byte
 );
@@ -195,7 +195,7 @@ flea_err_t THR_flea_byte_vec_t__push_back(
  * @param byte_vec pointer to the byte_vector
  * @param reserve_len new size of the vector's allocated buffer
  */
-flea_err_t THR_flea_byte_vec_t__reserve(
+flea_err_e THR_flea_byte_vec_t__reserve(
   flea_byte_vec_t* byte_vec,
   flea_dtl_t       reserve_len
 );
@@ -208,7 +208,7 @@ flea_err_t THR_flea_byte_vec_t__reserve(
  * @param data pointer to the data to set as the new content
  * @param len the length of data
  */
-flea_err_t THR_flea_byte_vec_t__set_content(
+flea_err_e THR_flea_byte_vec_t__set_content(
   flea_byte_vec_t* byte_vec,
   const flea_u8_t* data,
   flea_dtl_t       len
@@ -222,7 +222,7 @@ flea_err_t THR_flea_byte_vec_t__set_content(
  * @param byte_vec pointer to the byte_vector
  * @param new_size the new content length of the vector
  */
-flea_err_t THR_flea_byte_vec_t__resize(
+flea_err_e THR_flea_byte_vec_t__resize(
   flea_byte_vec_t* byte_vec,
   unsigned         new_size
 );

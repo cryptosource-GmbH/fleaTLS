@@ -52,7 +52,7 @@ void flea_cert_path_validator_t__dtor(flea_cert_path_validator_t* cpv);
  * @param the length of target_cert
  * @param rev_chk_mode__e the mode of revocation checking (based on CRLs) to use
  */
-flea_err_t THR_flea_cert_path_validator_t__ctor_cert(
+flea_err_e THR_flea_cert_path_validator_t__ctor_cert(
   flea_cert_path_validator_t*  cpv,
   const flea_u8_t*             target_cert,
   flea_al_u16_t                target_cert_len,
@@ -70,7 +70,7 @@ flea_err_t THR_flea_cert_path_validator_t__ctor_cert(
  * @param crl_der pointer to the DER encoded CRL
  * @param crl_der_len length of crl_der
  */
-flea_err_t THR_flea_cert_path_validator_t__add_crl(
+flea_err_e THR_flea_cert_path_validator_t__add_crl(
   flea_cert_path_validator_t* cpv,
   const flea_u8_t*            crl_der,
   flea_dtl_t                  crl_der_len
@@ -85,7 +85,7 @@ flea_err_t THR_flea_cert_path_validator_t__add_crl(
  * @param cert pointer to the DER encoded certificate
  * @param cert_len length of cert
  */
-flea_err_t THR_flea_cert_path_validator_t__add_cert_without_trust_status(
+flea_err_e THR_flea_cert_path_validator_t__add_cert_without_trust_status(
   flea_cert_path_validator_t* cpv,
   const flea_u8_t*            cert,
   flea_al_u16_t               cert_len
@@ -101,7 +101,7 @@ flea_err_t THR_flea_cert_path_validator_t__add_cert_without_trust_status(
  * @param cert pointer to the DER encoded certificate
  * @param cert_len length of cert
  */
-flea_err_t THR_flea_cert_path_validator_t__add_trust_anchor_cert(
+flea_err_e THR_flea_cert_path_validator_t__add_trust_anchor_cert(
   flea_cert_path_validator_t* cpv,
   const flea_u8_t*            cert,
   flea_al_u16_t               cert_len
@@ -120,7 +120,7 @@ flea_err_t THR_flea_cert_path_validator_t__add_trust_anchor_cert(
  * @param time_mbn__pt the current time in timezone GMT. May be null, then the
  * function determines the current time itself.
  */
-flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain(
+flea_err_e THR_flea_cert_path_validator__build_and_verify_cert_chain(
   flea_cert_path_validator_t* cpv,
   const flea_gmt_time_t*      time_mbn
 );
@@ -133,7 +133,7 @@ flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain(
  * function determines the current time itself.
  * @param key_to_construct_mbn pointer to the public key object to construct
  */
-flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_pub_key(
+flea_err_e THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_pub_key(
   flea_cert_path_validator_t* cpv,
   const flea_gmt_time_t*      time_mbn,
   flea_public_key_t*          key_to_construct_mbn
@@ -150,7 +150,7 @@ flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_
  * @param key_to_construct_mbn pointer to the public key object to construct
  *
  */
-flea_err_t THR_flea_cert_path_validator__build_and_verify_cert_chain_and_hostid_and_create_pub_key(
+flea_err_e THR_flea_cert_path_validator__build_and_verify_cert_chain_and_hostid_and_create_pub_key(
   flea_cert_path_validator_t* cpv,
   const flea_gmt_time_t*      time_mbn,
   const flea_byte_vec_t*      host_id,

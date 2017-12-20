@@ -7,13 +7,13 @@
 #include "flea/types.h"
 #include "flea/x509.h"
 
-flea_err_t THR_flea_ec_key__decode_uncompressed_point(
+flea_err_e THR_flea_ec_key__decode_uncompressed_point(
   const flea_byte_vec_t* encoded__pt,
   flea_ref_cu8_t*        x__pt,
   flea_ref_cu8_t*        y__pt
 );
 
-/*flea_err_t THR_flea_ec_key__decode_uncompressed_point(
+/*flea_err_e THR_flea_ec_key__decode_uncompressed_point(
  * const flea_byte_vec_t* encoded__pt,
  * flea_byte_vec_t*       x__t,
  * flea_byte_vec_t*       y__t

@@ -22,11 +22,11 @@ typedef struct
   flea_u8_t*          count_block__bu8;
   flea_u8_t*          key__bu8;
   flea_u8_t*          accu__bu8;
-#else
+#else // ifdef FLEA_USE_HEAP_BUF
   flea_u8_t           pending_output__bu8[FLEA_AES_BLOCK_LENGTH];
   flea_u8_t           count_block__bu8[FLEA_AES_BLOCK_LENGTH];
   flea_u8_t           key__bu8[FLEA_AES256_KEY_BYTE_LENGTH];
-#endif
+#endif // ifdef FLEA_USE_HEAP_BUF
   flea_ecb_mode_ctx_t cipher_ctx__t;
 } flea_ctr_mode_prng_t;
 
@@ -37,12 +37,12 @@ typedef struct
   do { \
     flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t); \
   } while(0)
-#else
+#else // ifdef FLEA_USE_HEAP_BUF
 # define flea_ctr_mode_prng_t__INIT(__p) \
   do { \
     flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t); \
   } while(0)
-#endif
+#endif // ifdef FLEA_USE_HEAP_BUF
 
 /**
  * Create a PRNG object.
@@ -54,7 +54,7 @@ typedef struct
  *
  * @return error code
  */
-flea_err_t THR_flea_ctr_mode_prng_t__ctor(
+flea_err_e THR_flea_ctr_mode_prng_t__ctor(
   flea_ctr_mode_prng_t* ctx__pt,
   const flea_u8_t*      state__pcu8,
   flea_al_u8_t          state_len__alu8
@@ -104,7 +104,7 @@ void flea_ctr_mode_prng_t__randomize(
  *
  * @return flea error code
  */
-flea_err_t THR_flea_ctr_mode_prng_t__reseed(
+flea_err_e THR_flea_ctr_mode_prng_t__reseed(
   flea_ctr_mode_prng_t* ctx__pt,
   const flea_u8_t*      seed__pcu8,
   flea_dtl_t            seed_len__dtl

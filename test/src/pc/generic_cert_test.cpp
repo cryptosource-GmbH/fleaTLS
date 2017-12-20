@@ -11,7 +11,7 @@
 /* <== linux only */
 
 
-flea_err_t THR_fleatest_iterate_cert_files_and_verify_as_self_signed(
+flea_err_e THR_fleatest_iterate_cert_files_and_verify_as_self_signed(
   std::string const          &dir_name,
   bool                       expect_error,
   std::vector<unsigned char> issuer

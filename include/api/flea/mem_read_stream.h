@@ -17,7 +17,7 @@ typedef struct
 } flea_mem_read_stream_help_t;
 
 
-flea_err_t THR_flea_rw_stream_t__ctor_memory(
+flea_err_e THR_flea_rw_stream_t__ctor_memory(
   flea_rw_stream_t*            rw_stream__pt,
   const flea_u8_t*             source_mem__pcu8,
   flea_dtl_t                   source_mem_len__dtl,

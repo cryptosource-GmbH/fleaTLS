@@ -6,7 +6,7 @@
 #include <string.h>
 #include "flea/tls.h"
 
-flea_err_t THR_flea_tls_test_basic()
+flea_err_e THR_flea_tls_test_basic()
 {
   return FLEA_ERR_FINE;
 }

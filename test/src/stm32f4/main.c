@@ -18,9 +18,9 @@ void init();
 void calculation_test();
 void dac_test();
 
-flea_err_t THR_flea_test_rsa_crt();
+flea_err_e THR_flea_test_rsa_crt();
 
-flea_err_t THR_flea_test_ecdsa_256bit_sign_loop(unsigned count);
+flea_err_e THR_flea_test_ecdsa_256bit_sign_loop(unsigned count);
 
 void test_loop(unsigned limit);
 

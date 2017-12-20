@@ -18,7 +18,7 @@ struct file_based_rw_stream_ctx_t
 };
 
 
-flea_err_t THR_flea_test_file_based_rw_stream_t__ctor(
+flea_err_e THR_flea_test_file_based_rw_stream_t__ctor(
   flea_rw_stream_t*           stream__pt,
   file_based_rw_stream_ctx_t* fb_rws_ctx,
   std::string const           & dir_with_input_files,

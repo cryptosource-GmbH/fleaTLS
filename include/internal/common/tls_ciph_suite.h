@@ -48,42 +48,42 @@ typedef enum
 
 typedef struct
 {
-  flea_tls__cipher_suite_id_t id;
+  flea_tls_cipher_suite_id_t id;
 
-  flea_u8_t                   cipher;
+  flea_u8_t                  cipher;
 
-  flea_u8_t                   block_size;
+  flea_u8_t                  block_size;
 
-  flea_u8_t                   iv_size;
-  flea_u8_t                   enc_key_size;
-  flea_u8_t                   mac_key_size;
-  flea_u8_t                   mac_size;
-  flea_hash_id_t              hash_algorithm;
-  flea_u8_t                   mask;
+  flea_u8_t                  iv_size;
+  flea_u8_t                  enc_key_size;
+  flea_u8_t                  mac_key_size;
+  flea_u8_t                  mac_size;
+  flea_hash_id_e             hash_algorithm;
+  flea_u8_t                  mask;
 } flea_tls__cipher_suite_t;
 
 
-flea_err_t THR_flea_tls_get_cipher_suite_by_id(
-  flea_tls__cipher_suite_id_t      id,
+flea_err_e THR_flea_tls_get_cipher_suite_by_id(
+  flea_tls_cipher_suite_id_t       id,
   const flea_tls__cipher_suite_t** result__pt
 );
 
-const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher_suite_id_t id__t);
+const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls_cipher_suite_id_t id__t);
 
 flea_bool_t flea_tls__does_priv_key_type_fit_to_ciphersuite(
-  flea_tls__cipher_suite_id_t id__t,
-  flea_pk_key_type_t          key_type__e
+  flea_tls_cipher_suite_id_t id__t,
+  flea_pk_key_type_e         key_type__e
 );
 
-flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
+flea_hash_id_e flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls_cipher_suite_id_t id__t);
 
-flea_tls__kex_method_t flea_tls_get_kex_method_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
+flea_tls__kex_method_t flea_tls_get_kex_method_by_cipher_suite_id(flea_tls_cipher_suite_id_t id__t);
 
-flea_tls_kex_e flea_tls__get_kex_and_auth_method_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t);
+flea_tls_kex_e flea_tls__get_kex_and_auth_method_by_cipher_suite_id(flea_tls_cipher_suite_id_t id__t);
 
-flea_err_t THR_flea_tls_get_key_block_len_from_cipher_suite_id(
-  flea_tls__cipher_suite_id_t id,
-  flea_al_u16_t*              result_key_block_len__palu16
+flea_err_e THR_flea_tls_get_key_block_len_from_cipher_suite_id(
+  flea_tls_cipher_suite_id_t id,
+  flea_al_u16_t*             result_key_block_len__palu16
 );
 
 #endif // ifdef FLEA_HAVE_TLS

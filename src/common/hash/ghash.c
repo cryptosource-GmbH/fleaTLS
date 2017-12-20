@@ -124,7 +124,7 @@ static void ghash_xor_and_process_block(
   ghash_process_block(ctx__pt, output__pu8);
 }
 
-flea_err_t THR_flea_ghash_ctx_t__ctor(
+flea_err_e THR_flea_ghash_ctx_t__ctor(
   flea_ghash_ctx_t*          ctx__pt,
   const flea_ecb_mode_ctx_t* ecb_ctx__pt
 )
@@ -207,7 +207,7 @@ flea_err_t THR_flea_ghash_ctx_t__ctor(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_ghash_ctx_t__ctor */
 
-flea_err_t THR_flea_ghash_ctx_t__start(
+flea_err_e THR_flea_ghash_ctx_t__start(
   flea_ghash_ctx_t*          ctx,
   const flea_ecb_mode_ctx_t* ecb_ctx__pt,
   const flea_u8_t*           iv,
@@ -271,7 +271,7 @@ flea_err_t THR_flea_ghash_ctx_t__start(
   );
 } /* THR_flea_ghash_ctx_t__start */
 
-flea_err_t THR_flea_ghash_ctx_t__update(
+flea_err_e THR_flea_ghash_ctx_t__update(
   flea_ghash_ctx_t* ctx__pt,
   flea_dtl_t        input_len__dtl,
   const flea_u8_t*  input__pcu8

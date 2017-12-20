@@ -10,13 +10,13 @@ const flea_u8_t brainpool_version_one_oid_prefix[] = {0x2B, 0x24, 0x03, 0x03, 0x
 const flea_u8_t nist_secp_curve_prefix[] = {0x2B, 0x81, 0x04, 0x00};
 const flea_u8_t P256_oid[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x01, 0x07};
 
-flea_err_t THR_flea_ecc_gfp_dom_par_t__set_by_named_curve_oid(
+flea_err_e THR_flea_ecc_gfp_dom_par_t__set_by_named_curve_oid(
   flea_ec_gfp_dom_par_ref_t* dp_to_set__pt,
   const flea_u8_t*           oid__pcu8,
   flea_al_u8_t               oid_len__alu8
 )
 {
-  flea_ec_dom_par_id_t result_id;
+  flea_ec_dom_par_id_e result_id;
 
   FLEA_THR_BEG_FUNC();
   if((oid_len__alu8 == sizeof(brainpool_version_one_oid_prefix) + 1) &&
@@ -36,7 +36,7 @@ flea_err_t THR_flea_ecc_gfp_dom_par_t__set_by_named_curve_oid(
       FLEA_THROW("invalid/unkonwn named curve OID", FLEA_ERR_ECC_INV_BUILTIN_DP_ID);
     }
     last_byte /= 2;
-    result_id  = (flea_ec_dom_par_id_t) (flea_brainpoolP160r1 + last_byte);
+    result_id  = (flea_ec_dom_par_id_e) (flea_brainpoolP160r1 + last_byte);
   }
   else if(oid_len__alu8 == sizeof(nist_secp_curve_prefix) + 1)
   {

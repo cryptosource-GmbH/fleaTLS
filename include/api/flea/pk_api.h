@@ -31,7 +31,7 @@ typedef union
 /**
  * Supported
  */
-typedef enum { flea_sign, flea_verify } flea_pk_signer_direction_t;
+typedef enum { flea_sign, flea_verify } flea_pk_signer_direction_e;
 
 struct struct_flea_pk_config_t;
 
@@ -43,7 +43,7 @@ typedef struct struct_flea_pk_config_t flea_pk_config_t;
 typedef struct
 {
   flea_hash_ctx_t hash_ctx;
-  flea_hash_id_t  hash_id__t;
+  flea_hash_id_e  hash_id__t;
 } flea_pk_signer_t;
 
 
@@ -67,9 +67,9 @@ typedef struct
  *
  * @return flea error code
  */
-flea_err_t THR_flea_pk_signer_t__ctor(
+flea_err_e THR_flea_pk_signer_t__ctor(
   flea_pk_signer_t* signer,
-  flea_hash_id_t    hash_id
+  flea_hash_id_e    hash_id
 );
 
 /**
@@ -88,7 +88,7 @@ void flea_pk_signer_t__dtor(flea_pk_signer_t* signer);
  *
  * @return flea error code
  */
-flea_err_t THR_flea_pk_signer_t__update(
+flea_err_e THR_flea_pk_signer_t__update(
   flea_pk_signer_t* signer,
   const flea_u8_t*  message,
   flea_al_u16_t     message_len
@@ -106,9 +106,9 @@ flea_err_t THR_flea_pk_signer_t__update(
  * @return flea error code FLEA_ERR_FINE indicates successful verification and FLEA_ERR_INV_SIGNATURE indicates a
  * failed signature verification
  */
-flea_err_t THR_flea_pk_signer_t__final_verify(
+flea_err_e THR_flea_pk_signer_t__final_verify(
   flea_pk_signer_t*        signer,
-  flea_pk_scheme_id_t      id,
+  flea_pk_scheme_id_e      id,
   const flea_public_key_t* pubkey,
   const flea_u8_t*         signature,
   flea_al_u16_t            signature_len
@@ -124,9 +124,9 @@ flea_err_t THR_flea_pk_signer_t__final_verify(
  * @param signature receives the generated signature after function completion
  */
 
-flea_err_t THR_flea_pk_signer_t__final_sign(
+flea_err_e THR_flea_pk_signer_t__final_sign(
   flea_pk_signer_t*         signer,
-  flea_pk_scheme_id_t       id,
+  flea_pk_scheme_id_e       id,
   const flea_private_key_t* privkey,
   flea_byte_vec_t*          signature
 );

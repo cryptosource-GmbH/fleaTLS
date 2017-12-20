@@ -9,7 +9,7 @@
 #include "flea/array_util.h"
 
 
-flea_err_t THR_flea_len_ctr_t__ctor(
+flea_err_e THR_flea_len_ctr_t__ctor(
   flea_len_ctr_t* len_ctr__pt,
   flea_al_u8_t    counter_block_arr_len__u8,
   flea_al_u8_t    limit_exponent__alu8,
@@ -27,7 +27,7 @@ flea_err_t THR_flea_len_ctr_t__ctor(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_len_ctr_t__ctor_copy(
+flea_err_e THR_flea_len_ctr_t__ctor_copy(
   flea_len_ctr_t*       len_ctr__pt,
   const flea_len_ctr_t* orig__pt
 )
@@ -49,7 +49,7 @@ void flea_len_ctr_t__dtor(flea_len_ctr_t* len_ctr__pt)
 #endif
 }
 
-static flea_err_t THR_flea_len_ctr_t__add_and_check_len_limit_inner(
+static flea_err_e THR_flea_len_ctr_t__add_and_check_len_limit_inner(
   flea_u32_t*  ctr_block__pu32,
   flea_al_u8_t ctr_block_arr_len__alu8,
   flea_dtl_t   add_len__dtl,
@@ -96,7 +96,7 @@ void flea_len_ctr_t__reset(flea_len_ctr_t* len_ctr__pt)
   FLEA_SET_ARR(len_ctr__pt->counter__bu32, 0, len_ctr__pt->counter_block_arr_len__u8);
 }
 
-flea_err_t THR_flea_len_ctr_t__add_and_check_len_limit(
+flea_err_e THR_flea_len_ctr_t__add_and_check_len_limit(
   flea_len_ctr_t* len_ctr__pt,
   flea_dtl_t      add_len__dtl
 )

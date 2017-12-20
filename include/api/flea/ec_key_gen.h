@@ -26,7 +26,7 @@ extern "C" {
  *
  * @result flea error code
  */
-flea_err_t THR_flea_generate_ecc_key(
+flea_err_e THR_flea_generate_ecc_key(
   flea_u8_t*                       result_public__p_u8,
   flea_al_u8_t*                    result_public_len__p_al_u8,
   flea_u8_t*                       result_private__p_u8,

@@ -15,7 +15,7 @@
 #include "self_test.h"
 
 #if defined FLEA_HAVE_ECC && FLEA_ECC_MAX_MOD_BIT_SIZE >= 160
-flea_err_t THR_flea_test_ecc_point_gfp_mul()
+flea_err_e THR_flea_test_ecc_point_gfp_mul()
 {
   flea_u8_t prime_enc[] = {
     0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff,
@@ -86,7 +86,7 @@ flea_err_t THR_flea_test_ecc_point_gfp_mul()
   );
 } /* THR_flea_test_ecc_point_gfp_mul */
 
-flea_err_t THR_flea_test_ecc_point_gfp_add()
+flea_err_e THR_flea_test_ecc_point_gfp_add()
 {
   flea_al_u16_t i;
   // curve: secP160r1
@@ -180,7 +180,7 @@ flea_err_t THR_flea_test_ecc_point_gfp_add()
   {
     FLEA_ALLOC_MEM_ARR(ecc_ws_mpi_arrs[i], ecc_ws_mpi_arrs_word_len);
   }
-# endif
+# endif /* ifdef FLEA_USE_HEAP_BUF */
 
   FLEA_ALLOC_BUF(curve_word_arr, curve_word_arr_word_len);
   FLEA_ALLOC_BUF(aff_point_word_arr, aff_point_word_arr_word_len);
@@ -296,7 +296,7 @@ flea_err_t THR_flea_test_ecc_point_gfp_add()
   );
 } /* THR_flea_test_ecc_point_gfp_add */
 
-flea_err_t THR_flea_test_ecc_point_gfp_double()
+flea_err_e THR_flea_test_ecc_point_gfp_double()
 {
   flea_al_u16_t i;
   // curve: secP160r1
@@ -368,7 +368,7 @@ flea_err_t THR_flea_test_ecc_point_gfp_double()
   {
     FLEA_ALLOC_MEM_ARR(ecc_ws_mpi_arrs[i], ecc_ws_mpi_arrs_word_len);
   }
-# endif
+# endif /* ifdef FLEA_USE_HEAP_BUF */
 
   FLEA_ALLOC_BUF(curve_word_arr, curve_word_arr_word_len);
   FLEA_ALLOC_BUF(aff_point_word_arr, aff_point_word_arr_word_len);

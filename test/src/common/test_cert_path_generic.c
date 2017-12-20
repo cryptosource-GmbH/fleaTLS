@@ -14,7 +14,7 @@
 #include "self_test.h"
 
 #if defined FLEA_HAVE_RSA && (defined FLEA_USE_HEAP_BUF || FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
-flea_err_t THR_flea_test_cert_path_generic(
+flea_err_e THR_flea_test_cert_path_generic(
   const flea_u8_t*      target_cert_ptr,
   flea_u32_t            target_cert_len,
   flea_u8_t**           trust_anchor_ptrs,
@@ -38,7 +38,7 @@ flea_err_t THR_flea_test_cert_path_generic(
   /** this parameter is actually superflous and misleading, the caller evaluates
    * the test result: */
   const flea_bool_t is_valid_chain = FLEA_TRUE;
-  flea_err_t err;
+  flea_err_e err;
 
   FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
   FLEA_THR_BEG_FUNC();

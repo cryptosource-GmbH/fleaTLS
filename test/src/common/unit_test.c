@@ -65,7 +65,7 @@ int flea_unit_tests(
   unsigned nb_exec_tests = 0;
   unsigned failed_tests  = 0;
   unsigned i;
-  flea_err_t rv = 0;
+  flea_err_e rv = 0;
 
   for(i = 0; i < nb_reps; i++)
   {

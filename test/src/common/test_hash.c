@@ -7,7 +7,7 @@
 #include "flea/alloc.h"
 #include "flea/algo_config.h"
 #include <string.h>
-static flea_err_t THR_flea_test_hash_init_dtor()
+static flea_err_e THR_flea_test_hash_init_dtor()
 {
   FLEA_DECL_OBJ(ctx, flea_hash_ctx_t);
   flea_hash_ctx_t ctx2;
@@ -20,8 +20,8 @@ static flea_err_t THR_flea_test_hash_init_dtor()
   );
 }
 
-static flea_err_t THR_flea_test_hash_mess_result(
-  flea_hash_id_t   id__t,
+static flea_err_e THR_flea_test_hash_mess_result(
+  flea_hash_id_e   id__t,
   const flea_u8_t* m__pcu8,
   flea_al_u16_t    m_len__al_u16,
   const flea_u8_t* exp_res__pcu8,
@@ -73,8 +73,8 @@ static flea_err_t THR_flea_test_hash_mess_result(
   );
 } /* THR_flea_test_hash_mess_result */
 
-static flea_err_t THR_flea_test_hash_abc(
-  flea_hash_id_t   id__t,
+static flea_err_e THR_flea_test_hash_abc(
+  flea_hash_id_e   id__t,
   const flea_u8_t* exp_res__pcu8,
   flea_al_u16_t    exp_res_len__alu16
 )
@@ -84,7 +84,7 @@ static flea_err_t THR_flea_test_hash_abc(
   return THR_flea_test_hash_mess_result(id__t, m__au8, sizeof(m__au8), exp_res__pcu8, exp_res_len__alu16);
 }
 
-flea_err_t THR_flea_test_hash()
+flea_err_e THR_flea_test_hash()
 {
   FLEA_THR_BEG_FUNC();
 #ifdef FLEA_HAVE_SHA1

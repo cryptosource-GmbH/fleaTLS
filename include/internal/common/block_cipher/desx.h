@@ -7,7 +7,7 @@
 /**
  * expects the key as k||k1||k2 where DESX_ENC(k,k1,k2,m) = DES_ENC_k(m^k1)^k2
  */
-flea_err_t THR_flea_desx_setup_key(
+flea_err_e THR_flea_desx_setup_key(
   flea_ecb_mode_ctx_t* ctx__pt,
   const flea_u8_t*     key
 );

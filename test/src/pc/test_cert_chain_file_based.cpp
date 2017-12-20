@@ -17,7 +17,7 @@ using namespace std;
 
 #if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) && defined FLEA_HAVE_ECDSA && \
   (FLEA_ECC_MAX_MOD_BIT_SIZE >= 521)
-static flea_err_t THR_flea_execute_path_test_case_for_properties(
+static flea_err_e THR_flea_execute_path_test_case_for_properties(
   std::string const   & dir_path,
   property_set_t const& prop,
   std::string const   & file_path_to_be_replaced_by_std_in
@@ -64,7 +64,7 @@ static flea_err_t THR_flea_execute_path_test_case_for_properties(
   {
     target_cert = read_bin_file(target_cert_files[0]);
   }
-  flea_err_t err;
+  flea_err_e err;
   for(string anchor_file: trust_anchor_files)
   {
     vector<unsigned char> cert;
@@ -241,7 +241,7 @@ static properties_spec_t create_cert_path_ini_file_spec()
   return spec;
 }
 
-static flea_err_t THR_flea_execute_path_test_case(
+static flea_err_e THR_flea_execute_path_test_case(
   std::string const& dir_path,
   std::string const& file_path_to_be_replaced_by_std_in
 )
@@ -262,7 +262,7 @@ static flea_err_t THR_flea_execute_path_test_case(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_test_path_validation_file_based(
+flea_err_e THR_flea_test_path_validation_file_based(
   const char* cert_path_prefix,
   flea_u32_t* nb_exec_tests_pu32,
   const char* file_path_to_be_replaced_by_std_in
@@ -301,7 +301,7 @@ flea_err_t THR_flea_test_path_validation_file_based(
     bool failure = false;
     for(flea_u32_t i = 0; i < nb_test_execution_repetitions_due_randomized_cert_order; i++)
     {
-      flea_err_t err = THR_flea_execute_path_test_case(test, file_path_to_be_replaced_by_std_in);
+      flea_err_e err = THR_flea_execute_path_test_case(test, file_path_to_be_replaced_by_std_in);
       if(err)
       {
         if(cert_path_prefix != nullptr)

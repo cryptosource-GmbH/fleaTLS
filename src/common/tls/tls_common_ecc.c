@@ -26,9 +26,9 @@ static curve_bytes_dp_id_map_entry_t curve_bytes_flea_id_map[] = {
   {(flea_u8_t) flea_brainpoolP512r1, 28}
 };
 
-flea_err_t THR_flea_tls__map_curve_bytes_to_flea_curve(
+flea_err_e THR_flea_tls__map_curve_bytes_to_flea_curve(
   const flea_u8_t       bytes[2],
-  flea_ec_dom_par_id_t* ec_dom_par_id__pe
+  flea_ec_dom_par_id_e* ec_dom_par_id__pe
 )
 {
   flea_al_u8_t i;
@@ -40,7 +40,7 @@ flea_err_t THR_flea_tls__map_curve_bytes_to_flea_curve(
     {
       if(bytes[1] == curve_bytes_flea_id_map[i].curve_bytes__u8)
       {
-        *ec_dom_par_id__pe = (flea_ec_dom_par_id_t) curve_bytes_flea_id_map[i].flea_dp_id__u8;
+        *ec_dom_par_id__pe = (flea_ec_dom_par_id_e) curve_bytes_flea_id_map[i].flea_dp_id__u8;
         FLEA_THR_RETURN();
       }
     }
@@ -51,7 +51,7 @@ flea_err_t THR_flea_tls__map_curve_bytes_to_flea_curve(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls_ctx_t__parse_supported_curves_ext(
+flea_err_e THR_flea_tls_ctx_t__parse_supported_curves_ext(
   flea_tls_ctx_t*   tls_ctx__pt,
   flea_rw_stream_t* rd_strm__pt,
   flea_al_u16_t     ext_len__alu16
@@ -86,7 +86,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_supported_curves_ext(
   curve_pos__alu16 = 0xFFFF;
   while(len__u32)
   {
-    flea_ec_dom_par_id_t dp_id;
+    flea_ec_dom_par_id_e dp_id;
     // flea_u32_t curve_id__u32;
     flea_u8_t curve_bytes__au8 [2];
     flea_al_u16_t i;
@@ -123,7 +123,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_supported_curves_ext(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__parse_supported_curves_ext */
 
-flea_err_t THR_flea_tls_ctx_t__parse_point_formats_ext(
+flea_err_e THR_flea_tls_ctx_t__parse_point_formats_ext(
   flea_tls_ctx_t*   tls_ctx__pt,
   flea_rw_stream_t* rd_strm__pt,
   flea_al_u16_t     ext_len__alu16
@@ -169,7 +169,7 @@ flea_err_t THR_flea_tls_ctx_t__parse_point_formats_ext(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__parse_point_formats_ext */
 
-flea_bool_t flea_tls__is_cipher_suite_ecdhe_suite(flea_tls__cipher_suite_id_t suite_id)
+flea_bool_t flea_tls__is_cipher_suite_ecdhe_suite(flea_tls_cipher_suite_id_t suite_id)
 {
   if(flea_tls_get_cipher_suite_by_id(suite_id)->mask & FLEA_TLS_CS_KEX_MASK__ECDHE)
   {
@@ -178,7 +178,7 @@ flea_bool_t flea_tls__is_cipher_suite_ecdhe_suite(flea_tls__cipher_suite_id_t su
   return FLEA_FALSE;
 }
 
-flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_tls__cipher_suite_id_t suite_id)
+flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_tls_cipher_suite_id_t suite_id)
 {
   if((suite_id >> 8) == 0xC0)
   {
@@ -187,7 +187,7 @@ flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_tls__cipher_suite_id_t suit
   return FLEA_FALSE;
 }
 
-flea_err_t THR_flea_tls_ctx_t__send_ecc_point_format_ext(
+flea_err_e THR_flea_tls_ctx_t__send_ecc_point_format_ext(
   flea_tls_ctx_t*               tls_ctx__pt,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
 )
@@ -207,7 +207,7 @@ flea_err_t THR_flea_tls_ctx_t__send_ecc_point_format_ext(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
+flea_err_e THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
   flea_tls_ctx_t*               tls_ctx__pt,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
 )
@@ -249,7 +249,7 @@ flea_err_t THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
   {
     FLEA_CCALL(
       THR_flea_tls__map_flea_curve_to_curve_bytes(
-        (flea_ec_dom_par_id_t) tls_ctx__pt->
+        (flea_ec_dom_par_id_e) tls_ctx__pt->
         allowed_ecc_curves__pe[i],
         ext__au8
       )
@@ -267,8 +267,8 @@ flea_err_t THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__send_ecc_supported_curves_ext */
 
-flea_err_t THR_flea_tls__map_flea_curve_to_curve_bytes(
-  const flea_ec_dom_par_id_t ec_dom_par_id__e,
+flea_err_e THR_flea_tls__map_flea_curve_to_curve_bytes(
+  const flea_ec_dom_par_id_e ec_dom_par_id__e,
   flea_u8_t                  bytes[2]
 )
 {

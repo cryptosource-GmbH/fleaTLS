@@ -12,7 +12,7 @@ extern "C" {
 #endif
 
 /* internal function pointer types */
-typedef flea_err_t (* THR_flea_hash_compression_f)(
+typedef flea_err_e (* THR_flea_hash_compression_f)(
   flea_hash_ctx_t* ctx,
   const flea_u8_t* input
 );

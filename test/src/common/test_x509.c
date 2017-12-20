@@ -12,7 +12,7 @@
 
 #include <string.h>
 
-flea_err_t THR_flea_test_dec_tls_server_cert_broken()
+flea_err_e THR_flea_test_dec_tls_server_cert_broken()
 {
   FLEA_DECL_OBJ(cert_ref__t, flea_x509_cert_ref_t);
   FLEA_THR_BEG_FUNC();
@@ -27,7 +27,7 @@ flea_err_t THR_flea_test_dec_tls_server_cert_broken()
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_test_dec_tls_server_issuer_cert()
+flea_err_e THR_flea_test_dec_tls_server_issuer_cert()
 {
   FLEA_DECL_OBJ(cert_ref__t, flea_x509_cert_ref_t);
   FLEA_THR_BEG_FUNC();
@@ -54,7 +54,7 @@ flea_err_t THR_flea_test_dec_tls_server_issuer_cert()
   );
 }
 
-flea_err_t THR_flea_test_dec_tls_server_cert()
+flea_err_e THR_flea_test_dec_tls_server_cert()
 {
   const char* hostname__cs        = "internal.cryptosource.de";
   const char* wrong_hostname__cs  = "internal.cryptosource.dd";
@@ -114,7 +114,7 @@ flea_err_t THR_flea_test_dec_tls_server_cert()
   );
 } /* THR_flea_test_dec_tls_server_cert */
 
-flea_err_t THR_flea_test_dec_ca_cert()
+flea_err_e THR_flea_test_dec_ca_cert()
 {
   FLEA_DECL_OBJ(cert_ref__t, flea_x509_cert_ref_t);
   flea_x509_cert_ref_t__INIT(&cert_ref__t);

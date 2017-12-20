@@ -15,7 +15,7 @@
 #ifdef FLEA_HAVE_ASYM_SIG
 
 # ifdef FLEA_HAVE_RSA
-flea_err_t THR_flea_test_cert_verify_rsa()
+flea_err_e THR_flea_test_cert_verify_rsa()
 {
   FLEA_THR_BEG_FUNC();
 #  if FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096
@@ -35,7 +35,7 @@ flea_err_t THR_flea_test_cert_verify_rsa()
 # endif /* ifdef FLEA_HAVE_RSA */
 
 # ifdef FLEA_HAVE_ECDSA
-flea_err_t THR_flea_test_cert_verify_ecdsa()
+flea_err_e THR_flea_test_cert_verify_ecdsa()
 {
   FLEA_THR_BEG_FUNC();
 #  if FLEA_ECC_MAX_MOD_BIT_SIZE >= 384

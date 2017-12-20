@@ -29,22 +29,22 @@ typedef enum
   flea_read_full,
 } flea_stream_read_mode_e;
 
-typedef flea_err_t (* flea_rw_stream_write_f)(
+typedef flea_err_e (* flea_rw_stream_write_f)(
   void*            custom_obj__pv,
   const flea_u8_t* source_buffer__pcu8,
   flea_dtl_t       nb_bytes_to_write__dtl
 );
 
-typedef flea_err_t (* flea_rw_stream_read_f)(
+typedef flea_err_e (* flea_rw_stream_read_f)(
   void*                   custom_obj__pv,
   flea_u8_t*              target_buffer__pu8,
   flea_dtl_t*             nb_bytes_to_read__pdtl,
   flea_stream_read_mode_e rd_mode__e
 );
 
-typedef flea_err_t (* flea_rw_stream_open_f)(void* custom_obj__pv);
+typedef flea_err_e (* flea_rw_stream_open_f)(void* custom_obj__pv);
 
-typedef flea_err_t (* flea_rw_stream_flush_write_f)(void* custom_obj__pv);
+typedef flea_err_e (* flea_rw_stream_flush_write_f)(void* custom_obj__pv);
 
 typedef void (* flea_rw_stream_close_f)(void* custom_obj__pv);
 
@@ -67,7 +67,7 @@ typedef struct
 
 void flea_rw_stream_t__dtor(flea_rw_stream_t* stream__pt);
 
-flea_err_t THR_flea_rw_stream_t__ctor(
+flea_err_e THR_flea_rw_stream_t__ctor(
   flea_rw_stream_t*            stream__pt,
   void*                        custom_obj__pv,
   flea_rw_stream_open_f        open_func_mbn__f,
@@ -79,7 +79,7 @@ flea_err_t THR_flea_rw_stream_t__ctor(
 );
 
 
-flea_err_t THR_flea_rw_stream_t__ctor_detailed(
+flea_err_e THR_flea_rw_stream_t__ctor_detailed(
   flea_rw_stream_t*            stream__pt,
   void*                        custom_obj__pv,
   flea_rw_stream_open_f        open_func__f,
@@ -94,26 +94,26 @@ flea_err_t THR_flea_rw_stream_t__ctor_detailed(
 flea_rw_stream_type_e flea_rw_stream_t__get_strm_type(const flea_rw_stream_t* rw_stream__pt);
 
 
-flea_err_t THR_flea_rw_stream_t__write(
+flea_err_e THR_flea_rw_stream_t__write(
   flea_rw_stream_t* stream__pt,
   const flea_u8_t*  data__pcu8,
   flea_dtl_t        data_len__dtl
 );
 
-flea_err_t THR_flea_rw_stream_t__write_byte(
+flea_err_e THR_flea_rw_stream_t__write_byte(
   flea_rw_stream_t* stream__pt,
   flea_u8_t         byte__u8
 );
 
-flea_err_t THR_flea_rw_stream_t__write_u32_be(
+flea_err_e THR_flea_rw_stream_t__write_u32_be(
   flea_rw_stream_t* stream__pt,
   flea_u32_t        value__u32,
   flea_al_u8_t      enc_len__alu8
 );
 
-flea_err_t THR_flea_rw_stream_t__flush_write(flea_rw_stream_t* stream__pt);
+flea_err_e THR_flea_rw_stream_t__flush_write(flea_rw_stream_t* stream__pt);
 
-flea_err_t THR_flea_rw_stream_t__read(
+flea_err_e THR_flea_rw_stream_t__read(
   flea_rw_stream_t*       stream__pt,
   flea_u8_t*              data__pu8,
   flea_dtl_t*             data_len__pdtl,
@@ -121,18 +121,18 @@ flea_err_t THR_flea_rw_stream_t__read(
 );
 
 
-flea_err_t THR_flea_rw_stream_t__read_full(
+flea_err_e THR_flea_rw_stream_t__read_full(
   flea_rw_stream_t* stream__pt,
   flea_u8_t*        data__pcu8,
   flea_dtl_t        data_len__dtl
 );
 
-flea_err_t THR_flea_rw_stream_t__skip_read(
+flea_err_e THR_flea_rw_stream_t__skip_read(
   flea_rw_stream_t* stream__pt,
   flea_dtl_t        skip_len__dtl
 );
 
-flea_err_t THR_flea_rw_stream_t__read_byte(
+flea_err_e THR_flea_rw_stream_t__read_byte(
   flea_rw_stream_t* stream__pt,
   flea_u8_t*        byte__pu8
 );
@@ -146,7 +146,7 @@ flea_err_t THR_flea_rw_stream_t__read_byte(
  *                value
  * @param nb_bytes__alu8 the width of the encoded integer in bytes
  */
-flea_err_t THR_flea_rw_stream_t__read_int_be(
+flea_err_e THR_flea_rw_stream_t__read_int_be(
   flea_rw_stream_t* stream__pt,
   flea_u32_t*       result__pu32,
   flea_al_u8_t      nb_bytes__alu8

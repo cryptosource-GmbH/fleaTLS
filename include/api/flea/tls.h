@@ -121,7 +121,7 @@ typedef enum
 # ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
   flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384 = 0xC030
 # endif
-} flea_tls__cipher_suite_id_t;
+} flea_tls_cipher_suite_id_t;
 
 # ifdef __cplusplus
 }

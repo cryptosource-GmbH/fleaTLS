@@ -21,12 +21,12 @@ struct mac_config_entry_struct
    * the length of the output of the MAC
    */
   flea_u8_t          mac_output_len__u8;
-  flea_mac_id_t      ext_id__t;
+  flea_mac_id_e      ext_id__t;
   flea_mac_mode_id_t mode_id__t;
   union
   {
-    flea_hash_id_t         hash_id__t;
-    flea_block_cipher_id_t cipher_id__t;
+    flea_hash_id_e         hash_id__t;
+    flea_block_cipher_id_e cipher_id__t;
   } primitive_id__u;
 };
 
@@ -39,7 +39,7 @@ static const mac_config_entry_t mac_config__at[] = {
     .mode_id__t = flea_hmac,
     .primitive_id__u.hash_id__t = flea_md5
   },
-# endif
+# endif /* if defined FLEA_HAVE_MD5 && defined FLEA_HAVE_HMAC */
 # if defined FLEA_HAVE_SHA1 && defined FLEA_HAVE_HMAC
   {
     .key_byte_size__u8  = 64,
@@ -48,7 +48,7 @@ static const mac_config_entry_t mac_config__at[] = {
     .mode_id__t = flea_hmac,
     .primitive_id__u.hash_id__t = flea_sha1
   },
-# endif
+# endif /* if defined FLEA_HAVE_SHA1 && defined FLEA_HAVE_HMAC */
 # if defined FLEA_HAVE_SHA224_256 && defined FLEA_HAVE_HMAC
   {
     .key_byte_size__u8  = 64,
@@ -57,7 +57,7 @@ static const mac_config_entry_t mac_config__at[] = {
     .mode_id__t = flea_hmac,
     .primitive_id__u.hash_id__t = flea_sha224
   },
-# endif
+# endif /* if defined FLEA_HAVE_SHA224_256 && defined FLEA_HAVE_HMAC */
 # if defined FLEA_HAVE_SHA224_256 && defined FLEA_HAVE_HMAC
   {
     .key_byte_size__u8  = 64,
@@ -66,7 +66,7 @@ static const mac_config_entry_t mac_config__at[] = {
     .mode_id__t = flea_hmac,
     .primitive_id__u.hash_id__t = flea_sha256
   },
-# endif
+# endif /* if defined FLEA_HAVE_SHA224_256 && defined FLEA_HAVE_HMAC */
 # if defined FLEA_HAVE_SHA384_512 && defined FLEA_HAVE_HMAC
   {
     .key_byte_size__u8  = 128,
@@ -75,7 +75,7 @@ static const mac_config_entry_t mac_config__at[] = {
     .mode_id__t = flea_hmac,
     .primitive_id__u.hash_id__t = flea_sha384
   },
-# endif
+# endif /* if defined FLEA_HAVE_SHA384_512 && defined FLEA_HAVE_HMAC */
 # if defined FLEA_HAVE_SHA384_512 && defined FLEA_HAVE_HMAC
   {
     .key_byte_size__u8  = 128,
@@ -84,7 +84,7 @@ static const mac_config_entry_t mac_config__at[] = {
     .mode_id__t = flea_hmac,
     .primitive_id__u.hash_id__t = flea_sha512
   },
-# endif
+# endif /* if defined FLEA_HAVE_SHA384_512 && defined FLEA_HAVE_HMAC */
 # if defined FLEA_HAVE_AES && defined FLEA_HAVE_CMAC
   {
     .key_byte_size__u8  = 128 / 8,
@@ -93,7 +93,7 @@ static const mac_config_entry_t mac_config__at[] = {
     .mode_id__t = flea_cmac,
     .primitive_id__u.cipher_id__t = flea_aes128
   },
-# endif
+# endif /* if defined FLEA_HAVE_AES && defined FLEA_HAVE_CMAC */
 # if defined FLEA_HAVE_AES && defined FLEA_HAVE_CMAC
   {
     .key_byte_size__u8  = 192 / 8,
@@ -102,7 +102,7 @@ static const mac_config_entry_t mac_config__at[] = {
     .mode_id__t = flea_cmac,
     .primitive_id__u.cipher_id__t = flea_aes192
   },
-# endif
+# endif /* if defined FLEA_HAVE_AES && defined FLEA_HAVE_CMAC */
 # if defined FLEA_HAVE_AES && defined FLEA_HAVE_CMAC
   {
     .key_byte_size__u8  = 256 / 8,
@@ -111,7 +111,7 @@ static const mac_config_entry_t mac_config__at[] = {
     .mode_id__t = flea_cmac,
     .primitive_id__u.cipher_id__t = flea_aes256
   },
-# endif
+# endif /* if defined FLEA_HAVE_AES && defined FLEA_HAVE_CMAC */
 # if defined FLEA_HAVE_DES && defined FLEA_HAVE_CMAC
   {
     .key_byte_size__u8  = 64 / 8,
@@ -120,7 +120,7 @@ static const mac_config_entry_t mac_config__at[] = {
     .mode_id__t = flea_cmac,
     .primitive_id__u.cipher_id__t = flea_des_single
   },
-# endif
+# endif /* if defined FLEA_HAVE_DES && defined FLEA_HAVE_CMAC */
 # if defined FLEA_HAVE_TDES_2KEY && defined FLEA_HAVE_CMAC
   {
     .key_byte_size__u8  = 2 * 64 / 8,
@@ -129,7 +129,7 @@ static const mac_config_entry_t mac_config__at[] = {
     .mode_id__t = flea_cmac,
     .primitive_id__u.cipher_id__t = flea_tdes_2key
   },
-# endif
+# endif /* if defined FLEA_HAVE_TDES_2KEY && defined FLEA_HAVE_CMAC */
 # if defined FLEA_HAVE_TDES_3KEY && defined FLEA_HAVE_CMAC
   {
     .key_byte_size__u8  = 3 * 64 / 8,
@@ -138,10 +138,10 @@ static const mac_config_entry_t mac_config__at[] = {
     .mode_id__t = flea_cmac,
     .primitive_id__u.cipher_id__t = flea_tdes_3key
   }
-# endif
+# endif /* if defined FLEA_HAVE_TDES_3KEY && defined FLEA_HAVE_CMAC */
 };
 
-const mac_config_entry_t* flea_mac__find_mac_config(flea_mac_id_t id__t)
+const mac_config_entry_t* flea_mac__find_mac_config(flea_mac_id_e id__t)
 {
   flea_al_u8_t i;
 
@@ -155,7 +155,7 @@ const mac_config_entry_t* flea_mac__find_mac_config(flea_mac_id_t id__t)
   return NULL;
 }
 
-static flea_err_t THR_flea_mac_ctx_t__ctor_hmac(
+static flea_err_e THR_flea_mac_ctx_t__ctor_hmac(
   flea_mac_ctx_t*           ctx__pt,
   const mac_config_entry_t* config_entry__pt,
   const flea_u8_t*          key__pcu8,
@@ -180,7 +180,7 @@ static flea_err_t THR_flea_mac_ctx_t__ctor_hmac(
     ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key__bu8,
     ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key_byte_len__u8
   );
-# endif
+# endif /* ifdef FLEA_USE_HEAP_BUF */
   alias_key__pu8      = ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key__bu8;
   ctx__pt->mode_id__t = config_entry__pt->mode_id__t;
 
@@ -224,7 +224,7 @@ static flea_err_t THR_flea_mac_ctx_t__ctor_hmac(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_mac_ctx_t__ctor_hmac */
 
-flea_err_t THR_flea_mac_ctx_t__ctor_cmac(
+flea_err_e THR_flea_mac_ctx_t__ctor_cmac(
   flea_mac_ctx_t*           ctx__pt,
   const mac_config_entry_t* config_entry__pt,
   const flea_u8_t*          key__pcu8,
@@ -273,9 +273,9 @@ flea_err_t THR_flea_mac_ctx_t__ctor_cmac(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_mac_ctx_t__ctor_cmac */
 
-flea_err_t THR_flea_mac_ctx_t__ctor(
+flea_err_e THR_flea_mac_ctx_t__ctor(
   flea_mac_ctx_t*  ctx__pt,
-  flea_mac_id_t    id__t,
+  flea_mac_id_e    id__t,
   const flea_u8_t* key__pcu8,
   flea_al_u16_t    key_len__alu16
 )
@@ -343,7 +343,7 @@ void flea_mac_ctx_t__dtor_cipher_ctx_ref(flea_mac_ctx_t* ctx__pt)
   }
 }
 
-flea_err_t THR_flea_mac_ctx_t__update(
+flea_err_e THR_flea_mac_ctx_t__update(
   flea_mac_ctx_t*  ctx__pt,
   const flea_u8_t* data__pcu8,
   flea_dtl_t       data_len__dtl
@@ -461,7 +461,7 @@ static void flea_mac__polyn_double(
 # endif // #if defined FLEA_HAVE_CMAC
 
 # ifdef FLEA_HAVE_HMAC
-static flea_err_t THR_flea_mac_ctx_t__final_compute_hmac(
+static flea_err_e THR_flea_mac_ctx_t__final_compute_hmac(
   flea_mac_ctx_t* ctx__pt,
   flea_u8_t*      result__pu8,
   flea_al_u8_t*   result_len__palu8
@@ -519,7 +519,7 @@ static flea_err_t THR_flea_mac_ctx_t__final_compute_hmac(
 
 # endif // #ifdef FLEA_HAVE_HMAC
 # ifdef FLEA_HAVE_CMAC
-static flea_err_t THR_flea_mac_ctx_t__final_compute_cmac(
+static flea_err_e THR_flea_mac_ctx_t__final_compute_cmac(
   flea_mac_ctx_t* ctx__pt,
   flea_u8_t*      result__pu8,
   flea_al_u8_t*   result_len__palu8
@@ -579,7 +579,7 @@ static flea_err_t THR_flea_mac_ctx_t__final_compute_cmac(
 } /* THR_flea_mac_ctx_t__final_compute_cmac */
 
 # endif // #ifdef FLEA_HAVE_CMAC
-flea_err_t THR_flea_mac_ctx_t__final_compute(
+flea_err_e THR_flea_mac_ctx_t__final_compute(
   flea_mac_ctx_t* ctx__pt,
   flea_u8_t*      result__pu8,
   flea_al_u8_t*   result_len__palu8
@@ -591,7 +591,7 @@ flea_err_t THR_flea_mac_ctx_t__final_compute(
   {
     FLEA_CCALL(THR_flea_mac_ctx_t__final_compute_hmac(ctx__pt, result__pu8, result_len__palu8));
   }
-# endif
+# endif /* ifdef FLEA_HAVE_HMAC */
 # if defined FLEA_HAVE_CMAC && defined FLEA_HAVE_HMAC
   else // cmac
 # endif
@@ -607,7 +607,7 @@ flea_err_t THR_flea_mac_ctx_t__final_compute(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_al_u8_t flea_mac__get_output_length_by_id(flea_mac_id_t mac_id__e)
+flea_al_u8_t flea_mac__get_output_length_by_id(flea_mac_id_e mac_id__e)
 {
   const mac_config_entry_t* config_entry__pt = flea_mac__find_mac_config(mac_id__e);
 
@@ -622,7 +622,7 @@ flea_al_u8_t flea_mac__get_output_length_by_id(flea_mac_id_t mac_id__e)
  * Timing neutral function for memory comparison.
  */
 
-flea_err_t THR_flea_mac_ctx_t__final_verify(
+flea_err_e THR_flea_mac_ctx_t__final_verify(
   flea_mac_ctx_t*  ctx__pt,
   const flea_u8_t* exp_result__pcu8,
   flea_al_u8_t     exp_result_len__alu8
@@ -648,8 +648,8 @@ flea_err_t THR_flea_mac_ctx_t__final_verify(
   );
 }
 
-flea_err_t THR_flea_mac__compute_mac(
-  flea_mac_id_t    id__t,
+flea_err_e THR_flea_mac__compute_mac(
+  flea_mac_id_e    id__t,
   const flea_u8_t* key__pcu8,
   flea_al_u16_t    key_len__alu16,
   const flea_u8_t* data__pcu8,
@@ -669,8 +669,8 @@ flea_err_t THR_flea_mac__compute_mac(
   );
 }
 
-flea_err_t THR_flea_mac__verify_mac(
-  flea_mac_id_t    id__t,
+flea_err_e THR_flea_mac__verify_mac(
+  flea_mac_id_e    id__t,
   const flea_u8_t* key__pcu8,
   flea_al_u16_t    key_len__alu16,
   const flea_u8_t* data__pcu8,

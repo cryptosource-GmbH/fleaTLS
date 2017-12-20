@@ -14,9 +14,9 @@
 
 #ifdef FLEA_HAVE_RSA
 
-flea_err_t THR_get_hash_id_from_x509_id_for_rsa(
+flea_err_e THR_get_hash_id_from_x509_id_for_rsa(
   flea_u8_t       cert_id__u8,
-  flea_hash_id_t* result__pt
+  flea_hash_id_e* result__pt
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -47,7 +47,7 @@ flea_err_t THR_get_hash_id_from_x509_id_for_rsa(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_public_key_t__create_rsa_key(
+flea_err_e THR_flea_public_key_t__create_rsa_key(
   flea_rsa_pubkey_val_t* key__pt,
   const flea_ref_cu8_t*  mod__pcrcu8,
   const flea_ref_cu8_t*  exp__pcrcu8
@@ -65,7 +65,7 @@ flea_err_t THR_flea_public_key_t__create_rsa_key(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_x509_parse_rsa_public_key(
+flea_err_e THR_flea_x509_parse_rsa_public_key(
   const flea_byte_vec_t* public_key_value__pt,
   flea_ref_cu8_t*        modulus__pt,
   flea_ref_cu8_t*        pub_exp__pt
@@ -98,7 +98,7 @@ flea_err_t THR_flea_x509_parse_rsa_public_key(
   );
 }
 
-flea_err_t THR_flea_public_key_t__ctor_rsa(
+flea_err_e THR_flea_public_key_t__ctor_rsa(
   flea_public_key_t*    key__pt,
   const flea_ref_cu8_t* mod__pcrcu8,
   const flea_ref_cu8_t* pub_exp__pcrcu8

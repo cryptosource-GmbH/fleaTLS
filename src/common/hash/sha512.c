@@ -176,7 +176,7 @@ static void ROR64_n_small(
   add64(h, t1);
 
 
-flea_err_t THR_flea_sha512_compression_function(
+flea_err_e THR_flea_sha512_compression_function(
   flea_hash_ctx_t* ctx__pt,
   const flea_u8_t* input
 )

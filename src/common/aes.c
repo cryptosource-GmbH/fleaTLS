@@ -682,7 +682,7 @@ static const flea_u32_t rcon[] = {
   0x1B000000, 0x36000000
 };
 
-flea_err_t THR_flea_aes_setup_encr_key(
+flea_err_e THR_flea_aes_setup_encr_key(
   flea_ecb_mode_ctx_t* ctx__pt,
   const flea_u8_t*     key__pcu8
 )
@@ -790,7 +790,7 @@ void flea_aes_setup_encr_key(
 } /* flea_aes_setup_encr_key */
 
 # ifdef FLEA_HAVE_AES_BLOCK_DECR
-flea_err_t THR_flea_aes_setup_decr_key(
+flea_err_e THR_flea_aes_setup_decr_key(
   flea_ecb_mode_ctx_t* ctx__p_t,
   const flea_u8_t*     cipherKey
 )

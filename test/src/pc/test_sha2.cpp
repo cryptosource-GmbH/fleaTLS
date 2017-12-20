@@ -10,7 +10,7 @@
 #include <iostream>
 #include "pc/test_util.h"
 
-flea_err_t THR_flea_test_sha256_file_based()
+flea_err_e THR_flea_test_sha256_file_based()
 {
   std::string leaf_name = "sha256_test.dat";
   std::string file_name = "misc/testdata/" + leaf_name;

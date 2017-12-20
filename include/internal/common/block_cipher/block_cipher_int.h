@@ -14,7 +14,7 @@ typedef void (* flea_cipher_block_processing_f)(
   flea_u8_t*                 output
 );
 
-typedef flea_err_t (* THR_flea_block_cipher_key_sched_f)(
+typedef flea_err_e (* THR_flea_block_cipher_key_sched_f)(
   flea_ecb_mode_ctx_t* ctx,
   const flea_u8_t*     cipherKey
 );
@@ -27,7 +27,7 @@ typedef enum { des, aes } flea_block_cipher_raw_id_t;
 
 struct struct_flea_block_cipher_config_entry_t
 {
-  flea_block_cipher_id_t            ext_id__t;
+  flea_block_cipher_id_e            ext_id__t;
   flea_block_cipher_raw_id_t        raw_id__t;
   flea_u16_t                        key_bit_size;
   flea_u16_t                        expanded_key_u32_size__u16;

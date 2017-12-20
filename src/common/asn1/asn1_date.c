@@ -85,7 +85,7 @@ void flea_gmt_time_t__add_seconds_to_date(
 }
 
 #endif /* ifdef FLEA_HAVE_TLS_SESSION_SUPPORT */
-flea_err_t THR_flea_asn1_parse_gmt_time_optional(
+flea_err_e THR_flea_asn1_parse_gmt_time_optional(
   flea_ber_dec_t*  dec__t,
   flea_gmt_time_t* utctime__pt,
   flea_bool_t*     found__pb
@@ -124,7 +124,7 @@ flea_err_t THR_flea_asn1_parse_gmt_time_optional(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_asn1_parse_gmt_time_optional */
 
-flea_err_t THR_flea_asn1_parse_gmt_time(
+flea_err_e THR_flea_asn1_parse_gmt_time(
   flea_ber_dec_t*  dec__t,
   flea_gmt_time_t* utctime__pt
 )
@@ -160,7 +160,7 @@ flea_err_t THR_flea_asn1_parse_gmt_time(
   );
 } /* THR_flea_asn1_parse_gmt_time */
 
-flea_err_t THR_flea_asn1_parse_date(
+flea_err_e THR_flea_asn1_parse_date(
   flea_asn1_time_type_t tag__t,
   const flea_u8_t*      value_in,
   flea_dtl_t            value_length,
@@ -235,7 +235,7 @@ static void flea_asn1_date_parse_next_digits_u16(
  * (i.e., times are YYYYMMDDHHMMSSZ), even where the number of seconds
  * is zero.  GeneralizedTime values MUST NOT include fractional seconds.
  */
-flea_err_t THR_flea_asn1_parse_generalized_time(
+flea_err_e THR_flea_asn1_parse_generalized_time(
   const flea_u8_t* value_in,
   size_t           value_length,
   flea_gmt_time_t* value_out
@@ -288,7 +288,7 @@ flea_err_t THR_flea_asn1_parse_generalized_time(
  *
  *  Where YY is less than 50, the year SHALL be interpreted as 20YY.
  */
-flea_err_t THR_flea_asn1_parse_utc_time(
+flea_err_e THR_flea_asn1_parse_utc_time(
   const flea_u8_t* value_in,
   size_t           value_length,
   flea_gmt_time_t* value_out

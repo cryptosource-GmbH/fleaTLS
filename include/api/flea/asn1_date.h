@@ -31,31 +31,31 @@ typedef struct
     (__gmt_time__pt)->seconds = (s);  \
   } while(0);
 
-flea_err_t THR_flea_asn1_parse_gmt_time(
+flea_err_e THR_flea_asn1_parse_gmt_time(
   flea_ber_dec_t*  dec__t,
   flea_gmt_time_t* utctime__pt
 );
 
-flea_err_t THR_flea_asn1_parse_gmt_time_optional(
+flea_err_e THR_flea_asn1_parse_gmt_time_optional(
   flea_ber_dec_t*  dec__t,
   flea_gmt_time_t* utctime__pt,
   flea_bool_t*     found__pb
 );
 
-flea_err_t THR_flea_asn1_parse_date(
+flea_err_e THR_flea_asn1_parse_date(
   flea_asn1_time_type_t tag__t,
   const flea_u8_t*      value_in,
   flea_dtl_t            value_length,
   flea_gmt_time_t*      value_out
 );
 
-flea_err_t THR_flea_asn1_parse_generalized_time(
+flea_err_e THR_flea_asn1_parse_generalized_time(
   const flea_u8_t* value_in,
   size_t           value_length,
   flea_gmt_time_t* value_out
 );
 
-flea_err_t THR_flea_asn1_parse_utc_time(
+flea_err_e THR_flea_asn1_parse_utc_time(
   const flea_u8_t* value_in,
   size_t           value_length,
   flea_gmt_time_t* value_out

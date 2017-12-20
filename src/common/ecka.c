@@ -22,8 +22,8 @@
 
 #ifdef FLEA_HAVE_ECKA
 
-flea_err_t THR_flea_ecka__compute_ecka_with_kdf_ansi_x9_63(
-  flea_hash_id_t                   hash_id__t,
+flea_err_e THR_flea_ecka__compute_ecka_with_kdf_ansi_x9_63(
+  flea_hash_id_e                   hash_id__t,
   const flea_u8_t*                 public_point_enc__pcu8,
   flea_al_u8_t                     public_point_enc_len__alu8,
   const flea_u8_t*                 secret_key__pcu8,
@@ -48,7 +48,7 @@ flea_err_t THR_flea_ecka__compute_ecka_with_kdf_ansi_x9_63(
   {
     FLEA_THROW("field size not supported", FLEA_ERR_INV_ARG);
   }
-# endif
+# endif /* ifdef FLEA_USE_STACK_BUF */
   FLEA_ALLOC_BUF(shared_x__bu8, shared_x_len__alu8);
   FLEA_CCALL(
     THR_flea_ecka__compute_raw(
@@ -80,7 +80,7 @@ flea_err_t THR_flea_ecka__compute_ecka_with_kdf_ansi_x9_63(
   );
 } /* THR_flea_ecka__compute_ecka_with_kdf_ansi_x9_63 */
 
-flea_err_t THR_flea_ecka__compute_raw(
+flea_err_e THR_flea_ecka__compute_raw(
   const flea_u8_t*                 public_point_enc__pcu8,
   flea_al_u8_t                     public_point_enc_len__alu8,
   const flea_u8_t*                 secret_key__pcu8,
@@ -233,7 +233,7 @@ flea_err_t THR_flea_ecka__compute_raw(
   {
     FLEA_FREE_MEM_SET_NULL(ecc_ws_mpi_arrs[i]);
   }
-# endif
+# endif /* ifdef FLEA_USE_HEAP_BUF */
 
   /* l contains d*l unreduced
    * ...mod n:*/

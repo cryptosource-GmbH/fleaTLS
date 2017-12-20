@@ -23,7 +23,7 @@
 
 #ifdef FLEA_HAVE_ECDSA
 
-flea_err_t THR_flea_test_cvc_sig_ver()
+flea_err_e THR_flea_test_cvc_sig_ver()
 {
 # if FLEA_ECC_MAX_MOD_BIT_SIZE >= 224
   FLEA_DECL_OBJ(verifier__t, flea_pk_signer_t);
@@ -64,7 +64,7 @@ flea_err_t THR_flea_test_cvc_sig_ver()
     0x06, 0x62, 0xB1, 0x2E, 0xC3, 0x74, 0xD1, 0xD5, 0x98
   };
 
-  flea_err_t err_code;
+  flea_err_e err_code;
   // flea_pub_key_param_u param__u;
 
   /*flea_ref_cu8_t pubpoint__crcu8 = {
@@ -106,7 +106,7 @@ flea_err_t THR_flea_test_cvc_sig_ver()
 # endif /* if FLEA_ECC_MAX_MOD_BIT_SIZE >= 224 */
 } /* THR_flea_test_cvc_sig_ver */
 
-static flea_err_t THR_flea_test_ecdsa_raw_basic_inner(const flea_ec_gfp_dom_par_ref_t* dom_par__pt)
+static flea_err_e THR_flea_test_ecdsa_raw_basic_inner(const flea_ec_gfp_dom_par_ref_t* dom_par__pt)
 {
   flea_u8_t res_r_arr[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
   flea_u8_t res_s_arr[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
@@ -194,7 +194,7 @@ static flea_err_t THR_flea_test_ecdsa_raw_basic_inner(const flea_ec_gfp_dom_par_
   );
 } /* THR_flea_test_ecdsa_raw_basic_inner */
 
-flea_err_t THR_flea_test_ecdsa_raw_basic()
+flea_err_e THR_flea_test_ecdsa_raw_basic()
 {
   FLEA_THR_BEG_FUNC();
   flea_al_u8_t i;
@@ -202,7 +202,7 @@ flea_err_t THR_flea_test_ecdsa_raw_basic()
   for(i = 0; i <= flea_gl_ec_dom_par_max_id; i++)
   {
     flea_ec_gfp_dom_par_ref_t dom_par__t;
-    flea_err_t err__t = THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&dom_par__t, i);
+    flea_err_e err__t = THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&dom_par__t, i);
     if(err__t)
     {
       if(err__t == FLEA_ERR_ECC_INV_BUILTIN_DP_ID)
@@ -219,7 +219,7 @@ flea_err_t THR_flea_test_ecdsa_raw_basic()
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_test_ecdsa_256bit_sign_loop(unsigned count)
+flea_err_e THR_flea_test_ecdsa_256bit_sign_loop(unsigned count)
 {
   flea_u8_t res_r_arr[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
   flea_u8_t res_s_arr[FLEA_ECC_MAX_ORDER_BYTE_SIZE];

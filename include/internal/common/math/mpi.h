@@ -52,26 +52,26 @@ void flea_mpi_t__set_to_word_value(
   flea_uword_t w
 );
 
-flea_err_t THR_flea_mpi_t__decode(
+flea_err_e THR_flea_mpi_t__decode(
   flea_mpi_t*      p_result,
   const flea_u8_t* encoded,
   flea_mpi_ulen_t  encoded_len
 );
 
-flea_err_t THR_flea_mpi_t__encode(
+flea_err_e THR_flea_mpi_t__encode(
   flea_u8_t*        p_result,
   flea_al_u16_t     result_len,
   const flea_mpi_t* p_mpi
 );
 
-flea_err_t THR_flea_mpi_t__montgm_mul(
+flea_err_e THR_flea_mpi_t__montgm_mul(
   flea_mpi_t*            p_result,
   const flea_mpi_t*      p_a,
   const flea_mpi_t*      p_b,
   flea_montgm_mul_ctx_t* p_ctx
 );
 
-flea_err_t THR_flea_mpi_t__divide(
+flea_err_e THR_flea_mpi_t__divide(
   flea_mpi_t*         p_quotient,
   flea_mpi_t*         p_remainder,
   const flea_mpi_t*   p_divident,
@@ -99,7 +99,7 @@ flea_bool_t flea_mpi_t__equal(
   const flea_mpi_t* p_b
 );
 
-flea_err_t THR_flea_mpi_t__mul(
+flea_err_e THR_flea_mpi_t__mul(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_a,
   const flea_mpi_t* p_b
@@ -108,7 +108,7 @@ flea_err_t THR_flea_mpi_t__mul(
 /*
  * p_result must be different from p_a and p_b
  */
-flea_err_t THR_flea_mpi_t__subtract(
+flea_err_e THR_flea_mpi_t__subtract(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_a,
   const flea_mpi_t* p_b
@@ -118,7 +118,7 @@ flea_err_t THR_flea_mpi_t__subtract(
  *  both a and b must be between 0 and p-1
  * p_result is allowed to be equal to  p_a or p_b
  */
-flea_err_t THR_flea_mpi_t__subtract_mod(
+flea_err_e THR_flea_mpi_t__subtract_mod(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_a,
   const flea_mpi_t* p_b,
@@ -126,24 +126,24 @@ flea_err_t THR_flea_mpi_t__subtract_mod(
   flea_mpi_t*       p_workspace_mod_size
 );
 
-flea_err_t THR_flea_mpi_t__add_in_place_ignore_sign(
+flea_err_e THR_flea_mpi_t__add_in_place_ignore_sign(
   flea_mpi_t*       p_in_out,
   const flea_mpi_t* p_b
 );
 
-flea_err_t THR_flea_mpi_t__add_ignore_sign(
+flea_err_e THR_flea_mpi_t__add_ignore_sign(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_a,
   const flea_mpi_t* p_b
 );
 
-flea_err_t THR_flea_mpi_t__add_in_place(
+flea_err_e THR_flea_mpi_t__add_in_place(
   flea_mpi_t*       p_in_out,
   const flea_mpi_t* p_b,
   flea_mpi_t*       p_ws
 );
 
-flea_err_t THR_flea_mpi_square(
+flea_err_e THR_flea_mpi_square(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_a
 );
@@ -163,12 +163,12 @@ flea_al_u8_t flea_mpi_t__get_window(
   flea_al_u8_t      window_size
 );
 
-flea_err_t THR_flea_mpi_t__copy_no_realloc(
+flea_err_e THR_flea_mpi_t__copy_no_realloc(
   flea_mpi_t*       p_target,
   const flea_mpi_t* p_source
 );
 
-flea_err_t THR_flea_mpi_t__mod_exp_window(
+flea_err_e THR_flea_mpi_t__mod_exp_window(
   flea_mpi_t*           p_result,
   flea_mpi_t*           p_exp,
   flea_mpi_t*           p_base,
@@ -192,42 +192,42 @@ void flea_mpi_t__shift_right(
   flea_al_u16_t shift
 );
 
-flea_err_t THR_flea_mpi_t__set_pow_2(
+flea_err_e THR_flea_mpi_t__set_pow_2(
   flea_mpi_t*   p_result,
   flea_al_u16_t exp
 );
 
 flea_bool_t flea_mpi_t__is_zero(const flea_mpi_t* p_mpi);
 
-flea_err_t THR_flea_mpi_t__shift_left_small(
+flea_err_e THR_flea_mpi_t__shift_left_small(
   flea_mpi_t*   p_mpi,
   flea_al_u16_t shift
 );
 
-flea_err_t THR_flea_mpi_t__invert_odd_mod(
+flea_err_e THR_flea_mpi_t__invert_odd_mod(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_mpi,
   const flea_mpi_t* p_mod,
   flea_mpi_t        ws_mod_size[4]
 );
 
-flea_err_t THR_flea_mpi_t__random_integer(
+flea_err_e THR_flea_mpi_t__random_integer(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_limit
 );
 
-flea_err_t THR_flea_mpi_t__random_integer_no_flush(
+flea_err_e THR_flea_mpi_t__random_integer_no_flush(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_limit
 );
 
-flea_err_t THR_flea_mpi_t__quick_reduce_greater_zero(
+flea_err_e THR_flea_mpi_t__quick_reduce_greater_zero(
   flea_mpi_t*       p_in_out,
   const flea_mpi_t* p_mod,
   flea_mpi_t*       p_ws
 );
 
-flea_err_t THR_flea_mpi_t__quick_reduce_smaller_zero(
+flea_err_e THR_flea_mpi_t__quick_reduce_smaller_zero(
   flea_mpi_t*       p_in_out,
   const flea_mpi_t* p_mod,
   flea_mpi_t*       p_ws

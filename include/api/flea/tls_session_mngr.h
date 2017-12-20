@@ -43,7 +43,7 @@ void flea_tls_session_data_t__set_seqs(
 #endif // if 0
 
 
-flea_err_t THR_flea_tls_session_mngr_t__ctor(
+flea_err_e THR_flea_tls_session_mngr_t__ctor(
   flea_tls_session_mngr_t* session_mngr__pt,
   flea_u32_t               session_validity_period_seconds__u32
 );

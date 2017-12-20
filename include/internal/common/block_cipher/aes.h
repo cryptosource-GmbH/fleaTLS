@@ -28,12 +28,12 @@ void flea_aes_setup_encr_key(
   const flea_u8_t*     key
 );
 
-flea_err_t THR_flea_aes_setup_encr_key(
+flea_err_e THR_flea_aes_setup_encr_key(
   flea_ecb_mode_ctx_t* ctx,
   const flea_u8_t*     key
 );
 
-flea_err_t THR_flea_aes_setup_decr_key(
+flea_err_e THR_flea_aes_setup_decr_key(
   flea_ecb_mode_ctx_t* ctx,
   const flea_u8_t*     key
 );

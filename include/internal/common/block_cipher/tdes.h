@@ -8,7 +8,7 @@
 #include "flea/block_cipher.h"
 #include "internal/common/block_cipher/tdes.h"
 
-flea_err_t THR_flea_triple_des_ede_2key_setup_key(
+flea_err_e THR_flea_triple_des_ede_2key_setup_key(
   flea_ecb_mode_ctx_t* ctx__pt,
   const flea_u8_t*     key
 );
@@ -25,7 +25,7 @@ void flea_triple_des_ede_2key_decrypt_block(
   flea_u8_t*                 output__pu8
 );
 
-flea_err_t THR_flea_triple_des_ede_3key_setup_key(
+flea_err_e THR_flea_triple_des_ede_3key_setup_key(
   flea_ecb_mode_ctx_t* ctx__pt,
   const flea_u8_t*     key
 );

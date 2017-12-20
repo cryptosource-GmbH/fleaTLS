@@ -32,7 +32,7 @@ const flea_u8_t flea_pkcs1_digest_info__sha224__acu8[] =
 
 static void flea_pk_api__set_pkcs1_digest_info__sha2(
   flea_u8_t*     digest_info__pu8,
-  flea_hash_id_t hash_id__t
+  flea_hash_id_e hash_id__t
 )
 {
   flea_u8_t di_1__u8, di_14__u8, di_18__u8;
@@ -71,7 +71,7 @@ static void flea_pk_api__set_pkcs1_digest_info__sha2(
 static flea_al_u16_t flea_pk_api__pkcs1_set_digest_info(
   flea_u8_t*     target_buffer__pu8,
   flea_al_u16_t  target_buffer_len__alu16,
-  flea_hash_id_t hash_id__t
+  flea_hash_id_e hash_id__t
 )
 {
   flea_al_u16_t offset__alu16;
@@ -117,9 +117,9 @@ void flea_pk_signer_t__dtor(flea_pk_signer_t* p_destr)
   flea_hash_ctx_t__dtor(&p_destr->hash_ctx);
 }
 
-flea_err_t THR_flea_pk_signer_t__ctor(
+flea_err_e THR_flea_pk_signer_t__ctor(
   flea_pk_signer_t* result__pt,
-  flea_hash_id_t    hash_id__t
+  flea_hash_id_e    hash_id__t
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -128,7 +128,7 @@ flea_err_t THR_flea_pk_signer_t__ctor(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_pk_signer_t__update(
+flea_err_e THR_flea_pk_signer_t__update(
   flea_pk_signer_t* signer__pt,
   const flea_u8_t*  message__pcu8,
   flea_al_u16_t     message_len__alu16
@@ -139,9 +139,9 @@ flea_err_t THR_flea_pk_signer_t__update(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_pk_signer_t__final_sign(
+flea_err_e THR_flea_pk_signer_t__final_sign(
   flea_pk_signer_t*         signer__pt,
-  flea_pk_scheme_id_t       id__t,
+  flea_pk_scheme_id_e       id__t,
   const flea_private_key_t* privkey__pt,
   flea_byte_vec_t*          sig_vec__pt
 )
@@ -170,9 +170,9 @@ flea_err_t THR_flea_pk_signer_t__final_sign(
   );
 }
 
-flea_err_t THR_flea_pk_signer_t__final_verify(
+flea_err_e THR_flea_pk_signer_t__final_verify(
   flea_pk_signer_t*        signer__pt,
-  flea_pk_scheme_id_t      id__t,
+  flea_pk_scheme_id_e      id__t,
   const flea_public_key_t* pubkey__pt,
   const flea_u8_t*         signature__pcu8,
   flea_al_u16_t            signature_len__alu16
@@ -203,13 +203,13 @@ flea_err_t THR_flea_pk_signer_t__final_verify(
   );
 }
 
-flea_err_t THR_flea_pk_api__verify_message__pkcs1_v1_5(
+flea_err_e THR_flea_pk_api__verify_message__pkcs1_v1_5(
   const flea_u8_t* encoded__pcu8,
   flea_al_u16_t    encoded_len__alu16,
   const flea_u8_t* digest__pu8,
   flea_al_u16_t    digest_len__alu16,
   flea_al_u16_t    bit_size__alu16,
-  flea_hash_id_t   hash_id__t
+  flea_hash_id_e   hash_id__t
 )
 {
   flea_al_u16_t full_size__alu16;
@@ -266,7 +266,7 @@ flea_err_t THR_flea_pk_api__verify_message__pkcs1_v1_5(
  * output_len >= input_len, former denotes the allocated space, latter the
  * length of the input data within that space
  */
-flea_err_t THR_flea_pk_api__encode_message__emsa1(
+flea_err_e THR_flea_pk_api__encode_message__emsa1(
   flea_u8_t*     input_output__pcu8,
   flea_al_u16_t  input_len__alu16,
   flea_al_u16_t* output_len__palu16,
@@ -305,7 +305,7 @@ flea_err_t THR_flea_pk_api__encode_message__emsa1(
 #endif // #ifdef FLEA_HAVE_ASYM_SIG
 
 #if defined  FLEA_HAVE_ASYM_SIG || defined FLEA_HAVE_PK_CS
-flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5(
+flea_err_e THR_flea_pk_api__decode_message__pkcs1_v1_5(
   const flea_u8_t* encoded__pcu8,
   flea_al_u16_t    encoded_len__alu16,
   flea_byte_vec_t* result_vec__pt,
@@ -405,12 +405,12 @@ flea_err_t THR_flea_pk_api__decode_message__pkcs1_v1_5(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_pk_api__decode_message__pkcs1_v1_5 */
 
-static flea_err_t THR_flea_pk_api__encode_message__pkcs1_v1_5(
+static flea_err_e THR_flea_pk_api__encode_message__pkcs1_v1_5(
   flea_u8_t*     input_output__pu8,
   flea_al_u16_t  input_len__alu16,
   flea_al_u16_t* output_len__palu16,
   flea_al_u16_t  bit_size,
-  flea_hash_id_t hash_id__t,
+  flea_hash_id_e hash_id__t,
   flea_al_u8_t   second_byte_val__alu8
 )
 {
@@ -479,12 +479,12 @@ static flea_err_t THR_flea_pk_api__encode_message__pkcs1_v1_5(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_pk_api__encode_message__pkcs1_v1_5 */
 
-flea_err_t THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(
+flea_err_e THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(
   flea_u8_t*     input_output__pu8,
   flea_al_u16_t  input_len__alu16,
   flea_al_u16_t* output_len__palu16,
   flea_al_u16_t  bit_size,
-  flea_hash_id_t hash_id__t
+  flea_hash_id_e hash_id__t
 )
 {
   return THR_flea_pk_api__encode_message__pkcs1_v1_5(
@@ -497,12 +497,12 @@ flea_err_t THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(
   );
 }
 
-flea_err_t THR_flea_pk_api__encode_message__pkcs1_v1_5_sign(
+flea_err_e THR_flea_pk_api__encode_message__pkcs1_v1_5_sign(
   flea_u8_t*     input_output__pu8,
   flea_al_u16_t  input_len__alu16,
   flea_al_u16_t* output_len__palu16,
   flea_al_u16_t  bit_size,
-  flea_hash_id_t hash_id__t
+  flea_hash_id_e hash_id__t
 )
 {
   return THR_flea_pk_api__encode_message__pkcs1_v1_5(
@@ -518,9 +518,9 @@ flea_err_t THR_flea_pk_api__encode_message__pkcs1_v1_5_sign(
 #endif /* if defined  FLEA_HAVE_ASYM_SIG || defined FLEA_HAVE_PK_CS */
 
 #ifdef FLEA_HAVE_PK_CS
-flea_err_t THR_flea_pk_api__encrypt_message(
-  flea_pk_scheme_id_t id__t,
-  flea_hash_id_t      hash_id__t,
+flea_err_e THR_flea_pk_api__encrypt_message(
+  flea_pk_scheme_id_e id__t,
+  flea_hash_id_e      hash_id__t,
   const flea_u8_t*    message__pcu8,
   flea_al_u16_t       message_len__alu16,
   flea_byte_vec_t*    result__pt,
@@ -596,10 +596,10 @@ flea_err_t THR_flea_pk_api__encrypt_message(
 #endif // #ifdef FLEA_HAVE_PK_CS
 
 #ifdef FLEA_HAVE_PK_CS
-flea_err_t THR_flea_private_key_t__decrypt_message(
+flea_err_e THR_flea_private_key_t__decrypt_message(
   const flea_private_key_t* privkey__pt,
-  flea_pk_scheme_id_t       id__t,
-  flea_hash_id_t            hash_id__t,
+  flea_pk_scheme_id_e       id__t,
+  flea_hash_id_e            hash_id__t,
   const flea_u8_t*          ciphertext__pcu8,
   flea_al_u16_t             ciphertext_len__alu16,
   flea_byte_vec_t*          result_vec__pt,

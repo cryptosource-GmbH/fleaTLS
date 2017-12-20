@@ -29,7 +29,7 @@ typedef struct
   // flea_ref_cu8_t  enc_cert_refs__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
   flea_enc_cert_ref_t  enc_cert_refs__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
   flea_u8_t            trust_flags__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
-# endif
+# endif // ifdef FLEA_USE_HEAP_BUF
   flea_dtl_t           nb_alloc_certs__dtl;
   flea_u16_t           nb_set_certs__u16;
 } flea_cert_store_t;
@@ -40,7 +40,7 @@ typedef struct
 # else
 #  define flea_cert_store_t__INIT_VALUE {.enc_cert_refs__bcu8[0] = {{0, 0}, 0}}
 #  define flea_cert_store_t__INIT(__p)
-# endif
+# endif // ifdef FLEA_USE_HEAP_BUF
 
 # define flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(__p, __i) (&(__p)->enc_cert_refs__bcu8[__i].data_ref__rcu8)
 # define flea_cert_store_t__GET_NB_CERTS(__p)                  ((__p)->nb_set_certs__u16)
@@ -54,7 +54,7 @@ void flea_cert_store_t__dtor(flea_cert_store_t* cert_store);
  * @param cert_store pointer to the cert store object to construct.
  *
  */
-flea_err_t THR_flea_cert_store_t__ctor(flea_cert_store_t* cert_store);
+flea_err_e THR_flea_cert_store_t__ctor(flea_cert_store_t* cert_store);
 
 /**
  * Add a trusted certificate to the cert store. The encoded certificate must
@@ -66,7 +66,7 @@ flea_err_t THR_flea_cert_store_t__ctor(flea_cert_store_t* cert_store);
  * @param der_enc_cert DER encoded certificate to add
  * @param der_enc_cert_len length of der_enc_cert
  */
-flea_err_t THR_flea_cert_store_t__add_trusted_cert(
+flea_err_e THR_flea_cert_store_t__add_trusted_cert(
   flea_cert_store_t* cert_store,
   const flea_u8_t*   der_enc_cert,
   flea_al_u16_t      der_enc_cert_len
@@ -83,7 +83,7 @@ flea_err_t THR_flea_cert_store_t__add_trusted_cert(
  * @param der_enc_cert DER encoded certificate to add
  * @param der_enc_cert_len length of der_enc_cert
  */
-flea_err_t THR_flea_cert_store_t__add_untrusted_cert(
+flea_err_e THR_flea_cert_store_t__add_untrusted_cert(
   flea_cert_store_t* cert_store__pt,
   const flea_u8_t*   der_enc_cert__pcu8,
   flea_al_u16_t      der_enc_cert_len__alu16
@@ -103,7 +103,7 @@ flea_bool_t flea_cert_store_t__is_cert_trusted(
  * @param result_is_trust receives the result: set to FLEA_TRUE if the
  * sought certificate is trusted, set to FLEA_FALSE otherwise
  */
-flea_err_t THR_flea_cert_store_t__is_cert_trusted(
+flea_err_e THR_flea_cert_store_t__is_cert_trusted(
   const flea_cert_store_t* cert_store,
   const flea_u8_t*         cert_to_check,
   flea_al_u16_t            cert_to_check_len,
@@ -126,9 +126,9 @@ const flea_u8_t* flea_cert_store_t__get_ptr_to_trusted_enc_cert(
  * @param result_is_trust receives the result: set to FLEA_TRUE if the
  * sought certificate is trusted, set to FLEA_FALSE otherwise
  */
-flea_err_t THR_flea_cert_store_t__is_tbs_hash_trusted(
+flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
   const flea_cert_store_t* cert_store,
-  flea_hash_id_t           tbs_cert_hash_id,
+  flea_hash_id_e           tbs_cert_hash_id,
   const flea_u8_t*         tbs_cert_hash_to_check,
   flea_al_u8_t             tbs_cert_hash_to_check_len,
   flea_bool_t*             result_is_trusted,
@@ -146,7 +146,7 @@ flea_err_t THR_flea_cert_store_t__is_tbs_hash_trusted(
  * @param cpv the path validator object in which the trusted certificates shall
  * be set
  */
-flea_err_t THR_flea_cert_store_t__add_trusted_to_path_validator(
+flea_err_e THR_flea_cert_store_t__add_trusted_to_path_validator(
   const flea_cert_store_t*    cert_store,
   flea_cert_path_validator_t* cpv
 );

@@ -23,40 +23,40 @@ void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx__pt);
  * ciphersuites supported by the server. The lower the index of a suite within
  * the array, the higher is its priority.
  */
-flea_err_t THR_flea_tls_server_ctx_t__ctor(
-  flea_tls_server_ctx_t*             tls_ctx__pt,
-  flea_private_key_t*                private_key__pt,
-  flea_rw_stream_t*                  rw_stream__pt,
-  const flea_ref_cu8_t*              cert_chain__pt,
-  flea_al_u8_t                       cert_chain_len__alu8,
-  const flea_cert_store_t*           trust_store__t,
-  const flea_tls__cipher_suite_id_t* allowed_cipher_suites,
-  flea_al_u16_t                      nb_allowed_cipher_suites,
-  const flea_ref_cu8_t*              crl_der__pt,
-  flea_al_u16_t                      nb_crls__alu16,
-  flea_tls_session_mngr_t*           session_mngr_mbn__pt,
-  flea_ec_dom_par_id_t*              allowed_ecc_curves__pe,
-  flea_al_u16_t                      nb_allowed_curves,
-  flea_tls_sigalg_e*                 allowed_sig_algs__pe,
-  flea_al_u16_t                      nb_allowed_sig_algs__alu16,
-  flea_tls_flag_e                    flags__e
+flea_err_e THR_flea_tls_server_ctx_t__ctor(
+  flea_tls_server_ctx_t*            tls_ctx__pt,
+  flea_private_key_t*               private_key__pt,
+  flea_rw_stream_t*                 rw_stream__pt,
+  const flea_ref_cu8_t*             cert_chain__pt,
+  flea_al_u8_t                      cert_chain_len__alu8,
+  const flea_cert_store_t*          trust_store__t,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
+  flea_al_u16_t                     nb_allowed_cipher_suites,
+  const flea_ref_cu8_t*             crl_der__pt,
+  flea_al_u16_t                     nb_crls__alu16,
+  flea_tls_session_mngr_t*          session_mngr_mbn__pt,
+  flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
+  flea_al_u16_t                     nb_allowed_curves,
+  flea_tls_sigalg_e*                allowed_sig_algs__pe,
+  flea_al_u16_t                     nb_allowed_sig_algs__alu16,
+  flea_tls_flag_e                   flags__e
 );
 
-flea_err_t THR_flea_tls_server_ctx_t__read_app_data(
+flea_err_e THR_flea_tls_server_ctx_t__read_app_data(
   flea_tls_server_ctx_t*  tls_ctx_t,
   flea_u8_t*              data__pu8,
   flea_dtl_t*             data_len__pdtl,
   flea_stream_read_mode_e rd_mode__e
 );
 
-flea_err_t THR_flea_tls_server_ctx_t__send_app_data(
+flea_err_e THR_flea_tls_server_ctx_t__send_app_data(
   flea_tls_server_ctx_t* tls_ctx,
   const flea_u8_t*       data,
   flea_dtl_t             data_len__dtl
 );
 
 
-flea_err_t THR_flea_tls_server_ctx_t__flush_write_app_data(flea_tls_server_ctx_t* tls_ctx);
+flea_err_e THR_flea_tls_server_ctx_t__flush_write_app_data(flea_tls_server_ctx_t* tls_ctx);
 
 
 /**
@@ -71,21 +71,21 @@ flea_err_t THR_flea_tls_server_ctx_t__flush_write_app_data(flea_tls_server_ctx_t
 flea_bool_t flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_server_ctx__pt);
 
 
-flea_err_t THR_flea_tls_server_ctx_t__renegotiate(
-  flea_tls_server_ctx_t*             tls_ctx__pt,
-  flea_bool_t*                       result__pb,
-  flea_private_key_t*                private_key__pt,
-  const flea_cert_store_t*           trust_store__pt,
-  const flea_ref_cu8_t*              cert_chain__pt,
-  flea_al_u8_t                       cert_chain_len__alu8,
-  const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
-  flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
-  const flea_ref_cu8_t*              crl_der__pt,
-  flea_al_u16_t                      nb_crls__alu16,
-  flea_ec_dom_par_id_t*              allowed_ecc_curves__pe,
-  flea_al_u16_t                      nb_allowed_curves__alu16,
-  flea_tls_sigalg_e*                 allowed_sig_algs__pe,
-  flea_al_u16_t                      nb_allowed_sig_algs__alu16
+flea_err_e THR_flea_tls_server_ctx_t__renegotiate(
+  flea_tls_server_ctx_t*            tls_ctx__pt,
+  flea_bool_t*                      result__pb,
+  flea_private_key_t*               private_key__pt,
+  const flea_cert_store_t*          trust_store__pt,
+  const flea_ref_cu8_t*             cert_chain__pt,
+  flea_al_u8_t                      cert_chain_len__alu8,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
+  const flea_ref_cu8_t*             crl_der__pt,
+  flea_al_u16_t                     nb_crls__alu16,
+  flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
+  flea_al_u16_t                     nb_allowed_curves__alu16,
+  flea_tls_sigalg_e*                allowed_sig_algs__pe,
+  flea_al_u16_t                     nb_allowed_sig_algs__alu16
 );
 
 

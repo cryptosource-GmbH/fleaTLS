@@ -64,11 +64,11 @@
 # define FLEA_DO_IF_USE_HEAP_BUF(__x)               do {__x} while(0)
 # define __FLEA_FREE_BUF_SET_NULL(__name)           FLEA_FREE_MEM_SET_NULL(__name)
 # define FLEA_DECL_DYN_LEN(__name, __type, __value) __len_type __dyn_len_name = __static_len
-#else
+#else // ifdef FLEA_USE_HEAP_BUF
 # define FLEA_HEAP_OR_STACK_CODE(__heap, __stack)   __stack
 # define FLEA_DO_IF_USE_HEAP_BUF(__x)
 # define __FLEA_FREE_BUF_SET_NULL(__name)
-#endif
+#endif // ifdef FLEA_USE_HEAP_BUF
 
 #define FLEA_FREE_MEM_SET_NULL_IF_USE_HEAP_BUF(__x) __FLEA_FREE_BUF_SET_NULL(__x)
 
@@ -111,7 +111,7 @@
 # error no buf type (heap or stack) defined for flea
 #endif // ifdef FLEA_USE_HEAP_BUF
 
-flea_err_t THR_flea_alloc__realloc_mem(
+flea_err_e THR_flea_alloc__realloc_mem(
   void**     mem_in_out__ppv,
   flea_u32_t orig_size__u32,
   flea_u32_t new_size__u32
@@ -137,7 +137,7 @@ flea_err_t THR_flea_alloc__realloc_mem(
  * @return flea error code in the case the allocation request cannot be
  * fullfilled due to exceeding the provided limit or a failing allocation.
  */
-flea_err_t THR_flea_alloc__ensure_buffer_capacity(
+flea_err_e THR_flea_alloc__ensure_buffer_capacity(
   void**        mem_in_out__ppv,
   flea_dtl_t*   in_out_alloc_units__pdtl,
   flea_dtl_t    used_units__dtl,

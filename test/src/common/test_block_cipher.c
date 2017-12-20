@@ -10,7 +10,7 @@
 #include "internal/common/block_cipher/aes.h"
 #include <string.h>
 
-static flea_err_t THR_flea_test_block_cipher_init_dtor()
+static flea_err_e THR_flea_test_block_cipher_init_dtor()
 {
   FLEA_DECL_OBJ(ecb, flea_ecb_mode_ctx_t);
   FLEA_DECL_OBJ(cbc, flea_cbc_mode_ctx_t);
@@ -33,8 +33,8 @@ static flea_err_t THR_flea_test_block_cipher_init_dtor()
   );
 }
 
-static flea_err_t THR_flea_test_cipher_block_encr_decr_data(
-  flea_block_cipher_id_t id__t,
+static flea_err_e THR_flea_test_cipher_block_encr_decr_data(
+  flea_block_cipher_id_e id__t,
   const flea_u8_t*       key__pc_u8,
   flea_al_u16_t          key_len__al_u16,
   const flea_u8_t*       exp_ct__pc_u8,
@@ -85,7 +85,7 @@ static flea_err_t THR_flea_test_cipher_block_encr_decr_data(
   );
 } /* THR_flea_test_cipher_block_encr_decr_data */
 
-flea_err_t THR_flea_test_cipher_block_encr_decr()
+flea_err_e THR_flea_test_cipher_block_encr_decr()
 {
   flea_u8_t pt_aes128[]     = {0x00, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88, 0x99, 0xAA, 0xBB, 0xCC, 0xDD, 0xEE, 0xFF};
   flea_u8_t exp_ct_aes128[] = {0x69, 0xC4, 0xE0, 0xD8, 0x6A, 0x7B, 0x04, 0x30, 0xD8, 0xCD, 0xB7, 0x80, 0x70, 0xB4, 0xC5, 0x5A};

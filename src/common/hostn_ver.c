@@ -79,7 +79,7 @@ static flea_bool_t are_strings_equal_case_insensitive(
   return FLEA_TRUE;
 }
 
-flea_err_t THR_flea_x509__verify_host_name(
+flea_err_e THR_flea_x509__verify_host_name(
   const flea_ref_cu8_t*  user_host_name__pcrcu8,
   const flea_byte_vec_t* cert_dns_name__pcrcu8,
   flea_bool_t            allow_wildcard__b,
@@ -137,7 +137,7 @@ flea_err_t THR_flea_x509__verify_host_name(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_x509__verify_host_name */
 
-flea_err_t THR_flea_x509__verify_tls_server_id_cstr(
+flea_err_e THR_flea_x509__verify_tls_server_id_cstr(
   const char*                 user_id__cs,
   flea_host_id_type_e         host_type,
   const flea_x509_cert_ref_t* server_cert__pt
@@ -150,7 +150,7 @@ flea_err_t THR_flea_x509__verify_tls_server_id_cstr(
   return THR_flea_x509__verify_tls_server_id(&user_id__rcu8, host_type, server_cert__pt);
 }
 
-flea_err_t THR_flea_x509__verify_tls_server_id(
+flea_err_e THR_flea_x509__verify_tls_server_id(
   const flea_byte_vec_t*      user_id_vec__pt,
   flea_host_id_type_e         host_type,
   const flea_x509_cert_ref_t* server_cert__pt
@@ -225,7 +225,7 @@ flea_err_t THR_flea_x509__verify_tls_server_id(
   );
 } /* THR_flea_x509__verify_tls_server_id */
 
-flea_err_t THR_flea_x509__parse_san_and_validate_hostn(
+flea_err_e THR_flea_x509__parse_san_and_validate_hostn(
   const flea_ref_cu8_t*    user_id__pcrcu8,
   flea_host_id_type_e      host_type,
   flea_ber_dec_t*          cont_dec__pt,

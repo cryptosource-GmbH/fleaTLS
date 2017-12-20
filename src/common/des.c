@@ -281,7 +281,7 @@ static int bytebit[] = {
   0200, 0100, 040, 020, 010, 04, 02, 01
 };
 
-flea_err_t THR_flea_single_des_setup_key(
+flea_err_e THR_flea_single_des_setup_key(
   flea_ecb_mode_ctx_t* ctx__pt,
   const flea_u8_t*     key
 )
@@ -289,7 +289,7 @@ flea_err_t THR_flea_single_des_setup_key(
   return THR_flea_single_des_setup_key_with_key_offset(ctx__pt, 0, key);
 }
 
-flea_err_t THR_flea_single_des_setup_key_with_key_offset(
+flea_err_e THR_flea_single_des_setup_key_with_key_offset(
   flea_ecb_mode_ctx_t* ctx__p_t,
   flea_al_u16_t        expanded_key_offset__alu16,
   const flea_u8_t*     key

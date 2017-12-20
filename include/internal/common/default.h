@@ -6,7 +6,6 @@
 
 #include "build_config_gen.h"
 #include "flea/algo_config.h" // must be after build config
-// #include "flea/types.h"
 #include <stdlib.h>
 #include <string.h>
 

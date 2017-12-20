@@ -46,7 +46,7 @@ std::string stdin_current_line;
 
 #  define FLEA_TEST_APP_USER_ABORT 0x300
 
-static flea_err_t THR_check_user_abort(server_params_t* serv_par__pt)
+static flea_err_e THR_check_user_abort(server_params_t* serv_par__pt)
 {
   FLEA_THR_BEG_FUNC();
 
@@ -56,13 +56,13 @@ static flea_err_t THR_check_user_abort(server_params_t* serv_par__pt)
   if(abort)
   {
     serv_par__pt->write_output_string("server thread received user abort request\n");
-    FLEA_THROW("user abort requested", (flea_err_t) FLEA_TEST_APP_USER_ABORT);
+    FLEA_THROW("user abort requested", (flea_err_e) FLEA_TEST_APP_USER_ABORT);
   }
   FLEA_THR_FIN_SEC(
   );
 }
 
-static flea_err_t THR_check_keyb_input(/*fd_set & keyb_fds*/)
+static flea_err_e THR_check_keyb_input(/*fd_set & keyb_fds*/)
 {
   FLEA_THR_BEG_FUNC();
   fcntl(fileno(stdin), F_SETFL, fcntl(fileno(stdin), F_GETFL) | O_NONBLOCK);
@@ -97,7 +97,7 @@ static flea_err_t THR_check_keyb_input(/*fd_set & keyb_fds*/)
     std::string const& s = stdin_input_lines[0];
     if(s == "q" || s == "Q")
     {
-      FLEA_THROW("user abort requested", (flea_err_t) FLEA_TEST_APP_USER_ABORT);
+      FLEA_THROW("user abort requested", (flea_err_e) FLEA_TEST_APP_USER_ABORT);
     }
     else
     {
@@ -132,7 +132,7 @@ static int unix_tcpip_listen_accept(
   FLEA_THR_FIN_SEC_empty();
 } // THR_unix_tcpip_listen_accept
 
-static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt)
+static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt)
 {
   flea_rw_stream_t rw_stream__t;
   flea_u8_t buf[65000];
@@ -244,7 +244,7 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
       buf_len -= 1;
     }
     FLEA_CCALL(THR_check_user_abort(serv_par__pt));
-    flea_err_t retval = THR_flea_tls_server_ctx_t__read_app_data(
+    flea_err_e retval = THR_flea_tls_server_ctx_t__read_app_data(
       &tls_ctx,
       buf,
       &buf_len,
@@ -281,7 +281,7 @@ static flea_err_t THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
 
 static void* flea_tls_server_thread(void* sv__pv)
 {
-  flea_err_t err__t;
+  flea_err_e err__t;
   server_params_t* serv_par__pt = (server_params_t*) sv__pv;
 
   serv_par__pt->write_output_string("running server thread\n");
@@ -298,14 +298,14 @@ static void* flea_tls_server_thread(void* sv__pv)
   return NULL;
 }
 
-static flea_err_t THR_server_cycle(
+static flea_err_e THR_server_cycle(
   property_set_t const     & cmdl_args,
   int                      listen_fd,
   flea_tls_session_mngr_t* sess_man__pt,
   std::string const        & dir_for_file_based_input
 )
 {
-  flea_ec_dom_par_id_t* allowed_ecc_curves__pe;
+  flea_ec_dom_par_id_e* allowed_ecc_curves__pe;
   flea_al_u16_t allowed_ecc_curves_len__alu16;
   flea_tls_sigalg_e* allowed_sig_algs__pe;
   flea_al_u16_t nb_allowed_sig_algs__alu16;
@@ -496,7 +496,7 @@ static flea_err_t THR_server_cycle(
   );
 } // THR_server_cycle
 
-static flea_err_t THR_flea_start_tls_server(
+static flea_err_e THR_flea_start_tls_server(
   property_set_t const     & cmdl_args,
   bool                     is_https_server,
   flea_tls_session_mngr_t* sess_man__pt
@@ -505,7 +505,7 @@ static flea_err_t THR_flea_start_tls_server(
   struct sockaddr_in addr;
   int listen_fd     = -1;// client_fd = 0;
   int one           = 1;
-  flea_err_t err__t = FLEA_ERR_FINE;
+  flea_err_e err__t = FLEA_ERR_FINE;
 
   FLEA_THR_BEG_FUNC();
 
@@ -541,7 +541,7 @@ static flea_err_t THR_flea_start_tls_server(
   {
     FLEA_PRINTF_TEST_OUTP_1_SWITCHED("tls test passed\n");
   }
-  if(err__t == (flea_err_t) FLEA_TEST_APP_USER_ABORT)
+  if(err__t == (flea_err_e) FLEA_TEST_APP_USER_ABORT)
   {
     std::cout << "user abort requested" << std::endl;
   }
@@ -553,7 +553,7 @@ static flea_err_t THR_flea_start_tls_server(
 
 int flea_start_tls_server(property_set_t const& cmdl_args)
 {
-  flea_err_t err;
+  flea_err_e err;
 
 
   flea_tls_session_mngr_t sess_man__t;
@@ -585,7 +585,7 @@ int flea_start_tls_server(property_set_t const& cmdl_args)
 
 int flea_start_https_server(property_set_t const& cmdl_args)
 {
-  flea_err_t err;
+  flea_err_e err;
 
   while(1)
   {

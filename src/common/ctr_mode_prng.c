@@ -23,7 +23,7 @@ static void flea_ctr_mode_prng_t__reset(flea_ctr_mode_prng_t* ctx__pt)
   ctx__pt->cipher_ctx__t.block_crypt_f(&ctx__pt->cipher_ctx__t, ctx__pt->count_block__bu8, ctx__pt->count_block__bu8);
 }
 
-flea_err_t THR_flea_ctr_mode_prng_t__ctor(
+flea_err_e THR_flea_ctr_mode_prng_t__ctor(
   flea_ctr_mode_prng_t* ctx__pt,
   const flea_u8_t*      state__pcu8,
   flea_al_u8_t          state_len__alu8
@@ -124,7 +124,7 @@ void flea_ctr_mode_prng_t__randomize_no_flush(
   }
 } /* flea_ctr_mode_prng_t__randomize_no_flush */
 
-flea_err_t THR_flea_ctr_mode_prng_t__reseed(
+flea_err_e THR_flea_ctr_mode_prng_t__reseed(
   flea_ctr_mode_prng_t* ctx__pt,
   const flea_u8_t*      seed__pcu8,
   flea_dtl_t            seed_len__dtl

@@ -18,7 +18,7 @@
 
 typedef enum { flea_revstat_undetermined, flea_revstat_revoked, flea_revstat_good } flea_revocation_status_e;
 
-static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(
+static flea_err_e THR_flea_crl__does_cdp_contain_distrib_point(
   const flea_byte_vec_t* subjects_crldp_raw_mbn__pt,
   const flea_byte_vec_t* dp_name_raw__cprcu8,
   flea_bool_t            relative_to_issuer__b,
@@ -160,7 +160,7 @@ static flea_err_t THR_flea_crl__does_cdp_contain_distrib_point(
   );
 } /* THR_flea_crl__does_cdp_contain_distrib_point */
 
-static flea_err_t THR_flea_crl__ensure_idp_cdp_general_name_match(
+static flea_err_e THR_flea_crl__ensure_idp_cdp_general_name_match(
   flea_ber_dec_t*        dec__pt,
   const flea_byte_vec_t* subjects_crldp_raw_mbn__pt,
   flea_bool_t*           match_update__pb
@@ -190,7 +190,7 @@ static flea_err_t THR_flea_crl__ensure_idp_cdp_general_name_match(
   FLEA_THR_FIN_SEC_empty();
 }
 
-static flea_err_t THR_flea_crl__parse_and_check_crl_distribution_point(
+static flea_err_e THR_flea_crl__parse_and_check_crl_distribution_point(
   flea_ber_dec_t*        dec__pt,
   const flea_byte_vec_t* subjects_crldp_raw_mbn__pt
 )
@@ -256,7 +256,7 @@ static flea_err_t THR_flea_crl__parse_and_check_crl_distribution_point(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_crl__parse_and_check_crl_distribution_point */
 
-static flea_err_t THR_flea_crl__parse_extensions(
+static flea_err_e THR_flea_crl__parse_extensions(
   flea_ber_dec_t*        dec__pt,
   flea_bool_t            is_ca_cert__b,
   const flea_byte_vec_t* subjects_crldp_raw_mbn__pt
@@ -393,7 +393,7 @@ static flea_err_t THR_flea_crl__parse_extensions(
   );
 } /* THR_flea_crl__parse_extensions */
 
-static flea_err_t THR_flea_crl__update_revocation_status_from_crl_stream(
+static flea_err_e THR_flea_crl__update_revocation_status_from_crl_stream(
   const flea_u8_t*             crl_der__pcu8,
   flea_dtl_t                   crl_der_len__dtl,
   const flea_gmt_time_t*       verification_date__pt,
@@ -581,7 +581,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl_stream(
   );
 } /* THR_flea_crl__update_revocation_status_from_crl */
 
-static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
+static flea_err_e THR_flea_crl__update_revocation_status_from_crl(
   const flea_u8_t*             crl_der__pcu8,
   flea_dtl_t                   crl_der_len__dtl,
   const flea_gmt_time_t*       verification_date__pt,
@@ -616,7 +616,7 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl(
   );
 }
 
-flea_err_t THR_flea_crl__check_revocation_status(
+flea_err_e THR_flea_crl__check_revocation_status(
   const flea_ref_cu8_t*        crl_der__cprcu8,
   flea_al_u16_t                nb_crls__alu16,
   const flea_gmt_time_t*       verification_date__pt,

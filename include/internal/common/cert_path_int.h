@@ -12,7 +12,7 @@ extern "C" {
 /**
  * validate notBefore & notAfter and Basic Constraint (but not the pathlen)
  */
-flea_err_t THR_flea_cert_path__validate_single_cert(
+flea_err_e THR_flea_cert_path__validate_single_cert(
   flea_x509_cert_ref_t*  cert_ref__pt,
   flea_bool_t            is_trusted__b,
   flea_bool_t            is_target__b,

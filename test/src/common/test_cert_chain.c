@@ -287,12 +287,12 @@ const flea_u8_t tls_cert_chain__acu8 [] = {
 };
 
 #ifdef FLEA_HAVE_RSA
-flea_err_t THR_flea_test_cert_chain_correct_chain_of_two()
+flea_err_e THR_flea_test_cert_chain_correct_chain_of_two()
 {
   FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
   const flea_u8_t date_str[] = "170228200000Z";
   flea_gmt_time_t time__t;
-  flea_err_t err;
+  flea_err_e err;
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(
@@ -332,11 +332,11 @@ flea_err_t THR_flea_test_cert_chain_correct_chain_of_two()
   );
 } /* THR_flea_test_cert_chain_correct_chain_of_two */
 
-flea_err_t THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
+flea_err_e THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
 {
   const flea_u8_t date_str[] = "170228200000Z";
   flea_gmt_time_t time__t;
-  flea_err_t err;
+  flea_err_e err;
   flea_u16_t nb_trusted_certs;
   flea_dtl_t i;
 
@@ -411,13 +411,13 @@ flea_err_t THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
 /**
  * Testing the a cert chain as it is supplied with TLS.
  */
-flea_err_t THR_flea_test_tls_cert_chain()
+flea_err_e THR_flea_test_tls_cert_chain()
 {
   FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
   const flea_u8_t date_str[] = "170228200000Z";
   flea_gmt_time_t time__t;
   flea_bool_t first__b = FLEA_TRUE;
-  flea_err_t err;
+  flea_err_e err;
   const flea_u8_t* ptr = tls_cert_chain__acu8;
   flea_al_u16_t len    = sizeof(tls_cert_chain__acu8);
 

@@ -51,7 +51,7 @@ void flea_byte_vec_t__copy_content_set_ref_use_mem(
   trgt__prcu8->len__dtl  = src__prcu8->len__dtl;
 }
 
-static flea_err_t THR_flea_byte_vec_t__grow_to(
+static flea_err_e THR_flea_byte_vec_t__grow_to(
   flea_byte_vec_t* byte_vec__pt,
   flea_dtl_t       grow_allo_to_arg
 )
@@ -93,7 +93,7 @@ static flea_err_t THR_flea_byte_vec_t__grow_to(
   );
 } /* THR_flea_byte_vec_t__grow_to */
 
-static flea_err_t THR_flea_byte_vec_t__grow_to_add_len(
+static flea_err_e THR_flea_byte_vec_t__grow_to_add_len(
   flea_byte_vec_t* byte_vec__pt,
   flea_dtl_t       add_len__dtl
 )
@@ -106,7 +106,7 @@ static flea_err_t THR_flea_byte_vec_t__grow_to_add_len(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_byte_vec_t__resize(
+flea_err_e THR_flea_byte_vec_t__resize(
   flea_byte_vec_t* byte_vec__pt,
   unsigned         new_size
 )
@@ -144,7 +144,7 @@ int flea_byte_vec_t__cmp(
   return flea_memcmp_wsize(a->data__pu8, a->len__dtl, b->data__pu8, b->len__dtl);
 }
 
-flea_err_t THR_flea_byte_vec_t__reserve(
+flea_err_e THR_flea_byte_vec_t__reserve(
   flea_byte_vec_t* byte_vec__pt,
   flea_dtl_t       reserve_len
 )
@@ -154,7 +154,7 @@ flea_err_t THR_flea_byte_vec_t__reserve(
   FLEA_THR_FIN_SEC();
 }
 
-flea_err_t THR_flea_byte_vec_t__set_content(
+flea_err_e THR_flea_byte_vec_t__set_content(
   flea_byte_vec_t* byte_vec__pt,
   const flea_u8_t* data__pcu8,
   flea_dtl_t       len__dtl
@@ -166,7 +166,7 @@ flea_err_t THR_flea_byte_vec_t__set_content(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_byte_vec_t__append(
+flea_err_e THR_flea_byte_vec_t__append(
   flea_byte_vec_t* byte_vec__pt,
   const flea_u8_t* data__pu8,
   flea_dtl_t       len__dtl
@@ -181,7 +181,7 @@ flea_err_t THR_flea_byte_vec_t__append(
   FLEA_THR_FIN_SEC();
 }
 
-flea_err_t THR_flea_byte_vec_t__push_back(
+flea_err_e THR_flea_byte_vec_t__push_back(
   flea_byte_vec_t* byte_vec__pt,
   flea_u8_t        byte
 )

@@ -24,7 +24,7 @@ extern "C" {
  * @param estimated_entropy the estimated entropy of entropy_value in bits
  */
 void flea_rng__feed_low_entropy_data_to_pool(
-  flea_u16_t   entropy,
+  flea_u16_t   entropy_value,
   flea_al_u8_t estimated_entropy
 );
 
@@ -35,7 +35,7 @@ void flea_rng__feed_low_entropy_data_to_pool(
  * @param mem_len the length of the area to be randomized
  *
  */
-flea_err_t THR_flea_rng__randomize(
+flea_err_e THR_flea_rng__randomize(
   flea_u8_t* mem,
   flea_dtl_t mem_len
 );
@@ -51,7 +51,7 @@ flea_err_t THR_flea_rng__randomize(
  *
  * @return flea error code
  */
-flea_err_t THR_flea_rng__reseed_volatile(
+flea_err_e THR_flea_rng__reseed_volatile(
   const flea_u8_t* seed,
   flea_dtl_t       seed_len
 );
@@ -69,7 +69,7 @@ flea_err_t THR_flea_rng__reseed_volatile(
  *
  * @return flea error code
  */
-flea_err_t THR_flea_rng__reseed_persistent(
+flea_err_e THR_flea_rng__reseed_persistent(
   const flea_u8_t* seed,
   flea_dtl_t       seed_len
 );

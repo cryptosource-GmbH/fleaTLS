@@ -12,7 +12,7 @@
 #include "internal/common/tls_ciph_suite.h"
 
 #ifdef FLEA_HAVE_TLS_ECC
-flea_err_t THR_flea_tls_get_sig_length_of_priv_key(
+flea_err_e THR_flea_tls_get_sig_length_of_priv_key(
   flea_private_key_t* priv_key__pt,
   flea_u16_t*         len__u16
 )
@@ -31,7 +31,7 @@ flea_err_t THR_flea_tls_get_sig_length_of_priv_key(
 
 #endif /* ifdef FLEA_HAVE_TLS_ECC */
 #ifdef FLEA_HAVE_TLS_ECDHE
-flea_err_t THR_flea_tls__send_server_kex(
+flea_err_e THR_flea_tls__send_server_kex(
   flea_tls_ctx_t*               tls_ctx__pt,
   flea_tls_handshake_ctx_t*     hs_ctx__pt,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
@@ -47,8 +47,8 @@ flea_err_t THR_flea_tls__send_server_kex(
   flea_u32_t hdr_len__u32;
   flea_ref_cu8_t pub_point__rcu8;
   flea_u8_t ec_curve_type__au8[] = {3}; // named_curve has value 3
-  flea_hash_id_t hash_id__t;
-  flea_pk_scheme_id_t pk_scheme_id__t;
+  flea_hash_id_e hash_id__t;
+  flea_pk_scheme_id_e pk_scheme_id__t;
   flea_u8_t sig_and_hash_alg[2];
   flea_u16_t sig_len__u16;
   flea_u8_t ec_curve__au8[2];
@@ -70,7 +70,7 @@ flea_err_t THR_flea_tls__send_server_kex(
   FLEA_CCALL(THR_flea_tls_get_sig_length_of_priv_key(tls_ctx__pt->private_key__pt, &sig_len__u16));
 
   kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(
-    (flea_tls__cipher_suite_id_t) tls_ctx__pt->selected_cipher_suite__e
+    (flea_tls_cipher_suite_id_t) tls_ctx__pt->selected_cipher_suite__e
     );
 
   if(kex_method__t == FLEA_TLS_KEX_ECDHE)
@@ -80,7 +80,7 @@ flea_err_t THR_flea_tls__send_server_kex(
       THR_flea_tls__create_ecdhe_key(
         ecdhe_priv_key__pt,
         &ecdhe_pub_key__t,
-        (flea_ec_dom_par_id_t) tls_ctx__pt->chosen_ecc_dp_internal_id__u8
+        (flea_ec_dom_par_id_e) tls_ctx__pt->chosen_ecc_dp_internal_id__u8
       )
     );
 

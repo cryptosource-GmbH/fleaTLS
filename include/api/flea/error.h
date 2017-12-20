@@ -315,7 +315,7 @@ typedef enum
    */
   FLEA_ERR_MUTEX_LOCK                                 = 0xF2,
   FLEA_ERR_OUT_OF_MEM                                 = 0xFF,
-} flea_err_t;
+} flea_err_e;
 
 #ifdef __cplusplus
 }

@@ -9,12 +9,12 @@
 #include "flea/array_util.h"
 #include "self_test.h"
 
-flea_err_t THR_flea_test_hash_function_inner(
+flea_err_e THR_flea_test_hash_function_inner(
   const flea_u8_t* message,
   flea_u16_t       message_len,
   const flea_u8_t* expected_digest,
   flea_u16_t       expected_digest_len,
-  flea_hash_id_t   id
+  flea_hash_id_e   id
 )
 {
   flea_hash_ctx_t ctx;
@@ -41,7 +41,7 @@ flea_err_t THR_flea_test_hash_function_inner(
   );
 }
 
-static flea_err_t THR_flea_test_sha256_update_inner(
+static flea_err_e THR_flea_test_sha256_update_inner(
   const flea_u8_t*  message_ptr,
   flea_u16_t        message_len,
   const flea_u8_t*  expected_digest,
@@ -87,7 +87,7 @@ static flea_err_t THR_flea_test_sha256_update_inner(
   );
 } /* THR_flea_test_sha256_update_inner */
 
-flea_err_t THR_flea_test_sha256_update()
+flea_err_e THR_flea_test_sha256_update()
 {
   const flea_u8_t message[] = {
     0x61, 0x1C, 0xEA, 0x48, 0x92, 0xA8, 0x5E, 0x24, 0xDB, 0xB1, 0x38, 0x4E, 0xE9, 0xF4, 0xB4, 0x5C, 0x5D, 0x9A, 0x48,

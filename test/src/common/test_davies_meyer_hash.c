@@ -7,7 +7,7 @@
 #include <stdio.h>
 #include "self_test.h"
 
-flea_err_t THR_flea_test_davies_meyer_aes128_hash_hash()
+flea_err_e THR_flea_test_davies_meyer_aes128_hash_hash()
 {
 #ifndef FLEA_HAVE_DAVIES_MEYER_HASH
   return FLEA_ERR_FINE;

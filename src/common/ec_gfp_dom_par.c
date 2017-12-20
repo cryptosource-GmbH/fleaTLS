@@ -11,7 +11,7 @@
 
 typedef struct
 {
-  flea_ec_dom_par_id_t dp_id;
+  flea_ec_dom_par_id_e dp_id;
   const flea_u8_t*     dp_ptr;
   flea_u16_t           dp_len__u16;
 } dp_id_ptr_entry_t;
@@ -345,7 +345,7 @@ const flea_u8_t flea_ec_gfp_brainpoolP512r1_domain_params [] = {
 
 
 const flea_u8_t flea_ec_gfp_secp160r1_domain_params [] = {
-  160 / 8, // field length
+  160 / 8,// field length
   // p
   0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0xff, 0x7f, 0xff, 0xff,
   0xff,
@@ -370,7 +370,7 @@ const flea_u8_t flea_ec_gfp_secp160r1_domain_params [] = {
 };
 
 const flea_u8_t flea_ec_gfp_secp160r2_domain_params [] = {
-  160 / 8, // field length
+  160 / 8,// field length
   // p:
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xAC,
   0x73,
@@ -395,7 +395,7 @@ const flea_u8_t flea_ec_gfp_secp160r2_domain_params [] = {
 };
 
 const flea_u8_t flea_ec_gfp_secp192r1_domain_params [] = {
-  192 / 8, // field length
+  192 / 8,// field length
   // p:
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF,
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -420,7 +420,7 @@ const flea_u8_t flea_ec_gfp_secp192r1_domain_params [] = {
 };
 
 const flea_u8_t flea_ec_gfp_secp224r1_domain_params [] = {
-  224 / 8, // field length
+  224 / 8,// field length
   // p:
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00,
   0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x01,
@@ -445,7 +445,7 @@ const flea_u8_t flea_ec_gfp_secp224r1_domain_params [] = {
 };
 
 const flea_u8_t flea_ec_gfp_secp256r1_domain_params [] = {
-  256 / 8, // field length
+  256 / 8,// field length
   // p:
   0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00, 0x00, 0x01, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
   0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -470,7 +470,7 @@ const flea_u8_t flea_ec_gfp_secp256r1_domain_params [] = {
 };
 
 const flea_u8_t flea_ec_gfp_secp384r1_domain_params [] = {
-  384 / 8, // field length
+  384 / 8,// field length
   // p:
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFE, 0xFF, 0xFF, 0xFF, 0xFF, 0x00, 0x00,
@@ -501,7 +501,7 @@ const flea_u8_t flea_ec_gfp_secp384r1_domain_params [] = {
 };
 
 const flea_u8_t flea_ec_gfp_secp521r1_domain_params [] = {
-  (521 + 7) / 8, // field length
+  (521 + 7) / 8,// field length
   // p:
   0x01, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
   0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF,
@@ -580,7 +580,7 @@ static const dp_id_ptr_entry_t dp_id_entry_table [] = {
 # endif
 };
 
-const flea_ec_dom_par_id_t flea_gl_ec_dom_par_max_id = flea_secp521r1;
+const flea_ec_dom_par_id_e flea_gl_ec_dom_par_max_id = flea_secp521r1;
 
 /**
  *  Get a pointer to an element of the domain parameters in the flea internal
@@ -591,9 +591,9 @@ const flea_ec_dom_par_id_t flea_gl_ec_dom_par_max_id = flea_secp521r1;
  *
  *  @return a pointer to the specified element
  */
-static const flea_u8_t * flea_ec_dom_par__get_ptr_to_elem(
+static const flea_u8_t* flea_ec_dom_par__get_ptr_to_elem(
   const flea_u8_t*             enc_dp,
-  flea_ec_dom_par_element_id_t id
+  flea_ec_dom_par_element_id_e id
 )
 {
   flea_u8_t field_length = enc_dp[0];
@@ -611,7 +611,7 @@ static const flea_u8_t * flea_ec_dom_par__get_ptr_to_elem(
 
 flea_al_u8_t flea_ec_dom_par__get_elem_len(
   const flea_u8_t*             enc_dp,
-  flea_ec_dom_par_element_id_t id
+  flea_ec_dom_par_element_id_e id
 )
 {
   flea_u8_t field_length = enc_dp[0];
@@ -646,7 +646,7 @@ flea_al_u8_t flea_ec_dom_par__get_real_order_byte_len(const flea_u8_t* enc_dp__p
   return order_byte_len__al_u8 - i__al_u8;
 }
 
-const flea_u8_t * flea_ec_dom_par__get_predefined_dp_ptr(flea_ec_dom_par_id_t dp_id)
+const flea_u8_t* flea_ec_dom_par__get_predefined_dp_ptr(flea_ec_dom_par_id_e dp_id)
 {
   flea_al_u8_t i;
 
@@ -660,7 +660,7 @@ const flea_u8_t * flea_ec_dom_par__get_predefined_dp_ptr(flea_ec_dom_par_id_t dp
   return NULL;
 }
 
-flea_al_u16_t flea_ec_dom_par__get_predefined_dp_len(flea_ec_dom_par_id_t dp_id)
+flea_al_u16_t flea_ec_dom_par__get_predefined_dp_len(flea_ec_dom_par_id_e dp_id)
 {
   flea_al_u8_t i;
 
@@ -677,7 +677,7 @@ flea_al_u16_t flea_ec_dom_par__get_predefined_dp_len(flea_ec_dom_par_id_t dp_id)
 static void flea_ec_dom_par__set_ru8_from_internal_format(
   flea_ref_cu8_t*              result__pru8,
   const flea_u8_t*             enc_dp__pcu8,
-  flea_ec_dom_par_element_id_t dp_id
+  flea_ec_dom_par_element_id_e dp_id
 )
 {
   result__pru8->data__pcu8 = flea_ec_dom_par__get_ptr_to_elem(enc_dp__pcu8, dp_id);
@@ -702,9 +702,9 @@ static void flea_ec_dom_par__set_ru8_from_internal_format(
  *
  * }*/
 
-flea_err_t THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(
+flea_err_e THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(
   flea_ec_gfp_dom_par_ref_t* dp_to_set__pt,
-  flea_ec_dom_par_id_t       id
+  flea_ec_dom_par_id_e       id
 )
 {
   const flea_u8_t* enc_dp__pcu8;
@@ -738,7 +738,7 @@ flea_u32_t flea_ec_gfp_dom_par_ref_t__get_concat_length(const flea_ec_gfp_dom_pa
          + dp__pt->h__ru8.len__dtl;
 }
 
-flea_err_t THR_flea_ec_gfp_dom_par_ref_t__write_to_concat_array(
+flea_err_e THR_flea_ec_gfp_dom_par_ref_t__write_to_concat_array(
   flea_ec_gfp_dom_par_ref_t*       output__pt,
   flea_u8_t*                       trg_mem__pu8,
   flea_dtl_t                       trgt_mem_size__dtl,

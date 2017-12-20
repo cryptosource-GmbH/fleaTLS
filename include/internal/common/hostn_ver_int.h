@@ -21,7 +21,7 @@ typedef struct
   flea_bool_t contains_dnsname__b;
 } flea_hostn_match_info_t;
 
-flea_err_t THR_flea_x509__parse_san_and_validate_hostn(
+flea_err_e THR_flea_x509__parse_san_and_validate_hostn(
   const flea_ref_cu8_t*    user_id__pcrcu8,
   flea_host_id_type_e      host_type,
   flea_ber_dec_t*          cont_dec__pt,
@@ -29,7 +29,7 @@ flea_err_t THR_flea_x509__parse_san_and_validate_hostn(
   flea_hostn_match_info_t* match_info__pt
 );
 
-flea_err_t THR_flea_x509__verify_host_name(
+flea_err_e THR_flea_x509__verify_host_name(
   const flea_ref_cu8_t*  user_host_name__pcrcu8,
   const flea_byte_vec_t* cert_dns_name__pcrcu8,
   flea_bool_t            allow_wildcard__b,

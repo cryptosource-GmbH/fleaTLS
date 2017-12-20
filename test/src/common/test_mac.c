@@ -12,7 +12,7 @@
 
 #ifdef FLEA_HAVE_MAC
 
-static flea_err_t THR_flea_test_mac__init_dtor()
+static flea_err_e THR_flea_test_mac__init_dtor()
 {
   FLEA_DECL_OBJ(ctx__t, flea_mac_ctx_t);
   flea_mac_ctx_t ctx2__t;
@@ -25,8 +25,8 @@ static flea_err_t THR_flea_test_mac__init_dtor()
   );
 }
 
-static flea_err_t THR_flea_test_mac__final_verify_and_compute_mac(
-  flea_mac_id_t    id__t,
+static flea_err_e THR_flea_test_mac__final_verify_and_compute_mac(
+  flea_mac_id_e    id__t,
   const flea_u8_t* key__pcu8,
   flea_al_u16_t    key_len__alu16,
   const flea_u8_t* input__pcu8,
@@ -67,8 +67,8 @@ static flea_err_t THR_flea_test_mac__final_verify_and_compute_mac(
   );
 }
 
-static flea_err_t THR_flea_test_mac__update_with_frag_len_list(
-  flea_mac_id_t    id__t,
+static flea_err_e THR_flea_test_mac__update_with_frag_len_list(
+  flea_mac_id_e    id__t,
   const flea_u8_t* key__pcu8,
   flea_al_u16_t    key_len__alu16,
   const flea_u8_t* input__pcu8,
@@ -114,8 +114,8 @@ static flea_err_t THR_flea_test_mac__update_with_frag_len_list(
   );
 } /* THR_flea_test_mac__update_with_frag_len_list */
 
-static flea_err_t THR_flea_test_mac__update(
-  flea_mac_id_t    id__t,
+static flea_err_e THR_flea_test_mac__update(
+  flea_mac_id_e    id__t,
   const flea_u8_t* key__pcu8,
   flea_al_u16_t    key_len__alu16,
   const flea_u8_t* input__pcu8,
@@ -298,8 +298,8 @@ static flea_err_t THR_flea_test_mac__update(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_test_mac__update */
 
-static flea_err_t THR_flea_test_mac__verify_mac(
-  flea_mac_id_t    id__t,
+static flea_err_e THR_flea_test_mac__verify_mac(
+  flea_mac_id_e    id__t,
   const flea_u8_t* key__pcu8,
   flea_al_u16_t    key_len__alu16,
   const flea_u8_t* input__pcu8,
@@ -327,8 +327,8 @@ static flea_err_t THR_flea_test_mac__verify_mac(
   );
 }
 
-static flea_err_t THR_flea_test_mac_inner(
-  flea_mac_id_t    id__t,
+static flea_err_e THR_flea_test_mac_inner(
+  flea_mac_id_e    id__t,
   const flea_u8_t* key__pcu8,
   flea_al_u16_t    key_len__alu16,
   const flea_u8_t* input__pcu8,
@@ -363,7 +363,7 @@ static flea_err_t THR_flea_test_mac_inner(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_test_mac()
+flea_err_e THR_flea_test_mac()
 {
 # ifdef FLEA_HAVE_HMAC
   const flea_u8_t hmac_key_1[] =
@@ -375,7 +375,7 @@ flea_err_t THR_flea_test_mac()
   const flea_u8_t hmac_sha1_exp_1[]       =
   {0xb6, 0x17, 0x31, 0x86, 0x55, 0x05, 0x72, 0x64, 0xe2, 0x8b, 0xc0, 0xb6, 0xfb, 0x37, 0x8c, 0x8e, 0xf1, 0x46, 0xbe,
    0x00};
-#  endif
+#  endif /* ifdef FLEA_HAVE_SHA1 */
 #  ifdef FLEA_HAVE_SHA224_256
   const flea_u8_t hmac_sha224_exp_1[] =
   {0x89, 0x6f, 0xb1, 0x12, 0x8a, 0xbb, 0xdf, 0x19, 0x68, 0x32, 0x10, 0x7c, 0xd4, 0x9d, 0xf3, 0x3f, 0x47, 0xb4, 0xb1,
@@ -485,7 +485,7 @@ flea_err_t THR_flea_test_mac()
   const flea_u8_t cmac_tdes_2key_message_1[] = {0x6b, 0xc1, 0xbe, 0xe2, 0x2e, 0x40, 0x9f, 0x96, 0xe9, 0x3d, 0x7e, 0x11, 0x73, 0x93, 0x17, 0x2a, 0xae, 0x2d, 0x8a, 0x57};
 
   const flea_u8_t cmac_tdes_2key_exp_res_1[] = {0x62, 0xdd, 0x1b, 0x47, 0x19, 0x02, 0xbd, 0x4e};
-#  endif
+#  endif /* ifdef FLEA_HAVE_TDES_2KEY */
 # endif // #ifdef FLEA_HAVE_CMAC
 
   FLEA_THR_BEG_FUNC();
@@ -521,7 +521,7 @@ flea_err_t THR_flea_test_mac()
   FLEA_CCALL(THR_flea_test_mac_inner(flea_cmac_aes128, cmac_aes128_rfc4493_key, sizeof(cmac_aes128_rfc4493_key), cmac_aes128_rfc4493_data_3, sizeof(cmac_aes128_rfc4493_data_3), cmac_aes128_rfc4493_exp_res_3, sizeof(cmac_aes128_rfc4493_exp_res_3)));
   FLEA_CCALL(THR_flea_test_mac_inner(flea_cmac_aes128, cmac_aes128_rfc4493_key, sizeof(cmac_aes128_rfc4493_key), cmac_aes128_rfc4493_data_4, sizeof(cmac_aes128_rfc4493_data_4), cmac_aes128_rfc4493_exp_res_4, sizeof(cmac_aes128_rfc4493_exp_res_4)));
 
-#  endif
+#  endif /* ifdef FLEA_HAVE_AES */
 #  ifdef FLEA_HAVE_TDES_3KEY
   FLEA_CCALL(THR_flea_test_mac_inner(flea_cmac_tdes_3key, cmac_tdes_3key_key_1, sizeof(cmac_tdes_3key_key_1), cmac_tdes_3key_message_1, sizeof(cmac_tdes_3key_message_1), cmac_tdes_3key_exp_res_1, sizeof(cmac_tdes_3key_exp_res_1)));
 #  endif

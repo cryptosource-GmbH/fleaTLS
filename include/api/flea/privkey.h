@@ -42,7 +42,7 @@ typedef struct
 
 typedef struct
 {
-  flea_pk_key_type_t key_type__t;
+  flea_pk_key_type_e key_type__t;
   flea_u16_t         key_bit_size__u16;
   flea_u16_t         max_primitive_input_len__u16;
   union
@@ -61,7 +61,7 @@ void flea_private_key_t__dtor(flea_private_key_t* privkey__pt);
 /**
  * Create an RSA private key fromt the flea RSA private key internal format.
  */
-flea_err_t THR_flea_private_key_t__ctor_rsa_internal_format(
+flea_err_e THR_flea_private_key_t__ctor_rsa_internal_format(
   flea_private_key_t*   key__pt,
   const flea_ref_cu8_t* priv_key_enc_internal_format__prcu8,
   flea_al_u16_t         key_bit_size__alu16
@@ -70,7 +70,7 @@ flea_err_t THR_flea_private_key_t__ctor_rsa_internal_format(
 /**
  * Create an RSA key from the CRT key components.
  */
-flea_err_t THR_flea_private_key_t__ctor_rsa_components(
+flea_err_e THR_flea_private_key_t__ctor_rsa_components(
   flea_private_key_t* key__pt,
   flea_al_u16_t       key_bit_size__alu16,
   const flea_u8_t*    p__pcu8,
@@ -89,7 +89,7 @@ flea_err_t THR_flea_private_key_t__ctor_rsa_components(
  * Create an ECC public key from the compontents.
  *
  */
-flea_err_t THR_flea_private_key_t__ctor_ecc(
+flea_err_e THR_flea_private_key_t__ctor_ecc(
   flea_private_key_t*              key,
   const flea_byte_vec_t*           scalar,
   const flea_ec_gfp_dom_par_ref_t* dp_ref
@@ -107,10 +107,10 @@ flea_err_t THR_flea_private_key_t__ctor_ecc(
  * @param signature receives the created signature after function completion
  *
  */
-flea_err_t THR_flea_private_key_t__sign_plain_format(
+flea_err_e THR_flea_private_key_t__sign_plain_format(
   const flea_private_key_t* privkey,
-  flea_pk_scheme_id_t       pk_scheme_id,
-  flea_hash_id_t            hash_id,
+  flea_pk_scheme_id_e       pk_scheme_id,
+  flea_hash_id_e            hash_id,
   const flea_byte_vec_t*    message,
   flea_byte_vec_t*          signature
 );
@@ -127,10 +127,10 @@ flea_err_t THR_flea_private_key_t__sign_plain_format(
  * @param privkey the private key to be used for the signature operation
  * @param signature receives the generated signature after function completion
  */
-flea_err_t THR_flea_private_key_t__sign_digest_plain_format(
+flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
   const flea_private_key_t* privkey,
-  flea_pk_scheme_id_t       id,
-  flea_hash_id_t            hash_id,
+  flea_pk_scheme_id_e       id,
+  flea_hash_id_e            hash_id,
   const flea_u8_t*          digest,
   flea_al_u8_t              digest_len,
   flea_byte_vec_t*          signature
@@ -156,10 +156,10 @@ flea_err_t THR_flea_private_key_t__sign_digest_plain_format(
  *                                                   Bleichenbacher's attack).
  *   @param silent_alarm [out] meaning full if enforced_pkcs1_v1_5_decryption_result_len is non-zero. May be set to null. Otherwise, and if enforced_pkcs1_v1_5_decryption_result_len is non-zero, then this value will be set to non-zero if a format/padding error occured during the decryption.
  */
-flea_err_t THR_flea_private_key_t__decrypt_message(
+flea_err_e THR_flea_private_key_t__decrypt_message(
   const flea_private_key_t* privkey,
-  flea_pk_scheme_id_t       id,
-  flea_hash_id_t            hash_id,
+  flea_pk_scheme_id_e       id,
+  flea_hash_id_e            hash_id,
   const flea_u8_t*          ciphertext,
   flea_al_u16_t             ciphertext_len,
   flea_byte_vec_t*          result,

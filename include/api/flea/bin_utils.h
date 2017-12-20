@@ -35,7 +35,7 @@ extern "C" {
 /**
  * XOR bytes.
  *
- * @param bytes to be XORed with in2
+ * @param in_out to be XORed with in2
  * @param in2 bytes to be XORed to in_out
  * @param len length of in_out and in2
  *

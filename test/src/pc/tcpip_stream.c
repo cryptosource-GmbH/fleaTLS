@@ -49,7 +49,7 @@ static void init_sock_stream_server(
 }
 
 #if 0
-static flea_err_t THR_open_socket_server(void* ctx__pv)
+static flea_err_e THR_open_socket_server(void* ctx__pv)
 {
   FLEA_THR_BEG_FUNC();
 
@@ -68,7 +68,7 @@ static flea_err_t THR_open_socket_server(void* ctx__pv)
 } /* THR_open_socket_server */
 
 #endif /* if 0 */
-static flea_err_t THR_open_socket_client(void* ctx__pv)
+static flea_err_e THR_open_socket_client(void* ctx__pv)
 {
   FLEA_THR_BEG_FUNC();
   linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
@@ -134,7 +134,7 @@ static void close_socket(void* ctx__pv)
   close(ctx__pt->socket_fd__int);
 }
 
-static flea_err_t THR_send_socket_inner(
+static flea_err_e THR_send_socket_inner(
   int              socket_fd,
   const flea_u8_t* source_buffer__pcu8,
   flea_dtl_t       nb_bytes_to_write__dtl
@@ -149,7 +149,7 @@ static flea_err_t THR_send_socket_inner(
   FLEA_THR_FIN_SEC_empty();
 }
 
-static flea_err_t THR_write_socket(
+static flea_err_e THR_write_socket(
   void*            ctx__pv,
   const flea_u8_t* source_buffer__pcu8,
   flea_dtl_t       nb_bytes_to_write__dtl
@@ -179,7 +179,7 @@ static flea_err_t THR_write_socket(
   FLEA_THR_FIN_SEC_empty();
 }
 
-static flea_err_t THR_write_flush_socket(void* ctx__pv)
+static flea_err_e THR_write_flush_socket(void* ctx__pv)
 {
   linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
 
@@ -198,7 +198,7 @@ static flea_err_t THR_write_flush_socket(void* ctx__pv)
   FLEA_THR_FIN_SEC_empty();
 }
 
-static flea_err_t THR_read_socket(
+static flea_err_e THR_read_socket(
   void*                   ctx__pv,
   flea_u8_t*              target_buffer__pu8,
   flea_dtl_t*             nb_bytes_to_read__pdtl,
@@ -270,7 +270,7 @@ static flea_err_t THR_read_socket(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_read_socket */
 
-flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
+flea_err_e THR_flea_pltfif_tcpip__create_rw_stream_server(
   flea_rw_stream_t*          stream__pt,
   linux_socket_stream_ctx_t* sock_stream_ctx,
   int                        sock_fd,
@@ -301,7 +301,7 @@ flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_server(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_pltfif_tcpip__create_rw_stream_client(
+flea_err_e THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_rw_stream_t*          stream__pt,
   linux_socket_stream_ctx_t* sock_stream_ctx,
   flea_u16_t                 port__u16,

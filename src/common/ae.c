@@ -16,10 +16,10 @@ typedef enum { flea_eax, flea_gcm } flea_ae_mode_t;
 
 struct flea_ae_config_entry_struct
 {
-  flea_ae_id_t           ae_id__t;
+  flea_ae_id_e           ae_id__t;
   flea_ae_mode_t         ae_mode__t;
-  flea_block_cipher_id_t cipher_id__t;
-  flea_mac_id_t          mac_id__t;
+  flea_block_cipher_id_e cipher_id__t;
+  flea_mac_id_e          mac_id__t;
 };
 
 const flea_ae_config_entry_t ae_config__at[] = {
@@ -65,7 +65,7 @@ const flea_ae_config_entry_t ae_config__at[] = {
 # endif /* ifdef FLEA_HAVE_GCM */
 };
 
-static const flea_ae_config_entry_t* flea_find_ae_config(flea_ae_id_t id__t)
+static const flea_ae_config_entry_t* flea_find_ae_config(flea_ae_id_e id__t)
 {
   flea_al_u16_t i;
 
@@ -87,7 +87,7 @@ static const flea_ae_config_entry_t* flea_find_ae_config(flea_ae_id_t id__t)
  * to the cipher's block length.
  * resets the mac_ctx__t after the computation
  */
-static flea_err_t THR_flea_ae__compute_omac_indexed(
+static flea_err_e THR_flea_ae__compute_omac_indexed(
   flea_mac_ctx_t*  mac_ctx__t,
   flea_u8_t        index__u8,
   flea_al_u8_t     block_len__alu8,
@@ -121,9 +121,9 @@ static flea_err_t THR_flea_ae__compute_omac_indexed(
  *
  * supports nonce lengths of up to the cipher's block length
  */
-flea_err_t THR_flea_ae_ctx_t__ctor(
+flea_err_e THR_flea_ae_ctx_t__ctor(
   flea_ae_ctx_t*   ctx__pt,
-  flea_ae_id_t     id__t,
+  flea_ae_id_e     id__t,
   const flea_u8_t* key__pcu8,
   flea_al_u16_t    key_len__alu16,
   const flea_u8_t* nonce__pcu8,
@@ -283,7 +283,7 @@ flea_err_t THR_flea_ae_ctx_t__ctor(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_ae_ctx_t__ctor */
 
-flea_err_t THR_flea_ae_ctx_t__update_encryption(
+flea_err_e THR_flea_ae_ctx_t__update_encryption(
   flea_ae_ctx_t*   ctx__pt,
   const flea_u8_t* input__pcu8,
   flea_u8_t*       output__pu8,
@@ -330,8 +330,8 @@ flea_err_t THR_flea_ae_ctx_t__update_encryption(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_ae_ctx_t__update_encryption */
 
-flea_err_t THR_flea_ae__encrypt(
-  flea_ae_id_t     id__t,
+flea_err_e THR_flea_ae__encrypt(
+  flea_ae_id_e     id__t,
   const flea_u8_t* key__pcu8,
   flea_dtl_t       key_len__dtl,
   const flea_u8_t* nonce__pcu8,
@@ -368,8 +368,8 @@ flea_err_t THR_flea_ae__encrypt(
   );
 }
 
-flea_err_t THR_flea_ae__decrypt(
-  flea_ae_id_t     id__t,
+flea_err_e THR_flea_ae__decrypt(
+  flea_ae_id_e     id__t,
   const flea_u8_t* key__pcu8,
   flea_dtl_t       key_len__dtl,
   const flea_u8_t* nonce__pcu8,
@@ -418,7 +418,7 @@ flea_err_t THR_flea_ae__decrypt(
   );
 } /* THR_flea_ae__decrypt */
 
-static flea_err_t THR_flea_ae_ctx_t__update_decryption_inner(
+static flea_err_e THR_flea_ae_ctx_t__update_decryption_inner(
   flea_ae_ctx_t*   ctx__pt,
   const flea_u8_t* input__pcu8,
   flea_dtl_t       input_len__dtl,
@@ -444,7 +444,7 @@ static flea_err_t THR_flea_ae_ctx_t__update_decryption_inner(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_ae_ctx_t__update_decryption(
+flea_err_e THR_flea_ae_ctx_t__update_decryption(
   flea_ae_ctx_t*   ctx__pt,
   const flea_u8_t* input__pcu8,
   flea_dtl_t       input_len__dtl,
@@ -507,7 +507,7 @@ flea_err_t THR_flea_ae_ctx_t__update_decryption(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_ae_ctx_t__update_decryption */
 
-flea_err_t THR_flea_ae_ctx_t__final_encryption(
+flea_err_e THR_flea_ae_ctx_t__final_encryption(
   flea_ae_ctx_t* ctx__pt,
   flea_u8_t*     tag__pu8,
   flea_al_u8_t*  tag_len__palu8
@@ -537,7 +537,7 @@ flea_err_t THR_flea_ae_ctx_t__final_encryption(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t* ctx__pt)
+flea_err_e THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t* ctx__pt)
 {
   flea_al_u8_t tag_len__alu8 = ctx__pt->tag_len__u8;
 

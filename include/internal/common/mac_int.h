@@ -41,7 +41,7 @@ void flea_mac_ctx_t__dtor_cipher_ctx_ref(flea_mac_ctx_t* ctx__pt);
 
 void flea_mac_ctx_t__reset_cmac(flea_mac_ctx_t* ctx__pt);
 
-flea_err_t THR_flea_mac_ctx_t__ctor_cmac(
+flea_err_e THR_flea_mac_ctx_t__ctor_cmac(
   flea_mac_ctx_t*           ctx,
   const mac_config_entry_t* config_entry,
   const flea_u8_t*          key,

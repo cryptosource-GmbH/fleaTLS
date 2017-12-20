@@ -11,10 +11,13 @@
  */
 # define FLEA_DO_PRINTF_TEST_OUTPUT
 
+# if 0
+
 /**
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  */
-// # define FLEA_DO_PRINTF_ERRS
+#  define FLEA_DO_PRINTF_ERRS
+# endif
 
 /**
  * Activate this flag to let flea make heap allocation for buffers. Deactivate
@@ -22,12 +25,6 @@
  * correctly define the RSA and EC key sizes.
  */
 # define FLEA_USE_HEAP_BUF // FBFLAGS_CORE_ON_OFF
-
-/**
- * Activate this flag to make use of the buffer overwrite detection. Should not
- * be used in productive code due to performance and code size effects.
- */
-// #define FLEA_USE_BUF_DBG_CANARIES // FBFLAGS_CORE_ON_OFF
 
 /**
  * Algorithm support selection
@@ -148,7 +145,7 @@
  * In any case, the generated code remains valid independently of the platform's
  * endianess, but may be non-optimal with regard to size and/or speed.
  */
-// #define FLEA_HAVE_BE_ARCH_OPT // FBFLAGS_ARCH_OPT_ON_OFF
+# define FLEA_HAVE_BE_ARCH_OPT 0 // FBFLAGS_ARCH_OPT_ON_OFF
 
 /**
  * Maximum for CRL Distribution point extension which only takes effect in stack

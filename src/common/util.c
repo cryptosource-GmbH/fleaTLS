@@ -99,7 +99,7 @@ int flea_memcmp_wsize(
   return memcmp(mem1__pv, mem2__pv, len_mem1__dtl);
 }
 
-flea_err_t THR_flea_add_dtl_with_overflow_check(
+flea_err_e THR_flea_add_dtl_with_overflow_check(
   flea_dtl_t* in_out__pdtl,
   flea_dtl_t  b__dtl
 )

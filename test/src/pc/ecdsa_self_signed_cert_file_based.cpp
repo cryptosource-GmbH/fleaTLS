@@ -19,7 +19,7 @@
 const char* test_file_dirs[] = {"misc/testdata/certs/self_ec_certs_only_for_sig_ver/secp224r1__implict_dp/"};
 
 
-flea_err_t THR_test_ecdsa_self_signed_certs_file_based()
+flea_err_e THR_test_ecdsa_self_signed_certs_file_based()
 {
   FLEA_THR_BEG_FUNC();
 # if FLEA_ECC_MAX_MOD_BIT_SIZE >= 256

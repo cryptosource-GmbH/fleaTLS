@@ -27,7 +27,7 @@ typedef enum
 } flea_rev_chk_mode_e;
 
 
-flea_err_t THR_flea_crl__check_revocation_status(
+flea_err_e THR_flea_crl__check_revocation_status(
   const flea_ref_cu8_t*        crl_der__cprcu8,
   flea_al_u16_t                nb_crls__alu16,
   const flea_gmt_time_t*       verification_date__pt,

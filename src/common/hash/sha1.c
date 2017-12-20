@@ -106,7 +106,7 @@ static void flea_sha1_20_rounds(
   | ((flea_u32_t) ((&y)[1]) << 16)   \
   | ((flea_u32_t) ((&y)[2]) << 8)    \
   | ((flea_u32_t) ((&y)[3])))
-flea_err_t THR_flea_sha1_compression_function(
+flea_err_e THR_flea_sha1_compression_function(
   flea_hash_ctx_t* ctx__pt,
   const flea_u8_t* input__pc_u8
 )

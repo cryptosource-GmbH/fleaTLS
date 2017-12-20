@@ -20,7 +20,7 @@ static flea_u8_t flea_test_asn1_gmttime_strlen(flea_u8_t* in)
   return i;
 }
 
-flea_err_t THR_flea_test_asn1_date()
+flea_err_e THR_flea_test_asn1_date()
 {
   FLEA_THR_BEG_FUNC();
 
@@ -97,7 +97,7 @@ flea_err_t THR_flea_test_asn1_date()
   flea_s8_t res__t;
 
 
-  flea_err_t res_1__t, res_2__t;
+  flea_err_e res_1__t, res_2__t;
 
   for(flea_u8_t i = 0; i < (sizeof(utc_test_cases) / sizeof(flea_asn1_date_test_case)); i++)
   {

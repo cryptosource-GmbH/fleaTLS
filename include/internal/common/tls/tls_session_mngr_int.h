@@ -53,7 +53,7 @@ struct struct_flea_tls_session_mngr_t
 
 flea_bool_t flea_tls_session_data_t__is_valid_session(const flea_tls_session_data_t* session__pt);
 
-flea_err_t THR_flea_tls_session_mngr_t__load_session(
+flea_err_e THR_flea_tls_session_mngr_t__load_session(
   flea_tls_session_mngr_t*        session_mngr__pt,
   const flea_u8_t*                session_id__pcu8,
   flea_al_u8_t                    session_id_len__alu8,
@@ -61,13 +61,13 @@ flea_err_t THR_flea_tls_session_mngr_t__load_session(
   flea_bool_t*                    load_successful__pb
 );
 
-flea_err_t THR_flea_tls_session_mngr_t__store_session(
+flea_err_e THR_flea_tls_session_mngr_t__store_session(
   flea_tls_session_mngr_t*              session_mngr__pt,
   const flea_tls_session_data_server_t* server_session_data__pt
 );
 
 
-flea_err_t THR_flea_tls_session_mngr_t__invalidate_session(
+flea_err_e THR_flea_tls_session_mngr_t__invalidate_session(
   flea_tls_session_mngr_t* session_mngr__pt,
   flea_u8_t*               session_id__pcu8,
   flea_al_u16_t            session_id_len__alu8

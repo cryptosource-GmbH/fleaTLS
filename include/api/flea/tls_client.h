@@ -32,44 +32,44 @@ struct struct_flea_tls_client_ctx_t
  * @param host_name_id specifies whether a  DNS name or an IP address. If  server_name_mbn is set to null, then the value of this parameter is not interpreted.
  * is used as the hostname to verify
  */
-flea_err_t THR_flea_tls_client_ctx_t__ctor(
-  flea_tls_client_ctx_t*             tls_ctx,
-  const flea_cert_store_t*           trust_store,
-  const flea_ref_cu8_t*              server_name_mbn,
-  flea_host_id_type_e                host_name_id,
-  flea_rw_stream_t*                  rw_stream,
-  flea_ref_cu8_t*                    cert_chain_mbn,
-  flea_al_u8_t                       cert_chain_len,
-  flea_private_key_t*                private_key_mbn,
-  const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
-  flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
-  const flea_ref_cu8_t*              crl_der,
-  flea_al_u16_t                      nb_crls,
-  flea_tls_client_session_t*         session_mbn,
-  flea_ec_dom_par_id_t*              allowed_ecc_curves__pe,
-  flea_al_u16_t                      nb_allowed_curves__alu16,
-  flea_tls_sigalg_e*                 allowed_sig_algs,
-  flea_al_u16_t                      nb_allowed_sig_algs,
-  flea_tls_flag_e                    flags
+flea_err_e THR_flea_tls_client_ctx_t__ctor(
+  flea_tls_client_ctx_t*            tls_ctx,
+  const flea_cert_store_t*          trust_store,
+  const flea_ref_cu8_t*             server_name_mbn,
+  flea_host_id_type_e               host_name_id,
+  flea_rw_stream_t*                 rw_stream,
+  flea_ref_cu8_t*                   cert_chain_mbn,
+  flea_al_u8_t                      cert_chain_len,
+  flea_private_key_t*               private_key_mbn,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
+  const flea_ref_cu8_t*             crl_der,
+  flea_al_u16_t                     nb_crls,
+  flea_tls_client_session_t*        session_mbn,
+  flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
+  flea_al_u16_t                     nb_allowed_curves__alu16,
+  flea_tls_sigalg_e*                allowed_sig_algs,
+  flea_al_u16_t                     nb_allowed_sig_algs,
+  flea_tls_flag_e                   flags
 );
 
 
 void flea_tls_client_ctx_t__dtor(flea_tls_client_ctx_t* tls_client_ctx__pt);
 
 
-flea_err_t THR_flea_tls_client_ctx_t__read_app_data(
+flea_err_e THR_flea_tls_client_ctx_t__read_app_data(
   flea_tls_client_ctx_t*  tls_ctx,
   flea_u8_t*              data,
   flea_al_u16_t*          data_len,
   flea_stream_read_mode_e rd_mode
 );
-flea_err_t THR_flea_tls_client_ctx_t__send_app_data(
+flea_err_e THR_flea_tls_client_ctx_t__send_app_data(
   flea_tls_client_ctx_t* tls_ctx,
   const flea_u8_t*       data,
   flea_dtl_t             data_len
 );
 
-flea_err_t THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t* tls_ctx);
+flea_err_e THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t* tls_ctx);
 
 
 /**
@@ -93,21 +93,21 @@ flea_bool_t flea_tls_client_ctx_t__is_reneg_allowed(flea_tls_client_ctx_t* tls_c
  *
  *
  */
-flea_err_t THR_flea_tls_client_ctx_t__renegotiate(
-  flea_tls_client_ctx_t*             tls_ctx,
-  flea_bool_t*                       result,
-  flea_private_key_t*                private_key__pt,
-  const flea_cert_store_t*           trust_store,
-  flea_ref_cu8_t*                    cert_chain,
-  flea_al_u8_t                       cert_chain_len,
-  const flea_tls__cipher_suite_id_t* allowed_cipher_suites__pe,
-  flea_al_u16_t                      nb_allowed_cipher_suites__alu16,
-  const flea_ref_cu8_t*              crl_der,
-  flea_al_u16_t                      nb_crls,
-  flea_ec_dom_par_id_t*              allowed_ecc_curves__pe,
-  flea_al_u16_t                      nb_allowed_curves__alu16,
-  flea_tls_sigalg_e*                 allowed_sig_algs__pe,
-  flea_al_u16_t                      nb_allowed_sig_algs__alu16
+flea_err_e THR_flea_tls_client_ctx_t__renegotiate(
+  flea_tls_client_ctx_t*            tls_ctx,
+  flea_bool_t*                      result,
+  flea_private_key_t*               private_key__pt,
+  const flea_cert_store_t*          trust_store,
+  flea_ref_cu8_t*                   cert_chain,
+  flea_al_u8_t                      cert_chain_len,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
+  const flea_ref_cu8_t*             crl_der,
+  flea_al_u16_t                     nb_crls,
+  flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
+  flea_al_u16_t                     nb_allowed_curves__alu16,
+  flea_tls_sigalg_e*                allowed_sig_algs__pe,
+  flea_al_u16_t                     nb_allowed_sig_algs__alu16
 );
 
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF

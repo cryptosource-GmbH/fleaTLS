@@ -10,7 +10,7 @@
 #include "self_test.h"
 #include <string.h>
 
-flea_err_t THR_flea_test_cbc_mode()
+flea_err_e THR_flea_test_cbc_mode()
 {
   // from https://tools.ietf.org/html/rfc3602
   const flea_u8_t aes128_cbc_key[] = {0x56, 0xe4, 0x7a, 0x38, 0xc5, 0x59, 0x89, 0x74, 0xbc, 0x46, 0x90, 0x3d, 0xba, 0x29, 0x03, 0x49};

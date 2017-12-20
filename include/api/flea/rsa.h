@@ -24,7 +24,7 @@ extern "C" {
  *  @param modulus_length length of the modulus_enc array
  *
  */
-flea_err_t THR_flea_rsa_raw_operation(
+flea_err_e THR_flea_rsa_raw_operation(
   flea_u8_t*       result_arr,
   const flea_u8_t* exponent_enc,
   flea_al_u16_t    exponent_length,
@@ -56,7 +56,7 @@ flea_err_t THR_flea_rsa_raw_operation(
  *  @return flea error code
  *
  */
-flea_err_t THR_flea_rsa_raw_operation_crt(
+flea_err_e THR_flea_rsa_raw_operation_crt(
   flea_u8_t*       result_enc,
   const flea_u8_t* base_enc,
   flea_al_u16_t    base_length,

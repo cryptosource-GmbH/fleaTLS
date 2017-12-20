@@ -24,7 +24,7 @@ struct struct_flea_hash_config_entry_t
   flea_al_u8_t                  block_length;
   flea_al_u8_t                  output_length;
   flea_al_u8_t                  hash_state_length;
-  flea_hash_id_t                hash_id;
+  flea_hash_id_e                hash_id;
   flea_u8_t                     max_allowed_input_byte_len_exponent__u8;
   flea_hash_init_f              init_func;
   THR_flea_hash_compression_f   compression_func;
@@ -121,7 +121,7 @@ const flea_hash_config_entry_t flea_array_hash_configs[] = {
 #endif /* ifdef FLEA_HAVE_SHA384_512 */
 };
 
-static const flea_hash_config_entry_t* flea_hash__get_hash_config_by_id(flea_hash_id_t id)
+static const flea_hash_config_entry_t* flea_hash__get_hash_config_by_id(flea_hash_id_e id)
 {
   flea_al_u16_t i;
 
@@ -135,7 +135,7 @@ static const flea_hash_config_entry_t* flea_hash__get_hash_config_by_id(flea_has
   return NULL;
 }
 
-flea_al_u8_t flea_hash__get_output_length_by_id(flea_hash_id_t id)
+flea_al_u8_t flea_hash__get_output_length_by_id(flea_hash_id_e id)
 {
   const flea_hash_config_entry_t* config = flea_hash__get_hash_config_by_id(id);
 
@@ -146,7 +146,7 @@ flea_al_u8_t flea_hash__get_output_length_by_id(flea_hash_id_t id)
   return config->output_length;
 }
 
-flea_err_t THR_flea_hash_ctx_t__ctor_copy(
+flea_err_e THR_flea_hash_ctx_t__ctor_copy(
   flea_hash_ctx_t*       p_ctx_new,
   const flea_hash_ctx_t* p_ctx
 )
@@ -177,9 +177,9 @@ flea_err_t THR_flea_hash_ctx_t__ctor_copy(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_hash_ctx_t__ctor(
+flea_err_e THR_flea_hash_ctx_t__ctor(
   flea_hash_ctx_t* p_ctx,
-  flea_hash_id_t   id
+  flea_hash_id_e   id
 )
 {
   flea_al_u8_t counter_block_arr_len__u8;
@@ -216,7 +216,7 @@ void flea_hash_ctx_t__reset(flea_hash_ctx_t* p_ctx)
   flea_len_ctr_t__reset(&p_ctx->len_ctr__t);
 }
 
-static flea_err_t THR_flea_hash_ctx_t__add_to_counter_block_and_check_limit(
+static flea_err_e THR_flea_hash_ctx_t__add_to_counter_block_and_check_limit(
   flea_hash_ctx_t* ctx__pt,
   flea_dtl_t       input_len__dtl
 )
@@ -254,7 +254,7 @@ static void flea_hash__encode_length_LE(
   }
 }
 
-flea_err_t THR_flea_hash_ctx_t__update(
+flea_err_e THR_flea_hash_ctx_t__update(
   flea_hash_ctx_t* p_ctx,
   const flea_u8_t* input,
   flea_dtl_t       input_len
@@ -298,7 +298,7 @@ flea_err_t THR_flea_hash_ctx_t__update(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_hash_ctx_t__update */
 
-flea_err_t THR_flea_hash_ctx_t__final_byte_vec(
+flea_err_e THR_flea_hash_ctx_t__final_byte_vec(
   flea_hash_ctx_t* p_ctx,
   flea_byte_vec_t* result__pt
 )
@@ -310,7 +310,7 @@ flea_err_t THR_flea_hash_ctx_t__final_byte_vec(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_hash_ctx_t__final(
+flea_err_e THR_flea_hash_ctx_t__final(
   flea_hash_ctx_t* p_ctx,
   flea_u8_t*       output
 )
@@ -320,7 +320,7 @@ flea_err_t THR_flea_hash_ctx_t__final(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_hash_ctx_t__final_with_length_limit(
+flea_err_e THR_flea_hash_ctx_t__final_with_length_limit(
   flea_hash_ctx_t* p_ctx,
   flea_u8_t*       output,
   flea_al_u16_t    output_length
@@ -400,13 +400,13 @@ flea_al_u16_t flea_hash_ctx_t__get_output_length(flea_hash_ctx_t* p_ctx)
   return p_ctx->p_config->output_length;
 }
 
-flea_hash_id_t flea_hash_ctx_t__get_hash_id(const flea_hash_ctx_t* p_ctx)
+flea_hash_id_e flea_hash_ctx_t__get_hash_id(const flea_hash_ctx_t* p_ctx)
 {
   return p_ctx->p_config->hash_id;
 }
 
-flea_err_t THR_flea_compute_hash_byte_vec(
-  flea_hash_id_t   id,
+flea_err_e THR_flea_compute_hash_byte_vec(
+  flea_hash_id_e   id,
   const flea_u8_t* input_pu8,
   flea_dtl_t       input_len_al_u16,
   flea_byte_vec_t* result__pt
@@ -428,8 +428,8 @@ flea_err_t THR_flea_compute_hash_byte_vec(
   );
 }
 
-flea_err_t THR_flea_compute_hash(
-  flea_hash_id_t   id,
+flea_err_e THR_flea_compute_hash(
+  flea_hash_id_e   id,
   const flea_u8_t* input_pu8,
   flea_dtl_t       input_len_al_u16,
   flea_u8_t*       output_pu8,

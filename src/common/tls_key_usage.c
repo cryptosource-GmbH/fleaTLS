@@ -6,7 +6,7 @@
 #include "internal/common/tls_key_usage.h"
 #include "internal/common/x509_int.h"
 
-flea_err_t THR_flea_tls__check_key_usage_of_tls_server(
+flea_err_e THR_flea_tls__check_key_usage_of_tls_server(
   flea_key_usage_t const* key_usage__pt,
   flea_key_usage_t const* extended_key_usage__pt,
   flea_tls_kex_e          kex_type
@@ -46,7 +46,7 @@ flea_err_t THR_flea_tls__check_key_usage_of_tls_server(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__check_key_usage_for_tls_server */
 
-flea_err_t THR_flea_tls__check_key_usage_of_tls_client(
+flea_err_e THR_flea_tls__check_key_usage_of_tls_client(
   flea_key_usage_t const*     key_usage__pt,
   flea_key_usage_t const*     extended_key_usage__pt,
   flea_tls_client_cert_type_e cert_type

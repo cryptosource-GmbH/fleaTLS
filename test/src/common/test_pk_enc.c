@@ -19,7 +19,7 @@
  * Reference test data created with Botan.
  */
 #ifdef FLEA_HAVE_PK_CS
-static flea_err_t THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
+static flea_err_e THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
 {
 # if FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048 && defined FLEA_HAVE_SHA1 && defined FLEA_HAVE_RSA
   const flea_u8_t ct_oaep[2048 / 8] = {
@@ -127,7 +127,7 @@ static flea_err_t THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
 # endif // #else or #if FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048 && defined FLEA_HAVE_SHA1 && defined FLEA_HAVE_RSA
 } /* THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct */
 
-static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
+static flea_err_e THR_flea_test_pkcs1_v1_5_encoding_encr()
 {
   const flea_u8_t message[41] = {0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
                                  0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
@@ -296,7 +296,7 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
 
   /* restore correct value in res: */
   output_size__alu16 = 1536 / 8;
-  FLEA_CCALL(THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(res, sizeof(message), &output_size__alu16, 1536, (flea_hash_id_t) 0));
+  FLEA_CCALL(THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(res, sizeof(message), &output_size__alu16, 1536, (flea_hash_id_e) 0));
 
   memset(&res[2], 0xFF, 1536 / 8 - 2);
   /* test decoding of incorrect ciphertext (this time the zero-separator is not found) without Bleichenbacher countermeasure */
@@ -383,7 +383,7 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_encr()
 } /* THR_flea_test_pkcs1_v1_5_encoding_encr */
 
 # ifdef FLEA_HAVE_ASYM_SIG
-static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_sign()
+static flea_err_e THR_flea_test_pkcs1_v1_5_encoding_sign()
 {
   const flea_u8_t hash_256[32] = {0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
                                   0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
@@ -465,7 +465,7 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_encoding_sign()
 
 # endif /* ifdef FLEA_HAVE_ASYM_SIG */
 
-flea_err_t THR_flea_test_emsa1()
+flea_err_e THR_flea_test_emsa1()
 {
   const flea_u8_t input_const [] =
   {0x96, 0x78, 0xBE, 0x0F, 0x17, 0xC5, 0x0A, 0x6C, 0x92, 0x90, 0x53, 0x3A, 0x19, 0x28, 0xD6, 0x9A, 0x81, 0x43, 0xE6,
@@ -493,7 +493,7 @@ flea_err_t THR_flea_test_emsa1()
   );
 }
 
-flea_err_t THR_flea_test_oaep()
+flea_err_e THR_flea_test_oaep()
 {
 # ifndef FLEA_HAVE_SHA1
   return FLEA_ERR_FINE;
@@ -553,7 +553,7 @@ flea_err_t THR_flea_test_oaep()
 # endif /* ifndef FLEA_HAVE_SHA1 */
 } /* THR_flea_test_oaep */
 
-flea_err_t THR_flea_test_pkcs1_v1_5_encoding()
+flea_err_e THR_flea_test_pkcs1_v1_5_encoding()
 {
   FLEA_THR_BEG_FUNC();
 # ifdef FLEA_HAVE_ASYM_SIG
@@ -563,9 +563,9 @@ flea_err_t THR_flea_test_pkcs1_v1_5_encoding()
   FLEA_THR_FIN_SEC_empty();
 }
 
-static flea_err_t THR_flea_inner_test_pk_encryption(
-  flea_pk_scheme_id_t id__t,
-  flea_hash_id_t      hash_id__t
+static flea_err_e THR_flea_inner_test_pk_encryption(
+  flea_pk_scheme_id_e id__t,
+  flea_hash_id_e      hash_id__t
 )
 {
   const flea_u8_t rsa_pub_exp__acu8[] = {0x01, 0x00, 0x01};
@@ -637,7 +637,7 @@ static flea_err_t THR_flea_inner_test_pk_encryption(
   );
 } /* THR_flea_inner_test_pk_encryption */
 
-static flea_err_t THR_flea_test_pk_encryption_algos()
+static flea_err_e THR_flea_test_pk_encryption_algos()
 {
   FLEA_THR_BEG_FUNC();
 # ifdef FLEA_HAVE_SHA1
@@ -651,10 +651,10 @@ static flea_err_t THR_flea_test_pk_encryption_algos()
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_test_pk_encryption()
+flea_err_e THR_flea_test_pk_encryption()
 {
   FLEA_THR_BEG_FUNC();
-  flea_err_t err = THR_flea_test_pk_encryption_algos();
+  flea_err_e err = THR_flea_test_pk_encryption_algos();
   if(err !=
 # if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && !defined FLEA_USE_HEAP_BUF
     FLEA_ERR_INV_KEY_SIZE && err != FLEA_ERR_BUFF_TOO_SMALL && err != FLEA_ERR_INV_KEY_COMP_SIZE

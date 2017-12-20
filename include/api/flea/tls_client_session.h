@@ -26,13 +26,13 @@ typedef struct
 #define flea_tls_client_session_t__dtor(__p)
 
 
-flea_err_t THR_flea_tls_client_session_t_deserialize(
+flea_err_e THR_flea_tls_client_session_t_deserialize(
   flea_tls_client_session_t* client_session__pt,
   const flea_u8_t*           enc__pcu8,
   flea_al_u8_t               enc_len__alu8
 );
 
-flea_err_t THR_flea_tls_client_session_t__serialize(
+flea_err_e THR_flea_tls_client_session_t__serialize(
   const flea_tls_client_session_t* client_session__pt,
   flea_byte_vec_t*                 result__pt
 );

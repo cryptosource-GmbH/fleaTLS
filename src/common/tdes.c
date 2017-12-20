@@ -14,7 +14,7 @@
  * expects the key as k1||k2 where TDES_ENC(m) =
  * DES_ENC_k1(DES_DEC_k2(DES_ENC_k1(m)))
  */
-flea_err_t THR_flea_triple_des_ede_2key_setup_key(
+flea_err_e THR_flea_triple_des_ede_2key_setup_key(
   flea_ecb_mode_ctx_t* ctx__pt,
   const flea_u8_t*     key
 )
@@ -54,7 +54,7 @@ void flea_triple_des_ede_2key_decrypt_block(
  * expects the key as k1||k2||k3 where TDES_ENC(m) =
  * DES_ENC_k1(DES_DEC_k2(DES_ENC_k3(m)))
  */
-flea_err_t THR_flea_triple_des_ede_3key_setup_key(
+flea_err_e THR_flea_triple_des_ede_3key_setup_key(
   flea_ecb_mode_ctx_t* ctx__pt,
   const flea_u8_t*     key
 )

@@ -23,7 +23,7 @@ typedef struct
   flea_u8_t                     handsh_hdr__au8[4];
 } flea_tls_handsh_reader_hlp_t;
 
-flea_err_t THR_flea_rw_stream_t__ctor_tls_handsh_reader(
+flea_err_e THR_flea_rw_stream_t__ctor_tls_handsh_reader(
   flea_rw_stream_t*             handsh_read_stream__pt,
   flea_tls_handsh_reader_hlp_t* hlp__pt,
   flea_rw_stream_t*             underlying_read_stream__pt,

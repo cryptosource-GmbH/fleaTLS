@@ -4,7 +4,7 @@
 #include "flea/types.h"
 #include "flea/hash.h"
 
-flea_err_t THR_flea_md5_compression_function(
+flea_err_e THR_flea_md5_compression_function(
   flea_hash_ctx_t* ctx__pt,
   const flea_u8_t* input
 );

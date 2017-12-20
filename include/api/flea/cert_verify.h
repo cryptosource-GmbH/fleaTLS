@@ -19,7 +19,7 @@ extern "C" {
  * signature verification itself.
  *
  */
-flea_err_t THR_flea_x509_verify_cert_signature(
+flea_err_e THR_flea_x509_verify_cert_signature(
   const flea_u8_t*             enc_subject_cert__pcu8,
   flea_dtl_t                   enc_subject_cert_len__dtl,
   const flea_u8_t*             enc_issuer_cert__pcu8,
@@ -34,7 +34,7 @@ flea_err_t THR_flea_x509_verify_cert_signature(
  * signature verification itself.
  *
  */
-flea_err_t THR_flea_x509_verify_cert_info_signature(
+flea_err_e THR_flea_x509_verify_cert_info_signature(
   const flea_x509_cert_info_t* subject_cert_ref__pt,
   const flea_x509_cert_info_t* issuer_cert_ref__pt,
   flea_x509_validation_flags_e cert_ver_flags__e

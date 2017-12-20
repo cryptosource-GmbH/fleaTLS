@@ -65,7 +65,7 @@ static const flea_tls__cipher_suite_t cipher_suites[] = {
 };
 
 
-flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_id_t cs_id__t)
+flea_hash_id_e flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls_cipher_suite_id_t cs_id__t)
 {
 # ifdef FLEA_HAVE_SHA384_512
 
@@ -86,7 +86,7 @@ flea_hash_id_t flea_tls_get_prf_hash_by_cipher_suite_id(flea_tls__cipher_suite_i
   return flea_sha256;
 }
 
-const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher_suite_id_t id__t)
+const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls_cipher_suite_id_t id__t)
 {
   flea_u16_t i;
 
@@ -105,7 +105,7 @@ const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher
  * the ciphersuite must be known to flea at compile time in this function.
  */
 
-/*flea_pk_key_type_t flea_tls__get_key_type_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t)
+/*flea_pk_key_type_e flea_tls__get_key_type_by_cipher_suite_id(flea_tls_cipher_suite_id_t id__t)
 {
   if(flea_tls_get_cipher_suite_by_id(id__t)->mask & FLEA_TLS_CS_AUTH_MASK__RSA)
   {
@@ -115,8 +115,8 @@ const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls__cipher
 }*/
 
 flea_bool_t flea_tls__does_priv_key_type_fit_to_ciphersuite(
-  flea_tls__cipher_suite_id_t id__t,
-  flea_pk_key_type_t          key_type__e
+  flea_tls_cipher_suite_id_t id__t,
+  flea_pk_key_type_e         key_type__e
 )
 {
   const flea_tls__cipher_suite_t* cs__pt = flea_tls_get_cipher_suite_by_id(id__t);
@@ -148,7 +148,7 @@ flea_bool_t flea_tls__does_priv_key_type_fit_to_ciphersuite(
   }
 }
 
-flea_tls__kex_method_t flea_tls_get_kex_method_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t)
+flea_tls__kex_method_t flea_tls_get_kex_method_by_cipher_suite_id(flea_tls_cipher_suite_id_t id__t)
 {
   if(flea_tls_get_cipher_suite_by_id(id__t)->mask & FLEA_TLS_CS_KEX_MASK__RSA)
   {
@@ -157,7 +157,7 @@ flea_tls__kex_method_t flea_tls_get_kex_method_by_cipher_suite_id(flea_tls__ciph
   return FLEA_TLS_KEX_ECDHE;
 }
 
-flea_tls_kex_e flea_tls__get_kex_and_auth_method_by_cipher_suite_id(flea_tls__cipher_suite_id_t id__t)
+flea_tls_kex_e flea_tls__get_kex_and_auth_method_by_cipher_suite_id(flea_tls_cipher_suite_id_t id__t)
 {
   const flea_tls__cipher_suite_t* cs__pt = flea_tls_get_cipher_suite_by_id(id__t);
 
@@ -171,8 +171,8 @@ flea_tls_kex_e flea_tls__get_kex_and_auth_method_by_cipher_suite_id(flea_tls__ci
   return flea_tls_kex__ecdhe_rsa;
 }
 
-flea_err_t THR_flea_tls_get_cipher_suite_by_id(
-  flea_tls__cipher_suite_id_t      id,
+flea_err_e THR_flea_tls_get_cipher_suite_by_id(
+  flea_tls_cipher_suite_id_t       id,
   const flea_tls__cipher_suite_t** result__pt
 )
 {
@@ -192,9 +192,9 @@ flea_err_t THR_flea_tls_get_cipher_suite_by_id(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_tls_get_key_block_len_from_cipher_suite_id(
-  flea_tls__cipher_suite_id_t id,
-  flea_al_u16_t*              result_key_block_len__palu16
+flea_err_e THR_flea_tls_get_key_block_len_from_cipher_suite_id(
+  flea_tls_cipher_suite_id_t id,
+  flea_al_u16_t*             result_key_block_len__palu16
 )
 {
   const flea_tls__cipher_suite_t* ct__pt;

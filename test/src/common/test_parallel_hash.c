@@ -9,9 +9,9 @@
 
 #ifdef FLEA_HAVE_TLS
 
-flea_err_t THR_flea_test_parallel_hash()
+flea_err_e THR_flea_test_parallel_hash()
 {
-  flea_hash_id_t hash_ids[] = {flea_sha256,
+  flea_hash_id_e hash_ids[] = {flea_sha256,
 
 # ifdef FLEA_HAVE_SHA384_512
                                flea_sha384, flea_sha512

@@ -20,7 +20,7 @@ flea_bool_t flea_cert_store_t__is_cert_trusted(
   return FLEA_TRUE;
 }
 
-static flea_err_t THR_flea_cert_store_t__add_cert(
+static flea_err_e THR_flea_cert_store_t__add_cert(
   flea_cert_store_t* cert_store__pt,
   const flea_u8_t*   der_enc_cert__pcu8,
   flea_al_u16_t      der_enc_cert_len__alu16,
@@ -70,7 +70,7 @@ const flea_u8_t* flea_cert_store_t__get_ptr_to_trusted_enc_cert(
   return NULL;
 }
 
-flea_err_t THR_flea_cert_store_t__ctor(flea_cert_store_t* cert_store__pt)
+flea_err_e THR_flea_cert_store_t__ctor(flea_cert_store_t* cert_store__pt)
 {
   FLEA_THR_BEG_FUNC();
 # ifdef FLEA_USE_HEAP_BUF
@@ -83,7 +83,7 @@ flea_err_t THR_flea_cert_store_t__ctor(flea_cert_store_t* cert_store__pt)
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_cert_store_t__add_trusted_cert(
+flea_err_e THR_flea_cert_store_t__add_trusted_cert(
   flea_cert_store_t* cert_store__pt,
   const flea_u8_t*   der_enc_cert__pcu8,
   flea_al_u16_t      der_enc_cert_len__alu16
@@ -92,7 +92,7 @@ flea_err_t THR_flea_cert_store_t__add_trusted_cert(
   return THR_flea_cert_store_t__add_cert(cert_store__pt, der_enc_cert__pcu8, der_enc_cert_len__alu16, FLEA_TRUE);
 }
 
-flea_err_t THR_flea_cert_store_t__add_untrusted_cert(
+flea_err_e THR_flea_cert_store_t__add_untrusted_cert(
   flea_cert_store_t* cert_store__pt,
   const flea_u8_t*   der_enc_cert__pcu8,
   flea_al_u16_t      der_enc_cert_len__alu16
@@ -101,7 +101,7 @@ flea_err_t THR_flea_cert_store_t__add_untrusted_cert(
   return THR_flea_cert_store_t__add_cert(cert_store__pt, der_enc_cert__pcu8, der_enc_cert_len__alu16, FLEA_FALSE);
 }
 
-flea_err_t THR_flea_cert_store_t__add_trusted_to_path_validator(
+flea_err_e THR_flea_cert_store_t__add_trusted_to_path_validator(
   const flea_cert_store_t*    cert_store__pct,
   flea_cert_path_validator_t* cpv__pt
 )
@@ -126,9 +126,9 @@ flea_err_t THR_flea_cert_store_t__add_trusted_to_path_validator(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_cert_store_t__is_tbs_hash_trusted(
+flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
   const flea_cert_store_t* cert_store__pct,
-  flea_hash_id_t           tbs_cert_hash_id__e,
+  flea_hash_id_e           tbs_cert_hash_id__e,
   const flea_u8_t*         tbs_cert_hash_to_check__pcu8,
   flea_al_u8_t             tbs_cert_hash_to_check_len__alu8,
   flea_bool_t*             result_is_trusted__pb,
@@ -180,7 +180,7 @@ flea_err_t THR_flea_cert_store_t__is_tbs_hash_trusted(
   );
 } /* THR_flea_cert_store_t__is_tbs_hash_trusted */
 
-flea_err_t THR_flea_cert_store_t__is_cert_trusted(
+flea_err_e THR_flea_cert_store_t__is_cert_trusted(
   const flea_cert_store_t* cert_store__pct,
   const flea_u8_t*         cert_to_check__pcu8,
   flea_al_u16_t            cert_to_check_len__alu16,

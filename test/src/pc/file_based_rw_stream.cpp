@@ -4,7 +4,7 @@
 #include <iostream>
 #include <algorithm>
 
-static flea_err_t file_based_stream_read__f(
+static flea_err_e file_based_stream_read__f(
   void*                   custom_obj__pv,
   flea_u8_t*              target_buffer__pu8,
   flea_dtl_t*             nb_bytes_to_read__pdtl,
@@ -32,7 +32,7 @@ static flea_err_t file_based_stream_read__f(
   return FLEA_ERR_FINE;
 }
 
-static flea_err_t output_ignore__f(
+static flea_err_e output_ignore__f(
   void*,
   const flea_u8_t*,
   flea_dtl_t
@@ -41,7 +41,7 @@ static flea_err_t output_ignore__f(
   return FLEA_ERR_FINE;
 }
 
-flea_err_t THR_flea_test_file_based_rw_stream_t__ctor(
+flea_err_e THR_flea_test_file_based_rw_stream_t__ctor(
   flea_rw_stream_t*           stream__pt,
   file_based_rw_stream_ctx_t* fb_rws_ctx,
   std::string const           & dir_with_input_files,

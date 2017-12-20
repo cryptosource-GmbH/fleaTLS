@@ -16,7 +16,7 @@ extern "C" {
  * @param der_key the DER encoded structure
  * @param der_key_len the length of the DER encoded structure
  */
-flea_err_t THR_flea_private_key_t__ctor_pkcs8(
+flea_err_e THR_flea_private_key_t__ctor_pkcs8(
   flea_private_key_t* key,
   const flea_u8_t*    der_key,
   flea_al_u16_t       der_key_len
@@ -29,7 +29,7 @@ flea_err_t THR_flea_private_key_t__ctor_pkcs8(
  * @param der_key the DER encoded structure
  * @param der_key_len the length of the DER encoded structure
  */
-flea_err_t THR_flea_public_key_t__ctor_pkcs8(
+flea_err_e THR_flea_public_key_t__ctor_pkcs8(
   flea_public_key_t* key,
   const flea_u8_t*   der_key,
   flea_al_u16_t      der_key_len

@@ -9,13 +9,13 @@
 #include "flea/algo_config.h"
 #include <string.h>
 
-flea_err_t THR_flea_test_crc16()
+flea_err_e THR_flea_test_crc16()
 {
   FLEA_THR_BEG_FUNC();
   flea_u16_t crc_init_value__u16 = 0;
   flea_u16_t exp_res__u16        = 0xC965; // APPROVED BY 2 OTHER CALCULATORS
   flea_u16_t crc_res__u16;
-  flea_u8_t test_string__au8[] = { 0xAB, 0xCD };
+  flea_u8_t test_string__au8[] = {0xAB, 0xCD};
   crc_res__u16 = flea_crc16_ccit_compute(crc_init_value__u16, test_string__au8, sizeof(test_string__au8));
 
   if(crc_res__u16 != exp_res__u16)

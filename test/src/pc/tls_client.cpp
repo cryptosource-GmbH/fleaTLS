@@ -29,7 +29,7 @@
 #ifdef FLEA_HAVE_TLS
 # ifdef FLEA_HAVE_TLS_CLIENT
 
-static flea_err_t THR_flea_start_tls_client(
+static flea_err_e THR_flea_start_tls_client(
   property_set_t const       & cmdl_args,
   flea_tls_client_session_t* client_session__pt
 )
@@ -49,7 +49,7 @@ static flea_err_t THR_flea_start_tls_client(
 
   // flea_ref_cu16_t cipher_suites_ref;
 
-  flea_ec_dom_par_id_t* allowed_ecc_curves__pe;
+  flea_ec_dom_par_id_e* allowed_ecc_curves__pe;
   flea_al_u16_t allowed_ecc_curves_len__alu16;
   flea_tls_sigalg_e* allowed_sig_algs__pe;
   flea_al_u16_t nb_allowed_sig_algs__alu16;
@@ -247,7 +247,7 @@ static flea_err_t THR_flea_start_tls_client(
     }
     // std::cout << "read_mode = " << std::to_string(tls_cfg.read_mode_for_app_data) << "\n";
     // std::cout << "calling read_app_data with len = " + std::to_string(buf_len) + "\n" << std::flush;
-    flea_err_t retval =
+    flea_err_e retval =
       THR_flea_tls_client_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, tls_cfg.read_mode_for_app_data);
     if(retval == FLEA_ERR_TIMEOUT_ON_STREAM_READ)
     {
@@ -282,7 +282,7 @@ static flea_err_t THR_flea_start_tls_client(
 
 int flea_start_tls_client(property_set_t const& cmdl_args)
 {
-  flea_err_t err = FLEA_ERR_FINE;
+  flea_err_e err = FLEA_ERR_FINE;
   flea_tls_client_session_t client_session__t;
   int retval = 0;
 

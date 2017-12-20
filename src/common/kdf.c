@@ -5,8 +5,8 @@
 #include "flea/alloc.h"
 #include "flea/bin_utils.h"
 
-flea_err_t THR_flea_kdf_X9_63(
-  flea_hash_id_t   id__t,
+flea_err_e THR_flea_kdf_X9_63(
+  flea_hash_id_e   id__t,
   const flea_u8_t* input__pcu8,
   flea_al_u16_t    input_len__alu16,
   const flea_u8_t* shared_info__pcu8,

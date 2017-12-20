@@ -24,7 +24,9 @@ typedef enum
 #ifdef FLEA_HAVE_DAVIES_MEYER_HASH
   flea_davies_meyer_aes128,
 #endif
+#ifdef FLEA_HAVE_MD5
   flea_md5,
+#endif
 #ifdef FLEA_HAVE_SHA1
   flea_sha1,
 #endif
@@ -36,7 +38,7 @@ typedef enum
   flea_sha384,
   flea_sha512
 #endif
-} flea_hash_id_t;
+} flea_hash_id_e;
 
 
 /**
@@ -81,9 +83,9 @@ struct struct_flea_hash_ctx_t
  *
  * @return flea error code
  */
-flea_err_t THR_flea_hash_ctx_t__ctor(
+flea_err_e THR_flea_hash_ctx_t__ctor(
   flea_hash_ctx_t* ctx,
-  flea_hash_id_t   id
+  flea_hash_id_e   id
 );
 
 
@@ -94,7 +96,7 @@ flea_err_t THR_flea_hash_ctx_t__ctor(
  * @param p_ctx pointer to context where data is copied from
  *
  */
-flea_err_t THR_flea_hash_ctx_t__ctor_copy(
+flea_err_e THR_flea_hash_ctx_t__ctor_copy(
   flea_hash_ctx_t*       p_ctx_new,
   const flea_hash_ctx_t* p_ctx
 );
@@ -123,7 +125,7 @@ void flea_hash_ctx_t__reset(flea_hash_ctx_t* ctx);
  *
  *
  */
-flea_err_t THR_flea_hash_ctx_t__update(
+flea_err_e THR_flea_hash_ctx_t__update(
   flea_hash_ctx_t* ctx,
   const flea_u8_t* input,
   flea_dtl_t       input_len
@@ -137,10 +139,10 @@ flea_err_t THR_flea_hash_ctx_t__update(
  * @param result receives the result. Must have the necessary storage capacity which is at most FLEA_MAX_HASH_OUT_LEN, the
  * concrete value can be inferred from the hash-id using flea_hash__get_output_length_by_id().
  *
- * @return flea erro code (memory allocation failure)
+ * @return flea error code (memory allocation failure)
  */
-flea_err_t THR_flea_hash_ctx_t__final_byte_vec(
-  flea_hash_ctx_t* p_ctx,
+flea_err_e THR_flea_hash_ctx_t__final_byte_vec(
+  flea_hash_ctx_t* ctx,
   flea_byte_vec_t* result
 );
 
@@ -152,9 +154,9 @@ flea_err_t THR_flea_hash_ctx_t__final_byte_vec(
  * @param output pointer to the memory area where to store the hash value. Must
  * have length of at least the hash function's output length as returned by flea_hash_ctx_t__get_output_length()
  *
- * @return flea erro code (memory allocation failure)
+ * @return flea error code (memory allocation failure)
  */
-flea_err_t THR_flea_hash_ctx_t__final(
+flea_err_e THR_flea_hash_ctx_t__final(
   flea_hash_ctx_t* ctx,
   flea_u8_t*       output
 );
@@ -168,9 +170,9 @@ flea_err_t THR_flea_hash_ctx_t__final(
  * @param output pointer to the memory area where to store the hash value.
  * @param output_len the length of output, this many bytes of the hash value will be written to output
  *
- * @return flea erro code (memory allocation failure)
+ * @return flea error code (memory allocation failure)
  */
-flea_err_t THR_flea_hash_ctx_t__final_with_length_limit(
+flea_err_e THR_flea_hash_ctx_t__final_with_length_limit(
   flea_hash_ctx_t* ctx,
   flea_u8_t*       output,
   flea_al_u16_t    output_len
@@ -193,7 +195,7 @@ flea_al_u16_t flea_hash_ctx_t__get_output_length(flea_hash_ctx_t* ctx);
  *
  * @return the hash algorithm's output length in bytes
  */
-flea_al_u8_t flea_hash__get_output_length_by_id(flea_hash_id_t id);
+flea_al_u8_t flea_hash__get_output_length_by_id(flea_hash_id_e id);
 
 /**
  * Return the hash id of a given hash_ctx object.
@@ -202,7 +204,7 @@ flea_al_u8_t flea_hash__get_output_length_by_id(flea_hash_id_t id);
  *
  * @return the hash id used by the hash context object
  */
-flea_hash_id_t flea_hash_ctx_t__get_hash_id(const flea_hash_ctx_t* p_ctx);
+flea_hash_id_e flea_hash_ctx_t__get_hash_id(const flea_hash_ctx_t* p_ctx);
 
 
 /**
@@ -221,8 +223,8 @@ flea_hash_id_t flea_hash_ctx_t__get_hash_id(const flea_hash_ctx_t* p_ctx);
  *
  * @return flea error code
  */
-flea_err_t THR_flea_compute_hash(
-  flea_hash_id_t   id,
+flea_err_e THR_flea_compute_hash(
+  flea_hash_id_e   id,
   const flea_u8_t* input,
   flea_dtl_t       input_len,
   flea_u8_t*       output,
@@ -240,8 +242,8 @@ flea_err_t THR_flea_compute_hash(
  *
  * @return flea error code
  */
-flea_err_t THR_flea_compute_hash_byte_vec(
-  flea_hash_id_t   id,
+flea_err_e THR_flea_compute_hash_byte_vec(
+  flea_hash_id_e   id,
   const flea_u8_t* input,
   flea_dtl_t       input_len,
   flea_byte_vec_t* result

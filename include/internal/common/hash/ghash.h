@@ -22,21 +22,21 @@ typedef struct
   flea_u32_t*    hh__bu32;
   flea_u8_t*     base_ctr__bu8;
   flea_u8_t*     state__bu8;
-#else
+#else // ifdef FLEA_USE_HEAP_BUF
   flea_u32_t     hl__bu32[32];
   flea_u32_t     hh__bu32[32];
   flea_u8_t      base_ctr__bu8[16];
   flea_u8_t      state__bu8[16];
-#endif
+#endif // ifdef FLEA_USE_HEAP_BUF
   flea_u8_t      pend_input_len__u8;
 } flea_ghash_ctx_t;
 
-flea_err_t THR_flea_ghash_ctx_t__ctor(
+flea_err_e THR_flea_ghash_ctx_t__ctor(
   flea_ghash_ctx_t*          ctx__pt,
   const flea_ecb_mode_ctx_t* ecb_ctx__pt
 );
 
-flea_err_t THR_flea_ghash_ctx_t__start(
+flea_err_e THR_flea_ghash_ctx_t__start(
   flea_ghash_ctx_t*          ctx,
   const flea_ecb_mode_ctx_t* ecb_ctx__pt,
   const flea_u8_t*           iv,
@@ -46,7 +46,7 @@ flea_err_t THR_flea_ghash_ctx_t__start(
   flea_u8_t*                 ctr_block__pu8
 );
 
-flea_err_t THR_flea_ghash_ctx_t__update(
+flea_err_e THR_flea_ghash_ctx_t__update(
   flea_ghash_ctx_t* ctx,
   flea_dtl_t        length,
   const flea_u8_t*  input

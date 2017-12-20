@@ -8,7 +8,7 @@
 
 /**
  * The flea error handling concept is based on return codes. Any function which
- * may throw errors is indicated by the prefix THR_ and has flea_err_t as return
+ * may throw errors is indicated by the prefix THR_ and has flea_err_e as return
  * value.
  * The programming approach taken in flea realizes maximal reliability of the
  * code. It is based on the the usage of the flea macro framework for memory
@@ -69,7 +69,7 @@
  */
 
 #define FLEA_THR_BEG_FUNC() \
-  flea_err_t _flea_err_retval = FLEA_ERR_FINE
+  flea_err_e _flea_err_retval = FLEA_ERR_FINE
 /**/
 
 
@@ -78,12 +78,12 @@
 # define FLEA_PRINTF_2_SWITCHED(__format, __arg1)         printf(__format, __arg1)
 # define FLEA_PRINTF_3_SWITCHED(__format, __arg1, __arg2) printf(__format, __arg1, __arg2)
 # define __FLEA_EVTL_PRINT_ERR(__func, __str)             printf("%s: %s\n", __func, __str)
-#else
+#else // ifdef FLEA_DO_PRINTF_ERRS
 # define FLEA_PRINTF_1_SWITCHED(__format)
 # define FLEA_PRINTF_2_SWITCHED(__format, __arg1)
 # define FLEA_PRINTF_3_SWITCHED(__format, __arg1, __arg2)
 # define __FLEA_EVTL_PRINT_ERR(__func, __str) do { } while(0)
-#endif
+#endif // ifdef FLEA_DO_PRINTF_ERRS
 
 #define FLEA_THROW(__mess, __val) \
   do { \
@@ -100,7 +100,7 @@
 #define FLEA_CALL_THR(__f) \
   do { \
     _flea_err_retval = __f; \
-    if(_FLEA_IS_ERR_(_flea_err_retval)) { goto _flea_cleanup; } \
+    if(_FLEA_IS_ERR_(_flea_err_retval)) {goto _flea_cleanup;} \
   } while(0)
 /**/
 

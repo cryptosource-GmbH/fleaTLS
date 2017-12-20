@@ -16,7 +16,7 @@ void set_timeval_from_millisecs(
   tv->tv_usec = (time_millisecs % 1000) * 1000;
 }
 
-flea_err_t THR_flea_linux__get_current_time(flea_gmt_time_t* time__t)
+flea_err_e THR_flea_linux__get_current_time(flea_gmt_time_t* time__t)
 {
   time_t t;
   struct tm* ts;
@@ -38,4 +38,4 @@ int flea_linux__pthread_mutex_init(pthread_mutex_t* mutex__pt)
   return pthread_mutex_init(mutex__pt, NULL);
 }
 
-#endif
+#endif // ifdef FLEA_HAVE_MUTEX

@@ -26,12 +26,12 @@ typedef enum
   flea_rsa_sign   = 0 << FLEA_PK_ID_OFFS_PRIMITIVE,
     flea_rsa_encr = 1 << FLEA_PK_ID_OFFS_PRIMITIVE,
     flea_ecdsa    = 2 << FLEA_PK_ID_OFFS_PRIMITIVE
-} flea_pk_primitive_id_t;
+} flea_pk_primitive_id_e;
 
 /**
  * Supported public key encoding schemes.
  */
-typedef enum { flea_emsa1 = 0, flea_pkcs1_v1_5 = 1, flea_oaep = 2 } flea_pk_encoding_id_t;
+typedef enum { flea_emsa1 = 0, flea_pkcs1_v1_5 = 1, flea_oaep = 2 } flea_pk_encoding_id_e;
 
 /**
  * Supported public key encryption and signature configurations.
@@ -42,9 +42,9 @@ typedef enum
   flea_rsa_oaep_encr       = flea_rsa_encr | flea_oaep,
   flea_rsa_pkcs1_v1_5_encr = flea_rsa_encr | flea_pkcs1_v1_5,
   flea_rsa_pkcs1_v1_5_sign = flea_rsa_sign | flea_pkcs1_v1_5,
-} flea_pk_scheme_id_t;
+} flea_pk_scheme_id_e;
 
-typedef enum { flea_ecc_key, flea_rsa_key } flea_pk_key_type_t;
+typedef enum { flea_ecc_key, flea_rsa_key } flea_pk_key_type_e;
 
 typedef union
 {
@@ -58,7 +58,7 @@ typedef union
 
 typedef struct
 {
-  flea_pk_key_type_t                key_type__t;
+  flea_pk_key_type_e                key_type__t;
   flea_u16_t                        key_bit_size__u16;
   flea_u16_t                        primitive_input_size__u16;
   flea_public_key_val_with_params_u pubkey_with_params__u;
@@ -77,7 +77,7 @@ void flea_public_key_t__dtor(flea_public_key_t* key__pt);
  * create a public key from a the bit string TLV structure found e.g. in an
  * X.509 certificate.
  */
-flea_err_t THR_flea_public_key_t__ctor_asn1(
+flea_err_e THR_flea_public_key_t__ctor_asn1(
   flea_public_key_t*     key,
   const flea_byte_vec_t* key_as_bit_string_tlv,
   const flea_byte_vec_t* encoded_params,
@@ -91,7 +91,7 @@ flea_err_t THR_flea_public_key_t__ctor_asn1(
  * @param cert_ref the certificate structure of the certificate which contains
  * the encoded public key
  */
-flea_err_t THR_flea_public_key_t__ctor_cert(
+flea_err_e THR_flea_public_key_t__ctor_cert(
   flea_public_key_t*          key,
   const flea_x509_cert_ref_t* cert_ref
 );
@@ -103,7 +103,7 @@ flea_err_t THR_flea_public_key_t__ctor_cert(
  * @param mod the big endian encoded modulus
  * @param pub_exp the big endian encoded public exponent
  */
-flea_err_t THR_flea_public_key_t__ctor_rsa(
+flea_err_e THR_flea_public_key_t__ctor_rsa(
   flea_public_key_t*    key,
   const flea_ref_cu8_t* mod,
   const flea_ref_cu8_t* pub_exp
@@ -116,7 +116,7 @@ flea_err_t THR_flea_public_key_t__ctor_rsa(
  * @param public_key_value the encoded public point
  * @param dp the ECC domain parameters to be used
  */
-flea_err_t THR_flea_public_key_t__ctor_ecc(
+flea_err_e THR_flea_public_key_t__ctor_ecc(
   flea_public_key_t*               key,
   const flea_byte_vec_t*           public_key_value,
   const flea_ec_gfp_dom_par_ref_t* dp
@@ -135,10 +135,10 @@ flea_err_t THR_flea_public_key_t__ctor_ecc(
  *
  *
  */
-flea_err_t THR_flea_public_key_t__verify_signature(
+flea_err_e THR_flea_public_key_t__verify_signature(
   const flea_public_key_t* key,
-  flea_pk_scheme_id_t      pk_scheme_id,
-  flea_hash_id_t           hash_id,
+  flea_pk_scheme_id_e      pk_scheme_id,
+  flea_hash_id_e           hash_id,
   const flea_byte_vec_t*   message,
   const flea_byte_vec_t*   signature
 );
@@ -156,10 +156,10 @@ flea_err_t THR_flea_public_key_t__verify_signature(
  * @param signature the signature to verify
  *
  */
-flea_err_t THR_flea_public_key_t__verify_signature_plain_format(
+flea_err_e THR_flea_public_key_t__verify_signature_plain_format(
   const flea_public_key_t* key,
-  flea_pk_scheme_id_t      pk_scheme_id,
-  flea_hash_id_t           hash_id,
+  flea_pk_scheme_id_e      pk_scheme_id,
+  flea_hash_id_e           hash_id,
   const flea_byte_vec_t*   message,
   const flea_byte_vec_t*   signature
 );
@@ -178,10 +178,10 @@ flea_err_t THR_flea_public_key_t__verify_signature_plain_format(
  * @param signature pointer to the memory area for the signature to be verified.
  * @param signature_len length of signature
  */
-flea_err_t THR_flea_public_key_t__verify_digest_plain_format(
+flea_err_e THR_flea_public_key_t__verify_digest_plain_format(
   const flea_public_key_t* pubkey,
-  flea_pk_scheme_id_t      id,
-  flea_hash_id_t           hash_id,
+  flea_pk_scheme_id_e      id,
+  flea_hash_id_e           hash_id,
   const flea_u8_t*         digest,
   flea_al_u8_t             digest_len,
   const flea_u8_t*         signature,
@@ -191,7 +191,7 @@ flea_err_t THR_flea_public_key_t__verify_digest_plain_format(
 /**
  * Verify a signature using a specific X.509 signature algorithm ID.
  */
-flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
+flea_err_e THR_flea_public_key_t__verify_signature_use_sigalg_id(
   const flea_public_key_t*     public_key,
   const flea_x509_algid_ref_t* sigalg_id,
   const flea_byte_vec_t*       tbs_data,
@@ -209,10 +209,10 @@ flea_err_t THR_flea_public_key_t__verify_signature_use_sigalg_id(
  * @param message_len the length of the message to be encrypted
  * @param result receives the encrypted message after successful completion
  */
-flea_err_t THR_flea_public_key_t__encrypt_message(
+flea_err_e THR_flea_public_key_t__encrypt_message(
   const flea_public_key_t* key,
-  flea_pk_scheme_id_t      pk_scheme_id,
-  flea_hash_id_t           hash_id,
+  flea_pk_scheme_id_e      pk_scheme_id,
+  flea_hash_id_e           hash_id,
   const flea_u8_t*         message,
   flea_al_u16_t            message_len,
   flea_byte_vec_t*         result

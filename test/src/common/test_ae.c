@@ -10,7 +10,7 @@
 #ifdef FLEA_HAVE_AE
 # define TEST_MAX_CT_LEN 900
 
-static flea_err_t THR_flea_test_ae_init_dtor()
+static flea_err_e THR_flea_test_ae_init_dtor()
 {
   flea_ae_ctx_t ctx__t = flea_ae_ctx_t__INIT_VALUE;
 
@@ -22,8 +22,8 @@ static flea_err_t THR_flea_test_ae_init_dtor()
   );
 }
 
-static flea_err_t THR_flea_test_ae_inner_convenience_funcs(
-  flea_ae_id_t     id__t,
+static flea_err_e THR_flea_test_ae_inner_convenience_funcs(
+  flea_ae_id_e     id__t,
   const flea_u8_t* key__pcu8,
   flea_dtl_t       key_len__dtl,
   const flea_u8_t* nonce__pcu8,
@@ -99,8 +99,8 @@ static flea_err_t THR_flea_test_ae_inner_convenience_funcs(
   );
 } /* THR_flea_test_ae_inner_convenience_funcs */
 
-static flea_err_t THR_flea_test_ae_inner_update__vary_update_lengths(
-  flea_ae_id_t     id__t,
+static flea_err_e THR_flea_test_ae_inner_update__vary_update_lengths(
+  flea_ae_id_e     id__t,
   const flea_u8_t* key__pcu8,
   flea_dtl_t       key_len__dtl,
   const flea_u8_t* nonce__pcu8,
@@ -323,8 +323,8 @@ static flea_err_t THR_flea_test_ae_inner_update__vary_update_lengths(
   );
 } /* THR_flea_test_ae_inner_update__vary_update_lengths */
 
-static flea_err_t THR_flea_test_ae_inner_update(
-  flea_ae_id_t     id__t,
+static flea_err_e THR_flea_test_ae_inner_update(
+  flea_ae_id_e     id__t,
   const flea_u8_t* key__pcu8,
   flea_dtl_t       key_len__dtl,
   const flea_u8_t* nonce__pcu8,
@@ -476,8 +476,8 @@ static flea_err_t THR_flea_test_ae_inner_update(
   );
 } /* THR_flea_test_ae_inner_update */
 
-static flea_err_t THR_flea_test_ae_inner(
-  flea_ae_id_t     id__t,
+static flea_err_e THR_flea_test_ae_inner(
+  flea_ae_id_e     id__t,
   const flea_u8_t* key__pcu8,
   flea_dtl_t       key_len__dtl,
   const flea_u8_t* nonce__pcu8,
@@ -551,7 +551,7 @@ static flea_err_t THR_flea_test_ae_inner(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_test_ae_inner */
 
-flea_err_t THR_flea_test_ae()
+flea_err_e THR_flea_test_ae()
 {
 # ifdef FLEA_HAVE_EAX
   const flea_u8_t eax_aes128_key_1[] =

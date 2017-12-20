@@ -7,7 +7,7 @@
 #include "flea/error.h"
 #include "self_test.h"
 
-flea_err_t THR_flea_test_flea_types()
+flea_err_e THR_flea_test_flea_types()
 {
   FLEA_THR_BEG_FUNC();
   if(sizeof(flea_u8_t) != 1)

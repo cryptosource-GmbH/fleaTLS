@@ -19,12 +19,12 @@ extern "C" {
 
 typedef struct
 {
-  flea_block_cipher_id_t cipher_id;
+  flea_block_cipher_id_e cipher_id;
   flea_u8_t              cipher_key_size__u8;
   flea_u8_t              mac_key_size__u8; // RFC: 8 bits
   flea_u8_t              mac_size__u8;     // RFC: 8 bits
-  // flea_hash_id_t         hash_id;          // default: flea_sha256
-  flea_mac_id_t          mac_id;
+  // flea_hash_id_e         hash_id;          // default: flea_sha256
+  flea_mac_id_e          mac_id;
 } flea_tls_cbc_hmac_suite_config_t;
 
 typedef struct
@@ -46,7 +46,7 @@ typedef struct
 
 typedef struct
 {
-  flea_ae_id_t cipher_id;
+  flea_ae_id_e cipher_id;
   flea_u8_t    cipher_key_size__u8;
   flea_u8_t    fixed_iv_length__u8;
   flea_u8_t    record_iv_length__u8;
@@ -70,7 +70,7 @@ typedef enum { flea_null_cipher_suite, flea_gcm_cipher_suite, flea_cbc_cipher_su
 
 typedef struct
 {
-  // flea_tls__cipher_suite_id_t cipher_suite_id;
+  // flea_tls_cipher_suite_id_t cipher_suite_id;
   flea_cipher_suite_class_e cipher_suite_class__e;
   union
   {
@@ -108,10 +108,10 @@ void flea_tls_conn_state_t__dtor(flea_tls_conn_state_t* conn_state__pt);
 void flea_tls_conn_state_t__ctor_no_cipher(flea_tls_conn_state_t* conn_state__pt);
 
 # ifdef FLEA_HAVE_TLS_CBC_CS
-flea_err_t THR_flea_tls_conn_state_t__ctor_cbc_hmac(
+flea_err_e THR_flea_tls_conn_state_t__ctor_cbc_hmac(
   flea_tls_conn_state_t* conn_state__pt,
-  flea_block_cipher_id_t block_cipher_id,
-  flea_mac_id_t          mac_id,
+  flea_block_cipher_id_e block_cipher_id,
+  flea_mac_id_e          mac_id,
   const flea_u8_t*       cipher_key__pcu8,
   flea_al_u8_t           cipher_key_len__alu8,
   const flea_u8_t*       mac_key__pcu8,
@@ -121,9 +121,9 @@ flea_err_t THR_flea_tls_conn_state_t__ctor_cbc_hmac(
 # endif // ifdef FLEA_HAVE_TLS_CBC_CS
 
 # ifdef FLEA_HAVE_TLS_GCM_CS
-flea_err_t THR_flea_tls_conn_state_t__ctor_gcm(
+flea_err_e THR_flea_tls_conn_state_t__ctor_gcm(
   flea_tls_conn_state_t* conn_state__pt,
-  flea_ae_id_t           ae_cipher_id,
+  flea_ae_id_e           ae_cipher_id,
   const flea_u8_t*       cipher_key__pcu8,
   flea_al_u8_t           cipher_key_len__alu8,
   const flea_u8_t*       fixed_iv__pcu8,

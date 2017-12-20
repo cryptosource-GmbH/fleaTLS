@@ -22,7 +22,7 @@
 #include "self_test.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
-static flea_err_t THR_flea_test_pk_signer_init_dtor()
+static flea_err_e THR_flea_test_pk_signer_init_dtor()
 {
   FLEA_DECL_OBJ(ctx__t, flea_pk_signer_t);
   FLEA_THR_BEG_FUNC();
@@ -38,7 +38,7 @@ static flea_err_t THR_flea_test_pk_signer_init_dtor()
 #endif // #ifdef FLEA_HAVE_ASYM_SIG
 
 #if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048) && (defined FLEA_HAVE_SHA384_512)
-static flea_err_t THR_flea_test_pkcs1_v1_5_signature_reference()
+static flea_err_e THR_flea_test_pkcs1_v1_5_signature_reference()
 {
   // botan reference value
   const flea_u8_t signature__acu8[] =
@@ -73,9 +73,9 @@ static flea_err_t THR_flea_test_pkcs1_v1_5_signature_reference()
 
 
 #if defined FLEA_HAVE_ECDSA || defined FLEA_HAVE_RSA
-static flea_err_t THR_flea_test_pk_signer_sign_verify_inner(
-  flea_pk_scheme_id_t         scheme_id__t,
-  flea_hash_id_t              hash_id__t,
+static flea_err_e THR_flea_test_pk_signer_sign_verify_inner(
+  flea_pk_scheme_id_e         scheme_id__t,
+  flea_hash_id_e              hash_id__t,
   const flea_pub_key_param_u* param__pu
 )
 {
@@ -188,7 +188,7 @@ static flea_err_t THR_flea_test_pk_signer_sign_verify_inner(
 
 #endif // #if defined FLEA_HAVE_ECDSA || defined FLEA_HAVE_RSA
 
-flea_err_t THR_flea_test_pk_signer_sign_verify()
+flea_err_e THR_flea_test_pk_signer_sign_verify()
 {
 #ifdef FLEA_HAVE_ECDSA
   const flea_u8_t* dp__pt = flea_ec_dom_par__get_predefined_dp_ptr(flea_brainpoolP224r1);
@@ -212,7 +212,7 @@ flea_err_t THR_flea_test_pk_signer_sign_verify()
 #endif /* ifdef FLEA_HAVE_ECDSA */
 #ifdef FLEA_HAVE_RSA
 # if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048
-  flea_err_t err_code = THR_flea_test_pk_signer_sign_verify_inner(flea_rsa_pkcs1_v1_5_sign, flea_sha256, NULL);
+  flea_err_e err_code = THR_flea_test_pk_signer_sign_verify_inner(flea_rsa_pkcs1_v1_5_sign, flea_sha256, NULL);
   if(err_code != FLEA_ERR_INV_KEY_SIZE && err_code != FLEA_ERR_BUFF_TOO_SMALL && err_code != FLEA_ERR_INV_KEY_COMP_SIZE)
   {
     FLEA_THROW("wrong return value for invalid key size", FLEA_ERR_FAILED_TEST);

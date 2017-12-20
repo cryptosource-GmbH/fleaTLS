@@ -57,7 +57,7 @@ static const flea_u8_t Rcon[] = {
   0x01, 0x02, 0x04, 0x08, 0x10, 0x20, 0x40, 0x80, 0x1b, 0x36
 };
 
-flea_err_t THR_flea_aes_setup_encr_key(
+flea_err_e THR_flea_aes_setup_encr_key(
   flea_ecb_mode_ctx_t* ctx__pt,
   const flea_u8_t*     key__pcu8
 )
@@ -76,7 +76,7 @@ void flea_aes_setup_encr_key(
   flea_al_u16_t keyBits = 8 * ctx__pt->key_byte_size__u8;
 
   flea_al_u8_t Nr, Nk;
-  flea_u8_t* expanded_key__pu8 = (flea_u8_t *) ctx__pt->expanded_key__bu8;
+  flea_u8_t* expanded_key__pu8 = (flea_u8_t*) ctx__pt->expanded_key__bu8;
 
   if(keyBits == 128)
   {
@@ -139,7 +139,7 @@ void flea_aes_setup_encr_key(
 } /* flea_aes_setup_encr_key */
 
 # ifdef FLEA_HAVE_AES_BLOCK_DECR
-flea_err_t THR_flea_aes_setup_decr_key(
+flea_err_e THR_flea_aes_setup_decr_key(
   flea_ecb_mode_ctx_t* ctx__p_t,
   const flea_u8_t*     cipherKey
 )
@@ -336,19 +336,19 @@ void flea_aes_encrypt_block(
     memcpy(state__pu8, pt, 16);
   }
   flea_al_u8_t Nr = p_ctx->nb_rounds__u8;
-  flea_aes_small_add_round_key(0, state__pu8, (flea_u8_t *) p_ctx->expanded_key__bu8);
+  flea_aes_small_add_round_key(0, state__pu8, (flea_u8_t*) p_ctx->expanded_key__bu8);
 
   for(round = 1; round < Nr; ++round)
   {
     flea_aes_small_subbytes(state__pu8);
     flea_aes_small_shift_rows(state__pu8);
     flea_aes_small_mix_col(state__pu8);
-    flea_aes_small_add_round_key(round, state__pu8, (flea_u8_t *) p_ctx->expanded_key__bu8);
+    flea_aes_small_add_round_key(round, state__pu8, (flea_u8_t*) p_ctx->expanded_key__bu8);
   }
 
   flea_aes_small_subbytes(state__pu8);
   flea_aes_small_shift_rows(state__pu8);
-  flea_aes_small_add_round_key(Nr, state__pu8, (flea_u8_t *) p_ctx->expanded_key__bu8);
+  flea_aes_small_add_round_key(Nr, state__pu8, (flea_u8_t*) p_ctx->expanded_key__bu8);
 }
 
 # ifdef FLEA_HAVE_AES_BLOCK_DECR
@@ -366,19 +366,19 @@ void flea_aes_decrypt_block(
   {
     memcpy(state__pu8, ct, 16);
   }
-  flea_aes_small_add_round_key(Nr, state__pu8, (flea_u8_t *) p_ctx->expanded_key__bu8);
+  flea_aes_small_add_round_key(Nr, state__pu8, (flea_u8_t*) p_ctx->expanded_key__bu8);
 
   for(round = Nr - 1; round > 0; round--)
   {
     flea_aes_small_inv_shift_rows(state__pu8);
     flea_aes_small_inv_subbytes(state__pu8);
-    flea_aes_small_add_round_key(round, state__pu8, (flea_u8_t *) p_ctx->expanded_key__bu8);
+    flea_aes_small_add_round_key(round, state__pu8, (flea_u8_t*) p_ctx->expanded_key__bu8);
     flea_aes_small_inv_mix_col(state__pu8);
   }
 
   flea_aes_small_inv_shift_rows(state__pu8);
   flea_aes_small_inv_subbytes(state__pu8);
-  flea_aes_small_add_round_key(0, state__pu8, (flea_u8_t *) p_ctx->expanded_key__bu8);
+  flea_aes_small_add_round_key(0, state__pu8, (flea_u8_t*) p_ctx->expanded_key__bu8);
 }
 
 # endif // #ifdef FLEA_HAVE_AES_BLOCK_DECR

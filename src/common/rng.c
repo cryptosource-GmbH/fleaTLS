@@ -37,7 +37,7 @@ FLEA_DECL_STATIC_MUTEX(rng_mutex__t);
 
 static flea_prng_save_f flea_gl_rng_save_mbn__f;
 
-static flea_err_t THR_flea_rng__reseed_volatile_inner(
+static flea_err_e THR_flea_rng__reseed_volatile_inner(
   const flea_u8_t* seed__pcu8,
   flea_dtl_t       seed_len__dtl
 )
@@ -64,7 +64,7 @@ static flea_al_u16_t flea_rng_add_2bytes_to_pool(
   return current_crc__alu16;
 }
 
-static flea_err_t THR_flea_rng__harvest_entropy_pool()
+static flea_err_e THR_flea_rng__harvest_entropy_pool()
 {
   FLEA_THR_BEG_FUNC();
   if(flea_gl_rng_entropy_cnt__alu16 >= FLEA_RNG_ENTROPY_POOL_ENTROPY_THRESHOLD)
@@ -98,7 +98,7 @@ void flea_rng__feed_low_entropy_data_to_pool(
   flea_gl_rng_current_crc__alu16 = current_crc__alu16;
 }
 
-flea_err_t THR_flea_rng__init(
+flea_err_e THR_flea_rng__init(
   const flea_u8_t* rng_seed__pcu8,
   flea_al_u16_t    rng_seed_len__alu16,
   flea_prng_save_f prng_save__f
@@ -112,7 +112,7 @@ flea_err_t THR_flea_rng__init(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_rng__reseed_persistent(
+flea_err_e THR_flea_rng__reseed_persistent(
   const flea_u8_t* seed__pcu8,
   flea_dtl_t       seed_len__dtl
 )
@@ -136,7 +136,7 @@ flea_err_t THR_flea_rng__reseed_persistent(
   );
 }
 
-flea_err_t THR_flea_rng__reseed_volatile(
+flea_err_e THR_flea_rng__reseed_volatile(
   const flea_u8_t* seed__pcu8,
   flea_dtl_t       seed_len__dtl
 )
@@ -153,7 +153,7 @@ flea_err_t THR_flea_rng__reseed_volatile(
   );
 }
 
-flea_err_t THR_flea_rng__flush()
+flea_err_e THR_flea_rng__flush()
 {
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_FLEA_MUTEX_LOCK(&rng_mutex__t));
@@ -166,7 +166,7 @@ flea_err_t THR_flea_rng__flush()
   );
 }
 
-flea_err_t THR_flea_rng__randomize_no_flush(
+flea_err_e THR_flea_rng__randomize_no_flush(
   flea_u8_t* mem__pu8,
   flea_dtl_t mem_len__dtl
 )
@@ -183,7 +183,7 @@ flea_err_t THR_flea_rng__randomize_no_flush(
   );
 }
 
-flea_err_t THR_flea_rng__randomize(
+flea_err_e THR_flea_rng__randomize(
   flea_u8_t* mem__pu8,
   flea_dtl_t mem_len__dtl
 )

@@ -15,7 +15,7 @@
 
 #ifdef FLEA_HAVE_ASYM_ALGS
 # ifdef FLEA_HAVE_RSA
-static flea_err_t THR_flea_private_key_t__pkcs8_create_rsa_key(
+static flea_err_e THR_flea_private_key_t__pkcs8_create_rsa_key(
   flea_private_key_t* privkey_mbn__pt,
   flea_public_key_t*  pubkey_mbn__pt,
   flea_ber_dec_t*     dec__pt
@@ -76,7 +76,7 @@ static flea_err_t THR_flea_private_key_t__pkcs8_create_rsa_key(
 # endif /* #ifdef FLEA_HAVE_RSA */
 
 # ifdef FLEA_HAVE_ECC
-static flea_err_t THR_flea_private_key_t__pkcs8_create_ecc_key(
+static flea_err_e THR_flea_private_key_t__pkcs8_create_ecc_key(
   flea_private_key_t*    privkey_mbn__pt,
   flea_public_key_t*     pubkey_mbn__pt,
   flea_ber_dec_t*        dec__pt,
@@ -153,7 +153,7 @@ static flea_err_t THR_flea_private_key_t__pkcs8_create_ecc_key(
 
 # endif /* #ifdef FLEA_HAVE_ECC */
 
-static flea_err_t THR_flea_create_private_and_or_public_key_from_pkcs8(
+static flea_err_e THR_flea_create_private_and_or_public_key_from_pkcs8(
   flea_private_key_t* privkey_mbn__pt,
   flea_public_key_t*  pubkey_mbn__pt,
   const flea_u8_t*    der_key__pcu8,
@@ -246,7 +246,7 @@ static flea_err_t THR_flea_create_private_and_or_public_key_from_pkcs8(
   );
 } /* THR_flea_create_private_and_or_public_key_from_pkcs8 */
 
-flea_err_t THR_flea_private_key_t__ctor_pkcs8(
+flea_err_e THR_flea_private_key_t__ctor_pkcs8(
   flea_private_key_t* key__pt,
   const flea_u8_t*    der_key__pcu8,
   flea_al_u16_t       der_key_len__alu16
@@ -255,7 +255,7 @@ flea_err_t THR_flea_private_key_t__ctor_pkcs8(
   return THR_flea_create_private_and_or_public_key_from_pkcs8(key__pt, NULL, der_key__pcu8, der_key_len__alu16);
 }
 
-flea_err_t THR_flea_public_key_t__ctor_pkcs8(
+flea_err_e THR_flea_public_key_t__ctor_pkcs8(
   flea_public_key_t* key__pt,
   const flea_u8_t*   der_key__pcu8,
   flea_al_u16_t      der_key_len__alu16

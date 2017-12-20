@@ -48,7 +48,7 @@
 
 #ifdef FLEA_HAVE_RSA
 
-flea_err_t THR_flea_rsa_raw_operation_crt_private_key(
+flea_err_e THR_flea_rsa_raw_operation_crt_private_key(
   const flea_private_key_t* priv_key__pt,
   flea_u8_t*                result_enc,
   const flea_u8_t*          base_enc,
@@ -82,7 +82,7 @@ flea_err_t THR_flea_rsa_raw_operation_crt_private_key(
 }
 
 // result is of same length as modulus
-flea_err_t THR_flea_rsa_raw_operation_crt(
+flea_err_e THR_flea_rsa_raw_operation_crt(
   flea_u8_t*       result_enc,
   const flea_u8_t* base_enc,
   flea_al_u16_t    base_length,
@@ -341,7 +341,7 @@ flea_err_t THR_flea_rsa_raw_operation_crt(
   );
 } /* THR_flea_rsa_raw_operation_crt */
 
-flea_err_t THR_flea_rsa_raw_operation(
+flea_err_e THR_flea_rsa_raw_operation(
   flea_u8_t*       result_enc,
   const flea_u8_t* exponent_enc,
   flea_al_u16_t    exponent_length,

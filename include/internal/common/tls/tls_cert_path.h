@@ -29,7 +29,7 @@ typedef struct
   flea_al_u16_t                         nb_allowed_sig_algs__alu16;
 } flea_tls_cert_path_params_t;
 
-flea_err_t THR_flea_tls__cert_path_validation(
+flea_err_e THR_flea_tls__cert_path_validation(
   flea_tls_ctx_t*                    tls_ctx__pt,
   flea_tls_handsh_reader_t*          hs_rdr__pt,
   const flea_cert_store_t*           trust_store__pt,

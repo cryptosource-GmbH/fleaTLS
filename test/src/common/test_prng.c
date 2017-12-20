@@ -12,7 +12,7 @@
 #include <string.h>
 
 
-static flea_err_t THR_flea_test_ctr_mode_prng_init_dtor()
+static flea_err_e THR_flea_test_ctr_mode_prng_init_dtor()
 {
   FLEA_DECL_OBJ(prng_ctx__t, flea_ctr_mode_prng_t);
   flea_ctr_mode_prng_t prng_ctx2__t;
@@ -25,7 +25,7 @@ static flea_err_t THR_flea_test_ctr_mode_prng_init_dtor()
   );
 }
 
-flea_err_t THR_flea_test_ctr_mode_prng()
+flea_err_e THR_flea_test_ctr_mode_prng()
 {
   FLEA_DECL_BUF(rnd__bu8, flea_u8_t, 17);
   FLEA_DECL_OBJ(prng_ctx__t, flea_ctr_mode_prng_t);
@@ -49,7 +49,7 @@ flea_err_t THR_flea_test_ctr_mode_prng()
   );
 }
 
-flea_err_t THR_flea_test_feed_entropy()
+flea_err_e THR_flea_test_feed_entropy()
 {
   FLEA_THR_BEG_FUNC();
   flea_u16_t pseudo = 42;

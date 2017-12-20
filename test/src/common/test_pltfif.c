@@ -6,7 +6,7 @@
 #include "flea/lib.h"
 #include "self_test.h"
 
-flea_err_t THR_flea_test_gmt_time()
+flea_err_e THR_flea_test_gmt_time()
 {
   flea_gmt_time_t time__t;
 

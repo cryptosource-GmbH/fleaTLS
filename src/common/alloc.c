@@ -6,7 +6,7 @@
 
 
 #ifdef FLEA_USE_HEAP_BUF
-flea_err_t THR_flea_alloc__realloc_mem(
+flea_err_e THR_flea_alloc__realloc_mem(
   void**     mem_in_out__ppv,
   flea_u32_t orig_size__u32,
   flea_u32_t new_size__u32
@@ -25,7 +25,7 @@ flea_err_t THR_flea_alloc__realloc_mem(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_t THR_flea_alloc__ensure_buffer_capacity(
+flea_err_e THR_flea_alloc__ensure_buffer_capacity(
   void**        mem_in_out__ppv,
   flea_dtl_t*   in_out_alloc_units__pdtl,
   flea_dtl_t    used_units__dtl,

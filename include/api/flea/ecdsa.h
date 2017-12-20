@@ -30,7 +30,7 @@ extern "C" {
  * invalid
  *
  */
-flea_err_t THR_flea_ecdsa__raw_verify(
+flea_err_e THR_flea_ecdsa__raw_verify(
   const flea_u8_t*                 enc_r,
   flea_al_u8_t                     enc_r_len,
   const flea_u8_t*                 enc_s,
@@ -57,7 +57,7 @@ flea_err_t THR_flea_ecdsa__raw_verify(
  *
  * @return flea error code
  */
-flea_err_t THR_flea_ecdsa__raw_sign(
+flea_err_e THR_flea_ecdsa__raw_sign(
   flea_u8_t*                       res_r_arr,
   flea_al_u8_t*                    res_r_arr_len,
   flea_u8_t*                       res_s_arr,

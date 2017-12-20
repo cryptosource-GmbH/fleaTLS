@@ -74,7 +74,7 @@ static const flea_u32_t K[64] = {
   d += t0;                                          \
   h  = t0 + t1;
 
-flea_err_t THR_flea_sha256_compression_function(
+flea_err_e THR_flea_sha256_compression_function(
   flea_hash_ctx_t* ctx__pt,
   const flea_u8_t* input
 )
