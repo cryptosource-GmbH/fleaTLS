@@ -25,9 +25,8 @@ static flea_err_t THR_flea_test_pkcs8_inner_sign_digest(
 {
   FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
   FLEA_DECL_OBJ(pubkey__t, flea_public_key_t);
-  // flea_hash_id_t hash_id__t = flea_sha1;
   const flea_u8_t digest__cau8[255] = {0};
-  FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(sig_vec__t, FLEA_PK_MAX_SIGNATURE_LEN);
+  FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(sig_vec__t, FLEA_ASYM_MAX_ENCODED_SIG_LEN);
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&privkey__t, pkcs8__pcu8, pkcs8_len__alu16));
   FLEA_CCALL(THR_flea_public_key_t__ctor_pkcs8(&pubkey__t, pkcs8__pcu8, pkcs8_len__alu16));
@@ -68,30 +67,16 @@ static flea_err_t THR_flea_test_pkcs8_inner(
   FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
   FLEA_DECL_OBJ(pubkey__t, flea_public_key_t);
 
-  // FLEA_DECL_BUF(sig_buf__b_u8, flea_u8_t, FLEA_PK_MAX_SIGNATURE_LEN);
-
-  /*const flea_ref_cu8_t message__rcu8 = {
-   * .data__pcu8 = pkcs8_rsa_key_2048_crt,
-   * .len__dtl   = sizeof(pkcs8_rsa_key_2048_crt)
-   * };*/
-  // FLEA_DECL_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(
   flea_byte_vec_t message_vec__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(
     flea_testd_pkcs8_rsa_key_2048_crt__au8,
     sizeof(flea_testd_pkcs8_rsa_key_2048_crt__au8)
     );
 
-  /*flea_ref_u8_t signature__ru8;
-   * flea_ref_cu8_t signature__rcu8;*/
-  FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(sig_vec__t, FLEA_PK_MAX_SIGNATURE_LEN);
+  FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(sig_vec__t, FLEA_ASYM_MAX_ENCODED_SIG_LEN);
   FLEA_THR_BEG_FUNC();
-  // FLEA_ALLOC_BUF(sig_buf__b_u8, FLEA_PK_MAX_SIGNATURE_LEN);
-
-  /*signature__ru8.data__pcu8 = sig_buf__b_u8;
-   * signature__ru8.len__dtl   = FLEA_PK_MAX_SIGNATURE_LEN;*/
   FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&privkey__t, pkcs8__pcu8, pkcs8_len__alu16));
   FLEA_CCALL(THR_flea_public_key_t__ctor_pkcs8(&pubkey__t, pkcs8__pcu8, pkcs8_len__alu16));
 
-  // FLEA_CCALL(THR_flea_pk_api__sign(&message__rcu8, &signature__ru8, &privkey__t, scheme_id__t, hash_id__t));
   FLEA_CCALL(
     THR_flea_private_key_t__sign_plain_format(
       &privkey__t,
@@ -102,9 +87,6 @@ static flea_err_t THR_flea_test_pkcs8_inner(
     )
   );
 
-  /*signature__rcu8.data__pcu8 = signature__ru8.data__pcu8;
-  * signature__rcu8.len__dtl   = signature__ru8.len__dtl;*/
-  // FLEA_CCALL(THR_flea_pk_api__verify_signature(&message__rcu8, &signature__rcu8, &pubkey__t, scheme_id__t, hash_id__t));
   FLEA_CCALL(
     THR_flea_public_key_t__verify_signature_plain_format(
       &pubkey__t,

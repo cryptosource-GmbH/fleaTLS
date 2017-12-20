@@ -42,7 +42,7 @@ flea_err_t THR_flea_tls__send_server_kex(
 
   FLEA_DECL_OBJ(params_hash_ctx__t, flea_hash_ctx_t);
   FLEA_DECL_BUF(hash__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, FLEA_MAX_SIG_SIZE);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, FLEA_ASYM_MAX_ENCODED_SIG_LEN);
   flea_u8_t hash_out_len__u8;
   flea_u32_t hdr_len__u32;
   flea_ref_cu8_t pub_point__rcu8;

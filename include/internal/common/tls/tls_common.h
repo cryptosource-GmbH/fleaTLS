@@ -29,7 +29,7 @@ extern "C" {
 # define FLEA_TLS_EXT_TYPE__SIGNATURE_ALGORITHMS  0x000d
 
 // TODO: define in build cfg or even better: calculate max possible sig size
-# define FLEA_MAX_SIG_SIZE 512
+// # define FLEA_MAX_SIG_SIZE 512
 
 /*
  * enum {

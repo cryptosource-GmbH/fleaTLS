@@ -553,7 +553,6 @@ static flea_err_t THR_flea_crl__update_revocation_status_from_crl_stream(
   );
   FLEA_CCALL(
     THR_flea_public_key_t__verify_signature_use_sigalg_id(
-      // &pubkey__t,
       issuers_public_key__pt,
       &algid_ref_1__t,
       &tbs__rcu8,

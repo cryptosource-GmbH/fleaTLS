@@ -657,13 +657,13 @@ static flea_err_t THR_flea_tls__read_client_key_exchange_rsa(
   );
 
   FLEA_CCALL(
-    THR_flea_pk_api__decrypt_message(
+    THR_flea_private_key_t__decrypt_message(
+      tls_ctx->private_key__pt,
       flea_rsa_pkcs1_v1_5_encr,
       0, // we don't use a hash
       enc_premaster_secret__bu8,
       enc_premaster_secret_len__u32,
       premaster_secret__pt,
-      tls_ctx->private_key__pt,
       48,
       &hs_ctx__pt->silent_alarm__u8
     )
@@ -776,7 +776,7 @@ static flea_err_t THR_flea_tls__read_cert_verify(
   flea_u16_t sig_len__u16;
 
   FLEA_DECL_BUF(messages_hash__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
-  FLEA_DECL_BUF(sig__bu8, flea_u8_t, FLEA_MAX_SIG_SIZE);
+  FLEA_DECL_BUF(sig__bu8, flea_u8_t, FLEA_ASYM_MAX_ENCODED_SIG_LEN);
 
   flea_hash_id_t hash_id__t;
   flea_pk_scheme_id_t pk_scheme_id__t;

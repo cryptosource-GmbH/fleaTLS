@@ -208,7 +208,7 @@ static flea_err_t THR_flea_tls__read_server_kex(
 
   FLEA_DECL_OBJ(params_hash_ctx__t, flea_hash_ctx_t);
   FLEA_DECL_BUF(hash__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
-  FLEA_DECL_BUF(sig_to_vfy__bu8, flea_u8_t, FLEA_MAX_SIG_SIZE);
+  FLEA_DECL_BUF(sig_to_vfy__bu8, flea_u8_t, FLEA_ASYM_MAX_ENCODED_SIG_LEN);
 
   FLEA_THR_BEG_FUNC();
 
@@ -282,7 +282,7 @@ static flea_err_t THR_flea_tls__read_server_kex(
     );
 
     sig_to_vfy_len__u16 = flea__decode_U16_BE(sig_to_vfy_len_enc__au8);
-    if(sig_to_vfy_len__u16 > FLEA_MAX_SIG_SIZE)
+    if(sig_to_vfy_len__u16 > FLEA_ASYM_MAX_ENCODED_SIG_LEN)
     {
       FLEA_THROW("Signature too large for current flea config", FLEA_ERR_TLS_HANDSHK_FAILURE);
     }

@@ -289,13 +289,11 @@ flea_err_t THR_flea_ber_dec_t__get_der_REF_to_positive_int_wo_lead_zeroes_option
   flea_ref_cu8_t* der_ref__pt
 );
 
-// TODO: REMOVE
 flea_err_t THR_flea_ber_dec_t__decode_int(
   flea_ber_dec_t*  dec__pt,
   flea_byte_vec_t* res_vec__pt
 );
 
-// TODO: REMOVE
 flea_err_t THR_flea_ber_dec_t__get_der_ref_to_oid(
   flea_ber_dec_t*  dec__pt,
   flea_byte_vec_t* ref__pt
@@ -451,9 +449,7 @@ flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_cft(
 /*          NEW FUNCTIONS                                               */
 /* ==================================================================== */
 /* ==================================================================== */
-// TODO:
 /** non-optional decoding **/
-/* was already there: */
 flea_err_t THR_flea_ber_dec_t__read_value_raw_cft(
   flea_ber_dec_t*  dec__pt,
   flea_asn1_tag_t  cft,
@@ -480,10 +476,6 @@ flea_err_t THR_flea_ber_dec_t__decode_value_raw_cft_optional(
   flea_bool_t*     found__pb
 );
 
-/*flea_err_t THR_flea_ber_dec_t__decode_tlv_raw_optional(
- * flea_ber_dec_t*  dec__pt,
- * flea_byte_vec_t* byte_vec__pt
- * );*/
 flea_err_t THR_flea_ber_dec_t__decode_tlv_raw_optional(
   flea_ber_dec_t*  dec__pt,
   flea_byte_vec_t* byte_vec__pt,
@@ -497,38 +489,6 @@ flea_err_t THR_flea_ber_dec_t__read_tlv_raw_optional(
 );
 
 
-#if 0
-/* was already there, but with wrong 3rd arg type: */
-flea_err_t THR_flea_ber_dec_t__get_ref_to_raw_cft_NEW(
-  flea_ber_dec_t* dec__pt,
-  flea_asn1_tag_t cft,
-  flea_ref_cu8_t* ref__pt
-);
-
-
-/** optional decoding **/
-
-flea_err_t THR_flea_ber_dec_t__read_value_raw_cft_optional(
-  flea_ber_dec_t*  dec__pt,
-  flea_asn1_tag_t  cft,
-  flea_byte_vec_t* res_vec__pt,
-  flea_bool_t*     optional_found__pb
-);
-
-flea_err_t THR_flea_ber_dec_t__decode_value_raw_cft_optional(
-  flea_ber_dec_t*  dec__pt,
-  flea_asn1_tag_t  cft,
-  flea_byte_vec_t* res_vec__pt,
-  flea_bool_t*     optional_found__pb
-);
-
-flea_err_t THR_flea_ber_dec_t__get_ref_to_value_raw_cft_optional(
-  flea_ber_dec_t* dec__pt,
-  flea_asn1_tag_t cft,
-  flea_ref_cu8_t* res__prcu8,
-  flea_bool_t*    optional_found__pb
-);
-#endif // if 0
 #ifdef __cplusplus
 }
 #endif

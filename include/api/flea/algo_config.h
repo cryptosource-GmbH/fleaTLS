@@ -14,7 +14,21 @@
 /**
  * Maximal length of the ECDSA signature in simple concatenation format
  */
-#define FLEA_ECDSA_MAX_SIG_LEN ((FLEA_ECC_MAX_MOD_BYTE_SIZE * 2))
+#define FLEA_ECDSA_MAX_CONCAT_SIG_LEN ((FLEA_ECC_MAX_ORDER_BYTE_SIZE * 2))
+
+/**
+ * Maximal byte length of a plain signature. In case of RSA, this means the
+ * signature represantative, in case of ECDSA, it means r and s concatenated,
+ * each having the same length as the base point order.
+ */
+#define FLEA_ASYM_MAX_PLAIN_SIG_LEN __FLEA_COMPUTED_MAX_ASYM_PLAIN_SIG_LEN
+
+/**
+ * Maximal byte length of an encoded signature. With respect to RSA, this is the same
+ * as FLEA_ASYM_MAX_PLAIN_SIG_LEN, for ECDSA, this respects the ASN.1/DER
+ * encoded format of the signature, and is thus reserving more space than FLEA_ASYM_MAX_PLAIN_SIG_LEN.
+ */
+#define FLEA_ASYM_MAX_ENCODED_SIG_LEN __FLEA_COMPUTED_MAX_ASYM_ENCODED_SIG_LEN
 
 /**
  * the maximal output length in bytes of the supported hash algorithms.
@@ -34,7 +48,7 @@
 /**
  * Maximal length of a signature of a public key scheme
  */
-#define FLEA_PK_MAX_SIGNATURE_LEN __FLEA_COMPUTED_MAX_ASYM_SIG_LEN
+// #define FLEA_PK_MAX_PLAIN_SIGNATURE_LEN __FLEA_COMPUTED_MAX_ASYM_SIG_LEN
 
 /**
  * Maximal output length of a raw public key scheme function

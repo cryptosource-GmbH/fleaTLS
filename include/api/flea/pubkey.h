@@ -156,7 +156,6 @@ flea_err_t THR_flea_public_key_t__verify_signature(
  * @param signature the signature to verify
  *
  */
-// TODO: WITHOUT BYTEVECS
 flea_err_t THR_flea_public_key_t__verify_signature_plain_format(
   const flea_public_key_t* key,
   flea_pk_scheme_id_t      pk_scheme_id,

@@ -74,16 +74,13 @@ static flea_err_t THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
   // FLEA_ALLOC_BUF(decr__bu8, 2048 / 8);
   // test OAEP decryption
   FLEA_CCALL(
-    THR_flea_pk_api__decrypt_message(
+    THR_flea_private_key_t__decrypt_message(
+      &privkey__t,
       flea_rsa_oaep_encr,
       flea_sha1,
       ct_oaep,
       sizeof(ct_oaep),
-
-      /*decr__bu8,
-       * &decr_len__alu16,*/
       &decr_vec__t,
-      &privkey__t,
       0,
       NULL
     )
@@ -100,13 +97,13 @@ static flea_err_t THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
   // test PKCS#1 v1.5 decryption
   // decr_len__alu16 = 2048 / 8;
   FLEA_CCALL(
-    THR_flea_pk_api__decrypt_message(
+    THR_flea_private_key_t__decrypt_message(
+      &privkey__t,
       flea_rsa_pkcs1_v1_5_encr,
       flea_sha1,
       ct_pkcs1_v1_5,
       sizeof(ct_pkcs1_v1_5),
       &decr_vec__t,
-      &privkey__t,
       0,
       NULL
     )
@@ -606,9 +603,6 @@ static flea_err_t THR_flea_inner_test_pk_encryption(
       message__acu8,
       sizeof(message__acu8),
       &ciphertext__t,
-
-      /*ciphertext__bu8,
-       * &ciphertext_len__alu16,*/
       rsa_2048_pub_key_internal_format__acu8,
       sizeof(rsa_2048_pub_key_internal_format__acu8),
       rsa_pub_exp__acu8,
@@ -617,13 +611,13 @@ static flea_err_t THR_flea_inner_test_pk_encryption(
   );
 
   FLEA_CCALL(
-    THR_flea_pk_api__decrypt_message(
+    THR_flea_private_key_t__decrypt_message(
+      &privkey__t,
       id__t,
       hash_id__t,
       ciphertext__t.data__pu8,
       ciphertext__t.len__dtl,
       &decr_vec__t,
-      &privkey__t,
       0,
       NULL
     )
