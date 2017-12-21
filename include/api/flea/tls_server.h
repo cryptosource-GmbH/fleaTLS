@@ -20,7 +20,7 @@ void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx__pt);
 /**
  *
  * @param allowed_cipher_suites a pointer to the array containing the
- * ciphersuites supported by the server. The lower the index of a suite within
+ * cipher suites supported by the server. The lower the index of a suite within
  * the array, the higher is its priority.
  */
 flea_err_e THR_flea_tls_server_ctx_t__ctor(

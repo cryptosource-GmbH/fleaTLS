@@ -11,19 +11,20 @@
 # include "flea/mutex.h"
 # include "flea/types.h"
 
-void flea_mutex__set_funcs(const flea_mutex_func_set_t* funcs__pt);
-
-flea_err_e THR_flea_mutex__init(FLEA_MUTEX_TYPE* mutex__pt);
-
-void flea_mutex__destroy(FLEA_MUTEX_TYPE* mutex__pt);
-
-flea_err_e THR_flea_mutex__lock(FLEA_MUTEX_TYPE* mutex__pt);
-
-flea_err_e THR_flea_mutex__unlock(FLEA_MUTEX_TYPE* mutex__pt);
 
 void flea_mutex__set_funcs(const flea_mutex_func_set_t* funcs__pt);
 
-# define FLEA_DECL_MUTEX(__mutex_name)        FLEA_MUTEX_TYPE __mutex_name
+flea_err_e THR_flea_mutex__init(flea_mutex_t* mutex__pt);
+
+void flea_mutex__destroy(flea_mutex_t* mutex__pt);
+
+flea_err_e THR_flea_mutex__lock(flea_mutex_t* mutex__pt);
+
+flea_err_e THR_flea_mutex__unlock(flea_mutex_t* mutex__pt);
+
+void flea_mutex__set_funcs(const flea_mutex_func_set_t* funcs__pt);
+
+# define FLEA_DECL_MUTEX(__mutex_name)        flea_mutex_t __mutex_name
 
 # define FLEA_DECL_STATIC_MUTEX(__mutex_name) static FLEA_DECL_MUTEX(__mutex_name)
 

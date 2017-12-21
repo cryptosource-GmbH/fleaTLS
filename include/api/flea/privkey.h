@@ -140,21 +140,22 @@ flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
 /**
  *  Decrypt a message using a public key scheme.
  *
- *  @param [in] key the private key to use for the decryption
+ *  @param [in] privkey the private key to use for the decryption
  *  @param [in] id ID of the encryption scheme to use
  *  @param [in] hash_id ID of the hash scheme to use (if applicable)
- *  @param [in ]ciphertext the ciphertext to be encrypted
+ *  @param [in] ciphertext the ciphertext to be encrypted
  *  @param [in] ciphertext_len the length of ciphertext
  *  @param [out] result receives the result after successful operation
- *  @param [in] enforced_pkcs1_v1_5_decryption_result_len This value is only interpreted in case of PKCS#1 v1.5 decryption.
- *                                                   For normal PKCS#1 v1.5 decoding,
- *                                                   this must be set to zero. Set this
- *                                                   value to the expected message
- *                                                   length to achieve timing neutral
- *                                                   fake result generation in case of
- *                                                   a padding error (defense against
- *                                                   Bleichenbacher's attack).
- *   @param silent_alarm [out] meaning full if enforced_pkcs1_v1_5_decryption_result_len is non-zero. May be set to null. Otherwise, and if enforced_pkcs1_v1_5_decryption_result_len is non-zero, then this value will be set to non-zero if a format/padding error occured during the decryption.
+ *  @param [in] enforced_pkcs1_v1_5_decryption_result_len This value is only
+ *  interpreted in case of PKCS#1 v1.5 decryption.  For normal PKCS#1 v1.5
+ *  decoding, this must be set to zero. Set this value to the expected message
+ *  length to achieve timing neutral fake result generation in case of a padding
+ *  error (defense against Bleichenbacher's attack).
+ *  @param [out] silent_alarm_mbn meaningful only in case of PKCS#1 v1.5 decryption and if
+ *  enforced_pkcs1_v1_5_decryption_result_len is non-zero. May be set to null.
+ *  Otherwise, and if enforced_pkcs1_v1_5_decryption_result_len is non-zero,
+ *  then this value will be set to non-zero if a format/padding error occurred
+ *  during the decryption.
  */
 flea_err_e THR_flea_private_key_t__decrypt_message(
   const flea_private_key_t* privkey,

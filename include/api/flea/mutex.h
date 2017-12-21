@@ -6,12 +6,14 @@
 
 #ifdef FLEA_HAVE_MUTEX
 
+typedef FLEA_MUTEX_TYPE flea_mutex_t;
+
 /**
  * Generic mutex functions provided by client code for all four mutex operations (see flea_mutex_func_set_t below for details) for fleaTLS to use for its multithreading functionality. Each function is expected to return 0 on success and a non-zero error code otherwise.
  *
  * @param mutex pointer to the mutex to be used in the operation.
  */
-typedef int (* flea_generic_mutex_f)(FLEA_MUTEX_TYPE* mutex);
+typedef int (* flea_generic_mutex_f)(flea_mutex_t* mutex);
 
 /**
  * Object type holding the pointers to the four types of mutex operations to be

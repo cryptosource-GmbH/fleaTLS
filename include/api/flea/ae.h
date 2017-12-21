@@ -56,8 +56,8 @@ typedef struct
  * Create an AE context. The context can be used for either encryption or
  * decryption by using the respective functions.
  *
- * @param ctx__pt pointer to the context object to create
- * @param id__t the id of the AE scheme to use
+ * @param ctx pointer to the context object to create
+ * @param id the id of the AE scheme to use
  * @param key pointer to the key bytes
  * @param key_len number of key bytes
  * @param nonce pointer to the nonce bytes
@@ -65,22 +65,22 @@ typedef struct
  * @param header pointer to the header, i.e. associated data ( not part of the
  * ciphertext)
  * @param header_len length of the header in bytes
- * @param tag_len the desired length of the tag in bytes. may be smaller than
- * the chosen scheme's natural tag length. in that case, the scheme operates
+ * @param tag_len the desired length of the tag in bytes. May be smaller than
+ * the chosen scheme's natural tag length. In that case, the scheme operates
  * with truncated tags
  *
  * @return flea error code
  * */
 flea_err_e THR_flea_ae_ctx_t__ctor(
-  flea_ae_ctx_t*   ctx__pt,
-  flea_ae_id_e     id__t,
-  const flea_u8_t* key__pcu8,
-  flea_al_u16_t    key_len__alu16,
-  const flea_u8_t* nonce__pcu8,
-  flea_al_u8_t     nonce_len__alu8,
-  const flea_u8_t* header__pcu8,
-  flea_u16_t       header_len__u16,
-  flea_al_u8_t     tag_length__alu8
+  flea_ae_ctx_t*   ctx,
+  flea_ae_id_e     id,
+  const flea_u8_t* key,
+  flea_al_u16_t    key_len,
+  const flea_u8_t* nonce,
+  flea_al_u8_t     nonce_len,
+  const flea_u8_t* header,
+  flea_u16_t       header_len,
+  flea_al_u8_t     tag_len
 );
 
 /**
@@ -97,7 +97,7 @@ void flea_ae_ctx_t__dtor(flea_ae_ctx_t* ctx);
  * @param ctx the AE context to use
  * @param input pointer to the plaintext bytes
  * @param output pointer to the location where the ciphertext shall be output
- * @param length of input and output in bytes
+ * @param input_output_len length of input and output in bytes
  *
  * @return flea error code
  */
@@ -112,9 +112,9 @@ flea_err_e THR_flea_ae_ctx_t__update_encryption(
  * Finalize an AE encryption operation. The number of bytes written to tag is
  * equal to the length of tag_len in the call to THR_flea_ae_ctx_t__ctor
  *
- * @param ctx the AE context to use
- * @param tag memory location where to store the generated AE tag
- * @param length of tag (used to detect the case where tag_len is too small)
+ * @param[in,out] ctx the AE context to use
+ * @param[out] tag memory location where to store the generated AE tag
+ * @param[in,out] tag_len Must point to the size of the memory location at tag on input. Receives the actual tag length after the function return. If the length specified on input is smaller than the natural size of the MAC's tag, then the MAC is truncated.
  *
  * @return flea error code
  */
@@ -133,9 +133,9 @@ flea_err_e THR_flea_ae_ctx_t__final_encryption(
  *
  * @param ctx the AE context to use
  * @param input the ciphertext input data
- * @param length of the ciphertext input data
+ * @param input_len length of the ciphertext input data
  * @param output pointer to the memory location where to store the output
- * @param length of the memory location where to store the output
+ * @param output_len length of the memory location where to store the output
  *
  * @return flea error code
  */
@@ -160,7 +160,7 @@ flea_err_e THR_flea_ae_ctx_t__update_decryption(
  * returned. if it succeeded, FLEA_ERR_FINE is returned.
  *
  */
-flea_err_e THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t* ctx__pt);
+flea_err_e THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t* ctx);
 
 /**
  * Encrypt a complete plaintext using an AE scheme.
@@ -215,7 +215,7 @@ flea_err_e THR_flea_ae__encrypt(
  * @param tag_len length of the tag
  *
  * @return flea error code. If the MAC verification failed, FLEA_ERR_INV_MAC is
- * returned. if it succeeded, FLEA_ERR_FINE is returned.
+ * returned.
  */
 flea_err_e THR_flea_ae__decrypt(
   flea_ae_id_e     id,

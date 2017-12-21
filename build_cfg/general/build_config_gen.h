@@ -520,7 +520,8 @@
 # include <pthread.h>
 
 /**
- * Define the mutex type to be used.
+ * Define the mutex type to be used. Disable this define if mutexes are
+ * disabled.
  */
 # define FLEA_MUTEX_TYPE pthread_mutex_t
 

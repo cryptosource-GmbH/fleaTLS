@@ -33,7 +33,6 @@ typedef struct
   flea_u16_t                   nb_crls__u16;
   flea_u16_t                   cert_collection_size__u16;
   flea_u16_t                   chain_pos__u16; // offset to final element, = length - 1
-  // flea_bool_e            perform_revocation_checking__b;
   flea_rev_chk_mode_e          rev_chk_mode__e;
 
   volatile flea_bool_e         abort_cert_path_finding__vb;
@@ -49,15 +48,17 @@ void flea_cert_path_validator_t__dtor(flea_cert_path_validator_t* cpv);
  *
  * @param cpv the path validator object to create
  * @param target_cert the DER encoded certificate which shall be validated
- * @param the length of target_cert
- * @param rev_chk_mode__e the mode of revocation checking (based on CRLs) to use
+ * @param target_cert_len the length of target_cert
+ * @param rev_chk_mode the mode of revocation checking (based on CRLs) to use
+ * @param cert_ver_flags combination of flags to control the certificate path
+ * validation
  */
 flea_err_e THR_flea_cert_path_validator_t__ctor_cert(
   flea_cert_path_validator_t*  cpv,
   const flea_u8_t*             target_cert,
   flea_al_u16_t                target_cert_len,
-  flea_rev_chk_mode_e          rev_chk_mode__e,
-  flea_x509_validation_flags_e cert_ver_flags__e
+  flea_rev_chk_mode_e          rev_chk_mode,
+  flea_x509_validation_flags_e cert_ver_flags
 );
 
 
@@ -117,7 +118,7 @@ flea_err_e THR_flea_cert_path_validator_t__add_trust_anchor_cert(
  * case of a successful path validation the function returns without an error.
  *
  * @param cpv the cert path validator object
- * @param time_mbn__pt the current time in timezone GMT. May be null, then the
+ * @param time_mbn the current time in timezone GMT. May be null, then the
  * function determines the current time itself.
  */
 flea_err_e THR_flea_cert_path_validator__build_and_verify_cert_chain(
@@ -129,7 +130,7 @@ flea_err_e THR_flea_cert_path_validator__build_and_verify_cert_chain(
  * The same operation as THR_flea_cert_path_validator__build_and_verify_cert_chain(), but additionally constructs the public key of the the target certificate.
  *
  * @param cpv the cert path validator object
- * @param time_mbn__pt the current time in timezone GMT. May be null, then the
+ * @param time_mbn the current time in timezone GMT. May be null, then the
  * function determines the current time itself.
  * @param key_to_construct_mbn pointer to the public key object to construct
  */
@@ -143,10 +144,10 @@ flea_err_e THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_
  * The same as THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_pub_key(), but additionally verifies the host ID.
  *
  * @param cpv the cert path validator object
- * @param time_mbn__pt the current time in timezone GMT. May be null, then the
+ * @param time_mbn the current time in timezone GMT. May be null, then the
  * function determines the current time itself.
  * @param host_id byte string of the host identifiert
- * @param type of host ID to be used
+ * @param host_id_type of host ID to be used
  * @param key_to_construct_mbn pointer to the public key object to construct
  *
  */
@@ -165,7 +166,7 @@ flea_err_e THR_flea_cert_path_validator__build_and_verify_cert_chain_and_hostid_
  * stop after the processing of the current path candidate has finished. This
  * allows to implement a timeout for the operation.
  *
- * @param cpv__pt pointer to the object which is used for the
+ * @param cpv pointer to the object which is used for the
  * certification path construction which shall be aborted.
  */
 void flea_cert_path_validator_t__abort_cert_path_building(flea_cert_path_validator_t* cpv);

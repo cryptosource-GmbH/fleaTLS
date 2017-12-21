@@ -22,16 +22,16 @@ extern "C" {
  * @param result_private_len the caller must provide a pointer to a value representing
  * the available length in result_private, upon function return this value will
  * be updated with the length of the data written to result_private
- * @param dom_par__pt domain parameters
+ * @param dom_par domain parameters
  *
  * @result flea error code
  */
 flea_err_e THR_flea_generate_ecc_key(
-  flea_u8_t*                       result_public__p_u8,
-  flea_al_u8_t*                    result_public_len__p_al_u8,
-  flea_u8_t*                       result_private__p_u8,
-  flea_al_u8_t*                    result_private_len__p_al_u8,
-  const flea_ec_gfp_dom_par_ref_t* dom_par__pt
+  flea_u8_t*                       result_public,
+  flea_al_u8_t*                    result_public_len,
+  flea_u8_t*                       result_private,
+  flea_al_u8_t*                    result_private_len,
+  const flea_ec_gfp_dom_par_ref_t* dom_par
 );
 
 #endif /* #ifdef FLEA_HAVE_ECC */

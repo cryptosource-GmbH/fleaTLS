@@ -45,7 +45,7 @@ typedef struct
 # define flea_cert_store_t__GET_NB_CERTS(__p)                  ((__p)->nb_set_certs__u16)
 
 /**
- * destroy a cert store.
+ * Destroy a cert store.
  *
  * @param cert_store pointer to the cert store object to destruct.
  */
@@ -87,14 +87,14 @@ flea_err_e THR_flea_cert_store_t__add_trusted_cert(
  * @param der_enc_cert_len length of der_enc_cert
  */
 flea_err_e THR_flea_cert_store_t__add_untrusted_cert(
-  flea_cert_store_t* cert_store__pt,
-  const flea_u8_t*   der_enc_cert__pcu8,
-  flea_al_u16_t      der_enc_cert_len__alu16
+  flea_cert_store_t* cert_store,
+  const flea_u8_t*   der_enc_cert,
+  flea_al_u16_t      der_enc_cert_len
 );
 
 flea_bool_e flea_cert_store_t__is_cert_trusted(
-  const flea_cert_store_t* cert_store__pt,
-  flea_al_u16_t            pos__alu16
+  const flea_cert_store_t* cert_store,
+  flea_al_u16_t            pos
 );
 
 /**
@@ -103,7 +103,7 @@ flea_bool_e flea_cert_store_t__is_cert_trusted(
  * @param cert_store the cert store object to use
  * @param cert_to_check the DER encoded certificate to check for
  * @param cert_to_check_len the length of cert_to_check
- * @param result_is_trust receives the result: set to FLEA_TRUE if the
+ * @param result_is_trusted receives the result: set to FLEA_TRUE if the
  * sought certificate is trusted, set to FLEA_FALSE otherwise
  */
 flea_err_e THR_flea_cert_store_t__is_cert_trusted(
@@ -115,19 +115,23 @@ flea_err_e THR_flea_cert_store_t__is_cert_trusted(
 
 
 const flea_u8_t* flea_cert_store_t__get_ptr_to_trusted_enc_cert(
-  flea_cert_store_t* cert_store__pt,
-  flea_al_u16_t      pos__alu16
+  flea_cert_store_t* cert_store,
+  flea_al_u16_t      pos
 );
 
 /**
  * Find out whether a certain certificate with a given hash value of its to-be-signed data is contained in a cert store as a trusted certificate.
  *
- * @param cert_store the cert store object to use
- * @param tbs_cert_hash_id ID of the hash algorithm to use
- * @param tbs_cert_hash_to_check the hash of the TBS of the certificate to check for
- * @param tbs_cert_hash_to_check_len the length of tbs_cert_hash_to_check
- * @param result_is_trust receives the result: set to FLEA_TRUE if the
- * sought certificate is trusted, set to FLEA_FALSE otherwise
+ * @param[in] cert_store the cert store object to use
+ * @param[in] tbs_cert_hash_id ID of the hash algorithm to use
+ * @param[in] tbs_cert_hash_to_check the hash of the TBS of the certificate to check for
+ * @param[in] tbs_cert_hash_to_check_len the length of tbs_cert_hash_to_check
+ * @param[out] result_is_trusted receives the result: set to FLEA_TRUE if the sought
+ * certificate is trusted, set to FLEA_FALSE otherwise
+ * @param[out] trusted_cert_idx receives the index of the certificate with the
+ * sought TBS hash within this certificate store object.
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
   const flea_cert_store_t* cert_store,
@@ -135,7 +139,7 @@ flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
   const flea_u8_t*         tbs_cert_hash_to_check,
   flea_al_u8_t             tbs_cert_hash_to_check_len,
   flea_bool_e*             result_is_trusted,
-  flea_al_u16_t*           trusted_cert_idx__palu16
+  flea_al_u16_t*           trusted_cert_idx
 );
 
 /**
@@ -148,6 +152,8 @@ flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
  * added
  * @param cpv the path validator object in which the trusted certificates shall
  * be set
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_cert_store_t__add_trusted_to_path_validator(
   const flea_cert_store_t*    cert_store,
