@@ -239,9 +239,9 @@ flea_err_e THR_flea_ecdsa__raw_sign(
   flea_point_gfp_t G;
 
 # ifdef FLEA_USE_ECC_ADD_ALWAYS
-  const flea_bool_t do_use_add_always__b = FLEA_TRUE;
+  const flea_bool_e do_use_add_always__b = FLEA_TRUE;
 # else
-  const flea_bool_t do_use_add_always__b = FLEA_FALSE;
+  const flea_bool_e do_use_add_always__b = FLEA_FALSE;
 # endif
 # ifdef FLEA_USE_STACK_BUF
   flea_uword_t ecc_ws_mpi_arrs [ECDSA_SIGN_MPI_WS_COUNT][FLEA_ECC_MAX_ORDER_WORD_SIZE];

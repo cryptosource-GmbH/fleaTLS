@@ -62,7 +62,7 @@ void flea_tls_session_data_t__invalidate_session(flea_tls_session_data_t* sessio
   session__pt->is_valid_session__u8 = 0;
 }
 
-flea_bool_t flea_tls_session_data_t__is_valid_session(const flea_tls_session_data_t* session__pt)
+flea_bool_e flea_tls_session_data_t__is_valid_session(const flea_tls_session_data_t* session__pt)
 {
   return session__pt->is_valid_session__u8;
 }
@@ -74,7 +74,7 @@ static flea_err_e THR_flea_tls_session_mngr_t__get_free_session_slot(
 {
   flea_al_u16_t i;
   flea_tls_session_entry_t* least_frequently_used_session__pt;
-  flea_bool_t found__b = FLEA_FALSE;
+  flea_bool_e found__b = FLEA_FALSE;
 
   FLEA_THR_BEG_FUNC();
   for(i = 0; i < session_mngr__pt->nb_used_sessions__u16; i++)
@@ -242,7 +242,7 @@ flea_err_e THR_flea_tls_session_mngr_t__load_session(
   const flea_u8_t*                session_id__pcu8,
   flea_al_u8_t                    session_id_len__alu8,
   flea_tls_session_data_server_t* result__pt,
-  flea_bool_t*                    load_successful__pb
+  flea_bool_e*                    load_successful__pb
 )
 {
   flea_tls_session_entry_t* stored_session__pt;

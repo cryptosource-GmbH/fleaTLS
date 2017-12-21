@@ -24,29 +24,29 @@ void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx__pt);
  * the array, the higher is its priority.
  */
 flea_err_e THR_flea_tls_server_ctx_t__ctor(
-  flea_tls_server_ctx_t*            tls_ctx__pt,
-  flea_private_key_t*               private_key__pt,
-  flea_rw_stream_t*                 rw_stream__pt,
-  const flea_ref_cu8_t*             cert_chain__pt,
-  flea_al_u8_t                      cert_chain_len__alu8,
-  const flea_cert_store_t*          trust_store__t,
+  flea_tls_server_ctx_t*            tls_ctx,
+  flea_rw_stream_t*                 rw_stream,
+  const flea_ref_cu8_t*             cert_chain,
+  flea_al_u8_t                      cert_chain_len,
+  flea_private_key_t*               private_key,
+  const flea_cert_store_t*          trust_store,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
   flea_al_u16_t                     nb_allowed_cipher_suites,
-  const flea_ref_cu8_t*             crl_der__pt,
-  flea_al_u16_t                     nb_crls__alu16,
-  flea_tls_session_mngr_t*          session_mngr_mbn__pt,
-  flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
+  const flea_ref_cu8_t*             crl_der,
+  flea_al_u16_t                     nb_crls,
+  flea_tls_session_mngr_t*          session_mngr_mbn,
+  flea_ec_dom_par_id_e*             allowed_ecc_curves,
   flea_al_u16_t                     nb_allowed_curves,
-  flea_tls_sigalg_e*                allowed_sig_algs__pe,
-  flea_al_u16_t                     nb_allowed_sig_algs__alu16,
-  flea_tls_flag_e                   flags__e
+  flea_tls_sigalg_e*                allowed_sig_algs,
+  flea_al_u16_t                     nb_allowed_sig_algs,
+  flea_tls_flag_e                   flags
 );
 
 flea_err_e THR_flea_tls_server_ctx_t__read_app_data(
   flea_tls_server_ctx_t*  tls_ctx_t,
-  flea_u8_t*              data__pu8,
-  flea_dtl_t*             data_len__pdtl,
-  flea_stream_read_mode_e rd_mode__e
+  flea_u8_t*              data,
+  flea_dtl_t*             data_len,
+  flea_stream_read_mode_e rd_mode
 );
 
 flea_err_e THR_flea_tls_server_ctx_t__send_app_data(
@@ -68,24 +68,24 @@ flea_err_e THR_flea_tls_server_ctx_t__flush_write_app_data(flea_tls_server_ctx_t
  * @return FLEA_TRUE if a renegotiation may be carried out, FLEA_FALSE
  * otherwise.
  */
-flea_bool_t flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_server_ctx__pt);
+flea_bool_e flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_server_ctx__pt);
 
 
 flea_err_e THR_flea_tls_server_ctx_t__renegotiate(
-  flea_tls_server_ctx_t*            tls_ctx__pt,
-  flea_bool_t*                      result__pb,
-  flea_private_key_t*               private_key__pt,
-  const flea_cert_store_t*          trust_store__pt,
-  const flea_ref_cu8_t*             cert_chain__pt,
-  flea_al_u8_t                      cert_chain_len__alu8,
-  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
-  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
-  const flea_ref_cu8_t*             crl_der__pt,
-  flea_al_u16_t                     nb_crls__alu16,
-  flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
-  flea_al_u16_t                     nb_allowed_curves__alu16,
-  flea_tls_sigalg_e*                allowed_sig_algs__pe,
-  flea_al_u16_t                     nb_allowed_sig_algs__alu16
+  flea_tls_server_ctx_t*            tls_ctx,
+  flea_bool_e*                      result,
+  const flea_cert_store_t*          trust_store,
+  const flea_ref_cu8_t*             cert_chain,
+  flea_al_u8_t                      cert_chain_len,
+  flea_private_key_t*               private_key,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
+  flea_al_u16_t                     allowed_cipher_suites_len,
+  const flea_ref_cu8_t*             crls,
+  flea_al_u16_t                     crls_len,
+  flea_ec_dom_par_id_e*             allowed_ecc_curves,
+  flea_al_u16_t                     allowed_curves_len,
+  flea_tls_sigalg_e*                allowed_sig_algs,
+  flea_al_u16_t                     allowed_sig_algs_len
 );
 
 
@@ -99,7 +99,7 @@ flea_err_e THR_flea_tls_server_ctx_t__renegotiate(
  * @return FLEA_TRUE if the peer EE certificate is available, FLEA_FALSE
  * otherwise.
  */
-flea_bool_t flea_tls_server_ctx_t__have_peer_ee_cert_ref(flea_tls_server_ctx_t* server_ctx__pt);
+flea_bool_e flea_tls_server_ctx_t__have_peer_ee_cert_ref(flea_tls_server_ctx_t* server_ctx__pt);
 
 /**
  * Get a pointer to the flea_x509_cert_ref_t of the peer's EE certificate.
@@ -122,7 +122,7 @@ const flea_x509_cert_ref_t* flea_tls_server_ctx_t__get_peer_ee_cert_ref(flea_tls
  * @return FLEA_TRUE if the peer EE certificate is available, FLEA_FALSE
  * otherwise.
  */
-flea_bool_t flea_tls_server_ctx_t__have_peer_root_cert_ref(flea_tls_server_ctx_t* server_ctx__pt);
+flea_bool_e flea_tls_server_ctx_t__have_peer_root_cert_ref(flea_tls_server_ctx_t* server_ctx__pt);
 
 /**
  * Get a pointer to the flea_x509_cert_ref_t of the trusted certificate that was

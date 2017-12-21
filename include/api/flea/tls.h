@@ -70,6 +70,9 @@ typedef enum
   flea_tls_flag__rev_chk_mode__check_none         = 0x40
 } flea_tls_flag_e;
 
+/**
+ * Signature algorithms enums for the TLS API.
+ */
 typedef enum
 {
 # ifdef FLEA_HAVE_SHA1
@@ -83,6 +86,9 @@ typedef enum
 # endif
 } flea_tls_sigalg_e;
 
+/**
+ * Availabel ciphersuites for the TLS API.
+ */
 typedef enum
 {
 # ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA

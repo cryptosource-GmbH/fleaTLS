@@ -23,7 +23,7 @@ static void init_sock_stream_client(
   flea_u16_t                 port__u16,
   unsigned                   timeout_millisecs,
   const char*                hostname,
-  flea_bool_t                is_dns_name
+  flea_bool_e                is_dns_name
 )
 {
   memset(sock_stream__pt, 0, sizeof(*sock_stream__pt));
@@ -307,7 +307,7 @@ flea_err_e THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_u16_t                 port__u16,
   unsigned                   timeout_millisecs,
   const char*                hostname,
-  flea_bool_t                is_dns_name
+  flea_bool_e                is_dns_name
 )
 {
   FLEA_THR_BEG_FUNC();

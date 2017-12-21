@@ -12,8 +12,8 @@
 #include "flea/x509_key.h"
 #include "flea/pk_api.h"
 #include "flea/asn1_date.h"
-#include "flea/namespace_asn1.h"
 #include "flea/tls.h"
+#include "internal/common/namespace_asn1.h"
 #include "flea/rw_stream.h"
 #include "flea/cert_store.h"
 #include "internal/common/cert_path_int.h"
@@ -80,7 +80,7 @@ static flea_err_e THR_flea_tls_cert_path__parse_san_and_validate_hostname(
   flea_hostn_match_info_t* result_match_info__pt
 )
 {
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(work_spc__t, FLEA_STKMD_SAN_ELEMENT_MAX_LEN);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(work_spc__t, FLEA_STKMD_X509_SAN_ELEMENT_MAX_LEN);
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
@@ -106,13 +106,13 @@ static flea_err_e THR_flea_tls_cert_validation__parse_extensions(
   flea_basic_constraints_t* basic_constr__pt,
   hostn_validation_info_t*  hostn_valid_info_mbn__pt,
   flea_byte_vec_t*          crl_dp_raw__pt,
-  flea_bool_t*              have_extensions__pb
+  flea_bool_e*              have_extensions__pb
 )
 {
-  flea_bool_t false__b = FLEA_FALSE;
+  flea_bool_e false__b = FLEA_FALSE;
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(ext_oid__t, 30);
-  flea_bool_t critical__b;
+  flea_bool_e critical__b;
 
   FLEA_THR_BEG_FUNC();
   /* open implicit */
@@ -180,7 +180,7 @@ static flea_err_e THR_flea_tls_cert_validation__parse_extensions(
     /* standard extension */
     switch(oid_indicator__alu16)
     {
-        // flea_bool_t found__b;
+        // flea_bool_e found__b;
         case ID_CE_OID_AKI:
         {
           /* authority key identifier */
@@ -272,14 +272,14 @@ static flea_err_e THR_flea_tls__validate_cert(
   flea_byte_vec_t*                   signature_in_out__pt,
   flea_byte_vec_t*                   tbs_hash_in_out__pt,
   flea_hash_id_e*                    tbs_hash_id__pe,
-  flea_bool_t                        have_precursor_to_verify__b,
+  flea_bool_e                        have_precursor_to_verify__b,
   flea_byte_vec_t*                   issuer_dn__pt, // previous issuer on input, gets updated to validated cert's subject
   const flea_gmt_time_t*             compare_time__pt,
   flea_al_u16_t*                     cnt_non_self_issued_in_path__palu16,
   flea_tls_cert_path_params_t const* cert_path_params__pct,
   const flea_ref_cu8_t*              crl_der__cprcu8,
   flea_al_u16_t                      nb_crls__alu16,
-  flea_bool_t                        validate_crl_for_issued_by_current__b,
+  flea_bool_e                        validate_crl_for_issued_by_current__b,
   flea_byte_vec_t*                   prev_sn_buffer__pt,
   flea_byte_vec_t*                   previous_crldp__pt
 )
@@ -315,16 +315,16 @@ static flea_err_e THR_flea_tls__validate_cert(
   flea_x509_algid_ref_t outer_sigalg_id__t   = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
   flea_x509_algid_ref_t public_key_alg_id__t = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
 # endif /* ifdef FLEA_USE_STACK_BUF */
-  flea_bool_t optional_found__b;
+  flea_bool_e optional_found__b;
   flea_basic_constraints_t basic_constraints__t = {0};
   flea_key_usage_t key_usage__t      = {0};
   flea_key_usage_t extd_key_usage__t = {0};
   flea_hash_id_e sigalg_hash_id;
   flea_pk_key_type_e key_type;
-  flea_bool_t optional__b;
+  flea_bool_e optional__b;
   hostn_validation_info_t hostn_valid_info__t         = {.match_info__t = {.id_matched__b = 0, .contains_ipaddr__b = 0, .contains_dnsname__b = 0}, .host_type_id__e = 0, .user_id__pct = NULL};
   hostn_validation_info_t* hostn_valid_params_mbn__pt = &hostn_valid_info__t;
-  flea_bool_t do_validate_host_name__b = (cert_path_params__pct->hostn_valid_params__pt != NULL) && (cert_path_params__pct->hostn_valid_params__pt->host_id__ct.data__pcu8 != NULL);
+  flea_bool_e do_validate_host_name__b = (cert_path_params__pct->hostn_valid_params__pt != NULL) && (cert_path_params__pct->hostn_valid_params__pt->host_id__ct.data__pcu8 != NULL);
 
   const flea_al_u16_t previous_non_self_issued_cnt__calu16 = *cnt_non_self_issued_in_path__palu16;
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(
@@ -447,7 +447,7 @@ static flea_err_e THR_flea_tls__validate_cert(
   if(have_precursor_to_verify__b)
   {
     flea_pk_scheme_id_e scheme_id;
-    flea_bool_t sig_alg_allowed__b = FLEA_FALSE;
+    flea_bool_e sig_alg_allowed__b = FLEA_FALSE;
     flea_dtl_t i;
     if(pubkey_out__pt->key_type__t == flea_rsa_key)
     {
@@ -639,7 +639,7 @@ static flea_err_e THR_flea_tls__validate_cert(
 
         flea_x509_dn_ref_t dn_ref__t = {.common_name__t = {.data__pu8 = 0}};
 
-        flea_bool_t names_match__b;
+        flea_bool_e names_match__b;
 
         FLEA_CCALL(THR_flea_x509__decode_dn_ref_elements(&dn_ref__t, local_subject__t.data__pu8, local_subject__t.len__dtl, FLEA_TRUE));
         FLEA_CCALL(
@@ -713,7 +713,7 @@ flea_err_e THR_flea_tls__cert_path_validation(
   flea_tls_cert_path_params_t const* cert_path_params__pct
 )
 {
-  flea_bool_t finished__b = FLEA_FALSE;
+  flea_bool_e finished__b = FLEA_FALSE;
   flea_gmt_time_t compare_time__t;
   flea_al_u16_t cert_count__alu16     = 0;
   flea_al_u16_t iter__alu16           = 0;
@@ -740,7 +740,7 @@ flea_err_e THR_flea_tls__cert_path_validation(
 
   do
   {
-    flea_bool_t is_cert_trusted__b;
+    flea_bool_e is_cert_trusted__b;
     flea_u32_t new_cert_len__u32;
     rd_strm__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
     flea_al_u16_t trusted_idx__alu16;

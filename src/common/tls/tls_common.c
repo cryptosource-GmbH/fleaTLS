@@ -100,11 +100,11 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN,        FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    }
 };
 
-static flea_bool_t determine_alert_from_error(
+static flea_bool_e determine_alert_from_error(
   flea_err_e                     err__t,
   flea_tls__alert_description_t* alert_desc__pe,
-  flea_bool_t*                   is_reneg_then_not_null__was_accepted_out___pb,
-  flea_bool_t                    is_read_app_data__b
+  flea_bool_e*                   is_reneg_then_not_null__was_accepted_out___pb,
+  flea_bool_e                    is_read_app_data__b
 )
 {
   flea_al_u8_t i;
@@ -379,7 +379,7 @@ flea_err_e THR_flea_tls__generate_key_block(
   );
 } /* THR_flea_tls__generate_key_block */
 
-flea_bool_t flea_is_in_ciph_suite_list(
+flea_bool_e flea_is_in_ciph_suite_list(
   flea_tls_cipher_suite_id_t        sought_for__e,
   const flea_tls_cipher_suite_id_t* list__pe,
   flea_al_u16_t                     list_len__alu16
@@ -401,8 +401,8 @@ flea_err_e THR_flea_tls__handle_tls_error(
   flea_tls_server_ctx_t* server_ctx_mbn__pt,
   flea_tls_client_ctx_t* client_ctx_mbn__pt,
   flea_err_e             err__t,
-  flea_bool_t*           is_reneg_then_not_null__was_accepted_out___pb,
-  flea_bool_t            is_read_app_data__b
+  flea_bool_e*           is_reneg_then_not_null__was_accepted_out___pb,
+  flea_bool_e            is_read_app_data__b
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -410,7 +410,7 @@ flea_err_e THR_flea_tls__handle_tls_error(
   {
     flea_tls__alert_description_t alert_desc__e;
     /* determine alert and exception at the same time: */
-    flea_bool_t do_send_alert__b = determine_alert_from_error(
+    flea_bool_e do_send_alert__b = determine_alert_from_error(
       err__t,
       &alert_desc__e,
       is_reneg_then_not_null__was_accepted_out___pb,
@@ -681,8 +681,6 @@ flea_err_e THR_flea_tls__send_handshake_message_hdr(
 flea_err_e THR_flea_tls__create_master_secret(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
   flea_byte_vec_t*          premaster_secret__pt
-  // flea_u8_t*                  master_secret_res,
-  // flea_tls_cipher_suite_id_t ciph_id__e
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -1124,7 +1122,7 @@ flea_err_e THR_flea_tls_ctx_t__read_app_data(
 flea_err_e THR_flea_tls_ctx_t__renegotiate(
   flea_tls_server_ctx_t*            server_ctx_mbn__pt,
   flea_tls_client_ctx_t*            client_ctx_mbn__pt,
-  flea_bool_t*                      result__pb,
+  flea_bool_e*                      result__pb,
   flea_private_key_t*               private_key__pt,
   const flea_cert_store_t*          trust_store__pt,
   const flea_ref_cu8_t*             cert_chain_mbn__pt,  /* may only be null for client */
@@ -1194,7 +1192,7 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__renegotiate */
 
-flea_bool_t flea_tls_ctx_t__do_send_sec_reneg_ext(flea_tls_ctx_t* tls_ctx__pt)
+flea_bool_e flea_tls_ctx_t__do_send_sec_reneg_ext(flea_tls_ctx_t* tls_ctx__pt)
 {
   if(tls_ctx__pt->connection_end == FLEA_TLS_SERVER)
   {
@@ -1742,14 +1740,14 @@ flea_err_e THR_flea_tls_ctx_t__parse_sig_alg_ext(
 flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
   flea_tls_ctx_t*           tls_ctx__pt,
   flea_tls_handsh_reader_t* hs_rdr__pt,
-  flea_bool_t*              found_sec_reneg__pb,
+  flea_bool_e*              found_sec_reneg__pb,
   flea_private_key_t*       priv_key_mbn__pt
 )
 {
   flea_u32_t extensions_len__u32;
   flea_rw_stream_t* hs_rd_stream__pt;
-  flea_bool_t receive_sig_algs_ext__b = FLEA_FALSE;
-  flea_bool_t support_sha1__b         = FLEA_FALSE;
+  flea_bool_e receive_sig_algs_ext__b = FLEA_FALSE;
+  flea_bool_e support_sha1__b         = FLEA_FALSE;
   flea_al_u8_t i;
 
   FLEA_THR_BEG_FUNC();

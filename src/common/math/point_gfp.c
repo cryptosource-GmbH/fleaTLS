@@ -26,7 +26,7 @@
 /**
  * check whether the given point is the point at infinity
  */
-static flea_bool_t flea_point_jac_proj_t__is_zero(const flea_point_jac_proj_t* p_point)
+static flea_bool_e flea_point_jac_proj_t__is_zero(const flea_point_jac_proj_t* p_point)
 {
   return flea_mpi_t__is_zero(&p_point->m_z);
 }
@@ -548,7 +548,7 @@ flea_err_e THR_flea_point_gfp_t__mul(
   flea_point_gfp_t*       p_point_in_out,
   const flea_mpi_t*       p_scalar,
   const flea_curve_gfp_t* p_curve,
-  flea_bool_t use_add_always__b
+  flea_bool_e use_add_always__b
 # ifdef                   FLEA_USE_PUBKEY_INPUT_BASED_DELAY
   ,
   flea_ctr_mode_prng_t*   delay_prng__pt
@@ -580,7 +580,7 @@ flea_err_e THR_flea_point_gfp_t__mul_multi(
   const flea_point_gfp_t* p_point_2,
   const flea_mpi_t*       p_scalar_2,
   const flea_curve_gfp_t* p_curve,
-  flea_bool_t use_add_always__b
+  flea_bool_e use_add_always__b
 # ifdef                   FLEA_USE_PUBKEY_INPUT_BASED_DELAY
   ,
   flea_ctr_mode_prng_t*   delay_prng_mbn__pt
@@ -1009,7 +1009,7 @@ flea_err_e THR_flea_point_gfp_t__mul_multi(
     else
     {
       // single-mul
-      flea_bool_t do_mul__b;
+      flea_bool_e do_mul__b;
       flea_point_jac_proj_t* p2_or_fake__pt, * precomp_or_fake__pt;
 
 

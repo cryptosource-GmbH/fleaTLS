@@ -12,7 +12,7 @@
 #include "flea/mem_read_stream.h"
 
 
-static flea_bool_t is_ascii_string(
+static flea_bool_e is_ascii_string(
   const flea_u8_t* s__pcu8,
   flea_al_u16_t    s_len__sz
 )
@@ -61,7 +61,7 @@ static flea_u8_t to_lower_case(flea_u8_t byte)
   return byte;
 }
 
-static flea_bool_t are_strings_equal_case_insensitive(
+static flea_bool_e are_strings_equal_case_insensitive(
   const flea_u8_t* s1__pcu8,
   const flea_u8_t* s2__pcu8,
   flea_al_u16_t    s12_len__alu8
@@ -82,8 +82,8 @@ static flea_bool_t are_strings_equal_case_insensitive(
 flea_err_e THR_flea_x509__verify_host_name(
   const flea_ref_cu8_t*  user_host_name__pcrcu8,
   const flea_byte_vec_t* cert_dns_name__pcrcu8,
-  flea_bool_t            allow_wildcard__b,
-  flea_bool_t*           result__pb
+  flea_bool_e            allow_wildcard__b,
+  flea_bool_e*           result__pb
 )
 {
   *result__pb = FLEA_FALSE;
@@ -203,7 +203,7 @@ flea_err_e THR_flea_x509__verify_tls_server_id(
   {
     /* as specified in RFC 6125, only use CN if no appropirate SAN elements were
      * found */
-    flea_bool_t names_match__b;
+    flea_bool_e names_match__b;
     FLEA_CCALL(
       THR_flea_x509__verify_host_name(
         &user_id__crcu8,
@@ -241,7 +241,7 @@ flea_err_e THR_flea_x509__parse_san_and_validate_hostn(
 
   while(flea_ber_dec_t__has_current_more_data(cont_dec__pt))
   {
-    flea_bool_t found__b, found_any__b = FLEA_FALSE;
+    flea_bool_e found__b, found_any__b = FLEA_FALSE;
 
     /*GeneralName ::= CHOICE {
      * otherName                 [0]  AnotherName,*/
@@ -275,7 +275,7 @@ flea_err_e THR_flea_x509__parse_san_and_validate_hostn(
     );
     if(found__b && (host_type == flea_host_dnsname))
     {
-      flea_bool_t names_match__b;
+      flea_bool_e names_match__b;
       FLEA_CCALL(THR_flea_x509__verify_host_name(user_id__pcrcu8, work_spc__pt, FLEA_TRUE, &names_match__b));
       if(names_match__b)
       {

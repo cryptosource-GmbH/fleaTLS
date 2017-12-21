@@ -128,9 +128,9 @@ flea_err_e THR_flea_rsa_raw_operation_crt(
 # endif // #ifdef FLEA_USE_HEAP_BUF
 
 # ifdef FLEA_USE_RSA_MUL_ALWAYS
-  const flea_bool_t do_use_mul_always__b = FLEA_TRUE;
+  const flea_bool_e do_use_mul_always__b = FLEA_TRUE;
 # else
-  const flea_bool_t do_use_mul_always__b = FLEA_FALSE;
+  const flea_bool_e do_use_mul_always__b = FLEA_FALSE;
 # endif
 
 # ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY

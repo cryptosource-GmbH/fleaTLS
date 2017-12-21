@@ -490,7 +490,7 @@ void property_set_t::throw_exception(
   }
 }
 
-flea_bool_t property_set_t::get_property_as_bool(
+flea_bool_e property_set_t::get_property_as_bool(
   std::string const& index,
   bool*            default_val
 ) const

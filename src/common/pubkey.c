@@ -5,7 +5,7 @@
 #include "flea/pubkey.h"
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
-#include "flea/namespace_asn1.h"
+#include "internal/common/namespace_asn1.h"
 #include "flea/x509.h"
 #include "flea/x509_key.h"
 #include "flea/ec_key.h"

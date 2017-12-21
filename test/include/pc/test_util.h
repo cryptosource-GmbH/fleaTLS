@@ -44,8 +44,8 @@ struct server_params_t
   size_t                            read_app_data_size;
   linux_socket_stream_ctx_t         sock_stream_ctx;
   int                               sock_fd;
-  volatile flea_bool_t              abort__b;
-  volatile flea_bool_t              finished__b;
+  volatile flea_bool_e              abort__b;
+  volatile flea_bool_e              finished__b;
   volatile flea_err_e               server_error__e;
   pthread_mutex_t                   mutex;
   pthread_t                         thread;
@@ -127,21 +127,21 @@ public:
   std::string get_property_as_string(std::string const& index) const;
   std::string get_property_as_string_default_empty(std::string const& index) const;
   flea_u32_t get_property_as_u32(std::string const& index) const;
-  flea_bool_t get_as_bool_required(std::string const& index) const
+  flea_bool_e get_as_bool_required(std::string const& index) const
   {
     bool* default_val = nullptr;
 
     return get_property_as_bool(index, default_val);
   }
 
-  flea_bool_t get_as_bool_default_true(std::string const& index) const
+  flea_bool_e get_as_bool_default_true(std::string const& index) const
   {
     bool default_val = true;
 
     return get_property_as_bool(index, &default_val);
   }
 
-  flea_bool_t get_as_bool_default_false(std::string const& index) const
+  flea_bool_e get_as_bool_default_false(std::string const& index) const
   {
     bool default_val = false;
 
@@ -169,7 +169,7 @@ private:
     std::string const      & s,
     property_string_form_t form
   );
-  flea_bool_t get_property_as_bool(
+  flea_bool_e get_property_as_bool(
     std::string const& index,
     bool*            default_ptr
   ) const;

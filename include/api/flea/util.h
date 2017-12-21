@@ -75,7 +75,7 @@ void flea_swap_mem(
   flea_dtl_t mem_len__dtl
 );
 
-flea_bool_t flea_sec_mem_equal(
+flea_bool_e flea_sec_mem_equal(
   const flea_u8_t* mem1__pcu8,
   const flea_u8_t* mem2__pcu8,
   flea_al_u16_t    mem_len__alu16

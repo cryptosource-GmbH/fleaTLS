@@ -94,7 +94,7 @@ flea_al_s8_t flea_mpi_t__compare_with_uword(
   flea_uword_t      w
 );
 
-flea_bool_t flea_mpi_t__equal(
+flea_bool_e flea_mpi_t__equal(
   const flea_mpi_t* p_a,
   const flea_mpi_t* p_b
 );
@@ -177,7 +177,7 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
   flea_mpi_div_ctx_t*   p_div_ctx,
   flea_mpi_t*           p_quotient_ws,
   flea_al_u8_t          window_size,
-  flea_bool_t mul_always_cm__b
+  flea_bool_e mul_always_cm__b
 #ifdef                  FLEA_USE_PUBKEY_INPUT_BASED_DELAY
   ,
   flea_ctr_mode_prng_t* delay_prng__pt
@@ -197,7 +197,7 @@ flea_err_e THR_flea_mpi_t__set_pow_2(
   flea_al_u16_t exp
 );
 
-flea_bool_t flea_mpi_t__is_zero(const flea_mpi_t* p_mpi);
+flea_bool_e flea_mpi_t__is_zero(const flea_mpi_t* p_mpi);
 
 flea_err_e THR_flea_mpi_t__shift_left_small(
   flea_mpi_t*   p_mpi,

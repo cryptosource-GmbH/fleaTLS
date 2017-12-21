@@ -7,8 +7,8 @@
 #include "internal/common/x509_int.h"
 #include "flea/alloc.h"
 #include "flea/array_util.h"
-#include "flea/namespace_asn1.h"
 #include "flea/asn1_date.h"
+#include "internal/common/namespace_asn1.h"
 #include "flea/mem_read_stream.h"
 #include <string.h>
 
@@ -21,7 +21,7 @@ flea_err_e THR_flea_x509_cert_parse_basic_constraints(
 )
 {
   flea_u32_t x__u32;
-  flea_bool_t found__b;
+  flea_bool_e found__b;
 
   FLEA_THR_BEG_FUNC();
   basic_constraints__pt->is_present__u8 = FLEA_TRUE;
@@ -130,7 +130,7 @@ flea_err_e THR_flea_x509__decode_algid_ref(
 )
 {
   FLEA_THR_BEG_FUNC();
-  flea_bool_t optional_found__b = FLEA_TRUE;
+  flea_bool_e optional_found__b = FLEA_TRUE;
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
   FLEA_CCALL(
     THR_flea_ber_dec_t__decode_value_raw_cft(
@@ -178,11 +178,11 @@ flea_err_e THR_flea_x509__process_alg_ids(
 static flea_err_e THR_flea_x509_cert_ref__t__parse_extensions(
   flea_x509_ext_ref_t* ext_ref__pt,
   flea_ber_dec_t*      dec__pt,
-  flea_bool_t*         have_extensions__pb
+  flea_bool_e*         have_extensions__pb
 )
 {
   flea_byte_vec_t ext_oid_ref__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
-  flea_bool_t critical__b;
+  flea_bool_e critical__b;
 
   FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
@@ -250,7 +250,7 @@ static flea_err_e THR_flea_x509_cert_ref__t__parse_extensions(
     switch(oid_indicator__alu16)
     {
 #ifdef FLEA_X509_CERT_REF_WITH_DETAILS
-      flea_bool_t found__b;
+      flea_bool_e found__b;
 #endif
         case ID_CE_OID_AKI:
         {
@@ -401,7 +401,7 @@ flea_err_e THR_flea_x509__decode_dn_ref_elements(
   flea_x509_dn_ref_t* dn_ref__pt,
   const flea_u8_t*    data__pcu8,
   flea_dtl_t          data_len__dtl,
-  flea_bool_t         with_outer_seq__b
+  flea_bool_e         with_outer_seq__b
 )
 {
   FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
@@ -551,7 +551,7 @@ flea_err_e THR_flea_x509_cert_ref_t__ctor(
   FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   flea_mem_read_stream_help_t hlp__t;
-  flea_bool_t found_tag__b;
+  flea_bool_e found_tag__b;
   flea_x509_algid_ref_t outer_sig_algid__t = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
   FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(version_vec__t, 1);
   FLEA_THR_BEG_FUNC();
@@ -681,7 +681,7 @@ flea_err_e THR_flea_x509_cert_ref_t__ctor(
   );
 } /* THR_flea_x509_cert_ref_t__ctor */
 
-flea_bool_t flea_x509_has_key_usages(
+flea_bool_e flea_x509_has_key_usages(
   flea_key_usage_t const*      key_usage__pt,
   flea_key_usage_e             required_usages__u16,
   flea_key_usage_exlicitness_e explicitness__e
@@ -706,7 +706,7 @@ flea_bool_t flea_x509_has_key_usages(
   return FLEA_TRUE;
 }
 
-flea_bool_t flea_x509_has_extended_key_usages(
+flea_bool_e flea_x509_has_extended_key_usages(
   flea_key_usage_t const*      key_usage__pt,
   flea_key_usage_e             required_usages__u16,
   flea_key_usage_exlicitness_e explicitness__e
@@ -733,7 +733,7 @@ flea_bool_t flea_x509_has_extended_key_usages(
   return FLEA_TRUE;
 }
 
-flea_bool_t flea_x509_cert_ref_t__has_key_usages(
+flea_bool_e flea_x509_cert_ref_t__has_key_usages(
   flea_x509_cert_ref_t const*  cert_ref__pt,
   flea_key_usage_e             required_usages__u16,
   flea_key_usage_exlicitness_e explicitness__e
@@ -742,7 +742,7 @@ flea_bool_t flea_x509_cert_ref_t__has_key_usages(
   return flea_x509_has_key_usages(&cert_ref__pt->extensions__t.key_usage__t, required_usages__u16, explicitness__e);
 }
 
-flea_bool_t flea_x509_cert_ref_t__has_extended_key_usages(
+flea_bool_e flea_x509_cert_ref_t__has_extended_key_usages(
   flea_x509_cert_ref_t const*  cert_ref__pt,
   flea_ext_key_usage_e         required_usages__u16,
   flea_key_usage_exlicitness_e explicitness__e
@@ -755,7 +755,7 @@ flea_bool_t flea_x509_cert_ref_t__has_extended_key_usages(
   );
 }
 
-flea_bool_t flea_x509_is_cert_self_issued(const flea_x509_cert_ref_t* cert__pt)
+flea_bool_e flea_x509_is_cert_self_issued(const flea_x509_cert_ref_t* cert__pt)
 {
   if(FLEA_DER_REF_IS_ABSENT(&cert__pt->issuer__t.raw_dn_complete__t))
   {

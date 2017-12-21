@@ -98,9 +98,9 @@ flea_err_e THR_flea_ecka__compute_raw(
   flea_al_u8_t tmp_result_len__alu8;
 
 # ifdef FLEA_USE_ECC_ADD_ALWAYS
-  const flea_bool_t do_use_add_always__b = FLEA_TRUE;
+  const flea_bool_e do_use_add_always__b = FLEA_TRUE;
 # else
-  const flea_bool_t do_use_add_always__b = FLEA_FALSE;
+  const flea_bool_e do_use_add_always__b = FLEA_FALSE;
 # endif
 
 # ifdef FLEA_USE_HEAP_BUF

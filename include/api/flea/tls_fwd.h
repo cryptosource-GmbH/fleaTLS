@@ -10,15 +10,20 @@ extern "C" {
 
 struct struct_flea_tls_client_ctx_t;
 
+/**
+ * \struct flea_tls_client_ctx_t
+ * fleaTLS TLS client context object.
+ */
 typedef struct struct_flea_tls_client_ctx_t flea_tls_client_ctx_t;
 
 struct struct_flea_tls_server_ctx_t;
 
+/**
+ * \struct flea_tls_server_ctx_t
+ * fleaTLS TLS server context object.
+ */
 typedef struct struct_flea_tls_server_ctx_t flea_tls_server_ctx_t;
 
-struct struct_flea_tls_shared_server_ctx_t;
-
-typedef struct struct_flea_tls_shared_server_ctx_t flea_tls_shared_server_ctx_t;
 #ifdef __cplusplus
 }
 #endif

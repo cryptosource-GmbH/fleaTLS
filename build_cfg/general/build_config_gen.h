@@ -20,68 +20,146 @@
 # endif
 
 /**
- * Activate this flag to let flea make heap allocation for buffers. Deactivate
- * this flag to let flea only use stack buffers. In the latter case, be sure to
- * correctly define the RSA and EC key sizes.
+ * Activate this flag to let flea make heap allocation for buffers (referred to
+ * as "heap mode"). Deactivate this flag to let flea only use stack buffers
+ * (referred to as "stack mode"). In the latter case, be sure to correctly
+ * define the RSA and EC key sizes.
  */
 # define FLEA_USE_HEAP_BUF // FBFLAGS_CORE_ON_OFF
 
 /**
- * Algorithm support selection
+ * Control whether HMAC support is compiled
  */
 # define FLEA_HAVE_HMAC // FBFLAGS_MACALGS_ON_OFF
-# define FLEA_HAVE_CMAC // FBFLAGS_MACALGS_ON_OFF
-# define FLEA_HAVE_EAX  // FBLAGS_AEALGS_ON_OFF
-# define FLEA_HAVE_GCM
-
-# define FLEA_HAVE_MD5               // FBFLAGS_MD5_ON_OFF
-# define FLEA_HAVE_SHA1              // FBFLAGS_SHA1_ON_OFF
-# define FLEA_HAVE_SHA224_256        // NOT CONFIGURABLE
-# define FLEA_HAVE_SHA384_512        // FBFLAGS_HAVE_SHA512_ON_OFF
-# define FLEA_HAVE_DAVIES_MEYER_HASH // FBFLAGS_DAVIES_MEYER_HASH_ON_OFF
-
-# define FLEA_HAVE_DES               // FBFLAGS_HAVE_DES_ON_OFF
-# define FLEA_HAVE_TDES_2KEY         // FBFLAGS_HAVE_TDES_ON_OFF
-# define FLEA_HAVE_TDES_3KEY         // FBFLAGS_HAVE_TDES_ON_OFF
-# define FLEA_HAVE_DESX              // FBFLAGS_HAVE_DESX_ON_OFF
-# define FLEA_HAVE_AES               // NOT CONFIGURABLE
 
 /**
- * Configuration
+ * Control whether CMAC support is compiled
+ */
+# define FLEA_HAVE_CMAC // FBFLAGS_MACALGS_ON_OFF
+
+/**
+ * Control whether EAX support is compiled
+ */
+# define FLEA_HAVE_EAX  // FBFLAGS_AEALGS_ON_OFF
+
+/**
+ * Control whether GCM support is compiled
+ */
+# define FLEA_HAVE_GCM
+
+/**
+ * Control whether MD5 support is compiled
+ */
+# define FLEA_HAVE_MD5               // FBFLAGS_MD5_ON_OFF
+
+/**
+ * Control whether SHA1 support is compiled
+ */
+# define FLEA_HAVE_SHA1              // FBFLAGS_SHA1_ON_OFF
+
+/**
+ * Control whether SHA224 and SHA256 support is compiled. This flag is mandatory
+ * in the current version of fleaTLS.
+ */
+# define FLEA_HAVE_SHA224_256        // NOT CONFIGURABLE
+
+/**
+ * Control whether SHA384 and SHA512 support is compiled.
+ */
+# define FLEA_HAVE_SHA384_512        // FBFLAGS_HAVE_SHA512_ON_OFF
+
+/**
+ * Control whether support for the AES-based hash function based on the Davies-Meyer-construction is compiled.
+ */
+# define FLEA_HAVE_DAVIES_MEYER_HASH // FBFLAGS_DAVIES_MEYER_HASH_ON_OFF
+
+/**
+ * Control whether support for the DES cipher is compiled.
+ */
+# define FLEA_HAVE_DES               // FBFLAGS_HAVE_DES_ON_OFF
+
+/**
+ * Control whether support for the 2-key triple-DES cipher is compiled.
+ */
+# define FLEA_HAVE_TDES_2KEY         // FBFLAGS_HAVE_TDES_ON_OFF
+
+/**
+ * Control whether support for the 3-key triple-DES cipher is compiled.
+ */
+# define FLEA_HAVE_TDES_3KEY         // FBFLAGS_HAVE_TDES_ON_OFF
+
+/**
+ * Control whether support for the DESX cipher is compiled.
+ */
+# define FLEA_HAVE_DESX // FBFLAGS_HAVE_DESX_ON_OFF
+# define FLEA_HAVE_AES  // NOT CONFIGURABLE
+
+/**
+ * Control whether loop unrolling within MD5 shall be used.
  */
 # define FLEA_USE_MD5_LOOP_UNROLL    // FBFLAGS_MD5_ON_OFF
+
+/**
+ * Control whether loop unrolling within SHA1 shall be used.
+ */
 # define FLEA_USE_SHA1_LOOP_UNROLL   // FBFLAGS_SHA1_ON_OFF
+
+/**
+ * Control whether loop unrolling within SHA256 (and SHA224) shall be used.
+ */
 # define FLEA_USE_SHA256_LOOP_UNROLL // FBFLAGS_SHA256_ON_OFF
+
+/**
+ * Control whether loop unrolling within SHA512 (and SHA384) shall be used.
+ */
 # define FLEA_USE_SHA512_LOOP_UNROLL // FBFLAGS_SHA512_ON_OFF
 
 
 /**
- * If set, then AES block decryption and ECB and CBC mode are enabled. Otherwise
+ * If activated, then AES block decryption and ECB and CBC mode are enabled. Otherwise
  * only the AES block encryption is available, which is sufficient for both
- * directions in CTR mode.
+ * directions in CTR and GCM mode.
  */
 # define FLEA_HAVE_AES_BLOCK_DECR // FBFLAGS_AES_ON_OFF
+
+/**
+ * Control whether an AES implementation with smaller lookup tables shall be
+ * compiled.
+ */
 # define FLEA_USE_SMALL_AES       // FBFLAGS_AES_ON_OFF
 
+/**
+ * Control whether support for RSA shall be compiled.
+ */
 # define FLEA_HAVE_RSA            // FBFLAGS_PKALGS_ON_OFF
+
+/**
+ * Control whether support for ECDSA shall be compiled.
+ */
 # define FLEA_HAVE_ECDSA          // FBFLAGS_PKALGS_ON_OFF
+
+/**
+ * Control whether support for ECKA (=ECDH) shall be compiled.
+ */
 # define FLEA_HAVE_ECKA           // FBFLAGS_PKALGS_ON_OFF
 
 /**
- * Choose 5 for greatest speed and 1 for smallest RAM footprint.
+ * Control the window size for the RSA exponentiation. Choose 5 for greatest speed and 1 for smallest RAM footprint.
  */
 # define FLEA_CRT_RSA_WINDOW_SIZE 5 // FBFLAGS__INT_LIST 1 2 3 4 5
 
 /**
- * A window size of up to 5 is beneficial for single point multiplications even
- * for 112 bit curves.
+ * Control the window size for the ECC exponentiation. Choose 4 or 5 for greatest speed and 1 for smallest RAM footprint.
  */
 # define FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE 5 // FBFLAGS__INT_LIST 1 2 3 4 5
 
-# define FLEA_STKMD_X509_MAX_CERT_SIZE       2000
+/**
+ * Used to determine the reserved space for fixed size buffers in stack mode.
+ */
+# define FLEA_STKMD_X509_MAX_CERT_SIZE 2000
 
 /**
- * The maximum number of certificates in a chain, including the targert
+ * The maximum number of certificates in a chain, including the target
  * certificate and the trust anchor.
  * Relevant both for heap and stack mode.
  */
@@ -107,14 +185,6 @@
  */
 # define FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT 5 // FBFLAGS__INT_LIST 1 2 3 4 10 20
 
-
-/**
- * The maximal capacity (certificate count) of a cert_store_t object. Applies to
- * both the heap and the stack mode as the threshold. In heap mode, the
- * allocated memory may grow up to this threshold.
- */
-# define FLEA_CERT_STORE_MAX_CAPACITY 20
-
 /**
  * The initial allocated size and step size for allocation growth for a
  * cert_store_t object. Relevant only in heap mode.
@@ -122,18 +192,30 @@
 # define FLEA_CERT_STORE_PREALLOC 5
 
 /**
- * Algorithm maximum supported key and parameter sizes.
+ * Maximum supported key bit size for RSA (size of the public modulus).
  */
-# define FLEA_RSA_MAX_KEY_BIT_SIZE      4096 // FBFLAGS__INT_LIST 1024 1536 2048 4096
-# define FLEA_RSA_MAX_PUB_EXP_BIT_LEN   32
-# define FLEA_ECC_MAX_MOD_BIT_SIZE      521 // FBFLAGS__INT_LIST 160 192 224 256 320 384 521
+# define FLEA_RSA_MAX_KEY_BIT_SIZE 4096      // FBFLAGS__INT_LIST 1024 1536 2048 4096
+
+/**
+ * Maximum supported key public exponent bit size for RSA.
+ */
+# define FLEA_RSA_MAX_PUB_EXP_BIT_LEN 32
+
+/**
+ * Maximum supported key bit size for ECC (size of the prime p of the curve).
+ */
+# define FLEA_ECC_MAX_MOD_BIT_SIZE 521      // FBFLAGS__INT_LIST 160 192 224 256 320 384 521
+
+/**
+ * Maximum supported cofactor bit size for ECC.
+ */
 # define FLEA_ECC_MAX_COFACTOR_BIT_SIZE 32
 
 /**
- * Type for the maximal length of data processed by flea in various functions. The effect is that
+ * Control the bit width of flea_dtl_t, the type for the lengths of data processed by fleaTLS in various functions. The effect is that
  * flea_dtl_t, the type that represents data lengths in various API function
- * signatures, is defined with a width of 32 bit if the flag is set and with a width of 16 bit if deactivated out.
- * Deactivate this switch in order to generate smaller and faster code on 16 and 8
+ * signatures, is defined with a width of 32 bit if the flag is set and with a width of 16 bit if deactivated.
+ * Deactivate this switch in order to generate smaller and faster code on 16
  * bit architectures. Deactivating it also reduces the RAM size of some types
  * considerable.
  */
@@ -145,10 +227,10 @@
  * In any case, the generated code remains valid independently of the platform's
  * endianess, but may be non-optimal with regard to size and/or speed.
  */
-# define FLEA_HAVE_BE_ARCH_OPT 0 // FBFLAGS_ARCH_OPT_ON_OFF
+# define FLEA_HAVE_BE_ARCH_OPT // FBFLAGS_ARCH_OPT_ON_OFF
 
 /**
- * Maximum for CRL Distribution point extension which only takes effect in stack
+ * Maximum size for CRL Distribution point extension which only takes effect in stack
  * mode.
  *
  */
@@ -163,20 +245,20 @@
 
 /**
  * If this switch is deactivated, then only the most common certificate
- * extensions are supported. Saves RAM.
+ * extensions are supported. Deactivate it to safe RAM.
  */
 # define FLEA_X509_CERT_REF_WITH_DETAILS
 
 /**
  * If this is switch is deactivated, then only the most typical DN components
- * are supported in X.509 certificates. Saves RAM and a little bit of code.
+ * are supported in X.509 certificates. Deactivating it saves RAM and a little bit of code.
  */
 # define FLEA_HAVE_X509_DN_DETAILS
 
 /**
- * Relevant only in stack mode.
+ * The space reserved for an entry in the subject alternative name extension. Relevant only in stack mode.
  */
-# define FLEA_STKMD_SAN_ELEMENT_MAX_LEN 50
+# define FLEA_STKMD_X509_SAN_ELEMENT_MAX_LEN 50
 
 /**
  * Use the "square & multiply always" algorithm for (window-based) modular exponentiation
@@ -190,38 +272,89 @@
  */
 # define FLEA_USE_ECC_ADD_ALWAYS // FBFLAGS_ECC_ADA_ON_OFF
 
+/**
+ * Side channel countermeasure which adds pseudo random delays within the public key
+ * operations.
+ */
 # define FLEA_USE_PUBKEY_INPUT_BASED_DELAY
 
+/**
+ * Side channel countermeasure which adds random delays within the public key
+ * operations.
+ */
 # define FLEA_USE_PUBKEY_USE_RAND_DELAY
 
+/**
+ * Perform pseudo operations or data access for cache warming to achieve timing
+ * neutral behaviour on platforms with cache within timing attack
+ * countermeasures. This feature should be disabled on platforms without cache.
+ */
 # define FLEA_USE_CACHEWARMING_IN_TA_CM
 
 # if defined FLEA_HAVE_RSA && defined FLEA_HAVE_HMAC
+
+/**
+ * Control whether fleaTLS supports TLS.
+ */
 #  define FLEA_HAVE_TLS
 # endif
 
 # ifdef FLEA_HAVE_TLS
+
+/**
+ * Control whether TLS client will be compiled.
+ */
 #  define FLEA_HAVE_TLS_CLIENT
+
+/**
+ * Control whether TLS server will be compiled.
+ */
 #  define FLEA_HAVE_TLS_SERVER
 
 #  if defined FLEA_HAVE_ECKA
+
+/**
+ * Control whether support for ECDHE cipher suites shall be compiled.
+ */
 #   define FLEA_HAVE_TLS_ECDHE
+
+/**
+ * Control whether support for ECDH cipher suites shall be compiled. (Not yet
+ * supported by fleaTLS.)
+ */
 #   define FLEA_HAVE_TLS_ECDH
-#  endif
+#  endif // if defined FLEA_HAVE_ECKA
 
 #  if defined FLEA_HAVE_ECDSA
+
+/**
+ * Control whether support for ECDSA cipher suites shall be compiled. (Not yet
+ * supported by fleaTLS.)
+ */
 #   define FLEA_HAVE_TLS_ECDSA
 #  endif
 
 #  if defined FLEA_HAVE_RSA
+
+/**
+ * Control whether support for RSA cipher suites shall be compiled.
+ */
 #   define FLEA_HAVE_TLS_RSA
 #  endif
 
 #  ifdef FLEA_HAVE_HMAC
+
+/**
+ * Control whether support for CBC-based cipher suites shall be compiled.
+ */
 #   define FLEA_HAVE_TLS_CBC_CS
 #  endif
 
 #  ifdef FLEA_HAVE_GCM
+
+/**
+ * Control whether support for GCM-based cipher suites shall be compiled.
+ */
 #   define FLEA_HAVE_TLS_GCM_CS
 #  endif
 
@@ -238,30 +371,78 @@
 # ifdef FLEA_HAVE_TLS_RSA /* Ciphersuites that require RSA */
 #  ifdef FLEA_HAVE_TLS_CBC_CS
 #   ifdef FLEA_HAVE_SHA1
+
+/**
+ * Control whether the cipher suite is supported.
+ */
 #    define FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
+
+/**
+ * Control whether the cipher suite is supported.
+ */
 #    define FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA
-#   endif
+#   endif // ifdef FLEA_HAVE_SHA1
+
+/**
+ * Control whether the cipher suite is supported.
+ */
 #   define FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA256
+
+/**
+ * Control whether the cipher suite is supported.
+ */
 #   define FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256
 #  endif // ifdef FLEA_HAVE_TLS_CBC_CS
 #  ifdef FLEA_HAVE_TLS_GCM_CS
+
+/**
+ * Control whether the cipher suite is supported.
+ */
 #   define FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
 #   ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Control whether the cipher suite is supported.
+ */
 #    define FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384
 #   endif
 #  endif // ifdef FLEA_HAVE_TLS_GCM_CS
 #  ifdef FLEA_HAVE_TLS_ECDHE
 #   ifdef FLEA_HAVE_SHA1
+
+/**
+ * Control whether the cipher suite is supported.
+ */
 #    define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+
+/**
+ * Control whether the cipher suite is supported.
+ */
 #    define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
-#   endif
+#   endif // ifdef FLEA_HAVE_SHA1
+
+/**
+ * Control whether the cipher suite is supported.
+ */
 #   define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
 #   ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Control whether the cipher suite is supported.
+ */
 #    define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
 #   endif
 #   ifdef FLEA_HAVE_TLS_GCM_CS
+
+/**
+ * Control whether the cipher suite is supported.
+ */
 #    define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 #    ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Control whether the cipher suite is supported.
+ */
 #     define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 #    endif
 #   endif // ifdef FLEA_HAVE_TLS_GCM_CS
@@ -271,51 +452,56 @@
 # define FLEA_X509_MAX_ISSUER_DN_RAW_BYTE_LEN 256
 
 /**
- * Length of the session IDs that are used by the TLS server.
+ * Length of the session IDs that are used by the fleaTLS server.
  */
 # define FLEA_TLS_SESSION_ID_LEN 16 // FBFLAGS__INT_LIST 1 2 16 31 32
 
 /**
- * Maximal number of sessions held be the server session manager (session cache).
+ * Maximal number of sessions held be the server session manager (flea_tls_session_mngr_t, session cache).
  */
 # define FLEA_TLS_MAX_NB_MNGD_SESSIONS 4 // FBFLAGS__INT_LIST 1 2 10 31 257
 
 /**
  * If enabled, the tls client or server context will feature a flea_x509_cert_ref_t of the peer's
- * EE certificate used during the handshake.
+ * EE certificate used during the handshake. Disable this feature to save
+ * considerable RAM.
  */
 # define FLEA_TLS_HAVE_PEER_EE_CERT_REF
 
 /**
  * If enabled, the tls client or server context will feature a flea_x509_cert_ref_t of the root
- * certificate used to authenticate the peer's EE certificate used during the handshake.
+ * certificate used to authenticate the peer's EE certificate used during the handshake. Disable this feature to save
+ * considerable RAM.
  */
 # define FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 /**
- *  18432 bytes is the record payload size mandated by the TLS standard.
- *  Smaller sizes may only be set if the implementation is used in an application context for which
- *  it is known that only smaller sized records are sent.
+ *  Record payload size supported by fleaTLS on the TLS record level.  18432
+ *  bytes is the record payload size mandated by the TLS standard.  Smaller
+ *  sizes may only be set if the implementation is used in an application
+ *  context for which it is known that only smaller sized records are sent.
  */
 # define FLEA_TLS_MAX_RECORD_SIZE (18432)
 
 /**
- * Send buffer size. This buffer used for sending data. Should not be smaller than 150 bytes. A small size reduces performance. May not be greater than 18432.
+ * TLS send buffer size. This buffer used for sending data and determines the
+ * maximal record size of records sent by fleaTLS. Should not be smaller than
+ * 150 bytes. A small size reduces performance. May not be greater than 18432.
  */
 # define FLEA_TLS_ALT_SEND_BUF_SIZE 15000
 
 
 /**
- * Relevant only in stack mode. Maximal size of public key parameters object in
- * an X.509 certificate. Mainly relevant for certificates featuring EC public keys.
- *
+ * Maximal size of public key parameters object in an X.509 certificate. Mainly
+ * relevant for certificates featuring EC public keys. Relevant only in stack
+ * mode.
  */
 # define FLEA_STKMD_TLS_CERT_PATH_VLD_PUBKEY_PARAMS_BUF_SIZE 256
 
 /**
- * Relevant in stack mode.
  * Maximum size of the buffer that reads in the cipher suites offered by the client.
  * Has to be a multiple of 2 as every cipher suite takes up two bytes.
+ * Relevant only in stack mode.
  */
 # define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 40
 

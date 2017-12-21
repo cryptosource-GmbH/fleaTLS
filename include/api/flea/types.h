@@ -53,7 +53,7 @@ typedef flea_s32_t flea_dbl_sword_t;
 
 typedef flea_u32_t flea_cycles_t;
 
-typedef flea_al_u8_t flea_bool_t;
+typedef flea_al_u8_t flea_bool_e;
 
 /**
  * byte lengths of mpis

@@ -58,7 +58,7 @@ typedef struct
   flea_rw_stream_flush_write_f flush_write_func__f;
 
   flea_u32_t                   read_rem_len__u32;
-  flea_bool_t                  have_read_limit__b;
+  flea_bool_e                  have_read_limit__b;
   flea_rw_stream_type_e        strm_type__e;
 } flea_rw_stream_t;
 

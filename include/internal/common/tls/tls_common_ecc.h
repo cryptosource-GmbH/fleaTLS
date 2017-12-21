@@ -25,9 +25,9 @@ flea_err_e THR_flea_tls_ctx_t__parse_point_formats_ext(
   flea_al_u16_t     ext_len__alu16
 );
 
-flea_bool_t flea_tls__is_cipher_suite_ecdhe_suite(flea_tls_cipher_suite_id_t suite_id);
+flea_bool_e flea_tls__is_cipher_suite_ecdhe_suite(flea_tls_cipher_suite_id_t suite_id);
 
-flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_tls_cipher_suite_id_t suite_id);
+flea_bool_e flea_tls__is_cipher_suite_ecc_suite(flea_tls_cipher_suite_id_t suite_id);
 
 flea_err_e THR_flea_tls__map_curve_bytes_to_flea_curve(
   const flea_u8_t       bytes[2],
@@ -43,7 +43,7 @@ flea_err_e THR_flea_tls_ctx_t__send_supported_ec_curves_ext(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
 );
 
-flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_tls_cipher_suite_id_t suite_id);
+flea_bool_e flea_tls__is_cipher_suite_ecc_suite(flea_tls_cipher_suite_id_t suite_id);
 
 flea_err_e THR_flea_tls_ctx_t__parse_supported_curves_ext(
   flea_tls_ctx_t*   tls_ctx__pt,

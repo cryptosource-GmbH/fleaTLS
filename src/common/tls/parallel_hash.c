@@ -87,7 +87,7 @@ flea_err_e THR_flea_tls_parallel_hash_ctx_t__update(
 flea_err_e THR_flea_tls_parallel_hash_ctx_t__final(
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
   flea_hash_id_e                hash_id__t,
-  flea_bool_t                   copy,
+  flea_bool_e                   copy,
   flea_u8_t*                    output__u8
 )
 {

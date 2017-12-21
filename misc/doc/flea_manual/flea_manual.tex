@@ -10,6 +10,7 @@
 \usepackage{graphicx}
 %\usepackage{booktabs}
 \usepackage{tabularx}
+\usepackage{todo}
 \usepackage{longtable}
 \usepackage[utf8]{inputenc}
 \usepackage{latexsym}
@@ -138,7 +139,21 @@ well. The current release of flea only supports 32-bit architectures but
 compiles and runs also on 64-bit machines.
 
 
-  \section{Getting started with flea}
+ 
+  \section{The fleaTLS API}
+  An API documentation is available at \todo{TODO:URL}. 
+
+  In the function parameter lists, \verb#[in]#, \verb#[out]#, and
+  \verb#[in/out]# specifies whether a parameter is a mere input, a mere output,
+  or both for the function. Here, a parameter is considered as an output if it
+  it is a pointer and the object it points to is potentially updated by the
+  function. An output parameter is guaranteed to be updated by the function to
+  the value specified in the API documentation if the function returns without
+  indicating an error, i.e. when it returns \code{FLEA_ERR_FINE}.
+
+  A function parameter ending \code{_mbn} stands for ``may be null'' and
+  indicates that the caller my supply a null pointer for the parameter.
+\section{Getting started with flea}
 
   In order to get easily started with flea, the library is shipped with a CMake
   configuration to build it on standard Linux. In the
@@ -694,6 +709,7 @@ case all connections must be closed -- \ie server context objects destroyed -- b
 
 
 \section{Concurrency Support in fleaTLS}
+
 \label{secConcurrency}
 Generally, fleaTLS objects do not implement any concurrency support. If  
 objects are shared between threads by client code, then the client code is
@@ -781,7 +797,9 @@ found in the flea unit test file:
   The requirements for the implementation of the four mutex related functions
   are specificed in the API documentation in the file \code{mutex.h}.
 
-\section{Support}
+
+  
+  \section{Support}
 cryptosource provides commercial support for the flea library. Please visit
 \url{http://cryptosource.de/product_flea_en.html} for further information or
 contact us at \url{flea@cryptosource.de}.

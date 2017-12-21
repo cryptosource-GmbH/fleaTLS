@@ -177,10 +177,10 @@ static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
   FLEA_CCALL(
     THR_flea_tls_server_ctx_t__ctor(
       &tls_ctx,
-      serv_par__pt->private_key__pt,
       &rw_stream__t,
       serv_par__pt->cert_chain__pcu8,
       serv_par__pt->cert_chain_len__alu16,
+      serv_par__pt->private_key__pt,
       serv_par__pt->cert_store__pt,
       serv_par__pt->allowed_cipher_suites__pe,
       serv_par__pt->nb_allowed_cipher_suites__alu16,
@@ -199,7 +199,7 @@ static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
   FLEA_CCALL(THR_check_user_abort(serv_par__pt));
   for(size_t i = 0; i < serv_par__pt->nb_renegs_to_exec; i++)
   {
-    flea_bool_t reneg_done__b;
+    flea_bool_e reneg_done__b;
 
     int reneg_allowed = flea_tls_server_ctx_t__is_reneg_allowed(&tls_ctx);
     serv_par__pt->write_output_string(
@@ -211,10 +211,10 @@ static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
       THR_flea_tls_server_ctx_t__renegotiate(
         &tls_ctx,
         &reneg_done__b,
-        serv_par__pt->private_key__pt,
         serv_par__pt->cert_store__pt,
         serv_par__pt->cert_chain__pcu8,
         serv_par__pt->cert_chain_len__alu16,
+        serv_par__pt->private_key__pt,
         serv_par__pt->allowed_cipher_suites__pe,
         serv_par__pt->nb_allowed_cipher_suites__alu16,
         serv_par__pt->crl_der__pt,

@@ -18,15 +18,14 @@ typedef struct
 } flea_enc_cert_ref_t;
 
 /**
- * Cert store type. Supports only the storage of trusted certs.
+ * Cert store type. Supports the storage of trusted certs and untrusted certs
+ * for the use in a cert path validation.
  */
 typedef struct
 {
 # ifdef FLEA_USE_HEAP_BUF
-  //  flea_ref_cu8_t* enc_cert_refs__bcu8;
   flea_enc_cert_ref_t* enc_cert_refs__bcu8;
 # else
-  // flea_ref_cu8_t  enc_cert_refs__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
   flea_enc_cert_ref_t  enc_cert_refs__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
   flea_u8_t            trust_flags__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
 # endif // ifdef FLEA_USE_HEAP_BUF
@@ -45,7 +44,11 @@ typedef struct
 # define flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(__p, __i) (&(__p)->enc_cert_refs__bcu8[__i].data_ref__rcu8)
 # define flea_cert_store_t__GET_NB_CERTS(__p)                  ((__p)->nb_set_certs__u16)
 
-
+/**
+ * destroy a cert store.
+ *
+ * @param cert_store pointer to the cert store object to destruct.
+ */
 void flea_cert_store_t__dtor(flea_cert_store_t* cert_store);
 
 /**
@@ -89,7 +92,7 @@ flea_err_e THR_flea_cert_store_t__add_untrusted_cert(
   flea_al_u16_t      der_enc_cert_len__alu16
 );
 
-flea_bool_t flea_cert_store_t__is_cert_trusted(
+flea_bool_e flea_cert_store_t__is_cert_trusted(
   const flea_cert_store_t* cert_store__pt,
   flea_al_u16_t            pos__alu16
 );
@@ -107,7 +110,7 @@ flea_err_e THR_flea_cert_store_t__is_cert_trusted(
   const flea_cert_store_t* cert_store,
   const flea_u8_t*         cert_to_check,
   flea_al_u16_t            cert_to_check_len,
-  flea_bool_t*             result_is_trusted
+  flea_bool_e*             result_is_trusted
 );
 
 
@@ -131,7 +134,7 @@ flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
   flea_hash_id_e           tbs_cert_hash_id,
   const flea_u8_t*         tbs_cert_hash_to_check,
   flea_al_u8_t             tbs_cert_hash_to_check_len,
-  flea_bool_t*             result_is_trusted,
+  flea_bool_e*             result_is_trusted,
   flea_al_u16_t*           trusted_cert_idx__palu16
 );
 

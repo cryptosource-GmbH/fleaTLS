@@ -25,7 +25,7 @@ flea_err_e THR_flea_x509__decode_dn_ref_elements(
   flea_x509_dn_ref_t* dn_ref__pt,
   const flea_u8_t*    data__pcu8,
   flea_dtl_t          data_len__dtl,
-  flea_bool_t         with_outer_seq__b
+  flea_bool_e         with_outer_seq__b
 );
 
 flea_err_e THR_flea_x509__process_alg_ids(
@@ -48,13 +48,13 @@ flea_err_e THR_flea_x509_cert__parse_eku(
   flea_key_usage_t* ext_key_usage__pt
 );
 
-flea_bool_t flea_x509_has_key_usages(
+flea_bool_e flea_x509_has_key_usages(
   flea_key_usage_t const*      key_usage__t,
   flea_key_usage_e             required_usages__u16,
   flea_key_usage_exlicitness_e explicitness
 );
 
-flea_bool_t flea_x509_has_extended_key_usages(
+flea_bool_e flea_x509_has_extended_key_usages(
   flea_key_usage_t const*      key_usage__pt,
   flea_key_usage_e             required_usages__u16,
   flea_key_usage_exlicitness_e explicitness__e

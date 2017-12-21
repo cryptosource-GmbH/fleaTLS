@@ -756,7 +756,7 @@ flea_al_s8_t flea_mpi_t__compare_absolute(
   return 0;
 }
 
-flea_bool_t flea_mpi_t__equal(
+flea_bool_e flea_mpi_t__equal(
   const flea_mpi_t* p_a,
   const flea_mpi_t* p_b
 )
@@ -840,7 +840,7 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
   flea_mpi_div_ctx_t*   p_div_ctx,
   flea_mpi_t*           p_quotient_ws,
   flea_al_u8_t          window_size,
-  flea_bool_t mul_always_cm__b
+  flea_bool_e mul_always_cm__b
 #ifdef                  FLEA_USE_PUBKEY_INPUT_BASED_DELAY
   ,
   flea_ctr_mode_prng_t* delay_prng_mbn__pt
@@ -965,7 +965,7 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
     flea_mpi_t* p_base_power;
     flea_al_u8_t exp_bit = 0;
     flea_mpi_t* result_or_fake__pt, * base_or_fake__pt;
-    flea_bool_t do_mul__b;
+    flea_bool_e do_mul__b;
     flea_mpi_t* result_or_fake_iter__pt = p_result;
 
 #ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
@@ -1451,7 +1451,7 @@ void flea_mpi_t__set_to_word_value(
   p_result->m_words[0]      = w;
 }
 
-flea_bool_t flea_mpi_t__is_zero(const flea_mpi_t* p_mpi)
+flea_bool_e flea_mpi_t__is_zero(const flea_mpi_t* p_mpi)
 {
   flea_mpi_ulen_t i = p_mpi->m_nb_used_words;
 

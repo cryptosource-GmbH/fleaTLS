@@ -105,7 +105,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 # Directories
 SET(INCLUDE_DIR include include/api test/include build_cfg/general
-  build_cfg/pltf_spec/64bit_default pltf_support/linux/include)
+  build_cfg/pltf_spec/64bit_default )
 
 SET(SRC_DIR src )
 

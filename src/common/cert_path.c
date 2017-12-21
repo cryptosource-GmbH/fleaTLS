@@ -74,7 +74,7 @@ static flea_al_u16_t find_issuer(
         &cert_collection__bt[i].cert_ref__t.subject__t.raw_dn_complete__t
       ))
     {
-      flea_bool_t already_used__b = FLEA_FALSE;
+      flea_bool_e already_used__b = FLEA_FALSE;
       // check if that candidate is not yet part of the chain
       flea_al_u16_t j;
       for(j = 0; j < used_chain_len__alu16; j++)
@@ -94,7 +94,7 @@ static flea_al_u16_t find_issuer(
   return END_OF_COLL;
 }
 
-static flea_bool_t is_cert_trusted(const flea_x509_cert_info_t* cert_ref__pt)
+static flea_bool_e is_cert_trusted(const flea_x509_cert_info_t* cert_ref__pt)
 {
   return cert_ref__pt->is_trusted__b;
 }
@@ -132,8 +132,8 @@ static flea_err_e THR_validate_cert_path(
   for(i = chain_len__alu16 - 1; i >= 0; i--)
   {
     flea_x509_cert_info_t* current__pt = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i]];
-    flea_bool_t is_current_ta;
-    flea_bool_t is_current_target;
+    flea_bool_e is_current_ta;
+    flea_bool_e is_current_target;
     flea_basic_constraints_t* basic_constraints__pt;
     is_current_ta     = (i == (flea_s32_t) chain_len__alu16 - 1);
     is_current_target = (i == 0);
@@ -169,7 +169,7 @@ static flea_err_e THR_validate_cert_path(
   /* from TA to target cert */
   for(i = (flea_s32_t) (chain_len__alu16 - 2); i >= 0; i--)
   {
-    flea_bool_t is_ca_cert__b = (i != 0) ? FLEA_TRUE : FLEA_FALSE;
+    flea_bool_e is_ca_cert__b = (i != 0) ? FLEA_TRUE : FLEA_FALSE;
     flea_x509_cert_info_t* subject__pt = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i]];
     flea_x509_cert_info_t* issuer__pt  = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i + 1]];
 
@@ -314,7 +314,7 @@ flea_err_e THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_
   {
     flea_x509_cert_info_t* subject;
     flea_al_u16_t issuer_pos;
-    flea_bool_t failed_path = FLEA_FALSE;
+    flea_bool_e failed_path = FLEA_FALSE;
     subject = &cert_collection__bt[chain__bu16[*chain_pos__pu16]];
 
     if(is_cert_trusted(subject))
@@ -492,7 +492,7 @@ static flea_err_e THR_flea_cert_path_validator_t__add_cert(
   flea_cert_path_validator_t* cpv__pt,
   const flea_u8_t*            cert__pcu8,
   flea_al_u16_t               cert_len__alu16,
-  flea_bool_t                 is_trusted__b
+  flea_bool_e                 is_trusted__b
 )
 {
   flea_x509_cert_info_t cert_info__t = flea_x509_cert_info_t__INIT_VALUE;
@@ -531,8 +531,8 @@ flea_err_e THR_flea_cert_path_validator_t__add_trust_anchor_cert(
 
 flea_err_e THR_flea_cert_path__validate_single_cert(
   flea_x509_cert_ref_t*  cert_ref__pt,
-  flea_bool_t            is_trusted__b,
-  flea_bool_t            is_target__b,
+  flea_bool_e            is_trusted__b,
+  flea_bool_e            is_target__b,
   const flea_gmt_time_t* arg_compare_time_mbn__pt
 )
 {

@@ -16,7 +16,7 @@ typedef struct
   flea_x509_cert_ref_t cert_ref__t;
   flea_byte_vec_t      ref_to_raw_der__rcu8;
   flea_byte_vec_t      ref_to_tbs__rcu8;
-  flea_bool_t          is_trusted__b;
+  flea_bool_e          is_trusted__b;
 } flea_x509_cert_info_t;
 
 #define flea_x509_cert_info_t__INIT_VALUE {.cert_ref__t.version__u8 = 0}

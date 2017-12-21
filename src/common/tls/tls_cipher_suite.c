@@ -114,7 +114,7 @@ const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls_cipher_
   return flea_ecc_key;
 }*/
 
-flea_bool_t flea_tls__does_priv_key_type_fit_to_ciphersuite(
+flea_bool_e flea_tls__does_priv_key_type_fit_to_ciphersuite(
   flea_tls_cipher_suite_id_t id__t,
   flea_pk_key_type_e         key_type__e
 )

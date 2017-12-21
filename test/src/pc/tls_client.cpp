@@ -208,15 +208,15 @@ static flea_err_e THR_flea_start_tls_client(
     int reneg_allowed = flea_tls_client_ctx_t__is_reneg_allowed(&tls_ctx);
     std::cout << "renegotiation exptected to be successfull = " << std::to_string(reneg_allowed) << " ...\n";
     std::cout << "renegotiation ...\n";
-    flea_bool_t reneg_done__b;
+    flea_bool_e reneg_done__b;
     FLEA_CCALL(
       THR_flea_tls_client_ctx_t__renegotiate(
         &tls_ctx,
         &reneg_done__b,
-        client_key__t.len__dtl ? &privkey__t : NULL,
         &trust_store__t,
         cert_chain,
         cert_chain_len,
+        client_key__t.len__dtl ? &privkey__t : NULL,
         &tls_cfg.cipher_suites[0],
         tls_cfg.cipher_suites.size(),
         &tls_cfg.crls_refs[0],
@@ -290,6 +290,10 @@ int flea_start_tls_client(property_set_t const& cmdl_args)
   flea_tls_client_session_t__INIT(&client_session__t);
 
   flea_tls_client_session_t__ctor(&client_session__t);
+  if(flea_tls_client_session_t__has_valid_session(&client_session__t))
+  {
+    throw test_utils_exceptn_t("internal error with flea_tls_client_session_t object");
+  }
   if(cmdl_args.have_index("session") && cmdl_args.have_index("session_in"))
   {
     throw test_utils_exceptn_t("provided both 'session' and 'session_in', which is not allowed");
@@ -306,7 +310,7 @@ int flea_start_tls_client(property_set_t const& cmdl_args)
     {
       sid = read_bin_file(cmdl_args.get_property_as_string("session_in"));
     }
-    err = THR_flea_tls_client_session_t_deserialize(&client_session__t, &sid[0], sid.size());
+    err = THR_flea_tls_client_session_t__deserialize(&client_session__t, &sid[0], sid.size());
   }
   if(err != FLEA_ERR_FINE)
   {
@@ -319,14 +323,14 @@ int flea_start_tls_client(property_set_t const& cmdl_args)
       FLEA_PRINTF_TEST_OUTP_2_SWITCHED("error %04x during tls client test\n", err);
       retval = 1;
     }
-
-    err = THR_flea_tls_client_session_t__serialize(&client_session__t, &serialized_session_t);
-    if(err)
+    if(flea_tls_client_session_t__has_valid_session(&client_session__t))
     {
-      FLEA_PRINTF_TEST_OUTP_1_SWITCHED("no valid session established, cannot generate session to store\n");
-    }
-    else
-    {
+      err = THR_flea_tls_client_session_t__serialize(&client_session__t, &serialized_session_t);
+      if(err)
+      {
+        /* this would be an internal error */
+        throw test_utils_exceptn_t("error with client session object");
+      }
       FLEA_PRINTF_TEST_OUTP_1_SWITCHED("session for resumption = ");
       std::string s = bin_to_hex(serialized_session_t.data__pu8, serialized_session_t.len__dtl);
       std::cout << s << std::endl;
@@ -341,6 +345,10 @@ int flea_start_tls_client(property_set_t const& cmdl_args)
           serialized_session_t.len__dtl
         );
       }
+    }
+    else
+    {
+      FLEA_PRINTF_TEST_OUTP_1_SWITCHED("no valid session established, cannot generate session to store\n");
     }
     if(!retval)
     {

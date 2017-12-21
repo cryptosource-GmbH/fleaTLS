@@ -29,7 +29,7 @@ typedef struct
   write_buf_t write_buf__t;
   flea_u16_t  port__u16;
   const char* hostname;
-  flea_bool_t is_dns_name;
+  flea_bool_e is_dns_name;
   unsigned    timeout_millisecs;
 } linux_socket_stream_ctx_t;
 
@@ -39,7 +39,7 @@ flea_err_e THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_u16_t                 port__u16,
   unsigned                   timeout_millisecs,
   const char*                hostname,
-  flea_bool_t                is_dns_name
+  flea_bool_e                is_dns_name
 );
 flea_err_e THR_flea_pltfif_tcpip__create_rw_stream_server(
   flea_rw_stream_t*          stream__pt,

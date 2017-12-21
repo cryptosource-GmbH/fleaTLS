@@ -7,8 +7,8 @@
 #include "flea/alloc.h"
 #include "flea/privkey.h"
 #include "flea/array_util.h"
-#include "flea/namespace_asn1.h"
 #include "flea/pkcs8.h"
+#include "internal/common/namespace_asn1.h"
 #include "flea/bin_utils.h"
 #include "internal/common/oid.h"
 #include "flea/mem_read_stream.h"
@@ -124,7 +124,7 @@ static flea_err_e THR_flea_private_key_t__pkcs8_create_ecc_key(
   }
   if(pubkey_mbn__pt)
   {
-    flea_bool_t pubkey_found__b;
+    flea_bool_e pubkey_found__b;
     flea_byte_vec_t public_point_encoded__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
     // FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw_cft_opt(dec__pt, FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, 0x
     FLEA_CCALL(

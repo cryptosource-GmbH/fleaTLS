@@ -36,8 +36,8 @@ static flea_err_e THR_flea_tls__read_client_hello(
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_u8_t client_version_major_minor__au8[2];
   flea_u8_t session_id_len__u8;
-  flea_bool_t found_sec_reneg__b = FLEA_FALSE;
-  flea_bool_t found = FLEA_FALSE;
+  flea_bool_e found_sec_reneg__b = FLEA_FALSE;
+  flea_bool_e found = FLEA_FALSE;
   flea_al_u16_t supported_cs_len__alu16 = tls_ctx->nb_allowed_cipher_suites__u16;
   flea_al_u16_t supported_cs_index__alu16;
   flea_al_u16_t chosen_cs_index__alu16 = supported_cs_len__alu16;
@@ -46,8 +46,8 @@ static flea_err_e THR_flea_tls__read_client_hello(
   const flea_al_u8_t max_session_id_len__alu8 = FLEA_TLS_SESSION_ID_LEN;
   flea_u8_t client_compression_methods_len__u8;
   flea_u32_t cipher_suites_len_from_peer__u32;
-  flea_bool_t found_compression_method;
-  flea_bool_t client_presented_sec_reneg_fallback_ciph_suite__b = FLEA_FALSE;
+  flea_bool_e found_compression_method;
+  flea_bool_e client_presented_sec_reneg_fallback_ciph_suite__b = FLEA_FALSE;
 
 # ifdef FLEA_HAVE_TLS_ECC
 
@@ -118,7 +118,7 @@ static flea_err_e THR_flea_tls__read_client_hello(
   server_ctx__pt->server_session_id_assigned__u8 = (session_id_len__u8 != 0);
   if(session_id_len__u8 && server_ctx__pt->session_mngr_mbn__pt)
   {
-    flea_bool_t resume__b;
+    flea_bool_e resume__b;
     FLEA_CCALL(
       THR_flea_tls_session_mngr_t__load_session(
         server_ctx__pt->session_mngr_mbn__pt,
@@ -318,7 +318,7 @@ static flea_err_e THR_flea_tls__read_client_hello(
   );
 } /* THR_flea_tls__read_client_hello */
 
-flea_bool_t flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_server_ctx__pt)
+flea_bool_e flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_server_ctx__pt)
 {
   return ((tls_server_ctx__pt)->tls_ctx__t.allow_reneg__u8 ? FLEA_TRUE :
          FLEA_FALSE);
@@ -456,7 +456,7 @@ static flea_err_e THR_flea_tls__send_server_hello(
 /*
  *  if 'allowed_sig_algs__u8' is not already accounted for, adjust cert_types_mask__u8 and return true
  */
-static flea_bool_t flea_tls__is_allowed_cert_type_hlp_fct(
+static flea_bool_e flea_tls__is_allowed_cert_type_hlp_fct(
   flea_pk_scheme_id_e pk_scheme_id__t,
   flea_u8_t*          cert_types_mask__u8,
   flea_u8_t           allowed_sig_algs__u8 // scheme id part of sig alg
@@ -782,7 +782,7 @@ static flea_err_e THR_flea_tls__read_cert_verify(
   flea_pk_scheme_id_e pk_scheme_id__t;
   flea_u16_t hash_len__u8;
 
-  flea_bool_t check__b;
+  flea_bool_e check__b;
 
   FLEA_THR_BEG_FUNC();
 
@@ -1392,10 +1392,10 @@ flea_err_e THR_flea_tls_server_ctx_t__read_app_data(
 
 flea_err_e THR_flea_tls_server_ctx_t__ctor(
   flea_tls_server_ctx_t*            tls_server_ctx__pt,
-  flea_private_key_t*               private_key__pt,
   flea_rw_stream_t*                 rw_stream__pt,
   const flea_ref_cu8_t*             cert_chain__pt,
   flea_al_u8_t                      cert_chain_len__alu8,
+  flea_private_key_t*               private_key__pt,
   const flea_cert_store_t*          trust_store__pt,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
   flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
@@ -1440,11 +1440,11 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor(
 
 flea_err_e THR_flea_tls_server_ctx_t__renegotiate(
   flea_tls_server_ctx_t*            tls_server_ctx__pt,
-  flea_bool_t*                      result__pb,
-  flea_private_key_t*               private_key__pt,
+  flea_bool_e*                      result__pb,
   const flea_cert_store_t*          trust_store__pt,
   const flea_ref_cu8_t*             cert_chain__pt,
   flea_al_u8_t                      cert_chain_len__alu8,
+  flea_private_key_t*               private_key__pt,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
   flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
   const flea_ref_cu8_t*             crl_der__pt,
@@ -1495,7 +1495,7 @@ flea_err_e THR_flea_tls_server_ctx_t__flush_write_app_data(flea_tls_server_ctx_t
 }
 
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
-flea_bool_t flea_tls_server_ctx_t__have_peer_ee_cert_ref(flea_tls_server_ctx_t* server_ctx__pt)
+flea_bool_e flea_tls_server_ctx_t__have_peer_ee_cert_ref(flea_tls_server_ctx_t* server_ctx__pt)
 {
   return server_ctx__pt->tls_ctx__t.peer_ee_cert_data__t.len__dtl != 0;
 }
@@ -1512,7 +1512,7 @@ const flea_x509_cert_ref_t* flea_tls_server_ctx_t__get_peer_ee_cert_ref(flea_tls
 # endif  /* ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF */
 
 # ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
-flea_bool_t flea_tls_server_ctx_t__have_peer_root_cert_ref(flea_tls_server_ctx_t* server_ctx__pt)
+flea_bool_e flea_tls_server_ctx_t__have_peer_root_cert_ref(flea_tls_server_ctx_t* server_ctx__pt)
 {
   return server_ctx__pt->tls_ctx__t.peer_root_cert_set__u8;
 }

@@ -452,7 +452,7 @@ static void flea_tls_rec_prot_t__set_record_header(
   rec_prot__pt->send_payload_offset__u16   = 0;
 }
 
-static flea_bool_t flea_tls_rec_prot_t__have_pending_read_data(const flea_tls_rec_prot_t* rec_prot__pt)
+static flea_bool_e flea_tls_rec_prot_t__have_pending_read_data(const flea_tls_rec_prot_t* rec_prot__pt)
 {
   return (rec_prot__pt->payload_used_len__u16 - rec_prot__pt->payload_offset__u16 > 0);
 }
@@ -655,7 +655,7 @@ static flea_err_e THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
   padd_err__alu8 |= !flea_sec_mem_equal(mac__bu8, data + iv_len + data_len, mac_len);
   if(padd_err__alu8)
   {
-    flea_bool_t found__b = FLEA_FALSE;
+    flea_bool_e found__b = FLEA_FALSE;
     for(i__alu16 = 0; i__alu16 <= (flea_al_u16_t) max_padd_len__als16; i__alu16++)
     {
       flea_al_u16_t maced_data_len__alu16 = plaintext_len__alu16 - i__alu16 - mac_len;
@@ -1082,16 +1082,16 @@ static flea_err_e THR_flea_tls_rec_prot_t__read_data_inner(
   flea_u8_t*                    data__pu8,
   flea_dtl_t*                   data_len__pdtl,
   flea_tls__protocol_version_t* prot_version_mbn__pt,
-  flea_bool_t                   do_verify_prot_version__b,
+  flea_bool_e                   do_verify_prot_version__b,
   flea_tls_rec_cont_type_e      cont_type__e,
-  flea_bool_t                   current_or_next_record_for_content_type__b,
+  flea_bool_e                   current_or_next_record_for_content_type__b,
   flea_stream_read_mode_e       rd_mode__e
 )
 {
   flea_al_u16_t to_cp__alu16, read_bytes_count__dtl = 0;
   flea_dtl_t data_len__dtl = *data_len__pdtl;
 
-  flea_bool_t is_handsh_msg_during_app_data__b = FLEA_FALSE;
+  flea_bool_e is_handsh_msg_during_app_data__b = FLEA_FALSE;
 
   FLEA_THR_BEG_FUNC();
   *data_len__pdtl = 0;
@@ -1380,7 +1380,7 @@ flea_err_e THR_flea_tls_rec_prot_t__read_data(
   );
 }
 
-flea_bool_t flea_tls_rec_prot_t__have_done_initial_handshake(const flea_tls_rec_prot_t* rec_prot__pt)
+flea_bool_e flea_tls_rec_prot_t__have_done_initial_handshake(const flea_tls_rec_prot_t* rec_prot__pt)
 {
   if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_class__e != flea_null_cipher_suite)
   {

@@ -326,7 +326,7 @@ flea_err_e THR_flea_x509_cert_ref_t__get_issuer_dn_component(
  * @return FLEA_TRUE if all the required key usages are supported, FLEA_FALSE
  * otherwise.
  */
-flea_bool_t flea_x509_cert_ref_t__has_key_usages(
+flea_bool_e flea_x509_cert_ref_t__has_key_usages(
   flea_x509_cert_ref_t const*  cert_ref,
   flea_key_usage_e             required_usages,
   flea_key_usage_exlicitness_e explicitness
@@ -348,7 +348,7 @@ flea_bool_t flea_x509_cert_ref_t__has_key_usages(
  * @return FLEA_TRUE if all the required key usages are supported, FLEA_FALSE
  * otherwise.
  */
-flea_bool_t flea_x509_cert_ref_t__has_extended_key_usages(
+flea_bool_e flea_x509_cert_ref_t__has_extended_key_usages(
   flea_x509_cert_ref_t const*  cert_ref,
   flea_ext_key_usage_e         required_usages,
   flea_key_usage_exlicitness_e explicitness
@@ -362,7 +362,7 @@ flea_bool_t flea_x509_cert_ref_t__has_extended_key_usages(
  *
  * @return FLEA_TRUE if the certificate is self issued, FLEA_FALSE otherwise.
  */
-flea_bool_t flea_x509_is_cert_self_issued(const flea_x509_cert_ref_t* cert_ref);
+flea_bool_e flea_x509_is_cert_self_issued(const flea_x509_cert_ref_t* cert_ref);
 
 /**
  * Get a reference to the to-be-signed part of a DER encoded certificate.
