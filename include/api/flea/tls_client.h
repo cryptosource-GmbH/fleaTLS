@@ -48,9 +48,12 @@ void flea_tls_client_ctx_t__dtor(flea_tls_client_ctx_t* tls_client_ctx);
  * references.
  *
  * @param[in,out] tls_client_ctx  the ctx object to create
- * @param[in] trust_store the certificate trust store which contains trusted
+ * @param[in] rw_stream a read-write stream object which realizes the data and must
+ * be implemented by the client code.
+ * transmission, i.e. typically via the TCP/IP sockets.
+ * @param[in] trust_store The certificate trust store which contains trusted
  * certificates which are accepted as trusted root certificates when validating
- * the server's certificate chain
+ * the server's certificate chain.
  * @param[in] server_name_mbn name of the server. This parameter may be set to
  * null if no hostname verification shall be carried out. If set as non-null,
  * then in accordance with the value of the parameter host_name_id, this can be
@@ -63,26 +66,33 @@ void flea_tls_client_ctx_t__dtor(flea_tls_client_ctx_t* tls_client_ctx);
  * @param[in] host_name_id specifies whether a  DNS name or an IP address
  * is used as the hostname to verify. If server_name_mbn is set to null,
  * then the value of this parameter is not interpreted.
- * @param[in] rw_stream a read-write stream object which realizes the data and must
- * be implemented by the client code.
- * transmission, i.e. typically via the TCP/IP sockets
  * @param[in] cert_chain_mbn The certificate chain the client uses for client
  * authentication. Each flea_ref_cu8_t refers to a DER encoded certificate of
  * the chain. The order of the certificates, starting from position 0, is
- * <client-cert> [ <ca-cert> <ca-cert> ] <root-cert>. This parameter may NULL,
+ * <client-cert> [ <ca-cert> <ca-cert> ] <root-cert>. The occurrence of CA certs
+ * is optional. The root-cert may also be omitted according to the TLS standard.
+ * This parameter may NULL,
  * then the client does not support client authentication.
  * @param[in] cert_chain_len the length of cert_chain_mbn. Set this to 0 if
  * cert_chain_mbn is NULL.
  * @param[in] private_key_mbn The client's private key associated with its
  * certificate. Must be provided if cert_chain_mbn is not NULL. Otherwise it
  * must be set to NULL.
- * @param[in] allowed_cipher_suites a list of the TLS cipher suites the client
- * may negotiate.
- * @param[in] allowed_cipher_suites_len The length of allowed_cipher_suites.
  * @param[in] crls A list of DER encoded CRLs which the client uses for revocation
  * checking (according to the flags parameter, see below) of
  * the server's certificate chain.
- * @param[in] crls_len The length of crls
+ * @param[in] crls_len The length of crls.
+ * @param[in] allowed_cipher_suites a list of the TLS cipher suites the client
+ * may negotiate.
+ * @param[in] allowed_cipher_suites_len The length of allowed_cipher_suites.
+ * @param[in] allowed_ecc_curves A list of the ECC curves that are supported by the
+ * client.
+ * @param[in] allowed_ecc_curves_len The length of allowed_ecc_curves.
+ * @param[in] allowed_sig_algs A list of allowed signature algorithms that the
+ * server may use for digital signatures during the handshake and in its own
+ * certificate chain.
+ * @param allowed_sig_algs_len The length of allowed_sig_algs
+ * @param[in] flags A combination of flags to control the client's behaviour.
  * @param[in,out] session_mbn A session object which holds the session information for resumption.
  * Upon input, this may be a constructed flea_tls_client_session_t object
  * without any content or it may be one which already contains a session. In the
@@ -92,41 +102,33 @@ void flea_tls_client_ctx_t__dtor(flea_tls_client_ctx_t* tls_client_ctx);
  * session for later resumption. The object may be NULL if the session
  * resumption functionality shall not be used. However, if it is non-null, then
  * it must be a constructed object.
- * @param[in] allowed_ecc_curves A list of the ECC curves that are supported by the
- * client.
- * @param[in] allowed_ecc_curves_len The length of allowed_ecc_curves.
- * @param[in] allowed_sig_algs A list of allowed signature algorithms that the
- * server may use for digital signatures during the handshake and in its own
- * certificate chain.
- * @param allowed_sig_algs_len The length of allowed_sig_algs
- * @param[in] flags A combination of flags to control the client's behaviour.
  *
  * @return an error code
  */
 flea_err_e THR_flea_tls_client_ctx_t__ctor(
   flea_tls_client_ctx_t*            tls_client_ctx,
+  flea_rw_stream_t*                 rw_stream,
   const flea_cert_store_t*          trust_store,
   const flea_ref_cu8_t*             server_name_mbn,
   flea_host_id_type_e               host_name_id,
-  flea_rw_stream_t*                 rw_stream,
   flea_ref_cu8_t*                   cert_chain_mbn,
   flea_al_u8_t                      cert_chain_len,
   flea_private_key_t*               private_key_mbn,
-  const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
-  flea_al_u16_t                     allowed_cipher_suites_len,
   const flea_ref_cu8_t*             crls,
   flea_al_u16_t                     crls_len,
-  flea_tls_client_session_t*        session_mbn,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
+  flea_al_u16_t                     allowed_cipher_suites_len,
   flea_ec_dom_par_id_e*             allowed_ecc_curves,
   flea_al_u16_t                     allowed_ecc_curves_len,
   flea_tls_sigalg_e*                allowed_sig_algs,
   flea_al_u16_t                     allowed_sig_algs_len,
-  flea_tls_flag_e                   flags
+  flea_tls_flag_e                   flags,
+  flea_tls_client_session_t*        session_mbn
 );
 
 
 /**
- * Read application data over the TLS channel. If the server initiates a
+ * Read application data over the TLS channel. If the connected server initiates a
  * renegotiation during the execution of this function, the renegotiation is
  * handled silently, i.e. depending of the configuration it is carried out or
  * declined.
@@ -238,10 +240,10 @@ flea_err_e THR_flea_tls_client_ctx_t__renegotiate(
   flea_ref_cu8_t*                   cert_chain_mbn,
   flea_al_u8_t                      cert_chain_len,
   flea_private_key_t*               private_key_mbn,
-  const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
-  flea_al_u16_t                     allowed_cipher_suites_len,
   const flea_ref_cu8_t*             crls,
   flea_al_u16_t                     crls_len,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
+  flea_al_u16_t                     allowed_cipher_suites_len,
   flea_ec_dom_par_id_e*             allowed_ecc_curves,
   flea_al_u16_t                     allowed_ecc_curves_len,
   flea_tls_sigalg_e*                allowed_sig_algs,

@@ -9,6 +9,7 @@
 #include "internal/common/namespace_asn1.h"
 #include "flea/hash.h"
 #include "flea/bin_utils.h"
+#include "internal/common/rw_stream_int.h"
 
 #define FLEA_BER_DEC_LEVELS_PRE_ALLOC 5
 

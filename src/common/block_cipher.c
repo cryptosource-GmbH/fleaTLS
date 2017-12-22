@@ -373,36 +373,6 @@ flea_err_e THR_flea_ctr_mode_crypt_data(
   );
 }
 
-flea_err_e THR_flea_ctr_mode_crypt_data_short_nonce_full_ctr_len(
-  flea_block_cipher_id_e ext_id__t,
-  const flea_u8_t*       key_pu8,
-  flea_al_u16_t          key_length_al_u16,
-  flea_u32_t             nonce_u32,
-  const flea_u8_t*       input_pu8,
-  flea_u8_t*             output_pu8,
-  flea_dtl_t             input_output_length_al_u16
-)
-{
-  flea_u8_t enc_nonce[4];
-
-  FLEA_THR_BEG_FUNC();
-  flea__encode_U32_BE(nonce_u32, enc_nonce);
-  FLEA_CCALL(
-    THR_flea_ctr_mode_crypt_data(
-      ext_id__t,
-      key_pu8,
-      key_length_al_u16,
-      enc_nonce,
-      sizeof(enc_nonce),
-      input_pu8,
-      output_pu8,
-      input_output_length_al_u16,
-      flea_block_cipher__get_block_size(ext_id__t)
-    )
-  );
-  FLEA_THR_FIN_SEC_empty();
-}
-
 flea_err_e THR_flea_cbc_mode_ctx_t__ctor(
   flea_cbc_mode_ctx_t*   ctx__pt,
   flea_block_cipher_id_e id__t,

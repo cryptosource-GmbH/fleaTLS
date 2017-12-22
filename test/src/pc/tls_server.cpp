@@ -178,20 +178,20 @@ static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
     THR_flea_tls_server_ctx_t__ctor(
       &tls_ctx,
       &rw_stream__t,
+      serv_par__pt->cert_store_mbn__pt,
       serv_par__pt->cert_chain__pcu8,
       serv_par__pt->cert_chain_len__alu16,
       serv_par__pt->private_key__pt,
-      serv_par__pt->cert_store__pt,
-      serv_par__pt->allowed_cipher_suites__pe,
-      serv_par__pt->nb_allowed_cipher_suites__alu16,
       serv_par__pt->crl_der__pt,
       serv_par__pt->nb_crls__u16,
-      serv_par__pt->sess_mngr__pt,
+      serv_par__pt->allowed_cipher_suites__pe,
+      serv_par__pt->nb_allowed_cipher_suites__alu16,
       serv_par__pt->allowed_ecc_curves__pe,
       serv_par__pt->allowed_ecc_curves_len__alu16,
       serv_par__pt->allowed_sig_algs__pe,
       serv_par__pt->nb_allowed_sig_algs__alu16,
-      (flea_tls_flag_e) (serv_par__pt->flags__u32 | ((flea_u32_t) flea_tls_flag__sha1_cert_sigalg__allow))
+      (flea_tls_flag_e) (serv_par__pt->flags__u32 | ((flea_u32_t) flea_tls_flag__sha1_cert_sigalg__allow)),
+      serv_par__pt->sess_mngr__pt
     )
   );
   serv_par__pt->write_output_string("handshake done\n");
@@ -211,14 +211,14 @@ static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
       THR_flea_tls_server_ctx_t__renegotiate(
         &tls_ctx,
         &reneg_done__b,
-        serv_par__pt->cert_store__pt,
+        serv_par__pt->cert_store_mbn__pt,
         serv_par__pt->cert_chain__pcu8,
         serv_par__pt->cert_chain_len__alu16,
         serv_par__pt->private_key__pt,
-        serv_par__pt->allowed_cipher_suites__pe,
-        serv_par__pt->nb_allowed_cipher_suites__alu16,
         serv_par__pt->crl_der__pt,
         serv_par__pt->nb_crls__u16,
+        serv_par__pt->allowed_cipher_suites__pe,
+        serv_par__pt->nb_allowed_cipher_suites__alu16,
         serv_par__pt->allowed_ecc_curves__pe,
         serv_par__pt->allowed_ecc_curves_len__alu16,
         serv_par__pt->allowed_sig_algs__pe,
@@ -350,7 +350,6 @@ static flea_err_e THR_server_cycle(
       tls_cfg
     )
   );
-  // FLEA_CCALL(THR_flea_tls_shared_server_ctx_t__ctor(&shrd_server_ctx__t, &server_key__t));
   FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&server_key_obj__t, server_key__t.data__pcu8, server_key__t.len__dtl));
   if(cert_chain_len == 0)
   {
@@ -373,11 +372,11 @@ static flea_err_e THR_server_cycle(
 
       // std::cout << "creating threads: max = " << thr_max << ", running currently = " << serv_pars.size() << std::endl;
       server_params_t serv_par__t;
-      // serv_par__t.shrd_ctx__pt                    = &shrd_server_ctx__t;
-      serv_par__t.private_key__pt                 = &server_key_obj__t;
-      serv_par__t.cert_chain__pcu8                = cert_chain;
-      serv_par__t.cert_chain_len__alu16           = cert_chain_len;
-      serv_par__t.cert_store__pt                  = &trust_store__t;
+      serv_par__t.private_key__pt       = &server_key_obj__t;
+      serv_par__t.cert_chain__pcu8      = cert_chain;
+      serv_par__t.cert_chain_len__alu16 = cert_chain_len;
+      serv_par__t.cert_store_mbn__pt    =
+        flea_cert_store_t__GET_NB_CERTS(&trust_store__t) ? &trust_store__t : NULL;
       serv_par__t.allowed_cipher_suites__pe       = &tls_cfg.cipher_suites[0];
       serv_par__t.nb_allowed_cipher_suites__alu16 = tls_cfg.cipher_suites.size();
       serv_par__t.crl_der__pt   = &tls_cfg.crls_refs[0];

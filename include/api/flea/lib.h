@@ -14,7 +14,7 @@ extern "C" {
 
 /**
  * Function type for a function supplied by client code to be called by the fleaTLS to determine the
- * current date in terms of year[actual year A.D. without any offset] , month[1...12], day[1-last day of month], hour[0-23], minute[0-59], second[0-59]. This
+ * current date in terms of year[actual year A.D. without any offset] , month[1...12], day[1...31], hour[0...23], minute[0...59], second[0...59]. This
  * function must be reentrant.
  *
  * @return an error value
@@ -30,7 +30,7 @@ typedef flea_err_e (* flea_gmt_time_now_f)(flea_gmt_time_t* time__t);
  * @param state pointer to the memory area with the PRNG state to be
  * saved.
  * @param state_len length of state. This function will
- * always be called with the length value FLEA_AES256_KEY_BYTE_LENGTH from
+ * always be called with the length value \link FLEA_AES256_KEY_BYTE_LENGTH  FLEA_AES256_KEY_BYTE_LENGTH \endlink from
  * fleaTLS.
  *
  * @return an error value if there was an error saving the PRNG state.
@@ -50,7 +50,7 @@ typedef flea_err_e (* flea_prng_save_f)(
  *
  * @param now_func_mbn function which returns the current time. May be set to
  * null. In this case, X.509 certificate verifications and TLS handshakes will
- * fail with the error code FLEA_ERR_NOW_FUNC_IS_NULL.
+ * fail with the error code \link flea_err_e::FLEA_ERR_NOW_FUNC_IS_NULL FLEA_ERR_NOW_FUNC_IS_NULL \endlink.
  * @param rng_seed a fresh high-entropy prng seed for the initialization of fleaTLS' global RNG. It is recommended to used the value saved by the flea_prng_save_f function provided to THR_flea_lib__init().
  * @param rng_seed_len length of rng_seed.
  * @param save_func_mbn pointer to a function that saves a freshly generated PRNG state for future

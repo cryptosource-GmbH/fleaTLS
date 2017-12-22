@@ -575,7 +575,7 @@ flea_err_e THR_flea_tls__read_certificate(
     THR_flea_tls__cert_path_validation(
       tls_ctx,
       hs_rdr__pt,
-      tls_ctx->trust_store__pt,
+      tls_ctx->trust_store_mbn_for_server__pt,
       pubkey,
       cert_path_params__pct
     )
@@ -1124,7 +1124,7 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
   flea_tls_client_ctx_t*            client_ctx_mbn__pt,
   flea_bool_e*                      result__pb,
   flea_private_key_t*               private_key__pt,
-  const flea_cert_store_t*          trust_store__pt,
+  const flea_cert_store_t*          trust_store_mbn_for_server__pt,
   const flea_ref_cu8_t*             cert_chain_mbn__pt,  /* may only be null for client */
   flea_al_u8_t                      cert_chain_len__alu8,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
@@ -1149,9 +1149,9 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
     FLEA_THROW("renegotiation not allowed in this tls connection", FLEA_ERR_TLS_RENEG_NOT_ALLOWED);
   }
   tls_ctx__pt->private_key__pt = private_key__pt;
-  tls_ctx__pt->trust_store__pt = trust_store__pt;
-  tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16 = nb_crls__alu16;
-  tls_ctx__pt->rev_chk_cfg__t.crl_der__pt  = crl_der__pt;
+  tls_ctx__pt->trust_store_mbn_for_server__pt = trust_store_mbn_for_server__pt;
+  tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16    = nb_crls__alu16;
+  tls_ctx__pt->rev_chk_cfg__t.crl_der__pt     = crl_der__pt;
   tls_ctx__pt->cert_chain_mbn__pt            = cert_chain_mbn__pt;
   tls_ctx__pt->cert_chain_len__u8            = cert_chain_len__alu8;
   tls_ctx__pt->allowed_cipher_suites__pe     = allowed_cipher_suites__pe;

@@ -48,26 +48,6 @@ static void init_sock_stream_server(
   sock_stream__pt->timeout_millisecs = timeout_millisecs;
 }
 
-#if 0
-static flea_err_e THR_open_socket_server(void* ctx__pv)
-{
-  FLEA_THR_BEG_FUNC();
-
-  linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
-  struct timeval tv;
-  tv.tv_sec  = 5; /* 5 seconds timeout for receiving a request */
-  tv.tv_usec = 0;
-  setsockopt(
-    ctx__pt->socket_fd__int,
-    SOL_SOCKET,
-    SO_RCVTIMEO,
-    (struct timeval*) &tv,
-    sizeof(struct timeval)
-  );
-  FLEA_THR_FIN_SEC_empty();
-} /* THR_open_socket_server */
-
-#endif /* if 0 */
 static flea_err_e THR_open_socket_client(void* ctx__pv)
 {
   FLEA_THR_BEG_FUNC();

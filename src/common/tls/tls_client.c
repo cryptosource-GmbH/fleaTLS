@@ -1306,23 +1306,23 @@ flea_err_e THR_flea_tls__client_handshake(
 
 flea_err_e THR_flea_tls_client_ctx_t__ctor(
   flea_tls_client_ctx_t*            tls_client_ctx__pt,
+  flea_rw_stream_t*                 rw_stream__pt,
   const flea_cert_store_t*          trust_store__pt,
   const flea_ref_cu8_t*             server_name__pcrcu8,
   flea_host_id_type_e               host_name_id__e,
-  flea_rw_stream_t*                 rw_stream__pt,
   flea_ref_cu8_t*                   cert_chain_mbn__pt,
   flea_al_u8_t                      cert_chain_len__alu8,
   flea_private_key_t*               private_key_mbn__pt,
-  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
-  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
   const flea_ref_cu8_t*             crl_der__pt,
   flea_al_u16_t                     nb_crls__alu16,
-  flea_tls_client_session_t*        session_mbn__pt,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
   flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
   flea_al_u16_t                     nb_allowed_curves__alu16,
   flea_tls_sigalg_e*                allowed_sig_algs__pe,
   flea_al_u16_t                     nb_allowed_sig_algs__alu16,
-  flea_tls_flag_e                   flags__e
+  flea_tls_flag_e                   flags__e,
+  flea_tls_client_session_t*        session_mbn__pt
 )
 {
   flea_err_e err__t;
@@ -1362,7 +1362,7 @@ flea_err_e THR_flea_tls_client_ctx_t__ctor(
   }
   tls_client_ctx__pt->hostn_valid_params__t.host_id_type__e = host_name_id__e;
 
-  tls_ctx__pt->trust_store__pt = trust_store__pt;
+  tls_ctx__pt->trust_store_mbn_for_server__pt = trust_store__pt;
 
   tls_ctx__pt->connection_end = FLEA_TLS_CLIENT;
 
@@ -1443,10 +1443,10 @@ flea_err_e THR_flea_tls_client_ctx_t__renegotiate(
   flea_ref_cu8_t*                   cert_chain__pt,
   flea_al_u8_t                      cert_chain_len__alu8,
   flea_private_key_t*               private_key__pt,
-  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
-  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
   const flea_ref_cu8_t*             crl_der__pt,
   flea_al_u16_t                     nb_crls__alu16,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
   flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
   flea_al_u16_t                     nb_allowed_curves__alu16,
   flea_tls_sigalg_e*                allowed_sig_algs__pe,

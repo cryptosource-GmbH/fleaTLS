@@ -47,7 +47,7 @@ struct struct_flea_tls_ctx_t
   flea_u8_t*                 master_secret__bu8;
 # endif
 
-  /* Pool of ciphersuites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
+  /* Pool of cipher suites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe;
   flea_u16_t                        nb_allowed_cipher_suites__u16;
   flea_tls_cipher_suite_id_t        selected_cipher_suite__e;
@@ -63,13 +63,11 @@ struct struct_flea_tls_ctx_t
 
   flea_rw_stream_t*                 rw_stream__pt;
   flea_tls_rec_prot_t               rec_prot__t;
-  const flea_cert_store_t*          trust_store__pt;
+  const flea_cert_store_t*          trust_store_mbn_for_server__pt;
   const flea_ref_cu8_t*             cert_chain_mbn__pt;
   flea_u8_t                         cert_chain_len__u8;
 
   flea_private_key_t*               private_key__pt;
-  //
-  // => client_ctx:
   flea_tls_client_session_t*        client_session_mbn__pt;
   flea_private_key_t*               private_key_for_client_mbn__pt;
   flea_revoc_chk_cfg_t              rev_chk_cfg__t;

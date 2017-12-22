@@ -4,7 +4,7 @@
 #define _flea_ber_dec__H_
 
 #include "internal/common/default.h"
-#include "flea/ber_dec_fwd.h"
+#include "internal/common/ber_dec_fwd.h"
 #include "flea/util.h"
 #include "flea/rw_stream.h"
 #include "flea/byte_vec.h"

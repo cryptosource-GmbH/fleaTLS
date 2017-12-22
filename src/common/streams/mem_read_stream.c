@@ -3,6 +3,7 @@
 #include "flea/mem_read_stream.h"
 #include "flea/error_handling.h"
 #include "flea/util.h"
+#include "internal/common/rw_stream_int.h"
 
 
 static flea_err_e THR_flea_mem_read_stream__read(
@@ -19,11 +20,6 @@ static flea_err_e THR_flea_mem_read_stream__read(
 
   hlp__pt      = (flea_mem_read_stream_help_t*) hlp__pv;
   to_read__dtl = *nb_bytes_to_read__pdtl;
-
-  /*if(to_read__dtl > hlp__pt->len__dtl - hlp__pt->offs__dtl)
-  {
-    FLEA_THROW("eof on mem stream read" ,FLEA_ERR_FAILED_STREAM_READ);
-  }*/
 
   memcpy(target_buffer__pu8, &hlp__pt->data__pcu8[hlp__pt->offs__dtl], to_read__dtl);
   hlp__pt->offs__dtl     += to_read__dtl;

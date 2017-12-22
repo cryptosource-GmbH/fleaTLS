@@ -15,6 +15,7 @@
 #include "flea/cert_path.h"
 #include "internal/common/cert_path_int.h"
 #include "internal/common/lib_int.h"
+#include "internal/common/hostn_ver_int.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
 # define END_OF_COLL 0xFFFF

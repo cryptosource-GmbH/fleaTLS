@@ -961,7 +961,6 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
         THR_flea_tls__read_certificate(
           tls_ctx,
           &handsh_rdr__t,
-          // &tls_ctx->peer_pubkey,
           peer_public_key__pt,
           &cert_path_params__t
         )
@@ -1106,7 +1105,7 @@ flea_err_e THR_flea_tls__server_handshake(
   server_ctx__pt->server_resume_session__u8 = 0;
   handshake_state.initialized       = FLEA_TRUE;
   handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_HELLO;
-  if(tls_ctx->trust_store__pt->nb_set_certs__u16 == 0)
+  if(!tls_ctx->trust_store_mbn_for_server__pt)
   {
     handshake_state.send_client_cert = FLEA_FALSE;
   }
@@ -1393,20 +1392,20 @@ flea_err_e THR_flea_tls_server_ctx_t__read_app_data(
 flea_err_e THR_flea_tls_server_ctx_t__ctor(
   flea_tls_server_ctx_t*            tls_server_ctx__pt,
   flea_rw_stream_t*                 rw_stream__pt,
+  const flea_cert_store_t*          trust_store_mbn__pt,
   const flea_ref_cu8_t*             cert_chain__pt,
   flea_al_u8_t                      cert_chain_len__alu8,
   flea_private_key_t*               private_key__pt,
-  const flea_cert_store_t*          trust_store__pt,
-  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
-  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
   const flea_ref_cu8_t*             crl_der__pt,
   flea_al_u16_t                     nb_crls__alu16,
-  flea_tls_session_mngr_t*          session_mngr_mbn__pt,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
   flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
   flea_al_u16_t                     nb_allowed_curves__alu16,
   flea_tls_sigalg_e*                allowed_sig_algs__pe,
   flea_al_u16_t                     nb_allowed_sig_algs__alu16,
-  flea_tls_flag_e                   flags__e
+  flea_tls_flag_e                   flags__e,
+  flea_tls_session_mngr_t*          session_mngr_mbn__pt
 )
 {
   flea_err_e err__t;
@@ -1425,9 +1424,9 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor(
   tls_ctx__pt->nb_allowed_sig_algs__alu16 = nb_allowed_sig_algs__alu16;
   tls_ctx__pt->private_key__pt = private_key__pt;
 
-  tls_ctx__pt->trust_store__pt = trust_store__pt;
-  tls_ctx__pt->allowed_cipher_suites__pe     = allowed_cipher_suites__pe;
-  tls_ctx__pt->nb_allowed_cipher_suites__u16 = nb_allowed_cipher_suites__alu16;
+  tls_ctx__pt->trust_store_mbn_for_server__pt = trust_store_mbn__pt;
+  tls_ctx__pt->allowed_cipher_suites__pe      = allowed_cipher_suites__pe;
+  tls_ctx__pt->nb_allowed_cipher_suites__u16  = nb_allowed_cipher_suites__alu16;
   tls_ctx__pt->connection_end              = FLEA_TLS_SERVER;
   tls_ctx__pt->client_session_mbn__pt      = NULL;
   tls_server_ctx__pt->session_mngr_mbn__pt = session_mngr_mbn__pt;
@@ -1441,14 +1440,14 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor(
 flea_err_e THR_flea_tls_server_ctx_t__renegotiate(
   flea_tls_server_ctx_t*            tls_server_ctx__pt,
   flea_bool_e*                      result__pb,
-  const flea_cert_store_t*          trust_store__pt,
+  const flea_cert_store_t*          trust_store_mbn__pt,
   const flea_ref_cu8_t*             cert_chain__pt,
   flea_al_u8_t                      cert_chain_len__alu8,
   flea_private_key_t*               private_key__pt,
-  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
-  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
   const flea_ref_cu8_t*             crl_der__pt,
   flea_al_u16_t                     nb_crls__alu16,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
   flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
   flea_al_u16_t                     nb_allowed_curves__alu16,
   flea_tls_sigalg_e*                allowed_sig_algs__pe,
@@ -1460,7 +1459,7 @@ flea_err_e THR_flea_tls_server_ctx_t__renegotiate(
     NULL,
     result__pb,
     private_key__pt,
-    trust_store__pt,
+    trust_store_mbn__pt,
     cert_chain__pt,
     cert_chain_len__alu8,
     allowed_cipher_suites__pe,

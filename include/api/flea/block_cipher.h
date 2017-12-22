@@ -142,11 +142,15 @@ flea_err_e THR_flea_ecb_mode_crypt_data(
 );
 
 /**
- * Create a CTR mode context. Starts with a counter block formed by  (nonce || 0...0) in notation
- * assuming indexes [0] ... [max],
- * where 0...0 indicates the counter field's intitial value. The counter will continue
- * incrementing even when it grows into the nonce area
- * Can be used for either encryption or decryption.
+ * Create a CTR mode cipher context. The following uses a notation with
+ * ascending array indexes from left to right. The operation starts with a
+ * counter block formed by  (nonce || 0...0). The nonce may expand over the full
+ * block length of the underlying cipher.  The size of the counter that is
+ * actually incremented is defined by ctr_len. This many bytes from the right
+ * will be incremented as a big endian integer modulo 2^(8*ctr_len).  Thereby
+ * the counter may well expand into the nonce area.  This object can be used for
+ * either encryption or decryption, as these operations are identical in CTR
+ * mode.
  *
  * @param ctx pointer to the context to create
  * @param id the id of the cipher to use
@@ -155,7 +159,7 @@ flea_err_e THR_flea_ecb_mode_crypt_data(
  * @param nonce pointer to the nonce value
  * @param nonce_len length of nonce, may range from 0 to the underlying cipher's * block size in bytes
  * @param ctr_len the length of counter window within the counter block, which is interpreted as a BE integer
- * ranging from position [max](LSB) to [max - ctr_len](MSB)
+ * ranging from position [max](LSB) to [max - ctr_len](MSB). Only this range
  */
 flea_err_e THR_flea_ctr_mode_ctx_t__ctor(
   flea_ctr_mode_ctx_t*   ctx,
@@ -193,7 +197,8 @@ void flea_ctr_mode_ctx_t__crypt(
 
 /**
  * Encrypt/decrypt data in counter mode without using a context object.
- * The counter starts at zero.
+ * The counter starts at zero. For the specification of the usage of the nonce
+ * and the ctr_len parameters refer to THR_flea_ctr_mode_ctx_t__ctor().
  *
  * @param id the id of the cipher to use
  * @param key pointer to the key
@@ -216,31 +221,6 @@ flea_err_e THR_flea_ctr_mode_crypt_data(
   flea_u8_t*             output,
   flea_dtl_t             input_output_len,
   flea_al_u8_t           ctr_len
-);
-
-/**
- * Encrypt/decrypt data in counter mode without using a context object and
- * with a 32-bit nonce value.
- * The nonce is big endian encoded in the leading part of the counter block.
- * The counter starts at zero expands over the full counter block (this
- * corresponds to "ctr_len = block length" in THR_flea_ctr_mode_crypt_data().
- *
- * @param id the id of the cipher to use
- * @param key pointer to the key
- * @param key_len length of key in bytes
- * @param nonce the nonce value
- * @param input the input data
- * @param output the output data
- * @param input_output_len the length of input and output data
- */
-flea_err_e THR_flea_ctr_mode_crypt_data_short_nonce_full_ctr_len(
-  flea_block_cipher_id_e id,
-  const flea_u8_t*       key,
-  flea_al_u16_t          key_len,
-  flea_u32_t             nonce,
-  const flea_u8_t*       input,
-  flea_u8_t*             output,
-  flea_dtl_t             input_output_len
 );
 
 

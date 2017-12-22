@@ -278,9 +278,6 @@ flea_err_e THR_flea_tls_tool_set_tls_cfg(
   cfg.crls   = cmdl_args.get_bin_file_list_property("crls");
   for(auto &crl : cfg.crls)
   {
-    /*flea_byte_vec_t bv;// = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE ;
-    flea_byte_vec_t__INIT(&bv);
-    flea_byte_vec_t__set_ref(&bv, &crl[0], crl.size());*/
     flea_ref_cu8_t ref;
     ref.data__pcu8 = &crl[0];
     ref.len__dtl   = crl.size();
@@ -295,10 +292,6 @@ flea_err_e THR_flea_tls_tool_set_tls_cfg(
 
   FLEA_THR_BEG_FUNC();
 
-  /*if(cfg.trusted_certs.size() == 0)
-   * {
-   * throw test_utils_exceptn_t("need to provide at least one trusted cert");
-   * }*/
   for(auto& cert_vec : cfg.trusted_certs)
   {
     FLEA_CCALL(

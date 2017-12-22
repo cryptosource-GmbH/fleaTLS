@@ -10,6 +10,7 @@
 #include "internal/common/block_cipher/aes.h"
 #include <string.h>
 
+
 static flea_err_e THR_flea_test_block_cipher_init_dtor()
 {
   FLEA_DECL_OBJ(ecb, flea_ecb_mode_ctx_t);
@@ -149,6 +150,7 @@ flea_err_e THR_flea_test_cipher_block_encr_decr()
   FLEA_CCALL(THR_flea_test_cipher_block_encr_decr_data(flea_aes128, key_aes128, sizeof(key_aes128), exp_ct_aes128, pt_aes128));
   FLEA_CCALL(THR_flea_test_cipher_block_encr_decr_data(flea_aes192, key_aes192, sizeof(key_aes192), exp_ct_aes192, pt_aes192));
   FLEA_CCALL(THR_flea_test_cipher_block_encr_decr_data(flea_aes256, key_aes256, sizeof(key_aes256), exp_ct_aes256, pt_aes256));
+
 #ifdef FLEA_HAVE_DES
   FLEA_CCALL(THR_flea_test_cipher_block_encr_decr_data(flea_des_single, key_des, sizeof(key_des), exp_ct_des, pt_des));
   FLEA_CCALL(THR_flea_test_cipher_block_encr_decr_data(flea_tdes_2key, key_tdes_2key, sizeof(key_tdes_2key), exp_ct_tdes_2key, pt_tdes_2key));

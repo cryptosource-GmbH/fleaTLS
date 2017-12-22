@@ -253,7 +253,7 @@ flea_err_e THR_flea_ae_ctx_t__ctor(
         key_len__alu16,
         NULL,
         0,
-        4
+        4 /* "incr()" in NIST-GCM-SPEC increments modulo 2^32 */
       )
     );
     FLEA_CCALL(

@@ -9,6 +9,7 @@
 #include "flea/x509.h"
 #include "test_data_x509_certs.h"
 #include "flea/hostn_ver.h"
+#include "internal/common/hostn_ver_int.h"
 
 #include <string.h>
 

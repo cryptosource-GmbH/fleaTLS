@@ -180,25 +180,23 @@ static flea_err_e THR_flea_start_tls_client(
   FLEA_CCALL(
     THR_flea_tls_client_ctx_t__ctor(
       &tls_ctx,
+      &rw_stream__t,
       &trust_store__t,
       hostname_p,
       host_type,
-      &rw_stream__t,
       cert_chain_len ? cert_chain : NULL,
       cert_chain_len,
       client_key__t.len__dtl ? &privkey__t : NULL,
-      // &cipher_suites_ref,
-      &tls_cfg.cipher_suites[0],
-      tls_cfg.cipher_suites.size(),
-      // tls_cfg.rev_chk_mode__e,
       &tls_cfg.crls_refs[0],
       tls_cfg.crls.size(),
-      client_session__pt,
+      &tls_cfg.cipher_suites[0],
+      tls_cfg.cipher_suites.size(),
       allowed_ecc_curves__pe,
       allowed_ecc_curves_len__alu16,
       allowed_sig_algs__pe,
       nb_allowed_sig_algs__alu16,
-      (flea_tls_flag_e) (tls_cfg.flags | flea_tls_flag__sha1_cert_sigalg__allow)
+      (flea_tls_flag_e) (tls_cfg.flags | flea_tls_flag__sha1_cert_sigalg__allow),
+      client_session__pt
     )
   );
 
@@ -217,10 +215,10 @@ static flea_err_e THR_flea_start_tls_client(
         cert_chain,
         cert_chain_len,
         client_key__t.len__dtl ? &privkey__t : NULL,
-        &tls_cfg.cipher_suites[0],
-        tls_cfg.cipher_suites.size(),
         &tls_cfg.crls_refs[0],
         tls_cfg.crls.size(),
+        &tls_cfg.cipher_suites[0],
+        tls_cfg.cipher_suites.size(),
         allowed_ecc_curves__pe,
         allowed_ecc_curves_len__alu16,
         allowed_sig_algs__pe,

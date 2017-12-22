@@ -5,6 +5,7 @@
 #include "flea/error_handling.h"
 #include "flea/bin_utils.h"
 #include "flea/alloc.h"
+#include "internal/common/rw_stream_int.h"
 
 flea_err_e THR_flea_rw_stream_t__ctor(
   flea_rw_stream_t*            stream__pt,
