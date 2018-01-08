@@ -192,6 +192,7 @@ static flea_err_e THR_flea_tls__read_server_kex(
   flea_u8_t ec_curve__au8[2];
   flea_ec_dom_par_id_e ec_dom_par_id__t;
   flea_ref_cu8_t server_pub_point__rcu8;
+  flea_u8_t server_pub_point_len__u8;
 
 
   flea_private_key_t ecdhe_priv_key__t  = flea_private_key_t__INIT_VALUE;
@@ -311,7 +312,8 @@ static flea_err_e THR_flea_tls__read_server_kex(
 
     // calculate hash of ec params
     FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&params_hash_ctx__t, hash_id__t));
-    server_pub_point__rcu8 = flea_public_key__get_encoded_public_component(&ecdhe_server_key__t);
+    server_pub_point__rcu8   = flea_public_key__get_encoded_public_component(&ecdhe_server_key__t);
+    server_pub_point_len__u8 = (flea_u8_t) server_pub_point__rcu8.len__dtl;
     FLEA_CCALL(
       THR_flea_hash_ctx_t__update(
         &params_hash_ctx__t,
@@ -322,7 +324,7 @@ static flea_err_e THR_flea_tls__read_server_kex(
     );
     FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, &ec_curve_type__u8, 1));
     FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, ec_curve__au8, sizeof(ec_curve__au8)));
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, (flea_u8_t*) &server_pub_point__rcu8.len__dtl, 1));
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, &server_pub_point_len__u8, 1));
     FLEA_CCALL(
       THR_flea_hash_ctx_t__update(
         &params_hash_ctx__t,

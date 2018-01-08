@@ -54,6 +54,7 @@ flea_err_e THR_flea_tls__send_server_kex(
   flea_u8_t ec_curve__au8[2];
   flea_u8_t sig_len_enc__au8[2];
   flea_public_key_t ecdhe_pub_key__t = flea_public_key_t__INIT_VALUE;
+  flea_u8_t pub_point_len__u8;
 
   FLEA_THR_BEG_FUNC();
 
@@ -84,7 +85,8 @@ flea_err_e THR_flea_tls__send_server_kex(
       )
     );
 
-    pub_point__rcu8 = flea_public_key__get_encoded_public_component(&ecdhe_pub_key__t);
+    pub_point__rcu8   = flea_public_key__get_encoded_public_component(&ecdhe_pub_key__t);
+    pub_point_len__u8 = (flea_u8_t) pub_point__rcu8.len__dtl;
 
     hdr_len__u32 = 3 + 1 + pub_point__rcu8.len__dtl + 2 + 2 + sig_len__u16; // 3 for named curve + 1 for pub point length + 2 for sig/hash alg + 2 sig length + len of sha256 sig
 
@@ -120,7 +122,7 @@ flea_err_e THR_flea_tls__send_server_kex(
       THR_flea_tls__send_handshake_message_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
-        (flea_u8_t*) &pub_point__rcu8.len__dtl,
+        &pub_point_len__u8,
         1
       )
     );
@@ -148,7 +150,7 @@ flea_err_e THR_flea_tls__send_server_kex(
     );
     FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, ec_curve_type__au8, sizeof(ec_curve_type__au8)));
     FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, ec_curve__au8, sizeof(ec_curve__au8)));
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, (flea_u8_t*) &pub_point__rcu8.len__dtl, 1));
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, &pub_point_len__u8, 1));
     FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, pub_point__rcu8.data__pcu8, pub_point__rcu8.len__dtl));
 
     FLEA_ALLOC_BUF(hash__bu8, hash_out_len__u8);

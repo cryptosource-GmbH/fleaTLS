@@ -15,6 +15,7 @@ flea_err_e THR_flea_tls__send_client_key_exchange_ecdhe(
 )
 {
   flea_ref_cu8_t pub_point__rcu8;
+  flea_u8_t pub_point_len__u8;
   flea_u32_t hdr_len__u32;
 
   FLEA_THR_BEG_FUNC();
@@ -33,11 +34,12 @@ flea_err_e THR_flea_tls__send_client_key_exchange_ecdhe(
     )
   );
 
+  pub_point_len__u8 = (flea_u8_t) pub_point__rcu8.len__dtl;
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx__pt->rec_prot__t,
       p_hash_ctx__pt,
-      (flea_u8_t*) &pub_point__rcu8.len__dtl,
+      &pub_point_len__u8,
       1
     )
   );
