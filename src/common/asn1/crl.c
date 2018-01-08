@@ -51,7 +51,7 @@ static flea_err_e THR_flea_crl__does_cdp_contain_distrib_point(
   while(flea_ber_dec_t__has_current_more_data(&dec__t))
   {
     flea_bool_e distrib_point_name_found__b;
-    flea_bool_e found_match__b = FLEA_FALSE;
+    flea_bool_e found_match__b = flea_false;
     /* decode next DistributionPoint */
 
     /* open this DP's sequence */
@@ -91,7 +91,7 @@ static flea_err_e THR_flea_crl__does_cdp_contain_distrib_point(
         FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw_optional(&dec__t, &raw_tlv__rcu8));
         if(!flea_byte_vec_t__cmp(&raw_tlv__rcu8, dp_name_raw__cprcu8))
         {
-          found_match__b = FLEA_TRUE;
+          found_match__b = flea_true;
         }
       }
       /* close fullName */
@@ -115,7 +115,7 @@ static flea_err_e THR_flea_crl__does_cdp_contain_distrib_point(
 
       if(!flea_byte_vec_t__cmp(&raw_tlv__rcu8, dp_name_raw__cprcu8))
       {
-        found_match__b = FLEA_TRUE;
+        found_match__b = flea_true;
       }
     }
     if(found_match__b)
@@ -143,7 +143,7 @@ static flea_err_e THR_flea_crl__does_cdp_contain_distrib_point(
          * indeterminate) */
         FLEA_THROW("insufficient CRL reasons", FLEA_ERR_X509_CRL_INCOMPL_REASONS);
       }
-      *result_update__pb = FLEA_TRUE;
+      *result_update__pb = flea_true;
     }
 
     /* close this DP (element of Distribution Points) */
@@ -176,7 +176,7 @@ static flea_err_e THR_flea_crl__ensure_idp_cdp_general_name_match(
       THR_flea_crl__does_cdp_contain_distrib_point(
         subjects_crldp_raw_mbn__pt,
         &raw_tlv__rcu8,
-        FLEA_FALSE,
+        flea_false,
         match_update__pb
       )
     );
@@ -196,7 +196,7 @@ static flea_err_e THR_flea_crl__parse_and_check_crl_distribution_point(
 )
 {
   flea_bool_e full_name_present__b;
-  flea_bool_e match_update__b = FLEA_FALSE;
+  flea_bool_e match_update__b = flea_false;
 
   FLEA_THR_BEG_FUNC();
   /* fullName                [0]     GeneralNames, */
@@ -239,7 +239,7 @@ static flea_err_e THR_flea_crl__parse_and_check_crl_distribution_point(
       THR_flea_crl__does_cdp_contain_distrib_point(
         subjects_crldp_raw_mbn__pt,
         &rel_name__rcu8,
-        FLEA_TRUE,
+        flea_true,
         &match_update__b
       )
     );
@@ -269,7 +269,7 @@ static flea_err_e THR_flea_crl__parse_extensions(
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
   while(flea_ber_dec_t__has_current_more_data(dec__pt))
   {
-    flea_bool_e critical__b        = FLEA_FALSE;
+    flea_bool_e critical__b        = flea_false;
     flea_byte_vec_t ext_oid_ref__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
     flea_byte_vec_t ostr__t        = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
     flea_mem_read_stream_help_t hlp__t;
@@ -306,10 +306,10 @@ static flea_err_e THR_flea_crl__parse_extensions(
       flea_bool_e distrib_point_name_found__b;
       flea_bool_e dummy_found__b;
 
-      flea_bool_e only_contains_user_certs__b   = FLEA_FALSE;
-      flea_bool_e only_contains_ca_certs__b     = FLEA_FALSE;
-      flea_bool_e only_contains_attrib_certs__b = FLEA_FALSE;
-      flea_bool_e indirect_crl__b = FLEA_FALSE;
+      flea_bool_e only_contains_user_certs__b   = flea_false;
+      flea_bool_e only_contains_ca_certs__b     = flea_false;
+      flea_bool_e only_contains_attrib_certs__b = flea_false;
+      flea_bool_e indirect_crl__b = flea_false;
       const flea_u32_t complete_reasons__u32        = 0x1FE;
       const flea_al_u8_t complete_reasons_cnt__alu8 = 9;
       flea_u32_t only_some_reasons__u32 = complete_reasons__u32;
@@ -421,7 +421,7 @@ static flea_err_e THR_flea_crl__update_revocation_status_from_crl_stream(
   flea_gmt_time_t this_update__t;
   flea_gmt_time_t next_update__t;
   flea_bool_e have_revoked_certs__b;
-  flea_bool_e is_cert_revoked = FLEA_FALSE;
+  flea_bool_e is_cert_revoked = flea_false;
   flea_bool_e have_extensions__b;
   flea_byte_vec_t crl_signature_as_bit_string__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
   flea_byte_vec_t sig_content__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
@@ -510,7 +510,7 @@ static flea_err_e THR_flea_crl__update_revocation_status_from_crl_stream(
       FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
       if(!flea_byte_vec_t__cmp(&serial_number__rcu8, subjects_sn__pt))
       {
-        is_cert_revoked = FLEA_TRUE;
+        is_cert_revoked = flea_true;
       }
     }
     /* close revokedCertificates */

@@ -765,19 +765,19 @@ flea_bool_e flea_mpi_t__equal(
   {
     if(flea_mpi_t__is_zero(p_a) && flea_mpi_t__is_zero(p_b))
     {
-      return FLEA_TRUE;
+      return flea_true;
     }
-    return FLEA_FALSE;
+    return flea_false;
   }
   if(p_a->m_nb_used_words != p_b->m_nb_used_words)
   {
-    return FLEA_FALSE;
+    return flea_false;
   }
   if(memcmp(p_a->m_words, p_b->m_words, p_a->m_nb_used_words * sizeof(p_a->m_words[0])))
   {
-    return FLEA_FALSE;
+    return flea_false;
   }
-  return FLEA_TRUE;
+  return flea_true;
 }
 
 void flea_mpi_t__print(const flea_mpi_t* p_mpi)
@@ -1459,10 +1459,10 @@ flea_bool_e flea_mpi_t__is_zero(const flea_mpi_t* p_mpi)
   {
     if(p_mpi->m_words[--i] != 0)
     {
-      return FLEA_FALSE;
+      return flea_false;
     }
   }
-  return FLEA_TRUE;
+  return flea_true;
 }
 
 // shift left mpi by less than the word size (i.e. in general 0-7 is allowed as

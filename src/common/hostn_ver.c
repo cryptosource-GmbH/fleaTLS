@@ -23,10 +23,10 @@ static flea_bool_e is_ascii_string(
   {
     if((s__pcu8[i] & 0x80) || s__pcu8[i] == 0)
     {
-      return FLEA_FALSE;
+      return flea_false;
     }
   }
-  return FLEA_TRUE;
+  return flea_true;
 }
 
 /**
@@ -73,10 +73,10 @@ static flea_bool_e are_strings_equal_case_insensitive(
   {
     if(to_lower_case(s1__pcu8[i]) != to_lower_case(s2__pcu8[i]))
     {
-      return FLEA_FALSE;
+      return flea_false;
     }
   }
-  return FLEA_TRUE;
+  return flea_true;
 }
 
 flea_err_e THR_flea_x509__verify_host_name(
@@ -86,7 +86,7 @@ flea_err_e THR_flea_x509__verify_host_name(
   flea_bool_e*           result__pb
 )
 {
-  *result__pb = FLEA_FALSE;
+  *result__pb = flea_false;
   flea_al_u16_t cert_cmp_len__alu16, user_cmp_len__alu16;
   flea_al_u16_t second_label_offset_user = 0;
   flea_al_u16_t second_label_offset_cert = 0;
@@ -132,7 +132,7 @@ flea_err_e THR_flea_x509__verify_host_name(
       user_cmp_len__alu16
     ))
   {
-    *result__pb = FLEA_TRUE;
+    *result__pb = flea_true;
   }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_x509__verify_host_name */
@@ -163,9 +163,9 @@ flea_err_e THR_flea_x509__verify_tls_server_id(
   flea_mem_read_stream_help_t hlp__t;
 
   flea_hostn_match_info_t match_info__t;
-  match_info__t.contains_dnsname__b = FLEA_FALSE;
-  match_info__t.contains_ipaddr__b  = FLEA_FALSE;
-  match_info__t.id_matched__b       = FLEA_FALSE;
+  match_info__t.contains_dnsname__b = flea_false;
+  match_info__t.contains_ipaddr__b  = flea_false;
+  match_info__t.id_matched__b       = flea_false;
 
   flea_byte_vec_t work_spc__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
 
@@ -194,7 +194,7 @@ flea_err_e THR_flea_x509__verify_tls_server_id(
       )
     );
 
-    if(match_info__t.id_matched__b == FLEA_TRUE)
+    if(match_info__t.id_matched__b == flea_true)
     {
       FLEA_THR_RETURN();
     }
@@ -208,7 +208,7 @@ flea_err_e THR_flea_x509__verify_tls_server_id(
       THR_flea_x509__verify_host_name(
         &user_id__crcu8,
         &cert_subject_dn__pcrcu8->common_name__t,
-        FLEA_TRUE,
+        flea_true,
         &names_match__b
       )
     );
@@ -234,14 +234,14 @@ flea_err_e THR_flea_x509__parse_san_and_validate_hostn(
 )
 {
   FLEA_THR_BEG_FUNC();
-  match_info__pt->id_matched__b       = FLEA_FALSE;
-  match_info__pt->contains_ipaddr__b  = FLEA_FALSE;
-  match_info__pt->contains_dnsname__b = FLEA_FALSE;
+  match_info__pt->id_matched__b       = flea_false;
+  match_info__pt->contains_ipaddr__b  = flea_false;
+  match_info__pt->contains_dnsname__b = flea_false;
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(cont_dec__pt));
 
   while(flea_ber_dec_t__has_current_more_data(cont_dec__pt))
   {
-    flea_bool_e found__b, found_any__b = FLEA_FALSE;
+    flea_bool_e found__b, found_any__b = flea_false;
 
     /*GeneralName ::= CHOICE {
      * otherName                 [0]  AnotherName,*/
@@ -276,10 +276,10 @@ flea_err_e THR_flea_x509__parse_san_and_validate_hostn(
     if(found__b && (host_type == flea_host_dnsname))
     {
       flea_bool_e names_match__b;
-      FLEA_CCALL(THR_flea_x509__verify_host_name(user_id__pcrcu8, work_spc__pt, FLEA_TRUE, &names_match__b));
+      FLEA_CCALL(THR_flea_x509__verify_host_name(user_id__pcrcu8, work_spc__pt, flea_true, &names_match__b));
       if(names_match__b)
       {
-        match_info__pt->id_matched__b = FLEA_TRUE;
+        match_info__pt->id_matched__b = flea_true;
         break;
       }
     }
@@ -343,7 +343,7 @@ flea_err_e THR_flea_x509__parse_san_and_validate_hostn(
       }
       if(!flea_byte_vec_t__cmp_with_cref(work_spc__pt, user_id__pcrcu8))
       {
-        match_info__pt->id_matched__b = FLEA_TRUE;
+        match_info__pt->id_matched__b = flea_true;
         break;
       }
     }

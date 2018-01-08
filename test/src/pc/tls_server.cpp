@@ -293,7 +293,7 @@ static void* flea_tls_server_thread(void* sv__pv)
     serv_par__pt->write_output_string("error from server thread: 0x" + num_to_string_hex(err__t));
   }
   CHECK_PTHREAD_ERR(pthread_mutex_lock(&serv_par__pt->mutex));
-  serv_par__pt->finished__b = FLEA_TRUE;
+  serv_par__pt->finished__b = flea_true;
   CHECK_PTHREAD_ERR(pthread_mutex_unlock(&serv_par__pt->mutex));
   return NULL;
 }
@@ -391,9 +391,9 @@ static flea_err_e THR_server_cycle(
       serv_par__t.nb_renegs_to_exec  = cmdl_args.get_property_as_u32_default("do_renegs", 0);
       serv_par__t.rd_mode__e         = tls_cfg.read_mode_for_app_data;
       serv_par__t.read_app_data_size = tls_cfg.read_size_for_app_data;
-      serv_par__t.abort__b        = FLEA_FALSE;
+      serv_par__t.abort__b        = flea_false;
       serv_par__t.server_error__e = FLEA_ERR_FINE;
-      serv_par__t.finished__b     = FLEA_FALSE;
+      serv_par__t.finished__b     = flea_false;
 
       if(dir_for_file_based_input == "")
       {
@@ -480,7 +480,7 @@ static flea_err_e THR_server_cycle(
       {
         server_params_t & serv_par__t = *serv_pars[i].get();
         CHECK_PTHREAD_ERR(pthread_mutex_lock(&serv_par__t.mutex));
-        serv_par__t.abort__b = FLEA_TRUE;
+        serv_par__t.abort__b = flea_true;
         CHECK_PTHREAD_ERR(pthread_mutex_unlock(&serv_par__t.mutex));
       }
     }

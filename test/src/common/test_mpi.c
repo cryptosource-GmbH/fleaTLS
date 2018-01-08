@@ -134,11 +134,11 @@ flea_err_e THR_flea_test_mpi_div()
 
   FLEA_CCALL(THR_flea_mpi_t__divide(&res_q, &res_r, &divident, &divisor, &div_ctx));
 
-  if(FLEA_FALSE == flea_mpi_t__equal(&res_q, &exp_q))
+  if(flea_false == flea_mpi_t__equal(&res_q, &exp_q))
   {
     FLEA_THROW("failure with quotient", FLEA_ERR_FAILED_TEST);
   }
-  if(FLEA_FALSE == flea_mpi_t__equal(&res_r, &exp_r))
+  if(flea_false == flea_mpi_t__equal(&res_r, &exp_r))
   {
     FLEA_THROW("failure with quotient", FLEA_ERR_FAILED_TEST);
   }

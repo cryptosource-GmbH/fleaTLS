@@ -98,9 +98,9 @@ flea_err_e THR_flea_ecka__compute_raw(
   flea_al_u8_t tmp_result_len__alu8;
 
 # ifdef FLEA_USE_ECC_ADD_ALWAYS
-  const flea_bool_e do_use_add_always__b = FLEA_TRUE;
+  const flea_bool_e do_use_add_always__b = flea_true;
 # else
-  const flea_bool_e do_use_add_always__b = FLEA_FALSE;
+  const flea_bool_e do_use_add_always__b = flea_false;
 # endif
 
 # ifdef FLEA_USE_HEAP_BUF
@@ -202,9 +202,9 @@ flea_err_e THR_flea_ecka__compute_raw(
 
   FLEA_CCALL(THR_flea_mpi_t__decode(&d, dom_par__pt->h__ru8.data__pcu8, dom_par__pt->h__ru8.len__dtl));
 # ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
-  FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, FLEA_FALSE, NULL));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, flea_false, NULL));
 # else
-  FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, FLEA_FALSE));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, flea_false));
 # endif
 
   /* l_arr doesn't live in parallel to point multiplication */

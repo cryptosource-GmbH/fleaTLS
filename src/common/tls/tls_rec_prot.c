@@ -109,7 +109,7 @@ static flea_err_e THR_flea_tls_rec_prot_t__close_with_fatal_alert_and_throw(
       FLEA_TLS_ALERT_LEVEL_FATAL
     )
   );
-  rec_prot__pt->is_session_closed__u8 = FLEA_TRUE;
+  rec_prot__pt->is_session_closed__u8 = flea_true;
   FLEA_THROW("closing session with fatal alert", error__e);
   FLEA_THR_FIN_SEC_empty();
 }
@@ -136,7 +136,7 @@ static flea_err_e THR_flea_tls_rec_prot_t__handle_alert(
   rec_prot__pt->payload_used_len__u16 = 0;
   if(rec_prot__pt->payload_buf__pu8[0] == FLEA_TLS_ALERT_LEVEL_FATAL)
   {
-    rec_prot__pt->is_session_closed__u8 = FLEA_TRUE;
+    rec_prot__pt->is_session_closed__u8 = flea_true;
     FLEA_THROW("received fatal alert", FLEA_ERR_TLS_REC_FATAL_ALERT);
   }
 
@@ -170,9 +170,9 @@ flea_err_e THR_flea_tls_rec_prot_t__ctor(
   rec_prot__pt->read_bytes_from_current_record__u16 = 0;
 
   rec_prot__pt->current_record_content_len__u16 = 0;
-  rec_prot__pt->is_session_closed__u8       = FLEA_FALSE;
-  rec_prot__pt->is_current_record_alert__u8 = FLEA_FALSE;
-  rec_prot__pt->pending_close_notify__u8    = FLEA_FALSE;
+  rec_prot__pt->is_session_closed__u8       = flea_false;
+  rec_prot__pt->is_current_record_alert__u8 = flea_false;
+  rec_prot__pt->pending_close_notify__u8    = flea_false;
 
   flea_tls_rec_prot_t__set_null_ciphersuite(rec_prot__pt, flea_tls_write);
   flea_tls_rec_prot_t__set_null_ciphersuite(rec_prot__pt, flea_tls_read);
@@ -655,14 +655,14 @@ static flea_err_e THR_flea_tls_rec_prot_t__decrypt_record_cbc_hmac(
   padd_err__alu8 |= !flea_sec_mem_equal(mac__bu8, data + iv_len + data_len, mac_len);
   if(padd_err__alu8)
   {
-    flea_bool_e found__b = FLEA_FALSE;
+    flea_bool_e found__b = flea_false;
     for(i__alu16 = 0; i__alu16 <= (flea_al_u16_t) max_padd_len__als16; i__alu16++)
     {
       flea_al_u16_t maced_data_len__alu16 = plaintext_len__alu16 - i__alu16 - mac_len;
 
       if(maced_data_len__alu16 == data_len)
       {
-        found__b = FLEA_TRUE;
+        found__b = flea_true;
         continue;
       }
       FLEA_CCALL(
@@ -1065,7 +1065,7 @@ flea_err_e THR_flea_tls_rec_prot_t__close_and_send_close_notify(flea_tls_rec_pro
         FLEA_TLS_ALERT_LEVEL_WARNING
       )
     );
-    rec_prot__pt->is_session_closed__u8 = FLEA_TRUE;
+    rec_prot__pt->is_session_closed__u8 = flea_true;
   }
   FLEA_THR_FIN_SEC_empty();
 }
@@ -1091,7 +1091,7 @@ static flea_err_e THR_flea_tls_rec_prot_t__read_data_inner(
   flea_al_u16_t to_cp__alu16, read_bytes_count__dtl = 0;
   flea_dtl_t data_len__dtl = *data_len__pdtl;
 
-  flea_bool_e is_handsh_msg_during_app_data__b = FLEA_FALSE;
+  flea_bool_e is_handsh_msg_during_app_data__b = flea_false;
 
   FLEA_THR_BEG_FUNC();
   *data_len__pdtl = 0;
@@ -1172,7 +1172,7 @@ static flea_err_e THR_flea_tls_rec_prot_t__read_data_inner(
         /* header is read completely */
         if(rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_ALERT)
         {
-          rec_prot__pt->is_current_record_alert__u8 = FLEA_TRUE;
+          rec_prot__pt->is_current_record_alert__u8 = flea_true;
         }
         else
         {
@@ -1184,7 +1184,7 @@ static flea_err_e THR_flea_tls_rec_prot_t__read_data_inner(
             (cont_type__e == CONTENT_TYPE_APPLICATION_DATA) &&
             (rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_HANDSHAKE))
           {
-            is_handsh_msg_during_app_data__b = FLEA_TRUE;
+            is_handsh_msg_during_app_data__b = flea_true;
           }
           else if(!current_or_next_record_for_content_type__b &&
             (cont_type__e != rec_prot__pt->send_rec_buf_raw__bu8[0]))
@@ -1350,9 +1350,9 @@ flea_err_e THR_flea_tls_rec_prot_t__get_current_record_type(
       NULL,
       &read_len_zero__alu16,
       &dummy_version__t,
-      FLEA_FALSE,
+      flea_false,
       0 /*dummy_content_type */,
-      FLEA_TRUE,
+      flea_true,
       rd_mode__e
     )
   );
@@ -1373,9 +1373,9 @@ flea_err_e THR_flea_tls_rec_prot_t__read_data(
     data__pu8,
     data_len__pdtl,
     NULL,
-    FLEA_FALSE,
+    flea_false,
     cont_type__e,
-    FLEA_FALSE,
+    flea_false,
     rd_mode__e
   );
 }
@@ -1384,9 +1384,9 @@ flea_bool_e flea_tls_rec_prot_t__have_done_initial_handshake(const flea_tls_rec_
 {
   if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_class__e != flea_null_cipher_suite)
   {
-    return FLEA_TRUE;
+    return flea_true;
   }
-  return FLEA_FALSE;
+  return flea_false;
 }
 
 void flea_tls_rec_prot_t__dtor(flea_tls_rec_prot_t* rec_prot__pt)

@@ -22,13 +22,13 @@ static flea_bool_e is_prefix_of(
 
   if(prefix_len > s_len)
   {
-    return FLEA_FALSE;
+    return flea_false;
   }
   if(0 == memcmp(prefix, s, prefix_len))
   {
-    return FLEA_TRUE;
+    return flea_true;
   }
-  return FLEA_FALSE;
+  return flea_false;
 }
 
 #define __STRINGIFY(s) #s
@@ -174,7 +174,7 @@ int flea_unit_tests(
 #ifdef __FLEA_HAVE_LINUX_FILESYSTEM
 # if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_MOD_BIT_SIZE >= 224
       CALL_TEST(THR_test_ecdsa_self_signed_certs_file_based());
-      if(full__b == FLEA_TRUE)
+      if(full__b == flea_true)
       {
 #  if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048)
         CALL_TEST(THR_flea_test_crt_rsa_raw_file_based());

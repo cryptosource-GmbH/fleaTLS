@@ -128,9 +128,9 @@ flea_err_e THR_flea_rsa_raw_operation_crt(
 # endif // #ifdef FLEA_USE_HEAP_BUF
 
 # ifdef FLEA_USE_RSA_MUL_ALWAYS
-  const flea_bool_e do_use_mul_always__b = FLEA_TRUE;
+  const flea_bool_e do_use_mul_always__b = flea_true;
 # else
-  const flea_bool_e do_use_mul_always__b = FLEA_FALSE;
+  const flea_bool_e do_use_mul_always__b = flea_false;
 # endif
 
 # ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
@@ -423,7 +423,7 @@ flea_err_e THR_flea_rsa_raw_operation(
       &div_ctx,
       &ws_q,
       1,
-      FLEA_FALSE,
+      flea_false,
       NULL
     )
   );
@@ -439,7 +439,7 @@ flea_err_e THR_flea_rsa_raw_operation(
       &div_ctx,
       &ws_q,
       1,
-      FLEA_FALSE
+      flea_false
     )
   );
 # endif /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */

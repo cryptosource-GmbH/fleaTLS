@@ -15,9 +15,9 @@ flea_bool_e flea_cert_store_t__is_cert_trusted(
   if((pos__alu16 >= cert_store__pt->nb_set_certs__u16) ||
     (!cert_store__pt->enc_cert_refs__bcu8[pos__alu16].trusted_flag))
   {
-    return FLEA_FALSE;
+    return flea_false;
   }
-  return FLEA_TRUE;
+  return flea_true;
 }
 
 static flea_err_e THR_flea_cert_store_t__add_cert(
@@ -89,7 +89,7 @@ flea_err_e THR_flea_cert_store_t__add_trusted_cert(
   flea_al_u16_t      der_enc_cert_len__alu16
 )
 {
-  return THR_flea_cert_store_t__add_cert(cert_store__pt, der_enc_cert__pcu8, der_enc_cert_len__alu16, FLEA_TRUE);
+  return THR_flea_cert_store_t__add_cert(cert_store__pt, der_enc_cert__pcu8, der_enc_cert_len__alu16, flea_true);
 }
 
 flea_err_e THR_flea_cert_store_t__add_untrusted_cert(
@@ -98,7 +98,7 @@ flea_err_e THR_flea_cert_store_t__add_untrusted_cert(
   flea_al_u16_t      der_enc_cert_len__alu16
 )
 {
-  return THR_flea_cert_store_t__add_cert(cert_store__pt, der_enc_cert__pcu8, der_enc_cert_len__alu16, FLEA_FALSE);
+  return THR_flea_cert_store_t__add_cert(cert_store__pt, der_enc_cert__pcu8, der_enc_cert_len__alu16, flea_false);
 }
 
 flea_err_e THR_flea_cert_store_t__add_trusted_to_path_validator(
@@ -140,7 +140,7 @@ flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_hash__t, FLEA_MAX_HASH_OUT_LEN);
   FLEA_THR_BEG_FUNC();
-  *result_is_trusted__pb = FLEA_FALSE;
+  *result_is_trusted__pb = flea_false;
   for(i = 0; i < nb_certs__alu16; i++)
   {
     if(flea_cert_store_t__is_cert_trusted(cert_store__pct, i))
@@ -168,7 +168,7 @@ flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
           tbs_cert_hash_to_check_len__alu8
         ))
       {
-        *result_is_trusted__pb    = FLEA_TRUE;
+        *result_is_trusted__pb    = flea_true;
         *trusted_cert_idx__palu16 = i;
         break;
       }
@@ -191,7 +191,7 @@ flea_err_e THR_flea_cert_store_t__is_cert_trusted(
   flea_al_u16_t i;
 
   FLEA_THR_BEG_FUNC();
-  *result_is_trusted__pb = FLEA_FALSE;
+  *result_is_trusted__pb = flea_false;
   for(i = 0; i < nb_certs__alu16; i++)
   {
     if(!flea_memcmp_wsize(

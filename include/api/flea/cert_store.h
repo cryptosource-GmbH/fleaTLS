@@ -103,8 +103,8 @@ flea_bool_e flea_cert_store_t__is_cert_trusted(
  * @param cert_store the cert store object to use
  * @param cert_to_check the DER encoded certificate to check for
  * @param cert_to_check_len the length of cert_to_check
- * @param result_is_trusted receives the result: set to FLEA_TRUE if the
- * sought certificate is trusted, set to FLEA_FALSE otherwise
+ * @param result_is_trusted receives the result: set to flea_true if the
+ * sought certificate is trusted, set to flea_false otherwise
  */
 flea_err_e THR_flea_cert_store_t__is_cert_trusted(
   const flea_cert_store_t* cert_store,
@@ -126,9 +126,9 @@ const flea_u8_t* flea_cert_store_t__get_ptr_to_trusted_enc_cert(
  * @param[in] tbs_cert_hash_id ID of the hash algorithm to use
  * @param[in] tbs_cert_hash_to_check the hash of the TBS of the certificate to check for
  * @param[in] tbs_cert_hash_to_check_len the length of tbs_cert_hash_to_check
- * @param[out] result_is_trusted receives the result: set to FLEA_TRUE if the sought
- * certificate is trusted, set to FLEA_FALSE otherwise
- * @param[out] trusted_cert_idx if result_is_trusted is set to FLEA_TRUE, then the pointer target receives the index of the certificate with the
+ * @param[out] result_is_trusted receives the result: set to flea_true if the sought
+ * certificate is trusted, set to flea_false otherwise
+ * @param[out] trusted_cert_idx if result_is_trusted is set to flea_true, then the pointer target receives the index of the certificate with the
  * sought TBS hash within this certificate store object, otherwise the value is
  * not updated.
  *

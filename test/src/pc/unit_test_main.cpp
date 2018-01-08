@@ -165,7 +165,7 @@ int main(
 
       reps = cmdl_args.get_property_as_u32_default("repeat", 1);
       bool full = cmdl_args.get_as_bool_default_false("full");
-      flea_bool_e full__b = full ? FLEA_TRUE : FLEA_FALSE;
+      flea_bool_e full__b = full ? flea_true : flea_false;
 
       std::string file_path_to_be_replaced_by_std_in_str = cmdl_args.get_property_as_string_default_empty(
         "path_rpl_stdin"

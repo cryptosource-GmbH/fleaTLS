@@ -18,9 +18,9 @@ flea_bool_e flea_tls_client_session_t__has_valid_session(const flea_tls_client_s
   if((client_session__pt->session_id_len__u8 == 0) ||
     !flea_tls_session_data_t__is_valid_session(&client_session__pt->session__t))
   {
-    return FLEA_FALSE;
+    return flea_false;
   }
-  return FLEA_TRUE;
+  return flea_true;
 }
 
 flea_err_e THR_flea_tls_client_session_t__serialize(

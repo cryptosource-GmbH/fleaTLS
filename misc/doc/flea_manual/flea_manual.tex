@@ -22,7 +22,7 @@
 \usepackage{verbatim}
 \usepackage{tikz}
 \usetikzlibrary{shapes,arrows,fit,calc,positioning,automata}
-
+\usepackage[htt]{hyphenat}
 \usepackage{colortbl}
 \usepackage{ulem}
 \usepackage{verbatim}
@@ -91,16 +91,17 @@
 
 
 \lstset{language=C,
-  emph={int,char,double,float,unsigned,flea_u8_t,flea_al_u8_t,flea_u16_t,flea_al_u16_t,flea_u32_t,
-  flea_bool_t, flea_mutex_func_set_t}, emphstyle={\color{csblue}},
+  emph={int,char,double,float,unsigned,flea\_u8\_t,flea\_al\_u8\_t,flea\_u16\_t,flea\_al\_u16\_t,flea\_u32\_t,
+  flea\_bool\_t, flea\_mutex\_func\_set\_t}, emphstyle={\color{csblue}},
 frame=none,basicstyle=\ttfamily\scriptsize,columns=flexible,xleftmargin=0.9cm,float=htb,captionpos=b,breaklines=true }
 
-\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
-\newcommand{\serverCtx}{\code{flea_tls_server_ctx_t}}
+%\newcommand{\code}[1]{\texttt{\detokenize{#1}}}
+\newcommand{\code}[1]{\texttt{#1}}
+\newcommand{\serverCtx}{\code{flea\_tls\_server\_ctx\_t}}
 %\newcommand{\serverCtx}{\texttt{flea}}
-\newcommand{\clientCtx}{\code{flea_tls_client_ctx_t}}
-\newcommand{\funcLibInit}{\code{THR_flea_lib\-__init()}\xspace}
-\newcommand{\funcSaveRngState}{\code{flea_\-prng_\-save_f}\xspace}
+\newcommand{\clientCtx}{\code{flea\_tls\_client\_ctx\_t}}
+\newcommand{\funcLibInit}{\code{THR\_flea\_lib\-\_\_init()}\xspace}
+\newcommand{\funcSaveRngState}{\code{flea\_\-prng\_\-save\_f}\xspace}
 
 \newcommand{\thisFleaVersion}{v1.2\xspace }
 
@@ -138,7 +139,6 @@ any operating system support. However, it can be readily run on standard PCs as
 well. The current release of flea only supports 32-bit architectures but
 compiles and runs also on 64-bit machines.
 
-
  
   \section{The fleaTLS API}
   An API documentation is available at \todo{TODO:URL}. 
@@ -149,9 +149,9 @@ compiles and runs also on 64-bit machines.
   it is a pointer and the object it points to is potentially updated by the
   function. An output parameter is guaranteed to be updated by the function to
   the value specified in the API documentation if the function returns without
-  indicating an error, i.e. when it returns \code{FLEA_ERR_FINE}.
+  indicating an error, i.e. when it returns \code{FLEA\_ERR\_FINE}.
 
-  A function parameter ending \code{_mbn} stands for ``may be null'' and
+  A function parameter ending \code{\_mbn} stands for ``may be null'' and
   indicates that the caller my supply a null pointer for the parameter.
 \section{Getting started with flea}
 
@@ -190,7 +190,7 @@ configuration options, such as
 
   The compile-time configuration of the library is completely managed by a
   preprocessor framework. All configuration options can be set in the file
-  \verb#build_cfg/general/build_config.h#, making it easy to configure the
+  \verb#build\_cfg/general/build\_config.h#, making it easy to configure the
   library on embedded platforms without any dependency on the build system.
 
   In order to build the library on an arbitrary 32-bit platform, the following
@@ -199,8 +199,8 @@ configuration options, such as
     \item \verb#include#
     \item \verb#include/api#
     \item \verb#test/include# (in case that the unit tests shall be build)
-    \item \verb#build_cfg/pltf_spec/32bit_default#
-    \item \verb#build_cfg/general#
+    \item \verb#build\_cfg/pltf\_spec/32bit\_default#
+    \item \verb#build\_cfg/general#
   \end{itemize}
 
 \section{Random Number Generation }
@@ -208,12 +208,12 @@ configuration options, such as
 
 As random number generation is a precondition for many cryptographic operations,
 fleaTLS features support for random number generation. On the one hand, there
-are there is the type \code{flea_ctr_mode_prng_t}, defined in the file
-\code{ctr_mode_prng.h}, for the instantiation of
+are there is the type \code{flea\_ctr\_mode\_prng\_t}, defined in the file
+\code{ctr\_mode\_prng.h}, for the instantiation of
 pseudo random number generator (PRNG) objects, on the other hand there is the flea's
 global random number generator (RNG). Its interface is defined in the file
 \code{flea/rng.h}. flea's global RNG is based on a
-\code{flea_ctr_mode_prng_t}, but features additional functions and has a
+\code{flea\_ctr\_mode\_prng\_t}, but features additional functions and has a
 specific life cycle.
 
 \begin{figure}
@@ -232,7 +232,7 @@ detailed explanation.}
 \subsection{fleaTLS' Global RNG's Life Cycle}
 \label{secRngLifeCycle}
 The global RNG's life cycle starts with the call to the function
-\code{THR_flea_lib\-__init()}. This function takes an initial seed value for
+\code{THR\_flea\_lib\-\_\_init()}. This function takes an initial seed value for
 the global RNG as its argument. It the caller's responsibility to provide a high
 entropy seed of an appropriate length here. fleaTLS makes no checks in this
 respect. 
@@ -242,11 +242,11 @@ management support of fleaTLS. For details seed Section \ref{secSeedFile}.
 
 
 After the initialization of the global RNG through the call to
-\code{THR_flea_lib\-__init()}, it can be used for the generation of random
-byte arrays by the function \code{THR_flea_rng__randomize()}. Furthermore,
+\code{THR\_flea\_lib\-\_\_init()}, it can be used for the generation of random
+byte arrays by the function \code{THR\_flea\_rng\_\_randomize()}. Furthermore,
 it is possible to reseed the generator using one of the functions
-\code{THR_flea_rng__reseed_volatile()} or 
-\code{THR_flea_rng__reseed_persistent()}. The former updates the global
+\code{THR\_flea\_rng\_\_reseed\_volatile()} or 
+\code{THR\_flea\_rng\_\_reseed\_persistent()}. The former updates the global
 RNG's internal state with the provided seed data. The latter does the same, but
 also updates the managed seed file (see Section \ref{secSeedFile}).
 
@@ -254,17 +254,17 @@ also updates the managed seed file (see Section \ref{secSeedFile}).
 \label{secLowEntropyReseed}
 fleaTLS' global RNG also features a function for the feeding of low entropy seed
 data in the form of 32-bit values, namely
-\code{flea_rng__feed_low_entropy_data_to_pool()}. This function is
+\code{flea\_rng\_\_feed\_low\_entropy\_data\_to\_pool()}. This function is
 intended to received for instance time stamp counter values from asynchronously
 triggered events in order to provide fresh entropy to the global RNG. The caller
 is required to provide an estimate of the entropy contained in that value in
 bits. This estimation is used for the management of fleaTLS' global RNG's
 entropy pool. In this pool the low entropy feeds are accumulated. Whenever the
 accumulated estimated entropy reaches the threshold of 128 bits, in the next
-call to the function \code{THR_flea_rng__randomize()} the global RNG will
+call to the function \code{THR\_flea\_rng\_\_randomize()} the global RNG will
 reseed itself with the content of the entropy pool. 
 
-The function \code{flea_rng__feed_low_entropy_data_to_pool()} does not
+The function \code{flea\_rng\_\_feed\_low\_entropy\_data\_to\_pool()} does not
 use any mutexes to prevent concurrent access. This is intentional, since it is
 expected to be called from interrupt routines which may never be blocked.
 fleaTLS' functions which access the
@@ -276,19 +276,19 @@ such event does not actually degrade security of the RNG state, but only reduces
 the pooled entropy under certain conditions to a certain degree. If an
 implementer considers the pooling functionality essential to the secure
 operation of his product, and actually expects simultaneous calls to the functions
-\code{flea_rng__feed_low_entropy_data_to_pool()} and
-\code{THR_flea_rng__randomize()} with a high frequency, a mutex mechanism should be implemented.
+\code{flea\_rng\_\_feed\_low\_entropy\_data\_to\_pool()} and
+\code{THR\_flea\_rng\_\_randomize()} with a high frequency, a mutex mechanism should be implemented.
 
 \subsection{Seed Management}
 \label{secSeedFile}
 The default recommended approach is to make use of fleaTLS' support for
 the management of a continously managed seed file. In this case, the caller
 of \funcLibInit should provide the optional parameter for a function of type
-\code{flea_prng_save_f} to \funcLibInit. This function has to be implemented
+\code{flea\_prng\_save\_f} to \funcLibInit. This function has to be implemented
 by the user of fleaTLS. It will be called by
-fleaTLS whenever the function \code{THR_flea_rng__reseed_volatile()} from
+fleaTLS whenever the function \code{THR\_flea\_rng\_\_reseed\_volatile()} from
 the global RNG's interface is called. In this case the global RNG produces a new
-random output which is provided to the \code{flea_prng_save_f} as the
+random output which is provided to the \code{flea\_prng\_save\_f} as the
 argument. The function is expected to save the byte array it received in its
 argument to non-volatile memory and signal any potentially occurring errors by
 returning appropriate non-zero error values. The size of the byte array provided
@@ -308,18 +308,18 @@ function \funcLibInit. Furthermore, the function pointer argument of the type
 provided to \funcSaveRngState as its argument is used as the seed file argument.
 
 The function \funcLibInit internally calls the function
-\code{THR_flea_rng__reseed_persistent()}, which causes \funcSaveRngState to
+\code{THR\_flea\_rng\_\_reseed\_persistent()}, which causes \funcSaveRngState to
 invoked with freshly generated output from the global RNG. Thus during each
 subsequent call to \funcLibInit, it is ensured that a fresh high entropy seed is
 used to initalize the global RNG.
 
 In order to achieve a lasting of effect of any reseedings of the global RNG
-by calls to the functions  \code{THR_flea_rng__reseed_volatile()} (see
+by calls to the functions  \code{THR\_flea\_rng\_\_reseed\_volatile()} (see
 Section \ref{secRngLifeCycle} or
-\code{flea_rng__feed_low_entropy_data_to_pool()} (see Section
+\code{flea\_rng\_\_feed\_low\_entropy\_data\_to\_pool()} (see Section
 ref{secLowEntropyReseed}), \ie a subsequent update of the seed file, client code
 should occasionally call the function
-\code{THR_flea_rng__reseed_persistent()}, which triggers a call to the
+\code{THR\_flea\_rng\_\_reseed\_persistent()}, which triggers a call to the
 function \funcSaveRngState, provided that such a function was specified in the
 call \funcLibInit.
 
@@ -353,12 +353,12 @@ flea's objects have the following life cycle states:
   \item \stateInit. This state is entered via one of the following means:
     \begin{itemize} 
         \item By using the macro
-    \verb#FLEA_DECL_OBJ(symbol_name, object_type)# for the object declaration
+    \verb#FLEA\_DECL\_OBJ(symbol\_name, object\_type)# for the object declaration
     and simultaneous initialization. 
     \item Alternatively, an object in the state
     \stateUninit can make the transition to the state \stateInit by invoking the
     corresponding initialization macro.
-    Their naming pattern is \verb#flea_<type>__INIT(symbol_address)#.
+    Their naming pattern is \verb#flea\_<type>\_\_INIT(symbol\_address)#.
     In the state \stateInit, only two
     actions may be performed on the object: The object's destructor (dtor)
     function or one of its constructor (ctor) functions may be called.
@@ -372,7 +372,7 @@ flea's objects have the following life cycle states:
     then this will result in a memory leak in the case of heap mode.
     \item Alternatively, for some objects, the exist also initialization value
       macros labelled conforming to the naming pattern
-      \verb#flea_<type>__CONSTR_<further specification>#. An object initialized
+      \verb#flea\_<type>\_\_CONSTR\_<further specification>#. An object initialized
       with such a value is in the state \stateCreated afterwards.
   \end{itemize}
   \item \stateDestroyed. This state is entered by calling the object's dtor
@@ -393,7 +393,7 @@ using flea or realize a corresponding solution.
 \subsection{Error Return Values}
 \label{secErrRet}
 Any function of flea that potentially returns an error, referred to as a throwing function, can be identified by starting with the string
-\verb#THR_#. Such a function returns \verb#FLEA_ERR_FINE#, which is defined as
+\code{THR\_}. Such a function returns \code{FLEA\_ERR\_FINE}, which is defined as
 zero, upon success or one of the error codes define in \verb#flea/error.h# otherwise.
 When calling throwing functions in flea it is necessary test their return value
 and take appropriate actions if an error occured.
@@ -438,7 +438,7 @@ It is important to stress that in order to have correct life cycle management ev
 thrown directly in the code or returned by called functions, one essential rule must be followed:
 Before any code is executed that potentially raises errors, all objects 
 used within the function must have be initialized. 
-  %  If only the \verb#FLEA_DECL_OBJ()# is used for the
+  %  If only the \verb#FLEA\_DECL\_OBJ()# is used for the
   %  object declaration, then this is naturally achieved. 
     %If, however, any
     %objects are declared in the standard way and only initialized in the
@@ -509,40 +509,40 @@ data exchanges between the peers take place over the secure TLS channel. The
 main purpose of the TLS channel is the secure exchange of application data,
 which is done using the fleaTLS functions 
 \begin{itemize}
-  \item \code{THR_flea_tls_client_ctx_t__read_app_data()}
-\item \code{THR_flea_tls_client_ctx_t__send_app_data()}
-\item \code{THR_flea_tls_server_ctx_t__read_app_data()}
-  \item \code{THR_flea_tls_server_ctx_t__send_app_data()}
+  \item \code{THR\_flea\_tls\_client\_ctx\_t\_\_read\_app\_data()}
+\item \code{THR\_flea\_tls\_client\_ctx\_t\_\_send\_app\_data()}
+\item \code{THR\_flea\_tls\_server\_ctx\_t\_\_read\_app\_data()}
+  \item \code{THR\_flea\_tls\_server\_ctx\_t\_\_send\_app\_data()}
 \end{itemize}
 
 Note that in order to ensure the sending of the application over the wire a call
 to 
 \begin{itemize}
-  \item \code{THR_flea_tls_client_ctx_t__flush_write_app_data} or
-  \item \code{THR_flea_tls_server_ctx_t__flush_write_app_data}
+  \item \code{THR\_flea\_tls\_client\_ctx\_t\_\_flush\_write\_app\_data} or
+  \item \code{THR\_flea\_tls\_server\_ctx\_t\_\_flush\_write\_app\_data}
   \end{itemize}
-  is necessary since the \code{send_app_data} functions may buffer the data.
+  is necessary since the \code{send\_app\_data} functions may buffer the data.
 
   \subsubsection{Renegotiation}
 A renegotiation can be triggered either by a call to the corresponding
 renegotiation function
 \begin{itemize}
-  \item \code{THR_flea_tls_client_ctx_t__renegotiate} or
-\item \code{THR_flea_tls_server_ctx_t__renegotiate}
+  \item \code{THR\_flea\_tls\_client\_ctx\_t\_\_renegotiate} or
+\item \code{THR\_flea\_tls\_server\_ctx\_t\_\_renegotiate}
   \end{itemize}
-  or during a call to a \code{read_app_data} function, if the peer initiates a
+  or during a call to a \code{read\_app\_data} function, if the peer initiates a
   renegotiation during that call which is accepted by flea.
 
   The conditions for accepting a renegotiation request by the  fleaTLS client or
   server are the following:
   \begin{itemize}
-    \item If in the TLS client or server context object's ctor call the flag \code{flea_tls_flag_reneg__allow_insecure_reneg} is
+    \item If in the TLS client or server context object's ctor call the flag \\\code{flea\_tls\_flag\_reneg\_\_allow\_insecure\_reneg} is
       set, then the renegotiation request is accepted under any condition.
-    \item If in the TLS client or server context object's ctor call the flag \code{flea_tls_flag_reneg__allow_only_secure_reneg} is
+    \item If in the TLS client or server context object's ctor call the flag \\\code{flea\_tls\_flag\_reneg\_\_allow\_only\_secure\_reneg} is
       set, then the renegotiation request is accepted if the peer also supports
       the Renegotiation Indication Extension and behaves correctly with respect
       to this extension.
-      \item If in the TLS client or server context object's ctor call the flag \code{flea_tls_flag_reneg__no_reneg} is
+      \item If in the TLS client or server context object's ctor call the flag \code{flea\_tls\_flag\_reneg\_\_no\_reneg} is
       set, then the renegotiation request is declined unconditionally.
   \end{itemize}
 
@@ -550,6 +550,12 @@ renegotiation function
   client or server context object is called. Furthermore, the connection is
   closed if an error occurs during any of the other TLS client or server context
   objects.
+
+  Note that both the flea client and the flea server suppress session resumption
+  during a renegotiation. A renegotiation will thus always be a full handshake.
+  However, a session in which a renegotiation has been carried out may normally
+  be resumed in an initial handshake.
+  
 %TODO: FIGURE:
 %handshake
 %  client hello
@@ -593,26 +599,26 @@ renegotiation function
 The TLS protocol defines a large variety of cipher suites. fleaTLS
 \thisFleaVersion supports the following subset of cipher suites.
 \begin{itemize}
-  \item \code{TLS_RSA_WITH_AES_128_CBC_SHA}
-  \item \code{TLS_RSA_WITH_AES_128_CBC_SHA256}
-  \item \code{TLS_RSA_WITH_AES_256_CBC_SHA}
-  \item \code{TLS_RSA_WITH_AES_256_CBC_SHA256}
-  \item \code{TLS_RSA_WITH_AES_128_GCM_SHA256}
-  \item \code{TLS_RSA_WITH_AES_256_GCM_SHA384}
-  \item \code{TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA}
-  \item \code{TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA}
-  \item \code{TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256}
-  \item \code{TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256}
-  \item \code{TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384}
-  \item \code{TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384}
+  \item \code{TLS\_RSA\_WITH\_AES\_128\_CBC\_SHA}
+  \item \code{TLS\_RSA\_WITH\_AES\_128\_CBC\_SHA256}
+  \item \code{TLS\_RSA\_WITH\_AES\_256\_CBC\_SHA}
+  \item \code{TLS\_RSA\_WITH\_AES\_256\_CBC\_SHA256}
+  \item \code{TLS\_RSA\_WITH\_AES\_128\_GCM\_SHA256}
+  \item \code{TLS\_RSA\_WITH\_AES\_256\_GCM\_SHA384}
+  \item \code{TLS\_ECDHE\_RSA\_WITH\_AES\_128\_CBC\_SHA}
+  \item \code{TLS\_ECDHE\_RSA\_WITH\_AES\_256\_CBC\_SHA}
+  \item \code{TLS\_ECDHE\_RSA\_WITH\_AES\_128\_CBC\_SHA256}
+  \item \code{TLS\_ECDHE\_RSA\_WITH\_AES\_128\_GCM\_SHA256}
+  \item \code{TLS\_ECDHE\_RSA\_WITH\_AES\_256\_CBC\_SHA384}
+  \item \code{TLS\_ECDHE\_RSA\_WITH\_AES\_256\_GCM\_SHA384}
 \end{itemize}
 
 These strings specify the cryptorgraphic algorithms that are used during the TLS
 handshake according to the following pattern:
 
 $$
-\mathrm{TLS\_}\underbrace{\mathrm{RSA}}\_{\mathrm{KEX}}\mathrm{\_WITH\_}\underbrace{\mathrm{AES\_128}}\_{cipher}\_\underbrace{\mathrm{CBC}}\_{mode
-}\_\underbrace{\mathrm{SHA}}\_{hash }
+\mathrm{TLS\_}\underbrace{\mathrm{RSA}}_{\mathrm{KEX}}\mathrm{\_WITH\_}\underbrace{\mathrm{AES\_128}}_{\mathrm{cipher}}\_\underbrace{\mathrm{CBC}}_{\mathrm{mode}
+}\_\underbrace{\mathrm{SHA}}_{\mathrm{hash} }
 $$
 \begin{description}
   \item[KEX] The key exchange algorithm specifies the algorithm which is used
@@ -722,13 +728,13 @@ commonly used in multithreading contexts. If the global RNG's
 functions for reseeding with high entropy seed data and generating output are
 called from different threads (or interrupt routines), or multiple TLS
 server context objects running in different threads and using a common shared
-\code{flea_tls_session\-_mngr_t} employed, a mutex mechanism needs
+\code{flea\_tls\_session\-\_mngr\_t} employed, a mutex mechanism needs
 to configured for fleaTLS. This is achieved by providing the appropriate compile
 time and run-time configurations to fleaTLS.
 
 \subsection{Compile-Time Configurations}
 
-In the ``multithreading'' section of the file \code{build_config_gen.h} 
+In the ``multithreading'' section of the file \code{build\_config\_gen.h} 
 appropriate configuration settings must be made. In the shipped version of flea,
 the use of Unix pthread mutexes is preconfigured. 
 
@@ -765,9 +771,9 @@ and
 
 The actual implementation of the mutex functionality is provided to fleaTLS in
 the call to the function \funcLibInit. If compile-time support is enabled, a
-\code{flea_mutex_func_set_t} must be provided to that function. In this object,
+\code{flea\_mutex\_func\_set\_t} must be provided to that function. In this object,
 all four member function pointers must be set to point to appropriate functions.
-These functions will be called with objects of type \code{FLEA_MUTEX_TYPE}
+These functions will be called with objects of type \code{FLEA\_MUTEX\_TYPE}
 defined in the build configuration.
 
 An example for the invocation \funcLibInit for the pthread implementation is

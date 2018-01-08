@@ -49,9 +49,9 @@ static flea_err_e THR_flea_point_gfp_t__verify_cofactor(
   FLEA_CCALL(THR_flea_point_gfp_t__init_copy(&point__t, point__pt, G_arr, G_arr_word_len));
   /* check that hP != 0, called mul function throws if result = O*/
 # ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
-  FLEA_CCALL(THR_flea_point_gfp_t__mul(&point__t, cofactor__pt, curve__pct, FLEA_FALSE, NULL));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&point__t, cofactor__pt, curve__pct, flea_false, NULL));
 # else
-  FLEA_CCALL(THR_flea_point_gfp_t__mul(&point__t, cofactor__pt, curve__pct, FLEA_FALSE));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&point__t, cofactor__pt, curve__pct, flea_false));
 # endif
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(G_arr);

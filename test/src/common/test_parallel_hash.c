@@ -46,7 +46,7 @@ flea_err_e THR_flea_test_parallel_hash()
   FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__update(&p_hash_ctx, msg1, strlen((const char*) msg1) - 1));
 
   FLEA_CCALL(THR_flea_hash_ctx_t__final(&hash_ctx_sha256, hash_ctx_sha256_out));
-  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__final(&p_hash_ctx, flea_sha256, FLEA_FALSE, p_hash_ctx_sha256_out));
+  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__final(&p_hash_ctx, flea_sha256, flea_false, p_hash_ctx_sha256_out));
 
   if(0 != memcmp(hash_ctx_sha256_out, p_hash_ctx_sha256_out, 32))
   {
@@ -72,7 +72,7 @@ flea_err_e THR_flea_test_parallel_hash()
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor_copy(&hash_ctx_sha256_copy, &hash_ctx_sha256));
 
   FLEA_CCALL(THR_flea_hash_ctx_t__final(&hash_ctx_sha256, hash_ctx_sha256_out));
-  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__final(&p_hash_ctx, flea_sha256, FLEA_TRUE, p_hash_ctx_sha256_out));
+  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__final(&p_hash_ctx, flea_sha256, flea_true, p_hash_ctx_sha256_out));
 
   if(0 != memcmp(hash_ctx_sha256_out, p_hash_ctx_sha256_out, 32))
   {
@@ -83,7 +83,7 @@ flea_err_e THR_flea_test_parallel_hash()
   FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__update(&p_hash_ctx, msg2, strlen((const char*) msg2) - 1));
 
   FLEA_CCALL(THR_flea_hash_ctx_t__final(&hash_ctx_sha256_copy, hash_ctx_sha256_out));
-  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__final(&p_hash_ctx, flea_sha256, FLEA_FALSE, p_hash_ctx_sha256_out));
+  FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__final(&p_hash_ctx, flea_sha256, flea_false, p_hash_ctx_sha256_out));
 
   if(0 != memcmp(hash_ctx_sha256_out, p_hash_ctx_sha256_out, 32))
   {

@@ -74,7 +74,7 @@ static flea_err_e THR_flea_tls_session_mngr_t__get_free_session_slot(
 {
   flea_al_u16_t i;
   flea_tls_session_entry_t* least_frequently_used_session__pt;
-  flea_bool_e found__b = FLEA_FALSE;
+  flea_bool_e found__b = flea_false;
 
   FLEA_THR_BEG_FUNC();
   for(i = 0; i < session_mngr__pt->nb_used_sessions__u16; i++)
@@ -83,7 +83,7 @@ static flea_err_e THR_flea_tls_session_mngr_t__get_free_session_slot(
     {
       session_mngr__pt->sessions__bt[i].use_cnt__u16 = 0;
       *result__ppt = &session_mngr__pt->sessions__bt[i];
-      found__b     = FLEA_TRUE;
+      found__b     = flea_true;
     }
   }
   if(!found__b)
@@ -111,7 +111,7 @@ static flea_err_e THR_flea_tls_session_mngr_t__get_free_session_slot(
       session_mngr__pt->sessions__bt[session_mngr__pt->nb_used_sessions__u16].use_cnt__u16 = 0;
       *result__ppt = &session_mngr__pt->sessions__bt[session_mngr__pt->nb_used_sessions__u16];
       session_mngr__pt->nb_used_sessions__u16 += 1;
-      found__b = FLEA_TRUE;
+      found__b = flea_true;
     }
   }
   if(!found__b)
@@ -259,11 +259,11 @@ flea_err_e THR_flea_tls_session_mngr_t__load_session(
     );
   if(!stored_session__pt)
   {
-    *load_successful__pb = FLEA_FALSE;
+    *load_successful__pb = flea_false;
   }
   else
   {
-    *load_successful__pb = FLEA_TRUE;
+    *load_successful__pb = flea_true;
     flea_tls_session_mngr_t__incr_use_cnt(session_mngr__pt, stored_session__pt);
     memcpy(result__pt, &stored_session__pt->session__t, sizeof(*result__pt));
   }

@@ -92,7 +92,7 @@ flea_err_e THR_flea_asn1_parse_gmt_time_optional(
 )
 {
   flea_x509_date_ref_t date_ref__t;
-  flea_bool_e optional_found__b = FLEA_TRUE;
+  flea_bool_e optional_found__b = flea_true;
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(byte_vec__t, 20);
 
@@ -109,7 +109,7 @@ flea_err_e THR_flea_asn1_parse_gmt_time_optional(
   date_ref__t.len__dtl   = byte_vec__t.len__dtl;
   if(!optional_found__b)
   {
-    *found__pb = FLEA_FALSE;
+    *found__pb = flea_false;
     FLEA_THR_RETURN();
   }
   FLEA_CCALL(
@@ -120,7 +120,7 @@ flea_err_e THR_flea_asn1_parse_gmt_time_optional(
       utctime__pt
     )
   );
-  *found__pb = FLEA_TRUE;
+  *found__pb = flea_true;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_asn1_parse_gmt_time_optional */
 
@@ -132,7 +132,7 @@ flea_err_e THR_flea_asn1_parse_gmt_time(
   FLEA_THR_BEG_FUNC();
 
   flea_x509_date_ref_t date_ref__t;
-  flea_bool_e optional_found__b = FLEA_FALSE;
+  flea_bool_e optional_found__b = flea_false;
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(byte_vec__t, 20);
   FLEA_CCALL(

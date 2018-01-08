@@ -185,7 +185,7 @@ flea_err_e THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t
  *
  * @param[in] tls_client_ctx pointer to the client ctx object
  *
- * @return FLEA_TRUE if a renegotiation may be carried out, FLEA_FALSE
+ * @return flea_true if a renegotiation may be carried out, flea_false
  * otherwise.
  */
 flea_bool_e flea_tls_client_ctx_t__is_reneg_allowed(flea_tls_client_ctx_t* tls_client_ctx);
@@ -200,9 +200,9 @@ flea_bool_e flea_tls_client_ctx_t__is_reneg_allowed(flea_tls_client_ctx_t* tls_c
  * renegotiation.
  *
  * @param[in] tls_client_ctx The TLS client object.
- * @param[out] result Is set to FLEA_FALSE if the renegotiation was declined
+ * @param[out] result Is set to flea_false if the renegotiation was declined
  * properly declined by a no-renegotiation-alert,
- * to FLEA_TRUE otherwise.
+ * to flea_true otherwise.
  * @param [in] trust_store the certificate trust store which contains trusted
  * certificates which are accepted as trusted root certificates when validating
  * the server's certificate chain
@@ -259,7 +259,7 @@ flea_err_e THR_flea_tls_client_ctx_t__renegotiate(
  *
  * @param client_ctx the TLS client context object pointer
  *
- * @return FLEA_TRUE if the peer EE certificate is available, FLEA_FALSE
+ * @return flea_true if the peer EE certificate is available, flea_false
  * otherwise.
  */
 flea_bool_e flea_tls_client_ctx_t__have_peer_ee_cert_ref(flea_tls_client_ctx_t* client_ctx);
@@ -285,7 +285,7 @@ const flea_x509_cert_ref_t* flea_tls_client_ctx_t__get_peer_ee_cert_ref(flea_tls
  *
  * @param client_ctx the TLS client context object pointer
  *
- * @return FLEA_TRUE if the peer EE certificate is available, FLEA_FALSE
+ * @return flea_true if the peer EE certificate is available, flea_false
  * otherwise.
  */
 flea_bool_e flea_tls_client_ctx_t__have_peer_root_cert_ref(flea_tls_client_ctx_t* client_ctx);

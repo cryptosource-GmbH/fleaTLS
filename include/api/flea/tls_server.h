@@ -136,7 +136,7 @@ flea_err_e THR_flea_tls_server_ctx_t__flush_write_app_data(flea_tls_server_ctx_t
  *
  * @param [in,out] tls_server_ctx Pointer to the server ctx object.
  *
- * @return FLEA_TRUE if a renegotiation may be carried out, FLEA_FALSE
+ * @return flea_true if a renegotiation may be carried out, flea_false
  * otherwise.
  */
 flea_bool_e flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_server_ctx);
@@ -151,6 +151,11 @@ flea_bool_e flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_s
  * renegotiation.
  *
  * @param [in,out] tls_server_ctx Pointer to the server ctx object.
+ * @param [out] result pointer to a boolean, which upon function return
+ * indicates whether the renegotiation was carried actually out. If the
+ * renegotiation was carried out, it takes on the value flea_true. Otherwise, if
+ * the renegotiation was refused, it
+ * becomes flea_false.
  * @param [in] trust_store_mbn Pointer to a certificate store object which
  * contains the trusted certificates the server may use to authenticate client
  * certificates. If this parameter is non-null, then the server enforces client
@@ -181,8 +186,6 @@ flea_bool_e flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_s
  * server may use for digital signatures during the handshake and in its own
  * certificate chain. It is ordered in descending priority.
  * @param allowed_sig_algs_len The length of allowed_sig_algs
- * @param[in] flags A combination of flags to control the server's behaviour.
- * @param[in,out] session_mngr_mbn A session manager implementing a TLS session
  * cache used to store sessions
  * established with clients for later resumption. This object may be shared
  * between different threads in which different flea_tls_server_ctx_t objects handle different connections to different clients. Once a client connects and requests connection resumption, the server performs a lookup in the flea_tls_session_mngr_t object. If the session is in the cache, the server accepts the resumption.  This parameter may be null, in which case the server does not support session resumption.
@@ -201,7 +204,7 @@ flea_err_e THR_flea_tls_server_ctx_t__renegotiate(
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
   flea_al_u16_t                     allowed_cipher_suites_len,
   flea_ec_dom_par_id_e*             allowed_ecc_curves,
-  flea_al_u16_t                     allowed_curves_len,
+  flea_al_u16_t                     allowed_ecc_curves_len,
   flea_tls_sigalg_e*                allowed_sig_algs,
   flea_al_u16_t                     allowed_sig_algs_len
 );
@@ -214,7 +217,7 @@ flea_err_e THR_flea_tls_server_ctx_t__renegotiate(
  *
  * @param server_ctx the TLS server context object pointer
  *
- * @return FLEA_TRUE if the peer EE certificate is available, FLEA_FALSE
+ * @return flea_true if the peer EE certificate is available, flea_false
  * otherwise.
  */
 flea_bool_e flea_tls_server_ctx_t__have_peer_ee_cert_ref(flea_tls_server_ctx_t* server_ctx);
@@ -237,7 +240,7 @@ const flea_x509_cert_ref_t* flea_tls_server_ctx_t__get_peer_ee_cert_ref(flea_tls
  *
  * @param server_ctx the TLS server context object pointer
  *
- * @return FLEA_TRUE if the peer EE certificate is available, FLEA_FALSE
+ * @return flea_true if the peer EE certificate is available, flea_false
  * otherwise.
  */
 flea_bool_e flea_tls_server_ctx_t__have_peer_root_cert_ref(flea_tls_server_ctx_t* server_ctx);

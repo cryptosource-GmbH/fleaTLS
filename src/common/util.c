@@ -41,11 +41,11 @@ flea_bool_e flea_sec_mem_equal(
   *sink__pvu8 = diff__u8;
   if(*sink__pvu8)
   {
-    return FLEA_FALSE;
+    return flea_false;
   }
   else
   {
-    return FLEA_TRUE;
+    return flea_true;
   }
 }
 

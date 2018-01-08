@@ -183,10 +183,10 @@ flea_err_e THR_flea_ecdsa__raw_verify(
 
   // Q = 0 is detected by this function
 # ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
-  FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(&P, &mpi_worksp_arr[1], &G, &mpi_worksp_arr[0], &curve, FLEA_FALSE, NULL));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(&P, &mpi_worksp_arr[1], &G, &mpi_worksp_arr[0], &curve, flea_false, NULL));
 # else
 
-  FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(&P, &mpi_worksp_arr[1], &G, &mpi_worksp_arr[0], &curve, FLEA_FALSE));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(&P, &mpi_worksp_arr[1], &G, &mpi_worksp_arr[0], &curve, flea_false));
 # endif
 
 
@@ -239,9 +239,9 @@ flea_err_e THR_flea_ecdsa__raw_sign(
   flea_point_gfp_t G;
 
 # ifdef FLEA_USE_ECC_ADD_ALWAYS
-  const flea_bool_e do_use_add_always__b = FLEA_TRUE;
+  const flea_bool_e do_use_add_always__b = flea_true;
 # else
-  const flea_bool_e do_use_add_always__b = FLEA_FALSE;
+  const flea_bool_e do_use_add_always__b = flea_false;
 # endif
 # ifdef FLEA_USE_STACK_BUF
   flea_uword_t ecc_ws_mpi_arrs [ECDSA_SIGN_MPI_WS_COUNT][FLEA_ECC_MAX_ORDER_WORD_SIZE];

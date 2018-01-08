@@ -118,6 +118,32 @@ typedef struct
  */
 void flea_byte_vec_t__INIT(flea_byte_vec_t* byte_vec);
 
+
+#ifdef FLEA_USE_HEAP_BUF
+
+/**
+ * Create an empty byte vector which is allocatable.
+ *
+ * @param byte_vec__pt the byte vector to create
+ */
+void flea_byte_vec_t__ctor_empty_allocatable(flea_byte_vec_t* byte_vec__pt);
+#endif
+
+/**
+ *
+ * Create an empty byte vector which is not allocatable but uses an external
+ * buffer for its internal memory.
+ *
+ * @param byte_vec__pt the byte vector to create
+ * @param ext_buf__pu8 the external buffer to use
+ * @param ext_buf_len__dtl size of the external buffer
+ */
+void flea_byte_vec_t__ctor_empty_use_ext_buf(
+  flea_byte_vec_t* byte_vec__pt,
+  flea_u8_t*       ext_buf__pu8,
+  flea_dtl_t       ext_buf_len__dtl
+);
+
 void flea_byte_vec_t__dtor(flea_byte_vec_t* byte_vec);
 
 /**

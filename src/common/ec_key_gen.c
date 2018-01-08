@@ -32,9 +32,9 @@ flea_err_e THR_flea_generate_ecc_key(
   flea_al_u8_t private_byte_len__al_u8, order_byte_len__al_u8;
 
 # ifdef FLEA_USE_ECC_ADD_ALWAYS
-  const flea_bool_e do_use_add_always__b = FLEA_TRUE;
+  const flea_bool_e do_use_add_always__b = flea_true;
 # else
-  const flea_bool_e do_use_add_always__b = FLEA_FALSE;
+  const flea_bool_e do_use_add_always__b = flea_false;
 # endif
 
   FLEA_DECL_BUF(pub_point_arr, flea_uword_t, 2 * FLEA_ECC_MAX_MOD_WORD_SIZE + 1);

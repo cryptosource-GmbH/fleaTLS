@@ -78,8 +78,8 @@ typedef flea_u32_t flea_dtl_t;
 typedef flea_u16_t flea_dtl_t;
 #endif
 
-#define FLEA_FALSE 0
-#define FLEA_TRUE  1
+#define flea_false 0
+#define flea_true  1
 
 #ifdef __cplusplus
 }

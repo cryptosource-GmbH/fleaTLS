@@ -124,26 +124,26 @@ flea_bool_e flea_tls__does_priv_key_type_fit_to_ciphersuite(
 
   if(cs__pt == NULL)
   {
-    return FLEA_FALSE;
+    return flea_false;
   }
   is_rsa_cs__u32 = cs__pt->mask & FLEA_TLS_CS_AUTH_MASK__RSA;
   if(key_type__e == flea_rsa_key)
   {
     if(is_rsa_cs__u32)
     {
-      return FLEA_TRUE;
+      return flea_true;
     }
-    return FLEA_FALSE;
+    return flea_false;
   }
   else  /* EC suite */
   {
     if(is_rsa_cs__u32)
     {
-      return FLEA_FALSE;
+      return flea_false;
     }
     else
     {
-      return FLEA_TRUE;
+      return flea_true;
     }
   }
 }

@@ -140,12 +140,12 @@ void flea_ber_dec_t__dtor(flea_ber_dec_t* dec__pt);
 /**
  *  Determine if the currently opened constructed has more data.
  * called in the outermost level (e.g. before opening the first constructed) it
- * will always return FLEA_TRUE.
+ * will always return flea_true.
  *
  * @param dec__pt [in] the decoder
  *
- * @return FLEA_TRUE if the current constructed has more data to process, and
- * FLEA_FALSE otherwise.
+ * @return flea_true if the current constructed has more data to process, and
+ * flea_false otherwise.
  *
  */
 flea_bool_e flea_ber_dec_t__has_current_more_data(flea_ber_dec_t* dec__pt);
@@ -166,8 +166,8 @@ flea_err_e THR_flea_ber_dec_t__open_constructed(
  * @param type__t [in] the type part of the tag
  * @param class_form__alu8 the combined class and form part of the tag
  * (CONSTRUCTED has to be specified explicitly here)
- * @param found__pb [out] receives FLEA_TRUE if the constructed was found,
- * FLEA_FALSE otherwise
+ * @param found__pb [out] receives flea_true if the constructed was found,
+ * flea_false otherwise
  *
  */
 flea_err_e THR_flea_ber_dec_t__open_constructed_optional(
@@ -224,7 +224,7 @@ flea_err_e THR_flea_ber_dec_t__read_value_raw(
 
 /**
  * DEPRECATED
- * @param found_ptr [out] receives FLEA_TRUE if the specified tag was found and FLEA_FALSE otherwise
+ * @param found_ptr [out] receives flea_true if the specified tag was found and flea_false otherwise
  *
  */
 
@@ -243,7 +243,7 @@ flea_err_e THR_flea_ber_dec_t__get_ref_to_raw_optional(
  * @param cft [in]
  * @param der_ref_t [out] object to receive the reference. if the object is not found
  * in the encoded data, then this value remains untouched.
- * @param found__pb [out] receives FLEA_TRUE if the object was found, FLEA_FALSE
+ * @param found__pb [out] receives flea_true if the object was found, flea_false
  * otherwise
  *
  */
@@ -413,7 +413,7 @@ flea_bool_e flea_ber_dec__are_der_refs_equal(
  * the first bit/byte of the bits string.
  * @param nb_bits__palu8 [out] receives the number of encoded bits in the bit string
  * @param optional_found__pb [in/out] On input, the pointer target deterimes whether the
- * decoding is optional. On function return, it tells whether the object was found (FLEA_TRUE) or not (FLEA_FALSE).
+ * decoding is optional. On function return, it tells whether the object was found (flea_true) or not (flea_false).
  *
  */
 flea_err_e THR_flea_ber_dec_t__decode_short_bit_str_to_u32_optional(

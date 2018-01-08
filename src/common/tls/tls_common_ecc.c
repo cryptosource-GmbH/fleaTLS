@@ -130,7 +130,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_point_formats_ext(
 )
 {
   flea_u8_t len__u8;
-  flea_bool_e found__b = FLEA_FALSE;
+  flea_bool_e found__b = flea_false;
 
   FLEA_THR_BEG_FUNC();
   if(!ext_len__alu16)
@@ -159,7 +159,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_point_formats_ext(
     );
     if(byte == 0) /* uncompressed */
     {
-      found__b = FLEA_TRUE;
+      found__b = flea_true;
     }
   }
   if(!found__b)
@@ -173,18 +173,18 @@ flea_bool_e flea_tls__is_cipher_suite_ecdhe_suite(flea_tls_cipher_suite_id_t sui
 {
   if(flea_tls_get_cipher_suite_by_id(suite_id)->mask & FLEA_TLS_CS_KEX_MASK__ECDHE)
   {
-    return FLEA_TRUE;
+    return flea_true;
   }
-  return FLEA_FALSE;
+  return flea_false;
 }
 
 flea_bool_e flea_tls__is_cipher_suite_ecc_suite(flea_tls_cipher_suite_id_t suite_id)
 {
   if((suite_id >> 8) == 0xC0)
   {
-    return FLEA_TRUE;
+    return flea_true;
   }
-  return FLEA_FALSE;
+  return flea_false;
 }
 
 flea_err_e THR_flea_tls_ctx_t__send_ecc_point_format_ext(

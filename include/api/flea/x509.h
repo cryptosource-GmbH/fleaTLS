@@ -148,17 +148,17 @@ typedef struct
  *
  * @param cert_ref__pt pointer to a flea_x509_cert_ref_t object.
  *
- * @return FLEA_TRUE if the certificate has a path length limit, FLEA_FALSE
+ * @return flea_true if the certificate has a path length limit, flea_false
  * otherwise.
  */
 #define flea_x509_cert_ref_t__HAS_PATH_LEN_LIMIT(cert_ref__pt) \
   (((cert_ref__pt)->extensions__t.basic_constraints__t. \
-  is_present__u8 && (cert_ref__pt)->extensions__t.basic_constraints__t.has_path_len__b) ? FLEA_TRUE : FLEA_FALSE)
+  is_present__u8 && (cert_ref__pt)->extensions__t.basic_constraints__t.has_path_len__b) ? flea_true : flea_false)
 
 /**
  * Get the path length limit as specified by the basic constraints extension.
  * May only be called if flea_x509_cert_ref_t__HAS_PATH_LEN_LIMIT returns
- * FLEA_TRUE.
+ * flea_true.
  *
  * @return the path length limit of the certificate.
  */
@@ -170,24 +170,24 @@ typedef struct
  * Check whether the certificate is a valid CA certificate according to its
  * basic constraints extension.
  *
- * @return FLEA_TRUE if the certificate is a CA certificate, FLEA_FALSE
+ * @return flea_true if the certificate is a CA certificate, flea_false
  * otherwise.
  */
 #define flea_x509_cert_ref_t__IS_CA(cert_ref__pt) \
   (((cert_ref__pt)->extensions__t.basic_constraints__t.is_present__u8 && \
-  (cert_ref__pt)->extensions__t.basic_constraints__t.is_ca__b) ? FLEA_TRUE : FLEA_FALSE)
+  (cert_ref__pt)->extensions__t.basic_constraints__t.is_ca__b) ? flea_true : flea_false)
 
 /**
  * Determine whether the certificate features an issuer unique id.
  *
- * @return FLEA_TRUE if the certificate has an issuer unique id, FLEA_FALSE
+ * @return flea_true if the certificate has an issuer unique id, flea_false
  * otherwise.
  */
 #define flea_x509_cert_ref_t__HAS_ISSUER_UNIQUE_ID(cert_ref__pt) \
   (FLEA_DER_REF_IS_ABSENT( \
     &(cert_ref__pt)-> \
     issuer_unique_id_as_bitstr__t \
-  ) ? FLEA_FALSE : FLEA_TRUE)
+  ) ? flea_false : flea_true)
 
 
 #ifdef FLEA_X509_CERT_REF_WITH_DETAILS
@@ -195,7 +195,7 @@ typedef struct
 /**
  * Get the issuer unique id as bit string.
  * May only be called if flea_x509_cert_ref_t__HAS_ISSUER_UNIQUE_ID return
- * FLEA_TRUE.
+ * flea_true.
  *
  * @param cert_ref__pt pointer to the flea_x509_cert_ref_t object
  * @param result_ref__prcu8 a pointer to a flea_ref_cu8_t which receives the result
@@ -323,7 +323,7 @@ flea_err_e THR_flea_x509_cert_ref_t__get_issuer_dn_component(
  * a non-existing key usage extension means that all key usages are considered
  * to be supported.
  *
- * @return FLEA_TRUE if all the required key usages are supported, FLEA_FALSE
+ * @return flea_true if all the required key usages are supported, flea_false
  * otherwise.
  */
 flea_bool_e flea_x509_cert_ref_t__has_key_usages(
@@ -345,7 +345,7 @@ flea_bool_e flea_x509_cert_ref_t__has_key_usages(
  * a non-existing extended key usage extension means that all key usages are considered
  * to be supported.
  *
- * @return FLEA_TRUE if all the required key usages are supported, FLEA_FALSE
+ * @return flea_true if all the required key usages are supported, flea_false
  * otherwise.
  */
 flea_bool_e flea_x509_cert_ref_t__has_extended_key_usages(
@@ -360,7 +360,7 @@ flea_bool_e flea_x509_cert_ref_t__has_extended_key_usages(
  *
  * @param cert_ref the certificate reference object
  *
- * @return FLEA_TRUE if the certificate is self issued, FLEA_FALSE otherwise.
+ * @return flea_true if the certificate is self issued, flea_false otherwise.
  */
 flea_bool_e flea_x509_is_cert_self_issued(const flea_x509_cert_ref_t* cert_ref);
 

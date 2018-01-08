@@ -51,11 +51,11 @@ flea_err_e THR_flea_rw_stream_t__ctor_detailed(
   stream__pt->write_func__f       = write_func__f;
   stream__pt->flush_write_func__f = flush_write_func__f;
   stream__pt->read_rem_len__u32   = read_limit__u32;
-  stream__pt->have_read_limit__b  = FLEA_FALSE;
+  stream__pt->have_read_limit__b  = flea_false;
   stream__pt->strm_type__e        = strm_type__e;
   if(read_limit__u32 != 0)
   {
-    stream__pt->have_read_limit__b = FLEA_TRUE;
+    stream__pt->have_read_limit__b = flea_true;
   }
   if(open_func__f != NULL)
   {

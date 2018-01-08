@@ -505,11 +505,11 @@ flea_bool_e property_set_t::get_property_as_bool(
   }
   if(find(index)->second == "true")
   {
-    return FLEA_TRUE;
+    return flea_true;
   }
   else if(find(index)->second == "false")
   {
-    return FLEA_FALSE;
+    return flea_false;
   }
 
   /*else //if(default_val != nullptr)
@@ -520,7 +520,7 @@ flea_bool_e property_set_t::get_property_as_bool(
   {
     // throw test_utils_exceptn_t("could not parse property '" + index + "' as boolean in file " + m_filename);
     throw_exception(std::string("could not parse propery"), index);
-    return FLEA_FALSE; // to make compiler happy, never reached
+    return flea_false; // to make compiler happy, never reached
   }
 }
 
