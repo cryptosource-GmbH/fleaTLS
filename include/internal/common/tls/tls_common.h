@@ -158,13 +158,15 @@ flea_err_e THR_flea_tls_ctx_t__send_app_data(
 flea_err_e THR_flea_tls_ctx_t__flush_write_app_data(flea_tls_ctx_t* tls_ctx);
 
 flea_err_e THR_flea_tls__server_handshake(
-  flea_tls_server_ctx_t* server_ctx__pt
+  flea_tls_server_ctx_t* server_ctx__pt,
+  flea_bool_e            is_reneg__b
 );
 
 flea_err_e THR_flea_tls__client_handshake(
   flea_tls_ctx_t*                       tls_ctx,
   flea_tls_client_session_t*            session_mbn__pt,
-  const flea_hostn_validation_params_t* hostn_valid_params__pt
+  const flea_hostn_validation_params_t* hostn_valid_params__pt,
+  flea_bool_e                           is_reneg__b
 );
 
 /**

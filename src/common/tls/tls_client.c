@@ -383,6 +383,7 @@ static flea_err_e THR_flea_tls__send_client_hello(
   flea_u32_t len;
   flea_al_u16_t ext_len__alu16;
   flea_u8_t version__au8[2];
+  flea_bool_e use_resumption__b;
 
   FLEA_THR_BEG_FUNC();
 
@@ -405,7 +406,10 @@ static flea_err_e THR_flea_tls__send_client_hello(
     /* extension length field */
     len += 2;
   }
-  if(session_mbn__pt && flea_tls_session_data_t__is_valid_session(&session_mbn__pt->session__t))
+  use_resumption__b = !hs_ctx__pt->is_reneg__b && session_mbn__pt && flea_tls_session_data_t__is_valid_session(
+    &session_mbn__pt->session__t
+    );
+  if(use_resumption__b)
   {
     len += session_mbn__pt->session_id_len__u8;
   }
@@ -439,7 +443,7 @@ static flea_err_e THR_flea_tls__send_client_hello(
     )
   );
 
-  if(session_mbn__pt && flea_tls_session_data_t__is_valid_session(&session_mbn__pt->session__t))
+  if(use_resumption__b)
   {
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_int_be(
@@ -991,7 +995,8 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
 flea_err_e THR_flea_tls__client_handshake(
   flea_tls_ctx_t*                       tls_ctx,
   flea_tls_client_session_t*            session_mbn__pt,
-  const flea_hostn_validation_params_t* hostn_valid_params__pt
+  const flea_hostn_validation_params_t* hostn_valid_params__pt,
+  flea_bool_e                           is_reneg__b
 )
 {
   flea_tls__handshake_state_t handshake_state;
@@ -1014,6 +1019,7 @@ flea_err_e THR_flea_tls__client_handshake(
   hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
   flea_public_key_t__INIT(&ecdhe_pub_key__t);
   hs_ctx__t.ecdhe_pub_key__pt = &ecdhe_pub_key__t;
+  hs_ctx__t.is_reneg__b       = is_reneg__b;
   // define and init state
 
   flea_tls__handshake_state_ctor(&handshake_state);
@@ -1374,7 +1380,12 @@ flea_err_e THR_flea_tls_client_ctx_t__ctor(
       rw_stream__pt
     )
   );
-  err__t = THR_flea_tls__client_handshake(tls_ctx__pt, session_mbn__pt, &tls_client_ctx__pt->hostn_valid_params__t);
+  err__t = THR_flea_tls__client_handshake(
+    tls_ctx__pt,
+    session_mbn__pt,
+    &tls_client_ctx__pt->hostn_valid_params__t,
+    FLEA_FALSE
+    );
   FLEA_CCALL(THR_flea_tls__handle_tls_error(NULL, tls_client_ctx__pt, err__t, NULL, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__ctor_client */
@@ -1400,7 +1411,14 @@ flea_err_e THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
   {
     FLEA_THROW("unexpected handshake message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
   }
-  FLEA_CCALL(THR_flea_tls__client_handshake(tls_ctx__pt, tls_ctx__pt->client_session_mbn__pt, hostn_valid_params__pt));
+  FLEA_CCALL(
+    THR_flea_tls__client_handshake(
+      tls_ctx__pt,
+      tls_ctx__pt->client_session_mbn__pt,
+      hostn_valid_params__pt,
+      FLEA_TRUE
+    )
+  );
 
   FLEA_THR_FIN_SEC(
     flea_tls_handsh_reader_t__dtor(&handsh_rdr__t);

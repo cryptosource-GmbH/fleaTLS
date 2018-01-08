@@ -116,7 +116,7 @@ static flea_err_e THR_flea_tls__read_client_hello(
   );
   server_ctx__pt->server_resume_session__u8      = 0;
   server_ctx__pt->server_session_id_assigned__u8 = (session_id_len__u8 != 0);
-  if(session_id_len__u8 && server_ctx__pt->session_mngr_mbn__pt)
+  if(!hs_ctx__pt->is_reneg__b && session_id_len__u8 && server_ctx__pt->session_mngr_mbn__pt)
   {
     flea_bool_e resume__b;
     FLEA_CCALL(
@@ -164,7 +164,6 @@ static flea_err_e THR_flea_tls__read_client_hello(
     }
 
     // check that key type of cert matches cs kex
-    // if(tls_ctx->private_key__pt->key_type__t == flea_tls__get_key_type_by_cipher_suite_id(curr_cs_from_peer__e))
     if(flea_tls__does_priv_key_type_fit_to_ciphersuite(curr_cs_from_peer__e, tls_ctx->private_key__pt->key_type__t))
     {
 # ifndef FLEA_HAVE_TLS_ECC
@@ -172,7 +171,6 @@ static flea_err_e THR_flea_tls__read_client_hello(
       supported_cs_index__alu16 = 0;
       while(supported_cs_index__alu16 < supported_cs_len__alu16)
       {
-        // if(curr_cs_from_peer__e == tls_ctx->allowed_cipher_suites__prcu16->data__pcu16[ supported_cs_index__u16 ])
         if(curr_cs_from_peer__e == tls_ctx->allowed_cipher_suites__pe[ supported_cs_index__alu16 ])
         {
           if(supported_cs_index__alu16 < chosen_cs_index__alu16)
@@ -374,28 +372,16 @@ static flea_err_e THR_flea_tls__send_server_hello(
     )
   );
 
-
-  /*FLEA_CCALL(
-   * THR_flea_tls__send_handshake_message_content(
-   *  &tls_ctx->rec_prot__t,
-   *  hash_ctx,
-   *  tls_ctx->server_random.gmt_unix_time,
-   *  sizeof(tls_ctx->server_random.gmt_unix_time)
-   * )
-   * );*/
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx->rec_prot__t,
       p_hash_ctx,
-      // tls_ctx->client_and_server_random__bu8 + FLEA_TLS_HELLO_RANDOM_SIZE,
       hs_ctx__pt->client_and_server_random__pt->data__pu8 + FLEA_TLS_HELLO_RANDOM_SIZE,
       FLEA_TLS_HELLO_RANDOM_SIZE
     )
   );
 
   FLEA_CCALL(THR_flea_tls__send_handshake_message_content(&tls_ctx->rec_prot__t, p_hash_ctx, &session_id_len__u8, 1));
-  // if(tls_ctx->server_active_sess_mbn__pt)
-  // {
   if(!server_ctx__pt->server_resume_session__u8 && server_ctx__pt->session_mngr_mbn__pt)
   {
     FLEA_CCALL(THR_flea_rng__randomize(server_ctx__pt->active_session__t.session_id__au8, FLEA_TLS_SESSION_ID_LEN));
@@ -438,17 +424,12 @@ static flea_err_e THR_flea_tls__send_server_hello(
 # ifdef FLEA_HAVE_TLS_ECC
   if(flea_tls__is_cipher_suite_ecc_suite(tls_ctx->selected_cipher_suite__e))
   {
-    /*if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES)
-     * {
-     * FLEA_CCALL(THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(tls_ctx, p_hash_ctx));
-     * }*/
     if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS)
     {
       FLEA_CCALL(THR_flea_tls_ctx_t__send_ecc_point_format_ext(tls_ctx, p_hash_ctx));
     }
   }
 # endif /* ifdef FLEA_HAVE_TLS_ECC */
-  // if(flea_tls_ctx_t__is_ecc_suite(tls_ctx__pt) &&
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_server_hello */
@@ -1045,7 +1026,8 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
 } /* THR_flea_handle_handsh_msg */
 
 flea_err_e THR_flea_tls__server_handshake(
-  flea_tls_server_ctx_t* server_ctx__pt
+  flea_tls_server_ctx_t* server_ctx__pt,
+  flea_bool_e            is_reneg__b
 )
 {
   flea_tls_ctx_t* tls_ctx = &server_ctx__pt->tls_ctx__t;
@@ -1076,6 +1058,7 @@ flea_err_e THR_flea_tls__server_handshake(
   flea_tls_ctx_t__begin_handshake(tls_ctx);
   hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
   hs_ctx__t.tls_ctx__pt = tls_ctx;
+  hs_ctx__t.is_reneg__b = is_reneg__b;
 
   flea_public_key_t__INIT(&peer_public_key__t);
   flea_private_key_t__INIT(&ecdhe_priv_key__t);
@@ -1432,7 +1415,7 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor(
   tls_server_ctx__pt->session_mngr_mbn__pt = session_mngr_mbn__pt;
 
   FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt));
-  err__t = THR_flea_tls__server_handshake(tls_server_ctx__pt);
+  err__t = THR_flea_tls__server_handshake(tls_server_ctx__pt, FLEA_FALSE);
   FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_server_ctx__pt, NULL, err__t, FLEA_FALSE, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();
 }

@@ -1024,7 +1024,7 @@ static flea_err_e THR_flea_tls_ctx_t__read_app_data_inner(
 # ifdef FLEA_HAVE_TLS_SERVER
       if(tls_ctx__pt->allow_reneg__u8)
       {
-        FLEA_CCALL(THR_flea_tls__server_handshake(server_ctx_mbn__pt));
+        FLEA_CCALL(THR_flea_tls__server_handshake(server_ctx_mbn__pt, FLEA_TRUE));
       }
       else
       {
@@ -1065,7 +1065,6 @@ static flea_err_e THR_flea_tls_ctx_t__read_app_data_inner(
         );
       }
 # else  /* ifdef FLEA_HAVE_TLS_CLIENT */
-      FLEA_THROW("Invalid State, Client not compiled", FLEA_ERR_INT_ERR);
 # endif /* ifdef FLEA_HAVE_TLS_CLIENT */
     }
   }
@@ -1164,10 +1163,15 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
   {
 # ifdef FLEA_HAVE_TLS_CLIENT
     err__t =
-      THR_flea_tls__client_handshake(tls_ctx__pt, tls_ctx__pt->client_session_mbn__pt, hostn_valid_params_mbn__pt);
-# else
+      THR_flea_tls__client_handshake(
+      tls_ctx__pt,
+      tls_ctx__pt->client_session_mbn__pt,
+      hostn_valid_params_mbn__pt,
+      FLEA_TRUE
+      );
+# else  /* ifdef FLEA_HAVE_TLS_CLIENT */
     FLEA_THROW("Invalid State, Client not compiled", FLEA_ERR_INT_ERR);
-# endif
+# endif /* ifdef FLEA_HAVE_TLS_CLIENT */
   }
   else
   {
@@ -1181,7 +1185,7 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
         0
       )
     );
-    err__t = THR_flea_tls__server_handshake(server_ctx_mbn__pt);
+    err__t = THR_flea_tls__server_handshake(server_ctx_mbn__pt, FLEA_TRUE);
 # else  /* ifdef FLEA_HAVE_TLS_SERVER */
     FLEA_THROW("Invalid State, Server not compiled", FLEA_ERR_INT_ERR);
 # endif /* ifdef FLEA_HAVE_TLS_SERVER */
