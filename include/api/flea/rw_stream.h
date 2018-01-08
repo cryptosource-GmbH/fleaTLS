@@ -4,7 +4,7 @@
 #define _flea_rw_stream__H_
 
 #include "flea/types.h"
-#include "internal/common/rw_stream_int.h"
+#include "internal/common/rw_stream_types.h"
 #include "flea/byte_vec.h"
 
 

@@ -4,6 +4,7 @@
 #define _flea_rw_stream_int__H_
 
 #include "flea/rw_stream.h"
+#include "internal/common/rw_stream_types.h"
 
 #ifdef __cplusplus
 extern "C" {
