@@ -21,8 +21,8 @@ flea_err_e THR_flea_tls__send_client_key_exchange_ecdhe(
   FLEA_THR_BEG_FUNC();
 
 
-  pub_point__rcu8 = flea_public_key__get_encoded_public_component(hs_ctx__pt->ecdhe_pub_key__pt);
-  hdr_len__u32    = pub_point__rcu8.len__dtl + 1;
+  flea_public_key_t__get_encoded_plain_ref(hs_ctx__pt->ecdhe_pub_key__pt, &pub_point__rcu8);
+  hdr_len__u32 = pub_point__rcu8.len__dtl + 1;
 
 
   FLEA_CCALL(

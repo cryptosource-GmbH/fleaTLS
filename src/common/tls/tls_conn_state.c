@@ -40,7 +40,6 @@ static void flea_tls_conn_state_t__unset_cipher_suite(flea_tls_conn_state_t* con
 
 void flea_tls_conn_state_t__ctor_no_cipher(flea_tls_conn_state_t* conn_state__pt)
 {
-  // conn_state__pt->cipher_suite_config__t.cipher_suite_id = FLEA_TLS_NULL_WITH_NULL_NULL;
   conn_state__pt->cipher_suite_config__t.cipher_suite_class__e = flea_null_cipher_suite;
   conn_state__pt->reserved_iv_len__u8 = 0;
 }

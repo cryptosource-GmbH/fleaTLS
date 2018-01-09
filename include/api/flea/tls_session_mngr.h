@@ -5,8 +5,6 @@
 
 #include "internal/common/default.h"
 #include "flea/types.h"
-// #include "internal/common/tls/tls_rec_prot_fwd.h"
-// #include "internal/common/tls/tls_session_mngr_int.h"
 #include "internal/common/tls/tls_session_int_fwd.h"
 
 #ifdef __cplusplus
@@ -17,35 +15,32 @@ extern "C" {
  * Destroy a TLS session manager object. All tls_server_ctx_t objects that use this session manager instance must be
  * properly destroyed before the TLS session manager is destroyed.
  *
- * @param session_mngr__pt the session manager object to destroy
+ * @param session_mngr the session manager object to destroy
  */
+void flea_tls_session_mngr_t__dtor(flea_tls_session_mngr_t* session_mngr);
 
-void flea_tls_session_mngr_t__dtor(flea_tls_session_mngr_t* session_mngr__pt);
-
+/**
+ * Init a session manager object.
+ *
+ * @param sm pointer to the the session manager object
+ */
 #ifdef FLEA_USE_HEAP_BUF
-# define flea_tls_session_mngr_t__INIT(__p) memset(__p, 0, sizeof(flea_tls_session_mngr_t))
-# define flea_tls_session_mngr_t__INIT_VALUE {.sessions__bt = 0, .nb_alloc_sessions__dtl = 0, .nb_used_sessions__u16 = 0}
+# define flea_tls_session_mngr_t__INIT(sm) memset(sm, 0, sizeof(flea_tls_session_mngr_t))
 #else
-# define flea_tls_session_mngr_t__INIT(__p)
+# define flea_tls_session_mngr_t__INIT(sm)
 #endif
 
-#if 0
-void flea_tls_session_data_t__export_seq(
-  flea_tls_session_data_t const* session__pt,
-  flea_tls_stream_dir_e          dir,
-  flea_u32_t                     result__pu32[2]
-);
-void flea_tls_session_data_t__set_seqs(
-  flea_tls_session_data_t* session_data__pt,
-  flea_u32_t               rd_seqs[2],
-  flea_u32_t               wr_seqs[2]
-);
-#endif // if 0
-
-
+/**
+ * Create a TLS session manager object to be used in a fleaTLS server for
+ * supporting session resumption.
+ *
+ * @param session_mngr the session manager object to create.
+ * @param session_validity_period_seconds the number of seconds for which a
+ * session remains valid (and thus resumable) after its initial creation.
+ */
 flea_err_e THR_flea_tls_session_mngr_t__ctor(
-  flea_tls_session_mngr_t* session_mngr__pt,
-  flea_u32_t               session_validity_period_seconds__u32
+  flea_tls_session_mngr_t* session_mngr,
+  flea_u32_t               session_validity_period_seconds
 );
 
 

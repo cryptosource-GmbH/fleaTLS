@@ -21,6 +21,7 @@
 #include "flea/pkcs8.h"
 #include "internal/common/tls/tls_client_int_ecc.h"
 #include "internal/common/tls/tls_common_ecc.h"
+#include "flea/pk_keypair.h"
 
 #ifdef FLEA_HAVE_TLS_CLIENT
 
@@ -254,7 +255,13 @@ static flea_err_e THR_flea_tls__read_server_kex(
       FLEA_THROW("curve chosen by server is not supported or not configured", FLEA_ERR_TLS_HANDSHK_FAILURE);
     }
 
-    FLEA_CCALL(THR_flea_tls__create_ecdhe_key(&ecdhe_priv_key__t, hs_ctx__pt->ecdhe_pub_key__pt, ec_dom_par_id__t));
+    FLEA_CCALL(
+      THR_flea_pubkey__generate_ecc_key_pair_by_dp_id(
+        hs_ctx__pt->ecdhe_pub_key__pt,
+        &ecdhe_priv_key__t,
+        ec_dom_par_id__t
+      )
+    );
 
     FLEA_CCALL(
       THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
@@ -304,7 +311,6 @@ static flea_err_e THR_flea_tls__read_server_kex(
     // check if pk_scheme_id__t and tls_ctx->peer_pubkey are compatible
     FLEA_CCALL(
       THR_flea_tls__check_sig_alg_compatibility_for_key_type(
-        // tls_ctx__pt->peer_pubkey.key_type__t,
         peer_public_key__pt->key_type__t,
         pk_scheme_id__t
       )
@@ -312,12 +318,11 @@ static flea_err_e THR_flea_tls__read_server_kex(
 
     // calculate hash of ec params
     FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&params_hash_ctx__t, hash_id__t));
-    server_pub_point__rcu8   = flea_public_key__get_encoded_public_component(&ecdhe_server_key__t);
+    flea_public_key_t__get_encoded_plain_ref(&ecdhe_server_key__t, &server_pub_point__rcu8);
     server_pub_point_len__u8 = (flea_u8_t) server_pub_point__rcu8.len__dtl;
     FLEA_CCALL(
       THR_flea_hash_ctx_t__update(
         &params_hash_ctx__t,
-        // tls_ctx__pt->client_and_server_random__bu8,
         hs_ctx__pt->client_and_server_random__pt->data__pu8,
         2 * FLEA_TLS_HELLO_RANDOM_SIZE
       )
@@ -341,7 +346,6 @@ static flea_err_e THR_flea_tls__read_server_kex(
     // verify if signature matches the calculated hash
     FLEA_CCALL(
       THR_flea_public_key_t__verify_digest_plain_format(
-        // &tls_ctx__pt->peer_pubkey,
         peer_public_key__pt,
         pk_scheme_id__t,
         hash_id__t,
@@ -880,13 +884,7 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
       }
       else
       {
-        handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE
-          // | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE //
-          // | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST // only enable this
-          // after the server sent his certificate because only authenticated
-          // servers can ask for client authentication
-          // | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
-        ;
+        handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE;
       }
     }
     else
@@ -902,15 +900,13 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
        tls_ctx->selected_cipher_suite__e
        ), .client_cert_type_mask__u8=                             0,
      .validate_server_or_client__e = FLEA_TLS_SERVER,
-     // .hostn_valid_params__pt       = &tls_ctx->hostn_valid_params__t};
-     .hostn_valid_params__pt     = hostn_valid_params__pt,
-     .allowed_sig_algs_mbn__pe   = tls_ctx->allowed_sig_algs__pe,
-     .nb_allowed_sig_algs__alu16 = tls_ctx->nb_allowed_sig_algs__alu16};
+     .hostn_valid_params__pt       = hostn_valid_params__pt,
+     .allowed_sig_algs_mbn__pe     = tls_ctx->allowed_sig_algs__pe,
+     .nb_allowed_sig_algs__alu16   = tls_ctx->nb_allowed_sig_algs__alu16};
     FLEA_CCALL(
       THR_flea_tls__read_certificate(
         tls_ctx,
         &handsh_rdr__t,
-        // &tls_ctx->peer_pubkey,
         peer_public_key__pt,
         &cert_path_params__t
       )
@@ -1166,7 +1162,7 @@ flea_err_e THR_flea_tls__client_handshake(
               flea_tls_read,
               FLEA_TLS_CLIENT,
               tls_ctx->selected_cipher_suite__e,
-              key_block__t.data__pu8// tls_ctx->key_block
+              key_block__t.data__pu8
             )
           );
           if(!session_mbn__pt || !session_mbn__pt->for_resumption__u8)

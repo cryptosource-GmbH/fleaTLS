@@ -60,13 +60,11 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_ASN1_DER_CALL_SEQ_ERR,              FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
   {FLEA_ERR_ASN1_DER_CST_LEN_LIMIT_EXCEEDED,    FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
   {FLEA_ERR_X509_ERR_UNSUP_CRIT_EXT,            FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_KU_DEC_ERR,                    FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
   {FLEA_ERR_X509_SAN_DEC_ERR,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
   {FLEA_ERR_X509_NEG_INT,                       FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_BC_EXCSS_PATH_LEN,             FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
   {FLEA_ERR_X509_EKU_VAL_ERR,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
   {FLEA_ERR_X509_SIG_ALG_ERR,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_UNSUPP_PRIMITIVE,              FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
+  {FLEA_ERR_X509_UNSUPP_ALGO,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
   {FLEA_ERR_X509_BIT_STR_ERR,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
   {FLEA_ERR_X509_UNRECOG_HASH_FUNCTION,         FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
   {FLEA_ERR_X509_UNSUPP_ALGO_VARIANT,           FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
@@ -1080,7 +1078,6 @@ static flea_err_e THR_flea_tls_ctx_t__read_app_data_inner(
   {
     FLEA_THROW("rethrowing during read app data", err__t);
   }
-  // } while(err__t);
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__read_app_data_inner */
@@ -1891,6 +1888,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
 } /* THR_flea_tls_ctx_t__client_parse_extensions */
 
 # ifdef FLEA_HAVE_TLS_ECDHE
+#  if 0
 flea_err_e THR_flea_tls__create_ecdhe_key(
   flea_private_key_t*  priv_key__pt,
   flea_public_key_t*   pub_key__pt,
@@ -1924,8 +1922,8 @@ flea_err_e THR_flea_tls__create_ecdhe_key(
     )
   );
 
-  flea_byte_vec_t__set_ref(&pubpoint_vec__t, pub_key__bu8, pub_key_len__alu8);
-  flea_byte_vec_t__set_ref(&scalar_vec__t, priv_key__bu8, priv_key_len__alu8);
+  flea_byte_vec_t__reconstruct_as_ref(&pubpoint_vec__t, pub_key__bu8, pub_key_len__alu8);
+  flea_byte_vec_t__reconstruct_as_ref(&scalar_vec__t, priv_key__bu8, priv_key_len__alu8);
 
   // generate keys
   FLEA_CCALL(
@@ -1948,6 +1946,8 @@ flea_err_e THR_flea_tls__create_ecdhe_key(
     FLEA_FREE_BUF_FINAL(priv_key__bu8);
   );
 } /* THR_flea_tls__create_ecdhe_key */
+
+#  endif /* if 0 */
 
 # endif /* ifdef FLEA_HAVE_TLS_ECDHE */
 
@@ -1994,7 +1994,7 @@ flea_err_e THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
     )
   );
 
-  flea_byte_vec_t__set_ref(&peer_enc_pubpoint_vec__t, peer_enc_pubpoint__bu8, peer_enc_pubpoint_len__u8);
+  flea_byte_vec_t__reconstruct_as_ref(&peer_enc_pubpoint_vec__t, peer_enc_pubpoint__bu8, peer_enc_pubpoint_len__u8);
   FLEA_CCALL(
     THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(
       &param__u.ecc_dom_par__t,

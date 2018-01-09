@@ -109,9 +109,9 @@ static flea_err_e THR_flea_test_pk_signer_sign_verify_inner(
     FLEA_ALLOC_BUF(priv_key__b_u8, priv_key_len__al_u8);
     FLEA_CCALL(THR_flea_generate_ecc_key(pub_key__b_u8, &pub_key_len__al_u8, priv_key__b_u8, &priv_key_len__al_u8, &param__pu->ecc_dom_par__t));
 
-    flea_byte_vec_t__set_ref(&pubpoint_vec__t, pub_key__b_u8, pub_key_len__al_u8);
+    flea_byte_vec_t__reconstruct_as_ref(&pubpoint_vec__t, pub_key__b_u8, pub_key_len__al_u8);
 
-    flea_byte_vec_t__set_ref(&scalar_vec__t, priv_key__b_u8, priv_key_len__al_u8);
+    flea_byte_vec_t__reconstruct_as_ref(&scalar_vec__t, priv_key__b_u8, priv_key_len__al_u8);
 
 
     FLEA_CCALL(THR_flea_private_key_t__ctor_ecc(&privkey__t, &scalar_vec__t, &param__pu->ecc_dom_par__t));

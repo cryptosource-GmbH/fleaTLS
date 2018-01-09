@@ -667,7 +667,7 @@ static flea_err_e THR_flea_ber_dec_t__read_or_ref_raw_opt_cft(
     {
       raw_len__dtl = p__pu8 - raw__pu8 + length__dtl;
     }
-    flea_byte_vec_t__set_ref(res_vec__pt, (flea_u8_t*) raw__pu8, raw_len__dtl);
+    flea_byte_vec_t__reconstruct_as_ref(res_vec__pt, (flea_u8_t*) raw__pu8, raw_len__dtl);
   }
 
   FLEA_CCALL(THR_flea_ber_dec_t__consume_current_length(dec__pt, length__dtl));
@@ -789,8 +789,6 @@ flea_err_e THR_flea_ber_dec_t__decode_tlv_raw_optional(
   flea_bool_e*     optional_found__pb
 )
 {
-  // flea_bool_e optional__b = flea_true;
-
   access_mode_t am;
 
   FLEA_THR_BEG_FUNC();
@@ -1066,8 +1064,6 @@ flea_err_e THR_flea_ber_dec_t__get_ref_to_raw_optional(
   flea_bool_e*     found__pb
 )
 {
-  // flea_byte_vec_t der_ref__t;
-
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
     THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
@@ -1391,7 +1387,6 @@ static flea_err_e THR_flea_ber_dec_t__decode_short_bit_str_to_u32_opt(
     *nb_bits__palu8 = 0;
     FLEA_THR_RETURN();
   }
-  // at least one content octet from here on
   unused__alu8 = enc_vec__t.data__pu8[0];
   if(unused__alu8 > 8)
   {

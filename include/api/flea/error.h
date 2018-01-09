@@ -10,21 +10,80 @@ extern "C" {
 
 typedef enum
 {
+  /**
+   * Successful execution.
+   */
   FLEA_ERR_FINE                                         = 0x00,
+
+  /**
+   * An unexpected internal error occurred.
+   */
   FLEA_ERR_INT_ERR                                      = 0x01,
+
+  /**
+   * An invalid state occurred.
+   */
   FLEA_ERR_INV_STATE                                    = 0x02,
+
+  /**
+   * A unit test failed.
+   */
   FLEA_ERR_FAILED_TEST                                  = 0x03,
+
+  /**
+   * The integrity of a ciphertext was found to be violated during decryption.
+   */
   FLEA_ERR_INTEGRITY_FAILURE                            = 0x04,
+
+  /**
+   * An integer overflow occurred.
+   */
   FLEA_ERR_INT_OVERFLOW                                 = 0x05,
+
+  /**
+   * An invalid argument was provided to a function.
+   */
   FLEA_ERR_INV_ARG                                      = 0x06,
+
+  /**
+   * An invalid / unsupported cryptographic algorithm was requested.
+   */
   FLEA_ERR_INV_ALGORITHM                                = 0x08,
+
+  /**
+   * An invalid MAC tag was encountered.
+   */
   FLEA_ERR_INV_MAC                                      = 0x09,
+
+  /**
+   * An elliptic curve point was found not to lie on the corresponding curve.
+   */
   FLEA_ERR_POINT_NOT_ON_CURVE                           = 0x0A,
+
+  /**
+   * An elliptic curve domain parameter set is invalid.
+   */
   FLEA_ERR_INV_ECC_DP                                   = 0x0B,
+
+  /**
+   * The requested cryptographic key size is invalid or unsupported.
+   */
   FLEA_ERR_INV_KEY_SIZE                                 = 0x0C,
+
+  /**
+   * The size of a component of a cryptographic key is invalid.
+   */
   FLEA_ERR_INV_KEY_COMP_SIZE                            = 0x0D,
+
+  /**
+   * An invalid cryptographic key type was specified for an operation.
+   */
   FLEA_ERR_INV_KEY_TYPE                                 = 0x0E,
-  FLEA_ERR_UNSUPP_KEY_SIZE                              = 0x0F,
+
+  /**
+   * Attempt to transform the elliptic curve point O (zero) to affine
+   * coordinates. Indicates invalid input data to an elliptic curve algorithm.
+   */
   FLEA_ERR_ZERO_POINT_AFF_TRF                           = 0x20,
 
   /**
@@ -67,30 +126,38 @@ typedef enum
   FLEA_ERR_TLS_SESSION_CLOSED                           = 0x44,
 
   /**
-   *
+   * A fatal TLS alert was received and the connection terminated.
    */
   FLEA_ERR_TLS_REC_FATAL_ALERT                          = 0x45,
 
   /**
-   *
+   * An unexpected TLS message was received during a TLS handshake.
    */
   FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH                      = 0x46,
 
   /**
-   *
+   * A bad record MAC was encountered when processing received TLS records.
    */
   FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC               = 0x47,
 
   /**
-   *
+   * The validation of the peer's certificate failed.
    */
   FLEA_ERR_TLS_CERT_VER_FAILED                          = 0x48,
 
-
+  /**
+   * The TLS session was closed and the sending of alert has failed.
+   */
   FLEA_ERR_TLS_SESSION_CLOSED_WHEN_TRYING_TO_SEND_ALERT = 0x49,
 
+  /**
+   * During the handshake, no cipher suite could be negotiated with the peer.
+   */
   FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE           = 0x4A,
 
+  /**
+   * During the handshake, no compression method could be negotiated with the peer.
+   */
   FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH             = 0x4B,
 
   /**
@@ -99,44 +166,63 @@ typedef enum
   FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA                   = 0x4C,
 
   /**
-   * TLS Errors
-   */
-
-  /**
    * Invalid contents of a TLS record header.
    */
-  FLEA_ERR_TLS_INV_REC_HDR                 = 0x4E,
+  FLEA_ERR_TLS_INV_REC_HDR                              = 0x4E,
 
   /**
    * A received record does not fit into the available buffer.
    */
-  FLEA_ERR_TLS_EXCSS_REC_LEN               = 0x4F,
+  FLEA_ERR_TLS_EXCSS_REC_LEN                            = 0x4F,
 
-  FLEA_ERR_TLS_INV_REC                     = 0x51,
+  /**
+   * An invalid TLS record was received.
+   */
+  FLEA_ERR_TLS_INV_REC                                  = 0x51,
 
   /**
    * The fleaTLS client received an invalid algorithm choice in the server hello.
    */
-  FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO    = 0x52,
+  FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO                 = 0x52,
 
-  FLEA_ERR_TLS_UNSUPP_PROT_VERSION         = 0x53,
+  /**
+   * The peer only offered an unsupported TLS version.
+   */
+  FLEA_ERR_TLS_UNSUPP_PROT_VERSION                      = 0x53,
 
-  FLEA_ERR_TLS_PROT_DECODE_ERR             = 0x54,
+  /**
+   * An error decoding a received TLS record occurred.
+   */
+  FLEA_ERR_TLS_PROT_DECODE_ERR                          = 0x54,
 
-  FLEA_ERR_TLS_INV_CIPH_SUITE              = 0x55,
+  /**
+   * An invalid TLS cipher suite was requested.
+   */
+  FLEA_ERR_TLS_INV_CIPH_SUITE                           = 0x55,
 
+
+  /**
+   * Received a no-renegotiation alert during a renegotiation. This error is
+   * only handled internally and not observed on the API.
+   */
   FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG = 0x56,
 
 
   /**
-   * thrown if renegotation is requested through the API but due to the
-   * connection's configuration, renegotiation is not allowd. In this case, the
-   * TLS ctx object remains unchanged.
+   * Thrown if renegotiation is requested through the API but due to the
+   * connection's configuration, renegotiation is not allowed.
    */
   FLEA_ERR_TLS_RENEG_NOT_ALLOWED = 0x57,
 
+  /**
+   * The parameters send by the peer during the TLS handshake led to a handshake
+   * failure.
+   */
   FLEA_ERR_TLS_HANDSHK_FAILURE   = 0x58,
 
+  /**
+   * The TLS connection was ended due to receiving a close-notify alert.
+   */
   FLEA_ERR_TLS_REC_CLOSE_NOTIFY  = 0x59,
 
   /**
@@ -148,64 +234,147 @@ typedef enum
   /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */
-  FLEA_ERR_PKCS8_INVALID_KEY_OID                      = 0x70,
+  FLEA_ERR_PKCS8_INVALID_KEY_OID           = 0x70,
 
   /**
    * An optional element in a PKCS#8 structure (optional in the ASN.1 specification) is missing which is necessary for the requested operation, e.g. for the creation of a public key.
    */
-  FLEA_ERR_PKCS8_MISSING_OPT_ELEMENT                  = 0x71,
+  FLEA_ERR_PKCS8_MISSING_OPT_ELEMENT       = 0x71,
 
   /**
    * A requested operation on a flea_rw_stream_t object is not supported by that
    * object.
    */
-  FLEA_ERR_STREAM_FUNC_NOT_SUPPORTED                  = 0x90,
+  FLEA_ERR_STREAM_FUNC_NOT_SUPPORTED       = 0x90,
 
   /**
    * A read stream has reached end-of-file.
    */
-  FLEA_ERR_STREAM_EOF                                 = 0x91,
+  FLEA_ERR_STREAM_EOF                      = 0x91,
 
   /**
    * During a stream read operation in timeout mode (flea_read_timeout), a
-   * timout occured.
+   * timeout occurred.
    */
-  FLEA_ERR_TIMEOUT_ON_STREAM_READ                     = 0x92,
+  FLEA_ERR_TIMEOUT_ON_STREAM_READ          = 0x92,
 
-  FLEA_ERR_BUFF_TOO_SMALL                             = 0xA0,
-  FLEA_ERR_DECODING_FAILURE                           = 0xA1,
-  FLEA_ERR_ASN1_DER_DEC_ERR                           = 0xA3,
-  FLEA_ERR_ASN1_DER_UNEXP_TAG                         = 0xA4,
-  FLEA_ERR_ASN1_DER_EXCSS_LEN                         = 0xA5,
-  FLEA_ERR_ASN1_DER_EXCSS_NST                         = 0xA6,
-  FLEA_ERR_ASN1_DEC_TRGT_BUF_TOO_SMALL                = 0xA7,
-  FLEA_ERR_ASN1_DER_CALL_SEQ_ERR                      = 0xA8,
-  FLEA_ERR_ASN1_DER_CST_LEN_LIMIT_EXCEEDED            = 0xA9,
+  /**
+   * An internal buffer is too small for the requested operation.
+   */
+  FLEA_ERR_BUFF_TOO_SMALL                  = 0xA0,
+
+  /**
+   * A general ASN.1 decoding error occurred.
+   */
+  FLEA_ERR_ASN1_DER_DEC_ERR                = 0xA3,
+
+  /**
+   * An unexpected tag was encountered during ASN.1 decoding.
+   */
+  FLEA_ERR_ASN1_DER_UNEXP_TAG              = 0xA4,
+
+  /**
+   * An excessive length was encountered during ASN.1 decoding.
+   */
+  FLEA_ERR_ASN1_DER_EXCSS_LEN              = 0xA5,
+
+  /**
+   * An excessive nesting was encountered during ASN.1 decoding.
+   */
+  FLEA_ERR_ASN1_DER_EXCSS_NST              = 0xA6,
+
+  /**
+   * The provided target buffer is too small during an ASN.1 decoding request.
+   */
+  FLEA_ERR_ASN1_DEC_TRGT_BUF_TOO_SMALL     = 0xA7,
+
+  /**
+   * The program's call sequence for ASN.1 decoding is invalid, for instance due
+   * to closing more constructed types than previously opened.
+   */
+  FLEA_ERR_ASN1_DER_CALL_SEQ_ERR           = 0xA8,
+
+  /**
+   * An length limit was exceeded during ASN.1 decoding.
+   */
+  FLEA_ERR_ASN1_DER_CST_LEN_LIMIT_EXCEEDED = 0xA9,
 
   /**
    * Unspecified error while trying to read from a stream.
    */
-  FLEA_ERR_FAILED_STREAM_READ                         = 0xAD,
+  FLEA_ERR_FAILED_STREAM_READ              = 0xAD,
 
   /**
    * Unspecified error while trying to write to a stream.
    */
-  FLEA_ERR_FAILED_STREAM_WRITE                        = 0xAE,
-  FLEA_ERR_FAILED_TO_OPEN_CONNECTION                  = 0xAF,
-  FLEA_ERR_PRNG_NVM_WRITE_ERROR                       = 0xB1,
-  FLEA_ERR_RNG_NOT_SEEDED                             = 0xB2,
-  FLEA_ERR_X509_VERSION_ERROR                         = 0xC0,
-  FLEA_ERR_X509_DN_ERROR                              = 0xC1,
-  FLEA_ERR_X509_ERR_UNSUP_CRIT_EXT                    = 0xC2,
-  FLEA_ERR_X509_KU_DEC_ERR                            = 0xC3,
-  FLEA_ERR_X509_SAN_DEC_ERR                           = 0xC4,
-  FLEA_ERR_X509_NEG_INT                               = 0xC5,
-  FLEA_ERR_X509_BC_EXCSS_PATH_LEN                     = 0xC6,
+  FLEA_ERR_FAILED_STREAM_WRITE             = 0xAE,
+
+  /**
+   * An error occurred when opening a connection. This value is not thrown by
+   * fleaTLS itself, but may be used flea_rw_stream_t implemenations to indicate
+   * errors.
+   */
+  FLEA_ERR_FAILED_TO_OPEN_CONNECTION       = 0xAF,
+
+
+  /**
+   * An invalid version in an X.509 related object was encountered.
+   */
+  FLEA_ERR_X509_VERSION_ERROR      = 0xC0,
+
+  /**
+   * An error occurred processing an X.509 distinguished name.
+   */
+  FLEA_ERR_X509_DN_ERROR           = 0xC1,
+
+  /**
+   * An unsupported critical extension was encountered.
+   */
+  FLEA_ERR_X509_ERR_UNSUP_CRIT_EXT = 0xC2,
+
+  /**
+   * An error occurred decoding the Subject Alternative Name Extension of a
+   * X.509 certificate.
+   */
+  FLEA_ERR_X509_SAN_DEC_ERR        = 0xC4,
+
+  /**
+   * A negative integer was unexpectedly encountered in an X.509 object.
+   */
+  FLEA_ERR_X509_NEG_INT            = 0xC5,
+
+
+  /**
+   * An unsupported Name Constraints Extension marked as critical was found in a
+   * certificate.
+   */
   FLEA_ERR_X509_ERR_UNSUP_CRIT_NAME_CONSTRAINTS_EXT   = 0xC7,
+
+  /**
+   * An unsupported Policy Constraints Extension marked as critical was found in a
+   * certificate.
+   */
   FLEA_ERR_X509_ERR_UNSUP_CRIT_POLICY_CONSTRAINTS_EXT = 0xC8,
+
+  /**
+   * An invalid value in the Extended Key Usage Extension was encountered.
+   */
   FLEA_ERR_X509_EKU_VAL_ERR                           = 0xC9,
+
+  /**
+   * An invalid/inconsisten value of the signature algorithm in an X.509 object
+   * was encountered.
+   */
   FLEA_ERR_X509_SIG_ALG_ERR                           = 0xCA,
-  FLEA_ERR_X509_UNSUPP_PRIMITIVE                      = 0xCB,
+
+  /**
+   * An unsupported algorithm specification was encountered in an X.509 object.
+   */
+  FLEA_ERR_X509_UNSUPP_ALGO                           = 0xCB,
+
+  /**
+   * An error decoding an ASN.1 bit string occured.
+   */
   FLEA_ERR_X509_BIT_STR_ERR                           = 0xCC,
 
   /**
@@ -226,7 +395,16 @@ typedef enum
    * indicate missing parameters.
    */
   FLEA_ERR_X509_INV_ECC_KEY_PARAMS                    = 0xCF,
+
+  /**
+   * An invalid/unsupported ECC field type was encountered in an X.509 object.
+   */
   FLEA_ERR_X509_INV_ECC_FIELD_TYPE                    = 0xD0,
+
+  /**
+   * An X.509 object did not provide explicit or named elliptic curve
+   * paramerters.
+   */
   FLEA_ERR_X509_IMPLICT_ECC_KEY_PARAMS                = 0xD1,
 
   /**
@@ -267,7 +445,15 @@ typedef enum
    */
   FLEA_ERR_X509_CRL_NAMES_DONT_MATCH                  = 0xD8,
 
+  /**
+   * The next update field of a CRL is exceeded.
+   */
   FLEA_ERR_X509_CRL_NEXT_UPDATE_PASSED                = 0xD9,
+
+  /**
+   * A CRL issuer certificate does not fullfill the requirements for the Key
+   * Usage Extension.
+   */
   FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN                = 0xDA,
 
   /**
@@ -275,7 +461,15 @@ typedef enum
    * Issuing Distribution Point CRL Extension.
    */
   FLEA_ERR_X509_UNSUITABLE_CRL                        = 0xDB,
+
+  /**
+   * The revocation status of a certificate could not be determined.
+   */
   FLEA_ERR_X509_CERT_REV_STAT_UNDET                   = 0xDC,
+
+  /**
+   * An operation failed due to the X.509 certificate being revoked.
+   */
   FLEA_ERR_X509_CERT_REVOKED                          = 0xDD,
 
   /**
@@ -287,34 +481,64 @@ typedef enum
    */
   FLEA_ERR_X509_CRL_CDP_IDP_MISMATCH                  = 0xDE,
 
-  FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS                 = 0xE0,
-  FLEA_ERR_CERT_PATH_NOT_FOUND                        = 0xE1,
-  FLEA_ERR_X509_CERT_EXPIRED                          = 0xE2,
-  FLEA_ERR_X509_CERT_NOT_YET_VALID                    = 0xE3,
-  FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED              = 0xE4,
-  FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT               = 0xE5,
+
+  /**
+   *  Certificate path validation failed because no trusted root certificate was
+   *  found / contained in the path.
+   */
+  FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS    = 0xE0,
+
+  /**
+   * The certificate's cert path could not be found.
+   */
+  FLEA_ERR_CERT_PATH_NOT_FOUND           = 0xE1,
+
+  /**
+   * An operation failed due to the X.509 certificate being expired.
+   */
+  FLEA_ERR_X509_CERT_EXPIRED             = 0xE2,
+
+  /**
+   * An operation failed due to the X.509 certificate being not yet valid.
+   */
+  FLEA_ERR_X509_CERT_NOT_YET_VALID       = 0xE3,
+
+  /**
+   * The maximal allowed certification path length was exceeded during the
+   * validation of an X.509 certificate.
+   */
+  FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED = 0xE4,
+
+  /**
+   * An intermediate CA certificate is not qualified as a CA certificate.
+   */
+  FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT  = 0xE5,
 
   /**
    * The routine for the construction of a valid certification path
    * was cancelled from another thread.
    */
-  FLEA_ERR_X509_USER_CANCELLED                        = 0xE6,
+  FLEA_ERR_X509_USER_CANCELLED           = 0xE6,
 
   /**
    * A function to deterine the current time was not supplied to THR_flea_lib__init().
    */
-  FLEA_ERR_NOW_FUNC_IS_NULL                           = 0xE7,
+  FLEA_ERR_NOW_FUNC_IS_NULL              = 0xE7,
 
   /**
    * The initalization of a mutex failed.
    */
-  FLEA_ERR_MUTEX_INIT                                 = 0xF1,
+  FLEA_ERR_MUTEX_INIT                    = 0xF1,
 
   /**
    * Locking or unlocking of a mutex failed.
    */
-  FLEA_ERR_MUTEX_LOCK                                 = 0xF2,
-  FLEA_ERR_OUT_OF_MEM                                 = 0xFF,
+  FLEA_ERR_MUTEX_LOCK                    = 0xF2,
+
+  /**
+   * A memory allocation request could not be satisfied.
+   */
+  FLEA_ERR_OUT_OF_MEM                    = 0xFF,
 } flea_err_e;
 
 #ifdef __cplusplus

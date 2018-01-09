@@ -153,6 +153,15 @@ compiles and runs also on 64-bit machines.
 
   A function parameter ending \code{\_mbn} stands for ``may be null'' and
   indicates that the caller my supply a null pointer for the parameter.
+
+  \subsection{Character Strings}
+
+  fleaTLS only supports raw character strings. Characters are never interpreted in 
+  a specific encoding. Only \code{ const char* } function parameters are expected to be
+  null-terminated, character strings which are held in byte arrays such as
+  \code{flea\_u8\_t*} or in a \code{flea\_byte\_vec\_t} may not be
+  null-terminated.
+
 \section{Getting started with flea}
 
   In order to get easily started with flea, the library is shipped with a CMake

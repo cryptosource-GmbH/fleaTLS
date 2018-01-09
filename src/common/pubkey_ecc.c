@@ -13,6 +13,7 @@
 #include "internal/common/pubkey_int.h"
 #include "flea/mem_read_stream.h"
 #include "flea/ecc_named_curves.h"
+#include "flea/ecka.h"
 
 #ifdef FLEA_HAVE_ECC
 
@@ -145,7 +146,7 @@ flea_err_e THR_flea_public_key_t__create_ecdsa_key(
 # else
   if(dp_ref__pt->p__ru8.len__dtl > FLEA_ECC_MAX_MOD_BYTE_SIZE)
   {
-    FLEA_THROW("invalid parameter length", FLEA_ERR_UNSUPP_KEY_SIZE);
+    FLEA_THROW("invalid parameter length", FLEA_ERR_INV_KEY_SIZE);
   }
   max_dp_concat_len = FLEA_ECC_DP_CONCAT_BYTE_SIZE_FROM_MOD_BIT_SIZE(8 * dp_ref__pt->p__ru8.len__dtl);
   ;

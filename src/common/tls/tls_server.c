@@ -638,7 +638,7 @@ static flea_err_e THR_flea_tls__read_client_key_exchange_rsa(
   );
 
   FLEA_CCALL(
-    THR_flea_private_key_t__decrypt_message(
+    THR_flea_private_key_t__decrypt_message_secure(
       tls_ctx->private_key__pt,
       flea_rsa_pkcs1_v1_5_encr,
       0, // we don't use a hash
@@ -833,7 +833,6 @@ static flea_err_e THR_flea_tls__read_cert_verify(
 
   FLEA_CCALL(
     THR_flea_public_key_t__verify_digest_plain_format(
-      // &tls_ctx->peer_pubkey,
       peer_public_key__pt,
       pk_scheme_id__t,
       hash_id__t,
@@ -1007,7 +1006,6 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
     {
       FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx_copy__t));
-      // FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, hash_ctx__pt));
 
       FLEA_THR_RETURN();
     }

@@ -11,13 +11,13 @@ extern "C" {
 #endif
 
 /**
- * Function for feeding low entropy value to flea's global RNG's entropy pool.
+ * Function for feeding low entropy value to fleaTLS' global RNG's entropy pool.
  * The function is meant only for adding of low entropy data, e.g. current
  * processor cycle
  * counts from asynchronously triggered interrupt routines. The function has a has a small and almost
  * constant timing cost.
  *
- * Note: Do not use to this function to initially seed or reseed flea's global RNG
+ * Note: Do not use to this function to initially seed or reseed fleaTLS' global RNG
  * with high entropy data. Other functions are avaivable for this purpose.
  *
  * @param entropy_value u16-bit value containing entropy to be feed to the pool

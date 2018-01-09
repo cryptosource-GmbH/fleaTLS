@@ -87,7 +87,6 @@ flea_err_e THR_flea_tls_ctx_t__parse_supported_curves_ext(
   while(len__u32)
   {
     flea_ec_dom_par_id_e dp_id;
-    // flea_u32_t curve_id__u32;
     flea_u8_t curve_bytes__au8 [2];
     flea_al_u16_t i;
     len__u32 -= 2;

@@ -58,7 +58,6 @@ typedef enum { flea_asn1_utc_time, flea_asn1_generalized_time } flea_asn1_time_t
 
 typedef enum { flea_decode_ref, flea_decode_copy } flea_asn1_dec_val_hndg_e;
 
-// #define FLEA_DER_REF_SET_ABSENT(__p) (__p)->data__pu8 = NULL; (__p)->len__dtl = 0
 #define FLEA_DER_REF_IS_ABSENT(__p) ((__p)->data__pu8 == 0)
 
 struct struct_flea_ber_dec_t
@@ -80,8 +79,6 @@ struct struct_flea_ber_dec_t
   flea_u8_t                hash_active__b;
   flea_u8_t                hash_buffering_active__b;
   flea_hash_ctx_t*         hash_ctx__pt;
-  // flea_u8_t* hasher_constru
-  // const flea_u8_t*         next_tlv_ptr__pcu8;
 };
 
 #ifdef FLEA_USE_HEAP_BUF
@@ -217,9 +214,6 @@ flea_err_e THR_flea_ber_dec_t__read_value_raw(
   flea_asn1_tag_t  type__t,
   flea_al_u8_t     class_form__alu8,
   flea_byte_vec_t* res_vec__pt
-
-  /*flea_u8_t*      out_mem__pu8,
-   * flea_dtl_t*     out_mem_len__pdtl*/
 );
 
 /**
@@ -318,20 +312,6 @@ flea_err_e THR_flea_ber_dec_t__decode_date_opt(
   flea_bool_e*           optional_found__pb
 );
 
-/*flea_err_e THR_flea_ber_dec_t__get_ref_to_date_opt(
- * flea_ber_dec_t*        dec__pt,
- * flea_asn1_time_type_t* time_type__pt,
- * flea_byte_vec_t*       res_vec__pt,
- * flea_bool_e*           optional_found__pb
- * );*/
-
-/*flea_err_e THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional(
- * flea_ber_dec_t*  dec__pt,
- * flea_al_u8_t     outer_tag__alu8,
- * flea_asn1_tag_t  encap_type__t,
- * flea_byte_vec_t* ref__pt
- * );*/
-
 
 flea_err_e THR_flea_ber_dec_t__decode_implicit_universal_optional(
   flea_ber_dec_t*  dec__pt,
@@ -339,13 +319,6 @@ flea_err_e THR_flea_ber_dec_t__decode_implicit_universal_optional(
   flea_asn1_tag_t  encap_type__t,
   flea_byte_vec_t* ref__pt
 );
-
-/*flea_err_e THR_flea_ber_dec_t__get_ref_to_implicit_universal_optional_with_inner(
- * flea_ber_dec_t*  dec__pt,
- * flea_al_u8_t     outer_tag__alu8,
- * flea_asn1_tag_t  encap_type__t,
- * flea_byte_vec_t* ref__pt
- * );*/
 
 flea_err_e THR_flea_ber_dec_t__decode_implicit_universal_optional_with_inner(
   flea_ber_dec_t*  dec__pt,

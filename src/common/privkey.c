@@ -371,4 +371,25 @@ flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
   );
 } /* THR_flea_pk_signer_t__final_sign */
 
+flea_err_e THR_flea_private_key_t__get_encoded_plain(
+  const flea_private_key_t* privkey__cpt,
+  flea_byte_vec_t*          result__pt
+)
+{
+  FLEA_THR_BEG_FUNC();
+  if(privkey__cpt->key_type__t != flea_ecc_key)
+  {
+    FLEA_THROW("invalid key type for plain encoding", FLEA_ERR_INV_KEY_TYPE);
+  }
+  FLEA_CCALL(
+    THR_flea_byte_vec_t__set_content(
+      result__pt,
+      privkey__cpt->privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8.data__pu8,
+      privkey__cpt->privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8.len__dtl
+    )
+  );
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
 #endif /* #ifdef FLEA_HAVE_ASYM_ALGS */

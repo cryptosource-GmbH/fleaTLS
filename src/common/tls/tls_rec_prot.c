@@ -257,12 +257,10 @@ static flea_err_e THR_flea_tls_rec_prot_t__set_cbc_hmac_ciphersuite(
   flea_tls_rec_prot_t*            rec_prot__pt,
   flea_tls_stream_dir_e           direction,
   flea_tls__connection_end_t      conn_end__e,
-  // flea_tls_cipher_suite_id_t suite_id,
   const flea_tls__cipher_suite_t* suite__pt,
   const flea_u8_t*                key_block__pcu8
 )
 {
-  // const flea_tls__cipher_suite_t* suite__pt;
   FLEA_THR_BEG_FUNC();
   flea_al_u8_t mac_key_len__alu8, mac_len__alu8, cipher_key_len__alu8;
   flea_al_u8_t mac_key_offs__alu8 = 0, ciph_key_offs__alu8 = 0;

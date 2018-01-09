@@ -217,10 +217,6 @@ void flea_tls_set_tls_random(flea_tls_handshake_ctx_t* ctx__pt);
 
 flea_mac_id_e flea_tls__map_hmac_to_hash(flea_hash_id_e h);
 
-/*flea_err_e THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
- * flea_tls_ctx_t* tls_ctx__pt
- * );*/
-
 flea_err_e THR_flea_tls_ctx_t__send_extensions(
   flea_tls_ctx_t*               tls_ctx__pt,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt

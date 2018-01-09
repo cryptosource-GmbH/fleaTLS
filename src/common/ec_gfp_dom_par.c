@@ -690,18 +690,6 @@ static void flea_ec_dom_par__set_ru8_from_internal_format(
   }
 }
 
-/*static void flea_ec_gfp_dom_par_t__set_from_internal_format(flea_ec_gfp_dom_par_t * result__pt, const flea_u8_t *enc_dp__pcu8)
- * {
- * flea_ec_dom_par__set_ru8_from_internal_format(&result__pt->p__ru8, enc_dp__pcu8, flea_dp__p);
- * flea_ec_dom_par__set_ru8_from_internal_format(&result__pt->a__ru8, enc_dp__pcu8, flea_dp__a);
- * flea_ec_dom_par__set_ru8_from_internal_format(&result__pt->b__ru8, enc_dp__pcu8, flea_dp__b);
- * flea_ec_dom_par__set_ru8_from_internal_format(&result__pt->gx__ru8, enc_dp__pcu8, flea_dp__Gx);
- * flea_ec_dom_par__set_ru8_from_internal_format(&result__pt->gy__ru8, enc_dp__pcu8, flea_dp__Gy);
- * flea_ec_dom_par__set_ru8_from_internal_format(&result__pt->n__ru8, enc_dp__pcu8, flea_dp__n);
- * flea_ec_dom_par__set_ru8_from_internal_format(&result__pt->h__ru8, enc_dp__pcu8, flea_dp__h);
- *
- * }*/
-
 flea_err_e THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(
   flea_ec_gfp_dom_par_ref_t* dp_to_set__pt,
   flea_ec_dom_par_id_e       id

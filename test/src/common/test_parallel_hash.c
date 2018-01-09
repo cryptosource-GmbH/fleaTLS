@@ -20,9 +20,6 @@ flea_err_e THR_flea_test_parallel_hash()
   flea_u8_t hash_ids_len = FLEA_NB_ARRAY_ENTRIES(hash_ids);
   flea_tls_parallel_hash_ctx_t p_hash_ctx = flea_tls_parallel_hash_ctx_t__INIT_VALUE;
 
-  // FLEA_DECL_OBJ(hash_ctx_sha256, flea_hash_ctx_t);
-  // FLEA_DECL_OBJ(hash_ctx_sha256_copy, flea_hash_ctx_t);
-
   flea_hash_ctx_t hash_ctx_sha256      = flea_hash_ctx_t__INIT_VALUE;
   flea_hash_ctx_t hash_ctx_sha256_copy = flea_hash_ctx_t__INIT_VALUE;
 

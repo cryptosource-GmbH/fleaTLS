@@ -55,23 +55,18 @@ static flea_err_e THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
     0x7F, 0x46, 0xB5, 0xBA, 0xA0, 0xB7, 0x64, 0x07, 0x01, 0x8F, 0xC2, 0x2A, 0xD9, 0xC4, 0x5A, 0xAA, 0x94, 0xF7, 0xCE,
     0xF1, 0x4B, 0x3A, 0x51, 0x6C, 0x79, 0x14, 0x94, 0xDA
   };
-  // FLEA_DECL_BUF(decr__bu8, flea_u8_t, 2048 / 8);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(decr_vec__t, 2048 / 8);
-  // flea_al_u16_t decr_len__alu16   = 2048 / 8;
   const flea_u8_t exp_res__acu8[] = "abc";
   FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
   flea_ref_cu8_t priv_key_int_form__rcu8 = {.data__pcu8 = rsa_2048_crt_key_internal_format__acu8, .len__dtl = sizeof(rsa_2048_crt_key_internal_format__acu8)};
-  // flea_byte_vec_t priv_key_int_format_vec__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(rsa_2048_crt_key_internal_format__acu8,sizeof(rsa_2048_crt_key_internal_format__acu8));
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
     THR_flea_private_key_t__ctor_rsa_internal_format(
       &privkey__t,
       &priv_key_int_form__rcu8,
-      // &priv_key_int_format_vec__t,
       2048
     )
   );
-  // FLEA_ALLOC_BUF(decr__bu8, 2048 / 8);
   // test OAEP decryption
   FLEA_CCALL(
     THR_flea_private_key_t__decrypt_message(
@@ -80,22 +75,18 @@ static flea_err_e THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
       flea_sha1,
       ct_oaep,
       sizeof(ct_oaep),
-      &decr_vec__t,
-      0,
-      NULL
+      &decr_vec__t
     )
   );
   if(decr_vec__t.len__dtl != sizeof(exp_res__acu8))
   {
     FLEA_THROW("error with RSA-OAEP decrypted reference ct length", FLEA_ERR_FAILED_TEST);
   }
-  // if(memcmp(exp_res__acu8, decr__bu8, sizeof(exp_res__acu8)))
   if(memcmp(exp_res__acu8, decr_vec__t.data__pu8, decr_vec__t.len__dtl))
   {
     FLEA_THROW("error with RSA-OAEP decrypted reference ct value", FLEA_ERR_FAILED_TEST);
   }
   // test PKCS#1 v1.5 decryption
-  // decr_len__alu16 = 2048 / 8;
   FLEA_CCALL(
     THR_flea_private_key_t__decrypt_message(
       &privkey__t,
@@ -103,9 +94,7 @@ static flea_err_e THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
       flea_sha1,
       ct_pkcs1_v1_5,
       sizeof(ct_pkcs1_v1_5),
-      &decr_vec__t,
-      0,
-      NULL
+      &decr_vec__t
     )
   );
   if(decr_vec__t.len__dtl != sizeof(exp_res__acu8))
@@ -136,16 +125,13 @@ static flea_err_e THR_flea_test_pkcs1_v1_5_encoding_encr()
                                  0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
                                  0x11};
 
-  //  FLEA_DECL_BUF(extr_message, flea_u8_t, sizeof(message));
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(extr_message_vec__t, sizeof(message));
-  // flea_al_u16_t extr_message_len = sizeof(message);
   FLEA_DECL_BUF(res, flea_u8_t, 1536 / 8);
   flea_al_u16_t output_size__alu16 = 1536 / 8, i;
   flea_u8_t silent_alarm__u8;
   FLEA_THR_BEG_FUNC();
 
   FLEA_ALLOC_BUF(res, output_size__alu16);
-  // FLEA_ALLOC_BUF(extr_message, sizeof(message));
 
   memcpy(res, message, sizeof(message));
 
@@ -184,7 +170,6 @@ static flea_err_e THR_flea_test_pkcs1_v1_5_encoding_encr()
   {
     FLEA_THROW("extracted message content of pkcs#1 v1.5 encoding incorrect", FLEA_ERR_FAILED_TEST);
   }
-  // extr_message_len = sizeof(message);
   /* test decoding of correct ciphertext with Bleichenbacher countermeasure */
   FLEA_CCALL(
     THR_flea_pk_api__decode_message__pkcs1_v1_5(
@@ -219,7 +204,6 @@ static flea_err_e THR_flea_test_pkcs1_v1_5_encoding_encr()
   {
     FLEA_THROW("invalid error code for invalid PKCS#1 v1.5 message", FLEA_ERR_FAILED_TEST);
   }
-  // extr_message_len = sizeof(message);
   /* test decoding of incorrect ciphertext with Bleichenbacher countermeasure */
   FLEA_CCALL(
     THR_flea_pk_api__decode_message__pkcs1_v1_5(
@@ -249,7 +233,6 @@ static flea_err_e THR_flea_test_pkcs1_v1_5_encoding_encr()
       FLEA_ERR_FAILED_TEST
     );
   }
-  // extr_message_len = sizeof(message);
 
   /* restore correct value in res: */
   output_size__alu16 = 1536 / 8;
@@ -262,7 +245,6 @@ static flea_err_e THR_flea_test_pkcs1_v1_5_encoding_encr()
   {
     FLEA_THROW("invalid error code for invalid PKCS#1 v1.5 message", FLEA_ERR_FAILED_TEST);
   }
-  // extr_message_len = sizeof(message);
   /* test decoding of incorrect ciphertext with Bleichenbacher countermeasure */
   FLEA_CCALL(
     THR_flea_pk_api__decode_message__pkcs1_v1_5(
@@ -292,7 +274,6 @@ static flea_err_e THR_flea_test_pkcs1_v1_5_encoding_encr()
       FLEA_ERR_FAILED_TEST
     );
   }
-  // extr_message_len = sizeof(message);
 
   /* restore correct value in res: */
   output_size__alu16 = 1536 / 8;
@@ -305,7 +286,6 @@ static flea_err_e THR_flea_test_pkcs1_v1_5_encoding_encr()
   {
     FLEA_THROW("invalid error code for invalid PKCS#1 v1.5 message", FLEA_ERR_FAILED_TEST);
   }
-  // extr_message_len = sizeof(message);
 
   /* test decoding of incorrect ciphertext with Bleichenbacher countermeasure */
   FLEA_CCALL(
@@ -336,7 +316,6 @@ static flea_err_e THR_flea_test_pkcs1_v1_5_encoding_encr()
       FLEA_ERR_FAILED_TEST
     );
   }
-  // extr_message_len = sizeof(message);
 
   /* now let the last position be zero, this is also an invalid ciphertext */
   res[1536 / 8 - 1] = 0;
@@ -509,12 +488,10 @@ flea_err_e THR_flea_test_oaep()
   flea_al_u16_t out_len__al_u16 = mod_len;
 
   FLEA_DECL_BUF(enc__b_u8, flea_u8_t, mod_len);
-  // FLEA_DECL_BUF(decr__b_u8, flea_u8_t, sizeof(input));
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(decr_vec__t, sizeof(input));
   FLEA_THR_BEG_FUNC();
 
   FLEA_ALLOC_BUF(enc__b_u8, mod_len);
-  // FLEA_ALLOC_BUF(decr__b_u8, sizeof(input));
 
   memcpy(enc__b_u8, input, sizeof(input));
 
@@ -572,26 +549,18 @@ static flea_err_e THR_flea_inner_test_pk_encryption(
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(ciphertext__t, 2048 / 8);
   FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
-  // FLEA_DECL_BUF(ciphertext__bu8, flea_u8_t, 2048 / 8); // FLEA_PK_MAX_PRIMITIVE_OUTPUT_LEN);
   const flea_u8_t message__acu8 [] = {0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
                                       0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
                                       0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
                                       0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
                                       0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0x11};
-  // FLEA_DECL_BUF(decrypted__bu8, flea_u8_t, sizeof(message__acu8));
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(decr_vec__t, sizeof(message__acu8));
-  // flea_al_u16_t ciphertext_len__alu16 = 2048 / 8;
-  // flea_al_u16_t decrypted_len__alu16  = sizeof(message__acu8);
   FLEA_THR_BEG_FUNC();
-  // FLEA_ALLOC_BUF(ciphertext__bu8, ciphertext_len__alu16);
-  // FLEA_ALLOC_BUF(decrypted__bu8, decrypted_len__alu16);
 
   flea_ref_cu8_t priv_key_int_form__rcu8 = {.data__pcu8 = rsa_2048_crt_key_internal_format__acu8, .len__dtl = sizeof(rsa_2048_crt_key_internal_format__acu8)};
-  // flea_byte_vec_t priv_key_int_format_vec__t  = flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(rsa_2048_crt_key_internal_format__acu8, sizeof(rsa_2048_crt_key_internal_format__acu8));
   FLEA_CCALL(
     THR_flea_private_key_t__ctor_rsa_internal_format(
       &privkey__t,
-      // &priv_key_int_format_vec__t,
       &priv_key_int_form__rcu8,
       2048
     )
@@ -617,9 +586,7 @@ static flea_err_e THR_flea_inner_test_pk_encryption(
       hash_id__t,
       ciphertext__t.data__pu8,
       ciphertext__t.len__dtl,
-      &decr_vec__t,
-      0,
-      NULL
+      &decr_vec__t
     )
   );
   if(decr_vec__t.len__dtl != sizeof(message__acu8))

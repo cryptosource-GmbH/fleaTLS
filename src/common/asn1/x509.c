@@ -33,7 +33,7 @@ flea_err_e THR_flea_x509_cert_parse_basic_constraints(
   {
     if(x__u32 > 0xFFFE)
     {
-      FLEA_THROW("pathlen of more than 0xFFFE not supported", FLEA_ERR_X509_BC_EXCSS_PATH_LEN);
+      FLEA_THROW("pathlen of more than 0xFFFE not supported", FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED);
     }
     basic_constraints__pt->path_len__u16   = x__u32;
     basic_constraints__pt->has_path_len__b = flea_true;
@@ -112,7 +112,7 @@ flea_err_e THR_flea_x509_cert__parse_key_usage(
   );
   if(bit_str__t.len__dtl < 2)
   {
-    FLEA_THROW("empty key usage value", FLEA_ERR_X509_KU_DEC_ERR);
+    FLEA_THROW("empty key usage value", FLEA_ERR_ASN1_DER_DEC_ERR);
   }
   ku__u16 = bit_str__t.data__pu8[1] << 8;
   if(bit_str__t.len__dtl > 2)
@@ -506,7 +506,7 @@ flea_err_e THR_flea_x509_cert__get_ref_to_tbs_byte_vec(
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_x509_cert__get_ref_to_tbs(der_encoded_cert__pu8, der_encoded_cert_len__alu16, &ref__rcu8));
-  flea_byte_vec_t__set_ref(ref_to_tbs__pt, ref__rcu8.data__pcu8, ref__rcu8.len__dtl);
+  flea_byte_vec_t__reconstruct_as_ref(ref_to_tbs__pt, ref__rcu8.data__pcu8, ref__rcu8.len__dtl);
   FLEA_THR_FIN_SEC_empty();
 }
 

@@ -561,7 +561,7 @@ static flea_err_e THR_flea_tls__validate_cert(
     {
       if(previous_non_self_issued_cnt__calu16 > basic_constraints__t.path_len__u16 + 1)
       {
-        FLEA_THROW("path len violated", FLEA_ERR_X509_BC_EXCSS_PATH_LEN);
+        FLEA_THROW("path len violated", FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED);
       }
     }
     if(key_usage__t.is_present__u8 &&

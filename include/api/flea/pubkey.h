@@ -65,8 +65,6 @@ typedef struct
 } flea_public_key_t;
 
 
-flea_ref_cu8_t flea_public_key__get_encoded_public_component(flea_public_key_t* pk);
-
 # define flea_public_key_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
 # define flea_public_key_t__INIT_VALUE {.key_bit_size__u16 = 0}
 
@@ -74,8 +72,39 @@ void flea_public_key_t__dtor(flea_public_key_t* key__pt);
 
 
 /**
+ * Encode a public key in plain format.
+ *
+ * An encoded ECC public key is the uncompressed public point
+ * in the format 0x04 | <P_x> | <P_y>.
+ *
+ * An encoded RSA key is the big endian encoded modulus.
+ *
+ * Key Parameters are not encoded.
+ *
+ * @param [in] key the public key to be encoded.
+ * @param [out] result the encoded public key as a reference to the public key
+ * object.
+ *
+ * @return an error code
+ */
+void flea_public_key_t__get_encoded_plain_ref(
+  const flea_public_key_t* pk,
+  flea_ref_cu8_t*          result
+);
+
+/**
  * create a public key from a the bit string TLV structure found e.g. in an
  * X.509 certificate.
+ *
+ * @param key the public key object to create.
+ * @param key_as_bit_string_tlv the ASN.1/DER encoded bit string representing
+ * the public key including the ASN.1 tag and length field of the bit string.
+ * @param encoded_params the ASN.1/DER encoded key parameters associated with
+ * the public key.
+ * @param alg_oid the ASN.1/DER encoded algorithm identifier associated with the
+ * public key.
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_public_key_t__ctor_asn1(
   flea_public_key_t*     key,
@@ -90,6 +119,8 @@ flea_err_e THR_flea_public_key_t__ctor_asn1(
  * @param key the key to construct.
  * @param cert_ref the certificate structure of the certificate which contains
  * the encoded public key
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_public_key_t__ctor_cert(
   flea_public_key_t*          key,
@@ -102,6 +133,8 @@ flea_err_e THR_flea_public_key_t__ctor_cert(
  * @param key the key to be constructed
  * @param mod the big endian encoded modulus
  * @param pub_exp the big endian encoded public exponent
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_public_key_t__ctor_rsa(
   flea_public_key_t*    key,
@@ -115,6 +148,8 @@ flea_err_e THR_flea_public_key_t__ctor_rsa(
  * @param key the public key to construct
  * @param public_key_value the encoded public point
  * @param dp the ECC domain parameters to be used
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_public_key_t__ctor_ecc(
   flea_public_key_t*               key,
@@ -133,7 +168,7 @@ flea_err_e THR_flea_public_key_t__ctor_ecc(
  * @param message the message which was signed
  * @param signature the signature to verify
  *
- *
+ * @return an error code
  */
 flea_err_e THR_flea_public_key_t__verify_signature(
   const flea_public_key_t* key,
@@ -147,7 +182,7 @@ flea_err_e THR_flea_public_key_t__verify_signature(
 /**
  * Verify a signature using a public key. In case of ECDSA, a raw concatenation
  * of r and s encoded in the base point order length is expected as the
- * signature.
+ * signature. For RSA, this function behaves equally to THR_flea_public_key_t__verify_signature().
  *
  * @param key the public key to be used for the verification
  * @param pk_scheme_id the signature scheme to be used for the verification
@@ -155,6 +190,7 @@ flea_err_e THR_flea_public_key_t__verify_signature(
  * @param message the message which was signed
  * @param signature the signature to verify
  *
+ * @return an error code
  */
 flea_err_e THR_flea_public_key_t__verify_signature_plain_format(
   const flea_public_key_t* key,
@@ -170,13 +206,15 @@ flea_err_e THR_flea_public_key_t__verify_signature_plain_format(
  * digest (i.e. hash value) is directly provided by the caller instead of being
  * computed by the function.
  *
+ * @param pubkey pointer to the public key to be used in the operation
  * @param digest the digest to verify
  * @param digest_len length of digest
  * @param hash_id id of the hash algorithm that was used to compute digest
  * @param id the ID of the signature scheme to use
- * @param pubkey pointer to the public key to be used in the operation
  * @param signature pointer to the memory area for the signature to be verified.
  * @param signature_len length of signature
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_public_key_t__verify_digest_plain_format(
   const flea_public_key_t* pubkey,
@@ -190,24 +228,34 @@ flea_err_e THR_flea_public_key_t__verify_digest_plain_format(
 
 /**
  * Verify a signature using a specific X.509 signature algorithm ID.
+ *
+ * @param key the public key to be used for the verification
+ * @param sigalg_id the signature algorithm OID to be used for the verification
+ * @param message the message which was signed
+ * @param signature the signature to verify
+ * @param flags a combination of flags potentially affecting the signature verification
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_public_key_t__verify_signature_use_sigalg_id(
   const flea_public_key_t*     public_key,
   const flea_x509_algid_ref_t* sigalg_id,
-  const flea_byte_vec_t*       tbs_data,
+  const flea_byte_vec_t*       message,
   const flea_byte_vec_t*       signature,
-  flea_x509_validation_flags_e cert_ver_flags__e
+  flea_x509_validation_flags_e flags
 );
 
 /**
  * Encrypt a message using a public key.
  *
- * @param key the public key to be used for the verification
+ * @param key the public key to be used for the encryption
  * @param pk_scheme_id the encryption scheme to be used for the encryption
  * @param hash_id the id of the hash algorithm used for the signature generation
  * @param message the message to be encrypted
  * @param message_len the length of the message to be encrypted
  * @param result receives the encrypted message after successful completion
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_public_key_t__encrypt_message(
   const flea_public_key_t* key,
@@ -215,6 +263,26 @@ flea_err_e THR_flea_public_key_t__encrypt_message(
   flea_hash_id_e           hash_id,
   const flea_u8_t*         message,
   flea_al_u16_t            message_len,
+  flea_byte_vec_t*         result
+);
+
+/**
+ * Encode a public key in plain format.
+ *
+ * An encoded ECC public key is the uncompressed public point
+ * in the format 0x04 | <P_x> | <P_y>.
+ *
+ * An encoded RSA key is the big endian encoded modulus.
+ *
+ * Key Parameters are not encoded.
+ *
+ * @param [in] key the public key to be encoded.
+ * @param [out] result the encoded public key.
+ *
+ * @return an error code
+ */
+flea_err_e THR_flea_public_key__t__get_encoded_plain(
+  const flea_public_key_t* pubkey,
   flea_byte_vec_t*         result
 );
 

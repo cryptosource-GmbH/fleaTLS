@@ -69,7 +69,6 @@ struct tls_test_cfg_t
   std::vector<flea_ec_dom_par_id_e>        allowed_curves;
   std::vector<flea_tls_sigalg_e>           allowed_sig_algs;
   std::vector<std::vector<flea_u8_t> >     crls;
-  // flea_rev_chk_mode_e                      rev_chk_mode__e;
   std::vector<flea_ref_cu8_t>              crls_refs;
   flea_stream_read_mode_e                  read_mode_for_app_data;
   size_t                                   read_size_for_app_data;

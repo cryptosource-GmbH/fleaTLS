@@ -61,7 +61,6 @@ flea_err_e THR_flea_alloc__ensure_buffer_capacity(
       (used_units__dtl + to_add__dtl) * unit_byte_size__alu16
     )
   );
-  // used_units__dtl += to_add__dtl;
   *in_out_alloc_units__pdtl = used_units__dtl + to_add__dtl;
   FLEA_THR_FIN_SEC_empty();
 }

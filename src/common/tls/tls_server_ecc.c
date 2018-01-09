@@ -10,6 +10,7 @@
 #include "internal/common/tls/tls_server_int_ecc.h"
 #include "internal/common/tls/tls_common_ecc.h"
 #include "internal/common/tls_ciph_suite.h"
+#include "flea/pk_keypair.h"
 
 #ifdef FLEA_HAVE_TLS_ECC
 flea_err_e THR_flea_tls_get_sig_length_of_priv_key(
@@ -78,14 +79,14 @@ flea_err_e THR_flea_tls__send_server_kex(
   {
     // create ECDHE key pair
     FLEA_CCALL(
-      THR_flea_tls__create_ecdhe_key(
-        ecdhe_priv_key__pt,
+      THR_flea_pubkey__generate_ecc_key_pair_by_dp_id(
         &ecdhe_pub_key__t,
+        ecdhe_priv_key__pt,
         (flea_ec_dom_par_id_e) tls_ctx__pt->chosen_ecc_dp_internal_id__u8
       )
     );
 
-    pub_point__rcu8   = flea_public_key__get_encoded_public_component(&ecdhe_pub_key__t);
+    flea_public_key_t__get_encoded_plain_ref(&ecdhe_pub_key__t, &pub_point__rcu8);
     pub_point_len__u8 = (flea_u8_t) pub_point__rcu8.len__dtl;
 
     hdr_len__u32 = 3 + 1 + pub_point__rcu8.len__dtl + 2 + 2 + sig_len__u16; // 3 for named curve + 1 for pub point length + 2 for sig/hash alg + 2 sig length + len of sha256 sig
@@ -143,7 +144,6 @@ flea_err_e THR_flea_tls__send_server_kex(
     FLEA_CCALL(
       THR_flea_hash_ctx_t__update(
         &params_hash_ctx__t,
-        // tls_ctx__pt->client_and_server_random__bu8,
         hs_ctx__pt->client_and_server_random__pt->data__pu8,
         2 * FLEA_TLS_HELLO_RANDOM_SIZE
       )

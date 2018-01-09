@@ -44,8 +44,6 @@ flea_err_e THR_flea_test_mpi_square(void);
 
 flea_err_e THR_flea_test_mpi_mul(void);
 
-// flea_err_e THR_flea_test_rsa(void);
-
 
 flea_err_e THR_flea_test_mpi_subtract(void);
 flea_err_e THR_flea_test_mpi_subtract_2(void);
@@ -114,7 +112,6 @@ flea_err_e THR_flea_test_rsa_crt_inner(
   flea_mpi_ulen_t  d2_len,
   const flea_u8_t* c_arr,
   flea_mpi_ulen_t  c_len,
-  // const flea_u8_t* pub_exp_arr,
   const flea_u8_t* mod_arr
 );
 
@@ -129,8 +126,6 @@ flea_err_e THR_flea_test_hash_function_inner(
 );
 
 flea_err_e THR_flea_test_cipher_block_encr_decr(void);
-
-// flea_err_e THR_flea_test_des(void);
 
 flea_err_e THR_flea_test_sha256_update(void);
 flea_err_e THR_flea_test_sha256_update2(void);
@@ -218,7 +213,6 @@ flea_err_e THR_flea_test_path_validation_file_based(
   const char* cert_path_prefix,
   flea_u32_t* nb_exec_tests_pu32,
   const char* file_path_to_be_replaced_by_std_in
-  // flea_bool_e verbose
 );
 
 flea_err_e THR_flea_test_gmt_time(void);
@@ -226,6 +220,8 @@ flea_err_e THR_flea_test_gmt_time(void);
 flea_err_e THR_flea_tls_test_basic(void);
 
 flea_err_e THR_flea_test_parallel_hash(void);
+
+flea_err_e THR_flea_test_ecc_key_plain_format_encoding(void);
 
 int flea_unit_tests(
   flea_u32_t  nb_reps,

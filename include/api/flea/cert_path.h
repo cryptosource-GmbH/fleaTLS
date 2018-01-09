@@ -146,7 +146,7 @@ flea_err_e THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_
  * @param cpv the cert path validator object
  * @param time_mbn the current time in timezone GMT. May be null, then the
  * function determines the current time itself.
- * @param host_id byte string of the host identifiert
+ * @param host_id byte string of the host identifier (not null terminated)
  * @param host_id_type of host ID to be used
  * @param key_to_construct_mbn pointer to the public key object to construct
  *

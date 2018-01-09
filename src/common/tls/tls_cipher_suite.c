@@ -183,7 +183,6 @@ flea_err_e THR_flea_tls_get_cipher_suite_by_id(
   {
     if(cipher_suites[i].id == id)
     {
-      // return &cipher_suites[i];
       *result__pt = &cipher_suites[i];
       FLEA_THR_RETURN();
     }

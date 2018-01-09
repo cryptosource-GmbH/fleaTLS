@@ -158,7 +158,6 @@ flea_err_e THR_flea_hash_ctx_t__ctor_copy(
   {
     FLEA_THROW("could not find hash id for merkle-damgard scheme", FLEA_ERR_INV_ALGORITHM);
   }
-  // p_ctx_new->counter_block_arr_len__u8 = p_ctx->counter_block_arr_len__u8;
 #ifdef FLEA_USE_HEAP_BUF
   FLEA_ALLOC_MEM(p_ctx_new->pending_buffer, p_ctx_new->p_config->block_length);
   FLEA_ALLOC_MEM(p_ctx_new->hash_state, p_ctx_new->p_config->hash_state_length);

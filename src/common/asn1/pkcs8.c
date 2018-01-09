@@ -86,7 +86,6 @@ static flea_err_e THR_flea_private_key_t__pkcs8_create_ecc_key(
   flea_byte_vec_t ostr__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
   flea_ec_gfp_dom_par_ref_t dp_ref__t;
 
-  // flea_dtl_t version_len__dtl = 1;
   FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(version_vec__t, 1);
 
   FLEA_THR_BEG_FUNC();
@@ -97,7 +96,6 @@ static flea_err_e THR_flea_private_key_t__pkcs8_create_ecc_key(
    *   parameters [0] ECParameters {{ NamedCurve }} OPTIONAL,
    *   publicKey  [1] BIT STRING OPTIONAL
    * }*/
-  // FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw(dec__pt, FLEA_ASN1_INT, 0, &version__u8, &version_len__dtl));
   FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw(dec__pt, FLEA_ASN1_INT, 0, &version_vec__t));
   if(version_vec__t.len__dtl != 1 || version_vec__t.data__pu8[0] != 1)
   {
@@ -126,7 +124,6 @@ static flea_err_e THR_flea_private_key_t__pkcs8_create_ecc_key(
   {
     flea_bool_e pubkey_found__b;
     flea_byte_vec_t public_point_encoded__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
-    // FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw_cft_opt(dec__pt, FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, 0x
     FLEA_CCALL(
       THR_flea_ber_dec_t__open_constructed_optional_cft(
         dec__pt,
@@ -181,9 +178,7 @@ static flea_err_e THR_flea_create_private_and_or_public_key_from_pkcs8(
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref));
 
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
-  // FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw(&dec__t, FLEA_ASN1_INT, 0, &version__u8, &version_len__dtl));
   FLEA_CCALL(THR_flea_ber_dec_t__read_value_raw(&dec__t, FLEA_ASN1_INT, 0, &version_vec__t));
-  // if(version_len__dtl != 1)
   if(version_vec__t.len__dtl != 1)
   {
     FLEA_THROW("PKCS#8 version of invalid length", FLEA_ERR_X509_VERSION_ERROR);

@@ -51,7 +51,7 @@ void flea_byte_vec_t__dtor(flea_byte_vec_t* byte_vec__pt)
   FLEA_BYTEVEC_STATE_SET_AS_UNDEALLOCATABLE(byte_vec__pt->state__u8);
 }
 
-void flea_byte_vec_t__set_ref(
+void flea_byte_vec_t__reconstruct_as_ref(
   flea_byte_vec_t* byte_vec__pt,
   const flea_u8_t* data__pcu8,
   flea_dtl_t       data_len__dtl

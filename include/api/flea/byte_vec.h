@@ -21,6 +21,23 @@ typedef struct
   flea_u8_t  state__u8;
 } flea_byte_vec_t;
 
+/**
+ * Get a pointer to the data of a byte vector.
+ *
+ * @param bv pointer to the byte vector
+ *
+ * @return a pointer of type flea_u8_t*
+ */
+#define flea_byte_vec_t__GET_DATA_PTR(bv) ((bv)->data__pu8)
+
+/**
+ * Get the length of a byte vector.
+ *
+ * @param bv pointer to the byte vector
+ *
+ * @return an integer of type flea_dtl_t
+ */
+#define flea_byte_vec_t__GET_DATA_LEN(bv) ((bv)->len__dtl)
 
 /**
  * Right hand side initialization value for a byte vector. The byte vector is
@@ -177,7 +194,7 @@ int flea_byte_vec_t__cmp_with_cref(
  * vector does not assume ownership of that buffer. A byte vector's dtor doesn't
  * free anything if it is called on a byte vector holding a reference.
  */
-void flea_byte_vec_t__set_ref(
+void flea_byte_vec_t__reconstruct_as_ref(
   flea_byte_vec_t* byte_vec,
   const flea_u8_t* data,
   flea_dtl_t       data_len

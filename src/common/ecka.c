@@ -249,13 +249,11 @@ flea_err_e THR_flea_ecka__compute_raw(
 # endif
 
   /* now take x-coord of d */
-  // *result_len__palu8 = flea_mpi_t__get_byte_size(&Q.m_x);
   tmp_result_len__alu8 = flea_mpi_t__get_byte_size(&curve.m_p);
   if(*result_len__palu8 < tmp_result_len__alu8)
   {
     FLEA_THROW("insufficient result size", FLEA_ERR_BUFF_TOO_SMALL);
   }
-  // *result_len__palu8 = flea_mpi_t__get_byte_size(&Q.m_x);
   *result_len__palu8 = tmp_result_len__alu8;
   FLEA_CCALL(THR_flea_mpi_t__encode(result__pu8, *result_len__palu8, &Q.m_x));
   FLEA_THR_FIN_SEC(

@@ -184,6 +184,8 @@ int flea_unit_tests(
 # endif /* if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_MOD_BIT_SIZE >= 224 */
 #endif /* __FLEA_HAVE_LINUX_FILESYSTEM */
       CALL_TEST(THR_flea_tls_test_basic());
+
+      CALL_TEST(THR_flea_test_ecc_key_plain_format_encoding());
     }
 #ifdef __FLEA_HAVE_LINUX_FILESYSTEM
 # if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) && defined FLEA_HAVE_ECDSA && (FLEA_ECC_MAX_MOD_BIT_SIZE >= 521)

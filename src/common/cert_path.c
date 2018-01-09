@@ -455,7 +455,6 @@ flea_err_e THR_flea_cert_path_validator_t__add_crl(
     FLEA_THROW("crl capacity exceeded", FLEA_ERR_BUFF_TOO_SMALL);
 # endif /* ifdef FLEA_USE_HEAP_BUF */
   }
-  // flea_byte_vec_t__INIT(&cpv__pt->crl_collection__brcu8[cpv__pt->nb_crls__u16]);
   cpv__pt->crl_collection__brcu8[cpv__pt->nb_crls__u16].data__pcu8 = crl_der__pcu8;
   cpv__pt->crl_collection__brcu8[cpv__pt->nb_crls__u16].len__dtl   = crl_der_len__dtl;
   cpv__pt->nb_crls__u16++;
@@ -566,7 +565,7 @@ flea_err_e THR_flea_cert_path__validate_single_cert(
 
 
   /** flea does check the TA to be a CA **/
-  if(!is_target__b) // && !is_trusted__b)
+  if(!is_target__b)
   {
     if(!basic_constraints__pt->is_present__u8)
     {

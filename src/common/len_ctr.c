@@ -57,7 +57,6 @@ static flea_err_e THR_flea_len_ctr_t__add_and_check_len_limit_inner(
 )
 {
   flea_al_u8_t i;
-  // flea_u32_t* ctr_block__pu32;
   flea_u32_t carry__u32       = add_len__dtl;
   flea_al_u8_t comp_idx__alu8 = limit_exponent__alu8 / (sizeof(ctr_block__pu32[0]) * 8);
   flea_u32_t comp__u32        = (1 << (limit_exponent__alu8 % (sizeof(ctr_block__pu32[0]) * 8)));

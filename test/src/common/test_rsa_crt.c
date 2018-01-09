@@ -263,22 +263,11 @@ flea_err_e THR_flea_test_rsa_crt_mass_sig(flea_u32_t nb_iters)
 
   for(i = 0; i < nb_iters; i++)
   {
-    // flea_u32_t m_pos = i % mod_len;
-    // memset(mess_arr, 0, mod_len);
     FLEA_CCALL(THR_flea_rng__randomize(&mess_arr[0], mod_len));
-    // mess_arr[m_pos] = i;
-
-    /*if(m_pos == mod_len - 1)
-    {*/
     // unset the highest bit to
     mess_arr[0] &= 0x7F;
-    // }
     // vary the low bits of the message
 
-    /*mess_arr[0] = i >> 24;
-    mess_arr[2] = i >> 16;
-    mess_arr[5] = i >> 8;
-    mess_arr[8] = i & 0xFF;*/
     flea_err_e err;
     err = THR_flea_rsa_raw_operation_crt(
       sig_arr,
