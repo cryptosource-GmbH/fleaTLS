@@ -34,6 +34,7 @@ ADD_DEFINITIONS(
   #out: -Wconversion 
   )
 
+ADD_DEFINITIONS(-D__FLEA_HAVE_LINUX_FILESYSTEM)
 
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Release CACHE STRING
@@ -76,8 +77,7 @@ IF(BUILD_STATIC STREQUAL true)
 ENDIF()
 
 SET(asan false CACHE STRING
-      "Whether to build an additional version of
-the library and the tests using asan: true/false"
+      "Whether to build an additional version of the library and the tests using asan: true/false"
       )
 IF(asan STREQUAL true)
     SET(DO_USE_ASAN 1)

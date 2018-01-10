@@ -362,10 +362,6 @@
 # endif // ifdef FLEA_HAVE_TLS
 
 
-# if defined FLEA_HAVE_TLS_CS_ECDSA || defined FLEA_HAVE_TLS_CS_ECDH || defined FLEA_HAVE_TLS_CS_ECDHE
-#  define FLEA_HAVE_TLS_CS_ECC
-# endif
-
 /*
  * Flags to enable cipher suites
  */
