@@ -54,26 +54,26 @@
     (__ptr) = 0; \
   } while(0)
 
-#if defined FLEA_USE_HEAP_BUF && defined FLEA_USE_STACK_BUF
-# error only FLEA_USE_HEAP_BUF or FLEA_USE_STACK_BUF may be defined, not both
+#if defined FLEA_HEAP_MODE && defined FLEA_STACK_MODE
+# error only FLEA_HEAP_MODE or FLEA_STACK_MODE may be defined, not both
 #endif
 
 
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 # define FLEA_HEAP_OR_STACK_CODE(__heap, __stack)   __heap
 # define FLEA_DO_IF_USE_HEAP_BUF(__x)               do {__x} while(0)
 # define __FLEA_FREE_BUF_SET_NULL(__name)           FLEA_FREE_MEM_SET_NULL(__name)
 # define FLEA_DECL_DYN_LEN(__name, __type, __value) __len_type __dyn_len_name = __static_len
-#else // ifdef FLEA_USE_HEAP_BUF
+#else // ifdef FLEA_HEAP_MODE
 # define FLEA_HEAP_OR_STACK_CODE(__heap, __stack)   __stack
 # define FLEA_DO_IF_USE_HEAP_BUF(__x)
 # define __FLEA_FREE_BUF_SET_NULL(__name)
-#endif // ifdef FLEA_USE_HEAP_BUF
+#endif // ifdef FLEA_HEAP_MODE
 
 #define FLEA_FREE_MEM_SET_NULL_IF_USE_HEAP_BUF(__x) __FLEA_FREE_BUF_SET_NULL(__x)
 
 #define FLEA_DECL_OBJ(__name, __type)               __type __name = __type ## __INIT_VALUE
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 
 # define FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(__name, __type_len) \
   do { \
@@ -95,7 +95,7 @@
   } while(0)
 
 
-#elif defined FLEA_USE_STACK_BUF // #ifdef FLEA_USE_HEAP_BUF
+#elif defined FLEA_STACK_MODE // #ifdef FLEA_HEAP_MODE
 
 # define FLEA_FREE_BUF_SECRET_ARR(__name, __type_len) \
   do { \
@@ -107,9 +107,9 @@
     flea_memzero_secure((flea_u8_t*) __name, (__type_len) * sizeof(__name[0])); \
   } while(0)
 
-#else // #elif defined FLEA_USE_STACK_BUF
+#else // #elif defined FLEA_STACK_MODE
 # error no buf type (heap or stack) defined for flea
-#endif // ifdef FLEA_USE_HEAP_BUF
+#endif // ifdef FLEA_HEAP_MODE
 
 flea_err_e THR_flea_alloc__realloc_mem(
   void**     mem_in_out__ppv,

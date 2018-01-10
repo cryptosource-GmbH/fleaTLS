@@ -11,6 +11,7 @@
 #include "flea/ec_key.h"
 #include "flea/ecdsa.h"
 #include "internal/common/pubkey_int.h"
+#include "internal/common/byte_vec_int.h"
 #include "flea/mem_read_stream.h"
 #include "flea/ecc_named_curves.h"
 #include "flea/ecka.h"
@@ -141,7 +142,7 @@ flea_err_e THR_flea_public_key_t__create_ecdsa_key(
   flea_al_u16_t max_dp_concat_len;
 
   FLEA_THR_BEG_FUNC();
-# ifdef FLEA_USE_STACK_BUF
+# ifdef FLEA_STACK_MODE
   max_dp_concat_len = sizeof(ecc_key__pt->dp_mem__bu8);
 # else
   if(dp_ref__pt->p__ru8.len__dtl > FLEA_ECC_MAX_MOD_BYTE_SIZE)
@@ -151,7 +152,7 @@ flea_err_e THR_flea_public_key_t__create_ecdsa_key(
   max_dp_concat_len = FLEA_ECC_DP_CONCAT_BYTE_SIZE_FROM_MOD_BIT_SIZE(8 * dp_ref__pt->p__ru8.len__dtl);
   ;
   FLEA_ALLOC_MEM_ARR(ecc_key__pt->dp_mem__bu8, max_dp_concat_len);
-# endif /* ifdef FLEA_USE_STACK_BUF */
+# endif /* ifdef FLEA_STACK_MODE */
   FLEA_CCALL(
     THR_flea_ec_gfp_dom_par_ref_t__write_to_concat_array(
       &ecc_key__pt->dp__t,
@@ -161,7 +162,7 @@ flea_err_e THR_flea_public_key_t__create_ecdsa_key(
     )
   );
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(ecc_key__pt->pub_point__mem__bu8, public_point_encoded__pcrcu8->len__dtl);
 # endif
 

@@ -5,7 +5,7 @@
 #include "flea/alloc.h"
 
 
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 flea_err_e THR_flea_alloc__realloc_mem(
   void**     mem_in_out__ppv,
   flea_u32_t orig_size__u32,
@@ -65,4 +65,4 @@ flea_err_e THR_flea_alloc__ensure_buffer_capacity(
   FLEA_THR_FIN_SEC_empty();
 }
 
-#endif /* #ifdef FLEA_USE_HEAP_BUF */
+#endif /* #ifdef FLEA_HEAP_MODE */

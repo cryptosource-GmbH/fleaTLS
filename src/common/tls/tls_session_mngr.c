@@ -21,7 +21,7 @@ flea_err_e THR_flea_tls_session_mngr_t__ctor(
 )
 {
   FLEA_THR_BEG_FUNC();
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(session_mngr__pt->sessions__bt, FLEA_TLS_SESSION_MNGR_INITIAL_ALLOC_SESSIONS);
   session_mngr__pt->nb_alloc_sessions__dtl = FLEA_TLS_SESSION_MNGR_INITIAL_ALLOC_SESSIONS;
 #else
@@ -89,7 +89,7 @@ static flea_err_e THR_flea_tls_session_mngr_t__get_free_session_slot(
   if(!found__b)
   {
     /* no free session among used session, add one more if capacity allows it */
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
     if(session_mngr__pt->nb_alloc_sessions__dtl < FLEA_TLS_MAX_NB_MNGD_SESSIONS)
     {
       FLEA_CCALL(
@@ -104,7 +104,7 @@ static flea_err_e THR_flea_tls_session_mngr_t__get_free_session_slot(
         )
       );
     }
-#endif /* ifdef FLEA_USE_HEAP_BUF */
+#endif /* ifdef FLEA_HEAP_MODE */
 
     if(session_mngr__pt->nb_used_sessions__u16 < session_mngr__pt->nb_alloc_sessions__dtl)
     {
@@ -280,7 +280,7 @@ flea_err_e THR_flea_tls_session_mngr_t__load_session(
 
 void flea_tls_session_mngr_t__dtor(flea_tls_session_mngr_t* session_mngr__pt)
 {
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHK_SET_NULL(session_mngr__pt->sessions__bt);
 #endif
   FLEA_MUTEX_DESTR(&session_mngr__pt->m_mutex);

@@ -53,7 +53,7 @@ int flea_dbg_canaries__is_canary_error_set();
      __FLEA_SIGNAL_DBG_CANARY_ERROR();}                           /* we are in the cleanup section and cannot use THROW*/ \
   } while(0)
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
 #  define FLEA_DECL_BUF(__name, __type, __static_size) \
   __type * __name ## _FLEA_DBG_CANARIES__RAW = NULL; \
   __type* __name = NULL; \
@@ -97,7 +97,7 @@ int flea_dbg_canaries__is_canary_error_set();
     } \
   } while(0)
 
-# elif defined FLEA_USE_STACK_BUF // #ifdef FLEA_USE_HEAP_BUF
+# elif defined FLEA_STACK_MODE // #ifdef FLEA_HEAP_MODE
 
 #  define FLEA_DECL_BUF(__name, __type, __static_size) \
   flea_u32_t __name ## _FLEA_DBG_CANARIES_DYNAMIC_SIZE = __static_size; \
@@ -126,9 +126,9 @@ int flea_dbg_canaries__is_canary_error_set();
       {__FLEA_SIGNAL_DBG_CANARY_ERROR();} \
     } \
   } while(0)
-# else // ifdef FLEA_USE_HEAP_BUF
+# else // ifdef FLEA_HEAP_MODE
 #  error neither heap nor stack buf defined
-# endif //  #ifdef FLEA_USE_HEAP_BUF
+# endif //  #ifdef FLEA_HEAP_MODE
 
 #endif // #ifdef FLEA_USE_BUF_DBG_CANARIES
 

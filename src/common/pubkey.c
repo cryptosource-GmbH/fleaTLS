@@ -225,7 +225,7 @@ flea_err_e THR_flea_public_key_t__verify_signature(
 )
 {
 # ifdef FLEA_HAVE_ECDSA
-  FLEA_DECL_BUF(concat_sig__bu8, flea_u8_t, FLEA_ECDSA_MAX_SIG_LEN);
+  FLEA_DECL_BUF(concat_sig__bu8, flea_u8_t, FLEA_ECDSA_MAX_CONCAT_SIG_LEN);
 # endif
   FLEA_THR_BEG_FUNC();
 
@@ -603,7 +603,7 @@ flea_err_e THR_flea_public_key__t__get_encoded_plain(
 
 void flea_public_key_t__dtor(flea_public_key_t* key__pt)
 {
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   if(key__pt->key_bit_size__u16)
   {
 #  if defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECC
@@ -628,7 +628,7 @@ void flea_public_key_t__dtor(flea_public_key_t* key__pt)
     FLEA_FREE_MEM_CHK_SET_NULL(*mem_to_free_2);
 #  endif
   }
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
 }
 
 #endif /* #ifdef FLEA_HAVE_ASYM_ALGS */

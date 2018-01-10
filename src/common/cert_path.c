@@ -14,10 +14,12 @@
 #include "flea/hostn_ver.h"
 #include "flea/cert_path.h"
 #include "internal/common/cert_path_int.h"
+#include "internal/common/cert_verify_int.h"
 #include "internal/common/lib_int.h"
 #include "internal/common/hostn_ver_int.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
+
 # define END_OF_COLL 0xFFFF
 
 
@@ -102,7 +104,7 @@ static flea_bool_e is_cert_trusted(const flea_x509_cert_info_t* cert_ref__pt)
 
 void flea_cert_path_validator_t__dtor(flea_cert_path_validator_t* cpv__pt)
 {
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHK_SET_NULL(cpv__pt->chain__bu16);
   FLEA_FREE_MEM_CHK_SET_NULL(cpv__pt->crl_collection__brcu8);
   FLEA_FREE_MEM_CHK_SET_NULL(cpv__pt->cert_collection__bt);
@@ -403,19 +405,19 @@ flea_err_e THR_flea_cert_path_validator_t__ctor_cert(
 )
 {
   FLEA_THR_BEG_FUNC();
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(cpv__pt->chain__bu16, FLEA_MAX_CERT_CHAIN_DEPTH);
   FLEA_ALLOC_MEM_ARR(cpv__pt->crl_collection__brcu8, FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT);
   FLEA_ALLOC_MEM_ARR(cpv__pt->cert_collection__bt, FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT);
-  cpv__pt->cert_ver_flags__e = cert_ver_flags__e;
   cpv__pt->crl_collection_allocated__u16  = FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT;
   cpv__pt->cert_collection_allocated__u16 = FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT;
-# else  /* ifdef FLEA_USE_HEAP_BUF */
+# else  /* ifdef FLEA_HEAP_MODE */
   cpv__pt->crl_collection_allocated__u16  = FLEA_MAX_CERT_COLLECTION_NB_CRLS;
   cpv__pt->cert_collection_allocated__u16 = FLEA_MAX_CERT_COLLECTION_SIZE;
-# endif /* ifdef FLEA_USE_HEAP_BUF */
-  cpv__pt->nb_crls__u16    = 0;
-  cpv__pt->rev_chk_mode__e = rev_chk_mode__e;
+# endif /* ifdef FLEA_HEAP_MODE */
+  cpv__pt->cert_ver_flags__e = cert_ver_flags__e;
+  cpv__pt->nb_crls__u16      = 0;
+  cpv__pt->rev_chk_mode__e   = rev_chk_mode__e;
   cpv__pt->abort_cert_path_finding__vb = flea_false;
   FLEA_CCALL(
     THR_flea_cert_path_validator_t__add_cert_without_trust_status(
@@ -441,7 +443,7 @@ flea_err_e THR_flea_cert_path_validator_t__add_crl(
   FLEA_THR_BEG_FUNC();
   if(cpv__pt->nb_crls__u16 == cpv__pt->crl_collection_allocated__u16)
   {
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
     const flea_al_u16_t entry_size = sizeof(cpv__pt->crl_collection__brcu8[0]);
     FLEA_CCALL(
       THR_flea_alloc__realloc_mem(
@@ -451,9 +453,9 @@ flea_err_e THR_flea_cert_path_validator_t__add_crl(
       )
     );
     cpv__pt->crl_collection_allocated__u16 += FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT;
-# else  /* ifdef FLEA_USE_HEAP_BUF */
+# else  /* ifdef FLEA_HEAP_MODE */
     FLEA_THROW("crl capacity exceeded", FLEA_ERR_BUFF_TOO_SMALL);
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
   }
   cpv__pt->crl_collection__brcu8[cpv__pt->nb_crls__u16].data__pcu8 = crl_der__pcu8;
   cpv__pt->crl_collection__brcu8[cpv__pt->nb_crls__u16].len__dtl   = crl_der_len__dtl;
@@ -469,7 +471,7 @@ static flea_err_e THR_flea_cert_path_validator_t__add_cert_info(
   FLEA_THR_BEG_FUNC();
   if(cpv__pt->cert_collection_size__u16 == cpv__pt->cert_collection_allocated__u16)
   {
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
     const flea_al_u16_t entry_size = sizeof(cpv__pt->cert_collection__bt[0]);
     FLEA_CCALL(
       THR_flea_alloc__realloc_mem(
@@ -479,9 +481,9 @@ static flea_err_e THR_flea_cert_path_validator_t__add_cert_info(
       )
     );
     cpv__pt->cert_collection_allocated__u16 += FLEA_CERT_AND_CRL_PREALLOC_OBJ_CNT;
-# else  /* ifdef FLEA_USE_HEAP_BUF */
+# else  /* ifdef FLEA_HEAP_MODE */
     FLEA_THROW("cert collection full", FLEA_ERR_BUFF_TOO_SMALL);
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
   }
   cpv__pt->cert_collection__bt[cpv__pt->cert_collection_size__u16] = *cert_info__pt;
   cpv__pt->cert_collection_size__u16++;

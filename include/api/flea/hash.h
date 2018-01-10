@@ -46,13 +46,13 @@ typedef enum
  */
 struct struct_flea_hash_ctx_t
 {
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   flea_u8_t*                      pending_buffer;
   flea_u32_t*                     hash_state;
-#elif defined FLEA_USE_STACK_BUF
+#elif defined FLEA_STACK_MODE
   flea_u8_t                       pending_buffer[__FLEA_COMPUTED_MAX_HASH_BLOCK_LEN];
   flea_u32_t                      hash_state[__FLEA_COMPUTED_MAX_HASH_STATE_LEN / sizeof(flea_u32_t)];
-#endif // ifdef FLEA_USE_HEAP_BUF
+#endif // ifdef FLEA_HEAP_MODE
   flea_u64_t                      total_byte_length;
   const flea_hash_config_entry_t* p_config;
   flea_len_ctr_t                  len_ctr__t;
@@ -60,19 +60,19 @@ struct struct_flea_hash_ctx_t
 };
 
 
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 # define flea_hash_ctx_t__INIT(__p) \
   do {(__p)->p_config = NULL; (__p)->pending_buffer = NULL; (__p)->hash_state = NULL; \
       flea_len_ctr_t__INIT(&(__p)->len_ctr__t);} while(0)
 # define flea_hash_ctx_t__INIT_VALUE \
   {.p_config   = NULL, .pending_buffer = NULL, .hash_state = NULL, .pending = 0, \
    .len_ctr__t = flea_len_ctr_t__INIT_VALUE}
-#else // ifdef FLEA_USE_HEAP_BUF
+#else // ifdef FLEA_HEAP_MODE
 /* needed for secret wiping */
 # define flea_hash_ctx_t__INIT(__p) do {(__p)->p_config = NULL;} while(0)
 /* needed for secret wiping */
 # define flea_hash_ctx_t__INIT_VALUE {.p_config = NULL}
-#endif // ifdef FLEA_USE_HEAP_BUF
+#endif // ifdef FLEA_HEAP_MODE
 
 
 /**

@@ -633,7 +633,7 @@ flea_err_e THR_flea_point_gfp_t__mul_multi(
 
   flea_montgm_mul_ctx_t mm_ctx;
   const flea_al_u8_t ecc_ws_mpi_arrs_word_len = (prime_word_len + 1) * 2 + 1; // + 1 in brackets because we need it to square R
-# ifdef FLEA_USE_STACK_BUF
+# ifdef FLEA_STACK_MODE
   flea_uword_t ecc_ws_mpi_arrs [9][ecc_ws_mpi_arrs_word_len];
 # else
   flea_uword_t* ecc_ws_mpi_arrs [9];
@@ -643,13 +643,13 @@ flea_err_e THR_flea_point_gfp_t__mul_multi(
 
   precomp_points_count =
     p_point_2 ? (1 << (2 * FLEA_ECC_MULTI_MUL_MAX_WINDOW_SIZE)) : (1 << FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE);
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   memset(ecc_ws_mpi_arrs, 0, sizeof(ecc_ws_mpi_arrs));
   for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs); i++)
   {
     FLEA_ALLOC_MEM_ARR(ecc_ws_mpi_arrs[i], ecc_ws_mpi_arrs_word_len);
   }
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
   if(p_scalar_2 == NULL)
   {
     // this captures the cofactor multiplication

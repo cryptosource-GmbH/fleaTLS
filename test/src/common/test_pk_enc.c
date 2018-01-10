@@ -623,7 +623,7 @@ flea_err_e THR_flea_test_pk_encryption()
   FLEA_THR_BEG_FUNC();
   flea_err_e err = THR_flea_test_pk_encryption_algos();
   if(err !=
-# if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && !defined FLEA_USE_HEAP_BUF
+# if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && !defined FLEA_HEAP_MODE
     FLEA_ERR_INV_KEY_SIZE && err != FLEA_ERR_BUFF_TOO_SMALL && err != FLEA_ERR_INV_KEY_COMP_SIZE
 # else
     FLEA_ERR_FINE

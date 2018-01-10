@@ -13,9 +13,9 @@ extern "C" {
 
 typedef struct
 {
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   flea_u32_t* counter__bu32;
-#elif defined FLEA_USE_STACK_BUF
+#elif defined FLEA_STACK_MODE
   flea_u32_t  counter__bu32[(__FLEA_COMPUTED_MAX_HASH_CNT_LEN + (sizeof(flea_u32_t) - 1)) / sizeof(flea_u32_t)];
 #endif
   flea_u16_t  neg_limit_offset__u16;
@@ -23,13 +23,13 @@ typedef struct
   flea_u8_t   counter_block_arr_len__u8;
 } flea_len_ctr_t;
 
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 # define flea_len_ctr_t__INIT(__p) do {(__p)->counter__bu32 = NULL;} while(0)
 # define flea_len_ctr_t__INIT_VALUE {.counter__bu32 = NULL}
 #else
 # define flea_len_ctr_t__INIT(__p)
 # define flea_len_ctr_t__INIT_VALUE {.counter__bu32[0] = 0}
-#endif // ifdef FLEA_USE_HEAP_BUF
+#endif // ifdef FLEA_HEAP_MODE
 
 flea_err_e THR_flea_len_ctr_t__ctor(
   flea_len_ctr_t* len_ctr__pt,

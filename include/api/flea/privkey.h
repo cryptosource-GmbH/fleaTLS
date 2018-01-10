@@ -16,29 +16,34 @@
 extern "C" {
 # endif
 
+# ifdef FLEA_HAVE_ECC
 
 typedef struct
 {
   flea_ec_gfp_dom_par_ref_t dp__t;
   flea_byte_vec_t           scalar__rcu8;
-# ifdef FLEA_USE_STACK_BUF
+#  ifdef FLEA_STACK_MODE
   flea_u8_t                 dp_mem__bu8[FLEA_ECC_MAX_DP_CONCAT_BYTE_SIZE];
   flea_u8_t                 priv_scalar__mem__bu8[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
-# else
+#  else
   flea_u8_t*                dp_mem__bu8;
   flea_u8_t*                priv_scalar__mem__bu8;
-# endif // ifdef FLEA_USE_STACK_BUF
+#  endif // ifdef FLEA_STACK_MODE
 } flea_ec_privkey_val_t;
+# endif // ifdef FLEA_HAVE_ECC
+
+# ifdef FLEA_HAVE_RSA
 
 typedef struct
 {
   flea_byte_vec_t pqd1d2c__rcu8 [5];
-# ifdef FLEA_USE_STACK_BUF
+#  ifdef FLEA_STACK_MODE
   flea_u8_t       priv_key_mem__bu8 [FLEA_RSA_CRT_KEY_INTERNAL_FORMAT_MAX_BYTE_SIZE];
-# else
+#  else
   flea_u8_t*      priv_key_mem__bu8;
-# endif
+#  endif
 } flea_rsa_privkey_val_t;
+# endif // ifdef FLEA_HAVE_RSA
 
 typedef struct
 {
@@ -47,16 +52,32 @@ typedef struct
   flea_u16_t         max_primitive_input_len__u16;
   union
   {
+# ifdef FLEA_HAVE_RSA
     flea_rsa_privkey_val_t rsa_priv_key_val__t;
+# endif
+# ifdef FLEA_HAVE_ECC
     flea_ec_privkey_val_t  ec_priv_key_val__t;
+# endif
   } privkey_with_params__u;
 } flea_private_key_t;
 
 # define flea_private_key_t__INIT_VALUE {.key_bit_size__u16 = 0}
 
-# define flea_private_key_t__INIT(__p) memset(__p, 0, sizeof(*(__p)))
+/**
+ * Initialize a private key object.
+ *
+ * @param [out] key pointer to the flea_private_key_t object to initialize
+ *
+ */
+# define flea_private_key_t__INIT(key) memset(key, 0, sizeof(*(key)))
 
-void flea_private_key_t__dtor(flea_private_key_t* privkey__pt);
+/**
+ * Destroy a private key object.
+ *
+ * @param [out] privkey private key object to destroy
+ *
+ */
+void flea_private_key_t__dtor(flea_private_key_t* privkey);
 
 /**
  * Create an RSA private key fromt the flea RSA private key internal format.
@@ -70,25 +91,48 @@ flea_err_e THR_flea_private_key_t__ctor_rsa_internal_format(
 );
 
 /**
- * Create an RSA key from the CRT key components.
+ * Create an RSA key from the CRT key components. All supplied numbers are big endian
+ * encoded. All lengths are byte lengths.
+ *
+ * @param p the prime p
+ * @param p_len the length of p
+ * @param q the prime q
+ * @param q_len the length of q
+ * @param dp d mod (p-1)
+ * @param dp the length of dp
+ * @param dq d mod (q-1)
+ * @param dq the length of dq
+ * @param c q^{-1} mod p
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_private_key_t__ctor_rsa_components(
-  flea_private_key_t* key__pt,
-  flea_al_u16_t       key_bit_size__alu16,
-  const flea_u8_t*    p__pcu8,
-  flea_al_u16_t       p_len__alu16,
-  const flea_u8_t*    q__pcu8,
-  flea_al_u16_t       q_len__alu16,
-  const flea_u8_t*    d1__pcu8,
-  flea_al_u16_t       d1_len__alu16,
-  const flea_u8_t*    d2__pcu8,
-  flea_al_u16_t       d2_len__alu16,
-  const flea_u8_t*    c__pcu8,
-  flea_al_u16_t       c_len__alu16
+  flea_private_key_t* key,
+  flea_al_u16_t       key_bit_size,
+  const flea_u8_t*    p,
+  flea_al_u16_t       p_len,
+  const flea_u8_t*    q,
+  flea_al_u16_t       q_len,
+  const flea_u8_t*    dp,
+  flea_al_u16_t       dp_len,
+  const flea_u8_t*    dq,
+  flea_al_u16_t       dq_len,
+  const flea_u8_t*    c,
+  flea_al_u16_t       c_len
 );
 
 /**
  * Create an ECC public key from the compontents.
+ *
+ * @param key the private key to create
+ * @param scalar the big endian encoded secret scalar s representing the private
+ * key.
+ * @param dp_ref a domain parameters reference object specifying the domain
+ * parameters for the key. The private key receives an internal copy of the
+ * domain parameters, so the data pointed to by dp_ref need not to be preserved
+ * during the lifetime of the private key.
+ *
+ * @return an error code
  *
  */
 flea_err_e THR_flea_private_key_t__ctor_ecc(
@@ -107,6 +151,8 @@ flea_err_e THR_flea_private_key_t__ctor_ecc(
  * @param hash_id hash algorithm to be used for the digest computation
  * @param message the message to sign
  * @param signature receives the created signature after function completion
+ *
+ * @return an error code
  *
  */
 flea_err_e THR_flea_private_key_t__sign_plain_format(

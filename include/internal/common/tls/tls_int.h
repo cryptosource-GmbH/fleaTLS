@@ -41,7 +41,7 @@ typedef struct
 struct struct_flea_tls_ctx_t
 {
   flea_tls__connection_end_t connection_end; /* Server or Client */
-# ifdef FLEA_USE_STACK_BUF
+# ifdef FLEA_STACK_MODE
   flea_u8_t                  master_secret__bu8[FLEA_TLS_MASTER_SECRET_SIZE]; /* symmetric keys are derived from this */
 # else
   flea_u8_t*                 master_secret__bu8;
@@ -73,13 +73,13 @@ struct struct_flea_tls_ctx_t
   flea_revoc_chk_cfg_t              rev_chk_cfg__t;
   flea_u8_t                         sec_reneg_flag__u8;
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   flea_u8_t*                        own_vfy_data__bu8;
   flea_u8_t*                        peer_vfy_data__bu8;
 # else
   flea_u8_t                         own_vfy_data__bu8[12];
   flea_u8_t                         peer_vfy_data__bu8[12];
-# endif // ifdef FLEA_USE_HEAP_BUF
+# endif // ifdef FLEA_HEAP_MODE
   flea_u8_t                         allow_reneg__u8;
   flea_u8_t                         allow_insec_reneg__u8;
   flea_u8_t                         extension_ctrl__u8;  /* used only by server */
@@ -92,7 +92,7 @@ struct struct_flea_tls_ctx_t
   flea_bool_e                       can_use_ecdhe;  // true if sig alg extension produces a match so we can sign the ECDHE params
   flea_tls_flag_e                   cfg_flags__e;
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
-#  ifdef FLEA_USE_STACK_BUF
+#  ifdef FLEA_STACK_MODE
   flea_u8_t                         peer_ee_cert__au8[FLEA_STKMD_X509_MAX_CERT_SIZE];
 #  endif
   flea_byte_vec_t                   peer_ee_cert_data__t;

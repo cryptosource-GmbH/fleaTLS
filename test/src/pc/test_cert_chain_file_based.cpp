@@ -124,7 +124,6 @@ static flea_err_e THR_flea_execute_path_test_case_for_properties(
     string host_id_type_str = prop.get_property_as_string("host_id_type");
     if(host_id_type_str == "ip_addr")
     {
-      // host_id_type = flea_host_ipaddr;
       throw test_utils_exceptn_t("host_id_type 'ip_addr' not yet supported");
     }
     else if(host_id_type_str == "dns_name")

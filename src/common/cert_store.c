@@ -29,7 +29,7 @@ static flea_err_e THR_flea_cert_store_t__add_cert(
 {
   FLEA_THR_BEG_FUNC();
   /* this type only supports trusted certs */
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
 
   FLEA_CCALL(
     THR_flea_alloc__ensure_buffer_capacity(
@@ -42,13 +42,13 @@ static flea_err_e THR_flea_cert_store_t__add_cert(
       sizeof(cert_store__pt->enc_cert_refs__bcu8[0])
     )
   );
-# else /* ifdef FLEA_USE_HEAP_BUF */
+# else /* ifdef FLEA_HEAP_MODE */
   if(cert_store__pt->nb_set_certs__u16 + 1 > FLEA_MAX_CERT_COLLECTION_SIZE)
   {
     FLEA_THROW("cert store buffer capacity exhausted", FLEA_ERR_BUFF_TOO_SMALL);
   }
 
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
   cert_store__pt->enc_cert_refs__bcu8[cert_store__pt->nb_set_certs__u16].data_ref__rcu8.data__pcu8 = der_enc_cert__pcu8;
   cert_store__pt->enc_cert_refs__bcu8[cert_store__pt->nb_set_certs__u16].data_ref__rcu8.len__dtl   =
     der_enc_cert_len__alu16;
@@ -73,7 +73,7 @@ const flea_u8_t* flea_cert_store_t__get_ptr_to_trusted_enc_cert(
 flea_err_e THR_flea_cert_store_t__ctor(flea_cert_store_t* cert_store__pt)
 {
   FLEA_THR_BEG_FUNC();
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(cert_store__pt->enc_cert_refs__bcu8, FLEA_CERT_STORE_PREALLOC);
   cert_store__pt->nb_alloc_certs__dtl = FLEA_CERT_STORE_PREALLOC;
 # else
@@ -210,7 +210,7 @@ flea_err_e THR_flea_cert_store_t__is_cert_trusted(
 
 void flea_cert_store_t__dtor(flea_cert_store_t* cert_store__pt)
 {
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHK_SET_NULL(cert_store__pt->enc_cert_refs__bcu8);
 # endif
 }

@@ -37,7 +37,7 @@ typedef struct
   flea_u8_t                     tag_len__u8;
   const flea_ae_config_entry_t* config__pt;
   flea_u8_t                     pending__u8;
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   flea_u8_t*                    buffer__bu8;
 # else
   flea_u8_t                     buffer__bu8[FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];

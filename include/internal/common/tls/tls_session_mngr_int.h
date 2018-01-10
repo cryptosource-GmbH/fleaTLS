@@ -41,7 +41,7 @@ struct struct_flea_tls_session_entry_t
 
 struct struct_flea_tls_session_mngr_t
 {
-#ifdef FLEA_USE_STACK_BUF
+#ifdef FLEA_STACK_MODE
   flea_tls_session_entry_t  sessions__bt[FLEA_TLS_MAX_NB_MNGD_SESSIONS];
 #else
   flea_tls_session_entry_t* sessions__bt;

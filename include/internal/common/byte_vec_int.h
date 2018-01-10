@@ -3,24 +3,22 @@
 #ifndef _flea_byte_vec_int__H_
 #define _flea_byte_vec_int__H_
 
+#include "flea/byte_vec.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#define FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK                (1)
-#define FLEA_BYTEVEC_STATE_DEALLOCATABLE_MASK              (2)
-#define FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK (0)
 
-#define FLEA_BYTEVEC_STATE_SET_AS_ALLOCATABLE(state)     (state) |= FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK
-#define FLEA_BYTEVEC_STATE_SET_AS_DEALLOCATABLE(state)   (state) |= FLEA_BYTEVEC_STATE_DEALLOCATABLE_MASK
-
-#define FLEA_BYTEVEC_STATE_SET_AS_UNALLOCATABLE(state)   (state) &= (~FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK)
-#define FLEA_BYTEVEC_STATE_SET_AS_UNDEALLOCATABLE(state) (state) &= (~FLEA_BYTEVEC_STATE_DEALLOCATABLE_MASK)
-
-#define FLEA_BYTEVEC_STATE_IS_ALLOCATABLE(state)         ((state) & FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK)
-#define FLEA_BYTEVEC_STATE_IS_DEALLOCATABLE(state)       ((state) & FLEA_BYTEVEC_STATE_DEALLOCATABLE_MASK)
-
+/**
+ * Sets the contents of the byte vector from src using the the external
+ * memory. Thus the vector becomes a reference.
+ */
+void flea_byte_vec_t__copy_content_set_ref_use_mem(
+  flea_byte_vec_t*       trgt,
+  flea_u8_t*             trgt_mem,
+  const flea_byte_vec_t* src
+);
 
 #ifdef __cplusplus
 }

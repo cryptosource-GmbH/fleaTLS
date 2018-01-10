@@ -16,6 +16,7 @@
 #include "flea/bin_utils.h"
 #include "flea/pk_signer.h"
 #include "flea/ecc_named_curves.h"
+#include "internal/common/byte_vec_int.h"
 #include <string.h>
 
 #ifdef FLEA_HAVE_ASYM_ALGS
@@ -42,13 +43,13 @@ flea_err_e THR_flea_private_key_t__ctor_ecc(
   {
     FLEA_THROW("ECC order too large", FLEA_ERR_INV_KEY_SIZE);
   }
-#  ifdef FLEA_USE_HEAP_BUF
+#  ifdef FLEA_HEAP_MODE
   dp_concat_len__alu16 = flea_ec_gfp_dom_par_ref_t__get_concat_length(dp_ref__pt);
   FLEA_ALLOC_MEM(key__pt->privkey_with_params__u.ec_priv_key_val__t.dp_mem__bu8, dp_concat_len__alu16);
   FLEA_ALLOC_MEM(key__pt->privkey_with_params__u.ec_priv_key_val__t.priv_scalar__mem__bu8, scalar__cprcu8->len__dtl);
 #  else
   dp_concat_len__alu16 = sizeof(key__pt->privkey_with_params__u.ec_priv_key_val__t.dp_mem__bu8);
-#  endif /* ifdef FLEA_USE_HEAP_BUF */
+#  endif /* ifdef FLEA_HEAP_MODE */
   flea_byte_vec_t__copy_content_set_ref_use_mem(
     &key__pt->privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8,
     key__pt->privkey_with_params__u.ec_priv_key_val__t.priv_scalar__mem__bu8,
@@ -82,7 +83,7 @@ flea_err_e THR_flea_private_key_t__ctor_rsa_internal_format(
   flea_al_u16_t key_len__alu16      = priv_key_enc_internal_format__prcu8->len__dtl;
   flea_al_u16_t half_mod_len__alu16 = key_len__alu16 / 5;
   if(key_len__alu16 % 5
-#  ifdef FLEA_USE_STACK_BUF
+#  ifdef FLEA_STACK_MODE
     || key_len__alu16 > FLEA_RSA_CRT_KEY_INTERNAL_FORMAT_MAX_BYTE_SIZE
 #  endif
   )
@@ -134,13 +135,13 @@ flea_err_e THR_flea_private_key_t__ctor_rsa_components(
   const flea_u8_t* comp_ptrs__apcu8 []     = {p__pcu8, q__pcu8, d1__pcu8, d2__pcu8, c__pcu8};
   const flea_al_u16_t comp_lens__aalu16 [] = {p_len__alu16, q_len__alu16, d1_len__alu16, d2_len__alu16, c_len__alu16};
 
-#  ifdef FLEA_USE_HEAP_BUF
+#  ifdef FLEA_HEAP_MODE
   flea_al_u16_t key_len__al_u16;
 #  endif
   key__pt->key_bit_size__u16 = key_bit_size__alu16;
   key__pt->key_type__t       = flea_rsa_key;
   key__pt->max_primitive_input_len__u16 = (key_bit_size__alu16 + 7) / 8;
-#  ifdef FLEA_USE_STACK_BUF
+#  ifdef FLEA_STACK_MODE
   if(p_len__alu16 > FLEA_RSA_CRT_KEY_COMPONENT_MAX_BYTE_SIZE ||
     q_len__alu16 > FLEA_RSA_CRT_KEY_COMPONENT_MAX_BYTE_SIZE ||
     d1_len__alu16 > FLEA_RSA_CRT_KEY_COMPONENT_MAX_BYTE_SIZE ||
@@ -150,8 +151,8 @@ flea_err_e THR_flea_private_key_t__ctor_rsa_components(
   {
     FLEA_THROW("invalid RSA private key component size", FLEA_ERR_INV_KEY_COMP_SIZE);
   }
-#  endif /* ifdef FLEA_USE_STACK_BUF */
-#  ifdef FLEA_USE_HEAP_BUF
+#  endif /* ifdef FLEA_STACK_MODE */
+#  ifdef FLEA_HEAP_MODE
   key_len__al_u16 = p_len__alu16 + q_len__alu16 + d1_len__alu16 + d2_len__alu16 + c_len__alu16;
   FLEA_ALLOC_MEM(key__pt->privkey_with_params__u.rsa_priv_key_val__t.priv_key_mem__bu8, key_len__al_u16);
 
@@ -176,7 +177,7 @@ flea_err_e THR_flea_private_key_t__ctor_rsa_components(
 
 void flea_private_key_t__dtor(flea_private_key_t* privkey__pt)
 {
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
 #  ifdef FLEA_HAVE_RSA
   if(privkey__pt->key_type__t == flea_rsa_key)
   {
@@ -190,7 +191,7 @@ void flea_private_key_t__dtor(flea_private_key_t* privkey__pt)
     FLEA_FREE_MEM_CHK_SET_NULL(privkey__pt->privkey_with_params__u.ec_priv_key_val__t.priv_scalar__mem__bu8);
   }
 #  endif /* ifdef FLEA_HAVE_ECC */
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
 }
 
 flea_err_e THR_flea_private_key_t__sign_plain_format(

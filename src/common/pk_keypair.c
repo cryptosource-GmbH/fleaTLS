@@ -55,8 +55,8 @@ flea_err_e THR_flea_pubkey__generate_ecc_key_pair_by_dp(
       dp__pt
     )
   );
-  flea_byte_vec_t__reconstruct_as_ref(&pubpoint_vec__t, pub_key__bu8, pub_key_len__alu8);
-  flea_byte_vec_t__reconstruct_as_ref(&scalar_vec__t, priv_key__bu8, priv_key_len__alu8);
+  flea_byte_vec_t__set_as_ref(&pubpoint_vec__t, pub_key__bu8, pub_key_len__alu8);
+  flea_byte_vec_t__set_as_ref(&scalar_vec__t, priv_key__bu8, priv_key_len__alu8);
 
   FLEA_CCALL(
     THR_flea_private_key_t__ctor_ecc(

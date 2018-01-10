@@ -14,7 +14,7 @@ flea_err_e THR_flea_tls_parallel_hash_ctx_t__ctor(
 {
   FLEA_THR_BEG_FUNC();
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(p_hash_ctx->hash_ctx__pt, hash_ids_len__alu8);
   FLEA_SET_ARR(p_hash_ctx->hash_ctx__pt, 0, hash_ids_len__alu8);
 # endif
@@ -130,7 +130,7 @@ void flea_tls_parallel_hash_ctx_t__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx
   {
     flea_hash_ctx_t__dtor(&p_hash_ctx->hash_ctx__pt[i]);
   }
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHK_SET_NULL(p_hash_ctx->hash_ctx__pt);
 # endif
 }

@@ -188,7 +188,7 @@ flea_err_e THR_flea_ecb_mode_ctx_t__ctor(
   {
     FLEA_THROW("trying to create cipher-ctx for unsupported direction", FLEA_ERR_INV_ALGORITHM);
   }
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(p_ctx->expanded_key__bu8, config__p_t->expanded_key_u32_size__u16);
 #endif
   if(dir == flea_encrypt)
@@ -257,7 +257,7 @@ flea_err_e THR_flea_ctr_mode_ctx_t__ctor(
     FLEA_THROW("ctr length greater than block length", FLEA_ERR_INV_ARG);
   }
   FLEA_CCALL(THR_flea_ecb_mode_ctx_t__ctor(&p_ctx->cipher_ctx__t, ext_id__t, key_pu8, key_length_al_u8, flea_encrypt));
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM(p_ctx->ctr_block__bu8, block_length_al_u8);
   FLEA_ALLOC_MEM(p_ctx->pending_mask__bu8, block_length_al_u8);
 #endif
@@ -385,7 +385,7 @@ flea_err_e THR_flea_cbc_mode_ctx_t__ctor(
 {
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_ecb_mode_ctx_t__ctor(&ctx__pt->cipher_ctx__t, id__t, key__pcu8, key_len__alu8, dir__t));
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(ctx__pt->iv__bu8, ctx__pt->cipher_ctx__t.block_length__u8);
 #endif
   if(iv_mbn__pcu8)
@@ -537,7 +537,7 @@ void flea_cbc_mode_ctx_t__dtor(flea_cbc_mode_ctx_t* ctx__pt)
 {
   flea_ecb_mode_ctx_t__dtor(&ctx__pt->cipher_ctx__t);
   // IV is not considered a secret
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHK_SET_NULL(ctx__pt->iv__bu8);
 #endif
 }

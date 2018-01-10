@@ -19,7 +19,7 @@ extern "C" {
 
 typedef struct
 {
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   flea_hash_ctx_t* hash_ctx__pt;
 # else
   flea_hash_ctx_t  hash_ctx__pt[FLEA_TLS_MAX_PARALLEL_HASHES];
@@ -30,7 +30,7 @@ typedef struct
 } flea_tls_parallel_hash_ctx_t;
 
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
 
 #  define flea_tls_parallel_hash_ctx_t__INIT(__p) \
   do {(__p)->num_hash_ctx__u8 = 0; (__p)->hash_ctx__pt = NULL;} while(0)
@@ -38,13 +38,13 @@ typedef struct
 #  define flea_tls_parallel_hash_ctx_t__INIT_VALUE \
   {.num_hash_ctx__u8 = 0, .hash_ctx__pt = NULL}
 
-# else // ifdef FLEA_USE_HEAP_BUF
+# else // ifdef FLEA_HEAP_MODE
 #  define flea_tls_parallel_hash_ctx_t__INIT(__p) \
   do {(__p)->num_hash_ctx__u8 = 0;} while(0)
 
 #  define flea_tls_parallel_hash_ctx_t__INIT_VALUE \
   {.num_hash_ctx__u8 = 0}
-# endif // ifdef FLEA_USE_HEAP_BUF
+# endif // ifdef FLEA_HEAP_MODE
 
 
 flea_err_e THR_flea_tls_parallel_hash_ctx_t__ctor(

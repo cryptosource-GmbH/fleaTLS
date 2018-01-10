@@ -18,10 +18,10 @@ static flea_err_e THR_flea_test_ecc_key_plain_format_encoding_inner(
   flea_hash_id_e       hash_id__e
 )
 {
-#ifdef FLEA_USE_STACK_BUF
-  const flea_u8_t enc_pubkey__au8[FLEA_ECC_MAX_ENCODED_POINT_LEN];
-  const flea_u8_t enc_privkey__au8[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
-  const flea_u8_t sig__au8[2 * FLEA_ECC_MAX_ORDER_BYTE_SIZE];
+#ifdef FLEA_STACK_MODE
+  flea_u8_t enc_pubkey__au8[FLEA_ECC_MAX_ENCODED_POINT_LEN];
+  flea_u8_t enc_privkey__au8[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
+  flea_u8_t sig__au8[2 * FLEA_ECC_MAX_ORDER_BYTE_SIZE];
 #endif
   flea_private_key_t privkey__t;
   flea_public_key_t pubkey__t;
@@ -38,7 +38,7 @@ static flea_err_e THR_flea_test_ecc_key_plain_format_encoding_inner(
   FLEA_THR_BEG_FUNC();
   flea_public_key_t__INIT(&pubkey__t);
   flea_private_key_t__INIT(&privkey__t);
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   flea_byte_vec_t__ctor_empty_allocatable(&enc_pubkey__t);
   flea_byte_vec_t__ctor_empty_allocatable(&enc_privkey__t);
   flea_byte_vec_t__ctor_empty_allocatable(&sig_vec__t);
@@ -46,9 +46,9 @@ static flea_err_e THR_flea_test_ecc_key_plain_format_encoding_inner(
   flea_byte_vec_t__ctor_empty_use_ext_buf(&enc_pubkey__t, enc_pubkey__au8, sizeof(enc_pubkey__au8));
   flea_byte_vec_t__ctor_empty_use_ext_buf(&enc_privkey__t, enc_privkey__au8, sizeof(enc_privkey__au8));
   flea_byte_vec_t__ctor_empty_use_ext_buf(&sig_vec__t, sig__au8, sizeof(sig__au8));
-#endif /* ifdef FLEA_USE_HEAP_BUF */
-  flea_byte_vec_t__INIT(&msg_vec__t);
-  flea_byte_vec_t__reconstruct_as_ref(&msg_vec__t, message__acu8, sizeof(message__acu8));
+#endif /* ifdef FLEA_HEAP_MODE */
+  flea_byte_vec_t__ctor_not_allocatable(&msg_vec__t);
+  flea_byte_vec_t__set_as_ref(&msg_vec__t, message__acu8, sizeof(message__acu8));
 
   FLEA_CCALL(THR_flea_pubkey__generate_ecc_key_pair_by_dp_id(&pubkey__t, &privkey__t, dp_id__e));
   FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&dp_ref__t, dp_id__e));
@@ -83,7 +83,7 @@ static flea_err_e THR_flea_test_ecc_key_plain_format_encoding_inner(
   memset(&pubkey__t, 0, sizeof(pubkey__t));
   memset(&privkey__t, 0, sizeof(privkey__t));
   flea_byte_vec_t__dtor(&sig_vec__t);
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   flea_byte_vec_t__ctor_empty_allocatable(&sig_vec__t);
 #else
   flea_byte_vec_t__ctor_empty_use_ext_buf(&sig_vec__t, sig__au8, sizeof(sig__au8));

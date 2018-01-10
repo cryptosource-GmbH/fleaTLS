@@ -43,12 +43,12 @@ flea_err_e THR_flea_ecka__compute_ecka_with_kdf_ansi_x9_63(
     FLEA_THROW("invalid public point length for ecka kdf-ansi-X9.63", FLEA_ERR_INV_ARG);
   }
   shared_x_len__alu8 = (public_point_enc_len__alu8 - 1) / 2;
-# ifdef FLEA_USE_STACK_BUF
+# ifdef FLEA_STACK_MODE
   if(shared_x_len__alu8 > FLEA_ECC_MAX_MOD_BYTE_SIZE)
   {
     FLEA_THROW("field size not supported", FLEA_ERR_INV_ARG);
   }
-# endif /* ifdef FLEA_USE_STACK_BUF */
+# endif /* ifdef FLEA_STACK_MODE */
   FLEA_ALLOC_BUF(shared_x__bu8, shared_x_len__alu8);
   FLEA_CCALL(
     THR_flea_ecka__compute_raw(
@@ -103,12 +103,12 @@ flea_err_e THR_flea_ecka__compute_raw(
   const flea_bool_e do_use_add_always__b = flea_false;
 # endif
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   flea_al_u8_t enc_order_len;
   flea_al_u8_t enc_field_len;
   flea_mpi_ulen_t prime_word_len;
 # endif
-# ifdef FLEA_USE_STACK_BUF
+# ifdef FLEA_STACK_MODE
   flea_uword_t ecc_ws_mpi_arrs [sign_mpi_ws_count][FLEA_ECC_MAX_ORDER_WORD_SIZE + 32 / sizeof(flea_uword_t)];
 # else
   flea_uword_t* ecc_ws_mpi_arrs [sign_mpi_ws_count];
@@ -147,7 +147,7 @@ flea_err_e THR_flea_ecka__compute_raw(
 # ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
   flea_ctr_mode_prng_t__INIT(&delay_prng__t);
 # endif
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   enc_order_len = dom_par__pt->n__ru8.len__dtl;
   enc_field_len = dom_par__pt->p__ru8.len__dtl;
 
@@ -160,7 +160,7 @@ flea_err_e THR_flea_ecka__compute_raw(
   un_len = FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(2 * (prime_word_len + 1)); // + 1 due to reducing R^2 !
   memset(ecc_ws_mpi_arrs, 0, sizeof(ecc_ws_mpi_arrs));
 
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
 
   FLEA_ALLOC_BUF(n_arr, order_word_len);
   FLEA_ALLOC_BUF(d_arr, order_word_len);
@@ -215,7 +215,7 @@ flea_err_e THR_flea_ecka__compute_raw(
 
   for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs); i++)
   {
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
     FLEA_ALLOC_MEM_ARR(ecc_ws_mpi_arrs[i], order_word_len);
 # endif
     flea_mpi_t__init(&mpi_worksp_arr[i], ecc_ws_mpi_arrs[i], order_word_len);
@@ -228,12 +228,12 @@ flea_err_e THR_flea_ecka__compute_raw(
   /* d *= l mod n */
   FLEA_CCALL(THR_flea_mpi_t__mul(&l, &d, &mpi_worksp_arr[0]));
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs); i++)
   {
     FLEA_FREE_MEM_SET_NULL(ecc_ws_mpi_arrs[i]);
   }
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
 
   /* l contains d*l unreduced
    * ...mod n:*/

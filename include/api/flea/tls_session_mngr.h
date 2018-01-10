@@ -24,7 +24,7 @@ void flea_tls_session_mngr_t__dtor(flea_tls_session_mngr_t* session_mngr);
  *
  * @param sm pointer to the the session manager object
  */
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 # define flea_tls_session_mngr_t__INIT(sm) memset(sm, 0, sizeof(flea_tls_session_mngr_t))
 #else
 # define flea_tls_session_mngr_t__INIT(sm)

@@ -17,17 +17,17 @@ typedef struct
 {
   flea_len_ctr_t len_ctr__t;
   flea_u16_t     hdr_len__u16;
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   flea_u32_t*    hl__bu32;
   flea_u32_t*    hh__bu32;
   flea_u8_t*     base_ctr__bu8;
   flea_u8_t*     state__bu8;
-#else // ifdef FLEA_USE_HEAP_BUF
+#else // ifdef FLEA_HEAP_MODE
   flea_u32_t     hl__bu32[32];
   flea_u32_t     hh__bu32[32];
   flea_u8_t      base_ctr__bu8[16];
   flea_u8_t      state__bu8[16];
-#endif // ifdef FLEA_USE_HEAP_BUF
+#endif // ifdef FLEA_HEAP_MODE
   flea_u8_t      pend_input_len__u8;
 } flea_ghash_ctx_t;
 

@@ -138,7 +138,7 @@ static flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
   FLEA_DECL_OBJ(strm__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   flea_mem_read_stream_help_t hlp__t;
-#ifdef FLEA_USE_STACK_BUF
+#ifdef FLEA_STACK_MODE
   FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(dec_vec__t, 1000);
 #else
   flea_byte_vec_t dec_vec__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;

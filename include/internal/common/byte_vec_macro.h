@@ -1,0 +1,28 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
+#ifndef _flea_byte_vec_macro__H_
+#define _flea_byte_vec_macro__H_
+
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#define FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK                (1)
+#define FLEA_BYTEVEC_STATE_DEALLOCATABLE_MASK              (2)
+#define FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK (0)
+
+#define FLEA_BYTEVEC_STATE_SET_AS_ALLOCATABLE(state)     (state) |= FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK
+#define FLEA_BYTEVEC_STATE_SET_AS_DEALLOCATABLE(state)   (state) |= FLEA_BYTEVEC_STATE_DEALLOCATABLE_MASK
+
+#define FLEA_BYTEVEC_STATE_SET_AS_UNALLOCATABLE(state)   (state) &= (~FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK)
+#define FLEA_BYTEVEC_STATE_SET_AS_UNDEALLOCATABLE(state) (state) &= (~FLEA_BYTEVEC_STATE_DEALLOCATABLE_MASK)
+
+#define FLEA_BYTEVEC_STATE_IS_ALLOCATABLE(state)         ((state) & FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK)
+#define FLEA_BYTEVEC_STATE_IS_DEALLOCATABLE(state)       ((state) & FLEA_BYTEVEC_STATE_DEALLOCATABLE_MASK)
+
+
+#ifdef __cplusplus
+}
+#endif
+#endif /* h-guard */

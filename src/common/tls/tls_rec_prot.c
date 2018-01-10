@@ -158,7 +158,7 @@ flea_err_e THR_flea_tls_rec_prot_t__ctor(
 {
   FLEA_THR_BEG_FUNC();
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(rec_prot__pt->send_rec_buf_raw__bu8, FLEA_TLS_TRNSF_BUF_SIZE);
   FLEA_ALLOC_MEM_ARR(rec_prot__pt->alt_send_buf__raw__bu8, FLEA_TLS_ALT_SEND_BUF_SIZE);
 # endif

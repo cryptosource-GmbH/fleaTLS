@@ -20,15 +20,15 @@ extern "C" {
 
 typedef struct
 {
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   flea_ref_cu8_t*              crl_collection__brcu8;
   flea_x509_cert_info_t*       cert_collection__bt;
   flea_u16_t*                  chain__bu16;
 # else
-  flea_byte_vec_t              crl_collection__brcu8[FLEA_MAX_CERT_COLLECTION_NB_CRLS];
+  flea_ref_cu8_t               crl_collection__brcu8[FLEA_MAX_CERT_COLLECTION_NB_CRLS];
   flea_x509_cert_info_t        cert_collection__bt[FLEA_MAX_CERT_COLLECTION_SIZE];
   flea_u16_t                   chain__bu16[FLEA_MAX_CERT_CHAIN_DEPTH]; // including target and TA
-# endif // ifdef FLEA_USE_HEAP_BUF
+# endif // ifdef FLEA_HEAP_MODE
   flea_u16_t                   crl_collection_allocated__u16;
   flea_u16_t                   cert_collection_allocated__u16;
   flea_u16_t                   nb_crls__u16;

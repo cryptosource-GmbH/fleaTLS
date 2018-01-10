@@ -13,7 +13,7 @@
 #include "flea/hostn_ver.h"
 #include "self_test.h"
 
-#if defined FLEA_HAVE_RSA && (defined FLEA_USE_HEAP_BUF || FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
+#if defined FLEA_HAVE_RSA && (defined FLEA_HEAP_MODE || FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
 flea_err_e THR_flea_test_cert_path_generic(
   const flea_u8_t*      target_cert_ptr,
   flea_u32_t            target_cert_len,
@@ -155,4 +155,4 @@ flea_err_e THR_flea_test_cert_path_generic(
   );
 } /* THR_flea_test_cert_path_generic */
 
-#endif /* #if defined FLEA_HAVE_RSA && (defined FLEA_USE_HEAP_BUF || FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) */
+#endif /* #if defined FLEA_HAVE_RSA && (defined FLEA_HEAP_MODE || FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) */

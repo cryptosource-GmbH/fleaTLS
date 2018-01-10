@@ -139,12 +139,12 @@ static flea_err_e THR_flea_tls__read_client_hello(
     FLEA_THROW("incorrect cipher suites length", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
-# ifndef FLEA_USE_HEAP_BUF
+# ifndef FLEA_HEAP_MODE
   if(cipher_suites_len_from_peer__u32 > FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE)
   {
     FLEA_THROW("buffer not large enough to store cipher suites", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
-# endif /* ifndef FLEA_USE_HEAP_BUF */
+# endif /* ifndef FLEA_HEAP_MODE */
 
   while(cipher_suites_len_from_peer__u32)
   {
@@ -1030,7 +1030,7 @@ flea_err_e THR_flea_tls__server_handshake(
 {
   flea_tls_ctx_t* tls_ctx = &server_ctx__pt->tls_ctx__t;
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
 # else
   flea_u8_t premaster_secret__au8[FLEA_MAX(48, FLEA_ECC_MAX_ENCODED_POINT_LEN)];
@@ -1038,7 +1038,7 @@ flea_err_e THR_flea_tls__server_handshake(
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
     );
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, 256);
   flea_public_key_t peer_public_key__t;
   tls_ctx->extension_ctrl__u8 = 0;

@@ -23,23 +23,23 @@ typedef struct
  */
 typedef struct
 {
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   flea_enc_cert_ref_t* enc_cert_refs__bcu8;
 # else
   flea_enc_cert_ref_t  enc_cert_refs__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
   flea_u8_t            trust_flags__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
-# endif // ifdef FLEA_USE_HEAP_BUF
+# endif // ifdef FLEA_HEAP_MODE
   flea_dtl_t           nb_alloc_certs__dtl;
   flea_u16_t           nb_set_certs__u16;
 } flea_cert_store_t;
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
 #  define flea_cert_store_t__INIT_VALUE {.enc_cert_refs__bcu8 = NULL}
 #  define flea_cert_store_t__INIT(__p) do {(__p)->enc_cert_refs__bcu8 = NULL;} while(0)
 # else
 #  define flea_cert_store_t__INIT_VALUE {.enc_cert_refs__bcu8[0] = {{0, 0}, 0}}
 #  define flea_cert_store_t__INIT(__p)
-# endif // ifdef FLEA_USE_HEAP_BUF
+# endif // ifdef FLEA_HEAP_MODE
 
 # define flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(__p, __i) (&(__p)->enc_cert_refs__bcu8[__i].data_ref__rcu8)
 # define flea_cert_store_t__GET_NB_CERTS(__p)                  ((__p)->nb_set_certs__u16)

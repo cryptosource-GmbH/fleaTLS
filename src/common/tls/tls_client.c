@@ -749,7 +749,7 @@ static flea_err_e THR_flea_tls__send_cert_verify(
   flea_u32_t hdr_len__u32;
   flea_u8_t sig_len_enc__u8[2];
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(message_vec__t, FLEA_MAX_HASH_OUT_LEN);
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, FLEA_PK_MAX_SIGNATURE_LEN);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, FLEA_ASYM_MAX_ENCODED_SIG_LEN);
   flea_u8_t hash_len__u8;
   flea_u8_t hash_alg_enc__u8;
   flea_u8_t sig_alg_enc__u8;
@@ -1021,7 +1021,7 @@ flea_err_e THR_flea_tls__client_handshake(
   flea_tls__handshake_state_ctor(&handshake_state);
   flea_public_key_t__INIT(&peer_public_key__t);
   flea_tls_parallel_hash_ctx_t p_hash_ctx;
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
 # else
   flea_u8_t premaster_secret__au8[FLEA_MAX(48, FLEA_ECC_MAX_ENCODED_POINT_LEN)];
@@ -1029,7 +1029,7 @@ flea_err_e THR_flea_tls__client_handshake(
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
     );
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
   flea_tls_parallel_hash_ctx_t__INIT(&p_hash_ctx);
 
   tls_ctx->extension_ctrl__u8 = 0;

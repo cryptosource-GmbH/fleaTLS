@@ -226,7 +226,7 @@ flea_err_e THR_flea_test_rsa_crt_mass_sig(flea_u32_t nb_iters)
   FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
   FLEA_DECL_BUF(mess_arr, flea_u8_t, mod_len);
   FLEA_DECL_BUF(sig_arr, flea_u8_t, mod_len);
-# if !(FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && defined FLEA_USE_STACK_BUF)
+# if !(FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && defined FLEA_STACK_MODE)
   FLEA_DECL_BUF(encrypted_arr, flea_u8_t, mod_len);
 # endif
   FLEA_DECL_BUF(mod_enc, flea_u8_t, mod_len);
@@ -286,12 +286,12 @@ flea_err_e THR_flea_test_rsa_crt_mass_sig(flea_u32_t nb_iters)
       sizeof(q_inv_diff_1)
       );
 
-# if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && defined FLEA_USE_STACK_BUF
+# if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && defined FLEA_STACK_MODE
     if(err != FLEA_ERR_INV_KEY_SIZE && err != FLEA_ERR_BUFF_TOO_SMALL)
     {
       FLEA_THROW("wrong error code for RSA with invalid key size", FLEA_ERR_FAILED_TEST);
     }
-# else  /* if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && defined FLEA_USE_STACK_BUF */
+# else  /* if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && defined FLEA_STACK_MODE */
     if(err != FLEA_ERR_FINE)
     {
       FLEA_THROW("error during RSA private OP", FLEA_ERR_FAILED_TEST);
@@ -302,10 +302,10 @@ flea_err_e THR_flea_test_rsa_crt_mass_sig(flea_u32_t nb_iters)
     {
       FLEA_THROW("error in mass sign/verify test", FLEA_ERR_FAILED_TEST);
     }
-# endif /* if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && defined FLEA_USE_STACK_BUF */
+# endif /* if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && defined FLEA_STACK_MODE */
   }
   // outside cleanup section because #ifdef within macro arguments is not portable
-# if !(FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && defined FLEA_USE_STACK_BUF)
+# if !(FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && defined FLEA_STACK_MODE)
   FLEA_FREE_BUF_FINAL(encrypted_arr);
 # endif
   FLEA_THR_FIN_SEC(

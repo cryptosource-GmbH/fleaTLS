@@ -17,32 +17,32 @@ extern "C" {
 typedef struct
 {
   flea_u8_t           pending_output_len__u8;
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   flea_u8_t*          pending_output__bu8;
   flea_u8_t*          count_block__bu8;
   flea_u8_t*          key__bu8;
   flea_u8_t*          accu__bu8;
-#else // ifdef FLEA_USE_HEAP_BUF
+#else // ifdef FLEA_HEAP_MODE
   flea_u8_t           pending_output__bu8[FLEA_AES_BLOCK_LENGTH];
   flea_u8_t           count_block__bu8[FLEA_AES_BLOCK_LENGTH];
   flea_u8_t           key__bu8[FLEA_AES256_KEY_BYTE_LENGTH];
-#endif // ifdef FLEA_USE_HEAP_BUF
+#endif // ifdef FLEA_HEAP_MODE
   flea_ecb_mode_ctx_t cipher_ctx__t;
 } flea_ctr_mode_prng_t;
 
 #define flea_ctr_mode_prng_t__INIT_VALUE {.cipher_ctx__t = flea_ecb_mode_ctx_t__INIT_VALUE}
 
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 # define flea_ctr_mode_prng_t__INIT(__p) \
   do { \
     flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t); \
   } while(0)
-#else // ifdef FLEA_USE_HEAP_BUF
+#else // ifdef FLEA_HEAP_MODE
 # define flea_ctr_mode_prng_t__INIT(__p) \
   do { \
     flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t); \
   } while(0)
-#endif // ifdef FLEA_USE_HEAP_BUF
+#endif // ifdef FLEA_HEAP_MODE
 
 /**
  * Create a PRNG object.

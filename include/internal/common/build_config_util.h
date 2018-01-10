@@ -38,8 +38,8 @@
 # define FLEA_HAVE_ASYM_ALGS
 #endif
 
-#ifndef FLEA_USE_HEAP_BUF
-# define FLEA_USE_STACK_BUF
+#ifndef FLEA_HEAP_MODE
+# define FLEA_STACK_MODE
 #endif
 
 #ifdef FLEA_HAVE_AES_BLOCK_DECR

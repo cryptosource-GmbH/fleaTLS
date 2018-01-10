@@ -235,12 +235,12 @@ flea_err_e THR_flea_pk_api__verify_message__pkcs1_v1_5(
     FLEA_THROW("invalid format of PKCS#1 v1.5 message", FLEA_ERR_INV_SIGNATURE);
   }
   compare_val_len__alu16 = FLEA_CEIL_BYTE_LEN_FROM_BIT_LEN(bit_size__alu16);
-# ifdef FLEA_USE_STACK_BUF
+# ifdef FLEA_STACK_MODE
   if(compare_val_len__alu16 > FLEA_STACK_BUF_NB_ENTRIES(compare__bu8))
   {
     FLEA_THROW("key bit size too large", FLEA_ERR_INV_KEY_SIZE);
   }
-# endif /* ifdef FLEA_USE_STACK_BUF */
+# endif /* ifdef FLEA_STACK_MODE */
   FLEA_ALLOC_BUF(compare__bu8, compare_val_len__alu16);
   memcpy(compare__bu8, digest__pu8, digest_len__alu16);
   FLEA_CCALL(
@@ -641,12 +641,12 @@ flea_err_e THR_flea_private_key_t__decrypt_message_secure(
   }
   mod_len__alu16 = (privkey__pt->key_bit_size__u16 + 7) / 8;
   primitive_output_len__alu16 = mod_len__alu16;
-# ifdef FLEA_USE_STACK_BUF
+# ifdef FLEA_STACK_MODE
   if(mod_len__alu16 > FLEA_STACK_BUF_NB_ENTRIES(primitive_output__bu8))
   {
     FLEA_THROW("key length too large", FLEA_ERR_INV_KEY_SIZE);
   }
-# endif /* ifdef FLEA_USE_STACK_BUF */
+# endif /* ifdef FLEA_STACK_MODE */
   if(ciphertext_len__alu16 > mod_len__alu16)
   {
     FLEA_THROW("ciphertext length too large", FLEA_ERR_INV_ARG);

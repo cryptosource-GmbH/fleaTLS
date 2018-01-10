@@ -69,13 +69,13 @@ flea_err_e THR_flea_ber_dec_t__ctor(
   FLEA_THR_BEG_FUNC();
   dec__pt->level__alu8 = 0;
   dec__pt->source__pt  = read_stream__pt;
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(dec__pt->allo_open_cons__bdtl, FLEA_BER_DEC_LEVELS_PRE_ALLOC);
   dec__pt->alloc_levels__alu8 = FLEA_BER_DEC_LEVELS_PRE_ALLOC;
   FLEA_SET_ARR(dec__pt->allo_open_cons__bdtl, 0, FLEA_BER_DEC_LEVELS_PRE_ALLOC);
 #else
   dec__pt->alloc_levels__alu8 = FLEA_NB_ARRAY_ENTRIES(dec__pt->allo_open_cons__bdtl);
-#endif /* ifdef FLEA_USE_HEAP_BUF */
+#endif /* ifdef FLEA_HEAP_MODE */
   dec__pt->length_limit__dtl       = length_limit__dtl;
   dec__pt->stored_tag_nb_bytes__u8 = 0;
   dec__pt->back_buffer__pt         = NULL;
@@ -317,7 +317,7 @@ static flea_err_e THR_flea_ber_dec_t__verify_next_tag(
   return THR_flea_ber_dec_t__verify_next_tag_opt(dec__pt, type__t, class_form__alu8, &b, flea_be_strict_about_tag);
 }
 
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 static flea_err_e THR_flea_ber_dec_t__grow_levels(
   flea_ber_dec_t* dec__pt,
   flea_al_u8_t    new_size
@@ -336,7 +336,7 @@ static flea_err_e THR_flea_ber_dec_t__grow_levels(
   FLEA_THR_FIN_SEC_empty();
 }
 
-#endif /* #ifdef FLEA_USE_HEAP_BUF */
+#endif /* #ifdef FLEA_HEAP_MODE */
 
 
 static flea_err_e THR_flea_ber_dec_t__decode_length_with_enc_len(
@@ -445,7 +445,7 @@ static flea_err_e THR_flea_ber_dec_t__open_constructed_opt(
   FLEA_CCALL(THR_flea_ber_dec_t__decode_length(dec__pt, &length__dtl));
   if(dec__pt->level__alu8 + 1 >= dec__pt->alloc_levels__alu8)
   {
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
     FLEA_CCALL(THR_flea_ber_dec_t__grow_levels(dec__pt, dec__pt->level__alu8 + 2 + FLEA_BER_DEC_LEVELS_PRE_ALLOC));
 #else
     FLEA_THROW("nesting too deep", FLEA_ERR_ASN1_DER_EXCSS_NST);
@@ -667,7 +667,7 @@ static flea_err_e THR_flea_ber_dec_t__read_or_ref_raw_opt_cft(
     {
       raw_len__dtl = p__pu8 - raw__pu8 + length__dtl;
     }
-    flea_byte_vec_t__reconstruct_as_ref(res_vec__pt, (flea_u8_t*) raw__pu8, raw_len__dtl);
+    flea_byte_vec_t__set_as_ref(res_vec__pt, (flea_u8_t*) raw__pu8, raw_len__dtl);
   }
 
   FLEA_CCALL(THR_flea_ber_dec_t__consume_current_length(dec__pt, length__dtl));
@@ -1349,7 +1349,7 @@ flea_err_e THR_flea_ber_dec_t__decode_implicit_universal_optional(
 
 void flea_ber_dec_t__dtor(flea_ber_dec_t* dec__pt)
 {
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHK_SET_NULL(dec__pt->allo_open_cons__bdtl);
 #endif
   if(dec__pt->hash_ctx__pt)

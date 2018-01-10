@@ -55,7 +55,7 @@ flea_err_e THR_flea_public_key_t__create_rsa_key(
 {
   FLEA_THR_BEG_FUNC();
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(key__pt->mod_mem__bu8, mod__pcrcu8->len__dtl);
   FLEA_ALLOC_MEM_ARR(key__pt->exp_mem__bu8, exp__pcrcu8->len__dtl);
 # endif

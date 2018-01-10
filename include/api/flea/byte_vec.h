@@ -7,18 +7,39 @@
 #include "flea/error.h"
 #include "flea/types.h"
 #include "flea/util.h"
-#include "internal/common/byte_vec_int.h"
+#include "internal/common/byte_vec_macro.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
 
+/**
+ * Byte vector type. Functions similar to C++ vectors, i.e. it has internal
+ * allocated buffer, which can used to append bytes to the vector. Internal reallocations
+ * are performed only when the currently allocated size does not suffice for the appended data.
+ *
+ * The byte vector also supports the usage of an externally provided buffer as
+ * its internal memory, in which case it does not allocate any memory at all,
+ * and thus can also be used when FLEA_STACK_MODE is activated. In this case the
+ * byte vector behaves as a mere reference to an external buffer.
+ *
+ * Also when using FLEA_HEAP_MODE byte vectors can also be set as mere
+ * references to an existing buffer. In this case, the flea_byte_vect_t__dtor()
+ * does not deallocate the buffer. The fleaTLS API does not return byte vectors
+ * that represent references, this feature is only internally used by fleaTLS.
+ * Reference byte vectors may be passed to fleaTLS API functions whenever they
+ * represent mere input arguments, i.e. where a "const flea_byte_vect_t* " is
+ * passed as an argument.
+ *
+ */
 typedef struct
 {
   flea_u8_t* data__pu8;
   flea_dtl_t len__dtl;
   flea_dtl_t allo__dtl;
+#ifdef FLEA_HEAP_MODE
   flea_u8_t  state__u8;
+#endif
 } flea_byte_vec_t;
 
 /**
@@ -43,41 +64,69 @@ typedef struct
  * Right hand side initialization value for a byte vector. The byte vector is
  * constructed as allocatable but with an empty capacity.
  */
-#define flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE {.data__pu8 = NULL, .len__dtl = 0, .allo__dtl = 0, .state__u8 = FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK}
+#ifdef FLEA_HEAP_MODE
+# define flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE {.data__pu8 = NULL, .len__dtl = 0, .allo__dtl = 0, .state__u8 = FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK}
+#else
+# define flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE {.data__pu8 = NULL, .len__dtl = 0, .allo__dtl = 0}
+#endif
 
 /**
  * Right hand side initialization value for a byte vector. The byte vector is
  * constructed as non-allocatable and thus can only be used to received
  * reference values.
  */
-#define flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE {.data__pu8 = NULL, .len__dtl = 0, .allo__dtl = 0, .state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK}
-
+#ifdef FLEA_HEAP_MODE
+# define flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE {.data__pu8 = NULL, .len__dtl = 0, .allo__dtl = 0, .state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK}
+#else
+# define flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE {.data__pu8 = NULL, .len__dtl = 0, .allo__dtl = 0}
+#endif
 
 /**
  * Declare a byte vector using a stack buffer as the vector's internal buffer. The byte vector is not
  * allocatable.
  */
-#define FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(name, size) \
+#ifdef FLEA_HEAP_MODE
+# define FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(name, size) \
   flea_u8_t __byte_vec_stack_buf_for_ ## name[size]; \
   flea_byte_vec_t name = {.data__pu8 = __byte_vec_stack_buf_for_ ## name, \
                           .len__dtl  =                                 0, .allo__dtl= size, .state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK}
+
+#else // ifdef FLEA_HEAP_MODE
+# define FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(name, size) \
+  flea_u8_t __byte_vec_stack_buf_for_ ## name[size]; \
+  flea_byte_vec_t name = {.data__pu8 = __byte_vec_stack_buf_for_ ## name, \
+                          .len__dtl  =                                 0, .allo__dtl= size}
+
+#endif // ifdef FLEA_HEAP_MODE
 
 /**
  * Right hand side initialization value for a byte vector using an existing buffer as the byte
  * vector's internal buffer. The byte vector is created empty. It is not
  * allocatable.
  */
-#define flea_byte_vec_t__CONSTR_EXISTING_BUF_NOT_ALLOCATABLE(buf, size) \
+#ifdef FLEA_HEAP_MODE
+# define flea_byte_vec_t__CONSTR_EXISTING_BUF_NOT_ALLOCATABLE(buf, size) \
   {.data__pu8 = (flea_u8_t*) buf, \
    .len__dtl  = 0, .allo__dtl = size, .state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK}
+#else
+# define flea_byte_vec_t__CONSTR_EXISTING_BUF_NOT_ALLOCATABLE(buf, size) \
+  {.data__pu8 = (flea_u8_t*) buf, \
+   .len__dtl  = 0, .allo__dtl = size}
+#endif // ifdef FLEA_HEAP_MODE
 
 /**
  * Right hand side initialization value for a byte vector using an existing buffer as the byte
  * vector's internal buffer. The vector's intial content is set to the content of that buffer. The byte vector is not allocatable.
  */
-#define flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(buf, size) \
+#ifdef FLEA_HEAP_MODE
+# define flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(buf, size) \
   {.data__pu8 = (flea_u8_t*) buf, \
    .len__dtl  = size, .allo__dtl = size, .state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK}
+#else
+# define flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE(buf, size) \
+  {.data__pu8 = (flea_u8_t*) buf, \
+   .len__dtl  = size, .allo__dtl = size}
+#endif // ifdef FLEA_HEAP_MODE
 
 /**
  * Statement for the creation of a byte vector using flea_byte_vec_t__CONSTR_EXISTING_BUF_CONTENT_NOT_ALLOCATABLE.
@@ -93,10 +142,10 @@ typedef struct
  * This initialization value is useful when writing code which is supposed to
  * run in both heap and stack mode.
  */
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 # define flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(dummy)       flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE
 #else
-# define flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(stack_array) {.data__pu8 = stack_array, .len__dtl = 0, .allo__dtl = sizeof(stack_array), .state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK}
+# define flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(stack_array) {.data__pu8 = stack_array, .len__dtl = 0, .allo__dtl = sizeof(stack_array)}
 #endif
 
 /**
@@ -104,15 +153,15 @@ typedef struct
  * depending on the mode. In stack mode, the static buffer is also declared by
  * this macro.
  */
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 # define FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(name, \
     size) flea_byte_vec_t name = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE
 #else
 # define FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(name, \
     size) FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(name, size)
-#endif // ifdef FLEA_USE_HEAP_BUF
+#endif // ifdef FLEA_HEAP_MODE
 
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 # define flea_byte_vec_t__CTOR_ALLOCATABLE_OR_STACK_BUF(__byte_vec__pt, __stack_array__au8) \
   do { \
     (__byte_vec__pt)->data__pu8 = NULL; \
@@ -120,23 +169,22 @@ typedef struct
     (__byte_vec__pt)->len__dtl  = 0; \
     (__byte_vec__pt)->state__u8 = FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK; \
   } while(0)
-#else // ifdef FLEA_USE_HEAP_BUF
+#else // ifdef FLEA_HEAP_MODE
 # define flea_byte_vec_t__CTOR_ALLOCATABLE_OR_STACK_BUF(__byte_vec__pt, __stack_array__au8) \
   do { \
     (__byte_vec__pt)->data__pu8 = __stack_array__au8; \
     (__byte_vec__pt)->allo__dtl = sizeof(__stack_array__au8); \
     (__byte_vec__pt)->len__dtl  = 0; \
-    (__byte_vec__pt)->state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK; \
   } while(0)
-#endif // ifdef FLEA_USE_HEAP_BUF
+#endif // ifdef FLEA_HEAP_MODE
 
 /**
- * Init a byte vector.
+ * Create a byte vector which is not allocatable with zero capacity.
  */
-void flea_byte_vec_t__INIT(flea_byte_vec_t* byte_vec);
+void flea_byte_vec_t__ctor_not_allocatable(flea_byte_vec_t* byte_vec);
 
 
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 
 /**
  * Create an empty byte vector which is allocatable.
@@ -171,19 +219,29 @@ void flea_byte_vec_t__dtor(flea_byte_vec_t* byte_vec);
 void flea_byte_vec_t__reset(flea_byte_vec_t* byte_vec);
 
 /**
- * Compare two byte vectors lexicographically.
+ * Compare two byte vectors by length and lexicographically.
  *
  * @param a first vector to compare
  * @param b second vector to compare
- * @return If the first argument is longer than the second, 1 is returned, if
+ *
+ *  @return If the first argument is longer than the second, 1 is returned, if
  * the second is longer, -1 is returned. If the lengths are equal, the return value is the same
- * as for standard memcmp().
+ * as for the standard library's memcmp().
  */
 int flea_byte_vec_t__cmp(
   const flea_byte_vec_t* a,
   const flea_byte_vec_t* b
 );
 
+/**
+ * Compare the contents of a byte vector with those of a flea_ref_cu8_t. The
+ * result is computed in the same way as in flea_byte_vec_t__cmp().
+ *
+ * @param a vector to compare
+ * @param b ref-object vector to compare
+ *
+ * @return return value as for flea_byte_vec_t__cmp()
+ */
 int flea_byte_vec_t__cmp_with_cref(
   const flea_byte_vec_t* a,
   const flea_ref_cu8_t*  b
@@ -193,18 +251,21 @@ int flea_byte_vec_t__cmp_with_cref(
  * Set the byte vector's content as a reference to an existing buf. The byte
  * vector does not assume ownership of that buffer. A byte vector's dtor doesn't
  * free anything if it is called on a byte vector holding a reference.
+ *
+ * The previous content of the byte vector is deleted prior to setting the
+ * reference value.
+ *
+ * @param byte_vec pointer to the byte_vector
+ * @param data pointer to the data to append to set
+ * @param len the length of data
+ *
  */
-void flea_byte_vec_t__reconstruct_as_ref(
+void flea_byte_vec_t__set_as_ref(
   flea_byte_vec_t* byte_vec,
   const flea_u8_t* data,
   flea_dtl_t       data_len
 );
 
-void flea_byte_vec_t__copy_content_set_ref_use_mem(
-  flea_byte_vec_t*       trgt,
-  flea_u8_t*             trgt_mem,
-  const flea_byte_vec_t* src
-);
 
 /**
  * Append data to the byte vector. If the capacity of the internal buffer is
@@ -213,6 +274,8 @@ void flea_byte_vec_t__copy_content_set_ref_use_mem(
  * @param byte_vec pointer to the byte_vector
  * @param data pointer to the data to append
  * @param len the length of data
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_byte_vec_t__append(
   flea_byte_vec_t* byte_vec,
@@ -226,6 +289,8 @@ flea_err_e THR_flea_byte_vec_t__append(
  *
  * @param byte_vec pointer to the byte_vector
  * @param byte the byte to append
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_byte_vec_t__push_back(
   flea_byte_vec_t* byte_vec,
@@ -233,10 +298,12 @@ flea_err_e THR_flea_byte_vec_t__push_back(
 );
 
 /**
- * Only supported in heap mode. Enlarge the byte vector's capacity.
+ * Only supported in heap mode. Enlarge the byte vector's internal capacity.
  *
  * @param byte_vec pointer to the byte_vector
- * @param reserve_len new size of the vector's allocated buffer
+ * @param reserve_len new size of the vector's internal allocated buffer
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_byte_vec_t__reserve(
   flea_byte_vec_t* byte_vec,

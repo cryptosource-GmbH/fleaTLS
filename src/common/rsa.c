@@ -121,11 +121,11 @@ flea_err_e THR_flea_rsa_raw_operation_crt(
   flea_mpi_t result, base, large_tmp, ws_trf_base, d1, d2, j1, p, q, base_mod_prime;
   flea_mpi_div_ctx_t div_ctx;
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   flea_mpi_ulen_t mod_byte_len, mod_word_len, base_mod_prime_len, large_tmp_len, ws_trf_base_len, half_mod_word_len,
     prime_word_len;
   flea_mpi_ulen_t result_len, base_word_len, vn_len, un_len;
-# endif // #ifdef FLEA_USE_HEAP_BUF
+# endif // #ifdef FLEA_HEAP_MODE
 
 # ifdef FLEA_USE_RSA_MUL_ALWAYS
   const flea_bool_e do_use_mul_always__b = flea_true;
@@ -142,7 +142,7 @@ flea_err_e THR_flea_rsa_raw_operation_crt(
 # ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
   flea_ctr_mode_prng_t__INIT(&delay_prng__t);
 # endif
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   mod_byte_len       = p_enc_len + q_enc_len;
   mod_word_len       = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN(mod_byte_len);
   base_mod_prime_len = (mod_word_len + 1) / 2 + FLEA_RSA_CRT_PQ_MAX_WORDS_HALF_DIFF; // +1 due to p-q-diff
@@ -154,7 +154,7 @@ flea_err_e THR_flea_rsa_raw_operation_crt(
   result_len         = mod_word_len + 1;
   vn_len = FLEA_MPI_DIV_VN_HLFW_LEN_FROM_DIVISOR_W_LEN(prime_word_len);
   un_len = FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(2 * prime_word_len);
-# endif // #ifdef FLEA_USE_HEAP_BUF
+# endif // #ifdef FLEA_HEAP_MODE
 
   FLEA_ALLOC_BUF(result_arr, result_len);
 
@@ -360,7 +360,7 @@ flea_err_e THR_flea_rsa_raw_operation(
 
 
   flea_mpi_ulen_t mod_word_len, result_word_len, large_tmp_word_len, ws_q_word_len;
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   flea_mpi_ulen_t vn_len, un_len;
 # endif
 
@@ -369,18 +369,18 @@ flea_err_e THR_flea_rsa_raw_operation(
   flea_mpi_t result, exponent, base, mod, large_tmp, ws_q;
   flea_mpi_div_ctx_t div_ctx;
   FLEA_THR_BEG_FUNC();
-# ifdef FLEA_USE_STACK_BUF
+# ifdef FLEA_STACK_MODE
   if(modulus_length > FLEA_RSA_MAX_KEY_BIT_SIZE / 8)
   {
     FLEA_THROW("modulus length too large", FLEA_ERR_INV_KEY_SIZE);
   }
-# endif /* ifdef FLEA_USE_STACK_BUF */
+# endif /* ifdef FLEA_STACK_MODE */
   mod_word_len = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN(modulus_length);
 
   result_word_len    = mod_word_len + 1;
   large_tmp_word_len = (mod_word_len) * 2 + 1;
   ws_q_word_len      = mod_word_len + 1;
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   vn_len = FLEA_MPI_DIV_VN_HLFW_LEN_FROM_DIVISOR_W_LEN(mod_word_len);
   un_len = FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(2 * mod_word_len);
 # endif

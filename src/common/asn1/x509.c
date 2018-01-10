@@ -506,7 +506,7 @@ flea_err_e THR_flea_x509_cert__get_ref_to_tbs_byte_vec(
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_x509_cert__get_ref_to_tbs(der_encoded_cert__pu8, der_encoded_cert_len__alu16, &ref__rcu8));
-  flea_byte_vec_t__reconstruct_as_ref(ref_to_tbs__pt, ref__rcu8.data__pcu8, ref__rcu8.len__dtl);
+  flea_byte_vec_t__set_as_ref(ref_to_tbs__pt, ref__rcu8.data__pcu8, ref__rcu8.len__dtl);
   FLEA_THR_FIN_SEC_empty();
 }
 

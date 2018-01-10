@@ -37,7 +37,7 @@ struct struct_flea_mac_ctx_t
 
 #define flea_mac_ctx_t__INIT_VALUE {.output_len__u8 = 0}
 
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 # define flea_mac_ctx_t__INIT(__a) do {(__a)->output_len__u8 = 0;} while(0)
 #else
 # define flea_mac_ctx_t__INIT(__a) do {(__a)->output_len__u8 = 0;} while(0)

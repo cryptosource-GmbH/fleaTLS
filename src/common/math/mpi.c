@@ -852,14 +852,14 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
   flea_s32_t i;
   flea_mpi_t one;
 
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   const flea_al_u16_t precomp_arr_dynamic_word_len = p_mod->m_nb_used_words;
 #endif
   const flea_al_u16_t R_dynamic_word_len = p_mod->m_nb_used_words + 1; // R is one word longer than mod
   flea_mpi_ulen_t precomp_dynamic_size;
 
   FLEA_DECL_BUF(R_arr, flea_uword_t, ((FLEA_RSA_MAX_KEY_BIT_SIZE / 8) + 4) / sizeof(flea_uword_t) + 1); // for RSA (CRT/SF) ; + 1 because R potentially longer than mod and another +4 for p-q diff; this array must account for non CRT usage also
-#if defined FLEA_USE_HEAP_BUF
+#if defined FLEA_HEAP_MODE
   FLEA_DECL_BUF(precomp_arrs, flea_uword_t*, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1);
 #else
   flea_uword_t precomp_arrs[(1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1][FLEA_RSA_MAX_KEY_BIT_SIZE / 8 / sizeof(flea_uword_t)
@@ -885,7 +885,7 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
   mm_ctx.p_ws      = p_quotient_ws;
 
   FLEA_ALLOC_BUF(R_arr, R_dynamic_word_len);
-#if defined FLEA_USE_HEAP_BUF
+#if defined FLEA_HEAP_MODE
   FLEA_ALLOC_BUF(precomp_arrs, precomp_dynamic_size);
   FLEA_ALLOC_BUF(precomp, precomp_dynamic_size);
 
@@ -894,10 +894,10 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
   {
     FLEA_ALLOC_MEM_ARR(precomp_arrs[i], precomp_arr_dynamic_word_len);
   }
-#endif /* if defined FLEA_USE_HEAP_BUF */
+#endif /* if defined FLEA_HEAP_MODE */
   for(i = 0; i < precomp_dynamic_size; i++)
   {
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
     flea_mpi_t__init(&precomp[i], precomp_arrs[i], precomp_arr_dynamic_word_len);
 #else
     flea_mpi_t__init(&precomp[i], precomp_arrs[i], sizeof(precomp_arrs[i]) / sizeof(flea_uword_t));

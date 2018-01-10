@@ -14,7 +14,7 @@
 
 # define FLEA_BUF_CHK_DBG_CANARIES(__name)
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
 
 #  define FLEA_DECL_BUF(__name, __type, __static_size) \
   __type * __name = NULL
@@ -31,12 +31,12 @@
 #  define FLEA_FREE_BUF_FINAL_SECRET_ARR(__name, __type_len) \
   do { \
     if(__name) { \
-      flea_memzero_secure((flea_u8_t *) __name, (__type_len) * sizeof(__name[0])); \
+      flea_memzero_secure((flea_u8_t*) __name, (__type_len) * sizeof(__name[0])); \
       FLEA_FREE_MEM(__name); \
     } \
   } while(0)
 
-# elif defined FLEA_USE_STACK_BUF // #ifdef FLEA_USE_HEAP_BUF
+# elif defined FLEA_STACK_MODE // #ifdef FLEA_HEAP_MODE
 
 #  define FLEA_DECL_BUF(__name, __type, __static_size) \
   __type __name [__static_size]
@@ -51,11 +51,11 @@
 
 #  define FLEA_FREE_BUF_FINAL_SECRET_ARR(__name, __type_len) \
   do { \
-    flea_memzero_secure((flea_u8_t *) __name, (__type_len) * sizeof(__name[0])); \
+    flea_memzero_secure((flea_u8_t*) __name, (__type_len) * sizeof(__name[0])); \
   } while(0)
-# else // ifdef FLEA_USE_HEAP_BUF
+# else // ifdef FLEA_HEAP_MODE
 #  error neither heap nor stack buf defined
-# endif // #ifdef FLEA_USE_HEAP_BUF
+# endif // #ifdef FLEA_HEAP_MODE
 
 #endif // #ifndef FLEA_USE_BUF_DBG_CANARIES
 

@@ -166,7 +166,7 @@ flea_err_e THR_flea_test_ecc_point_gfp_add()
   FLEA_DECL_BUF(y2_arr, flea_uword_t, prime_word_len * 2 + 1); // currently needs to be a mm-mul result (for get_affine...)
 
   const flea_al_u8_t ecc_ws_mpi_arrs_word_len = (prime_word_len + 1) * 2 + 1; // + 1 in brackets because I need it to square R!
-# ifdef FLEA_USE_STACK_BUF
+# ifdef FLEA_STACK_MODE
   flea_uword_t ecc_ws_mpi_arrs [9][ecc_ws_mpi_arrs_word_len];
 # else
   flea_uword_t* ecc_ws_mpi_arrs [9];
@@ -174,13 +174,13 @@ flea_err_e THR_flea_test_ecc_point_gfp_add()
 
   FLEA_THR_BEG_FUNC();
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   memset(ecc_ws_mpi_arrs, 0, sizeof(ecc_ws_mpi_arrs));
   for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs); i++)
   {
     FLEA_ALLOC_MEM_ARR(ecc_ws_mpi_arrs[i], ecc_ws_mpi_arrs_word_len);
   }
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
 
   FLEA_ALLOC_BUF(curve_word_arr, curve_word_arr_word_len);
   FLEA_ALLOC_BUF(aff_point_word_arr, aff_point_word_arr_word_len);
@@ -354,7 +354,7 @@ flea_err_e THR_flea_test_ecc_point_gfp_double()
   FLEA_DECL_BUF(y_arr, flea_uword_t, prime_word_len * 2 + 1); // currently needs to be a mm-mul result (for get_affine...)
 
   const flea_al_u8_t ecc_ws_mpi_arrs_word_len = (prime_word_len + 1) * 2 + 1; // + 1 in brackets because I need it to square R!
-# ifdef FLEA_USE_STACK_BUF
+# ifdef FLEA_STACK_MODE
   flea_uword_t ecc_ws_mpi_arrs [9][ecc_ws_mpi_arrs_word_len];
 # else
   flea_uword_t* ecc_ws_mpi_arrs [9];
@@ -362,13 +362,13 @@ flea_err_e THR_flea_test_ecc_point_gfp_double()
 
   FLEA_THR_BEG_FUNC();
 
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   memset(ecc_ws_mpi_arrs, 0, sizeof(ecc_ws_mpi_arrs));
   for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs); i++)
   {
     FLEA_ALLOC_MEM_ARR(ecc_ws_mpi_arrs[i], ecc_ws_mpi_arrs_word_len);
   }
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
 
   FLEA_ALLOC_BUF(curve_word_arr, curve_word_arr_word_len);
   FLEA_ALLOC_BUF(aff_point_word_arr, aff_point_word_arr_word_len);

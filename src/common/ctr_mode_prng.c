@@ -30,7 +30,7 @@ flea_err_e THR_flea_ctr_mode_prng_t__ctor(
 )
 {
   FLEA_THR_BEG_FUNC();
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(ctx__pt->pending_output__bu8, FLEA_AES_BLOCK_LENGTH);
   FLEA_ALLOC_MEM_ARR(ctx__pt->count_block__bu8, FLEA_AES_BLOCK_LENGTH);
   FLEA_ALLOC_MEM_ARR(ctx__pt->key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);

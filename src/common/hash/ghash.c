@@ -134,12 +134,12 @@ flea_err_e THR_flea_ghash_ctx_t__ctor(
   flea_u8_t h[__FLEA_GHASH_BLOCK_SIZE];
 
   FLEA_THR_BEG_FUNC();
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(ctx__pt->hl__bu32, __FLEA_GHASH_STATE_U32_ARR_LEN);
   ctx__pt->hh__bu32      = ctx__pt->hl__bu32 + 32;
   ctx__pt->base_ctr__bu8 = (flea_u8_t*) (ctx__pt->hh__bu32 + 32);
   ctx__pt->state__bu8    = ctx__pt->base_ctr__bu8 + 16;
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
   memset(h, 0, __FLEA_GHASH_BLOCK_SIZE);
   FLEA_CCALL(THR_flea_len_ctr_t__ctor(&ctx__pt->len_ctr__t, 2, 36, 32));
   FLEA_CCALL(THR_flea_ecb_mode_crypt_data(ecb_ctx__pt, h, h, ecb_ctx__pt->block_length__u8));
@@ -350,7 +350,7 @@ void flea_ghash_ctx_t__finish(
 void flea_ghash_ctx_t__dtor(flea_ghash_ctx_t* ctx__pt)
 {
   flea_len_ctr_t__dtor(&ctx__pt->len_ctr__t);
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->hl__bu32, __FLEA_GHASH_STATE_U32_ARR_LEN);
 # endif
 }

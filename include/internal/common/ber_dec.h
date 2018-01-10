@@ -65,7 +65,7 @@ struct struct_flea_ber_dec_t
   flea_rw_stream_t*        source__pt;
   flea_al_u8_t             level__alu8;
   flea_al_u8_t             alloc_levels__alu8;
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   flea_dtl_t*              allo_open_cons__bdtl;
 #else
   flea_dtl_t               allo_open_cons__bdtl[FLEA_BER_DEC_MAX_NESTING_LEVEL];
@@ -81,7 +81,7 @@ struct struct_flea_ber_dec_t
   flea_hash_ctx_t*         hash_ctx__pt;
 };
 
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 # define flea_ber_dec_t__INIT_VALUE {.allo_open_cons__bdtl = NULL}
 #else
 # define flea_ber_dec_t__INIT_VALUE {.allo_open_cons__bdtl = {0}}

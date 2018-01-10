@@ -168,19 +168,19 @@ static flea_err_e THR_flea_mac_ctx_t__ctor_hmac(
 
   FLEA_THR_BEG_FUNC();
   flea_hash_ctx_t__INIT(&ctx__pt->primitive_specific_ctx__u.hmac_specific__t.hash_ctx__t);
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key__bu8 = NULL;
 # endif
   ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key_byte_len__u8 = config_entry__pt->key_byte_size__u8;
 
 
   ctx__pt->output_len__u8 = config_entry__pt->mac_output_len__u8; // setting this tells the dtor that all other fields are initialized
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(
     ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key__bu8,
     ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key_byte_len__u8
   );
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
   alias_key__pu8      = ctx__pt->primitive_specific_ctx__u.hmac_specific__t.key__bu8;
   ctx__pt->mode_id__t = config_entry__pt->mode_id__t;
 
@@ -237,7 +237,7 @@ flea_err_e THR_flea_mac_ctx_t__ctor_cmac(
   // first init the union member:
   // (afterwards, dtor will be able to deal with them; before the ctor call, dtor
   // will do nothin if the key_ptr = NULL)
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   ctx__pt->primitive_specific_ctx__u.cmac_specific__t.prev_ct__bu8 = NULL;
 # endif
   flea_ecb_mode_ctx_t__INIT(&ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t);
@@ -247,7 +247,7 @@ flea_err_e THR_flea_mac_ctx_t__ctor_cmac(
   // now allocate the key buffer (indicates to the dtor that init of the remaining
   // members has been performed)
   flea_u8_t block_length__u8 = flea_block_cipher__get_block_size(config_entry__pt->primitive_id__u.cipher_id__t);
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(ctx__pt->primitive_specific_ctx__u.cmac_specific__t.prev_ct__bu8, block_length__u8);
 # endif
   memset(ctx__pt->primitive_specific_ctx__u.cmac_specific__t.prev_ct__bu8, 0, block_length__u8);

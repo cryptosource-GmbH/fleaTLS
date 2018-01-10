@@ -703,25 +703,25 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
   flea_rw_stream_t* rw_stream__pt
 )
 {
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   flea_al_u8_t sec_reneg_field_size__alu8 = 12;
 # endif
   flea_al_u16_t flags__e = tls_ctx__pt->cfg_flags__e;
 
   FLEA_THR_BEG_FUNC();
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
-#  ifdef FLEA_USE_HEAP_BUF
+#  ifdef FLEA_HEAP_MODE
   flea_byte_vec_t__ctor_empty_allocatable(&tls_ctx__pt->peer_ee_cert_data__t);
 #  else
   flea_byte_vec_t__ctor_empty_use_ext_buf(
     &tls_ctx__pt->peer_ee_cert_data__t,
     tls_ctx__pt->peer_ee_cert__au8,
     sizeof(tls_ctx__pt->peer_ee_cert__au8)
-  )
-#  endif /* ifdef FLEA_USE_HEAP_BUF */
+  );
+#  endif /* ifdef FLEA_HEAP_MODE */
 
 # endif /* ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF */
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(tls_ctx__pt->master_secret__bu8, FLEA_TLS_MASTER_SECRET_SIZE);
 # endif
   flea_tls_ctx_t__set_sec_reneg_flags(tls_ctx__pt);
@@ -739,13 +739,13 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
   /* set TLS version */
   tls_ctx__pt->version.major = 0x03;
   tls_ctx__pt->version.minor = 0x03;
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
 
   sec_reneg_field_size__alu8 = 24;
   FLEA_ALLOC_MEM(tls_ctx__pt->own_vfy_data__bu8, sec_reneg_field_size__alu8);
   /* not used in case of client: */
   tls_ctx__pt->peer_vfy_data__bu8 = tls_ctx__pt->own_vfy_data__bu8 + 12;
-# endif /* ifdef FLEA_USE_HEAP_BUF */
+# endif /* ifdef FLEA_HEAP_MODE */
   tls_ctx__pt->sec_reneg_flag__u8 = flea_false;
   FLEA_CCALL(
     THR_flea_tls_rec_prot_t__ctor(
@@ -1928,7 +1928,7 @@ flea_err_e THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
     )
   );
 
-  flea_byte_vec_t__reconstruct_as_ref(&peer_enc_pubpoint_vec__t, peer_enc_pubpoint__bu8, peer_enc_pubpoint_len__u8);
+  flea_byte_vec_t__set_as_ref(&peer_enc_pubpoint_vec__t, peer_enc_pubpoint__bu8, peer_enc_pubpoint_len__u8);
   FLEA_CCALL(
     THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(
       &param__u.ecc_dom_par__t,
@@ -1950,12 +1950,12 @@ flea_err_e THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
   }
 
   result_len__alu8 = (peer_enc_pubpoint_len__u8 - 1) / 2;
-#  ifdef FLEA_USE_STACK_BUF
+#  ifdef FLEA_STACK_MODE
   if(result_len__alu8 > FLEA_ECC_MAX_MOD_BYTE_SIZE)
   {
     FLEA_THROW("field size not supported", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
-#  endif /* ifdef FLEA_USE_STACK_BUF */
+#  endif /* ifdef FLEA_STACK_MODE */
   FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, result_len__alu8));
 
   FLEA_CCALL(
@@ -1998,7 +1998,7 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
   flea_x509_cert_ref_t__dtor(&tls_ctx__pt->peer_root_cert_ref__t);
 # endif
   FLEA_FREE_BUF_FINAL_SECRET_ARR(tls_ctx__pt->master_secret__bu8, FLEA_TLS_MASTER_SECRET_SIZE);
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHK_NULL(tls_ctx__pt->own_vfy_data__bu8);
 # endif
 }

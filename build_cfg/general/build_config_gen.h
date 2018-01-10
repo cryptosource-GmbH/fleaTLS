@@ -25,7 +25,7 @@
  * (referred to as "stack mode"). In the latter case, be sure to correctly
  * define the RSA and EC key sizes.
  */
-# define FLEA_USE_HEAP_BUF // FBFLAGS_CORE_ON_OFF
+# define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
 
 /**
  * Control whether HMAC support is compiled

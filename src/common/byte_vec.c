@@ -5,19 +5,21 @@
 #include "flea/util.h"
 #include "flea/alloc.h"
 #include "flea/error_handling.h"
+#include "internal/common/byte_vec_int.h"
 #include <stdlib.h>
 #include <string.h>
 
-void flea_byte_vec_t__INIT(flea_byte_vec_t* byte_vec__pt)
+void flea_byte_vec_t__ctor_not_allocatable(flea_byte_vec_t* byte_vec__pt)
 {
   byte_vec__pt->data__pu8 = 0;
   byte_vec__pt->len__dtl  = 0;
   byte_vec__pt->allo__dtl = 0;
-
+#ifdef FLEA_HEAP_MODE
   byte_vec__pt->state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK;
+#endif
 }
 
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 void flea_byte_vec_t__ctor_empty_allocatable(flea_byte_vec_t* byte_vec__pt)
 {
   byte_vec__pt->data__pu8 = NULL;
@@ -26,7 +28,7 @@ void flea_byte_vec_t__ctor_empty_allocatable(flea_byte_vec_t* byte_vec__pt)
   byte_vec__pt->state__u8 = FLEA_BYTEVEC_STATE_ALLOCATABLE_MASK;
 }
 
-#endif /* ifdef FLEA_USE_HEAP_BUF */
+#endif /* ifdef FLEA_HEAP_MODE */
 
 void flea_byte_vec_t__ctor_empty_use_ext_buf(
   flea_byte_vec_t* byte_vec__pt,
@@ -37,21 +39,25 @@ void flea_byte_vec_t__ctor_empty_use_ext_buf(
   byte_vec__pt->data__pu8 = ext_buf__pu8;
   byte_vec__pt->allo__dtl = ext_buf_len__dtl;
   byte_vec__pt->len__dtl  = 0;
+#ifdef FLEA_HEAP_MODE
   byte_vec__pt->state__u8 = FLEA_BYTEVEC_STATE_NEITHER_DE_NOR_ALLOCATABLE_MASK;
+#endif
 }
 
 void flea_byte_vec_t__dtor(flea_byte_vec_t* byte_vec__pt)
 {
+#ifdef FLEA_HEAP_MODE
+  FLEA_BYTEVEC_STATE_SET_AS_UNDEALLOCATABLE(byte_vec__pt->state__u8);
   if(FLEA_BYTEVEC_STATE_IS_DEALLOCATABLE(byte_vec__pt->state__u8))
   {
     FLEA_FREE_MEM_CHK_SET_NULL(byte_vec__pt->data__pu8);
   }
+#endif /* ifdef FLEA_HEAP_MODE */
   byte_vec__pt->len__dtl  = 0;
   byte_vec__pt->allo__dtl = 0;
-  FLEA_BYTEVEC_STATE_SET_AS_UNDEALLOCATABLE(byte_vec__pt->state__u8);
 }
 
-void flea_byte_vec_t__reconstruct_as_ref(
+void flea_byte_vec_t__set_as_ref(
   flea_byte_vec_t* byte_vec__pt,
   const flea_u8_t* data__pcu8,
   flea_dtl_t       data_len__dtl
@@ -60,18 +66,24 @@ void flea_byte_vec_t__reconstruct_as_ref(
   flea_byte_vec_t__dtor(byte_vec__pt);
   byte_vec__pt->data__pu8 = (flea_u8_t*) data__pcu8;
   byte_vec__pt->len__dtl  = data_len__dtl;
+#ifdef FLEA_HEAP_MODE
   FLEA_BYTEVEC_STATE_SET_AS_UNDEALLOCATABLE(byte_vec__pt->state__u8);
+#endif
 }
 
 void flea_byte_vec_t__copy_content_set_ref_use_mem(
-  flea_byte_vec_t*       trgt__prcu8,
+  flea_byte_vec_t*       byte_vec__pt,
   flea_u8_t*             trgt_mem,
   const flea_byte_vec_t* src__prcu8
 )
 {
+  flea_byte_vec_t__dtor(byte_vec__pt);
   memcpy(trgt_mem, src__prcu8->data__pu8, src__prcu8->len__dtl);
-  trgt__prcu8->data__pu8 = trgt_mem;
-  trgt__prcu8->len__dtl  = src__prcu8->len__dtl;
+  byte_vec__pt->data__pu8 = trgt_mem;
+  byte_vec__pt->len__dtl  = src__prcu8->len__dtl;
+#ifdef FLEA_HEAP_MODE
+  FLEA_BYTEVEC_STATE_SET_AS_UNDEALLOCATABLE(byte_vec__pt->state__u8);
+#endif
 }
 
 static flea_err_e THR_flea_byte_vec_t__grow_to(
@@ -79,7 +91,7 @@ static flea_err_e THR_flea_byte_vec_t__grow_to(
   flea_dtl_t       grow_allo_to_arg
 )
 {
-#ifndef FLEA_USE_STACK_BUF
+#ifndef FLEA_STACK_MODE
   flea_u8_t* tmp = NULL;
 #endif
   flea_dtl_t grow_allo_to = grow_allo_to_arg;
@@ -89,13 +101,13 @@ static flea_err_e THR_flea_byte_vec_t__grow_to(
     FLEA_THR_RETURN();
   }
 
-#ifndef FLEA_USE_STACK_BUF
+#ifndef FLEA_STACK_MODE
   if(!FLEA_BYTEVEC_STATE_IS_ALLOCATABLE(byte_vec__pt->state__u8))
 #endif
   {
     FLEA_THROW("static byte buf length is too small", FLEA_ERR_BUFF_TOO_SMALL);
   }
-#ifdef FLEA_USE_STACK_BUF
+#ifdef FLEA_STACK_MODE
 #else
   FLEA_CCALL(THR_flea_add_dtl_with_overflow_check(&grow_allo_to, PREALLOC));
   FLEA_ALLOC_MEM(tmp, grow_allo_to);
@@ -111,7 +123,7 @@ static flea_err_e THR_flea_byte_vec_t__grow_to(
     FLEA_FREE_MEM_CHK_NULL(tmp);
   }
   FLEA_BYTEVEC_STATE_SET_AS_DEALLOCATABLE(byte_vec__pt->state__u8);
-#endif /* ifdef FLEA_USE_STACK_BUF */
+#endif /* ifdef FLEA_STACK_MODE */
   FLEA_THR_FIN_SEC(
   );
 } /* THR_flea_byte_vec_t__grow_to */

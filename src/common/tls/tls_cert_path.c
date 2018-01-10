@@ -299,7 +299,7 @@ static flea_err_e THR_flea_tls__validate_cert(
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sn_buffer__t, FLEA_X509_MAX_SERIALNUMBER_LEN);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_issuer__t, 200);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_subject__t, 200);
-# ifdef FLEA_USE_STACK_BUF
+# ifdef FLEA_STACK_MODE
   flea_u8_t sigalg_oid__au8[10];
   flea_u8_t sigalg_params__au8[10];
   flea_u8_t outer_sigalg_oid__au8[10];
@@ -310,11 +310,11 @@ static flea_err_e THR_flea_tls__validate_cert(
   flea_x509_algid_ref_t sigalg_id__t         = {.oid_ref__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(sigalg_oid__au8), .params_ref_as_tlv__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(sigalg_params__au8)};
   flea_x509_algid_ref_t outer_sigalg_id__t   = {.oid_ref__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(outer_sigalg_oid__au8), .params_ref_as_tlv__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(outer_sigalg_params__au8)};
   flea_x509_algid_ref_t public_key_alg_id__t = {.oid_ref__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(pubkey_oid__au8), .params_ref_as_tlv__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(pubkey_params__au8)};
-# else /* ifdef FLEA_USE_STACK_BUF */
+# else /* ifdef FLEA_STACK_MODE */
   flea_x509_algid_ref_t sigalg_id__t         = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
   flea_x509_algid_ref_t outer_sigalg_id__t   = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
   flea_x509_algid_ref_t public_key_alg_id__t = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
-# endif /* ifdef FLEA_USE_STACK_BUF */
+# endif /* ifdef FLEA_STACK_MODE */
   flea_bool_e optional_found__b;
   flea_basic_constraints_t basic_constraints__t = {0};
   flea_key_usage_t key_usage__t      = {0};
@@ -727,7 +727,7 @@ flea_err_e THR_flea_tls__cert_path_validation(
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(
     cycling_signature__t,
-    FLEA_PK_MAX_SIGNATURE_LEN + 10
+    FLEA_ASYM_MAX_ENCODED_SIG_LEN + 10
   );
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(cycling_tbs_hash__t, FLEA_MAX_HASH_OUT_LEN);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(cycling_issuer_dn, FLEA_X509_MAX_ISSUER_DN_RAW_BYTE_LEN);

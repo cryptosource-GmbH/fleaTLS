@@ -10,13 +10,13 @@ typedef struct
 {
   flea_ctr_mode_ctx_t ctr_ctx__t;
   flea_mac_ctx_t      cmac_ctx__t;
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   flea_u8_t*          nonce__bu8;
   flea_u8_t*          header_omac__bu8;
 #else
   flea_u8_t           nonce__bu8 [FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
   flea_u8_t           header_omac__bu8[FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
-#endif
+#endif // ifdef FLEA_HEAP_MODE
 } flea_ae_eax_specific_t;
 
 typedef struct

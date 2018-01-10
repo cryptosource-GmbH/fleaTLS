@@ -30,26 +30,26 @@ struct struct_flea_ecb_mode_ctx_t
   flea_u8_t                               block_length__u8;
   flea_u8_t                               nb_rounds__u8;
   flea_cipher_dir_e                       dir__t;
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   flea_u32_t*                             expanded_key__bu8;
-#elif defined FLEA_USE_STACK_BUF
+#elif defined FLEA_STACK_MODE
   flea_u32_t                              expanded_key__bu8 [FLEA_BLOCK_CIPHER_MAX_EXPANDED_KEY_U32_SIZE];
 #else
 # error MUST DEFINE HEAP OR STACK USAGE FOR FLEA
-#endif // ifdef FLEA_USE_HEAP_BUF
+#endif // ifdef FLEA_HEAP_MODE
   flea_cipher_block_processing_f block_crypt_f;
 };
 
 
 typedef struct
 {
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   flea_u8_t*                              ctr_block__bu8;
   flea_u8_t*                              pending_mask__bu8;
 #else
   flea_u8_t                               ctr_block__bu8 [FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
   flea_u8_t                               pending_mask__bu8[FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
-#endif // ifdef FLEA_USE_HEAP_BUF
+#endif // ifdef FLEA_HEAP_MODE
   flea_al_u8_t                            pending_offset__alu8;
   flea_al_u8_t                            ctr_len__alu8;
   const flea_block_cipher_config_entry_t* config__pt;
@@ -58,7 +58,7 @@ typedef struct
 
 typedef struct
 {
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
   flea_u8_t*          iv__bu8;
 #else
   flea_u8_t           iv__bu8[FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
@@ -67,21 +67,21 @@ typedef struct
 } flea_cbc_mode_ctx_t;
 
 
-#ifdef FLEA_USE_HEAP_BUF
+#ifdef FLEA_HEAP_MODE
 # define flea_ecb_mode_ctx_t__INIT(__p) do {(__p)->expanded_key__bu8 = NULL; (__p)->config__pt = NULL;} while(0)
 # define flea_ctr_mode_ctx_t__INIT(__p) do {(__p)->ctr_block__bu8 = NULL; (__p)->pending_mask__bu8 = NULL; flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
 # define flea_cbc_mode_ctx_t__INIT(__p) do {(__p)->iv__bu8 = NULL; flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
 # define flea_ecb_mode_ctx_t__INIT_VALUE {.expanded_key__bu8 = NULL, .config__pt = NULL}
 # define flea_ctr_mode_ctx_t__INIT_VALUE {.ctr_block__bu8 = NULL, .pending_mask__bu8 = NULL, .cipher_ctx__t = flea_ecb_mode_ctx_t__INIT_VALUE}
 # define flea_cbc_mode_ctx_t__INIT_VALUE {.iv__bu8 = NULL, .cipher_ctx__t = flea_ecb_mode_ctx_t__INIT_VALUE}
-#else // ifdef FLEA_USE_HEAP_BUF
+#else // ifdef FLEA_HEAP_MODE
 # define flea_ecb_mode_ctx_t__INIT(__p) do {(__p)->config__pt = NULL;} while(0)
 # define flea_ctr_mode_ctx_t__INIT(__p) do {flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
 # define flea_cbc_mode_ctx_t__INIT(__p) do {flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
 # define flea_ecb_mode_ctx_t__INIT_VALUE {.config__pt = NULL}
 # define flea_ctr_mode_ctx_t__INIT_VALUE {.cipher_ctx__t = flea_ecb_mode_ctx_t__INIT_VALUE}
 # define flea_cbc_mode_ctx_t__INIT_VALUE {.cipher_ctx__t = flea_ecb_mode_ctx_t__INIT_VALUE}
-#endif /* ifdef FLEA_USE_HEAP_BUF */
+#endif /* ifdef FLEA_HEAP_MODE */
 
 /**
  * Find out the block byte size of a given cipher.

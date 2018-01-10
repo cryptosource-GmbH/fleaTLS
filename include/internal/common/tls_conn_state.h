@@ -29,13 +29,13 @@ typedef struct
 
 typedef struct
 {
-#  ifdef FLEA_USE_HEAP_BUF
+#  ifdef FLEA_HEAP_MODE
   flea_u8_t* cipher_key__bu8;
   flea_u8_t* mac_key__bu8;
 #  else
   flea_u8_t  cipher_key__bu8[__FLEA_COMPUTED_BLOCK_CIPHER_MAX_PLAIN_KEY_LEN];
   flea_u8_t  mac_key__bu8[__FLEA_COMPUTED_MAX_MAC_HMAC_KEY_SIZE_SWITCHED];
-#  endif // ifdef FLEA_USE_HEAP_BUF
+#  endif // ifdef FLEA_HEAP_MODE
 
   /*flea_u8_t cipher_key_len__u8;
    * flea_u8_t mac_key_len__u8;*/
@@ -53,7 +53,7 @@ typedef struct
 } flea_tls_gcm_suite_config_t;
 typedef struct
 {
-#  ifdef FLEA_USE_HEAP_BUF
+#  ifdef FLEA_HEAP_MODE
   flea_u8_t* cipher_key__bu8;
   flea_u8_t* fixed_iv__bu8;
   flea_u8_t* record_iv__bu8;
@@ -61,7 +61,7 @@ typedef struct
   flea_u8_t  cipher_key__bu8[__FLEA_COMPUTED_BLOCK_CIPHER_MAX_PLAIN_KEY_LEN];
   flea_u8_t  fixed_iv__bu8[4];
   flea_u8_t  record_iv__bu8[8];
-#  endif // ifdef FLEA_USE_HEAP_BUF
+#  endif // ifdef FLEA_HEAP_MODE
 } flea_tls_gcm_conn_t;
 
 # endif // ifdef FLEA_HAVE_TLS_GCM_CS

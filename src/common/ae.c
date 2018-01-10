@@ -145,7 +145,7 @@ flea_err_e THR_flea_ae_ctx_t__ctor(
   {
     FLEA_THROW("AE tag length = 0", FLEA_ERR_INV_ARG);
   }
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   ctx__pt->buffer__bu8 = NULL;
   FLEA_ALLOC_MEM_ARR(ctx__pt->buffer__bu8, tag_length__alu8);
 # endif
@@ -154,7 +154,7 @@ flea_err_e THR_flea_ae_ctx_t__ctor(
     flea_ctr_mode_ctx_t__INIT(&ctx__pt->mode_specific__u.eax.ctr_ctx__t);
     flea_mac_ctx_t__INIT(&ctx__pt->mode_specific__u.eax.cmac_ctx__t);
     ctx__pt->pending__u8 = 0;
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
     ctx__pt->mode_specific__u.eax.nonce__bu8       = NULL;
     ctx__pt->mode_specific__u.eax.header_omac__bu8 = NULL;
 # endif
@@ -195,7 +195,7 @@ flea_err_e THR_flea_ae_ctx_t__ctor(
       FLEA_THROW("specified tag length exceeds CMAC's output length", FLEA_ERR_INV_ARG);
     }
     block_len__alu8 = ctx__pt->mode_specific__u.eax.ctr_ctx__t.cipher_ctx__t.block_length__u8;
-#  ifdef FLEA_USE_HEAP_BUF
+#  ifdef FLEA_HEAP_MODE
     FLEA_ALLOC_MEM_ARR(ctx__pt->mode_specific__u.eax.nonce__bu8, block_len__alu8);
     FLEA_ALLOC_MEM_ARR(ctx__pt->mode_specific__u.eax.header_omac__bu8, block_len__alu8);
 #  endif
@@ -585,7 +585,7 @@ void flea_ae_ctx_t__dtor(flea_ae_ctx_t* ctx__pt)
   {
     return;
   }
-# ifdef FLEA_USE_HEAP_BUF
+# ifdef FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHK_SET_NULL(ctx__pt->buffer__bu8); // not secret, only used to buffer ciphertext
 # endif
 # ifdef FLEA_HAVE_EAX
@@ -593,7 +593,7 @@ void flea_ae_ctx_t__dtor(flea_ae_ctx_t* ctx__pt)
   {
     flea_mac_ctx_t__dtor_cipher_ctx_ref(&ctx__pt->mode_specific__u.eax.cmac_ctx__t);
     flea_ctr_mode_ctx_t__dtor(&ctx__pt->mode_specific__u.eax.ctr_ctx__t);
-#  ifdef FLEA_USE_HEAP_BUF
+#  ifdef FLEA_HEAP_MODE
     FLEA_FREE_MEM_CHK_SET_NULL(ctx__pt->mode_specific__u.eax.nonce__bu8);
     FLEA_FREE_MEM_CHK_SET_NULL(ctx__pt->mode_specific__u.eax.header_omac__bu8);
 #  endif
