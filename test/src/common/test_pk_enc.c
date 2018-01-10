@@ -9,7 +9,7 @@
 #include "flea/alloc.h"
 #include "flea/array_util.h"
 #include "flea/util.h"
-#include "flea/pk_api.h"
+#include "flea/pk_signer.h"
 #include "internal/common/pk_enc/oaep.h"
 #include "test_data_rsa_key_internal_format.h"
 #include "flea/privkey.h"

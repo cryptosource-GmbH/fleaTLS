@@ -10,7 +10,7 @@
 #include "flea/x509.h"
 #include "internal/common/x509_int.h"
 #include "internal/common/x509_key_int.h"
-#include "flea/pk_api.h"
+#include "flea/pk_signer.h"
 #include "flea/asn1_date.h"
 #include "flea/tls.h"
 #include "internal/common/namespace_asn1.h"

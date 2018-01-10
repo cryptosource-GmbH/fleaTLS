@@ -11,7 +11,7 @@
 #include "flea/ec_key.h"
 #include "flea/util.h"
 #include "flea/bin_utils.h"
-#include "flea/pk_api.h"
+#include "flea/pk_signer.h"
 #include "flea/ecc_named_curves.h"
 #include "flea/ecdsa.h"
 #include "flea/rsa.h"

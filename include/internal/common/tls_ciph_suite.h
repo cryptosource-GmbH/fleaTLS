@@ -10,7 +10,7 @@
 #include "flea/block_cipher.h"
 #include "flea/ae.h"
 #include "flea/tls.h"
-#include "flea/pk_api.h"
+#include "flea/pk_signer.h"
 #include "internal/common/tls_key_usage.h"
 
 #ifdef __cplusplus

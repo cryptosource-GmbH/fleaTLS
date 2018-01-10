@@ -4,7 +4,7 @@
 #include "flea/error.h"
 #include "flea/privkey.h"
 #include "flea/pkcs8.h"
-#include "flea/pk_api.h"
+#include "flea/pk_signer.h"
 #include "internal/common/math/mpi.h"
 #include  "flea/rsa.h"
 #include "self_test.h"

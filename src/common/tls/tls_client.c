@@ -17,7 +17,7 @@
 #include "internal/common/tls/tls_int.h"
 #include "internal/common/tls/tls_client_int.h"
 #include "flea/rng.h"
-#include "flea/pk_api.h"
+#include "flea/pk_signer.h"
 #include "flea/pkcs8.h"
 #include "internal/common/tls/tls_client_int_ecc.h"
 #include "internal/common/tls/tls_common_ecc.h"

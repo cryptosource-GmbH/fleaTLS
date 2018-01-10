@@ -14,7 +14,7 @@
 #include "flea/rng.h"
 #include "flea/pkcs8.h"
 #include "flea/rsa.h"
-#include "flea/pk_api.h"
+#include "flea/pk_signer.h"
 #include "internal/common/tls/parallel_hash.h"
 #include "flea/hash.h"
 #include "flea/ec_key_gen.h"

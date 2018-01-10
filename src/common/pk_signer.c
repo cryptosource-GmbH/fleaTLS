@@ -2,7 +2,7 @@
 
 #include "internal/common/default.h"
 #include "internal/common/pk_enc/oaep.h"
-#include "flea/pk_api.h"
+#include "flea/pk_signer.h"
 #include "flea/privkey.h"
 #include "flea/array_util.h"
 #include "flea/util.h"

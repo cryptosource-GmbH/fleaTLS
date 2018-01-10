@@ -65,7 +65,7 @@ typedef struct
  * @param hash_id the ID of the hash algorithm to use in the public key scheme
  * to hash the message
  *
- * @return flea error code
+ * @return an error code
  */
 flea_err_e THR_flea_pk_signer_t__ctor(
   flea_pk_signer_t* signer,
@@ -86,7 +86,7 @@ void flea_pk_signer_t__dtor(flea_pk_signer_t* signer);
  * @param message pointer to the message data
  * @param message_len the length of message
  *
- * @return flea error code
+ * @return an error code
  */
 flea_err_e THR_flea_pk_signer_t__update(
   flea_pk_signer_t* signer,
@@ -105,6 +105,8 @@ flea_err_e THR_flea_pk_signer_t__update(
  * @param signature_len length of signature
  * @return flea error code FLEA_ERR_FINE indicates successful verification and FLEA_ERR_INV_SIGNATURE indicates a
  * failed signature verification
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_pk_signer_t__final_verify(
   flea_pk_signer_t*        signer,
@@ -122,6 +124,8 @@ flea_err_e THR_flea_pk_signer_t__final_verify(
  * @param id the id of the signature scheme to be used
  * @param privkey the private key to be used for the signature operation
  * @param signature receives the generated signature after function completion
+ *
+ * @return an error code
  */
 
 flea_err_e THR_flea_pk_signer_t__final_sign(

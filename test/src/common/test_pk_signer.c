@@ -16,7 +16,7 @@
 #include "flea/algo_config.h"
 #include "flea/ec_key_gen.h"
 #include "flea/ec_gfp_dom_par.h"
-#include "flea/pk_api.h"
+#include "flea/pk_signer.h"
 #include "flea/privkey.h"
 #include "test_data_rsa_key_internal_format.h"
 #include "self_test.h"

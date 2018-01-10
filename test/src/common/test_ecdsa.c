@@ -18,7 +18,7 @@
 #include "flea/algo_config.h"
 #include "flea/ec_key_gen.h"
 #include "internal/common/ecc_int.h"
-#include "flea/pk_api.h"
+#include "flea/pk_signer.h"
 #include "self_test.h"
 
 #ifdef FLEA_HAVE_ECDSA
