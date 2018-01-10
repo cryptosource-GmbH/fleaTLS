@@ -316,7 +316,7 @@ flea_err_e THR_flea_pk_api__decode_message__pkcs1_v1_5(
 {
   flea_al_u16_t full_size__alu16         = FLEA_CEIL_BYTE_LEN_FROM_BIT_LEN(bit_size__alu16);
   flea_al_u16_t error__alu16             = 0;
-  flea_bool_e suppress_padding_error__b  = enforced_decoding_result_len__alu16 > 0;
+  flea_bool_t suppress_padding_error__b  = enforced_decoding_result_len__alu16 > 0;
   const flea_u8_t* encoded_start__pcu8   = encoded__pcu8;
   flea_al_u16_t encoded_start_len__alu16 = encoded_len__alu16;
 

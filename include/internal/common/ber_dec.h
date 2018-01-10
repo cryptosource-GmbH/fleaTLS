@@ -137,15 +137,15 @@ void flea_ber_dec_t__dtor(flea_ber_dec_t* dec__pt);
 /**
  *  Determine if the currently opened constructed has more data.
  * called in the outermost level (e.g. before opening the first constructed) it
- * will always return flea_true.
+ * will always return FLEA_TRUE.
  *
  * @param dec__pt [in] the decoder
  *
- * @return flea_true if the current constructed has more data to process, and
- * flea_false otherwise.
+ * @return FLEA_TRUE if the current constructed has more data to process, and
+ * FLEA_FALSE otherwise.
  *
  */
-flea_bool_e flea_ber_dec_t__has_current_more_data(flea_ber_dec_t* dec__pt);
+flea_bool_t flea_ber_dec_t__has_current_more_data(flea_ber_dec_t* dec__pt);
 
 /**
  * Open a constructed.
@@ -163,21 +163,21 @@ flea_err_e THR_flea_ber_dec_t__open_constructed(
  * @param type__t [in] the type part of the tag
  * @param class_form__alu8 the combined class and form part of the tag
  * (CONSTRUCTED has to be specified explicitly here)
- * @param found__pb [out] receives flea_true if the constructed was found,
- * flea_false otherwise
+ * @param found__pb [out] receives FLEA_TRUE if the constructed was found,
+ * FLEA_FALSE otherwise
  *
  */
 flea_err_e THR_flea_ber_dec_t__open_constructed_optional(
   flea_ber_dec_t* dec__pt,
   flea_asn1_tag_t type__t,
   flea_al_u8_t    class_form__alu8,
-  flea_bool_e*    found__pb
+  flea_bool_t*    found__pb
 );
 
 flea_err_e THR_flea_ber_dec_t__open_constructed_optional_cft(
   flea_ber_dec_t* dec__pt,
   flea_asn1_tag_t cft,
-  flea_bool_e*    found__pb
+  flea_bool_t*    found__pb
 );
 
 /**
@@ -218,7 +218,7 @@ flea_err_e THR_flea_ber_dec_t__read_value_raw(
 
 /**
  * DEPRECATED
- * @param found_ptr [out] receives flea_true if the specified tag was found and flea_false otherwise
+ * @param found_ptr [out] receives FLEA_TRUE if the specified tag was found and FLEA_FALSE otherwise
  *
  */
 
@@ -227,7 +227,7 @@ flea_err_e THR_flea_ber_dec_t__get_ref_to_raw_optional(
   flea_asn1_tag_t  type__t,
   flea_al_u8_t     class_form__alu8,
   flea_byte_vec_t* byte_vec__pt,
-  flea_bool_e*     found__pb
+  flea_bool_t*     found__pb
 );
 
 /**
@@ -237,7 +237,7 @@ flea_err_e THR_flea_ber_dec_t__get_ref_to_raw_optional(
  * @param cft [in]
  * @param der_ref_t [out] object to receive the reference. if the object is not found
  * in the encoded data, then this value remains untouched.
- * @param found__pb [out] receives flea_true if the object was found, flea_false
+ * @param found__pb [out] receives FLEA_TRUE if the object was found, FLEA_FALSE
  * otherwise
  *
  */
@@ -245,14 +245,14 @@ flea_err_e THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
   flea_ber_dec_t*  dec__pt,
   flea_asn1_tag_t  cft,
   flea_byte_vec_t* der_ref__t,
-  flea_bool_e*     found__pb
+  flea_bool_t*     found__pb
 );
 
 flea_err_e THR_flea_ber_dec_t__decode_integer_u32_optional(
   flea_ber_dec_t* dec__pt,
   flea_asn1_tag_t cft,
   flea_u32_t*     result__pu32,
-  flea_bool_e*    found__pb
+  flea_bool_t*    found__pb
 );
 
 flea_err_e THR_flea_ber_dec_t__decode_integer_u32_default(
@@ -309,7 +309,7 @@ flea_err_e THR_flea_ber_dec_t__decode_date_opt(
   flea_ber_dec_t*        dec__pt,
   flea_asn1_time_type_t* time_type__pt,
   flea_byte_vec_t*       res_vec__pt,
-  flea_bool_e*           optional_found__pb
+  flea_bool_t*           optional_found__pb
 );
 
 
@@ -346,7 +346,7 @@ flea_err_e THR_flea_ber_dec_t__get_ref_to_next_tlv_raw_optional(
  */
 flea_err_e THR_flea_ber_dec_t__decode_boolean_default(
   flea_ber_dec_t* dec__pt,
-  flea_bool_e*    result__pb
+  flea_bool_t*    result__pb
 );
 
 /**
@@ -354,7 +354,7 @@ flea_err_e THR_flea_ber_dec_t__decode_boolean_default(
  */
 flea_err_e THR_flea_ber_dec_t__decode_boolean_default_false(
   flea_ber_dec_t* dec__pt,
-  flea_bool_e*    result__p
+  flea_bool_t*    result__p
 );
 
 
@@ -362,7 +362,7 @@ flea_err_e THR_flea_ber_dec_t__read_value_raw_cft_opt(
   flea_ber_dec_t*  dec__pt,
   flea_asn1_tag_t  cft,
   flea_byte_vec_t* res_vec__pt,
-  flea_bool_e*     optional_found__pb
+  flea_bool_t*     optional_found__pb
 );
 
 flea_err_e THR_flea_ber_dec_t__get_REF_to_raw_cft(
@@ -372,7 +372,7 @@ flea_err_e THR_flea_ber_dec_t__get_REF_to_raw_cft(
 );
 
 
-flea_bool_e flea_ber_dec__are_der_refs_equal(
+flea_bool_t flea_ber_dec__are_der_refs_equal(
   const flea_byte_vec_t* a__pt,
   const flea_byte_vec_t* b__pt
 );
@@ -386,14 +386,14 @@ flea_bool_e flea_ber_dec__are_der_refs_equal(
  * the first bit/byte of the bits string.
  * @param nb_bits__palu8 [out] receives the number of encoded bits in the bit string
  * @param optional_found__pb [in/out] On input, the pointer target deterimes whether the
- * decoding is optional. On function return, it tells whether the object was found (flea_true) or not (flea_false).
+ * decoding is optional. On function return, it tells whether the object was found (FLEA_TRUE) or not (FLEA_FALSE).
  *
  */
 flea_err_e THR_flea_ber_dec_t__decode_short_bit_str_to_u32_optional(
   flea_ber_dec_t* dec__pt,
   flea_u32_t*     val__pu32,
   flea_al_u8_t*   nb_bits__palu8,
-  flea_bool_e*    optional_found__pb
+  flea_bool_t*    optional_found__pb
 );
 
 flea_al_u8_t flea_ber_dec_t__get_nb_bits_from_bit_string(const flea_byte_vec_t* bit_string__pt);
@@ -406,9 +406,9 @@ flea_err_e THR_flea_ber_dec__get_ref_to_bit_string_content_no_unused_bits(
   flea_byte_vec_t*       content__pt
 );
 
-flea_bool_e flea_ber_dec__is_tlv_null(const flea_byte_vec_t* ref__pt);
+flea_bool_t flea_ber_dec__is_tlv_null(const flea_byte_vec_t* ref__pt);
 
-flea_bool_e flea_ber_dec__is_tlv_null_vec(const flea_byte_vec_t* ref__pt);
+flea_bool_t flea_ber_dec__is_tlv_null_vec(const flea_byte_vec_t* ref__pt);
 
 flea_err_e THR_flea_ber_dec_t__get_ref_to_raw_cft(
   flea_ber_dec_t*  dec__pt,
@@ -439,26 +439,26 @@ flea_err_e THR_flea_ber_dec_t__decode_value_raw_cft_opt(
   flea_ber_dec_t*  dec__pt,
   flea_asn1_tag_t  cft,
   flea_byte_vec_t* res_vec__pt,
-  flea_bool_e*     optional_found__pb
+  flea_bool_t*     optional_found__pb
 );
 
 flea_err_e THR_flea_ber_dec_t__decode_value_raw_cft_optional(
   flea_ber_dec_t*  dec__pt,
   flea_asn1_tag_t  cft,
   flea_byte_vec_t* res_vec__pt,
-  flea_bool_e*     found__pb
+  flea_bool_t*     found__pb
 );
 
 flea_err_e THR_flea_ber_dec_t__decode_tlv_raw_optional(
   flea_ber_dec_t*  dec__pt,
   flea_byte_vec_t* byte_vec__pt,
-  flea_bool_e*     optional_found__pb
+  flea_bool_t*     optional_found__pb
 );
 
 flea_err_e THR_flea_ber_dec_t__read_tlv_raw_optional(
   flea_ber_dec_t*  dec__pt,
   flea_byte_vec_t* byte_vec__pt,
-  flea_bool_e*     optional_found__pb
+  flea_bool_t*     optional_found__pb
 );
 
 

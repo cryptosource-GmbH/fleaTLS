@@ -82,27 +82,35 @@ void flea_private_key_t__dtor(flea_private_key_t* privkey);
 /**
  * Create an RSA private key fromt the flea RSA private key internal format.
  *
- * @param
+ * @param key the private key to create
+ * @param priv_key_enc_internal_format The private RSA-CRT in the fleaTLS
+ * internal format
+ * @param key_bit_size bit size of the public modulus of the key
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_private_key_t__ctor_rsa_internal_format(
-  flea_private_key_t*   key__pt,
-  const flea_ref_cu8_t* priv_key_enc_internal_format__prcu8,
-  flea_al_u16_t         key_bit_size__alu16
+  flea_private_key_t*   key,
+  const flea_ref_cu8_t* priv_key_enc_internal_format,
+  flea_al_u16_t         key_bit_size
 );
 
 /**
  * Create an RSA key from the CRT key components. All supplied numbers are big endian
- * encoded. All lengths are byte lengths.
+ * encoded. All array lengths are byte lengths.
  *
+ * @param key the key to create
+ * @param key_bit_size the bit size of the RSA modulus
  * @param p the prime p
  * @param p_len the length of p
  * @param q the prime q
  * @param q_len the length of q
  * @param dp d mod (p-1)
- * @param dp the length of dp
+ * @param dp_len the length of dp
  * @param dq d mod (q-1)
- * @param dq the length of dq
+ * @param dq_len the length of dq
  * @param c q^{-1} mod p
+ * @param c_len the length of c
  *
  * @return an error code
  */
@@ -197,12 +205,12 @@ flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
  *  @return an error code
  */
 flea_err_e THR_flea_private_key_t__decrypt_message(
-  const flea_private_key_t* privkey__pt,
-  flea_pk_scheme_id_e       id__t,
-  flea_hash_id_e            hash_id__t,
-  const flea_u8_t*          ciphertext__pcu8,
-  flea_al_u16_t             ciphertext_len__alu16,
-  flea_byte_vec_t*          result_vec__pt
+  const flea_private_key_t* privkey,
+  flea_pk_scheme_id_e       id,
+  flea_hash_id_e            hash_id,
+  const flea_u8_t*          ciphertext,
+  flea_al_u16_t             ciphertext_len,
+  flea_byte_vec_t*          result
 );
 
 /**
@@ -254,8 +262,8 @@ flea_err_e THR_flea_private_key_t__decrypt_message_secure(
  * @return an error code
  */
 flea_err_e THR_flea_private_key_t__get_encoded_plain(
-  const flea_private_key_t* privkey__cpt,
-  flea_byte_vec_t*          result__pt
+  const flea_private_key_t* key,
+  flea_byte_vec_t*          result
 );
 
 

@@ -140,7 +140,7 @@ static flea_err_e THR_flea_start_tls_client(
         cmdl_args.get_property_as_u32("port"),
         cmdl_args.get_property_as_u32_default("read_timeout", 1000),
         hostname_s.c_str(),
-        host_type == flea_host_dnsname ? flea_true : flea_false
+        host_type == flea_host_dnsname ? FLEA_TRUE : FLEA_FALSE
       )
     );
   }
@@ -206,7 +206,7 @@ static flea_err_e THR_flea_start_tls_client(
     int reneg_allowed = flea_tls_client_ctx_t__is_reneg_allowed(&tls_ctx);
     std::cout << "renegotiation exptected to be successfull = " << std::to_string(reneg_allowed) << " ...\n";
     std::cout << "renegotiation ...\n";
-    flea_bool_e reneg_done__b;
+    flea_bool_t reneg_done__b;
     FLEA_CCALL(
       THR_flea_tls_client_ctx_t__renegotiate(
         &tls_ctx,

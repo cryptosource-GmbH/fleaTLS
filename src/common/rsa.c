@@ -127,19 +127,19 @@ flea_err_e THR_flea_rsa_raw_operation_crt(
   flea_mpi_ulen_t result_len, base_word_len, vn_len, un_len;
 # endif // #ifdef FLEA_HEAP_MODE
 
-# ifdef FLEA_USE_RSA_MUL_ALWAYS
-  const flea_bool_e do_use_mul_always__b = flea_true;
+# ifdef FLEA_SCCM_USE_RSA_MUL_ALWAYS
+  const flea_bool_t do_use_mul_always__b = FLEA_TRUE;
 # else
-  const flea_bool_e do_use_mul_always__b = flea_false;
+  const flea_bool_t do_use_mul_always__b = FLEA_FALSE;
 # endif
 
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   flea_ctr_mode_prng_t delay_prng__t;
 # endif
 
   FLEA_THR_BEG_FUNC();
 
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   flea_ctr_mode_prng_t__INIT(&delay_prng__t);
 # endif
 # ifdef FLEA_HEAP_MODE
@@ -177,7 +177,7 @@ flea_err_e THR_flea_rsa_raw_operation_crt(
   div_ctx.vn_len = FLEA_HEAP_OR_STACK_CODE(vn_len, FLEA_STACK_BUF_NB_ENTRIES(vn));
   div_ctx.un_len = FLEA_HEAP_OR_STACK_CODE(un_len, FLEA_STACK_BUF_NB_ENTRIES(un));
 
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__ctor(&delay_prng__t, base_enc, base_length));
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&delay_prng__t, d1_enc, d1_enc_len));
 # endif
@@ -216,7 +216,7 @@ flea_err_e THR_flea_rsa_raw_operation_crt(
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &base_mod_prime, &base, &p, &div_ctx));
   // result used as workspace here
 
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   FLEA_CCALL(
     THR_flea_mpi_t__mod_exp_window(
       &j1,
@@ -231,7 +231,7 @@ flea_err_e THR_flea_rsa_raw_operation_crt(
       &delay_prng__t
     )
   );
-# else  /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
+# else  /* ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY */
   FLEA_CCALL(
     THR_flea_mpi_t__mod_exp_window(
       &j1,
@@ -245,12 +245,12 @@ flea_err_e THR_flea_rsa_raw_operation_crt(
       do_use_mul_always__b
     )
   );
-# endif /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
+# endif /* ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY */
 
   // d1 unused from here, used for j2
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &base_mod_prime, &base, &q, &div_ctx));
   // result used as workspace here
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   FLEA_CCALL(
     THR_flea_mpi_t__mod_exp_window(
       &d1,
@@ -265,7 +265,7 @@ flea_err_e THR_flea_rsa_raw_operation_crt(
       &delay_prng__t
     )
   );
-# else  /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
+# else  /* ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY */
   FLEA_CCALL(
     THR_flea_mpi_t__mod_exp_window(
       &d1,
@@ -279,7 +279,7 @@ flea_err_e THR_flea_rsa_raw_operation_crt(
       do_use_mul_always__b
     )
   );
-# endif /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
+# endif /* ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY */
 
 
   // subtract mod cannot be used because d1=j2 may be larger than p
@@ -412,7 +412,7 @@ flea_err_e THR_flea_rsa_raw_operation(
   FLEA_CCALL(THR_flea_mpi_t__decode(&mod, modulus_enc, modulus_length));
   FLEA_CCALL(THR_flea_mpi_t__decode(&exponent, exponent_enc, exponent_length));
   FLEA_CCALL(THR_flea_mpi_t__decode(&base, base_enc, base_length));
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   FLEA_CCALL(
     THR_flea_mpi_t__mod_exp_window(
       &result,
@@ -423,11 +423,11 @@ flea_err_e THR_flea_rsa_raw_operation(
       &div_ctx,
       &ws_q,
       1,
-      flea_false,
+      FLEA_FALSE,
       NULL
     )
   );
-# else  /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
+# else  /* ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY */
 
   FLEA_CCALL(
     THR_flea_mpi_t__mod_exp_window(
@@ -439,10 +439,10 @@ flea_err_e THR_flea_rsa_raw_operation(
       &div_ctx,
       &ws_q,
       1,
-      flea_false
+      FLEA_FALSE
     )
   );
-# endif /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
+# endif /* ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY */
   FLEA_CCALL(THR_flea_mpi_t__encode(result_enc, modulus_length, &result));
 
   FLEA_THR_FIN_SEC(

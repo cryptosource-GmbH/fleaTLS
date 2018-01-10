@@ -36,7 +36,7 @@ typedef struct
   flea_u16_t                   chain_pos__u16; // offset to final element, = length - 1
   flea_rev_chk_mode_e          rev_chk_mode__e;
 
-  volatile flea_bool_e         abort_cert_path_finding__vb;
+  volatile flea_bool_t         abort_cert_path_finding__vb;
   flea_x509_validation_flags_e cert_ver_flags__e;
 } flea_cert_path_validator_t;
 

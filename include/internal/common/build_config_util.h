@@ -10,13 +10,17 @@
 # define FLEA_DO_IF_HAVE_ECDSA(x)
 #endif
 
-#if defined FLEA_HAVE_TLS_ECC
+#if defined FLEA_HAVE_TLS_CS_ECDSA || defined FLEA_HAVE_TLS_CS_ECDH || defined FLEA_HAVE_TLS_CS_ECDHE
+# define FLEA_HAVE_TLS_CS_ECC
+#endif
+
+#if defined FLEA_HAVE_TLS_CS_ECC
 # define FLEA_DO_IF_HAVE_TLS_ECC(x) x
 #else
 # define FLEA_DO_IF_HAVE_TLS_ECC(x)
 #endif
 
-#ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+#ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
 # define FLEA_DO_IF_USE_PUBKEY_INPUT_BASED_DELAY(x) x
 #else
 # define FLEA_DO_IF_USE_PUBKEY_INPUT_BASED_DELAY(x)
@@ -84,8 +88,8 @@
 /************ Begin Check Ciphersuite Configuration ************/
 
 #ifdef FLEA_HAVE_TLS
-# if !defined FLEA_HAVE_TLS_GCM_CS && !defined FLEA_HAVE_TLS_CBC_CS
-#  error for TLS, either FLEA_HAVE_TLS_GCM_CS  or FLEA_HAVE_TLS_CBC_CS must be defined
+# if !defined FLEA_HAVE_TLS_CS_GCM && !defined FLEA_HAVE_TLS_CS_CBC
+#  error for TLS, either FLEA_HAVE_TLS_CS_GCM  or FLEA_HAVE_TLS_CS_CBC must be defined
 # endif
 #endif
 

@@ -31,7 +31,7 @@ static flea_err_e THR_flea_execute_path_test_case_for_properties(
     cert_files = get_entries_of_dir(dir_path + "/certs", dir_entries_with_path);
   }
   std::vector<std::string> target_cert_files = get_entries_of_dir(dir_path + "/target_cert", dir_entries_with_path);
-  flea_bool_e disable_revocation_checking    = (false == is_dir_existent(dir_path + "/crls")) ? flea_true : flea_false;
+  flea_bool_t disable_revocation_checking    = (false == is_dir_existent(dir_path + "/crls")) ? FLEA_TRUE : FLEA_FALSE;
   std::vector<std::string> crl_files;
   if(!disable_revocation_checking)
   {
@@ -265,7 +265,7 @@ flea_err_e THR_flea_test_path_validation_file_based(
   const char* cert_path_prefix,
   flea_u32_t* nb_exec_tests_pu32,
   const char* file_path_to_be_replaced_by_std_in
-  // flea_bool_e verbose
+  // flea_bool_t verbose
 )
 {
   FLEA_THR_BEG_FUNC();

@@ -77,14 +77,14 @@ static flea_al_u16_t find_issuer(
         &cert_collection__bt[i].cert_ref__t.subject__t.raw_dn_complete__t
       ))
     {
-      flea_bool_e already_used__b = flea_false;
+      flea_bool_t already_used__b = FLEA_FALSE;
       // check if that candidate is not yet part of the chain
       flea_al_u16_t j;
       for(j = 0; j < used_chain_len__alu16; j++)
       {
         if(used_chain__pu16[j] == i)
         {
-          already_used__b = flea_true;
+          already_used__b = FLEA_TRUE;
           break;
         }
       }
@@ -97,7 +97,7 @@ static flea_al_u16_t find_issuer(
   return END_OF_COLL;
 }
 
-static flea_bool_e is_cert_trusted(const flea_x509_cert_info_t* cert_ref__pt)
+static flea_bool_t is_cert_trusted(const flea_x509_cert_info_t* cert_ref__pt)
 {
   return cert_ref__pt->is_trusted__b;
 }
@@ -135,8 +135,8 @@ static flea_err_e THR_validate_cert_path(
   for(i = chain_len__alu16 - 1; i >= 0; i--)
   {
     flea_x509_cert_info_t* current__pt = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i]];
-    flea_bool_e is_current_ta;
-    flea_bool_e is_current_target;
+    flea_bool_t is_current_ta;
+    flea_bool_t is_current_target;
     flea_basic_constraints_t* basic_constraints__pt;
     is_current_ta     = (i == (flea_s32_t) chain_len__alu16 - 1);
     is_current_target = (i == 0);
@@ -172,7 +172,7 @@ static flea_err_e THR_validate_cert_path(
   /* from TA to target cert */
   for(i = (flea_s32_t) (chain_len__alu16 - 2); i >= 0; i--)
   {
-    flea_bool_e is_ca_cert__b = (i != 0) ? flea_true : flea_false;
+    flea_bool_t is_ca_cert__b = (i != 0) ? FLEA_TRUE : FLEA_FALSE;
     flea_x509_cert_info_t* subject__pt = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i]];
     flea_x509_cert_info_t* issuer__pt  = &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[i + 1]];
 
@@ -306,18 +306,18 @@ flea_err_e THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_
     {
       if(is_cert_trusted(&cert_collection__bt[target_pos]))
       {
-        target_cert__pt->is_trusted__b = flea_true;
+        target_cert__pt->is_trusted__b = FLEA_TRUE;
         break;
       }
       target_pos++;
     }
   }
   /* try to find a path */
-  while(cert_cpv__pt->abort_cert_path_finding__vb == flea_false)
+  while(cert_cpv__pt->abort_cert_path_finding__vb == FLEA_FALSE)
   {
     flea_x509_cert_info_t* subject;
     flea_al_u16_t issuer_pos;
-    flea_bool_e failed_path = flea_false;
+    flea_bool_t failed_path = FLEA_FALSE;
     subject = &cert_collection__bt[chain__bu16[*chain_pos__pu16]];
 
     if(is_cert_trusted(subject))
@@ -332,7 +332,7 @@ flea_err_e THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_
       {
         return FLEA_ERR_FINE;
       }
-      failed_path = flea_true;
+      failed_path = FLEA_TRUE;
 
       if((*chain_pos__pu16) == 0)
       {
@@ -365,7 +365,7 @@ flea_err_e THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_
       while(((*chain_pos__pu16) + 1 >= FLEA_MAX_CERT_CHAIN_DEPTH) ||
         (chain__bu16[(*chain_pos__pu16) + 1] >= cert_collection_size__alu16))
       {
-        failed_path = flea_false;
+        failed_path = FLEA_FALSE;
         if((*chain_pos__pu16) == 0)
         {
           FLEA_THROW("no valid certificate path found", FLEA_ERR_CERT_PATH_NOT_FOUND);
@@ -418,7 +418,7 @@ flea_err_e THR_flea_cert_path_validator_t__ctor_cert(
   cpv__pt->cert_ver_flags__e = cert_ver_flags__e;
   cpv__pt->nb_crls__u16      = 0;
   cpv__pt->rev_chk_mode__e   = rev_chk_mode__e;
-  cpv__pt->abort_cert_path_finding__vb = flea_false;
+  cpv__pt->abort_cert_path_finding__vb = FLEA_FALSE;
   FLEA_CCALL(
     THR_flea_cert_path_validator_t__add_cert_without_trust_status(
       cpv__pt,
@@ -431,7 +431,7 @@ flea_err_e THR_flea_cert_path_validator_t__ctor_cert(
 
 void flea_cert_path_validator_t__abort_cert_path_building(flea_cert_path_validator_t* cpv__pt)
 {
-  cpv__pt->abort_cert_path_finding__vb = flea_true;
+  cpv__pt->abort_cert_path_finding__vb = FLEA_TRUE;
 }
 
 flea_err_e THR_flea_cert_path_validator_t__add_crl(
@@ -494,7 +494,7 @@ static flea_err_e THR_flea_cert_path_validator_t__add_cert(
   flea_cert_path_validator_t* cpv__pt,
   const flea_u8_t*            cert__pcu8,
   flea_al_u16_t               cert_len__alu16,
-  flea_bool_e                 is_trusted__b
+  flea_bool_t                 is_trusted__b
 )
 {
   flea_x509_cert_info_t cert_info__t = flea_x509_cert_info_t__INIT_VALUE;
@@ -519,7 +519,7 @@ flea_err_e THR_flea_cert_path_validator_t__add_cert_without_trust_status(
   flea_al_u16_t               cert_len__alu16
 )
 {
-  return THR_flea_cert_path_validator_t__add_cert(cpv__pt, cert__pcu8, cert_len__alu16, flea_false);
+  return THR_flea_cert_path_validator_t__add_cert(cpv__pt, cert__pcu8, cert_len__alu16, FLEA_FALSE);
 }
 
 flea_err_e THR_flea_cert_path_validator_t__add_trust_anchor_cert(
@@ -528,13 +528,13 @@ flea_err_e THR_flea_cert_path_validator_t__add_trust_anchor_cert(
   flea_al_u16_t               cert_len__alu16
 )
 {
-  return THR_flea_cert_path_validator_t__add_cert(cpv__pt, cert__pcu8, cert_len__alu16, flea_true);
+  return THR_flea_cert_path_validator_t__add_cert(cpv__pt, cert__pcu8, cert_len__alu16, FLEA_TRUE);
 }
 
 flea_err_e THR_flea_cert_path__validate_single_cert(
   flea_x509_cert_ref_t*  cert_ref__pt,
-  flea_bool_e            is_trusted__b,
-  flea_bool_e            is_target__b,
+  flea_bool_t            is_trusted__b,
+  flea_bool_t            is_target__b,
   const flea_gmt_time_t* arg_compare_time_mbn__pt
 )
 {

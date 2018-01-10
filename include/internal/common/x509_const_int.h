@@ -86,8 +86,8 @@ typedef struct
 typedef struct
 {
   flea_u8_t   is_present__u8;
-  flea_bool_e is_ca__b;
-  flea_bool_e has_path_len__b;
+  flea_bool_t is_ca__b;
+  flea_bool_t has_path_len__b;
   flea_u16_t  path_len__u16;
 } flea_basic_constraints_t;
 

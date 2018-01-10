@@ -67,10 +67,10 @@ flea_err_e THR_flea_test_ecc_point_gfp_mul()
   FLEA_CCALL(THR_flea_curve_gfp_t__init(&curve, a_enc, sizeof(a_enc), b_enc, sizeof(b_enc), prime_enc, sizeof(prime_enc), curve_word_arr, curve_word_arr_word_len));
   FLEA_CCALL(THR_flea_point_gfp_t__init(&point, p_x_enc, sizeof(p_x_enc), p_y_enc, sizeof(p_y_enc), aff_point_word_arr, aff_point_word_arr_word_len));
 
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
-  FLEA_CCALL(THR_flea_point_gfp_t__mul(&point, &scalar, &curve, flea_false, NULL));
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&point, &scalar, &curve, FLEA_FALSE, NULL));
 # else
-  FLEA_CCALL(THR_flea_point_gfp_t__mul(&point, &scalar, &curve, flea_false));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&point, &scalar, &curve, FLEA_FALSE));
 # endif
 
   if(flea_mpi_t__compare_absolute(&point.m_x, &exp_x) || flea_mpi_t__compare_absolute(&point.m_y, &exp_y))

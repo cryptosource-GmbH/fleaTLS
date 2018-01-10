@@ -72,12 +72,12 @@ static flea_err_e THR_flea_test_pkcs1_v1_5_signature_reference()
 
 #if defined FLEA_HAVE_ECDSA || defined FLEA_HAVE_RSA
 static flea_err_e THR_flea_test_pk_signer_sign_verify_inner(
-  flea_pk_scheme_id_e         scheme_id__t,
-  flea_hash_id_e              hash_id__t,
-  const flea_pub_key_param_u* param__pu
+  flea_pk_scheme_id_e          scheme_id__t,
+  flea_hash_id_e               hash_id__t,
+  const flea_ec_dom_par_ref_t* param__pt
 )
 {
-  flea_al_u8_t is_ecdsa = param__pu != NULL;
+  flea_al_u8_t is_ecdsa = param__pt != NULL;
 
   FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
   FLEA_DECL_OBJ(pubkey__t, flea_public_key_t);
@@ -105,15 +105,14 @@ static flea_err_e THR_flea_test_pk_signer_sign_verify_inner(
     priv_key_len__al_u8 = FLEA_ECC_MAX_ORDER_BYTE_SIZE;
     FLEA_ALLOC_BUF(pub_key__b_u8, pub_key_len__al_u8);
     FLEA_ALLOC_BUF(priv_key__b_u8, priv_key_len__al_u8);
-    FLEA_CCALL(THR_flea_generate_ecc_key(pub_key__b_u8, &pub_key_len__al_u8, priv_key__b_u8, &priv_key_len__al_u8, &param__pu->ecc_dom_par__t));
+    FLEA_CCALL(THR_flea_generate_ecc_key(pub_key__b_u8, &pub_key_len__al_u8, priv_key__b_u8, &priv_key_len__al_u8, param__pt));
 
     flea_byte_vec_t__set_as_ref(&pubpoint_vec__t, pub_key__b_u8, pub_key_len__al_u8);
 
     flea_byte_vec_t__set_as_ref(&scalar_vec__t, priv_key__b_u8, priv_key_len__al_u8);
 
-
-    FLEA_CCALL(THR_flea_private_key_t__ctor_ecc(&privkey__t, &scalar_vec__t, &param__pu->ecc_dom_par__t));
-    FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(&pubkey__t, &pubpoint_vec__t, &param__pu->ecc_dom_par__t));
+    FLEA_CCALL(THR_flea_private_key_t__ctor_ecc(&privkey__t, &scalar_vec__t, param__pt));
+    FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(&pubkey__t, &pubpoint_vec__t, param__pt));
 # endif /* ifdef FLEA_HAVE_ECC */
   }
   else
@@ -203,9 +202,9 @@ flea_err_e THR_flea_test_pk_signer_sign_verify()
   }
   else
   {
-    flea_pub_key_param_u param__u;
-    FLEA_CCALL(THR_flea_ec_dom_par_ref_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_brainpoolP224r1));
-    FLEA_CCALL(THR_flea_test_pk_signer_sign_verify_inner(flea_ecdsa_emsa1, flea_sha224, &param__u));
+    flea_ec_dom_par_ref_t dp__t;
+    FLEA_CCALL(THR_flea_ec_dom_par_ref_t__set_by_builtin_id(&dp__t, flea_brainpoolP224r1));
+    FLEA_CCALL(THR_flea_test_pk_signer_sign_verify_inner(flea_ecdsa_emsa1, flea_sha224, &dp__t));
   }
 #endif /* ifdef FLEA_HAVE_ECDSA */
 #ifdef FLEA_HAVE_RSA

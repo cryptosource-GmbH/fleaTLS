@@ -19,17 +19,8 @@ extern "C" {
 # endif
 
 
-typedef union
-{
-  flea_byte_vec_t       rsa_public_exp__ru8;
-
-# ifdef FLEA_HAVE_ECC
-  flea_ec_dom_par_ref_t ecc_dom_par__t;
-# endif /* #ifdef FLEA_HAVE_ECC */
-} flea_pub_key_param_u;
-
 /**
- * Supported
+ * Signature generation or verification with public key signer object.
  */
 typedef enum { flea_sign, flea_verify } flea_pk_signer_direction_e;
 
@@ -38,7 +29,7 @@ struct struct_flea_pk_config_t;
 typedef struct struct_flea_pk_config_t flea_pk_config_t;
 
 /**
- * Public signer struct. Used to perform signature generation and verification.
+ * Public key signer type. Used to perform signature generation and verification. After its creation, it can be updated with signature data, and then be used to either create a signature or verify an existing signature.
  */
 typedef struct
 {
@@ -52,7 +43,6 @@ typedef struct
 # ifdef FLEA_HEAP_MODE
 #  define flea_pk_signer_t__INIT(__p) do {flea_hash_ctx_t__INIT(&(__p)->hash_ctx);} while(0)
 # else
-/* needed for secret wiping in hash ctx*/
 #  define flea_pk_signer_t__INIT(__p) do {flea_hash_ctx_t__INIT(&(__p)->hash_ctx);} while(0)
 # endif
 
@@ -80,7 +70,7 @@ flea_err_e THR_flea_pk_signer_t__ctor(
 void flea_pk_signer_t__dtor(flea_pk_signer_t* signer);
 
 /**
- * Update a public key signer object with signature data.
+ * Update a public key signer object with message data.
  *
  * @param signer the signer object to use
  * @param message pointer to the message data

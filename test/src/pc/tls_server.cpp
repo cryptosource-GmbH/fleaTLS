@@ -199,7 +199,7 @@ static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
   FLEA_CCALL(THR_check_user_abort(serv_par__pt));
   for(size_t i = 0; i < serv_par__pt->nb_renegs_to_exec; i++)
   {
-    flea_bool_e reneg_done__b;
+    flea_bool_t reneg_done__b;
 
     int reneg_allowed = flea_tls_server_ctx_t__is_reneg_allowed(&tls_ctx);
     serv_par__pt->write_output_string(
@@ -293,7 +293,7 @@ static void* flea_tls_server_thread(void* sv__pv)
     serv_par__pt->write_output_string("error from server thread: 0x" + num_to_string_hex(err__t));
   }
   CHECK_PTHREAD_ERR(pthread_mutex_lock(&serv_par__pt->mutex));
-  serv_par__pt->finished__b = flea_true;
+  serv_par__pt->finished__b = FLEA_TRUE;
   CHECK_PTHREAD_ERR(pthread_mutex_unlock(&serv_par__pt->mutex));
   return NULL;
 }
@@ -391,9 +391,9 @@ static flea_err_e THR_server_cycle(
       serv_par__t.nb_renegs_to_exec  = cmdl_args.get_property_as_u32_default("do_renegs", 0);
       serv_par__t.rd_mode__e         = tls_cfg.read_mode_for_app_data;
       serv_par__t.read_app_data_size = tls_cfg.read_size_for_app_data;
-      serv_par__t.abort__b        = flea_false;
+      serv_par__t.abort__b        = FLEA_FALSE;
       serv_par__t.server_error__e = FLEA_ERR_FINE;
-      serv_par__t.finished__b     = flea_false;
+      serv_par__t.finished__b     = FLEA_FALSE;
 
       if(dir_for_file_based_input == "")
       {
@@ -480,7 +480,7 @@ static flea_err_e THR_server_cycle(
       {
         server_params_t & serv_par__t = *serv_pars[i].get();
         CHECK_PTHREAD_ERR(pthread_mutex_lock(&serv_par__t.mutex));
-        serv_par__t.abort__b = flea_true;
+        serv_par__t.abort__b = FLEA_TRUE;
         CHECK_PTHREAD_ERR(pthread_mutex_unlock(&serv_par__t.mutex));
       }
     }

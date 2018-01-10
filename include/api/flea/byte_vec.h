@@ -256,14 +256,14 @@ int flea_byte_vec_t__cmp_with_cref(
  * reference value.
  *
  * @param byte_vec pointer to the byte_vector
- * @param data pointer to the data to append to set
- * @param len the length of data
+ * @param dta pointer to the data to append to set
+ * @param dta_len the length of data
  *
  */
 void flea_byte_vec_t__set_as_ref(
   flea_byte_vec_t* byte_vec,
-  const flea_u8_t* data,
-  flea_dtl_t       data_len
+  const flea_u8_t* dta,
+  flea_dtl_t       dta_len
 );
 
 
@@ -272,15 +272,15 @@ void flea_byte_vec_t__set_as_ref(
  * exceeded, in heap mode a reallocation is performed if necessary.
  *
  * @param byte_vec pointer to the byte_vector
- * @param data pointer to the data to append
- * @param len the length of data
+ * @param dta pointer to the data to append
+ * @param dta_len the length of data
  *
  * @return an error code
  */
 flea_err_e THR_flea_byte_vec_t__append(
   flea_byte_vec_t* byte_vec,
-  const flea_u8_t* data,
-  flea_dtl_t       len
+  const flea_u8_t* dta,
+  flea_dtl_t       dta_len
 );
 
 

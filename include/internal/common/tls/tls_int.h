@@ -89,7 +89,7 @@ struct struct_flea_tls_ctx_t
   flea_tls_sigalg_e*                allowed_sig_algs__pe;
   flea_al_u16_t                     nb_allowed_sig_algs__alu16;
   flea_hash_id_e                    chosen_hash_algorithm__t;  // use as hash alg when signing with private key (server and client)
-  flea_bool_e                       can_use_ecdhe;  // true if sig alg extension produces a match so we can sign the ECDHE params
+  flea_bool_t                       can_use_ecdhe;  // true if sig alg extension produces a match so we can sign the ECDHE params
   flea_tls_flag_e                   cfg_flags__e;
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
 #  ifdef FLEA_STACK_MODE

@@ -8,7 +8,7 @@
 #include "flea/x509.h"
 
 /**
- * Get the x and y coordinate as references to an encoded elliptic curve point (i.e. 0x04 | <x> | <y>) in a byte
+ * Get the x and y coordinate as references to an encoded elliptic curve point (i.e. 0x04 | x | y) in a byte
  * vector.
  *
  * @param [in] encoded the encoded point
@@ -25,7 +25,7 @@ flea_err_e THR_flea_ecc_key__decode_uncompressed_point(
 );
 
 /**
- * Determine the byte length of a point coordinate from an encoded elliptic curve point (i.e. 0x04 | <x> | <y>), which is equal to the byte length of the curve's prime p.
+ * Determine the byte length of a point coordinate from an encoded elliptic curve point (i.e. 0x04 | x | y), which is equal to the byte length of the curve's prime p.
  *
  * @param [in] encoded the encoded point
  *

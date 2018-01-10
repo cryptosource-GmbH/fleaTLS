@@ -34,7 +34,7 @@ static flea_al_u8_t days_of_month(
   flea_u16_t   year
 )
 {
-  flea_bool_e odd_month = month_1_to_12 % 2;
+  flea_bool_t odd_month = month_1_to_12 % 2;
 
   if(month_1_to_12 == 2)
   {
@@ -88,11 +88,11 @@ void flea_gmt_time_t__add_seconds_to_date(
 flea_err_e THR_flea_asn1_parse_gmt_time_optional(
   flea_ber_dec_t*  dec__t,
   flea_gmt_time_t* utctime__pt,
-  flea_bool_e*     found__pb
+  flea_bool_t*     found__pb
 )
 {
   flea_x509_date_ref_t date_ref__t;
-  flea_bool_e optional_found__b = flea_true;
+  flea_bool_t optional_found__b = FLEA_TRUE;
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(byte_vec__t, 20);
 
@@ -109,7 +109,7 @@ flea_err_e THR_flea_asn1_parse_gmt_time_optional(
   date_ref__t.len__dtl   = byte_vec__t.len__dtl;
   if(!optional_found__b)
   {
-    *found__pb = flea_false;
+    *found__pb = FLEA_FALSE;
     FLEA_THR_RETURN();
   }
   FLEA_CCALL(
@@ -120,7 +120,7 @@ flea_err_e THR_flea_asn1_parse_gmt_time_optional(
       utctime__pt
     )
   );
-  *found__pb = flea_true;
+  *found__pb = FLEA_TRUE;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_asn1_parse_gmt_time_optional */
 
@@ -132,7 +132,7 @@ flea_err_e THR_flea_asn1_parse_gmt_time(
   FLEA_THR_BEG_FUNC();
 
   flea_x509_date_ref_t date_ref__t;
-  flea_bool_e optional_found__b = flea_false;
+  flea_bool_t optional_found__b = FLEA_FALSE;
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(byte_vec__t, 20);
   FLEA_CCALL(

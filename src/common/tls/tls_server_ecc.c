@@ -12,7 +12,7 @@
 #include "internal/common/tls_ciph_suite.h"
 #include "flea/pk_keypair.h"
 
-#ifdef FLEA_HAVE_TLS_ECC
+#ifdef FLEA_HAVE_TLS_CS_ECC
 flea_err_e THR_flea_tls_get_sig_length_of_priv_key(
   flea_private_key_t* priv_key__pt,
   flea_u16_t*         len__u16
@@ -30,8 +30,8 @@ flea_err_e THR_flea_tls_get_sig_length_of_priv_key(
   FLEA_THR_FIN_SEC_empty();
 }
 
-#endif /* ifdef FLEA_HAVE_TLS_ECC */
-#ifdef FLEA_HAVE_TLS_ECDHE
+#endif /* ifdef FLEA_HAVE_TLS_CS_ECC */
+#ifdef FLEA_HAVE_TLS_CS_ECDHE
 flea_err_e THR_flea_tls__send_server_kex(
   flea_tls_ctx_t*               tls_ctx__pt,
   flea_tls_handshake_ctx_t*     hs_ctx__pt,
@@ -213,4 +213,4 @@ flea_err_e THR_flea_tls__send_server_kex(
   );
 } /* THR_flea_tls__send_server_kex */
 
-#endif   /* ifdef FLEA_HAVE_TLS_ECDHE */
+#endif   /* ifdef FLEA_HAVE_TLS_CS_ECDHE */

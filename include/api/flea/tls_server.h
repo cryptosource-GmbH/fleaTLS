@@ -136,10 +136,10 @@ flea_err_e THR_flea_tls_server_ctx_t__flush_write_app_data(flea_tls_server_ctx_t
  *
  * @param [in,out] tls_server_ctx Pointer to the server ctx object.
  *
- * @return flea_true if a renegotiation may be carried out, flea_false
+ * @return FLEA_TRUE if a renegotiation may be carried out, FLEA_FALSE
  * otherwise.
  */
-flea_bool_e flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_server_ctx);
+flea_bool_t flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_server_ctx);
 
 /**
  *
@@ -153,9 +153,9 @@ flea_bool_e flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_s
  * @param [in,out] tls_server_ctx Pointer to the server ctx object.
  * @param [out] result pointer to a boolean, which upon function return
  * indicates whether the renegotiation was carried actually out. If the
- * renegotiation was carried out, it takes on the value flea_true. Otherwise, if
+ * renegotiation was carried out, it takes on the value FLEA_TRUE. Otherwise, if
  * the renegotiation was refused, it
- * becomes flea_false.
+ * becomes FLEA_FALSE.
  * @param [in] trust_store_mbn Pointer to a certificate store object which
  * contains the trusted certificates the server may use to authenticate client
  * certificates. If this parameter is non-null, then the server enforces client
@@ -194,7 +194,7 @@ flea_bool_e flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_s
  */
 flea_err_e THR_flea_tls_server_ctx_t__renegotiate(
   flea_tls_server_ctx_t*            tls_server_ctx,
-  flea_bool_e*                      result,
+  flea_bool_t*                      result,
   const flea_cert_store_t*          trust_store_mbn,
   const flea_ref_cu8_t*             cert_chain,
   flea_al_u8_t                      cert_chain_len,
@@ -217,10 +217,10 @@ flea_err_e THR_flea_tls_server_ctx_t__renegotiate(
  *
  * @param server_ctx the TLS server context object pointer
  *
- * @return flea_true if the peer EE certificate is available, flea_false
+ * @return FLEA_TRUE if the peer EE certificate is available, FLEA_FALSE
  * otherwise.
  */
-flea_bool_e flea_tls_server_ctx_t__have_peer_ee_cert_ref(flea_tls_server_ctx_t* server_ctx);
+flea_bool_t flea_tls_server_ctx_t__have_peer_ee_cert_ref(flea_tls_server_ctx_t* server_ctx);
 
 /**
  * Get a pointer to the flea_x509_cert_ref_t of the peer's EE certificate.
@@ -240,10 +240,10 @@ const flea_x509_cert_ref_t* flea_tls_server_ctx_t__get_peer_ee_cert_ref(flea_tls
  *
  * @param server_ctx the TLS server context object pointer
  *
- * @return flea_true if the peer EE certificate is available, flea_false
+ * @return FLEA_TRUE if the peer EE certificate is available, FLEA_FALSE
  * otherwise.
  */
-flea_bool_e flea_tls_server_ctx_t__have_peer_root_cert_ref(flea_tls_server_ctx_t* server_ctx);
+flea_bool_t flea_tls_server_ctx_t__have_peer_root_cert_ref(flea_tls_server_ctx_t* server_ctx);
 
 /**
  * Get a pointer to the flea_x509_cert_ref_t of the trusted certificate that was

@@ -225,7 +225,7 @@ int flea_unit_tests(
   const char* cert_path_prefix,
   const char* file_path_to_be_replaced_by_std_in,
   const char* func_prefix,
-  flea_bool_e full__b
+  flea_bool_t full__b
 );
 
 

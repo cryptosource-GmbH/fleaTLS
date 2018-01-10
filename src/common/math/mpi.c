@@ -756,7 +756,7 @@ flea_al_s8_t flea_mpi_t__compare_absolute(
   return 0;
 }
 
-flea_bool_e flea_mpi_t__equal(
+flea_bool_t flea_mpi_t__equal(
   const flea_mpi_t* p_a,
   const flea_mpi_t* p_b
 )
@@ -765,19 +765,19 @@ flea_bool_e flea_mpi_t__equal(
   {
     if(flea_mpi_t__is_zero(p_a) && flea_mpi_t__is_zero(p_b))
     {
-      return flea_true;
+      return FLEA_TRUE;
     }
-    return flea_false;
+    return FLEA_FALSE;
   }
   if(p_a->m_nb_used_words != p_b->m_nb_used_words)
   {
-    return flea_false;
+    return FLEA_FALSE;
   }
   if(memcmp(p_a->m_words, p_b->m_words, p_a->m_nb_used_words * sizeof(p_a->m_words[0])))
   {
-    return flea_false;
+    return FLEA_FALSE;
   }
-  return flea_true;
+  return FLEA_TRUE;
 }
 
 void flea_mpi_t__print(const flea_mpi_t* p_mpi)
@@ -840,8 +840,8 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
   flea_mpi_div_ctx_t*   p_div_ctx,
   flea_mpi_t*           p_quotient_ws,
   flea_al_u8_t          window_size,
-  flea_bool_e mul_always_cm__b
-#ifdef                  FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+  flea_bool_t mul_always_cm__b
+#ifdef                  FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   ,
   flea_ctr_mode_prng_t* delay_prng_mbn__pt
 #endif
@@ -965,17 +965,17 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
     flea_mpi_t* p_base_power;
     flea_al_u8_t exp_bit = 0;
     flea_mpi_t* result_or_fake__pt, * base_or_fake__pt;
-    flea_bool_e do_mul__b;
+    flea_bool_t do_mul__b;
     flea_mpi_t* result_or_fake_iter__pt = p_result;
 
-#ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+#ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
     flea_al_u8_t fix_up_i__is_fake_iter__alu8 = 0;
     flea_u8_t rnd_bytes__au8[3];
 #endif
-#ifdef FLEA_USE_PUBKEY_USE_RAND_DELAY
+#ifdef FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
     flea_u8_t real_rnd_bytes__au8[2];
 #endif
-#if defined FLEA_USE_PUBKEY_INPUT_BASED_DELAY || defined FLEA_USE_PUBKEY_USE_RAND_DELAY
+#if defined FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY || defined FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
     flea_al_u16_t delay_iters__alu16 = 0;
 #endif
     while(i < window_size && window_size > 1)
@@ -983,21 +983,21 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
       window_size--;
     }
 
-#ifdef FLEA_USE_PUBKEY_USE_RAND_DELAY
+#ifdef FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
     FLEA_CCALL(THR_flea_rng__randomize_no_flush(&real_rnd_bytes__au8[0], sizeof(real_rnd_bytes__au8)));
     if((i == exp_bit_size - 1) || (0 == (real_rnd_bytes__au8[1] & 0x0F)))
     {
       /* delay with probability 1/4 */
       delay_iters__alu16 += real_rnd_bytes__au8[0];
     }
-#endif /* ifdef FLEA_USE_PUBKEY_USE_RAND_DELAY */
+#endif /* ifdef FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY */
 
-#ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+#ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
     if(delay_prng_mbn__pt)
     {
       flea_ctr_mode_prng_t__randomize_no_flush(delay_prng_mbn__pt, rnd_bytes__au8, sizeof(rnd_bytes__au8));
       flea_al_u8_t cond__alu8 = rnd_bytes__au8[0] & 0x0F;
-# ifdef FLEA_USE_PUBKEY_USE_RAND_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
       flea_al_u8_t cond2__alu8 = real_rnd_bytes__au8[0] & 0x0F;
       /* additional random delays */
       cond__alu8 = ~((~cond__alu8) & (~cond2__alu8));
@@ -1015,9 +1015,9 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
         delay_iters__alu16 += (rnd_bytes__au8[1]) | (rnd_bytes__au8[2] << 1);
       }
     }
-#endif  /* ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY */
+#endif  /* ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY */
 
-#if defined FLEA_USE_PUBKEY_INPUT_BASED_DELAY || defined FLEA_USE_PUBKEY_USE_RAND_DELAY
+#if defined FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY || defined FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
     flea_waste_cycles(delay_iters__alu16);
 #endif
 
@@ -1048,7 +1048,7 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
     }
 
     i -= window_size;
-#ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+#ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
     i += fix_up_i__is_fake_iter__alu8;
 #endif
   }
@@ -1451,7 +1451,7 @@ void flea_mpi_t__set_to_word_value(
   p_result->m_words[0]      = w;
 }
 
-flea_bool_e flea_mpi_t__is_zero(const flea_mpi_t* p_mpi)
+flea_bool_t flea_mpi_t__is_zero(const flea_mpi_t* p_mpi)
 {
   flea_mpi_ulen_t i = p_mpi->m_nb_used_words;
 
@@ -1459,10 +1459,10 @@ flea_bool_e flea_mpi_t__is_zero(const flea_mpi_t* p_mpi)
   {
     if(p_mpi->m_words[--i] != 0)
     {
-      return flea_false;
+      return FLEA_FALSE;
     }
   }
-  return flea_true;
+  return FLEA_TRUE;
 }
 
 // shift left mpi by less than the word size (i.e. in general 0-7 is allowed as

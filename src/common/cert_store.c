@@ -7,7 +7,7 @@
 
 #ifdef FLEA_HAVE_ASYM_SIG
 
-flea_bool_e flea_cert_store_t__is_cert_trusted(
+flea_bool_t flea_cert_store_t__is_cert_trusted(
   const flea_cert_store_t* cert_store__pt,
   flea_al_u16_t            pos__alu16
 )
@@ -15,16 +15,16 @@ flea_bool_e flea_cert_store_t__is_cert_trusted(
   if((pos__alu16 >= cert_store__pt->nb_set_certs__u16) ||
     (!cert_store__pt->enc_cert_refs__bcu8[pos__alu16].trusted_flag))
   {
-    return flea_false;
+    return FLEA_FALSE;
   }
-  return flea_true;
+  return FLEA_TRUE;
 }
 
 static flea_err_e THR_flea_cert_store_t__add_cert(
   flea_cert_store_t* cert_store__pt,
   const flea_u8_t*   der_enc_cert__pcu8,
   flea_al_u16_t      der_enc_cert_len__alu16,
-  flea_bool_e        trusted__b
+  flea_bool_t        trusted__b
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -89,7 +89,7 @@ flea_err_e THR_flea_cert_store_t__add_trusted_cert(
   flea_al_u16_t      der_enc_cert_len__alu16
 )
 {
-  return THR_flea_cert_store_t__add_cert(cert_store__pt, der_enc_cert__pcu8, der_enc_cert_len__alu16, flea_true);
+  return THR_flea_cert_store_t__add_cert(cert_store__pt, der_enc_cert__pcu8, der_enc_cert_len__alu16, FLEA_TRUE);
 }
 
 flea_err_e THR_flea_cert_store_t__add_untrusted_cert(
@@ -98,7 +98,7 @@ flea_err_e THR_flea_cert_store_t__add_untrusted_cert(
   flea_al_u16_t      der_enc_cert_len__alu16
 )
 {
-  return THR_flea_cert_store_t__add_cert(cert_store__pt, der_enc_cert__pcu8, der_enc_cert_len__alu16, flea_false);
+  return THR_flea_cert_store_t__add_cert(cert_store__pt, der_enc_cert__pcu8, der_enc_cert_len__alu16, FLEA_FALSE);
 }
 
 flea_err_e THR_flea_cert_store_t__add_trusted_to_path_validator(
@@ -131,7 +131,7 @@ flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
   flea_hash_id_e           tbs_cert_hash_id__e,
   const flea_u8_t*         tbs_cert_hash_to_check__pcu8,
   flea_al_u8_t             tbs_cert_hash_to_check_len__alu8,
-  flea_bool_e*             result_is_trusted__pb,
+  flea_bool_t*             result_is_trusted__pb,
   flea_al_u16_t*           trusted_cert_idx__palu16
 )
 {
@@ -140,7 +140,7 @@ flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(local_hash__t, FLEA_MAX_HASH_OUT_LEN);
   FLEA_THR_BEG_FUNC();
-  *result_is_trusted__pb = flea_false;
+  *result_is_trusted__pb = FLEA_FALSE;
   for(i = 0; i < nb_certs__alu16; i++)
   {
     if(flea_cert_store_t__is_cert_trusted(cert_store__pct, i))
@@ -168,7 +168,7 @@ flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
           tbs_cert_hash_to_check_len__alu8
         ))
       {
-        *result_is_trusted__pb    = flea_true;
+        *result_is_trusted__pb    = FLEA_TRUE;
         *trusted_cert_idx__palu16 = i;
         break;
       }
@@ -184,14 +184,14 @@ flea_err_e THR_flea_cert_store_t__is_cert_trusted(
   const flea_cert_store_t* cert_store__pct,
   const flea_u8_t*         cert_to_check__pcu8,
   flea_al_u16_t            cert_to_check_len__alu16,
-  flea_bool_e*             result_is_trusted__pb
+  flea_bool_t*             result_is_trusted__pb
 )
 {
   flea_al_u16_t nb_certs__alu16 = cert_store__pct->nb_set_certs__u16;
   flea_al_u16_t i;
 
   FLEA_THR_BEG_FUNC();
-  *result_is_trusted__pb = flea_false;
+  *result_is_trusted__pb = FLEA_FALSE;
   for(i = 0; i < nb_certs__alu16; i++)
   {
     if(!flea_memcmp_wsize(

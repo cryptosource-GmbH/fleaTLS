@@ -20,7 +20,7 @@ flea_err_e THR_flea_test_ber_dec_basic()
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   flea_byte_vec_t oid_vec__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
   flea_mem_read_stream_help_t hlp__t;
-  flea_bool_e found_tag__b;
+  flea_bool_t found_tag__b;
   FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(version_vec__t, 10);
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
@@ -126,7 +126,7 @@ typedef enum { dec_func_default, dec_func_ref,
                dec_func_cpy } dec_func_e;
 
 static flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
-  flea_bool_e              is_fake_gen_strm__b,
+  flea_bool_t              is_fake_gen_strm__b,
   flea_asn1_dec_val_hndg_e dec_val_hndg__e,
   dec_func_e               first_dec_func__e,
   dec_func_e               second_dec_func__e,
@@ -146,7 +146,7 @@ static flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
   flea_err_e err__t;
   flea_asn1_tag_t false_cft         = FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_UNIVERSAL_PRIMITIVE, FLEA_ASN1_SET);
   flea_u8_t exp_version_tlv__au8 [] = {0x02, 0x01, 0x00};
-  flea_bool_e optional_found__b     = flea_true;
+  flea_bool_t optional_found__b     = FLEA_TRUE;
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(
@@ -176,12 +176,12 @@ static flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
 
   if(first_dec_func__e == dec_func_cpy)
   {
-    optional_found__b = flea_true;
+    optional_found__b = FLEA_TRUE;
     err__t = THR_flea_ber_dec_t__read_value_raw_cft_opt(&dec__t, false_cft, &dec_vec__t, &optional_found__b);
   }
   else if(first_dec_func__e == dec_func_ref)
   {
-    optional_found__b = flea_true;
+    optional_found__b = FLEA_TRUE;
     err__t = THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(&dec__t, false_cft, &dec_vec__t, &optional_found__b);
 #if 0
 #endif
@@ -203,7 +203,7 @@ static flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
 
   if(second_dec_func__e == dec_func_cpy)
   {
-    flea_bool_e optional_false__b = flea_false;
+    flea_bool_t optional_false__b = FLEA_FALSE;
     err__t = THR_flea_ber_dec_t__read_tlv_raw_optional(&dec__t, &dec_vec__t, &optional_false__b);
 
     if(err__t != second_func_exp_err_code)
@@ -217,7 +217,7 @@ static flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
   }
   else if(second_dec_func__e == dec_func_default)
   {
-    flea_bool_e optional_false__b = flea_false;
+    flea_bool_t optional_false__b = FLEA_FALSE;
     err__t = THR_flea_ber_dec_t__decode_tlv_raw_optional(&dec__t, &dec_vec__t, &optional_false__b);
   }
   else
@@ -254,7 +254,7 @@ flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy()
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
     THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
-      /* normal mem rd stream */ flea_false,
+      /* normal mem rd stream */ FLEA_FALSE,
       flea_decode_ref,
       dec_func_cpy,
       dec_func_ref,
@@ -267,7 +267,7 @@ flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy()
   /* construction of a decoder using ref decoding as default may not work */
   FLEA_CCALL(
     THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
-      flea_true /* apparent generic rd stream */,
+      FLEA_TRUE /* apparent generic rd stream */,
       flea_decode_ref,
       dec_func_cpy,
       dec_func_ref,
@@ -279,7 +279,7 @@ flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy()
 
   FLEA_CCALL(
     THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
-      flea_true /* apparent generic rd stream */,
+      FLEA_TRUE /* apparent generic rd stream */,
       flea_decode_copy,
       dec_func_cpy,
       dec_func_cpy,
@@ -291,7 +291,7 @@ flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy()
 
   FLEA_CCALL(
     THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
-      flea_false /* normal mem rd stream */,
+      FLEA_FALSE /* normal mem rd stream */,
       flea_decode_copy,
       dec_func_cpy,
       dec_func_cpy,
@@ -306,7 +306,7 @@ flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy()
    */
   FLEA_CCALL(
     THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
-      flea_true /* apparent generic rd stream */,
+      FLEA_TRUE /* apparent generic rd stream */,
       flea_decode_copy,
       dec_func_ref,
       dec_func_cpy,
@@ -318,7 +318,7 @@ flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy()
 
   FLEA_CCALL(
     THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
-      flea_true /* apparent generic rd stream */,
+      FLEA_TRUE /* apparent generic rd stream */,
       flea_decode_copy,
       dec_func_cpy,
       dec_func_ref, /* this is invalid for a generic stream */
@@ -330,7 +330,7 @@ flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy()
 
   FLEA_CCALL(
     THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
-      flea_true /* apparent generic rd stream */,
+      FLEA_TRUE /* apparent generic rd stream */,
       flea_decode_copy,
       dec_func_cpy,
       dec_func_default,

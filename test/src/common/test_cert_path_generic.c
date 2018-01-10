@@ -37,7 +37,7 @@ flea_err_e THR_flea_test_cert_path_generic(
 
   /** this parameter is actually superflous and misleading, the caller evaluates
    * the test result: */
-  const flea_bool_e is_valid_chain = flea_true;
+  const flea_bool_t is_valid_chain = FLEA_TRUE;
   flea_err_e err;
 
   FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);

@@ -31,10 +31,10 @@ flea_err_e THR_flea_generate_ecc_key(
   flea_mpi_t sk_mpi, n;
   flea_al_u8_t private_byte_len__al_u8, order_byte_len__al_u8;
 
-# ifdef FLEA_USE_ECC_ADD_ALWAYS
-  const flea_bool_e do_use_add_always__b = flea_true;
+# ifdef FLEA_SCCM_USE_ECC_ADD_ALWAYS
+  const flea_bool_t do_use_add_always__b = FLEA_TRUE;
 # else
-  const flea_bool_e do_use_add_always__b = flea_false;
+  const flea_bool_t do_use_add_always__b = FLEA_FALSE;
 # endif
 
   FLEA_DECL_BUF(pub_point_arr, flea_uword_t, 2 * FLEA_ECC_MAX_MOD_WORD_SIZE + 1);
@@ -80,7 +80,7 @@ flea_err_e THR_flea_generate_ecc_key(
 
   FLEA_CCALL(THR_flea_curve_gfp_t__init_dp_array(&curve, dom_par__pt, curve_word_arr, curve_word_arr_word_len));
 
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   FLEA_CCALL(THR_flea_point_gfp_t__mul(&pub_point, &sk_mpi, &curve, do_use_add_always__b, NULL));
 # else
   FLEA_CCALL(THR_flea_point_gfp_t__mul(&pub_point, &sk_mpi, &curve, do_use_add_always__b));

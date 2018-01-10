@@ -416,7 +416,7 @@ flea_err_e THR_flea_test_tls_cert_chain()
   FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
   const flea_u8_t date_str[] = "170228200000Z";
   flea_gmt_time_t time__t;
-  flea_bool_e first__b = flea_true;
+  flea_bool_t first__b = FLEA_TRUE;
   flea_err_e err;
   const flea_u8_t* ptr = tls_cert_chain__acu8;
   flea_al_u16_t len    = sizeof(tls_cert_chain__acu8);
@@ -445,7 +445,7 @@ flea_err_e THR_flea_test_tls_cert_chain()
           flea_x509_validation_empty_flags
         )
       );
-      first__b = flea_false;
+      first__b = FLEA_FALSE;
     }
     else
     {

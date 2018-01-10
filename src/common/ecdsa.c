@@ -182,11 +182,11 @@ flea_err_e THR_flea_ecdsa__raw_verify(
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &mpi_worksp_arr[1], &double_sized_field_elem, &n, &div_ctx)); // reduced u2
 
   // Q = 0 is detected by this function
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
-  FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(&P, &mpi_worksp_arr[1], &G, &mpi_worksp_arr[0], &curve, flea_false, NULL));
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(&P, &mpi_worksp_arr[1], &G, &mpi_worksp_arr[0], &curve, FLEA_FALSE, NULL));
 # else
 
-  FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(&P, &mpi_worksp_arr[1], &G, &mpi_worksp_arr[0], &curve, flea_false));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul_multi(&P, &mpi_worksp_arr[1], &G, &mpi_worksp_arr[0], &curve, FLEA_FALSE));
 # endif
 
 
@@ -238,10 +238,10 @@ flea_err_e THR_flea_ecdsa__raw_sign(
   flea_curve_gfp_t curve;
   flea_point_gfp_t G;
 
-# ifdef FLEA_USE_ECC_ADD_ALWAYS
-  const flea_bool_e do_use_add_always__b = flea_true;
+# ifdef FLEA_SCCM_USE_ECC_ADD_ALWAYS
+  const flea_bool_t do_use_add_always__b = FLEA_TRUE;
 # else
-  const flea_bool_e do_use_add_always__b = flea_false;
+  const flea_bool_t do_use_add_always__b = FLEA_FALSE;
 # endif
 # ifdef FLEA_STACK_MODE
   flea_uword_t ecc_ws_mpi_arrs [ECDSA_SIGN_MPI_WS_COUNT][FLEA_ECC_MAX_ORDER_WORD_SIZE];
@@ -268,7 +268,7 @@ flea_err_e THR_flea_ecdsa__raw_sign(
   flea_al_u16_t curve_word_arr_word_len, ecc_ws_mpi_arrs_word_len;
 # endif
 
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   flea_ctr_mode_prng_t delay_prng__t;
 # endif
 
@@ -276,7 +276,7 @@ flea_err_e THR_flea_ecdsa__raw_sign(
   flea_al_u8_t i;
   FLEA_THR_BEG_FUNC();
 
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   flea_ctr_mode_prng_t__INIT(&delay_prng__t);
 # endif
 # ifdef FLEA_HEAP_MODE
@@ -299,7 +299,7 @@ flea_err_e THR_flea_ecdsa__raw_sign(
   FLEA_ALLOC_BUF(n_arr, order_word_len);
   FLEA_ALLOC_BUF(curve_word_arr, curve_word_arr_word_len);
 
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__ctor(&delay_prng__t, message, message_len));
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&delay_prng__t, priv_key_enc_arr, priv_key_enc_arr_len));
 # endif
@@ -357,7 +357,7 @@ flea_err_e THR_flea_ecdsa__raw_sign(
     } while(flea_mpi_t__is_zero(&k));
 
     // mul Q=k*G
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
     FLEA_CCALL(THR_flea_point_gfp_t__mul(&G, &k, &curve, do_use_add_always__b, &delay_prng__t));
 # else
     FLEA_CCALL(THR_flea_point_gfp_t__mul(&G, &k, &curve, do_use_add_always__b));

@@ -75,7 +75,7 @@ void flea_public_key_t__dtor(flea_public_key_t* key__pt);
  * Encode a public key in plain format.
  *
  * An encoded ECC public key is the uncompressed public point
- * in the format 0x04 | <P_x> | <P_y>.
+ * in the format 0x04 | P_x | P_y.
  *
  * An encoded RSA key is the big endian encoded modulus.
  *
@@ -88,7 +88,7 @@ void flea_public_key_t__dtor(flea_public_key_t* key__pt);
  * @return an error code
  */
 void flea_public_key_t__get_encoded_plain_ref(
-  const flea_public_key_t* pk,
+  const flea_public_key_t* key,
   flea_ref_cu8_t*          result
 );
 
@@ -238,7 +238,7 @@ flea_err_e THR_flea_public_key_t__verify_digest_plain_format(
  * @return an error code
  */
 flea_err_e THR_flea_public_key_t__verify_signature_use_sigalg_id(
-  const flea_public_key_t*     public_key,
+  const flea_public_key_t*     key,
   const flea_x509_algid_ref_t* sigalg_id,
   const flea_byte_vec_t*       message,
   const flea_byte_vec_t*       signature,
@@ -270,7 +270,7 @@ flea_err_e THR_flea_public_key_t__encrypt_message(
  * Encode a public key in plain format.
  *
  * An encoded ECC public key is the uncompressed public point
- * in the format 0x04 | <P_x> | <P_y>.
+ * in the format 0x04 | P_x | P_y.
  *
  * An encoded RSA key is the big endian encoded modulus.
  *
@@ -282,7 +282,7 @@ flea_err_e THR_flea_public_key_t__encrypt_message(
  * @return an error code
  */
 flea_err_e THR_flea_public_key__t__get_encoded_plain(
-  const flea_public_key_t* pubkey,
+  const flea_public_key_t* key,
   flea_byte_vec_t*         result
 );
 

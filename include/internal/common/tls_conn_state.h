@@ -15,7 +15,7 @@ extern "C" {
 
 #ifdef FLEA_HAVE_TLS
 
-# ifdef FLEA_HAVE_TLS_CBC_CS
+# ifdef FLEA_HAVE_TLS_CS_CBC
 
 typedef struct
 {
@@ -40,9 +40,9 @@ typedef struct
   /*flea_u8_t cipher_key_len__u8;
    * flea_u8_t mac_key_len__u8;*/
 } flea_tls_cbc_hmac_conn_t;
-# endif // ifdef FLEA_HAVE_TLS_CBC_CS
+# endif // ifdef FLEA_HAVE_TLS_CS_CBC
 
-# ifdef FLEA_HAVE_TLS_GCM_CS
+# ifdef FLEA_HAVE_TLS_CS_GCM
 
 typedef struct
 {
@@ -64,7 +64,7 @@ typedef struct
 #  endif // ifdef FLEA_HEAP_MODE
 } flea_tls_gcm_conn_t;
 
-# endif // ifdef FLEA_HAVE_TLS_GCM_CS
+# endif // ifdef FLEA_HAVE_TLS_CS_GCM
 
 typedef enum { flea_null_cipher_suite, flea_gcm_cipher_suite, flea_cbc_cipher_suite } flea_cipher_suite_class_e;
 
@@ -74,10 +74,10 @@ typedef struct
   flea_cipher_suite_class_e cipher_suite_class__e;
   union
   {
-# ifdef FLEA_HAVE_TLS_CBC_CS
+# ifdef FLEA_HAVE_TLS_CS_CBC
     flea_tls_cbc_hmac_suite_config_t cbc_hmac_config__t;
 # endif
-# ifdef FLEA_HAVE_TLS_GCM_CS
+# ifdef FLEA_HAVE_TLS_CS_GCM
     flea_tls_gcm_suite_config_t      gcm_config__t;
 # endif
   } suite_specific__u;
@@ -89,10 +89,10 @@ typedef struct
   flea_u32_t                     sequence_number__au32[2];
   union
   {
-# ifdef FLEA_HAVE_TLS_CBC_CS
+# ifdef FLEA_HAVE_TLS_CS_CBC
     flea_tls_cbc_hmac_conn_t cbc_hmac_conn_state__t;
 # endif
-# ifdef FLEA_HAVE_TLS_GCM_CS
+# ifdef FLEA_HAVE_TLS_CS_GCM
     flea_tls_gcm_conn_t      gcm_conn_state__t;
 # endif
   }         suite_specific__u;
@@ -107,7 +107,7 @@ void flea_tls_conn_state_t__dtor(flea_tls_conn_state_t* conn_state__pt);
 
 void flea_tls_conn_state_t__ctor_no_cipher(flea_tls_conn_state_t* conn_state__pt);
 
-# ifdef FLEA_HAVE_TLS_CBC_CS
+# ifdef FLEA_HAVE_TLS_CS_CBC
 flea_err_e THR_flea_tls_conn_state_t__ctor_cbc_hmac(
   flea_tls_conn_state_t* conn_state__pt,
   flea_block_cipher_id_e block_cipher_id,
@@ -118,9 +118,9 @@ flea_err_e THR_flea_tls_conn_state_t__ctor_cbc_hmac(
   flea_al_u8_t           mac_key_len__alu8,
   flea_al_u8_t           mac_size__alu8
 );
-# endif // ifdef FLEA_HAVE_TLS_CBC_CS
+# endif // ifdef FLEA_HAVE_TLS_CS_CBC
 
-# ifdef FLEA_HAVE_TLS_GCM_CS
+# ifdef FLEA_HAVE_TLS_CS_GCM
 flea_err_e THR_flea_tls_conn_state_t__ctor_gcm(
   flea_tls_conn_state_t* conn_state__pt,
   flea_ae_id_e           ae_cipher_id,
@@ -129,7 +129,7 @@ flea_err_e THR_flea_tls_conn_state_t__ctor_gcm(
   const flea_u8_t*       fixed_iv__pcu8,
   flea_al_u8_t           fixed_iv_len__alu8
 );
-# endif // ifdef FLEA_HAVE_TLS_GCM_CS
+# endif // ifdef FLEA_HAVE_TLS_CS_GCM
 
 #endif // ifdef FLEA_HAVE_TLS
 

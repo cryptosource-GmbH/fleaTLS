@@ -46,9 +46,9 @@ typedef struct
  *
  * @param client_session pointer to the client session object query.
  *
- * @return flea_true if the object holds a valid session, flea_false otherwise
+ * @return FLEA_TRUE if the object holds a valid session, FLEA_FALSE otherwise
  */
-flea_bool_e flea_tls_client_session_t__has_valid_session(const flea_tls_client_session_t* client_session);
+flea_bool_t flea_tls_client_session_t__has_valid_session(const flea_tls_client_session_t* client_session);
 
 /**
  * Construct a client session object.

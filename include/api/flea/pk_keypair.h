@@ -3,12 +3,13 @@
 #ifndef _flea_pk_keypair__H_
 #define _flea_pk_keypair__H_
 
-#ifdef FLEA_HAVE_ECC
 
-# include "internal/common/default.h"
-# include "flea/ec_dom_par.h"
-# include "flea/pubkey.h"
-# include "flea/privkey.h"
+#include "internal/common/default.h"
+#include "flea/ec_dom_par.h"
+#include "flea/pubkey.h"
+#include "flea/privkey.h"
+
+#ifdef FLEA_HAVE_ECC
 
 # ifdef __cplusplus
 extern "C" {
@@ -25,7 +26,7 @@ extern "C" {
  */
 flea_err_e THR_flea_pubkey__generate_ecc_key_pair_by_dp(
   flea_public_key_t*           pubkey,
-  flea_private_key_t*          privkey_,
+  flea_private_key_t*          privkey,
   const flea_ec_dom_par_ref_t* dp
 );
 

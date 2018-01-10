@@ -13,14 +13,14 @@ void flea_tls_client_session_t__ctor(flea_tls_client_session_t* client_session__
   memset(client_session__pt, 0, sizeof(*(client_session__pt)));
 }
 
-flea_bool_e flea_tls_client_session_t__has_valid_session(const flea_tls_client_session_t* client_session__pt)
+flea_bool_t flea_tls_client_session_t__has_valid_session(const flea_tls_client_session_t* client_session__pt)
 {
   if((client_session__pt->session_id_len__u8 == 0) ||
     !flea_tls_session_data_t__is_valid_session(&client_session__pt->session__t))
   {
-    return flea_false;
+    return FLEA_FALSE;
   }
-  return flea_true;
+  return FLEA_TRUE;
 }
 
 flea_err_e THR_flea_tls_client_session_t__serialize(

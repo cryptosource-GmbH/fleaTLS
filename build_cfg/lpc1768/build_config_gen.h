@@ -61,7 +61,7 @@
 # define FLEA_HAVE_AES_BLOCK_DECR // FBFLAGS_AES_ON_OFF
 # define FLEA_USE_SMALL_AES       // FBFLAGS_AES_ON_OFF
 
-# define FLEA_HAVE_RSA // FBFLAGS_PKALGS_ON_OFF
+# define FLEA_HAVE_RSA            // FBFLAGS_PKALGS_ON_OFF
 // # define FLEA_HAVE_ECDSA // FBFLAGS_PKALGS_ON_OFF
 // # define FLEA_HAVE_ECKA  // FBFLAGS_PKALGS_ON_OFF
 
@@ -158,7 +158,7 @@
  * Use the "add & double always" algorithm for (window-based) point multiplication in
  * ECC private operations * as a countermeasure against timing attacks.
  */
-# define FLEA_USE_ECC_ADD_ALWAYS // FBFLAGS_ECC_ADA_ON_OFF
+# define FLEA_SCCM_USE_ECC_ADD_ALWAYS // FBFLAGS_ECC_ADA_ON_OFF
 
 /**
  * Size of the buffer used in the cipher filter used inside TLS. Must be at

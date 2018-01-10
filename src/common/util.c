@@ -23,7 +23,7 @@ void flea_swap_mem(
   }
 }
 
-flea_bool_e flea_sec_mem_equal(
+flea_bool_t flea_sec_mem_equal(
   const flea_u8_t* mem1__pcu8,
   const flea_u8_t* mem2__pcu8,
   flea_al_u16_t    mem_len__alu16
@@ -41,11 +41,11 @@ flea_bool_e flea_sec_mem_equal(
   *sink__pvu8 = diff__u8;
   if(*sink__pvu8)
   {
-    return flea_false;
+    return FLEA_FALSE;
   }
   else
   {
-    return flea_true;
+    return FLEA_TRUE;
   }
 }
 

@@ -97,10 +97,10 @@ flea_err_e THR_flea_ecka__compute_raw(
   flea_point_gfp_t Q;
   flea_al_u8_t tmp_result_len__alu8;
 
-# ifdef FLEA_USE_ECC_ADD_ALWAYS
-  const flea_bool_e do_use_add_always__b = flea_true;
+# ifdef FLEA_SCCM_USE_ECC_ADD_ALWAYS
+  const flea_bool_t do_use_add_always__b = FLEA_TRUE;
 # else
-  const flea_bool_e do_use_add_always__b = flea_false;
+  const flea_bool_t do_use_add_always__b = FLEA_FALSE;
 # endif
 
 # ifdef FLEA_HEAP_MODE
@@ -138,13 +138,13 @@ flea_err_e THR_flea_ecka__compute_raw(
   flea_mpi_div_ctx_t div_ctx;
   flea_al_u8_t i;
 
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   flea_ctr_mode_prng_t delay_prng__t;
 # endif
 
   FLEA_THR_BEG_FUNC();
 
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   flea_ctr_mode_prng_t__INIT(&delay_prng__t);
 # endif
 # ifdef FLEA_HEAP_MODE
@@ -167,7 +167,7 @@ flea_err_e THR_flea_ecka__compute_raw(
   FLEA_ALLOC_BUF(Q_arr, Q_arr_word_len);
   FLEA_ALLOC_BUF(curve_word_arr, curve_word_arr_word_len);
 
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__ctor(&delay_prng__t, public_point_enc__pcu8, public_point_enc_len__alu8));
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&delay_prng__t, secret_key__pcu8, secret_key_len__alu8));
 # endif
@@ -201,10 +201,10 @@ flea_err_e THR_flea_ecka__compute_raw(
   FLEA_CCALL(THR_flea_point_gfp_t__validate_point(&Q, &curve, NULL, &div_ctx));
 
   FLEA_CCALL(THR_flea_mpi_t__decode(&d, dom_par__pt->h__ru8.data__pcu8, dom_par__pt->h__ru8.len__dtl));
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
-  FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, flea_false, NULL));
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, FLEA_FALSE, NULL));
 # else
-  FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, flea_false));
+  FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, FLEA_FALSE));
 # endif
 
   /* l_arr doesn't live in parallel to point multiplication */
@@ -242,7 +242,7 @@ flea_err_e THR_flea_ecka__compute_raw(
   FLEA_FREE_BUF_SECRET_ARR(l_arr, 2 * order_word_len);
   /* zero point conversion detected inside this function: */
 
-# ifdef FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, do_use_add_always__b, &delay_prng__t));
 # else
   FLEA_CCALL(THR_flea_point_gfp_t__mul(&Q, &d, &curve, do_use_add_always__b));

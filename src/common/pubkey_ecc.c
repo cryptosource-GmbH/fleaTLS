@@ -183,7 +183,7 @@ flea_err_e THR_flea_x509_parse_ecc_public_params(
   FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   flea_mem_read_stream_help_t hlp__t;
-  flea_bool_e found__b;
+  flea_bool_t found__b;
   FLEA_THR_BEG_FUNC();
 
 
@@ -277,7 +277,7 @@ flea_err_e THR_flea_x509_parse_ecc_public_params(
   else
   {
     flea_byte_vec_t named_curve_oid__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
-    flea_bool_e dummy;
+    flea_bool_t dummy;
     FLEA_CCALL(
       THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
         &dec__t,

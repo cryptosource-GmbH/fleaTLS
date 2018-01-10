@@ -122,7 +122,7 @@ static flea_err_e THR_flea_private_key_t__pkcs8_create_ecc_key(
   }
   if(pubkey_mbn__pt)
   {
-    flea_bool_e pubkey_found__b;
+    flea_bool_t pubkey_found__b;
     flea_byte_vec_t public_point_encoded__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
     FLEA_CCALL(
       THR_flea_ber_dec_t__open_constructed_optional_cft(

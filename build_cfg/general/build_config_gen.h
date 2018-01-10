@@ -22,8 +22,7 @@
 /**
  * Activate this flag to let flea make heap allocation for buffers (referred to
  * as "heap mode"). Deactivate this flag to let flea only use stack buffers
- * (referred to as "stack mode"). In the latter case, be sure to correctly
- * define the RSA and EC key sizes.
+ * (referred to as "stack mode").
  */
 # define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
 
@@ -154,7 +153,7 @@
 # define FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE 5 // FBFLAGS__INT_LIST 1 2 3 4 5
 
 /**
- * Used to determine the reserved space for fixed size buffers in stack mode.
+ * Used to determine the reserved space in bytes for X.509 certificates in stack mode.
  */
 # define FLEA_STKMD_X509_MAX_CERT_SIZE 2000
 
@@ -165,13 +164,15 @@
  */
 # define FLEA_MAX_CERT_CHAIN_DEPTH 20 // FBFLAGS__INT_LIST 2 3 4 10 20
 
-/* Maximal number of certificates that can set in a any type of
+/**
+ * Maximal number of certificates that can set in a any type of
  * object storing certificates. Hard limit in case of both stack and heap
  * mode. In heap mode it can be set to zero to disable any predefined limit.
  */
 # define FLEA_MAX_CERT_COLLECTION_SIZE 20
 
-/* Maximal number of CRLs that can set in a any type of
+/**
+ * Maximal number of CRLs that can set in a any type of
  * object storing CRLs . Hard limit in case of both stack and heap
  * mode. In heap mode it can be set to zero to disable any predefined limit.
  */
@@ -230,11 +231,11 @@
 # define FLEA_HAVE_BE_ARCH_OPT // FBFLAGS_ARCH_OPT_ON_OFF
 
 /**
- * Maximum size for CRL Distribution point extension which only takes effect in stack
+ * Maximum size for CRL Distribution point extension of processed X.509 certificate. Takes effect only in stack
  * mode.
  *
  */
-# define FLEA_X509_STCKMD_MAX_CRLDP_LEN 260
+# define FLEA_STKMD_X509_MAX_CRLDP_LEN 260
 
 /**
  * This value defines the maximal accepted length of name components (e.g. in
@@ -264,32 +265,32 @@
  * Use the "square & multiply always" algorithm for (window-based) modular exponentiation
  * in RSA private operations as a countermeasure against timing attacks.
  */
-# define FLEA_USE_RSA_MUL_ALWAYS // FBFLAGS_MOD_EXP_SQMA_ON_OFF
+# define FLEA_SCCM_USE_RSA_MUL_ALWAYS // FBFLAGS_MOD_EXP_SQMA_ON_OFF
 
 /**
  * Use the "add & double always" algorithm for (window-based) point multiplication in
  * ECC private operations as a countermeasure against timing attacks.
  */
-# define FLEA_USE_ECC_ADD_ALWAYS // FBFLAGS_ECC_ADA_ON_OFF
+# define FLEA_SCCM_USE_ECC_ADD_ALWAYS // FBFLAGS_ECC_ADA_ON_OFF
 
 /**
  * Side channel countermeasure which adds pseudo random delays within the public key
  * operations.
  */
-# define FLEA_USE_PUBKEY_INPUT_BASED_DELAY
+# define FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
 
 /**
  * Side channel countermeasure which adds random delays within the public key
  * operations.
  */
-# define FLEA_USE_PUBKEY_USE_RAND_DELAY
+# define FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
 
 /**
  * Perform pseudo operations or data access for cache warming to achieve timing
  * neutral behaviour on platforms with cache within timing attack
  * countermeasures. This feature should be disabled on platforms without cache.
  */
-# define FLEA_USE_CACHEWARMING_IN_TA_CM
+# define FLEA_SCCM_USE_CACHEWARMING_IN_TA_CM
 
 # if defined FLEA_HAVE_RSA && defined FLEA_HAVE_HMAC
 
@@ -316,13 +317,13 @@
 /**
  * Control whether support for ECDHE cipher suites shall be compiled.
  */
-#   define FLEA_HAVE_TLS_ECDHE
+#   define FLEA_HAVE_TLS_CS_ECDHE
 
 /**
  * Control whether support for ECDH cipher suites shall be compiled. (Not yet
  * supported by fleaTLS.)
  */
-#   define FLEA_HAVE_TLS_ECDH
+#   define FLEA_HAVE_TLS_CS_ECDH
 #  endif // if defined FLEA_HAVE_ECKA
 
 #  if defined FLEA_HAVE_ECDSA
@@ -331,7 +332,7 @@
  * Control whether support for ECDSA cipher suites shall be compiled. (Not yet
  * supported by fleaTLS.)
  */
-#   define FLEA_HAVE_TLS_ECDSA
+#   define FLEA_HAVE_TLS_CS_ECDSA
 #  endif
 
 #  if defined FLEA_HAVE_RSA
@@ -339,7 +340,7 @@
 /**
  * Control whether support for RSA cipher suites shall be compiled.
  */
-#   define FLEA_HAVE_TLS_RSA
+#   define FLEA_HAVE_TLS_CS_RSA
 #  endif
 
 #  ifdef FLEA_HAVE_HMAC
@@ -347,7 +348,7 @@
 /**
  * Control whether support for CBC-based cipher suites shall be compiled.
  */
-#   define FLEA_HAVE_TLS_CBC_CS
+#   define FLEA_HAVE_TLS_CS_CBC
 #  endif
 
 #  ifdef FLEA_HAVE_GCM
@@ -355,101 +356,105 @@
 /**
  * Control whether support for GCM-based cipher suites shall be compiled.
  */
-#   define FLEA_HAVE_TLS_GCM_CS
+#   define FLEA_HAVE_TLS_CS_GCM
 #  endif
 
 # endif // ifdef FLEA_HAVE_TLS
 
 
-# if defined FLEA_HAVE_TLS_ECDSA || defined FLEA_HAVE_TLS_ECDH || defined FLEA_HAVE_TLS_ECDHE
-#  define FLEA_HAVE_TLS_ECC
+# if defined FLEA_HAVE_TLS_CS_ECDSA || defined FLEA_HAVE_TLS_CS_ECDH || defined FLEA_HAVE_TLS_CS_ECDHE
+#  define FLEA_HAVE_TLS_CS_ECC
 # endif
 
 /*
  * Flags to enable cipher suites
  */
-# ifdef FLEA_HAVE_TLS_RSA /* Ciphersuites that require RSA */
-#  ifdef FLEA_HAVE_TLS_CBC_CS
+# ifdef FLEA_HAVE_TLS_CS_RSA /* Ciphersuites that require RSA */
+#  ifdef FLEA_HAVE_TLS_CS_CBC
 #   ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
+#    define FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_CBC_SHA
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA
+#    define FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_CBC_SHA
 #   endif // ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported.
  */
-#   define FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA256
+#   define FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_CBC_SHA256
 
 /**
  * Control whether the cipher suite is supported.
  */
-#   define FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256
-#  endif // ifdef FLEA_HAVE_TLS_CBC_CS
-#  ifdef FLEA_HAVE_TLS_GCM_CS
+#   define FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_CBC_SHA256
+#  endif // ifdef FLEA_HAVE_TLS_CS_CBC
+#  ifdef FLEA_HAVE_TLS_CS_GCM
 
 /**
  * Control whether the cipher suite is supported.
  */
-#   define FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
+#   define FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_GCM_SHA256
 #   ifdef FLEA_HAVE_SHA384_512
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384
+#    define FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_GCM_SHA384
 #   endif
-#  endif // ifdef FLEA_HAVE_TLS_GCM_CS
-#  ifdef FLEA_HAVE_TLS_ECDHE
+#  endif // ifdef FLEA_HAVE_TLS_CS_GCM
+#  ifdef FLEA_HAVE_TLS_CS_ECDHE
 #   ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
 #   endif // ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported.
  */
-#   define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+#   define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
 #   ifdef FLEA_HAVE_SHA384_512
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
 #   endif
-#   ifdef FLEA_HAVE_TLS_GCM_CS
+#   ifdef FLEA_HAVE_TLS_CS_GCM
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
 #    ifdef FLEA_HAVE_SHA384_512
 
 /**
  * Control whether the cipher suite is supported.
  */
-#     define FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
 #    endif
-#   endif // ifdef FLEA_HAVE_TLS_GCM_CS
-#  endif // ifdef FLEA_HAVE_TLS_ECDHE
-# endif // ifdef FLEA_HAVE_TLS_RSA
+#   endif // ifdef FLEA_HAVE_TLS_CS_GCM
+#  endif // ifdef FLEA_HAVE_TLS_CS_ECDHE
+# endif // ifdef FLEA_HAVE_TLS_CS_RSA
 
-# define FLEA_X509_MAX_ISSUER_DN_RAW_BYTE_LEN 256
+/**
+ * Maximal byte length of an issuerDN in an X.509 certificate. Take effect only
+ * in stack mode.
+ */
+# define FLEA_STKMD_X509_MAX_ISSUER_DN_RAW_BYTE_LEN 256
 
 /**
  * Length of the session IDs that are used by the fleaTLS server.

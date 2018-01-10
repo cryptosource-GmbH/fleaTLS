@@ -13,52 +13,52 @@
 
 
 static const flea_tls__cipher_suite_t cipher_suites[] = {
-# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA
+# ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_CBC_SHA
   {flea_tls_rsa_with_aes_128_cbc_sha,          FLEA_TLS_BLOCK_CIPHER(flea_aes128),
    16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 # endif
-# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_CBC_SHA256
+# ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_CBC_SHA256
   {flea_tls_rsa_with_aes_128_cbc_sha256,       FLEA_TLS_BLOCK_CIPHER(flea_aes128),
    16, 16, 16, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 # endif
-# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA
+# ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_CBC_SHA
   {flea_tls_rsa_with_aes_256_cbc_sha,          FLEA_TLS_BLOCK_CIPHER(flea_aes256),
    16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 # endif
-# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_CBC_SHA256
+# ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_CBC_SHA256
   {flea_tls_rsa_with_aes_256_cbc_sha256,       FLEA_TLS_BLOCK_CIPHER(flea_aes256),
    16, 16, 32, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 # endif
-# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_128_GCM_SHA256
+# ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_GCM_SHA256
   {flea_tls_rsa_with_aes_128_gcm_sha256,       FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
    16, 12, 16, 0, 0, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 # endif
-# ifdef FLEA_HAVE_TLS_RSA_WITH_AES_256_GCM_SHA384
+# ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_GCM_SHA384
   {flea_tls_rsa_with_aes_256_gcm_sha384,       FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
    16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 # endif
 
-# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
   {flea_tls_ecdhe_rsa_with_aes_128_cbc_sha,    FLEA_TLS_BLOCK_CIPHER(flea_aes128),
    16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 # endif
-# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
   {flea_tls_ecdhe_rsa_with_aes_256_cbc_sha,    FLEA_TLS_BLOCK_CIPHER(flea_aes256),
    16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 # endif
-# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
   {flea_tls_ecdhe_rsa_with_aes_128_cbc_sha256, FLEA_TLS_BLOCK_CIPHER(flea_aes128),
    16, 16, 16, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 # endif
-# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
   {flea_tls_ecdhe_rsa_with_aes_256_cbc_sha384, FLEA_TLS_BLOCK_CIPHER(flea_aes256),
    16, 16, 32, 48, 48, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 # endif
-# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
   {flea_tls_ecdhe_rsa_with_aes_128_gcm_sha256, FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
    16, 12, 16, 0, 0, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 # endif
-# ifdef FLEA_HAVE_TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
   {flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384, FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
    16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 # endif
@@ -114,7 +114,7 @@ const flea_tls__cipher_suite_t* flea_tls_get_cipher_suite_by_id(flea_tls_cipher_
   return flea_ecc_key;
 }*/
 
-flea_bool_e flea_tls__does_priv_key_type_fit_to_ciphersuite(
+flea_bool_t flea_tls__does_priv_key_type_fit_to_ciphersuite(
   flea_tls_cipher_suite_id_t id__t,
   flea_pk_key_type_e         key_type__e
 )
@@ -124,26 +124,26 @@ flea_bool_e flea_tls__does_priv_key_type_fit_to_ciphersuite(
 
   if(cs__pt == NULL)
   {
-    return flea_false;
+    return FLEA_FALSE;
   }
   is_rsa_cs__u32 = cs__pt->mask & FLEA_TLS_CS_AUTH_MASK__RSA;
   if(key_type__e == flea_rsa_key)
   {
     if(is_rsa_cs__u32)
     {
-      return flea_true;
+      return FLEA_TRUE;
     }
-    return flea_false;
+    return FLEA_FALSE;
   }
   else  /* EC suite */
   {
     if(is_rsa_cs__u32)
     {
-      return flea_false;
+      return FLEA_FALSE;
     }
     else
     {
-      return flea_true;
+      return FLEA_TRUE;
     }
   }
 }

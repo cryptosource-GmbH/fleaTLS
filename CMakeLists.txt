@@ -34,8 +34,6 @@ ADD_DEFINITIONS(
   #out: -Wconversion 
   )
 
-#ADD_DEFINITIONS(-DFLEA_PLTF_X86)
-ADD_DEFINITIONS(-DFLEA_PLTF_X86_64 -D__FLEA_HAVE_LINUX_FILESYSTEM)
 
 IF(NOT CMAKE_BUILD_TYPE)
   SET(CMAKE_BUILD_TYPE Release CACHE STRING
@@ -77,12 +75,14 @@ IF(BUILD_STATIC STREQUAL true)
     SET(DO_BUILD_STATIC 1)
 ENDIF()
 
-#SET(asan false CACHE STRING
-#      "Whether to use asan or not: true/false"
-#      )
-#IF(asan STREQUAL true)
-#    SET(DO_USE_ASAN 1)
-#ENDIF()
+SET(asan false CACHE STRING
+      "Whether to build an additional version of
+the library and the tests using asan: true/false"
+      )
+IF(asan STREQUAL true)
+    SET(DO_USE_ASAN 1)
+ENDIF()
+
 
 SET(BUILD_SHARED true CACHE STRING
       "Whether to build also a common (dynamic) version of the library or not: true/false"
@@ -105,7 +105,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 # Directories
 SET(INCLUDE_DIR include include/api test/include build_cfg/general
-  build_cfg/pltf_spec/64bit_default )
+  build_cfg/pltf_spec/32bit_default )
 
 SET(SRC_DIR src )
 
@@ -148,13 +148,13 @@ SET(ASAN_FLAGS "-fno-omit-frame-pointer -fsanitize=address")
 #    target_compile_options(${FULL_LIB_STRING_ASAN} PUBLIC -fno-omit-frame-pointer -fsanitize=address)
 #ENDIF()
 
-#IF(DO_BUILD_STATIC)
-ADD_LIBRARY(${FULL_LIB_STRING_STATIC_ASAN} STATIC ${FLEA_SRCS})
-TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_STATIC_ASAN}  asan pthread )
-#set_target_properties(${FULL_LIB_STRING_STATIC_ASAN} PROPERTIES COMPILE_FLAGS ${ASAN_FLAGS})
-target_compile_options(${FULL_LIB_STRING_STATIC_ASAN} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
-#ENDIF()
+IF(DO_USE_ASAN)
+  ADD_LIBRARY(${FULL_LIB_STRING_STATIC_ASAN} STATIC ${FLEA_SRCS})
+  TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_STATIC_ASAN}  asan pthread )
+  #set_target_properties(${FULL_LIB_STRING_STATIC_ASAN} PROPERTIES COMPILE_FLAGS ${ASAN_FLAGS})
+  target_compile_options(${FULL_LIB_STRING_STATIC_ASAN} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
 
-ADD_EXECUTABLE(unit_test-asan test/src/pc/unit_test_main.cpp ${TEST_SRCS})
-target_compile_options(unit_test-asan PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
-TARGET_LINK_LIBRARIES(unit_test-asan asan ${FULL_LIB_STRING_STATIC_ASAN} "-m32" )
+  ADD_EXECUTABLE(unit_test-asan test/src/pc/unit_test_main.cpp ${TEST_SRCS})
+  target_compile_options(unit_test-asan PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
+  TARGET_LINK_LIBRARIES(unit_test-asan asan ${FULL_LIB_STRING_STATIC_ASAN} "-m32" )
+ENDIF()

@@ -12,7 +12,7 @@
 
 static void flea_tls_conn_state_t__unset_cipher_suite(flea_tls_conn_state_t* conn_state__pt)
 {
-# ifdef FLEA_HAVE_TLS_CBC_CS
+# ifdef FLEA_HAVE_TLS_CS_CBC
   if(conn_state__pt->cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
   {
     FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(
@@ -22,8 +22,8 @@ static void flea_tls_conn_state_t__unset_cipher_suite(flea_tls_conn_state_t* con
     );
   }
   else
-# endif /* ifdef FLEA_HAVE_TLS_CBC_CS */
-# ifdef FLEA_HAVE_TLS_GCM_CS
+# endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
+# ifdef FLEA_HAVE_TLS_CS_GCM
   if(conn_state__pt->cipher_suite_config__t.cipher_suite_class__e == flea_gcm_cipher_suite)
   {
     FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(
@@ -33,7 +33,7 @@ static void flea_tls_conn_state_t__unset_cipher_suite(flea_tls_conn_state_t* con
     );
   }
   else
-# endif /* ifdef FLEA_HAVE_TLS_GCM_CS */
+# endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
   { }
   conn_state__pt->cipher_suite_config__t.cipher_suite_class__e = flea_null_cipher_suite;
 }
@@ -44,7 +44,7 @@ void flea_tls_conn_state_t__ctor_no_cipher(flea_tls_conn_state_t* conn_state__pt
   conn_state__pt->reserved_iv_len__u8 = 0;
 }
 
-# ifdef FLEA_HAVE_TLS_CBC_CS
+# ifdef FLEA_HAVE_TLS_CS_CBC
 flea_err_e THR_flea_tls_conn_state_t__ctor_cbc_hmac(
   flea_tls_conn_state_t* conn_state__pt,
   flea_block_cipher_id_e block_cipher_id,
@@ -87,9 +87,9 @@ flea_err_e THR_flea_tls_conn_state_t__ctor_cbc_hmac(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_conn_state_t__ctor_cbc_hmac */
 
-# endif /* ifdef FLEA_HAVE_TLS_CBC_CS */
+# endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
 
-# ifdef FLEA_HAVE_TLS_GCM_CS
+# ifdef FLEA_HAVE_TLS_CS_GCM
 flea_err_e THR_flea_tls_conn_state_t__ctor_gcm(
   flea_tls_conn_state_t* conn_state__pt,
   flea_ae_id_e           ae_cipher_id,
@@ -139,7 +139,7 @@ flea_err_e THR_flea_tls_conn_state_t__ctor_gcm(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_conn_state_t__ctor_gcm */
 
-# endif /* ifdef FLEA_HAVE_TLS_GCM_CS */
+# endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
 
 void flea_tls_conn_state_t__dtor(flea_tls_conn_state_t* conn_state__pt)
 {

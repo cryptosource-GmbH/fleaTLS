@@ -12,7 +12,7 @@
 #include "internal/common/alloc_dbg_int.h"
 #include "flea/error_handling.h"
 
-static flea_bool_e is_prefix_of(
+static flea_bool_t is_prefix_of(
   const char* prefix,
   const char* s
 )
@@ -22,13 +22,13 @@ static flea_bool_e is_prefix_of(
 
   if(prefix_len > s_len)
   {
-    return flea_false;
+    return FLEA_FALSE;
   }
   if(0 == memcmp(prefix, s, prefix_len))
   {
-    return flea_true;
+    return FLEA_TRUE;
   }
-  return flea_false;
+  return FLEA_FALSE;
 }
 
 #define __STRINGIFY(s) #s
@@ -59,7 +59,7 @@ int flea_unit_tests(
   const char* cert_path_prefix,
   const char* file_path_to_be_replaced_by_std_in,
   const char* func_prefix,
-  flea_bool_e full__b
+  flea_bool_t full__b
 )
 {
   unsigned nb_exec_tests = 0;
@@ -174,7 +174,7 @@ int flea_unit_tests(
 #ifdef __FLEA_HAVE_LINUX_FILESYSTEM
 # if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_MOD_BIT_SIZE >= 224
       CALL_TEST(THR_test_ecdsa_self_signed_certs_file_based());
-      if(full__b == flea_true)
+      if(full__b == FLEA_TRUE)
       {
 #  if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048)
         CALL_TEST(THR_flea_test_crt_rsa_raw_file_based());
