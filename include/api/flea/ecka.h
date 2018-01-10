@@ -5,7 +5,7 @@
 
 #include "flea/types.h"
 #include "flea/hash.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,13 +31,13 @@ extern "C" {
  *
  */
 flea_err_e THR_flea_ecka__compute_raw(
-  const flea_u8_t*                 public_point_enc,
-  flea_al_u8_t                     public_point_enc_len,
-  const flea_u8_t*                 secret_key,
-  flea_al_u8_t                     secret_key_len,
-  flea_u8_t*                       result,
-  flea_al_u8_t*                    result_len,
-  const flea_ec_gfp_dom_par_ref_t* dom_par
+  const flea_u8_t*             public_point_enc,
+  flea_al_u8_t                 public_point_enc_len,
+  const flea_u8_t*             secret_key,
+  flea_al_u8_t                 secret_key_len,
+  flea_u8_t*                   result,
+  flea_al_u8_t*                result_len,
+  const flea_ec_dom_par_ref_t* dom_par
 );
 
 /**
@@ -63,16 +63,16 @@ flea_err_e THR_flea_ecka__compute_raw(
  *
  */
 flea_err_e THR_flea_ecka__compute_ecka_with_kdf_ansi_x9_63(
-  flea_hash_id_e                   hash_id,
-  const flea_u8_t*                 public_point_enc,
-  flea_al_u8_t                     public_point_enc_len,
-  const flea_u8_t*                 secret_key,
-  flea_al_u8_t                     secret_key_len,
-  const flea_u8_t*                 shared_info,
-  flea_al_u16_t                    shared_info_len,
-  flea_u8_t*                       result,
-  flea_al_u16_t                    result_len,
-  const flea_ec_gfp_dom_par_ref_t* dom_par
+  flea_hash_id_e               hash_id,
+  const flea_u8_t*             public_point_enc,
+  flea_al_u8_t                 public_point_enc_len,
+  const flea_u8_t*             secret_key,
+  flea_al_u8_t                 secret_key_len,
+  const flea_u8_t*             shared_info,
+  flea_al_u16_t                shared_info_len,
+  flea_u8_t*                   result,
+  flea_al_u16_t                result_len,
+  const flea_ec_dom_par_ref_t* dom_par
 );
 
 # ifdef __cplusplus

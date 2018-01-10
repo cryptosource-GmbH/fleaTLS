@@ -156,7 +156,7 @@ flea_err_e THR_flea_public_key_t__ctor_asn1(
 # ifdef FLEA_HAVE_ECC
   if(key__pt->key_type__t == flea_ecc_key)
   {
-    flea_ec_gfp_dom_par_ref_t dp_ref__t;
+    flea_ec_dom_par_ref_t dp_ref__t;
     FLEA_CCALL(THR_flea_x509_parse_ecc_public_params(encoded_params__prcu8, &dp_ref__t));
 
     FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(key__pt, &public_key_value__t, &dp_ref__t));
@@ -188,9 +188,9 @@ flea_err_e THR_flea_public_key_t__ctor_asn1(
 
 # ifdef FLEA_HAVE_ECC
 flea_err_e THR_flea_public_key_t__ctor_ecc(
-  flea_public_key_t*               key__pt,
-  const flea_byte_vec_t*           public_key_value__pt,
-  const flea_ec_gfp_dom_par_ref_t* dp__pt
+  flea_public_key_t*           key__pt,
+  const flea_byte_vec_t*       public_key_value__pt,
+  const flea_ec_dom_par_ref_t* dp__pt
 )
 {
   FLEA_THR_BEG_FUNC();

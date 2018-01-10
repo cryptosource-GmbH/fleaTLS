@@ -1,10 +1,11 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
-#include "flea/ec_gfp_dom_par.h"
+#include "internal/common/default.h"
+#include "internal/common/ecc_dp_int.h"
+#include "flea/ec_dom_par.h"
 #include "flea/types.h"
 #include "flea/array_util.h"
 #include "flea/error_handling.h"
-#include "internal/common/default.h"
 #include <stdlib.h>
 
 #ifdef FLEA_HAVE_ECC
@@ -690,9 +691,9 @@ static void flea_ec_dom_par__set_ru8_from_internal_format(
   }
 }
 
-flea_err_e THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(
-  flea_ec_gfp_dom_par_ref_t* dp_to_set__pt,
-  flea_ec_dom_par_id_e       id
+flea_err_e THR_flea_ec_dom_par_ref_t__set_by_builtin_id(
+  flea_ec_dom_par_ref_t* dp_to_set__pt,
+  flea_ec_dom_par_id_e   id
 )
 {
   const flea_u8_t* enc_dp__pcu8;
@@ -715,7 +716,7 @@ flea_err_e THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_u32_t flea_ec_gfp_dom_par_ref_t__get_concat_length(const flea_ec_gfp_dom_par_ref_t* dp__pt)
+flea_u32_t flea_ec_dom_par_ref_t__get_concat_length(const flea_ec_dom_par_ref_t* dp__pt)
 {
   return dp__pt->gx__ru8.len__dtl
          + dp__pt->gy__ru8.len__dtl
@@ -726,11 +727,11 @@ flea_u32_t flea_ec_gfp_dom_par_ref_t__get_concat_length(const flea_ec_gfp_dom_pa
          + dp__pt->h__ru8.len__dtl;
 }
 
-flea_err_e THR_flea_ec_gfp_dom_par_ref_t__write_to_concat_array(
-  flea_ec_gfp_dom_par_ref_t*       output__pt,
-  flea_u8_t*                       trg_mem__pu8,
-  flea_dtl_t                       trgt_mem_size__dtl,
-  const flea_ec_gfp_dom_par_ref_t* input__pt
+flea_err_e THR_flea_ec_dom_par_ref_t__write_to_concat_array(
+  flea_ec_dom_par_ref_t*       output__pt,
+  flea_u8_t*                   trg_mem__pu8,
+  flea_dtl_t                   trgt_mem_size__dtl,
+  const flea_ec_dom_par_ref_t* input__pt
 )
 {
   flea_al_u8_t i;

@@ -3,7 +3,7 @@
 #define _flea_ec_key_gen__H_
 
 #include "flea/types.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -27,11 +27,11 @@ extern "C" {
  * @result flea error code
  */
 flea_err_e THR_flea_generate_ecc_key(
-  flea_u8_t*                       result_public,
-  flea_al_u8_t*                    result_public_len,
-  flea_u8_t*                       result_private,
-  flea_al_u8_t*                    result_private_len,
-  const flea_ec_gfp_dom_par_ref_t* dom_par
+  flea_u8_t*                   result_public,
+  flea_al_u8_t*                result_public_len,
+  flea_u8_t*                   result_private,
+  flea_al_u8_t*                result_private_len,
+  const flea_ec_dom_par_ref_t* dom_par
 );
 
 #endif /* #ifdef FLEA_HAVE_ECC */

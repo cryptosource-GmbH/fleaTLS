@@ -9,7 +9,7 @@
 #include "flea/alloc.h"
 #include "flea/array_util.h"
 #include "flea/util.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 #include "flea/ecka.h"
 #include "flea/algo_config.h"
 #include "flea/ec_key_gen.h"
@@ -17,7 +17,7 @@
 #include "self_test.h"
 
 #ifdef FLEA_HAVE_ECKA
-static flea_err_e THR_flea_test_ecka_raw_basic_inner(const flea_ec_gfp_dom_par_ref_t* dom_par__pt)
+static flea_err_e THR_flea_test_ecka_raw_basic_inner(const flea_ec_dom_par_ref_t* dom_par__pt)
 {
   FLEA_DECL_BUF(res_a_arr__bu8, flea_u8_t, FLEA_ECC_MAX_MOD_BYTE_SIZE);
   FLEA_DECL_BUF(res_b_arr__bu8, flea_u8_t, FLEA_ECC_MAX_MOD_BYTE_SIZE);
@@ -147,8 +147,8 @@ flea_err_e THR_flea_test_ecka_raw_basic()
   flea_ec_dom_par_id_e i;
   for(i = 0; i <= flea_gl_ec_dom_par_max_id; i++)
   {
-    flea_ec_gfp_dom_par_ref_t dom_par__t;
-    flea_err_e err__t = THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&dom_par__t, i);
+    flea_ec_dom_par_ref_t dom_par__t;
+    flea_err_e err__t = THR_flea_ec_dom_par_ref_t__set_by_builtin_id(&dom_par__t, i);
     if(err__t)
     {
       if(err__t == FLEA_ERR_ECC_INV_BUILTIN_DP_ID)

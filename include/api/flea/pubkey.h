@@ -8,7 +8,7 @@
 #include "flea/types.h"
 #include "flea/hash.h"
 #include "flea/x509.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 
 #ifdef FLEA_HAVE_ASYM_ALGS
 
@@ -152,9 +152,9 @@ flea_err_e THR_flea_public_key_t__ctor_rsa(
  * @return an error code
  */
 flea_err_e THR_flea_public_key_t__ctor_ecc(
-  flea_public_key_t*               key,
-  const flea_byte_vec_t*           public_key_value,
-  const flea_ec_gfp_dom_par_ref_t* dp
+  flea_public_key_t*           key,
+  const flea_byte_vec_t*       public_key_value,
+  const flea_ec_dom_par_ref_t* dp
 );
 
 

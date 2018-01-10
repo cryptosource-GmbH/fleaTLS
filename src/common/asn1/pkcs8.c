@@ -84,7 +84,7 @@ static flea_err_e THR_flea_private_key_t__pkcs8_create_ecc_key(
 )
 {
   flea_byte_vec_t ostr__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
-  flea_ec_gfp_dom_par_ref_t dp_ref__t;
+  flea_ec_dom_par_ref_t dp_ref__t;
 
   FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(version_vec__t, 1);
 

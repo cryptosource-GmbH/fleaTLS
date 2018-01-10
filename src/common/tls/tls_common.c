@@ -1930,7 +1930,7 @@ flea_err_e THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
 
   flea_byte_vec_t__set_as_ref(&peer_enc_pubpoint_vec__t, peer_enc_pubpoint__bu8, peer_enc_pubpoint_len__u8);
   FLEA_CCALL(
-    THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(
+    THR_flea_ec_dom_par_ref_t__set_by_builtin_id(
       &param__u.ecc_dom_par__t,
       tls_ctx__pt->chosen_ecc_dp_internal_id__u8
     )

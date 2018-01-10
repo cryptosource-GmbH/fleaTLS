@@ -7,7 +7,7 @@
 #include "flea/types.h"
 #include "flea/hash.h"
 #include "flea/x509.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 #include "flea/pubkey.h"
 
 #ifdef FLEA_HAVE_ASYM_ALGS
@@ -20,14 +20,14 @@ extern "C" {
 
 typedef struct
 {
-  flea_ec_gfp_dom_par_ref_t dp__t;
-  flea_byte_vec_t           scalar__rcu8;
+  flea_ec_dom_par_ref_t dp__t;
+  flea_byte_vec_t       scalar__rcu8;
 #  ifdef FLEA_STACK_MODE
-  flea_u8_t                 dp_mem__bu8[FLEA_ECC_MAX_DP_CONCAT_BYTE_SIZE];
-  flea_u8_t                 priv_scalar__mem__bu8[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
+  flea_u8_t             dp_mem__bu8[FLEA_ECC_MAX_DP_CONCAT_BYTE_SIZE];
+  flea_u8_t             priv_scalar__mem__bu8[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
 #  else
-  flea_u8_t*                dp_mem__bu8;
-  flea_u8_t*                priv_scalar__mem__bu8;
+  flea_u8_t*            dp_mem__bu8;
+  flea_u8_t*            priv_scalar__mem__bu8;
 #  endif // ifdef FLEA_STACK_MODE
 } flea_ec_privkey_val_t;
 # endif // ifdef FLEA_HAVE_ECC
@@ -136,9 +136,9 @@ flea_err_e THR_flea_private_key_t__ctor_rsa_components(
  *
  */
 flea_err_e THR_flea_private_key_t__ctor_ecc(
-  flea_private_key_t*              key,
-  const flea_byte_vec_t*           scalar,
-  const flea_ec_gfp_dom_par_ref_t* dp_ref
+  flea_private_key_t*          key,
+  const flea_byte_vec_t*       scalar,
+  const flea_ec_dom_par_ref_t* dp_ref
 );
 
 /**

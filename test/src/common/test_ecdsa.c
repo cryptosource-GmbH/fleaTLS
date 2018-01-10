@@ -12,7 +12,7 @@
 #include "flea/array_util.h"
 #include "flea/util.h"
 #include "internal/common/math/curve_gfp.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 #include "flea/ecdsa.h"
 #include "internal/common/math/point_gfp.h"
 #include "flea/algo_config.h"
@@ -77,11 +77,11 @@ flea_err_e THR_flea_test_cvc_sig_ver()
     sizeof(public_key__acu8)
   );
 
-  flea_ec_gfp_dom_par_ref_t ecc_dom_par__t;
+  flea_ec_dom_par_ref_t ecc_dom_par__t;
   FLEA_THR_BEG_FUNC();
   flea_al_u16_t sig_len__alu16 = sizeof(cvc_signature_rs__acu8);
   FLEA_CCALL(THR_flea_pk_signer_t__ctor(&verifier__t, flea_sha224));
-  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&ecc_dom_par__t, flea_brainpoolP224r1));
+  FLEA_CCALL(THR_flea_ec_dom_par_ref_t__set_by_builtin_id(&ecc_dom_par__t, flea_brainpoolP224r1));
   FLEA_CCALL(THR_flea_pk_signer_t__update(&verifier__t, sign_data__acu8, sizeof(sign_data__acu8)));
   // FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(&public_key__t, &pubpoint__crcu8, &ecc_dom_par__t));
   FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(&public_key__t, &pubpoint_vec__t, &ecc_dom_par__t));
@@ -106,7 +106,7 @@ flea_err_e THR_flea_test_cvc_sig_ver()
 # endif /* if FLEA_ECC_MAX_MOD_BIT_SIZE >= 224 */
 } /* THR_flea_test_cvc_sig_ver */
 
-static flea_err_e THR_flea_test_ecdsa_raw_basic_inner(const flea_ec_gfp_dom_par_ref_t* dom_par__pt)
+static flea_err_e THR_flea_test_ecdsa_raw_basic_inner(const flea_ec_dom_par_ref_t* dom_par__pt)
 {
   flea_u8_t res_r_arr[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
   flea_u8_t res_s_arr[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
@@ -201,8 +201,8 @@ flea_err_e THR_flea_test_ecdsa_raw_basic()
 
   for(i = 0; i <= flea_gl_ec_dom_par_max_id; i++)
   {
-    flea_ec_gfp_dom_par_ref_t dom_par__t;
-    flea_err_e err__t = THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&dom_par__t, i);
+    flea_ec_dom_par_ref_t dom_par__t;
+    flea_err_e err__t = THR_flea_ec_dom_par_ref_t__set_by_builtin_id(&dom_par__t, i);
     if(err__t)
     {
       if(err__t == FLEA_ERR_ECC_INV_BUILTIN_DP_ID)
@@ -240,9 +240,9 @@ flea_err_e THR_flea_test_ecdsa_256bit_sign_loop(unsigned count)
 
   flea_al_u8_t enc_s_len;
   flea_al_u8_t enc_r_len;
-  flea_ec_gfp_dom_par_ref_t dom_par__t;
+  flea_ec_dom_par_ref_t dom_par__t;
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&dom_par__t, flea_brainpoolP256r1));
+  FLEA_CCALL(THR_flea_ec_dom_par_ref_t__set_by_builtin_id(&dom_par__t, flea_brainpoolP256r1));
   enc_r_len = enc_s_len = dom_par__t.n__ru8.len__dtl;
   FLEA_ALLOC_BUF(pub_point_enc__b_u8, pub_point_enc_len__al_u8);
   FLEA_ALLOC_BUF(sk_enc__b_u8, sk_enc_len__al_u8);

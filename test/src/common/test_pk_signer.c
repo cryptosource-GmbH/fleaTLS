@@ -9,13 +9,11 @@
 #include "flea/alloc.h"
 #include "flea/array_util.h"
 #include "flea/util.h"
-#include "internal/common/math/curve_gfp.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 #include "flea/ecdsa.h"
-#include "internal/common/math/point_gfp.h"
+#include "internal/common/ecc_dp_int.h"
 #include "flea/algo_config.h"
 #include "flea/ec_key_gen.h"
-#include "flea/ec_gfp_dom_par.h"
 #include "flea/pk_signer.h"
 #include "flea/privkey.h"
 #include "test_data_rsa_key_internal_format.h"
@@ -206,7 +204,7 @@ flea_err_e THR_flea_test_pk_signer_sign_verify()
   else
   {
     flea_pub_key_param_u param__u;
-    FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_brainpoolP224r1));
+    FLEA_CCALL(THR_flea_ec_dom_par_ref_t__set_by_builtin_id(&param__u.ecc_dom_par__t, flea_brainpoolP224r1));
     FLEA_CCALL(THR_flea_test_pk_signer_sign_verify_inner(flea_ecdsa_emsa1, flea_sha224, &param__u));
   }
 #endif /* ifdef FLEA_HAVE_ECDSA */

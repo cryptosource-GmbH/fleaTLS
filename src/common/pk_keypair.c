@@ -14,10 +14,10 @@ flea_err_e THR_flea_pubkey__generate_ecc_key_pair_by_dp_id(
   flea_ec_dom_par_id_e id__e
 )
 {
-  flea_ec_gfp_dom_par_ref_t ref__t;
+  flea_ec_dom_par_ref_t ref__t;
 
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&ref__t, id__e));
+  FLEA_CCALL(THR_flea_ec_dom_par_ref_t__set_by_builtin_id(&ref__t, id__e));
   FLEA_CCALL(
     THR_flea_pubkey__generate_ecc_key_pair_by_dp(
       pub_key__pt,
@@ -29,9 +29,9 @@ flea_err_e THR_flea_pubkey__generate_ecc_key_pair_by_dp_id(
 }
 
 flea_err_e THR_flea_pubkey__generate_ecc_key_pair_by_dp(
-  flea_public_key_t*               pub_key__pt,
-  flea_private_key_t*              priv_key__pt,
-  const flea_ec_gfp_dom_par_ref_t* dp__pt
+  flea_public_key_t*           pub_key__pt,
+  flea_private_key_t*          priv_key__pt,
+  const flea_ec_dom_par_ref_t* dp__pt
 )
 {
   FLEA_DECL_BUF(pub_key__bu8, flea_u8_t, FLEA_PK_MAX_INTERNAL_FORMAT_PUBKEY_LEN);

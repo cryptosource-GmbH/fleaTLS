@@ -4,7 +4,7 @@
 #define _flea_ecdsa__H_
 
 #include "flea/types.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -31,15 +31,15 @@ extern "C" {
  *
  */
 flea_err_e THR_flea_ecdsa__raw_verify(
-  const flea_u8_t*                 enc_r,
-  flea_al_u8_t                     enc_r_len,
-  const flea_u8_t*                 enc_s,
-  flea_al_u8_t                     enc_s_len,
-  const flea_u8_t*                 message,
-  flea_al_u8_t                     message_len,
-  const flea_u8_t*                 pub_point_enc,
-  flea_al_u8_t                     pub_point_enc_len,
-  const flea_ec_gfp_dom_par_ref_t* dom_par
+  const flea_u8_t*             enc_r,
+  flea_al_u8_t                 enc_r_len,
+  const flea_u8_t*             enc_s,
+  flea_al_u8_t                 enc_s_len,
+  const flea_u8_t*             message,
+  flea_al_u8_t                 message_len,
+  const flea_u8_t*             pub_point_enc,
+  flea_al_u8_t                 pub_point_enc_len,
+  const flea_ec_dom_par_ref_t* dom_par
 );
 
 /**
@@ -58,15 +58,15 @@ flea_err_e THR_flea_ecdsa__raw_verify(
  * @return an error code
  */
 flea_err_e THR_flea_ecdsa__raw_sign(
-  flea_u8_t*                       result_r,
-  flea_al_u8_t*                    result_r_len,
-  flea_u8_t*                       result_s,
-  flea_al_u8_t*                    result_s_len,
-  const flea_u8_t*                 message,
-  flea_al_u8_t                     message_len,
-  const flea_u8_t*                 priv_key_enc,
-  flea_al_u8_t                     priv_key_enc_len,
-  const flea_ec_gfp_dom_par_ref_t* dom_par
+  flea_u8_t*                   result_r,
+  flea_al_u8_t*                result_r_len,
+  flea_u8_t*                   result_s,
+  flea_al_u8_t*                result_s_len,
+  const flea_u8_t*             message,
+  flea_al_u8_t                 message_len,
+  const flea_u8_t*             priv_key_enc,
+  flea_al_u8_t                 priv_key_enc_len,
+  const flea_ec_dom_par_ref_t* dom_par
 );
 
 #endif /* #ifdef FLEA_HAVE_ECC */

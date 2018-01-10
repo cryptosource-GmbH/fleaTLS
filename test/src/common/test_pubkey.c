@@ -33,7 +33,7 @@ static flea_err_e THR_flea_test_ecc_key_plain_format_encoding_inner(
   flea_byte_vec_t msg_vec__t;
   flea_al_u16_t order_len__alu16;
 
-  flea_ec_gfp_dom_par_ref_t dp_ref__t;
+  flea_ec_dom_par_ref_t dp_ref__t;
   const flea_u8_t message__acu8[] = {0, 1};
   FLEA_THR_BEG_FUNC();
   flea_public_key_t__INIT(&pubkey__t);
@@ -51,7 +51,7 @@ static flea_err_e THR_flea_test_ecc_key_plain_format_encoding_inner(
   flea_byte_vec_t__set_as_ref(&msg_vec__t, message__acu8, sizeof(message__acu8));
 
   FLEA_CCALL(THR_flea_pubkey__generate_ecc_key_pair_by_dp_id(&pubkey__t, &privkey__t, dp_id__e));
-  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&dp_ref__t, dp_id__e));
+  FLEA_CCALL(THR_flea_ec_dom_par_ref_t__set_by_builtin_id(&dp_ref__t, dp_id__e));
 
 /**
  * sign and verify

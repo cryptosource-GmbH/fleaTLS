@@ -4,7 +4,7 @@
 #define _flea_ecc__H_
 #include "internal/common/default.h"
 #include "internal/common/ecc_int.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 
 #ifdef FLEA_HAVE_ECC
 

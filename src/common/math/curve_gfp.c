@@ -2,7 +2,7 @@
 
 #include "internal/common/default.h"
 #include "internal/common/math/curve_gfp.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 #include "flea/error.h"
 #include "flea/error_handling.h"
 
@@ -13,10 +13,10 @@ extern "C" {
 # endif
 
 flea_err_e THR_flea_curve_gfp_t__init_dp_array(
-  flea_curve_gfp_t*                p_curve,
-  const flea_ec_gfp_dom_par_ref_t* dp__pt,
-  flea_uword_t*                    memory,
-  flea_al_u16_t                    memory_word_len
+  flea_curve_gfp_t*            p_curve,
+  const flea_ec_dom_par_ref_t* dp__pt,
+  flea_uword_t*                memory,
+  flea_al_u16_t                memory_word_len
 )
 {
   FLEA_THR_BEG_FUNC();

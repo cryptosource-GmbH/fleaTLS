@@ -6,7 +6,7 @@
 #include "internal/common/default.h"
 #include "flea/types.h"
 #include "flea/byte_vec.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 #include "flea/hash.h"
 #include "flea/pubkey.h"
 
@@ -15,8 +15,8 @@ extern "C" {
 #endif
 
 flea_err_e THR_flea_x509_parse_ecc_public_params(
-  const flea_byte_vec_t*     encoded_parameters__pt,
-  flea_ec_gfp_dom_par_ref_t* dom_par__pt
+  const flea_byte_vec_t* encoded_parameters__pt,
+  flea_ec_dom_par_ref_t* dom_par__pt
 );
 
 flea_err_e THR_flea_x509_get_hash_id_and_key_type_from_oid(

@@ -317,6 +317,8 @@ flea_err_e THR_flea_byte_vec_t__reserve(
  * @param byte_vec pointer to the byte_vector
  * @param data pointer to the data to set as the new content
  * @param len the length of data
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_byte_vec_t__set_content(
   flea_byte_vec_t* byte_vec,
@@ -331,6 +333,8 @@ flea_err_e THR_flea_byte_vec_t__set_content(
  *
  * @param byte_vec pointer to the byte_vector
  * @param new_size the new content length of the vector
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_byte_vec_t__resize(
   flea_byte_vec_t* byte_vec,

@@ -10,7 +10,7 @@
 #include "flea/array_util.h"
 #include "flea/util.h"
 #include "flea/rng.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 #include "internal/common/math/curve_gfp.h"
 #include "internal/common/math/point_gfp.h"
 #include "flea/ecdsa.h"
@@ -21,15 +21,15 @@
 
 #ifdef FLEA_HAVE_ECDSA
 flea_err_e THR_flea_ecdsa__raw_verify(
-  const flea_u8_t*                 enc_r,
-  flea_al_u8_t                     enc_r_len,
-  const flea_u8_t*                 enc_s,
-  flea_al_u8_t                     enc_s_len,
-  const flea_u8_t*                 message,
-  flea_al_u8_t                     message_len,
-  const flea_u8_t*                 pub_point_enc,
-  flea_al_u8_t                     pub_point_enc_len,
-  const flea_ec_gfp_dom_par_ref_t* dom_par__pt
+  const flea_u8_t*             enc_r,
+  flea_al_u8_t                 enc_r_len,
+  const flea_u8_t*             enc_s,
+  flea_al_u8_t                 enc_s_len,
+  const flea_u8_t*             message,
+  flea_al_u8_t                 message_len,
+  const flea_u8_t*             pub_point_enc,
+  flea_al_u8_t                 pub_point_enc_len,
+  const flea_ec_dom_par_ref_t* dom_par__pt
 )
 {
   flea_mpi_t n, s, s_inv, double_sized_field_elem;
@@ -219,15 +219,15 @@ flea_err_e THR_flea_ecdsa__raw_verify(
 } /* THR_flea_ecdsa__raw_verify */
 
 flea_err_e THR_flea_ecdsa__raw_sign(
-  flea_u8_t*                       res_r_arr,
-  flea_al_u8_t*                    res_r_arr_len,
-  flea_u8_t*                       res_s_arr,
-  flea_al_u8_t*                    res_s_arr_len,
-  const flea_u8_t*                 message,
-  flea_al_u8_t                     message_len,
-  const flea_u8_t*                 priv_key_enc_arr,
-  flea_al_u8_t                     priv_key_enc_arr_len,
-  const flea_ec_gfp_dom_par_ref_t* dom_par__pt
+  flea_u8_t*                   res_r_arr,
+  flea_al_u8_t*                res_r_arr_len,
+  flea_u8_t*                   res_s_arr,
+  flea_al_u8_t*                res_s_arr_len,
+  const flea_u8_t*             message,
+  flea_al_u8_t                 message_len,
+  const flea_u8_t*             priv_key_enc_arr,
+  flea_al_u8_t                 priv_key_enc_arr_len,
+  const flea_ec_dom_par_ref_t* dom_par__pt
 )
 {
   flea_mpi_t n, k, k_inv, r, s;

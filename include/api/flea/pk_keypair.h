@@ -6,7 +6,7 @@
 #ifdef FLEA_HAVE_ECC
 
 # include "internal/common/default.h"
-# include "flea/ec_gfp_dom_par.h"
+# include "flea/ec_dom_par.h"
 # include "flea/pubkey.h"
 # include "flea/privkey.h"
 
@@ -24,9 +24,9 @@ extern "C" {
  * @return an error code
  */
 flea_err_e THR_flea_pubkey__generate_ecc_key_pair_by_dp(
-  flea_public_key_t*               pubkey,
-  flea_private_key_t*              privkey_,
-  const flea_ec_gfp_dom_par_ref_t* dp
+  flea_public_key_t*           pubkey,
+  flea_private_key_t*          privkey_,
+  const flea_ec_dom_par_ref_t* dp
 );
 
 /**

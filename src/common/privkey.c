@@ -11,6 +11,7 @@
 #include "flea/alloc.h"
 #include "flea/x509.h"
 #include "internal/common/namespace_asn1.h"
+#include "internal/common/ecc_dp_int.h"
 #include "flea/ec_key.h"
 #include "flea/util.h"
 #include "flea/bin_utils.h"
@@ -23,9 +24,9 @@
 
 # ifdef FLEA_HAVE_ECC
 flea_err_e THR_flea_private_key_t__ctor_ecc(
-  flea_private_key_t*              key__pt,
-  const flea_byte_vec_t*           scalar__cprcu8,
-  const flea_ec_gfp_dom_par_ref_t* dp_ref__pt
+  flea_private_key_t*          key__pt,
+  const flea_byte_vec_t*       scalar__cprcu8,
+  const flea_ec_dom_par_ref_t* dp_ref__pt
 )
 {
   flea_al_u16_t dp_concat_len__alu16;
@@ -44,7 +45,7 @@ flea_err_e THR_flea_private_key_t__ctor_ecc(
     FLEA_THROW("ECC order too large", FLEA_ERR_INV_KEY_SIZE);
   }
 #  ifdef FLEA_HEAP_MODE
-  dp_concat_len__alu16 = flea_ec_gfp_dom_par_ref_t__get_concat_length(dp_ref__pt);
+  dp_concat_len__alu16 = flea_ec_dom_par_ref_t__get_concat_length(dp_ref__pt);
   FLEA_ALLOC_MEM(key__pt->privkey_with_params__u.ec_priv_key_val__t.dp_mem__bu8, dp_concat_len__alu16);
   FLEA_ALLOC_MEM(key__pt->privkey_with_params__u.ec_priv_key_val__t.priv_scalar__mem__bu8, scalar__cprcu8->len__dtl);
 #  else
@@ -57,7 +58,7 @@ flea_err_e THR_flea_private_key_t__ctor_ecc(
   );
 
   FLEA_CCALL(
-    THR_flea_ec_gfp_dom_par_ref_t__write_to_concat_array(
+    THR_flea_ec_dom_par_ref_t__write_to_concat_array(
       &key__pt->privkey_with_params__u.ec_priv_key_val__t.
       dp__t,
       key__pt->privkey_with_params__u.ec_priv_key_val__t.dp_mem__bu8,

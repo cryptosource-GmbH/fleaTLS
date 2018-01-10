@@ -7,7 +7,7 @@
 #include "flea/types.h"
 #include "flea/hash.h"
 #include "internal/common/pk_api_int.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 #include "flea/pubkey.h"
 #include "flea/privkey.h"
 
@@ -21,10 +21,10 @@ extern "C" {
 
 typedef union
 {
-  flea_byte_vec_t           rsa_public_exp__ru8;
+  flea_byte_vec_t       rsa_public_exp__ru8;
 
 # ifdef FLEA_HAVE_ECC
-  flea_ec_gfp_dom_par_ref_t ecc_dom_par__t;
+  flea_ec_dom_par_ref_t ecc_dom_par__t;
 # endif /* #ifdef FLEA_HAVE_ECC */
 } flea_pub_key_param_u;
 

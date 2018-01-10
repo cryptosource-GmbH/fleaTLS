@@ -13,7 +13,7 @@
 #include "flea/ecdsa.h"
 #include "flea/rsa.h"
 #include "flea/rng.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 #include "flea/bin_utils.h"
 #include "internal/common/mask.h"
 #include "internal/common/pk_key_int.h"

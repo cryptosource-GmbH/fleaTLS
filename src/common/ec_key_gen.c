@@ -11,7 +11,7 @@
 #include "flea/array_util.h"
 #include "flea/util.h"
 #include "internal/common/math/curve_gfp.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 #include "flea/ecdsa.h"
 #include "internal/common/math/point_gfp.h"
 #include "flea/algo_config.h"
@@ -19,11 +19,11 @@
 
 #ifdef FLEA_HAVE_ECC
 flea_err_e THR_flea_generate_ecc_key(
-  flea_u8_t*                       result_public__p_u8,
-  flea_al_u8_t*                    result_public_len__p_al_u8,
-  flea_u8_t*                       result_private__p_u8,
-  flea_al_u8_t*                    result_private_len__p_al_u8,
-  const flea_ec_gfp_dom_par_ref_t* dom_par__pt
+  flea_u8_t*                   result_public__p_u8,
+  flea_al_u8_t*                result_public_len__p_al_u8,
+  flea_u8_t*                   result_private__p_u8,
+  flea_al_u8_t*                result_private_len__p_al_u8,
+  const flea_ec_dom_par_ref_t* dom_par__pt
 )
 {
   flea_curve_gfp_t curve;

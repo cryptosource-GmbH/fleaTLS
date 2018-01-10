@@ -6,6 +6,7 @@
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
 #include "internal/common/namespace_asn1.h"
+#include "internal/common/ecc_dp_int.h"
 #include "flea/x509.h"
 #include "internal/common/x509_key_int.h"
 #include "flea/ec_key.h"
@@ -134,9 +135,9 @@ flea_err_e THR_flea_x509_decode_ecdsa_signature(
 } /* THR_flea_x509_decode_ecdsa_signature */
 
 flea_err_e THR_flea_public_key_t__create_ecdsa_key(
-  flea_ec_pubkey_val_t*            ecc_key__pt,
-  const flea_byte_vec_t*           public_point_encoded__pcrcu8,
-  const flea_ec_gfp_dom_par_ref_t* dp_ref__pt
+  flea_ec_pubkey_val_t*        ecc_key__pt,
+  const flea_byte_vec_t*       public_point_encoded__pcrcu8,
+  const flea_ec_dom_par_ref_t* dp_ref__pt
 )
 {
   flea_al_u16_t max_dp_concat_len;
@@ -154,7 +155,7 @@ flea_err_e THR_flea_public_key_t__create_ecdsa_key(
   FLEA_ALLOC_MEM_ARR(ecc_key__pt->dp_mem__bu8, max_dp_concat_len);
 # endif /* ifdef FLEA_STACK_MODE */
   FLEA_CCALL(
-    THR_flea_ec_gfp_dom_par_ref_t__write_to_concat_array(
+    THR_flea_ec_dom_par_ref_t__write_to_concat_array(
       &ecc_key__pt->dp__t,
       ecc_key__pt->dp_mem__bu8,
       max_dp_concat_len,
@@ -175,8 +176,8 @@ flea_err_e THR_flea_public_key_t__create_ecdsa_key(
 } /* THR_flea_public_key_t__create_ecdsa_key */
 
 flea_err_e THR_flea_x509_parse_ecc_public_params(
-  const flea_byte_vec_t*     encoded_parameters__pt,
-  flea_ec_gfp_dom_par_ref_t* dom_par__pt
+  const flea_byte_vec_t* encoded_parameters__pt,
+  flea_ec_dom_par_ref_t* dom_par__pt
 )
 {
   FLEA_DECL_OBJ(source__t, flea_rw_stream_t);

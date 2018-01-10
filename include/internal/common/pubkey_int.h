@@ -7,7 +7,7 @@
 #include "flea/byte_vec.h"
 #include "flea/hash.h"
 #include "flea/pubkey.h"
-#include "flea/ec_gfp_dom_par.h"
+#include "flea/ec_dom_par.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -52,14 +52,14 @@ extern const flea_u8_t ecdsa_oid_prefix__acu8[6];
 
 typedef struct
 {
-  flea_byte_vec_t           public_point_encoded__rcu8;
-  flea_ec_gfp_dom_par_ref_t dp__t;
+  flea_byte_vec_t       public_point_encoded__rcu8;
+  flea_ec_dom_par_ref_t dp__t;
 # ifdef FLEA_STACK_MODE
-  flea_u8_t                 dp_mem__bu8[FLEA_ECC_MAX_DP_CONCAT_BYTE_SIZE];
-  flea_u8_t                 pub_point__mem__bu8[FLEA_ECC_MAX_ENCODED_POINT_LEN];
+  flea_u8_t             dp_mem__bu8[FLEA_ECC_MAX_DP_CONCAT_BYTE_SIZE];
+  flea_u8_t             pub_point__mem__bu8[FLEA_ECC_MAX_ENCODED_POINT_LEN];
 # else
-  flea_u8_t*                dp_mem__bu8;
-  flea_u8_t*                pub_point__mem__bu8;
+  flea_u8_t*            dp_mem__bu8;
+  flea_u8_t*            pub_point__mem__bu8;
 # endif // ifdef FLEA_STACK_MODE
 } flea_ec_pubkey_val_t;
 
@@ -76,14 +76,14 @@ flea_err_e THR_flea_x509_decode_ecdsa_signature(
 );
 
 flea_err_e THR_flea_public_key_t__create_ecdsa_key(
-  flea_ec_pubkey_val_t*            ecc_key__pt,
-  const flea_byte_vec_t*           public_point_encoded__pcrcu8,
-  const flea_ec_gfp_dom_par_ref_t* dp_ref__pt
+  flea_ec_pubkey_val_t*        ecc_key__pt,
+  const flea_byte_vec_t*       public_point_encoded__pcrcu8,
+  const flea_ec_dom_par_ref_t* dp_ref__pt
 );
 
 flea_err_e THR_flea_x509_parse_ecc_public_params(
-  const flea_byte_vec_t*     encoded_parameters__pt,
-  flea_ec_gfp_dom_par_ref_t* dom_par__pt
+  const flea_byte_vec_t* encoded_parameters__pt,
+  flea_ec_dom_par_ref_t* dom_par__pt
 );
 
 #endif // ifdef FLEA_HAVE_ECC
