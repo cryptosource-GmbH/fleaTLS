@@ -10,7 +10,7 @@
 
 flea_al_u8_t flea_ecc_key__get_coordinate_len_from_encoded_point(const flea_byte_vec_t* encoded__pt)
 {
-  if(!(encoded__pt->len__dtl % 2) || encoded__pt->len__dtl > FLEA_ECC_MAX_ENCODED_POINT_LEN ||
+  if(!(encoded__pt->len__dtl % 2) || (encoded__pt->len__dtl < 3) ||
     encoded__pt->data__pu8[0] != FLEA_X509_ECC_POINT_FORMAT_UNCOMPRESSED)
   {
     return 0;
@@ -18,7 +18,7 @@ flea_al_u8_t flea_ecc_key__get_coordinate_len_from_encoded_point(const flea_byte
   return (encoded__pt->len__dtl - 1) / 2;
 }
 
-flea_err_e THR_flea_ec_key__decode_uncompressed_point(
+flea_err_e THR_flea_ecc_key__decode_uncompressed_point(
   const flea_byte_vec_t* encoded__pt,
   flea_ref_cu8_t*        x__pt,
   flea_ref_cu8_t*        y__pt

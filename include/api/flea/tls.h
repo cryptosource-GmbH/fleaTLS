@@ -6,7 +6,7 @@
 #include "internal/common/default.h"
 #include "flea/types.h"
 #include "flea/byte_vec.h"
-#include "flea/crl.h"
+#include "internal/common/crl_int.h"
 
 #ifdef FLEA_HAVE_TLS
 

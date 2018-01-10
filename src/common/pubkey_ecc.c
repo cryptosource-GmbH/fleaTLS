@@ -7,7 +7,7 @@
 #include "flea/alloc.h"
 #include "internal/common/namespace_asn1.h"
 #include "flea/x509.h"
-#include "flea/x509_key.h"
+#include "internal/common/x509_key_int.h"
 #include "flea/ec_key.h"
 #include "flea/ecdsa.h"
 #include "internal/common/pubkey_int.h"
@@ -165,7 +165,6 @@ flea_err_e THR_flea_public_key_t__create_ecdsa_key(
   FLEA_ALLOC_MEM_ARR(ecc_key__pt->pub_point__mem__bu8, public_point_encoded__pcrcu8->len__dtl);
 # endif
 
-  // flea_copy_rcu8_use_mem(
   flea_byte_vec_t__copy_content_set_ref_use_mem(
     &ecc_key__pt->public_point_encoded__rcu8,
     ecc_key__pt->pub_point__mem__bu8,
@@ -212,7 +211,6 @@ flea_err_e THR_flea_x509_parse_ecc_public_params(
   if(found__b)
   {
     flea_u32_t version__u32;
-    // flea_dtl_t len__dtl;
     flea_byte_vec_t oid_ref__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
 
     const flea_u8_t prime_field_oid__acu8[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x01, 0x01};
@@ -264,7 +262,7 @@ flea_err_e THR_flea_x509_parse_ecc_public_params(
         &oid_ref__t
       )
     );
-    FLEA_CCALL(THR_flea_ec_key__decode_uncompressed_point(&oid_ref__t, &dom_par__pt->gx__ru8, &dom_par__pt->gy__ru8));
+    FLEA_CCALL(THR_flea_ecc_key__decode_uncompressed_point(&oid_ref__t, &dom_par__pt->gx__ru8, &dom_par__pt->gy__ru8));
 
     FLEA_CCALL(THR_flea_ber_dec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, &dom_par__pt->n__ru8));
     FLEA_CCALL(THR_flea_ber_dec_t__get_der_REF_to_positive_int_wo_lead_zeroes_optional(&dec__t, &dom_par__pt->h__ru8));

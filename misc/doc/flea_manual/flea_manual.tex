@@ -160,7 +160,8 @@ compiles and runs also on 64-bit machines.
   a specific encoding. Only \code{ const char* } function parameters are expected to be
   null-terminated, character strings which are held in byte arrays such as
   \code{flea\_u8\_t*} or in a \code{flea\_byte\_vec\_t} may not be
-  null-terminated.
+  null-terminated, \ie the null-byte may not be included within the array's or
+  vector's length.
 
 \section{Getting started with flea}
 

@@ -15,7 +15,8 @@
 #include "flea/ec_key.h"
 #include "flea/ecc_named_curves.h"
 #include "flea/pubkey.h"
-#include "flea/cert_info.h"
+#include "internal/common/cert_info_int.h"
+#include "internal/common/cert_verify_int.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
 static flea_err_e THR_flea_x509_verify_cert_ref_signature_inner(

@@ -175,7 +175,6 @@ typedef struct
 
 static void flea_tls_ctx_t__set_sec_reneg_flags(
   flea_tls_ctx_t* tls_ctx__pt
-  // flea_tls_renegotiation_spec_e reneg_spec__e
 )
 {
   if(tls_ctx__pt->cfg_flags__e & flea_tls_flag__reneg_mode__allow_insecure_reneg)
@@ -1886,71 +1885,6 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
   }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__client_parse_extensions */
-
-# ifdef FLEA_HAVE_TLS_ECDHE
-#  if 0
-flea_err_e THR_flea_tls__create_ecdhe_key(
-  flea_private_key_t*  priv_key__pt,
-  flea_public_key_t*   pub_key__pt,
-  flea_ec_dom_par_id_e dom_par_id__t
-)
-{
-  FLEA_DECL_BUF(pub_key__bu8, flea_u8_t, FLEA_PK_MAX_INTERNAL_FORMAT_PUBKEY_LEN);
-  FLEA_DECL_BUF(priv_key__bu8, flea_u8_t, FLEA_ECC_MAX_ENCODED_POINT_LEN);
-  flea_pub_key_param_u param__u;
-  flea_al_u8_t priv_key_len__alu8;
-  flea_byte_vec_t scalar_vec__t   = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
-  flea_byte_vec_t pubpoint_vec__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
-  flea_al_u8_t pub_key_len__alu8  = FLEA_ECC_MAX_ENCODED_POINT_LEN;
-
-
-  FLEA_THR_BEG_FUNC();
-
-  // set domain parameters
-  FLEA_CCALL(THR_flea_ec_gfp_dom_par_ref_t__set_by_builtin_id(&param__u.ecc_dom_par__t, dom_par_id__t));
-
-  priv_key_len__alu8 = FLEA_ECC_MAX_ORDER_BYTE_SIZE;
-  FLEA_ALLOC_BUF(pub_key__bu8, pub_key_len__alu8);
-  FLEA_ALLOC_BUF(priv_key__bu8, priv_key_len__alu8);
-  FLEA_CCALL(
-    THR_flea_generate_ecc_key(
-      pub_key__bu8,
-      &pub_key_len__alu8,
-      priv_key__bu8,
-      &priv_key_len__alu8,
-      &param__u.ecc_dom_par__t
-    )
-  );
-
-  flea_byte_vec_t__reconstruct_as_ref(&pubpoint_vec__t, pub_key__bu8, pub_key_len__alu8);
-  flea_byte_vec_t__reconstruct_as_ref(&scalar_vec__t, priv_key__bu8, priv_key_len__alu8);
-
-  // generate keys
-  FLEA_CCALL(
-    THR_flea_private_key_t__ctor_ecc(
-      priv_key__pt,
-      &scalar_vec__t,
-      &param__u.ecc_dom_par__t
-    )
-  );
-  FLEA_CCALL(
-    THR_flea_public_key_t__ctor_ecc(
-      pub_key__pt,
-      &pubpoint_vec__t,
-      &param__u.ecc_dom_par__t
-    )
-  );
-
-  FLEA_THR_FIN_SEC(
-    FLEA_FREE_BUF_FINAL(pub_key__bu8);
-    FLEA_FREE_BUF_FINAL(priv_key__bu8);
-  );
-} /* THR_flea_tls__create_ecdhe_key */
-
-#  endif /* if 0 */
-
-# endif /* ifdef FLEA_HAVE_TLS_ECDHE */
-
 
 # ifdef FLEA_HAVE_TLS_ECC
 

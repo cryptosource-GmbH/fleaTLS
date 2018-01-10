@@ -10,7 +10,7 @@
 #include "flea/error_handling.h"
 #include "internal/common/ber_dec.h"
 #include "flea/x509.h"
-#include "flea/crl.h"
+#include "internal/common/crl_int.h"
 #include "flea/hostn_ver.h"
 #include "flea/cert_path.h"
 #include "internal/common/cert_path_int.h"

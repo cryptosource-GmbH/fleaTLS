@@ -7,8 +7,9 @@
 #include "flea/x509.h"
 #include "flea/pubkey.h"
 #include "flea/hostn_ver.h"
-#include "flea/cert_info.h"
-#include "flea/crl.h"
+#include "internal/common/cert_info_int.h"
+#include "internal/common/crl_int.h"
+#include "internal/common/crl_int.h"
 
 #ifdef FLEA_HAVE_ASYM_ALGS
 

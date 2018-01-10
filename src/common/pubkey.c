@@ -7,7 +7,7 @@
 #include "flea/alloc.h"
 #include "internal/common/namespace_asn1.h"
 #include "flea/x509.h"
-#include "flea/x509_key.h"
+#include "internal/common/x509_key_int.h"
 #include "flea/ec_key.h"
 #include "flea/util.h"
 #include "flea/bin_utils.h"

@@ -7,7 +7,7 @@
 #include "flea/x509.h"
 #include "internal/common/namespace_asn1.h"
 #include "flea/bin_utils.h"
-#include "flea/x509_key.h"
+#include "internal/common/x509_key_int.h"
 #include "internal/common/oid.h"
 #include "flea/mem_read_stream.h"
 #include "internal/common/pubkey_int.h"

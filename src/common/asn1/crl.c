@@ -3,7 +3,7 @@
 #include "internal/common/default.h"
 #include "flea/error_handling.h"
 #include "internal/common/ber_dec.h"
-#include "flea/crl.h"
+#include "internal/common/crl_int.h"
 #include "flea/alloc.h"
 #include "flea/array_util.h"
 #include "internal/common/x509_int.h"

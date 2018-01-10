@@ -8,7 +8,7 @@
 #include "flea/byte_vec.h"
 #include "flea/ec_gfp_dom_par.h"
 #include "flea/hash.h"
-#include "pubkey.h"
+#include "flea/pubkey.h"
 
 #ifdef __cplusplus
 extern "C" {

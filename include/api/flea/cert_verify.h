@@ -7,7 +7,7 @@
 #include "flea/x509.h"
 #include "flea/types.h"
 #include "flea/pubkey.h"
-#include "flea/cert_info.h"
+#include "internal/common/cert_info_int.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -18,27 +18,22 @@ extern "C" {
  * certificate. Does not perform certificate path validation, only the
  * signature verification itself.
  *
- */
-flea_err_e THR_flea_x509_verify_cert_signature(
-  const flea_u8_t*             enc_subject_cert__pcu8,
-  flea_dtl_t                   enc_subject_cert_len__dtl,
-  const flea_u8_t*             enc_issuer_cert__pcu8,
-  flea_dtl_t                   enc_issuer_cert_len__dtl,
-  flea_x509_validation_flags_e cert_ver_flags__e
-);
-
-
-/**
- * Verify that a certificate is signed by the public key of another
- * certificate. Does not perform certificate path validation, only the
- * signature verification itself.
+ * @param enc_subject_cert pointer to the ASN.1/DER encoded subject cert
+ * @param enc_subject_cert_len length of enc_subject_cert
+ * @param enc_issuer_cert pointer to the ASN.1/DER encoded issuer cert
+ * @param enc_issuer_cert_len length of enc_issuer_cert
+ * @param cert_ver_flags flags controlling the signature verification
  *
  */
-flea_err_e THR_flea_x509_verify_cert_info_signature(
-  const flea_x509_cert_info_t* subject_cert_ref__pt,
-  const flea_x509_cert_info_t* issuer_cert_ref__pt,
-  flea_x509_validation_flags_e cert_ver_flags__e
+flea_err_e THR_flea_x509_verify_cert_signature(
+  const flea_u8_t*             enc_subject_cert,
+  flea_dtl_t                   enc_subject_cert_len,
+  const flea_u8_t*             enc_issuer_cert,
+  flea_dtl_t                   enc_issuer_cert_len,
+  flea_x509_validation_flags_e cert_ver_flags
 );
+
+
 #ifdef __cplusplus
 }
 #endif

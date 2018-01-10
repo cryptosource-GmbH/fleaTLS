@@ -9,7 +9,7 @@
 #include "internal/common/ber_dec.h"
 #include "flea/x509.h"
 #include "internal/common/x509_int.h"
-#include "flea/x509_key.h"
+#include "internal/common/x509_key_int.h"
 #include "flea/pk_api.h"
 #include "flea/asn1_date.h"
 #include "flea/tls.h"
@@ -22,7 +22,7 @@
 #include "internal/common/tls/tls_cert_path.h"
 #include "flea/hostn_ver.h"
 #include "internal/common/hostn_ver_int.h"
-#include "flea/crl.h"
+#include "internal/common/crl_int.h"
 #include "flea/mem_read_stream.h"
 #include "internal/common/tls/tls_int.h"
 

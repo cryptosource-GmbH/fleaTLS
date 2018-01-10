@@ -3,7 +3,7 @@
 #include "internal/common/ber_dec.h"
 #include "flea/x509.h"
 #include "internal/common/x509_int.h"
-#include "flea/x509_key.h"
+#include "internal/common/x509_key_int.h"
 #include "flea/alloc.h"
 #include "flea/privkey.h"
 #include "flea/array_util.h"

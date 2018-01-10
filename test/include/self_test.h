@@ -3,15 +3,12 @@
 #ifndef __flea_self_test_H_
 #define __flea_self_test_H_
 
+#include "internal/common/default.h"
 #include "flea/hash.h"
 #include "flea/error.h"
 #include "flea/types.h"
 #include "flea/hostn_ver.h"
-#include "flea/crl.h"
-
-#ifdef FLEA_DO_PRINTF_TEST_OUTPUT
-# include <stdio.h>
-#endif
+#include "internal/common/crl_int.h"
 
 #ifdef __cplusplus
 extern "C" {
