@@ -14,7 +14,9 @@ extern "C" {
 struct struct_flea_mac_ctx_t;
 
 /**
- * MAC context type.
+ * \struct flea_mac_ctx_t
+ *
+ * MAC context type the functions of which are defined in mac.h
  */
 typedef struct struct_flea_mac_ctx_t flea_mac_ctx_t;
 

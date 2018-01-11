@@ -2,6 +2,7 @@
 
 
 #include "internal/common/default.h"
+#include "internal/common/ecc_dp_int.h"
 #include "flea/error_handling.h"
 #include <stdlib.h>
 #include <string.h>

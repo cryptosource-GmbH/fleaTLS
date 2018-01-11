@@ -21,19 +21,6 @@ typedef enum { flea_hmac_md5, flea_hmac_sha1, flea_hmac_sha224, flea_hmac_sha256
                flea_cmac_des, flea_cmac_tdes_2key, flea_cmac_tdes_3key, flea_cmac_aes128, flea_cmac_aes192,
                flea_cmac_aes256 } flea_mac_id_e;
 
-/**
- * MAC context type
- */
-struct struct_flea_mac_ctx_t
-{
-  flea_u8_t          output_len__u8;
-  flea_mac_mode_id_t mode_id__t;
-  union
-  {
-    flea_mac_ctx_hmac_specific_t hmac_specific__t;
-    flea_mac_ctx_cmac_specific_t cmac_specific__t;
-  } primitive_specific_ctx__u;
-};
 
 #define flea_mac_ctx_t__INIT_VALUE {.output_len__u8 = 0}
 

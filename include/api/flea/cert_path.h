@@ -17,7 +17,11 @@
 extern "C" {
 # endif
 
-
+/**
+ * Certificate path validator type. After having been configured with trusted
+ * and untrusted certificates as well as CRLs, it can be used for certificate
+ * path validation.
+ */
 typedef struct
 {
 # ifdef FLEA_HEAP_MODE

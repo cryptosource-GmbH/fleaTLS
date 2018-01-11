@@ -9,6 +9,7 @@
 #include "flea/x509.h"
 #include "flea/ec_dom_par.h"
 #include "flea/pubkey.h"
+#include "internal/common/privkey_val.h"
 
 #ifdef FLEA_HAVE_ASYM_ALGS
 
@@ -16,35 +17,9 @@
 extern "C" {
 # endif
 
-# ifdef FLEA_HAVE_ECC
-
-typedef struct
-{
-  flea_ec_dom_par_ref_t dp__t;
-  flea_byte_vec_t       scalar__rcu8;
-#  ifdef FLEA_STACK_MODE
-  flea_u8_t             dp_mem__bu8[FLEA_ECC_MAX_DP_CONCAT_BYTE_SIZE];
-  flea_u8_t             priv_scalar__mem__bu8[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
-#  else
-  flea_u8_t*            dp_mem__bu8;
-  flea_u8_t*            priv_scalar__mem__bu8;
-#  endif // ifdef FLEA_STACK_MODE
-} flea_ec_privkey_val_t;
-# endif // ifdef FLEA_HAVE_ECC
-
-# ifdef FLEA_HAVE_RSA
-
-typedef struct
-{
-  flea_byte_vec_t pqd1d2c__rcu8 [5];
-#  ifdef FLEA_STACK_MODE
-  flea_u8_t       priv_key_mem__bu8 [FLEA_RSA_CRT_KEY_INTERNAL_FORMAT_MAX_BYTE_SIZE];
-#  else
-  flea_u8_t*      priv_key_mem__bu8;
-#  endif
-} flea_rsa_privkey_val_t;
-# endif // ifdef FLEA_HAVE_RSA
-
+/**
+ * Abstract private key type.
+ */
 typedef struct
 {
   flea_pk_key_type_e key_type__t;

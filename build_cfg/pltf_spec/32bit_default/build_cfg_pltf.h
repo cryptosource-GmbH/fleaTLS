@@ -1,5 +1,15 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
+/**
+ * @file build_cfg_pltf.h
+ *
+ * This file specifies the type definitions for 32-bit and 64-bit standard
+ * platforms.
+ *
+ * In order to use a 16-bit platform, provide appropriate definitions
+ * here and set the correct value of FLEA_WORD_BIT_SIZE.
+ */
+
 #ifndef _flea_build_cfg_pltf__H_
 #define _flea_build_cfg_pltf__H_
 

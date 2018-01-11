@@ -20,12 +20,6 @@ extern "C" {
 # endif
 
 
-struct struct_flea_tls_client_ctx_t
-{
-  flea_tls_ctx_t                 tls_ctx__t;
-  flea_hostn_validation_params_t hostn_valid_params__t;
-};
-
 /**
  * Init a TLS client object.
  *

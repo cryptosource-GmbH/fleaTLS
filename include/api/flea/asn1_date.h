@@ -11,6 +11,9 @@
 extern "C" {
 #endif
 
+/**
+ * Type representing a time value in the GMT time zone.
+ */
 typedef struct
 {
   flea_u16_t year;

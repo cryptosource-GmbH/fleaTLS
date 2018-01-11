@@ -106,6 +106,12 @@ typedef enum
   }
 #endif // ifdef FLEA_HAVE_X509_DN_DETAILS
 
+/**
+ * An X.509 certificate reference type. Contains references to the individual
+ * fields of an ASN.1/DER encoded certificate. The object itself does not
+ * contain the referenced values, and is only valid for as long as the encoded
+ * certificate, that was used to create the flea_x509_cert_ref_t, remains at its memory location.
+ */
 typedef struct
 {
   /**

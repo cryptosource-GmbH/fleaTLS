@@ -72,14 +72,6 @@ typedef enum
 } flea_ec_dom_par_id_e;
 
 
-extern const flea_ec_dom_par_id_e flea_gl_ec_dom_par_max_id;
-
-/**
- * id type of domain parameter elements.
- */
-typedef enum { flea_dp__p = 0, flea_dp__a = 1, flea_dp__b = 2, flea_dp__Gx = 3, flea_dp__Gy = 4, flea_dp__n, flea_dp__h } flea_ec_dom_par_element_id_e;
-
-
 /**
  * Set a domain parameter reference to one of the builtin domain parameter
  * sets in fleaTLS.

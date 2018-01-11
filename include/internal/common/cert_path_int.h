@@ -9,6 +9,12 @@
 extern "C" {
 #endif
 
+typedef struct
+{
+  flea_ref_cu8_t data_ref__rcu8;
+  flea_u8_t      trusted_flag;
+} flea_enc_cert_ref_t;
+
 /**
  * validate notBefore & notAfter and Basic Constraint (but not the pathlen)
  */

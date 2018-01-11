@@ -41,25 +41,6 @@ typedef enum
 } flea_hash_id_e;
 
 
-/**
- * Hash context type.
- */
-struct struct_flea_hash_ctx_t
-{
-#ifdef FLEA_HEAP_MODE
-  flea_u8_t*                      pending_buffer;
-  flea_u32_t*                     hash_state;
-#elif defined FLEA_STACK_MODE
-  flea_u8_t                       pending_buffer[__FLEA_COMPUTED_MAX_HASH_BLOCK_LEN];
-  flea_u32_t                      hash_state[__FLEA_COMPUTED_MAX_HASH_STATE_LEN / sizeof(flea_u32_t)];
-#endif // ifdef FLEA_HEAP_MODE
-  flea_u64_t                      total_byte_length;
-  const flea_hash_config_entry_t* p_config;
-  flea_len_ctr_t                  len_ctr__t;
-  flea_al_u8_t                    pending;
-};
-
-
 #ifdef FLEA_HEAP_MODE
 # define flea_hash_ctx_t__INIT(__p) \
   do {(__p)->p_config = NULL; (__p)->pending_buffer = NULL; (__p)->hash_state = NULL; \

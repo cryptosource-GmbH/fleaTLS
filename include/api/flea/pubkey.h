@@ -16,46 +16,95 @@
 extern "C" {
 # endif
 
-# define FLEA_PK_ID_OFFS_PRIMITIVE 4
 
 /**
  * Supported encryption and signature public key primitives.
  */
 typedef enum
 {
+  /**
+   * RSA signature primitive
+   */
   flea_rsa_sign   = 0 << FLEA_PK_ID_OFFS_PRIMITIVE,
+
+    /**
+     * RSA encryption primitive
+     */
     flea_rsa_encr = 1 << FLEA_PK_ID_OFFS_PRIMITIVE,
+
+    /**
+     * ECDSA signature primitive
+     */
     flea_ecdsa    = 2 << FLEA_PK_ID_OFFS_PRIMITIVE
 } flea_pk_primitive_id_e;
 
 /**
  * Supported public key encoding schemes.
  */
-typedef enum { flea_emsa1 = 0, flea_pkcs1_v1_5 = 1, flea_oaep = 2 } flea_pk_encoding_id_e;
+typedef enum
+{
+  /**
+   * EMSA1 signature encoding (for ECDSA)
+   */
+  flea_emsa1      = 0,
+
+  /**
+   * PKCS#1 v1.5 encoding method
+   */
+  flea_pkcs1_v1_5 = 1,
+
+  /**
+   * OAEP encoding method for RSA
+   */
+  flea_oaep       = 2
+} flea_pk_encoding_id_e;
 
 /**
- * Supported public key encryption and signature configurations.
+ * Supported public key encryption and signature schemes resulting from the
+ * combination of a primitive with an encoding method.
  */
 typedef enum
 {
+  /**
+   * ECDSA with EMSA1 encoding
+   */
   flea_ecdsa_emsa1         = flea_ecdsa | flea_emsa1,
+
+  /**
+   * RSA-OAEP encryption scheme
+   */
   flea_rsa_oaep_encr       = flea_rsa_encr | flea_oaep,
+
+  /**
+   * RSA PKCS#1 v1.5 encryption scheme
+   */
   flea_rsa_pkcs1_v1_5_encr = flea_rsa_encr | flea_pkcs1_v1_5,
+
+  /**
+   * RSA PKCS#1 v1.5 signature scheme
+   */
   flea_rsa_pkcs1_v1_5_sign = flea_rsa_sign | flea_pkcs1_v1_5,
 } flea_pk_scheme_id_e;
 
-typedef enum { flea_ecc_key, flea_rsa_key } flea_pk_key_type_e;
-
-typedef union
+/**
+ * Key type enumeration.
+ */
+typedef enum
 {
-# ifdef FLEA_HAVE_RSA
-  flea_rsa_pubkey_val_t rsa_public_val__t;
-# endif
-# ifdef FLEA_HAVE_ECC
-  flea_ec_pubkey_val_t  ec_public_val__t;
-# endif
-} flea_public_key_val_with_params_u;
+  /**
+   * An elliptic curve key type
+   */
+  flea_ecc_key,
 
+  /**
+   * An RSA key type
+   */
+  flea_rsa_key
+} flea_pk_key_type_e;
+
+/**
+ * Abstract public key type.
+ */
 typedef struct
 {
   flea_pk_key_type_e                key_type__t;
@@ -68,7 +117,12 @@ typedef struct
 # define flea_public_key_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
 # define flea_public_key_t__INIT_VALUE {.key_bit_size__u16 = 0}
 
-void flea_public_key_t__dtor(flea_public_key_t* key__pt);
+/**
+ * Destroy a public key object.
+ *
+ * @param [out] key the key to destroy
+ */
+void flea_public_key_t__dtor(flea_public_key_t* key);
 
 
 /**
@@ -93,7 +147,7 @@ void flea_public_key_t__get_encoded_plain_ref(
 );
 
 /**
- * create a public key from a the bit string TLV structure found e.g. in an
+ * Create a public key from a the bit string TLV structure found for example in an
  * X.509 certificate.
  *
  * @param key the public key object to create.

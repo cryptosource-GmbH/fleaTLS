@@ -3,6 +3,7 @@
 
 #include "flea/x509.h"
 #include "flea/cert_path.h"
+#include "internal/common/cert_path_int.h"
 
 #ifdef FLEA_HAVE_ASYM_ALGS
 
@@ -10,12 +11,6 @@
 extern "C" {
 # endif
 
-
-typedef struct
-{
-  flea_ref_cu8_t data_ref__rcu8;
-  flea_u8_t      trusted_flag;
-} flea_enc_cert_ref_t;
 
 /**
  * Cert store type. Supports the storage of trusted certs and untrusted certs

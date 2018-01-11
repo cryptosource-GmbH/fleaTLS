@@ -11,7 +11,7 @@ extern "C" {
 
 
 /**
- * Simple counter mode PRNG. Produces output as the CTR-mode key stream using
+ * AES-based CTR mode PRNG. Produces output as the CTR-mode key stream using
  * AES-256.
  */
 typedef struct

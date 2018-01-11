@@ -7,9 +7,21 @@
 
 
 /**
+ * \weakgroup build_cfg fleaTLS build configuration
+ */
+/**@{*/
+
+
+/**
+ * \defgroup dbg_cfg Debugging configuration
+ */
+/**@{*/
+
+/**
  * When set, print test failures and summary with printf.
  */
 # define FLEA_DO_PRINTF_TEST_OUTPUT
+
 
 # if 0
 
@@ -18,6 +30,13 @@
  */
 #  define FLEA_DO_PRINTF_ERRS
 # endif
+/* end dgb_cfg */
+/**@}*/
+
+/**
+ * \defgroup mem_cfg Memory configuration
+ */
+/**@{*/
 
 /**
  * Activate this flag to let flea make heap allocation for buffers (referred to
@@ -25,6 +44,13 @@
  * (referred to as "stack mode").
  */
 # define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
+/* end mem_cfg */
+/**@}*/
+
+/**
+ * \defgroup algo_support_cfg Algorithm support configuration
+ */
+/**@{*/
 
 /**
  * Control whether HMAC support is compiled
@@ -91,7 +117,61 @@
  * Control whether support for the DESX cipher is compiled.
  */
 # define FLEA_HAVE_DESX // FBFLAGS_HAVE_DESX_ON_OFF
+
+/**
+ * Configure whether support for AES is compiled. In the current version of
+ * fleaTLS, this option cannot be disabled.
+ */
 # define FLEA_HAVE_AES  // NOT CONFIGURABLE
+
+/**
+ * Control whether support for RSA shall be compiled.
+ */
+# define FLEA_HAVE_RSA            // FBFLAGS_PKALGS_ON_OFF
+
+/**
+ * Control whether support for ECDSA shall be compiled.
+ */
+# define FLEA_HAVE_ECDSA          // FBFLAGS_PKALGS_ON_OFF
+
+/**
+ * Control whether support for ECKA (=ECDH) shall be compiled.
+ */
+# define FLEA_HAVE_ECKA           // FBFLAGS_PKALGS_ON_OFF
+
+/* end algo_support_cfg */
+/**@}*/
+
+/**
+ * \defgroup crypto_params Algorithm key and parameter sizes
+ */
+/**@{*/
+
+/**
+ * Maximum supported key bit size for RSA (size of the public modulus).
+ */
+# define FLEA_RSA_MAX_KEY_BIT_SIZE 4096      // FBFLAGS__INT_LIST 1024 1536 2048 4096
+
+/**
+ * Maximum supported key public exponent bit size for RSA.
+ */
+# define FLEA_RSA_MAX_PUB_EXP_BIT_LEN 32
+
+/**
+ * Maximum supported key bit size for ECC (size of the prime p of the curve).
+ */
+# define FLEA_ECC_MAX_MOD_BIT_SIZE 521      // FBFLAGS__INT_LIST 160 192 224 256 320 384 521
+
+/**
+ * Maximum supported cofactor bit size for ECC.
+ */
+# define FLEA_ECC_MAX_COFACTOR_BIT_SIZE 32
+/**@}*/
+
+/**
+ * \defgroup perfomance_cfg Performance optimization options
+ */
+/**@{*/
 
 /**
  * Control whether loop unrolling within MD5 shall be used.
@@ -128,21 +208,6 @@
 # define FLEA_USE_SMALL_AES       // FBFLAGS_AES_ON_OFF
 
 /**
- * Control whether support for RSA shall be compiled.
- */
-# define FLEA_HAVE_RSA            // FBFLAGS_PKALGS_ON_OFF
-
-/**
- * Control whether support for ECDSA shall be compiled.
- */
-# define FLEA_HAVE_ECDSA          // FBFLAGS_PKALGS_ON_OFF
-
-/**
- * Control whether support for ECKA (=ECDH) shall be compiled.
- */
-# define FLEA_HAVE_ECKA           // FBFLAGS_PKALGS_ON_OFF
-
-/**
  * Control the window size for the RSA exponentiation. Choose 5 for greatest speed and 1 for smallest RAM footprint.
  */
 # define FLEA_CRT_RSA_WINDOW_SIZE 5 // FBFLAGS__INT_LIST 1 2 3 4 5
@@ -151,6 +216,52 @@
  * Control the window size for the ECC exponentiation. Choose 4 or 5 for greatest speed and 1 for smallest RAM footprint.
  */
 # define FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE 5 // FBFLAGS__INT_LIST 1 2 3 4 5
+
+/* end perfomance_cfg */
+/**@}*/
+
+/**
+ * \defgroup sccm_cfg Side-Channel Countermeasures
+ */
+/**@{*/
+
+/**
+ * Use the "square & multiply always" algorithm for (window-based) modular exponentiation
+ * in RSA private operations as a countermeasure against timing attacks.
+ */
+# define FLEA_SCCM_USE_RSA_MUL_ALWAYS // FBFLAGS_MOD_EXP_SQMA_ON_OFF
+
+/**
+ * Use the "add & double always" algorithm for (window-based) point multiplication in
+ * ECC private operations as a countermeasure against timing attacks.
+ */
+# define FLEA_SCCM_USE_ECC_ADD_ALWAYS // FBFLAGS_ECC_ADA_ON_OFF
+
+/**
+ * Side channel countermeasure which adds pseudo random delays within the public key
+ * operations.
+ */
+# define FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
+
+/**
+ * Side channel countermeasure which adds random delays within the public key
+ * operations.
+ */
+# define FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
+
+/**
+ * Perform pseudo operations or data access for cache warming to achieve timing
+ * neutral behaviour on platforms with cache within timing attack
+ * countermeasures. This feature should be disabled on platforms without cache.
+ */
+# define FLEA_SCCM_USE_CACHEWARMING_IN_TA_CM
+
+/**@}*/
+
+/**
+ * \defgroup space_reserv Configuration of reserved memory spaces
+ */
+/**@{*/
 
 /**
  * Used to determine the reserved space in bytes for X.509 certificates in stack mode.
@@ -193,44 +304,6 @@
 # define FLEA_CERT_STORE_PREALLOC 5
 
 /**
- * Maximum supported key bit size for RSA (size of the public modulus).
- */
-# define FLEA_RSA_MAX_KEY_BIT_SIZE 4096      // FBFLAGS__INT_LIST 1024 1536 2048 4096
-
-/**
- * Maximum supported key public exponent bit size for RSA.
- */
-# define FLEA_RSA_MAX_PUB_EXP_BIT_LEN 32
-
-/**
- * Maximum supported key bit size for ECC (size of the prime p of the curve).
- */
-# define FLEA_ECC_MAX_MOD_BIT_SIZE 521      // FBFLAGS__INT_LIST 160 192 224 256 320 384 521
-
-/**
- * Maximum supported cofactor bit size for ECC.
- */
-# define FLEA_ECC_MAX_COFACTOR_BIT_SIZE 32
-
-/**
- * Control the bit width of flea_dtl_t, the type for the lengths of data processed by fleaTLS in various functions. The effect is that
- * flea_dtl_t, the type that represents data lengths in various API function
- * signatures, is defined with a width of 32 bit if the flag is set and with a width of 16 bit if deactivated.
- * Deactivate this switch in order to generate smaller and faster code on 16
- * bit architectures. Deactivating it also reduces the RAM size of some types
- * considerable.
- */
-# define FLEA_HAVE_DTL_32BIT // FBFLAGS_DTL_32_BIT_ON_OFF
-
-
-/**
- * Enabling this flag causes the choice of code optimized for big endian platforms in some places.
- * In any case, the generated code remains valid independently of the platform's
- * endianess, but may be non-optimal with regard to size and/or speed.
- */
-# define FLEA_HAVE_BE_ARCH_OPT // FBFLAGS_ARCH_OPT_ON_OFF
-
-/**
  * Maximum size for CRL Distribution point extension of processed X.509 certificate. Takes effect only in stack
  * mode.
  *
@@ -262,36 +335,19 @@
 # define FLEA_STKMD_X509_SAN_ELEMENT_MAX_LEN 50
 
 /**
- * Use the "square & multiply always" algorithm for (window-based) modular exponentiation
- * in RSA private operations as a countermeasure against timing attacks.
+ * Maximal byte length of an issuerDN in an X.509 certificate. Take effect only
+ * in stack mode.
  */
-# define FLEA_SCCM_USE_RSA_MUL_ALWAYS // FBFLAGS_MOD_EXP_SQMA_ON_OFF
+# define FLEA_STKMD_X509_MAX_ISSUER_DN_RAW_BYTE_LEN 256
+
+/* end space_reserv  */
+/**@}*/
+
 
 /**
- * Use the "add & double always" algorithm for (window-based) point multiplication in
- * ECC private operations as a countermeasure against timing attacks.
+ * \defgroup tls_cfg TLS configuration
  */
-# define FLEA_SCCM_USE_ECC_ADD_ALWAYS // FBFLAGS_ECC_ADA_ON_OFF
-
-/**
- * Side channel countermeasure which adds pseudo random delays within the public key
- * operations.
- */
-# define FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
-
-/**
- * Side channel countermeasure which adds random delays within the public key
- * operations.
- */
-# define FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
-
-/**
- * Perform pseudo operations or data access for cache warming to achieve timing
- * neutral behaviour on platforms with cache within timing attack
- * countermeasures. This feature should be disabled on platforms without cache.
- */
-# define FLEA_SCCM_USE_CACHEWARMING_IN_TA_CM
-
+/**@{*/
 # if defined FLEA_HAVE_RSA && defined FLEA_HAVE_HMAC
 
 /**
@@ -447,15 +503,10 @@
 # endif // ifdef FLEA_HAVE_TLS_CS_RSA
 
 /**
- * Maximal byte length of an issuerDN in an X.509 certificate. Take effect only
- * in stack mode.
- */
-# define FLEA_STKMD_X509_MAX_ISSUER_DN_RAW_BYTE_LEN 256
-
-/**
  * Length of the session IDs that are used by the fleaTLS server.
  */
 # define FLEA_TLS_SESSION_ID_LEN 16 // FBFLAGS__INT_LIST 1 2 16 31 32
+
 
 /**
  * Maximal number of sessions held be the server session manager (flea_tls_session_mngr_t, session cache).
@@ -477,12 +528,13 @@
 # define FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 /**
- *  Record payload size supported by fleaTLS on the TLS record level.  18432
+ *  Record payload size supported by fleaTLS on the TLS record level for received records.  18432
  *  bytes is the record payload size mandated by the TLS standard.  Smaller
  *  sizes may only be set if the implementation is used in an application
- *  context for which it is known that only smaller sized records are sent.
+ *  context for which it is known that only smaller sized records are received
+ *  by fleaTLS.
  */
-# define FLEA_TLS_MAX_RECORD_SIZE (18432)
+# define FLEA_TLS_MAX_RECORD_SIZE 18432
 
 /**
  * TLS send buffer size. This buffer used for sending data and determines the
@@ -506,8 +558,41 @@
  */
 # define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 40
 
+/* end tls_cfg*/
+/**@}*/
 
-/**************** begin multithreading ******************/
+/**
+ * \defgroup arch_opt Architectural optimizations
+ */
+/**@{*/
+
+/**
+ * Control the bit width of flea_dtl_t, the type for the lengths of data processed by fleaTLS in various functions. The effect is that
+ * flea_dtl_t, the type that represents data lengths in various API function
+ * signatures, is defined with a width of 32 bit if the flag is set and with a width of 16 bit if deactivated.
+ * Deactivate this switch in order to generate smaller and faster code on 16
+ * bit architectures. Deactivating it also reduces the RAM size of some types
+ * considerable.
+ */
+# define FLEA_HAVE_DTL_32BIT // FBFLAGS_DTL_32_BIT_ON_OFF
+
+
+/**
+ * Enabling this flag causes the choice of code optimized for big endian platforms in some places.
+ * In any case, the generated code remains valid independently of the platform's
+ * endianess, but may be non-optimal with regard to size and/or speed.
+ */
+# define FLEA_HAVE_BE_ARCH_OPT // FBFLAGS_ARCH_OPT_ON_OFF
+
+/* end arch_opt */
+/**@}*/
+
+
+/**
+ * \defgroup mt_cfg Multithreading support
+ *
+ */
+/**@{*/
 
 /**
  * Control if fleaTLS supports concurrency for its global RNG and the TLS server. Remove the
@@ -516,8 +601,9 @@
 # define FLEA_HAVE_MUTEX
 
 /**
- * Include the mutex header. Remove this line if no mutex support is required.
+ * Include the mutex header. Remove include directive in the build_config_gen.h file if no mutex support is required. The define is just a dummy for proper generation of this documentation.
  */
+# define FLEA_MUTEX_HEADER_INCL
 # include <pthread.h>
 
 /**
@@ -526,10 +612,13 @@
  */
 # define FLEA_MUTEX_TYPE pthread_mutex_t
 
-/**************** end multithreading ******************/
+/* end mt_cfg */
+/**@}*/
 
 /* include must remain at the very end: */
 # include "internal/common/build_config_util.h"
 
+/* end build_cfg */
+/**@}*/
 
 #endif /* h-guard */

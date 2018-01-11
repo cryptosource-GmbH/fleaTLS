@@ -16,7 +16,7 @@ extern "C" {
 #ifdef FLEA_HAVE_AE
 
 /**
- * Available AE modes.
+ * Available Authenticate Encryption modes.
  */
 typedef enum
 {
@@ -30,7 +30,7 @@ typedef enum
 
 
 /**
- * AE context object.
+ * Authenticated Encryption context object.
  */
 typedef struct
 {

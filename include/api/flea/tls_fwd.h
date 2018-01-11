@@ -12,7 +12,9 @@ struct struct_flea_tls_client_ctx_t;
 
 /**
  * \struct flea_tls_client_ctx_t
- * fleaTLS TLS client context object.
+ *
+ * TLS client context type the functions of which are defined in
+ * tls_client.h
  */
 typedef struct struct_flea_tls_client_ctx_t flea_tls_client_ctx_t;
 
@@ -20,7 +22,9 @@ struct struct_flea_tls_server_ctx_t;
 
 /**
  * \struct flea_tls_server_ctx_t
- * fleaTLS TLS server context object.
+ *
+ * TLS server context type the functions of which are defined in
+ * tls_server.h
  */
 typedef struct struct_flea_tls_server_ctx_t flea_tls_server_ctx_t;
 

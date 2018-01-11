@@ -26,14 +26,8 @@ extern "C" {
   } while(0)
 
 
-typedef struct
-{
-  flea_u8_t* data__pcu8;
-  flea_dtl_t len__dtl;
-} flea_ref_u8_t;
-
 /**
- * Type which references to constant strings of u8 in memory.
+ * Type which represents a reference to strings of const u8 in memory.
  */
 typedef struct
 {
@@ -42,20 +36,13 @@ typedef struct
 } flea_ref_cu8_t;
 
 /**
- * Type which references to strings of u8 in memory.
+ * Type which represents a reference to strings of const u16 in memory.
  */
-
 typedef struct
 {
   const flea_u16_t* data__pcu16;
   flea_dtl_t        len__dtl;
 } flea_ref_cu16_t;
-
-typedef struct
-{
-  flea_u16_t* data__pu16;
-  flea_dtl_t  len__dtl;
-} flea_ref_u16_t;
 
 /**
  * Overwrite potentially sensitive data. The function is implemented in such way

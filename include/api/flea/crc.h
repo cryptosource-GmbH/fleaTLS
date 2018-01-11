@@ -12,7 +12,7 @@ extern "C" {
 /**
  * Compute the CRC16 (CCIT) checksum of the given data.
  *
- * @param crc_init CRC start value (normally = 0, or an intermediate CRC32
+ * @param crc_init CRC start value (normally = 0, or an intermediate CRC16
  * result)
  * @param data pointer to the data to compute the checksum of
  * @param data_len length of data

@@ -9,6 +9,9 @@
 extern "C" {
 #endif
 
+/**
+ * Helper type for memory-based flea_rw_stream_t type.
+ */
 typedef struct
 {
   const flea_u8_t* data__pcu8;

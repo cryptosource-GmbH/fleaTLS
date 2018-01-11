@@ -8,8 +8,16 @@
 extern "C" {
 #endif
 
+/**
+ * Forward declaration
+ */
 struct struct_flea_hash_ctx_t;
 
+/**
+ * \struct flea_hash_ctx_t
+ *
+ * Hash context type the functions of which defined in hash.h
+ */
 typedef struct struct_flea_hash_ctx_t flea_hash_ctx_t;
 
 #ifdef __cplusplus

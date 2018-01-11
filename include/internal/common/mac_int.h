@@ -37,6 +37,21 @@ struct mac_config_entry_struct;
 
 typedef struct mac_config_entry_struct mac_config_entry_t;
 
+
+/**
+ * MAC context type
+ */
+struct struct_flea_mac_ctx_t
+{
+  flea_u8_t          output_len__u8;
+  flea_mac_mode_id_t mode_id__t;
+  union
+  {
+    flea_mac_ctx_hmac_specific_t hmac_specific__t;
+    flea_mac_ctx_cmac_specific_t cmac_specific__t;
+  } primitive_specific_ctx__u;
+};
+
 void flea_mac_ctx_t__dtor_cipher_ctx_ref(flea_mac_ctx_t* ctx__pt);
 
 void flea_mac_ctx_t__reset_cmac(flea_mac_ctx_t* ctx__pt);

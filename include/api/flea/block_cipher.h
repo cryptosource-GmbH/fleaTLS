@@ -14,58 +14,6 @@ extern "C" {
 
 #define FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH 16
 
-/**
- * General cipher prossing direction.
- */
-typedef enum { flea_encrypt, flea_decrypt } flea_cipher_dir_e;
-
-
-/**
- * Block cipher context type.
- */
-struct struct_flea_ecb_mode_ctx_t
-{
-  const flea_block_cipher_config_entry_t* config__pt;
-  flea_u8_t                               key_byte_size__u8;
-  flea_u8_t                               block_length__u8;
-  flea_u8_t                               nb_rounds__u8;
-  flea_cipher_dir_e                       dir__t;
-#ifdef FLEA_HEAP_MODE
-  flea_u32_t*                             expanded_key__bu8;
-#elif defined FLEA_STACK_MODE
-  flea_u32_t                              expanded_key__bu8 [FLEA_BLOCK_CIPHER_MAX_EXPANDED_KEY_U32_SIZE];
-#else
-# error MUST DEFINE HEAP OR STACK USAGE FOR FLEA
-#endif // ifdef FLEA_HEAP_MODE
-  flea_cipher_block_processing_f block_crypt_f;
-};
-
-
-typedef struct
-{
-#ifdef FLEA_HEAP_MODE
-  flea_u8_t*                              ctr_block__bu8;
-  flea_u8_t*                              pending_mask__bu8;
-#else
-  flea_u8_t                               ctr_block__bu8 [FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
-  flea_u8_t                               pending_mask__bu8[FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
-#endif // ifdef FLEA_HEAP_MODE
-  flea_al_u8_t                            pending_offset__alu8;
-  flea_al_u8_t                            ctr_len__alu8;
-  const flea_block_cipher_config_entry_t* config__pt;
-  flea_ecb_mode_ctx_t                     cipher_ctx__t;
-} flea_ctr_mode_ctx_t;
-
-typedef struct
-{
-#ifdef FLEA_HEAP_MODE
-  flea_u8_t*          iv__bu8;
-#else
-  flea_u8_t           iv__bu8[FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
-#endif
-  flea_ecb_mode_ctx_t cipher_ctx__t;
-} flea_cbc_mode_ctx_t;
-
 
 #ifdef FLEA_HEAP_MODE
 # define flea_ecb_mode_ctx_t__INIT(__p) do {(__p)->expanded_key__bu8 = NULL; (__p)->config__pt = NULL;} while(0)

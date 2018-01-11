@@ -13,6 +13,9 @@
 extern "C" {
 #endif
 
+
+#define FLEA_PK_ID_OFFS_PRIMITIVE 4
+
 typedef struct
 {
   flea_ref_cu8_t mod__rcu8;
@@ -25,6 +28,7 @@ typedef struct
   flea_u8_t*     exp_mem__bu8;
 #endif // ifdef FLEA_STACK_MODE
 } flea_rsa_pubkey_val_t;
+
 
 #ifdef FLEA_HAVE_RSA
 flea_err_e THR_get_hash_id_from_x509_id_for_rsa(
@@ -62,6 +66,16 @@ typedef struct
   flea_u8_t*            pub_point__mem__bu8;
 # endif // ifdef FLEA_STACK_MODE
 } flea_ec_pubkey_val_t;
+
+typedef union
+{
+# ifdef FLEA_HAVE_RSA
+  flea_rsa_pubkey_val_t rsa_public_val__t;
+# endif
+# ifdef FLEA_HAVE_ECC
+  flea_ec_pubkey_val_t  ec_public_val__t;
+# endif
+} flea_public_key_val_with_params_u;
 
 flea_err_e THR_get_hash_id_from_x509_id_for_ecdsa(
   const flea_u8_t cert_id__pcu8[2],

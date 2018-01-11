@@ -5,6 +5,13 @@
 #include "flea/asn1_date.h"
 #include "flea/mutex.h"
 
+/**
+ * @file lib.h
+ *
+ * This header file specifies the function for initialization function
+ * THR_flea_lib__init() that has to be called prior to using any functionality
+ * of fleaTLS.
+ */
 #ifndef _flea_lib__H_
 # define _flea_lib__H_
 

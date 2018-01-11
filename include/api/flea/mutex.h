@@ -1,11 +1,21 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
+/**
+ * @file mutex.h
+ *
+ * This header file specifies the generic mutex support of fleaTLS.
+ */
 #ifndef _flea_mutex__H_
 #define _flea_mutex__H_
 #include "internal/common/default.h"
 
 #ifdef FLEA_HAVE_MUTEX
 
+/**
+ * Generic mutex type of fleaTLS. In the shipped configuration, pthread mutexes
+ * are preconfigured. Concurrency support can be enabled, disabled and
+ * configured in build_config_gen.h.
+ */
 typedef FLEA_MUTEX_TYPE flea_mutex_t;
 
 /**
