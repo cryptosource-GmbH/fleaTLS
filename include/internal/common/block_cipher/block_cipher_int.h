@@ -6,6 +6,7 @@
 #include "flea/error.h"
 #include "flea/block_cipher_fwd.h"
 
+#define FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH          16
 
 #define FLEA_BLOCK_CIPHER_MAX_EXPANDED_KEY_U32_SIZE __FLEA_COMPUTED_BLOCK_CIPHER_MAX_EXPANDED_KEY_U32_SIZE
 

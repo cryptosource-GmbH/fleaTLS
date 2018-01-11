@@ -23,7 +23,7 @@ endif
 DBG_CFLAGS += -g3
 REL_CFLAGS += -Os -finline-functions -fomit-frame-pointer 
 
-INCLUDES = -Iinclude -Iinclude/api -Itest/include -I./build_cfg/lpc1768 -I./build_cfg/pltf_spec/32bit_default 
+INCLUDES = -Iinclude -Iinclude/api -Itest/include -I./build_cfg/lpc1768_full_featured -I./build_cfg/pltf_spec/32bit_default 
 
 vpath %.c src/common/asn1 src/common/streams src/common src/common/hash src/common/math src/common/pk_enc src/user src/common/tls pltf_support/workaround_lpc/src
 

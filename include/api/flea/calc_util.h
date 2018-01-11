@@ -13,17 +13,17 @@
 /**
  * Determine the maximum of three values
  */
-#define FLEA_MAX3(a, b, c) FLEA_MAX(a, FLEA_MAX(b, c))
+#define FLEA_MAX3(a, b, c) FLEA_MAX((a), FLEA_MAX((b), (c)))
 
 /**
  * Determine the maximum of four values
  */
-#define FLEA_MAX4(a, b, c, d) FLEA_MAX(FLEA_MAX(a, b), FLEA_MAX(c, d))
+#define FLEA_MAX4(a, b, c, d) FLEA_MAX(FLEA_MAX((a), (b)), FLEA_MAX((c), (d)))
 
 /**
  * Determine the maximum of five values
  */
-#define FLEA_MAX5(a, b, c, d, e) FLEA_MAX(FLEA_MAX(a, b), FLEA_MAX3(c, d, e))
+#define FLEA_MAX5(a, b, c, d, e) FLEA_MAX(FLEA_MAX((a), (b)), FLEA_MAX3((c), (d), (e)))
 
 /**
  * Determine the minimum of two values
@@ -33,12 +33,12 @@
 /**
  * Determine the minimum of three values
  */
-#define FLEA_MIN3(a, b, c) FLEA_MIN(a, FLEA_MIN(b, c))
+#define FLEA_MIN3(a, b, c) FLEA_MIN((a), FLEA_MIN((b), (c)))
 
 /**
  * Determine the minimum of four values
  */
-#define FLEA_MIN4(a, b, c, d) FLEA_MIN(FLEA_MIN(a, b), FLEA_MIN(c, d))
+#define FLEA_MIN4(a, b, c, d) FLEA_MIN(FLEA_MIN((a), (b)), FLEA_MIN((c), (d)))
 
 /**
  * Determine the word length of a string from the bit length, rounded up to full

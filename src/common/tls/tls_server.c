@@ -76,8 +76,14 @@ static flea_err_e THR_flea_tls__read_client_hello(
     )
   );
 
-  if(client_version_major_minor__au8[0] != tls_ctx->version.major ||
-    client_version_major_minor__au8[1] != tls_ctx->version.minor)
+  /**
+   * if server receives higher version number than it support
+   *  -> it must reply with highest version it supports
+   * if server supports only version higher than the one received from the
+   * client, it must abort.
+   */
+  if(client_version_major_minor__au8[0] < tls_ctx->version.major ||
+    client_version_major_minor__au8[1] < tls_ctx->version.minor)
   {
     FLEA_THROW("Version mismatch!", FLEA_ERR_TLS_UNSUPP_PROT_VERSION);
   }
