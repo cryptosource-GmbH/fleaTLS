@@ -723,14 +723,14 @@ flea_err_e THR_flea_tls__cert_path_validation(
   flea_rw_stream_t mem_rd_strm__t = flea_rw_stream_t__INIT_VALUE;
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sn_buffer__t, FLEA_X509_MAX_SERIALNUMBER_LEN);
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(previous_crldp__t, FLEA_X509_STCKMD_MAX_CRLDP_LEN);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(previous_crldp__t, FLEA_STKMD_X509_MAX_CRLDP_LEN);
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(
     cycling_signature__t,
     FLEA_ASYM_MAX_ENCODED_SIG_LEN + 10
   );
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(cycling_tbs_hash__t, FLEA_MAX_HASH_OUT_LEN);
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(cycling_issuer_dn, FLEA_X509_MAX_ISSUER_DN_RAW_BYTE_LEN);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(cycling_issuer_dn, FLEA_STKMD_X509_MAX_ISSUER_DN_RAW_BYTE_LEN);
   flea_hash_id_e cycling_hash_id;
   flea_public_key_t* pubkey_ptr__pt = pubkey_to_construct__pt;
   const flea_ref_cu8_t* trusted__prcu8;
