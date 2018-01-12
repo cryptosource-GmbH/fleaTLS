@@ -4,6 +4,7 @@
 #ifndef __flea_byte_vec_H_
 #define __flea_byte_vec_H_
 
+#include "internal/common/default.h"
 #include "flea/error.h"
 #include "flea/types.h"
 #include "flea/util.h"
