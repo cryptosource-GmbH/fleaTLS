@@ -49,6 +49,8 @@ IF(${afl} STREQUAL "true")
   SET(CMAKE_CXX_COMPILER afl-g++)
 ENDIF()
 
+SET(build_cfg "general" CACHE STRING "which build_cfg to use")
+
 #SET(mudflap "false" CACHE STRING "wether to compile in mudflap for gcc")
 #IF(${mudflap} STREQUAL "true")
 #	ADD_DEFINITIONS(-fmudflap )
@@ -104,7 +106,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 
 # Directories
-SET(INCLUDE_DIR include include/api test/include build_cfg/general
+SET(INCLUDE_DIR include include/api test/include build_cfg/${build_cfg}
   build_cfg/pltf_spec/32bit_default )
 
 SET(SRC_DIR src )
