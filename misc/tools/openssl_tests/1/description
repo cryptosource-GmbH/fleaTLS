@@ -5,8 +5,8 @@ Konfiguriere 1024 als max. Zertifikatsgröße und teste was bei flea Client pass
 
 	Stack-Mode:	
 		Erwartet: HS Abbruch, Client fängt das ab und beendet HS kontrolliert mit alert
-		Ergebnis: 
+		Ergebnis: Client wirft 0x0C (FLEA_ERR_INV_KEY_SIZE)
 
 	Heap-Mode:	
 		Erwartet: HS Abbruch, Client fängt das ab und beendet HS kontrolliert mit alert
-		Ergebnis: 
+		Ergebnis: Client wirft 0x0C (FLEA_ERR_INV_KEY_SIZE) 
