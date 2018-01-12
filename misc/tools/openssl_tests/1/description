@@ -1,0 +1,12 @@
+Konfiguriere 1024 als max. Zertifikatsgröße und teste was bei flea Client passiert, wenn OpenSSL ein 2048 Bit Zertifikat schickt
+	
+	build_config_gen.h:
+		# define FLEA_RSA_MAX_KEY_BIT_SIZE 1024
+
+	Stack-Mode:	
+		Erwartet: HS Abbruch, Client fängt das ab und beendet HS kontrolliert mit alert
+		Ergebnis: 
+
+	Heap-Mode:	
+		Erwartet: HS Abbruch, Client fängt das ab und beendet HS kontrolliert mit alert
+		Ergebnis: 
