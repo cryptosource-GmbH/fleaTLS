@@ -161,7 +161,6 @@ flea_err_e THR_flea_md5_compression_function(
   flea_u32_t abcd[4];
 # endif /* ifdef FLEA_USE_MD5_LOOP_UNROLL */
 
-  FLEA_THR_BEG_FUNC();
 
   ptr   = (const flea_u8_t*) input;
   state = (flea_u32_t*) ctx__pt->hash_state;
@@ -284,7 +283,7 @@ flea_err_e THR_flea_md5_compression_function(
 # endif /* ifndef FLEA_USE_MD5_LOOP_UNROLL */
 
 
-  FLEA_THR_FIN_SEC_empty();
+  return FLEA_ERR_FINE;
 } /* THR_flea_md5_compression_function */
 
 void flea_md5_init(flea_hash_ctx_t* ctx__pt)
