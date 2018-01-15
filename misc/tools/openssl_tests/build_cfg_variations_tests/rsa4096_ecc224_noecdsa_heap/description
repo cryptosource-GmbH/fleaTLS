@@ -6,3 +6,5 @@ Auszuführende Schritte:
 		=> build_cfg = rsa4096_ecc224_noecdsa_heap
 	make
 	./run_server.sh und ./run_client.sh
+
+Anmerkung: Client sendet zum jetzigen Zeitpunkt alle Kurven mit, sofern man es nicht mit allowed_curves einschränkt. Dann bricht flea mit einem Internal Error ab, wenn diese nicht konfiguriert sind (>224 in dem Fall)
