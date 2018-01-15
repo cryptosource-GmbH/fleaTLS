@@ -87,28 +87,31 @@ flea_err_e THR_flea_cert_store_t__add_untrusted_cert(
   flea_al_u16_t      der_enc_cert_len
 );
 
+/**
+ * Determine whether the certificate at a given index within the store is
+ * trusted.
+ *
+ * @param cert_store the certificate store object
+ * @param pos the index of the certificate in question
+ *
+ * @return FLEA_TRUE if the certificate at the given position is
+ * trusted, FLEA_FALSE otherwise
+ */
 flea_bool_t flea_cert_store_t__is_cert_trusted(
   const flea_cert_store_t* cert_store,
   flea_al_u16_t            pos
 );
 
 /**
- * Find out whether a certain certificate is contained in a cert store as a trusted certificate.
+ * Get a pointer to a trusted cert.
  *
- * @param cert_store the cert store object to use
- * @param cert_to_check the DER encoded certificate to check for
- * @param cert_to_check_len the length of cert_to_check
- * @param result_is_trusted receives the result: set to FLEA_TRUE if the
- * sought certificate is trusted, set to FLEA_FALSE otherwise
+ * @param cert_store the certificate store object
+ * @param pos the index of the cert in to get a pointer to
+ *
+ * @return the pointer to the indexed certificate if it is within
+ * the range of available certifiates and the certificate is trusted; otherwise
+ * NULL is returned.
  */
-flea_err_e THR_flea_cert_store_t__is_cert_trusted(
-  const flea_cert_store_t* cert_store,
-  const flea_u8_t*         cert_to_check,
-  flea_al_u16_t            cert_to_check_len,
-  flea_bool_t*             result_is_trusted
-);
-
-
 const flea_u8_t* flea_cert_store_t__get_ptr_to_trusted_enc_cert(
   flea_cert_store_t* cert_store,
   flea_al_u16_t      pos
