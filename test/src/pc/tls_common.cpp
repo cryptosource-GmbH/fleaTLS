@@ -92,10 +92,9 @@ std::map<string, flea_u8_t> hash_algs_map__t = {
 namespace {
   std::vector<flea_ec_dom_par_id_e> get_allowed_ecc_curves_from_cmdl(property_set_t const& cmdl_args)
   {
-    flea_u8_t dummy[2];
-
     std::vector<flea_ec_dom_par_id_e> result;
 # ifdef FLEA_HAVE_TLS_CS_ECC
+    flea_u8_t dummy[2];
     if(cmdl_args.have_index("allowed_curves"))
     {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("allowed_curves"), ',');

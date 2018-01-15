@@ -13,8 +13,8 @@
 #include <string.h>
 #include "test_data_pkcs8.h"
 
-#if defined FLEA_HAVE_ASYM_SIG && defined FLEA_HAVE_SHA1
 
+#if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048
 static flea_err_e THR_flea_test_pkcs8_inner_sign_digest(
   const flea_u8_t*    pkcs8__pcu8,
   flea_al_u16_t       pkcs8_len__alu16,
@@ -56,6 +56,10 @@ static flea_err_e THR_flea_test_pkcs8_inner_sign_digest(
     flea_public_key_t__dtor(&pubkey__t);
   );
 } /* THR_flea_test_pkcs8_inner */
+
+#endif /* if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048 */
+
+#if defined FLEA_HAVE_ASYM_SIG && defined FLEA_HAVE_SHA1
 
 static flea_err_e THR_flea_test_pkcs8_inner(
   const flea_u8_t*    pkcs8__pcu8,
