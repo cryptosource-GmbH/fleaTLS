@@ -101,7 +101,6 @@ namespace {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("allowed_curves"), ',');
       for(string s : strings)
       {
-        // const flea_ec_dom_par_id_e* ptr;
         auto it = curve_id_name_value_map__t.find(s);
         if(it == curve_id_name_value_map__t.end() ||
           THR_flea_tls__map_flea_curve_to_curve_bytes((flea_ec_dom_par_id_e) it->second, dummy))
@@ -116,10 +115,8 @@ namespace {
       for(auto & entry : curve_id_name_value_map__t)
       {
         flea_ec_dom_par_id_e id = entry.second;
-        // const flea_tls__cipher_suite_t* ptr;
         if(!THR_flea_tls__map_flea_curve_to_curve_bytes((flea_ec_dom_par_id_e) id, dummy))
         {
-          // std::cout << "adding curve " << entry.first << std::endl;
           result.push_back(id);
         }
       }

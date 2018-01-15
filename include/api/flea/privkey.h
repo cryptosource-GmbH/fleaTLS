@@ -54,6 +54,8 @@ typedef struct
  */
 void flea_private_key_t__dtor(flea_private_key_t* privkey);
 
+# ifdef FLEA_HAVE_RSA
+
 /**
  * Create an RSA private key fromt the flea RSA private key internal format.
  *
@@ -103,6 +105,9 @@ flea_err_e THR_flea_private_key_t__ctor_rsa_components(
   const flea_u8_t*    c,
   flea_al_u16_t       c_len
 );
+# endif // ifdef FLEA_HAVE_RSA
+
+# ifdef FLEA_HAVE_ECC
 
 /**
  * Create an ECC public key from the compontents.
@@ -123,6 +128,7 @@ flea_err_e THR_flea_private_key_t__ctor_ecc(
   const flea_byte_vec_t*       scalar,
   const flea_ec_dom_par_ref_t* dp_ref
 );
+# endif // ifdef FLEA_HAVE_ECC
 
 /**
  * Create a signature using a private key. In case of ECDSA, the

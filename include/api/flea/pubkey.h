@@ -181,6 +181,8 @@ flea_err_e THR_flea_public_key_t__ctor_cert(
   const flea_x509_cert_ref_t* cert_ref
 );
 
+# ifdef FLEA_HAVE_RSA
+
 /**
  * Create an RSA public key from the modulus and the public exponent.
  *
@@ -195,6 +197,9 @@ flea_err_e THR_flea_public_key_t__ctor_rsa(
   const flea_ref_cu8_t* mod,
   const flea_ref_cu8_t* pub_exp
 );
+# endif // ifdef FLEA_HAVE_RSA
+
+# ifdef FLEA_HAVE_ECC
 
 /**
  * Create an ECC public key from the public point and the domain parameters.
@@ -210,7 +215,7 @@ flea_err_e THR_flea_public_key_t__ctor_ecc(
   const flea_byte_vec_t*       public_key_value,
   const flea_ec_dom_par_ref_t* dp
 );
-
+# endif // ifdef FLEA_HAVE_ECC
 
 /**
  * Verify a signature using a public key. In case of ECDSA, an ASN.1/DER encoded

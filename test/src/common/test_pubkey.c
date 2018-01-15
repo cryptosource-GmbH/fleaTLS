@@ -13,7 +13,7 @@
 #include <string.h>
 #include "test_data_pkcs8.h"
 
-#ifdef FLEA_HAVE_ASYM_ALGS
+#ifdef FLEA_HAVE_ECKA
 static flea_err_e THR_flea_test_pub_priv_key_init_dtor()
 {
   flea_private_key_t priv1__t = flea_private_key_t__INIT_VALUE;
@@ -204,4 +204,4 @@ flea_err_e THR_flea_test_ecc_key_plain_format_encoding()
   FLEA_THR_FIN_SEC_empty();
 }
 
-#endif /* ifdef FLEA_HAVE_ASYM_ALGS */
+#endif /* ifdef FLEA_HAVE_ECKA */

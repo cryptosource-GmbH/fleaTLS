@@ -10,6 +10,8 @@
 extern "C" {
 #endif
 
+#define FLEA_COMMA ,
+
 #define FLEA_SWAP(__type, __a, __b) \
   do \
   { \

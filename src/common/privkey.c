@@ -383,6 +383,7 @@ flea_err_e THR_flea_private_key_t__get_encoded_plain(
   {
     FLEA_THROW("invalid key type for plain encoding", FLEA_ERR_INV_KEY_TYPE);
   }
+# ifdef FLEA_HAVE_ECC
   FLEA_CCALL(
     THR_flea_byte_vec_t__set_content(
       result__pt,
@@ -390,6 +391,9 @@ flea_err_e THR_flea_private_key_t__get_encoded_plain(
       privkey__cpt->privkey_with_params__u.ec_priv_key_val__t.scalar__rcu8.len__dtl
     )
   );
+# else  /* ifdef FLEA_HAVE_ECC */
+  FLEA_THROW("invalid key type for plain encoding", FLEA_ERR_INV_KEY_TYPE);
+# endif /* ifdef FLEA_HAVE_ECC */
 
   FLEA_THR_FIN_SEC_empty();
 }

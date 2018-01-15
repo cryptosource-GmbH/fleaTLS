@@ -14,10 +14,12 @@
 extern "C" {
 #endif
 
+#ifdef FLEA_HAVE_ECC
 flea_err_e THR_flea_x509_parse_ecc_public_params(
   const flea_byte_vec_t* encoded_parameters__pt,
   flea_ec_dom_par_ref_t* dom_par__pt
 );
+#endif // ifdef FLEA_HAVE_ECC
 
 flea_err_e THR_flea_x509_get_hash_id_and_key_type_from_oid(
   const flea_u8_t*    oid__pcu8,

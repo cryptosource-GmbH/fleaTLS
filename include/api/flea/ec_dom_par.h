@@ -7,31 +7,11 @@
 #include "flea/types.h"
 #include "flea/util.h"
 
-#ifdef FLEA_HAVE_ECC
 
-# ifdef __cplusplus
+#ifdef __cplusplus
 extern "C" {
-# endif
+#endif
 
-/**
- * ECC domain parameters reference type. The object does only reference the
- * data for the domain parameter components stored in external buffers.
- */
-typedef struct
-{
-  flea_ref_cu8_t p__ru8;
-  flea_ref_cu8_t a__ru8;
-  flea_ref_cu8_t b__ru8;
-  flea_ref_cu8_t gx__ru8;
-  flea_ref_cu8_t gy__ru8;
-  flea_ref_cu8_t n__ru8;
-  flea_ref_cu8_t h__ru8;
-} flea_ec_dom_par_ref_t;
-
-
-/**
- * The domain parameters predefined in flea.
- */
 typedef enum
 {
   flea_brainpoolP160r1 = 1,
@@ -71,6 +51,28 @@ typedef enum
   flea_secp521r1
 } flea_ec_dom_par_id_e;
 
+#ifdef FLEA_HAVE_ECC
+
+/**
+ * ECC domain parameters reference type. The object does only reference the
+ * data for the domain parameter components stored in external buffers.
+ */
+typedef struct
+{
+  flea_ref_cu8_t p__ru8;
+  flea_ref_cu8_t a__ru8;
+  flea_ref_cu8_t b__ru8;
+  flea_ref_cu8_t gx__ru8;
+  flea_ref_cu8_t gy__ru8;
+  flea_ref_cu8_t n__ru8;
+  flea_ref_cu8_t h__ru8;
+} flea_ec_dom_par_ref_t;
+
+
+/**
+ * The domain parameters predefined in flea.
+ */
+
 
 /**
  * Set a domain parameter reference to one of the builtin domain parameter
@@ -86,12 +88,11 @@ flea_err_e THR_flea_ec_dom_par_ref_t__set_by_builtin_id(
   flea_ec_dom_par_id_e   id
 );
 
-
-# ifdef __cplusplus
-}
-# endif
-
-
 #endif /* #ifdef FLEA_HAVE_ECC */
+
+#ifdef __cplusplus
+}
+#endif
+
 
 #endif /* h-guard */

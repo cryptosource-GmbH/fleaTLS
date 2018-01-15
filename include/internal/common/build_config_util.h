@@ -30,6 +30,13 @@
 # define FLEA_HAVE_ECC
 #endif
 
+#if defined FLEA_HAVE_ECC
+# define FLEA_DO_IF_HAVE_ECC(x) x
+#else
+# define FLEA_DO_IF_HAVE_ECC(x)
+#endif
+
+
 #ifdef FLEA_HAVE_RSA
 # define FLEA_HAVE_PK_CS
 #endif
