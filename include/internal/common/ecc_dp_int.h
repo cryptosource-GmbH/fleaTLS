@@ -3,11 +3,14 @@
 #ifndef _flea_ecc_dp_int__H_
 #define _flea_ecc_dp_int__H_
 
+#include "internal/common/default.h"
 #include "flea/ec_dom_par.h"
 
-#ifdef __cplusplus
+#ifdef FLEA_HAVE_ECC
+
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 extern const flea_ec_dom_par_id_e flea_gl_ec_dom_par_max_id;
 
@@ -66,7 +69,9 @@ flea_err_e THR_flea_ec_dom_par_ref_t__write_to_concat_array(
 
 const flea_u8_t* flea_ec_dom_par__get_predefined_dp_ptr(flea_ec_dom_par_id_e dp_id);
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
+
+#endif // ifdef FLEA_HAVE_ECC
 #endif /* h-guard */

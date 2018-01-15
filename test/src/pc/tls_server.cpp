@@ -597,6 +597,7 @@ int flea_start_https_server(property_set_t const& cmdl_args)
       FLEA_PRINTF_TEST_OUTP_1_SWITCHED("tls test passed\n");
     }
   }
+  return 0;
 }
 
 # endif // ifdef FLEA_HAVE_TLS_SERVER

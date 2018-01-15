@@ -73,11 +73,18 @@ static flea_err_e THR_flea_test_pkcs1_v1_5_signature_reference()
 #if defined FLEA_HAVE_ECDSA || defined FLEA_HAVE_RSA
 static flea_err_e THR_flea_test_pk_signer_sign_verify_inner(
   flea_pk_scheme_id_e          scheme_id__t,
-  flea_hash_id_e               hash_id__t,
+  flea_hash_id_e hash_id__t
+# ifdef                        FLEA_HAVE_ECC
+  ,
   const flea_ec_dom_par_ref_t* param__pt
+# endif
 )
 {
+# ifdef FLEA_HAVE_ECC
   flea_al_u8_t is_ecdsa = param__pt != NULL;
+# else
+  flea_al_u8_t is_ecdsa = 0;
+# endif
 
   FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
   FLEA_DECL_OBJ(pubkey__t, flea_public_key_t);
@@ -209,13 +216,13 @@ flea_err_e THR_flea_test_pk_signer_sign_verify()
 #endif /* ifdef FLEA_HAVE_ECDSA */
 #ifdef FLEA_HAVE_RSA
 # if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048
-  flea_err_e err_code = THR_flea_test_pk_signer_sign_verify_inner(flea_rsa_pkcs1_v1_5_sign, flea_sha256, NULL);
+  flea_err_e err_code = THR_flea_test_pk_signer_sign_verify_inner(flea_rsa_pkcs1_v1_5_sign, flea_sha256 FLEA_DO_IF_HAVE_ECC(, NULL));
   if(err_code != FLEA_ERR_INV_KEY_SIZE && err_code != FLEA_ERR_BUFF_TOO_SMALL && err_code != FLEA_ERR_INV_KEY_COMP_SIZE)
   {
     FLEA_THROW("wrong return value for invalid key size", FLEA_ERR_FAILED_TEST);
   }
 # else  /* if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 */
-  FLEA_CCALL(THR_flea_test_pk_signer_sign_verify_inner(flea_rsa_pkcs1_v1_5_sign, flea_sha256, NULL));
+  FLEA_CCALL(THR_flea_test_pk_signer_sign_verify_inner(flea_rsa_pkcs1_v1_5_sign, flea_sha256 FLEA_DO_IF_HAVE_ECC(FLEA_COMMA NULL)));
 #  ifdef FLEA_HAVE_SHA384_512
   FLEA_CCALL(THR_flea_test_pkcs1_v1_5_signature_reference());
 #  endif
