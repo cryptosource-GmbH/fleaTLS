@@ -75,25 +75,37 @@ static flea_al_u16_t flea_pk_api__pkcs1_set_digest_info(
 )
 {
   flea_al_u16_t offset__alu16;
-  flea_al_u16_t len__alu16;
+  flea_al_u16_t len__alu16 = 0;
   const flea_u8_t* source__pu8;
 
+# ifdef FLEA_HAVE_MD5
   if(hash_id__t == flea_md5)
   {
     len__alu16  = sizeof(flea_pkcs1_digest_info__md5__acu8);
     source__pu8 = flea_pkcs1_digest_info__md5__acu8;
   }
+  else
+# endif /* ifdef FLEA_HAVE_MD5 */
 # ifdef FLEA_HAVE_SHA1
-  else if(hash_id__t == flea_sha1)
+  if(hash_id__t == flea_sha1)
   {
     len__alu16  = sizeof(flea_pkcs1_digest_info__sha1__acu8);
     source__pu8 = flea_pkcs1_digest_info__sha1__acu8;
   }
-# endif /* ifdef FLEA_HAVE_SHA1 */
   else
+# endif /* ifdef FLEA_HAVE_SHA1 */
+  if((hash_id__t == flea_sha224) || (hash_id__t == flea_sha256)
+# ifdef FLEA_HAVE_SHA384_512
+    || (hash_id__t == flea_sha384) || (hash_id__t == flea_sha512)
+# endif
+  )
   {
     len__alu16  = sizeof(flea_pkcs1_digest_info__sha224__acu8);
     source__pu8 = flea_pkcs1_digest_info__sha224__acu8;
+  }
+  if(len__alu16 == 0)
+  {
+    return 0;
   }
   offset__alu16       = target_buffer_len__alu16 - len__alu16;
   target_buffer__pu8 += offset__alu16;
@@ -443,6 +455,10 @@ static flea_err_e THR_flea_pk_api__encode_message__pkcs1_v1_5(
   if(second_byte_val__alu8 == 0x01)
   {
     tLen__alu16 = flea_pk_api__pkcs1_set_digest_info(input_output__pu8, rem_len__alu16, hash_id__t);
+    if(tLen__alu16 == 0)
+    {
+      FLEA_THROW("invalid hash algorithm in PKCS#1 v1.5 signature encoding", FLEA_ERR_INV_ALGORITHM);
+    }
   }
   else
 # endif // #ifdef FLEA_HAVE_ASYM_SIG
