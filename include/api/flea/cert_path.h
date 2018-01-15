@@ -46,6 +46,12 @@ typedef struct
 
 # define flea_cert_path_validator_t__INIT_VALUE {.cert_collection_size__u16 = 0}
 
+# ifdef FLEA_HEAP_MODE
+#  define flea_cert_path_validator_t__INIT(cpv) do {(cpv)->crl_collection__brcu8 = NULL; (cpv)->cert_collection__bt = NULL; (cpv)->chain__bu16 = NULL;} while(0)
+# else
+#  define flea_cert_path_validator_t__INIT(cpv)
+# endif
+
 void flea_cert_path_validator_t__dtor(flea_cert_path_validator_t* cpv);
 
 /**

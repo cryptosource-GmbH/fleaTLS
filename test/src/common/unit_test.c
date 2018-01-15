@@ -142,6 +142,8 @@ int flea_unit_tests(
 
       CALL_TEST(THR_flea_test_mem_read_stream());
 
+      CALL_TEST(THR_flea_test_rw_stream_init_dtor());
+
       CALL_TEST(THR_flea_test_ber_dec_basic());
       CALL_TEST(THR_flea_test_ber_dec_opt_and_ref_and_cpy());
 
@@ -166,6 +168,7 @@ int flea_unit_tests(
 #ifdef FLEA_HAVE_ECDSA
       CALL_TEST(THR_flea_test_cert_verify_ecdsa());
 #endif
+      CALL_TEST(THR_flea_test_cert_path_valid_init());
       CALL_TEST(THR_flea_test_gmt_time());
 
       CALL_TEST(THR_flea_test_asn1_date());

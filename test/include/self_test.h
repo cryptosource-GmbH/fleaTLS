@@ -152,6 +152,8 @@ flea_err_e THR_flea_test_crc16(void);
 
 flea_err_e THR_flea_test_mem_read_stream(void);
 
+flea_err_e THR_flea_test_rw_stream_init_dtor(void);
+
 flea_err_e THR_flea_test_ber_dec_basic(void);
 
 flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy(void);
@@ -186,6 +188,8 @@ flea_err_e THR_flea_test_tls_cert_chain(void);
 flea_err_e THR_flea_test_cert_chain_correct_chain_of_two(void);
 
 flea_err_e THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store(void);
+
+flea_err_e THR_flea_test_cert_path_valid_init(void);
 
 flea_err_e THR_flea_test_cert_path_generic(
   const flea_u8_t*      target_cert_ptr,

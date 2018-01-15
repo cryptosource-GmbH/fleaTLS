@@ -22,9 +22,6 @@ struct struct_flea_tls_session_data_server_t;
 typedef struct struct_flea_tls_session_data_server_t flea_tls_session_data_server_t;
 
 struct struct_flea_tls_session_mngr_t;
-
-typedef struct struct_flea_tls_session_mngr_t flea_tls_session_mngr_t;
-
 #ifdef __cplusplus
 }
 #endif

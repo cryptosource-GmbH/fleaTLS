@@ -286,6 +286,24 @@ const flea_u8_t tls_cert_chain__acu8 [] = {
   0xbc, 0xdc, 0x87, 0x9b, 0xd1, 0xa6, 0xef, 0xf1, 0x3b, 0x6f, 0x10, 0x38, 0x6f
 };
 
+flea_err_e THR_flea_test_cert_path_valid_init()
+{
+  FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
+  FLEA_DECL_OBJ(cert_store__t, flea_cert_store_t);
+  flea_cert_path_validator_t cert_chain2__t;
+  flea_cert_store_t cert_store2__t;
+  FLEA_THR_BEG_FUNC();
+  flea_cert_path_validator_t__INIT(&cert_chain2__t);
+  flea_cert_store_t__INIT(&cert_store2__t);
+
+  FLEA_THR_FIN_SEC(
+    flea_cert_store_t__dtor(&cert_store__t);
+    flea_cert_store_t__dtor(&cert_store2__t);
+    flea_cert_path_validator_t__dtor(&cert_chain__t);
+    flea_cert_path_validator_t__dtor(&cert_chain2__t);
+  );
+}
+
 #ifdef FLEA_HAVE_RSA
 flea_err_e THR_flea_test_cert_chain_correct_chain_of_two()
 {

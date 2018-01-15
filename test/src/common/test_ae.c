@@ -5,6 +5,7 @@
 #include "flea/array_util.h"
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
+#include "flea/rng.h"
 #include "self_test.h"
 
 #ifdef FLEA_HAVE_AE
@@ -13,12 +14,14 @@
 static flea_err_e THR_flea_test_ae_init_dtor()
 {
   flea_ae_ctx_t ctx__t = flea_ae_ctx_t__INIT_VALUE;
+  flea_ae_ctx_t ctx2__t;
 
-  flea_ae_ctx_t__INIT(&ctx__t);
+  flea_ae_ctx_t__INIT(&ctx2__t);
   FLEA_THR_BEG_FUNC();
 
   FLEA_THR_FIN_SEC(
     flea_ae_ctx_t__dtor(&ctx__t);
+    flea_ae_ctx_t__dtor(&ctx2__t);
   );
 }
 
