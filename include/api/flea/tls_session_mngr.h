@@ -6,10 +6,12 @@
 #include "internal/common/default.h"
 #include "flea/types.h"
 #include "internal/common/tls/tls_session_int_fwd.h"
+#include "flea/tls_fwd.h"
 
 #ifdef __cplusplus
 extern "C" {
 #endif
+
 
 /**
  * Destroy a TLS session manager object. All tls_server_ctx_t objects that use this session manager instance must be

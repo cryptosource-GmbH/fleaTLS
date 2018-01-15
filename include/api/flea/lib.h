@@ -20,6 +20,21 @@ extern "C" {
 # endif
 
 /**
+ * fleaTLS major version number
+ */
+# define FLEA_VERSION_MAJOR 1
+
+/**
+ * fleaTLS minor version number
+ */
+# define FLEA_VERSION_MINOR 1
+
+/**
+ * fleaTLS path version number
+ */
+# define FLEA_VERSION_PATCH 0
+
+/**
  * Function type for a function supplied by client code to be called by the fleaTLS to determine the
  * current date in terms of year[actual year A.D. without any offset] , month[1...12], day[1...31], hour[0...23], minute[0...59], second[0...59]. This
  * function must be reentrant.

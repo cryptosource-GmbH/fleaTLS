@@ -9,6 +9,19 @@
 #include "flea/mem_read_stream.h"
 #include "self_test.h"
 
+flea_err_e THR_flea_test_rw_stream_init_dtor()
+{
+  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
+  flea_rw_stream_t source2__t;
+  FLEA_THR_BEG_FUNC();
+  flea_rw_stream_t__INIT(&source2__t);
+
+  FLEA_THR_FIN_SEC(
+    flea_rw_stream_t__dtor(&source__t);
+    flea_rw_stream_t__dtor(&source2__t);
+  );
+}
+
 flea_err_e THR_flea_test_mem_read_stream()
 {
   const flea_u8_t source_mem__au8[64] = {

@@ -47,11 +47,11 @@ void flea_byte_vec_t__ctor_empty_use_ext_buf(
 void flea_byte_vec_t__dtor(flea_byte_vec_t* byte_vec__pt)
 {
 #ifdef FLEA_HEAP_MODE
-  FLEA_BYTEVEC_STATE_SET_AS_UNDEALLOCATABLE(byte_vec__pt->state__u8);
   if(FLEA_BYTEVEC_STATE_IS_DEALLOCATABLE(byte_vec__pt->state__u8))
   {
     FLEA_FREE_MEM_CHK_SET_NULL(byte_vec__pt->data__pu8);
   }
+  FLEA_BYTEVEC_STATE_SET_AS_UNDEALLOCATABLE(byte_vec__pt->state__u8);
 #endif /* ifdef FLEA_HEAP_MODE */
   byte_vec__pt->len__dtl  = 0;
   byte_vec__pt->allo__dtl = 0;

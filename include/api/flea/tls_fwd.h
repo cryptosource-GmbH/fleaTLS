@@ -14,7 +14,7 @@ struct struct_flea_tls_client_ctx_t;
  * \struct flea_tls_client_ctx_t
  *
  * TLS client context type the functions of which are defined in
- * tls_client.h
+ * tls_client.h.
  */
 typedef struct struct_flea_tls_client_ctx_t flea_tls_client_ctx_t;
 
@@ -24,9 +24,17 @@ struct struct_flea_tls_server_ctx_t;
  * \struct flea_tls_server_ctx_t
  *
  * TLS server context type the functions of which are defined in
- * tls_server.h
+ * tls_server.h.
  */
 typedef struct struct_flea_tls_server_ctx_t flea_tls_server_ctx_t;
+
+/**
+ * \struct flea_tls_session_mngr_t
+ *
+ * TLS server session manager for the purpose of supporting session resumption
+ * the functions of which are defined in tls_session_mngr.h.
+ */
+typedef struct struct_flea_tls_session_mngr_t flea_tls_session_mngr_t;
 
 #ifdef __cplusplus
 }

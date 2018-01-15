@@ -14,7 +14,7 @@ extern "C" {
 # endif
 
 /**
- * ECC GFP domain parameters reference type. The object does only reference the
+ * ECC domain parameters reference type. The object does only reference the
  * data for the domain parameter components stored in external buffers.
  */
 typedef struct
