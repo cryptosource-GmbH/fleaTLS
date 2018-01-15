@@ -51,6 +51,7 @@ struct struct_flea_tls_session_mngr_t
   flea_u16_t                nb_used_sessions__u16;
 #ifdef FLEA_HAVE_MUTEX
   FLEA_DECL_MUTEX(m_mutex);
+  flea_u8_t                 is_mutex_init__u8;
 #endif
 };
 

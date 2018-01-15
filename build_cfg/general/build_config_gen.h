@@ -509,7 +509,7 @@
 
 
 /**
- * Maximal number of sessions held be the server session manager (flea_tls_session_mngr_t, session cache).
+ * Maximal number of sessions held be the server session manager (flea_tls_session_mngr_t, session cache). May not be zero.
  */
 # define FLEA_TLS_MAX_NB_MNGD_SESSIONS 4 // FBFLAGS__INT_LIST 1 2 10 31 257
 

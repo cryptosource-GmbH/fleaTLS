@@ -33,6 +33,7 @@ static flea_al_u16_t flea_gl_rng_current_crc__alu16    = 0;
 
 #ifdef FLEA_HAVE_MUTEX
 FLEA_DECL_STATIC_MUTEX(rng_mutex__t);
+static flea_u8_t rng_is_mutex_init__u8 = 0;
 #endif
 
 static flea_prng_save_f flea_gl_rng_save_mbn__f;
@@ -77,8 +78,14 @@ static flea_err_e THR_flea_rng__harvest_entropy_pool()
 
 void flea_rng__deinit()
 {
-  FLEA_MUTEX_DESTR(&rng_mutex__t);
   flea_ctr_mode_prng_t__dtor(&flea_gl_rng_ctx__t);
+#ifdef FLEA_HAVE_MUTEX
+  if(rng_is_mutex_init__u8)
+  {
+    FLEA_MUTEX_DESTR(&rng_mutex__t);
+  }
+  rng_is_mutex_init__u8 = 0;
+#endif /* ifdef FLEA_HAVE_MUTEX */
 }
 
 void flea_rng__feed_low_entropy_data_to_pool(
@@ -106,6 +113,14 @@ flea_err_e THR_flea_rng__init(
 {
   flea_gl_rng_save_mbn__f = prng_save__f;
   FLEA_THR_BEG_FUNC();
+
+#ifdef FLEA_HAVE_MUTEX
+  if(THR_FLEA_MUTEX_INIT(&rng_mutex__t))
+  {
+    FLEA_THROW("error initializing rng mutex", FLEA_ERR_MUTEX_INIT);
+  }
+  rng_is_mutex_init__u8 = 1;
+#endif /* ifdef FLEA_HAVE_MUTEX */
   flea_ctr_mode_prng_t__INIT(&flea_gl_rng_ctx__t);
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__ctor(&flea_gl_rng_ctx__t, NULL, 0));
   FLEA_CCALL(THR_flea_rng__reseed_persistent(rng_seed__pcu8, rng_seed_len__alu16));

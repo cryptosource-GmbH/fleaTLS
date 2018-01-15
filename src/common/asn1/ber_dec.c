@@ -342,7 +342,7 @@ static flea_err_e THR_flea_ber_dec_t__grow_levels(
 static flea_err_e THR_flea_ber_dec_t__decode_length_with_enc_len(
   flea_ber_dec_t* dec__pt,
   flea_dtl_t*     length__pdtl,
-  flea_u8_t       enc_len__au8[4],
+  flea_u8_t       enc_len__au8[sizeof(flea_dtl_t) + 1],
   flea_al_u8_t*   enc_len_nb_bytes__palu8
 )
 {
@@ -363,7 +363,7 @@ static flea_err_e THR_flea_ber_dec_t__decode_length_with_enc_len(
     flea_al_u8_t i;
     flea_dtl_t length__dtl = 0;
     first_byte &= ~0x80;
-    if(first_byte >= sizeof(length__dtl))
+    if(first_byte > sizeof(length__dtl))
     {
       FLEA_THROW("long definite length overflows flea_dtl_t", FLEA_ERR_ASN1_DER_EXCSS_LEN);
     }
@@ -373,11 +373,6 @@ static flea_err_e THR_flea_ber_dec_t__decode_length_with_enc_len(
       FLEA_CCALL(THR_flea_ber_dec_t__read_byte_and_consume_length(dec__pt, &next_byte));
       enc_len__au8[1 + i] = next_byte;
       length__dtl         = (length__dtl << 8) | next_byte;
-      /* check if the MSB is already populated and there is one more to go */
-      if((i != first_byte - 1) && (length__dtl & (((flea_dtl_t) 0xFF) << ((sizeof(length__dtl) - 1) * 8))))
-      {
-        FLEA_THROW("long definite length overflows flea_dtl_t", FLEA_ERR_ASN1_DER_EXCSS_LEN);
-      }
     }
     *length__pdtl = length__dtl;
     *enc_len_nb_bytes__palu8 = i + 1;
@@ -391,7 +386,7 @@ static flea_err_e THR_flea_ber_dec_t__decode_length(
 )
 {
   flea_al_u8_t enc_len_nb_bytes__alu8;
-  flea_u8_t enc_len__au8[4];
+  flea_u8_t enc_len__au8[sizeof(flea_dtl_t) + 1];
 
   return THR_flea_ber_dec_t__decode_length_with_enc_len(dec__pt, length__pdtl, enc_len__au8, &enc_len_nb_bytes__alu8);
 }
@@ -578,7 +573,7 @@ static flea_err_e THR_flea_ber_dec_t__read_or_ref_raw_opt_cft(
   flea_al_u8_t nb_tag_bytes__alu8;
 
   flea_al_u8_t enc_len_nb_bytes__alu8;
-  flea_u8_t enc_len__au8[4];
+  flea_u8_t enc_len__au8[sizeof(flea_dtl_t) + 1];
 
   FLEA_THR_BEG_FUNC();
   if(ref_extract_mode__t == extr_default_v)

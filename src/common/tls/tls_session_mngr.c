@@ -33,6 +33,7 @@ flea_err_e THR_flea_tls_session_mngr_t__ctor(
   {
     FLEA_THROW("error initializing mutex", FLEA_ERR_MUTEX_INIT);
   }
+  session_mngr__pt->is_mutex_init__u8 = 1;
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -283,5 +284,9 @@ void flea_tls_session_mngr_t__dtor(flea_tls_session_mngr_t* session_mngr__pt)
 #ifdef FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHK_SET_NULL(session_mngr__pt->sessions__bt);
 #endif
-  FLEA_MUTEX_DESTR(&session_mngr__pt->m_mutex);
+  if(session_mngr__pt->is_mutex_init__u8)
+  {
+    FLEA_MUTEX_DESTR(&session_mngr__pt->m_mutex);
+  }
+  memset(session_mngr__pt, 0, sizeof(*session_mngr__pt));
 }
