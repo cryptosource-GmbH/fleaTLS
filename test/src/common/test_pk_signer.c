@@ -34,9 +34,8 @@ static flea_err_e THR_flea_test_pk_signer_init_dtor()
 }
 
 #endif // #ifdef FLEA_HAVE_ASYM_SIG
-
-#if (defined FLEA_HEAP_MODE) || ((defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048) && \
-  (defined FLEA_HAVE_SHA384_512))
+#if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE < 2048) && defined FLEA_HEAP_MODE && \
+  defined FLEA_HAVE_SHA384_512
 static flea_err_e THR_flea_test_pkcs1_v1_5_signature_reference()
 {
   // botan reference value
@@ -278,8 +277,8 @@ flea_err_e THR_flea_test_pk_signer_sign_verify()
     FLEA_CCALL(THR_flea_test_pk_signer_sign_verify_inner(flea_ecdsa_emsa1, flea_sha224, &dp__t));
   }
 #endif /* ifdef FLEA_HAVE_ECDSA */
-#ifdef FLEA_HAVE_RSA
-# if defined FLEA_STACK_MODE && FLEA_RSA_MAX_KEY_BIT_SIZE < 2048
+#if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE < 2048
+# if defined FLEA_STACK_MODE
   flea_err_e err_code = THR_flea_test_pk_signer_sign_verify_inner(
     flea_rsa_pkcs1_v1_5_sign,
     flea_sha256 FLEA_DO_IF_HAVE_ECC(FLEA_COMMA NULL)
@@ -288,7 +287,7 @@ flea_err_e THR_flea_test_pk_signer_sign_verify()
   {
     FLEA_THROW("wrong return value for invalid key size", FLEA_ERR_FAILED_TEST);
   }
-# else  /* if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 */
+# else  /* if defined FLEA_STACK_MODE */
   FLEA_CCALL(
     THR_flea_test_pk_signer_sign_verify_inner(
       flea_rsa_pkcs1_v1_5_sign,
@@ -298,8 +297,8 @@ flea_err_e THR_flea_test_pk_signer_sign_verify()
 #  ifdef FLEA_HAVE_SHA384_512
   FLEA_CCALL(THR_flea_test_pkcs1_v1_5_signature_reference());
 #  endif
-# endif /* if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 */
-#endif /* ifdef FLEA_HAVE_RSA */
+# endif /* if defined FLEA_STACK_MODE */
+#endif /* if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 */
 
 #ifdef FLEA_HAVE_ASYM_SIG
   FLEA_CCALL(THR_flea_test_pk_signer_init_dtor());
