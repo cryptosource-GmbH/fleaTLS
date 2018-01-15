@@ -93,8 +93,10 @@ static flea_err_e THR_flea_test_pk_signer_sign_verify_inner(
   FLEA_DECL_OBJ(verifier2__t, flea_pk_signer_t);
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, FLEA_ASYM_MAX_ENCODED_SIG_LEN);
+# ifdef FLEA_HAVE_ECC
   FLEA_DECL_BUF(pub_key__b_u8, flea_u8_t, FLEA_PK_MAX_INTERNAL_FORMAT_PUBKEY_LEN);
   FLEA_DECL_BUF(priv_key__b_u8, flea_u8_t, FLEA_ECC_MAX_ENCODED_POINT_LEN); // only used ECDSA, not for RSA
+# endif
   flea_u8_t i_u8;
 # ifdef FLEA_HAVE_RSA
   const flea_u8_t rsa_pub_exp__a_u8[] = {0x01, 0x00, 0x01};
@@ -216,7 +218,7 @@ flea_err_e THR_flea_test_pk_signer_sign_verify()
 #endif /* ifdef FLEA_HAVE_ECDSA */
 #ifdef FLEA_HAVE_RSA
 # if FLEA_RSA_MAX_KEY_BIT_SIZE < 2048
-  flea_err_e err_code = THR_flea_test_pk_signer_sign_verify_inner(flea_rsa_pkcs1_v1_5_sign, flea_sha256 FLEA_DO_IF_HAVE_ECC(, NULL));
+  flea_err_e err_code = THR_flea_test_pk_signer_sign_verify_inner(flea_rsa_pkcs1_v1_5_sign, flea_sha256 FLEA_DO_IF_HAVE_ECC(FLEA_COMMA NULL));
   if(err_code != FLEA_ERR_INV_KEY_SIZE && err_code != FLEA_ERR_BUFF_TOO_SMALL && err_code != FLEA_ERR_INV_KEY_COMP_SIZE)
   {
     FLEA_THROW("wrong return value for invalid key size", FLEA_ERR_FAILED_TEST);

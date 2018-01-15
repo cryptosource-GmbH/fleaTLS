@@ -1341,12 +1341,12 @@ flea_err_e THR_flea_tls_rec_prot_t__get_current_record_type(
 {
   FLEA_THR_BEG_FUNC();
   flea_tls__protocol_version_t dummy_version__t;
-  flea_al_u16_t read_len_zero__alu16 = 0;
+  flea_dtl_t read_len_zero__dtl = 0;
   FLEA_CCALL(
     THR_flea_tls_rec_prot_t__read_data_inner(
       rec_prot__pt,
       NULL,
-      &read_len_zero__alu16,
+      &read_len_zero__dtl,
       &dummy_version__t,
       FLEA_FALSE,
       0 /*dummy_content_type */,

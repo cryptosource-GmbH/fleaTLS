@@ -843,10 +843,7 @@ flea_err_e THR_flea_x509_cert_ref_t__get_subject_dn_component(
   flea_ref_cu8_t*             result__prcu8
 )
 {
-  FLEA_THR_BEG_FUNC();
   return THR_flea_x509__get_dn_component(&cert_ref__pt->subject__t, cmpnt__e, result__prcu8);
-
-  FLEA_THR_FIN_SEC_empty();
 }
 
 flea_err_e THR_flea_x509_cert_ref_t__get_issuer_dn_component(

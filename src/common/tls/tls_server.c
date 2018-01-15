@@ -1140,7 +1140,7 @@ flea_err_e THR_flea_tls__server_handshake(
         else
         {
           flea_u8_t dummy_byte;
-          flea_al_u16_t len_one__alu16 = 1;
+          flea_dtl_t len_one__dtl = 1;
           flea_al_u16_t key_block_len__alu16;
 
           FLEA_CCALL(
@@ -1148,7 +1148,7 @@ flea_err_e THR_flea_tls__server_handshake(
               &tls_ctx->rec_prot__t,
               CONTENT_TYPE_CHANGE_CIPHER_SPEC,
               &dummy_byte,
-              &len_one__alu16,
+              &len_one__dtl,
               flea_read_full
             )
           );
