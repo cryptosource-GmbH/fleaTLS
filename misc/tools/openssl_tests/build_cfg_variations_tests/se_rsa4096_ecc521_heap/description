@@ -1,0 +1,8 @@
+Teste build_config: se_rsa4096_ecc521_heap gegen OpenSSL Client
+	
+
+Auszuführende Schritte:
+	ccmake .
+		=> build_cfg = se_rsa4096_ecc521_heap
+	make
+	./run_server.sh und ./run_client.sh

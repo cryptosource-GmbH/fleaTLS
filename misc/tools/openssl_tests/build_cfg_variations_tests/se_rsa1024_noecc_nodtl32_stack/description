@@ -1,0 +1,8 @@
+Teste build_config: se_rsa1024_noecc_nodtl32_stack gegen OpenSSL Client
+	
+
+Auszuführende Schritte:
+	ccmake .
+		=> build_cfg = se_rsa1024_noecc_nodtl32_stack
+	make
+	./run_server.sh und ./run_client.sh

@@ -6,7 +6,3 @@ Auszuführende Schritte:
 		=> build_cfg = cl_rsa4096_ecc_stack
 	make
 	./run_server.sh und ./run_client.sh
-
-
-	Ergebnis:
-		
