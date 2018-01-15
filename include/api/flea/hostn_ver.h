@@ -8,11 +8,10 @@
 #include "flea/error_handling.h"
 #include "flea/x509.h"
 
-#ifdef FLEA_HAVE_TLS_CLIENT
 
-# ifdef __cplusplus
+#ifdef __cplusplus
 extern "C" {
-# endif
+#endif
 
 /**
  * Type of hostname.
@@ -31,9 +30,8 @@ typedef enum
 } flea_host_id_type_e;
 
 
-# ifdef __cplusplus
+#ifdef __cplusplus
 }
-# endif
+#endif
 
-#endif // ifdef FLEA_HAVE_TLS_CLIENT
 #endif /* h-guard */
