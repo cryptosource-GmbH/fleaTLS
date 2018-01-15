@@ -1,0 +1,12 @@
+Teste build_config: cl_rsa4096_ecc_stack gegen OpenSSL Server
+	
+
+Auszuführende Schritte:
+	ccmake .
+		=> build_cfg = cl_rsa4096_ecc_stack
+	make
+	./run_server.sh und ./run_client.sh
+
+
+	Ergebnis:
+		
