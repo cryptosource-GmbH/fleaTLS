@@ -192,7 +192,7 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_tls_test_basic());
     }
 #ifdef __FLEA_HAVE_LINUX_FILESYSTEM
-# if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) && defined FLEA_HAVE_ECDSA && (FLEA_ECC_MAX_MOD_BIT_SIZE >= 521)
+# if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) && defined FLEA_HAVE_ECDSA && (FLEA_ECC_MAX_MOD_BIT_SIZE >= 521) && defined FLEA_HAVE_SHA1 && defined FLEA_HAVE_SHA384_512
     if(!func_prefix)
     {
       flea_u32_t nb_cert_path_tests = 0;

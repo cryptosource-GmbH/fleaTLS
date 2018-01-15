@@ -31,7 +31,7 @@ typedef flea_u32_t (* F_f)(
   flea_u32_t z
 );
 
-flea_u32_t F0_f(
+static flea_u32_t F0_f(
   flea_u32_t x,
   flea_u32_t y,
   flea_u32_t z
@@ -40,7 +40,7 @@ flea_u32_t F0_f(
   return F0(x, y, z);
 }
 
-flea_u32_t F1_f(
+static flea_u32_t F1_f(
   flea_u32_t x,
   flea_u32_t y,
   flea_u32_t z
@@ -49,7 +49,7 @@ flea_u32_t F1_f(
   return F1(x, y, z);
 }
 
-flea_u32_t F2_f(
+static flea_u32_t F2_f(
   flea_u32_t x,
   flea_u32_t y,
   flea_u32_t z
@@ -58,7 +58,7 @@ flea_u32_t F2_f(
   return F2(x, y, z);
 }
 
-flea_u32_t F3_f(
+static flea_u32_t F3_f(
   flea_u32_t x,
   flea_u32_t y,
   flea_u32_t z

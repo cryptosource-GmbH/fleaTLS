@@ -16,7 +16,7 @@ using namespace std;
 
 
 #if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) && defined FLEA_HAVE_ECDSA && \
-  (FLEA_ECC_MAX_MOD_BIT_SIZE >= 521)
+  (FLEA_ECC_MAX_MOD_BIT_SIZE >= 521) && defined FLEA_HAVE_SHA1 && defined FLEA_HAVE_SHA384_512
 static flea_err_e THR_flea_execute_path_test_case_for_properties(
   std::string const   & dir_path,
   property_set_t const& prop,
@@ -254,7 +254,6 @@ static flea_err_e THR_flea_execute_path_test_case(
   }
   for(string const& prop_file: prop_files)
   {
-    // std::cout << "using property file " << prop_file << std::endl;
     property_set_t prop(prop_file, spec);
     FLEA_CCALL(THR_flea_execute_path_test_case_for_properties(dir_path, prop, file_path_to_be_replaced_by_std_in));
   }
@@ -265,7 +264,6 @@ flea_err_e THR_flea_test_path_validation_file_based(
   const char* cert_path_prefix,
   flea_u32_t* nb_exec_tests_pu32,
   const char* file_path_to_be_replaced_by_std_in
-  // flea_bool_t verbose
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -278,7 +276,6 @@ flea_err_e THR_flea_test_path_validation_file_based(
   }
   if(cert_path_prefix != nullptr)
   {
-    // nb_test_execution_repetitions_due_randomized_cert_order = 1;
     test_cases = get_entries_of_dir(path_test_main_dir, dir_entries_with_path, "" /*postfix*/, cert_path_prefix);
     if(test_cases.size() == 0)
     {
@@ -293,10 +290,6 @@ flea_err_e THR_flea_test_path_validation_file_based(
   flea_u32_t err_count = 0;
   for(string const& test: test_cases)
   {
-    /*if(verbose)
-    {
-      std::cout << "executing cert_path_test = " << test << "\n";
-    }*/
     bool failure = false;
     for(flea_u32_t i = 0; i < nb_test_execution_repetitions_due_randomized_cert_order; i++)
     {
@@ -308,8 +301,6 @@ flea_err_e THR_flea_test_path_validation_file_based(
           std::cout << "single instance failed with error code = " << err << std::endl;
         }
 
-        /*err_count++;
-         * break;*/
         failure = true;
       }
       else if(cert_path_prefix != nullptr)
