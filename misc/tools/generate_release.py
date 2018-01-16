@@ -7,13 +7,14 @@ import glob
 import sys
 import shutil
 import subprocess
+import fileinput
 
 include_dir = "../../include"
 src_dir = "../../src"
 test_dir = "../../test"
 test_data_dir = "../testdata"
 build_cfg_dir = "../../build_cfg"
-pltf_supp_dir = "../../pltf_support"
+#pltf_supp_dir = "../../pltf_support"
 generate_dir = "../../../flea_generated_releases"
 cmakelists_file = "../../CMakeLists.txt"
 
@@ -30,6 +31,8 @@ def ignore_svn_function(a, b):
   result.append("*~")
   result.append("makefile")
   return result
+
+
 
 def collect_files_with_ending(ending, dir):
   result = []
@@ -71,15 +74,26 @@ def generate_for_license(license_name, work_dir):
 #print files
 
 def generate_with_license(license_name, have_test_data):
+  target_dir = generate_dir + "/" + license_name + "/"
   shutil.copytree(include_dir, generate_dir + "/" + license_name + "/flea/include", False, ignore_svn_function) 
   shutil.copytree(src_dir, generate_dir + "/" + license_name + "/flea/src", False, ignore_svn_function) 
   shutil.copytree(test_dir, generate_dir + "/" + license_name + "/flea/test", False, ignore_svn_function) 
   shutil.copytree(build_cfg_dir, generate_dir + "/" + license_name + "/flea/build_cfg", False, ignore_svn_function) 
-  shutil.copytree(pltf_supp_dir, generate_dir + "/" + license_name + "/flea/pltf_support", False, ignore_svn_function) 
+  for filename in os.listdir(generate_dir + "/" + license_name + "/flea/build_cfg"):
+    if re.match("internal_*", filename):
+      shutil.rmtree(generate_dir + "/" + license_name + "/flea/build_cfg/" + filename)
+  #print generate_dir + "/" + license_name + "/flea/build_cfg/general/build_config_gen.h"
+  myfile = fileinput.FileInput(generate_dir + "/" + license_name + "/flea/build_cfg/general/build_config_gen.h", inplace=True)
+  for line in myfile:
+      line = re.sub(r"// *FBFLAGS.*$", "", line)
+      print (line, end = '')
+
+  #shutil.copytree(pltf_supp_dir, generate_dir + "/" + license_name + "/flea/pltf_support", False, ignore_svn_function) 
   shutil.copy(cmakelists_file, generate_dir + "/" + license_name + "/flea")
  
   if(have_test_data):
-    shutil.copytree(test_data_dir, generate_dir + "/" + license_name + "/flea/misc/testdata", False, ignore_svn_function) 
+    shutil.copytree(test_data_dir, target_dir + "/flea/misc/testdata", False, ignore_svn_function) 
+    shutil.rmtree(target_dir + "/flea/misc/testdata/internal")
 
  
   license_file_path = "../../misc/licenses/" + license_name + ".txt"
@@ -89,13 +103,14 @@ def generate_with_license(license_name, have_test_data):
   #shutil.rm("../../test/
   generate_for_license(license_name, generate_dir+ "/" + license_name + "/flea")
 
-have_test_data = False
-if(len(sys.argv) == 2):
-    if(sys.argv[1] == "--with_testdata"):
-        have_test_data = True
-    else:
-        print "error: invalid commandline argument"
-        sys.exit(1)
+have_test_data = True
+#have_test_data = False
+#if(len(sys.argv) == 2):
+#    if(sys.argv[1] == "--with_testdata"):
+#        have_test_data = True
+#    else:
+#        print "error: invalid commandline argument"
+#        sys.exit(1)
 
 
 shutil.rmtree(generate_dir + "/" + license_name_gpl + "/" + "flea", True)
