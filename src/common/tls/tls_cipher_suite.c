@@ -1,7 +1,7 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #include "internal/common/default.h"
-#include "internal/common/tls_ciph_suite.h"
+#include "internal/common/tls/tls_ciph_suite.h"
 #include "flea/types.h"
 #include "flea/error.h"
 #include "flea/error_handling.h"

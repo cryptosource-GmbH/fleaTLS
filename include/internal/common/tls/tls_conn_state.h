@@ -6,7 +6,7 @@
 #include "internal/common/default.h"
 #include "flea/types.h"
 #include "flea/error.h"
-#include "internal/common/tls_ciph_suite.h"
+#include "internal/common/tls/tls_ciph_suite.h"
 #include "flea/rw_stream.h"
 
 #ifdef __cplusplus

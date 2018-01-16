@@ -16,7 +16,7 @@
 #include "internal/common/cert_path_int.h"
 #include "internal/common/cert_verify_int.h"
 #include "internal/common/lib_int.h"
-#include "internal/common/hostn_ver_int.h"
+#include "internal/common/tls/hostn_ver_int.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
 

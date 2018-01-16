@@ -11,7 +11,7 @@
 #include "flea/ae.h"
 #include "flea/tls.h"
 #include "flea/pk_signer.h"
-#include "internal/common/tls_key_usage.h"
+#include "internal/common/tls/tls_key_usage.h"
 
 #ifdef __cplusplus
 extern "C" {

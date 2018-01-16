@@ -21,7 +21,7 @@
 #include "internal/common/lib_int.h"
 #include "internal/common/tls/tls_cert_path.h"
 #include "flea/hostn_ver.h"
-#include "internal/common/hostn_ver_int.h"
+#include "internal/common/tls/hostn_ver_int.h"
 #include "internal/common/crl_int.h"
 #include "flea/mem_read_stream.h"
 #include "internal/common/tls/tls_int.h"

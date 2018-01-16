@@ -16,7 +16,6 @@
 #include "flea/bin_utils.h"
 
 #include <string.h>
-#include <stdio.h>
 
 struct struct_flea_hash_config_entry_t
 {

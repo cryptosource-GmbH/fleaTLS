@@ -2,7 +2,7 @@
 
 #include "internal/common/default.h"
 #include "internal/common/tls/tls_rec_prot_rdr.h"
-#include "internal/common/tls_rec_prot.h"
+#include "internal/common/tls/tls_rec_prot.h"
 #include "flea/types.h"
 #include "flea/error.h"
 #include "flea/error_handling.h"

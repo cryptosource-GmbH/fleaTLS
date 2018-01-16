@@ -24,13 +24,13 @@
 #include "flea/util.h"
 #include "flea/cert_store.h"
 #include "flea/byte_vec.h"
-#include "internal/common/tls_ciph_suite.h"
+#include "internal/common/tls/tls_ciph_suite.h"
 #include "internal/common/tls/parallel_hash.h"
 #include "internal/common/lib_int.h"
 #include "flea/ec_key_gen.h"
 #include "flea/ecka.h"
 #include "flea/tls_client.h"
-#include "internal/common/tls_ciph_suite.h"
+#include "internal/common/tls/tls_ciph_suite.h"
 #include "internal/common/tls/tls_common_ecc.h"
 
 #ifdef FLEA_HAVE_TLS

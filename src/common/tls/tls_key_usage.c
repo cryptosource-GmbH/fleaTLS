@@ -3,7 +3,7 @@
 #include "flea/error_handling.h"
 #include "flea/error.h"
 #include "flea/x509.h"
-#include "internal/common/tls_key_usage.h"
+#include "internal/common/tls/tls_key_usage.h"
 #include "internal/common/x509_int.h"
 
 flea_err_e THR_flea_tls__check_key_usage_of_tls_server(

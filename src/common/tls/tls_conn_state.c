@@ -1,7 +1,7 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #include "internal/common/default.h"
-#include "internal/common/tls_conn_state.h"
+#include "internal/common/tls/tls_conn_state.h"
 #include "flea/error_handling.h"
 #include "flea/alloc.h"
 #include "flea/util.h"

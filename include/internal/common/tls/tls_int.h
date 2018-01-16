@@ -7,7 +7,7 @@
 #include "flea/byte_vec.h"
 #include "flea/pubkey.h"
 #include "flea/privkey.h"
-#include "internal/common/tls_rec_prot.h"
+#include "internal/common/tls/tls_rec_prot.h"
 #include "internal/common/tls/tls_common.h"
 #include "internal/common/tls/tls_session_int_fwd.h"
 #include "flea/cert_store.h"

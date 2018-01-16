@@ -2,7 +2,7 @@
 
 #include "internal/common/default.h"
 #include "flea/hostn_ver.h"
-#include "internal/common/hostn_ver_int.h"
+#include "internal/common/tls/hostn_ver_int.h"
 #include "flea/error_handling.h"
 #include "flea/error.h"
 #include "internal/common/ber_dec.h"

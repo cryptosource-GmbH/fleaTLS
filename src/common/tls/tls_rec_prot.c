@@ -1,8 +1,8 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #include "internal/common/default.h"
-#include "internal/common/tls_rec_prot.h"
-#include "internal/common/tls_ciph_suite.h"
+#include "internal/common/tls/tls_rec_prot.h"
+#include "internal/common/tls/tls_ciph_suite.h"
 #include "flea/error_handling.h"
 #include "flea/bin_utils.h"
 #include "flea/error.h"
@@ -10,7 +10,6 @@
 #include "flea/rng.h"
 #include "flea/util.h"
 #include "flea/tls.h"
-#include <stdio.h>
 #include "internal/common/tls/tls_common.h"
 #include "internal/common/mask.h"
 #include "internal/common/tls/tls_int.h"

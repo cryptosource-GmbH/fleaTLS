@@ -4,7 +4,7 @@
 #define _flea_tls_common__H_
 
 #include "internal/common/default.h"
-#include "internal/common/tls_ciph_suite.h"
+#include "internal/common/tls/tls_ciph_suite.h"
 #include "internal/common/tls/tls_cert_path.h"
 #include "internal/common/tls/parallel_hash.h"
 #include "flea/tls_client_session.h"

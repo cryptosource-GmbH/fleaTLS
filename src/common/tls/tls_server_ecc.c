@@ -9,7 +9,7 @@
 #include "flea/tls.h"
 #include "internal/common/tls/tls_server_int_ecc.h"
 #include "internal/common/tls/tls_common_ecc.h"
-#include "internal/common/tls_ciph_suite.h"
+#include "internal/common/tls/tls_ciph_suite.h"
 #include "flea/pk_keypair.h"
 
 #ifdef FLEA_HAVE_TLS_CS_ECC
