@@ -17,6 +17,7 @@ build_cfg_dir = "../../build_cfg"
 #pltf_supp_dir = "../../pltf_support"
 generate_dir = "../../../flea_generated_releases"
 cmakelists_file = "../../CMakeLists.txt"
+changelog_src_path = "../../misc/changelog.txt"
 
 license_name_gpl = "gpl"
 license_name_closed_source = "flea"
@@ -94,7 +95,13 @@ def generate_with_license(license_name, have_test_data):
   if(have_test_data):
     shutil.copytree(test_data_dir, target_dir + "/flea/misc/testdata", False, ignore_svn_function) 
     shutil.rmtree(target_dir + "/flea/misc/testdata/internal")
-
+    cert_paths_dir_dst = target_dir + "/flea/misc/testdata/cert_paths/"
+    for filename in os.listdir(cert_paths_dir_dst):
+      if not re.match("fleasuite*", filename):
+        shutil.rmtree(cert_paths_dir_dst + filename)
+ 
+  changelog_dst_path = target_dir + "flea/"
+  shutil.copy(changelog_src_path, changelog_dst_path)
  
   license_file_path = "../../misc/licenses/" + license_name + ".txt"
   shutil.copy(license_file_path, generate_dir + "/" + license_name + "/flea/" + license_name + "_license.txt")
