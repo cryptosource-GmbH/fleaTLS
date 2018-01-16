@@ -4,7 +4,7 @@ __________________
   Cryptography. Security.
 
 fleaTLS cryptographic library for embedded systems
-Copyright (C) 2015-2017 cryptosource GmbH
+Copyright (C) 2015-2018 cryptosource GmbH
 
 flea license version 2.1
 

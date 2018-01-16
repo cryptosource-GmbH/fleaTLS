@@ -135,8 +135,8 @@ IF(DO_BUILD_STATIC)
 ENDIF()
 
 
-ADD_EXECUTABLE(unit_test test/src/pc/unit_test_main.cpp ${TEST_SRCS})
-TARGET_LINK_LIBRARIES(unit_test ${FULL_LIB_STRING})
+ADD_EXECUTABLE(flea-test test/src/pc/unit_test_main.cpp ${TEST_SRCS})
+TARGET_LINK_LIBRARIES(flea-test ${FULL_LIB_STRING})
 
 
 #    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -static-libasan -fno-omit-frame-pointer -fsanitize=address")
@@ -156,7 +156,7 @@ IF(DO_USE_ASAN)
   #set_target_properties(${FULL_LIB_STRING_STATIC_ASAN} PROPERTIES COMPILE_FLAGS ${ASAN_FLAGS})
   target_compile_options(${FULL_LIB_STRING_STATIC_ASAN} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
 
-  ADD_EXECUTABLE(unit_test-asan test/src/pc/unit_test_main.cpp ${TEST_SRCS})
-  target_compile_options(unit_test-asan PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
-  TARGET_LINK_LIBRARIES(unit_test-asan asan ${FULL_LIB_STRING_STATIC_ASAN} "-m32" )
+  ADD_EXECUTABLE(flea-test-asan test/src/pc/unit_test_main.cpp ${TEST_SRCS})
+  target_compile_options(flea-test-asan PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
+  TARGET_LINK_LIBRARIES(flea-test-asan asan ${FULL_LIB_STRING_STATIC_ASAN} "-m32" )
 ENDIF()

@@ -263,7 +263,21 @@ static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
     }
     else if(retval)
     {
-      serv_par__pt->write_output_string("received error code from read_app_data: " + num_to_string_hex(retval) + "\n");
+      if(retval == FLEA_ERR_TLS_REC_CLOSE_NOTIFY)
+      {
+        serv_par__pt->write_output_string(
+          "received close notify (error code " + num_to_string_hex(
+            retval
+          ) + ") from client, ending connection\n"
+        );
+      }
+      else
+      {
+        serv_par__pt->write_output_string(
+          "received error code from read_app_data: " + num_to_string_hex(retval)
+          + "\n"
+        );
+      }
       FLEA_THROW("rethrowing error from read_app_data", retval);
     }
     FLEA_CCALL(THR_check_user_abort(serv_par__pt));
@@ -290,7 +304,7 @@ static void* flea_tls_server_thread(void* sv__pv)
     CHECK_PTHREAD_ERR(pthread_mutex_lock(&serv_par__pt->mutex));
     serv_par__pt->server_error__e = err__t;
     CHECK_PTHREAD_ERR(pthread_mutex_unlock(&serv_par__pt->mutex));
-    serv_par__pt->write_output_string("error from server thread: 0x" + num_to_string_hex(err__t));
+    serv_par__pt->write_output_string("return code from server thread: 0x" + num_to_string_hex(err__t));
   }
   CHECK_PTHREAD_ERR(pthread_mutex_lock(&serv_par__pt->mutex));
   serv_par__pt->finished__b = FLEA_TRUE;
