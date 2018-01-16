@@ -49,6 +49,8 @@ In order to execute the unit tests, run the command
 starting TLS server and client
 ==============================
 
+example scripts to start the fleaTLS client or server as well as OpenSSL client
+and server, are found in the folder examples/tls_scripts/ 
 
 
 configuration of the libary

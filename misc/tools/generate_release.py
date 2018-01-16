@@ -19,6 +19,7 @@ generate_dir = "../../../flea_generated_releases"
 cmakelists_file = "../../CMakeLists.txt"
 changelog_src_path = "../../misc/changelog.txt"
 readme_src_path = "../../misc/README.txt"
+examples_src_dir = "../../examples/"
 
 license_name_gpl = "gpl"
 license_name_closed_source = "flea"
@@ -81,16 +82,15 @@ def generate_with_license(license_name, have_test_data):
   shutil.copytree(src_dir, generate_dir + "/" + license_name + "/flea/src", False, ignore_svn_function) 
   shutil.copytree(test_dir, generate_dir + "/" + license_name + "/flea/test", False, ignore_svn_function) 
   shutil.copytree(build_cfg_dir, generate_dir + "/" + license_name + "/flea/build_cfg", False, ignore_svn_function) 
+  shutil.copytree(examples_src_dir, generate_dir + "/" + license_name + "/flea/examples") 
   for filename in os.listdir(generate_dir + "/" + license_name + "/flea/build_cfg"):
     if re.match("internal_*", filename):
       shutil.rmtree(generate_dir + "/" + license_name + "/flea/build_cfg/" + filename)
-  #print generate_dir + "/" + license_name + "/flea/build_cfg/general/build_config_gen.h"
   myfile = fileinput.FileInput(generate_dir + "/" + license_name + "/flea/build_cfg/general/build_config_gen.h", inplace=True)
   for line in myfile:
       line = re.sub(r"// *FBFLAGS.*$", "", line)
       print (line, end = '')
 
-  #shutil.copytree(pltf_supp_dir, generate_dir + "/" + license_name + "/flea/pltf_support", False, ignore_svn_function) 
   shutil.copy(cmakelists_file, generate_dir + "/" + license_name + "/flea")
  
   if(have_test_data):
@@ -108,8 +108,7 @@ def generate_with_license(license_name, have_test_data):
   license_file_path = "../../misc/licenses/" + license_name + ".txt"
   shutil.copy(license_file_path, generate_dir + "/" + license_name + "/flea/" + license_name + "_license.txt")
 
-  shutil.copy("../../misc/doc/flea_manual/flea_manual.pdf", generate_dir + "/" + license_name + "/flea/")
-  #shutil.rm("../../test/
+  #shutil.copy("../../misc/doc/flea_manual/flea_manual.pdf", generate_dir + "/" + license_name + "/flea/")
   generate_for_license(license_name, generate_dir+ "/" + license_name + "/flea")
 
 have_test_data = True
