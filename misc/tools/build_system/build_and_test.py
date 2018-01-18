@@ -16,9 +16,9 @@ import random
 # by the script
 
 #build_config_file_str = "../../../include/internal/common/build_config.h"
-build_config_file_str = "../../../build_cfg/general/build_config_gen.h"
+build_config_file_str = "../../../build_cfg/general/default/build_config_gen.h"
 #build_config_file_save_str = "../../../include/internal/common/build_config.h__orig"
-build_config_file_save_str = "../../../build_cfg/general/build_config_gen.h__orig"
+build_config_file_save_str = "../../../build_cfg/general/default/build_config_gen.h__orig"
 make_cwd_str = "../../../"
 #build_config_file_str = "include/internal/common/build_config.h"
 #build_config_file_save_str = "include/internal/common/build_config.h__orig"
@@ -189,7 +189,7 @@ def call_make():
   
 
 def call_test():
-  p = subprocess.Popen('./build/unit_test', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=make_cwd_str)
+  p = subprocess.Popen('./build/flea-test', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=make_cwd_str)
   #print("Test OUTPUT:")
   test_output = []
   for line in p.stdout.readlines():
@@ -224,7 +224,7 @@ def parse_vg_output__no_leaks(vg_output):
 
 def call_test_vg():
   vg_output = []
-  p = subprocess.Popen('valgrind --error-exitcode=10 --leak-check=full --errors-for-leak-kinds=definite,indirect,possible,reachable ./build/unit_test', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=make_cwd_str)
+  p = subprocess.Popen('valgrind --error-exitcode=10 --leak-check=full --errors-for-leak-kinds=definite,indirect,possible,reachable ./build/flea-test', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=make_cwd_str)
   #print("VG Test OUTPUT:")
   for line in p.stdout.readlines():
     vg_output.append(line)
