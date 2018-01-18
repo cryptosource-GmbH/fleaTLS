@@ -37,10 +37,10 @@ void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx);
  * the chain. The order of the certificates, starting from position 0, is
  * <server-cert> [ <ca-cert> <ca-cert> ] <root-cert>. The occurrence of CA certs
  * is optional. The root-cert may also be omitted according to the TLS standard.
+ * @param[in] cert_chain_len the length of cert_chain.
  * @param allowed_cipher_suites a pointer to the array containing the
  * cipher suites supported by the server. The lower the index of a suite within
  * the array, the higher is its priority.
- * @param[in] cert_chain_len the length of cert_chain.
  * @param[in] private_key The server's private key associated with its
  * certificate.
  * @param[in] crls A list of DER encoded CRLs which the server uses for revocation

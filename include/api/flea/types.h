@@ -21,6 +21,9 @@ typedef flea_al_u8_t flea_bool_t;
 #define FLEA_FALSE 0
 #define FLEA_TRUE  1
 
+/**
+ * Integer representing data lengths. Is used throughout the fleaTLS API.
+ */
 #ifdef FLEA_HAVE_DTL_32BIT
 
 typedef flea_u32_t flea_dtl_t;
