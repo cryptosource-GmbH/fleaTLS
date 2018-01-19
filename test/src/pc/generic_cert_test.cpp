@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #include "internal/common/default.h"
 #include "flea/types.h"
 #include "flea/error_handling.h"
@@ -11,6 +13,7 @@
 /* <== linux only */
 
 
+#ifdef FLEA_HAVE_ASYM_SIG
 flea_err_e THR_fleatest_iterate_cert_files_and_verify_as_self_signed(
   std::string const          &dir_name,
   bool                       expect_error,
@@ -88,3 +91,5 @@ flea_err_e THR_fleatest_iterate_cert_files_and_verify_as_self_signed(
     return FLEA_ERR_FINE;
   }
 } // THR_iterate_files
+
+#endif // ifdef FLEA_HAVE_ASYM_SIG

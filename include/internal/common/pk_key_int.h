@@ -5,9 +5,11 @@
 
 #include "flea/privkey.h"
 
-#ifdef __cplusplus
+#ifdef FLEA_HAVE_ASYM_ALGS
+
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 flea_err_e THR_flea_rsa_raw_operation_crt_private_key(
   const flea_private_key_t* priv_key__pt,
@@ -17,7 +19,10 @@ flea_err_e THR_flea_rsa_raw_operation_crt_private_key(
 );
 
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
+
+#endif // ifdef FLEA_HAVE_ASYM_ALGS
+
 #endif /* h-guard */

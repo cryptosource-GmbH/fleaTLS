@@ -9,7 +9,7 @@
 #
 # Changelog of the fleaTLS cryptographic library
 
-## [1.1.0] 2018-01-25  cryptosource GmbH  info@flea.com
+## [1.1.0] 2018-01-25  cryptosource GmbH  info@fleatls.com
 
 ### Added
 - X.509 and CRL processing

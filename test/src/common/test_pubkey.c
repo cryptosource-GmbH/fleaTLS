@@ -13,7 +13,8 @@
 #include <string.h>
 #include "test_data_pkcs8.h"
 
-#ifdef FLEA_HAVE_ECKA
+#ifdef FLEA_HAVE_ASYM_SIG
+# ifdef FLEA_HAVE_ECKA
 static flea_err_e THR_flea_test_pub_priv_key_init_dtor()
 {
   flea_private_key_t priv1__t = flea_private_key_t__INIT_VALUE;
@@ -37,11 +38,11 @@ static flea_err_e THR_flea_test_ecc_key_plain_format_encoding_inner(
   flea_hash_id_e       hash_id__e
 )
 {
-# ifdef FLEA_STACK_MODE
+#  ifdef FLEA_STACK_MODE
   flea_u8_t enc_pubkey__au8[FLEA_ECC_MAX_ENCODED_POINT_LEN];
   flea_u8_t enc_privkey__au8[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
   flea_u8_t sig__au8[2 * FLEA_ECC_MAX_ORDER_BYTE_SIZE];
-# endif
+#  endif
   flea_private_key_t privkey__t;
   flea_public_key_t pubkey__t;
   flea_private_key_t privkey2__t;
@@ -59,15 +60,15 @@ static flea_err_e THR_flea_test_ecc_key_plain_format_encoding_inner(
   flea_public_key_t__INIT(&pubkey2__t);
   flea_private_key_t__INIT(&privkey__t);
   flea_private_key_t__INIT(&privkey2__t);
-# ifdef FLEA_HEAP_MODE
+#  ifdef FLEA_HEAP_MODE
   flea_byte_vec_t__ctor_empty_allocatable(&enc_pubkey__t);
   flea_byte_vec_t__ctor_empty_allocatable(&enc_privkey__t);
   flea_byte_vec_t__ctor_empty_allocatable(&sig_vec__t);
-# else
+#  else
   flea_byte_vec_t__ctor_empty_use_ext_buf(&enc_pubkey__t, enc_pubkey__au8, sizeof(enc_pubkey__au8));
   flea_byte_vec_t__ctor_empty_use_ext_buf(&enc_privkey__t, enc_privkey__au8, sizeof(enc_privkey__au8));
   flea_byte_vec_t__ctor_empty_use_ext_buf(&sig_vec__t, sig__au8, sizeof(sig__au8));
-# endif /* ifdef FLEA_HEAP_MODE */
+#  endif /* ifdef FLEA_HEAP_MODE */
   flea_byte_vec_t__ctor_not_allocatable(&msg_vec__t);
   flea_byte_vec_t__set_as_ref(&msg_vec__t, message__acu8, sizeof(message__acu8));
 
@@ -104,11 +105,11 @@ static flea_err_e THR_flea_test_ecc_key_plain_format_encoding_inner(
   memset(&pubkey__t, 0, sizeof(pubkey__t));
   memset(&privkey__t, 0, sizeof(privkey__t));
   flea_byte_vec_t__dtor(&sig_vec__t);
-# ifdef FLEA_HEAP_MODE
+#  ifdef FLEA_HEAP_MODE
   flea_byte_vec_t__ctor_empty_allocatable(&sig_vec__t);
-# else
+#  else
   flea_byte_vec_t__ctor_empty_use_ext_buf(&sig_vec__t, sig__au8, sizeof(sig__au8));
-# endif
+#  endif
 
 
   FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(&pubkey__t, &enc_pubkey__t, &dp_ref__t));
@@ -195,13 +196,14 @@ flea_err_e THR_flea_test_ecc_key_plain_format_encoding()
 {
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_test_pub_priv_key_init_dtor());
-# if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 224 && defined FLEA_HAVE_SHA1
+#  if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 224 && defined FLEA_HAVE_SHA1
   FLEA_CCALL(THR_flea_test_ecc_key_plain_format_encoding_inner(flea_secp224r1, flea_sha1));
-# endif
-# if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 256 && defined FLEA_HAVE_SHA512
+#  endif
+#  if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 256 && defined FLEA_HAVE_SHA512
   FLEA_CCALL(THR_flea_test_ecc_key_plain_format_encoding_inner(flea_brainpoolP256r1, flea_sha512));
-# endif
+#  endif
   FLEA_THR_FIN_SEC_empty();
 }
 
-#endif /* ifdef FLEA_HAVE_ECKA */
+# endif /* ifdef FLEA_HAVE_ECKA */
+#endif /* ifdef FLEA_HAVE_ASYM_SIG */

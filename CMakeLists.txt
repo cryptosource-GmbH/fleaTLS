@@ -15,7 +15,7 @@ SET(CMAKE_ALLOW_LOOSE_LOOP_CONSTRUCTS true)
 # gnu-compiler flags
 
 # Version info
-SET(MAJOR_VERSION 0)
+SET(MAJOR_VERSION 1)
 SET(MINOR_VERSION 1)
 SET(PATCH_VERSION 0)
 
@@ -49,7 +49,7 @@ IF(${afl} STREQUAL "true")
   SET(CMAKE_CXX_COMPILER afl-g++)
 ENDIF()
 
-SET(build_cfg "general" CACHE STRING "which build_cfg to use")
+SET(build_cfg "default" CACHE STRING "which build_cfg to use")
 
 #SET(mudflap "false" CACHE STRING "wether to compile in mudflap for gcc")
 #IF(${mudflap} STREQUAL "true")
@@ -106,7 +106,7 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 
 # Directories
-SET(INCLUDE_DIR include include/api test/include build_cfg/${build_cfg}
+SET(INCLUDE_DIR include include/api test/include build_cfg/general/${build_cfg}
   build_cfg/pltf_spec/32bit_default )
 
 SET(SRC_DIR src )

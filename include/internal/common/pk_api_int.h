@@ -6,8 +6,11 @@
 #ifndef _flea_pk_api_int__H_
 # define _flea_pk_api_int__H_
 
-# define FLEA_PK_GET_PRIMITIVE_ID_FROM_SCHEME_ID(x) ((x >> FLEA_PK_ID_OFFS_PRIMITIVE) << FLEA_PK_ID_OFFS_PRIMITIVE)
-# define FLEA_PK_GET_ENCODING_ID_FROM_SCHEME_ID(x)  (x & ((1 << FLEA_PK_ID_OFFS_PRIMITIVE) - 1))
+
+# ifdef FLEA_HAVE_ASYM_ALGS
+
+#  define FLEA_PK_GET_PRIMITIVE_ID_FROM_SCHEME_ID(x) ((x >> FLEA_PK_ID_OFFS_PRIMITIVE) << FLEA_PK_ID_OFFS_PRIMITIVE)
+#  define FLEA_PK_GET_ENCODING_ID_FROM_SCHEME_ID(x)  (x & ((1 << FLEA_PK_ID_OFFS_PRIMITIVE) - 1))
 
 flea_err_e THR_flea_pk_api__encode_message__emsa1(
   flea_u8_t*     input_output,
@@ -84,5 +87,6 @@ flea_err_e THR_flea_pk_api__encrypt_message(
   flea_al_u16_t       params_len
 );
 
+# endif // ifdef FLEA_HAVE_ASYM_ALGS
 
 #endif /* h-guard */
