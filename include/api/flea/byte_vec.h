@@ -10,26 +10,39 @@
 #include "flea/util.h"
 #include "internal/common/byte_vec_macro.h"
 
+/**
+ * @file byte_vec.h
+ *
+ *
+ */
 #ifdef __cplusplus
 extern "C" {
 #endif
 
 /**
- * Byte vector type. Functions similar to C++ vectors, i.e. it has internal
+ * Byte vector type whose functions are defined in byte_vec.h. Works similar to C++ vectors, i.e. it has an internal
  * allocated buffer, which can used to append bytes to the vector. Internal reallocations
  * are performed only when the currently allocated size does not suffice for the appended data.
  *
  * The byte vector also supports the usage of an externally provided buffer as
  * its internal memory, in which case it does not allocate any memory at all,
- * and thus can also be used when FLEA_STACK_MODE is activated. In this case the
- * byte vector behaves as a mere reference to an external buffer.
+ * and thus can also be used when \link FLEA_HEAP_MODE stack mode \endlink is activated. In this case the
+ * byte vector behaves as a mere reference to an external buffer. In stack mode,
+ * for instance the ctor \link flea_byte_vec_t__ctor_empty_use_ext_buf flea_byte_vec_t__ctor_empty_use_ext_buf() \endlink can be used
+ * to create a byte vector which uses an external buffer (typically on the
+ * stack) as its internal memory. Whenever during the byte vector's life-cycle a greater allocation size is required
+ * that the external buffers size, the corresponding function will return with
+ * an error.
  *
- * Also when using FLEA_HEAP_MODE byte vectors can also be set as mere
- * references to an existing buffer. In this case, the flea_byte_vect_t__dtor()
- * does not deallocate the buffer. The fleaTLS API does not return byte vectors
+ * In \link FLEA_HEAP_MODE heap mode\endlink for instance the ctor \link flea_byte_vec_t__ctor_empty_allocatable flea_byte_vec_t__ctor_empty_allocatable() \endlink can be used to create an emtpy byte vector which will allocate more heap memory whenever necessary during its life-cycle.
+ *
+ * Byte vectors can also be set as mere
+ * references to an existing buffer. In this case, the byte vector does not own
+ * the memory it points to and the flea_byte_vect_t__dtor()
+ * does not deallocate the buffer even in \link FLEA_HEAP_MODE heap mode\endlink. The fleaTLS API does not return byte vectors
  * that represent references, this feature is only internally used by fleaTLS.
  * Reference byte vectors may be passed to fleaTLS API functions whenever they
- * represent mere input arguments, i.e. where a "const flea_byte_vect_t* " is
+ * represent mere input arguments, i.e. where a <code>const flea_byte_vect_t*</code> is
  * passed as an argument.
  *
  */

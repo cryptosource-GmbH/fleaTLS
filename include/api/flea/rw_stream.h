@@ -66,8 +66,9 @@ typedef flea_err_e (* flea_rw_stream_write_f)(
  * @param [out] target_buffer The buffer where the read function writes the read
  * stream data to.
  * @param [in,out] nb_bytes_to_read Upon input, this parameter holds the number
- * of bytes requested from the read function.  Depending on the parameter
- * read_mode, the function may return also less data.
+ * of bytes requested from the read function. On function return, it receives
+ * the number of actually read bytes that have been written to target_buffer. Depending on the parameter
+ * read_mode, the function may return less data than requested.
  *
  * @return an error code
  */

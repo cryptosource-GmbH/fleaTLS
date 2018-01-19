@@ -39,9 +39,14 @@
 /**@{*/
 
 /**
- * Activate this flag to let flea make heap allocation for buffers (referred to
- * as "heap mode"). Deactivate this flag to let flea only use stack buffers
- * (referred to as "stack mode").
+ * Activate this flag to let fleaTLS make heap allocation for buffers (referred to
+ * as "heap mode"). In heap mode, fleaTLS' functions perform heap allocation for
+ * tempary variables and \link apiObjLifeCycle class-like types\endlink, and use
+ * stack memory only for small-sized buffers.
+ *
+ * Deactivate this flag to let fleaTLS only use stack buffers
+ * (referred to as "stack mode"). In stack mode, fleaTLS does not perform any
+ * heap allocations and instead only uses the stack memory. This means that fleaTLS' functions and objects reserve stack space according to the configured algorithms and maximal key size definitions made in the build configuration.
  */
 # define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
 /* end mem_cfg */
