@@ -1,9 +1,9 @@
-Teste build_config: rsa4096_ecc224_noecdsa_heap gegen OpenSSL Server
+Teste build_config: internal_rsa4096_ecc224_noecdsa_heap gegen OpenSSL Server
 	
 
 Auszuführende Schritte:
 	ccmake .
-		=> build_cfg = rsa4096_ecc224_noecdsa_heap
+		=> build_cfg = internal_rsa4096_ecc224_noecdsa_heap
 	make
 	./run_server.sh und ./run_client.sh
 

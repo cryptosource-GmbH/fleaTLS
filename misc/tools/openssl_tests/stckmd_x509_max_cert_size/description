@@ -4,5 +4,3 @@ build_config_gen.h:
 	//# define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
 	# define FLEA_STKMD_X509_MAX_CERT_SIZE 150
 
-	Ergebnis: in Stackmode wirft flea einen Internal Error
-

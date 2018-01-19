@@ -10,13 +10,7 @@ Test1:
 		run_server_1.sh
 		run_client_1.sh
 
-	Stack-Mode:	
-		Erwartet: HS Abbruch, Client fängt das ab und beendet HS kontrolliert mit alert (Illegal Parameter)
-		Ergebnis: HS Abbruch, Client fängt das ab und beendet HS kontrolliert mit alert (Illegal Parameter)
 
-	Heap-Mode:	
-		Erwartet: HS Abbruch, Client fängt das ab und beendet HS kontrolliert mit alert
-		Ergebnis: HS Abbruch, Client fängt das ab und beendet HS kontrolliert mit alert (Illegal Parameter)
 
 ############################################
 
@@ -27,12 +21,4 @@ Test2:
 	Führe aus:
 		run_server_1.sh
 		run_client_1.sh
-	
-	Stack Mode: 
-		Erwartet: Abbruch vor HS
-		Ergebnis: Abbruch vor HS (FLEA_ERR_INV_KEY_COMP_SIZE)
 
-	Heap Mode:
-		Erwartet: Handshake erfolgreich
-		Ergebnis: Handshake erfolgreich
-	
