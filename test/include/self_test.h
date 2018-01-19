@@ -191,6 +191,7 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store(void);
 
 flea_err_e THR_flea_test_cert_path_valid_init(void);
 
+#ifdef FLEA_HAVE_ASYM_ALGS
 flea_err_e THR_flea_test_cert_path_generic(
   const flea_u8_t*      target_cert_ptr,
   flea_u32_t            target_cert_len,
@@ -209,6 +210,8 @@ flea_err_e THR_flea_test_cert_path_generic(
   const flea_ref_cu8_t* host_id_mbn__pcrcu8,
   flea_host_id_type_e   host_id_type
 );
+
+#endif // ifdef FLEA_HAVE_ASYM_ALGS
 
 flea_err_e THR_flea_test_path_validation_file_based(
   const char* cert_path_prefix,

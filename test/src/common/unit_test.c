@@ -168,15 +168,17 @@ int flea_unit_tests(
 #ifdef FLEA_HAVE_ECDSA
       CALL_TEST(THR_flea_test_cert_verify_ecdsa());
 #endif
-#ifdef FLEA_HAVE_ECKA
+#if defined FLEA_HAVE_ECKA && defined FLEA_HAVE_ASYM_SIG
       CALL_TEST(THR_flea_test_ecc_key_plain_format_encoding());
 #endif
+#ifdef FLEA_HAVE_ASYM_SIG
       CALL_TEST(THR_flea_test_cert_path_valid_init());
+      CALL_TEST(THR_flea_test_fuzzed_certs());
+#endif
       CALL_TEST(THR_flea_test_gmt_time());
 
       CALL_TEST(THR_flea_test_asn1_date());
       CALL_TEST(THR_flea_test_date_addition());
-      CALL_TEST(THR_flea_test_fuzzed_certs());
 #ifdef __FLEA_HAVE_LINUX_FILESYSTEM
 # if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_MOD_BIT_SIZE >= 224
       CALL_TEST(THR_test_ecdsa_self_signed_certs_file_based());

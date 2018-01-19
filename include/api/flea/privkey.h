@@ -278,9 +278,10 @@ flea_err_e THR_flea_pubkey__compute_ecka(
   flea_byte_vec_t*          result
 );
 
-#endif /* h-guard */
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
+
+#endif /* h-guard */

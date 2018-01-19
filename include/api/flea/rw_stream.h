@@ -34,7 +34,7 @@ typedef enum
 } flea_stream_read_mode_e;
 
 /**
- * Write function type to be implemented by client in order to configure a
+ * Write function type to be implemented by the client application in order to configure a
  * flea_rw_stream_t. A flea_rw_stream_t will call this function whenever it
  * writes data to the underlying data sink. The function may buffer data fed to
  * it internally before actually writing it to the underlying data sink. In this
@@ -56,7 +56,7 @@ typedef flea_err_e (* flea_rw_stream_write_f)(
 );
 
 /**
- * Read function type to be implemented by client in order to configure a
+ * Read function type to be implemented by the client application in order to configure a
  * flea_rw_stream_t. A flea_rw_stream_t will call this function whenever it
  * reads data from the underlying data source.
  *
@@ -79,9 +79,9 @@ typedef flea_err_e (* flea_rw_stream_read_f)(
 );
 
 /**
- * Open function type to be implemented by client in order to configure a
+ * Open function type to be implemented by the client application in order to configure a
  * flea_rw_stream_t. A flea_rw_stream_t will call this function when it is
- * created.
+ * created. Supplying an open function is optional.
  *
  * @param [in,out] custom_obj pointer to a custom object which is always handed to the
  * open function and any other custom function supplied to the r/w stream object.
@@ -92,7 +92,7 @@ typedef flea_err_e (* flea_rw_stream_read_f)(
 typedef flea_err_e (* flea_rw_stream_open_f)(void* custom_obj);
 
 /**
- * Flush write function type to be implemented by client in order to configure a
+ * Flush write function type to be implemented by the client application in order to configure a
  * flea_rw_stream_t. A flea_rw_stream_t will call this function whenever it
  * flushes out potentially pending write data to the underlying data sink. If
  * the supplied custom write function is not guaranteed to always write all data
@@ -109,7 +109,7 @@ typedef flea_err_e (* flea_rw_stream_open_f)(void* custom_obj);
 typedef flea_err_e (* flea_rw_stream_flush_write_f)(void* custom_obj);
 
 /**
- * Close function type to be implemented by client in order to configure a
+ * Close function type to be implemented by the client application in order to configure a
  * flea_rw_stream_t. A flea_rw_stream_t will call this function when it is
  * destroyed.
  *

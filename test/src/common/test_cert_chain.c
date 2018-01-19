@@ -14,6 +14,8 @@
 
 #include <string.h>
 
+#ifdef FLEA_HAVE_ASYM_SIG
+
 const flea_u8_t tls_cert_chain__acu8 [] = {
   0x00, 0x05, 0x40, 0x30, 0x82, 0x05, 0x3c, 0x30, 0x82, 0x04, 0x24, 0xa0, 0x03, 0x02, 0x01, 0x02,
   0x02, 0x10, 0x52, 0x43, 0x4d, 0x90, 0x5e, 0x3f, 0x4f, 0x0b, 0x80, 0x37, 0x45, 0x77, 0xa9, 0x8f,
@@ -304,7 +306,7 @@ flea_err_e THR_flea_test_cert_path_valid_init()
   );
 }
 
-#ifdef FLEA_HAVE_RSA
+# ifdef FLEA_HAVE_RSA
 flea_err_e THR_flea_test_cert_chain_correct_chain_of_two()
 {
   FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
@@ -331,12 +333,12 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two()
   );
   FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) - 1, &time__t));
   err = THR_flea_cert_path_validator__build_and_verify_cert_chain(&cert_chain__t, &time__t);
-# if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
+#  if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
   if(err)
   {
     FLEA_THROW("error when verifying RSA signed cert chain", err);
   }
-# else  /* if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) */
+#  else /* if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) */
   if(!err)
   {
     FLEA_THROW(
@@ -344,7 +346,7 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two()
       FLEA_ERR_FAILED_TEST
     );
   }
-# endif /* if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) */
+#  endif /* if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) */
   FLEA_THR_FIN_SEC(
     flea_cert_path_validator_t__dtor(&cert_chain__t);
   );
@@ -386,12 +388,12 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
   FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) - 1, &time__t));
 
   err = THR_flea_cert_path_validator__build_and_verify_cert_chain(&cert_chain__t, &time__t);
-# if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
+#  if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
   if(err)
   {
     FLEA_THROW("error when verifying RSA signed cert chain", err);
   }
-# else  /* if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) */
+#  else /* if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) */
   if(!err)
   {
     FLEA_THROW(
@@ -399,7 +401,7 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
       FLEA_ERR_FAILED_TEST
     );
   }
-# endif /* if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) */
+#  endif /* if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) */
 
   /* fill up to the maximal capacity */
   FLEA_CCALL(
@@ -486,4 +488,6 @@ flea_err_e THR_flea_test_tls_cert_chain()
   );
 } /* THR_flea_test_tls_cert_chain */
 
-#endif /*  #ifdef FLEA_HAVE_RSA*/
+# endif /*  #ifdef FLEA_HAVE_RSA*/
+
+#endif /* ifdef FLEA_HAVE_ASYM_SIG */

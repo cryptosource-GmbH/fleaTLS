@@ -12,7 +12,7 @@
 #include "flea/pubkey.h"
 #include "flea/mem_read_stream.h"
 
-#ifdef FLEA_HAVE_ASYM_ALGS
+#ifdef FLEA_HAVE_ASYM_SIG
 # define DELTA_CRL_INDIC_INDIC     27
 # define ISSUING_DISTR_POINT_INDIC 28
 

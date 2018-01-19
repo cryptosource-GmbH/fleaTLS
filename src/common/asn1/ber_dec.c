@@ -570,7 +570,7 @@ static flea_err_e THR_flea_ber_dec_t__read_or_ref_raw_opt_cft(
   flea_dtl_t raw_len__dtl;
   flea_bool_t optional_found__b = *optional__pb;
   flea_tag_verify_mode_t tag_verify_mode__t;
-  flea_al_u8_t nb_tag_bytes__alu8;
+  flea_al_u8_t nb_tag_bytes__alu8 = 0;
 
   flea_al_u8_t enc_len_nb_bytes__alu8;
   flea_u8_t enc_len__au8[sizeof(flea_dtl_t) + 1];

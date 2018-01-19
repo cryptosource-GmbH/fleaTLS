@@ -195,6 +195,7 @@ void flea_private_key_t__dtor(flea_private_key_t* privkey__pt)
 # endif /* ifdef FLEA_HEAP_MODE */
 }
 
+# ifdef FLEA_HAVE_ASYM_SIG
 flea_err_e THR_flea_private_key_t__sign_plain_format(
   const flea_private_key_t* privkey__pt,
   flea_pk_scheme_id_e       pk_scheme_id__t,
@@ -287,7 +288,7 @@ flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
   }
   if(primitive_id__t == flea_ecdsa)
   {
-# ifdef FLEA_HAVE_ECDSA
+#  ifdef FLEA_HAVE_ECDSA
     flea_u8_t* sig_r__pu8;
     flea_u8_t* sig_s__pu8;
     flea_al_u8_t s_len__al_u8;
@@ -335,13 +336,13 @@ flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
       memset(sig_r__pu8, 0, shift);
     }
 
-# else // #ifdef FLEA_HAVE_ECDSA
+#  else // #ifdef FLEA_HAVE_ECDSA
     FLEA_THROW("ECDSA not supported", FLEA_ERR_INV_ALGORITHM);
-# endif // #else of #ifdef FLEA_HAVE_ECDSA
+#  endif // #else of #ifdef FLEA_HAVE_ECDSA
   }
   else if(primitive_id__t == flea_rsa_sign)
   {
-# ifdef FLEA_HAVE_RSA
+#  ifdef FLEA_HAVE_RSA
     if(privkey__pt->key_type__t != flea_rsa_key)
     {
       FLEA_THROW("invalid key type for signing", FLEA_ERR_INV_KEY_TYPE);
@@ -360,9 +361,9 @@ flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
     // sig_vec__pt->len__dtl = (privkey__pt->key_bit_size__u16 + 7) / 8;
 
 
-# else // #ifdef FLEA_HAVE_RSA
+#  else // #ifdef FLEA_HAVE_RSA
     FLEA_THROW("rsa not supported", FLEA_ERR_INV_ALGORITHM);
-# endif // #else of #ifdef FLEA_HAVE_RSA
+#  endif // #else of #ifdef FLEA_HAVE_RSA
   }
   else
   {
@@ -372,6 +373,8 @@ flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
     FLEA_FREE_BUF_FINAL(primitive_input__bu8);
   );
 } /* THR_flea_pk_signer_t__final_sign */
+
+# endif /* ifdef FLEA_HAVE_ASYM_SIG */
 
 flea_err_e THR_flea_private_key_t__get_encoded_plain(
   const flea_private_key_t* privkey__cpt,

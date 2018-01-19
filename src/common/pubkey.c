@@ -216,66 +216,6 @@ flea_err_e THR_flea_public_key_t__ctor_ecc(
 # endif /* #ifdef FLEA_HAVE_ECC */
 
 
-flea_err_e THR_flea_public_key_t__verify_signature(
-  const flea_public_key_t* key__pt,
-  flea_pk_scheme_id_e      pk_scheme_id__t,
-  flea_hash_id_e           hash_id__t,
-  const flea_byte_vec_t*   message__prcu8,
-  const flea_byte_vec_t*   signature__prcu8
-)
-{
-# ifdef FLEA_HAVE_ECDSA
-  FLEA_DECL_BUF(concat_sig__bu8, flea_u8_t, FLEA_ECDSA_MAX_CONCAT_SIG_LEN);
-# endif
-  FLEA_THR_BEG_FUNC();
-
-# ifdef FLEA_HAVE_ECDSA
-  if((key__pt->key_type__t == flea_ecc_key) && (pk_scheme_id__t == flea_ecdsa_emsa1))
-  {
-    flea_byte_vec_t concat_sig_ref__t;
-    flea_al_u16_t concat_sig_len__alu16;
-    FLEA_ALLOC_BUF(concat_sig__bu8, signature__prcu8->len__dtl);
-    FLEA_CCALL(THR_flea_x509_decode_ecdsa_signature(concat_sig__bu8, &concat_sig_len__alu16, signature__prcu8));
-    concat_sig_ref__t.data__pu8 = concat_sig__bu8;
-    concat_sig_ref__t.len__dtl  = concat_sig_len__alu16;
-
-    FLEA_CCALL(
-      THR_flea_public_key_t__verify_signature_plain_format(
-        key__pt,
-        flea_ecdsa_emsa1,
-        hash_id__t,
-        message__prcu8,
-        &concat_sig_ref__t
-      )
-    );
-  }
-  else
-# endif /* ifdef FLEA_HAVE_ECDSA */
-# ifdef FLEA_HAVE_RSA
-  if((key__pt->key_type__t == flea_rsa_key) && (pk_scheme_id__t == flea_rsa_pkcs1_v1_5_sign))
-  {
-    FLEA_CCALL(
-      THR_flea_public_key_t__verify_signature_plain_format(
-        key__pt,
-        flea_rsa_pkcs1_v1_5_sign,
-        hash_id__t,
-        message__prcu8,
-        signature__prcu8
-      )
-    );
-  }
-  else
-# endif /* ifdef FLEA_HAVE_RSA */
-  {
-    FLEA_THROW("unsupported primitive", FLEA_ERR_X509_UNSUPP_ALGO);
-  }
-  FLEA_THR_FIN_SEC(
-    FLEA_DO_IF_HAVE_ECDSA(
-      FLEA_FREE_BUF_FINAL(concat_sig__bu8);
-    );
-  );
-} /* THR_flea_public_key_t__verify_signature */
-
 flea_err_e THR_flea_x509_get_hash_id_and_key_type_from_oid(
   const flea_u8_t*    oid__pcu8,
   flea_al_u16_t       oid_len__alu16,
@@ -322,70 +262,6 @@ flea_err_e THR_flea_x509_get_hash_id_and_key_type_from_oid(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_x509_get_hash_id_and_scheme_type_from_oid */
 
-flea_err_e THR_flea_public_key_t__verify_signature_use_sigalg_id(
-  const flea_public_key_t*     public_key__pt,
-  const flea_x509_algid_ref_t* sigalg_id__t,
-  const flea_byte_vec_t*       tbs_data__pt,
-  const flea_byte_vec_t*       signature__pt,
-  flea_x509_validation_flags_e cert_ver_flags__e
-)
-{
-  const flea_byte_vec_t* oid_ref__pt = &sigalg_id__t->oid_ref__t;
-  flea_hash_id_e hash_id;
-  flea_pk_key_type_e key_type;
-
-  FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(
-    THR_flea_x509_get_hash_id_and_key_type_from_oid(
-      oid_ref__pt->data__pu8,
-      oid_ref__pt->len__dtl,
-      &hash_id,
-      &key_type
-    )
-  );
-  if(key_type != public_key__pt->key_type__t)
-  {
-    FLEA_THROW("key type and algorithm don't match", FLEA_ERR_INV_ALGORITHM);
-  }
-  if((hash_id == flea_sha1) && !(cert_ver_flags__e & flea_x509_validation_allow_sha1))
-  {
-    FLEA_THROW("invalid hash algorithm", FLEA_ERR_INV_ALGORITHM);
-  }
-
-# ifdef FLEA_HAVE_RSA
-  if(key_type == flea_rsa_key)
-  {
-    FLEA_CCALL(
-      THR_flea_public_key_t__verify_signature(
-        public_key__pt,
-        flea_rsa_pkcs1_v1_5_sign,
-        hash_id,
-        tbs_data__pt,
-        signature__pt
-      )
-    );
-  }
-  else
-# endif /* ifdef FLEA_HAVE_RSA */
-# ifdef FLEA_HAVE_ECC
-  if(key_type == flea_ecc_key)
-  {
-    FLEA_CCALL(
-      THR_flea_public_key_t__verify_signature(
-        public_key__pt,
-        flea_ecdsa_emsa1,
-        hash_id,
-        tbs_data__pt,
-        signature__pt
-      )
-    );
-  }
-  else
-# endif /* ifdef FLEA_HAVE_ECC */
-  { }
-  FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_public_key_t__verify_signature_use_sigalg_id */
-
 flea_err_e THR_flea_public_key_t__encrypt_message(
   const flea_public_key_t* key__pt,
   flea_pk_scheme_id_e      pk_scheme_id__t,
@@ -419,6 +295,133 @@ flea_err_e THR_flea_public_key_t__encrypt_message(
 # endif /* ifdef FLEA_HAVE_RSA */
   FLEA_THR_FIN_SEC_empty();
 }
+
+# ifdef FLEA_HAVE_ASYM_SIG
+flea_err_e THR_flea_public_key_t__verify_signature(
+  const flea_public_key_t* key__pt,
+  flea_pk_scheme_id_e      pk_scheme_id__t,
+  flea_hash_id_e           hash_id__t,
+  const flea_byte_vec_t*   message__prcu8,
+  const flea_byte_vec_t*   signature__prcu8
+)
+{
+#  ifdef FLEA_HAVE_ECDSA
+  FLEA_DECL_BUF(concat_sig__bu8, flea_u8_t, FLEA_ECDSA_MAX_CONCAT_SIG_LEN);
+#  endif
+  FLEA_THR_BEG_FUNC();
+
+#  ifdef FLEA_HAVE_ECDSA
+  if((key__pt->key_type__t == flea_ecc_key) && (pk_scheme_id__t == flea_ecdsa_emsa1))
+  {
+    flea_byte_vec_t concat_sig_ref__t;
+    flea_al_u16_t concat_sig_len__alu16;
+    FLEA_ALLOC_BUF(concat_sig__bu8, signature__prcu8->len__dtl);
+    FLEA_CCALL(THR_flea_x509_decode_ecdsa_signature(concat_sig__bu8, &concat_sig_len__alu16, signature__prcu8));
+    concat_sig_ref__t.data__pu8 = concat_sig__bu8;
+    concat_sig_ref__t.len__dtl  = concat_sig_len__alu16;
+
+    FLEA_CCALL(
+      THR_flea_public_key_t__verify_signature_plain_format(
+        key__pt,
+        flea_ecdsa_emsa1,
+        hash_id__t,
+        message__prcu8,
+        &concat_sig_ref__t
+      )
+    );
+  }
+  else
+#  endif /* ifdef FLEA_HAVE_ECDSA */
+#  ifdef FLEA_HAVE_RSA
+  if((key__pt->key_type__t == flea_rsa_key) && (pk_scheme_id__t == flea_rsa_pkcs1_v1_5_sign))
+  {
+    FLEA_CCALL(
+      THR_flea_public_key_t__verify_signature_plain_format(
+        key__pt,
+        flea_rsa_pkcs1_v1_5_sign,
+        hash_id__t,
+        message__prcu8,
+        signature__prcu8
+      )
+    );
+  }
+  else
+#  endif /* ifdef FLEA_HAVE_RSA */
+  {
+    FLEA_THROW("unsupported primitive", FLEA_ERR_X509_UNSUPP_ALGO);
+  }
+  FLEA_THR_FIN_SEC(
+    FLEA_DO_IF_HAVE_ECDSA(
+      FLEA_FREE_BUF_FINAL(concat_sig__bu8);
+    );
+  );
+} /* THR_flea_public_key_t__verify_signature */
+
+flea_err_e THR_flea_public_key_t__verify_signature_use_sigalg_id(
+  const flea_public_key_t*     public_key__pt,
+  const flea_x509_algid_ref_t* sigalg_id__t,
+  const flea_byte_vec_t*       tbs_data__pt,
+  const flea_byte_vec_t*       signature__pt,
+  flea_x509_validation_flags_e cert_ver_flags__e
+)
+{
+  const flea_byte_vec_t* oid_ref__pt = &sigalg_id__t->oid_ref__t;
+  flea_hash_id_e hash_id;
+  flea_pk_key_type_e key_type;
+
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(
+    THR_flea_x509_get_hash_id_and_key_type_from_oid(
+      oid_ref__pt->data__pu8,
+      oid_ref__pt->len__dtl,
+      &hash_id,
+      &key_type
+    )
+  );
+  if(key_type != public_key__pt->key_type__t)
+  {
+    FLEA_THROW("key type and algorithm don't match", FLEA_ERR_INV_ALGORITHM);
+  }
+#  ifdef FLEA_HAVE_SHA1
+  if((hash_id == flea_sha1) && !(cert_ver_flags__e & flea_x509_validation_allow_sha1))
+  {
+    FLEA_THROW("invalid hash algorithm", FLEA_ERR_INV_ALGORITHM);
+  }
+#  endif /* ifdef FLEA_HAVE_SHA1 */
+
+#  ifdef FLEA_HAVE_RSA
+  if(key_type == flea_rsa_key)
+  {
+    FLEA_CCALL(
+      THR_flea_public_key_t__verify_signature(
+        public_key__pt,
+        flea_rsa_pkcs1_v1_5_sign,
+        hash_id,
+        tbs_data__pt,
+        signature__pt
+      )
+    );
+  }
+  else
+#  endif /* ifdef FLEA_HAVE_RSA */
+#  ifdef FLEA_HAVE_ECC
+  if(key_type == flea_ecc_key)
+  {
+    FLEA_CCALL(
+      THR_flea_public_key_t__verify_signature(
+        public_key__pt,
+        flea_ecdsa_emsa1,
+        hash_id,
+        tbs_data__pt,
+        signature__pt
+      )
+    );
+  }
+  else
+#  endif /* ifdef FLEA_HAVE_ECC */
+  { }
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_public_key_t__verify_signature_use_sigalg_id */
 
 flea_err_e THR_flea_public_key_t__verify_signature_plain_format(
   const flea_public_key_t* pubkey__pt,
@@ -511,7 +514,7 @@ flea_err_e THR_flea_public_key_t__verify_digest_plain_format(
   }
   if(primitive_id__t == flea_ecdsa)
   {
-# ifdef FLEA_HAVE_ECDSA
+#  ifdef FLEA_HAVE_ECDSA
     const flea_u8_t* sig_r__pu8;
     const flea_u8_t* sig_s__pu8;
     flea_al_u8_t s_len__al_u8;
@@ -537,13 +540,13 @@ flea_err_e THR_flea_public_key_t__verify_digest_plain_format(
       )
     );
 
-# else // #ifdef FLEA_HAVE_ECDSA
+#  else // #ifdef FLEA_HAVE_ECDSA
     FLEA_THROW("ECDSA not supported", FLEA_ERR_INV_ALGORITHM);
-# endif // #else of #ifdef FLEA_HAVE_ECDSA
+#  endif // #else of #ifdef FLEA_HAVE_ECDSA
   }
   else if(primitive_id__t == flea_rsa_sign)
   {
-# ifdef FLEA_HAVE_RSA
+#  ifdef FLEA_HAVE_RSA
 
     FLEA_CCALL(
       THR_flea_rsa_raw_operation(
@@ -573,9 +576,9 @@ flea_err_e THR_flea_public_key_t__verify_digest_plain_format(
     {
       FLEA_THROW("invalid RSA encoding method in RSA signature verification", FLEA_ERR_INV_ALGORITHM);
     }
-# else // #ifdef FLEA_HAVE_RSA
+#  else // #ifdef FLEA_HAVE_RSA
     FLEA_THROW("scheme not supported", FLEA_ERR_INV_ALGORITHM);
-# endif // #else of #ifdef FLEA_HAVE_RSA
+#  endif // #else of #ifdef FLEA_HAVE_RSA
   }
   else
   {
@@ -586,6 +589,8 @@ flea_err_e THR_flea_public_key_t__verify_digest_plain_format(
     FLEA_FREE_BUF_FINAL(digest_for_rsa_ver__bu8);
   );
 } /* THR_flea_pk_signer_t__final_verify */
+
+# endif /* ifdef FLEA_HAVE_ASYM_SIG */
 
 flea_err_e THR_flea_public_key__t__get_encoded_plain(
   const flea_public_key_t* pubkey__pt,

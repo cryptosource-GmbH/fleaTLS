@@ -60,10 +60,10 @@
 /**
  * Control whether CMAC support is compiled
  */
-# define FLEA_HAVE_CMAC // FBFLAGS_MACALGS_ON_OFF
+# define FLEA_HAVE_CMAC
 
 /**
- * Control whether EAX support is compiled
+ * Control whether EAX support is compiled. Requires CMAC as a prerequisite.
  */
 # define FLEA_HAVE_EAX  // FBFLAGS_AEALGS_ON_OFF
 

@@ -229,6 +229,9 @@ flea_err_e THR_flea_public_key_t__ctor_ecc(
  *
  * @return an error code
  */
+
+# ifdef FLEA_HAVE_ASYM_SIG
+
 flea_err_e THR_flea_public_key_t__verify_signature(
   const flea_public_key_t* key,
   flea_pk_scheme_id_e      pk_scheme_id,
@@ -303,6 +306,8 @@ flea_err_e THR_flea_public_key_t__verify_signature_use_sigalg_id(
   const flea_byte_vec_t*       signature,
   flea_x509_validation_flags_e flags
 );
+
+# endif // ifdef FLEA_HAVE_ASYM_SIG
 
 /**
  * Encrypt a message using a public key.
