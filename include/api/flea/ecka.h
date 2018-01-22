@@ -14,7 +14,7 @@ extern "C" {
 #ifdef FLEA_HAVE_ECC
 
 /**
- * Carry out the EC key agreement operation as specified in ANSI X9.63 and BSI TR-03111 v2.0 (Sec. 4.3)
+ * Carry out the EC key agreement operation as specified in ANSI X9.63 and BSI TR-03111 v2.0 (Section 4.3)
  *
  * @param public_point_enc the encoded public point of the other party
  * @param public_point_enc_len the length of public_point_enc
@@ -23,7 +23,7 @@ extern "C" {
  * @param result pointer to the memory area where to store the computation
  * result
  * @param result_len the caller must provide a pointer to a value which contains
- * the available length of result. when the function returns, *result_len will
+ * the available length of result. When the function returns, *result_len will
  * contain the length of the data set in result
  * @param dom_par pointer the EC domain parameters object to use
  *

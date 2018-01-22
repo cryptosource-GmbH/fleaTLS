@@ -191,7 +191,7 @@ typedef enum
   FLEA_ERR_TLS_UNSUPP_PROT_VERSION                      = 0x53,
 
   /**
-   * An error decoding a received TLS record occurred.
+   * An error occurred while decoding a received TLS record.
    */
   FLEA_ERR_TLS_PROT_DECODE_ERR                          = 0x54,
 
@@ -215,7 +215,7 @@ typedef enum
   FLEA_ERR_TLS_RENEG_NOT_ALLOWED = 0x57,
 
   /**
-   * The parameters send by the peer during the TLS handshake led to a handshake
+   * The parameters sent by the peer during the TLS handshake led to a handshake
    * failure.
    */
   FLEA_ERR_TLS_HANDSHK_FAILURE   = 0x58,
@@ -311,7 +311,7 @@ typedef enum
 
   /**
    * An error occurred when opening a connection. This value is not thrown by
-   * fleaTLS itself, but may be used flea_rw_stream_t implemenations to indicate
+   * fleaTLS itself, but may be used by flea_rw_stream_t implementations to indicate
    * errors.
    */
   FLEA_ERR_FAILED_TO_OPEN_CONNECTION       = 0xAF,
@@ -323,7 +323,7 @@ typedef enum
   FLEA_ERR_X509_VERSION_ERROR      = 0xC0,
 
   /**
-   * An error occurred processing an X.509 distinguished name.
+   * An error occurred while processing an X.509 distinguished name.
    */
   FLEA_ERR_X509_DN_ERROR           = 0xC1,
 
@@ -333,7 +333,7 @@ typedef enum
   FLEA_ERR_X509_ERR_UNSUP_CRIT_EXT = 0xC2,
 
   /**
-   * An error occurred decoding the Subject Alternative Name Extension of a
+   * An error occurred while decoding the Subject Alternative Name Extension of a
    * X.509 certificate.
    */
   FLEA_ERR_X509_SAN_DEC_ERR        = 0xC4,
@@ -373,7 +373,7 @@ typedef enum
   FLEA_ERR_X509_UNSUPP_ALGO                           = 0xCB,
 
   /**
-   * An error decoding an ASN.1 bit string occured.
+   * An error occurred while decoding an ASN.1 bit string.
    */
   FLEA_ERR_X509_BIT_STR_ERR                           = 0xCC,
 

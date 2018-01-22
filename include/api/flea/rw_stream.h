@@ -103,7 +103,6 @@ typedef flea_err_e (* flea_rw_stream_open_f)(void* custom_obj);
  * @param [in,out] custom_obj pointer to a custom object which is always handed to the
  * flush write function and any other custom function supplied to the rw_stream
  * object. It can be used for state management.
- * written.
  *
  * @return an error code
  */

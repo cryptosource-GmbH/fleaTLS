@@ -110,7 +110,7 @@ flea_err_e THR_flea_tls_server_ctx_t__read_app_data(
 
 /**
  * Send application data over the TLS channel. Note that this function may not
- * actually send the data over the underlying stream. To enforce this, the
+ * actually send the data over the underlying stream due to internal buffering. To enforce the sending of the written data, the
  * function THR_flea_tls_server_ctx_t__flush_write_app_data() needs to be
  * called afterwards.
  *

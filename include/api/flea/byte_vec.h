@@ -34,7 +34,7 @@ extern "C" {
  * that the external buffers size, the corresponding function will return with
  * an error.
  *
- * In \link FLEA_HEAP_MODE heap mode\endlink for instance the ctor \link flea_byte_vec_t__ctor_empty_allocatable flea_byte_vec_t__ctor_empty_allocatable() \endlink can be used to create an emtpy byte vector which will allocate more heap memory whenever necessary during its life-cycle.
+ * In \link FLEA_HEAP_MODE heap mode\endlink for instance the ctor \link flea_byte_vec_t__ctor_empty_allocatable flea_byte_vec_t__ctor_empty_allocatable() \endlink can be used to create an empty byte vector which will allocate more heap memory whenever necessary during its life-cycle.
  *
  * Byte vectors can also be set as mere
  * references to an existing buffer. In this case, the byte vector does not own

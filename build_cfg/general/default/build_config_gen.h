@@ -324,7 +324,7 @@
 
 /**
  * If this switch is deactivated, then only the most common certificate
- * extensions are supported. Deactivate it to safe RAM.
+ * extensions are supported. Deactivate it to save RAM.
  */
 # define FLEA_X509_CERT_REF_WITH_DETAILS
 
@@ -340,7 +340,7 @@
 # define FLEA_STKMD_X509_SAN_ELEMENT_MAX_LEN 50
 
 /**
- * Maximal byte length of an issuerDN in an X.509 certificate. Take effect only
+ * Maximal byte length of an issuerDN in an X.509 certificate. Takes effect only
  * in stack mode.
  */
 # define FLEA_STKMD_X509_MAX_ISSUER_DN_RAW_BYTE_LEN 256
@@ -514,21 +514,21 @@
 
 
 /**
- * Maximal number of sessions held be the server session manager (flea_tls_session_mngr_t, session cache). May not be zero.
+ * Maximal number of sessions held by the server session manager (flea_tls_session_mngr_t, session cache). May not be zero.
  */
 # define FLEA_TLS_MAX_NB_MNGD_SESSIONS 4 // FBFLAGS__INT_LIST 1 2 10 31 257
 
 /**
  * If enabled, the tls client or server context will feature a flea_x509_cert_ref_t of the peer's
  * EE certificate used during the handshake. Disable this feature to save
- * considerable RAM.
+ * a considerable amount of RAM.
  */
 # define FLEA_TLS_HAVE_PEER_EE_CERT_REF
 
 /**
  * If enabled, the tls client or server context will feature a flea_x509_cert_ref_t of the root
  * certificate used to authenticate the peer's EE certificate used during the handshake. Disable this feature to save
- * considerable RAM.
+ * a considerable amount of RAM.
  */
 # define FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 

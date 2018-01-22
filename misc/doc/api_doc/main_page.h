@@ -30,27 +30,27 @@
  * Here we list some restrictions of the current version of fleaTLS.
  *
  * - fleaTLS does not support the RSA key generation. This operation is
- *   extremely complex and generally no suitable for software implementations on
+ *   extremely complex and generally not suitable for software implementations on
  *   resource-constrained devices.
  *
  * fleaTLS supports the functionality for X.509 processing, but excludes some
  * features specified in RFC 5280, that are usually irrelevant to IoT and
  * industry applications.
  *
- * - X.509 Certificate Name Constraints Extension: The Name Constraints
+ * - X.509 Certificate Name Constraints extension: The Name Constraints
  *   extension, which is typically used in complex heterogeneous PKIs only, can
- *   be used to restrict the set of names that Sub-CAs may issue certificates to. The corresponding restriction are reflected by the contents of the Name Constraints Extension.
+ *   be used to restrict the set of names that Sub-CAs may issue certificates to. The corresponding restrictions are reflected by the contents of the Name Constraints extension.
  *   This extension is not supported by fleaTLS. If fleaTLS encounters an X.509
  *   certificate featuring a Name Constraints extension marked as critical, the
  *   certificate cannot be validated.
- * - Support for X.509 Certificate Policy Extensions: fleaTLS does not process
- *   X.509 Certificate Policy Extension. It ignores such extensions, even if
+ * - Support for X.509 Certificate Policy extension: fleaTLS does not process
+ *   X.509 Certificate Policy extension. It ignores such extensions, even if
  *   they are marked as critical. Other policy-related X.509 certificate
- *   extensions, namely the Inhibit anyPolicy and Policy Constraints Extensions,
+ *   extensions, namely the Inhibit anyPolicy and Policy Constraints extension,
  *   lead to the rejection of the certificate if they are marked as critical.
- * - X.509 Freshest CRL Extension: This extension, which addresses Delta CRLs,
+ * - X.509 Freshest CRL extension: This extension, which addresses Delta CRLs,
  *   is of almost no relevance even in the internet PKI. The presence of
- *   this extension marked as critical in an X.509 certificate also lead to the
+ *   this extension marked as critical in an X.509 certificate also leads to the
  *   rejection of that certificate.
  *
  */
@@ -64,8 +64,7 @@
  *
  * Install CMake as a necessary prerequisite
  *  <PRE>
- *    $ apt-get install cmake
- *    $ apt-get install cmake-curses-gui
+ *    $ apt-get install build-essential cmake cmake-curses-gui
  *    </PRE>
  *
  * In the flea directory, the command sequence
@@ -96,9 +95,6 @@
  *      - http://lcamtuf.coredump.cx/afl/
  *
  *
- * Here, besides the possibility to configure debug mode, AddressSanitizer (asan) and
- * American Fuzzy Lop (afl) can be configured. For more information on these
- * tools, visit
 
 \section runTests Running the tests
 
@@ -146,8 +142,8 @@ in two different console windows.
  * The life-cycle model for the class-like types is as follows.
  *
  * When declaring an object, it will be in the UNINIT state. The first action
- * that must happen on an object in this state is initialization. Initialization
- * can be reached in two ways. The first is using the <code>\<type-name\>__INIT_VALUE</code>
+ * that must happen to an object in this state is initialization. Initialization
+ * can be performed in two ways. The first is using the <code>\<type-name\>__INIT_VALUE</code>
  * macro as the right hand side initialization value when declaring the object.
  * For example like this:
  *
@@ -261,7 +257,7 @@ Before any functions of fleaTLS are called from an application, a call to THR_fl
 
 A fresh and high entropy seed must be supplied to fleaTLS' random number generator. If this is not the case, the usage of fleaTLS will not be secure.
 
-Furthermore, a function for storing a fresh RNG seed can optionally provided.
+Furthermore, a function for storing a fresh RNG seed can optionally be provided.
 
 \subsection libinitNowFunc Current Time
 
@@ -278,7 +274,7 @@ In order to enable TLS, the application code is required to supply a custom impl
 
 \subsection tlsRwStream Supporting the Read Modes
 
-While the implementation of the write functionality is straightforward, the
+While the implementation of the write functionality is straightforward,
 there exist three read modes (\link flea_stream_read_mode_e flea_stream_read_mode_e \endlink) which must be understood
 by the \link flea_rw_stream_read_f flea_rw_stream_read_f \endlink supplied to the custom flea_rw_stream_t type.
 - \link flea_stream_read_mode_e::flea_read_nonblocking flea_read_nonblocking \endlink means that the function quickly returns with the available incoming data and thus may return with fewer bytes than requested. If no read data is available on the interface, the function may return with zero bytes read. This mode may *not* cause a timeout (see \ref tlsTimeout ).

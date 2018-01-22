@@ -9,7 +9,7 @@
 /**
  * The flea error handling concept is based on return codes. Any function which
  * may throw errors is indicated by the prefix THR_ and has flea_err_e as return
- * value.
+ * type.
  * The programming approach taken in flea realizes maximal reliability of the
  * code. It is based on the the usage of the flea macro framework for memory
  * allocation (or potentially other types of resource allocations) and the calling of throwing functions.
@@ -20,7 +20,7 @@
  * to heap memory during the function execution, this means that they are
  * initialized to NULL; for flea objects which hold resources themselves in the
  * constructed state, specific initial values are defined. This ensures that in the
- * cleanup section at the end of the function it is alway possible to determine
+ * cleanup section at the end of the function it is always possible to determine
  * whether the resources held by such a variable must be released or not.
  *
  * The code section of each throwing function starts with the macro

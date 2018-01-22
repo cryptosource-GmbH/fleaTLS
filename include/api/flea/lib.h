@@ -73,7 +73,7 @@ typedef flea_err_e (* flea_prng_save_f)(
  * @param now_func_mbn function which returns the current time. May be set to
  * null. In this case, X.509 certificate verifications and TLS handshakes will
  * fail with the error code \link flea_err_e::FLEA_ERR_NOW_FUNC_IS_NULL FLEA_ERR_NOW_FUNC_IS_NULL \endlink.
- * @param rng_seed a fresh high-entropy prng seed for the initialization of fleaTLS' global RNG. It is recommended to used the value saved by the flea_prng_save_f function provided to THR_flea_lib__init().
+ * @param rng_seed a fresh high-entropy prng seed for the initialization of fleaTLS' global RNG. It is recommended to use the value saved by the flea_prng_save_f function provided to THR_flea_lib__init().
  * @param rng_seed_len length of rng_seed.
  * @param save_func_mbn pointer to a function that saves a freshly generated PRNG state for future
  * use in a call to THR_flea_lib__init(). This function pointer may be null. In this case it is the necessary to
