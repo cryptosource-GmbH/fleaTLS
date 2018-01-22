@@ -27,6 +27,12 @@
 
 /*! \page fleaTLSRestrictions Restrictions of fleaTLS
  *
+ * Here we list some restrictions of the current version of fleaTLS.
+ *
+ * - fleaTLS does not support the RSA key generation. This operation is
+ *   extremely complex and generally no suitable for software implementations on
+ *   resource-constrained devices.
+ *
  * fleaTLS supports the functionality for X.509 processing, but excludes some
  * features specified in RFC 5280, that are usually irrelevant to IoT and
  * industry applications.
@@ -148,7 +154,7 @@ in two different console windows.
  * <code> flea_ae_ctx_t ctx__t = \link flea_ae_ctx_t__INIT_VALUE flea_ae_ctx_t__INIT_VALUE\endlink; </code>
  *
  * The second possibility is to use the <code>\<type-name\>__INIT(ptr)</code>
- * macro after before the object is used:
+ * macro after the declaration and before the object is used:
  *
  * <CODE>
  *
