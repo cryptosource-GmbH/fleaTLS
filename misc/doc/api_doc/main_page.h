@@ -127,7 +127,7 @@ in two different console windows.
  * functions, return an error code
  * which has to be checked by the caller.
  *
- * \section apiObjLifeCycle Object Life-Cyle
+ * \section apiObjLifeCycle Object Life-Cycle
  *
  * fleaTLS realizes an object oriented API for a number of class-like types. Each type name in
  * fleaTLS ends in <code>..._t</code>.

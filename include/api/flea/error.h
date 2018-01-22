@@ -362,7 +362,7 @@ typedef enum
   FLEA_ERR_X509_EKU_VAL_ERR                           = 0xC9,
 
   /**
-   * An invalid/inconsisten value of the signature algorithm in an X.509 object
+   * An invalid/inconsistent value of the signature algorithm in an X.509 object
    * was encountered.
    */
   FLEA_ERR_X509_SIG_ALG_ERR                           = 0xCA,
@@ -403,7 +403,7 @@ typedef enum
 
   /**
    * An X.509 object did not provide explicit or named elliptic curve
-   * paramerters.
+   * parameters.
    */
   FLEA_ERR_X509_IMPLICT_ECC_KEY_PARAMS                = 0xD1,
 
@@ -451,7 +451,7 @@ typedef enum
   FLEA_ERR_X509_CRL_NEXT_UPDATE_PASSED                = 0xD9,
 
   /**
-   * A CRL issuer certificate does not fullfill the requirements for the Key
+   * A CRL issuer certificate does not fulfil the requirements for the Key
    * Usage Extension.
    */
   FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN                = 0xDA,
@@ -521,12 +521,12 @@ typedef enum
   FLEA_ERR_X509_USER_CANCELLED           = 0xE6,
 
   /**
-   * A function to deterine the current time was not supplied to THR_flea_lib__init().
+   * A function to determine the current time was not supplied to THR_flea_lib__init().
    */
   FLEA_ERR_NOW_FUNC_IS_NULL              = 0xE7,
 
   /**
-   * The initalization of a mutex failed.
+   * The initialization of a mutex failed.
    */
   FLEA_ERR_MUTEX_INIT                    = 0xF1,
 

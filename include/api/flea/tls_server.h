@@ -227,7 +227,7 @@ flea_bool_t flea_tls_server_ctx_t__have_peer_ee_cert_ref(flea_tls_server_ctx_t* 
  *
  * @param server_ctx the TLS server context object pointer
  *
- * @return a pointer to the flea_x509_cert_ref_t oject if it is available or
+ * @return a pointer to the flea_x509_cert_ref_t object if it is available or
  * NULL otherwise.
  */
 const flea_x509_cert_ref_t* flea_tls_server_ctx_t__get_peer_ee_cert_ref(flea_tls_server_ctx_t* server_ctx);
@@ -251,7 +251,7 @@ flea_bool_t flea_tls_server_ctx_t__have_peer_root_cert_ref(flea_tls_server_ctx_t
  *
  * @param server_ctx the TLS server context object pointer
  *
- * @return a pointer to the flea_x509_cert_ref_t oject if it is available or
+ * @return a pointer to the flea_x509_cert_ref_t object if it is available or
  * NULL otherwise.
  */
 const flea_x509_cert_ref_t* flea_tls_server_ctx_t__get_peer_root_cert_ref(flea_tls_server_ctx_t* server_ctx);
