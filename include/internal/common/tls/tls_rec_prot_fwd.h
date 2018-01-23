@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #ifndef _flea_tls_rec_prot_fwd__H_
 #define _flea_tls_rec_prot_fwd__H_
 

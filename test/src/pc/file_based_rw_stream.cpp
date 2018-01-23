@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #include "pc/file_based_rw_stream.h"
 #include "flea/error_handling.h"
 #include "pc/test_util.h"

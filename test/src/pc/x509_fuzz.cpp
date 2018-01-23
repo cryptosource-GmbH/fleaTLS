@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #include "self_test.h"
 #include "flea/error_handling.h"
 #include "pc/test_pc.h"

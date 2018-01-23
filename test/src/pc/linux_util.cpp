@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #include "pc/linux_util.h"
 #include "internal/common/default.h"
 #include "internal/common/lib_int.h"

@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #ifndef _flea_file_based_rw_stream__H_
 #define _flea_file_based_rw_stream__H_
 

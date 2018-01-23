@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #include "internal/common/default.h"
 #include "flea/cert_store.h"
 #include "flea/util.h"

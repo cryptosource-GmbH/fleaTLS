@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #ifndef _flea_hostn_ver_int__H_
 #define _flea_hostn_ver_int__H_
 
