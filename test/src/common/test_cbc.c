@@ -47,20 +47,20 @@ static flea_err_e THR_flea_test_cbc_mode_aes()
   FLEA_ALLOC_BUF(encr__bu8, sizeof(aes128_cbc_pt));
   FLEA_ALLOC_BUF(decr__bu8, sizeof(aes128_cbc_pt));
 
-  FLEA_CCALL(THR_flea_cbc_mode__encrypt_data(flea_aes128, aes128_cbc_key, sizeof(aes128_cbc_key), aes128_cbc_iv, sizeof(aes128_cbc_iv), encr__bu8, aes128_cbc_pt, sizeof(aes128_cbc_pt)));
+  FLEA_CCALL(THR_flea_cbc_mode__encrypt_data(flea_aes128, aes128_cbc_key, sizeof(aes128_cbc_key), aes128_cbc_iv, sizeof(aes128_cbc_iv), aes128_cbc_pt, encr__bu8, sizeof(aes128_cbc_pt)));
   if(memcmp(encr__bu8, aes128_cbc_exp_ct, sizeof(aes128_cbc_exp_ct)))
   {
     FLEA_THROW("error with CBC encrypted result (1)", FLEA_ERR_FAILED_TEST);
   }
 #ifdef FLEA_HAVE_AES_BLOCK_DECR
-  FLEA_CCALL(THR_flea_cbc_mode__decrypt_data(flea_aes128, aes128_cbc_key, sizeof(aes128_cbc_key), aes128_cbc_iv, sizeof(aes128_cbc_iv), decr__bu8, encr__bu8, sizeof(aes128_cbc_pt)));
+  FLEA_CCALL(THR_flea_cbc_mode__decrypt_data(flea_aes128, aes128_cbc_key, sizeof(aes128_cbc_key), aes128_cbc_iv, sizeof(aes128_cbc_iv), encr__bu8, decr__bu8, sizeof(aes128_cbc_pt)));
 
   if(memcmp(decr__bu8, aes128_cbc_pt, sizeof(aes128_cbc_pt)))
   {
     FLEA_THROW("error with CBC decrypted result (1)", FLEA_ERR_FAILED_TEST);
   }
 #else // #ifdef FLEA_HAVE_AES_BLOCK_DECR
-  if(FLEA_ERR_INV_ALGORITHM != THR_flea_cbc_mode__decrypt_data(flea_aes128, aes128_cbc_key, sizeof(aes128_cbc_key), aes128_cbc_iv, sizeof(aes128_cbc_iv), decr__bu8, encr__bu8, sizeof(aes128_cbc_pt)))
+  if(FLEA_ERR_INV_ALGORITHM != THR_flea_cbc_mode__decrypt_data(flea_aes128, aes128_cbc_key, sizeof(aes128_cbc_key), aes128_cbc_iv, sizeof(aes128_cbc_iv), encr__bu8, decr__bu8, sizeof(aes128_cbc_pt)))
   {
     FLEA_THROW("error with unsupported decryption", FLEA_ERR_FAILED_TEST);
   }
@@ -198,7 +198,7 @@ static flea_err_e THR_flea_test_cbc_mode_3des()
     FLEA_THROW("error with CBC decrypted result (3)", FLEA_ERR_FAILED_TEST);
   }
 
-  FLEA_CCALL(THR_flea_cbc_mode__decrypt_data(flea_tdes_3key, tdes_cbc_key, sizeof(tdes_cbc_key), tdes_cbc_iv, sizeof(tdes_cbc_iv), decr__bu8, tdes_cbc_exp_ct, sizeof(tdes_cbc_pt)));
+  FLEA_CCALL(THR_flea_cbc_mode__decrypt_data(flea_tdes_3key, tdes_cbc_key, sizeof(tdes_cbc_key), tdes_cbc_iv, sizeof(tdes_cbc_iv), tdes_cbc_exp_ct, decr__bu8, sizeof(tdes_cbc_pt)));
 
   if(memcmp(decr__bu8, tdes_cbc_pt, sizeof(tdes_cbc_pt)))
   {

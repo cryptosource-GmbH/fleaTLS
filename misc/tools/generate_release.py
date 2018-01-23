@@ -124,6 +124,7 @@ have_test_data = True
 
 shutil.rmtree(generate_dir + "/" + license_name_gpl + "/" + "flea", True)
 shutil.rmtree(generate_dir + "/" + license_name_closed_source + "/" + "flea", True)
+shutil.rmtree(generate_dir)
 
 generate_with_license(license_name_gpl, have_test_data)
 generate_with_license(license_name_closed_source, have_test_data)

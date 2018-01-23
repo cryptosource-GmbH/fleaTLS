@@ -235,8 +235,8 @@ flea_err_e THR_flea_cbc_mode__crypt_data(
   const flea_u8_t*       iv,
   flea_al_u8_t           iv_len,
   flea_cipher_dir_e      dir,
-  flea_u8_t*             output,
   const flea_u8_t*       input,
+  flea_u8_t*             output,
   flea_dtl_t             input_output_len
 );
 
@@ -258,8 +258,8 @@ flea_err_e THR_flea_cbc_mode__encrypt_data(
   flea_al_u8_t           key_len,
   const flea_u8_t*       iv,
   flea_al_u8_t           iv_len,
-  flea_u8_t*             output,
   const flea_u8_t*       input,
+  flea_u8_t*             output,
   flea_dtl_t             input_output_len
 );
 
@@ -281,8 +281,8 @@ flea_err_e THR_flea_cbc_mode__decrypt_data(
   flea_al_u8_t           key_len,
   const flea_u8_t*       iv,
   flea_al_u8_t           iv_len,
-  flea_u8_t*             output,
   const flea_u8_t*       input,
+  flea_u8_t*             output,
   flea_dtl_t             input_output_len
 );
 

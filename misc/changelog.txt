@@ -9,7 +9,7 @@
 #
 # Changelog of the fleaTLS cryptographic library
 
-## [1.1.0] 2018-01-25  cryptosource GmbH  info@fleatls.com
+## [1.1.0] 2018-01-23  cryptosource GmbH  info@fleatls.com
 
 ### Added
 - X.509 and CRL processing
@@ -17,9 +17,12 @@
 - TLS 1.2
 - Public and private key types
 - Side channel countermeasures
+- RNG functionality
 
 ### Changed
 - Public Key Operations API
+- Library Initialization function
+- normalized order of input/output arguments for CBC-mode functions
 
 ### Fixed
 - incorrect use of some enums for MACs
