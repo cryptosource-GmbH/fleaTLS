@@ -57,6 +57,7 @@ def generate_for_license(license_name, work_dir):
   files += collect_files_with_ending(".c", work_dir+"/test")
   files += collect_files_with_ending(".cpp", work_dir+"/test")
   files += collect_files_with_ending(".h", work_dir+"/test")
+  files += collect_files_with_ending(".h", work_dir+"/build_cfg")
 
   for file_name in files:
     #print "opening file " + file_name
@@ -64,6 +65,9 @@ def generate_for_license(license_name, work_dir):
   #
   #  new_file = re.sub(r'\/\*\*\*\*\*\*\*(.*?)________(.*?)conditions(.*?)\*\/', r'/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */', file,flags=re.DOTALL)
     new_file = re.sub(r'\/\* \#\#__FLEA_LICENSE_TEXT_PLACEHOLDER__\#\# \*\/', license_notice_text, file,flags=re.DOTALL)
+    if(file == new_file):
+        print ("error: file '" + file_name + "' does not contain a license placeholder")
+        exit(1)
     new_file = re.sub(r'\/\/ ##__FLEA_UNCOMMENT_IN_RELEASE__## ', r'', new_file, flags=re.DOTALL)
     new_file = re.sub(r'\/\* ##__FLEA_COMMENT_OUT_IN_RELEASE__## \*\/', r'//', new_file, flags=re.DOTALL)
 
