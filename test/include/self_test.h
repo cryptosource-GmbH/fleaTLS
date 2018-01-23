@@ -112,7 +112,7 @@ flea_err_e THR_flea_test_rsa_crt_inner(
   const flea_u8_t* mod_arr
 );
 
-flea_err_e THR_flea_test_sha256_file_based();
+flea_err_e THR_flea_test_hash_file_based();
 
 flea_err_e THR_flea_test_hash_function_inner(
   const flea_u8_t* message,

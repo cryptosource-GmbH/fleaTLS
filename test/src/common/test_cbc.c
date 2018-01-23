@@ -10,7 +10,7 @@
 #include "self_test.h"
 #include <string.h>
 
-flea_err_e THR_flea_test_cbc_mode()
+static flea_err_e THR_flea_test_cbc_mode_aes()
 {
   // from https://tools.ietf.org/html/rfc3602
   const flea_u8_t aes128_cbc_key[] = {0x56, 0xe4, 0x7a, 0x38, 0xc5, 0x59, 0x89, 0x74, 0xbc, 0x46, 0x90, 0x3d, 0xba, 0x29, 0x03, 0x49};
@@ -134,3 +134,92 @@ flea_err_e THR_flea_test_cbc_mode()
     );
   );
 } /* THR_flea_test_cbc_mode */
+
+#ifdef FLEA_HAVE_DES
+static flea_err_e THR_flea_test_cbc_mode_3des()
+{
+  const flea_u8_t tdes_cbc_key[] = {
+    0x81, 0xF8, 0xE1, 0xEC, 0xCD, 0xFB, 0xBC, 0xE1, 0xE2, 0xFB, 0x52, 0x3C, 0xDA,
+    0xB3, 0x2B, 0x10, 0xB4, 0x79, 0xAB, 0x53, 0xD9, 0x81, 0x9D, 0xEF
+  };
+  const flea_u8_t tdes_cbc_iv[] = {
+    0x07, 0xDD, 0x42, 0x78, 0x83, 0xB7, 0x49, 0x70
+  };
+
+
+  const flea_u8_t tdes_cbc_pt[16] = {
+    'C', 'B', 'C', ' ', 'M', 'o', 'd', 'e', ' ', 'T', 'e', 's', 't', 3, 3, 3
+  };
+
+  const flea_u8_t tdes_cbc_exp_ct[16] = {
+    0x6D, 0xF4, 0xAE, 0x5D, 0x60, 0xBC, 0x8F, 0xF1,
+    0xAA, 0xE4, 0xCC, 0xFD, 0x11, 0xA0, 0x5F, 0xB5
+  };
+
+  const flea_u8_t* in_ptr__pcu8;
+  flea_u8_t* out_ptr__pu8;
+
+  FLEA_DECL_OBJ(encr_ctx__t, flea_cbc_mode_ctx_t);
+  FLEA_DECL_OBJ(decr_ctx__t, flea_cbc_mode_ctx_t);
+  FLEA_DECL_BUF(encr__bu8, flea_u8_t, sizeof(tdes_cbc_pt));
+  FLEA_DECL_BUF(decr__bu8, flea_u8_t, sizeof(tdes_cbc_pt));
+  flea_u8_t block_len__u8 = 8; // DES
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_ALLOC_BUF(encr__bu8, sizeof(tdes_cbc_pt));
+  FLEA_ALLOC_BUF(decr__bu8, sizeof(tdes_cbc_pt));
+
+  FLEA_CCALL(THR_flea_cbc_mode_ctx_t__ctor(&encr_ctx__t, flea_tdes_3key, tdes_cbc_key, sizeof(tdes_cbc_key), tdes_cbc_iv, sizeof(tdes_cbc_iv), flea_encrypt));
+# ifdef FLEA_HAVE_AES_BLOCK_DECR
+  FLEA_CCALL(THR_flea_cbc_mode_ctx_t__ctor(&decr_ctx__t, flea_tdes_3key, tdes_cbc_key, sizeof(tdes_cbc_key), tdes_cbc_iv, sizeof(tdes_cbc_iv), flea_decrypt));
+# endif // #ifdef FLEA_HAVE_AES_BLOCK_DECR
+
+  in_ptr__pcu8 = tdes_cbc_pt;
+  out_ptr__pu8 = encr__bu8;
+  ;
+  FLEA_CCALL(THR_flea_cbc_mode_ctx_t__crypt(&encr_ctx__t, in_ptr__pcu8, out_ptr__pu8, block_len__u8));
+  in_ptr__pcu8 += block_len__u8;
+  out_ptr__pu8 += block_len__u8;
+  FLEA_CCALL(THR_flea_cbc_mode_ctx_t__crypt(&encr_ctx__t, in_ptr__pcu8, out_ptr__pu8, block_len__u8));
+  if(memcmp(encr__bu8, tdes_cbc_exp_ct, sizeof(tdes_cbc_exp_ct)))
+  {
+    FLEA_THROW("error with CBC encrypted result (2)", FLEA_ERR_FAILED_TEST);
+  }
+
+  in_ptr__pcu8 = encr__bu8;
+  out_ptr__pu8 = encr__bu8;
+  FLEA_CCALL(THR_flea_cbc_mode_ctx_t__crypt(&decr_ctx__t, in_ptr__pcu8, out_ptr__pu8, block_len__u8));
+  in_ptr__pcu8 += block_len__u8;
+  out_ptr__pu8 += block_len__u8;
+  FLEA_CCALL(THR_flea_cbc_mode_ctx_t__crypt(&decr_ctx__t, in_ptr__pcu8, out_ptr__pu8, block_len__u8));
+
+  if(memcmp(encr__bu8, tdes_cbc_pt, sizeof(tdes_cbc_pt)))
+  {
+    FLEA_THROW("error with CBC decrypted result (3)", FLEA_ERR_FAILED_TEST);
+  }
+
+  FLEA_CCALL(THR_flea_cbc_mode__decrypt_data(flea_tdes_3key, tdes_cbc_key, sizeof(tdes_cbc_key), tdes_cbc_iv, sizeof(tdes_cbc_iv), decr__bu8, tdes_cbc_exp_ct, sizeof(tdes_cbc_pt)));
+
+  if(memcmp(decr__bu8, tdes_cbc_pt, sizeof(tdes_cbc_pt)))
+  {
+    FLEA_THROW("error with CBC decrypted result (1)", FLEA_ERR_FAILED_TEST);
+  }
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL(encr__bu8);
+    FLEA_FREE_BUF_FINAL(decr__bu8);
+    flea_cbc_mode_ctx_t__dtor(&encr_ctx__t);
+    flea_cbc_mode_ctx_t__dtor(&decr_ctx__t);
+  );
+} /* THR_flea_test_cbc_mode_3des */
+
+#endif /* ifdef FLEA_HAVE_DES */
+
+flea_err_e THR_flea_test_cbc_mode()
+{
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_test_cbc_mode_aes());
+#ifdef FLEA_HAVE_DES
+  FLEA_CCALL(THR_flea_test_cbc_mode_3des());
+#endif
+  FLEA_THR_FIN_SEC_empty();
+}

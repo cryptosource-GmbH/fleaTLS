@@ -25,16 +25,16 @@ static flea_err_e THR_flea_test_crt_rsa_raw_file_based_for_file(std::string cons
   {
     while(!end)
     {
-      std::vector<flea_u8_t> p          = parse_line("p", 0, input);
-      std::vector<flea_u8_t> q          = parse_line("q", 0, input);
-      std::vector<flea_u8_t> d1         = parse_line("d1", 0, input);
-      std::vector<flea_u8_t> d2         = parse_line("d2", 0, input);
-      std::vector<flea_u8_t> q_inv      = parse_line("q_inv", 0, input);
-      std::vector<flea_u8_t> pub_exp    = parse_line("pub_exp", mod_byte_len, input);
-      std::vector<flea_u8_t> priv_exp   = parse_line("priv_exp", mod_byte_len, input);
-      std::vector<flea_u8_t> mod        = parse_line("mod", mod_byte_len, input);
-      std::vector<flea_u8_t> message    = parse_line("message", mod_byte_len, input);
-      std::vector<flea_u8_t> ciphertext = parse_line("signature", mod_byte_len, input);
+      std::vector<flea_u8_t> p          = parse_hex_prop_line("p", 0, input);
+      std::vector<flea_u8_t> q          = parse_hex_prop_line("q", 0, input);
+      std::vector<flea_u8_t> d1         = parse_hex_prop_line("d1", 0, input);
+      std::vector<flea_u8_t> d2         = parse_hex_prop_line("d2", 0, input);
+      std::vector<flea_u8_t> q_inv      = parse_hex_prop_line("q_inv", 0, input);
+      std::vector<flea_u8_t> pub_exp    = parse_hex_prop_line("pub_exp", mod_byte_len, input);
+      std::vector<flea_u8_t> priv_exp   = parse_hex_prop_line("priv_exp", mod_byte_len, input);
+      std::vector<flea_u8_t> mod        = parse_hex_prop_line("mod", mod_byte_len, input);
+      std::vector<flea_u8_t> message    = parse_hex_prop_line("message", mod_byte_len, input);
+      std::vector<flea_u8_t> ciphertext = parse_hex_prop_line("signature", mod_byte_len, input);
       std::string line;
       if(!getline(input, line))
       {

@@ -174,7 +174,7 @@ private:
   std::string m_filename;
   properties_spec_t m_spec;
 };
-std::vector<flea_u8_t> parse_line(
+std::vector<flea_u8_t> parse_hex_prop_line(
   const char*   name,
   flea_u16_t    result_size,
   std::ifstream & input
@@ -220,7 +220,8 @@ void flea_tls_test_tool_print_peer_cert_info(
 
 std::vector<std::string> tokenize_string(
   std::string const& value,
-  char             sep
+  char             sep,
+  bool             crop_ws = false
 );
 
 std::vector<flea_u8_t> hex_to_bin(std::string const& hex);

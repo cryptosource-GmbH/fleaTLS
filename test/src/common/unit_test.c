@@ -187,9 +187,9 @@ int flea_unit_tests(
 #  if defined FLEA_HAVE_RSA && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048)
         CALL_TEST(THR_flea_test_crt_rsa_raw_file_based());
 #  endif
-        CALL_TEST(THR_flea_test_sha256_file_based());
       }
 # endif /* if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_MOD_BIT_SIZE >= 224 */
+      CALL_TEST(THR_flea_test_hash_file_based());
 #endif /* __FLEA_HAVE_LINUX_FILESYSTEM */
       CALL_TEST(THR_flea_tls_test_basic());
     }

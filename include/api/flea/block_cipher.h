@@ -77,7 +77,8 @@ void flea_ecb_mode_ctx_t__dtor(flea_ecb_mode_ctx_t* ctx);
  * @param ctx pointer to the context object to use
  * @param input the input data
  * @param output the output data, may be equal to input (in-place encryption/decryption), but partial overlapping is not allowed
- * @param input_output_len the length of input and output
+ * @param input_output_len the length of input and output. Must be a multiple of
+ * the underlying cipher's block size.
  */
 flea_err_e THR_flea_ecb_mode_crypt_data(
   const flea_ecb_mode_ctx_t* ctx,
@@ -204,7 +205,8 @@ void flea_cbc_mode_ctx_t__dtor(flea_cbc_mode_ctx_t* ctx);
  * @param ctx pointer to the context object to use
  * @param input pointer to the input data
  * @param output pointer to the output data, may be equal to input, but partial overlapping is not allowed
- * @param input_output_len the length of input and output
+ * @param input_output_len the length of input and output. Must be a multiple of
+ * the underlying cipher's block size.
  */
 flea_err_e THR_flea_cbc_mode_ctx_t__crypt(
   flea_cbc_mode_ctx_t* ctx,

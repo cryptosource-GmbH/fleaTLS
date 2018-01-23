@@ -85,13 +85,13 @@ std::string bin_to_hex(
   return result;
 }
 
-std::vector<flea_u8_t> parse_line(
+std::vector<flea_u8_t> parse_hex_prop_line(
   const char*   name,
   flea_u16_t    result_size,
   std::ifstream & input
 )
 {
-  std::string line_start = std::string(name) + " = ";
+  /*std::string line_start = std::string(name) + " = ";
   std::string line;
   if(!getline(input, line))
   {
@@ -103,6 +103,27 @@ std::vector<flea_u8_t> parse_line(
     throw test_utils_exceptn_t("line error, name = " + std::string(name));
   }
   std::string value = line.substr(line_start.size());
+  */
+  std::string line;
+  if(!getline(input, line))
+  {
+    throw test_utils_exceptn_t("error parsing line from file");
+  }
+  std::vector<std::string> tokens = tokenize_string(line, '=', true);
+  if(tokens.size() == 1)
+  {
+    tokens.push_back("");
+  }
+  if(tokens.size() != 2)
+  {
+    throw test_utils_exceptn_t("error parsing line '" + line + "' from file: wrong token count for line");
+  }
+  std::string const& tok_name = tokens[0];
+  if(tok_name != name)
+  {
+    throw test_utils_exceptn_t("error parsing line '" + line + "' from file: wrong property");
+  }
+  std::string const& value = tokens[1];
   if(value.size() % 2)
   {
     std::cout << "size of string not multiple of 2" << std::endl;
@@ -117,36 +138,39 @@ std::vector<flea_u8_t> parse_line(
     result.resize(value.size() / 2);
     result_size = result.size();
   }
-  int offset = result_size - (value.size() + 1) / 2;
-  if(offset < 0)
+  if(value.size())
   {
-    std::cerr << "value size error: name = " << std::string(name) << ", result_size = " << result_size
-              << ", value.size() = " << value.size() << ", offset = " << offset << std::endl;
-    throw test_utils_exceptn_t("string parsing error in test configuration");
-  }
-  for(unsigned i = 0; i < value.size(); i++)
-  {
-    unsigned shift     = i % 2 ? 0 : 4;
-    unsigned char byte = 0;
-    if(((unsigned) value[i]) >= 0x30 + 0 && ((unsigned) value[i]) <= 0x30 + 9)
+    int offset = result_size - (value.size() + 1) / 2;
+    if(offset < 0)
     {
-      byte = value[i] - 0x30;
+      std::cerr << "value size error: name = " << std::string(name) << ", result_size = " << result_size
+                << ", value.size() = " << value.size() << ", offset = " << offset << std::endl;
+      throw test_utils_exceptn_t("string parsing error in test configuration");
     }
-    else if(((unsigned) value[i]) >= 0x41 + 0 && ((unsigned) value[i]) <= 0x41 + 6)
+    for(unsigned i = 0; i < value.size(); i++)
     {
-      byte = value[i] - 0x41 + 10;
+      unsigned shift     = i % 2 ? 0 : 4;
+      unsigned char byte = 0;
+      if(((unsigned) value[i]) >= 0x30 + 0 && ((unsigned) value[i]) <= 0x30 + 9)
+      {
+        byte = value[i] - 0x30;
+      }
+      else if(((unsigned) value[i]) >= 0x41 + 0 && ((unsigned) value[i]) <= 0x41 + 6)
+      {
+        byte = value[i] - 0x41 + 10;
+      }
+      else if(((unsigned) value[i]) >= 0x61 + 0 && ((unsigned) value[i]) <= 0x61 + 6)
+      {
+        byte = value[i] - 0x61 + 10;
+      }
+      else
+      {
+        std::memset(&result[0], 0, result.size());
+        std::cout << "value encoding error: '" << value[i] << "'" << std::endl;
+        throw std::exception();
+      }
+      result[i / 2 + offset] |= byte << shift;
     }
-    else if(((unsigned) value[i]) >= 0x61 + 0 && ((unsigned) value[i]) <= 0x61 + 6)
-    {
-      byte = value[i] - 0x61 + 10;
-    }
-    else
-    {
-      std::memset(&result[0], 0, result.size());
-      std::cout << "value encoding error: '" << value[i] << "'" << std::endl;
-      throw std::exception();
-    }
-    result[i / 2 + offset] |= byte << shift;
   }
   return result;
 } // parse_line
@@ -240,35 +264,55 @@ bool string_ends_with(
 
 std::vector<std::string> tokenize_string(
   std::string const& value,
-  char             sep
+  char             sep,
+  bool             crop_ws
 )
 {
   size_t pos = 0;
 
+  std::string sep_str;
+  sep_str.push_back(sep);
   std::vector<std::string> result;
   while(pos < value.size())
   {
-    auto comma_pos = value.find(sep, pos);
-    // std::cout << "comma_pos = " << comma_pos << std::endl;
-    string file_name;
-    if(comma_pos == std::string::npos)
+    auto seperator_pos = value.find(sep, pos);
+    // std::cout << "seperator_pos = " << seperator_pos << std::endl;
+    string token;
+    if(seperator_pos == std::string::npos)
     {
-      file_name = value.substr(pos, value.size() - pos);
+      token = value.substr(pos, value.size() - pos);
     }
     else
     {
-      file_name = value.substr(pos, comma_pos - pos);
+      token = value.substr(pos, seperator_pos - pos);
     }
-    // std::cout << "file name would be '" << file_name << "'" << std::endl;
-    result.push_back(file_name);
-    if(comma_pos == std::string::npos)
+    // std::cout << "file name would be '" << token << "'" << std::endl;
+    if(!crop_ws)
+    {
+      if(token.size() && token != sep_str)
+      {
+        result.push_back(token);
+      }
+    }
+    else
+    {
+      std::vector<std::string> ws_crop_tok = tokenize_string(token, ' ', false);
+      for(std::string const& s : ws_crop_tok)
+      {
+        if(s.size() && s != sep_str)
+        {
+          result.push_back(s);
+        }
+      }
+    }
+    if(seperator_pos == std::string::npos)
     {
       break;
     }
-    pos = comma_pos + 1;
+    pos = seperator_pos + 1;
   }
   return result;
-}
+} // tokenize_string
 
 flea_u32_t string_to_u32bit(std::string const& str)
 {
