@@ -544,9 +544,9 @@
 /**
  * TLS send buffer size. This buffer used for sending data and determines the
  * maximal record size of records sent by fleaTLS. Should not be smaller than
- * 150 bytes. A small size reduces performance. May not be greater than 18432.
+ * 150 bytes. A small size reduces performance. May not be greater than 16384.
  */
-# define FLEA_TLS_ALT_SEND_BUF_SIZE 15000
+# define FLEA_TLS_ALT_SEND_BUF_SIZE 16384
 
 
 /**
