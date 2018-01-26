@@ -31,4 +31,4 @@
 ## [1.1.1] 2018-XX-XX cryptosource GmbH  info@fleatls.com
 
 ### Fixed
-- correct maximal allowed value in API documentation of build variable FLEA_TLS_ALT_SEND_BUF_SIZE
+- corrected maximal allowed value in API documentation of build variable FLEA_TLS_ALT_SEND_BUF_SIZE
