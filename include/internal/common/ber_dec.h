@@ -23,7 +23,9 @@ extern "C" {
 #define FLEA_ASN1_APPLICATION           0x40
 #define FLEA_ASN1_CONSTRUCTED           0x20
 #define FLEA_ASN1_SEQUENCE              0x10
+#define FLEA_ASN1_SEQUENCE_CONSTRUCTED  (FLEA_ASN1_SEQUENCE | FLEA_ASN1_CONSTRUCTED)
 #define FLEA_ASN1_SET                   0x11
+#define FLEA_ASN1_SET_CONSTRUCTED       (FLEA_ASN1_SET | FLEA_ASN1_CONSTRUCTED)
 #define FLEA_ASN1_BOOL                  0x01
 #define FLEA_ASN1_INT                   0x02
 #define FLEA_ASN1_BIT_STRING            0x03

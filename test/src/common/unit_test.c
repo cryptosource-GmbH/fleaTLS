@@ -108,6 +108,7 @@ int flea_unit_tests(
 #endif
 #ifdef FLEA_HAVE_ECDSA
       CALL_TEST(THR_flea_test_ecdsa_raw_basic());
+      CALL_TEST(THR_flea_test_ecdsa_sig_enc());
       CALL_TEST(THR_flea_test_cvc_sig_ver());
 #endif
 

@@ -70,6 +70,9 @@ flea_err_e THR_flea_test_ecc_point_gfp_double(void);
 flea_err_e THR_flea_test_ecc_point_gfp_mul(void);
 
 flea_err_e THR_flea_test_ecdsa_raw_basic(void);
+
+flea_err_e THR_flea_test_ecdsa_sig_enc();
+
 flea_err_e THR_flea_test_cvc_sig_ver(void);
 flea_err_e THR_flea_test_ecka_raw_basic(void);
 
