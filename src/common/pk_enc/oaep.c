@@ -12,7 +12,7 @@
 #include "flea/hash.h"
 #include <string.h>
 
-flea_err_e THR_flea_pkcs1_mgf1(
+static flea_err_e THR_flea_pkcs1_mgf1(
   flea_u8_t*       output__pu8,
   flea_al_u16_t    output_len__alu16,
   const flea_u8_t* seed__pc_u8,

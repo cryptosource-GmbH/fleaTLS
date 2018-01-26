@@ -553,10 +553,6 @@ flea_err_e THR_flea_pk_api__encrypt_message(
   minimal_out_len__alu16     = key_len__alu16;
   primitive_input_len__alu16 = minimal_out_len__alu16;
 
-  /*if(minimal_out_len__alu16 > *result_len__palu16)
-   * {
-   * FLEA_THROW("output buffer too small in pk encryption", FLEA_ERR_BUFF_TOO_SMALL);
-   * }*/
   FLEA_CCALL(THR_flea_byte_vec_t__resize(result__pt, minimal_out_len__alu16));
   if(message_len__alu16 > primitive_input_len__alu16)
   {
@@ -567,7 +563,6 @@ flea_err_e THR_flea_pk_api__encrypt_message(
   {
     FLEA_CCALL(
       THR_flea_pk_api__encode_message__oaep(
-        // result__pu8,
         result__pt->data__pu8,
         message_len__alu16,
         &primitive_input_len__alu16,
@@ -595,11 +590,9 @@ flea_err_e THR_flea_pk_api__encrypt_message(
   }
   FLEA_CCALL(
     THR_flea_rsa_raw_operation(
-      // result__pu8,
       result__pt->data__pu8,
       params__pcu8,
       params_len__alu16,
-      // result__pu8,
       result__pt->data__pu8,
       primitive_input_len__alu16,
       key__pcu8,
