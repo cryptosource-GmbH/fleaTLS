@@ -138,7 +138,10 @@ flea_err_e THR_flea_test_mac(void);
 
 flea_err_e THR_flea_test_ae(void);
 
-flea_err_e THR_flea_test_cbc_mode(void);
+flea_err_e THR_flea_test_cbc_mode_aes(void);
+#ifdef FLEA_HAVE_DES
+flea_err_e THR_flea_test_cbc_mode_3des(void);
+#endif
 flea_err_e THR_flea_test_ctr_mode_1(void);
 flea_err_e THR_flea_test_ctr_mode_parts(void);
 flea_err_e THR_flea_test_ctr_mode_prng(void);

@@ -85,11 +85,10 @@ flea_err_e THR_flea_test_cvc_sig_ver()
   FLEA_CCALL(THR_flea_pk_signer_t__ctor(&verifier__t, flea_sha224));
   FLEA_CCALL(THR_flea_ec_dom_par_ref_t__set_by_builtin_id(&ecc_dom_par__t, flea_brainpoolP224r1));
   FLEA_CCALL(THR_flea_pk_signer_t__update(&verifier__t, sign_data__acu8, sizeof(sign_data__acu8)));
-  // FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(&public_key__t, &pubpoint__crcu8, &ecc_dom_par__t));
   FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(&public_key__t, &pubpoint_vec__t, &ecc_dom_par__t));
   err_code = THR_flea_pk_signer_t__final_verify(
     &verifier__t,
-    flea_ecdsa_emsa1,
+    flea_ecdsa_emsa1_concat,
     &public_key__t,
     (flea_u8_t*) cvc_signature_rs__acu8,
     sig_len__alu16
@@ -335,10 +334,17 @@ flea_err_e THR_flea_test_ecdsa_sig_enc()
   const flea_u8_t r3__acu8 []        = {0x00, 0xF1, 0x00}; /* on less */
   const flea_u8_t s3__acu8 []        = {0x00, 0x7F, 0x00}; /* on more */
   const flea_u8_t exp_sig_3__acu8 [] = {0x30, 0x09, FLEA_ASN1_INT, 3, 0x00, 0xF1, 0x00, FLEA_ASN1_INT, 2, 0x7F, 0x00};
+
+# ifdef FLEA_HEAP_MODE
   flea_byte_vec_t sig__t;
+# else
+  FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(sig__t, 131 + 3);
+# endif
 
   FLEA_THR_BEG_FUNC();
+# ifdef FLEA_HEAP_MODE
   flea_byte_vec_t__ctor_empty_allocatable(&sig__t);
+# endif
 
   FLEA_CCALL(THR_flea_asn1_encode_ecdsa_sig(r1__acu8, sizeof(r1__acu8), s1__acu8, sizeof(s1__acu8), &sig__t));
 

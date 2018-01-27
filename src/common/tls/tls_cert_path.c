@@ -455,7 +455,7 @@ static flea_err_e THR_flea_tls__validate_cert(
     }
     else
     {
-      scheme_id = flea_ecdsa_emsa1;
+      scheme_id = flea_ecdsa_emsa1_asn1;
     }
 
     // only for tls client (for server the sig_algs member is null):
@@ -485,7 +485,7 @@ static flea_err_e THR_flea_tls__validate_cert(
     }
 # endif /* ifdef FLEA_HAVE_SHA1 */
     FLEA_CCALL(
-      THR_flea_public_key_t__verify_digest_plain_format(
+      THR_flea_public_key_t__verify_digest(
         pubkey_out__pt,
         scheme_id,
         *tbs_hash_id__pe,

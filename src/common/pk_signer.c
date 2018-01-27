@@ -168,7 +168,7 @@ flea_err_e THR_flea_pk_signer_t__final_sign(
 
   FLEA_CCALL(THR_flea_hash_ctx_t__final(&signer__pt->hash_ctx, digest_buf__bu8));
   FLEA_CCALL(
-    THR_flea_private_key_t__sign_digest_plain_format(
+    THR_flea_private_key_t__sign_digest(
       privkey__pt,
       id__t,
       signer__pt->hash_id__t,
@@ -200,7 +200,7 @@ flea_err_e THR_flea_pk_signer_t__final_verify(
 
   FLEA_CCALL(THR_flea_hash_ctx_t__final(&signer__pt->hash_ctx, digest_buf__bu8));
   FLEA_CCALL(
-    THR_flea_public_key_t__verify_digest_plain_format(
+    THR_flea_public_key_t__verify_digest(
       pubkey__pt,
       id__t,
       signer__pt->hash_id__t,

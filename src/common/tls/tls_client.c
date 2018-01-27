@@ -345,7 +345,7 @@ static flea_err_e THR_flea_tls__read_server_kex(
 
     // verify if signature matches the calculated hash
     FLEA_CCALL(
-      THR_flea_public_key_t__verify_digest_plain_format(
+      THR_flea_public_key_t__verify_digest(
         peer_public_key__pt,
         pk_scheme_id__t,
         hash_id__t,
@@ -781,7 +781,7 @@ static flea_err_e THR_flea_tls__send_cert_verify(
   );
 
   FLEA_CCALL(
-    THR_flea_private_key_t__sign_digest_plain_format(
+    THR_flea_private_key_t__sign_digest(
       tls_ctx->private_key_for_client_mbn__pt,
       pk_scheme_id__t,
       tls_ctx->chosen_hash_algorithm__t,

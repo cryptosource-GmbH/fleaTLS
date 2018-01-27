@@ -44,19 +44,31 @@ typedef enum
 typedef enum
 {
   /**
-   * EMSA1 signature encoding (for ECDSA)
+   * EMSA1 signature encoding (for ECDSA). The signature is the concatenation
+   * of r and s encoded in the base point order length.
    */
-  flea_emsa1      = 0,
+  flea_emsa1_concat = 0,
+
+  /**
+   * EMSA1 signature encoding (for ECDSA). The signature is
+   * the ASN.1 encoding of the signature components r and s as
+   * <code>
+   * SEQUENCE {
+   *  INTEGER r,
+   *  INTEGER s
+   *  }</code>
+   */
+  flea_emsa1_asn1   = 1,
 
   /**
    * PKCS#1 v1.5 encoding method
    */
-  flea_pkcs1_v1_5 = 1,
+  flea_pkcs1_v1_5   = 2,
 
   /**
    * OAEP encoding method for RSA
    */
-  flea_oaep       = 2
+  flea_oaep         = 3
 } flea_pk_encoding_id_e;
 
 /**
@@ -66,9 +78,22 @@ typedef enum
 typedef enum
 {
   /**
-   * ECDSA with EMSA1 encoding
+   * ECDSA with EMSA1 encoding. The signature is the concatenation
+   * of r and s encoded in the base point order length.
    */
-  flea_ecdsa_emsa1         = flea_ecdsa | flea_emsa1,
+  flea_ecdsa_emsa1_concat  = flea_ecdsa | flea_emsa1_concat,
+
+  /**
+   * ECDSA with EMSA1 encoding.
+   * EMSA1 signature encoding (for ECDSA). The signature is
+   * the ASN.1 encoding of the signature components r and s as
+   * <code>
+   * SEQUENCE {
+   *  INTEGER r,
+   *  INTEGER s
+   *  }</code>
+   */
+  flea_ecdsa_emsa1_asn1    = flea_ecdsa | flea_emsa1_asn1,
 
   /**
    * RSA-OAEP encryption scheme
@@ -85,6 +110,8 @@ typedef enum
    */
   flea_rsa_pkcs1_v1_5_sign = flea_rsa_sign | flea_pkcs1_v1_5,
 } flea_pk_scheme_id_e;
+
+# define flea_pk_scheme_id_e__GET_pk_encoding_e(x) (x & ((1 << FLEA_PK_ID_OFFS_PRIMITIVE) - 1))
 
 /**
  * Key type enumeration.
@@ -218,8 +245,7 @@ flea_err_e THR_flea_public_key_t__ctor_ecc(
 # endif // ifdef FLEA_HAVE_ECC
 
 /**
- * Verify a signature using a public key. In case of ECDSA, an ASN.1/DER encoded
- * signature is expected.
+ * Verify a signature using a public key.
  *
  * @param key the public key to be used for the verification
  * @param pk_scheme_id the signature scheme to be used for the verification
@@ -233,28 +259,6 @@ flea_err_e THR_flea_public_key_t__ctor_ecc(
 # ifdef FLEA_HAVE_ASYM_SIG
 
 flea_err_e THR_flea_public_key_t__verify_signature(
-  const flea_public_key_t* key,
-  flea_pk_scheme_id_e      pk_scheme_id,
-  flea_hash_id_e           hash_id,
-  const flea_byte_vec_t*   message,
-  const flea_byte_vec_t*   signature
-);
-
-
-/**
- * Verify a signature using a public key. In case of ECDSA, a raw concatenation
- * of r and s encoded in the base point order length is expected as the
- * signature. For RSA, this function behaves equally to THR_flea_public_key_t__verify_signature().
- *
- * @param key the public key to be used for the verification
- * @param pk_scheme_id the signature scheme to be used for the verification
- * @param hash_id the id of the hash algorithm used for the signature generation
- * @param message the message which was signed
- * @param signature the signature to verify
- *
- * @return an error code
- */
-flea_err_e THR_flea_public_key_t__verify_signature_plain_format(
   const flea_public_key_t* key,
   flea_pk_scheme_id_e      pk_scheme_id,
   flea_hash_id_e           hash_id,
@@ -278,7 +282,7 @@ flea_err_e THR_flea_public_key_t__verify_signature_plain_format(
  *
  * @return an error code
  */
-flea_err_e THR_flea_public_key_t__verify_digest_plain_format(
+flea_err_e THR_flea_public_key_t__verify_digest(
   const flea_public_key_t* pubkey,
   flea_pk_scheme_id_e      id,
   flea_hash_id_e           hash_id,
@@ -294,7 +298,7 @@ flea_err_e THR_flea_public_key_t__verify_digest_plain_format(
  * @param key the public key to be used for the verification
  * @param sigalg_id the signature algorithm OID to be used for the verification
  * @param message the message which was signed
- * @param signature the signature to verify
+ * @param signature the signature to verify.
  * @param flags a combination of flags potentially affecting the signature verification
  *
  * @return an error code

@@ -1423,7 +1423,7 @@ flea_u8_t flea_tls_map_tls_hash_to_flea_hash__at[6][2] = {
 
 flea_u8_t flea_tls_map_tls_sig_to_flea_sig__at[2][2] = {
   {0x01, flea_rsa_pkcs1_v1_5_sign},
-  {0x03, flea_ecdsa_emsa1        }
+  {0x03, flea_ecdsa_emsa1_asn1   }
 };
 
 
@@ -1506,7 +1506,7 @@ flea_pk_scheme_id_e flea_tls__get_sig_alg_from_key_type(
 {
   if(key_type__t == flea_ecc_key)
   {
-    return flea_ecdsa_emsa1;
+    return flea_ecdsa_emsa1_asn1;
   }
   else
   {
@@ -1540,7 +1540,8 @@ flea_err_e THR_flea_tls__check_sig_alg_compatibility_for_key_type(
 )
 {
   FLEA_THR_BEG_FUNC();
-  if((key_type__t == flea_ecc_key && pk_scheme_id__t != flea_ecdsa_emsa1) ||
+  if((key_type__t == flea_ecc_key &&
+    ((pk_scheme_id__t != flea_ecdsa_emsa1_asn1) && (pk_scheme_id__t != flea_ecdsa_emsa1_concat))) ||
     (key_type__t == flea_rsa_key && pk_scheme_id__t != flea_rsa_pkcs1_v1_5_sign))
   {
     FLEA_THROW("key type and signature algorithm do not match", FLEA_ERR_TLS_HANDSHK_FAILURE);

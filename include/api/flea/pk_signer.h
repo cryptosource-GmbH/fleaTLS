@@ -117,7 +117,6 @@ flea_err_e THR_flea_pk_signer_t__final_verify(
  *
  * @return an error code
  */
-
 flea_err_e THR_flea_pk_signer_t__final_sign(
   flea_pk_signer_t*         signer,
   flea_pk_scheme_id_e       id,

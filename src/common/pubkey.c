@@ -297,6 +297,36 @@ flea_err_e THR_flea_public_key_t__encrypt_message(
 }
 
 # ifdef FLEA_HAVE_ASYM_SIG
+
+/**
+ * Expects a plain (concatenated) signature in case of ECDSA.
+ */
+static flea_err_e THR_flea_public_key_t__verify_signature_plain_format(
+  const flea_public_key_t* pubkey__pt,
+  flea_pk_scheme_id_e      pk_scheme_id__t,
+  flea_hash_id_e           hash_id__t,
+  const flea_byte_vec_t*   message__prcu8,
+  const flea_byte_vec_t*   signature__prcu8
+)
+{
+  FLEA_DECL_OBJ(signer__t, flea_pk_signer_t);
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(THR_flea_pk_signer_t__ctor(&signer__t, hash_id__t));
+  FLEA_CCALL(THR_flea_pk_signer_t__update(&signer__t, message__prcu8->data__pu8, message__prcu8->len__dtl));
+  FLEA_CCALL(
+    THR_flea_pk_signer_t__final_verify(
+      &signer__t,
+      pk_scheme_id__t,
+      pubkey__pt,
+      signature__prcu8->data__pu8,
+      signature__prcu8->len__dtl
+    )
+  );
+  FLEA_THR_FIN_SEC(
+    flea_pk_signer_t__dtor(&signer__t);
+  );
+}
+
 flea_err_e THR_flea_public_key_t__verify_signature(
   const flea_public_key_t* key__pt,
   flea_pk_scheme_id_e      pk_scheme_id__t,
@@ -305,25 +335,20 @@ flea_err_e THR_flea_public_key_t__verify_signature(
   const flea_byte_vec_t*   signature__prcu8
 )
 {
-#  ifdef FLEA_HAVE_ECDSA
-  FLEA_DECL_BUF(concat_sig__bu8, flea_u8_t, FLEA_ECDSA_MAX_CONCAT_SIG_LEN);
-#  endif
   FLEA_THR_BEG_FUNC();
 
 #  ifdef FLEA_HAVE_ECDSA
-  if((key__pt->key_type__t == flea_ecc_key) && (pk_scheme_id__t == flea_ecdsa_emsa1))
+  if((key__pt->key_type__t == flea_ecc_key) &&
+    ((pk_scheme_id__t == flea_ecdsa_emsa1_concat) || (pk_scheme_id__t == flea_ecdsa_emsa1_asn1)))
   {
-    flea_byte_vec_t concat_sig_ref__t;
-    flea_al_u16_t concat_sig_len__alu16;
-    FLEA_ALLOC_BUF(concat_sig__bu8, signature__prcu8->len__dtl);
-    FLEA_CCALL(THR_flea_x509_decode_ecdsa_signature(concat_sig__bu8, &concat_sig_len__alu16, signature__prcu8));
-    concat_sig_ref__t.data__pu8 = concat_sig__bu8;
-    concat_sig_ref__t.len__dtl  = concat_sig_len__alu16;
+    flea_byte_vec_t concat_sig_ref__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+    concat_sig_ref__t.data__pu8 = signature__prcu8->data__pu8;
+    concat_sig_ref__t.len__dtl  = signature__prcu8->len__dtl;
 
     FLEA_CCALL(
       THR_flea_public_key_t__verify_signature_plain_format(
         key__pt,
-        flea_ecdsa_emsa1,
+        pk_scheme_id__t,
         hash_id__t,
         message__prcu8,
         &concat_sig_ref__t
@@ -350,11 +375,7 @@ flea_err_e THR_flea_public_key_t__verify_signature(
   {
     FLEA_THROW("unsupported primitive", FLEA_ERR_X509_UNSUPP_ALGO);
   }
-  FLEA_THR_FIN_SEC(
-    FLEA_DO_IF_HAVE_ECDSA(
-      FLEA_FREE_BUF_FINAL(concat_sig__bu8);
-    );
-  );
+  FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_public_key_t__verify_signature */
 
 flea_err_e THR_flea_public_key_t__verify_signature_use_sigalg_id(
@@ -410,7 +431,7 @@ flea_err_e THR_flea_public_key_t__verify_signature_use_sigalg_id(
     FLEA_CCALL(
       THR_flea_public_key_t__verify_signature(
         public_key__pt,
-        flea_ecdsa_emsa1,
+        flea_ecdsa_emsa1_asn1,
         hash_id,
         tbs_data__pt,
         signature__pt
@@ -423,33 +444,7 @@ flea_err_e THR_flea_public_key_t__verify_signature_use_sigalg_id(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_public_key_t__verify_signature_use_sigalg_id */
 
-flea_err_e THR_flea_public_key_t__verify_signature_plain_format(
-  const flea_public_key_t* pubkey__pt,
-  flea_pk_scheme_id_e      pk_scheme_id__t,
-  flea_hash_id_e           hash_id__t,
-  const flea_byte_vec_t*   message__prcu8,
-  const flea_byte_vec_t*   signature__prcu8
-)
-{
-  FLEA_DECL_OBJ(signer__t, flea_pk_signer_t);
-  FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(THR_flea_pk_signer_t__ctor(&signer__t, hash_id__t));
-  FLEA_CCALL(THR_flea_pk_signer_t__update(&signer__t, message__prcu8->data__pu8, message__prcu8->len__dtl));
-  FLEA_CCALL(
-    THR_flea_pk_signer_t__final_verify(
-      &signer__t,
-      pk_scheme_id__t,
-      pubkey__pt,
-      signature__prcu8->data__pu8,
-      signature__prcu8->len__dtl
-    )
-  );
-  FLEA_THR_FIN_SEC(
-    flea_pk_signer_t__dtor(&signer__t);
-  );
-}
-
-flea_err_e THR_flea_public_key_t__verify_digest_plain_format(
+flea_err_e THR_flea_public_key_t__verify_digest(
   const flea_public_key_t* pubkey__pt,
   flea_pk_scheme_id_e      id__t,
   flea_hash_id_e           hash_id__t,
@@ -468,7 +463,22 @@ flea_err_e THR_flea_public_key_t__verify_digest_plain_format(
   FLEA_DECL_BUF(primitive_input__bu8, flea_u8_t, FLEA_MAX(FLEA_PK_MAX_PRIMITIVE_INPUT_LEN, FLEA_MAX_HASH_OUT_LEN));
 
   FLEA_DECL_BUF(digest_for_rsa_ver__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
+#  ifdef FLEA_HAVE_ECDSA
+  FLEA_DECL_BUF(concat_sig__bu8, flea_u8_t, FLEA_ECDSA_MAX_CONCAT_SIG_LEN);
+#  endif
   FLEA_THR_BEG_FUNC();
+
+#  ifdef FLEA_HAVE_ECDSA
+  if((pubkey__pt->key_type__t == flea_ecc_key) && (id__t == flea_ecdsa_emsa1_asn1))
+  {
+    flea_byte_vec_t conc_sig_ref__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+    flea_byte_vec_t__set_as_ref(&conc_sig_ref__t, signature__pu8, signature_len__alu16);
+    FLEA_ALLOC_BUF(concat_sig__bu8, signature_len__alu16);
+    FLEA_CCALL(THR_flea_x509_decode_ecdsa_signature(concat_sig__bu8, &signature_len__alu16, &conc_sig_ref__t));
+    signature__pu8 = concat_sig__bu8;
+  }
+#  endif /* ifdef FLEA_HAVE_ECDSA */
+
   if(digest_len__alu8 > FLEA_MAX_HASH_OUT_LEN)
   {
     FLEA_THROW("excessive digest len", FLEA_ERR_INV_ARG);
@@ -495,7 +505,7 @@ flea_err_e THR_flea_public_key_t__verify_digest_plain_format(
     memcpy(primitive_input__bu8, digest__pcu8, digest_len__alu8);
   }
   digest_len__alu16 = digest_len__alu8;
-  if(encoding_id__t == flea_emsa1)
+  if((encoding_id__t == flea_emsa1_asn1) || (encoding_id__t == flea_emsa1_concat))
   {
     FLEA_CCALL(
       THR_flea_pk_api__encode_message__emsa1(
@@ -587,6 +597,9 @@ flea_err_e THR_flea_public_key_t__verify_digest_plain_format(
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(primitive_input__bu8);
     FLEA_FREE_BUF_FINAL(digest_for_rsa_ver__bu8);
+    FLEA_DO_IF_HAVE_ECDSA(
+      FLEA_FREE_BUF_FINAL(concat_sig__bu8);
+    );
   );
 } /* THR_flea_pk_signer_t__final_verify */
 

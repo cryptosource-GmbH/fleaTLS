@@ -8,6 +8,21 @@
 # Copyright (C) 2015-2018 cryptosource GmbH
 #
 # Changelog of the fleaTLS cryptographic library
+# http://keepachangelog.com/en/1.0.0/
+
+
+## [1.2. Unreleased] 2018-XX-XX cryptosource GmbH  info@fleatls.com
+
+### Removed 
+- pubkey/privkey API: sign and verfiy function "..._plain_format". Control over
+signature format of ECDSA (concatentation of r and s vs. ASN.1/DER encoded
+signature) is now controlled via the public key scheme variable.
+
+### Fixed
+- corrected maximal allowed value in API documentation of build variable FLEA_TLS_ALT_SEND_BUF_SIZE
+- an error in the unit test code in function THR_flea_test_cbc_mode_3des() for
+certain build configurations
+
 
 ## [1.1.0] 2018-01-23  cryptosource GmbH  info@fleatls.com
 
@@ -28,7 +43,3 @@
 - incorrect use of some enums for MACs
 - erroneous MAC computation in case HMAC was instantiated with a specific key size 
 
-## [1.1.1] 2018-XX-XX cryptosource GmbH  info@fleatls.com
-
-### Fixed
-- corrected maximal allowed value in API documentation of build variable FLEA_TLS_ALT_SEND_BUF_SIZE

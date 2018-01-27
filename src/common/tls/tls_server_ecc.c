@@ -159,7 +159,7 @@ flea_err_e THR_flea_tls__send_server_kex(
 
     // create signature
     FLEA_CCALL(
-      THR_flea_private_key_t__sign_digest_plain_format(
+      THR_flea_private_key_t__sign_digest(
         tls_ctx__pt->private_key__pt,
         pk_scheme_id__t,
         hash_id__t,

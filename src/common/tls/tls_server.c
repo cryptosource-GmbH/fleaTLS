@@ -486,7 +486,8 @@ static flea_err_e THR_flea_tls__send_cert_request(
     flea_rsa_pkcs1_v1_5_sign,
 # endif
 # ifdef FLEA_HAVE_ECDSA
-    flea_ecdsa_emsa1,
+    flea_ecdsa_emsa1_asn1,
+    flea_ecdsa_emsa1_concat,
 # endif
   };
   flea_u8_t cert_types__au8[FLEA_NB_ARRAY_ENTRIES(supported_pk_schemes__at)];
@@ -838,7 +839,7 @@ static flea_err_e THR_flea_tls__read_cert_verify(
   }
 
   FLEA_CCALL(
-    THR_flea_public_key_t__verify_digest_plain_format(
+    THR_flea_public_key_t__verify_digest(
       peer_public_key__pt,
       pk_scheme_id__t,
       hash_id__t,
@@ -930,7 +931,8 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
         {
           cert_mask__u8 |= flea_tls_cl_cert__rsa_sign;
         }
-        else if((tls_ctx->allowed_sig_algs__pe[i] & 0xFF) == flea_ecdsa_emsa1)
+        else if(((tls_ctx->allowed_sig_algs__pe[i] & 0xFF) == flea_ecdsa_emsa1_asn1) ||
+          ((tls_ctx->allowed_sig_algs__pe[i] & 0xFF) == flea_ecdsa_emsa1_concat))
         {
           cert_mask__u8 |= flea_tls_cl_cert__ecdsa_sign;
         }

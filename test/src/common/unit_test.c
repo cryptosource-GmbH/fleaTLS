@@ -131,7 +131,10 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_test_ae());
 #endif
       CALL_TEST(THR_flea_test_ctr_mode_1());
-      CALL_TEST(THR_flea_test_cbc_mode());
+      CALL_TEST(THR_flea_test_cbc_mode_aes());
+#ifdef FLEA_HAVE_DES
+      CALL_TEST(THR_flea_test_cbc_mode_3des());
+#endif
       CALL_TEST(THR_flea_test_ctr_mode_parts());
       CALL_TEST(THR_flea_test_ctr_mode_prng());
       CALL_TEST(THR_flea_test_feed_entropy());

@@ -23,6 +23,17 @@
 # define FLEA_DO_PRINTF_TEST_OUTPUT
 
 
+/**
+ * When activated, this switch disables assertions in the code that are only
+ * suitable during development.  Remove this define to enable these runtime
+ * development assertions. Enabling the development assertions is not suitable
+ * for production code.  When the development assertions are enabled, a
+ * violation of such an assertion causes the program abortion and printing of an
+ * error message.
+ */
+# define FLEA_NO_DEV_ASSERTIONS // FBFLAGS_CORE_ON_OFF
+
+
 # if 0
 
 /**

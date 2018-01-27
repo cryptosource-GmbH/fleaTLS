@@ -355,6 +355,7 @@ flea_err_e THR_flea_byte_vec_t__resize(
   unsigned         new_size
 );
 
+
 #ifdef __cplusplus
 }
 #endif
