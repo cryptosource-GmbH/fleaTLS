@@ -82,17 +82,27 @@ flea_err_e THR_flea_x509_decode_ecdsa_signature(
   flea_ref_cu8_t ref_r__t;
   flea_ref_cu8_t ref_s__t;
   flea_al_u16_t r_offs, s_offs, diff, insert_offs;
+  flea_al_u8_t sig_offs__alu8 = 0;
 
   FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
   FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
   flea_mem_read_stream_help_t hlp__t;
   FLEA_THR_BEG_FUNC();
 
+  if(flea_byte_vec_t__GET_DATA_LEN(x509_enc_sig__pt) > 1)
+  {
+    /* skip the leading zero in case of a bit string */
+    if(x509_enc_sig__pt->data__pu8[0] == 0)
+    {
+      sig_offs__alu8 = 1;
+    }
+  }
+
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor_memory(
       &source__t,
-      x509_enc_sig__pt->data__pu8,
-      x509_enc_sig__pt->len__dtl,
+      x509_enc_sig__pt->data__pu8 + sig_offs__alu8,
+      x509_enc_sig__pt->len__dtl - sig_offs__alu8,
       &hlp__t
     )
   );
