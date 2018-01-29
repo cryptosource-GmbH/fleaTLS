@@ -518,6 +518,19 @@
 #  endif // ifdef FLEA_HAVE_TLS_CS_ECDHE
 # endif // ifdef FLEA_HAVE_TLS_CS_RSA
 
+# ifdef FLEA_HAVE_TLS_CS_ECDSA /* Ciphersuits that require ECDSA */
+#  ifdef FLEA_HAVE_TLS_CS_CBC
+#   ifdef FLEA_HAVE_SHA1
+
+/**
+ * Conrol whether the cipher suite is supported
+ */
+#    define FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+
+#   endif // ifdef FLEA_HAVE_SHA1
+#  endif // ifdef FLEA_HAVE_TLS_CS_CBC
+# endif // ifdef FLEA_HAVE_TLS_CS_ECDSA
+
 /**
  * Length of the session IDs that are used by the fleaTLS server.
  */

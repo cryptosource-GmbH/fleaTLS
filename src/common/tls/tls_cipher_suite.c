@@ -62,6 +62,10 @@ static const flea_tls__cipher_suite_t cipher_suites[] = {
   {flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384, FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
    16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 # endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+  {flea_tls_ecdhe_ecdsa_with_aes_128_cbc_sha,  FLEA_TLS_BLOCK_CIPHER(flea_aes128),
+   16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__ECDSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
+# endif
 };
 
 
