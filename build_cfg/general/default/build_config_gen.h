@@ -519,16 +519,48 @@
 # endif // ifdef FLEA_HAVE_TLS_CS_RSA
 
 # ifdef FLEA_HAVE_TLS_CS_ECDSA /* Ciphersuits that require ECDSA */
-#  ifdef FLEA_HAVE_TLS_CS_CBC
-#   ifdef FLEA_HAVE_SHA1
+#  ifdef FLEA_HAVE_TLS_CS_ECDHE
+#   ifdef FLEA_HAVE_TLS_CS_CBC
+#    ifdef FLEA_HAVE_SHA1
 
 /**
  * Conrol whether the cipher suite is supported
  */
-#    define FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+#     define FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
 
-#   endif // ifdef FLEA_HAVE_SHA1
-#  endif // ifdef FLEA_HAVE_TLS_CS_CBC
+/**
+ * Conrol whether the cipher suite is supported
+ */
+#     define FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+#    endif // ifdef FLEA_HAVE_SHA1
+
+/**
+ * Conrol whether the cipher suite is supported
+ */
+#    define FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+#    ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Conrol whether the cipher suite is supported
+ */
+#     define FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384
+#    endif
+#   endif // ifdef FLEA_HAVE_TLS_CS_CBC
+#   ifdef FLEA_HAVE_TLS_CS_GCM
+
+/**
+ * Conrol whether the cipher suite is supported
+ */
+#    define FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+#    ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Conrol whether the cipher suite is supported
+ */
+#     define FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+#    endif
+#   endif // ifdef FLEA_HAVE_TLS_CS_GCM
+#  endif // ifdef FLEA_HAVE_TLS_CS_ECDHE
 # endif // ifdef FLEA_HAVE_TLS_CS_ECDSA
 
 /**
