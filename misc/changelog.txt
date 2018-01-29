@@ -13,6 +13,9 @@
 
 ## [1.2. Unreleased] 2018-XX-XX cryptosource GmbH  info@fleatls.com
 
+### Added
+- ECDSA ciphersuites for TLS
+
 ### Removed 
 - pubkey/privkey API: sign and verfiy function "..._plain_format". Control over
 signature format of ECDSA (concatentation of r and s vs. ASN.1/DER encoded
@@ -22,6 +25,7 @@ signature) is now controlled via the public key scheme variable.
 - corrected maximal allowed value in API documentation of build variable FLEA_TLS_ALT_SEND_BUF_SIZE
 - an error in the unit test code in function THR_flea_test_cbc_mode_3des() for
 certain build configurations
+- an error in ECDSA signature decoding in TLS certificate chains
 
 
 ## [1.1.0] 2018-01-23  cryptosource GmbH  info@fleatls.com
