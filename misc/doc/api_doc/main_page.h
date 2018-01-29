@@ -15,13 +15,13 @@
  * Linux and how to include it in custom build projects, e.g. for your embedded
  * application.
  *
- * - \subpage fleaTLSRestrictions "Restrictions of fleaTLS"
- *
  * - \subpage gettingStarted "Getting started with fleaTLS on Linux"
  *
  * - \subpage fleaApi "About fleaTLS' API"
  *
  * - \subpage devolopWflea "Using fleaTLS in development projects"
+ *
+ * - \subpage fleaTLSRestrictions "Restrictions of fleaTLS"
  *
  */
 
@@ -44,7 +44,8 @@
  *   certificate featuring a Name Constraints extension marked as critical, the
  *   certificate cannot be validated.
  * - Support for X.509 Certificate Policy extension: fleaTLS does not process
- *   X.509 Certificate Policy extension. It ignores such extensions, even if
+ *   the
+ *   X.509 Certificate Policy extension. It ignores extensions of this type, even if
  *   they are marked as critical. Other policy-related X.509 certificate
  *   extensions, namely the Inhibit anyPolicy and Policy Constraints extension,
  *   lead to the rejection of the certificate if they are marked as critical.

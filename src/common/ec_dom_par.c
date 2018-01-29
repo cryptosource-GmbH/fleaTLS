@@ -716,6 +716,50 @@ flea_err_e THR_flea_ec_dom_par_ref_t__set_by_builtin_id(
   FLEA_THR_FIN_SEC_empty();
 }
 
+flea_ec_dom_par_id_e flea_ec_dom_par_ref_t__determine_known_curve(const flea_ec_dom_par_ref_t* input__pt)
+{
+  flea_al_u8_t i, j;
+  const flea_ref_cu8_t* input__arcu8[7] = {&input__pt->p__ru8, &input__pt->a__ru8, &input__pt->b__ru8, &input__pt->gx__ru8, &input__pt->gy__ru8, &input__pt->n__ru8, &input__pt->h__ru8};
+
+  for(j = FLEA_EC_DOM_PAR_FIRST_ID; j <= FLEA_EC_DOM_PAR_LAST_ID; j++)
+  {
+    const flea_u8_t* enc_dp__pcu8;
+    flea_bool_t match__b = FLEA_TRUE;
+    enc_dp__pcu8 = flea_ec_dom_par__get_predefined_dp_ptr((flea_ec_dom_par_id_e) j);
+    if(enc_dp__pcu8 == NULL)
+    {
+      continue;
+    }
+    for(i = FLEA_EC_DP_ELEM_ID_FIRST; i <= FLEA_EC_DP_ELEM_ID_LAST; i++)
+    {
+      flea_ref_cu8_t internal__rcu8;
+      flea_al_u8_t input_offs__alu8      = 0;
+      flea_al_u8_t internal_offs__alu8   = 0;
+      const flea_ref_cu8_t* input__prcu8 = input__arcu8[i];
+
+      flea_ec_dom_par__set_ru8_from_internal_format(&internal__rcu8, enc_dp__pcu8, (flea_ec_dom_par_element_id_e) i);
+      while((input_offs__alu8 + 1 < input__prcu8->len__dtl) && (0 == input__prcu8->data__pcu8[input_offs__alu8]))
+      {
+        input_offs__alu8++;
+      }
+      while((internal_offs__alu8 + 1 < internal__rcu8.len__dtl) && (0 == internal__rcu8.data__pcu8[internal_offs__alu8]))
+      {
+        internal_offs__alu8++;
+      }
+      if(flea_memcmp_wsize(internal__rcu8.data__pcu8 + internal_offs__alu8, internal__rcu8.len__dtl - internal_offs__alu8, input__prcu8->data__pcu8 + input_offs__alu8, input__prcu8->len__dtl - input_offs__alu8))
+      {
+        match__b = FLEA_FALSE;
+        break;
+      }
+    }
+    if(match__b)
+    {
+      return (flea_ec_dom_par_id_e) j;
+    }
+  }
+  return flea_unknown_ec_dp;
+} /* flea_ec_dom_par_ref_t__determine_known_curve */
+
 flea_u32_t flea_ec_dom_par_ref_t__get_concat_length(const flea_ec_dom_par_ref_t* dp__pt)
 {
   return dp__pt->gx__ru8.len__dtl

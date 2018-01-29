@@ -12,8 +12,15 @@
 extern "C" {
 #endif
 
+#define FLEA_EC_DOM_PAR_FIRST_ID flea_brainpoolP160r1
+#define FLEA_EC_DOM_PAR_LAST_ID  flea_secp521r1
+
 typedef enum
 {
+  /**
+   * a curve unknown to fleaTLS.
+   */
+  flea_unknown_ec_dp   = 0,
   flea_brainpoolP160r1 = 1,
   flea_brainpoolP192r1 = 2,
   flea_brainpoolP224r1 = 3,
@@ -87,6 +94,16 @@ flea_err_e THR_flea_ec_dom_par_ref_t__set_by_builtin_id(
   flea_ec_dom_par_ref_t* dp_to_set,
   flea_ec_dom_par_id_e   id
 );
+
+/**
+ * Determine the ID of a domain parameter reference object.
+ *
+ * @param dp pointer to the domain parameters
+ *
+ * @return If the domain * parameters are one of fleaTLS' internal paramaters, then the corresponding ID
+ * is returned, otherwise flea_unknown_ec_dp is returned.
+ */
+flea_ec_dom_par_id_e flea_ec_dom_par_ref_t__determine_known_curve(const flea_ec_dom_par_ref_t* dp);
 
 #endif /* #ifdef FLEA_HAVE_ECC */
 

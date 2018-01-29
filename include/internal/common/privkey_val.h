@@ -5,6 +5,7 @@
 
 #include "internal/common/default.h"
 #include "flea/byte_vec.h"
+#include "flea/ec_dom_par.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -17,6 +18,7 @@ typedef struct
 {
   flea_ec_dom_par_ref_t dp__t;
   flea_byte_vec_t       scalar__rcu8;
+  flea_ec_dom_par_id_e  dp_id__e;
 # ifdef FLEA_STACK_MODE
   flea_u8_t             dp_mem__bu8[FLEA_ECC_MAX_DP_CONCAT_BYTE_SIZE];
   flea_u8_t             priv_scalar__mem__bu8[FLEA_ECC_MAX_ORDER_BYTE_SIZE];

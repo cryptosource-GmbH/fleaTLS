@@ -20,6 +20,9 @@ extern const flea_ec_dom_par_id_e flea_gl_ec_dom_par_max_id;
 typedef enum { flea_dp__p = 0, flea_dp__a = 1, flea_dp__b = 2, flea_dp__Gx = 3, flea_dp__Gy = 4, flea_dp__n,
                flea_dp__h } flea_ec_dom_par_element_id_e;
 
+# define FLEA_EC_DP_ELEM_ID_FIRST flea_dp__p
+# define FLEA_EC_DP_ELEM_ID_LAST  flea_dp__h
+
 
 /**
  * Get the byte length of an element of the domain parameters specified by their id
