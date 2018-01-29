@@ -108,6 +108,7 @@ int flea_unit_tests(
 #endif
 #ifdef FLEA_HAVE_ECDSA
       CALL_TEST(THR_flea_test_ecdsa_raw_basic());
+      CALL_TEST(THR_flea_test_ecdsa_sig_enc());
       CALL_TEST(THR_flea_test_cvc_sig_ver());
 #endif
 
@@ -130,7 +131,10 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_test_ae());
 #endif
       CALL_TEST(THR_flea_test_ctr_mode_1());
-      CALL_TEST(THR_flea_test_cbc_mode());
+      CALL_TEST(THR_flea_test_cbc_mode_aes());
+#ifdef FLEA_HAVE_DES
+      CALL_TEST(THR_flea_test_cbc_mode_3des());
+#endif
       CALL_TEST(THR_flea_test_ctr_mode_parts());
       CALL_TEST(THR_flea_test_ctr_mode_prng());
       CALL_TEST(THR_flea_test_feed_entropy());

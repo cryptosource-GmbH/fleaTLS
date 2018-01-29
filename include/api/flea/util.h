@@ -5,6 +5,7 @@
 
 #include "flea/types.h"
 #include "flea/calc_util.h"
+#include "internal/common/assert.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -19,6 +20,18 @@ extern "C" {
     __tmp = (__a); \
     (__a) = (__b); \
     (__b) = __tmp; \
+  } while(0)
+
+/**
+ * Swap the contents of two objects of the same type.
+ * @param ptr_a pointer to the first object
+ * @param ptr_b pointer to the second object which is of the same type as
+ * *ptr_a
+ */
+#define FLEA_SWAP_TYPE(ptr_a, ptr_b) \
+  do { \
+    FLEA_DEV_ASSERT(sizeof(*ptr_a) == sizeof(*ptr_b)); \
+    flea_swap_mem((flea_u8_t*) (ptr_a), (flea_u8_t*) (ptr_b), sizeof(*ptr_a)); \
   } while(0)
 
 #define FLEA_ASSGN_REF_FROM_BYTE_VEC(ref__pt, vec__pt) \

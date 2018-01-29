@@ -18,6 +18,7 @@
 #include "flea/pk_signer.h"
 #include "flea/ecc_named_curves.h"
 #include "internal/common/byte_vec_int.h"
+#include "internal/common/enc_ecdsa_sig.h"
 #include <string.h>
 
 #ifdef FLEA_HAVE_ASYM_ALGS
@@ -196,7 +197,9 @@ void flea_private_key_t__dtor(flea_private_key_t* privkey__pt)
 }
 
 # ifdef FLEA_HAVE_ASYM_SIG
-flea_err_e THR_flea_private_key_t__sign_plain_format(
+
+
+flea_err_e THR_flea_private_key_t__sign(
   const flea_private_key_t* privkey__pt,
   flea_pk_scheme_id_e       pk_scheme_id__t,
   flea_hash_id_e            hash_id__t,
@@ -221,7 +224,7 @@ flea_err_e THR_flea_private_key_t__sign_plain_format(
   );
 }
 
-flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
+flea_err_e THR_flea_private_key_t__sign_digest(
   const flea_private_key_t* privkey__pt,
   flea_pk_scheme_id_e       id__t,
   flea_hash_id_e            hash_id__e,
@@ -235,6 +238,9 @@ flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
   flea_al_u16_t key_bit_size__alu16;
   flea_al_u16_t primitive_input_len__alu16;
 
+#  ifdef FLEA_HAVE_ECDSA
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(ecdsa_ws_bv__t, FLEA_ECDSA_MAX_ASN1_SIG_LEN);
+#  endif
   FLEA_DECL_BUF(primitive_input__bu8, flea_u8_t, FLEA_MAX(FLEA_PK_MAX_PRIMITIVE_INPUT_LEN, FLEA_MAX_HASH_OUT_LEN));
 
   FLEA_THR_BEG_FUNC();
@@ -259,7 +265,7 @@ flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
     FLEA_THROW("signature for extraneous digest length requested", FLEA_ERR_INV_ARG);
   }
   memcpy(primitive_input__bu8, digest__pcu8, digest_len__alu8);
-  if(encoding_id__t == flea_emsa1)
+  if((encoding_id__t == flea_emsa1_asn1) || (encoding_id__t == flea_emsa1_concat))
   {
     FLEA_CCALL(
       THR_flea_pk_api__encode_message__emsa1(
@@ -323,17 +329,33 @@ flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
         &privkey__pt->privkey_with_params__u.ec_priv_key_val__t.dp__t
       )
     );
-    if(s_len__al_u8 < max_sig_part_len)
+
+    if(id__t == flea_ecdsa_emsa1_asn1)
     {
-      flea_al_u8_t shift = max_sig_part_len - s_len__al_u8;
-      memmove(sig_s__pu8 + shift, sig_s__pu8, s_len__al_u8);
-      memset(sig_s__pu8, 0, shift);
+      FLEA_CCALL(THR_flea_asn1_encode_ecdsa_sig(sig_r__pu8, r_len__al_u8, sig_s__pu8, s_len__al_u8, &ecdsa_ws_bv__t));
+      flea_byte_vec_t__reset(sig_vec__pt);
+      FLEA_CCALL(
+        THR_flea_byte_vec_t__append(
+          sig_vec__pt,
+          flea_byte_vec_t__GET_DATA_PTR(&ecdsa_ws_bv__t),
+          flea_byte_vec_t__GET_DATA_LEN(&ecdsa_ws_bv__t)
+        )
+      );
     }
-    if(r_len__al_u8 < max_sig_part_len)
+    else
     {
-      flea_al_u8_t shift = max_sig_part_len - r_len__al_u8;
-      memmove(sig_r__pu8 + shift, sig_r__pu8, r_len__al_u8);
-      memset(sig_r__pu8, 0, shift);
+      if(s_len__al_u8 < max_sig_part_len)
+      {
+        flea_al_u8_t shift = max_sig_part_len - s_len__al_u8;
+        memmove(sig_s__pu8 + shift, sig_s__pu8, s_len__al_u8);
+        memset(sig_s__pu8, 0, shift);
+      }
+      if(r_len__al_u8 < max_sig_part_len)
+      {
+        flea_al_u8_t shift = max_sig_part_len - r_len__al_u8;
+        memmove(sig_r__pu8 + shift, sig_r__pu8, r_len__al_u8);
+        memset(sig_r__pu8, 0, shift);
+      }
     }
 
 #  else // #ifdef FLEA_HAVE_ECDSA
@@ -358,7 +380,6 @@ flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
         primitive_input_len__alu16
       )
     );
-    // sig_vec__pt->len__dtl = (privkey__pt->key_bit_size__u16 + 7) / 8;
 
 
 #  else // #ifdef FLEA_HAVE_RSA
@@ -371,6 +392,9 @@ flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
   }
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(primitive_input__bu8);
+    FLEA_DO_IF_HAVE_ECDSA(
+      flea_byte_vec_t__dtor(&ecdsa_ws_bv__t);
+    );
   );
 } /* THR_flea_pk_signer_t__final_sign */
 

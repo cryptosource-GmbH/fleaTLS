@@ -17,6 +17,11 @@
 #define FLEA_ECDSA_MAX_CONCAT_SIG_LEN ((FLEA_ECC_MAX_ORDER_BYTE_SIZE * 2))
 
 /**
+ * Maximal length of the ECDSA signature in ASN.1/DER format.
+ */
+#define FLEA_ECDSA_MAX_ASN1_SIG_LEN (__FLEA_COMPUTED_ECDSA_MAX_ASN1_SIG_LEN)
+
+/**
  * Maximal byte length of a plain signature. In case of RSA, this means the
  * signature represantative, in case of ECDSA, it means r and s concatenated,
  * each having the same length as the base point order.

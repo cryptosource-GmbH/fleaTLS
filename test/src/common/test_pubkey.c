@@ -35,13 +35,14 @@ static flea_err_e THR_flea_test_pub_priv_key_init_dtor()
 
 static flea_err_e THR_flea_test_ecc_key_plain_format_encoding_inner(
   flea_ec_dom_par_id_e dp_id__e,
-  flea_hash_id_e       hash_id__e
+  flea_hash_id_e       hash_id__e,
+  flea_pk_scheme_id_e  sig_scheme_id__e
 )
 {
 #  ifdef FLEA_STACK_MODE
   flea_u8_t enc_pubkey__au8[FLEA_ECC_MAX_ENCODED_POINT_LEN];
   flea_u8_t enc_privkey__au8[FLEA_ECC_MAX_ORDER_BYTE_SIZE];
-  flea_u8_t sig__au8[2 * FLEA_ECC_MAX_ORDER_BYTE_SIZE];
+  flea_u8_t sig__au8[FLEA_ECDSA_MAX_ASN1_SIG_LEN];
 #  endif
   flea_private_key_t privkey__t;
   flea_public_key_t pubkey__t;
@@ -79,18 +80,18 @@ static flea_err_e THR_flea_test_ecc_key_plain_format_encoding_inner(
  * sign and verify
  */
   FLEA_CCALL(
-    THR_flea_private_key_t__sign_plain_format(
+    THR_flea_private_key_t__sign(
       &privkey__t,
-      flea_ecdsa_emsa1,
+      sig_scheme_id__e,
       hash_id__e,
       &msg_vec__t,
       &sig_vec__t
     )
   );
   FLEA_CCALL(
-    THR_flea_public_key_t__verify_signature_plain_format(
+    THR_flea_public_key_t__verify_signature(
       &pubkey__t,
-      flea_ecdsa_emsa1,
+      sig_scheme_id__e,
       hash_id__e,
       &msg_vec__t,
       &sig_vec__t
@@ -115,18 +116,18 @@ static flea_err_e THR_flea_test_ecc_key_plain_format_encoding_inner(
   FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(&pubkey__t, &enc_pubkey__t, &dp_ref__t));
   FLEA_CCALL(THR_flea_private_key_t__ctor_ecc(&privkey__t, &enc_privkey__t, &dp_ref__t));
   FLEA_CCALL(
-    THR_flea_private_key_t__sign_plain_format(
+    THR_flea_private_key_t__sign(
       &privkey__t,
-      flea_ecdsa_emsa1,
+      sig_scheme_id__e,
       hash_id__e,
       &msg_vec__t,
       &sig_vec__t
     )
   );
   FLEA_CCALL(
-    THR_flea_public_key_t__verify_signature_plain_format(
+    THR_flea_public_key_t__verify_signature(
       &pubkey__t,
-      flea_ecdsa_emsa1,
+      sig_scheme_id__e,
       hash_id__e,
       &msg_vec__t,
       &sig_vec__t
@@ -197,11 +198,25 @@ flea_err_e THR_flea_test_ecc_key_plain_format_encoding()
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_test_pub_priv_key_init_dtor());
 #  if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 224 && defined FLEA_HAVE_SHA1
-  FLEA_CCALL(THR_flea_test_ecc_key_plain_format_encoding_inner(flea_secp224r1, flea_sha1));
+  FLEA_CCALL(THR_flea_test_ecc_key_plain_format_encoding_inner(flea_secp224r1, flea_sha1, flea_ecdsa_emsa1_concat));
+  FLEA_CCALL(THR_flea_test_ecc_key_plain_format_encoding_inner(flea_secp224r1, flea_sha1, flea_ecdsa_emsa1_asn1));
 #  endif
 #  if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 256 && defined FLEA_HAVE_SHA512
-  FLEA_CCALL(THR_flea_test_ecc_key_plain_format_encoding_inner(flea_brainpoolP256r1, flea_sha512));
-#  endif
+  FLEA_CCALL(
+    THR_flea_test_ecc_key_plain_format_encoding_inner(
+      flea_brainpoolP256r1,
+      flea_sha512,
+      flea_ecdsa_emsa1_concat
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_test_ecc_key_plain_format_encoding_inner(
+      flea_brainpoolP256r1,
+      flea_sha512,
+      flea_ecdsa_emsa1_asn1
+    )
+  );
+#  endif /* if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 256 && defined FLEA_HAVE_SHA512 */
   FLEA_THR_FIN_SEC_empty();
 }
 

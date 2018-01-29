@@ -70,6 +70,9 @@ flea_err_e THR_flea_test_ecc_point_gfp_double(void);
 flea_err_e THR_flea_test_ecc_point_gfp_mul(void);
 
 flea_err_e THR_flea_test_ecdsa_raw_basic(void);
+
+flea_err_e THR_flea_test_ecdsa_sig_enc();
+
 flea_err_e THR_flea_test_cvc_sig_ver(void);
 flea_err_e THR_flea_test_ecka_raw_basic(void);
 
@@ -135,7 +138,10 @@ flea_err_e THR_flea_test_mac(void);
 
 flea_err_e THR_flea_test_ae(void);
 
-flea_err_e THR_flea_test_cbc_mode(void);
+flea_err_e THR_flea_test_cbc_mode_aes(void);
+#ifdef FLEA_HAVE_DES
+flea_err_e THR_flea_test_cbc_mode_3des(void);
+#endif
 flea_err_e THR_flea_test_ctr_mode_1(void);
 flea_err_e THR_flea_test_ctr_mode_parts(void);
 flea_err_e THR_flea_test_ctr_mode_prng(void);

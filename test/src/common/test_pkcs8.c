@@ -31,7 +31,7 @@ static flea_err_e THR_flea_test_pkcs8_inner_sign_digest(
   FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&privkey__t, pkcs8__pcu8, pkcs8_len__alu16));
   FLEA_CCALL(THR_flea_public_key_t__ctor_pkcs8(&pubkey__t, pkcs8__pcu8, pkcs8_len__alu16));
   FLEA_CCALL(
-    THR_flea_private_key_t__sign_digest_plain_format(
+    THR_flea_private_key_t__sign_digest(
       &privkey__t,
       scheme_id__t,
       hash_id__t,
@@ -41,7 +41,7 @@ static flea_err_e THR_flea_test_pkcs8_inner_sign_digest(
     )
   );
   FLEA_CCALL(
-    THR_flea_public_key_t__verify_digest_plain_format(
+    THR_flea_public_key_t__verify_digest(
       &pubkey__t,
       scheme_id__t,
       hash_id__t,
@@ -82,7 +82,7 @@ static flea_err_e THR_flea_test_pkcs8_inner(
   FLEA_CCALL(THR_flea_public_key_t__ctor_pkcs8(&pubkey__t, pkcs8__pcu8, pkcs8_len__alu16));
 
   FLEA_CCALL(
-    THR_flea_private_key_t__sign_plain_format(
+    THR_flea_private_key_t__sign(
       &privkey__t,
       scheme_id__t,
       hash_id__t,
@@ -92,7 +92,7 @@ static flea_err_e THR_flea_test_pkcs8_inner(
   );
 
   FLEA_CCALL(
-    THR_flea_public_key_t__verify_signature_plain_format(
+    THR_flea_public_key_t__verify_signature(
       &pubkey__t,
       scheme_id__t,
       hash_id__t,
@@ -165,7 +165,7 @@ flea_err_e THR_flea_test_pkcs8()
     flea_testd_pkcs8_ecc_key_secp192r1_explicit_params__au8,
     sizeof(flea_testd_pkcs8_ecc_key_secp192r1_explicit_params__au8),
     flea_sha256,
-    flea_ecdsa_emsa1
+    flea_ecdsa_emsa1_concat
     );
 #  if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 192
   if(err__t) FLEA_THROW("error in PKCS#8 ECC test", err__t);
@@ -178,7 +178,7 @@ flea_err_e THR_flea_test_pkcs8()
     flea_testd_pkcs8_ecc_key_secp384r1_implicit_params__au8,
     sizeof(flea_testd_pkcs8_ecc_key_secp384r1_implicit_params__au8),
     flea_sha256,
-    flea_ecdsa_emsa1
+    flea_ecdsa_emsa1_asn1
     );
 #  if defined FLEA_HAVE_ECDSA && FLEA_ECC_MAX_ORDER_BIT_SIZE >= 384
   if(err__t) FLEA_THROW("error in PKCS#8 ECC test", err__t);

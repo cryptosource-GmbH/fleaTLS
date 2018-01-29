@@ -274,7 +274,7 @@ flea_err_e THR_flea_test_pk_signer_sign_verify()
   {
     flea_ec_dom_par_ref_t dp__t;
     FLEA_CCALL(THR_flea_ec_dom_par_ref_t__set_by_builtin_id(&dp__t, flea_brainpoolP224r1));
-    FLEA_CCALL(THR_flea_test_pk_signer_sign_verify_inner(flea_ecdsa_emsa1, flea_sha224, &dp__t));
+    FLEA_CCALL(THR_flea_test_pk_signer_sign_verify_inner(flea_ecdsa_emsa1_asn1, flea_sha224, &dp__t));
   }
 #endif /* ifdef FLEA_HAVE_ECDSA */
 #if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE < 2048

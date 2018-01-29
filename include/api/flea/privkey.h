@@ -131,9 +131,7 @@ flea_err_e THR_flea_private_key_t__ctor_ecc(
 # endif // ifdef FLEA_HAVE_ECC
 
 /**
- * Create a signature using a private key. In case of ECDSA, the
- * signature is created in concatendated format with r and s each encoded with
- * the base point order length.
+ * Create a signature using a private key.
  *
  * @param privkey the private key to be used for the signature creation
  * @param pk_scheme_id ID of the signature scheme to be used
@@ -144,7 +142,7 @@ flea_err_e THR_flea_private_key_t__ctor_ecc(
  * @return an error code
  *
  */
-flea_err_e THR_flea_private_key_t__sign_plain_format(
+flea_err_e THR_flea_private_key_t__sign(
   const flea_private_key_t* privkey,
   flea_pk_scheme_id_e       pk_scheme_id,
   flea_hash_id_e            hash_id,
@@ -164,7 +162,7 @@ flea_err_e THR_flea_private_key_t__sign_plain_format(
  * @param privkey the private key to be used for the signature operation
  * @param signature receives the generated signature after function completion
  */
-flea_err_e THR_flea_private_key_t__sign_digest_plain_format(
+flea_err_e THR_flea_private_key_t__sign_digest(
   const flea_private_key_t* privkey,
   flea_pk_scheme_id_e       id,
   flea_hash_id_e            hash_id,
