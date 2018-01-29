@@ -455,10 +455,6 @@ static flea_bool_t flea_tls__is_allowed_cert_type_hlp_fct(
   {
     cl_cert_type__e = flea_tls_cl_cert__rsa_sign;
   }
-
-  /*
-   * add more options when they are supported
-   */
   else
   {
     cl_cert_type__e = flea_tls_cl_cert__ecdsa_sign;
