@@ -12,25 +12,7 @@
 #include "internal/common/tls/tls_ciph_suite.h"
 #include "flea/pk_keypair.h"
 
-#ifdef FLEA_HAVE_TLS_CS_ECC
-flea_err_e THR_flea_tls_get_sig_length_of_priv_key(
-  flea_private_key_t* priv_key__pt,
-  flea_u16_t*         len__u16
-)
-{
-  FLEA_THR_BEG_FUNC();
-  if(priv_key__pt->key_type__t == flea_rsa_key)
-  {
-    *len__u16 = (priv_key__pt->key_bit_size__u16 + 7) / 8;
-  }
-  else
-  {
-    FLEA_THROW("not yet implemented", FLEA_ERR_INV_ARG);
-  }
-  FLEA_THR_FIN_SEC_empty();
-}
 
-#endif /* ifdef FLEA_HAVE_TLS_CS_ECC */
 #ifdef FLEA_HAVE_TLS_CS_ECDHE
 flea_err_e THR_flea_tls__send_server_kex(
   flea_tls_ctx_t*               tls_ctx__pt,
@@ -69,15 +51,16 @@ flea_err_e THR_flea_tls__send_server_kex(
   FLEA_CCALL(THR_flea_tls__map_flea_hash_to_tls_hash(hash_id__t, &sig_and_hash_alg[0]));
   FLEA_CCALL(THR_flea_tls__map_flea_sig_to_tls_sig(pk_scheme_id__t, &sig_and_hash_alg[1]));
 
-  FLEA_CCALL(THR_flea_tls_get_sig_length_of_priv_key(tls_ctx__pt->private_key__pt, &sig_len__u16));
-
   kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(
     (flea_tls_cipher_suite_id_t) tls_ctx__pt->selected_cipher_suite__e
     );
 
   if(kex_method__t == FLEA_TLS_KEX_ECDHE)
   {
-    // create ECDHE key pair
+    /*
+     * create ECDHE key pair
+     */
+
     FLEA_CCALL(
       THR_flea_pubkey__generate_ecc_key_pair_by_dp_id(
         &ecdhe_pub_key__t,
@@ -89,7 +72,46 @@ flea_err_e THR_flea_tls__send_server_kex(
     flea_public_key_t__get_encoded_plain_ref(&ecdhe_pub_key__t, &pub_point__rcu8);
     pub_point_len__u8 = (flea_u8_t) pub_point__rcu8.len__dtl;
 
-    hdr_len__u32 = 3 + 1 + pub_point__rcu8.len__dtl + 2 + 2 + sig_len__u16; // 3 for named curve + 1 for pub point length + 2 for sig/hash alg + 2 sig length + len of sha256 sig
+    /*
+     * create signature of ECParams
+     */
+
+    // calculate hash of ECParams
+    FLEA_CCALL(
+      THR_flea_hash_ctx_t__update(
+        &params_hash_ctx__t,
+        hs_ctx__pt->client_and_server_random__pt->data__pu8,
+        2 * FLEA_TLS_HELLO_RANDOM_SIZE
+      )
+    );
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, ec_curve_type__au8, sizeof(ec_curve_type__au8)));
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, ec_curve__au8, sizeof(ec_curve__au8)));
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, &pub_point_len__u8, 1));
+    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, pub_point__rcu8.data__pcu8, pub_point__rcu8.len__dtl));
+
+    FLEA_ALLOC_BUF(hash__bu8, hash_out_len__u8);
+    FLEA_CCALL(THR_flea_hash_ctx_t__final(&params_hash_ctx__t, hash__bu8));
+
+    // sign it
+    FLEA_CCALL(
+      THR_flea_private_key_t__sign_digest(
+        tls_ctx__pt->private_key__pt,
+        pk_scheme_id__t,
+        hash_id__t,
+        hash__bu8,
+        hash_out_len__u8,
+        &sig_vec__t
+      )
+    );
+
+    sig_len__u16 = sig_vec__t.len__dtl;
+    flea__encode_U16_BE(sig_len__u16, sig_len_enc__au8);
+
+    /*
+     * send all of the data
+     */
+
+    hdr_len__u32 = 3 + 1 + pub_point__rcu8.len__dtl + 2 + 2 + sig_len__u16;   // 3 for named curve + 1 for pub point length + 2 for sig/hash alg + 2 sig length + len of signature
 
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_hdr(
@@ -118,7 +140,6 @@ flea_err_e THR_flea_tls__send_server_kex(
       )
     );
 
-
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_content(
         &tls_ctx__pt->rec_prot__t,
@@ -137,39 +158,6 @@ flea_err_e THR_flea_tls__send_server_kex(
       )
     );
 
-
-    flea__encode_U16_BE(sig_len__u16, sig_len_enc__au8);
-
-    // calculate hash of ec params
-    FLEA_CCALL(
-      THR_flea_hash_ctx_t__update(
-        &params_hash_ctx__t,
-        hs_ctx__pt->client_and_server_random__pt->data__pu8,
-        2 * FLEA_TLS_HELLO_RANDOM_SIZE
-      )
-    );
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, ec_curve_type__au8, sizeof(ec_curve_type__au8)));
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, ec_curve__au8, sizeof(ec_curve__au8)));
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, &pub_point_len__u8, 1));
-    FLEA_CCALL(THR_flea_hash_ctx_t__update(&params_hash_ctx__t, pub_point__rcu8.data__pcu8, pub_point__rcu8.len__dtl));
-
-    FLEA_ALLOC_BUF(hash__bu8, hash_out_len__u8);
-    FLEA_CCALL(THR_flea_hash_ctx_t__final(&params_hash_ctx__t, hash__bu8));
-
-
-    // create signature
-    FLEA_CCALL(
-      THR_flea_private_key_t__sign_digest(
-        tls_ctx__pt->private_key__pt,
-        pk_scheme_id__t,
-        hash_id__t,
-        hash__bu8,
-        hash_out_len__u8,
-        &sig_vec__t
-      )
-    );
-
-    // send sig_hash alg + sig
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_content(
         &tls_ctx__pt->rec_prot__t,
@@ -188,7 +176,6 @@ flea_err_e THR_flea_tls__send_server_kex(
         sizeof(sig_len_enc__au8)
       )
     );
-
 
     FLEA_CCALL(
       THR_flea_tls__send_handshake_message_content(

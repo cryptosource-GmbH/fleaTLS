@@ -92,40 +92,58 @@ typedef enum
 typedef enum
 {
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_CBC_SHA
-  flea_tls_rsa_with_aes_128_cbc_sha          = 0x002F,
+  flea_tls_rsa_with_aes_128_cbc_sha            = 0x002F,
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_CBC_SHA
-  flea_tls_rsa_with_aes_256_cbc_sha          = 0x0035,
+  flea_tls_rsa_with_aes_256_cbc_sha            = 0x0035,
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_CBC_SHA256
-  flea_tls_rsa_with_aes_128_cbc_sha256       = 0x003C,
+  flea_tls_rsa_with_aes_128_cbc_sha256         = 0x003C,
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_CBC_SHA256
-  flea_tls_rsa_with_aes_256_cbc_sha256       = 0x003D,
+  flea_tls_rsa_with_aes_256_cbc_sha256         = 0x003D,
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_GCM_SHA256
-  flea_tls_rsa_with_aes_128_gcm_sha256       = 0x009C,
+  flea_tls_rsa_with_aes_128_gcm_sha256         = 0x009C,
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_GCM_SHA384
-  flea_tls_rsa_with_aes_256_gcm_sha384       = 0x009D,
+  flea_tls_rsa_with_aes_256_gcm_sha384         = 0x009D,
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
-  flea_tls_ecdhe_rsa_with_aes_128_cbc_sha    = 0xC013,
+  flea_tls_ecdhe_rsa_with_aes_128_cbc_sha      = 0xC013,
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
-  flea_tls_ecdhe_rsa_with_aes_256_cbc_sha    = 0xC014,
+  flea_tls_ecdhe_rsa_with_aes_256_cbc_sha      = 0xC014,
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-  flea_tls_ecdhe_rsa_with_aes_128_cbc_sha256 = 0xC027,
+  flea_tls_ecdhe_rsa_with_aes_128_cbc_sha256   = 0xC027,
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
-  flea_tls_ecdhe_rsa_with_aes_256_cbc_sha384 = 0xC028,
+  flea_tls_ecdhe_rsa_with_aes_256_cbc_sha384   = 0xC028,
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-  flea_tls_ecdhe_rsa_with_aes_128_gcm_sha256 = 0xC02F,
+  flea_tls_ecdhe_rsa_with_aes_128_gcm_sha256   = 0xC02F,
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-  flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384 = 0xC030
+  flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384   = 0xC030,
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+  flea_tls_ecdhe_ecdsa_with_aes_128_cbc_sha    = 0xC009,
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+  flea_tls_ecdhe_ecdsa_with_aes_256_cbc_sha    = 0xC00A,
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+  flea_tls_ecdhe_ecdsa_with_aes_128_cbc_sha256 = 0xC023,
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384
+  flea_tls_ecdhe_ecdsa_with_aes_256_cbc_sha384 = 0xC024,
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+  flea_tls_ecdhe_ecdsa_with_aes_128_gcm_sha256 = 0xC02B,
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+  flea_tls_ecdhe_ecdsa_with_aes_256_gcm_sha384 = 0xC02C,
 # endif
 } flea_tls_cipher_suite_id_t;
 

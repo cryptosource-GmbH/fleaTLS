@@ -23,40 +23,58 @@ using namespace std;
 
 std::map<string, flea_tls_cipher_suite_id_t> cipher_suite_name_value_map__t = {
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_CBC_SHA
-  {"TLS_RSA_WITH_AES_128_CBC_SHA",          flea_tls_rsa_with_aes_128_cbc_sha         },
+  {"TLS_RSA_WITH_AES_128_CBC_SHA",            flea_tls_rsa_with_aes_128_cbc_sha           },
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_CBC_SHA
-  {"TLS_RSA_WITH_AES_256_CBC_SHA",          flea_tls_rsa_with_aes_256_cbc_sha         },
+  {"TLS_RSA_WITH_AES_256_CBC_SHA",            flea_tls_rsa_with_aes_256_cbc_sha           },
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_CBC_SHA256
-  {"TLS_RSA_WITH_AES_128_CBC_SHA256",       flea_tls_rsa_with_aes_128_cbc_sha256      },
+  {"TLS_RSA_WITH_AES_128_CBC_SHA256",         flea_tls_rsa_with_aes_128_cbc_sha256        },
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_CBC_SHA256
-  {"TLS_RSA_WITH_AES_256_CBC_SHA256",       flea_tls_rsa_with_aes_256_cbc_sha256      },
+  {"TLS_RSA_WITH_AES_256_CBC_SHA256",         flea_tls_rsa_with_aes_256_cbc_sha256        },
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_GCM_SHA256
-  {"TLS_RSA_WITH_AES_128_GCM_SHA256",       flea_tls_rsa_with_aes_128_gcm_sha256      },
+  {"TLS_RSA_WITH_AES_128_GCM_SHA256",         flea_tls_rsa_with_aes_128_gcm_sha256        },
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_GCM_SHA384
-  {"TLS_RSA_WITH_AES_256_GCM_SHA384",       flea_tls_rsa_with_aes_256_gcm_sha384      },
+  {"TLS_RSA_WITH_AES_256_GCM_SHA384",         flea_tls_rsa_with_aes_256_gcm_sha384        },
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
-  {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",    flea_tls_ecdhe_rsa_with_aes_128_cbc_sha   },
+  {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA",      flea_tls_ecdhe_rsa_with_aes_128_cbc_sha     },
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
-  {"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",    flea_tls_ecdhe_rsa_with_aes_256_cbc_sha   },
+  {"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA",      flea_tls_ecdhe_rsa_with_aes_256_cbc_sha     },
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-  {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256", flea_tls_ecdhe_rsa_with_aes_128_cbc_sha256},
+  {"TLS_ECDHE_RSA_WITH_AES_128_CBC_SHA256",   flea_tls_ecdhe_rsa_with_aes_128_cbc_sha256  },
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
-  {"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384", flea_tls_ecdhe_rsa_with_aes_256_cbc_sha384},
+  {"TLS_ECDHE_RSA_WITH_AES_256_CBC_SHA384",   flea_tls_ecdhe_rsa_with_aes_256_cbc_sha384  },
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-  {"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256", flea_tls_ecdhe_rsa_with_aes_128_gcm_sha256},
+  {"TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256",   flea_tls_ecdhe_rsa_with_aes_128_gcm_sha256  },
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-  {"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384", flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384}
+  {"TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",   flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384  },
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+  {"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA",    flea_tls_ecdhe_ecdsa_with_aes_128_cbc_sha   },
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+  {"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA",    flea_tls_ecdhe_ecdsa_with_aes_256_cbc_sha   },
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+  {"TLS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256", flea_tls_ecdhe_ecdsa_with_aes_128_cbc_sha256},
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384
+  {"TLS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384", flea_tls_ecdhe_ecdsa_with_aes_256_cbc_sha384},
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+  {"TLS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256", flea_tls_ecdhe_ecdsa_with_aes_128_gcm_sha256},
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+  {"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", flea_tls_ecdhe_ecdsa_with_aes_256_gcm_sha384},
 # endif
 };
 
@@ -74,7 +92,8 @@ std::map<string, flea_ec_dom_par_id_e> curve_id_name_value_map__t = {
 };
 
 std::map<string, flea_u8_t> sig_algs_map__t = {
-  {"RSA", flea_rsa_pkcs1_v1_5_sign}
+  {"RSA",   flea_rsa_pkcs1_v1_5_sign},
+  {"ECDSA", flea_ecdsa_emsa1_asn1   },
 };
 
 std::map<string, flea_u8_t> hash_algs_map__t = {

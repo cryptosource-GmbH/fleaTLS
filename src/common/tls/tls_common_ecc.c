@@ -59,6 +59,8 @@ flea_err_e THR_flea_tls_ctx_t__parse_supported_curves_ext(
 {
   flea_u32_t len__u32;
   flea_al_u16_t curve_pos__alu16;
+  flea_bool_t privkey_curve_supported__b;
+  flea_ec_dom_par_id_e privkey_dp_id__e;
 
   FLEA_THR_BEG_FUNC();
   if(!ext_len__alu16)
@@ -75,7 +77,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_supported_curves_ext(
   );
   if((len__u32 % 2) || (len__u32 > ext_len__alu16 - 2))
   {
-    FLEA_THROW("invalid point supported curves extension", FLEA_ERR_TLS_PROT_DECODE_ERR);
+    FLEA_THROW("invalid supported curves extension", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
   /*
@@ -84,6 +86,18 @@ flea_err_e THR_flea_tls_ctx_t__parse_supported_curves_ext(
    * server: choose from client's set
    */
   curve_pos__alu16 = 0xFFFF;
+  if(tls_ctx__pt->private_key__pt && tls_ctx__pt->private_key__pt->key_type__t == flea_ecc_key)
+  {
+    privkey_curve_supported__b = FLEA_FALSE;
+    privkey_dp_id__e = flea_ec_dom_par_ref_t__determine_known_curve(
+      &tls_ctx__pt->private_key__pt->privkey_with_params__u.ec_priv_key_val__t.dp__t
+      );
+  }
+  else
+  {
+    privkey_curve_supported__b = FLEA_TRUE;
+  }
+
   while(len__u32)
   {
     flea_ec_dom_par_id_e dp_id;
@@ -103,6 +117,17 @@ flea_err_e THR_flea_tls_ctx_t__parse_supported_curves_ext(
     }
     for(i = 0; i < tls_ctx__pt->nb_allowed_curves__u16; i++)
     {
+      /*
+       * for ECDSA we have to check that the client supports the curve in our
+       * certificate.
+       */
+      if(privkey_curve_supported__b == FLEA_FALSE)
+      {
+        if(privkey_dp_id__e == tls_ctx__pt->allowed_ecc_curves__pe[i])
+        {
+          privkey_curve_supported__b = FLEA_TRUE;
+        }
+      }
       if(tls_ctx__pt->allowed_ecc_curves__pe[i] == dp_id)
       {
         if(i < curve_pos__alu16)
@@ -114,6 +139,10 @@ flea_err_e THR_flea_tls_ctx_t__parse_supported_curves_ext(
         break;
       }
     }
+  }
+  if(privkey_curve_supported__b == FLEA_FALSE)
+  {
+    FLEA_THROW("Client does not support the server certificate's curve", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE);
   }
   if(curve_pos__alu16 == 0xFFFF)
   {

@@ -14,53 +14,76 @@
 
 static const flea_tls__cipher_suite_t cipher_suites[] = {
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_CBC_SHA
-  {flea_tls_rsa_with_aes_128_cbc_sha,          FLEA_TLS_BLOCK_CIPHER(flea_aes128),
+  {flea_tls_rsa_with_aes_128_cbc_sha,            FLEA_TLS_BLOCK_CIPHER(flea_aes128),
    16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_CBC_SHA256
-  {flea_tls_rsa_with_aes_128_cbc_sha256,       FLEA_TLS_BLOCK_CIPHER(flea_aes128),
+  {flea_tls_rsa_with_aes_128_cbc_sha256,         FLEA_TLS_BLOCK_CIPHER(flea_aes128),
    16, 16, 16, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_CBC_SHA
-  {flea_tls_rsa_with_aes_256_cbc_sha,          FLEA_TLS_BLOCK_CIPHER(flea_aes256),
+  {flea_tls_rsa_with_aes_256_cbc_sha,            FLEA_TLS_BLOCK_CIPHER(flea_aes256),
    16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_CBC_SHA256
-  {flea_tls_rsa_with_aes_256_cbc_sha256,       FLEA_TLS_BLOCK_CIPHER(flea_aes256),
+  {flea_tls_rsa_with_aes_256_cbc_sha256,         FLEA_TLS_BLOCK_CIPHER(flea_aes256),
    16, 16, 32, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_GCM_SHA256
-  {flea_tls_rsa_with_aes_128_gcm_sha256,       FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
+  {flea_tls_rsa_with_aes_128_gcm_sha256,         FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
    16, 12, 16, 0, 0, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 # endif
 # ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_GCM_SHA384
-  {flea_tls_rsa_with_aes_256_gcm_sha384,       FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
+  {flea_tls_rsa_with_aes_256_gcm_sha384,         FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
    16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__RSA},
 # endif
-
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
-  {flea_tls_ecdhe_rsa_with_aes_128_cbc_sha,    FLEA_TLS_BLOCK_CIPHER(flea_aes128),
+  {flea_tls_ecdhe_rsa_with_aes_128_cbc_sha,      FLEA_TLS_BLOCK_CIPHER(flea_aes128),
    16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
-  {flea_tls_ecdhe_rsa_with_aes_256_cbc_sha,    FLEA_TLS_BLOCK_CIPHER(flea_aes256),
+  {flea_tls_ecdhe_rsa_with_aes_256_cbc_sha,      FLEA_TLS_BLOCK_CIPHER(flea_aes256),
    16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-  {flea_tls_ecdhe_rsa_with_aes_128_cbc_sha256, FLEA_TLS_BLOCK_CIPHER(flea_aes128),
+  {flea_tls_ecdhe_rsa_with_aes_128_cbc_sha256,   FLEA_TLS_BLOCK_CIPHER(flea_aes128),
    16, 16, 16, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
-  {flea_tls_ecdhe_rsa_with_aes_256_cbc_sha384, FLEA_TLS_BLOCK_CIPHER(flea_aes256),
+  {flea_tls_ecdhe_rsa_with_aes_256_cbc_sha384,   FLEA_TLS_BLOCK_CIPHER(flea_aes256),
    16, 16, 32, 48, 48, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_GCM_SHA256
-  {flea_tls_ecdhe_rsa_with_aes_128_gcm_sha256, FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
+  {flea_tls_ecdhe_rsa_with_aes_128_gcm_sha256,   FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
    16, 12, 16, 0, 0, flea_sha256, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 # endif
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_GCM_SHA384
-  {flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384, FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
+  {flea_tls_ecdhe_rsa_with_aes_256_gcm_sha384,   FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
    16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__RSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+  {flea_tls_ecdhe_ecdsa_with_aes_128_cbc_sha,    FLEA_TLS_BLOCK_CIPHER(flea_aes128),
+   16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__ECDSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+  {flea_tls_ecdhe_ecdsa_with_aes_256_cbc_sha,    FLEA_TLS_BLOCK_CIPHER(flea_aes256),
+   16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__ECDSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+  {flea_tls_ecdhe_ecdsa_with_aes_128_cbc_sha256, FLEA_TLS_BLOCK_CIPHER(flea_aes128),
+   16, 16, 16, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__ECDSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384
+  {flea_tls_ecdhe_ecdsa_with_aes_256_cbc_sha384, FLEA_TLS_BLOCK_CIPHER(flea_aes256),
+   16, 16, 32, 48, 48, flea_sha384, FLEA_TLS_CS_AUTH_MASK__ECDSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+  {flea_tls_ecdhe_ecdsa_with_aes_128_gcm_sha256, FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
+   16, 12, 16, 0, 0, flea_sha256, FLEA_TLS_CS_AUTH_MASK__ECDSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+  {flea_tls_ecdhe_ecdsa_with_aes_256_gcm_sha384, FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
+   16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__ECDSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 # endif
 };
 

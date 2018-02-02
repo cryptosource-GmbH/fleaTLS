@@ -13,13 +13,6 @@
 extern "C" {
 #endif
 
-#ifdef FLEA_HAVE_TLS_CS_ECC
-
-flea_err_e THR_flea_tls_get_sig_length_of_priv_key(
-  flea_private_key_t* priv_key__pt,
-  flea_u16_t*         len__u16
-);
-#endif // ifdef FLEA_HAVE_TLS_CS_ECC
 
 #ifdef FLEA_HAVE_TLS_CS_ECDHE
 flea_err_e THR_flea_tls__send_server_kex(
