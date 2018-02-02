@@ -66,8 +66,6 @@ flea_err_e THR_flea_private_key_t__ctor_ecc(
       dp_ref__pt
     )
   );
-  key__pt->privkey_with_params__u.ec_priv_key_val__t.dp_id__e =
-    flea_ec_dom_par_ref_t__determine_known_curve(dp_ref__pt);
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_private_key_t__ctor_ecc */
 
