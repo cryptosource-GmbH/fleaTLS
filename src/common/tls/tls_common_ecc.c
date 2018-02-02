@@ -77,7 +77,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_supported_curves_ext(
   );
   if((len__u32 % 2) || (len__u32 > ext_len__alu16 - 2))
   {
-    FLEA_THROW("invalid point supported curves extension", FLEA_ERR_TLS_PROT_DECODE_ERR);
+    FLEA_THROW("invalid supported curves extension", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
 
   /*
