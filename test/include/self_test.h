@@ -71,7 +71,9 @@ flea_err_e THR_flea_test_ecc_point_gfp_mul(void);
 
 flea_err_e THR_flea_test_ecdsa_raw_basic(void);
 
-flea_err_e THR_flea_test_ecdsa_sig_enc();
+flea_err_e THR_flea_test_ecdsa_sig_enc(void);
+
+flea_err_e THR_flea_test_ec_dp_determination(void);
 
 flea_err_e THR_flea_test_cvc_sig_ver(void);
 flea_err_e THR_flea_test_ecka_raw_basic(void);
@@ -84,9 +86,9 @@ flea_err_e THR_flea_test_oaep(void);
 
 flea_err_e THR_flea_test_pk_signer_sign_verify(void);
 
-flea_err_e THR_flea_test_enc_BE_bitlen();
+flea_err_e THR_flea_test_enc_BE_bitlen(void);
 
-flea_err_e THR_flea_test_incr_enc_BE_int();
+flea_err_e THR_flea_test_incr_enc_BE_int(void);
 
 flea_err_e THR_flea_test_pk_encryption(void);
 
@@ -115,7 +117,7 @@ flea_err_e THR_flea_test_rsa_crt_inner(
   const flea_u8_t* mod_arr
 );
 
-flea_err_e THR_flea_test_hash_file_based();
+flea_err_e THR_flea_test_hash_file_based(void);
 
 flea_err_e THR_flea_test_hash_function_inner(
   const flea_u8_t* message,

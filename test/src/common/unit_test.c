@@ -111,7 +111,9 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_test_ecdsa_sig_enc());
       CALL_TEST(THR_flea_test_cvc_sig_ver());
 #endif
-
+#ifdef FLEA_HAVE_ECC
+      CALL_TEST(THR_flea_test_ec_dp_determination());
+#endif
       CALL_TEST(THR_flea_test_pk_signer_sign_verify());
 
 #ifdef FLEA_HAVE_PK_CS
