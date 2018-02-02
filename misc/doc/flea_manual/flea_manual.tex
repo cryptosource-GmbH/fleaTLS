@@ -648,6 +648,14 @@ $$
 The support for the individual cipher suites is configured in the general build
 configuration file with the corresponding defines prefixed with FLEA\ldots .
 
+\subsection{Requirements for Client and Server Certificates}
+
+\subsubsection{ECDSA Certificates}
+
+The current version of fleaTLS only supports named elliptic curves, which is the
+usual choice for TLS certificates. 
+
+\todo{add open-ssl command to create certificate with named curve}
 
 \subsection{Requirements for Server Certificates}
 
@@ -686,10 +694,13 @@ ClientHello messsage within the Supported Elliptic
    which features an EC public key,  or if any of the certificates within the
    server's certificate chain are signed by ECDSA, then the handhake can only
    succeed if the client supports all the elliptic curves used in the
-   corresponding keys. The fleaTLS server doesn not verify that this is the case, since it
-   does not have any chance to enable a successful handshake in this case. It
-   will in any case send the configured certificate chain, resulting in the
-   error detected by the client once it encounters an unsupported curve. 
+   corresponding keys. 
+
+   
+   %The fleaTLS server doesn not verify that this is the case, since it
+   %does not have any chance to enable a successful handshake in this case. It
+   %will in any case send the configured certificate chain, resulting in the
+   %error detected by the client once it encounters an unsupported curve. 
 
 
 \subsection{Requirements for Client Certificates}
