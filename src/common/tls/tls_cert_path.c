@@ -593,6 +593,27 @@ static flea_err_e THR_flea_tls__validate_cert(
           cert_path_params__pct->kex_type__e
         )
       );
+
+      if(pubkey_out__pt->key_type__t == flea_ecc_key)
+      {
+        // check that the curve used for the public key is in the allowed curves
+        // (sent in supported curves extension)
+        flea_al_u16_t i;
+        flea_bool_t curve_supported__b = FLEA_FALSE;
+        flea_ec_dom_par_id_e dp_id__e  = flea_ec_dom_par_ref_t__determine_known_curve(&pubkey_out__pt->pubkey_with_params__u.ec_public_val__t.dp__t);
+        for(i = 0; i < tls_ctx__pt->nb_allowed_curves__u16; i++)
+        {
+          if(tls_ctx__pt->allowed_ecc_curves__pe[i] == dp_id__e)
+          {
+            curve_supported__b = FLEA_TRUE;
+            break;
+          }
+        }
+        if(curve_supported__b == FLEA_FALSE)
+        {
+          FLEA_THROW("Server EE Cert contains a curve that is not allowed (not sent in supported curves extension)", FLEA_ERR_TLS_CERT_VER_FAILED);
+        }
+      }
     }
     else if(cert_path_params__pct->validate_server_or_client__e == FLEA_TLS_CLIENT)
     {
