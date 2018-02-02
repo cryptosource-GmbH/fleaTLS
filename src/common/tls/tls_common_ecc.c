@@ -103,6 +103,20 @@ flea_err_e THR_flea_tls_ctx_t__parse_supported_curves_ext(
     }
     for(i = 0; i < tls_ctx__pt->nb_allowed_curves__u16; i++)
     {
+      /*
+       * for ECDSA we simply choose the curve that is present in the certificate.
+       * this ensures that the client supports the curve present in the
+       * certificate or we abort the HS due to not being able to negotiate a
+       * ciphersuite
+       */
+      if(tls_ctx__pt->private_key__pt && tls_ctx__pt->private_key__pt->key_type__t == flea_ecc_key)
+      {
+        if(tls_ctx__pt->private_key__pt->privkey_with_params__u.ec_priv_key_val__t.dp_id__e !=
+          tls_ctx__pt->allowed_ecc_curves__pe[i])
+        {
+          continue;
+        }
+      }
       if(tls_ctx__pt->allowed_ecc_curves__pe[i] == dp_id)
       {
         if(i < curve_pos__alu16)
