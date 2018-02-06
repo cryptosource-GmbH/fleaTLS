@@ -29,8 +29,12 @@ void flea_tls_session_mngr_t__dtor(flea_tls_session_mngr_t* session_mngr);
 #ifdef FLEA_HEAP_MODE
 # define flea_tls_session_mngr_t__INIT(sm) memset(sm, 0, sizeof(flea_tls_session_mngr_t))
 #else
-# define flea_tls_session_mngr_t__INIT(sm) do {(sm)->is_mutex_init__u8 = 0;} while(0)
-#endif
+# ifdef FLEA_HAVE_MUTEX
+#  define flea_tls_session_mngr_t__INIT(sm) do {(sm)->is_mutex_init__u8 = 0;} while(0)
+# else
+#  define flea_tls_session_mngr_t__INIT(sm)
+# endif
+#endif // ifdef FLEA_HEAP_MODE
 
 /**
  * Create a TLS session manager object to be used in a fleaTLS server for

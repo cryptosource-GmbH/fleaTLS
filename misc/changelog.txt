@@ -23,9 +23,10 @@ signature) is now controlled via the public key scheme variable.
 
 ### Fixed
 - corrected maximal allowed value in API documentation of build variable FLEA_TLS_ALT_SEND_BUF_SIZE
-- an error in the unit test code in function THR_flea_test_cbc_mode_3des() for
+- fixed an error in the unit test code in function THR_flea_test_cbc_mode_3des() for
 certain build configurations
-- an error in ECDSA signature decoding in TLS certificate chains
+- fixed an error in ECDSA signature decoding in TLS certificate chains
+- fixed build error that occurred when disabling mutex usage
 
 
 ## [1.1.0] 2018-01-23  cryptosource GmbH  info@fleatls.com

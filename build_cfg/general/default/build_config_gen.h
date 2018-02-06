@@ -257,20 +257,20 @@
  * Side channel countermeasure which adds pseudo random delays within the public key
  * operations.
  */
-# define FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
+# define FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY // FBFLAGS_SCM_ON_OFF
 
 /**
  * Side channel countermeasure which adds random delays within the public key
  * operations.
  */
-# define FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
+# define FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY // FBFLAGS_SCM_ON_OFF
 
 /**
  * Perform pseudo operations or data access for cache warming to achieve timing
  * neutral behaviour on platforms with cache within timing attack
  * countermeasures. This feature should be disabled on platforms without cache.
  */
-# define FLEA_SCCM_USE_CACHEWARMING_IN_TA_CM
+# define FLEA_SCCM_USE_CACHEWARMING_IN_TA_CM // FBFLAGS_SCM_ON_OFF
 
 /**@}*/
 
@@ -383,6 +383,8 @@
  * Control whether TLS server will be compiled.
  */
 #  define FLEA_HAVE_TLS_SERVER
+
+#  define FLEA_HAVE_TLS
 
 #  if defined FLEA_HAVE_ECKA
 
@@ -659,7 +661,7 @@
  * Control if fleaTLS supports concurrency for its global RNG and the TLS server. Remove the
  * definition in order to deactivate multithreading support in fleaTLS.
  */
-# define FLEA_HAVE_MUTEX
+# define FLEA_HAVE_MUTEX // FBFLAGS_CORE_ON_OFF
 
 /**
  * Include the mutex header. Remove include directive in the build_config_gen.h file if no mutex support is required. The define is just a dummy for proper generation of this documentation.
