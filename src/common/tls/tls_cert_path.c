@@ -593,7 +593,7 @@ static flea_err_e THR_flea_tls__validate_cert(
           cert_path_params__pct->kex_type__e
         )
       );
-# if defined FLEA_HAVE_TLS_CS_ECDHE || defined FLEA_HAVE_TLS_CS_ECDSA
+# if defined FLEA_HAVE_TLS_CS_ECDHE || defined FLEA_HAVE_TLS_CS_ECDSA || defined FLEA_HAVE_TLS_CS_ECDH
       if(pubkey_out__pt->key_type__t == flea_ecc_key)
       {
         // check that the curve used for the public key is in the allowed curves
