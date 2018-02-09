@@ -667,7 +667,9 @@
  * Include the mutex header. Remove include directive in the build_config_gen.h file if no mutex support is required. The define is just a dummy for proper generation of this documentation.
  */
 # define FLEA_MUTEX_HEADER_INCL
-# include <pthread.h>
+# ifdef FLEA_HAVE_MUTEX
+#  include <pthread.h>
+# endif
 
 /**
  * Define the mutex type to be used. Disable this define if mutexes are

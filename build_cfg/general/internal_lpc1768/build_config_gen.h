@@ -166,7 +166,7 @@
 /**
  * Maximum supported key bit size for RSA (size of the public modulus).
  */
-# define FLEA_RSA_MAX_KEY_BIT_SIZE 1024// FBFLAGS__INT_LIST 1024 1536 2048 4096
+# define FLEA_RSA_MAX_KEY_BIT_SIZE 4096// FBFLAGS__INT_LIST 1024 1536 2048 4096
 
 /**
  * Maximum supported key public exponent bit size for RSA.
@@ -574,7 +574,7 @@
 /**
  * Maximal number of sessions held by the server session manager (flea_tls_session_mngr_t, session cache). May not be zero.
  */
-# define FLEA_TLS_MAX_NB_MNGD_SESSIONS 4 // FBFLAGS__INT_LIST 1 2 10 31 257
+# define FLEA_TLS_MAX_NB_MNGD_SESSIONS 1 // FBFLAGS__INT_LIST 1 2 10 31 257
 
 /**
  * If enabled, the tls client or server context will feature a flea_x509_cert_ref_t of the peer's
@@ -667,7 +667,7 @@
  * Include the mutex header. Remove include directive in the build_config_gen.h file if no mutex support is required. The define is just a dummy for proper generation of this documentation.
  */
 # define FLEA_MUTEX_HEADER_INCL
-# include <pthread.h>
+// # include <pthread.h>
 
 /**
  * Define the mutex type to be used. Disable this define if mutexes are
