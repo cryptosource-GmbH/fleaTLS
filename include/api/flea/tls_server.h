@@ -3,8 +3,10 @@
 #ifndef _flea_tls_server__H_
 #define _flea_tls_server__H_
 
+#include "internal/common/default.h"
 #include "flea/tls.h"
 #include "internal/common/tls/tls_int.h"
+#include "flea/tls_fwd.h"
 
 #ifdef __cplusplus
 extern "C" {
