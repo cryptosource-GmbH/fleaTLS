@@ -178,13 +178,19 @@ namespace {
     }
     else
     {
+# ifdef FLEA_HAVE_RSA
       result.push_back(flea_tls_sigalg_rsa_sha256);
-# ifdef FLEA_HAVE_SHA1
+#  ifdef FLEA_HAVE_SHA1
       result.push_back(flea_tls_sigalg_rsa_sha1);
-# endif
+#  endif
+# endif // ifdef FLEA_HAVE_RSA
 # ifdef FLEA_HAVE_ECDSA
       result.push_back(flea_tls_sigalg_ecdsa_sha256);
-# endif
+#  ifdef FLEA_HAVE_SHA1
+      result.push_back(flea_tls_sigalg_ecdsa_sha1);
+#  endif
+
+# endif // ifdef FLEA_HAVE_ECDSA
     }
     return result;
   } // get_allowed_sig_algs_from_cmdl
