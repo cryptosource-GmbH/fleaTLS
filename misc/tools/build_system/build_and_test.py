@@ -386,6 +386,10 @@ def build_variants_and_test():
     #while normal_var_index < normal_var_max:
     #  build_and_test_core_config(stripped_file, flag_list, 0, list())
   shutil.move(build_config_file_save_str, build_config_file_str)
+  # doesn't seem to work!!:
+  p = subprocess.Popen('touch ' + build_config_file_str , shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=make_cwd_str)
+  call_make() # restore original build
+  call_test() # test original build
   print "completed without errors, original build_config_gen.h restored" 
 
 build_variants_and_test()

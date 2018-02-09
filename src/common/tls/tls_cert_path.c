@@ -593,7 +593,7 @@ static flea_err_e THR_flea_tls__validate_cert(
           cert_path_params__pct->kex_type__e
         )
       );
-
+# if defined FLEA_HAVE_TLS_CS_ECDHE || defined FLEA_HAVE_TLS_CS_ECDSA
       if(pubkey_out__pt->key_type__t == flea_ecc_key)
       {
         // check that the curve used for the public key is in the allowed curves
@@ -614,6 +614,7 @@ static flea_err_e THR_flea_tls__validate_cert(
           FLEA_THROW("Server EE Cert contains a curve that is not allowed (not sent in supported curves extension)", FLEA_ERR_TLS_CERT_VER_FAILED);
         }
       }
+# endif /* if defined FLEA_HAVE_TLS_CS_ECDHE || defined FLEA_HAVE_TLS_CS_ECDSA */
     }
     else if(cert_path_params__pct->validate_server_or_client__e == FLEA_TLS_CLIENT)
     {
