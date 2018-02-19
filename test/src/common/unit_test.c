@@ -112,7 +112,7 @@ int flea_unit_tests(
       CALL_TEST(THR_flea_test_cvc_sig_ver());
 #endif
 #ifdef FLEA_HAVE_ECC
-      CALL_TEST(THR_flea_test_ec_dp_determination());
+      // CALL_TEST(THR_flea_test_ec_dp_determination());
 #endif
       CALL_TEST(THR_flea_test_pk_signer_sign_verify());
 
