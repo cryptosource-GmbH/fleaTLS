@@ -389,15 +389,24 @@ flea_err_e THR_flea_test_ecdsa_sig_enc()
 flea_err_e THR_flea_test_ec_dp_determination()
 {
   flea_ec_dom_par_id_e id1 = flea_brainpoolP160r1;
+
+# if FLEA_ECC_MAX_MOD_BIT_SIZE >= 512
   flea_ec_dom_par_id_e id2 = flea_secp521r1;
-  flea_ec_dom_par_ref_t r1, r2;
+  flea_ec_dom_par_ref_t r2;
+# endif
+  flea_ec_dom_par_ref_t r1;
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_ec_dom_par_ref_t__set_by_builtin_id(&r1, id1));
+# if FLEA_ECC_MAX_MOD_BIT_SIZE >= 512
   FLEA_CCALL(THR_flea_ec_dom_par_ref_t__set_by_builtin_id(&r2, id2));
+# endif
 
-  if((id1 != flea_ec_dom_par_ref_t__determine_known_curve(&r1)) ||
-    (id2 != flea_ec_dom_par_ref_t__determine_known_curve(&r2)))
+  if((id1 != flea_ec_dom_par_ref_t__determine_known_curve(&r1))
+# if FLEA_ECC_MAX_MOD_BIT_SIZE >= 512
+    || (id2 != flea_ec_dom_par_ref_t__determine_known_curve(&r2))
+# endif
+  )
   {
     FLEA_THROW("invalid determined ec dp id", FLEA_ERR_FAILED_TEST);
   }
