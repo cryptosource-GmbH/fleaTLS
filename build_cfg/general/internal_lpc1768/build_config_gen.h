@@ -20,7 +20,7 @@
 /**
  * When set, print test failures and summary with printf.
  */
-# define FLEA_DO_PRINTF_TEST_OUTPUT
+// # define FLEA_DO_PRINTF_TEST_OUTPUT
 
 
 /**
@@ -148,7 +148,7 @@
 /**
  * Control whether support for ECDSA shall be compiled.
  */
-# define FLEA_HAVE_ECDSA          // FBFLAGS_PKALGS_ON_OFF
+// # define FLEA_HAVE_ECDSA          // FBFLAGS_PKALGS_ON_OFF
 
 /**
  * Control whether support for ECKA (=ECDH) shall be compiled.
@@ -166,7 +166,7 @@
 /**
  * Maximum supported key bit size for RSA (size of the public modulus).
  */
-# define FLEA_RSA_MAX_KEY_BIT_SIZE 4096// FBFLAGS__INT_LIST 1024 1536 2048 4096
+# define FLEA_RSA_MAX_KEY_BIT_SIZE 4096      // FBFLAGS__INT_LIST 1024 1536 2048 4096
 
 /**
  * Maximum supported key public exponent bit size for RSA.
@@ -192,22 +192,22 @@
 /**
  * Control whether loop unrolling within MD5 shall be used.
  */
-# define FLEA_USE_MD5_LOOP_UNROLL    // FBFLAGS_MD5_ON_OFF
+// # define FLEA_USE_MD5_LOOP_UNROLL    // FBFLAGS_MD5_ON_OFF
 
 /**
  * Control whether loop unrolling within SHA1 shall be used.
  */
-# define FLEA_USE_SHA1_LOOP_UNROLL   // FBFLAGS_SHA1_ON_OFF
+// # define FLEA_USE_SHA1_LOOP_UNROLL   // FBFLAGS_SHA1_ON_OFF
 
 /**
  * Control whether loop unrolling within SHA256 (and SHA224) shall be used.
  */
-# define FLEA_USE_SHA256_LOOP_UNROLL // FBFLAGS_SHA256_ON_OFF
+// # define FLEA_USE_SHA256_LOOP_UNROLL // FBFLAGS_SHA256_ON_OFF
 
 /**
  * Control whether loop unrolling within SHA512 (and SHA384) shall be used.
  */
-# define FLEA_USE_SHA512_LOOP_UNROLL // FBFLAGS_SHA512_ON_OFF
+// # define FLEA_USE_SHA512_LOOP_UNROLL // FBFLAGS_SHA512_ON_OFF
 
 
 /**
@@ -231,7 +231,7 @@
 /**
  * Control the window size for the ECC exponentiation. Choose 4 or 5 for greatest speed and 1 for smallest RAM footprint.
  */
-# define FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE 3 // FBFLAGS__INT_LIST 1 2 3 4 5
+# define FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE 5 // FBFLAGS__INT_LIST 1 2 3 4 5
 
 /* end perfomance_cfg */
 /**@}*/
@@ -257,20 +257,20 @@
  * Side channel countermeasure which adds pseudo random delays within the public key
  * operations.
  */
-// # define FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
+# define FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY // FBFLAGS_SCM_ON_OFF
 
 /**
  * Side channel countermeasure which adds random delays within the public key
  * operations.
  */
-// # define FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
+# define FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY // FBFLAGS_SCM_ON_OFF
 
 /**
  * Perform pseudo operations or data access for cache warming to achieve timing
  * neutral behaviour on platforms with cache within timing attack
  * countermeasures. This feature should be disabled on platforms without cache.
  */
-// # define FLEA_SCCM_USE_CACHEWARMING_IN_TA_CM
+# define FLEA_SCCM_USE_CACHEWARMING_IN_TA_CM // FBFLAGS_SCM_ON_OFF
 
 /**@}*/
 
@@ -343,7 +343,7 @@
  * If this is switch is deactivated, then only the most typical DN components
  * are supported in X.509 certificates. Deactivating it saves RAM and a little bit of code.
  */
-// # define FLEA_HAVE_X509_DN_DETAILS
+# define FLEA_HAVE_X509_DN_DETAILS
 
 /**
  * The space reserved for an entry in the subject alternative name extension. Relevant only in stack mode.
@@ -581,14 +581,14 @@
  * EE certificate used during the handshake. Disable this feature to save
  * a considerable amount of RAM.
  */
-// # define FLEA_TLS_HAVE_PEER_EE_CERT_REF
+# define FLEA_TLS_HAVE_PEER_EE_CERT_REF
 
 /**
  * If enabled, the tls client or server context will feature a flea_x509_cert_ref_t of the root
  * certificate used to authenticate the peer's EE certificate used during the handshake. Disable this feature to save
  * a considerable amount of RAM.
  */
-// # define FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
+# define FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 /**
  *  Record payload size supported by fleaTLS on the TLS record level for received records.  18432
@@ -619,7 +619,7 @@
  * Has to be a multiple of 2 as every cipher suite takes up two bytes.
  * Relevant only in stack mode.
  */
-# define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 20
+# define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 250
 
 /* end tls_cfg*/
 /**@}*/
@@ -666,14 +666,16 @@
 /**
  * Include the mutex header. Remove include directive in the build_config_gen.h file if no mutex support is required. The define is just a dummy for proper generation of this documentation.
  */
-# define FLEA_MUTEX_HEADER_INCL
+
+// # define FLEA_MUTEX_HEADER_INCL
+
 // # include <pthread.h>
 
 /**
  * Define the mutex type to be used. Disable this define if mutexes are
  * disabled.
  */
-# define FLEA_MUTEX_TYPE pthread_mutex_t
+// # define FLEA_MUTEX_TYPE pthread_mutex_t
 
 /* end mt_cfg */
 /**@}*/
