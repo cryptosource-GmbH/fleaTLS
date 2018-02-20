@@ -26,7 +26,9 @@ signature) is now controlled via the public key scheme variable.
 - fixed an error in the unit test code in function THR_flea_test_cbc_mode_3des() for
 certain build configurations
 - fixed an error in ECDSA signature decoding in TLS certificate chains
-- fixed build error that occurred when disabling mutex usage
+- fixed error in EC curve OID resolving
+- fixed build error that occurred when disabling mutex usage in build
+configuration
 
 
 ## [1.1.0] 2018-01-23  cryptosource GmbH  info@fleatls.com
