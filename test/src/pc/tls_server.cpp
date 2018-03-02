@@ -282,7 +282,36 @@ static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
     }
     FLEA_CCALL(THR_check_user_abort(serv_par__pt));
     buf[buf_len] = 0;
-    FLEA_CCALL(THR_flea_tls_server_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
+    if(serv_par__pt->is_https_server)
+    {
+      serv_par__pt->write_output_string("sending http response\n");
+      const char* response_hdr_1 =
+        "HTTP/1.1 200 OK\r\nDate: Fri, 2 Mar 2018 11:28:53 GMT\r\nServer: Apache/2.2.14 (Win32)\r\nLast-Modified: Wed, 22 Jul 2009 19:15:56 GMT\r\nContent-Length: %u\r\nContent-Type: text/html\r\nConnection: Closed\r\n\r\n";
+      const char* content_fixed = "<html><head><body>"
+                                  "___________________<br>"
+                                  "***** cryptosource<br>"
+                                  "*******************<br>"
+                                  "&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;Cryptography. Security.<br>"
+                                  "<br>"
+                                  "fleaTLS https server<br>"
+                                  "</body></head></html>";
+
+      sprintf((char*) buf, response_hdr_1, strlen(content_fixed));
+
+      FLEA_CCALL(THR_flea_tls_server_ctx_t__send_app_data(&tls_ctx, (const flea_u8_t*) buf, strlen((const char*) buf)));
+      FLEA_CCALL(
+        THR_flea_tls_server_ctx_t__send_app_data(
+          &tls_ctx,
+          (const flea_u8_t*) content_fixed,
+          strlen((const char*) content_fixed)
+        )
+      );
+    }
+    else
+    {
+      serv_par__pt->write_output_string("sending pingback response\n");
+      FLEA_CCALL(THR_flea_tls_server_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
+    }
     FLEA_CCALL(THR_flea_tls_server_ctx_t__flush_write_app_data(&tls_ctx));
     usleep(10 * 1000);
   }
@@ -316,7 +345,8 @@ static flea_err_e THR_server_cycle(
   property_set_t const     & cmdl_args,
   int                      listen_fd,
   flea_tls_session_mngr_t* sess_man__pt,
-  std::string const        & dir_for_file_based_input
+  std::string const        & dir_for_file_based_input,
+  bool                     is_https_server
 )
 {
   flea_ec_dom_par_id_e* allowed_ecc_curves__pe;
@@ -408,6 +438,7 @@ static flea_err_e THR_server_cycle(
       serv_par__t.abort__b        = FLEA_FALSE;
       serv_par__t.server_error__e = FLEA_ERR_FINE;
       serv_par__t.finished__b     = FLEA_FALSE;
+      serv_par__t.is_https_server = is_https_server;
 
       if(dir_for_file_based_input == "")
       {
@@ -548,7 +579,7 @@ static flea_err_e THR_flea_start_tls_server(
     }
   }
 
-  err__t = THR_server_cycle(cmdl_args, listen_fd, /*is_https_server, */ sess_man__pt, dir_for_file_based_input);
+  err__t = THR_server_cycle(cmdl_args, listen_fd, sess_man__pt, dir_for_file_based_input, is_https_server);
   printf("connection aborted with error %04x\n", err__t);
   if(!err__t)
   {
@@ -579,7 +610,7 @@ int flea_start_tls_server(property_set_t const& cmdl_args)
       cmdl_args.get_property_as_u32_default("session_validity_seconds", 3600)
     )
   );
-  if((err = THR_flea_start_tls_server(cmdl_args, false, &sess_man__t)))
+  if((err = THR_flea_start_tls_server(cmdl_args, cmdl_args.get_as_bool_default_false("http"), &sess_man__t)))
   {
     /** this case currently only captures errors during the opening of the listening
      * socket

@@ -50,6 +50,7 @@ struct server_params_t
   std::string                       string_to_print;
   std::string                       dir_for_file_based_input;
   std::string                       filename_to_be_rpld_by_stdin;
+  bool                              is_https_server;
   void                              write_output_string(std::string const& s)
   {
     pthread_mutex_lock(&this->mutex);
