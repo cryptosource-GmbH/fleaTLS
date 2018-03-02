@@ -1,0 +1,31 @@
+Test Case: ECDSA_SECP160R2
+
+Purpose: Positive test checking whether the application can verify certificates. This path conforms to RFC 5280 specification and is valid.
+
+Test Object (Name): 
+
+Test Object (Version): 
+
+Test executed at: ________________________
+
+Test executed by: _______________________
+
+Result: _______________________
+
+Expected Result: VALID
+
+Severity: ERROR
+
+Data:
+ECDSA_SECP160R2_ROOT_CA
+ECDSA_SECP160R2_SUB_CA
+ECDSA_SECP160R2_EE
+
+
+Remarks: __________________________
+
+___________________________________
+
+___________________________________
+
+___________________________________
