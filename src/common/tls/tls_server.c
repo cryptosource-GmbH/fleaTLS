@@ -464,7 +464,7 @@ static flea_bool_t flea_tls__is_allowed_cert_type_hlp_fct(
   {
     if((*cert_types_mask__u8 | cl_cert_type__e) != *cert_types_mask__u8)
     {
-      *cert_types_mask__u8 |= flea_tls_cl_cert__rsa_sign;
+      *cert_types_mask__u8 |= cl_cert_type__e;
       return FLEA_TRUE;
     }
   }
