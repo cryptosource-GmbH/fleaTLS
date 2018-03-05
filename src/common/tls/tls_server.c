@@ -499,7 +499,7 @@ static flea_err_e THR_flea_tls__send_cert_request(
 
   // determine what certificate types we allow based on the allowed signature
   // algorithms
-  for(flea_u8_t i = 1; i < tls_ctx->nb_allowed_sig_algs__alu16; i += 1)
+  for(flea_u8_t i = 0; i < tls_ctx->nb_allowed_sig_algs__alu16; i += 1)
   {
     for(flea_u8_t j = 0; j < sizeof(supported_pk_schemes__at) / sizeof(flea_pk_scheme_id_e); j++)
     {
