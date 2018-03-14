@@ -464,7 +464,7 @@ static flea_bool_t flea_tls__is_allowed_cert_type_hlp_fct(
   {
     if((*cert_types_mask__u8 | cl_cert_type__e) != *cert_types_mask__u8)
     {
-      *cert_types_mask__u8 |= flea_tls_cl_cert__rsa_sign;
+      *cert_types_mask__u8 |= cl_cert_type__e;
       return FLEA_TRUE;
     }
   }
@@ -499,7 +499,7 @@ static flea_err_e THR_flea_tls__send_cert_request(
 
   // determine what certificate types we allow based on the allowed signature
   // algorithms
-  for(flea_u8_t i = 1; i < tls_ctx->nb_allowed_sig_algs__alu16; i += 1)
+  for(flea_u8_t i = 0; i < tls_ctx->nb_allowed_sig_algs__alu16; i += 1)
   {
     for(flea_u8_t j = 0; j < sizeof(supported_pk_schemes__at) / sizeof(flea_pk_scheme_id_e); j++)
     {
