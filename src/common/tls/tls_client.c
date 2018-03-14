@@ -22,6 +22,7 @@
 #include "internal/common/tls/tls_client_int_ecc.h"
 #include "internal/common/tls/tls_common_ecc.h"
 #include "flea/pk_keypair.h"
+#include "internal/common/tls/tls_psk.h"
 
 #ifdef FLEA_HAVE_TLS_CLIENT
 
@@ -178,7 +179,7 @@ static flea_err_e THR_flea_tls__read_server_hello(
 } /* THR_flea_tls__read_server_hello */
 
 # if defined FLEA_HAVE_TLS_CS_ECDHE || defined FLEA_HAVE_TLS_CS_ECDH
-static flea_err_e THR_flea_tls__read_server_kex(
+static flea_err_e THR_flea_tls__read_server_kex_ecdhe(
   flea_tls_ctx_t*           tls_ctx__pt,
   flea_tls_handshake_ctx_t* hs_ctx__pt,
   flea_tls_handsh_reader_t* hs_rdr__pt,
@@ -372,9 +373,49 @@ static flea_err_e THR_flea_tls__read_server_kex(
     FLEA_FREE_BUF_FINAL(hash__bu8);
     flea_hash_ctx_t__dtor(&params_hash_ctx__t);
   );
-} /* THR_flea_tls__read_server_kex */
+} /* THR_flea_tls__read_server_kex_ecdhe */
 
 # endif  /* if defined FLEA_HAVE_TLS_CS_ECDHE || defined FLEA_HAVE_TLS_CS_ECDH */
+
+# if defined FLEA_HAVE_TLS_CS_PSK
+static flea_err_e THR_flea_tls__read_server_kex_psk(
+  flea_tls_ctx_t*           tls_ctx__pt,
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_handsh_reader_t* hs_rdr__pt,
+  flea_byte_vec_t*          premaster_secret__pt
+)
+{
+  flea_rw_stream_t* hs_rd_stream__pt;
+  flea_u32_t psk_identity_hint_len__u32;
+
+  FLEA_DECL_BUF(psk_identity_hint__bu8, flea_u8_t, FLEA_PSK_MAX_IDENTITY_LEN);
+
+  FLEA_THR_BEG_FUNC();
+
+  hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
+  FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, &psk_identity_hint_len__u32, 2));
+
+  if(psk_identity_hint_len__u32 > FLEA_PSK_MAX_IDENTITY_LEN)
+  {
+    FLEA_THROW("psk_identity_hint too large", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  }
+  FLEA_ALLOC_BUF(psk_identity_hint__bu8, psk_identity_hint_len__u32);
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__read_full(
+      hs_rd_stream__pt,
+      psk_identity_hint__bu8,
+      psk_identity_hint_len__u32
+    )
+  );
+
+  // TODO: Do something / choose key
+
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL(psk_identity_hint__bu8);
+  );
+} /* THR_flea_tls__read_server_kex_psk */
+
+# endif  /* if defined FLEA_HAVE_TLS_CS_PSK */
 
 static flea_err_e THR_flea_tls__send_client_hello(
   flea_tls_ctx_t*               tls_ctx,
@@ -689,6 +730,53 @@ static flea_err_e THR_flea_tls__send_client_key_exchange_rsa(
 
 # endif  /* ifdef FLEA_HAVE_TLS_CS_RSA */
 
+
+# ifdef FLEA_HAVE_TLS_CS_PSK
+static flea_err_e THR_flea_tls__send_client_key_exchange_psk(
+  flea_tls_ctx_t*               tls_ctx__pt,
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+  if(!tls_ctx__pt->psk_keys_mbn__pt)
+  {
+    FLEA_THROW("No PSK but PSK-CS chosen", FLEA_ERR_TLS_HANDSHK_FAILURE);
+  }
+
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_hdr(
+      &tls_ctx__pt->rec_prot__t,
+      p_hash_ctx,
+      HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE,
+      tls_ctx__pt->psk_keys_mbn__pt[0].psk_identity_len__u8 + 2
+    )
+  );
+
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_int_be(
+      &tls_ctx__pt->rec_prot__t,
+      p_hash_ctx,
+      tls_ctx__pt->psk_keys_mbn__pt[0].psk_identity_len__u8,
+      2
+    )
+  );
+
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx__pt->rec_prot__t,
+      p_hash_ctx,
+      tls_ctx__pt->psk_keys_mbn__pt[0].psk_identity__u8,
+      tls_ctx__pt->psk_keys_mbn__pt[0].psk_identity_len__u8
+    )
+  );
+
+
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_tls__send_client_key_exchange_psk */
+
+# endif /* ifdef FLEA_HAVE_TLS_CS_PSK */
+
 // send_client_key_exchange
 static flea_err_e THR_flea_tls__send_client_key_exchange(
   // flea_tls_ctx_t*               tls_ctx,
@@ -729,6 +817,16 @@ static flea_err_e THR_flea_tls__send_client_key_exchange(
     // should not happen if everything is properly configured
     FLEA_THROW("unsupported key exchange variant", FLEA_ERR_INT_ERR);
 # endif
+  }
+  else if(kex_method__t == FLEA_TLS_KEX_PSK)
+  {
+# ifdef FLEA_HAVE_TLS_CS_PSK
+    FLEA_CCALL(THR_flea_tls__send_client_key_exchange_psk(tls_ctx__pt, p_hash_ctx));
+    FLEA_CCALL(THR_flea_tls__create_premaster_secret_psk(tls_ctx__pt, premaster_secret__pt));
+# else
+    // should not happen if everything is properly configured
+    FLEA_THROW("unsupported key exchange variant", FLEA_ERR_INT_ERR);
+# endif /* ifdef FLEA_HAVE_TLS_CS_PSK */
   }
   else
   {
@@ -852,6 +950,7 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
 {
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
   FLEA_DECL_OBJ(hash_ctx_copy__t, flea_hash_ctx_t);
+  flea_tls__kex_method_t kex_method__t;
 
   FLEA_THR_BEG_FUNC();
 
@@ -885,6 +984,12 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
       else
       {
         handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE;
+        kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e);
+        if(kex_method__t == FLEA_TLS_KEX_PSK)
+        {
+          handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
+            | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
+        }
       }
     }
     else
@@ -918,21 +1023,38 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE &&
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_KEY_EXCHANGE)
   {
+    kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e);
+    if(kex_method__t == FLEA_TLS_KEX_ECDHE)
+    {
 # if defined FLEA_HAVE_TLS_CS_ECDHE || defined FLEA_HAVE_TLS_CS_ECDH
-    FLEA_CCALL(
-      THR_flea_tls__read_server_kex(
-        tls_ctx,
-        hs_ctx__pt,
-        &handsh_rdr__t,
-        premaster_secret__pt,
-        peer_public_key__pt
-      )
-    );
-    handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
-      | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
+      FLEA_CCALL(
+        THR_flea_tls__read_server_kex_ecdhe(
+          tls_ctx,
+          hs_ctx__pt,
+          &handsh_rdr__t,
+          premaster_secret__pt,
+          peer_public_key__pt
+        )
+      );
+      handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
+        | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
 # else   /* if defined FLEA_HAVE_TLS_CS_ECDHE || defined FLEA_HAVE_TLS_CS_ECDH */
-    FLEA_THROW("Invalid State, ECDH(E) not compiled", FLEA_ERR_INT_ERR);
+      FLEA_THROW("Invalid State, ECDH(E) not compiled", FLEA_ERR_INT_ERR);
 # endif  /* if defined FLEA_HAVE_TLS_CS_ECDHE || defined FLEA_HAVE_TLS_CS_ECDH */
+    }
+    else if(kex_method__t == FLEA_TLS_KEX_PSK)
+    {
+# if defined FLEA_HAVE_TLS_CS_PSK
+      // FLEA_CCALL(THR_flea_tls__read_server_kex_psk());
+      handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
+# else
+      FLEA_THROW("Invalid State, PSK not compiled", FLEA_ERR_INT_ERR);
+# endif
+    }
+    else
+    {
+      FLEA_THROW("Invalid State", FLEA_ERR_INT_ERR);
+    }
   }
   else if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST &&
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_REQUEST)
@@ -1354,6 +1476,16 @@ flea_err_e THR_flea_tls_client_ctx_t__ctor(
     FLEA_THROW("certificate chain and private key must both be provided or neither", FLEA_ERR_INV_ARG);
   }
 
+  // TODO: REMOVE
+  flea_u8_t psk_key[]      = {0xfc, 0xc5, 0x6e, 0x76, 0x68, 0x19, 0x4a, 0x47, 0x75, 0xe5, 0xb3, 0x6e, 0x27, 0x35, 0x55, 0x1a};
+  flea_u8_t psk_identity[] = {'C', 'l', 'i', 'e', 'n', 't', '_', 'i', 'd', 'e', 'n', 't', 'i', 't', 'y'};
+  flea_tls__psk_key_t psk_key__t;
+  psk_key__t.psk_identity__u8     = psk_identity;
+  psk_key__t.psk_identity_len__u8 = sizeof(psk_identity);
+  psk_key__t.psk_key__u8        = psk_key;
+  psk_key__t.psk_key_len__u8    = sizeof(psk_key);
+  tls_ctx__pt->psk_keys_mbn__pt = &psk_key__t;
+  tls_ctx__pt->psk_keys_len__u8 = 1;
 
   if(server_name__pcrcu8)
   {

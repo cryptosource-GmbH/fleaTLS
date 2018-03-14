@@ -76,6 +76,9 @@ std::map<string, flea_tls_cipher_suite_id_t> cipher_suite_name_value_map__t = {
 # ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
   {"TLS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384", flea_tls_ecdhe_ecdsa_with_aes_256_gcm_sha384},
 # endif
+# ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA
+  {"TLS_PSK_WITH_AES_128_CBC_SHA",            flea_tls_psk_with_aes_128_cbc_sha           },
+# endif
 };
 
 std::map<string, flea_ec_dom_par_id_e> curve_id_name_value_map__t = {

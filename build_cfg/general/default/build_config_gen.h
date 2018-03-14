@@ -386,6 +386,11 @@
 
 #  define FLEA_HAVE_TLS
 
+/**
+ * Control whether support for PSK cipher suites shall be compiled.
+ */
+#  define FLEA_HAVE_TLS_CS_PSK
+
 #  if defined FLEA_HAVE_ECKA
 
 /**
@@ -564,6 +569,16 @@
 #   endif // ifdef FLEA_HAVE_TLS_CS_GCM
 #  endif // ifdef FLEA_HAVE_TLS_CS_ECDHE
 # endif // ifdef FLEA_HAVE_TLS_CS_ECDSA
+
+# ifdef FLEA_HAVE_TLS_CS_PSK /* Ciphersuites that use pre-shared keys */
+#  ifdef FLEA_HAVE_SHA1
+
+/**
+ * Control whether the cipher suite is supported
+ */
+#   define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA
+#  endif
+# endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
 /**
  * Length of the session IDs that are used by the fleaTLS server.

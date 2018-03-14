@@ -114,6 +114,13 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
 
 void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state);
 
+# ifdef FLEA_HAVE_TLS_CS_PSK
+flea_err_e THR_flea_tls__create_premaster_secret_psk(
+  flea_tls_ctx_t*  tls_ctx__pt,
+  flea_byte_vec_t* premaster_secret__pt
+);
+# endif // ifdef FLEA_HAVE_TLS_CS_PSK
+
 flea_err_e THR_flea_tls__create_master_secret(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
   flea_byte_vec_t*          premaster_secret__pt

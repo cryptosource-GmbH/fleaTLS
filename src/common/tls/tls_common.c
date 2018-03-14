@@ -676,6 +676,40 @@ flea_err_e THR_flea_tls__send_handshake_message_hdr(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_handshake_message_hdr */
 
+# ifdef FLEA_HAVE_TLS_CS_PSK
+flea_err_e THR_flea_tls__create_premaster_secret_psk(
+  flea_tls_ctx_t*  tls_ctx__pt,
+  flea_byte_vec_t* premaster_secret__pt
+)
+{
+  flea_u16_t premaster_secret_len__u16;
+  flea_u16_t psk_len__u16;
+  flea_u8_t psk_len_enc__au8[2];
+  flea_u8_t zero_byte__u8 = 0;
+
+  FLEA_THR_BEG_FUNC();
+
+  psk_len__u16 = tls_ctx__pt->psk_keys_mbn__pt[0].psk_key_len__u8;
+  flea__encode_U16_BE(psk_len__u16, psk_len_enc__au8);
+  // psk_len_enc__au8[0] = psk_len__u16 & 0xFF;
+  // psk_len_enc__au8[1] = psk_len__u16 >> 8;
+
+  premaster_secret_len__u16 = psk_len__u16 * 2 + 4;
+  FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, premaster_secret_len__u16));
+
+  THR_flea_byte_vec_t__set_content(premaster_secret__pt, psk_len_enc__au8, sizeof(psk_len_enc__au8));
+  for(flea_u16_t i = 0; i < psk_len__u16; i++)
+  {
+    THR_flea_byte_vec_t__append(premaster_secret__pt, &zero_byte__u8, 1);
+  }
+  THR_flea_byte_vec_t__append(premaster_secret__pt, psk_len_enc__au8, sizeof(psk_len_enc__au8));
+  THR_flea_byte_vec_t__append(premaster_secret__pt, tls_ctx__pt->psk_keys_mbn__pt[0].psk_key__u8, psk_len__u16);
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
+# endif /* ifdef FLEA_HAVE_TLS_CS_PSK */
+
 flea_err_e THR_flea_tls__create_master_secret(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
   flea_byte_vec_t*          premaster_secret__pt
