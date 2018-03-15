@@ -179,6 +179,7 @@ static flea_err_e THR_flea_tls__read_client_hello(
         if(!tls_ctx->get_psk_mbn__cb)
         {
           // we can't negotiate a PSK CS without being able to get a key
+          cipher_suites_len_from_peer__u32 -= 2;
           continue;
         }
       }
