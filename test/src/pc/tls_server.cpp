@@ -426,6 +426,10 @@ static flea_err_e THR_server_cycle(
   // flea_tls_shared_server_ctx_t shrd_server_ctx__t;
   flea_private_key_t server_key_obj__t;
 
+  std::vector<flea_u8_t> psk;
+  flea_u8_t* psk_identity__pu8;
+  flea_u16_t psk_identity_len__u16;
+
   FLEA_THR_BEG_FUNC();
   flea_cert_store_t__INIT(&trust_store__t);
   // flea_tls_shared_server_ctx_t__INIT(&shrd_server_ctx__t);
@@ -530,9 +534,7 @@ static flea_err_e THR_server_cycle(
         if(cmdl_args.have_index("psk"))
         {
 #  ifdef FLEA_HAVE_TLS_CS_PSK
-          std::vector<flea_u8_t> psk;
-          flea_u8_t* psk_identity__pu8;
-          flea_u16_t psk_identity_len__u16;
+
 
           std::string psk_hex_str      = cmdl_args.get_property_as_string("psk");
           std::string psk_identity_str = cmdl_args.get_property_as_string("psk_identity");
