@@ -75,10 +75,29 @@ struct struct_flea_tls_ctx_t
   flea_u8_t                         sec_reneg_flag__u8;
 
 # ifdef FLEA_HAVE_TLS_CS_PSK
-  flea_tls__psk_key_t*              psk_keys_mbn__pt;
-  flea_u8_t                         psk_keys_len__u8;
-  flea_u8_t                         psk_keys_chosen_index__u8;
-# endif
+  flea_tls_psk_t*                   client_psk_mbn__pt;
+  void                              (* process_identity_hint_mbn__cb)(
+    flea_tls_psk_t*,
+    flea_u8_t*,
+    flea_u16_t
+  );
+  void (* generate_identity_hint_mbn__cb)(
+    void*,
+    flea_u8_t*,
+    flea_u16_t*
+  );
+  flea_err_e (* get_psk_mbn__cb)(
+    void*,
+    flea_u8_t*,
+    flea_u16_t,
+    flea_u8_t*,
+    flea_u16_t*
+  );                                                                                                            // (in) identity, identity_len   (out) psk, psk_len
+  void*      generate_identity_hint_arg_mbn__vp;                        // additional argument for gnerte_identity_hint_mbn__cb
+  void*      get_psk_arg_mbn__vp;                                       // additional argument for get_psk_mbn__cb
+  flea_u8_t* identity_hint__pu8;                            // \ used by server to store the identity hint
+  flea_u16_t identity_hint_len__u16;                        // / and use it after acquiring the PSK identity
+# endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
 # ifdef FLEA_HEAP_MODE
   flea_u8_t*            own_vfy_data__bu8;

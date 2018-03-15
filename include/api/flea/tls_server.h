@@ -19,6 +19,34 @@ extern "C" {
 
 void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx);
 
+
+# if defined FLEA_HAVE_TLS_CS_PSK
+// TODO: documentation
+flea_err_e THR_flea_tls_server_ctx_t__ctor_psk(
+  flea_tls_server_ctx_t* tls_server_ctx,
+  flea_rw_stream_t* rw_stream,
+  const flea_cert_store_t* trust_store_mbn,
+  const flea_ref_cu8_t* cert_chain,
+  flea_al_u8_t cert_chain_len,
+  flea_private_key_t* private_key,
+  const flea_ref_cu8_t* crls,
+  flea_al_u16_t crls_len,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
+  flea_al_u16_t allowed_cipher_suites_len,
+  flea_ec_dom_par_id_e* allowed_ecc_curves,
+  flea_al_u16_t allowed_ecc_curves_len,
+  flea_tls_sigalg_e* allowed_sig_algs,
+  flea_al_u16_t allowed_sig_algs_len,
+  void (* process_identity_hint_mbn__cb)(flea_tls_psk_t*, flea_u8_t*, flea_u16_t),
+  void (* generate_identity_hint_mbn__cb)(void*, flea_u8_t*, flea_u16_t*),
+  flea_err_e (* get_psk_mbn__cb)(void*, flea_u8_t*, flea_u16_t, flea_u8_t*, flea_u16_t*),
+  void* get_psk_arg_mbn__vp,
+  void* generate_identity_hint_arg_mbn__vp,
+  flea_tls_flag_e flags,
+  flea_tls_session_mngr_t* session_mngr_mbn
+);
+# endif // if defined FLEA_HAVE_TLS_CS_PSK
+
 /**
  * Create a TLS server object for a connection to a client. This implies the execution of the initial
  * TLS handshake. After the call to this function, data can be exchanged over

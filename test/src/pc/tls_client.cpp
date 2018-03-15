@@ -177,28 +177,73 @@ static flea_err_e THR_flea_start_tls_client(
       )
     );
   }
-  FLEA_CCALL(
-    THR_flea_tls_client_ctx_t__ctor(
-      &tls_ctx,
-      &rw_stream__t,
-      &trust_store__t,
-      hostname_p,
-      host_type,
-      cert_chain_len ? cert_chain : NULL,
-      cert_chain_len,
-      client_key__t.len__dtl ? &privkey__t : NULL,
-      &tls_cfg.crls_refs[0],
-      tls_cfg.crls.size(),
-      &tls_cfg.cipher_suites[0],
-      tls_cfg.cipher_suites.size(),
-      allowed_ecc_curves__pe,
-      allowed_ecc_curves_len__alu16,
-      allowed_sig_algs__pe,
-      nb_allowed_sig_algs__alu16,
-      (flea_tls_flag_e) (tls_cfg.flags | flea_tls_flag__sha1_cert_sigalg__allow),
-      client_session__pt
-    )
-  );
+  if(!cmdl_args.have_index("psk"))
+  {
+    FLEA_CCALL(
+      THR_flea_tls_client_ctx_t__ctor(
+        &tls_ctx,
+        &rw_stream__t,
+        &trust_store__t,
+        hostname_p,
+        host_type,
+        cert_chain_len ? cert_chain : NULL,
+        cert_chain_len,
+        client_key__t.len__dtl ? &privkey__t : NULL,
+        &tls_cfg.crls_refs[0],
+        tls_cfg.crls.size(),
+        &tls_cfg.cipher_suites[0],
+        tls_cfg.cipher_suites.size(),
+        allowed_ecc_curves__pe,
+        allowed_ecc_curves_len__alu16,
+        allowed_sig_algs__pe,
+        nb_allowed_sig_algs__alu16,
+        (flea_tls_flag_e) (tls_cfg.flags | flea_tls_flag__sha1_cert_sigalg__allow),
+        client_session__pt
+      )
+    );
+  }
+  else
+  {
+#  ifdef FLEA_HAVE_TLS_CS_PSK
+    if(!cmdl_args.have_index("psk_identity"))
+    {
+      test_utils_exceptn_t("Please specify --psk_identity");
+    }
+    std::vector<flea_u8_t> psk;
+    flea_u8_t* psk_identity__pu8;
+    flea_u16_t psk_identity_len__u16;
+
+    std::string psk_hex_str      = cmdl_args.get_property_as_string("psk");
+    std::string psk_identity_str = cmdl_args.get_property_as_string("psk_identity");
+    if(psk_hex_str.empty() || psk_identity_str.empty())
+    {
+      test_utils_exceptn_t("Please use non-empty values for --psk <secret> and --psk_identity <identity>");
+    }
+
+    psk = hex_to_bin(psk_hex_str);
+    psk_identity__pu8     = (flea_u8_t*) psk_identity_str.c_str();
+    psk_identity_len__u16 = psk_identity_str.size();
+
+    FLEA_CCALL(
+      THR_flea_tls_client_ctx_t__ctor_psk(
+        &tls_ctx,
+        &rw_stream__t,
+        &psk[0],
+        psk.size(),
+        psk_identity__pu8,
+        psk_identity_len__u16,
+        NULL, //  identity hint callback function
+        hostname_p,
+        host_type,
+        &tls_cfg.cipher_suites[0],
+        tls_cfg.cipher_suites.size(),
+        (flea_tls_flag_e) (tls_cfg.flags)
+      )
+    );
+#  else // ifdef FLEA_HAVE_TLS_CS_PSK
+    test_utils_exceptn_t("psk compile switch has to be active for --psk option");
+#  endif // ifdef FLEA_HAVE_TLS_CS_PSK
+  }
 
   flea_tls_test_tool_print_peer_cert_info(&tls_ctx, nullptr, nullptr);
   for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("do_renegs", 0); i++)

@@ -58,6 +58,7 @@ typedef enum
   FLEA_TLS_ALERT_DESC_USER_CANCELED               = 90,
   FLEA_TLS_ALERT_DESC_NO_RENEGOTIATION            = 100,
   FLEA_TLS_ALERT_DESC_UNSUPPORTED_EXTENSION       = 110,
+  FLEA_TLS_ALERT_DESC_UNKNOWN_PSK_IDENTITY        = 115,
   FLEA_TLS_ALERT_NO_ALERT                         = 255
 } flea_tls__alert_description_t;
 

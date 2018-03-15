@@ -173,6 +173,16 @@ static flea_err_e THR_flea_tls__read_client_hello(
     // check that key type of cert matches cs kex
     if(flea_tls__does_priv_key_type_fit_to_ciphersuite(curr_cs_from_peer__e, tls_ctx->private_key__pt->key_type__t))
     {
+# ifdef FLEA_HAVE_TLS_CS_PSK
+      if(flea_tls_get_kex_method_by_cipher_suite_id(curr_cs_from_peer__e) == FLEA_TLS_KEX_PSK)
+      {
+        if(!tls_ctx->get_psk_mbn__cb)
+        {
+          // we can't negotiate a PSK CS without being able to get a key
+          continue;
+        }
+      }
+# endif /* ifdef FLEA_HAVE_TLS_CS_PSK */
 # ifndef FLEA_HAVE_TLS_CS_ECC
       // iterate over all supported cipher suites
       supported_cs_index__alu16 = 0;
@@ -213,6 +223,7 @@ static flea_err_e THR_flea_tls__read_client_hello(
   );
 
   flea_u8_t curr_cm;
+  found_compression_method = FLEA_FALSE;
   while(client_compression_methods_len__u8)
   {
     FLEA_CCALL(
@@ -703,13 +714,15 @@ static flea_err_e THR_flea_tls__read_client_key_exchange_ecdhe(
 # ifdef FLEA_HAVE_TLS_CS_PSK
 static flea_err_e THR_flea_tls__read_client_key_exchange_psk(
   flea_tls_ctx_t*           tls_ctx__pt,
-  flea_tls_handsh_reader_t* hs_rdr__pt
+  flea_tls_handsh_reader_t* hs_rdr__pt,
+  flea_byte_vec_t*          premaster_secret__pt
 )
 {
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_u32_t psk_identity_len__u32;
-  flea_bool_t found__b;
+  flea_u16_t psk_len__u16;
 
+  FLEA_DECL_BUF(psk__bu8, flea_u8_t, FLEA_PSK_MAX_PSK_LEN);
   FLEA_DECL_BUF(psk_identity__bu8, flea_u8_t, FLEA_PSK_MAX_IDENTITY_LEN);
 
   FLEA_THR_BEG_FUNC();
@@ -730,29 +743,24 @@ static flea_err_e THR_flea_tls__read_client_key_exchange_psk(
     )
   );
 
-  // now choose the corresponding key
-  found__b = FLEA_FALSE;
-  for(flea_u8_t i = 0; i < tls_ctx__pt->psk_keys_len__u8; i++)
-  {
-    if(!flea_memcmp_wsize(
-        tls_ctx__pt->psk_keys_mbn__pt[i].psk_identity__u8,
-        tls_ctx__pt->psk_keys_mbn__pt[i].psk_identity_len__u8,
-        psk_identity__bu8,
-        psk_identity_len__u32
-      ))
-    {
-      tls_ctx__pt->psk_keys_chosen_index__u8 = i;
-      found__b = FLEA_TRUE;
-      break;
-    }
-  }
-  if(found__b == FLEA_FALSE)
-  {
-    FLEA_THROW("No key found for the given identity", FLEA_ERR_TLS_HANDSHK_FAILURE);
-  }
+  psk_len__u16 = FLEA_PSK_MAX_PSK_LEN;
+  FLEA_ALLOC_BUF(psk__bu8, psk_len__u16);
+
+  FLEA_CCALL(
+    (tls_ctx__pt->get_psk_mbn__cb(
+      tls_ctx__pt->get_psk_arg_mbn__vp,
+      psk_identity__bu8,
+      psk_identity_len__u32,
+      psk__bu8,
+      &psk_len__u16
+    ))
+  );
+
+  FLEA_CCALL(THR_flea_tls__create_premaster_secret_psk(tls_ctx__pt, psk__bu8, psk_len__u16, premaster_secret__pt));
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(psk_identity__bu8);
+    FLEA_FREE_BUF_FINAL(psk__bu8);
   );
 } /* THR_flea_tls__read_client_key_exchange_psk */
 
@@ -803,10 +811,10 @@ static flea_err_e THR_flea_tls__read_client_key_exchange(
     FLEA_CCALL(
       THR_flea_tls__read_client_key_exchange_psk(
         tls_ctx,
-        hs_rdr__pt
+        hs_rdr__pt,
+        premaster_secret__pt
       )
     );
-    FLEA_CCALL(THR_flea_tls__create_premaster_secret_psk(tls_ctx, premaster_secret__pt));
 # else  /* ifdef FLEA_HAVE_TLS_CS_PSK */
     // should not happen if everything is properly configured
     FLEA_THROW("unsupported key exchange variant", FLEA_ERR_INT_ERR);
@@ -1461,6 +1469,65 @@ flea_err_e THR_flea_tls_server_ctx_t__read_app_data(
   );
 }
 
+# ifdef FLEA_HAVE_TLS_CS_PSK
+flea_err_e THR_flea_tls_server_ctx_t__ctor_psk(
+  flea_tls_server_ctx_t* tls_server_ctx__pt,
+  flea_rw_stream_t* rw_stream__pt,
+  const flea_cert_store_t* trust_store_mbn__pt,
+  const flea_ref_cu8_t* cert_chain__pt,
+  flea_al_u8_t cert_chain_len__alu8,
+  flea_private_key_t* private_key__pt,
+  const flea_ref_cu8_t* crl_der__pt,
+  flea_al_u16_t nb_crls__alu16,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t nb_allowed_cipher_suites__alu16,
+  flea_ec_dom_par_id_e* allowed_ecc_curves__pe,
+  flea_al_u16_t nb_allowed_curves__alu16,
+  flea_tls_sigalg_e* allowed_sig_algs__pe,
+  flea_al_u16_t nb_allowed_sig_algs__alu16,
+  void (* process_identity_hint_mbn__cb)(flea_tls_psk_t*, flea_u8_t*, flea_u16_t),
+  void (* generate_identity_hint_mbn__cb)(void*, flea_u8_t*, flea_u16_t*),
+  flea_err_e (* get_psk_mbn__cb)(void*, flea_u8_t*, flea_u16_t, flea_u8_t*, flea_u16_t*),
+  void* get_psk_arg_mbn__vp,
+  void* generate_identity_hint_arg_mbn__vp,
+  flea_tls_flag_e flags__e,
+  flea_tls_session_mngr_t* session_mngr_mbn__pt
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+  tls_server_ctx__pt->tls_ctx__t.process_identity_hint_mbn__cb  = process_identity_hint_mbn__cb;
+  tls_server_ctx__pt->tls_ctx__t.generate_identity_hint_mbn__cb = generate_identity_hint_mbn__cb;
+  tls_server_ctx__pt->tls_ctx__t.get_psk_mbn__cb = get_psk_mbn__cb;
+  tls_server_ctx__pt->tls_ctx__t.generate_identity_hint_arg_mbn__vp = generate_identity_hint_arg_mbn__vp;
+  tls_server_ctx__pt->tls_ctx__t.get_psk_arg_mbn__vp = get_psk_arg_mbn__vp;
+
+  FLEA_CCALL(
+    THR_flea_tls_server_ctx_t__ctor(
+      tls_server_ctx__pt,
+      rw_stream__pt,
+      trust_store_mbn__pt,
+      cert_chain__pt,
+      cert_chain_len__alu8,
+      private_key__pt,
+      crl_der__pt,
+      nb_crls__alu16,
+      allowed_cipher_suites__pe,
+      nb_allowed_cipher_suites__alu16,
+      allowed_ecc_curves__pe,
+      nb_allowed_curves__alu16,
+      allowed_sig_algs__pe,
+      nb_allowed_sig_algs__alu16,
+      flags__e,
+      session_mngr_mbn__pt
+    )
+  );
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
+# endif /* ifdef FLEA_HAVE_TLS_CS_PSK */
+
 flea_err_e THR_flea_tls_server_ctx_t__ctor(
   flea_tls_server_ctx_t*            tls_server_ctx__pt,
   flea_rw_stream_t*                 rw_stream__pt,
@@ -1495,18 +1562,6 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor(
   tls_ctx__pt->allowed_sig_algs__pe       = allowed_sig_algs__pe;
   tls_ctx__pt->nb_allowed_sig_algs__alu16 = nb_allowed_sig_algs__alu16;
   tls_ctx__pt->private_key__pt = private_key__pt;
-
-  // TODO: REMOVE
-  flea_u8_t psk_key[] =
-  {0xfc, 0xc5, 0x6e, 0x76, 0x68, 0x19, 0x4a, 0x47, 0x75, 0xe5, 0xb3, 0x6e, 0x27, 0x35, 0x55, 0x1a};
-  flea_u8_t psk_identity[] = {'C', 'l', 'i', 'e', 'n', 't', '_', 'i', 'd', 'e', 'n', 't', 'i', 't', 'y'};
-  flea_tls__psk_key_t psk_key__t;
-  psk_key__t.psk_identity__u8     = psk_identity;
-  psk_key__t.psk_identity_len__u8 = sizeof(psk_identity);
-  psk_key__t.psk_key__u8        = psk_key;
-  psk_key__t.psk_key_len__u8    = sizeof(psk_key);
-  tls_ctx__pt->psk_keys_mbn__pt = &psk_key__t;
-  tls_ctx__pt->psk_keys_len__u8 = 1;
 
   tls_ctx__pt->trust_store_mbn_for_server__pt = trust_store_mbn__pt;
   tls_ctx__pt->allowed_cipher_suites__pe      = allowed_cipher_suites__pe;
