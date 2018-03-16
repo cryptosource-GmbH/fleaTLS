@@ -10,9 +10,9 @@ extern "C" {
 #ifdef FLEA_HAVE_TLS_CS_PSK
 
 // TODO: -> build cfg
-# define FLEA_PSK_MAX_IDENTITY_LEN      256 //   \\|
-# define FLEA_PSK_MAX_IDENTITY_HINT_LEN 256 //    /| actually 2^16-1 in the standard
-# define FLEA_PSK_MAX_PSK_LEN           256 //   //|
+# define FLEA_PSK_MAX_IDENTITY_LEN      128 //   MUST support 128 and can be up to 2^16
+# define FLEA_PSK_MAX_IDENTITY_HINT_LEN 128 //
+# define FLEA_PSK_MAX_PSK_LEN           64  //   MUST support 64 and can be up to 2^16
 
 // so far only affects the buffer when reading the identity / identity hint
 

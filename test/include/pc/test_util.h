@@ -51,7 +51,8 @@ struct server_params_t
   std::string                       dir_for_file_based_input;
   std::string                       filename_to_be_rpld_by_stdin;
   bool                              is_https_server;
-  void                              (* process_identity_hint_mbn__cb)(
+# ifdef FLEA_HAVE_TLS_CS_PSK
+  void (* process_identity_hint_mbn__cb)(
     flea_tls_psk_t*,
     flea_u8_t*,
     flea_u16_t
@@ -70,7 +71,8 @@ struct server_params_t
   );
   void* get_psk_arg_mbn__vp;
   void* generate_identity_hint_arg_mbn__vp;
-  void  write_output_string(std::string const& s)
+# endif // ifdef FLEA_HAVE_TLS_CS_PSK
+  void write_output_string(std::string const& s)
   {
     pthread_mutex_lock(&this->mutex);
     this->string_to_print += s;

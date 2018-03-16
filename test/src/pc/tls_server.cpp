@@ -132,6 +132,7 @@ static int unix_tcpip_listen_accept(
   FLEA_THR_FIN_SEC_empty();
 } // THR_unix_tcpip_listen_accept
 
+#  ifdef FLEA_HAVE_TLS_CS_PSK
 static flea_err_e dummy_get_psk__cb(
   void*       psk__pt,
   flea_u8_t*  identity__pu8,
@@ -161,6 +162,8 @@ static flea_err_e dummy_get_psk__cb(
 
   FLEA_THR_FIN_SEC_empty();
 }
+
+#  endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
 static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt)
 {
@@ -203,57 +206,62 @@ static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
       )
     );
   }
+#  ifdef FLEA_HAVE_TLS_CS_PSK
   if(serv_par__pt->get_psk_mbn__cb == NULL)
   {
-    FLEA_CCALL(
-      THR_flea_tls_server_ctx_t__ctor(
-        &tls_ctx,
-        &rw_stream__t,
-        serv_par__pt->cert_store_mbn__pt,
-        serv_par__pt->cert_chain__pcu8,
-        serv_par__pt->cert_chain_len__alu16,
-        serv_par__pt->private_key__pt,
-        serv_par__pt->crl_der__pt,
-        serv_par__pt->nb_crls__u16,
-        serv_par__pt->allowed_cipher_suites__pe,
-        serv_par__pt->nb_allowed_cipher_suites__alu16,
-        serv_par__pt->allowed_ecc_curves__pe,
-        serv_par__pt->allowed_ecc_curves_len__alu16,
-        serv_par__pt->allowed_sig_algs__pe,
-        serv_par__pt->nb_allowed_sig_algs__alu16,
-        (flea_tls_flag_e) (serv_par__pt->flags__u32 | ((flea_u32_t) flea_tls_flag__sha1_cert_sigalg__allow)),
-        serv_par__pt->sess_mngr__pt
-      )
-    );
-  }
-  else
-  {
-    FLEA_CCALL(
-      THR_flea_tls_server_ctx_t__ctor_psk(
-        &tls_ctx,
-        &rw_stream__t,
-        serv_par__pt->cert_store_mbn__pt,
-        serv_par__pt->cert_chain__pcu8,
-        serv_par__pt->cert_chain_len__alu16,
-        serv_par__pt->private_key__pt,
-        serv_par__pt->crl_der__pt,
-        serv_par__pt->nb_crls__u16,
-        serv_par__pt->allowed_cipher_suites__pe,
-        serv_par__pt->nb_allowed_cipher_suites__alu16,
-        serv_par__pt->allowed_ecc_curves__pe,
-        serv_par__pt->allowed_ecc_curves_len__alu16,
-        serv_par__pt->allowed_sig_algs__pe,
-        serv_par__pt->nb_allowed_sig_algs__alu16,
-        serv_par__pt->process_identity_hint_mbn__cb,
-        serv_par__pt->generate_identity_hint_mbn__cb,
-        serv_par__pt->get_psk_mbn__cb,
-        serv_par__pt->get_psk_arg_mbn__vp,
-        serv_par__pt->generate_identity_hint_arg_mbn__vp,
-        (flea_tls_flag_e) (serv_par__pt->flags__u32 | ((flea_u32_t) flea_tls_flag__sha1_cert_sigalg__allow)),
-        serv_par__pt->sess_mngr__pt
-      )
-    );
-  }
+#  endif
+  FLEA_CCALL(
+    THR_flea_tls_server_ctx_t__ctor(
+      &tls_ctx,
+      &rw_stream__t,
+      serv_par__pt->cert_store_mbn__pt,
+      serv_par__pt->cert_chain__pcu8,
+      serv_par__pt->cert_chain_len__alu16,
+      serv_par__pt->private_key__pt,
+      serv_par__pt->crl_der__pt,
+      serv_par__pt->nb_crls__u16,
+      serv_par__pt->allowed_cipher_suites__pe,
+      serv_par__pt->nb_allowed_cipher_suites__alu16,
+      serv_par__pt->allowed_ecc_curves__pe,
+      serv_par__pt->allowed_ecc_curves_len__alu16,
+      serv_par__pt->allowed_sig_algs__pe,
+      serv_par__pt->nb_allowed_sig_algs__alu16,
+      (flea_tls_flag_e) (serv_par__pt->flags__u32 | ((flea_u32_t) flea_tls_flag__sha1_cert_sigalg__allow)),
+      serv_par__pt->sess_mngr__pt
+    )
+  );
+#  ifdef FLEA_HAVE_TLS_CS_PSK
+} // THR_flea_tls_server_thread_inner
+
+else
+{
+  FLEA_CCALL(
+    THR_flea_tls_server_ctx_t__ctor_psk(
+      &tls_ctx,
+      &rw_stream__t,
+      serv_par__pt->cert_store_mbn__pt,
+      serv_par__pt->cert_chain__pcu8,
+      serv_par__pt->cert_chain_len__alu16,
+      serv_par__pt->private_key__pt,
+      serv_par__pt->crl_der__pt,
+      serv_par__pt->nb_crls__u16,
+      serv_par__pt->allowed_cipher_suites__pe,
+      serv_par__pt->nb_allowed_cipher_suites__alu16,
+      serv_par__pt->allowed_ecc_curves__pe,
+      serv_par__pt->allowed_ecc_curves_len__alu16,
+      serv_par__pt->allowed_sig_algs__pe,
+      serv_par__pt->nb_allowed_sig_algs__alu16,
+      serv_par__pt->process_identity_hint_mbn__cb,
+      serv_par__pt->generate_identity_hint_mbn__cb,
+      serv_par__pt->get_psk_mbn__cb,
+      serv_par__pt->get_psk_arg_mbn__vp,
+      serv_par__pt->generate_identity_hint_arg_mbn__vp,
+      (flea_tls_flag_e) (serv_par__pt->flags__u32 | ((flea_u32_t) flea_tls_flag__sha1_cert_sigalg__allow)),
+      serv_par__pt->sess_mngr__pt
+    )
+  );
+}
+#  endif // ifdef FLEA_HAVE_TLS_CS_PSK
   serv_par__pt->write_output_string("handshake done\n");
   flea_tls_test_tool_print_peer_cert_info(nullptr, &tls_ctx, serv_par__pt);
   FLEA_CCALL(THR_check_user_abort(serv_par__pt));
@@ -426,9 +434,11 @@ static flea_err_e THR_server_cycle(
   // flea_tls_shared_server_ctx_t shrd_server_ctx__t;
   flea_private_key_t server_key_obj__t;
 
+#  ifdef FLEA_HAVE_TLS_CS_PSK
   std::vector<flea_u8_t> psk;
   flea_u8_t* psk_identity__pu8;
   flea_u16_t psk_identity_len__u16;
+#  endif
 
   FLEA_THR_BEG_FUNC();
   flea_cert_store_t__INIT(&trust_store__t);
@@ -504,10 +514,11 @@ static flea_err_e THR_server_cycle(
       serv_par__t.finished__b     = FLEA_FALSE;
       serv_par__t.is_https_server = is_https_server;
 
+#  ifdef FLEA_HAVE_TLS_CS_PSK
       serv_par__t.get_psk_mbn__cb = NULL;
       serv_par__t.process_identity_hint_mbn__cb  = NULL;
       serv_par__t.generate_identity_hint_mbn__cb = NULL;
-
+#  endif
 
       if(dir_for_file_based_input == "")
       {
@@ -534,8 +545,6 @@ static flea_err_e THR_server_cycle(
         if(cmdl_args.have_index("psk"))
         {
 #  ifdef FLEA_HAVE_TLS_CS_PSK
-
-
           std::string psk_hex_str      = cmdl_args.get_property_as_string("psk");
           std::string psk_identity_str = cmdl_args.get_property_as_string("psk_identity");
           if(psk_hex_str.empty() || psk_identity_str.empty())
