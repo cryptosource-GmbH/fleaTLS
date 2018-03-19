@@ -27,7 +27,7 @@ extern "C" {
 /**
  * fleaTLS minor version number
  */
-# define FLEA_VERSION_MINOR 1
+# define FLEA_VERSION_MINOR 2
 
 /**
  * fleaTLS path version number

@@ -11,14 +11,14 @@
 # http://keepachangelog.com/en/1.0.0/
 
 
-## [1.2. Unreleased] 2018-XX-XX cryptosource GmbH  info@fleatls.com
+## [1.2.0 ] 2018-03-19 cryptosource GmbH  info@fleatls.com
 
 ### Added
 - ECDSA ciphersuites for TLS
 
 ### Removed 
-- pubkey/privkey API: sign and verfiy function "..._plain_format". Control over
-signature format of ECDSA (concatentation of r and s vs. ASN.1/DER encoded
+- pubkey/privkey API: sign and verfiy function "..._plain_format". Choice of 
+signature format for ECDSA (concatentation of r and s vs. ASN.1/DER encoded
 signature) is now controlled via the public key scheme variable.
 
 ### Fixed
@@ -29,6 +29,8 @@ certain build configurations
 - fixed error in EC curve OID resolving
 - fixed build error that occurred when disabling mutex usage in build
 configuration
+- fixed some minor functional bugs regarding TLS signature algorithm and hash algorithm
+negotiation
 
 
 ## [1.1.0] 2018-01-23  cryptosource GmbH  info@fleatls.com
