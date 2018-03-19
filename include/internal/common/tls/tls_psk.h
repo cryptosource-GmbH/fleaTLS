@@ -9,13 +9,6 @@ extern "C" {
 
 #ifdef FLEA_HAVE_TLS_CS_PSK
 
-// TODO: -> build cfg
-# define FLEA_PSK_MAX_IDENTITY_LEN      128 //   MUST support 128 and can be up to 2^16
-# define FLEA_PSK_MAX_IDENTITY_HINT_LEN 128 //
-# define FLEA_PSK_MAX_PSK_LEN           64  //   MUST support 64 and can be up to 2^16
-
-// so far only affects the buffer when reading the identity / identity hint
-
 typedef struct
 {
   flea_u8_t* identity__pu8;
@@ -23,6 +16,20 @@ typedef struct
   flea_u8_t* psk__pu8;
   flea_u16_t psk_len__u16;
 } flea_tls_psk_t;
+
+typedef flea_err_e (* flea_get_psk_mbn_cb_f)(
+  const void*,
+  const flea_u8_t*,
+  const flea_u16_t,
+  flea_u8_t*,
+  flea_u16_t*
+);
+typedef void (* flea_process_identity_hint_mbn_cb_f)(
+  flea_tls_psk_t*,
+  const flea_u8_t*,
+  const flea_u16_t
+);
+
 
 #endif // ifdef FLEA_HAVE_TLS_CS_PSK
 

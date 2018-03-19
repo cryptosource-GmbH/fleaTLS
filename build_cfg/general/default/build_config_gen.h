@@ -391,6 +391,22 @@
  */
 #  define FLEA_HAVE_TLS_CS_PSK
 
+/*
+ * Maximal size of identity length that will be processed from the peer
+ */
+#  define FLEA_PSK_MAX_IDENTITY_LEN 128     //   RFC: MUST support 128 and can be up to 2^16
+
+/*
+ * Maximal size of identity hint length that will be processed from the peer
+ */
+
+#  define FLEA_PSK_MAX_IDENTITY_HINT_LEN 128
+
+/*
+ * Maximal size of the pre-shared key buffer that the server uses
+ */
+#  define FLEA_PSK_MAX_PSK_LEN 64           //   RFC: MUST support 64 and can be up to 2^16
+
 #  if defined FLEA_HAVE_ECKA
 
 /**

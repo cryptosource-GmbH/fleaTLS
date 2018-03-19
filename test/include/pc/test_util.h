@@ -52,25 +52,10 @@ struct server_params_t
   std::string                       filename_to_be_rpld_by_stdin;
   bool                              is_https_server;
 # ifdef FLEA_HAVE_TLS_CS_PSK
-  void (* process_identity_hint_mbn__cb)(
-    flea_tls_psk_t*,
-    flea_u8_t*,
-    flea_u16_t
-  );
-  void (* generate_identity_hint_mbn__cb)(
-    void*,
-    flea_u8_t*,
-    flea_u16_t*
-  );
-  flea_err_e (* get_psk_mbn__cb)(
-    void*,
-    flea_u8_t*,
-    flea_u16_t,
-    flea_u8_t*,
-    flea_u16_t*
-  );
-  void* get_psk_arg_mbn__vp;
-  void* generate_identity_hint_arg_mbn__vp;
+  flea_u8_t*                        identity_hint_mbn__pu8;
+  flea_u16_t                        identity_hint_len__u16;
+  flea_get_psk_mbn_cb_f             get_psk_mbn_cb__f;
+  void*                             psk_lookup_ctx_mbn__vp;
 # endif // ifdef FLEA_HAVE_TLS_CS_PSK
   void write_output_string(std::string const& s)
   {

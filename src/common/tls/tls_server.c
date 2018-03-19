@@ -176,7 +176,7 @@ static flea_err_e THR_flea_tls__read_client_hello(
 # ifdef FLEA_HAVE_TLS_CS_PSK
       if(flea_tls_get_kex_method_by_cipher_suite_id(curr_cs_from_peer__e) == FLEA_TLS_KEX_PSK)
       {
-        if(!tls_ctx->get_psk_mbn__cb)
+        if(!tls_ctx->get_psk_mbn_cb__f)
         {
           // we can't negotiate a PSK CS without being able to get a key
           cipher_suites_len_from_peer__u32 -= 2;
@@ -748,8 +748,8 @@ static flea_err_e THR_flea_tls__read_client_key_exchange_psk(
   FLEA_ALLOC_BUF(psk__bu8, psk_len__u16);
 
   FLEA_CCALL(
-    (tls_ctx__pt->get_psk_mbn__cb(
-      tls_ctx__pt->get_psk_arg_mbn__vp,
+    (tls_ctx__pt->get_psk_mbn_cb__f(
+      tls_ctx__pt->psk_lookup_ctx_mbn__vp,
       psk_identity__bu8,
       psk_identity_len__u32,
       psk__bu8,
@@ -1472,36 +1472,34 @@ flea_err_e THR_flea_tls_server_ctx_t__read_app_data(
 
 # ifdef FLEA_HAVE_TLS_CS_PSK
 flea_err_e THR_flea_tls_server_ctx_t__ctor_psk(
-  flea_tls_server_ctx_t* tls_server_ctx__pt,
-  flea_rw_stream_t* rw_stream__pt,
-  const flea_cert_store_t* trust_store_mbn__pt,
-  const flea_ref_cu8_t* cert_chain__pt,
-  flea_al_u8_t cert_chain_len__alu8,
-  flea_private_key_t* private_key__pt,
-  const flea_ref_cu8_t* crl_der__pt,
-  flea_al_u16_t nb_crls__alu16,
+  flea_tls_server_ctx_t*            tls_server_ctx__pt,
+  flea_rw_stream_t*                 rw_stream__pt,
+  const flea_cert_store_t*          trust_store_mbn__pt,
+  const flea_ref_cu8_t*             cert_chain__pt,
+  flea_al_u8_t                      cert_chain_len__alu8,
+  flea_private_key_t*               private_key__pt,
+  const flea_ref_cu8_t*             crl_der__pt,
+  flea_al_u16_t                     nb_crls__alu16,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
-  flea_al_u16_t nb_allowed_cipher_suites__alu16,
-  flea_ec_dom_par_id_e* allowed_ecc_curves__pe,
-  flea_al_u16_t nb_allowed_curves__alu16,
-  flea_tls_sigalg_e* allowed_sig_algs__pe,
-  flea_al_u16_t nb_allowed_sig_algs__alu16,
-  void (* process_identity_hint_mbn__cb)(flea_tls_psk_t*, flea_u8_t*, flea_u16_t),
-  void (* generate_identity_hint_mbn__cb)(void*, flea_u8_t*, flea_u16_t*),
-  flea_err_e (* get_psk_mbn__cb)(void*, flea_u8_t*, flea_u16_t, flea_u8_t*, flea_u16_t*),
-  void* get_psk_arg_mbn__vp,
-  void* generate_identity_hint_arg_mbn__vp,
-  flea_tls_flag_e flags__e,
-  flea_tls_session_mngr_t* session_mngr_mbn__pt
+  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
+  flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
+  flea_al_u16_t                     nb_allowed_curves__alu16,
+  flea_tls_sigalg_e*                allowed_sig_algs__pe,
+  flea_al_u16_t                     nb_allowed_sig_algs__alu16,
+  const flea_u8_t*                  identity_hint_mbn__pu8,
+  flea_u16_t                        identity_hint_len__u16,
+  flea_get_psk_mbn_cb_f             get_psk_mbn_cb__f,
+  const void*                       psk_lookup_ctx_mbn__vp,
+  flea_tls_flag_e                   flags__e,
+  flea_tls_session_mngr_t*          session_mngr_mbn__pt
 )
 {
   FLEA_THR_BEG_FUNC();
 
-  tls_server_ctx__pt->tls_ctx__t.process_identity_hint_mbn__cb  = process_identity_hint_mbn__cb;
-  tls_server_ctx__pt->tls_ctx__t.generate_identity_hint_mbn__cb = generate_identity_hint_mbn__cb;
-  tls_server_ctx__pt->tls_ctx__t.get_psk_mbn__cb = get_psk_mbn__cb;
-  tls_server_ctx__pt->tls_ctx__t.generate_identity_hint_arg_mbn__vp = generate_identity_hint_arg_mbn__vp;
-  tls_server_ctx__pt->tls_ctx__t.get_psk_arg_mbn__vp = get_psk_arg_mbn__vp;
+  tls_server_ctx__pt->tls_ctx__t.get_psk_mbn_cb__f      = get_psk_mbn_cb__f;
+  tls_server_ctx__pt->tls_ctx__t.psk_lookup_ctx_mbn__vp = psk_lookup_ctx_mbn__vp;
+  tls_server_ctx__pt->tls_ctx__t.identity_hint_mbn__pu8 = identity_hint_mbn__pu8;
+  tls_server_ctx__pt->tls_ctx__t.identity_hint_len__u16 = identity_hint_len__u16;
 
   FLEA_CCALL(
     THR_flea_tls_server_ctx_t__ctor(

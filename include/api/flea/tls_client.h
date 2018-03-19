@@ -124,18 +124,18 @@ flea_err_e THR_flea_tls_client_ctx_t__ctor(
 # if defined FLEA_HAVE_TLS_CS_PSK
 // TODO: documentation
 flea_err_e THR_flea_tls_client_ctx_t__ctor_psk(
-  flea_tls_client_ctx_t* tls_client_ctx__pt,
-  flea_rw_stream_t* rw_stream__pt,
-  flea_u8_t* psk__u8,
-  flea_u16_t psk_len__u16,
-  flea_u8_t* psk_identity__u8,
-  flea_u16_t psk_identity_len__u16,
-  void (* identity_hint_mbn__cb)(flea_tls_psk_t*, flea_u8_t*, flea_u16_t),
-  const flea_ref_cu8_t* server_name__pcrcu8,
-  flea_host_id_type_e host_name_id__e,
-  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
-  flea_al_u16_t nb_allowed_cipher_suites__alu16,
-  flea_tls_flag_e flags__e
+  flea_tls_client_ctx_t*              tls_client_ctx__pt,
+  flea_rw_stream_t*                   rw_stream__pt,
+  flea_u8_t*                          psk__u8,
+  flea_u16_t                          psk_len__u16,
+  flea_u8_t*                          psk_identity__pu8,
+  flea_u16_t                          psk_identity_len__u16,
+  flea_process_identity_hint_mbn_cb_f process_identity_hint_mbn_cb__f,
+  const flea_ref_cu8_t*               server_name__pcrcu8,
+  flea_host_id_type_e                 host_name_id__e,
+  const flea_tls_cipher_suite_id_t*   allowed_cipher_suites__pe,
+  flea_al_u16_t                       nb_allowed_cipher_suites__alu16,
+  flea_tls_flag_e                     flags__e
 );
 # endif // if defined FLEA_HAVE_TLS_CS_PSK
 
