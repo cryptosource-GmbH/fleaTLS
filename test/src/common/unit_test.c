@@ -116,7 +116,6 @@ int flea_unit_tests(
 
 #ifdef FLEA_HAVE_PK_CS
       CALL_TEST(THR_flea_test_pk_encryption());
-      CALL_TEST(THR_flea_test_emsa1());
       CALL_TEST(THR_flea_test_pkcs1_v1_5_encoding());
       CALL_TEST(THR_flea_test_oaep());
 #endif /* ifdef FLEA_HAVE_PK_CS */

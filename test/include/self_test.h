@@ -78,7 +78,6 @@ flea_err_e THR_flea_test_ec_dp_determination(void);
 flea_err_e THR_flea_test_cvc_sig_ver(void);
 flea_err_e THR_flea_test_ecka_raw_basic(void);
 
-flea_err_e THR_flea_test_emsa1(void);
 
 flea_err_e THR_flea_test_pkcs1_v1_5_encoding(void);
 
