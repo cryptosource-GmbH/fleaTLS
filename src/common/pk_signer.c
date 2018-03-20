@@ -289,12 +289,11 @@ flea_err_e THR_flea_pk_api__encode_message__ansi_x9_62(
     *output_len__palu16 = input_len__alu16;
     FLEA_THR_RETURN();
   }
-  *output_len__palu16 = bit_size / 8;
+  *output_len__palu16 = (bit_size + 7) / 8;
   over__alu8 = bit_size % 8;
   if(over__alu8)
   {
-    flea_al_u8_t leave__alu8 = 8 - over__alu8;
-    input_output__pcu8[*output_len__palu16] &= ((1 << leave__alu8) - 1);
+    input_output__pcu8[*output_len__palu16] &= ((1 << over__alu8) - 1);
   }
   FLEA_THR_FIN_SEC_empty();
 }

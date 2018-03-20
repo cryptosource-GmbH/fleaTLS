@@ -11,7 +11,7 @@
 # http://keepachangelog.com/en/1.0.0/
 
 
-## [1.2.0 ] 2018-03-19 cryptosource GmbH  info@fleatls.com
+## [1.2.0] 2018-03-21 cryptosource GmbH  info@fleatls.com
 
 ### Added
 - ECDSA ciphersuites for TLS
@@ -31,6 +31,7 @@ certain build configurations
 configuration
 - fixed some minor functional bugs regarding TLS signature algorithm and hash algorithm
 negotiation
+- fixed ECDSA signature encoding when hash value is longer than base point order
 
 
 ## [1.1.0] 2018-01-23  cryptosource GmbH  info@fleatls.com
