@@ -14,7 +14,8 @@
 ## [1.2.0] 2018-03-21 cryptosource GmbH  info@fleatls.com
 
 ### Added
-- ECDSA ciphersuites for TLS
+- added ECDSA ciphersuites for TLS
+- added the CPT default test suite for the X.509 functionility 
 
 ### Removed 
 - pubkey/privkey API: sign and verfiy function "..._plain_format". Choice of 
