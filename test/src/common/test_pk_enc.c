@@ -444,33 +444,6 @@ static flea_err_e THR_flea_test_pkcs1_v1_5_encoding_sign()
 
 # endif /* ifdef FLEA_HAVE_ASYM_SIG */
 
-flea_err_e THR_flea_test_emsa1()
-{
-  const flea_u8_t input_const [] =
-  {0x96, 0x78, 0xBE, 0x0F, 0x17, 0xC5, 0x0A, 0x6C, 0x92, 0x90, 0x53, 0x3A, 0x19, 0x28, 0xD6, 0x9A, 0x81, 0x43, 0xE6,
-   0x53, 0x96, 0xC1, 0xCD, 0x9A};
-  const flea_u8_t exp_output [] =
-  {0x25, 0x9E, 0x2F, 0x83, 0xC5, 0xF1, 0x42, 0x9B, 0x24, 0xA4, 0x14, 0xCE, 0x86, 0x4A, 0x35};
-  const flea_al_u8_t output_bits = 118;
-  flea_al_u16_t output_len       = 0;
-
-  FLEA_DECL_BUF(input, flea_u8_t, sizeof(input_const));
-  FLEA_THR_BEG_FUNC();
-  FLEA_ALLOC_BUF(input, sizeof(input_const));
-  memcpy(input, input_const, sizeof(input_const));
-  FLEA_CCALL(THR_flea_pk_api__encode_message__emsa1(input, sizeof(input_const), &output_len, output_bits));
-  if(output_len != sizeof(exp_output))
-  {
-    FLEA_THROW("emsa1 output lenght is wrong", FLEA_ERR_FAILED_TEST);
-  }
-  if(memcmp(exp_output, input, sizeof(exp_output)))
-  {
-    FLEA_THROW("emsa1 content is wrong", FLEA_ERR_FAILED_TEST);
-  }
-  FLEA_THR_FIN_SEC(
-    FLEA_FREE_BUF_FINAL(input);
-  );
-}
 
 flea_err_e THR_flea_test_oaep()
 {

@@ -273,19 +273,14 @@ flea_err_e THR_flea_pk_api__verify_message__pkcs1_v1_5(
   );
 } /* THR_flea_pk_api__verify_message__pkcs1_v1_5 */
 
-/*
- * bit size = order bit size
- * output_len >= input_len, former denotes the allocated space, latter the
- * length of the input data within that space
- */
-flea_err_e THR_flea_pk_api__encode_message__emsa1(
+flea_err_e THR_flea_pk_api__encode_message__ansi_x9_62(
   flea_u8_t*     input_output__pcu8,
   flea_al_u16_t  input_len__alu16,
   flea_al_u16_t* output_len__palu16,
   flea_al_u16_t  bit_size
 )
 {
-  flea_al_u16_t output_bytes__alu16;
+  flea_al_u8_t over__alu8;
 
   FLEA_THR_BEG_FUNC();
 
@@ -294,23 +289,13 @@ flea_err_e THR_flea_pk_api__encode_message__emsa1(
     *output_len__palu16 = input_len__alu16;
     FLEA_THR_RETURN();
   }
-  // this function never increases the length of the output, so there is no
-  // error condition
-  output_bytes__alu16 = FLEA_CEIL_BYTE_LEN_FROM_BIT_LEN(bit_size);
-  bit_size %= 8;
-  bit_size  = 8 - bit_size;
-  if(bit_size)
+  *output_len__palu16 = bit_size / 8;
+  over__alu8 = bit_size % 8;
+  if(over__alu8)
   {
-    flea_u8_t carry = 0;
-    flea_al_u16_t i;
-    for(i = 0; i < output_bytes__alu16; i++)
-    {
-      flea_u8_t x = input_output__pcu8[i];
-      input_output__pcu8[i] = (x >> bit_size) | carry;
-      carry = (x << (8 - bit_size));
-    }
+    flea_al_u8_t leave__alu8 = 8 - over__alu8;
+    input_output__pcu8[*output_len__palu16] &= ((1 << leave__alu8) - 1);
   }
-  *output_len__palu16 = output_bytes__alu16;
   FLEA_THR_FIN_SEC_empty();
 }
 

@@ -266,7 +266,7 @@ flea_err_e THR_flea_private_key_t__sign_digest(
   if((encoding_id__t == flea_emsa1_asn1) || (encoding_id__t == flea_emsa1_concat))
   {
     FLEA_CCALL(
-      THR_flea_pk_api__encode_message__emsa1(
+      THR_flea_pk_api__encode_message__ansi_x9_62(
         primitive_input__bu8,
         digest_len__alu8,
         &primitive_input_len__alu16,
