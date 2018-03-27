@@ -10,6 +10,12 @@
 # Changelog of the fleaTLS cryptographic library
 # http://keepachangelog.com/en/1.0.0/
 
+## [1.2.1] 2018-03-27 cryptosource GmbH  info@fleatls.com
+
+### Fixed
+- fixed fleaTLS version number in build system
+- fixed theoretical off-by-one error in ANSI X9.62 encoding (cannot be triggered
+by currently supported curves)
 
 ## [1.2.0] 2018-03-21 cryptosource GmbH  info@fleatls.com
 

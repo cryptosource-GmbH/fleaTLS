@@ -32,7 +32,7 @@ extern "C" {
 /**
  * fleaTLS path version number
  */
-# define FLEA_VERSION_PATCH 0
+# define FLEA_VERSION_PATCH 1
 
 /**
  * Function type for a function supplied by client code to be called by the fleaTLS to determine the
