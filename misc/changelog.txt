@@ -10,6 +10,11 @@
 # Changelog of the fleaTLS cryptographic library
 # http://keepachangelog.com/en/1.0.0/
 
+## [ XXX ] unreleased
+
+### Changed
+- removed version number from built library file
+
 ## [1.2.1] 2018-03-27 cryptosource GmbH  info@fleatls.com
 
 ### Fixed
