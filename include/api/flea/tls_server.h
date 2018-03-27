@@ -24,7 +24,7 @@ void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx);
  * TLS handshake. After the call to this function, data can be exchanged over
  * the TLS connection. All pointer type parameters that are supplied to this function must stay valid for the
  * complete life-cycle of this TLS server context object as they are used as
- * references.
+ * references as they are used as * references within the TLS functions.
  *
  * @param[in,out] tls_server_ctx  The TLS server ctx object to create.
  * @param[in,out] rw_stream The stream which implements the underlying
