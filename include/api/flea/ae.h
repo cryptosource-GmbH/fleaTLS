@@ -44,8 +44,12 @@ typedef struct
 # endif
   union
   {
+# ifdef FLEA_HAVE_EAX
     flea_ae_eax_specific_t eax;
+# endif
+# ifdef FLEA_HAVE_GCM
     flea_ae_gcm_specific_t gcm;
+# endif
   } mode_specific__u;
 } flea_ae_ctx_t;
 
@@ -126,16 +130,21 @@ flea_err_e THR_flea_ae_ctx_t__final_encryption(
 
 /**
  * Feed an AE ctx with ciphertext data for decryption. The number of bytes
- * output may differ from the input length. This is due to the fact that the
+ * output may be smaller than the input length. This is due to the fact that the
  * last part of the input data is expected to be the AE tag. Accordingly, the
  * algorithm has to buffer the final block within each call to this function,
  * since that will be the tag if not more data follows.
  *
  * @param ctx the AE context to use
- * @param input the ciphertext input data
- * @param input_len length of the ciphertext input data
- * @param output pointer to the memory location where to store the output
- * @param output_len length of the memory location where to store the output
+ * @param[in] input the ciphertext input data
+ * @param[in] input_len length of the ciphertext input data
+ * @param[out] output pointer to the memory location where to store the output
+ * @param[in,out] output_len On input, this must hold the maximum length of the
+ * memory location where to store the output. On function return, this receives
+ * the number of actually written bytes to the output memory. output_len can be
+ * smaller than input_len, but not larger. This behaviour is due to the
+ * buffering of the last part of the input data as those may potential be
+ * (partly) the tag.
  *
  * @return flea error code
  */
