@@ -5,8 +5,8 @@
 #include "flea/error_handling.h"
 #include "flea/error.h"
 
-#include "pc/linux_util.h"
-#include "pc/tcpip_stream.h"
+#include "flea_test/linux_util.h"
+#include "flea_test/tcpip_stream.h"
 #include <sys/types.h>
 #include <sys/socket.h>
 #include <sys/time.h>

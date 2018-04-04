@@ -10,7 +10,7 @@
 #include "pc/test_util.h"
 #include "flea/error_handling.h"
 #include "flea/cert_path.h"
-#include "pc/linux_util.h"
+#include "flea_test/linux_util.h"
 
 using namespace std;
 

@@ -47,6 +47,8 @@ flags = [
 '-I',
 './test/include',
 '-I',
+'./test/include/api',
+'-I',
 './build_cfg/general/default',
 '-I',
 './build_cfg/pltf_spec/32bit_default',

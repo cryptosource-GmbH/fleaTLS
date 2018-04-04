@@ -17,14 +17,14 @@
 #include <fcntl.h>
 #include <memory>
 
-#include "pc/tcpip_stream.h"
+#include "flea_test/tcpip_stream.h"
 #include "pc/test_util.h"
-#include "pc/linux_util.h"
+#include "flea_test/linux_util.h"
 #include "flea/tls.h"
 #include "flea/tls_server.h"
 #include "pc/test_pc.h"
 #include "pc/file_based_rw_stream.h"
-#include "pc/tcpip_stream.h"
+#include "flea_test/tcpip_stream.h"
 #include "tls_server_certs.h"
 #include "flea/array_util.h"
 #include "flea/alloc.h"
