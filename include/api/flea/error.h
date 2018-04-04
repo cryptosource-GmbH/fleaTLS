@@ -543,6 +543,11 @@ typedef enum
    * A memory allocation request could not be satisfied.
    */
   FLEA_ERR_OUT_OF_MEM                    = 0xFF,
+
+  /**
+   * Access to a resource was not allowed.
+   */
+  FLEA_ERR_NO_INSUFF_RIGHTS              = 0x0101,
 } flea_err_e;
 
 #ifdef __cplusplus
