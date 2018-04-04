@@ -165,6 +165,21 @@ typedef enum
 # ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA
   flea_tls_psk_with_aes_128_cbc_sha            = 0x008C,
 # endif
+# ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_CBC_SHA
+  flea_tls_psk_with_aes_256_cbc_sha            = 0x008D,
+# endif
+# ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA256
+  flea_tls_psk_with_aes_128_cbc_sha256         = 0x00AE,
+# endif
+# ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_CBC_SHA384
+  flea_tls_psk_with_aes_256_cbc_sha384         = 0x00AF,
+# endif
+# ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_GCM_SHA256
+  flea_tls_psk_with_aes_128_gcm_sha256         = 0x00A8,
+# endif
+# ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_GCM_SHA384
+  flea_tls_psk_with_aes_256_gcm_sha384         = 0x00A9
+# endif
 } flea_tls_cipher_suite_id_t;
 
 # ifdef __cplusplus

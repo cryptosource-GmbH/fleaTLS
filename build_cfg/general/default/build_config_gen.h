@@ -586,13 +586,47 @@
 # endif // ifdef FLEA_HAVE_TLS_CS_ECDSA
 
 # ifdef FLEA_HAVE_TLS_CS_PSK /* Ciphersuites that use pre-shared keys */
-#  ifdef FLEA_HAVE_SHA1
+#  ifdef FLEA_HAVE_TLS_CS_CBC
+#   ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported
  */
-#   define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA
-#  endif
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_CBC_SHA
+#   endif // ifdef FLEA_HAVE_SHA1
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#   define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA256
+#   ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_CBC_SHA384
+#   endif
+#  endif // ifdef FLEA_HAVE_TLS_CS_CBC
+
+#  ifdef FLEA_HAVE_TLS_CS_GCM
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#   define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_GCM_SHA256
+#   ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_GCM_SHA384
+#   endif
+#  endif // ifdef FLEA_HAVE_TLS_CS_GCM
 # endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
 /**
