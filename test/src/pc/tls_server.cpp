@@ -141,26 +141,6 @@ static flea_err_e dummy_get_psk_cb(
 )
 {
   FLEA_THR_BEG_FUNC();
-
-/*
-  if(flea_memcmp_wsize(
-      identity__pu8,
-      identity_len__u16,
-      ((flea_tls_psk_t*) psk__pt)->identity__pu8,
-      ((flea_tls_psk_t*) psk__pt)->identity_len__u16
-    ))
-  {
-    FLEA_THROW("psk identity unknown", FLEA_ERR_TLS_UNKNOWN_PSK_IDENTITY);
-  }
-
-  if(((flea_tls_psk_t*) psk__pt)->psk_len__u16 > *psk_len__u16)
-  {
-    FLEA_THROW("Input/Output buffer too small to copy PSK", FLEA_ERR_BUFF_TOO_SMALL);
-  }
-  memcpy(psk__pu8, ((flea_tls_psk_t*) psk__pt)->psk__pu8, ((flea_tls_psk_t*) psk__pt)->psk_len__u16);
-  *psk_len__u16 = ((flea_tls_psk_t*) psk__pt)->psk_len__u16;
-*/
-
   if(flea_memcmp_wsize(
       identity__pu8,
       identity_len__u16,

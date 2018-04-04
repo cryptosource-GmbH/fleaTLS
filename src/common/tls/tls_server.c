@@ -721,15 +721,15 @@ static flea_err_e THR_flea_tls__read_client_key_exchange_psk(
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_u32_t psk_identity_len__u32;
 
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(psk_vec__t, FLEA_PSK_MAX_PSK_LEN);
-  FLEA_DECL_BUF(psk_identity__bu8, flea_u8_t, FLEA_PSK_MAX_IDENTITY_LEN);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(psk_vec__t, FLEA_TLS_PSK_MAX_PSK_LEN);
+  FLEA_DECL_BUF(psk_identity__bu8, flea_u8_t, FLEA_TLS_PSK_MAX_IDENTITY_LEN);
 
   FLEA_THR_BEG_FUNC();
 
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
   FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, &psk_identity_len__u32, 2));
 
-  if(psk_identity_len__u32 > FLEA_PSK_MAX_IDENTITY_LEN)
+  if(psk_identity_len__u32 > FLEA_TLS_PSK_MAX_IDENTITY_LEN)
   {
     FLEA_THROW("psk_identity too large", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
