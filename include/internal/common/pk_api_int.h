@@ -12,7 +12,7 @@
 #  define FLEA_PK_GET_PRIMITIVE_ID_FROM_SCHEME_ID(x) ((x >> FLEA_PK_ID_OFFS_PRIMITIVE) << FLEA_PK_ID_OFFS_PRIMITIVE)
 #  define FLEA_PK_GET_ENCODING_ID_FROM_SCHEME_ID(x)  (x & ((1 << FLEA_PK_ID_OFFS_PRIMITIVE) - 1))
 
-flea_err_e THR_flea_pk_api__encode_message__emsa1(
+flea_err_e THR_flea_pk_api__encode_message__ansi_x9_62(
   flea_u8_t*     input_output,
   flea_al_u16_t  input_len,
   flea_al_u16_t* output_len,

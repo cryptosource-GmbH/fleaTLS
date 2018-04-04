@@ -10,15 +10,27 @@
 # Changelog of the fleaTLS cryptographic library
 # http://keepachangelog.com/en/1.0.0/
 
+## [ XXX ] unreleased
 
-## [1.2. Unreleased] 2018-XX-XX cryptosource GmbH  info@fleatls.com
+### Changed
+- removed version number from built library file
+
+## [1.2.1] 2018-03-27 cryptosource GmbH  info@fleatls.com
+
+### Fixed
+- fixed fleaTLS version number in build system
+- fixed theoretical off-by-one error in ANSI X9.62 encoding (cannot be triggered
+by currently supported curves)
+
+## [1.2.0] 2018-03-21 cryptosource GmbH  info@fleatls.com
 
 ### Added
-- ECDSA ciphersuites for TLS
+- added ECDSA ciphersuites for TLS
+- added the CPT default test suite for the X.509 functionility 
 
 ### Removed 
-- pubkey/privkey API: sign and verfiy function "..._plain_format". Control over
-signature format of ECDSA (concatentation of r and s vs. ASN.1/DER encoded
+- pubkey/privkey API: sign and verfiy function "..._plain_format". Choice of 
+signature format for ECDSA (concatentation of r and s vs. ASN.1/DER encoded
 signature) is now controlled via the public key scheme variable.
 
 ### Fixed
@@ -29,6 +41,9 @@ certain build configurations
 - fixed error in EC curve OID resolving
 - fixed build error that occurred when disabling mutex usage in build
 configuration
+- fixed some minor functional bugs regarding TLS signature algorithm and hash algorithm
+negotiation
+- fixed ECDSA signature encoding when hash value is longer than base point order
 
 
 ## [1.1.0] 2018-01-23  cryptosource GmbH  info@fleatls.com

@@ -149,16 +149,18 @@ flea_err_e THR_flea_ae_ctx_t__ctor(
   ctx__pt->buffer__bu8 = NULL;
   FLEA_ALLOC_MEM_ARR(ctx__pt->buffer__bu8, tag_length__alu8);
 # endif
+# ifdef FLEA_HAVE_EAX
   if(config__pt->ae_mode__t == flea_eax)
   {
     flea_ctr_mode_ctx_t__INIT(&ctx__pt->mode_specific__u.eax.ctr_ctx__t);
     flea_mac_ctx_t__INIT(&ctx__pt->mode_specific__u.eax.cmac_ctx__t);
     ctx__pt->pending__u8 = 0;
-# ifdef FLEA_HEAP_MODE
+#  ifdef FLEA_HEAP_MODE
     ctx__pt->mode_specific__u.eax.nonce__bu8       = NULL;
     ctx__pt->mode_specific__u.eax.header_omac__bu8 = NULL;
-# endif
+#  endif
   }
+# endif /* ifdef FLEA_HAVE_EAX */
   ctx__pt->config__pt  = config__pt;
   ctx__pt->tag_len__u8 = tag_length__alu8; // indicates to the dtor that members are initialized
 # ifdef FLEA_HAVE_EAX

@@ -103,7 +103,7 @@ def generate_with_license(license_name, have_test_data):
     shutil.rmtree(target_dir + "/flea/misc/testdata/internal")
     cert_paths_dir_dst = target_dir + "/flea/misc/testdata/cert_paths/"
     for filename in os.listdir(cert_paths_dir_dst):
-      if not re.match("fleasuite*", filename):
+      if ((not re.match("fleasuite*", filename)) and (not re.match("CERT_PATH_*", filename)) ):
         shutil.rmtree(cert_paths_dir_dst + filename)
  
   flea_main_dir_dst_path = target_dir + "flea/"
@@ -126,9 +126,11 @@ have_test_data = True
 #        sys.exit(1)
 
 
-shutil.rmtree(generate_dir + "/" + license_name_gpl + "/" + "flea", True)
-shutil.rmtree(generate_dir + "/" + license_name_closed_source + "/" + "flea", True)
-shutil.rmtree(generate_dir)
+#shutil.rmtree(generate_dir + "/" + license_name_gpl + "/" + "flea", True)
+#shutil.rmtree(generate_dir + "/" + license_name_closed_source + "/" + "flea", True)
+if os.path.exists(generate_dir):
+  print ("deleted previous release dir")
+  shutil.rmtree(generate_dir)
 
 generate_with_license(license_name_gpl, have_test_data)
 generate_with_license(license_name_closed_source, have_test_data)

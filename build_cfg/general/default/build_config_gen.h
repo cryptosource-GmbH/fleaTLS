@@ -364,7 +364,7 @@
  * \defgroup tls_cfg TLS configuration
  */
 /**@{*/
-# if defined FLEA_HAVE_RSA && defined FLEA_HAVE_HMAC
+# if (defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && (defined FLEA_HAVE_HMAC || defined FLEA_HAVE_GCM)
 
 /**
  * Control whether fleaTLS supports TLS.
@@ -384,7 +384,6 @@
  */
 #  define FLEA_HAVE_TLS_SERVER
 
-#  define FLEA_HAVE_TLS
 
 /**
  * Control whether support for PSK cipher suites shall be compiled.

@@ -60,7 +60,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_supported_curves_ext(
   flea_u32_t len__u32;
   flea_al_u16_t curve_pos__alu16;
   flea_bool_t privkey_curve_supported__b;
-  flea_ec_dom_par_id_e privkey_dp_id__e;
+  flea_ec_dom_par_id_e privkey_dp_id__e = flea_unknown_ec_dp;
 
   FLEA_THR_BEG_FUNC();
   if(!ext_len__alu16)

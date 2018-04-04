@@ -1006,7 +1006,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
     {
       // base allowed cl_certs on allowed signature algorithms
       flea_u8_t cert_mask__u8 = 0;
-      for(flea_u8_t i = 1; i < tls_ctx->nb_allowed_sig_algs__alu16; i += 1)
+      for(flea_u8_t i = 0; i < tls_ctx->nb_allowed_sig_algs__alu16; i += 1)
       {
         if((tls_ctx->allowed_sig_algs__pe[i] & 0xFF) == flea_rsa_pkcs1_v1_5_sign)
         {
