@@ -22,7 +22,7 @@
 #include "internal/common/tls/tls_client_int_ecc.h"
 #include "internal/common/tls/tls_common_ecc.h"
 #include "flea/pk_keypair.h"
-#include "internal/common/tls/tls_psk.h"
+#include "internal/common/tls/tls_psk_int.h"
 
 #ifdef FLEA_HAVE_TLS_CLIENT
 
@@ -388,6 +388,7 @@ static flea_err_e THR_flea_tls__read_server_kex_psk(
   flea_u32_t psk_identity_hint_len__u32;
 
   FLEA_DECL_BUF(psk_identity_hint__bu8, flea_u8_t, FLEA_PSK_MAX_IDENTITY_LEN);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(psk_vec__t, FLEA_PSK_MAX_PSK_LEN);
 
   FLEA_THR_BEG_FUNC();
 
@@ -409,9 +410,17 @@ static flea_err_e THR_flea_tls__read_server_kex_psk(
 
   if(!tls_ctx__pt->process_identity_hint_mbn_cb__f)
   {
+    FLEA_CCALL(
+      THR_flea_byte_vec_t__set_content(
+        &psk_vec__t,
+        tls_ctx__pt->client_psk_mbn__pt->psk__pu8,
+        tls_ctx__pt->client_psk_mbn__pt->psk_len__u16
+      )
+    );
+
     // call the cb function that can use the identity hint to derive the PSK
     tls_ctx__pt->process_identity_hint_mbn_cb__f(
-      tls_ctx__pt->client_psk_mbn__pt,
+      &psk_vec__t,
       psk_identity_hint__bu8,
       (flea_u16_t) psk_identity_hint_len__u32
     );
@@ -419,6 +428,7 @@ static flea_err_e THR_flea_tls__read_server_kex_psk(
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(psk_identity_hint__bu8);
+    flea_byte_vec_t__dtor(&psk_vec__t);
   );
 } /* THR_flea_tls__read_server_kex_psk */
 
@@ -1450,18 +1460,18 @@ flea_err_e THR_flea_tls__client_handshake(
 
 # if defined FLEA_HAVE_TLS_CS_PSK
 flea_err_e THR_flea_tls_client_ctx_t__ctor_psk(
-  flea_tls_client_ctx_t*              tls_client_ctx__pt,
-  flea_rw_stream_t*                   rw_stream__pt,
-  flea_u8_t*                          psk__pu8,
-  flea_u16_t                          psk_len__u16,
-  flea_u8_t*                          psk_identity__pu8,
-  flea_u16_t                          psk_identity_len__u16,
-  flea_process_identity_hint_mbn_cb_f process_identity_hint_mbn_cb__f,
-  const flea_ref_cu8_t*               server_name__pcrcu8,
-  flea_host_id_type_e                 host_name_id__e,
-  const flea_tls_cipher_suite_id_t*   allowed_cipher_suites__pe,
-  flea_al_u16_t                       nb_allowed_cipher_suites__alu16,
-  flea_tls_flag_e                     flags__e
+  flea_tls_client_ctx_t*            tls_client_ctx__pt,
+  flea_rw_stream_t*                 rw_stream__pt,
+  flea_u8_t*                        psk__pu8,
+  flea_u16_t                        psk_len__u16,
+  flea_u8_t*                        psk_identity__pu8,
+  flea_u16_t                        psk_identity_len__u16,
+  flea_process_identity_hint_cb_f   process_identity_hint_mbn_cb__f,
+  const flea_ref_cu8_t*             server_name__pcrcu8,
+  flea_host_id_type_e               host_name_id__e,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
+  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
+  flea_tls_flag_e                   flags__e
 )
 {
   flea_tls_psk_t psk__t;

@@ -403,7 +403,7 @@
 #  define FLEA_PSK_MAX_IDENTITY_HINT_LEN 128
 
 /*
- * Maximal size of the pre-shared key buffer that the server uses
+ * Maximal size of pre-shared keys that will be handled.
  */
 #  define FLEA_PSK_MAX_PSK_LEN 64           //   RFC: MUST support 64 and can be up to 2^16
 

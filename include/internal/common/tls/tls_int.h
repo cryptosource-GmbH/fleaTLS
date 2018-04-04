@@ -14,7 +14,8 @@
 #include "internal/common/tls/tls_ctx_fwd.h"
 #include "internal/common/tls/tls_const.h"
 #include "flea/tls_fwd.h"
-#include "internal/common/tls/tls_psk.h"
+#include "flea/tls_psk.h"
+#include "internal/common/tls/tls_psk_int.h"
 
 #ifdef __cplusplus
 extern "C" {
@@ -49,38 +50,38 @@ struct struct_flea_tls_ctx_t
 # endif
 
   /* Pool of cipher suites that can be negotiated. Priority (in case of server): Prefer first over second and so on */
-  const flea_tls_cipher_suite_id_t*   allowed_cipher_suites__pe;
-  flea_u16_t                          nb_allowed_cipher_suites__u16;
-  flea_tls_cipher_suite_id_t          selected_cipher_suite__e;
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe;
+  flea_u16_t                        nb_allowed_cipher_suites__u16;
+  flea_tls_cipher_suite_id_t        selected_cipher_suite__e;
 
   /* max. supported TLS version */
-  flea_tls__protocol_version_t        version;
+  flea_tls__protocol_version_t      version;
 
   /* stores hash function to use for the PRF algorithm */
-  flea_hash_id_e                      prf_hash_id__t;
+  flea_hash_id_e                    prf_hash_id__t;
 
   /* hash and sig algorithms used for KEX */
-  flea_tls__hash_sig_t                kex_hash_sig__t;
+  flea_tls__hash_sig_t              kex_hash_sig__t;
 
-  flea_rw_stream_t*                   rw_stream__pt;
-  flea_tls_rec_prot_t                 rec_prot__t;
-  const flea_cert_store_t*            trust_store_mbn_for_server__pt;
-  const flea_ref_cu8_t*               cert_chain_mbn__pt;
-  flea_u8_t                           cert_chain_len__u8;
+  flea_rw_stream_t*                 rw_stream__pt;
+  flea_tls_rec_prot_t               rec_prot__t;
+  const flea_cert_store_t*          trust_store_mbn_for_server__pt;
+  const flea_ref_cu8_t*             cert_chain_mbn__pt;
+  flea_u8_t                         cert_chain_len__u8;
 
-  flea_private_key_t*                 private_key__pt;
-  flea_tls_client_session_t*          client_session_mbn__pt;
-  flea_private_key_t*                 private_key_for_client_mbn__pt;
-  flea_revoc_chk_cfg_t                rev_chk_cfg__t;
-  flea_u8_t                           sec_reneg_flag__u8;
+  flea_private_key_t*               private_key__pt;
+  flea_tls_client_session_t*        client_session_mbn__pt;
+  flea_private_key_t*               private_key_for_client_mbn__pt;
+  flea_revoc_chk_cfg_t              rev_chk_cfg__t;
+  flea_u8_t                         sec_reneg_flag__u8;
 
 # ifdef FLEA_HAVE_TLS_CS_PSK
-  flea_tls_psk_t*                     client_psk_mbn__pt;
-  flea_get_psk_mbn_cb_f               get_psk_mbn_cb__f;
-  flea_process_identity_hint_mbn_cb_f process_identity_hint_mbn_cb__f;
-  const void*                         psk_lookup_ctx_mbn__vp;
-  const flea_u8_t*                    identity_hint_mbn__pu8;
-  flea_u16_t                          identity_hint_len__u16;
+  flea_tls_psk_t*                   client_psk_mbn__pt;
+  flea_get_psk_cb_f                 get_psk_mbn_cb__f;
+  flea_process_identity_hint_cb_f   process_identity_hint_mbn_cb__f;
+  const void*                       psk_lookup_ctx_mbn__vp;
+  const flea_u8_t*                  identity_hint_mbn__pu8;
+  flea_u16_t                        identity_hint_len__u16;
 # endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
 # ifdef FLEA_HEAP_MODE

@@ -54,7 +54,7 @@ struct server_params_t
 # ifdef FLEA_HAVE_TLS_CS_PSK
   flea_u8_t*                        identity_hint_mbn__pu8;
   flea_u16_t                        identity_hint_len__u16;
-  flea_get_psk_mbn_cb_f             get_psk_mbn_cb__f;
+  flea_get_psk_cb_f                 get_psk_mbn_cb__f;
   void*                             psk_lookup_ctx_mbn__vp;
 # endif // ifdef FLEA_HAVE_TLS_CS_PSK
   void write_output_string(std::string const& s)

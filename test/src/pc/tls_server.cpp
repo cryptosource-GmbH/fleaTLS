@@ -137,12 +137,12 @@ static flea_err_e dummy_get_psk_cb(
   const void*      psk__pt,
   const flea_u8_t* identity__pu8,
   const flea_u16_t identity_len__u16,
-  flea_u8_t*       psk__pu8,
-  flea_u16_t*      psk_len__u16
+  flea_byte_vec_t* psk_vec__pt
 )
 {
   FLEA_THR_BEG_FUNC();
 
+/*
   if(flea_memcmp_wsize(
       identity__pu8,
       identity_len__u16,
@@ -159,6 +159,26 @@ static flea_err_e dummy_get_psk_cb(
   }
   memcpy(psk__pu8, ((flea_tls_psk_t*) psk__pt)->psk__pu8, ((flea_tls_psk_t*) psk__pt)->psk_len__u16);
   *psk_len__u16 = ((flea_tls_psk_t*) psk__pt)->psk_len__u16;
+*/
+
+  if(flea_memcmp_wsize(
+      identity__pu8,
+      identity_len__u16,
+      ((flea_tls_psk_t*) psk__pt)->identity__pu8,
+      ((flea_tls_psk_t*) psk__pt)->identity_len__u16
+    ))
+  {
+    FLEA_THROW("psk identity unknown", FLEA_ERR_TLS_UNKNOWN_PSK_IDENTITY);
+  }
+
+  FLEA_CCALL(
+    THR_flea_byte_vec_t__set_content(
+      psk_vec__pt,
+      ((flea_tls_psk_t*) psk__pt)->psk__pu8,
+      ((flea_tls_psk_t*) psk__pt)->psk_len__u16
+    )
+  );
+
 
   FLEA_THR_FIN_SEC_empty();
 }

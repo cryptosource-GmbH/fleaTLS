@@ -23,7 +23,6 @@
 #include "internal/common/lib_int.h"
 #include "internal/common/tls/tls_server_int_ecc.h"
 #include "internal/common/tls/tls_common_ecc.h"
-#include "internal/common/tls/tls_psk.h"
 
 #ifdef FLEA_HAVE_TLS_SERVER
 
@@ -721,9 +720,8 @@ static flea_err_e THR_flea_tls__read_client_key_exchange_psk(
 {
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_u32_t psk_identity_len__u32;
-  flea_u16_t psk_len__u16;
 
-  FLEA_DECL_BUF(psk__bu8, flea_u8_t, FLEA_PSK_MAX_PSK_LEN);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(psk_vec__t, FLEA_PSK_MAX_PSK_LEN);
   FLEA_DECL_BUF(psk_identity__bu8, flea_u8_t, FLEA_PSK_MAX_IDENTITY_LEN);
 
   FLEA_THR_BEG_FUNC();
@@ -744,24 +742,27 @@ static flea_err_e THR_flea_tls__read_client_key_exchange_psk(
     )
   );
 
-  psk_len__u16 = FLEA_PSK_MAX_PSK_LEN;
-  FLEA_ALLOC_BUF(psk__bu8, psk_len__u16);
-
   FLEA_CCALL(
     (tls_ctx__pt->get_psk_mbn_cb__f(
       tls_ctx__pt->psk_lookup_ctx_mbn__vp,
       psk_identity__bu8,
       psk_identity_len__u32,
-      psk__bu8,
-      &psk_len__u16
+      &psk_vec__t
     ))
   );
 
-  FLEA_CCALL(THR_flea_tls__create_premaster_secret_psk(tls_ctx__pt, psk__bu8, psk_len__u16, premaster_secret__pt));
+  FLEA_CCALL(
+    THR_flea_tls__create_premaster_secret_psk(
+      tls_ctx__pt,
+      psk_vec__t.data__pu8,
+      psk_vec__t.len__dtl,
+      premaster_secret__pt
+    )
+  );
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(psk_identity__bu8);
-    FLEA_FREE_BUF_FINAL(psk__bu8);
+    flea_byte_vec_t__dtor(&psk_vec__t);
   );
 } /* THR_flea_tls__read_client_key_exchange_psk */
 
@@ -1488,7 +1489,7 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor_psk(
   flea_al_u16_t                     nb_allowed_sig_algs__alu16,
   const flea_u8_t*                  identity_hint_mbn__pu8,
   flea_u16_t                        identity_hint_len__u16,
-  flea_get_psk_mbn_cb_f             get_psk_mbn_cb__f,
+  flea_get_psk_cb_f                 get_psk_mbn_cb__f,
   const void*                       psk_lookup_ctx_mbn__vp,
   flea_tls_flag_e                   flags__e,
   flea_tls_session_mngr_t*          session_mngr_mbn__pt
