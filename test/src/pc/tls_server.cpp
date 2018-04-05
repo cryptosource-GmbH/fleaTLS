@@ -108,13 +108,11 @@ static flea_err_e THR_check_keyb_input(/*fd_set & keyb_fds*/)
   FLEA_THR_FIN_SEC_empty();
 } // THR_check_keyb_input
 
-static int unix_tcpip_listen_accept(
+static int unix_tcpip_accept(
   int      listen_fd,
   unsigned read_timeout_ms
 )
 {
-  FLEA_THR_BEG_FUNC();
-
   struct timeval tv;
 
   set_timeval_from_millisecs(&tv, read_timeout_ms);
@@ -127,9 +125,6 @@ static int unix_tcpip_listen_accept(
   );
 
   return accept(listen_fd, (struct sockaddr*) NULL, NULL);
-
-
-  FLEA_THR_FIN_SEC_empty();
 } // THR_unix_tcpip_listen_accept
 
 static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt)
@@ -442,7 +437,7 @@ static flea_err_e THR_server_cycle(
 
       if(dir_for_file_based_input == "")
       {
-        sock_fd = unix_tcpip_listen_accept(listen_fd, read_timeout_ms);
+        sock_fd = unix_tcpip_accept(listen_fd, read_timeout_ms);
       }
       if((dir_for_file_based_input != "") || (0 <= sock_fd))
       {
