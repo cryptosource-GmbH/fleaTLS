@@ -8,6 +8,7 @@
 # include "flea/error.h"
 # include "flea/types.h"
 # include "flea/rw_stream.h"
+# include <stdio.h>
 
 # ifdef __cplusplus
 extern "C" {
