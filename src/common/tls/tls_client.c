@@ -410,6 +410,7 @@ static flea_err_e THR_flea_tls__read_server_kex_psk(
 
   if(!tls_ctx__pt->process_identity_hint_mbn_cb__f)
   {
+    // Falko: hier wäre set_ref vermutlich besser
     FLEA_CCALL(
       THR_flea_byte_vec_t__set_content(
         &psk_vec__t,
@@ -417,7 +418,7 @@ static flea_err_e THR_flea_tls__read_server_kex_psk(
         tls_ctx__pt->client_psk_mbn__pt->psk_len__u16
       )
     );
-
+// Falko: Muss das hier nicht in ein else?
     // call the cb function that can use the identity hint to derive the PSK
     tls_ctx__pt->process_identity_hint_mbn_cb__f(
       &psk_vec__t,
@@ -563,6 +564,9 @@ static flea_err_e THR_flea_tls__send_client_hello(
   // send extensions
   FLEA_CCALL(THR_flea_tls_ctx_t__send_extensions_length(tls_ctx, p_hash_ctx));
   FLEA_CCALL(THR_flea_tls_ctx_t__send_reneg_ext(tls_ctx, p_hash_ctx));
+  // Falko: Ein fehlender Truststore wird in Zukunft nicht mehr als Merkmal für
+  // PSK funktionieren. Wir werden auch anonyme Server-Authentisierung zulassen.
+  // Daher muss hier PSK explizit abgefragt werden.
   if(tls_ctx->nb_allowed_sig_algs__alu16 > 0 && !tls_ctx->trust_store_mbn_for_server__pt)
   {
     // for PSK case don't send this extension
@@ -1015,6 +1019,8 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
         kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e);
         if(kex_method__t == FLEA_TLS_KEX_PSK)
         {
+          // Falko: Warum werden hier zwei verschiedene Nachrichten erwartet?
+          // Erfolgt der Server KEX auch bei dem rein symmetrischen PSK?
           handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
             | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
         }
@@ -1478,10 +1484,20 @@ flea_err_e THR_flea_tls_client_ctx_t__ctor_psk(
 
   FLEA_THR_BEG_FUNC();
 
+// Falko: Eigentliche ist hier die Schachtelung nicht richtig: der PSK ctor hat mehr
+// Parameter, daher muss der normal ctor den ctor_psk aufrufen. Sonst könnte ja
+// z.B.
+// der normale ctor die PSK Werte wieder auf NULL setzen. Das ist zwar kein
+// großes Problem, lässt sich aber leicht beheben.
   psk__t.psk__pu8          = psk__pu8;
   psk__t.psk_len__u16      = psk_len__u16;
   psk__t.identity__pu8     = psk_identity__pu8;
   psk__t.identity_len__u16 = psk_identity_len__u16;
+  // Falko: Das geht nicht: psk__t is ein lokale Variable, un der tls_client_ctx
+  // lebt länger als dieser Funktion. Das tls_psk struct müsste also in den client_ctx. Allerdings
+  // würde ich davon absehen, und Renegotiation bei PSK komplett abschalten. Das
+  // vereinfacht alles ein wenig. Dann wird das psk secret nur im ctor gebraucht
+  // und kann in den handshake ctx.
   tls_client_ctx__pt->tls_ctx__t.client_psk_mbn__pt = &psk__t;
 
   tls_client_ctx__pt->tls_ctx__t.process_identity_hint_mbn_cb__f = process_identity_hint_mbn_cb__f;

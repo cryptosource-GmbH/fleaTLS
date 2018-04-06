@@ -553,7 +553,8 @@ static flea_err_e THR_server_cycle(
           psk__t.identity__pu8     = psk_identity__pu8;
           psk__t.identity_len__u16 = psk_identity_len__u16;
 
-
+// Falko: Das geht nicht: psk__t ist ein lokale Variable, die nach diesem Block
+// nicht mehr gültig ist:
           new_par__pt->psk_lookup_ctx_mbn__vp = (void*) &psk__t;
           new_par__pt->get_psk_mbn_cb__f      = &dummy_get_psk_cb;
           new_par__pt->identity_hint_mbn__pu8 = NULL;

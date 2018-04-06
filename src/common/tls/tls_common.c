@@ -695,7 +695,7 @@ flea_err_e THR_flea_tls__create_premaster_secret_psk(
 
   premaster_secret_len__u16 = psk_len__u16 * 2 + 4;
   FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, premaster_secret_len__u16));
-
+// Falko: hier fehlen CCALLs ! Bitte überall nochmal prüfen.
   THR_flea_byte_vec_t__set_content(premaster_secret__pt, psk_len_enc__au8, sizeof(psk_len_enc__au8));
   for(flea_u16_t i = 0; i < psk_len__u16; i++)
   {
@@ -1278,6 +1278,8 @@ flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx_
   // signature algorithms extension
   if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
+    // Falko: auch hier gilt: truststore = NULL ist kein ausreichendes Kriterium
+    // um PSK zu detektieren.
     if(tls_ctx__pt->nb_allowed_sig_algs__alu16 > 0 && !tls_ctx__pt->trust_store_mbn_for_server__pt)
     {
       // for PSK case don't send this extension

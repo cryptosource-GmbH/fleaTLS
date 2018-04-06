@@ -1496,7 +1496,11 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor_psk(
 )
 {
   FLEA_THR_BEG_FUNC();
-
+// Falko: Eigentliche ist hier die Schachtelung nicht richtig: der PSK ctor hat mehr
+// Parameter, daher muss der normal ctor den ctor_psk aufrufen. Sonst könnte ja
+// z.B.
+// der normale ctor die PSK Werte wieder auf NULL setzen. Das ist zwar kein
+// großes Problem, lässt sich aber leicht beheben.
   tls_server_ctx__pt->tls_ctx__t.get_psk_mbn_cb__f      = get_psk_mbn_cb__f;
   tls_server_ctx__pt->tls_ctx__t.psk_lookup_ctx_mbn__vp = psk_lookup_ctx_mbn__vp;
   tls_server_ctx__pt->tls_ctx__t.identity_hint_mbn__pu8 = identity_hint_mbn__pu8;
@@ -1524,7 +1528,7 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor_psk(
   );
 
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls_server_ctx_t__ctor_psk */
 
 # endif /* ifdef FLEA_HAVE_TLS_CS_PSK */
 
