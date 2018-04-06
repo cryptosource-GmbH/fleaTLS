@@ -12,6 +12,9 @@
 
 ## [ XXX ] unreleased
 
+### Added
+- C-file based read stream
+
 ### Changed
 - removed version number from built library file
 

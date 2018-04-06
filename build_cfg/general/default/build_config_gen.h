@@ -40,7 +40,8 @@
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  */
 #  define FLEA_DO_PRINTF_ERRS
-# endif
+
+# endif // if 0
 /* end dgb_cfg */
 /**@}*/
 
@@ -61,6 +62,20 @@
  */
 # define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
 /* end mem_cfg */
+/**@}*/
+
+
+/**
+ * \defgroup pltf_support Platform support
+ */
+/**@{*/
+
+/**
+ * When activated, fleaTLS offers file-based flea_rw_stream_t objects.
+ */
+# define FLEA_HAVE_STDLIB_FILESYSTEM
+
+/* end pltf_support */
 /**@}*/
 
 /**

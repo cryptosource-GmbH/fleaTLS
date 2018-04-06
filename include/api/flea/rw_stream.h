@@ -303,13 +303,27 @@ flea_err_e THR_flea_rw_stream_t__skip_read(
  * Read a byte from an r/w stream object with read mode \link flea_stream_read_mode_e::flea_read_full flea_read_full \endlink.
  *
  * @param[in,out] stream Pointer to the r/w stream object.
- * @param[out] byte A pointer to the byte to the receive the read data.
+ * @param[out] result A pointer to the byte to the receive the read data.
  *
  * @return an error code
  */
 flea_err_e THR_flea_rw_stream_t__read_byte(
   flea_rw_stream_t* stream,
-  flea_u8_t*        byte
+  flea_u8_t*        result
+);
+
+
+/**
+ * Read an u16 value in big endian format from an r/w stream object with read mode \link flea_stream_read_mode_e::flea_read_full flea_read_full \endlink.
+ *
+ * @param[in,out] stream Pointer to the r/w stream object.
+ * @param[out] result A pointer to the byte to the receive the read data.
+ *
+ * @return an error code
+ */
+flea_err_e THR_flea_rw_stream_t__read_u16_be(
+  flea_rw_stream_t* stream,
+  flea_u16_t*       result
 );
 
 /**

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+./build/flea-test --tls_server  --own_ca_chain=misc/tools/openssl_tests/ecdsa_tests/ecdsa_secp384r1/certs/ECDSA_SECP384R1_SUB_CA.CA.crt,misc/tools/openssl_tests/ecdsa_tests/ecdsa_secp384r1/certs/ECDSA_SECP384R1_ROOT_CA.TA.crt --own_private_key=misc/tools/openssl_tests/ecdsa_tests/ecdsa_secp384r1/certs/ECDSA_SECP384R1_EE.TC.p8 --own_certs=misc/tools/openssl_tests/ecdsa_tests/ecdsa_secp384r1/certs/ECDSA_SECP384R1_EE.TC.crt --port=4444 --ip_addr=127.0.0.1 --hostname=localhost --allowed_sig_algs=SHA256-ECDSA,SHA512-RSA,SHA384-RSA,SHA256-RSA,SHA224-RSA,SHA1-RSA --allowed_curves=secp384r1 --no_hostn_ver --reneg_mode=only_secure_reneg --rev_chk=none --stay --trusted=misc/tools/openssl_tests/ecdsa_tests/ecdsa_secp384r1/certs/ECDSA_SECP384R1_ROOT_CA.TA.crt

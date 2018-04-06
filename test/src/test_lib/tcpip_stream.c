@@ -95,7 +95,7 @@ static flea_err_e THR_open_socket_client(void* ctx__pv)
     // addr.sin_port = htons(4445);
     // if(connect(socket_fd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
     {
-      FLEA_THROW("coult not open client TCP/IP socket", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
+      FLEA_THROW("could not open client TCP/IP socket", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
     }
   }
   ctx__pt->socket_fd__int = socket_fd;
@@ -166,7 +166,6 @@ static flea_err_e THR_write_flush_socket(void* ctx__pv)
   size_t send_len = ctx__pt->write_buf__t.used_len__dtl;
 
   ctx__pt->write_buf__t.used_len__dtl = 0;
-  ctx__pt->write_buf__t.used_len__dtl = 0;
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
     THR_send_socket_inner(
@@ -211,13 +210,16 @@ static flea_err_e THR_read_socket(
    * between that is shorter than the timout set here. this corner case is, however, not
    * relevant to this example implementation.
    */
-  setsockopt(
-    ctx__pt->socket_fd__int,
-    SOL_SOCKET,
-    SO_RCVTIMEO,
-    (struct timeval*) &tv,
-    sizeof(struct timeval)
-  );
+  if(ctx__pt->timeout_millisecs)
+  {
+    setsockopt(
+      ctx__pt->socket_fd__int,
+      SOL_SOCKET,
+      SO_RCVTIMEO,
+      (struct timeval*) &tv,
+      sizeof(struct timeval)
+    );
+  }
   do
   {
     // if timeout mode

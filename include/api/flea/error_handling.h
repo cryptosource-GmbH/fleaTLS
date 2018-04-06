@@ -85,6 +85,8 @@
 # define __FLEA_EVTL_PRINT_ERR(__func, __str) do { } while(0)
 #endif // ifdef FLEA_DO_PRINTF_ERRS
 
+#define FLEA_THR_HAVE_ERROR() (_flea_err_retval != FLEA_ERR_FINE)
+
 #define FLEA_THROW(__mess, __val) \
   do { \
     _flea_err_retval = __val; \
