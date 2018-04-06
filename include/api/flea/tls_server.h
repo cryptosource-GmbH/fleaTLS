@@ -88,44 +88,6 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor(
 );
 
 /**
- * Creates a TLS server object and is similar to THR_flea_tls_server_ctx_t__ctor
- * but has some additional arguments for PSK. Only the additional parameters are
- * described here.
- *
- * @param [in] identity_hint_mbn__pu8 Pointer to the identity hint that will be
- * sent to clients.
- * @param [in] identity_hint_len__u16 Length of the identity hint
- * @param [in] get_psk_mbn_cb__f Callback function to determine the PSK
- * @param [in] psk_lookup_ctx_mbn__vp Arbitrary object, e.g. a database, that
- * can be used to determine the PSK in the callback function.
- *
- * @return an error code
- */
-flea_err_e THR_flea_tls_server_ctx_t__ctor_psk(
-  flea_tls_server_ctx_t*            tls_server_ctx,
-  flea_rw_stream_t*                 rw_stream,
-  const flea_cert_store_t*          trust_store_mbn,
-  const flea_ref_cu8_t*             cert_chain,
-  flea_al_u8_t                      cert_chain_len,
-  flea_private_key_t*               private_key,
-  const flea_ref_cu8_t*             crls,
-  flea_al_u16_t                     crls_len,
-  const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
-  flea_al_u16_t                     allowed_cipher_suites_len,
-  flea_ec_dom_par_id_e*             allowed_ecc_curves,
-  flea_al_u16_t                     allowed_ecc_curves_len,
-  flea_tls_sigalg_e*                allowed_sig_algs,
-  flea_al_u16_t                     allowed_sig_algs_len,
-  const flea_u8_t*                  identity_hint_mbn__pu8,
-  flea_u16_t                        identity_hint_len__u16,
-  flea_get_psk_cb_f                 get_psk_mbn_cb__f,
-  const void*                       psk_lookup_ctx_mbn__vp,
-  flea_tls_flag_e                   flags,
-  flea_tls_session_mngr_t*          session_mngr_mbn
-);
-
-
-/**
  * Read application data over the TLS channel. If the connected client initiates a
  * renegotiation during the execution of this function, the renegotiation is
  * handled silently, i.e. depending of the configuration it is carried out or

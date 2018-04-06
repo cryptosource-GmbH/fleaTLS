@@ -576,7 +576,9 @@ static flea_err_e THR_flea_tls__send_client_hello(
   // send extensions
   FLEA_CCALL(THR_flea_tls_ctx_t__send_extensions_length(tls_ctx, p_hash_ctx));
   FLEA_CCALL(THR_flea_tls_ctx_t__send_reneg_ext(tls_ctx, p_hash_ctx));
-  if(tls_ctx->client_use_psk__b)
+# ifdef FLEA_HAVE_TLS_CS_PSK
+  if(tls_ctx->client_use_psk__b == FLEA_FALSE)
+# endif
   {
     // for PSK case don't send this extension
     FLEA_CCALL(THR_flea_tls_ctx_t__send_sig_alg_ext(tls_ctx, p_hash_ctx));

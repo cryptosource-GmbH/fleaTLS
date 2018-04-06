@@ -1277,9 +1277,11 @@ flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx_
   // signature algorithms extension
   if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
-    if(tls_ctx__pt->client_use_psk__b)
+# if defined FLEA_HAVE_TLS_CS_PSK
+    // for PSK case don't send this extension
+    if(tls_ctx__pt->client_use_psk__b == FLEA_FALSE)
+# endif
     {
-      // for PSK case don't send this extension
       len__alu16 += 6 + tls_ctx__pt->nb_allowed_sig_algs__alu16 * 2;
     }
   }
