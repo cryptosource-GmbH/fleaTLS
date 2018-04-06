@@ -519,4 +519,21 @@ void flea_tls_test_tool_print_peer_cert_info(
   }
 } // flea_tls_test_tool_print_peer_cert_info
 
+flea_err_e dummy_process_identity_hint(
+  flea_byte_vec_t* psk_vec__pt,
+  const flea_u8_t* psk_identity_hint__pu8,
+  const flea_u16_t psk_identity_hint_len__u16
+)
+{
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(
+    THR_flea_byte_vec_t__append(
+      psk_vec__pt,
+      psk_identity_hint__pu8,
+      psk_identity_hint_len__u16
+    )
+  );
+  FLEA_THR_FIN_SEC_empty();
+}
+
 #endif // ifdef FLEA_HAVE_TLS

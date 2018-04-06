@@ -76,12 +76,7 @@ struct struct_flea_tls_ctx_t
   flea_u8_t                         sec_reneg_flag__u8;
 
 # ifdef FLEA_HAVE_TLS_CS_PSK
-  flea_tls_psk_t*                   client_psk_mbn__pt;
-  flea_get_psk_cb_f                 get_psk_mbn_cb__f;
-  flea_process_identity_hint_cb_f   process_identity_hint_mbn_cb__f;
-  const void*                       psk_lookup_ctx_mbn__vp;
-  const flea_u8_t*                  identity_hint_mbn__pu8;
-  flea_u16_t                        identity_hint_len__u16;
+  flea_bool_t                       client_use_psk__b; // Only used by client. True if configured for PSK.
 # endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
 # ifdef FLEA_HEAP_MODE
@@ -138,13 +133,26 @@ struct struct_flea_tls_server_ctx_t
   flea_tls_session_mngr_t*       session_mngr_mbn__pt;
   flea_u8_t                      server_resume_session__u8;
   flea_u8_t                      server_session_id_assigned__u8;
+# ifdef FLEA_HAVE_TLS_CS_PSK
+  flea_get_psk_cb_f              get_psk_mbn_cb__f;
+  const void*                    psk_lookup_ctx_mbn__vp;
+  const flea_u8_t*               identity_hint_mbn__pu8;
+  flea_u16_t                     identity_hint_len__u16;
+# endif // ifdef FLEA_HAVE_TLS_CS_PSK
 };
 
 
 struct struct_flea_tls_client_ctx_t
 {
-  flea_tls_ctx_t                 tls_ctx__t;
-  flea_hostn_validation_params_t hostn_valid_params__t;
+  flea_tls_ctx_t                  tls_ctx__t;
+  flea_hostn_validation_params_t  hostn_valid_params__t;
+# ifdef FLEA_HAVE_TLS_CS_PSK
+  flea_u8_t*                      psk__pu8;
+  flea_u16_t                      psk_len__u16;
+  flea_u8_t*                      identity__pu8;
+  flea_u16_t                      identity_len__u16;
+  flea_process_identity_hint_cb_f process_identity_hint_mbn_cb__f;
+# endif // ifdef FLEA_HAVE_TLS_CS_PSK
 };
 
 #endif // ifdef FLEA_HAVE_TLS

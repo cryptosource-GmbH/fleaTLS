@@ -379,13 +379,14 @@ static flea_err_e THR_flea_tls__read_server_kex_ecdhe(
 
 # if defined FLEA_HAVE_TLS_CS_PSK
 static flea_err_e THR_flea_tls__read_server_kex_psk(
-  flea_tls_ctx_t*           tls_ctx__pt,
+  flea_tls_client_ctx_t*    tls_client_ctx__pt,
   flea_tls_handsh_reader_t* hs_rdr__pt,
   flea_byte_vec_t*          premaster_secret__pt
 )
 {
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_u32_t psk_identity_hint_len__u32;
+  flea_tls_ctx_t* tls_ctx__pt = &tls_client_ctx__pt->tls_ctx__t;
 
   FLEA_DECL_BUF(psk_identity_hint__bu8, flea_u8_t, FLEA_TLS_PSK_MAX_IDENTITY_LEN);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(psk_vec__t, FLEA_TLS_PSK_MAX_PSK_LEN);
@@ -408,24 +409,35 @@ static flea_err_e THR_flea_tls__read_server_kex_psk(
     )
   );
 
-  if(!tls_ctx__pt->process_identity_hint_mbn_cb__f)
+  if(tls_client_ctx__pt->process_identity_hint_mbn_cb__f)
   {
-    // Falko: hier wäre set_ref vermutlich besser
     FLEA_CCALL(
       THR_flea_byte_vec_t__set_content(
         &psk_vec__t,
-        tls_ctx__pt->client_psk_mbn__pt->psk__pu8,
-        tls_ctx__pt->client_psk_mbn__pt->psk_len__u16
+        tls_client_ctx__pt->psk__pu8,
+        tls_client_ctx__pt->psk_len__u16
       )
     );
-// Falko: Muss das hier nicht in ein else?
+
     // call the cb function that can use the identity hint to derive the PSK
-    tls_ctx__pt->process_identity_hint_mbn_cb__f(
-      &psk_vec__t,
-      psk_identity_hint__bu8,
-      (flea_u16_t) psk_identity_hint_len__u32
+    FLEA_CCALL(
+      tls_client_ctx__pt->process_identity_hint_mbn_cb__f(
+        &psk_vec__t,
+        psk_identity_hint__bu8,
+        (flea_u16_t) psk_identity_hint_len__u32
+      )
+    );
+
+    FLEA_CCALL(
+      THR_flea_tls__create_premaster_secret_psk(
+        tls_ctx__pt,
+        psk_vec__t.data__pu8,
+        psk_vec__t.len__dtl,
+        premaster_secret__pt
+      )
     );
   }
+
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(psk_identity_hint__bu8);
@@ -564,10 +576,7 @@ static flea_err_e THR_flea_tls__send_client_hello(
   // send extensions
   FLEA_CCALL(THR_flea_tls_ctx_t__send_extensions_length(tls_ctx, p_hash_ctx));
   FLEA_CCALL(THR_flea_tls_ctx_t__send_reneg_ext(tls_ctx, p_hash_ctx));
-  // Falko: Ein fehlender Truststore wird in Zukunft nicht mehr als Merkmal für
-  // PSK funktionieren. Wir werden auch anonyme Server-Authentisierung zulassen.
-  // Daher muss hier PSK explizit abgefragt werden.
-  if(tls_ctx->nb_allowed_sig_algs__alu16 > 0 && !tls_ctx->trust_store_mbn_for_server__pt)
+  if(tls_ctx->client_use_psk__b)
   {
     // for PSK case don't send this extension
     FLEA_CCALL(THR_flea_tls_ctx_t__send_sig_alg_ext(tls_ctx, p_hash_ctx));
@@ -758,23 +767,20 @@ static flea_err_e THR_flea_tls__send_client_key_exchange_rsa(
 
 # ifdef FLEA_HAVE_TLS_CS_PSK
 static flea_err_e THR_flea_tls__send_client_key_exchange_psk(
-  flea_tls_ctx_t*               tls_ctx__pt,
+  flea_tls_client_ctx_t*        tls_client_ctx__pt,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx
 )
 {
-  FLEA_THR_BEG_FUNC();
+  flea_tls_ctx_t* tls_ctx__pt = &tls_client_ctx__pt->tls_ctx__t;
 
-  if(!tls_ctx__pt->client_psk_mbn__pt)
-  {
-    FLEA_THROW("No PSK but PSK-CS chosen", FLEA_ERR_TLS_HANDSHK_FAILURE);
-  }
+  FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_hdr(
       &tls_ctx__pt->rec_prot__t,
       p_hash_ctx,
       HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE,
-      tls_ctx__pt->client_psk_mbn__pt->identity_len__u16 + 2
+      tls_client_ctx__pt->identity_len__u16 + 2
     )
   );
 
@@ -782,7 +788,7 @@ static flea_err_e THR_flea_tls__send_client_key_exchange_psk(
     THR_flea_tls__send_handshake_message_int_be(
       &tls_ctx__pt->rec_prot__t,
       p_hash_ctx,
-      tls_ctx__pt->client_psk_mbn__pt->identity_len__u16,
+      tls_client_ctx__pt->identity_len__u16,
       2
     )
   );
@@ -791,8 +797,8 @@ static flea_err_e THR_flea_tls__send_client_key_exchange_psk(
     THR_flea_tls__send_handshake_message_content(
       &tls_ctx__pt->rec_prot__t,
       p_hash_ctx,
-      tls_ctx__pt->client_psk_mbn__pt->identity__pu8,
-      tls_ctx__pt->client_psk_mbn__pt->identity_len__u16
+      tls_client_ctx__pt->identity__pu8,
+      tls_client_ctx__pt->identity_len__u16
     )
   );
 
@@ -804,7 +810,7 @@ static flea_err_e THR_flea_tls__send_client_key_exchange_psk(
 
 // send_client_key_exchange
 static flea_err_e THR_flea_tls__send_client_key_exchange(
-  // flea_tls_ctx_t*               tls_ctx,
+  flea_tls_client_ctx_t*        tls_client_ctx__pt,
   flea_tls_handshake_ctx_t*     hs_ctx__pt,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx,
   flea_public_key_t*            pubkey_mbn__pt,
@@ -846,15 +852,7 @@ static flea_err_e THR_flea_tls__send_client_key_exchange(
   else if(kex_method__t == FLEA_TLS_KEX_PSK)
   {
 # ifdef FLEA_HAVE_TLS_CS_PSK
-    FLEA_CCALL(THR_flea_tls__send_client_key_exchange_psk(tls_ctx__pt, p_hash_ctx));
-    FLEA_CCALL(
-      THR_flea_tls__create_premaster_secret_psk(
-        tls_ctx__pt,
-        tls_ctx__pt->client_psk_mbn__pt->psk__pu8,
-        tls_ctx__pt->client_psk_mbn__pt->psk_len__u16,
-        premaster_secret__pt
-      )
-    );
+    FLEA_CCALL(THR_flea_tls__send_client_key_exchange_psk(tls_client_ctx__pt, p_hash_ctx));
 # else  /* ifdef FLEA_HAVE_TLS_CS_PSK */
     // should not happen if everything is properly configured
     FLEA_THROW("unsupported key exchange variant", FLEA_ERR_INT_ERR);
@@ -970,7 +968,7 @@ static flea_err_e THR_flea_tls__send_cert_verify(
 } /* THR_flea_tls__send_cert_verify */
 
 static flea_err_e THR_flea_client_handle_handsh_msg(
-  flea_tls_ctx_t*                       tls_ctx,
+  flea_tls_client_ctx_t*                tls_client_ctx__pt,
   flea_tls_handshake_ctx_t*             hs_ctx__pt,
   flea_tls__handshake_state_t*          handshake_state,
   flea_tls_parallel_hash_ctx_t*         p_hash_ctx__pt,
@@ -983,6 +981,7 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
   FLEA_DECL_OBJ(hash_ctx_copy__t, flea_hash_ctx_t);
   flea_tls__kex_method_t kex_method__t;
+  flea_tls_ctx_t* tls_ctx = &tls_client_ctx__pt->tls_ctx__t;
 
   FLEA_THR_BEG_FUNC();
 
@@ -1019,8 +1018,6 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
         kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e);
         if(kex_method__t == FLEA_TLS_KEX_PSK)
         {
-          // Falko: Warum werden hier zwei verschiedene Nachrichten erwartet?
-          // Erfolgt der Server KEX auch bei dem rein symmetrischen PSK?
           handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
             | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
         }
@@ -1079,7 +1076,7 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
     else if(kex_method__t == FLEA_TLS_KEX_PSK)
     {
 # if defined FLEA_HAVE_TLS_CS_PSK
-      FLEA_CCALL(THR_flea_tls__read_server_kex_psk(tls_ctx, &handsh_rdr__t, premaster_secret__pt));
+      FLEA_CCALL(THR_flea_tls__read_server_kex_psk(tls_client_ctx__pt, &handsh_rdr__t, premaster_secret__pt));
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
 # else
       FLEA_THROW("Invalid State, PSK not compiled", FLEA_ERR_INT_ERR);
@@ -1103,6 +1100,22 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
     {
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
       // nothing to process
+
+# if defined FLEA_HAVE_TLS_CS_PSK
+      // in case of PSK we either created the premaster secret during the
+      // server key exchange message or need to create it now
+      if(!premaster_secret__pt->len__dtl)
+      {
+        FLEA_CCALL(
+          THR_flea_tls__create_premaster_secret_psk(
+            tls_ctx,
+            tls_client_ctx__pt->psk__pu8,
+            tls_client_ctx__pt->psk_len__u16,
+            premaster_secret__pt
+          )
+        );
+      }
+# endif /* if defined FLEA_HAVE_TLS_CS_PSK */
     }
     else
     {
@@ -1145,7 +1158,7 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
 } /* THR_flea_handle_handsh_msg */
 
 flea_err_e THR_flea_tls__client_handshake(
-  flea_tls_ctx_t*                       tls_ctx,
+  flea_tls_client_ctx_t*                tls_client_ctx__pt,
   flea_tls_client_session_t*            session_mbn__pt,
   const flea_hostn_validation_params_t* hostn_valid_params__pt,
   flea_bool_t                           is_reneg__b
@@ -1154,6 +1167,7 @@ flea_err_e THR_flea_tls__client_handshake(
   flea_tls__handshake_state_t handshake_state;
   flea_public_key_t ecdhe_pub_key__t;
   flea_tls_handshake_ctx_t hs_ctx__t;
+  flea_tls_ctx_t* tls_ctx = &tls_client_ctx__pt->tls_ctx__t;
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, 256);
 
@@ -1245,7 +1259,7 @@ flea_err_e THR_flea_tls__client_handshake(
       {
         FLEA_CCALL(
           THR_flea_client_handle_handsh_msg(
-            tls_ctx,
+            tls_client_ctx__pt,
             &hs_ctx__t,
             &handshake_state,
             &p_hash_ctx,
@@ -1360,6 +1374,7 @@ flea_err_e THR_flea_tls__client_handshake(
         }
         FLEA_CCALL(
           THR_flea_tls__send_client_key_exchange(
+            tls_client_ctx__pt,
             &hs_ctx__t,
             &p_hash_ctx,
             &peer_public_key__t,
@@ -1480,27 +1495,14 @@ flea_err_e THR_flea_tls_client_ctx_t__ctor_psk(
   flea_tls_flag_e                   flags__e
 )
 {
-  flea_tls_psk_t psk__t;
-
   FLEA_THR_BEG_FUNC();
 
-// Falko: Eigentliche ist hier die Schachtelung nicht richtig: der PSK ctor hat mehr
-// Parameter, daher muss der normal ctor den ctor_psk aufrufen. Sonst könnte ja
-// z.B.
-// der normale ctor die PSK Werte wieder auf NULL setzen. Das ist zwar kein
-// großes Problem, lässt sich aber leicht beheben.
-  psk__t.psk__pu8          = psk__pu8;
-  psk__t.psk_len__u16      = psk_len__u16;
-  psk__t.identity__pu8     = psk_identity__pu8;
-  psk__t.identity_len__u16 = psk_identity_len__u16;
-  // Falko: Das geht nicht: psk__t is ein lokale Variable, un der tls_client_ctx
-  // lebt länger als dieser Funktion. Das tls_psk struct müsste also in den client_ctx. Allerdings
-  // würde ich davon absehen, und Renegotiation bei PSK komplett abschalten. Das
-  // vereinfacht alles ein wenig. Dann wird das psk secret nur im ctor gebraucht
-  // und kann in den handshake ctx.
-  tls_client_ctx__pt->tls_ctx__t.client_psk_mbn__pt = &psk__t;
-
-  tls_client_ctx__pt->tls_ctx__t.process_identity_hint_mbn_cb__f = process_identity_hint_mbn_cb__f;
+  tls_client_ctx__pt->psk__pu8          = psk__pu8;
+  tls_client_ctx__pt->psk_len__u16      = psk_len__u16;
+  tls_client_ctx__pt->identity__pu8     = psk_identity__pu8;
+  tls_client_ctx__pt->identity_len__u16 = psk_identity_len__u16;
+  tls_client_ctx__pt->process_identity_hint_mbn_cb__f = process_identity_hint_mbn_cb__f;
+  tls_client_ctx__pt->tls_ctx__t.client_use_psk__b    = FLEA_TRUE;
 
   FLEA_CCALL(
     THR_flea_tls_client_ctx_t__ctor(
@@ -1599,7 +1601,7 @@ flea_err_e THR_flea_tls_client_ctx_t__ctor(
     )
   );
   err__t = THR_flea_tls__client_handshake(
-    tls_ctx__pt,
+    tls_client_ctx__pt,
     session_mbn__pt,
     &tls_client_ctx__pt->hostn_valid_params__t,
     FLEA_FALSE
@@ -1615,12 +1617,13 @@ flea_bool_t flea_tls_client_ctx_t__is_reneg_allowed(flea_tls_client_ctx_t* tls_c
 }
 
 flea_err_e THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
-  flea_tls_ctx_t*                       tls_ctx__pt,
+  flea_tls_client_ctx_t*                tls_client_ctx__pt,
   const flea_hostn_validation_params_t* hostn_valid_params__pt
 )
 {
   FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
   flea_al_u8_t handsh_type__u8;
+  flea_tls_ctx_t* tls_ctx__pt = &tls_client_ctx__pt->tls_ctx__t;
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx__pt->rec_prot__t));
@@ -1631,7 +1634,7 @@ flea_err_e THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
   }
   FLEA_CCALL(
     THR_flea_tls__client_handshake(
-      tls_ctx__pt,
+      tls_client_ctx__pt,
       tls_ctx__pt->client_session_mbn__pt,
       hostn_valid_params__pt,
       FLEA_TRUE

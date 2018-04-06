@@ -232,7 +232,7 @@ static flea_err_e THR_flea_start_tls_client(
         psk.size(),
         psk_identity__pu8,
         psk_identity_len__u16,
-        NULL, //  identity hint callback function
+        &dummy_process_identity_hint, //  identity hint callback function
         hostname_p,
         host_type,
         &tls_cfg.cipher_suites[0],

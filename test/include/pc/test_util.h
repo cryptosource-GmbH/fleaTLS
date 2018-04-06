@@ -98,6 +98,12 @@ void flea_tls_test_tool_print_peer_cert_info(
   flea_tls_server_ctx_t* server_ctx_mbn__pt,
   server_params_t*       serv_par__pt
 );
+
+flea_err_e dummy_process_identity_hint(
+  flea_byte_vec_t* psk_vec__pt,
+  const flea_u8_t* psk_identity_hint__pu8,
+  const flea_u16_t psk_identity_hint_len__u16
+);
 #endif // ifdef FLEA_HAVE_TLS
 
 

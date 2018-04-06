@@ -432,7 +432,10 @@ static flea_err_e THR_server_cycle(
   std::vector<flea_u8_t> psk;
   flea_u8_t* psk_identity__pu8;
   flea_u16_t psk_identity_len__u16;
-#  endif
+  flea_u8_t* psk_identity_hint__pu8;
+  flea_tls_psk_t psk__t;
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(psk_vec__t, FLEA_TLS_PSK_MAX_PSK_LEN);
+#  endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
   FLEA_THR_BEG_FUNC();
   flea_cert_store_t__INIT(&trust_store__t);
@@ -544,21 +547,39 @@ static flea_err_e THR_server_cycle(
             test_utils_exceptn_t("Please use non-empty values for --psk <secret> and --psk_identity <identity>");
           }
           psk = hex_to_bin(psk_hex_str);
+
+          if(cmdl_args.have_index("psk_identity_hint"))
+          {
+            psk_identity_hint__pu8 = (flea_u8_t*) cmdl_args.get_property_as_string("psk_identity_hint").c_str();
+            new_par__pt->identity_hint_mbn__pu8 = psk_identity_hint__pu8;
+            new_par__pt->identity_hint_len__u16 = cmdl_args.get_property_as_string("psk_identity_hint").size();
+            FLEA_CCALL(THR_flea_byte_vec_t__set_content(&psk_vec__t, &psk[0], psk.size()));
+            FLEA_CCALL(
+              dummy_process_identity_hint(
+                &psk_vec__t,
+                new_par__pt->identity_hint_mbn__pu8,
+                new_par__pt->identity_hint_len__u16
+              )
+            );
+            psk = std::vector<flea_u8_t>(psk_vec__t.data__pu8, psk_vec__t.data__pu8 + psk_vec__t.len__dtl);
+          }
+          else
+          {
+            new_par__pt->identity_hint_mbn__pu8 = NULL;
+            new_par__pt->identity_hint_len__u16 = 0;
+          }
+
           psk_identity__pu8     = (flea_u8_t*) psk_identity_str.c_str();
           psk_identity_len__u16 = psk_identity_str.size();
 
-          flea_tls_psk_t psk__t;
           psk__t.psk__pu8          = &psk[0];
           psk__t.psk_len__u16      = psk.size();
           psk__t.identity__pu8     = psk_identity__pu8;
           psk__t.identity_len__u16 = psk_identity_len__u16;
 
-// Falko: Das geht nicht: psk__t ist ein lokale Variable, die nach diesem Block
-// nicht mehr gültig ist:
           new_par__pt->psk_lookup_ctx_mbn__vp = (void*) &psk__t;
           new_par__pt->get_psk_mbn_cb__f      = &dummy_get_psk_cb;
-          new_par__pt->identity_hint_mbn__pu8 = NULL;
-          new_par__pt->identity_hint_len__u16 = 0;
+
 #  else // ifdef FLEA_HAVE_TLS_CS_PSK
           test_utils_exceptn_t("psk compile switch has to be active for --psk option");
 #  endif // ifdef FLEA_HAVE_TLS_CS_PSK
