@@ -80,7 +80,7 @@ flea_err_e THR_flea_rw_stream_t__write_byte(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_e THR_flea_rw_stream_t__write_u32_be(
+flea_err_e THR_flea_rw_stream_t__write_int_be(
   flea_rw_stream_t* stream__pt,
   flea_u32_t        value__u32,
   flea_al_u8_t      enc_len__alu8
@@ -241,6 +241,45 @@ flea_err_e THR_flea_rw_stream_t__read_u16_be(
   *result__pu16 = result__u16;
   FLEA_THR_FIN_SEC_empty();
 }
+
+flea_err_e THR_flea_rw_stream_t__pump(
+  flea_rw_stream_t* source__pt,
+  flea_rw_stream_t* dest__pt,
+  flea_dtl_t*       nb_bytes_to_transfer__pdtl,
+  flea_u8_t*        buffer__pu8,
+  flea_dtl_t        buffer_len__dtl,
+  flea_err_e*       read_strm_err__e
+)
+{
+  const flea_dtl_t req_len__dtl = *nb_bytes_to_transfer__pdtl;
+  flea_dtl_t rem_len__dtl       = req_len__dtl;
+
+  flea_err_e err = FLEA_ERR_FINE;
+
+  FLEA_THR_BEG_FUNC();
+  while(rem_len__dtl)
+  {
+    flea_bool_t do_break__b = FLEA_FALSE;
+    flea_dtl_t this_trsf__dtl;
+    flea_dtl_t to_go__dtl = FLEA_MIN(rem_len__dtl, buffer_len__dtl);
+    this_trsf__dtl = to_go__dtl;
+    err = THR_flea_rw_stream_t__read(source__pt, buffer__pu8, &this_trsf__dtl, flea_read_nonblocking);
+    if(err || (this_trsf__dtl == 0)
+    )
+    {
+      do_break__b = FLEA_TRUE;
+    }
+    FLEA_CCALL(THR_flea_rw_stream_t__write(dest__pt, buffer__pu8, this_trsf__dtl));
+    rem_len__dtl -= this_trsf__dtl;
+    if(do_break__b)
+    {
+      break;
+    }
+  }
+  *read_strm_err__e = err;
+  *nb_bytes_to_transfer__pdtl = req_len__dtl - rem_len__dtl;
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_rw_stream_t__pump */
 
 void flea_rw_stream_t__dtor(flea_rw_stream_t* stream__pt)
 {
