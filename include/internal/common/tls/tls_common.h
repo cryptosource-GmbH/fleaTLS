@@ -17,7 +17,7 @@ extern "C" {
 # endif
 
 
-# define NO_COMPRESSION                           0
+# define FLEA_TLS_NO_COMPRESSION                  0
 
 # define FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES 0x01
 # define FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS    0x02

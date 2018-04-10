@@ -144,7 +144,7 @@ static flea_err_e THR_flea_tls__read_server_hello(
       &server_compression_meth__u8
     )
   );
-  if(server_compression_meth__u8 != NO_COMPRESSION)
+  if(server_compression_meth__u8 != FLEA_TLS_NO_COMPRESSION)
   {
     FLEA_THROW("unsupported compression method from server", FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO);
   }

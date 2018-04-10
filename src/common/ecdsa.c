@@ -56,7 +56,7 @@ flea_err_e THR_flea_ecdsa__raw_verify(
   FLEA_DECL_BUF(s_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE);
   FLEA_DECL_BUF(s_inv_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE);
   FLEA_DECL_BUF(n_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE);
-  FLEA_DECL_BUF(double_sized_field_elem_arr, flea_uword_t, 2 * FLEA_ECC_MAX_MOD_WORD_SIZE);
+  FLEA_DECL_BUF(double_sized_field_elem_arr, flea_uword_t, 2 * FLEA_ECC_MAX_MOD_WORD_SIZE + 1);  /* +1 one since n can be one bit larger than n */
   FLEA_DECL_BUF(G_arr, flea_uword_t, 2 * FLEA_ECC_MAX_MOD_WORD_SIZE);
   FLEA_DECL_BUF(P_arr, flea_uword_t, 2 * FLEA_ECC_MAX_MOD_WORD_SIZE);
   FLEA_DECL_BUF(curve_word_arr, flea_uword_t, 3 * FLEA_ECC_MAX_MOD_WORD_SIZE);
@@ -79,7 +79,7 @@ flea_err_e THR_flea_ecdsa__raw_verify(
 
   G_arr_word_len = 2 * prime_word_len;
   curve_word_arr_word_len         = 3 * prime_word_len;
-  double_sized_field_elem_arr_len = 2 * prime_word_len;
+  double_sized_field_elem_arr_len = 2 * prime_word_len + 1; /* +1 one since n can be one bit larger than n */
   ecc_ws_mpi_arrs_word_len        = order_word_len;
   vn_len = FLEA_MPI_DIV_VN_HLFW_LEN_FROM_DIVISOR_W_LEN(order_word_len);
   un_len = FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(2 * (prime_word_len + 1)); // + 1 due to reducing R^2

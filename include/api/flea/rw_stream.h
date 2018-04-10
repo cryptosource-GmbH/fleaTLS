@@ -163,6 +163,17 @@ typedef struct
 #define flea_rw_stream_t__GET_REM_READ_LEN(stream) ((stream)->read_rem_len__u32 ? (stream)->read_rem_len__u32 : 0)
 
 /**
+ * Determine whether the r/w stream has a read length limit.
+ */
+#define flea_rw_stream_t__HAVE_READ_LIMIT(stream) (((stream)->have_read_limit__b) ? FLEA_TRUE : FLEA_FALSE)
+
+/**
+ * Determine the remaining read length in the case that the stream has a read
+ * length limit.
+ */
+#define flea_rw_stream_t__GET_REM_READ_LEN(stream) ((stream)->read_rem_len__u32 ? (stream)->read_rem_len__u32 : 0)
+
+/**
  * Destroy an r/w stream.
  *
  * @param stream the r/w stream object to destroy.
@@ -251,7 +262,7 @@ flea_err_e THR_flea_rw_stream_t__write_byte(
  *
  * @return an error code
  */
-flea_err_e THR_flea_rw_stream_t__write_u32_be(
+flea_err_e THR_flea_rw_stream_t__write_int_be(
   flea_rw_stream_t* stream,
   flea_u32_t        value,
   flea_al_u8_t      enc_len
@@ -347,6 +358,8 @@ flea_err_e THR_flea_rw_stream_t__read_u16_be(
  *                value
  * @param nb_bytes the width of the encoded integer in bytes. This many bytes
  * are read from the stream.
+ *
+ * @return an error code
  */
 flea_err_e THR_flea_rw_stream_t__read_int_be(
   flea_rw_stream_t* stream,
@@ -354,6 +367,35 @@ flea_err_e THR_flea_rw_stream_t__read_int_be(
   flea_al_u8_t      nb_bytes
 );
 
+/**
+ * Transfer data from a source read-stream to a destination write-stream.
+ * The reads are performed in non-blocking read mode until either an error on
+ * the read stream occurs or the non-blocking read returns zero bytes. The
+ * function does *not* call flea_rw_stream_t__flush_write() on the destination
+ * write-stream.
+ *
+ *
+ * @param [in,out] source the stream to read from
+ * @param [in,out] dest the stream to write to
+ * @param [in,out] transfer_length on function call, this must hold the number of bytes request to be transferred. On function exit, this holds the number of actually transferred bytes.
+ * @param [in] buffer  a workspace buffer to be used by the function. The larger
+ * the buffer, the more efficient the function will work
+ * @param [in] buffer_len the length of buffer
+ * @param [out]  result_read_strm_err if an error occurred on the read stream,
+ * this holds the corresponding error code. If no error occurred, this receives
+ * the value FLEA_ERR_FINE.
+ *
+ * @return an error code
+ *
+ */
+flea_err_e THR_flea_rw_stream_t__pump(
+  flea_rw_stream_t* source,
+  flea_rw_stream_t* dest,
+  flea_dtl_t*       transfer_length,
+  flea_u8_t*        buffer,
+  flea_dtl_t        buffer_len,
+  flea_err_e*       result_read_strm_err
+);
 
 #ifdef __cplusplus
 }

@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #include "flea_test/property_set.h"
 #include "flea_test/exceptn.h"
 #include <cstring>
