@@ -15,6 +15,8 @@
 ### Fixed
 - fixed ECDSA signature encoding bug when using secp160r1 (order bit length = 161)
 with hash algorithm with more than 160 bits output
+- fixed premature breaking when reading compression methods list in clientHello, potentially causing handshake
+failures when compression is offered by the client. Reported by Andreas Walz (Hochschule Offenburg) [andreas.walz@hs-offenburg.de]
 
 ### Added
 - C-file based read stream
