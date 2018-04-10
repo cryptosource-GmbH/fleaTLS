@@ -12,6 +12,10 @@
 
 ## [ XXX ] unreleased
 
+### Fixed
+- fixed ECDSA signature encoding bug when using secp160r1 (order bit length = 161)
+with hash algorithm with more than 160 bits output
+
 ### Added
 - C-file based read stream
 
