@@ -291,6 +291,10 @@ flea_err_e THR_flea_pk_api__encode_message__ansi_x9_62(
   }
   *output_len__palu16 = (bit_size + 7) / 8;
   bit_shift__alu8     = 8 - (bit_size % 8);
+  if(bit_shift__alu8 == 8)
+  {
+    bit_shift__alu8 = 0;
+  }
   if(bit_shift__alu8)
   {
     flea_al_u16_t j;
