@@ -1019,6 +1019,8 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
         kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e);
         if(kex_method__t == FLEA_TLS_KEX_PSK)
         {
+          /* the server may or may not send the SKE message containing its
+           * PSK identity hint */
           handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
             | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
         }
