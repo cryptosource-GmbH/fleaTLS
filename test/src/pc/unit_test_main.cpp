@@ -102,7 +102,8 @@ int main(
       " --hostname=<hostname of the server>\n\n"
       " --ip_addr=<IP address of the server> Either this or --hostname must be provided\n\n"
       " --no_hostn_ver Optional - suppresses the hostname verification\n\n"
-    );
+      " --psk_identity_hint=hint When this option is supplied to the server, it sends the supplied identity hint during the handshake and applies a specific test key derivation function to the PSK. Works with the fleaTLS command line client which, when it receives the identity hint, applies the same key derivation to the PSK, given that this command line option --enable_psk_identity_hint is set."
+      "--enable_psk_identity_hint if this option is set for the TLS client, then it is able to handle an identity hint from a fleaTLS command line server.");
     std::cout << help << std::endl;
     return 0;
   }

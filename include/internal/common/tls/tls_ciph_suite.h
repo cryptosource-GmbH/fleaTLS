@@ -21,9 +21,11 @@ extern "C" {
 
 # define FLEA_TLS_CS_AUTH_MASK__RSA   0x01
 # define FLEA_TLS_CS_AUTH_MASK__ECDSA 0x02
+# define FLEA_TLS_CS_AUTH_MASK__PSK   0x04
 
 # define FLEA_TLS_CS_KEX_MASK__ECDHE  0x08
 # define FLEA_TLS_CS_KEX_MASK__RSA    0x10
+# define FLEA_TLS_CS_KEX_MASK__PSK    0x20
 
 typedef enum
 {
@@ -44,6 +46,7 @@ typedef enum
 {
   FLEA_TLS_KEX_RSA,
   FLEA_TLS_KEX_ECDHE,
+  FLEA_TLS_KEX_PSK,
 } flea_tls__kex_method_t;
 
 typedef struct

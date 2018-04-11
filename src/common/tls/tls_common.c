@@ -43,61 +43,62 @@ typedef struct
 
 
 static const error_alert_pair_t error_alert_map__act [] = {
-  {FLEA_ERR_TIMEOUT_ON_STREAM_READ,             FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
-  {FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC,     FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC     },
-  {FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH,            FLEA_TLS_ALERT_DESC_UNEXPECTED_MESSAGE },
-  {FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO,       FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  },
-  {FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE, FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  },
-  {FLEA_ERR_TLS_INV_REC_HDR,                    FLEA_TLS_ALERT_DESC_DECRYPT_ERROR      },
-  {FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS,         FLEA_TLS_ALERT_DESC_UNKNOWN_CA         },
-  {FLEA_ERR_X509_TLS_SERVER_ID_NO_MATCH,        FLEA_TLS_ALERT_DESC_CERTIFICATE_UNKNOWN},
-  {FLEA_ERR_X509_VERSION_ERROR,                 FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_ASN1_DER_DEC_ERR,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_ASN1_DER_UNEXP_TAG,                 FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_ASN1_DER_EXCSS_LEN,                 FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_ASN1_DER_EXCSS_NST,                 FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_ASN1_DEC_TRGT_BUF_TOO_SMALL,        FLEA_TLS_ALERT_DESC_INTERNAL_ERROR     },
-  {FLEA_ERR_ASN1_DER_CALL_SEQ_ERR,              FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_ASN1_DER_CST_LEN_LIMIT_EXCEEDED,    FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_ERR_UNSUP_CRIT_EXT,            FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_SAN_DEC_ERR,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_NEG_INT,                       FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_EKU_VAL_ERR,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_SIG_ALG_ERR,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_UNSUPP_ALGO,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_BIT_STR_ERR,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_UNRECOG_HASH_FUNCTION,         FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_UNSUPP_ALGO_VARIANT,           FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_INV_ECC_KEY_PARAMS,            FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_INV_ECC_FIELD_TYPE,            FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_IMPLICT_ECC_KEY_PARAMS,        FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_INV_ECC_POINT_ENCODING,        FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_EXCSS_COFACTOR_SIZE,           FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_INV_SIGNATURE,                      FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED,      FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT,       FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_CERT_REVOKED,                  FLEA_TLS_ALERT_DESC_CERTIFICATE_REVOKED},
-  {FLEA_ERR_X509_CERT_REV_STAT_UNDET,           FLEA_TLS_ALERT_DESC_CERTIFICATE_UNKNOWN},
-  {FLEA_ERR_TLS_PEER_CERT_INVALID_KEY_USAGE,    FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_X509_CERT_NOT_YET_VALID,            FLEA_TLS_ALERT_DESC_CERTIFICATE_EXPIRED},
-  {FLEA_ERR_X509_CERT_EXPIRED,                  FLEA_TLS_ALERT_DESC_CERTIFICATE_EXPIRED},
-  {FLEA_ERR_TLS_UNSUPP_PROT_VERSION,            FLEA_TLS_ALERT_DESC_PROTOCOL_VERSION   },
-  {FLEA_ERR_TLS_PROT_DECODE_ERR,                FLEA_TLS_ALERT_DESC_DECODE_ERROR       },
-  {FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG,    FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
-  {FLEA_ERR_FAILED_STREAM_READ,                 FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
-  {FLEA_ERR_FAILED_STREAM_WRITE,                FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
-  {FLEA_ERR_TLS_SESSION_CLOSED,                 FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
-  {FLEA_ERR_TLS_REC_CLOSE_NOTIFY,               FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY       },
-  {FLEA_ERR_TLS_HANDSHK_FAILURE,                FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  },
-  {FLEA_ERR_TLS_CERT_VER_FAILED,                FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_TLS_EXCSS_REC_LEN,                  FLEA_TLS_ALERT_DESC_RECORD_OVERFLOW    },
-  {FLEA_ERR_TLS_NO_SIG_ALG_MATCH,               FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  },
-  {FLEA_ERR_INV_MAC,                            FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC     },
-  {FLEA_ERR_STREAM_EOF,                         FLEA_TLS_ALERT_DESC_DECODE_ERROR       },
-  {FLEA_ERR_POINT_NOT_ON_CURVE,                 FLEA_TLS_ALERT_DESC_ILLEGAL_PARAMETER  },
-  {FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN,        FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE    },
-  {FLEA_ERR_INV_KEY_SIZE,                       FLEA_TLS_ALERT_DESC_ILLEGAL_PARAMETER  },
-  {FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH,   FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE  }
+  {FLEA_ERR_TIMEOUT_ON_STREAM_READ,             FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY        },
+  {FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC,     FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC      },
+  {FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH,            FLEA_TLS_ALERT_DESC_UNEXPECTED_MESSAGE  },
+  {FLEA_ERR_TLS_INV_ALGO_IN_SERVER_HELLO,       FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE   },
+  {FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CIPHERSUITE, FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE   },
+  {FLEA_ERR_TLS_INV_REC_HDR,                    FLEA_TLS_ALERT_DESC_DECRYPT_ERROR       },
+  {FLEA_ERR_CERT_PATH_NO_TRUSTED_CERTS,         FLEA_TLS_ALERT_DESC_UNKNOWN_CA          },
+  {FLEA_ERR_X509_TLS_SERVER_ID_NO_MATCH,        FLEA_TLS_ALERT_DESC_CERTIFICATE_UNKNOWN },
+  {FLEA_ERR_X509_VERSION_ERROR,                 FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_ASN1_DER_DEC_ERR,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_ASN1_DER_UNEXP_TAG,                 FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_ASN1_DER_EXCSS_LEN,                 FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_ASN1_DER_EXCSS_NST,                 FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_ASN1_DEC_TRGT_BUF_TOO_SMALL,        FLEA_TLS_ALERT_DESC_INTERNAL_ERROR      },
+  {FLEA_ERR_ASN1_DER_CALL_SEQ_ERR,              FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_ASN1_DER_CST_LEN_LIMIT_EXCEEDED,    FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_ERR_UNSUP_CRIT_EXT,            FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_SAN_DEC_ERR,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_NEG_INT,                       FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_EKU_VAL_ERR,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_SIG_ALG_ERR,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_UNSUPP_ALGO,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_BIT_STR_ERR,                   FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_UNRECOG_HASH_FUNCTION,         FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_UNSUPP_ALGO_VARIANT,           FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_INV_ECC_KEY_PARAMS,            FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_INV_ECC_FIELD_TYPE,            FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_IMPLICT_ECC_KEY_PARAMS,        FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_INV_ECC_POINT_ENCODING,        FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_EXCSS_COFACTOR_SIZE,           FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_INV_SIGNATURE,                      FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_CERT_PATH_LEN_CONSTR_EXCEEDED,      FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_CERT_INTERMED_IS_NOT_CA_CERT,       FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_CERT_REVOKED,                  FLEA_TLS_ALERT_DESC_CERTIFICATE_REVOKED },
+  {FLEA_ERR_X509_CERT_REV_STAT_UNDET,           FLEA_TLS_ALERT_DESC_CERTIFICATE_UNKNOWN },
+  {FLEA_ERR_TLS_PEER_CERT_INVALID_KEY_USAGE,    FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_X509_CERT_NOT_YET_VALID,            FLEA_TLS_ALERT_DESC_CERTIFICATE_EXPIRED },
+  {FLEA_ERR_X509_CERT_EXPIRED,                  FLEA_TLS_ALERT_DESC_CERTIFICATE_EXPIRED },
+  {FLEA_ERR_TLS_UNSUPP_PROT_VERSION,            FLEA_TLS_ALERT_DESC_PROTOCOL_VERSION    },
+  {FLEA_ERR_TLS_PROT_DECODE_ERR,                FLEA_TLS_ALERT_DESC_DECODE_ERROR        },
+  {FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG,    FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY        },
+  {FLEA_ERR_FAILED_STREAM_READ,                 FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY        },
+  {FLEA_ERR_FAILED_STREAM_WRITE,                FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY        },
+  {FLEA_ERR_TLS_SESSION_CLOSED,                 FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY        },
+  {FLEA_ERR_TLS_REC_CLOSE_NOTIFY,               FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY        },
+  {FLEA_ERR_TLS_HANDSHK_FAILURE,                FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE   },
+  {FLEA_ERR_TLS_CERT_VER_FAILED,                FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_TLS_EXCSS_REC_LEN,                  FLEA_TLS_ALERT_DESC_RECORD_OVERFLOW     },
+  {FLEA_ERR_TLS_NO_SIG_ALG_MATCH,               FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE   },
+  {FLEA_ERR_INV_MAC,                            FLEA_TLS_ALERT_DESC_BAD_RECORD_MAC      },
+  {FLEA_ERR_STREAM_EOF,                         FLEA_TLS_ALERT_DESC_DECODE_ERROR        },
+  {FLEA_ERR_POINT_NOT_ON_CURVE,                 FLEA_TLS_ALERT_DESC_ILLEGAL_PARAMETER   },
+  {FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN,        FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
+  {FLEA_ERR_INV_KEY_SIZE,                       FLEA_TLS_ALERT_DESC_ILLEGAL_PARAMETER   },
+  {FLEA_ERR_TLS_UNKNOWN_PSK_IDENTITY,           FLEA_TLS_ALERT_DESC_UNKNOWN_PSK_IDENTITY},
+  {FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH,   FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE   }
 };
 
 static flea_bool_t determine_alert_from_error(
@@ -425,7 +426,7 @@ flea_err_e THR_flea_tls__handle_tls_error(
         {
           flea_tls_session_data_t__invalidate_session(&client_ctx_mbn__pt->tls_ctx__t.client_session_mbn__pt->session__t);
         }
-        else if(server_ctx_mbn__pt->session_mngr_mbn__pt)
+        else if(server_ctx_mbn__pt && server_ctx_mbn__pt->session_mngr_mbn__pt)
         {
           FLEA_CCALL(
             THR_flea_tls_session_mngr_t__invalidate_session(
@@ -676,6 +677,37 @@ flea_err_e THR_flea_tls__send_handshake_message_hdr(
   }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_handshake_message_hdr */
+
+# ifdef FLEA_HAVE_TLS_CS_PSK
+flea_err_e THR_flea_tls__create_premaster_secret_psk(
+  flea_tls_ctx_t*  tls_ctx__pt,
+  flea_u8_t*       psk__pu8,
+  flea_u16_t       psk_len__u16,
+  flea_byte_vec_t* premaster_secret__pt
+)
+{
+  flea_u16_t premaster_secret_len__u16;
+  flea_u8_t psk_len_enc__au8[2];
+  flea_u8_t zero_byte__u8 = 0;
+
+  FLEA_THR_BEG_FUNC();
+
+  flea__encode_U16_BE(psk_len__u16, psk_len_enc__au8);
+
+  premaster_secret_len__u16 = psk_len__u16 * 2 + 4;
+  FLEA_CCALL(THR_flea_byte_vec_t__resize(premaster_secret__pt, premaster_secret_len__u16));
+  FLEA_CCALL(THR_flea_byte_vec_t__set_content(premaster_secret__pt, psk_len_enc__au8, sizeof(psk_len_enc__au8)));
+  for(flea_u16_t i = 0; i < psk_len__u16; i++)
+  {
+    FLEA_CCALL(THR_flea_byte_vec_t__append(premaster_secret__pt, &zero_byte__u8, 1));
+  }
+  FLEA_CCALL(THR_flea_byte_vec_t__append(premaster_secret__pt, psk_len_enc__au8, sizeof(psk_len_enc__au8)));
+  FLEA_CCALL(THR_flea_byte_vec_t__append(premaster_secret__pt, psk__pu8, psk_len__u16));
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
+# endif /* ifdef FLEA_HAVE_TLS_CS_PSK */
 
 flea_err_e THR_flea_tls__create_master_secret(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
@@ -1055,7 +1087,7 @@ static flea_err_e THR_flea_tls_ctx_t__read_app_data_inner(
       {
         FLEA_CCALL(
           THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
-            &client_ctx_mbn__pt->tls_ctx__t,
+            client_ctx_mbn__pt,
             hostn_valid_params_mbn__pt
           )
         );
@@ -1170,7 +1202,7 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
 # ifdef FLEA_HAVE_TLS_CLIENT
     err__t =
       THR_flea_tls__client_handshake(
-      tls_ctx__pt,
+      client_ctx_mbn__pt,
       tls_ctx__pt->client_session_mbn__pt,
       hostn_valid_params_mbn__pt,
       FLEA_TRUE
@@ -1246,7 +1278,13 @@ flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx_
   // signature algorithms extension
   if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
-    len__alu16 += 6 + tls_ctx__pt->nb_allowed_sig_algs__alu16 * 2;
+# if defined FLEA_HAVE_TLS_CS_PSK
+    // for PSK case don't send this extension
+    if(tls_ctx__pt->client_use_psk__b == FLEA_FALSE)
+# endif
+    {
+      len__alu16 += 6 + tls_ctx__pt->nb_allowed_sig_algs__alu16 * 2;
+    }
   }
 
 # ifdef FLEA_HAVE_TLS_CS_ECC

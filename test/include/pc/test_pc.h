@@ -25,4 +25,16 @@ flea_err_e THR_fleatest_iterate_cert_files_and_verify_as_self_signed(
 
 flea_err_e THR_flea_test_test_dir_full_of_invalid_certs(std::string const& top_dir_name);
 
+#ifdef FLEA_HAVE_TLS_CS_PSK
+
+typedef struct
+{
+  flea_u8_t* identity__pu8;
+  flea_u16_t identity_len__u16;
+  flea_u8_t* psk__pu8;
+  flea_u16_t psk_len__u16;
+} flea_tls_psk_t;
+
+#endif // ifdef FLEA_HAVE_TLS_CS_PSK
+
 #endif /* h-guard */
