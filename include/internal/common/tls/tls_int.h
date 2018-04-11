@@ -15,7 +15,6 @@
 #include "internal/common/tls/tls_const.h"
 #include "flea/tls_fwd.h"
 #include "flea/tls_psk.h"
-#include "internal/common/tls/tls_psk_int.h"
 
 #ifdef __cplusplus
 extern "C" {

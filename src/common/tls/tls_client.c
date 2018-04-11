@@ -22,7 +22,6 @@
 #include "internal/common/tls/tls_client_int_ecc.h"
 #include "internal/common/tls/tls_common_ecc.h"
 #include "flea/pk_keypair.h"
-#include "internal/common/tls/tls_psk_int.h"
 
 #ifdef FLEA_HAVE_TLS_CLIENT
 
