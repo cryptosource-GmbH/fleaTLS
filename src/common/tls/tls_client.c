@@ -400,6 +400,7 @@ static flea_err_e THR_flea_tls__read_server_kex_psk(
     FLEA_THROW("psk_identity_hint too large", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
   FLEA_ALLOC_BUF(psk_identity_hint__bu8, psk_identity_hint_len__u32);
+
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,

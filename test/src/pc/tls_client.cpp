@@ -34,6 +34,7 @@ static flea_err_e THR_flea_start_tls_client(
   flea_tls_client_session_t* client_session__pt
 )
 {
+  std::vector<flea_u8_t> psk;
   flea_rw_stream_t rw_stream__t;
   flea_cert_store_t trust_store__t;
 
@@ -172,6 +173,8 @@ static flea_err_e THR_flea_start_tls_client(
       )
     );
   }
+
+
   if(!cmdl_args.have_index("psk"))
   {
     FLEA_CCALL(
@@ -204,7 +207,6 @@ static flea_err_e THR_flea_start_tls_client(
     {
       test_utils_exceptn_t("Please specify --psk_identity");
     }
-    std::vector<flea_u8_t> psk;
     flea_u8_t* psk_identity__pu8;
     flea_u16_t psk_identity_len__u16;
 
