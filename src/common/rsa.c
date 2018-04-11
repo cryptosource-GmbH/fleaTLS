@@ -412,7 +412,22 @@ flea_err_e THR_flea_rsa_raw_operation(
   FLEA_CCALL(THR_flea_mpi_t__decode(&mod, modulus_enc, modulus_length));
   FLEA_CCALL(THR_flea_mpi_t__decode(&exponent, exponent_enc, exponent_length));
   FLEA_CCALL(THR_flea_mpi_t__decode(&base, base_enc, base_length));
-# ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
+# ifdef FLEA_HAVE_RSA_SIMPLE_PUBLIC_OP
+
+  FLEA_CCALL(
+    THR_flea_mpi_t__mod_exp_simple(
+      &result,
+      &exponent,
+      &base,
+      &mod,
+      &large_tmp,
+      &div_ctx,
+      &ws_q
+    )
+  );
+
+# else  /* ifdef FLEA_HAVE_RSA_SIMPLE_PUBLIC_OP */
+#  ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
   FLEA_CCALL(
     THR_flea_mpi_t__mod_exp_window(
       &result,
@@ -427,7 +442,7 @@ flea_err_e THR_flea_rsa_raw_operation(
       NULL
     )
   );
-# else  /* ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY */
+#  else /* ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY */
 
   FLEA_CCALL(
     THR_flea_mpi_t__mod_exp_window(
@@ -442,7 +457,8 @@ flea_err_e THR_flea_rsa_raw_operation(
       FLEA_FALSE
     )
   );
-# endif /* ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY */
+#  endif /* ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY */
+# endif /* ifdef FLEA_HAVE_RSA_SIMPLE_PUBLIC_OP */
   FLEA_CCALL(THR_flea_mpi_t__encode(result_enc, modulus_length, &result));
 
   FLEA_THR_FIN_SEC(

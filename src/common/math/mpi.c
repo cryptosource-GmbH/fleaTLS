@@ -831,26 +831,22 @@ static flea_err_e THR_flea_mpi_t__precompute_window(
 /**
  * quotient_ws must satisfy at least the requirements of montgm mul ws
  */
-flea_err_e THR_flea_mpi_t__mod_exp_window(
-  flea_mpi_t*           p_result,
-  flea_mpi_t*           p_exp,
-  flea_mpi_t*           p_base,
-  flea_mpi_t*           p_mod,
-  flea_mpi_t*           p_workspace_double_plus_one_sized,
-  flea_mpi_div_ctx_t*   p_div_ctx,
-  flea_mpi_t*           p_quotient_ws,
-  flea_al_u8_t          window_size,
-  flea_bool_t mul_always_cm__b
-#ifdef                  FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
-  ,
-  flea_ctr_mode_prng_t* delay_prng_mbn__pt
+
+flea_err_e THR_flea_mpi_t__mod_exp_simple(
+  flea_mpi_t*         p_result,
+  flea_mpi_t*         p_exp,
+  flea_mpi_t*         p_base,
+  flea_mpi_t*         p_mod,
+  flea_mpi_t*         p_workspace_double_plus_one_sized,
+  flea_mpi_div_ctx_t* p_div_ctx,
+  flea_mpi_t*         p_quotient_ws
+  // flea_al_u8_t          window_size,
 #endif
 )
 {
   flea_uword_t one_arr[1];
   flea_u16_t exp_bit_size;
   flea_s32_t i;
-  flea_mpi_t one;
 
 #ifdef FLEA_HEAP_MODE
   const flea_al_u16_t precomp_arr_dynamic_word_len = p_mod->m_nb_used_words;
@@ -867,10 +863,7 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
 #endif
 
 
-  FLEA_DECL_BUF(precomp, flea_mpi_t, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1);
-
-  flea_mpi_t R;
-  flea_montgm_mul_ctx_t mm_ctx;
+  // FLEA_DECL_BUF(precomp, flea_mpi_t, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1);
 
   FLEA_THR_BEG_FUNC();
 
@@ -879,10 +872,6 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
     window_size = FLEA_CRT_RSA_WINDOW_SIZE;
   }
   precomp_dynamic_size = (1 << window_size) - 1;
-
-  mm_ctx.mod_prime = flea_montgomery_compute_n_prime(p_mod->m_words[0]);
-  mm_ctx.p_mod     = p_mod;
-  mm_ctx.p_ws      = p_quotient_ws;
 
   FLEA_ALLOC_BUF(R_arr, R_dynamic_word_len);
 #if defined FLEA_HEAP_MODE
@@ -913,40 +902,10 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
 
   // window method precomputations
 
-  flea_mpi_t__init(&one, one_arr, sizeof(one_arr) / sizeof(flea_uword_t));
-  flea_mpi_t__set_to_word_value(&one, 1);
-
-  FLEA_CCALL(THR_flea_mpi_t__mul(p_workspace_double_plus_one_sized, &R, p_base));
+  FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(&precomp[0], p_base));
 
 
-  FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &precomp[0], p_workspace_double_plus_one_sized, p_mod, p_div_ctx)); // a_bar = a * R mod n
-
-#if FLEA_CRT_RSA_WINDOW_SIZE > 1
-  if(window_size > 1)
-  {
-    FLEA_CCALL(
-      THR_flea_mpi_t__precompute_window(
-        &precomp[1],
-        &precomp[0],
-        &precomp[0],
-        &mm_ctx,
-        p_workspace_double_plus_one_sized
-      )
-    );
-    for(i = 2; i < (1 << window_size) - 1; i++)
-    {
-      FLEA_CCALL(
-        THR_flea_mpi_t__precompute_window(
-          &precomp[i],
-          &precomp[i - 1],
-          &precomp[0],
-          &mm_ctx,
-          p_workspace_double_plus_one_sized
-        )
-      );
-    }
-  }
-#endif /* if FLEA_CRT_RSA_WINDOW_SIZE > 1 */
+  // FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &precomp[0], p_workspace_double_plus_one_sized, p_mod, p_div_ctx)); // a_bar = a * R mod n
 
 
   // first, transform base
@@ -968,20 +927,6 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
     flea_bool_t do_mul__b;
     flea_mpi_t* result_or_fake_iter__pt = p_result;
 
-#ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
-    flea_al_u8_t fix_up_i__is_fake_iter__alu8 = 0;
-    flea_u8_t rnd_bytes__au8[3];
-#endif
-#ifdef FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
-    flea_u8_t real_rnd_bytes__au8[2];
-#endif
-#if defined FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY || defined FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
-    flea_al_u16_t delay_iters__alu16 = 0;
-#endif
-    while(i < window_size && window_size > 1)
-    {
-      window_size--;
-    }
 
 #ifdef FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
     FLEA_CCALL(THR_flea_rng__randomize_no_flush(&real_rnd_bytes__au8[0], sizeof(real_rnd_bytes__au8)));
@@ -997,11 +942,11 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
     {
       flea_ctr_mode_prng_t__randomize_no_flush(delay_prng_mbn__pt, rnd_bytes__au8, sizeof(rnd_bytes__au8));
       flea_al_u8_t cond__alu8 = rnd_bytes__au8[0] & 0x0F;
-# ifdef FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
+#ifdef FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
       flea_al_u8_t cond2__alu8 = real_rnd_bytes__au8[0] & 0x0F;
       /* additional random delays */
       cond__alu8 = ~((~cond__alu8) & (~cond2__alu8));
-# endif
+#endif
       fix_up_i__is_fake_iter__alu8 = flea_consttime__select_u32_nz_z(0, window_size, cond__alu8);
 
       result_or_fake_iter__pt = (flea_mpi_t*) flea_consttime__select_ptr_nz_z(
@@ -1070,6 +1015,245 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
   );
 } /* THR_flea_mpi_t__mod_exp_window */
 
+flea_err_e THR_flea_mpi_t__mod_exp_window(
+  flea_mpi_t*           p_result,
+  flea_mpi_t*           p_exp,
+  flea_mpi_t*           p_base,
+  flea_mpi_t*           p_mod,
+  flea_mpi_t*           p_workspace_double_plus_one_sized,
+  flea_mpi_div_ctx_t*   p_div_ctx,
+  flea_mpi_t*           p_quotient_ws,
+  flea_al_u8_t          window_size,
+  flea_bool_t mul_always_cm__b
+#ifdef                  FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
+  ,
+  flea_ctr_mode_prng_t* delay_prng_mbn__pt
+#endif
+)
+{
+  flea_uword_t one_arr[1];
+  flea_u16_t exp_bit_size;
+  flea_s32_t i;
+  flea_mpi_t one;
+
+#ifdef FLEA_HEAP_MODE
+  const flea_al_u16_t precomp_arr_dynamic_word_len = p_mod->m_nb_used_words;
+#endif
+  const flea_al_u16_t R_dynamic_word_len = p_mod->m_nb_used_words + 1; // R is one word longer than mod
+  flea_mpi_ulen_t precomp_dynamic_size;
+
+  FLEA_DECL_BUF(R_arr, flea_uword_t, ((FLEA_RSA_MAX_KEY_BIT_SIZE / 8) + 4) / sizeof(flea_uword_t) + 1); // for RSA (CRT/SF) ; + 1 because R potentially longer than mod and another +4 for p-q diff; this array must account for non CRT usage also
+#if defined FLEA_HEAP_MODE
+  FLEA_DECL_BUF(precomp_arrs, flea_uword_t*, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1);
+#else
+  flea_uword_t precomp_arrs[(1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1][FLEA_RSA_MAX_KEY_BIT_SIZE / 8 / sizeof(flea_uword_t)
+  + 4 / sizeof(flea_uword_t)]; // plus 32-bit because of p-q-diff
+#endif
+
+
+  FLEA_DECL_BUF(precomp, flea_mpi_t, (1 << FLEA_CRT_RSA_WINDOW_SIZE) - 1);
+
+  flea_mpi_t R;
+  flea_montgm_mul_ctx_t mm_ctx;
+
+  FLEA_THR_BEG_FUNC();
+
+  if(window_size > FLEA_CRT_RSA_WINDOW_SIZE)
+  {
+    window_size = FLEA_CRT_RSA_WINDOW_SIZE;
+  }
+  precomp_dynamic_size = (1 << window_size) - 1;
+
+    mm_ctx.mod_prime = flea_montgomery_compute_n_prime(p_mod->m_words[0]);
+    mm_ctx.p_mod = p_mod;
+    mm_ctx.p_ws = p_quotient_ws;
+
+    FLEA_ALLOC_BUF(R_arr, R_dynamic_word_len);
+#if defined FLEA_HEAP_MODE
+    FLEA_ALLOC_BUF(precomp_arrs, precomp_dynamic_size);
+    FLEA_ALLOC_BUF(precomp, precomp_dynamic_size);
+
+    FLEA_SET_ARR(precomp_arrs, 0, precomp_dynamic_size);
+    for(i = 0; i < precomp_dynamic_size; i++)
+  {
+    FLEA_ALLOC_MEM_ARR(precomp_arrs[i], precomp_arr_dynamic_word_len);
+  }
+#endif /* if defined FLEA_HEAP_MODE */
+    for(i = 0; i < precomp_dynamic_size; i++)
+  {
+#ifdef FLEA_HEAP_MODE
+    flea_mpi_t__init(&precomp[i], precomp_arrs[i], precomp_arr_dynamic_word_len);
+#else
+    flea_mpi_t__init(&precomp[i], precomp_arrs[i], sizeof(precomp_arrs[i]) / sizeof(flea_uword_t));
+#endif
+  }
+#ifdef FLEA_DO_IF_USE_HEAP_BUF
+    flea_mpi_t__init(&R, R_arr, R_dynamic_word_len);
+#else
+    flea_mpi_t__init(&R, R_arr, sizeof(R_arr) / sizeof(R_arr[0]);
+#endif
+    FLEA_CCALL(THR_flea_mpi_t__set_pow_2(&R, p_mod->m_nb_used_words * FLEA_WORD_BIT_SIZE));
+
+
+    // window method precomputations
+
+    flea_mpi_t__init(&one, one_arr, sizeof(one_arr) / sizeof(flea_uword_t));
+    flea_mpi_t__set_to_word_value(&one, 1);
+
+    FLEA_CCALL(THR_flea_mpi_t__mul(p_workspace_double_plus_one_sized, &R, p_base));
+
+
+    FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &precomp[0], p_workspace_double_plus_one_sized, p_mod, p_div_ctx)); // a_bar = a * R mod n
+
+#if FLEA_CRT_RSA_WINDOW_SIZE > 1
+    if(window_size > 1)
+  {
+    FLEA_CCALL(
+      THR_flea_mpi_t__precompute_window(
+        &precomp[1],
+        &precomp[0],
+        &precomp[0],
+        &mm_ctx,
+        p_workspace_double_plus_one_sized
+      )
+    );
+    for(i = 2; i < (1 << window_size) - 1; i++)
+    {
+      FLEA_CCALL(
+        THR_flea_mpi_t__precompute_window(
+          &precomp[i],
+          &precomp[i - 1],
+          &precomp[0],
+          &mm_ctx,
+          p_workspace_double_plus_one_sized
+        )
+      );
+    }
+  }
+#endif /* if FLEA_CRT_RSA_WINDOW_SIZE > 1 */
+
+
+    // first, transform base
+
+    // transformed base x_bar^0 in p_result:
+
+    FLEA_CCALL(THR_flea_mpi_t__divide(NULL, p_result, &R, p_mod, p_div_ctx)); // x_bar = 1 * R mod n
+
+    exp_bit_size = flea_mpi_t__get_bit_size(p_exp);
+
+    i = exp_bit_size - 1;
+
+    while(i >= 0)
+  {
+    flea_al_u8_t j;
+    flea_mpi_t* p_base_power;
+    flea_al_u8_t exp_bit = 0;
+    flea_mpi_t* result_or_fake__pt, * base_or_fake__pt;
+    flea_bool_t do_mul__b;
+    flea_mpi_t* result_or_fake_iter__pt = p_result;
+
+#ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
+    flea_al_u8_t fix_up_i__is_fake_iter__alu8 = 0;
+    flea_u8_t rnd_bytes__au8[3];
+#endif
+#ifdef FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
+    flea_u8_t real_rnd_bytes__au8[2];
+#endif
+#if defined FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY || defined FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
+    flea_al_u16_t delay_iters__alu16 = 0;
+#endif
+    while(i < window_size && window_size > 1)
+    {
+      window_size--;
+    }
+
+#ifdef FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
+    FLEA_CCALL(THR_flea_rng__randomize_no_flush(&real_rnd_bytes__au8[0], sizeof(real_rnd_bytes__au8)));
+    if((i == exp_bit_size - 1) || (0 == (real_rnd_bytes__au8[1] & 0x0F)))
+    {
+      /* delay with probability 1/4 */
+      delay_iters__alu16 += real_rnd_bytes__au8[0];
+    }
+#endif /* ifdef FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY */
+
+#ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
+    if(delay_prng_mbn__pt)
+    {
+      flea_ctr_mode_prng_t__randomize_no_flush(delay_prng_mbn__pt, rnd_bytes__au8, sizeof(rnd_bytes__au8));
+      flea_al_u8_t cond__alu8 = rnd_bytes__au8[0] & 0x0F;
+#ifdef FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
+      flea_al_u8_t cond2__alu8 = real_rnd_bytes__au8[0] & 0x0F;
+      /* additional random delays */
+      cond__alu8 = ~((~cond__alu8) & (~cond2__alu8));
+#endif
+      fix_up_i__is_fake_iter__alu8 = flea_consttime__select_u32_nz_z(0, window_size, cond__alu8);
+
+      result_or_fake_iter__pt = (flea_mpi_t*) flea_consttime__select_ptr_nz_z(
+        p_workspace_double_plus_one_sized,
+        p_result,
+        fix_up_i__is_fake_iter__alu8
+        );
+      if((i == exp_bit_size - 1) || (0 == (rnd_bytes__au8[2] & 0x0F)))
+      {
+        /* delay with probability 1/4 */
+        delay_iters__alu16 += (rnd_bytes__au8[1]) | (rnd_bytes__au8[2] << 1);
+      }
+    }
+#endif  /* ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY */
+
+#if defined FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY || defined FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
+    flea_waste_cycles(delay_iters__alu16);
+#endif
+
+    exp_bit = flea_mpi_t__get_window(p_exp, i - (window_size - 1), window_size);
+    // perform the squarings
+    for(j = 0; j < window_size; j++)
+    {
+      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, p_result, &mm_ctx)); // last arg needs only mod size
+      // copy contents from large ws to result
+      FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(result_or_fake_iter__pt, p_workspace_double_plus_one_sized));
+    }
+
+    p_base_power = &precomp[exp_bit - 1];
+
+    result_or_fake__pt = flea_consttime__select_ptr_nz_z(
+      result_or_fake_iter__pt,
+      p_workspace_double_plus_one_sized,
+      exp_bit
+      );
+    // result_or_fake__pt = flea_consttime__select_ptr_nz_z(result_or_fake_iter__pt, p_workspace_double_plus_one_sized, fix_up_i__is_fake_iter__alu8);
+    base_or_fake__pt = flea_consttime__select_ptr_nz_z(p_base_power, &precomp[0], exp_bit);
+    // base_or_fake__pt   = flea_consttime__select_ptr_nz_z(base_or_fake__pt, &precomp[0], fix_up_i__is_fake_iter__alu8);
+    do_mul__b = flea_consttime__select_u32_nz_z(1, mul_always_cm__b, exp_bit);
+    if(do_mul__b)
+    {
+      FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, base_or_fake__pt, &mm_ctx));
+      FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(result_or_fake__pt, p_workspace_double_plus_one_sized));
+    }
+
+    i -= window_size;
+#ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
+    i += fix_up_i__is_fake_iter__alu8;
+#endif
+  }
+    FLEA_CCALL(THR_flea_mpi_t__montgm_mul(p_workspace_double_plus_one_sized, p_result, &one, &mm_ctx));
+    FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_result, p_workspace_double_plus_one_sized));
+    FLEA_THR_FIN_SEC(
+      FLEA_DO_IF_USE_HEAP_BUF(
+        if(precomp_arrs)
+  {
+    for(i = 0; i < precomp_dynamic_size; i++)
+    {
+      FLEA_FREE_MEM_CHK_NULL(precomp_arrs[i]);
+    }
+  }
+        FLEA_FREE_BUF_FINAL(precomp_arrs);
+      );
+      FLEA_FREE_BUF_FINAL(precomp);
+      FLEA_FREE_BUF_FINAL(R_arr);
+    );
+} /* THR_flea_mpi_t__mod_exp_window */
+
 flea_u16_t flea_mpi_t__get_bit_size(const flea_mpi_t* p_mpi)
 {
   // take the highest word and count the unused bits
@@ -1081,8 +1265,8 @@ flea_u16_t flea_mpi_t__get_bit_size(const flea_mpi_t* p_mpi)
     return 0;
   }
   word = p_mpi->m_words[p_mpi->m_nb_used_words - 1];
-  i    = flea__nlz_uword(word);
-  i    = FLEA_WORD_BIT_SIZE - i;
+  i = flea__nlz_uword(word);
+  i = FLEA_WORD_BIT_SIZE - i;
   return i + (p_mpi->m_nb_used_words - 1) * sizeof(p_mpi->m_words[0]) * 8;
 }
 
