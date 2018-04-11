@@ -3,6 +3,11 @@
 #ifndef _flea_tls_psk__H_
 #define _flea_tls_psk__H_
 
+#include "flea/tls.h"
+#include "flea/tls_server.h"
+#include "flea/cert_store.h"
+#include "flea/privkey.h"
+
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -12,17 +17,17 @@ extern "C" {
  * Callback function that will be called during handshake to determine the PSK
  * that the server will use.
  *
- * @param[in] psk_lookup_ctx_mbn__vp Arbitrary object that is intended to be
+ * @param[in] psk_lookup_ctx_mbn custom object that is intended to be
  * used to lookup the PSK. E.g. a database handle.
- * @param[in] psk_identity__pu8 Identity of the client.
- * @param[in] psk_identity_len__u16 Length of the identity.
- * @param[out] psk_vec__t Contains the pre-shared key after the call.
+ * @param[in] psk_identity Identity of the client.
+ * @param[in] psk_identity_len Length of the identity.
+ * @param[out] psk_vec Contains the pre-shared key after the call.
  */
 typedef flea_err_e (* flea_get_psk_cb_f)(
-  const void*      psk_lookup_ctx_mbn__vp,
-  const flea_u8_t* psk_identity__pu8,
-  const flea_u16_t psk_identity_len__u16,
-  flea_byte_vec_t* psk_vec__t
+  const void*      psk_lookup_ctx_mbn,
+  const flea_u8_t* psk_identity,
+  const flea_u16_t psk_identity_len,
+  flea_byte_vec_t* psk_vec
 );
 
 /**
@@ -65,18 +70,20 @@ typedef flea_err_e (* flea_get_psk_cb_f)(
  * server may use for digital signatures during the handshake and in its own
  * certificate chain. It is ordered in descending priority.
  * @param allowed_sig_algs_len The length of allowed_sig_algs
- * @param [in] identity_hint_mbn__pu8 Pointer to the identity hint that will be
+ * @param [in] identity_hint_mbn Pointer to the identity hint that will be
  * sent to clients.
- * @param [in] identity_hint_len__u16 Length of the identity hint
- * @param [in] get_psk_mbn_cb__f Callback function to determine the PSK
- * @param [in] psk_lookup_ctx_mbn__vp Arbitrary object, e.g. a database, that
- * can be used to determine the PSK in the callback function.
+ * @param [in] identity_hint_len Length of the identity hint
+ * @param [in] get_psk_mbn_cb Callback function to determine the PSK based on
+ * the client's PSK identity. This
+ * function may only be null if PSK is not used.
+ * @param [in] psk_lookup_ctx_mbn custom object, that is provided to the
+ * get_psk_mbn_cb function and can be used to determine the PSK in the callback.
+ * function.
  * @param[in] flags A combination of flags to control the server's behaviour.
  * @param[in,out] session_mngr_mbn A session manager implementing a TLS session
  * cache used to store sessions
  * established with clients for later resumption. This object may be shared
  * between different threads in which different flea_tls_server_ctx_t objects handle different connections to different clients. Once a client connects and requests connection resumption, the server performs a lookup in the flea_tls_session_mngr_t object. If the session is in the cache, the server accepts the resumption.  This parameter may be null, in which case the server does not support session resumption.
-
  *
  * @return an error code
  */
@@ -95,31 +102,30 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor_psk(
   flea_al_u16_t                     allowed_ecc_curves_len,
   flea_tls_sigalg_e*                allowed_sig_algs,
   flea_al_u16_t                     allowed_sig_algs_len,
-  const flea_u8_t*                  identity_hint_mbn__pu8,
-  flea_u16_t                        identity_hint_len__u16,
-  flea_get_psk_cb_f                 get_psk_mbn_cb__f,
-  const void*                       psk_lookup_ctx_mbn__vp,
+  const flea_u8_t*                  identity_hint_mbn,
+  flea_u16_t                        identity_hint_len,
+  flea_get_psk_cb_f                 get_psk_mbn_cb,
+  const void*                       psk_lookup_ctx_mbn,
   flea_tls_flag_e                   flags,
   flea_tls_session_mngr_t*          session_mngr_mbn
 );
 
-// the above functions are also needed when the PSK flag is disabled
 
 #ifdef FLEA_HAVE_TLS_CS_PSK
 
 /*
- * Callback function that will be called during the handshake to transform the
+ * Callback function that will be called during the handshake by the client to transform the
  * PSK according to the identity hint provided by the server.
  *
- * @param[in,out] psk_vec__t Contains the untransformed PSK before the call and
+ * @param[in,out] psk_vec Contains the untransformed PSK before the call and
  * the transformed PSK after the call.
- * @param[in] psk_identity_hint__pu8 Identity hint from server.
- * @param[in] psk_identity_hint_len__u16 The length of the identity hint.
+ * @param[in] psk_identity_hint Identity hint from server.
+ * @param[in] psk_identity_hint_len The length of the identity hint.
  */
 typedef flea_err_e (* flea_process_identity_hint_cb_f)(
-  flea_byte_vec_t* psk_vec__t,
-  const flea_u8_t* psk_identity_hint__pu8,
-  const flea_u16_t psk_identity_hint_len__u16
+  flea_byte_vec_t* psk_vec,
+  const flea_u8_t* psk_identity_hint,
+  const flea_u16_t psk_identity_hint_len
 );
 
 
@@ -129,12 +135,14 @@ typedef flea_err_e (* flea_process_identity_hint_cb_f)(
  * @param[in,out] tls_client_ctx  the ctx object to create
  * @param[in] rw_stream a read-write stream object which realizes the data and must
  * be implemented by the client code.
- * @param[in] psk__pu8 The pre-shared key that will be used.
- * @param[in] psk_len__u16 Length of the pre-shared key.
- * @param[in] psk_identity__pu8 Identity of the client.
- * @param[in] psk_identity_len__u16 Length of the identity.
- * @param[in] process_identity_hint_mbn_cb__f Callback function that will be
- * used during the handshake to process the server identity hint.
+ * @param[in] psk The pre-shared key that will be used.
+ * @param[in] psk_len Length of psk_len.
+ * @param[in] psk_identity Identity of the client.
+ * @param[in] psk_identity_len Length of psk_identity.
+ * @param[in] process_identity_hint_mbn_cb Callback function that will be
+ * used during the handshake to process the server identity hint. This function
+ * may be null, in which case the identity hint sent by the server is not
+ * processed.
  * @param[in] server_name_mbn name of the server. This parameter may be set to
  * null if no hostname verification shall be carried out. If set as non-null,
  * then in accordance with the value of the parameter host_name_id, this can be * either a DNS name of an IP address. A DNS name is provided as a non-null
@@ -155,18 +163,18 @@ typedef flea_err_e (* flea_process_identity_hint_cb_f)(
  */
 
 flea_err_e THR_flea_tls_client_ctx_t__ctor_psk(
-  flea_tls_client_ctx_t*            tls_client_ctx__pt,
-  flea_rw_stream_t*                 rw_stream__pt,
-  flea_u8_t*                        psk__pu8,
-  flea_u16_t                        psk_len__u16,
-  flea_u8_t*                        psk_identity__pu8,
-  flea_u16_t                        psk_identity_len__u16,
-  flea_process_identity_hint_cb_f   process_identity_hint_mbn_cb__f,
-  const flea_ref_cu8_t*             server_name__pcrcu8,
-  flea_host_id_type_e               host_name_id__e,
-  const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
-  flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
-  flea_tls_flag_e                   flags__e
+  flea_tls_client_ctx_t*            tls_client_ctx,
+  flea_rw_stream_t*                 rw_stream,
+  flea_u8_t*                        psk,
+  flea_u16_t                        psk_len,
+  flea_u8_t*                        psk_identity,
+  flea_u16_t                        psk_identity_len,
+  flea_process_identity_hint_cb_f   process_identity_hint_mbn_cb,
+  const flea_ref_cu8_t*             server_name,
+  flea_host_id_type_e               host_name_id,
+  const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
+  flea_al_u16_t                     nb_allowed_cipher_suites,
+  flea_tls_flag_e                   flags
 );
 
 #endif // ifdef FLEA_HAVE_TLS_CS_PSK
