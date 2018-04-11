@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #ifndef _flea_property_set__H_
 #define _flea_property_set__H_
 

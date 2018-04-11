@@ -274,13 +274,13 @@ flea_err_e THR_flea_pk_api__verify_message__pkcs1_v1_5(
 } /* THR_flea_pk_api__verify_message__pkcs1_v1_5 */
 
 flea_err_e THR_flea_pk_api__encode_message__ansi_x9_62(
-  flea_u8_t*     input_output__pcu8,
+  flea_u8_t*     input_output__pu8,
   flea_al_u16_t  input_len__alu16,
   flea_al_u16_t* output_len__palu16,
   flea_al_u16_t  bit_size
 )
 {
-  flea_al_u8_t over__alu8;
+  flea_al_u8_t bit_shift__alu8;
 
   FLEA_THR_BEG_FUNC();
 
@@ -290,10 +290,21 @@ flea_err_e THR_flea_pk_api__encode_message__ansi_x9_62(
     FLEA_THR_RETURN();
   }
   *output_len__palu16 = (bit_size + 7) / 8;
-  over__alu8 = bit_size % 8;
-  if(over__alu8)
+  bit_shift__alu8     = 8 - (bit_size % 8);
+  if(bit_shift__alu8 == 8)
   {
-    input_output__pcu8[(*output_len__palu16) - 1] &= ((1 << over__alu8) - 1);
+    bit_shift__alu8 = 0;
+  }
+  if(bit_shift__alu8)
+  {
+    flea_al_u16_t j;
+    flea_al_u8_t carry__alu8 = 0;
+    for(j = 0; j != *output_len__palu16; ++j)
+    {
+      flea_al_u8_t temp__alu8 = input_output__pu8[j];
+      input_output__pu8[j] = (temp__alu8 >> bit_shift__alu8) | carry__alu8;
+      carry__alu8 = (temp__alu8 << (8 - bit_shift__alu8));
+    }
   }
   FLEA_THR_FIN_SEC_empty();
 }

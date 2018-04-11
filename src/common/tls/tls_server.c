@@ -232,10 +232,9 @@ static flea_err_e THR_flea_tls__read_client_hello(
         &curr_cm
       )
     );
-    if(curr_cm == NO_COMPRESSION)
+    if(curr_cm == FLEA_TLS_NO_COMPRESSION)
     {
       found_compression_method = FLEA_TRUE;
-      break;
     }
     client_compression_methods_len__u8--;
   }
