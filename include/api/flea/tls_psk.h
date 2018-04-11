@@ -90,7 +90,8 @@ typedef flea_err_e (* flea_process_identity_hint_cb_f)(
 
 
 /*
- * Creates a TLS client object where only PSK cipher suites are enabled.
+ * Creates a TLS client object where only PSK cipher suites are enabled. Does
+ * not support session resumption.
  *
  * @param[in,out] tls_client_ctx  the ctx object to create
  * @param[in] rw_stream a read-write stream object which realizes the data and must
