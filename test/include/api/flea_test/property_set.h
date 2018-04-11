@@ -24,12 +24,14 @@ public:
 
   property_set_t(
     std::string const      & filename,
-    properties_spec_t const& spec = properties_spec_t()
+    properties_spec_t const& spec = properties_spec_t(),
+    bool                   do_enforce_white_listing_of_params = false
   );
   property_set_t(
     int                    argc,
     const char**           argv,
-    properties_spec_t const& spec = properties_spec_t()
+    properties_spec_t const& spec = properties_spec_t(),
+    bool                   do_enforce_white_listing_of_params = false
   );
   std::string get_property_as_string(std::string const& index) const;
   std::string get_property_as_string_default_empty(std::string const& index) const;
@@ -54,6 +56,11 @@ public:
 
     return get_property_as_bool(index, &default_val);
   }
+
+  void add_index_whitelist_check(
+    std::string const& name,
+    std::string const& value
+  );
 
   bool have_index(std::string const& index) const;
   flea_u32_t get_property_as_u32_default(
@@ -83,6 +90,7 @@ private:
   void ensure_index(std::string const& index) const;
   std::string m_filename;
   properties_spec_t m_spec;
+  bool m_do_enforce_params_whitelisting;
 };
 std::vector<flea_u8_t> parse_hex_prop_line(
   const char*   name,

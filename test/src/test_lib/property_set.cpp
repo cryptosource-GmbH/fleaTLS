@@ -443,12 +443,27 @@ void property_set_t::add_index_name_string_with_equation_mark(
   (*this)[name] = value;
 } // property_set_t::add_index_name_string_with_equation_mark
 
+void property_set_t::add_index_whitelist_check(
+  std::string const& name,
+  std::string const& value
+)
+{
+  if(m_do_enforce_params_whitelisting)
+  {
+    if(!m_spec.count(name))
+    { }
+  }
+  (*this)[name] = value;
+}
+
 property_set_t::property_set_t(
   int                    argc,
   const char**           argv,
-  properties_spec_t const& spec
+  properties_spec_t const& spec,
+  bool                   do_enforce_white_listing_of_params
 )
-  : m_spec(spec)
+  : m_spec(spec),
+  m_do_enforce_params_whitelisting(do_enforce_white_listing_of_params)
 {
   for(unsigned i = 1; i < static_cast<unsigned>(argc); i++)
   {
@@ -465,10 +480,12 @@ property_set_t::property_set_t(
 
 property_set_t::property_set_t(
   std::string const      & filename,
-  properties_spec_t const& spec
+  properties_spec_t const& spec,
+  bool                   do_enforce_white_listing_of_params
 )
   : m_filename(filename),
-  m_spec(spec)
+  m_spec(spec),
+  m_do_enforce_params_whitelisting(do_enforce_white_listing_of_params)
 {
   vector<string> lines = read_file_line_wise(filename);
   for(string line: lines)
