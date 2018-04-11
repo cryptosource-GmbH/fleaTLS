@@ -699,10 +699,10 @@ flea_err_e THR_flea_tls__create_premaster_secret_psk(
   FLEA_CCALL(THR_flea_byte_vec_t__set_content(premaster_secret__pt, psk_len_enc__au8, sizeof(psk_len_enc__au8)));
   for(flea_u16_t i = 0; i < psk_len__u16; i++)
   {
-    THR_flea_byte_vec_t__append(premaster_secret__pt, &zero_byte__u8, 1);
+    FLEA_CCALL(THR_flea_byte_vec_t__append(premaster_secret__pt, &zero_byte__u8, 1));
   }
-  THR_flea_byte_vec_t__append(premaster_secret__pt, psk_len_enc__au8, sizeof(psk_len_enc__au8));
-  THR_flea_byte_vec_t__append(premaster_secret__pt, psk__pu8, psk_len__u16);
+  FLEA_CCALL(THR_flea_byte_vec_t__append(premaster_secret__pt, psk_len_enc__au8, sizeof(psk_len_enc__au8)));
+  FLEA_CCALL(THR_flea_byte_vec_t__append(premaster_secret__pt, psk__pu8, psk_len__u16));
 
   FLEA_THR_FIN_SEC_empty();
 }

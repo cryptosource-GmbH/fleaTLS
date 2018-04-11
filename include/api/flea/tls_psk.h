@@ -32,9 +32,44 @@ typedef flea_err_e (* flea_get_psk_cb_f)(
 
 /**
  * Creates a TLS server object and is similar to THR_flea_tls_server_ctx_t__ctor
- * but has some additional arguments for PSK. Only the additional parameters are
- * described here.
+ * with some additional arguments for PSK. This implies the execution of the initial
+ * TLS handshake. After the call to this function, data can be exchanged over
+ * the TLS connection. All pointer type parameters that are supplied to this function must stay valid for the
+ * complete life-cycle of this TLS server context object as they are used as * references within the TLS functions.
  *
+ * @param[in,out] tls_server_ctx  The TLS server ctx object to create.
+ * @param[in,out] rw_stream The stream which implements the underlying
+ * bidirectional data transfer. Has to be implemented by client code.
+ * @param [in] trust_store_mbn Pointer to a certificate store object which
+ * contains the trusted certificates the server may use to authenticate client
+ * certificates. If this parameter is non-null, then the server enforces client
+ * authentication. It may also be null, then the server does not request client
+ * authentication.
+ * @param[in] cert_chain The certificate chain the server uses for server
+ * authentication. Each flea_ref_cu8_t refers to a DER encoded certificate of
+ * the chain. The order of the certificates, starting from position 0, is
+ * <server-cert> [ <ca-cert> <ca-cert> ] <root-cert>. The occurrence of CA certs
+ * is optional. The root-cert may also be omitted according to the TLS standard.
+ * @param[in] cert_chain_len the length of cert_chain.
+ * @param allowed_cipher_suites a pointer to the array containing the
+ * cipher suites supported by the server. The lower the index of a suite within
+ * the array, the higher is its priority.
+ * @param[in] private_key The server's private key associated with its
+ * certificate.
+ * @param[in] crls A list of DER encoded CRLs which the server uses for revocation
+ * checking (according to the flags parameter, see below) of
+ * the client's certificate chain.
+ * @param[in] crls_len The length of crls.
+ * @param[in] allowed_cipher_suites a list of the TLS cipher suites the server
+ * may negotiate ordered in descending priority.
+ * @param[in] allowed_cipher_suites_len The length of allowed_cipher_suites.
+ * @param[in] allowed_ecc_curves A list of the ECC curves that are supported by the
+ * server ordered in descending priority.
+ * @param[in] allowed_ecc_curves_len The length of allowed_ecc_curves.
+ * @param[in] allowed_sig_algs A list of allowed signature algorithms that the
+ * server may use for digital signatures during the handshake and in its own
+ * certificate chain. It is ordered in descending priority.
+ * @param allowed_sig_algs_len The length of allowed_sig_algs
  * @param [in] identity_hint_mbn Pointer to the identity hint that will be
  * sent to clients.
  * @param [in] identity_hint_len Length of the identity hint
@@ -44,6 +79,11 @@ typedef flea_err_e (* flea_get_psk_cb_f)(
  * @param [in] psk_lookup_ctx_mbn custom object, that is provided to the
  * get_psk_mbn_cb function and can be used to determine the PSK in the callback.
  * function.
+ * @param[in] flags A combination of flags to control the server's behaviour.
+ * @param[in,out] session_mngr_mbn A session manager implementing a TLS session
+ * cache used to store sessions
+ * established with clients for later resumption. This object may be shared
+ * between different threads in which different flea_tls_server_ctx_t objects handle different connections to different clients. Once a client connects and requests connection resumption, the server performs a lookup in the flea_tls_session_mngr_t object. If the session is in the cache, the server accepts the resumption.  This parameter may be null, in which case the server does not support session resumption.
  *
  * @return an error code
  */
