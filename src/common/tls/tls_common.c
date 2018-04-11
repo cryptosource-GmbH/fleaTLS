@@ -1667,10 +1667,10 @@ flea_err_e THR_flea_tls__read_sig_algs_field_and_find_best_match(
       if(hash_id__t == (flea_hash_id_e) tls_ctx__pt->allowed_sig_algs__pe[i] >> 8 &&
         pk_scheme_id__t == ((flea_pk_scheme_id_e) tls_ctx__pt->allowed_sig_algs__pe[i] & 0xFF))
       {
-        if(i / 2 < hash_alg_pos__alu16)
+        if(i < hash_alg_pos__alu16)
         {
           /* update if it has higher priority */
-          hash_alg_pos__alu16 = i / 2;
+          hash_alg_pos__alu16 = i;
           tls_ctx__pt->chosen_hash_algorithm__t = hash_id__t;
         }
         break;
