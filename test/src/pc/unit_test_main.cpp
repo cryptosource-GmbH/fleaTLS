@@ -26,161 +26,167 @@ static properties_spec_t create_properties_spec()
 {
   properties_spec_t result;
 
-  result["help"]       = properties_spec_entry_t("print this help text");
-  result["tls_client"] = properties_spec_entry_t("instantiate a fleaTLS client", "");
-  result["tls_server"] = properties_spec_entry_t("instantiate a fleaTLS server", "");
+  std::string cl("TLS client");
+  std::string se("TLS server");
+  std::string un("unit tests");
+  std::string tls("TLS client and server");
+  std::string fz("Fuzzing with AFL");
+  std::string ge("General");
+  result["help"]       = properties_spec_entry_t("print this help text").set_group(ge);
+  result["tls_client"] = properties_spec_entry_t("instantiate a fleaTLS client", "").set_group(cl);
+  result["tls_server"] = properties_spec_entry_t("instantiate a fleaTLS server", "").set_group(se);
   result["trusted"]    = properties_spec_entry_t(
     "Comma seperated list of file paths of DER encoded certificates which are trusted for the purpose of validating the peer. This argument is optional for the server - if it is provided, then client authentication is required.",
     "certs"
-    );
+    ).set_group(tls);
   result["own_certs"] = properties_spec_entry_t(
     "A single file path to the peer's own DER encoded EE certificate. This argument is optional for the client.",
     "certs"
-    );
+    ).set_group(tls);
   result["own_ca_chain"] = properties_spec_entry_t(
     "comma seperated list of file paths of DER encoded certificates that form the chain of certificates beyond the own EE (which must not be part of this list) to be send to the peer during the handshake The order must be starting from the issuer of the EE ending at the root certificate which is trusted by the peer.",
     "certs"
-    );
+    ).set_group(tls);
   result["own_private_key"] = properties_spec_entry_t(
     "file path to the PKCS#8 binary file containing this instance's private key. Must be the private key corresponding to the 'own_cert'.",
     "private_key_file"
-    );
+    ).set_group(tls);
   result["crls"] = properties_spec_entry_t(
     "Comma seperated list of CRL files (DER encoded) to be used by the TLS client or server for revocation checking.",
     "crl-list"
-    );
+    ).set_group(tls);
   result["port"] = properties_spec_entry_t(
     "The number of the port at which to open the connection / connect to the server",
     "port",
     "4444"
-    );
-  result["hostname"] = properties_spec_entry_t("[only with --tls_client] hostname of the server", "hostname");
+    ).set_group(tls);
+  result["hostname"] = properties_spec_entry_t("hostname of the server", "hostname").set_group(cl);
   result["ip_addr"]  = properties_spec_entry_t(
-    "[only with --tls_client] IP address of the server Either this or --hostname must be provided",
+    "IP address of the server Either this or --hostname must be provided",
     "address"
-    );
+    ).set_group(cl);
   result["no_hostn_ver"] = properties_spec_entry_t(
-    "[only with --tls_client] Optional - suppresses the hostname verification",
+    "Optional - suppresses the hostname verification",
     ""
-    );
+    ).set_group(cl);
   result["psk"] = properties_spec_entry_t(
     "The PSK secret to be used with TLS. If specified for the client, the use of a PSK cipher suite will be enforced. For the server, PSK will be available additionally to certificate based cipher suites.",
     "psk-value"
-    );
+    ).set_group(tls);
   result["psk_identity"] = properties_spec_entry_t(
     "The PSK identity. The TLS client will send this identity during the handshake. The TLS server will expect this and only this PSK identity",
     "identity"
-    );
+    ).set_group(tls);
   result["psk_identity_hint"] = properties_spec_entry_t(
-    "[only with --tls_server] When this option is supplied to the server, it sends the supplied identity hint during the handshake and applies a specific test key derivation function to the PSK. Works with the fleaTLS command line client which, when it receives the identity hint, applies the same key derivation to the PSK, given that this command line option --enable_psk_identity_hint is set.",
+    " When this option is supplied to the server, it sends the supplied identity hint during the handshake and applies a specific test key derivation function to the PSK. Works with the fleaTLS command line client which, when it receives the identity hint, applies the same key derivation to the PSK, given that this command line option --enable_psk_identity_hint is set.",
     "hint"
-    );
+    ).set_group(se);
   result["enable_psk_identity_hint"] = properties_spec_entry_t(
     "If this option is set for the TLS client, then it is able to handle an identity hint from a fleaTLS command line server.",
     ""
-    );
+    ).set_group(tls);
   result["stay"] = properties_spec_entry_t(
     "cause the TLS client or server to hold the established connection after the initial handhsake. Otherwise it will be terminated after the initial handshake",
     ""
-    );
+    ).set_group(tls);
   result["allowed_sig_algs"] = properties_spec_entry_t(
     "Comma separated list of allowed signature algorithms for the TLS client or server. Allowed values are " + get_comma_seperated_list_of_supported_sig_algs() + ". If this property is not specified, then all signature algorithms according to the build configuration are supported",
     "list-of-sig-algs"
-    );
+    ).set_group(tls);
   result["cipher_suites"] = properties_spec_entry_t(
     "Comma seperated list of ciphersuites that are allowed. Supported cipher suites are " + get_comma_seperated_list_of_allowed_values(
       cipher_suite_name_value_map__t
     ) + ". If this property is not specified, all cipher suites configured in the build configuration will be supported.",
     "list-of-cipher-suites"
-    );
+    ).set_group(tls);
   result["allowed_curves"] = properties_spec_entry_t(
     "Comma separated list of allowed elliptic curve domain parameters to be used by the TLS client and server during the handshake. Allowed values are " + get_comma_seperated_list_of_allowed_values(
       curve_id_name_value_map__t
     ) + ". If this parameter is not specified, then all algorithms activated in the build configuration will be supported.",
     "curve-list"
-    );
+    ).set_group(tls);
 
 
   result["reneg_mode"] = properties_spec_entry_t(
     "Specification how the TLS client or server handles renegotiations. allowed values are: 'no_reneg', 'only_secure_reneg', and 'allow_insecure_reneg'",
     "reneg_mode",
     "only_secure_reneg"
-    );
+    ).set_group(tls);
   result["app_data_read_mode"] = properties_spec_entry_t(
     "Spefication of the read-blocking behaviour of a TLS client or server when reading application data. Possible values are: 'full', 'blocking', and 'non-blocking'",
     "read_mode",
     "nonblocking"
-    );
+    ).set_group(tls);
   result["app_data_read_size"] = properties_spec_entry_t(
     "the attempted read size when reading application data",
     "read_size",
     "20000"
-    );
+    ).set_group(tls);
   result["rev_chk"] = properties_spec_entry_t(
     "the revocation checking mode. Possible values are 'all', 'none', and 'only_ee'. In case of 'all', the revocation check is applied to the whole certificate chain",
     "rev_chck_mode",
     "none"
-    );
+    ).set_group(tls);
   result["stream_input_file_dir"] = properties_spec_entry_t(
     "For using AFL on fleaTLS: Directory from which files are read providing the peers TLS handshake messages as a replacement to the network connection.",
     "dir"
-    );
+    ).set_group(fz);
   result["path_rpl_stdin"] = properties_spec_entry_t(
     "For using AFL on fleaTLS: The path to one of the files read from stream_input_file_dir, which is replaced by the input read from the standard in file descriptor",
     "path"
-    );
+    ).set_group(fz);
   result["read_timeout"] = properties_spec_entry_t(
     "Read timeout in milliseconds applied to the network connection. The value '0' indicates that no timeout should be used.",
     "timeout(ms)",
     "1000"
-    );
+    ).set_group(tls);
   result["do_renegs"] = properties_spec_entry_t(
     "Specify the number of renegotiations that the TLS client or server will try to carry out directly after a successful handshake.",
     "nb-renegs",
     "0"
-    );
+    ).set_group(tls);
   result["session"] = properties_spec_entry_t(
-    "[only with --tls_client] A stored session to be resumed in the handshake encoded in hex.",
+    "A stored session to be resumed in the handshake encoded in hex.",
     "stored_session_hex"
-    );
+    ).set_group(cl);
   result["session_in"] = properties_spec_entry_t(
-    "[only with --tls_client] A file containing a stored session to be resumed in the handshake encoded in binary that was previously written with --session_out.",
+    "A file containing a stored session to be resumed in the handshake encoded in binary that was previously written with --session_out.",
     "session-file"
-    );
+    ).set_group(cl);
   result["session_out"] = properties_spec_entry_t(
-    "[only with --tls_client] A file to be created and receive the session for later resumption.",
+    "A file to be created and receive the session for later resumption.",
     "session-file"
-    );
+    ).set_group(cl);
   result["threads"] = properties_spec_entry_t(
-    "[only with --tls_server] The maximum number of parallel threads that the server will accept at a time",
+    "The maximum number of parallel threads that the server will accept at a time",
     "nb-of-threads",
     "1"
-    );
+    ).set_group(se);
   result["no_session_manager"] = properties_spec_entry_t(
-    "[only with --tls_server] Disables the use of the session manager and thus session resumption."
-    );
+    "Disables the use of the session manager and thus session resumption."
+    ).set_group(se);
   result["session_validity_seconds"] = properties_spec_entry_t(
-    "[only with --tls_server] Specifies the number of seconds for which a session that was stored in the server's session manager is available for resumption.",
+    "Specifies the number of seconds for which a session that was stored in the server's session manager is available for resumption.",
     "seconds",
     "3600"
-    );
+    ).set_group(se);
   result["deterministic"] = properties_spec_entry_t(
     "the tool starts with a predefined state of fleaTLS's RNG in order to allow for repoducible test results"
-    );
+    ).set_group(ge);
   result["cert_path_prefix"] = properties_spec_entry_t(
-    "[only for unit tests] Prefix of a test name (=directory name) for the certificate path tests. Only tests with names matching this prefix will be executed",
+    "Prefix of a test name (=directory name) for the certificate path tests. Only tests with names matching this prefix will be executed",
     "prefix"
-    );
+    ).set_group(un);
   result["func_prefix"] = properties_spec_entry_t(
-    "[only for unit tests] Prefix for the test function names of tests to be executed. Only test function with names beginning with this value will be executed",
+    "Prefix for the test function names of tests to be executed. Only test function with names beginning with this value will be executed",
     "prefix"
-    );
+    ).set_group(un);
   result["repeat"] = properties_spec_entry_t(
-    "[only for unit tests] Number of repetitions for the execution of the unit test suite",
+    "Number of repetitions for the execution of the unit test suite",
     "iterations",
     "1"
     );
-  result["full"] = properties_spec_entry_t("[only for unit tests] Execute additional extensive tests");
+  result["full"] = properties_spec_entry_t("Execute additional extensive tests").set_group(un);
 
 
   return result;

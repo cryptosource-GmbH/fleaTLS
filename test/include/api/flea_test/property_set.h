@@ -39,9 +39,15 @@ struct properties_spec_entry_t
     default_value(default_value),
     have_default_value(true)
   { };
+  properties_spec_entry_t & set_group(std::string g)
+  {
+    group = g;
+    return *this;
+  };
   std::string description;
   std::string arg_placeholder;
   std::string default_value;
+  std::string group;
   bool        have_default_value = false;
 };
 
@@ -55,6 +61,7 @@ public:
   std::string get_default_value(std::string const& index) const;
 private:
   unsigned get_max_key_and_arg_len() const;
+  std::multimap<std::string, std::string> get_help_str_map() const;
 };
 
 

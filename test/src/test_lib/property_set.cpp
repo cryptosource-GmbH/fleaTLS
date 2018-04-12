@@ -744,12 +744,32 @@ unsigned properties_spec_t::get_max_key_and_arg_len() const
 
 std::string properties_spec_t::get_help_str() const
 {
+  std::multimap<std::string, std::string> grouped = get_help_str_map();
   std::string result;
+  std::string current_group = "";
+  std::multimap<std::string, std::string>::const_iterator it;
+  for(it = grouped.begin(); it != grouped.end(); it++)
+  {
+    if(it->first != current_group)
+    {
+      current_group = it->first;
+      result       += current_group + ":\n";
+    }
+    result += "  " + it->second;
+  }
+  return result;
+}
+
+std::multimap<std::string, std::string> properties_spec_t::get_help_str_map() const
+{
+  std::multimap<std::string, std::string> result;
+  // std::string result;
   unsigned key_spacing = get_max_key_and_arg_len() + 2;
 
   properties_spec_t::const_iterator it;
   for(it = this->begin(); it != this->end(); it++)
   {
+    std::string this_entry;
     std::string key = it->first;
     properties_spec_entry_t e = it->second;
     unsigned pad_len = key_spacing - (key.size() + e.arg_placeholder.size());
@@ -758,25 +778,26 @@ std::string properties_spec_t::get_help_str() const
       pad_len++; // account for "="
     }
 
-    result += "--" + key;
+    this_entry += "--" + key;
     if(e.arg_placeholder.size())
     {
-      result += "=" + e.arg_placeholder;
+      this_entry += "=" + e.arg_placeholder;
     }
     for(unsigned i = 0; i < pad_len; i++)
     {
-      result += " ";
+      this_entry += " ";
     }
-    result += e.description;
+    this_entry += e.description;
     if(e.have_default_value)
     {
-      if(result.size() && result[result.size() - 1] != '.')
+      if(this_entry.size() && this_entry[this_entry.size() - 1] != '.')
       {
-        result += ".";
+        this_entry += ".";
       }
-      result += " Default value is '" + e.default_value + "'.";
+      this_entry += " Default value is '" + e.default_value + "'.";
     }
-    result += "\n";
+    this_entry += "\n";
+    result.insert(std::make_pair(it->second.group, this_entry));
   }
   return result;
 } // properties_spec_t::get_help_str
