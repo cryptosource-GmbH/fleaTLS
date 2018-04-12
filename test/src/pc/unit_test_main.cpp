@@ -78,7 +78,7 @@ static properties_spec_t create_properties_spec()
     "identity"
     ).set_group(tls);
   result["psk_identity_hint"] = properties_spec_entry_t(
-    " When this option is supplied to the server, it sends the supplied identity hint during the handshake and applies a specific test key derivation function to the PSK. Works with the fleaTLS command line client which, when it receives the identity hint, applies the same key derivation to the PSK, given that this command line option --enable_psk_identity_hint is set.",
+    "When this option is supplied to the server, it sends the supplied identity hint during the handshake and applies a specific test key derivation function to the PSK. Works with the fleaTLS command line client which, when it receives the identity hint, applies the same key derivation to the PSK, given that this command line option --enable_psk_identity_hint is set.",
     "hint"
     ).set_group(se);
   result["enable_psk_identity_hint"] = properties_spec_entry_t(
@@ -158,7 +158,7 @@ static properties_spec_t create_properties_spec()
     "session-file"
     ).set_group(cl);
   result["threads"] = properties_spec_entry_t(
-    "The maximum number of parallel threads that the server will accept at a time",
+    "The maximum number of parallel threads for handling client connections that the server will run at a time",
     "nb-of-threads",
     "1"
     ).set_group(se);
