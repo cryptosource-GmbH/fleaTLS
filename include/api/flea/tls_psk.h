@@ -35,7 +35,9 @@ typedef flea_err_e (* flea_get_psk_cb_f)(
  * with some additional arguments for PSK. This implies the execution of the initial
  * TLS handshake. After the call to this function, data can be exchanged over
  * the TLS connection. All pointer type parameters that are supplied to this function must stay valid for the
- * complete life-cycle of this TLS server context object as they are used as * references within the TLS functions.
+ * complete life-cycle of this TLS server context object as they are used as
+ * references within the TLS functions. Note the session renegotiation is
+ * disabled for the PSK cipher suites.
  *
  * @param[in,out] tls_server_ctx  The TLS server ctx object to create.
  * @param[in,out] rw_stream The stream which implements the underlying
@@ -78,12 +80,17 @@ typedef flea_err_e (* flea_get_psk_cb_f)(
  * function may only be null if PSK is not used.
  * @param [in] psk_lookup_ctx_mbn custom object, that is provided to the
  * get_psk_mbn_cb function and can be used to determine the PSK in the callback.
- * function.
+ * function. May be null if the function get_psk_mbn_cb accepts it as null.
  * @param[in] flags A combination of flags to control the server's behaviour.
  * @param[in,out] session_mngr_mbn A session manager implementing a TLS session
  * cache used to store sessions
  * established with clients for later resumption. This object may be shared
- * between different threads in which different flea_tls_server_ctx_t objects handle different connections to different clients. Once a client connects and requests connection resumption, the server performs a lookup in the flea_tls_session_mngr_t object. If the session is in the cache, the server accepts the resumption.  This parameter may be null, in which case the server does not support session resumption.
+ * between different threads in which different flea_tls_server_ctx_t objects
+ * handle different connections to different clients. Once a client connects and
+ * requests connection resumption, the server performs a lookup in the
+ * flea_tls_session_mngr_t object. If the session is in the cache, the server
+ * accepts the resumption.  This parameter may be null, in which case the server
+ * does not support session resumption.
  *
  * @return an error code
  */
@@ -130,7 +137,13 @@ typedef flea_err_e (* flea_process_identity_hint_cb_f)(
 
 
 /*
- * Creates a TLS client object where only PSK cipher suites are enabled.
+ * Creates a TLS client object where only PSK cipher suites are enabled. Does
+ * not support session resumption or renegotiation.
+ * This implies the execution of the initial TLS handshake. After the call to
+ * this function, data can be exchanged over the TLS connection. All pointer
+ * type parameters that are supplied to this function must stay valid for the
+ * complete life-cycle of this TLS server context object as they are used as
+ * references within the TLS functions.
  *
  * @param[in,out] tls_client_ctx  the ctx object to create
  * @param[in] rw_stream a read-write stream object which realizes the data and must

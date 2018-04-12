@@ -325,6 +325,11 @@ static flea_err_e THR_flea_tls__read_client_hello(
     tls_ctx->allow_reneg__u8 = FLEA_FALSE;
   }
 
+  if(flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e) == FLEA_TLS_KEX_PSK)
+  {
+    tls_ctx->allow_reneg__u8 = FLEA_FALSE;
+  }
+
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(session_id__bu8);
     FLEA_DO_IF_HAVE_TLS_ECC(

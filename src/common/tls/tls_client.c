@@ -400,6 +400,7 @@ static flea_err_e THR_flea_tls__read_server_kex_psk(
     FLEA_THROW("psk_identity_hint too large", FLEA_ERR_TLS_HANDSHK_FAILURE);
   }
   FLEA_ALLOC_BUF(psk_identity_hint__bu8, psk_identity_hint_len__u32);
+
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_full(
       hs_rd_stream__pt,
@@ -1603,6 +1604,10 @@ flea_err_e THR_flea_tls_client_ctx_t__ctor(
       rw_stream__pt
     )
   );
+  if(tls_ctx__pt->client_use_psk__b)
+  {
+    tls_ctx__pt->allow_reneg__u8 = FLEA_FALSE;
+  }
   err__t = THR_flea_tls__client_handshake(
     tls_client_ctx__pt,
     session_mbn__pt,

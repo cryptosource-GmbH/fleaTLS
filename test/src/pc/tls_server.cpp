@@ -369,7 +369,7 @@ else
         )
       );
     }
-    else
+    else if(buf_len)
     {
       serv_par__pt->write_output_string("sending pingback response\n");
       FLEA_CCALL(THR_flea_tls_server_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
@@ -425,7 +425,6 @@ static flea_err_e THR_server_cycle(
 
   tls_test_cfg_t tls_cfg;
 
-  // flea_tls_shared_server_ctx_t shrd_server_ctx__t;
   flea_private_key_t server_key_obj__t;
 
 #  ifdef FLEA_HAVE_TLS_CS_PSK
@@ -439,7 +438,6 @@ static flea_err_e THR_server_cycle(
 
   FLEA_THR_BEG_FUNC();
   flea_cert_store_t__INIT(&trust_store__t);
-  // flea_tls_shared_server_ctx_t__INIT(&shrd_server_ctx__t);
   flea_private_key_t__INIT(&server_key_obj__t);
 
   bool stay = cmdl_args.have_index("stay");
