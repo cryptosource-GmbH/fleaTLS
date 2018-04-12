@@ -102,11 +102,11 @@ static const flea_tls__cipher_suite_t cipher_suites[] = {
    16, 16, 32, 48, 48, flea_sha384, FLEA_TLS_CS_AUTH_MASK__PSK | FLEA_TLS_CS_KEX_MASK__PSK},
 # endif
 # ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_GCM_SHA256
-  {flea_tls_psk_with_aes_128_gcm_sha256,         FLEA_TLS_BLOCK_CIPHER(flea_gcm_aes128),
+  {flea_tls_psk_with_aes_128_gcm_sha256,         FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
    16, 12, 16, 0, 0, flea_sha256, FLEA_TLS_CS_AUTH_MASK__PSK | FLEA_TLS_CS_KEX_MASK__PSK},
 # endif
 # ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_GCM_SHA384
-  {flea_tls_psk_with_aes_256_gcm_sha384,         FLEA_TLS_BLOCK_CIPHER(flea_gcm_aes256),
+  {flea_tls_psk_with_aes_256_gcm_sha384,         FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
    16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__PSK | FLEA_TLS_CS_KEX_MASK__PSK},
 # endif
 };
