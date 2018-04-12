@@ -440,9 +440,21 @@ void property_set_t::add_index_name_string_with_equation_mark(
       throw_exception(std::string("error with unspecified property"), name);
     }
   }
+  if(m_spec.size() && m_spec.find(name)->second.arg_placeholder.size() && (value == ""))
+  {
+    throw_exception(std::string("missing argument for parameter"), name);
+  }
+  if(m_spec.size() && !m_spec.find(name)->second.arg_placeholder.size() && (value != ""))
+  {
+    throw_exception(std::string("superfluous argument for parameter"), name);
+  }
   (*this)[name] = value;
+
+
+  // add_index_whitelist_check(name,value);
 } // property_set_t::add_index_name_string_with_equation_mark
 
+/*
 void property_set_t::add_index_whitelist_check(
   std::string const& name,
   std::string const& value
@@ -451,19 +463,20 @@ void property_set_t::add_index_whitelist_check(
   if(m_do_enforce_params_whitelisting)
   {
     if(!m_spec.count(name))
-    { }
+    {
+      throw test_utils_exceptn_t("invalid command parameter '" + name + "'");
+    }
   }
   (*this)[name] = value;
 }
+*/
 
 property_set_t::property_set_t(
   int                    argc,
   const char**           argv,
-  properties_spec_t const& spec,
-  bool                   do_enforce_white_listing_of_params
+  properties_spec_t const& spec
 )
-  : m_spec(spec),
-  m_do_enforce_params_whitelisting(do_enforce_white_listing_of_params)
+  : m_spec(spec)
 {
   for(unsigned i = 1; i < static_cast<unsigned>(argc); i++)
   {
@@ -476,16 +489,25 @@ property_set_t::property_set_t(
     // std::cout << "parse arg = " << arg_string << std::endl;
     add_index_name_string_with_equation_mark(arg_string, value_in_property_str_is_not_required_e);
   }
+
+  // add default values:
+  properties_spec_t::const_iterator it;
+  for(it = m_spec.begin(); it != m_spec.end(); it++)
+  {
+    std::string key = it->first;
+    if(!this->count(key) && it->second.have_default_value)
+    {
+      (*this)[key] = it->second.default_value;
+    }
+  }
 }
 
 property_set_t::property_set_t(
   std::string const      & filename,
-  properties_spec_t const& spec,
-  bool                   do_enforce_white_listing_of_params
+  properties_spec_t const& spec
 )
   : m_filename(filename),
-  m_spec(spec),
-  m_do_enforce_params_whitelisting(do_enforce_white_listing_of_params)
+  m_spec(spec)
 {
   vector<string> lines = read_file_line_wise(filename);
   for(string line: lines)
@@ -520,21 +542,22 @@ void property_set_t::throw_exception(
   std::string const& property
 ) const
 {
-  if(property == "")
+  /*if(property == "")
   {
-    throw test_utils_exceptn_t("error in file " + m_filename + ": " + text);
+    throw test_utils_exceptn_t("error in configuration " + ( m_filename.size() ? m_filename : "") + ": " + text);
   }
   else
+  {*/
+  std::string value_inf;
+  if(have_index(property))
   {
-    std::string value_inf;
-    if(have_index(property))
-    {
-      value_inf = " with value '" + get_property_as_string(property) + "'";
-    }
-    throw test_utils_exceptn_t(
-            "error in file " + m_filename + " with property '" + property + "'" + value_inf + ": " + text
-    );
+    value_inf = " with value '" + get_property_as_string(property) + "'";
   }
+  throw test_utils_exceptn_t(
+          "error in configuration " + (m_filename.size() ? ("in file + '" + m_filename + "'") : std::string(""))
+          + (property.size() == 0 ? "" : "with property '" + property + "'") + " " + value_inf + ": " + text
+  );
+  // }
 }
 
 flea_bool_t property_set_t::get_property_as_bool(
@@ -593,6 +616,12 @@ bool property_set_t::have_index(std::string const& index) const
 
 void property_set_t::ensure_index(std::string const& index) const
 {
+  /*if(!have_index(index) && m_spec.have_default_value(index))
+  {
+    (*this)[index] = m_spec.get_default_value(index);
+    return;
+  }
+  else*/
   if(!have_index(index))
   {
     throw test_utils_exceptn_t("did not find index '" + index + "' in file " + m_filename);
@@ -651,6 +680,11 @@ std::vector<std::vector<unsigned char> > property_set_t::get_bin_file_list_prope
   return result;
 }
 
+std::string property_set_t::get_help_str() const
+{
+  return m_spec.get_help_str();
+}
+
 std::vector<unsigned char> read_binary_from_std_in()
 {
   std::vector<unsigned char> result;
@@ -673,3 +707,76 @@ std::vector<unsigned char> read_binary_from_std_in()
   }
   return result;
 }
+
+unsigned properties_spec_t::have_default_value(std::string const& index) const
+{
+  if(this->count(index) && this->find(index)->second.have_default_value)
+  {
+    return true;
+  }
+  return false;
+}
+
+std::string properties_spec_t::get_default_value(std::string const& index) const
+{
+  if(!this->count(index) || !this->find(index)->second.have_default_value)
+  {
+    throw test_utils_exceptn_t("internal error: no default value for index = '" + index + "'");
+  }
+  return this->find(index)->second.default_value;
+}
+
+unsigned properties_spec_t::get_max_key_and_arg_len() const
+{
+  properties_spec_t::const_iterator it;
+  unsigned max = 0;
+  for(it = this->begin(); it != this->end(); it++)
+  {
+    std::string key    = it->first;
+    unsigned print_len = key.size() + it->second.arg_placeholder.size() + 1;
+    if(print_len > max)
+    {
+      max = print_len;
+    }
+  }
+  return max;
+}
+
+std::string properties_spec_t::get_help_str() const
+{
+  std::string result;
+  unsigned key_spacing = get_max_key_and_arg_len() + 2;
+
+  properties_spec_t::const_iterator it;
+  for(it = this->begin(); it != this->end(); it++)
+  {
+    std::string key = it->first;
+    properties_spec_entry_t e = it->second;
+    unsigned pad_len = key_spacing - (key.size() + e.arg_placeholder.size());
+    if(e.arg_placeholder.size() == 0)
+    {
+      pad_len++; // account for "="
+    }
+
+    result += "--" + key;
+    if(e.arg_placeholder.size())
+    {
+      result += "=" + e.arg_placeholder;
+    }
+    for(unsigned i = 0; i < pad_len; i++)
+    {
+      result += " ";
+    }
+    result += e.description;
+    if(e.have_default_value)
+    {
+      if(result.size() && result[result.size() - 1] != '.')
+      {
+        result += ".";
+      }
+      result += " Default value is '" + e.default_value + "'.";
+    }
+    result += "\n";
+  }
+  return result;
+} // properties_spec_t::get_help_str

@@ -442,7 +442,7 @@ static flea_err_e THR_server_cycle(
 
   bool stay = cmdl_args.have_index("stay");
 
-  const unsigned thr_max = cmdl_args.get_property_as_u32_default("threads", 1);
+  const unsigned thr_max = cmdl_args.get_property_as_u32("threads");
   listen(listen_fd, thr_max);
   std::vector<std::unique_ptr<server_params_t> > serv_pars;
   bool stop = false;
@@ -481,7 +481,7 @@ static flea_err_e THR_server_cycle(
     if((serv_pars.size() < thr_max) && !stop && create_new_threads)
     {
       int sock_fd = -1;
-      unsigned read_timeout_ms = cmdl_args.get_property_as_u32_default("read_timeout", 1000);
+      unsigned read_timeout_ms = cmdl_args.get_property_as_u32("read_timeout");
 
       // std::cout << "creating threads: max = " << thr_max << ", running currently = " << serv_pars.size() << std::endl;
       server_params_t serv_par__t;
@@ -501,7 +501,7 @@ static flea_err_e THR_server_cycle(
       serv_par__t.nb_allowed_sig_algs__alu16 = nb_allowed_sig_algs__alu16;
       serv_par__t.flags__u32         = tls_cfg.flags;
       serv_par__t.read_timeout       = read_timeout_ms;
-      serv_par__t.nb_renegs_to_exec  = cmdl_args.get_property_as_u32_default("do_renegs", 0);
+      serv_par__t.nb_renegs_to_exec  = cmdl_args.get_property_as_u32("do_renegs");
       serv_par__t.rd_mode__e         = tls_cfg.read_mode_for_app_data;
       serv_par__t.read_app_data_size = tls_cfg.read_size_for_app_data;
       serv_par__t.abort__b        = FLEA_FALSE;
@@ -729,7 +729,7 @@ int flea_start_tls_server(property_set_t const& cmdl_args)
   FLEA_CCALL(
     THR_flea_tls_session_mngr_t__ctor(
       &sess_man__t,
-      cmdl_args.get_property_as_u32_default("session_validity_seconds", 3600)
+      cmdl_args.get_property_as_u32("session_validity_seconds")
     )
   );
   if((err = THR_flea_start_tls_server(cmdl_args, cmdl_args.get_as_bool_default_false("http"), &sess_man__t)))

@@ -225,20 +225,39 @@ static properties_spec_t create_cert_path_ini_file_spec()
 {
   properties_spec_t spec;
 
-  spec.insert(std::make_pair("date", ""));
-  spec.insert(std::make_pair("valid", ""));
-  spec.insert(std::make_pair("required_chainlen", ""));
-  spec.insert(std::make_pair("host_id", ""));
-  spec.insert(std::make_pair("host_id_type", ""));
-  spec.insert(std::make_pair("required_chainlen", ""));
-  spec.insert(std::make_pair("reason", ""));
-  spec.insert(std::make_pair("required_rsa_key_len", ""));
-  spec.insert(std::make_pair("suppress_validation_error", ""));
-  spec.insert(std::make_pair("rev_chk_mode", ""));
+  spec.insert(std::make_pair("date", properties_spec_entry_t("date at which to validate", "date")));
+  spec.insert(
+    std::make_pair(
+      "valid",
+      properties_spec_entry_t("whether the validation should check out ok", "validity")
+    )
+  );
+  spec.insert(
+    std::make_pair(
+      "required_chainlen",
+      properties_spec_entry_t("chain length that must be supported by fleaTLS", "length")
+    )
+  );
+  spec.insert(std::make_pair("host_id", properties_spec_entry_t("host id", "host id")));
+  spec.insert(std::make_pair("host_id_type", properties_spec_entry_t("host id type", "host id type")));
+  spec.insert(std::make_pair("reason", properties_spec_entry_t("reason for failure", "reason")));
+  spec.insert(
+    std::make_pair(
+      "required_rsa_key_len",
+      properties_spec_entry_t("minimal RSA key length that fleaTLS must support", "key len")
+    )
+  );
+  spec.insert(
+    std::make_pair(
+      "suppress_validation_error",
+      properties_spec_entry_t("whether to suppress an error in this test", "suppress")
+    )
+  );
+  spec.insert(std::make_pair("rev_chk_mode", properties_spec_entry_t("revocation checking mode", "mode")));
 
 
   return spec;
-}
+} // create_cert_path_ini_file_spec
 
 static flea_err_e THR_flea_execute_path_test_case(
   std::string const& dir_path,

@@ -110,12 +110,12 @@ std::map<string, flea_ec_dom_par_id_e> curve_id_name_value_map__t = {
   {"brainpoolP512r1", flea_brainpoolP512r1}
 };
 
-std::map<string, flea_u8_t> sig_algs_map__t = {
+std::map<string, flea_pk_scheme_id_e> sig_algs_map__t = {
   {"RSA",   flea_rsa_pkcs1_v1_5_sign},
   {"ECDSA", flea_ecdsa_emsa1_asn1   },
 };
 
-std::map<string, flea_u8_t> hash_algs_map__t = {
+std::map<string, flea_hash_id_e> hash_algs_map__t = {
 # ifdef FLEA_HAVE_SHA1
   {"SHA1",   flea_sha1  },
 # endif
@@ -197,19 +197,32 @@ namespace {
     }
     else
     {
-# ifdef FLEA_HAVE_RSA
+      std::map<string, flea_pk_scheme_id_e>::iterator pk_it;
+      for(pk_it = sig_algs_map__t.begin(); pk_it != sig_algs_map__t.end(); pk_it++)
+      {
+        flea_u32_t pk = pk_it->second;
+        std::map<string, flea_hash_id_e>::iterator hash_it;
+        for(hash_it = hash_algs_map__t.begin(); hash_it != hash_algs_map__t.end(); hash_it++)
+        {
+          flea_u32_t hash = (hash_it->second << 8);
+          result.push_back((flea_tls_sigalg_e) (hash | pk));
+        }
+      }
+# if 0
+#  ifdef FLEA_HAVE_RSA
       result.push_back(flea_tls_sigalg_rsa_sha256);
-#  ifdef FLEA_HAVE_SHA1
+#   ifdef FLEA_HAVE_SHA1
       result.push_back(flea_tls_sigalg_rsa_sha1);
-#  endif
-# endif // ifdef FLEA_HAVE_RSA
-# ifdef FLEA_HAVE_ECDSA
+#   endif
+#  endif // ifdef FLEA_HAVE_RSA
+#  ifdef FLEA_HAVE_ECDSA
       result.push_back(flea_tls_sigalg_ecdsa_sha256);
-#  ifdef FLEA_HAVE_SHA1
+#   ifdef FLEA_HAVE_SHA1
       result.push_back(flea_tls_sigalg_ecdsa_sha1);
-#  endif
+#   endif
 
-# endif // ifdef FLEA_HAVE_ECDSA
+#  endif // ifdef FLEA_HAVE_ECDSA
+# endif // if 0
     }
     return result;
   } // get_allowed_sig_algs_from_cmdl
@@ -257,7 +270,7 @@ namespace {
     {
       return 0;
     }
-    else if((s == "") || (s == "none"))
+    else if(/*(s == "") ||*/ (s == "none"))
     {
       return flea_tls_flag__rev_chk_mode__check_none;
     }
@@ -268,6 +281,28 @@ namespace {
     throw test_utils_exceptn_t("invalid value for property 'rev_chk': '" + s + "'");
   }
 }
+
+std::string get_comma_seperated_list_of_supported_sig_algs()
+{
+  std::string result;
+  std::map<string, flea_pk_scheme_id_e>::iterator pk_it;
+  for(pk_it = sig_algs_map__t.begin(); pk_it != sig_algs_map__t.end(); pk_it++)
+  {
+    std::string pk = pk_it->first;
+    std::map<string, flea_hash_id_e>::iterator hash_it;
+    for(hash_it = hash_algs_map__t.begin(); hash_it != hash_algs_map__t.end(); hash_it++)
+    {
+      if(result != "")
+      {
+        result += ",";
+      }
+      std::string hash = hash_it->first;
+      result += (pk + "-" + hash);
+    }
+  }
+  return result;
+}
+
 flea_err_e THR_flea_tls_tool_set_tls_cfg(
   flea_cert_store_t*  trust_store__pt,
   flea_ref_cu8_t*     cert_chain,
@@ -280,14 +315,14 @@ flea_err_e THR_flea_tls_tool_set_tls_cfg(
   cfg.flags = (flea_tls_flag_e) 0;
 
 
-  std::string read_mode_s = cmdl_args.get_property_as_string_default_empty("app_data_read_mode");
-  cfg.read_size_for_app_data = cmdl_args.get_property_as_u32_default("app_data_read_size", 20000);
+  std::string read_mode_s = cmdl_args.get_property_as_string("app_data_read_mode");
+  cfg.read_size_for_app_data = cmdl_args.get_property_as_u32("app_data_read_size");
 
   if(read_mode_s == "full")
   {
     cfg.read_mode_for_app_data = flea_read_full;
   }
-  else if(read_mode_s == "" || read_mode_s == "nonblocking")
+  else if(read_mode_s == "nonblocking")
   {
     cfg.read_mode_for_app_data = flea_read_nonblocking;
   }
@@ -317,7 +352,7 @@ flea_err_e THR_flea_tls_tool_set_tls_cfg(
       );
     }
   }
-  cfg.flags |= string_to_rev_chk_flags(cmdl_args.get_property_as_string_default_empty("rev_chk"));
+  cfg.flags |= string_to_rev_chk_flags(cmdl_args.get_property_as_string("rev_chk"));
   cfg.crls   = cmdl_args.get_bin_file_list_property("crls");
   for(auto &crl : cfg.crls)
   {
@@ -331,7 +366,7 @@ flea_err_e THR_flea_tls_tool_set_tls_cfg(
   cfg.allowed_curves   = get_allowed_ecc_curves_from_cmdl(cmdl_args);
   cfg.allowed_sig_algs = get_allowed_sig_algs_from_cmdl(cmdl_args);
 
-  cfg.flags |= reneg_flag_from_string(cmdl_args.get_property_as_string_default_empty("reneg_mode"));
+  cfg.flags |= reneg_flag_from_string(cmdl_args.get_property_as_string("reneg_mode"));
 
   FLEA_THR_BEG_FUNC();
 
