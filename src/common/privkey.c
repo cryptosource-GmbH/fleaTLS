@@ -19,6 +19,7 @@
 #include "flea/ecc_named_curves.h"
 #include "internal/common/byte_vec_int.h"
 #include "internal/common/enc_ecdsa_sig.h"
+#include "internal/common/pk_enc/pkcs1_v1_5.h"
 #include <string.h>
 
 #ifdef FLEA_HAVE_ASYM_ALGS

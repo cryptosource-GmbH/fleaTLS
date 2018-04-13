@@ -102,25 +102,6 @@ void flea__increment_encoded_BE_int(
   }
 }
 
-flea_al_u8_t flea__nlz_uword(flea_uword_t x)
-{
-  flea_al_u8_t n = sizeof(flea_uword_t) * 8; // i.e. 32 for 32-bit
-  flea_al_u8_t c = sizeof(flea_uword_t) * 4; // i.e. 16 for 32-bit
-
-  do
-  {
-    flea_uword_t y;
-    y = x >> c;
-    if(y != 0)
-    {
-      n = n - c;
-      x = y;
-    }
-    c = c >> 1;
-  } while(c != 0);
-  return n - x;
-}
-
 flea_mpi_ulen_t flea__get_BE_int_bit_len(
   const flea_u8_t* enc__pcu8,
   flea_mpi_ulen_t  int_len__mpl
