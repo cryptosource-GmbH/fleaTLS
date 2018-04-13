@@ -150,6 +150,7 @@ typedef struct
  */
 #define flea_rw_stream_t__INIT_VALUE {.custom_obj__pv = NULL}
 
+
 /**
  * Determine whether the r/w stream has a read length limit.
  */
@@ -160,6 +161,7 @@ typedef struct
  * length limit.
  */
 #define flea_rw_stream_t__GET_REM_READ_LEN(stream) ((stream)->read_rem_len__u32 ? (stream)->read_rem_len__u32 : 0)
+
 
 /**
  * Destroy an r/w stream.

@@ -400,6 +400,27 @@
 #  define FLEA_HAVE_TLS_SERVER
 
 
+/**
+ * Control whether support for PSK cipher suites shall be compiled.
+ */
+#  define FLEA_HAVE_TLS_CS_PSK
+
+/*
+ * Maximal size of identity length that will be processed from the peer.
+ */
+#  define FLEA_TLS_PSK_MAX_IDENTITY_LEN 128     //   RFC: MUST support 128 and can be up to 2^16
+
+/*
+ * Maximal size of identity hint length that will be processed from the peer.
+ */
+
+#  define FLEA_TLS_PSK_MAX_IDENTITY_HINT_LEN 128
+
+/*
+ * Maximal size of pre-shared keys that will be handled.
+ */
+#  define FLEA_TLS_PSK_MAX_PSK_LEN 64           //   RFC: MUST support 64 and can be up to 2^16
+
 #  if defined FLEA_HAVE_ECKA
 
 /**
@@ -578,6 +599,50 @@
 #   endif // ifdef FLEA_HAVE_TLS_CS_GCM
 #  endif // ifdef FLEA_HAVE_TLS_CS_ECDHE
 # endif // ifdef FLEA_HAVE_TLS_CS_ECDSA
+
+# ifdef FLEA_HAVE_TLS_CS_PSK /* Ciphersuites that use pre-shared keys */
+#  ifdef FLEA_HAVE_TLS_CS_CBC
+#   ifdef FLEA_HAVE_SHA1
+
+/**
+ * Control whether the cipher suite is supported
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_CBC_SHA
+#   endif // ifdef FLEA_HAVE_SHA1
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#   define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA256
+#   ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_CBC_SHA384
+#   endif
+#  endif // ifdef FLEA_HAVE_TLS_CS_CBC
+
+#  ifdef FLEA_HAVE_TLS_CS_GCM
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#   define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_GCM_SHA256
+#   ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_GCM_SHA384
+#   endif
+#  endif // ifdef FLEA_HAVE_TLS_CS_GCM
+# endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
 /**
  * Length of the session IDs that are used by the fleaTLS server.

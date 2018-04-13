@@ -34,6 +34,7 @@ static flea_err_e THR_flea_start_tls_client(
   flea_tls_client_session_t* client_session__pt
 )
 {
+  std::vector<flea_u8_t> psk;
   flea_rw_stream_t rw_stream__t;
   flea_cert_store_t trust_store__t;
 
@@ -47,7 +48,6 @@ static flea_err_e THR_flea_start_tls_client(
 
   flea_al_u16_t cert_chain_len = FLEA_NB_ARRAY_ENTRIES(cert_chain);
 
-  // flea_ref_cu16_t cipher_suites_ref;
 
   flea_ec_dom_par_id_e* allowed_ecc_curves__pe;
   flea_al_u16_t allowed_ecc_curves_len__alu16;
@@ -138,7 +138,7 @@ static flea_err_e THR_flea_start_tls_client(
         &rw_stream__t,
         &sock_stream_ctx,
         cmdl_args.get_property_as_u32("port"),
-        cmdl_args.get_property_as_u32_default("read_timeout", 1000),
+        cmdl_args.get_property_as_u32("read_timeout"),
         hostname_s.c_str(),
         host_type == flea_host_dnsname ? FLEA_TRUE : FLEA_FALSE
       )
@@ -157,14 +157,10 @@ static flea_err_e THR_flea_start_tls_client(
     )
   );
 
-/*  cipher_suites_ref.data__pcu16 = &tls_cfg.cipher_suites[0];
-  cipher_suites_ref.len__dtl    = tls_cfg.cipher_suites.size();*/
   allowed_ecc_curves__pe        = &tls_cfg.allowed_curves[0];
   allowed_ecc_curves_len__alu16 = tls_cfg.allowed_curves.size();
   allowed_sig_algs__pe       = &tls_cfg.allowed_sig_algs[0];
   nb_allowed_sig_algs__alu16 = tls_cfg.allowed_sig_algs.size();
-
-  // std::cout << "read_timeout = " << std::to_string(cmdl_args.get_property_as_u32_default("read_timeout", 0)) << "\n";
 
 
   if(client_key__t.len__dtl)
@@ -177,31 +173,77 @@ static flea_err_e THR_flea_start_tls_client(
       )
     );
   }
-  FLEA_CCALL(
-    THR_flea_tls_client_ctx_t__ctor(
-      &tls_ctx,
-      &rw_stream__t,
-      &trust_store__t,
-      hostname_p,
-      host_type,
-      cert_chain_len ? cert_chain : NULL,
-      cert_chain_len,
-      client_key__t.len__dtl ? &privkey__t : NULL,
-      &tls_cfg.crls_refs[0],
-      tls_cfg.crls.size(),
-      &tls_cfg.cipher_suites[0],
-      tls_cfg.cipher_suites.size(),
-      allowed_ecc_curves__pe,
-      allowed_ecc_curves_len__alu16,
-      allowed_sig_algs__pe,
-      nb_allowed_sig_algs__alu16,
-      (flea_tls_flag_e) (tls_cfg.flags | flea_tls_flag__sha1_cert_sigalg__allow),
-      client_session__pt
-    )
-  );
+
+
+  if(!cmdl_args.have_index("psk"))
+  {
+    FLEA_CCALL(
+      THR_flea_tls_client_ctx_t__ctor(
+        &tls_ctx,
+        &rw_stream__t,
+        &trust_store__t,
+        hostname_p,
+        host_type,
+        cert_chain_len ? cert_chain : NULL,
+        cert_chain_len,
+        client_key__t.len__dtl ? &privkey__t : NULL,
+        &tls_cfg.crls_refs[0],
+        tls_cfg.crls.size(),
+        &tls_cfg.cipher_suites[0],
+        tls_cfg.cipher_suites.size(),
+        allowed_ecc_curves__pe,
+        allowed_ecc_curves_len__alu16,
+        allowed_sig_algs__pe,
+        nb_allowed_sig_algs__alu16,
+        (flea_tls_flag_e) (tls_cfg.flags | flea_tls_flag__sha1_cert_sigalg__allow),
+        client_session__pt
+      )
+    );
+  }
+  else
+  {
+#  ifdef FLEA_HAVE_TLS_CS_PSK
+    if(!cmdl_args.have_index("psk_identity"))
+    {
+      test_utils_exceptn_t("Please specify --psk_identity");
+    }
+    flea_u8_t* psk_identity__pu8;
+    flea_u16_t psk_identity_len__u16;
+
+    std::string psk_hex_str      = cmdl_args.get_property_as_string("psk");
+    std::string psk_identity_str = cmdl_args.get_property_as_string("psk_identity");
+    if(psk_hex_str.empty() || psk_identity_str.empty())
+    {
+      test_utils_exceptn_t("Please use non-empty values for --psk <secret> and --psk_identity <identity>");
+    }
+
+    psk = hex_to_bin(psk_hex_str);
+    psk_identity__pu8     = (flea_u8_t*) psk_identity_str.c_str();
+    psk_identity_len__u16 = strlen(reinterpret_cast<const char*>(psk_identity__pu8));
+
+    FLEA_CCALL(
+      THR_flea_tls_client_ctx_t__ctor_psk(
+        &tls_ctx,
+        &rw_stream__t,
+        &psk[0],
+        psk.size(),
+        psk_identity__pu8,
+        psk_identity_len__u16,
+        cmdl_args.have_index("enable_psk_identity_hint") ? &dummy_process_identity_hint : NULL, //  identity hint callback function
+        hostname_p,
+        host_type,
+        &tls_cfg.cipher_suites[0],
+        tls_cfg.cipher_suites.size(),
+        (flea_tls_flag_e) (tls_cfg.flags)
+      )
+    );
+#  else // ifdef FLEA_HAVE_TLS_CS_PSK
+    test_utils_exceptn_t("psk compile switch has to be active for --psk option");
+#  endif // ifdef FLEA_HAVE_TLS_CS_PSK
+  }
 
   flea_tls_test_tool_print_peer_cert_info(&tls_ctx, nullptr, nullptr);
-  for(size_t i = 0; i < cmdl_args.get_property_as_u32_default("do_renegs", 0); i++)
+  for(size_t i = 0; i < cmdl_args.get_property_as_u32("do_renegs"); i++)
   {
     int reneg_allowed = flea_tls_client_ctx_t__is_reneg_allowed(&tls_ctx);
     std::cout << "renegotiation exptected to be successfull = " << std::to_string(reneg_allowed) << " ...\n";
@@ -237,7 +279,6 @@ static flea_err_e THR_flea_start_tls_client(
   while(cmdl_args.have_index("stay"))
   {
     flea_u8_t buf[65000];
-    // flea_al_u16_t buf_len = sizeof(buf) - 1;
     flea_dtl_t buf_len = tls_cfg.read_size_for_app_data > sizeof(buf) ? sizeof(buf) : tls_cfg.read_size_for_app_data;
     if(buf_len == sizeof(buf))
     {

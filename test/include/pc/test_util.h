@@ -51,7 +51,13 @@ struct server_params_t
   std::string                       dir_for_file_based_input;
   std::string                       filename_to_be_rpld_by_stdin;
   bool                              is_https_server;
-  void                              write_output_string(std::string const& s)
+# ifdef FLEA_HAVE_TLS_CS_PSK
+  flea_u8_t*                        identity_hint_mbn__pu8;
+  flea_u16_t                        identity_hint_len__u16;
+  flea_get_psk_cb_f                 get_psk_mbn_cb__f;
+  void*                             psk_lookup_ctx_mbn__vp;
+# endif // ifdef FLEA_HAVE_TLS_CS_PSK
+  void write_output_string(std::string const& s)
   {
     pthread_mutex_lock(&this->mutex);
     this->string_to_print += s;
@@ -59,7 +65,8 @@ struct server_params_t
   }
 };
 
-
+extern std::map<std::string, flea_tls_cipher_suite_id_t> cipher_suite_name_value_map__t;
+extern std::map<std::string, flea_ec_dom_par_id_e> curve_id_name_value_map__t;
 struct tls_test_cfg_t
 {
   std::vector<std::vector<flea_u8_t> >     trusted_certs;
@@ -77,6 +84,12 @@ struct tls_test_cfg_t
   unsigned                                 timeout_secs_during_handshake = 0;
 };
 
+// std::string get_comma_seperated_list_of_supported_cipher_suites();
+
+std::string get_comma_seperated_list_of_supported_sig_algs();
+
+template <typename T>
+std::string get_comma_seperated_list_of_allowed_values(std::map<std::string, T> const& map);
 
 flea_err_e THR_flea_tls_tool_set_tls_cfg(
   flea_cert_store_t*  trust_store__pt,
@@ -92,6 +105,30 @@ void flea_tls_test_tool_print_peer_cert_info(
   flea_tls_server_ctx_t* server_ctx_mbn__pt,
   server_params_t*       serv_par__pt
 );
+
+flea_err_e dummy_process_identity_hint(
+  flea_byte_vec_t* psk_vec__pt,
+  const flea_u8_t* psk_identity_hint__pu8,
+  const flea_u16_t psk_identity_hint_len__u16
+);
+
+
+template <typename T>
+std::string get_comma_seperated_list_of_allowed_values(std::map<std::string, T> const& map)
+{
+  std::string result;
+  typename std::map<std::string, T>::const_iterator it;
+  for(it = map.begin(); it != map.end(); it++)
+  {
+    if(result != "")
+    {
+      result += ",";
+    }
+    result += it->first;
+  }
+  return result;
+}
+
 #endif // ifdef FLEA_HAVE_TLS
 
 

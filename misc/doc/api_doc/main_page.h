@@ -103,7 +103,7 @@ In order to execute the unit tests, run the command
 <PRE>
   $ ./build/flea-test
   </PRE>
-
+Get help supplying --help as an argument.
 
 \section tlsTestTools Starting TLS server and client
 

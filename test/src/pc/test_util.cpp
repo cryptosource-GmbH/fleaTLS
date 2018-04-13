@@ -19,7 +19,7 @@ flea_u32_t reneg_flag_from_string(std::string const& s)
   {
     return flea_tls_flag__reneg_mode__disallow_reneg;
   }
-  else if(s == "only_secure_reneg" || s == "")
+  else if(s == "only_secure_reneg")
   {
     return flea_tls_flag__reneg_mode__allow_secure_reneg;
   }

@@ -114,6 +114,15 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
 
 void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state);
 
+# ifdef FLEA_HAVE_TLS_CS_PSK
+flea_err_e THR_flea_tls__create_premaster_secret_psk(
+  flea_tls_ctx_t*  tls_ctx__pt,
+  flea_u8_t*       psk__u8,
+  flea_u16_t       psk_len__u16,
+  flea_byte_vec_t* premaster_secret__pt
+);
+# endif // ifdef FLEA_HAVE_TLS_CS_PSK
+
 flea_err_e THR_flea_tls__create_master_secret(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
   flea_byte_vec_t*          premaster_secret__pt
@@ -163,7 +172,7 @@ flea_err_e THR_flea_tls__server_handshake(
 );
 
 flea_err_e THR_flea_tls__client_handshake(
-  flea_tls_ctx_t*                       tls_ctx,
+  flea_tls_client_ctx_t*                tls_client_ctx__pt,
   flea_tls_client_session_t*            session_mbn__pt,
   const flea_hostn_validation_params_t* hostn_valid_params__pt,
   flea_bool_t                           is_reneg__b

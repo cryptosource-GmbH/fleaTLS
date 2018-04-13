@@ -15,7 +15,7 @@ extern "C" {
 
 
 #ifdef FLEA_HAVE_TLS_CS_ECDHE
-flea_err_e THR_flea_tls__send_server_kex(
+flea_err_e THR_flea_tls__send_server_kex_ecc(
   flea_tls_ctx_t*               tls_ctx__pt,
   flea_tls_handshake_ctx_t*     hs_ctx__pt,
   flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,

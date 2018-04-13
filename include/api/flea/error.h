@@ -212,24 +212,28 @@ typedef enum
    * Thrown if renegotiation is requested through the API but due to the
    * connection's configuration, renegotiation is not allowed.
    */
-  FLEA_ERR_TLS_RENEG_NOT_ALLOWED = 0x57,
+  FLEA_ERR_TLS_RENEG_NOT_ALLOWED           = 0x57,
 
   /**
    * The parameters sent by the peer during the TLS handshake led to a handshake
    * failure.
    */
-  FLEA_ERR_TLS_HANDSHK_FAILURE   = 0x58,
+  FLEA_ERR_TLS_HANDSHK_FAILURE             = 0x58,
 
   /**
    * The TLS connection was ended due to receiving a close-notify alert.
    */
-  FLEA_ERR_TLS_REC_CLOSE_NOTIFY  = 0x59,
+  FLEA_ERR_TLS_REC_CLOSE_NOTIFY            = 0x59,
 
   /**
    * thrown if we couldn't agree on a received SignatureAlgorithms field
    */
-  FLEA_ERR_TLS_NO_SIG_ALG_MATCH  = 0x60,
+  FLEA_ERR_TLS_NO_SIG_ALG_MATCH            = 0x60,
 
+  /**
+   * thrown if the server does not recognize the client's psk_identity.
+   */
+  FLEA_ERR_TLS_UNKNOWN_PSK_IDENTITY        = 0x61,
 
   /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.

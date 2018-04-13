@@ -72,7 +72,7 @@ int flea_unit_tests(
     if(!cert_path_prefix)
     {
 #ifdef FLEA_HAVE_RSA
-      flea_u32_t mass_sig_reps__u32 = full__b ? 1000 * 1000 : 100;
+      flea_u32_t mass_sig_reps__u32 = full__b ? 10 * 1000 : 100;
 #endif
       CALL_TEST(THR_flea_test_dbg_canaries());
       CALL_TEST(THR_flea_test_mpi_square());

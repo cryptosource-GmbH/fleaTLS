@@ -85,6 +85,30 @@ static const flea_tls__cipher_suite_t cipher_suites[] = {
   {flea_tls_ecdhe_ecdsa_with_aes_256_gcm_sha384, FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
    16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__ECDSA | FLEA_TLS_CS_KEX_MASK__ECDHE},
 # endif
+# ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA
+  {flea_tls_psk_with_aes_128_cbc_sha,            FLEA_TLS_BLOCK_CIPHER(flea_aes128),
+   16, 16, 16, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__PSK | FLEA_TLS_CS_KEX_MASK__PSK},
+# endif
+# ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_CBC_SHA
+  {flea_tls_psk_with_aes_256_cbc_sha,            FLEA_TLS_BLOCK_CIPHER(flea_aes256),
+   16, 16, 32, 20, 20, flea_sha1, FLEA_TLS_CS_AUTH_MASK__PSK | FLEA_TLS_CS_KEX_MASK__PSK},
+# endif
+# ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA256
+  {flea_tls_psk_with_aes_128_cbc_sha256,         FLEA_TLS_BLOCK_CIPHER(flea_aes128),
+   16, 16, 16, 32, 32, flea_sha256, FLEA_TLS_CS_AUTH_MASK__PSK | FLEA_TLS_CS_KEX_MASK__PSK},
+# endif
+# ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_CBC_SHA384
+  {flea_tls_psk_with_aes_256_cbc_sha384,         FLEA_TLS_BLOCK_CIPHER(flea_aes256),
+   16, 16, 32, 48, 48, flea_sha384, FLEA_TLS_CS_AUTH_MASK__PSK | FLEA_TLS_CS_KEX_MASK__PSK},
+# endif
+# ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_GCM_SHA256
+  {flea_tls_psk_with_aes_128_gcm_sha256,         FLEA_TLS_AE_CIPHER(flea_gcm_aes128),
+   16, 12, 16, 0, 0, flea_sha256, FLEA_TLS_CS_AUTH_MASK__PSK | FLEA_TLS_CS_KEX_MASK__PSK},
+# endif
+# ifdef FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_GCM_SHA384
+  {flea_tls_psk_with_aes_256_gcm_sha384,         FLEA_TLS_AE_CIPHER(flea_gcm_aes256),
+   16, 12, 32, 32, 0, flea_sha384, FLEA_TLS_CS_AUTH_MASK__PSK | FLEA_TLS_CS_KEX_MASK__PSK},
+# endif
 };
 
 
@@ -149,6 +173,12 @@ flea_bool_t flea_tls__does_priv_key_type_fit_to_ciphersuite(
   {
     return FLEA_FALSE;
   }
+  if(cs__pt->mask & FLEA_TLS_CS_AUTH_MASK__PSK)
+  {
+    // in case of PSK we are not interested in a private key
+    return FLEA_TRUE;
+  }
+
   is_rsa_cs__u32 = cs__pt->mask & FLEA_TLS_CS_AUTH_MASK__RSA;
   if(key_type__e == flea_rsa_key)
   {
@@ -169,7 +199,7 @@ flea_bool_t flea_tls__does_priv_key_type_fit_to_ciphersuite(
       return FLEA_TRUE;
     }
   }
-}
+} /* flea_tls__does_priv_key_type_fit_to_ciphersuite */
 
 flea_tls__kex_method_t flea_tls_get_kex_method_by_cipher_suite_id(flea_tls_cipher_suite_id_t id__t)
 {
@@ -177,7 +207,11 @@ flea_tls__kex_method_t flea_tls_get_kex_method_by_cipher_suite_id(flea_tls_ciphe
   {
     return FLEA_TLS_KEX_RSA;
   }
-  return FLEA_TLS_KEX_ECDHE;
+  if(flea_tls_get_cipher_suite_by_id(id__t)->mask & FLEA_TLS_CS_KEX_MASK__ECDHE)
+  {
+    return FLEA_TLS_KEX_ECDHE;
+  }
+  return FLEA_TLS_KEX_PSK;
 }
 
 flea_tls_kex_e flea_tls__get_kex_and_auth_method_by_cipher_suite_id(flea_tls_cipher_suite_id_t id__t)
