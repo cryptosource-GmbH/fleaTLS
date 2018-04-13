@@ -59,7 +59,7 @@ SET(ASAN_STR -asan)
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "debug")
   ADD_DEFINITIONS(-g)
-  SET(DEBUG_STRING -d)
+  #SET(DEBUG_STRING -d)
 ELSE()
   ADD_DEFINITIONS( -O3 )
   #-fomit-frame-pointer  -momit-leaf-frame-pointer 
