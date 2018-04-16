@@ -12,8 +12,57 @@
 
 typedef enum { dir_entries_with_path, dir_entries_only_leafs } dir_entry_extract_mode_t;
 
-class properties_spec_t : public std::map<std::string, std::string>
-{ };
+struct properties_spec_entry_t
+{
+  properties_spec_entry_t(std::string const& desc)
+    : description(desc),
+    arg_placeholder("")
+  { };
+  properties_spec_entry_t()
+    : description(""),
+    arg_placeholder("")
+  { };
+  properties_spec_entry_t(
+    std::string const& desc,
+    std::string const& arg
+  )
+    : description(desc),
+    arg_placeholder(arg)
+  { };
+  properties_spec_entry_t(
+    std::string const& desc,
+    std::string const& arg,
+    std::string const& default_value
+  )
+    : description(desc),
+    arg_placeholder(arg),
+    default_value(default_value),
+    have_default_value(true)
+  { };
+  properties_spec_entry_t & set_group(std::string g)
+  {
+    group = g;
+    return *this;
+  };
+  std::string description;
+  std::string arg_placeholder;
+  std::string default_value;
+  std::string group;
+  bool        have_default_value = false;
+};
+
+class properties_spec_t : public std::map<std::string, properties_spec_entry_t>
+{
+public:
+  std::string get_help_str() const;
+
+  unsigned have_default_value(std::string const& index) const;
+
+  std::string get_default_value(std::string const& index) const;
+private:
+  unsigned get_max_key_and_arg_len() const;
+  std::multimap<std::string, std::string> get_help_str_map() const;
+};
 
 
 class property_set_t : std::map<std::string, std::string>
@@ -22,6 +71,7 @@ public:
 
   typedef enum { value_in_property_str_is_required_e, value_in_property_str_is_not_required_e } property_string_form_t;
 
+  std::string get_help_str() const;
   property_set_t(
     std::string const      & filename,
     properties_spec_t const& spec = properties_spec_t()
@@ -55,6 +105,11 @@ public:
     return get_property_as_bool(index, &default_val);
   }
 
+  void add_index_whitelist_check(
+    std::string const& name,
+    std::string const& value
+  );
+
   bool have_index(std::string const& index) const;
   flea_u32_t get_property_as_u32_default(
     std::string const& index,
@@ -80,7 +135,9 @@ private:
     std::string const& index,
     bool*            default_ptr
   ) const;
+
   void ensure_index(std::string const& index) const;
+
   std::string m_filename;
   properties_spec_t m_spec;
 };

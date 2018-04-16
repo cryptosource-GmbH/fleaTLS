@@ -15,8 +15,10 @@
 #include "flea/ecc_named_curves.h"
 #include "flea/ecdsa.h"
 #include "flea/rsa.h"
+#include "flea/rsa_pub_op.h"
 #include "internal/common/oid.h"
 #include "internal/common/pubkey_int.h"
+#include "internal/common/pk_enc/pkcs1_v1_5.h"
 #include "flea/mem_read_stream.h"
 #include "flea/cert_path.h"
 

@@ -16,114 +16,9 @@
 #include "internal/common/mask.h"
 #include <string.h>
 
-#define FLEA_SET_HLF_UWORD(__dest, __idx, __val) \
-  do { \
-    __dest[(__idx) / 2] &= ~(FLEA_HLF_UWORD_MAX << (((__idx) % 2) * 8 * sizeof(flea_hlf_uword_t))); \
-    __dest[(__idx) / 2] |= (__val) << (((__idx) % 2) * 8 * sizeof(flea_hlf_uword_t)); \
-  } while(0)
-
-#define FLEA_GET_HLF_UWORD(__src, __idx) \
-  ((__src[(__idx) / 2] >> (((__idx) % 2) * sizeof(flea_hlf_uword_t) * 8)) & FLEA_HLF_UWORD_MAX)
-
 
 #define FLEA_WORD_MAX_SHIFT_RANGE (FLEA_WORD_BIT_SIZE - 1)
 
-static flea_u8_t flea_mpi_t__get_byte(
-  const flea_mpi_t* p_mpi,
-  flea_mpi_ulen_t   byte_pos
-)
-{
-  flea_mpi_ulen_t word_pos = byte_pos / sizeof(p_mpi->m_words[0]);
-
-  if(byte_pos > flea_mpi_t__get_byte_size(p_mpi))
-  {
-    return 0x00;
-  }
-  byte_pos %= sizeof(p_mpi->m_words[0]);
-  return (p_mpi->m_words[word_pos] >> (byte_pos * 8)) & 0xFF;
-}
-
-static void flea_mpi_t__inner_multiply(
-  const flea_uword_t* restrict a_ptr,
-  flea_mpi_ulen_t              a_len,
-  const flea_uword_t* restrict b_ptr,
-  flea_mpi_ulen_t              b_len,
-  flea_uword_t* restrict       result_ptr
-)
-{
-  flea_mpi_ulen_t i, j;
-
-  for(i = 0; i < b_len; i++)
-  {
-    flea_uword_t carry  = 0;
-    flea_uword_t i_word = ((flea_dbl_uword_t) b_ptr[i]);
-    for(j = 0; j < a_len; j++)
-    {
-      flea_dbl_uword_t carry__res = result_ptr[i + j] + ((flea_dbl_uword_t) a_ptr[j]) * i_word
-        + ((flea_dbl_uword_t) carry);
-      result_ptr[i + j] = (flea_uword_t) carry__res; // lower part
-      carry = carry__res >> (sizeof(flea_uword_t) * 8);
-    }
-    result_ptr[i + a_len] = carry;
-  }
-}
-
-static void flea_mpi_t__set_used_words(flea_mpi_t* p_mpi)
-{
-  flea_mpi_slen_t i = p_mpi->m_nb_alloc_words - 1;
-
-  while(i > 0 && p_mpi->m_words[i] == 0)
-  {
-    i--;
-  }
-  // i points to the first significant word
-  p_mpi->m_nb_used_words = i + 1;
-}
-
-/*static void flea_mpi_swap(
- * flea_mpi_t* p_a,
- * flea_mpi_t* p_b
- * )
- * {
- * flea_uword_t* p_tmp;
- * flea_al_u16_t tmp_count;
- *
- * p_tmp        = p_a->m_words;
- * p_a->m_words = p_b->m_words;
- * p_b->m_words = p_tmp;
- *
- * tmp_count = p_a->m_nb_alloc_words;
- * p_a->m_nb_alloc_words = p_b->m_nb_alloc_words;
- * p_b->m_nb_alloc_words = tmp_count;
- *
- * tmp_count = p_a->m_nb_used_words;
- * p_a->m_nb_used_words = p_b->m_nb_used_words;
- * p_b->m_nb_used_words = tmp_count;
- * }*/
-
-flea_err_e THR_flea_mpi_t__mul(
-  flea_mpi_t*       p_result,
-  const flea_mpi_t* p_a,
-  const flea_mpi_t* p_b
-)
-{
-  FLEA_THR_BEG_FUNC();
-  if(p_result->m_nb_alloc_words < p_a->m_nb_used_words + p_b->m_nb_used_words)
-  {
-    FLEA_THROW("result size insufficient", FLEA_ERR_INV_ARG);
-  }
-  p_result->m_nb_used_words = p_a->m_nb_used_words + p_b->m_nb_used_words;
-
-  memset(p_result->m_words, 0, p_result->m_nb_alloc_words * sizeof(p_result->m_words[0]));
-  flea_mpi_t__inner_multiply(p_a->m_words, p_a->m_nb_used_words, p_b->m_words, p_b->m_nb_used_words, p_result->m_words);
-  flea_mpi_t__set_used_words(p_result);
-  p_result->m_sign = p_a->m_sign * p_b->m_sign;
-  if(flea_mpi_t__is_zero(p_result))
-  {
-    p_result->m_sign = +1;
-  }
-  FLEA_THR_FIN_SEC();
-}
 
 flea_err_e THR_flea_mpi_square(
   flea_mpi_t*       p_result,
@@ -418,394 +313,6 @@ flea_err_e THR_flea_mpi_t__set_pow_2(
   FLEA_THR_FIN_SEC_empty();
 }
 
-// decode a big-endian encoded integer
-flea_err_e THR_flea_mpi_t__decode(
-  flea_mpi_t*      p_result,
-  const flea_u8_t* encoded,
-  flea_mpi_ulen_t  encoded_len
-)
-{
-  flea_mpi_slen_t i;
-  unsigned int inv_i;
-
-  FLEA_THR_BEG_FUNC();
-  // strip leading zero bytes in encoded:
-  while((encoded_len > 1) && (*encoded == 0))
-  {
-    encoded++;
-    encoded_len--;
-  }
-  flea_mpi_ulen_t new_word_len = (encoded_len + sizeof(flea_uword_t) - 1) / sizeof(flea_uword_t);
-  if(p_result->m_nb_alloc_words < new_word_len)
-  {
-    FLEA_THROW("result size insufficient", FLEA_ERR_BUFF_TOO_SMALL);
-  }
-  p_result->m_nb_used_words = new_word_len;
-  memset(p_result->m_words, 0, p_result->m_nb_used_words * sizeof(p_result->m_words[0]));
-
-  inv_i = 0;
-  for(i = encoded_len - 1; i >= 0; i--)
-  {
-    p_result->m_words[inv_i / sizeof(flea_uword_t)] |= encoded[i] << ((inv_i % sizeof(flea_uword_t)) * 8);
-    inv_i++;
-  }
-  p_result->m_sign = +1;
-  FLEA_THR_FIN_SEC();
-}
-
-/*static flea_al_u8_t flea_bin_util__get_sig_bytes_of_word(flea_uword_t word)
- * {
- * flea_al_s8_t i;
- *
- * for(i = sizeof(word) - 1; i >= 0; i--)
- * {
- *  if(word & (0xFF << (i * 8)))
- *  {
- *    return i + 1;
- *  }
- * }
- * return 0; // zero in case the word is zero
- * }*/
-
-flea_err_e THR_flea_mpi_t__encode(
-  flea_u8_t*        p_result,
-  flea_al_u16_t     result_len,
-  const flea_mpi_t* p_mpi
-)
-{
-  FLEA_THR_BEG_FUNC();
-  flea_al_u16_t nb_bytes, offset;
-  flea_mpi_slen_t i;
-  nb_bytes = flea_mpi_t__get_byte_size(p_mpi);
-  if(nb_bytes > result_len)
-  {
-    FLEA_THROW("not enough bytes in result array to encode integer", FLEA_ERR_BUFF_TOO_SMALL);
-  }
-  offset = result_len - nb_bytes;
-  memset(p_result, 0, offset);
-  for(i = nb_bytes - 1; i >= 0; i--)
-  {
-    flea_mpi_ulen_t out_pos = offset + (nb_bytes - i - 1);
-    p_result[out_pos] = flea_mpi_t__get_byte(p_mpi, i);
-  }
-  FLEA_THR_FIN_SEC();
-}
-
-void flea_mpi_t__init(
-  flea_mpi_t*     p_result,
-  flea_uword_t*   word_array,
-  flea_mpi_ulen_t nb_words
-)
-{
-  p_result->m_words          = word_array;
-  p_result->m_nb_used_words  = 0;
-  p_result->m_nb_alloc_words = nb_words;
-  p_result->m_sign = 1;
-  memset(word_array, 0, sizeof(word_array[0]) * nb_words);
-}
-
-// vn must have twice the size of the divisor
-// un must have 2(m+1) words, where m is the word size of the dividend
-flea_err_e THR_flea_mpi_t__divide(
-  flea_mpi_t*         p_quotient,
-  flea_mpi_t*         p_remainder,
-  const flea_mpi_t*   p_dividend,
-  const flea_mpi_t*   p_divisor,
-  flea_mpi_div_ctx_t* p_div_ctx
-)
-{
-  flea_mpi_ulen_t m, n;
-  flea_mpi_slen_t j, i;
-  const flea_uword_t* u = p_dividend->m_words;
-  const flea_uword_t* v = p_divisor->m_words;
-  flea_hlf_uword_t* vn  = p_div_ctx->vn;
-  flea_hlf_uword_t* un  = p_div_ctx->un;
-
-  flea_uword_t* q = NULL;
-
-  flea_uword_t* r = p_remainder->m_words;
-
-  const flea_uword_t b = FLEA_HLF_UWORD_MAX + 1;
-  flea_sword_t t;
-  flea_uword_t qhat, rhat, p;
-  flea_uword_t k, s;
-
-
-  FLEA_THR_BEG_FUNC();
-
-  flea_s8_t result_sign = p_dividend->m_sign * p_divisor->m_sign;
-
-  m = p_dividend->m_nb_used_words * 2;
-  n = p_divisor->m_nb_used_words * 2;
-
-  if(((m + 1) > p_div_ctx->un_len) || (n > p_div_ctx->vn_len))
-  {
-    FLEA_THROW("division context buffer too small", FLEA_ERR_BUFF_TOO_SMALL);
-  }
-  if(p_quotient != NULL)
-  {
-    flea_mpi_ulen_t quotient_min_word_len__ulen;
-    flea_mpi_ubil_t dividend_bit_len__ubil, divisor_bit_len__ubil;
-    dividend_bit_len__ubil      = flea_mpi_t__get_bit_size(p_dividend);
-    divisor_bit_len__ubil       = flea_mpi_t__get_bit_size(p_divisor);
-    quotient_min_word_len__ulen = FLEA_CEIL_WORD_LEN_FROM_BIT_LEN(dividend_bit_len__ubil - divisor_bit_len__ubil + 1);
-    if(dividend_bit_len__ubil == divisor_bit_len__ubil)
-    {
-      quotient_min_word_len__ulen = p_dividend->m_nb_used_words;
-    }
-    else if(divisor_bit_len__ubil > dividend_bit_len__ubil)
-    {
-      quotient_min_word_len__ulen = 1;
-    }
-    if(p_quotient->m_nb_alloc_words < quotient_min_word_len__ulen)
-    {
-      FLEA_THROW("quotient nb allocated words too small in division", FLEA_ERR_BUFF_TOO_SMALL);
-    }
-
-    q = p_quotient->m_words;
-  }
-  if(p_remainder->m_nb_alloc_words < p_divisor->m_nb_used_words)
-  {
-    FLEA_THROW("remainder nb allocated words too small in division", FLEA_ERR_BUFF_TOO_SMALL);
-  }
-  if(0 > flea_mpi_t__compare_absolute(p_dividend, p_divisor))
-  {
-    if(p_quotient != NULL)
-    {
-      flea_mpi_t__set_to_word_value(p_quotient, 0);
-    }
-    FLEA_CCALL(THR_flea_mpi_t__copy_no_realloc(p_remainder, p_dividend));
-    p_remainder->m_sign = result_sign;
-    FLEA_THR_RETURN();
-  }
-  if(q != NULL)
-  {
-    memset(p_quotient->m_words, 0, p_quotient->m_nb_alloc_words * sizeof(flea_uword_t));
-  }
-  memset(p_remainder->m_words, 0, p_remainder->m_nb_alloc_words * sizeof(flea_uword_t));
-
-  if(m == 0 || n == 0)
-  {
-    FLEA_THROW("invalid size for division: dividend or divisor", FLEA_ERR_INV_ARG);
-  }
-  // correct the "half-word" size of the arrays
-  if(u[m / 2 - 1] <= FLEA_HLF_UWORD_MAX)
-  {
-    m--;
-  }
-  if(v[n / 2 - 1] <= FLEA_HLF_UWORD_MAX)
-  {
-    n--;
-  }
-  if(m < n || FLEA_GET_HLF_UWORD(v, n - 1) == 0)
-  {
-    FLEA_THROW("invalid size for division: divisor too large", FLEA_ERR_INV_ARG);
-  }
-  if(n == 1)
-  {
-    flea_hlf_uword_t v_0 = FLEA_GET_HLF_UWORD(v, 0);
-    k = 0;
-    for(j = m - 1; j >= 0; j--)
-    {
-      flea_hlf_uword_t u_j = FLEA_GET_HLF_UWORD(u, j);
-      flea_hlf_uword_t q_j = (k * b + u_j) / v_0;
-      if(q != NULL)
-      {
-        FLEA_SET_HLF_UWORD(q, j, q_j);
-      }
-      k = (k * b + u_j) - q_j * v_0;
-    }
-    FLEA_SET_HLF_UWORD(r, 0, k);
-    p_remainder->m_nb_used_words = 1;
-    if(p_quotient != NULL)
-    {
-      flea_mpi_t__set_used_words(p_quotient);
-    }
-    p_remainder->m_sign = result_sign;
-    FLEA_THR_RETURN();
-  }
-  s = flea__nlz_uword(FLEA_GET_HLF_UWORD(v, n - 1)) - sizeof(flea_hlf_uword_t) * 8; // subtract the unused half of the full words bits
-  for(i = n - 1; i > 0; i--)
-  {
-    vn[i] =
-      (FLEA_GET_HLF_UWORD(v, i) << s)
-      | (FLEA_GET_HLF_UWORD(v, i - 1) >> ((FLEA_WORD_BIT_SIZE / 2) - s));
-  }
-  vn[0] = FLEA_GET_HLF_UWORD(v, 0) << s;
-
-  un[m] = FLEA_GET_HLF_UWORD(u, m - 1) >> ((FLEA_WORD_BIT_SIZE / 2) - s);
-
-  for(i = m - 1; i > 0; i--)
-  {
-    un[i] = (FLEA_GET_HLF_UWORD(u, i) << s) | (FLEA_GET_HLF_UWORD(u, i - 1) >> ((FLEA_WORD_BIT_SIZE / 2) - s));
-  }
-  un[0] = (FLEA_GET_HLF_UWORD(u, 0) << s);
-  for(j = m - n; j >= 0; j--)
-  {
-    qhat = (un[j + n] * b + un[j + n - 1]) / vn[n - 1];
-    rhat = (un[j + n] * b + un[j + n - 1]) - qhat * vn[n - 1];
-    while(qhat >= b || qhat * vn[n - 2] > b * rhat + un[j + n - 2])
-    {
-      qhat = qhat - 1;
-      rhat = rhat + vn[n - 1];
-      if(rhat < b)
-      {
-        continue;
-      }
-      break;
-    }
-
-    k = 0;
-    for(i = 0; i < n; i++)
-    {
-      p         = qhat * vn[i];
-      t         = un[i + j] - k - (p & FLEA_HLF_UWORD_MAX);
-      un[i + j] = t;
-      k         = (p >> (FLEA_WORD_BIT_SIZE / 2)) - (t >> (FLEA_WORD_BIT_SIZE / 2));
-    }
-    t         = un[j + n] - k;
-    un[j + n] = t;
-
-    if(q != NULL)
-    {
-      FLEA_SET_HLF_UWORD(q, j, qhat);
-    }
-    if(t < 0)
-    {
-      if(q != NULL)
-      {
-        flea_hlf_uword_t q_j = FLEA_GET_HLF_UWORD(q, j) - 1;
-        FLEA_SET_HLF_UWORD(q, j, q_j);
-      }
-      k = 0;
-      for(i = 0; i < n; i++)
-      {
-        t         = un[i + j] + vn[i] + k;
-        un[i + j] = t;
-        k         = t >> (FLEA_WORD_BIT_SIZE / 2);
-      }
-      un[j + n] = un[j + n] + k;
-    }
-  } // end j-loop
-  if(p_remainder != NULL)
-  {
-    for(i = 0; i < n; i++)
-    {
-      flea_hlf_uword_t r_i = (un[i] >> s) | un[i + 1] << ((FLEA_WORD_BIT_SIZE / 2) - s);
-      FLEA_SET_HLF_UWORD(p_remainder->m_words, i, r_i);
-      flea_mpi_t__set_used_words(p_remainder);
-    }
-  }
-  if(p_quotient != NULL)
-  {
-    flea_mpi_t__set_used_words(p_quotient);
-  }
-
-  p_remainder->m_sign = result_sign;
-  FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_mpi_t__divide */
-
-flea_al_s8_t flea_mpi_t__compare(
-  const flea_mpi_t* p_a,
-  const flea_mpi_t* p_b
-)
-{
-  if(flea_mpi_t__is_zero(p_a) && flea_mpi_t__is_zero(p_b))
-  {
-    return 0;
-  }
-  if(p_a->m_sign > p_b->m_sign)
-  {
-    return 1;
-  }
-  if(p_a->m_sign < p_b->m_sign)
-  {
-    return -1;
-  }
-  // both signs are equal
-  return p_a->m_sign * flea_mpi_t__compare_absolute(p_a, p_b);
-}
-
-flea_al_s8_t flea_mpi_t__compare_absolute(
-  const flea_mpi_t* p_a,
-  const flea_mpi_t* p_b
-)
-{
-  flea_mpi_slen_t i;
-
-  if(p_a->m_nb_used_words > p_b->m_nb_used_words)
-  {
-    return 1;
-  }
-  else if(p_a->m_nb_used_words < p_b->m_nb_used_words)
-  {
-    return -1;
-  }
-
-  for(i = p_a->m_nb_used_words - 1; i >= 0; i--)
-  {
-    if(p_a->m_words[i] > p_b->m_words[i])
-    {
-      return 1;
-    }
-    else if(p_a->m_words[i] < p_b->m_words[i])
-    {
-      return -1;
-    }
-  }
-  return 0;
-}
-
-flea_bool_t flea_mpi_t__equal(
-  const flea_mpi_t* p_a,
-  const flea_mpi_t* p_b
-)
-{
-  if(p_a->m_sign != p_b->m_sign)
-  {
-    if(flea_mpi_t__is_zero(p_a) && flea_mpi_t__is_zero(p_b))
-    {
-      return FLEA_TRUE;
-    }
-    return FLEA_FALSE;
-  }
-  if(p_a->m_nb_used_words != p_b->m_nb_used_words)
-  {
-    return FLEA_FALSE;
-  }
-  if(memcmp(p_a->m_words, p_b->m_words, p_a->m_nb_used_words * sizeof(p_a->m_words[0])))
-  {
-    return FLEA_FALSE;
-  }
-  return FLEA_TRUE;
-}
-
-void flea_mpi_t__print(const flea_mpi_t* p_mpi)
-{
-  flea_s16_t i;
-
-  if(p_mpi->m_sign < 0)
-  {
-    FLEA_PRINTF_1_SWITCHED("-");
-  }
-  else
-  {
-    FLEA_PRINTF_1_SWITCHED("+");
-  }
-  for(i = p_mpi->m_nb_used_words - 1; i >= 0; i--)
-  {
-#if FLEA_WORD_BIT_SIZE == 32
-    FLEA_PRINTF_2_SWITCHED("%08X", p_mpi->m_words[i]);
-#elif FLEA_WORD_BIT_SIZE == 16
-    FLEA_PRINTF_2_SWITCHED("%04X", p_mpi->m_words[i]);
-#elif FLEA_WORD_BIT_SIZE == 8
-    FLEA_PRINTF_2_SWITCHED("%02X", p_mpi->m_words[i]);
-#endif /* if FLEA_WORD_BIT_SIZE == 32 */
-  }
-  FLEA_PRINTF_2_SWITCHED(" (%u words)", p_mpi->m_nb_used_words);
-  FLEA_PRINTF_1_SWITCHED("\n");
-}
-
 /**
  * p_quotient_ws must at least satisfy the requirements of the workspace for montg_mul
  */
@@ -827,6 +334,7 @@ static flea_err_e THR_flea_mpi_t__precompute_window(
 }
 
 #endif /* if FLEA_CRT_RSA_WINDOW_SIZE > 1 */
+
 
 /**
  * quotient_ws must satisfy at least the requirements of montgm mul ws
@@ -919,7 +427,7 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
   FLEA_CCALL(THR_flea_mpi_t__mul(p_workspace_double_plus_one_sized, &R, p_base));
 
 
-  FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &precomp[0], p_workspace_double_plus_one_sized, p_mod, p_div_ctx)); // a_bar = a * R mod n
+  FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &precomp[0], p_workspace_double_plus_one_sized, p_mod, p_div_ctx));   // a_bar = a * R mod n
 
 #if FLEA_CRT_RSA_WINDOW_SIZE > 1
   if(window_size > 1)
@@ -953,7 +461,7 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
 
   // transformed base x_bar^0 in p_result:
 
-  FLEA_CCALL(THR_flea_mpi_t__divide(NULL, p_result, &R, p_mod, p_div_ctx)); // x_bar = 1 * R mod n
+  FLEA_CCALL(THR_flea_mpi_t__divide(NULL, p_result, &R, p_mod, p_div_ctx));   // x_bar = 1 * R mod n
 
   exp_bit_size = flea_mpi_t__get_bit_size(p_exp);
 
@@ -1070,47 +578,6 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
   );
 } /* THR_flea_mpi_t__mod_exp_window */
 
-flea_u16_t flea_mpi_t__get_bit_size(const flea_mpi_t* p_mpi)
-{
-  // take the highest word and count the unused bits
-  flea_al_u16_t i;
-  flea_uword_t word;
-
-  if(p_mpi->m_nb_used_words == 0)
-  {
-    return 0;
-  }
-  word = p_mpi->m_words[p_mpi->m_nb_used_words - 1];
-  i    = flea__nlz_uword(word);
-  i    = FLEA_WORD_BIT_SIZE - i;
-  return i + (p_mpi->m_nb_used_words - 1) * sizeof(p_mpi->m_words[0]) * 8;
-}
-
-flea_u16_t flea_mpi_t__get_byte_size(const flea_mpi_t* p_mpi)
-{
-  return FLEA_CEIL_BYTE_LEN_FROM_BIT_LEN(flea_mpi_t__get_bit_size(p_mpi));
-}
-
-flea_u8_t flea_mpi_t__get_bit(
-  const flea_mpi_t* p_mpi,
-  flea_u16_t        bit_pos
-)
-{
-  flea_uword_t result;
-
-  if(bit_pos > 8 * sizeof(flea_uword_t) * p_mpi->m_nb_used_words)
-  {
-    return 0;
-  }
-
-  result = p_mpi->m_words[bit_pos >> FLEA_LOG2_WORD_BIT_SIZE] & (1 << (bit_pos % (sizeof(flea_uword_t) * 8)));
-  if(result != 0)
-  {
-    result = 1;
-  }
-  return (flea_u8_t) result;
-}
-
 flea_al_u8_t flea_mpi_t__get_window(
   const flea_mpi_t* p_mpi,
   flea_mpi_ulen_t   low_bit_pos,
@@ -1125,27 +592,6 @@ flea_al_u8_t flea_mpi_t__get_window(
     result |= (flea_mpi_t__get_bit(p_mpi, j + low_bit_pos) << j);
   }
   return result;
-}
-
-flea_err_e THR_flea_mpi_t__copy_no_realloc(
-  flea_mpi_t*       p_target,
-  const flea_mpi_t* p_source
-)
-{
-  FLEA_THR_BEG_FUNC();
-  if(p_target == p_source)
-  {
-    FLEA_THR_RETURN();
-  }
-  if(p_target->m_nb_alloc_words < p_source->m_nb_used_words)
-  {
-    FLEA_THROW("mpi_t__copy_no_realloc: not enough space in destination", FLEA_ERR_INV_ARG);
-  }
-  FLEA_CP_ARR(p_target->m_words, p_source->m_words, p_source->m_nb_used_words);
-  p_target->m_nb_used_words = p_source->m_nb_used_words;
-  p_target->m_sign = p_source->m_sign;
-
-  FLEA_THR_FIN_SEC();
 }
 
 static flea_err_e THR_flea_mpi_t__subtract_ignore_sign(
@@ -1407,15 +853,15 @@ void flea_mpi_t__shift_right(
 
   flea_al_u8_t shift_left = FLEA_WORD_BIT_SIZE - shift_in_word;
   flea_uword_t low_mask   = (((flea_uword_t) 1) << shift_in_word) - 1;
-  for(i = p_mpi->m_nb_used_words - 1; i >= 0; i--)
+    for(i = p_mpi->m_nb_used_words - 1; i >= 0; i--)
   {
     flea_uword_t this_word = p_mpi->m_words[i];
     flea_uword_t new_carry = this_word & low_mask; // mask in the low part
     p_mpi->m_words[i] = (carry << shift_left) | (this_word >> shift_in_word);
     carry = new_carry;
   }
-  // check whether the leading word became unpopulated:
-  if(p_mpi->m_nb_used_words && p_mpi->m_words[p_mpi->m_nb_used_words - 1] == 0)
+    // check whether the leading word became unpopulated:
+    if(p_mpi->m_nb_used_words && p_mpi->m_words[p_mpi->m_nb_used_words - 1] == 0)
   {
     p_mpi->m_nb_used_words -= 1;
   }
@@ -1440,29 +886,6 @@ flea_mpi_ulen_t flea_mpi_t__nb_trailing_zero_bits(flea_mpi_t* p_mpi)
     result += FLEA_WORD_BIT_SIZE;
   }
   return 0; // the integer is in fact zero
-}
-
-void flea_mpi_t__set_to_word_value(
-  flea_mpi_t*  p_result,
-  flea_uword_t w
-)
-{
-  p_result->m_nb_used_words = 1;
-  p_result->m_words[0]      = w;
-}
-
-flea_bool_t flea_mpi_t__is_zero(const flea_mpi_t* p_mpi)
-{
-  flea_mpi_ulen_t i = p_mpi->m_nb_used_words;
-
-  while(i > 0)
-  {
-    if(p_mpi->m_words[--i] != 0)
-    {
-      return FLEA_FALSE;
-    }
-  }
-  return FLEA_TRUE;
 }
 
 // shift left mpi by less than the word size (i.e. in general 0-7 is allowed as
@@ -1496,33 +919,9 @@ flea_err_e THR_flea_mpi_t__shift_left_small(
       FLEA_THROW("shift target mpi doesn't have enough allocated words", FLEA_ERR_BUFF_TOO_SMALL);
     }
     p_mpi->m_nb_used_words += 1;
-    p_mpi->m_words[i]       = carry;
+    p_mpi->m_words[i] = carry;
   }
   FLEA_THR_FIN_SEC_empty();
-}
-
-flea_al_s8_t flea_mpi_t__compare_with_uword(
-  const flea_mpi_t* p_mpi,
-  flea_uword_t      w
-)
-{
-  if(p_mpi->m_sign < 0)
-  {
-    return -1;
-  }
-  if(p_mpi->m_nb_used_words > 1)
-  {
-    return 1;
-  }
-  if(p_mpi->m_words[0] > w)
-  {
-    return 1;
-  }
-  if(p_mpi->m_words[0] < w)
-  {
-    return -1;
-  }
-  return 0;
 }
 
 flea_err_e THR_flea_mpi_t__invert_odd_mod(
@@ -1532,10 +931,10 @@ flea_err_e THR_flea_mpi_t__invert_odd_mod(
   flea_mpi_t        ws_mod_size[4]
 )
 {
-  flea_mpi_t* u  = &ws_mod_size[0];
-  flea_mpi_t* v  = &ws_mod_size[1];
-  flea_mpi_t* B  = &ws_mod_size[2];
-  flea_mpi_t* D  = p_result;
+  flea_mpi_t* u = &ws_mod_size[0];
+  flea_mpi_t* v = &ws_mod_size[1];
+  flea_mpi_t* B = &ws_mod_size[2];
+  flea_mpi_t* D = p_result;
   flea_mpi_t* ws = &ws_mod_size[3];
 
   FLEA_THR_BEG_FUNC();
@@ -1635,7 +1034,7 @@ flea_err_e THR_flea_mpi_t__random_integer_no_flush(
 
   FLEA_THR_BEG_FUNC();
   // create as many bytes as those in p_limit
-  bit_size  = flea_mpi_t__get_bit_size(p_limit);
+  bit_size = flea_mpi_t__get_bit_size(p_limit);
   byte_size = FLEA_CEIL_BYTE_LEN_FROM_BIT_LEN(bit_size);
   word_size = FLEA_CEIL_WORD_LEN_FROM_BYTE_LEN(byte_size);
   if(word_size > p_result->m_nb_alloc_words)

@@ -5,22 +5,8 @@
 
 #include "flea/types.h"
 #include "flea/ctr_mode_prng.h"
-
-typedef struct
-{
-  flea_uword_t*   m_words;
-  flea_mpi_ulen_t m_nb_alloc_words;
-  flea_mpi_ulen_t m_nb_used_words;
-  flea_s8_t       m_sign;
-} flea_mpi_t;
-
-typedef struct
-{
-  flea_hlf_uword_t* vn;
-  flea_mpi_ulen_t   vn_len;
-  flea_hlf_uword_t* un;
-  flea_mpi_ulen_t   un_len;
-} flea_mpi_div_ctx_t;
+#include "internal/common/math/mpi_basic.h"
+#include "internal/common/math/mpi_mul_div.h"
 
 typedef struct
 {
@@ -32,77 +18,16 @@ typedef struct
   flea_mpi_t*  p_ws;
   flea_uword_t mod_prime;
 } flea_montgm_mul_ctx_t;
-#define FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(__divident_word_len) \
-  ((2 * (__divident_word_len) + 1))
-
-#define FLEA_MPI_DIV_VN_HLFW_LEN_FROM_DIVISOR_W_LEN(__divisor_word_len) \
-  (2 * (__divisor_word_len))
 
 
 flea_uword_t flea_montgomery_compute_n_prime(flea_uword_t lowest_word_of_n);
 
-void flea_mpi_t__init(
-  flea_mpi_t*     p_result,
-  flea_uword_t*   word_array,
-  flea_mpi_ulen_t nb_words
-);
-
-void flea_mpi_t__set_to_word_value(
-  flea_mpi_t*  p_result,
-  flea_uword_t w
-);
-
-flea_err_e THR_flea_mpi_t__decode(
-  flea_mpi_t*      p_result,
-  const flea_u8_t* encoded,
-  flea_mpi_ulen_t  encoded_len
-);
-
-flea_err_e THR_flea_mpi_t__encode(
-  flea_u8_t*        p_result,
-  flea_al_u16_t     result_len,
-  const flea_mpi_t* p_mpi
-);
 
 flea_err_e THR_flea_mpi_t__montgm_mul(
   flea_mpi_t*            p_result,
   const flea_mpi_t*      p_a,
   const flea_mpi_t*      p_b,
   flea_montgm_mul_ctx_t* p_ctx
-);
-
-flea_err_e THR_flea_mpi_t__divide(
-  flea_mpi_t*         p_quotient,
-  flea_mpi_t*         p_remainder,
-  const flea_mpi_t*   p_divident,
-  const flea_mpi_t*   p_divisor,
-  flea_mpi_div_ctx_t* p_div_ctx
-);
-
-flea_al_s8_t flea_mpi_t__compare_absolute(
-  const flea_mpi_t* p_a,
-  const flea_mpi_t* p_b
-);
-
-flea_al_s8_t flea_mpi_t__compare(
-  const flea_mpi_t* p_a,
-  const flea_mpi_t* p_b
-);
-
-flea_al_s8_t flea_mpi_t__compare_with_uword(
-  const flea_mpi_t* p_mpi,
-  flea_uword_t      w
-);
-
-flea_bool_t flea_mpi_t__equal(
-  const flea_mpi_t* p_a,
-  const flea_mpi_t* p_b
-);
-
-flea_err_e THR_flea_mpi_t__mul(
-  flea_mpi_t*       p_result,
-  const flea_mpi_t* p_a,
-  const flea_mpi_t* p_b
 );
 
 /*
@@ -148,14 +73,6 @@ flea_err_e THR_flea_mpi_square(
   const flea_mpi_t* p_a
 );
 
-flea_u16_t flea_mpi_t__get_bit_size(const flea_mpi_t* p_mpi);
-
-flea_u16_t flea_mpi_t__get_byte_size(const flea_mpi_t* p_mpi);
-
-flea_u8_t flea_mpi_t__get_bit(
-  const flea_mpi_t* p_mpi,
-  flea_u16_t        bit_pos
-);
 
 flea_al_u8_t flea_mpi_t__get_window(
   const flea_mpi_t* p_mpi,
@@ -163,10 +80,6 @@ flea_al_u8_t flea_mpi_t__get_window(
   flea_al_u8_t      window_size
 );
 
-flea_err_e THR_flea_mpi_t__copy_no_realloc(
-  flea_mpi_t*       p_target,
-  const flea_mpi_t* p_source
-);
 
 flea_err_e THR_flea_mpi_t__mod_exp_window(
   flea_mpi_t*           p_result,
@@ -197,7 +110,6 @@ flea_err_e THR_flea_mpi_t__set_pow_2(
   flea_al_u16_t exp
 );
 
-flea_bool_t flea_mpi_t__is_zero(const flea_mpi_t* p_mpi);
 
 flea_err_e THR_flea_mpi_t__shift_left_small(
   flea_mpi_t*   p_mpi,
@@ -233,6 +145,5 @@ flea_err_e THR_flea_mpi_t__quick_reduce_smaller_zero(
   flea_mpi_t*       p_ws
 );
 
-void flea_mpi_t__print(const flea_mpi_t* p_mpi);
 
 #endif /* h-guard */

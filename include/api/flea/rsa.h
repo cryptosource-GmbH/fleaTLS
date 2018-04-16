@@ -13,29 +13,7 @@ extern "C" {
 
 
 /**
- *  RSA 2048-bit private raw operation.
- *  @param result_arr array to receive the big endian encoded exponentiation
- *  result. Must have length of the modulus.
- *  @param exponent_enc big endian encoded exponent used in the exponentiation.
- *  @param exponent_length length of the exponent_enc array
- *  @param base_enc big endian encoded base used in the exponentiation
- *  @param base_length length of the base_enc array
- *  @param modulus_enc big endian encoded modulus
- *  @param modulus_length length of the modulus_enc array
- *
- */
-flea_err_e THR_flea_rsa_raw_operation(
-  flea_u8_t*       result_arr,
-  const flea_u8_t* exponent_enc,
-  flea_al_u16_t    exponent_length,
-  const flea_u8_t* base_enc,
-  flea_al_u16_t    base_length,
-  const flea_u8_t* modulus_enc,
-  flea_al_u16_t    modulus_length
-);
-
-/**
- *  RSA 2048-bit private raw operation using chinese remainder theorem.
+ *  RSA raw private operation using chinese remainder theorem.
  *  @param result_enc array to receive the big endian encoded exponentiation
  *  result. Must have length of the modulus (modulus_length), may be equal to
  *  base (then base_length must be equal to modulus_length).
@@ -53,7 +31,7 @@ flea_err_e THR_flea_rsa_raw_operation(
  *  @param c_enc big endian encoded q^(-1) mod p of length modulus_length/2
  *  @param c_enc_len length of c_enc
  *
- *  @return flea error code
+ *  @return error code
  *
  */
 flea_err_e THR_flea_rsa_raw_operation_crt(
