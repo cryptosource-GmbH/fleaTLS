@@ -527,11 +527,15 @@ flea_err_e dummy_process_identity_hint(
 )
 {
   FLEA_THR_BEG_FUNC();
+  std::vector<flea_u8_t> hex =
+    hex_to_bin(std::string(psk_identity_hint__pu8, psk_identity_hint__pu8 + psk_identity_hint_len__u16));
   FLEA_CCALL(
     THR_flea_byte_vec_t__append(
       psk_vec__pt,
-      psk_identity_hint__pu8,
-      psk_identity_hint_len__u16
+      hex.data(),
+      hex.size()
+      // psk_identity_hint__pu8,
+      // psk_identity_hint_len__u16
     )
   );
   FLEA_THR_FIN_SEC_empty();
