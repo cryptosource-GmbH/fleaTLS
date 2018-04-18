@@ -1119,9 +1119,7 @@ static flea_err_e THR_flea_tls_rec_prot_t__read_data_inner(
   // enter only if
   // - called with current_or_next_record_for_content_type__b
   //   OR
-  // - called with non-zero length and data copied above did not suffice
-  // no more data left. this is important for 0-length reads to
-  // get the current record type
+  // - called with non-zero length and data copied above did not suffice.
 
   /* get new record hdr and content */
   if((current_or_next_record_for_content_type__b &&
