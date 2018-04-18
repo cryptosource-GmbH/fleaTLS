@@ -246,9 +246,10 @@ in two different console windows.
 * subdirectories of the flea directory must be in the compiler's include path:
 * - include
 * - include/api
-* - test/include
 * - build_cfg/general/[choose a subdirectory, e.g. <code>default</code>]
   - build_cfg/pltf_spec/32bit_default
+
+  In the case that also the unit tests shall be built, also the folder test/include must be included.
 *
 *
 * All the C source files of the fleaTLS library in the folder <code>src/</code> need be compiled to build

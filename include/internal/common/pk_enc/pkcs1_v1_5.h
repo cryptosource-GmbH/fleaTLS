@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #ifndef _flea_pkcs1_v1_5__H_
 #define _flea_pkcs1_v1_5__H_
 

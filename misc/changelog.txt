@@ -10,7 +10,7 @@
 # Changelog of the fleaTLS cryptographic library
 # http://keepachangelog.com/en/1.0.0/
 
-## [ XXX ] unreleased
+## [ 1.3.0 ] 2018-04-19 cryptosource GmbH	info@fleatls.com
 
 ### Fixed
 - fixed ECDSA signature encoding bug when using secp160r1 (order bit length = 161)

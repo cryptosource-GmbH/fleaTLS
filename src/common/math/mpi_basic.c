@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #include "internal/common/math/mpi_basic.h"
 #include "flea/error_handling.h"
 #include "flea/array_util.h"

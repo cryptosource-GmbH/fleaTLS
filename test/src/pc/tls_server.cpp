@@ -659,6 +659,7 @@ static flea_err_e THR_server_cycle(
     // flea_tls_shared_server_ctx_t__dtor(&shrd_server_ctx__t);
     flea_private_key_t__dtor(&server_key_obj__t);
     flea_cert_store_t__dtor(&trust_store__t);
+    flea_byte_vec_t__dtor(&psk_vec__t);
   );
 } // THR_server_cycle
 

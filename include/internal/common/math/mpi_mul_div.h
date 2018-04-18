@@ -1,3 +1,5 @@
+/* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
+
 #ifndef _flea_mpi_mul_div__H_
 #define _flea_mpi_mul_div__H_
 

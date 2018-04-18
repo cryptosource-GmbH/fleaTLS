@@ -30,7 +30,8 @@
 \usepackage{multirow}
 \usepackage{colortbl}
 \usetikzlibrary{arrows,snakes}
-\usepackage[margin=2.0cm,tmargin=2.5cm,bmargin=3.5cm]{geometry}
+%\usepackage[margin=2.0cm,tmargin=2.5cm,bmargin=3.5cm]{geometry}
+\usepackage[margin=2.0cm,tmargin=2.9cm,bmargin=3.5cm,headsep=1.7cm]{geometry}
 
 \newcommand{\changefont}[3]{
 \fontfamily{#1} \fontseries{#2} \fontshape{#3} \selectfont}
@@ -59,9 +60,13 @@
   \color{csbluelight}\leaders\hrule height \headrulewidth\hfill}}
 
 \renewcommand{\headrulewidth}{1.2pt}
-\fancyhead[R]{\hspace{-1.9cm}\includegraphics[width=6cm]{cs_logo.eps}}
-\fancyhead[L]{fleaTLS cryptographic library 
-\thisFleaVersion\\manual}
+\fancyhead[R]{\hspace{-1.9cm}\includegraphics[width=4.5cm]{cs_logo.eps}}
+\fancyhead[L]{
+  \includegraphics[width=3cm]{./fleaTLS_Logo_RGB_addon_pure.eps}
+}
+\fancyhead[C]{
+fleaTLS \thisFleaVersion\\manual}
+
 \fancyfoot[C]{\vspace{-0.3cm}\thepage}
 \pagestyle{fancy}
 
@@ -79,6 +84,7 @@
 
         \renewcommand*\contentsname{\newline Contents}
 \begin{document}
+\normalem
 \AddToShipoutPicture{\BackgroundIm}
 \changefont{cmss}{m}{n}
 %\tikzset{XOR/.style={draw,circle,append after command={
@@ -163,18 +169,9 @@ compiles and runs also on 64-bit machines.
   \begin{verbatim}
   cmake .
   make -j4
-  ./build/unit_test
+  ./build/flea-test
   \end{verbatim}
   can be issued to build the library, the unit tests, and execute the tests.
-
-  However, the library is shipped in a state in which it produces two
-  compilation errors. This is due to the fact that for the secure operation of
-  the random number generator (RNG) of the library the user has to implement two
-  functions for the persistence of the RNG state. The source code contains
-  guidance how to quickly repair these compilation errors with a workaround,
-  which, however, leads to an insecure build of the library that must not be
-  used in production code. In Section \ref{secRng} we give guidance on how to use
-  the RNG safely.
 
   \section{Compile-Time Configuration}
 
@@ -185,15 +182,13 @@ configuration options, such as
   \item use of stack memory only or the additional use of heap memory,
   \item configuration of the maximal key sizes for the determination of the
     buffer sizes in stack-only mode,
-  \item buffer overwrite detection through canary values at the start and end of
-    each buffer,
   \item various trade-offs concerning code-size, RAM demand and speed.
   \end{itemize}
 
   The compile-time configuration of the library is completely managed by a
   preprocessor framework. All configuration options can be set in the file
-  \verb#build\_cfg/general/build\_config.h#, making it easy to configure the
-  library on embedded platforms without any dependency on the build system.
+  \verb#build\_cfg/pltf\_spec/32bit\_default/build\_cfg\_pltf.h#, making it easy to configure the
+  library on embedded platforms without any dependency on the build tools.
 
   In order to build the library on an arbitrary 32-bit platform, the following
   directories must be in the compiler's include path:
@@ -456,10 +451,11 @@ Following this rule ensures that the jump to the cleanup section, which
 typically executes the dtors for all local objects, is possible at any time
 during error-throwing code.
 
+\begin{comment}
+% this could go to an internals section
 \subsection{Buffer Management}
 The buffer management in flea is abstracted by macros in order to enable both
-the abstraction from heap/stack usage and in order to enable the use of canary
-values for buffer overwrite detection.
+the abstraction from heap/stack usage. 
 
 The following  macros are mainly employed for the buffer management:
 \begin{itemize}
@@ -471,11 +467,9 @@ The following  macros are mainly employed for the buffer management:
 \end{itemize}
 All buffer sizes are specified in element counts, not in bytes. However, the
 user of the library, who does not intend to make use of flea's features for 
-switching between stack and heap mode in his own code or use the buffer
-canaries, may certainly use any explicit heap or stack buffer allocation as he
+switching between stack and heap mode in his own code, may certainly use any explicit heap or stack buffer allocation as he
 is used to.
-
-
+\end{comment}
 
 \section{The TLS API}
 
@@ -575,7 +569,7 @@ renegotiation function
   \subsubsection{TLS Alert Handling and Sending }
 
   In the TLS protocol alert messages are specified as a means to signal error
-  conditions to the peer. The carry a type and a level field. A variety of possible types
+  conditions to the peer. They carry a type and a level field. A variety of possible types
   is specified in the TLS standard. The level can be \emph{fatal}, indicating an error
   that mandates the ending of the connection, or \emph{warning}, indicating that,
   depending on the type of the alert, a specific action may be necessary.
@@ -595,7 +589,7 @@ renegotiation function
           \item if it is of type \emph{no renegotiation}, and fleaTLS is
             currently executing the TLS client's or server's
             \code{renegotiate()} function, then it aborts the renegotiation and
-            indicates this to the user. The TLS context object remains valid in
+            indicates this to the caller. The TLS context object remains valid in
             this case.
 
   \end{itemize}
