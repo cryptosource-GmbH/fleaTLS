@@ -17,16 +17,18 @@ extern "C" {
 # endif
 
 
-# define FLEA_TLS_NO_COMPRESSION                  0
+# define FLEA_TLS_NO_COMPRESSION                     0
 
-# define FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES 0x01
-# define FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS    0x02
-# define FLEA_TLS_EXT_CTRL_MASK__UNMATCHING       0x04
+# define FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES    0x01
+# define FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS       0x02
+# define FLEA_TLS_EXT_CTRL_MASK__UNMATCHING          0x04
+# define FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH 0x08
 
-# define FLEA_TLS_EXT_TYPE__RENEG_INFO            0xff01
-# define FLEA_TLS_EXT_TYPE__SUPPORTED_CURVES      0x000a
-# define FLEA_TLS_EXT_TYPE__POINT_FORMATS         0x000b
-# define FLEA_TLS_EXT_TYPE__SIGNATURE_ALGORITHMS  0x000d
+# define FLEA_TLS_EXT_TYPE__RENEG_INFO               0xff01
+# define FLEA_TLS_EXT_TYPE__SUPPORTED_CURVES         0x000a
+# define FLEA_TLS_EXT_TYPE__POINT_FORMATS            0x000b
+# define FLEA_TLS_EXT_TYPE__SIGNATURE_ALGORITHMS     0x000d
+# define FLEA_TLS_EXT_TYPE__MAX_FRAGMENT_LENGTH      0x0001
 
 
 flea_err_e THR_flea_tls__read_certificate(
@@ -261,6 +263,19 @@ flea_err_e THR_flea_tls__read_sig_algs_field_and_find_best_match(
   flea_rw_stream_t*   hs_rd_stream__pt,
   flea_u16_t          sig_algs_len__u16,
   flea_private_key_t* priv_key_mbn__pt
+);
+
+flea_u8_t flea_tls__get_max_fragment_length_byte_for_buf_size(flea_u16_t buf_len__u16);
+
+flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
+  flea_tls_ctx_t*   tls_ctx__pt,
+  flea_rw_stream_t* rd_strm__pt,
+  flea_al_u16_t     ext_len__alu16
+);
+
+flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
+  flea_tls_ctx_t*               tls_ctx__pt,
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
 );
 
 flea_err_e THR_flea_tls_ctx_t__parse_sig_alg_ext(

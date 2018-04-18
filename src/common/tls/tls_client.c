@@ -472,6 +472,10 @@ static flea_err_e THR_flea_tls__send_client_hello(
     }
   }
 # endif /* ifdef FLEA_HAVE_TLS_CS_ECC */
+  if(flea_tls__get_max_fragment_length_byte_for_buf_size(FLEA_TLS_MAX_RECORD_SIZE)) // TODO
+  {
+    tls_ctx->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH;
+  }
   ext_len__alu16 = flea_tls_ctx_t__compute_extensions_length(tls_ctx);
 
   len = 2 + 1 + 0 + 32 + 2 + 2 * tls_ctx->nb_allowed_cipher_suites__u16 + 1 + 1 + 0 + ext_len__alu16;
@@ -582,6 +586,11 @@ static flea_err_e THR_flea_tls__send_client_hello(
   {
     // for PSK case don't send this extension
     FLEA_CCALL(THR_flea_tls_ctx_t__send_sig_alg_ext(tls_ctx, p_hash_ctx));
+  }
+
+  if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH)
+  {
+    FLEA_CCALL(THR_flea_tls_ctx_t__send_max_fragment_length_ext(tls_ctx, p_hash_ctx));
   }
 
   /**

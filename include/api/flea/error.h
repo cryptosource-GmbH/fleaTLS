@@ -236,6 +236,12 @@ typedef enum
   FLEA_ERR_TLS_UNKNOWN_PSK_IDENTITY        = 0x61,
 
   /**
+   * thrown if a parameter in a handshake message is out of range / inconsistent
+   * with other fields
+   */
+  FLEA_ERR_TLS_ILLEGAL_PARAMETER           = 0x62,
+
+  /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */
   FLEA_ERR_PKCS8_INVALID_KEY_OID           = 0x70,

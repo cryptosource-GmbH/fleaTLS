@@ -98,7 +98,8 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_X509_CRL_ISSUER_WO_CRL_SIGN,        FLEA_TLS_ALERT_DESC_BAD_CERTIFICATE     },
   {FLEA_ERR_INV_KEY_SIZE,                       FLEA_TLS_ALERT_DESC_ILLEGAL_PARAMETER   },
   {FLEA_ERR_TLS_UNKNOWN_PSK_IDENTITY,           FLEA_TLS_ALERT_DESC_UNKNOWN_PSK_IDENTITY},
-  {FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH,   FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE   }
+  {FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH,   FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE   },
+  {FLEA_ERR_TLS_ILLEGAL_PARAMETER,              FLEA_TLS_ALERT_DESC_ILLEGAL_PARAMETER   }
 };
 
 static flea_bool_t determine_alert_from_error(
@@ -1275,6 +1276,11 @@ flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx_
     len__alu16 += reneg_conn_len__alu8;
   }
 
+  if(tls_ctx__pt->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH)
+  {
+    len__alu16 += 5;
+  }
+
   // signature algorithms extension
   if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
@@ -1587,6 +1593,192 @@ flea_err_e THR_flea_tls__check_sig_alg_compatibility_for_key_type(
   }
   FLEA_THR_FIN_SEC_empty();
 }
+
+flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
+  flea_tls_ctx_t*               tls_ctx__pt,
+  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
+)
+{
+  flea_u8_t ext__au8[] = {
+    0x00, 0x01
+  };
+
+  flea_u8_t ext_byte__u8;
+
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx__pt->rec_prot__t,
+      p_hash_ctx__pt,
+      ext__au8,
+      sizeof(ext__au8)
+    )
+  );
+
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_int_be(
+      &tls_ctx__pt->rec_prot__t,
+      p_hash_ctx__pt,
+      1,
+      1
+    )
+  );
+
+  ext_byte__u8 =
+    flea_tls__get_max_fragment_length_byte_for_buf_size(tls_ctx__pt->rec_prot__t.send_rec_buf_raw_len__u16);
+
+  FLEA_CCALL(
+    THR_flea_tls__send_handshake_message_content(
+      &tls_ctx__pt->rec_prot__t,
+      p_hash_ctx__pt,
+      &ext_byte__u8,
+      1
+    )
+  );
+
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_tls_ctx_t__send_max_fragment_length_ext */
+
+/*
+ * returns 0 if not matching
+ * otherwise returns the maximum possible setting.
+ * buf_len__alu16 is supposed to be the plain text record size
+ */
+flea_u8_t flea_tls__get_max_fragment_length_byte_for_buf_size(flea_u16_t buf_len__u16)
+{
+  flea_u8_t result = 0;
+
+  if(buf_len__u16 > 4096)
+  {
+    return result;
+  }
+  if(buf_len__u16 == 4096)
+  {
+    result = 4;
+  }
+  if(buf_len__u16 < 4096 && buf_len__u16 >= 2048)
+  {
+    result = 3;
+  }
+  if(buf_len__u16 < 2048 && buf_len__u16 >= 1024)
+  {
+    result = 2;
+  }
+  if(buf_len__u16 < 1024 && buf_len__u16 >= 512)
+  {
+    result = 1;
+  }
+  if(buf_len__u16 < 512)
+  {
+    result = 0;
+  }
+  return result;
+}
+
+// does not perform check on the range of byte__u8 (1-4)
+static flea_u16_t get_max_fragment_length_by_ext_byte(flea_u8_t byte__u8)
+{
+  if(byte__u8 == 1)
+  {
+    return 512;
+  }
+  if(byte__u8 == 2)
+  {
+    return 1024;
+  }
+  if(byte__u8 == 3)
+  {
+    return 2048;
+  }
+  if(byte__u8 == 4)
+  {
+    return 4096;
+  }
+  return 0; // should never happen if we perform the range check before calling the function
+}
+
+flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
+  flea_tls_ctx_t*   tls_ctx__pt,
+  flea_rw_stream_t* rd_strm__pt,
+  flea_al_u16_t     ext_len__alu16
+)
+{
+  flea_u8_t ext_value__u8;
+  flea_u16_t max_fragment_length__u16;
+
+  FLEA_THR_BEG_FUNC();
+
+  /*
+   * > If a server receives a maximum fragment length negotiation request
+   * > for a value other than the allowed values, it MUST abort the
+   * > handshake with an "illegal_parameter" alert.
+   */
+  if(ext_len__alu16 != 1)
+  {
+    FLEA_THROW("invalid size of max_fragment_length extension", FLEA_ERR_TLS_ILLEGAL_PARAMETER);
+  }
+
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__read_byte(
+      rd_strm__pt,
+      &ext_value__u8
+    )
+  );
+
+  if(ext_value__u8 < 1 || ext_value__u8 > 4)
+  {
+    FLEA_THROW("invalid value of max_fragment_length extension", FLEA_ERR_TLS_ILLEGAL_PARAMETER);
+  }
+
+  /*
+   * If we are the server, we can resize our internal send/recv buffer.
+   * If we are the client, we have to make sure that the extension has the
+   * correct value. If so, the server accepted the negotiation of the fragment
+   * length.
+   */
+  max_fragment_length__u16 = get_max_fragment_length_by_ext_byte(ext_value__u8);
+  if(tls_ctx__pt->connection_end == FLEA_TLS_SERVER)
+  {
+    if(max_fragment_length__u16 < tls_ctx__pt->rec_prot__t.send_rec_buf_raw_len__u16)
+    {
+      // resize buffer
+# ifdef FLEA_USE_HEAP_BUF
+      // first flush send buffer
+      FLEA_CCALL(THR_flea_rw_stream_t__flush_write(tls_ctx__pt->rec_prot__pt->rw_stream__pt));
+      FLEA_CCALL(
+        THR_flea_alloc__realloc_mem(
+          (void**) &tls_ctx__pt->rec_prot__t.send_rec_buf_raw__bu8,
+          tls_ctx__pt->rec_prot__t.send_rec_buf_raw_len__u16,
+          max_fragment_length__u16
+        )
+      );
+      tls_ctx__pt->rec_prot__t.send_rec_buf_raw_len__u16 = max_fragment_length__u16;
+# endif /* ifdef FLEA_USE_HEAP_BUF */
+
+      // update extension ctrl to send max frag ext in server hello
+      tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH;
+    }
+    else
+    {
+      // TODO: ignore this case? Server has a smaller buffer than
+      // client requests
+    }
+  }
+  else  // FLEA_TLS_CLIENT
+  {
+    if(flea_tls__get_max_fragment_length_byte_for_buf_size(tls_ctx__pt->rec_prot__t.send_rec_buf_raw_len__u16) !=
+      max_fragment_length__u16)
+    {
+      FLEA_THROW(
+        "server did not respond with the same value in max_fragment_length extension",
+        FLEA_ERR_TLS_ILLEGAL_PARAMETER
+      );
+    }
+  }
+
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_tls_ctx_t__parse_max_fragment_length_ext */
 
 flea_err_e THR_flea_tls_ctx_t__send_sig_alg_ext(
   flea_tls_ctx_t*               tls_ctx__pt,

@@ -669,6 +669,9 @@
  */
 # define FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
+
+# if 0 // TODO
+
 /**
  *  Record payload size supported by fleaTLS on the TLS record level for received records.  18432
  *  bytes is the record payload size mandated by the TLS standard.  Smaller
@@ -676,7 +679,17 @@
  *  context for which it is known that only smaller sized records are received
  *  by fleaTLS.
  */
-# define FLEA_TLS_MAX_RECORD_SIZE 18432
+#  define FLEA_TLS_MAX_RECORD_SIZE 18432
+# endif
+
+/**
+ * TODO: doc
+ */
+# define FlEA_TLS_RECORD_MAX_PLAINTEXT_SIZE 16384
+
+// TODO => mv to int
+# define FLEA_TLS_MAX_RECORD_SIZE FlEA_TLS_RECORD_MAX_PLAINTEXT_SIZE + 320
+
 
 /**
  * TLS send buffer size. This buffer used for sending data and determines the
