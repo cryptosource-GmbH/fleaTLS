@@ -32,10 +32,46 @@ static properties_spec_t create_properties_spec()
   std::string tls("TLS client and server");
   std::string fz("Fuzzing with AFL");
   std::string ge("General");
-  result["help"]       = properties_spec_entry_t("print this help text").set_group(ge);
+  result["help"] = properties_spec_entry_t("print this help text").set_group(ge);
+
+  result["stream_input_file_dir"] = properties_spec_entry_t(
+    "For using AFL on fleaTLS: Directory from which files are read providing the peers TLS handshake messages as a replacement to the network connection.",
+    "dir"
+    ).set_group(fz);
+  result["path_rpl_stdin"] = properties_spec_entry_t(
+    "For using AFL on fleaTLS: The path to one of the files read from stream_input_file_dir, which is replaced by the input read from the standard in file descriptor",
+    "path"
+    ).set_group(fz);
+
+  result["deterministic"] = properties_spec_entry_t(
+    "the tool starts with a predefined state of fleaTLS's RNG in order to allow for repoducible test results"
+    ).set_group(ge);
+  result["cert_path_prefix"] = properties_spec_entry_t(
+    "Prefix of a test name (=directory name) for the certificate path tests. Only tests with names matching this prefix will be executed",
+    "prefix"
+    ).set_group(un);
+  result["func_prefix"] = properties_spec_entry_t(
+    "Prefix for the test function names of tests to be executed. Only test function with names beginning with this value will be executed",
+    "prefix"
+    ).set_group(un);
+  result["repeat"] = properties_spec_entry_t(
+    "Number of repetitions for the execution of the unit test suite",
+    "iterations",
+    "1"
+    );
+  result["full"] = properties_spec_entry_t("Execute additional extensive tests").set_group(un);
+
+#ifdef FLEA_HAVE_TLS
+  result["read_timeout"] = properties_spec_entry_t(
+    "Read timeout in milliseconds applied to the network connection. The value '0' indicates that no timeout should be used.",
+    "timeout(ms)",
+    "1000"
+    ).set_group(tls);
+
   result["tls_client"] = properties_spec_entry_t("instantiate a fleaTLS client", "").set_group(cl);
   result["tls_server"] = properties_spec_entry_t("instantiate a fleaTLS server", "").set_group(se);
-  result["trusted"]    = properties_spec_entry_t(
+
+  result["trusted"] = properties_spec_entry_t(
     "Comma seperated list of file paths of DER encoded certificates which are trusted for the purpose of validating the peer. This argument is optional for the server - if it is provided, then client authentication is required.",
     "certs"
     ).set_group(tls);
@@ -127,19 +163,6 @@ static properties_spec_t create_properties_spec()
     "rev_chck_mode",
     "none"
     ).set_group(tls);
-  result["stream_input_file_dir"] = properties_spec_entry_t(
-    "For using AFL on fleaTLS: Directory from which files are read providing the peers TLS handshake messages as a replacement to the network connection.",
-    "dir"
-    ).set_group(fz);
-  result["path_rpl_stdin"] = properties_spec_entry_t(
-    "For using AFL on fleaTLS: The path to one of the files read from stream_input_file_dir, which is replaced by the input read from the standard in file descriptor",
-    "path"
-    ).set_group(fz);
-  result["read_timeout"] = properties_spec_entry_t(
-    "Read timeout in milliseconds applied to the network connection. The value '0' indicates that no timeout should be used.",
-    "timeout(ms)",
-    "1000"
-    ).set_group(tls);
   result["do_renegs"] = properties_spec_entry_t(
     "Specify the number of renegotiations that the TLS client or server will try to carry out directly after a successful handshake.",
     "nb-renegs",
@@ -170,23 +193,7 @@ static properties_spec_t create_properties_spec()
     "seconds",
     "3600"
     ).set_group(se);
-  result["deterministic"] = properties_spec_entry_t(
-    "the tool starts with a predefined state of fleaTLS's RNG in order to allow for repoducible test results"
-    ).set_group(ge);
-  result["cert_path_prefix"] = properties_spec_entry_t(
-    "Prefix of a test name (=directory name) for the certificate path tests. Only tests with names matching this prefix will be executed",
-    "prefix"
-    ).set_group(un);
-  result["func_prefix"] = properties_spec_entry_t(
-    "Prefix for the test function names of tests to be executed. Only test function with names beginning with this value will be executed",
-    "prefix"
-    ).set_group(un);
-  result["repeat"] = properties_spec_entry_t(
-    "Number of repetitions for the execution of the unit test suite",
-    "iterations",
-    "1"
-    );
-  result["full"] = properties_spec_entry_t("Execute additional extensive tests").set_group(un);
+#endif // ifdef FLEA_HAVE_TLS
 
 
   return result;

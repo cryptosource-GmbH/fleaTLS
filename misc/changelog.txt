@@ -20,6 +20,7 @@ failures when compression is offered by the client. Reported by Andreas Walz (Ho
 
 ### Added
 - C-file based read stream
+- TLS PSK cipher suites
 
 ### Changed
 - removed version number from built library file

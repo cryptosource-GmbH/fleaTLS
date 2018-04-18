@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+#ifdef FLEA_HAVE_TLS
 
 /*
  * Callback function that will be called during handshake to determine the PSK
@@ -118,7 +119,7 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor_psk(
 );
 
 
-#ifdef FLEA_HAVE_TLS_CS_PSK
+# ifdef FLEA_HAVE_TLS_CS_PSK
 
 /*
  * Callback function that will be called during the handshake by the client to transform the
@@ -190,7 +191,9 @@ flea_err_e THR_flea_tls_client_ctx_t__ctor_psk(
   flea_tls_flag_e                   flags
 );
 
-#endif // ifdef FLEA_HAVE_TLS_CS_PSK
+# endif // ifdef FLEA_HAVE_TLS_CS_PSK
+
+#endif // ifdef FLEA_HAVE_TLS
 
 #ifdef __cplusplus
 }

@@ -122,6 +122,20 @@ in two different console windows.
  *
  * In the following the principles of fleaTLS' API are explained.
  *
+ * \section apiConventions Conventions
+ *
+ *
+  In the function parameter lists, [in], [out], and \verb[in,out] specifies
+  whether a parameter is a mere input, a mere output, or both for the function.
+  Here, a parameter is considered as an output if it it is a pointer and the
+  object it points to is potentially updated by the function. An output
+  parameter is guaranteed to be updated by the function to the value specified
+  in the API documentation if the function returns without indicating an error,
+  i.e. when it returns FLEA_ERR_FINE.
+
+  A function parameter ending <code>_mbn</code> stands for ``may be null'' and
+  indicates that the caller my supply a null pointer for the parameter. The conditions for and effects of supplying a null pointer are explained in the respective parameter description.
+ *
  * \section apiErrHandl Error Handling
  *
  * fleaTLS functions starting with <code>THR_...</code>, i.e.  throwing
@@ -174,7 +188,7 @@ in two different console windows.
  * <br>
  * <code>err = \link THR_flea_ae_ctx_t__update_encryption THR_flea_ae_ctx_t__update_encryption\endlink(&ctx__t, ...) </code>
  *
- * From the constructed state, the following state transitions are possible:
+ * From the CONSTRUCTED state, the following state transitions are possible:
  * - to the INIT state by calling the type's dtor
  * - to the ERROR state by receiving an error return code from a throwing
  *   function operating on the object.

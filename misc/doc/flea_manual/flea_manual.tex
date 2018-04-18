@@ -10,7 +10,8 @@
 \usepackage{graphicx}
 %\usepackage{booktabs}
 \usepackage{tabularx}
-\usepackage{todo}
+%\usepackage{todo}
+\usepackage{todonotes}
 \usepackage{longtable}
 \usepackage[utf8]{inputenc}
 \usepackage{latexsym}
@@ -59,7 +60,7 @@
 
 \renewcommand{\headrulewidth}{1.2pt}
 \fancyhead[R]{\hspace{-1.9cm}\includegraphics[width=6cm]{cs_logo.eps}}
-\fancyhead[L]{flea cryptographic library 
+\fancyhead[L]{fleaTLS cryptographic library 
 \thisFleaVersion\\manual}
 \fancyfoot[C]{\vspace{-0.3cm}\thepage}
 \pagestyle{fancy}
@@ -141,18 +142,9 @@ compiles and runs also on 64-bit machines.
 
  
   \section{The fleaTLS API}
-  An API documentation is available at \todo{TODO:URL}. 
+  An API documentation is available at
+  \url{http://fleatls.com/api_doc/index.html}.
 
-  In the function parameter lists, \verb#[in]#, \verb#[out]#, and
-  \verb#[in/out]# specifies whether a parameter is a mere input, a mere output,
-  or both for the function. Here, a parameter is considered as an output if it
-  it is a pointer and the object it points to is potentially updated by the
-  function. An output parameter is guaranteed to be updated by the function to
-  the value specified in the API documentation if the function returns without
-  indicating an error, i.e. when it returns \code{FLEA\_ERR\_FINE}.
-
-  A function parameter ending \code{\_mbn} stands for ``may be null'' and
-  indicates that the caller my supply a null pointer for the parameter.
 
   \subsection{Character Strings}
 
@@ -335,8 +327,13 @@ call \funcLibInit.
 
 \section{Using flea's API}
 
-flea uses a macro framework to abstract object and buffer initialization as well
-as error handling. This allows for greater flexibility and security for a number of reasons:
+fleaTLS uses specific conventions for the object lifecycle of its types. Please
+refer to the API documentation at
+\url{http://fleatls.com/api_doc/fleaApi.html#apiObjLifeCycle} where this is
+explained.
+
+\begin{comment}
+This allows for greater flexibility and security for a number of reasons:
 \begin{itemize}
   \item it is possible to switch between stack and heap usage for buffer allocation
   by changing a single compiler flag,
@@ -398,7 +395,7 @@ The flea library functions themselves realize an approach which ensures that all
 requirements from flea life object cycle model are met. This approach is
 described in Section \ref{fleaFuncSkel} and it is recommended to adapt it in implementations
 using flea or realize a corresponding solution.
-
+\end{comment}
 
 \subsection{Error Return Values}
 \label{secErrRet}
