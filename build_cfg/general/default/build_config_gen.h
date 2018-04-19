@@ -71,7 +71,8 @@
 /**@{*/
 
 /**
- * When activated, fleaTLS offers file-based flea_rw_stream_t objects.
+ * When activated, fleaTLS offers file-based flea_rw_stream_t objects. If not
+ * FILE implementation is offered by the plattform, this feature must be deactivated.
  */
 # define FLEA_HAVE_STDLIB_FILESYSTEM
 
