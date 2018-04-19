@@ -125,7 +125,7 @@ in two different console windows.
  * \section apiConventions Conventions
  *
  *
-  In the function parameter lists, [in], [out], and \verb[in,out] specifies
+  In the function parameter lists, [in], [out], and [in,out] specifies
   whether a parameter is a mere input, a mere output, or both for the function.
   Here, a parameter is considered as an output if it it is a pointer and the
   object it points to is potentially updated by the function. An output
@@ -133,7 +133,7 @@ in two different console windows.
   in the API documentation if the function returns without indicating an error,
   i.e. when it returns FLEA_ERR_FINE.
 
-  A function parameter ending <code>_mbn</code> stands for ``may be null'' and
+  A function parameter ending <code>_mbn</code> stands for "may be null" and
   indicates that the caller my supply a null pointer for the parameter. The conditions for and effects of supplying a null pointer are explained in the respective parameter description.
  *
  * \section apiErrHandl Error Handling
