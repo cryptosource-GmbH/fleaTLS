@@ -31,7 +31,7 @@
 \usepackage{colortbl}
 \usetikzlibrary{arrows,snakes}
 %\usepackage[margin=2.0cm,tmargin=2.5cm,bmargin=3.5cm]{geometry}
-\usepackage[margin=2.0cm,tmargin=2.9cm,bmargin=3.5cm,headsep=1.7cm]{geometry}
+\usepackage[margin=2.0cm,tmargin=2.9cm,bmargin=3.5cm,headsep=1.7cm,footskip=2.5cm]{geometry}
 
 \newcommand{\changefont}[3]{
 \fontfamily{#1} \fontseries{#2} \fontshape{#3} \selectfont}
@@ -60,7 +60,7 @@
   \color{csbluelight}\leaders\hrule height \headrulewidth\hfill}}
 
 \renewcommand{\headrulewidth}{1.2pt}
-\fancyhead[R]{\hspace{-1.9cm}\includegraphics[width=4.5cm]{cs_logo.eps}}
+\fancyhead[R]{\hspace{-1.9cm}\includegraphics[width=4.5cm]{cs_logo.pdf}}
 \fancyhead[L]{
   \includegraphics[width=3cm]{./fleaTLS_Logo_RGB_addon_pure.eps}
 }
@@ -96,6 +96,11 @@ fleaTLS \thisFleaVersion\\manual}
 %}
 
 
+\fancypagestyle{firststyle}
+{
+   \fancyhf{}
+   \fancyfoot[C]{}
+}
 
 \lstset{language=C,
   emph={int,char,double,float,unsigned,flea\_u8\_t,flea\_al\_u8\_t,flea\_u16\_t,flea\_al\_u16\_t,flea\_u32\_t,
@@ -110,7 +115,7 @@ frame=none,basicstyle=\ttfamily\scriptsize,columns=flexible,xleftmargin=0.9cm,fl
 \newcommand{\funcLibInit}{\code{THR\_flea\_lib\-\_\_init()}\xspace}
 \newcommand{\funcSaveRngState}{\code{flea\_\-prng\_\-save\_f}\xspace}
 
-\newcommand{\thisFleaVersion}{v1.2\xspace }
+\newcommand{\thisFleaVersion}{1.3\xspace }
 
 \DeclareRobustCommand{\eg}{e.g.\@\xspace}
 \DeclareRobustCommand{\ie}{i.e.\@\xspace}
@@ -119,12 +124,29 @@ frame=none,basicstyle=\ttfamily\scriptsize,columns=flexible,xleftmargin=0.9cm,fl
 \title{flea cryptographic library \thisFleaVersion\\{\LARGE manual} }
 
 \author{cryptosource GmbH,
-  Darmstadt\\\url{flea@cryptosource.de}\\\url{www.cryptosource.de}\vspace{0.5cm}\\\includegraphics[width=7cm]{logo.png}}
+  Darmstadt\\\url{flea@cryptosource.de}\\\url{www.cryptosource.de}\vspace{0.5cm}\\\includegraphics[width=7cm]{./cs_logo.pdf}}
 
-\maketitle              % typeset the title of the contribution
+%\maketitle              % typeset the title of the contribution
 
 %\begin{abstract}
 %\end{abstract}
+
+\begin{center}
+  \includegraphics[width=10cm]{fleaTLS_Logo_RGB_NEW.eps}
+
+  \vspace{1.3cm}
+  { \LARGE A product by }
+  \vspace{1.3cm}
+
+\includegraphics[width=6.5cm]{./cs_logo.pdf}
+
+  \vspace{4cm}
+
+  { \Huge \textbf{fleaTLS \thisFleaVersion} \\ } 
+  \vspace{0.4cm}
+  { \LARGE \textbf{Manual}}
+\end{center}
+\thispagestyle{firststyle}
 
 \newpage
 
@@ -187,7 +209,7 @@ configuration options, such as
 
   The compile-time configuration of the library is completely managed by a
   preprocessor framework. All configuration options can be set in the file
-  \verb#build\_cfg/pltf\_spec/32bit\_default/build\_cfg\_pltf.h#, making it easy to configure the
+  \verb#build_cfg/pltf_spec/32bit_default/build_cfg_pltf.h#, making it easy to configure the
   library on embedded platforms without any dependency on the build tools.
 
   In order to build the library on an arbitrary 32-bit platform, the following
@@ -195,17 +217,166 @@ configuration options, such as
   \begin{itemize}
     \item \verb#include#
     \item \verb#include/api#
-    \item \verb#test/include# (in case that the unit tests shall be build)
-    \item \verb#build\_cfg/pltf\_spec/32bit\_default#
-    \item \verb#build\_cfg/general#
+    \item \verb#test/include# (in case that the unit tests shall be built)
+    \item \verb#build_cfg/pltf_spec/32bit_default#
+    \item \verb#build_cfg/general#
   \end{itemize}
+
+\section{Using flea's API}
+
+fleaTLS uses specific conventions for the object lifecycle of its types. Please
+refer to the API documentation at
+\url{http://fleatls.com/api_doc/fleaApi.html#apiObjLifeCycle} where this is
+explained.
+
+\begin{comment}
+This allows for greater flexibility and security for a number of reasons:
+\begin{itemize}
+  \item it is possible to switch between stack and heap usage for buffer allocation
+  by changing a single compiler flag,
+  \item the life cycles of buffers and objects are formalized and integrate
+    seamless with the error handling, guaranteeing safety from resource leaks
+    and errors such as use-after-free if the programming standards are adhered
+    to.
+\end{itemize}
+
+From the following sections, only Sections \ref{secFleaObj} and \ref{secErrRet}
+are essentially
+important for users of the library since the other sections describe the
+internal design of flea which is not necessary for the use of its API. But since
+the test code shipped with flea, which can serve as a source of example code, is
+written in the same framework, it is helpful to understand also the approaches
+to error handling and buffer management outlined in the subsequent sections.
+\subsection{flea's Objects}
+\label{secFleaObj}
+flea's objects have the following life cycle states:
+\begin{itemize}
+  \item \stateUninit. This state is entered by simply declaring an object on
+    stack or heap without assigning any value to it. From this state, only the
+    transition to the state \stateInit is allowed.
+  \item \stateInit. This state is entered via one of the following means:
+    \begin{itemize} 
+        \item By using the macro
+    \verb#FLEA\_DECL\_OBJ(symbol\_name, object\_type)# for the object declaration
+    and simultaneous initialization. 
+    \item Alternatively, an object in the state
+    \stateUninit can make the transition to the state \stateInit by invoking the
+    corresponding initialization macro.
+    Their naming pattern is \verb#flea\_<type>\_\_INIT(symbol\_address)#.
+    In the state \stateInit, only two
+    actions may be performed on the object: The object's destructor (dtor)
+    function or one of its constructor (ctor) functions may be called.
+\end{itemize}
+  \item \stateCreated. This state can be entered in two ways
+    \begin{itemize}
+    \item By the calling one of the object's
+    ctor functions or other functions which perform object creation. The state
+    \stateCreated can only be left by calling the object's dtor function. If a
+    function returns when any of its objects are in the state \stateCreated,
+    then this will result in a memory leak in the case of heap mode.
+    \item Alternatively, for some objects, the exist also initialization value
+      macros labelled conforming to the naming pattern
+      \verb#flea\_<type>\_\_CONSTR\_<further specification>#. An object initialized
+      with such a value is in the state \stateCreated afterwards.
+  \end{itemize}
+  \item \stateDestroyed. This state is entered by calling the object's dtor
+    function. In this state, the dtor function may be called repeatedly (without
+    any effect) or the object may be created again using a ctor function.
+\end{itemize}
+
+This is the contract offered by all class-like types of flea's API. The dtor calls should
+be made even in the stack-only mode, because they wipe secret values from the
+RAM before deallocation.
+
+The flea library functions themselves realize an approach which ensures that all
+requirements from flea life object cycle model are met. This approach is
+described in Section \ref{fleaFuncSkel} and it is recommended to adapt it in implementations
+using flea or realize a corresponding solution.
+
+\subsection{Error Return Values}
+\label{secErrRet}
+Any function of flea that potentially returns an error, referred to as a throwing function, can be identified by starting with the string
+\code{THR\_}. Such a function returns \code{FLEA\_ERR\_FINE}, which is defined as
+zero, upon success or one of the error codes define in \verb#flea/error.h# otherwise.
+When calling throwing functions in flea it is necessary test their return value
+and take appropriate actions if an error occured.
+
+\subsection{Object Life Cycle and Error Handling within the flea Library Functions}
+\label{fleaFuncSkel}
+In order to establish a standardized and robust approach to object initialization,
+object creation, object destruction and error handling, the flea library
+function implementations themselves employ a dedicated macro framework. This
+approach is described in the following to facilitate the understanding of the
+implementation. Furthermore, it may be be adapted in the flea library user's own
+code.
+
+Specifically, any throwing function in flea is structured by the following skeleton:
+\begin{verbatim}
+  <declaration section>
+  FLEA_THR_BEG_FUNC();
+  <initialization section>
+  <throwing section> 
+  FLEA_THR_FIN_SEC(cleanup-code);
+\end{verbatim}
+In the \verb#declaration section# all variable declaration happen. Next, in the \verb#initialization section#  
+all objects so far not initialized are initialized by means of the
+corresponding initialization macros. Any throwing functions may only be called
+after this section in the \verb#throwing section#. 
+The \verb#cleanup-code# is the code that shall be executed whenever the function ends,
+either by naturally running to the location of the macro call
+\verb#FLEA_THR_FIN_SEC()# or because between the two macro calls an error was
+thrown and not handled, causing an immediate jump to the cleanup-code. This can happen mainly due to two incidents:
+\begin{itemize}
+  \item An error was raised by calling the macro \verb#FLEA_THROW()#. This
+    causes the routine to directly jump to the cleanup code and the function
+    returns the error code raised by \verb#FLEA_THROW()#. 
+  \item An error was returned by a throwing function called as
+    \verb#FLEA_CCALL(THR_flea_some_function(args))#. The behaviour is the same
+    as for the \verb#FLEA_THROW()# macro, i.e. a return value other than
+    \verb#FLEA_ERR_FINE# causes an immediate jump to the cleanup-code. In this, the error code returned by the
+    called function is returned by the current function.
+\end{itemize}
+
+It is important to stress that in order to have correct life cycle management even in the presence of errors
+thrown directly in the code or returned by called functions, one essential rule must be followed:
+Before any code is executed that potentially raises errors, all objects 
+used within the function must have be initialized. 
+  %  If only the \verb#FLEA\_DECL\_OBJ()# is used for the
+  %  object declaration, then this is naturally achieved. 
+    %If, however, any
+    %objects are declared in the standard way and only initialized in the
+    %initialization-section indicated above, then it is vital that no error
+    %throwing code is executed in the initialization section.
+%  \end{enumberate}
+Following this rule ensures that the jump to the cleanup section, which
+typically executes the dtors for all local objects, is possible at any time
+during error-throwing code.
+
+% this could go to an internals section
+\subsection{Buffer Management}
+The buffer management in flea is abstracted by macros in order to enable both
+the abstraction from heap/stack usage. 
+
+The following  macros are mainly employed for the buffer management:
+\begin{itemize}
+  \item \verb#FLEA_DECL_BUF(symbol_name, type, size)# declares a buffer, 
+  \item \verb#FLEA_ALLOC_BUF(symbol_name, size)# allocates a buffer, 
+  \item \verb#FLEA_FREE_BUF_FINAL(symbol_name)# frees a buffer,
+  \item \verb#FLEA_FREE_BUF_SECRET_ARR(symbol_name, size)# also frees a buffer,
+    but also overwrites the memory contents prior to that.
+\end{itemize}
+All buffer sizes are specified in element counts, not in bytes. However, the
+user of the library, who does not intend to make use of flea's features for 
+switching between stack and heap mode in his own code, may certainly use any explicit heap or stack buffer allocation as he
+is used to.
+\end{comment}
+
 
 \section{Random Number Generation }
 \label{secRng}
 
 As random number generation is a precondition for many cryptographic operations,
-fleaTLS features support for random number generation. On the one hand, there
-are there is the type \code{flea\_ctr\_mode\_prng\_t}, defined in the file
+fleaTLS features support for random number generation. On the one hand, there is the type \code{flea\_ctr\_mode\_prng\_t}, defined in the file
 \code{ctr\_mode\_prng.h}, for the instantiation of
 pseudo random number generator (PRNG) objects, on the other hand there is the flea's
 global random number generator (RNG). Its interface is defined in the file
@@ -302,7 +473,8 @@ during production, an initial high entropy seed is provided to the
 function \funcLibInit. Furthermore, the function pointer argument of the type
 \funcSaveRngState, implemented as explained above, is also provided to
 \funcLibInit. In any subsequent call to \funcLibInit, the latest seed value that was
-provided to \funcSaveRngState as its argument is used as the seed file argument.
+provided to \funcSaveRngState as its argument is used as the seed file argument
+by the application code.
 
 The function \funcLibInit internally calls the function
 \code{THR\_flea\_rng\_\_reseed\_persistent()}, which causes \funcSaveRngState to
@@ -319,157 +491,6 @@ should occasionally call the function
 \code{THR\_flea\_rng\_\_reseed\_persistent()}, which triggers a call to the
 function \funcSaveRngState, provided that such a function was specified in the
 call \funcLibInit.
-
-\section{Using flea's API}
-
-fleaTLS uses specific conventions for the object lifecycle of its types. Please
-refer to the API documentation at
-\url{http://fleatls.com/api_doc/fleaApi.html#apiObjLifeCycle} where this is
-explained.
-
-\begin{comment}
-This allows for greater flexibility and security for a number of reasons:
-\begin{itemize}
-  \item it is possible to switch between stack and heap usage for buffer allocation
-  by changing a single compiler flag,
-  \item the life cycles of buffers and objects are formalized and integrate
-    seamless with the error handling, guaranteeing safety from resource leaks
-    and errors such as use-after-free if the programming standards are adhered
-    to.
-\end{itemize}
-
-From the following sections, only Sections \ref{secFleaObj} and \ref{secErrRet}
-are essentially
-important for users of the library since the other sections describe the
-internal design of flea which is not necessary for the use of its API. But since
-the test code shipped with flea, which can serve as a source of example code, is
-written in the same framework, it is helpful to understand also the approaches
-to error handling and buffer management outlined in the subsequent sections.
-\subsection{flea's Objects}
-\label{secFleaObj}
-flea's objects have the following life cycle states:
-\begin{itemize}
-  \item \stateUninit. This state is entered by simply declaring an object on
-    stack or heap without assigning any value to it. From this state, only the
-    transition to the state \stateInit is allowed.
-  \item \stateInit. This state is entered via one of the following means:
-    \begin{itemize} 
-        \item By using the macro
-    \verb#FLEA\_DECL\_OBJ(symbol\_name, object\_type)# for the object declaration
-    and simultaneous initialization. 
-    \item Alternatively, an object in the state
-    \stateUninit can make the transition to the state \stateInit by invoking the
-    corresponding initialization macro.
-    Their naming pattern is \verb#flea\_<type>\_\_INIT(symbol\_address)#.
-    In the state \stateInit, only two
-    actions may be performed on the object: The object's destructor (dtor)
-    function or one of its constructor (ctor) functions may be called.
-\end{itemize}
-  \item \stateCreated. This state can be entered in two ways
-    \begin{itemize}
-    \item By the calling one of the object's
-    ctor functions or other functions which perform object creation. The state
-    \stateCreated can only be left by calling the object's dtor function. If a
-    function returns when any of its objects are in the state \stateCreated,
-    then this will result in a memory leak in the case of heap mode.
-    \item Alternatively, for some objects, the exist also initialization value
-      macros labelled conforming to the naming pattern
-      \verb#flea\_<type>\_\_CONSTR\_<further specification>#. An object initialized
-      with such a value is in the state \stateCreated afterwards.
-  \end{itemize}
-  \item \stateDestroyed. This state is entered by calling the object's dtor
-    function. In this state, the dtor function may be called repeatedly (without
-    any effect) or the object may be created again using a ctor function.
-\end{itemize}
-
-This is the contract offered by all class-like types of flea's API. The dtor calls should
-be made even in the stack-only mode, because they wipe secret values from the
-RAM before deallocation.
-
-The flea library functions themselves realize an approach which ensures that all
-requirements from flea life object cycle model are met. This approach is
-described in Section \ref{fleaFuncSkel} and it is recommended to adapt it in implementations
-using flea or realize a corresponding solution.
-\end{comment}
-
-\subsection{Error Return Values}
-\label{secErrRet}
-Any function of flea that potentially returns an error, referred to as a throwing function, can be identified by starting with the string
-\code{THR\_}. Such a function returns \code{FLEA\_ERR\_FINE}, which is defined as
-zero, upon success or one of the error codes define in \verb#flea/error.h# otherwise.
-When calling throwing functions in flea it is necessary test their return value
-and take appropriate actions if an error occured.
-
-\subsection{Object Life Cycle and Error Handling within the flea Library Functions}
-\label{fleaFuncSkel}
-In order to establish a standardized and robust approach to object initialization,
-object creation, object destruction and error handling, the flea library
-function implementations themselves employ a dedicated macro framework. This
-approach is described in the following to facilitate the understanding of the
-implementation. Furthermore, it may be be adapted in the flea library user's own
-code.
-
-Specifically, any throwing function in flea is structured by the following skeleton:
-\begin{verbatim}
-  <declaration section>
-  FLEA_THR_BEG_FUNC();
-  <initialization section>
-  <throwing section> 
-  FLEA_THR_FIN_SEC(cleanup-code);
-\end{verbatim}
-In the \verb#declaration section# all variable declaration happen. Next, in the \verb#initialization section#  
-all objects so far not initialized are initialized by means of the
-corresponding initialization macros. Any throwing functions may only be called
-after this section in the \verb#throwing section#. 
-The \verb#cleanup-code# is the code that shall be executed whenever the function ends,
-either by naturally running to the location of the macro call
-\verb#FLEA_THR_FIN_SEC()# or because between the two macro calls an error was
-thrown and not handled, causing an immediate jump to the cleanup-code. This can happen mainly due to two incidents:
-\begin{itemize}
-  \item An error was raised by calling the macro \verb#FLEA_THROW()#. This
-    causes the routine to directly jump to the cleanup code and the function
-    returns the error code raised by \verb#FLEA_THROW()#. 
-  \item An error was returned by a throwing function called as
-    \verb#FLEA_CCALL(THR_flea_some_function(args))#. The behaviour is the same
-    as for the \verb#FLEA_THROW()# macro, i.e. a return value other than
-    \verb#FLEA_ERR_FINE# causes an immediate jump to the cleanup-code. In this, the error code returned by the
-    called function is returned by the current function.
-\end{itemize}
-
-It is important to stress that in order to have correct life cycle management even in the presence of errors
-thrown directly in the code or returned by called functions, one essential rule must be followed:
-Before any code is executed that potentially raises errors, all objects 
-used within the function must have be initialized. 
-  %  If only the \verb#FLEA\_DECL\_OBJ()# is used for the
-  %  object declaration, then this is naturally achieved. 
-    %If, however, any
-    %objects are declared in the standard way and only initialized in the
-    %initialization-section indicated above, then it is vital that no error
-    %throwing code is executed in the initialization section.
-%  \end{enumberate}
-Following this rule ensures that the jump to the cleanup section, which
-typically executes the dtors for all local objects, is possible at any time
-during error-throwing code.
-
-\begin{comment}
-% this could go to an internals section
-\subsection{Buffer Management}
-The buffer management in flea is abstracted by macros in order to enable both
-the abstraction from heap/stack usage. 
-
-The following  macros are mainly employed for the buffer management:
-\begin{itemize}
-  \item \verb#FLEA_DECL_BUF(symbol_name, type, size)# declares a buffer, 
-  \item \verb#FLEA_ALLOC_BUF(symbol_name, size)# allocates a buffer, 
-  \item \verb#FLEA_FREE_BUF_FINAL(symbol_name)# frees a buffer,
-  \item \verb#FLEA_FREE_BUF_SECRET_ARR(symbol_name, size)# also frees a buffer,
-    but also overwrites the memory contents prior to that.
-\end{itemize}
-All buffer sizes are specified in element counts, not in bytes. However, the
-user of the library, who does not intend to make use of flea's features for 
-switching between stack and heap mode in his own code, may certainly use any explicit heap or stack buffer allocation as he
-is used to.
-\end{comment}
 
 \section{The TLS API}
 
@@ -600,18 +621,31 @@ renegotiation function
 The TLS protocol defines a large variety of cipher suites. fleaTLS
 \thisFleaVersion supports the following subset of cipher suites.
 \begin{itemize}
-  \item \code{TLS\_RSA\_WITH\_AES\_128\_CBC\_SHA}
-  \item \code{TLS\_RSA\_WITH\_AES\_128\_CBC\_SHA256}
-  \item \code{TLS\_RSA\_WITH\_AES\_256\_CBC\_SHA}
-  \item \code{TLS\_RSA\_WITH\_AES\_256\_CBC\_SHA256}
-  \item \code{TLS\_RSA\_WITH\_AES\_128\_GCM\_SHA256}
-  \item \code{TLS\_RSA\_WITH\_AES\_256\_GCM\_SHA384}
-  \item \code{TLS\_ECDHE\_RSA\_WITH\_AES\_128\_CBC\_SHA}
-  \item \code{TLS\_ECDHE\_RSA\_WITH\_AES\_256\_CBC\_SHA}
-  \item \code{TLS\_ECDHE\_RSA\_WITH\_AES\_128\_CBC\_SHA256}
-  \item \code{TLS\_ECDHE\_RSA\_WITH\_AES\_128\_GCM\_SHA256}
-  \item \code{TLS\_ECDHE\_RSA\_WITH\_AES\_256\_CBC\_SHA384}
-  \item \code{TLS\_ECDHE\_RSA\_WITH\_AES\_256\_GCM\_SHA384}
+\item\code{TLS\_ECDHE\_ECDSA\_WITH\_AES\_128\_CBC\_SHA}
+\item\code{TLS\_ECDHE\_ECDSA\_WITH\_AES\_128\_CBC\_SHA256}
+\item\code{TLS\_ECDHE\_ECDSA\_WITH\_AES\_128\_GCM\_SHA256}
+\item\code{TLS\_ECDHE\_ECDSA\_WITH\_AES\_256\_CBC\_SHA}
+\item\code{TLS\_ECDHE\_ECDSA\_WITH\_AES\_256\_CBC\_SHA384}
+\item\code{TLS\_ECDHE\_ECDSA\_WITH\_AES\_256\_GCM\_SHA384}
+\item\code{TLS\_ECDHE\_RSA\_WITH\_AES\_128\_CBC\_SHA}
+\item\code{TLS\_ECDHE\_RSA\_WITH\_AES\_128\_CBC\_SHA256}
+\item\code{TLS\_ECDHE\_RSA\_WITH\_AES\_128\_GCM\_SHA256}
+\item\code{TLS\_ECDHE\_RSA\_WITH\_AES\_256\_CBC\_SHA}
+\item\code{TLS\_ECDHE\_RSA\_WITH\_AES\_256\_CBC\_SHA384}
+\item\code{TLS\_ECDHE\_RSA\_WITH\_AES\_256\_GCM\_SHA384}
+\item\code{TLS\_PSK\_WITH\_AES\_128\_CBC\_SHA}
+\item\code{TLS\_PSK\_WITH\_AES\_128\_CBC\_SHA256}
+\item\code{TLS\_PSK\_WITH\_AES\_128\_GCM\_SHA256}
+\item\code{TLS\_PSK\_WITH\_AES\_256\_CBC\_SHA}
+\item\code{TLS\_PSK\_WITH\_AES\_256\_CBC\_SHA384}
+\item\code{TLS\_PSK\_WITH\_AES\_256\_GCM\_SHA384}
+\item\code{TLS\_RSA\_WITH\_AES\_128\_CBC\_SHA}
+\item\code{TLS\_RSA\_WITH\_AES\_128\_CBC\_SHA256}
+\item\code{TLS\_RSA\_WITH\_AES\_128\_GCM\_SHA256}
+\item\code{TLS\_RSA\_WITH\_AES\_256\_CBC\_SHA}
+\item\code{TLS\_RSA\_WITH\_AES\_256\_CBC\_SHA256}
+\item\code{TLS\_RSA\_WITH\_AES\_256\_GCM\_SHA384}
+
 \end{itemize}
 
 These strings specify the cryptorgraphic algorithms that are used during the TLS
@@ -637,7 +671,7 @@ $$
     authentication of the channel data.
   \end{description}
 The support for the individual cipher suites is configured in the general build
-configuration file with the corresponding defines prefixed with FLEA\ldots .
+configuration file with the corresponding defines prefixed with \code{FLEA}\ldots .
 
 \subsection{Requirements for Client and Server Certificates}
 
@@ -646,8 +680,9 @@ configuration file with the corresponding defines prefixed with FLEA\ldots .
 The current version of fleaTLS only supports named elliptic curves, which is the
 usual choice for TLS certificates. 
 
-\todo{add open-ssl command to create certificate with named curve}
+%\todo{add open-ssl command to create certificate with named curve}
 
+\begin{comment}
 \subsection{Requirements for Server Certificates}
 
 The current version of flea only supports the RSA KEX during the TLS handshake.
@@ -706,12 +741,14 @@ for the certificate extensions of this certificate according to the TLS standard
   \item [Extended Key Usage Extension] If present, this extension must feature
     the key usage \emph{clientAuth} or \emph{any}.
 \end{description}
+\end{comment}
 
 \subsection{TLS Extensions}
 
 The TLS protocol features a number of so-called TLS extension. These are
 optional extensions of the basic protocol. They are sent during the Client Hello
 and/or Server Hello messages. 
+
 \subsubsection{Renegotiation Indication Extension}
 Renegotiation Indication Extension is specified in RFC 5746 and has the purpose
 of preventing certain data injection attacks. fleaTLS supports this extension
@@ -721,7 +758,12 @@ This extension restricts the possibility of performing a TLS renegotiation under
 certain conditions. This depends on the support of the peer for this extension
 and the configuration of the flea TLS instance. 
 
-TODO:EXPLAIN THE 3 VARIANTS
+The renegotiation behaviour of a fleaTLS client or server can be controlled by
+adding one out of the flag values 
+\code{flea\_tls\_flag\_\_reneg\_mode\_\_disallow\_reneg}, 
+in argument of type \code{flea_tls_flag_e} in the
+fleaTLS client or server ctor function. 
+
 
 \subsubsection{Signature Algorithms Extension the TLS Handshake}
 
