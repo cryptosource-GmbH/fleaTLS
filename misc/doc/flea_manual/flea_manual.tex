@@ -761,16 +761,30 @@ and the configuration of the flea TLS instance.
 The renegotiation behaviour of a fleaTLS client or server can be controlled by
 adding one out of the flag values 
 \code{flea\_tls\_flag\_\_reneg\_mode\_\_disallow\_reneg}, 
-in argument of type \code{flea_tls_flag_e} in the
+\code{flea\_tls\_flag\_\_reneg\_mode\_\_allow\_secure\_reneg}, or 
+\code{flea\_tls\_flag\_\_reneg\_mode\_\_allow\_insecure\_reneg}
+in argument of type \code{flea\_tls\_flag\_e} in the
 fleaTLS client or server ctor function. 
 
+\subsubsection{Signature Algorithm Extension}
+fleaTLS always uses this extension. The allowed extensions are set by specifying
+the parameter of type \code{flea\_tls\_sigalg\_e } of the client or server ctor
+function.
+
+\subsubsection{Supported Elliptic Curves Extension}
+fleaTLS always uses the Supported Elliptic Curves Extension when elliptic curve
+cipher suites are configured. The set of allowed elliptic curve domain
+parameters is defined by
+specifying the parameter of type \code{flea\_ec\_dom\_par\_id\_e} of the client or
+server ctor function.
+
+\subsubsection{Supported Point Formats Extension}
+fleaTLS always uses the Supported Point Formats Extension when elliptic curve
+cipher suites are configured. fleaTLS only supports the uncompressed point
+format.
 
 \subsubsection{Signature Algorithms Extension the TLS Handshake}
 
-
-
-\subsection{TLS Alerts}
-TODO
 
 \section{Instantiating fleaTLS Server and Client}
 

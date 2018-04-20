@@ -1537,9 +1537,9 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor_psk(
   flea_al_u16_t                     nb_crls__alu16,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
   flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
-  flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
+  const flea_ec_dom_par_id_e*       allowed_ecc_curves__pe,
   flea_al_u16_t                     nb_allowed_curves__alu16,
-  flea_tls_sigalg_e*                allowed_sig_algs__pe,
+  const flea_tls_sigalg_e*          allowed_sig_algs__pe,
   flea_al_u16_t                     nb_allowed_sig_algs__alu16,
   const flea_u8_t*                  identity_hint_mbn__pu8,
   flea_u16_t                        identity_hint_len__u16,
@@ -1596,9 +1596,9 @@ flea_err_e THR_flea_tls_server_ctx_t__renegotiate(
   flea_al_u16_t                     nb_crls__alu16,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
   flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
-  flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
+  const flea_ec_dom_par_id_e*       allowed_ecc_curves__pe,
   flea_al_u16_t                     nb_allowed_curves__alu16,
-  flea_tls_sigalg_e*                allowed_sig_algs__pe,
+  const flea_tls_sigalg_e*          allowed_sig_algs__pe,
   flea_al_u16_t                     nb_allowed_sig_algs__alu16
 )
 {
@@ -1633,9 +1633,9 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor(
   flea_al_u16_t                     nb_crls__alu16,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
   flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
-  flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
+  const flea_ec_dom_par_id_e*       allowed_ecc_curves__pe,
   flea_al_u16_t                     nb_allowed_curves__alu16,
-  flea_tls_sigalg_e*                allowed_sig_algs__pe,
+  const flea_tls_sigalg_e*          allowed_sig_algs__pe,
   flea_al_u16_t                     nb_allowed_sig_algs__alu16,
   flea_tls_flag_e                   flags__e,
   flea_tls_session_mngr_t*          session_mngr_mbn__pt

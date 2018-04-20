@@ -371,7 +371,7 @@ else
     }
     else if(buf_len)
     {
-      serv_par__pt->write_output_string("sending pingback response\n");
+      serv_par__pt->write_output_string("sending pingback response of length = " + std::to_string(buf_len));
       FLEA_CCALL(THR_flea_tls_server_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
     }
     FLEA_CCALL(THR_flea_tls_server_ctx_t__flush_write_app_data(&tls_ctx));

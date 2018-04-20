@@ -31,7 +31,7 @@ node distance = 1.1cm, align = left]
 
 \node[stateBlock] at (0,0) (stateZero) {state};
 \node[funcBlock, right = of stateZero] (funcZero) {\funcLibInit};
-\node[right = of funcZero] (argsZero) {seed [,\funcSaveRngState]};
+\node[right = of funcZero] (argsZero) {initial seed [,\funcSaveRngState]};
 \node[seedBlock, left = of stateZero.west] (seedFile) {seed file};
 \node[poolBlock, above = of stateZero.north] (poolZero) {pool};
 \draw[myarrow] (argsZero) -- (funcZero);
@@ -39,11 +39,27 @@ node distance = 1.1cm, align = left]
 \draw[myarrow] (stateZero.west) -- node[midway, above, align=left]
 {\code{flea\_prng\_}\\\code{save\_f}} node[midway,below,align=left,yshift=-0.1cm] {saves a
 a new\\ seed generated \\ by the RNG }  (seedFile.east);
-\draw[myarrow] (seedFile.north) -- node {} ++(0, 2cm) -| node
+\draw[myarrow] (seedFile.north) -- node {} ++(0, 1.5cm) -| node
 [midway,above,xshift=+1.2cm,yshift=-1.3cm,align=left]
 {application \\ provides seed } ($(argsZero.north
 west)+(0.5,0)$);
 %\draw[->, thick] ($(initHs.west) - (1,0)$) -- ($(close.west) - (1,0)$);
+
+\node[stateBlock, node distance = 2.1cm, above = of stateZero ] (stateInit) {state};
+\node[funcBlock, right = of stateInit] (funcInit) {\funcLibInit};
+\node[right = of funcInit] (argsInit) {seed [,\funcSaveRngState]};
+%\node[seedBlock, left = of stateInit.west] (seedFile) {seed file};
+\node[poolBlock, above = of stateInit.north] (poolInit) {pool};
+\draw[myarrow] (argsInit) -- (funcInit);
+\draw[myarrow] (funcInit) -- (stateInit);
+\draw[myarrow] (stateInit.west) -| node[midway, above, align=left,yshift=0.6cm]
+{\code{flea\_prng\_}\\\code{save\_f}} node[midway,below,align=left,yshift=0.5cm] {saves a
+a new\\ seed generated \\ by the RNG }  ($(seedFile.north west) +(.5,0)$);
+%\draw[myarrow] (seedFile.north) -- node {} ++(0, 2cm) -| node
+%[midway,above,xshift=+1.2cm,yshift=-1.3cm,align=left]
+%{application \\ provides seed } ($(argsInit.north
+%west)+(0.5,0)$);
+
 
 \node[stateBlock, node distance = 1.8cm, below = of stateZero] (stateOne) {state};
 \node[funcBlock, right = of stateOne, align=left] (funcOne) {\code{THR\_flea\_rng}\\\code{\_\_randomize()}};
@@ -99,7 +115,8 @@ west)+(0.5,0)$);
 {\code{THR\_flea\_rng\_\_re}\\\code{seed\_persistent()}};
 \node[right = of funcSix] (argsSix) {seed data};
 \node[poolBlock, above = of stateSix.north] (poolSix) {pool};
-\draw[myarrow] (stateSix.west) -| node[midway, above, align=left] {\code{flea\_prng\_}\\\code{save\_f}} (seedFile.south);
+\draw[myarrow] (stateSix.west) -| node[midway, above, align=left]
+{\code{flea\_prng\_}\\\code{save\_f}} ($(seedFile.south) - (0.4,0)$) ;
 \draw[myarrow] (argsSix) -- (funcSix);
 \draw[myarrow] (funcSix) -- (stateSix);
 \draw[myarrow] (poolSix) -- (stateSix);
@@ -110,11 +127,11 @@ west)+(0.5,0)$);
 
 \node[node distance = 4cm, above = of funcZero] (flea) {\Large fleaTLS};
 \node[node distance = 2.5cm, right = of flea] (app) {\Large application};
-\node[node distance = 0.7cm, below = of app] (initSeed) { intial seed value};
+\node[node distance = 1.1cm, below = of app] (initSeed) { }; %intial seed value};
 
 %\draw[dashed] ($(funcZero.north east)+(0.5,4.5)$) -- ($(funcSix.south east) + (0.5,-1.5)$);
-\coordinate (initSep) at ($(initSeed) + (2,-0.5)$);
+\coordinate (initSep) at ($(initSeed) + (2,-1)$);
 \node[align=left] at ($(initSep) + (1,0)$) { end of\\ initialization\\ phase };
-\draw[dashed] (initSep) -- ($(initSep) - (17,0)$);
-\draw[->] (initSeed) -| ($(seedFile.north west) + (0.4,0)$);
+\draw[dashed] (initSep) -- ($(initSep) - (13,0)$);
+%\draw[->] (initSeed) -| ($(seedFile.north west) + (0.4,0)$);
 \end{tikzpicture}

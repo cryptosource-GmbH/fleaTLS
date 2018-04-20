@@ -296,9 +296,9 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
   flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
   const flea_ref_cu8_t*             crl_der__pt,
   flea_al_u16_t                     nb_crls__alu16,
-  flea_ec_dom_par_id_e*             allowed_ecc_curves__pe,
+  const flea_ec_dom_par_id_e*       allowed_ecc_curves__pe,
   flea_al_u16_t                     nb_allowed_curves__alu16,
-  flea_tls_sigalg_e*                allowed_sig_algs__pe,
+  const flea_tls_sigalg_e*          allowed_sig_algs__pe,
   flea_al_u16_t                     nb_allowed_sig_algs__alu16,
   flea_hostn_validation_params_t*   hostn_valid_params_mbn__pt
 );

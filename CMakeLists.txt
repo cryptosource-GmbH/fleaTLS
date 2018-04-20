@@ -172,3 +172,7 @@ IF(DO_USE_ASAN)
   TARGET_LINK_LIBRARIES(flea-test-asan asan ${FULL_LIB_STRING_STATIC_ASAN}
     ${TEST_LIB_STRING_STATIC_ASAN} "-m32" )
 ENDIF()
+
+
+ADD_EXECUTABLE(tls_client_simple ./examples/tls/client_simple/tls_client_simple.c)
+TARGET_LINK_LIBRARIES(tls_client_simple ${FULL_LIB_STRING} ${TEST_LIB_STRING} )

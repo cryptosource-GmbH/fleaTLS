@@ -112,9 +112,9 @@ flea_err_e THR_flea_tls_client_ctx_t__ctor(
   flea_al_u16_t                     crls_len,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
   flea_al_u16_t                     allowed_cipher_suites_len,
-  flea_ec_dom_par_id_e*             allowed_ecc_curves,
+  const flea_ec_dom_par_id_e*       allowed_ecc_curves,
   flea_al_u16_t                     allowed_ecc_curves_len,
-  flea_tls_sigalg_e*                allowed_sig_algs,
+  const flea_tls_sigalg_e*          allowed_sig_algs,
   flea_al_u16_t                     allowed_sig_algs_len,
   flea_tls_flag_e                   flags,
   flea_tls_client_session_t*        session_mbn
@@ -238,9 +238,9 @@ flea_err_e THR_flea_tls_client_ctx_t__renegotiate(
   flea_al_u16_t                     crls_len,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
   flea_al_u16_t                     allowed_cipher_suites_len,
-  flea_ec_dom_par_id_e*             allowed_ecc_curves,
+  const flea_ec_dom_par_id_e*       allowed_ecc_curves,
   flea_al_u16_t                     allowed_ecc_curves_len,
-  flea_tls_sigalg_e*                allowed_sig_algs,
+  const flea_tls_sigalg_e*          allowed_sig_algs,
   flea_al_u16_t                     allowed_sig_algs_len
 );
 

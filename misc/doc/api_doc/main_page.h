@@ -22,6 +22,8 @@
  * - \subpage devolopWflea "Using fleaTLS in development projects"
  *
  * - \subpage fleaTLSRestrictions "Restrictions of fleaTLS"
+ * - \subpage fleaRng "Random Number Generation"
+ * - \subpage tlsPage "The TLS API"
  *
  */
 
@@ -152,7 +154,7 @@ in two different console windows.
  * identified by having a <code>ctor</code>, i.e. constructor, and
  * a <code>dtor</code>, i.e. destructor, function.
  *
- * \subsection The Life-Cycle of the Class-Like Types
+ * \subsection secClassLikeTypes The Life-Cycle of the Class-Like Types
  *
  * The life-cycle model for the class-like types is as follows.
  *
@@ -222,7 +224,7 @@ in two different console windows.
  * is still recommended to always call the dtor function on an object even in
  * \link FLEA_HEAP_MODE stack mode \endlink, since the dtor function also often overwrites secret values and their usage is thus a best practice for security.
  *
- * \subsection Class-Like Types with Non-Throwing ctors
+ * \subsection secClassLikeNonThrCtor Class-Like Types with Non-Throwing ctors
  *
  * Some types can enter the CONSTRUCTED state directly without previously
  * entering the INIT state, since they offer right hand side initialization
