@@ -285,6 +285,11 @@ flea_err_e THR_flea_ae_ctx_t__ctor(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_ae_ctx_t__ctor */
 
+flea_al_u8_t flea_ae_ctx_t__get_tag_length(flea_ae_ctx_t const* ctx__pt)
+{
+  return ctx__pt->tag_len__u8;
+}
+
 flea_err_e THR_flea_ae_ctx_t__update_encryption(
   flea_ae_ctx_t*   ctx__pt,
   const flea_u8_t* input__pcu8,

@@ -108,25 +108,6 @@ static flea_err_e THR_check_keyb_input(/*fd_set & keyb_fds*/)
   FLEA_THR_FIN_SEC_empty();
 } // THR_check_keyb_input
 
-static int unix_tcpip_accept(
-  int      listen_fd,
-  unsigned read_timeout_ms
-)
-{
-  struct timeval tv;
-
-  set_timeval_from_millisecs(&tv, read_timeout_ms);
-  setsockopt(
-    listen_fd,
-    SOL_SOCKET,
-    SO_RCVTIMEO,
-    (struct timeval*) &tv,
-    sizeof(struct timeval)
-  );
-
-  return accept(listen_fd, (struct sockaddr*) NULL, NULL);
-} // THR_unix_tcpip_listen_accept
-
 #  ifdef FLEA_HAVE_TLS_CS_PSK
 static flea_err_e dummy_get_psk_cb(
   const void*      psk__pt,
@@ -485,6 +466,8 @@ static flea_err_e THR_server_cycle(
 
       // std::cout << "creating threads: max = " << thr_max << ", running currently = " << serv_pars.size() << std::endl;
       server_params_t serv_par__t;
+
+      /* sharing the server key over different threads like this is possible with fleaTLS */
       serv_par__t.private_key__pt       = &server_key_obj__t;
       serv_par__t.cert_chain__pcu8      = cert_chain;
       serv_par__t.cert_chain_len__alu16 = cert_chain_len;

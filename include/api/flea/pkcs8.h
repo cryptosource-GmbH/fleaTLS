@@ -12,7 +12,7 @@ extern "C" {
 # endif
 
 /**
- * Construct a private key from a DER encoded PKCS#8 structure.
+ * Construct a private key from an unencrypted DER encoded PKCS#8 structure.
  *
  * @param key the key to construct
  * @param der_key the DER encoded structure
@@ -25,7 +25,7 @@ flea_err_e THR_flea_private_key_t__ctor_pkcs8(
 );
 
 /**
- * Construct a public key from a DER encoded PKCS#8 structure.
+ * Construct a public key from an unencrypted DER encoded PKCS#8 structure.
  *
  * @param key the key to construct
  * @param der_key the DER encoded structure

@@ -326,6 +326,128 @@ static flea_err_e THR_flea_test_ae_inner_update__vary_update_lengths(
   );
 } /* THR_flea_test_ae_inner_update__vary_update_lengths */
 
+// ! [ae_update_example]
+static flea_err_e THR_flea_test_ae_inner_update_example_gcm(void)
+{
+  const flea_u8_t plaintext__acu8[] = {
+    0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02,
+    0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02,
+    0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02,
+    0x01, 0x02, 0x01, 0x02, 0x01, 0x02, 0x01, 0x02,
+    0xA0
+  };
+
+  const flea_u8_t key__acu8[] = {
+    0xfe, 0xff, 0xe9, 0x92, 0x86, 0x65, 0x73, 0x1c, 0x6d, 0x6a, 0x8f, 0x94, 0x67, 0x30, 0x83, 0x08
+  };
+
+  const flea_u8_t nonce__acu8 [] = {
+    0x01, 0x06, 0xF1, 0xDC, 0xF1, 0x50, 0x71, 0xAB
+  };
+
+
+  flea_al_u8_t tag_len__alu8 = 10;
+  flea_dtl_t decr_len__dtl;
+  flea_u8_t* decr_ptr__pu8;
+  flea_ae_ctx_t ctx__t;
+  flea_ae_ctx_t decr_ctx__t;
+
+
+  flea_u8_t encr__au8[sizeof(plaintext__acu8)];
+  flea_u8_t decr__au8[sizeof(plaintext__acu8)];
+  flea_u8_t tag__au8[ FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
+
+  FLEA_THR_BEG_FUNC();
+  flea_ae_ctx_t__INIT(&ctx__t);
+  flea_ae_ctx_t__INIT(&decr_ctx__t);
+
+  FLEA_CCALL(
+    THR_flea_ae_ctx_t__ctor(
+      &ctx__t,
+      flea_gcm_aes128,
+      key__acu8,
+      sizeof(key__acu8),
+      nonce__acu8,
+      sizeof(nonce__acu8),
+      NULL,
+      0,
+      tag_len__alu8
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_ae_ctx_t__ctor(
+      &decr_ctx__t,
+      flea_gcm_aes128,
+      key__acu8,
+      sizeof(key__acu8),
+      nonce__acu8,
+      sizeof(nonce__acu8),
+      NULL,
+      0,
+      tag_len__alu8
+    )
+  );
+
+  /* the tag length can also be inferred from the ctx object */
+  tag_len__alu8 = flea_ae_ctx_t__get_tag_length(&ctx__t);
+  FLEA_CCALL(THR_flea_ae_ctx_t__update_encryption(&ctx__t, plaintext__acu8, encr__au8, 5));
+  FLEA_CCALL(
+    THR_flea_ae_ctx_t__update_encryption(
+      &ctx__t,
+      plaintext__acu8 + 5,
+      encr__au8 + 5,
+      sizeof(plaintext__acu8) - 5
+    )
+  );
+  FLEA_CCALL(THR_flea_ae_ctx_t__final_encryption(&ctx__t, tag__au8, &tag_len__alu8));
+
+  /* specify the number of bytes to input into decryption */
+  decr_len__dtl = sizeof(encr__au8);
+  FLEA_CCALL(
+    THR_flea_ae_ctx_t__update_decryption(
+      &decr_ctx__t,
+      encr__au8,
+      sizeof(plaintext__acu8),
+      decr__au8,
+      &decr_len__dtl
+    )
+  );
+  /* now decr_len__dtl contains the number of bytes that have been actually output to decr__au8 */
+  decr_ptr__pu8 = decr__au8 + decr_len__dtl;
+
+  /* set decr_len__dtl as the remaining free length in the decr__au8 */
+  decr_len__dtl = sizeof(plaintext__acu8) - decr_len__dtl;
+
+  /* now input also the tag to the decryption as the final part */
+  FLEA_CCALL(
+    THR_flea_ae_ctx_t__update_decryption(
+      &decr_ctx__t,
+      tag__au8,
+      tag_len__alu8,
+      decr_ptr__pu8,
+      &decr_len__dtl
+    )
+  );
+  if(decr_ptr__pu8 + decr_len__dtl != decr__au8 + sizeof(plaintext__acu8))
+  {
+    FLEA_THROW("error with length in AE decryption", FLEA_ERR_FAILED_TEST);
+  }
+  if(memcmp(decr__au8, plaintext__acu8, sizeof(plaintext__acu8)))
+  {
+    FLEA_THROW("error with AE decrypted value", FLEA_ERR_FAILED_TEST);
+  }
+
+  /* Now the tag verification is carried out */
+  FLEA_CCALL(THR_flea_ae_ctx_t__final_decryption(&decr_ctx__t));
+
+  FLEA_THR_FIN_SEC(
+    flea_ae_ctx_t__dtor(&ctx__t);
+    flea_ae_ctx_t__dtor(&decr_ctx__t);
+  );
+} /* THR_flea_test_ae_inner_update */
+
+// ! [ae_update_example]
+
 static flea_err_e THR_flea_test_ae_inner_update(
   flea_ae_id_e     id__t,
   const flea_u8_t* key__pcu8,
@@ -566,11 +688,14 @@ flea_err_e THR_flea_test_ae()
 
   // ====================================
 
-  const flea_u8_t eax_aes128_key_2[]      = {0xF9, 0x56, 0xB8, 0x79, 0xEC, 0x7F, 0x80, 0x7F, 0x1F, 0xCB, 0x48, 0x2B, 0x53, 0x62, 0x36, 0x71};
-  const flea_u8_t eax_aes128_nonce_2[]    = {0xE6, 0x4F, 0x90, 0xB4, 0x61, 0x9D, 0x93, 0x13, 0x7E, 0x62, 0x37, 0x92, 0x9E, 0xAB, 0xF2, 0x97};
+  const flea_u8_t eax_aes128_key_2[] =
+  {0xF9, 0x56, 0xB8, 0x79, 0xEC, 0x7F, 0x80, 0x7F, 0x1F, 0xCB, 0x48, 0x2B, 0x53, 0x62, 0x36, 0x71};
+  const flea_u8_t eax_aes128_nonce_2[] =
+  {0xE6, 0x4F, 0x90, 0xB4, 0x61, 0x9D, 0x93, 0x13, 0x7E, 0x62, 0x37, 0x92, 0x9E, 0xAB, 0xF2, 0x97};
   const flea_u8_t eax_aes128_pt_2[]       = {0x60};
   const flea_u8_t eax_aes128_exp_ct_2[]   = {0x71};
-  const flea_u8_t eax_aes128_exp_tag_2 [] = {0x0D, 0xAB, 0xD2, 0x4D, 0x40, 0x0F, 0x3B, 0x6B, 0x28, 0x4E, 0xA4, 0x7F, 0x81, 0xEB, 0xBD, 0x26};
+  const flea_u8_t eax_aes128_exp_tag_2 [] =
+  {0x0D, 0xAB, 0xD2, 0x4D, 0x40, 0x0F, 0x3B, 0x6B, 0x28, 0x4E, 0xA4, 0x7F, 0x81, 0xEB, 0xBD, 0x26};
 
   // ====================================
 
@@ -806,6 +931,9 @@ flea_err_e THR_flea_test_ae()
   FLEA_CCALL(THR_flea_test_ae_inner(flea_eax_aes256, eax_aes256_key_2, sizeof(eax_aes256_key_2), eax_aes256_nonce_2, sizeof(eax_aes256_nonce_2), eax_aes256_pt_2, sizeof(eax_aes256_pt_2), eax_aes256_exp_tag_2, sizeof(eax_aes256_exp_tag_2), eax_aes256_exp_ct_2, sizeof(eax_aes256_exp_ct_2), eax_aes256_assoc_2, sizeof(eax_aes256_assoc_2), 16));
 # endif /* ifdef FLEA_HAVE_EAX */
 # ifdef FLEA_HAVE_GCM
+
+  FLEA_CCALL(THR_flea_test_ae_inner_update_example_gcm());
+
   FLEA_CCALL(THR_flea_test_ae_inner(flea_gcm_aes128, gcm_aes128_key_1, sizeof(gcm_aes128_key_1), gcm_aes128_nonce_1, sizeof(gcm_aes128_nonce_1), NULL, 0, gcm_aes128_exp_tag_1, sizeof(gcm_aes128_exp_tag_1), NULL, 0, NULL, 0, 16));
 
   FLEA_CCALL(THR_flea_test_ae_inner(flea_gcm_aes128, gcm_aes128_key_2, sizeof(gcm_aes128_key_2), gcm_aes128_nonce_2, sizeof(gcm_aes128_nonce_2), gcm_aes128_pt_2, sizeof(gcm_aes128_pt_2), gcm_aes128_exp_tag_2, sizeof(gcm_aes128_exp_tag_2), gcm_aes128_exp_ct_2, sizeof(gcm_aes128_exp_ct_2), NULL, 0, 16));

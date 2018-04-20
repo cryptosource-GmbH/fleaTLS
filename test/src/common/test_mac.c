@@ -39,11 +39,21 @@ static flea_err_e THR_flea_test_mac__final_verify_and_compute_mac(
   FLEA_DECL_OBJ(ctx__t, flea_mac_ctx_t);
   flea_al_u8_t mac_len__alu8;
   FLEA_THR_BEG_FUNC();
+/* ! [mac_update_example] */
   FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&ctx__t, id__t, key__pcu8, key_len__alu16));
   FLEA_ALLOC_BUF(mac__bu8, ctx__t.output_len__u8);
   mac_len__alu8 = ctx__t.output_len__u8;
-  FLEA_CCALL(THR_flea_mac_ctx_t__update(&ctx__t, input__pcu8, input_len__alu16));
+  if(input_len__alu16 > 2)
+  {
+    FLEA_CCALL(THR_flea_mac_ctx_t__update(&ctx__t, input__pcu8, 1));
+    FLEA_CCALL(THR_flea_mac_ctx_t__update(&ctx__t, input__pcu8 + 1, input_len__alu16 - 1));
+  }
+  else
+  {
+    FLEA_CCALL(THR_flea_mac_ctx_t__update(&ctx__t, input__pcu8, input_len__alu16));
+  }
   FLEA_CCALL(THR_flea_mac_ctx_t__final_verify(&ctx__t, exp_res__pcu8, exp_res_len__alu16));
+/* ! [mac_update_example] */
 
   FLEA_CCALL(
     THR_flea_mac__compute_mac(
@@ -65,7 +75,7 @@ static flea_err_e THR_flea_test_mac__final_verify_and_compute_mac(
     flea_mac_ctx_t__dtor(&ctx__t);
     FLEA_FREE_BUF_FINAL(mac__bu8);
   );
-}
+} /* THR_flea_test_mac__final_verify_and_compute_mac */
 
 static flea_err_e THR_flea_test_mac__update_with_frag_len_list(
   flea_mac_id_e    id__t,

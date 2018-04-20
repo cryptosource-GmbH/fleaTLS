@@ -244,6 +244,8 @@ flea_err_e THR_flea_public_key_t__ctor_ecc(
 );
 # endif // ifdef FLEA_HAVE_ECC
 
+# ifdef FLEA_HAVE_ASYM_SIG
+
 /**
  * Verify a signature using a public key.
  *
@@ -255,9 +257,6 @@ flea_err_e THR_flea_public_key_t__ctor_ecc(
  *
  * @return an error code
  */
-
-# ifdef FLEA_HAVE_ASYM_SIG
-
 flea_err_e THR_flea_public_key_t__verify_signature(
   const flea_public_key_t* key,
   flea_pk_scheme_id_e      pk_scheme_id,
@@ -268,7 +267,7 @@ flea_err_e THR_flea_public_key_t__verify_signature(
 
 
 /**
- * The same operation as THR_flea_public_key_t__verify_signature_plain_format(), except that the
+ * The same operation as #THR_flea_public_key_t__verify_signature(), except that the
  * digest (i.e. hash value) is directly provided by the caller instead of being
  * computed by the function.
  *
@@ -318,7 +317,9 @@ flea_err_e THR_flea_public_key_t__verify_signature_use_sigalg_id(
  *
  * @param key the public key to be used for the encryption
  * @param pk_scheme_id the encryption scheme to be used for the encryption
- * @param hash_id the id of the hash algorithm used for the signature generation
+ * @param hash_id the id of the hash algorithm used in the encryption scheme, if
+ * applicable to the scheme. Otherwise, this value is unused, as it is for
+ * instance the case when pk_scheme_id amounts to flea_pkcs1_v1_5
  * @param message the message to be encrypted
  * @param message_len the length of the message to be encrypted
  * @param result receives the encrypted message after successful completion

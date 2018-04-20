@@ -65,14 +65,14 @@ static flea_err_e THR_flea_test_cipher_block_encr_decr_data(
   FLEA_CCALL(THR_flea_ecb_mode_ctx_t__ctor(&decr_ctx, id__t, key__pc_u8, key_len__al_u16, flea_decrypt));
 #endif // #ifndef FLEA_HAVE_AES_BLOCK_DECR
   block_size = encr_ctx.block_length__u8;
-  FLEA_CCALL(THR_flea_ecb_mode_crypt_data(&encr_ctx, pt__pc_u8, encr, block_size));
+  FLEA_CCALL(THR_flea_ecb_ctx_t__crypt_data(&encr_ctx, pt__pc_u8, encr, block_size));
   if(memcmp(encr, exp_ct__pc_u8, block_size))
   {
     FLEA_THROW("encrypted block incorrect", FLEA_ERR_FAILED_TEST);
   }
 
 #ifdef FLEA_HAVE_AES_BLOCK_DECR
-  FLEA_CCALL(THR_flea_ecb_mode_crypt_data(&decr_ctx, encr, decr, block_size));
+  FLEA_CCALL(THR_flea_ecb_ctx_t__crypt_data(&decr_ctx, encr, decr, block_size));
   if(memcmp(decr, pt__pc_u8, block_size))
   {
     FLEA_THROW("decrypted block incorrect", FLEA_ERR_FAILED_TEST);

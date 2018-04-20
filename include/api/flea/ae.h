@@ -54,7 +54,7 @@ typedef struct
 } flea_ae_ctx_t;
 
 # define flea_ae_ctx_t__INIT_VALUE {.tag_len__u8 = 0}
-# define flea_ae_ctx_t__INIT(__p) do {(__p)->tag_len__u8 = 0;} while(0)
+# define flea_ae_ctx_t__INIT(__p) do {memset(__p, 0, sizeof(*(__p)));} while(0)
 
 /**
  * Create an AE context. The context can be used for either encryption or
@@ -86,6 +86,17 @@ flea_err_e THR_flea_ae_ctx_t__ctor(
   flea_u16_t       header_len,
   flea_al_u8_t     tag_len
 );
+
+
+/**
+ * Get the tag length of an AE ctx object.
+ *
+ * @param ctx pointer to the AE ctx object
+ *
+ * @return the byte length of the tags produced by this object
+ */
+flea_al_u8_t flea_ae_ctx_t__get_tag_length(flea_ae_ctx_t const* ctx);
+
 
 /**
  * Destroy an AE context object.

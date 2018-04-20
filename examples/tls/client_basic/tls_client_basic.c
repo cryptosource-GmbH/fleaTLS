@@ -42,10 +42,10 @@ int main()
   flea_tls_client_ctx_t__INIT(&tls_ctx);
   flea_cert_store_t__INIT(&trust_store__t);
 
-  flea_dtl_t buf_len = sizeof(buf);
+  flea_dtl_t buf_len = sizeof(buf) - 1;
   memset(buf, 0x31, sizeof(buf));
 
-  /* Draw a ranom seed */
+  /* Draw a random seed - note that in a real world application rather /dev/random should be used */
   int rand_device        = open("/dev/urandom", O_RDONLY);
   ssize_t read_rnd_bytes = read(rand_device, rnd_seed__au8, sizeof(rnd_seed__au8));
   if(read_rnd_bytes != sizeof(rnd_seed__au8))
@@ -129,6 +129,7 @@ int main()
   {
     goto cleanup;
   }
+  printf("handshake successfully done\n");
 
   /*
    * send some application data
@@ -174,6 +175,7 @@ cleanup:
   flea_tls_client_ctx_t__dtor(&tls_ctx);
   flea_rw_stream_t__dtor(&rw_stream__t);
   flea_cert_store_t__dtor(&trust_store__t);
+  flea_lib__deinit();
   printf("ending with error code = %04x\n", err);
   return err;
 } /* main */

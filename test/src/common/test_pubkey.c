@@ -103,8 +103,6 @@ static flea_err_e THR_flea_test_ecc_key_plain_format_encoding_inner(
   order_len__alu16 = flea_byte_vec_t__GET_DATA_LEN(&enc_privkey__t);
   flea_public_key_t__dtor(&pubkey__t);
   flea_private_key_t__dtor(&privkey__t);
-  memset(&pubkey__t, 0, sizeof(pubkey__t));
-  memset(&privkey__t, 0, sizeof(privkey__t));
   flea_byte_vec_t__dtor(&sig_vec__t);
 #  ifdef FLEA_HEAP_MODE
   flea_byte_vec_t__ctor_empty_allocatable(&sig_vec__t);

@@ -174,5 +174,8 @@ IF(DO_USE_ASAN)
 ENDIF()
 
 
-ADD_EXECUTABLE(tls_client_simple ./examples/tls/client_simple/tls_client_simple.c)
-TARGET_LINK_LIBRARIES(tls_client_simple ${FULL_LIB_STRING} ${TEST_LIB_STRING} )
+ADD_EXECUTABLE(tls_client_basic ./examples/tls/client_basic/tls_client_basic.c)
+TARGET_LINK_LIBRARIES(tls_client_basic ${FULL_LIB_STRING} ${TEST_LIB_STRING} )
+
+ADD_EXECUTABLE(tls_server_basic ./examples/tls/server_basic/tls_server_basic.c)
+TARGET_LINK_LIBRARIES(tls_server_basic ${FULL_LIB_STRING} ${TEST_LIB_STRING} )

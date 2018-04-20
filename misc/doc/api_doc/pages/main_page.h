@@ -1,4 +1,4 @@
-/*! \mainpage Quickstart Manual
+/*! \mainpage fleaTLS Manual
  *
  * <PRE>
  * __________________
@@ -11,9 +11,8 @@
  *
  * </PRE>
  *
- * This quickstart manual explains the steps necessary to run fleaTLS under
- * Linux and how to include it in custom build projects, e.g. for your embedded
- * application.
+ * This manual explains the usage fleaTLS as a cryptography and TLS library.
+ * The first chapters explain how to compile fleaTLS with on Unix platforms and how to include it in custom build projects, e.g. for your embedded application. Note that the fleaTLS library itself does not require any operating system, only the test tools supplied with it do so.
  *
  * - \subpage gettingStarted "Getting started with fleaTLS on Linux"
  *
@@ -23,7 +22,13 @@
  *
  * - \subpage fleaTLSRestrictions "Restrictions of fleaTLS"
  * - \subpage fleaRng "Random Number Generation"
+ * - \subpage pageHash "Hash Functions"
+ * - \subpage pageCipher "Block Ciphers"
+ * - \subpage pageMac "Message Authentication Codes"
+ * - \subpage pageAe "Authenticated Encryption"
+ * - \subpage pagePubkey "Public Key Schemes"
  * - \subpage tlsPage "The TLS API"
+ * - \subpage pageConcurrency "Concurrency"
  *
  */
 
@@ -35,7 +40,7 @@
  *   extremely complex and generally not suitable for software implementations on
  *   resource-constrained devices.
  *
- * fleaTLS supports the functionality for X.509 processing, but excludes some
+ * fleaTLS supports the functionality for X.509 certificate and CRL processing, but excludes some
  * features specified in RFC 5280, that are usually irrelevant to IoT and
  * industry applications.
  *
@@ -210,7 +215,7 @@ in two different console windows.
  * - At the start of the function, declare all objects and initialize them, before entering any code that
  *   performs conditional branching, thus also doesn't possibly encounter any
  *   error conditions that need to be handled.
- * - After having initialized all objects, the function body is entered with all
+ * - After having initialized all objects, the "real" function body is entered with all
  *   kinds of conditional control flow and object creation using the fleaTLS
  *   ctor functions.
  * - the function's design ensures that after its completion, the dtor functions on all potentially constructed objects are called.

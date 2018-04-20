@@ -108,7 +108,7 @@ const flea_block_cipher_config_entry_t block_cipher_config[] = {
   {
     .ext_id__t    = flea_desx,
     .raw_id__t    = des,
-    .key_bit_size = 64 + 2 * 64, // 8 bits unused
+    .key_bit_size = 64 + 2 * 64, // 3*8 bits unused
     .expanded_key_u32_size__u16  = 32 + 4,
     .cipher_block_encr_function  = flea_desx_encrypt_block,
     .THR_key_sched_encr_function = THR_flea_desx_setup_key,
@@ -203,7 +203,7 @@ flea_err_e THR_flea_ecb_mode_ctx_t__ctor(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_ecb_mode_ctx_t__ctor */
 
-flea_err_e THR_flea_ecb_mode_crypt_data(
+flea_err_e THR_flea_ecb_ctx_t__crypt_data(
   const flea_ecb_mode_ctx_t* ctx__p_t,
   const flea_u8_t*           input__pc_u8,
   flea_u8_t*                 output__p_u8,

@@ -1,9 +1,8 @@
 /*! \page tlsPage The TLS API
  *
 fleaTLS implements the TLS 1.2 protocol for the instantiation of TLS clients and
-server.
+servers.
 
-\section secTlsDesc A brief description of the TLS protocol
 TLS is a protocol which allows for the establishment of secure connections
 between a TLS client and a TLS server. The authenticity of the server, and
 optionally that of the client is ensured by the use of X.509 certificates.
@@ -18,19 +17,19 @@ The concrete cryptographic algorithms that are used during the handshake and for
 transmission of the application data, are specified by the so-called TLS
 cipher suite.
 
-\subsection secTlsFlowOverv Overview of the TLS Protocol Flow
+\section secTlsFlowOverv Overview of the TLS Protocol Flow
 
 @image html tlsSeqFlow/tlsSeqFlowSA.svg
 @image latex tlsSeqFlow/tlsSeqFlowSA.pdf
 <CENTER>Figure: Overview of the potential events during the TLS protocol flow and the
-associated functions of the flea TLS Client and Serve API.</CENTER>
+associated functions of the fleaTLS client and server API.</CENTER>
 
 The above figure shows the potential events in the TLS protocol flow
 and the associated functions of the fleaTLS client and server API. Any TLS
 connections starts with a call to the ctor function of the TLS client
  (#flea_tls_client_ctx_t) or server (#flea_tls_server_ctx_t) context object.
 
-\subsubsection secInitHsAndAppData Initial Handshake and Application Data Transfer
+\section secInitHsAndAppData Initial Handshake and Application Data Transfer
 After the initial handshake, the TLS channel is established and all subsequent
 data exchanges between the peers take place over the secure TLS channel. The
 main purpose of the TLS channel is the secure exchange of application data,
@@ -46,15 +45,19 @@ to
 - <code>#THR_flea_tls_server_ctx_t__flush_write_app_data()</code>
   is necessary since the <code>send_app_data</code> functions may buffer the data.
 
-  \subsubsection secReneg Renegotiation
+  \section secReneg Renegotiation
 A renegotiation can be triggered either by a call to the corresponding
 renegotiation function
 
 - <code>THR_flea_tls_client_ctx_t__renegotiate()</code> or
-- <code>THR_flea_tls_server_ctx_t__renegotiate()</code>
+- <code>THR_flea_tls_server_ctx_t__renegotiate()</code>.
 
-  or during a call to a <code>read_app_data</code> function, if the peer initiates a
-  renegotiation during that call which is accepted by flea.
+Before a call one of these functions #flea_tls_client_ctx_t__is_reneg_allowed or #flea_tls_server_ctx_t__is_reneg_allowed() should be made in order to determine whether renegotiation is possible according to the current configuration.
+
+
+Furthermore, a renegotiation can be executed during a call to a <code>read_app_data</code> function, if the peer initiates a
+  renegotiation during that call and the fleaTLS instance accepts it.
+
 
   The conditions for accepting a renegotiation request by the  fleaTLS client or
   server are the following:
@@ -64,44 +67,66 @@ renegotiation function
       set, then the renegotiation request is accepted if the peer also supports
       the Renegotiation Indication Extension and behaves correctly with respect
       to this extension.
-      - If in the TLS client or server context object's ctor call the flag <code>#flea_tls_flag__reneg_mode__disallow_reneg </code> is
+    - If in the TLS client or server context object's ctor call the flag <code>#flea_tls_flag__reneg_mode__disallow_reneg </code> is
       set, then the renegotiation request is declined unconditionally.
 
-  The closing of a connection happens when dtor function of the respective tls
-  client or server context object is called. Furthermore, the connection is
-  closed if an error occurs during any of the other TLS client or server context
-  objects.
-
-  Note that both the flea client and the flea server suppress session resumption
+  Note that fleaTLS suppresses session resumption
   during a renegotiation. A renegotiation will thus always be a full handshake.
   However, a session in which a renegotiation has been carried out may normally
   be resumed in an initial handshake.
 
-  \subsubsection secTlsAlerts TLS Alert Handling and Sending
+  \section secTlsSessRes Session Resumption
+
+
+  fleaTLS supports session resumption for both the client and the server.
+
+
+  \subsection secTlsSessResServer TLS Server
+  For the TLS server, session resumption is enabled by providing a non-null pointer to a constructed #flea_tls_session_mngr_t  object in the call to #THR_flea_tls_server_ctx_t__ctor(). The configuration property #FLEA_TLS_MAX_NB_MNGD_SESSIONS determines how many sessions can be cached.
+
+
+  \subsection secTlsSessResClient TLS Client
+For the client, a session can be saved for later resumption by creating an object of type #flea_tls_client_session_t using the function #flea_tls_client_session_t__ctor() and providing it in the call to #THR_flea_tls_client_ctx_t__ctor().
+After the successful completion of #THR_flea_tls_client_ctx_t__ctor(), the #flea_tls_client_session_t object should now contain a valid session. This can be tested with the function #flea_tls_client_session_t__has_valid_session(). The valid session can be serialized using #THR_flea_tls_client_session_t__serialize().
+
+In order to resume a session, first an object of type #flea_tls_client_session_t containing a valid session has to be present. This can be achieved either
+
+- by keeping the object after the above described procedure to record a session during a handshake,
+- or by creating a new #flea_tls_client_session_t via #flea_tls_client_session_t__ctor() and then deserializing a previously serialized session using the function #THR_flea_tls_client_session_t__deserialize() on the same object.
+
+Afterwards, this object is provided to the call to #THR_flea_tls_client_ctx_t__ctor(), causing the client to attempt to resume that session.
+
+      \section secTlsCloseConn Closing the connection
+  The closing of a connection happens when dtor function of the respective tls
+  client or server context object is called. Furthermore, the connection is
+  closed if an error occurs during any of the other functions of #flea_tls_client_ctx_t or #flea_tls_server_ctx_t.
+
+  \section secTlsAlerts TLS Alert Handling and Sending
 
   In the TLS protocol alert messages are specified as a means to signal error
   conditions to the peer. They carry a type and a level field. A variety of possible types
   is specified in the TLS standard. The level can be <code>fatal</code>, indicating an error
   that mandates the ending of the connection, or <code>warning</code>, indicating that,
   depending on the type of the alert, a specific action may be necessary.
-  fleaTLS completely handles the treatment of incoming
-  TLS alerts and sending of alerts when an error condition is met.
+  fleaTLS completely hides the treatment of incoming
+  TLS alerts from the application and sends appropriate error alerts when an error condition is met.
 
   If fleaTLS receives an alert the reaction is determined according to the
   following rules:
-    - If the alert has level <code>fatal</code>, flea closes the connection and the API
+    - If the alert has level <code>fatal</code>, fleaTLS closes the connection and the API
         function during the execution of which the alert was received returns an
         error code.
       - Otherwise, if the alert has level <code>warning</code>, and
           - if it is of type <code>close notify</code>, then the connection is closed as
-            well, i.e. fleaTLS sends a <code>close notify</code> alert to the peer itself;
+            well, i.e. fleaTLS sends a <code>close notify</code> alert to the peer itself and the current function
+            returns FLEA_ERR_TLS_REC_CLOSE_NOTIFY;
           - if it is of type <code>no renegotiation</code>, and fleaTLS is
             currently executing the TLS client's or server's
-            <code>renegotiate()</code> function, then it aborts the renegotiation and
+            <code>..._renegotiate()</code> function, then it aborts the renegotiation and
             indicates this to the caller. The TLS context object remains valid in
             this case.
 
-\subsection secCipherSuites Cipher Suites
+\section secCipherSuites Cipher Suites
 
 The TLS protocol defines a large variety of cipher suites. fleaTLS
 currently supports the following subset of cipher suites.
@@ -132,186 +157,111 @@ currently supports the following subset of cipher suites.
 - <code>TLS_RSA_WITH_AES_256_GCM_SHA384</code>
 
 
-These strings specify the cryptorgraphic algorithms that are used during the TLS
+These strings specify the cryptographic algorithms that are used during the TLS
 handshake according to the following pattern:
 
 @image html cipher_suite_expl.png
 
 \latexonly
 $$
-\mathrm{TLS_</code>\underbrace{\mathrm{RSA</code></code>_{\mathrm{KEX</code></code>\mathrm{_WITH_</code>\underbrace{\mathrm{AES_128</code></code>_{\mathrm{cipher</code></code>_\underbrace{\mathrm{CBC</code></code>_{\mathrm{mode</code>
-</code>_\underbrace{\mathrm{SHA</code></code>_{\mathrm{hash</code> </code>
+\mathrm{TLS_}\underbrace{\mathrm{RSA}}_{\mathrm{KEX}}\mathrm{_WITH_}\underbrace{\mathrm{AES_128}}_{\mathrm{cipher}}_\underbrace{\mathrm{CBC}}_{\mathrm{mode}
+}_\underbrace{\mathrm{SHA}}_{\mathrm{hash} }
 $$
   \endlatexonly
+
   - KEX: The key exchange algorithm specifies the algorithm which is used
     for the exchange of the symmetric keys used in the TLS channel. The current
-    version of fleaTLS supports only the RSA and ECDHE_RSA KEX. In the former,
-    the RSA key from the certificate of the server is directly used for the KEX,
-    Tin the latter the RSA key of the server signs an ephemeral ECDH key, which
-    in turn is used for the key exchange. This implies that the
-    certificate of the server must be an RSA certificate.
+    version of fleaTLS supports the RSA, ECDHE_RSA, ECDHE_ECDSA, and PSK KEX.
   - cipher: The cipher is the encryption primitive which is used to achieve
     the confidentiality within the TLS channel. fleaTLS only supports the AES
     algorithm (with key sizes 128 and 256 as specified in the TLS protocol).
   - mode: The encryption mode in which the cipher is used.
   - hash: The hash algorithm which is specified here is used for the
     authentication of the channel data.
-The support for the individual cipher suites is configured in the general build
-configuration file with the corresponding defines prefixed with <code>FLEA_</code>... .
+The support for the individual cipher suites is configured in the file build_config_gen.h with the corresponding define is the name of the cipher suite prefixed with <code>FLEA_HAVE_TLS_CS_...</code>.
 
-\subsection secTlsReqClServCerts Requirements for Client and Server Certificates
+\section secTlsReqClServCerts Requirements for Client and Server Certificates
 
-\subsubsection ECDSA Certificates
+\subsection ECDSA Certificates
 
-The current version of fleaTLS only supports named elliptic curves, which is the
+For any cipher suites featuring a KEX including "ECDSA", the client's or server's certificate must contain an EC public key. The analogously those cipher suites including "RSA" require a  certificate featuring an RSA public key.
+
+Note that the current version of fleaTLS only supports named elliptic curves, which is the
 usual choice for TLS certificates.
 
 
-\subsection secTlsExt TLS Extensions
+\section secTlsExt TLS Extensions
 
 The TLS protocol features a number of so-called TLS extension. These are
 optional extensions of the basic protocol. They are sent during the Client Hello
 and/or Server Hello messages.
 
-\subsubsection secRenegIndicExt Renegotiation Indication Extension
+\subsection secRenegIndicExt Renegotiation Indication Extension
 Renegotiation Indication Extension is specified in RFC 5746 and has the purpose
 of preventing certain data injection attacks. fleaTLS supports this extension
-according to the standard.
+according to the standard. Refer to \ref secReneg for further information.
 
-This extension restricts the possibility of performing a TLS renegotiation under
-certain conditions. This depends on the support of the peer for this extension
-and the configuration of the flea TLS instance.
 
-The renegotiation behaviour of a fleaTLS client or server can be controlled by
-adding one out of the flag values
-<code>#flea_tls_flag__reneg_mode__disallow_reneg</code>,
-<code>#flea_tls_flag__reneg_mode__allow_secure_reneg</code>, or
-<code>#flea_tls_flag__reneg_mode__allow_insecure_reneg</code>
-in argument of type <code>flea_tls_flag_e</code> in the
-fleaTLS client or server ctor function.
-
-\subsubsection secSigAlgExt Signature Algorithm Extension
+\subsection secSigAlgExt Signature Algorithm Extension
 fleaTLS always uses this extension. The allowed extensions are set by specifying
-the parameter of type <code>flea_tls_sigalg_e </code> of the client or server ctor
+the parameter of type <code>#flea_tls_sigalg_e </code> of the client or server ctor
 function.
 
-\subsubsection secSuppECCurveExt Supported Elliptic Curves Extension
+\subsection secSuppECCurveExt Supported Elliptic Curves Extension
 fleaTLS always uses the Supported Elliptic Curves Extension when elliptic curve
 cipher suites are configured. The set of allowed elliptic curve domain
 parameters is defined by
 specifying the parameter of type <code>#flea_ec_dom_par_id_e</code> of the client or
 server ctor function.
 
-\subsubsection secSuppPointForm Supported Point Formats Extension
+\subsection secSuppPointForm Supported Point Formats Extension
 fleaTLS always uses the Supported Point Formats Extension when elliptic curve
 cipher suites are configured. fleaTLS only supports the uncompressed point
 format.
 
-\section secInstTlsClientAndServer Instantiating fleaTLS Server and Client
+\section secTlsConc Concurrency Support
+fleaTLS offers concurrency support (see Section \ref secConcurrency) for the TLS server. For this reason the session manager object
+offers mutex support and may be shared among different server context objects.
 
-The fleaTLS server and client API objects are given by the
+The server's private key may be shared among threads as well.
+
+\section secInstTlsClientAndServer Instantiating TLS Server and Client
+
+The fleaTLS server and client API types are given by the
 #flea_tls_server_ctx_t and #flea_tls_client_ctx_t. Their life cycle is modelled such that their
 constructor call carries out the TLS handshake. The constructed object is thus
 directly in the state where the TLS channel is established and data can be
 exchanged.
 
-\subsection secInstTlsClient Instantiating a TLS Client
+Note that for both the client and the server it must be ensured that all pointers provided in the respective ctor call must remain valid throughout the whole life-time of the #flea_tls_client_ctx_t or #flea_tls_server_ctx_t object, i.e. until the dtor function is called.
 
-\snippet tls/tls_client_exmp.c whole_file
+\section secInstTlsClient Instantiating a TLS Client
 
-\subsection secInstTlsServer Instantiating a TLS Server
-fleaTLS offers concurrency support (see Section \ref secConcurrency) for the TLS server session manager object
-that may be shared among different server context objects. Note that in this
-case all connections must be closed - i.e. server context objects destroyed -- before the session manager object is destroyed.
-
-
-\section secConcurrency Concurrency Support in fleaTLS
-
-Generally, fleaTLS objects do not implement any concurrency support. If
-objects are shared between threads by client code, then the client code is
-required to implement respective measures to prevent concurrent read/write
-access to them.
-
-However, fleaTLS offers concurrency support for its global RNG (see Section \ref fleaRng)
-and the TLS server (see Section \ref secInstTlsServer), as these instances are
-commonly used in multithreading contexts. If the global RNG's
-functions for reseeding with high entropy seed data and generating output are
-called from different threads (or interrupt routines), or multiple TLS
-server context objects running in different threads and using a common shared
-<code>#flea_tls_session\_mngr_t</code> employed, a mutex mechanism needs
-to configured for fleaTLS. This is achieved by providing the appropriate compile
-time and run-time configurations to fleaTLS.
-
-\subsection secMutexCompTimeConf Compile-Time Configurations
-
-In the "multithreading" section of the file <code>build_config_gen.h</code>
-appropriate configuration settings must be made. In the shipped version of flea,
-the use of Unix pthread mutexes is preconfigured.
-
-\subsubsection Enabling Mutex Support
-In order to enable mutex support in fleaTLS the line
-
+The following example is found under <code>examples/tls/client_basic/</code> and can be invoked by typing
 <PRE>
-# define FLEA_HAVE_MUTEX
+$ ./build/tls_client_basic
 </PRE>
-must be present.
+in the flea main directory.
+The directory contains also a script to start a fleaTLS server against which the client example can run. The script must be invoked from the flea main directory. The TLS client connects to the server and executes a handshake with hostname verification (in this case using the IP address 127.0.0.1) and verifies the authenticity of the server certificate.  Afterwards, it sends some application data which is pinged back by the server. The example does not use client authentication. In order to enable client authentication, #THR_flea_tls_client_ctx_t__ctor() must be invoked with a certificate chain and a private key in the same way as it is shown for the TLS server in Section \ref secInstTlsServer.
 
-In the line
+\snippet tls/client_basic/tls_client_basic.c whole_file
+
+\section secInstTlsServer Instantiating a TLS Server
+
+In the following we give an example of setting up a fleaTLS server. The example
+is located at <code>examples/tls/server_basic/</code>
 <PRE>
-# include <pthread.h>
+$ ./build/tls_server_basic
 </PRE>
-the header filename must be replaced by the appropriate header file.
+in the flea main directory.
+It can be run against
+the client example from Section \ref secInstTlsClient. The server doesn't
+request client authentication. In order to enforce client authentication, the flea_cert_store_t
+parameter in the THR_flea_tls_server_ctx_t__ctor() must be non-null and contain
+the root certificates that are trusted for client authentication. For setting
+up the cert store see Section \ref secInstTlsClient. Revocation checking is also not used by the server. A flea_tls_session_mngr_t object is used so that the server supports session resumption.
 
-Furthermore, the appropriate mutex type must be set in the line
-
-<PRE>
-# define FLEA_MUTEX_TYPE  the_mutex_type
-</PRE>
-
-\subsubsection secDisableMutex Disabling Mutex Support
-In order to disable mutex support in fleaTLS, remove the two lines
-<PRE>
-# define FLEA_HAVE_MUTEX
-</PRE>
-and
-<PRE>
-# include <pthread.h>
-</PRE>
-
-\subsubsection secMutexRunTimeConf Run-Time Configuration
-
-The actual implementation of the mutex functionality is provided to fleaTLS in
-the call to the function #THR_flea_lib__init(). If compile-time support is enabled, a
-<code>flea_mutex_func_set_t</code> must be provided to that function. In this object,
-all four member function pointers must be set to point to appropriate functions.
-These functions will be called with objects of type <code>FLEA_MUTEX_TYPE</code>
-defined in the build configuration.
-
-An example for the invocation #THR_flea_lib__init() for the pthread implementation is
-found in the flea unit test file:
+\snippet tls/server_basic/tls_server_basic.c whole_file
 
 
-<PRE>
-  flea_mutex_func_set_t mutex_func_set__t = {
-    .init   = flea_linux__pthread_mutex_init,
-    .destr  = pthread_mutex_destroy,
-    .lock   = pthread_mutex_lock,
-    .unlock = pthread_mutex_unlock
-  };
-
-  if(THR_flea_lib__init(
-      &THR_flea_linux__get_current_time,
-      (const flea_u8_t*) &rnd,
-      sizeof(rnd),
-      NULL,
-      &mutex_func_set__t
-    ))
-  {
-    // signal error
-    ...
-  }
-</PRE>
-
-  The requirements for the implementation of the four mutex related functions
-  are specificed in the API documentation in the file <code>mutex.h</code>.
 */

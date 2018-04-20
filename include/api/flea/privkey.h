@@ -206,7 +206,7 @@ flea_err_e THR_flea_private_key_t__decrypt_message(
  *  @param [in] enforced_pkcs1_v1_5_decryption_result_len This value is only
  *  interpreted in case of PKCS#1 v1.5 decryption. For normal PKCS#1 v1.5
  *  decoding, this must be set to zero. Set this value to the expected message
- *  length to achieve timing neutral fake result generation in case of a padding
+ *  length to achieve constant time fake result generation in case of a padding
  *  error (defense against Bleichenbacher's attack).
  *  @param [out] silent_alarm_mbn meaningful only in case of PKCS#1 v1.5 decryption and if
  *  enforced_pkcs1_v1_5_decryption_result_len is non-zero. May be set to null.

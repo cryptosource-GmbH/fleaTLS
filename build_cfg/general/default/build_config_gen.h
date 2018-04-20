@@ -34,14 +34,14 @@
 # define FLEA_NO_DEV_ASSERTIONS // FBFLAGS_CORE_ON_OFF
 
 
-// # if 0
+# if 0
 
 /**
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  */
-# define FLEA_DO_PRINTF_ERRS
+#  define FLEA_DO_PRINTF_ERRS
 
-// # endif // if 0
+# endif  // if 0
 /* end dgb_cfg */
 /**@}*/
 

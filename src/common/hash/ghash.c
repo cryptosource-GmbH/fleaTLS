@@ -142,7 +142,7 @@ flea_err_e THR_flea_ghash_ctx_t__ctor(
 # endif /* ifdef FLEA_HEAP_MODE */
   memset(h, 0, __FLEA_GHASH_BLOCK_SIZE);
   FLEA_CCALL(THR_flea_len_ctr_t__ctor(&ctx__pt->len_ctr__t, 2, 36, 32));
-  FLEA_CCALL(THR_flea_ecb_mode_crypt_data(ecb_ctx__pt, h, h, ecb_ctx__pt->block_length__u8));
+  FLEA_CCALL(THR_flea_ecb_ctx_t__crypt_data(ecb_ctx__pt, h, h, ecb_ctx__pt->block_length__u8));
 
 # ifdef FLEA_HAVE_BE_ARCH_OPT
   vh_a[1] = FLEA_DECODE_U32_BE(h + 0);
@@ -249,7 +249,7 @@ flea_err_e THR_flea_ghash_ctx_t__start(
     ghash_xor_and_process_block(ctx, ctr_block__pu8, work__bu8, __FLEA_GHASH_BLOCK_SIZE);
   }
   FLEA_CCALL(
-    THR_flea_ecb_mode_crypt_data(
+    THR_flea_ecb_ctx_t__crypt_data(
       ecb_ctx__pt,
       ctr_block__pu8,
       ctx->base_ctr__bu8,

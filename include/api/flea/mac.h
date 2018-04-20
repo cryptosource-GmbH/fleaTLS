@@ -103,7 +103,7 @@ flea_err_e THR_flea_mac_ctx_t__final_compute(
  * @param mac_len the length of mac
  *
  * @return flea error code: FLEA_ERR_FINE if the verification succeeded,
- * FLEA_ERR_INV_MAC if it failed
+ * FLEA_ERR_INV_MAC (or potentiall other error codes) if it failed
  */
 flea_err_e THR_flea_mac_ctx_t__final_verify(
   flea_mac_ctx_t*  ctx,
