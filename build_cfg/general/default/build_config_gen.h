@@ -685,11 +685,7 @@
 /**
  * TODO: doc
  */
-# define FlEA_TLS_RECORD_MAX_PLAINTEXT_SIZE 16384
-
-// TODO => mv to int
-# define FLEA_TLS_MAX_RECORD_SIZE FlEA_TLS_RECORD_MAX_PLAINTEXT_SIZE + 320
-
+# define FlEA_TLS_RECORD_MAX_PLAINTEXT_SIZE 512 // 16384
 
 /**
  * TLS send buffer size. This buffer used for sending data and determines the

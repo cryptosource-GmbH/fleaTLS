@@ -452,6 +452,10 @@ static flea_err_e THR_flea_tls__send_server_hello(
     }
   }
 # endif /* ifdef FLEA_HAVE_TLS_CS_ECC */
+  if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH)
+  {
+    FLEA_CCALL(THR_flea_tls_ctx_t__send_max_fragment_length_ext(tls_ctx, p_hash_ctx));
+  }
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_server_hello */

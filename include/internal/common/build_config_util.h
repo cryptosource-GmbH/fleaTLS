@@ -104,4 +104,19 @@
 /************ End Check Ciphersuite Configuration ************/
 
 
+/************ Begin Record Size Configuration ************/
+
+// FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE: maximum amount of data (padding, mac, ...) that can be added upon the plaintext of a record
+#if defined FLEA_HAVE_TLS_CS_CBC
+# define FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE 256 + 16 + 48 // Padding + IV(AES) + MAC + Record Header
+#else // GCM
+# define FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE 8 // explicit nonce
+#endif
+
+#define FLEA_TLS_MAX_RECORD_SIZE FlEA_TLS_RECORD_MAX_PLAINTEXT_SIZE + FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE
+
+
+/************ End Record Size Configuration ************/
+
+
 #endif /* h-guard */

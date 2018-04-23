@@ -1621,12 +1621,20 @@ flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
       &tls_ctx__pt->rec_prot__t,
       p_hash_ctx__pt,
       1,
-      1
+      2
     )
   );
 
-  ext_byte__u8 =
-    flea_tls__get_max_fragment_length_byte_for_buf_size(tls_ctx__pt->rec_prot__t.send_rec_buf_raw_len__u16);
+  if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
+  {
+    ext_byte__u8 = flea_tls__get_max_fragment_length_byte_for_buf_size(FLEA_TLS_TRNSF_BUF_SIZE);
+  }
+  else
+  {
+    ext_byte__u8 = flea_tls__get_max_fragment_length_byte_for_buf_size(
+      tls_ctx__pt->rec_prot__t.alt_send_buf__raw_len__u16
+      );
+  }
 
   FLEA_CCALL(
     THR_flea_tls__send_handshake_message_content(
@@ -1649,34 +1657,30 @@ flea_u8_t flea_tls__get_max_fragment_length_byte_for_buf_size(flea_u16_t buf_len
 {
   flea_u8_t result = 0;
 
-  if(buf_len__u16 > 4096)
+  if(buf_len__u16 <= 512)
   {
-    return result;
+    result = 0; // no value will suffice, omit extension
   }
-  if(buf_len__u16 == 4096)
-  {
-    result = 4;
-  }
-  if(buf_len__u16 < 4096 && buf_len__u16 >= 2048)
-  {
-    result = 3;
-  }
-  if(buf_len__u16 < 2048 && buf_len__u16 >= 1024)
-  {
-    result = 2;
-  }
-  if(buf_len__u16 < 1024 && buf_len__u16 >= 512)
+  if(buf_len__u16 >= 512 && buf_len__u16 < 1024)
   {
     result = 1;
   }
-  if(buf_len__u16 < 512)
+  if(buf_len__u16 >= 1024 && buf_len__u16 < 2048)
   {
-    result = 0;
+    result = 2;
   }
+  if(buf_len__u16 >= 2048 && buf_len__u16 < 4096)
+  {
+    result = 3;
+  }
+  if(buf_len__u16 >= 4096 && buf_len__u16 <= 16384 + FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE + FLEA_TLS_RECORD_HDR_LEN) // 2^14 + max additional data for padding etc.
+  {
+    result = 4;
+  }
+
   return result;
 }
 
-// does not perform check on the range of byte__u8 (1-4)
 static flea_u16_t get_max_fragment_length_by_ext_byte(flea_u8_t byte__u8)
 {
   if(byte__u8 == 1)
@@ -1740,35 +1744,29 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
   max_fragment_length__u16 = get_max_fragment_length_by_ext_byte(ext_value__u8);
   if(tls_ctx__pt->connection_end == FLEA_TLS_SERVER)
   {
-    if(max_fragment_length__u16 < tls_ctx__pt->rec_prot__t.send_rec_buf_raw_len__u16)
+    if(max_fragment_length__u16 < tls_ctx__pt->rec_prot__t.alt_send_buf__raw_len__u16)
     {
-      // resize buffer
-# ifdef FLEA_USE_HEAP_BUF
       // first flush send buffer
-      FLEA_CCALL(THR_flea_rw_stream_t__flush_write(tls_ctx__pt->rec_prot__pt->rw_stream__pt));
-      FLEA_CCALL(
-        THR_flea_alloc__realloc_mem(
-          (void**) &tls_ctx__pt->rec_prot__t.send_rec_buf_raw__bu8,
-          tls_ctx__pt->rec_prot__t.send_rec_buf_raw_len__u16,
-          max_fragment_length__u16
-        )
+      FLEA_CCALL(THR_flea_rw_stream_t__flush_write(tls_ctx__pt->rec_prot__t.rw_stream__pt));
+# ifdef FLEA_HEAP_MODE
+      FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(
+        tls_ctx__pt->rec_prot__t.alt_send_buf__raw__bu8,
+        tls_ctx__pt->rec_prot__t.alt_send_buf__raw_len__u16
       );
-      tls_ctx__pt->rec_prot__t.send_rec_buf_raw_len__u16 = max_fragment_length__u16;
+      FLEA_ALLOC_BUF(tls_ctx__pt->rec_prot__t.alt_send_buf__raw__bu8, max_fragment_length__u16);
 # endif /* ifdef FLEA_USE_HEAP_BUF */
+      tls_ctx__pt->rec_prot__t.alt_send_buf__raw_len__u16 = max_fragment_length__u16;
+      tls_ctx__pt->rec_prot__t.alt_payload_max_len__u16   = max_fragment_length__u16 - FLEA_TLS_RECORD_HDR_LEN;
+      tls_ctx__pt->rec_prot__t.send_buf_raw_len__u16      = max_fragment_length__u16 - FLEA_TLS_RECORD_HDR_LEN;
 
       // update extension ctrl to send max frag ext in server hello
       tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH;
     }
-    else
-    {
-      // TODO: ignore this case? Server has a smaller buffer than
-      // client requests
-    }
   }
   else  // FLEA_TLS_CLIENT
   {
-    if(flea_tls__get_max_fragment_length_byte_for_buf_size(tls_ctx__pt->rec_prot__t.send_rec_buf_raw_len__u16) !=
-      max_fragment_length__u16)
+    if(flea_tls__get_max_fragment_length_byte_for_buf_size(FLEA_TLS_TRNSF_BUF_SIZE) !=
+      ext_value__u8)
     {
       FLEA_THROW(
         "server did not respond with the same value in max_fragment_length extension",
@@ -2066,6 +2064,10 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
     {
       FLEA_CCALL(THR_flea_tls_ctx_t__parse_supported_curves_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
       tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES;
+    }
+    else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__MAX_FRAGMENT_LENGTH)
+    {
+      FLEA_CCALL(THR_flea_tls_ctx_t__parse_max_fragment_length_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
     }
 # endif /* ifdef FLEA_HAVE_TLS_CS_ECC */
     else

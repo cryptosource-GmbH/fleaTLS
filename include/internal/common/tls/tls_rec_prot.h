@@ -79,6 +79,7 @@ struct struct_flea_tls_rec_prot_t
   flea_u8_t                    send_rec_buf_raw__bu8[FLEA_TLS_TRNSF_BUF_SIZE + FLEA_TLS_RECORD_HDR_LEN ];
   flea_u8_t                    alt_send_buf__raw__bu8[FLEA_TLS_ALT_SEND_BUF_SIZE];
 # endif // ifdef FLEA_HEAP_MODE
+  flea_u16_t                   alt_send_buf__raw_len__u16;
   flea_u16_t                   send_rec_buf_raw_len__u16;
   flea_u16_t                   send_buf_raw_len__u16;
   flea_u8_t*                   payload_buf__pu8;
