@@ -1757,8 +1757,6 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
 # endif /* ifdef FLEA_USE_HEAP_BUF */
       tls_ctx__pt->rec_prot__t.alt_send_buf__raw_len__u16 = max_fragment_length__u16;
       tls_ctx__pt->rec_prot__t.alt_payload_max_len__u16   = max_fragment_length__u16 - FLEA_TLS_RECORD_HDR_LEN;
-      tls_ctx__pt->rec_prot__t.send_buf_raw_len__u16      = max_fragment_length__u16 - FLEA_TLS_RECORD_HDR_LEN;
-
       // update extension ctrl to send max frag ext in server hello
       tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH;
     }

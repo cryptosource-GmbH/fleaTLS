@@ -81,7 +81,6 @@ struct struct_flea_tls_rec_prot_t
 # endif // ifdef FLEA_HEAP_MODE
   flea_u16_t                   alt_send_buf__raw_len__u16;
   flea_u16_t                   send_rec_buf_raw_len__u16;
-  flea_u16_t                   send_buf_raw_len__u16;
   flea_u8_t*                   payload_buf__pu8;
   flea_u8_t*                   send_payload_buf__pu8;
   flea_u8_t*                   send_buf_raw__pu8;

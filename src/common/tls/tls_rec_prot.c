@@ -482,13 +482,11 @@ flea_err_e THR_flea_tls_rec_prot_t__write_data(
       flea_tls_rec_prot_t__set_record_header(rec_prot__pt, content_type__e);
     }
     rec_prot__pt->send_buf_raw__pu8         = rec_prot__pt->alt_send_buf__raw__bu8;
-    rec_prot__pt->send_buf_raw_len__u16     = rec_prot__pt->alt_send_buf__raw_len__u16;
     rec_prot__pt->send_payload_max_len__u16 = rec_prot__pt->alt_payload_max_len__u16;
   }
   else
   {
     rec_prot__pt->send_buf_raw__pu8         = rec_prot__pt->alt_send_buf__raw__bu8;
-    rec_prot__pt->send_buf_raw_len__u16     = rec_prot__pt->alt_send_buf__raw_len__u16;
     rec_prot__pt->send_payload_max_len__u16 = rec_prot__pt->alt_payload_max_len__u16;
 
     flea_tls_rec_prot_t__set_record_header(rec_prot__pt, content_type__e);
