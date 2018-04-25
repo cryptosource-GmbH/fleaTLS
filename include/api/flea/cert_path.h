@@ -17,6 +17,20 @@
 extern "C" {
 # endif
 
+typedef enum
+{
+  /** check revocation information for all certificates in the path */
+  flea_rev_chk_all,
+
+  /** do not check revocation at all */
+  flea_rev_chk_none,
+
+  /** check revocation information only for the end entity certificate, i.e.
+   * target certificate */
+  flea_rev_chk_only_ee
+} flea_rev_chk_mode_e;
+
+
 /**
  * Certificate path validator type. After having been configured with trusted
  * and untrusted certificates as well as CRLs, it can be used for certificate
@@ -70,7 +84,7 @@ flea_err_e THR_flea_cert_path_validator_t__ctor_cert(
 
 /**
  * Add a CRL to a cert path validator. The encoded CRL must stay in the same
- * memory location for the life time of the cert path validator, since it only
+ * memory location for the lifetime of the cert path validator, since it only
  * stores a reference to that CRL.
  *
  * @param cpv the cert path validator object
@@ -85,7 +99,7 @@ flea_err_e THR_flea_cert_path_validator_t__add_crl(
 
 /**
  * Add an untrusted certificate to a cert path validator. The encoded certificate must stay in the same
- * memory location for the life time of the cert path validator, since it only
+ * memory location for the lifetime of the cert path validator, since it only
  * stores a reference to that certificate.
  *
  * @param cpv the cert path validator object
@@ -101,7 +115,7 @@ flea_err_e THR_flea_cert_path_validator_t__add_cert_without_trust_status(
 /**
  * Add a trust anchor to object. It is possible to add the target cert itself again if it is trusted. This is
  * the proper way to handle directly trusted EE certificates. The encoded certificate must stay in the same
- * memory location for the life time of the cert path validator, since it only
+ * memory location for the lifetime of the cert path validator, since it only
  * stores a reference to that certificate.
  *
  * @param cpv the cert path validator object

@@ -321,6 +321,7 @@ flea_err_e THR_flea_x509_cert_ref_t__get_issuer_dn_component(
  *
  * @param cert_ref the certificate reference object to check for the key usages.
  * @param required_usages the required key usages to check for as a combination
+ * ( "AND" )
  * of values from flea_key_usage_e.
  * @param explicitness here, flea_key_usage_explicit means that the key usage
  * extension must be explicitly contained in the certificate for any key usage
@@ -343,6 +344,7 @@ flea_bool_t flea_x509_cert_ref_t__has_key_usages(
  *
  * @param cert_ref the certificate reference object to check for the key usages.
  * @param required_usages the required key usages to check for as a combination
+ * ( "AND" )
  * of values from flea_ext_key_usage_e.
  * @param explicitness here, flea_key_usage_explicit means that the extended key usage
  * extension must be explicitly contained in the certificate for any extended key usage

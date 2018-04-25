@@ -292,26 +292,21 @@ flea_err_e THR_flea_test_cert_path_valid_init()
 {
   flea_cert_path_validator_t cert_chain__t;
   flea_cert_store_t cert_store__t;
-  flea_cert_path_validator_t cert_chain2__t;
-  flea_cert_store_t cert_store2__t;
 
   FLEA_THR_BEG_FUNC();
   flea_cert_path_validator_t__INIT(&cert_chain__t);
   flea_cert_store_t__INIT(&cert_store__t);
-  flea_cert_path_validator_t__INIT(&cert_chain2__t);
-  flea_cert_store_t__INIT(&cert_store2__t);
 
   FLEA_THR_FIN_SEC(
     flea_cert_store_t__dtor(&cert_store__t);
-    flea_cert_store_t__dtor(&cert_store2__t);
     flea_cert_path_validator_t__dtor(&cert_chain__t);
-    flea_cert_path_validator_t__dtor(&cert_chain2__t);
   );
 }
 
 # ifdef FLEA_HAVE_RSA
 flea_err_e THR_flea_test_cert_chain_correct_chain_of_two()
 {
+/* ! [cert_validation_1] */
   flea_cert_path_validator_t cert_chain__t;
 
   flea_cert_path_validator_t__INIT(&cert_chain__t);
@@ -338,6 +333,7 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two()
   );
   FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) - 1, &time__t));
   err = THR_flea_cert_path_validator__build_and_verify_cert_chain(&cert_chain__t, &time__t);
+/* ! [cert_validation_1] */
 #  if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
   if(err)
   {

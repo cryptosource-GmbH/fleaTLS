@@ -27,6 +27,7 @@
  * - \subpage pageMac "Message Authentication Codes"
  * - \subpage pageAe "Authenticated Encryption"
  * - \subpage pagePubkey "Public Key Schemes"
+ * - \subpage pageX509 "X.509 Certificate Handling"
  * - \subpage tlsPage "The TLS API"
  * - \subpage pageConcurrency "Concurrency"
  *
@@ -110,7 +111,7 @@ In order to execute the unit tests, run the command
 <PRE>
   $ ./build/flea-test
   </PRE>
-Get help supplying --help as an argument.
+Get help by supplying --help as an argument.
 
 \section tlsTestTools Starting TLS server and client
 
@@ -134,7 +135,7 @@ in two different console windows.
  *
   In the function parameter lists, [in], [out], and [in,out] specifies
   whether a parameter is a mere input, a mere output, or both for the function.
-  Here, a parameter is considered as an output if it it is a pointer and the
+  Here, a parameter is considered as an output if it is a pointer and the
   object it points to is potentially updated by the function. An output
   parameter is guaranteed to be updated by the function to the value specified
   in the API documentation if the function returns without indicating an error,
@@ -153,7 +154,7 @@ in two different console windows.
  *
  * fleaTLS realizes an object oriented API for a number of class-like types. Each type name in
  * fleaTLS ends in <code>..._t</code>.
- * The functions that are belonging to a certain type have the name pattern
+ * The functions that belong to a certain type have the name pattern
  * <code>[THR_]\<type-name\>__\<function-name\></code>.
  * Class-like types are
  * identified by having a <code>ctor</code>, i.e. constructor, and
@@ -164,15 +165,9 @@ in two different console windows.
  * The life-cycle model for the class-like types is as follows.
  *
  * When declaring an object, it will be in the UNINIT state. The first action
- * that must happen to an object in this state is initialization. Initialization
- * can be performed in two ways. The first is using the <code>\<type-name\>__INIT_VALUE</code>
- * macro as the right hand side initialization value when declaring the object.
- * For example like this:
- *
- * <code> flea_ae_ctx_t ctx__t = \link flea_ae_ctx_t__INIT_VALUE flea_ae_ctx_t__INIT_VALUE\endlink; </code>
- *
- * The second possibility is to use the <code>\<type-name\>__INIT(ptr)</code>
- * macro after the declaration and before the object is used:
+ * that must happen to an object in this state is initialization.
+ * This is done by invoking the macro <code>\<type-name\>__INIT(ptr)</code> for
+ * the respective type after the declaration and before the object is used:
  *
  * <CODE>
  *
@@ -232,7 +227,7 @@ in two different console windows.
  * \subsection secClassLikeNonThrCtor Class-Like Types with Non-Throwing ctors
  *
  * Some types can enter the CONSTRUCTED state directly without previously
- * entering the INIT state, since they offer right hand side initialization
+ * entering the INIT state, since they offer right-hand side initialization
  * values putting them into the CONSTRUCTED state directly as well as
  * non-throwing ctors. A non-throwing ctor may be used at the start of a
  * function before entering the function body, i.e. where generally the
@@ -297,7 +292,7 @@ In order to enable TLS, the application code is required to supply a custom impl
 
 \subsection tlsRwStream Supporting the Read Modes
 
-While the implementation of the write functionality is straightforward,
+While the implementation of the write-functionality is straightforward,
 there exist three read modes (\link flea_stream_read_mode_e flea_stream_read_mode_e \endlink) which must be understood
 by the \link flea_rw_stream_read_f flea_rw_stream_read_f \endlink supplied to the custom flea_rw_stream_t type.
 - \link flea_stream_read_mode_e::flea_read_nonblocking flea_read_nonblocking \endlink means that the function quickly returns with the available incoming data and thus may return with fewer bytes than requested. If no read data is available on the interface, the function may return with zero bytes read. This mode may *not* cause a timeout (see \ref tlsTimeout ).
@@ -314,7 +309,7 @@ Otherwise the custom flea_rw_stream_t type shall implement the following error h
 
 - When the flea_rw_stream_open_f function fails, it should return \link FLEA_ERR_FAILED_TO_OPEN_CONNECTION FLEA_ERR_FAILED_TO_OPEN_CONNECTION \endlink.
 - When encountering a read error, \link FLEA_ERR_FAILED_STREAM_READ FLEA_ERR_FAILED_STREAM_READ \endlink is returned.
-- When encountering a write error, \link FLEA_ERR_FAILED_STREAM_WRITE FLEA_ERR_FAILED_STREAM_WRITE \endlink is returned.
+- When encountering a write-error, \link FLEA_ERR_FAILED_STREAM_WRITE FLEA_ERR_FAILED_STREAM_WRITE \endlink is returned.
 
 \subsection Example Implementation with Unix Sockets
 

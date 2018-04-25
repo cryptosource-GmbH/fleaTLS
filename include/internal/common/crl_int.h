@@ -13,19 +13,6 @@ extern "C" {
 
 #ifdef FLEA_HAVE_ASYM_ALGS
 
-typedef enum
-{
-  /** check revocation information for all certificates in the path */
-  flea_rev_chk_all,
-
-  /** do not check revocation at all */
-  flea_rev_chk_none,
-
-  /** check revocation information only for the end entity certificate, i.e.
-   * target certificate */
-  flea_rev_chk_only_ee
-} flea_rev_chk_mode_e;
-
 
 flea_err_e THR_flea_crl__check_revocation_status(
   const flea_ref_cu8_t*        crl_der__cprcu8,
