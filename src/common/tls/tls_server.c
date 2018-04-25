@@ -1678,6 +1678,7 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor(
 void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx__pt)
 {
   flea_tls_ctx_t__dtor(&tls_server_ctx__pt->tls_ctx__t);
+  flea_tls_server_ctx_t__INIT(tls_server_ctx__pt);
 }
 
 flea_err_e THR_flea_tls_server_ctx_t__send_app_data(

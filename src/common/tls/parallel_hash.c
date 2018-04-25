@@ -132,8 +132,9 @@ void flea_tls_parallel_hash_ctx_t__dtor(flea_tls_parallel_hash_ctx_t* p_hash_ctx
     flea_hash_ctx_t__dtor(&p_hash_ctx->hash_ctx__pt[i]);
   }
 # ifdef FLEA_HEAP_MODE
-  FLEA_FREE_MEM_CHK_SET_NULL(p_hash_ctx->hash_ctx__pt);
+  FLEA_FREE_MEM_CHK_NULL(p_hash_ctx->hash_ctx__pt);
 # endif
+  flea_tls_parallel_hash_ctx_t__INIT(p_hash_ctx);
 }
 
 flea_err_e THR_flea_tls_parallel_hash_ctx_t__select_hash_ctx(

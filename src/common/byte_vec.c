@@ -53,8 +53,7 @@ void flea_byte_vec_t__dtor(flea_byte_vec_t* byte_vec__pt)
   }
   FLEA_BYTEVEC_STATE_SET_AS_UNDEALLOCATABLE(byte_vec__pt->state__u8);
 #endif /* ifdef FLEA_HEAP_MODE */
-  byte_vec__pt->len__dtl  = 0;
-  byte_vec__pt->allo__dtl = 0;
+  FLEA_MEMSET(byte_vec__pt, 0, sizeof(*byte_vec__pt));
 }
 
 void flea_byte_vec_t__set_as_ref(

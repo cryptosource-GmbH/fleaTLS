@@ -105,10 +105,11 @@ static flea_bool_t is_cert_trusted(const flea_x509_cert_info_t* cert_ref__pt)
 void flea_cert_path_validator_t__dtor(flea_cert_path_validator_t* cpv__pt)
 {
 # ifdef FLEA_HEAP_MODE
-  FLEA_FREE_MEM_CHK_SET_NULL(cpv__pt->chain__bu16);
-  FLEA_FREE_MEM_CHK_SET_NULL(cpv__pt->crl_collection__brcu8);
-  FLEA_FREE_MEM_CHK_SET_NULL(cpv__pt->cert_collection__bt);
+  FLEA_FREE_MEM_CHK_NULL(cpv__pt->chain__bu16);
+  FLEA_FREE_MEM_CHK_NULL(cpv__pt->crl_collection__brcu8);
+  FLEA_FREE_MEM_CHK_NULL(cpv__pt->cert_collection__bt);
 # endif
+  flea_cert_path_validator_t__INIT(cpv__pt);
 }
 
 static flea_err_e THR_validate_cert_path(

@@ -82,6 +82,13 @@
     } \
   } while(0)
 
+# define FLEA_FREE_MEM_CHECK_NULL_SECRET_ARR(__name, __type_len) \
+  do { \
+    if(__name) { \
+      flea_memzero_secure((flea_u8_t*) __name, (__type_len) * sizeof(__name[0])); \
+      FLEA_FREE_MEM(__name); \
+    } \
+  } while(0)
 
 # define FLEA_FREE_BUF_SECRET_ARR(__name, __type_len) \
   do { \
@@ -105,6 +112,8 @@
   do { \
     flea_memzero_secure((flea_u8_t*) __name, (__type_len) * sizeof(__name[0])); \
   } while(0)
+# define FLEA_FREE_MEM_CHECK_NULL_SECRET_ARR(__name, __type_len) \
+  FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(__name, __type_len) \
 
 #else // #elif defined FLEA_STACK_MODE
 # error no buf type (heap or stack) defined for flea

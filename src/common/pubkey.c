@@ -649,11 +649,12 @@ void flea_public_key_t__dtor(flea_public_key_t* key__pt)
     }
 #  endif /* ifdef FLEA_HAVE_RSA */
 #  if defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECC
-    FLEA_FREE_MEM_CHK_SET_NULL(*mem_to_free_1);
-    FLEA_FREE_MEM_CHK_SET_NULL(*mem_to_free_2);
+    FLEA_FREE_MEM_CHK_NULL(*mem_to_free_1);
+    FLEA_FREE_MEM_CHK_NULL(*mem_to_free_2);
 #  endif
   }
 # endif /* ifdef FLEA_HEAP_MODE */
+  flea_public_key_t__INIT(key__pt);
 }
 
 #endif /* #ifdef FLEA_HAVE_ASYM_ALGS */

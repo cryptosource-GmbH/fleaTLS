@@ -63,10 +63,11 @@ void flea_ctr_mode_prng_t__dtor(flea_ctr_mode_prng_t* ctx__pt)
   {
     return;
   }
-  FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->pending_output__bu8, FLEA_AES_BLOCK_LENGTH);
-  FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->count_block__bu8, FLEA_AES_BLOCK_LENGTH);
-  FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
+  FLEA_FREE_MEM_CHECK_NULL_SECRET_ARR(ctx__pt->pending_output__bu8, FLEA_AES_BLOCK_LENGTH);
+  FLEA_FREE_MEM_CHECK_NULL_SECRET_ARR(ctx__pt->count_block__bu8, FLEA_AES_BLOCK_LENGTH);
+  FLEA_FREE_MEM_CHECK_NULL_SECRET_ARR(ctx__pt->key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
   flea_ecb_mode_ctx_t__dtor(&ctx__pt->cipher_ctx__t);
+  flea_ctr_mode_ctx_t__INIT(ctx__pt);
 }
 
 void flea_ctr_mode_prng_t__randomize(

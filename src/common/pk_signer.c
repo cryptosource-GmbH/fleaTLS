@@ -28,6 +28,7 @@
 void flea_pk_signer_t__dtor(flea_pk_signer_t* p_destr)
 {
   flea_hash_ctx_t__dtor(&p_destr->hash_ctx);
+  flea_pk_signer_t__INIT(p_destr);
 }
 
 flea_err_e THR_flea_pk_signer_t__ctor(

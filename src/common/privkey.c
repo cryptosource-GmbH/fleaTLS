@@ -182,17 +182,18 @@ void flea_private_key_t__dtor(flea_private_key_t* privkey__pt)
 #  ifdef FLEA_HAVE_RSA
   if(privkey__pt->key_type__t == flea_rsa_key)
   {
-    FLEA_FREE_MEM_CHK_SET_NULL(privkey__pt->privkey_with_params__u.rsa_priv_key_val__t.priv_key_mem__bu8);
+    FLEA_FREE_MEM_CHK_NULL(privkey__pt->privkey_with_params__u.rsa_priv_key_val__t.priv_key_mem__bu8);
   }
 #  endif /* ifdef FLEA_HAVE_RSA */
 #  ifdef FLEA_HAVE_ECC
   if(privkey__pt->key_type__t == flea_ecc_key)
   {
-    FLEA_FREE_MEM_CHK_SET_NULL(privkey__pt->privkey_with_params__u.ec_priv_key_val__t.dp_mem__bu8);
-    FLEA_FREE_MEM_CHK_SET_NULL(privkey__pt->privkey_with_params__u.ec_priv_key_val__t.priv_scalar__mem__bu8);
+    FLEA_FREE_MEM_CHK_NULL(privkey__pt->privkey_with_params__u.ec_priv_key_val__t.dp_mem__bu8);
+    FLEA_FREE_MEM_CHK_NULL(privkey__pt->privkey_with_params__u.ec_priv_key_val__t.priv_scalar__mem__bu8);
   }
 #  endif /* ifdef FLEA_HAVE_ECC */
 # endif /* ifdef FLEA_HEAP_MODE */
+  flea_private_key_t__INIT(privkey__pt);
 }
 
 # ifdef FLEA_HAVE_ASYM_SIG

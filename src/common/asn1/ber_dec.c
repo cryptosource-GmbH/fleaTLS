@@ -1345,12 +1345,13 @@ flea_err_e THR_flea_ber_dec_t__decode_implicit_universal_optional(
 void flea_ber_dec_t__dtor(flea_ber_dec_t* dec__pt)
 {
 #ifdef FLEA_HEAP_MODE
-  FLEA_FREE_MEM_CHK_SET_NULL(dec__pt->allo_open_cons__bdtl);
+  FLEA_FREE_MEM_CHK_NULL(dec__pt->allo_open_cons__bdtl);
 #endif
   if(dec__pt->hash_ctx__pt)
   {
     flea_hash_ctx_t__dtor(dec__pt->hash_ctx__pt);
   }
+  flea_ber_dec_t__INIT(dec__pt);
 }
 
 static flea_err_e THR_flea_ber_dec_t__decode_short_bit_str_to_u32_opt(

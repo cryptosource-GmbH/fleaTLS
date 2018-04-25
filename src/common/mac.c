@@ -310,11 +310,12 @@ void flea_mac_ctx_t__dtor(flea_mac_ctx_t* ctx__pt)
     return;
   }
 
+  flea_mac_ctx_t__dtor_cipher_ctx_ref(ctx__pt);
   if(ctx__pt->mode_id__t == flea_cmac)
   {
     flea_ecb_mode_ctx_t__dtor(&ctx__pt->primitive_specific_ctx__u.cmac_specific__t.cipher_ctx__t);
   }
-  flea_mac_ctx_t__dtor_cipher_ctx_ref(ctx__pt);
+  flea_mac_ctx_t__INIT(ctx__pt);
 }
 
 void flea_mac_ctx_t__dtor_cipher_ctx_ref(flea_mac_ctx_t* ctx__pt)

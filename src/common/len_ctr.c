@@ -45,8 +45,9 @@ flea_err_e THR_flea_len_ctr_t__ctor_copy(
 void flea_len_ctr_t__dtor(flea_len_ctr_t* len_ctr__pt)
 {
 #ifdef FLEA_HEAP_MODE
-  FLEA_FREE_MEM_CHK_SET_NULL(len_ctr__pt->counter__bu32);
+  FLEA_FREE_MEM_CHK_NULL(len_ctr__pt->counter__bu32);
 #endif
+  flea_len_ctr_t__INIT(len_ctr__pt);
 }
 
 static flea_err_e THR_flea_len_ctr_t__add_and_check_len_limit_inner(

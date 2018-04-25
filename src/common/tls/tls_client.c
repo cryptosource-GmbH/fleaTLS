@@ -1766,6 +1766,7 @@ const flea_x509_cert_ref_t* flea_tls_client_ctx_t__get_peer_root_cert_ref(flea_t
 void flea_tls_client_ctx_t__dtor(flea_tls_client_ctx_t* tls_client_ctx__pt)
 {
   flea_tls_ctx_t__dtor(&tls_client_ctx__pt->tls_ctx__t);
+  flea_tls_client_ctx_t__INIT(tls_client_ctx__pt);
 }
 
 #endif  /* ifdef FLEA_HAVE_TLS_CLIENT */

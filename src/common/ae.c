@@ -616,6 +616,7 @@ void flea_ae_ctx_t__dtor(flea_ae_ctx_t* ctx__pt)
     flea_ghash_ctx_t__dtor(&gcm__pt->ghash_ctx__t);
   }
 # endif /* ifdef FLEA_HAVE_GCM */
+  flea_ae_ctx_t__INIT(ctx__pt);
 }
 
 #endif // #ifdef FLEA_HAVE_AE

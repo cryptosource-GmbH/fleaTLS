@@ -144,6 +144,7 @@ flea_err_e THR_flea_tls_conn_state_t__ctor_gcm(
 void flea_tls_conn_state_t__dtor(flea_tls_conn_state_t* conn_state__pt)
 {
   flea_tls_conn_state_t__unset_cipher_suite(conn_state__pt);
+  flea_tls_conn_state_t__INIT(conn_state__pt);
 }
 
 #endif /* ifdef FLEA_HAVE_TLS */

@@ -287,4 +287,5 @@ void flea_rw_stream_t__dtor(flea_rw_stream_t* stream__pt)
   {
     stream__pt->close_func__f(stream__pt->custom_obj__pv);
   }
+  flea_rw_stream_t__INIT(stream__pt);
 }

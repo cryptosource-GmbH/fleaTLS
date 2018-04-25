@@ -99,7 +99,7 @@ typedef struct
   flea_u8_t reserved_iv_len__u8;
 } flea_tls_conn_state_t;
 
-# define flea_tls_conn_state_t__INIT(__p) {(__p)->cipher_suite_config__t.cipher_suite_class__e = flea_null_cipher_suite}
+# define flea_tls_conn_state_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
 
 void flea_tls_conn_state_t__dtor(flea_tls_conn_state_t* conn_state__pt);
 

@@ -185,8 +185,9 @@ flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
 void flea_cert_store_t__dtor(flea_cert_store_t* cert_store__pt)
 {
 # ifdef FLEA_HEAP_MODE
-  FLEA_FREE_MEM_CHK_SET_NULL(cert_store__pt->enc_cert_refs__bcu8);
+  FLEA_FREE_MEM_CHK_NULL(cert_store__pt->enc_cert_refs__bcu8);
 # endif
+  flea_cert_store_t__INIT(cert_store__pt);
 }
 
 #endif /* #ifdef FLEA_HAVE_ASYM_SIG */

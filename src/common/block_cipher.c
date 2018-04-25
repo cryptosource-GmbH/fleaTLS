@@ -151,6 +151,7 @@ void flea_ecb_mode_ctx_t__dtor(flea_ecb_mode_ctx_t* ctx__pt)
     return;
   }
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->expanded_key__bu8, ctx__pt->config__pt->expanded_key_u32_size__u16);
+  flea_ecb_mode_ctx_t__INIT(ctx__pt);
 }
 
 flea_err_e THR_flea_ecb_mode_ctx_t__ctor(
@@ -281,6 +282,7 @@ void flea_ctr_mode_ctx_t__dtor(flea_ctr_mode_ctx_t* p_ctx)
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(p_ctx->pending_mask__bu8, block_len__alu8);
 
   flea_ecb_mode_ctx_t__dtor(&p_ctx->cipher_ctx__t);
+  flea_ctr_mode_ctx_t__INIT(p_ctx);
 }
 
 void flea_ctr_mode_ctx_t__crypt(
@@ -544,4 +546,5 @@ void flea_cbc_mode_ctx_t__dtor(flea_cbc_mode_ctx_t* ctx__pt)
 #ifdef FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHK_SET_NULL(ctx__pt->iv__bu8);
 #endif
+  flea_cbc_mode_ctx_t__INIT(ctx__pt);
 }

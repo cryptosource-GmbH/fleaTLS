@@ -101,7 +101,7 @@ struct struct_flea_tls_rec_prot_t
   flea_u8_t                    pending_close_notify__u8;
 };
 
-# define flea_tls_rec_prot_t__INIT(__p) FLEA_MEMSET ((__p), 0, sizeof(*(__p))
+# define flea_tls_rec_prot_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
 
 void flea_tls_rec_prot_t__dtor(flea_tls_rec_prot_t* rec_prot__pt);
 

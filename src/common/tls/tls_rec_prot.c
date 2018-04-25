@@ -1395,8 +1395,9 @@ void flea_tls_rec_prot_t__dtor(flea_tls_rec_prot_t* rec_prot__pt)
   }
   flea_tls_conn_state_t__dtor(&rec_prot__pt->write_state__t);
   flea_tls_conn_state_t__dtor(&rec_prot__pt->read_state__t);
-  FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(rec_prot__pt->send_rec_buf_raw__bu8, FLEA_TLS_TRNSF_BUF_SIZE);
-  FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(rec_prot__pt->alt_send_buf__raw__bu8, FLEA_TLS_ALT_SEND_BUF_SIZE);
+  FLEA_FREE_MEM_CHECK_NULL_SECRET_ARR(rec_prot__pt->send_rec_buf_raw__bu8, FLEA_TLS_TRNSF_BUF_SIZE);
+  FLEA_FREE_MEM_CHECK_NULL_SECRET_ARR(rec_prot__pt->alt_send_buf__raw__bu8, FLEA_TLS_ALT_SEND_BUF_SIZE);
+  flea_tls_rec_prot_t__INIT(rec_prot__pt);
 }
 
 #endif /* ifdef FLEA_HAVE_TLS */
