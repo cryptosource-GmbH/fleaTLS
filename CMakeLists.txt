@@ -45,6 +45,8 @@ IF(${afl} STREQUAL "true")
 ENDIF()
 
 SET(build_cfg "default" CACHE STRING "which build_cfg to use")
+SET(do_build_examples "true" CACHE STRING "set to 'true' to build examples. Note that
+the examples are only built with the 'default' build config")
 
 #SET(mudflap "false" CACHE STRING "wether to compile in mudflap for gcc")
 #IF(${mudflap} STREQUAL "true")
@@ -174,8 +176,10 @@ IF(DO_USE_ASAN)
 ENDIF()
 
 
-ADD_EXECUTABLE(tls_client_basic ./examples/tls/client_basic/tls_client_basic.c)
-TARGET_LINK_LIBRARIES(tls_client_basic ${FULL_LIB_STRING} ${TEST_LIB_STRING} )
+IF(${do_build_examples} STREQUAL "true" AND ${build_cfg} STREQUAL "default")
+  ADD_EXECUTABLE(tls_client_basic ./examples/tls/client_basic/tls_client_basic.c)
+  TARGET_LINK_LIBRARIES(tls_client_basic ${FULL_LIB_STRING} ${TEST_LIB_STRING} )
 
-ADD_EXECUTABLE(tls_server_basic ./examples/tls/server_basic/tls_server_basic.c)
-TARGET_LINK_LIBRARIES(tls_server_basic ${FULL_LIB_STRING} ${TEST_LIB_STRING} )
+  ADD_EXECUTABLE(tls_server_basic ./examples/tls/server_basic/tls_server_basic.c)
+  TARGET_LINK_LIBRARIES(tls_server_basic ${FULL_LIB_STRING} ${TEST_LIB_STRING} )
+ENDIF()

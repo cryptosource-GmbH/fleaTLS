@@ -25,7 +25,7 @@ typedef enum { flea_hmac_md5, flea_hmac_sha1, flea_hmac_sha224, flea_hmac_sha256
 #ifdef FLEA_HEAP_MODE
 # define flea_mac_ctx_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
 #else
-# define flea_mac_ctx_t__INIT(__a) FLEA_ZERO_STRUCT(__p)
+# define flea_mac_ctx_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
 
 
 #endif // ifdef FLEA_HEAP_MODE

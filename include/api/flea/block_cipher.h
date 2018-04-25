@@ -21,7 +21,7 @@ extern "C" {
 # define flea_ctr_mode_ctx_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
 # define flea_cbc_mode_ctx_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
 #else // ifdef FLEA_HEAP_MODE
-# define flea_ecb_mode_ctx_t__INIT(__p)
+# define flea_ecb_mode_ctx_t__INIT(__p) do {(__p)->config__pt = NULL;} while(0)
 # define flea_ctr_mode_ctx_t__INIT(__p) do {flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
 # define flea_cbc_mode_ctx_t__INIT(__p) do {flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
 #endif /* ifdef FLEA_HEAP_MODE */

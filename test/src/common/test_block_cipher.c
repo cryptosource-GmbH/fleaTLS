@@ -15,26 +15,18 @@ static flea_err_e THR_flea_test_block_cipher_init_dtor()
 {
   flea_ecb_mode_ctx_t ecb;
 
-  flea_ecb_mode_ctx_t__INIT(&ecb);
   flea_cbc_mode_ctx_t cbc;
-  flea_cbc_mode_ctx_t__INIT(&cbc);
   flea_ctr_mode_ctx_t ctr;
-  flea_ctr_mode_ctx_t__INIT(&ctr);
-  flea_ecb_mode_ctx_t ecb2;
-  flea_cbc_mode_ctx_t cbc2;
-  flea_ctr_mode_ctx_t ctr2;
+
   FLEA_THR_BEG_FUNC();
-  flea_ecb_mode_ctx_t__INIT(&ecb2);
-  flea_cbc_mode_ctx_t__INIT(&cbc2);
-  flea_ctr_mode_ctx_t__INIT(&ctr2);
+  flea_ecb_mode_ctx_t__INIT(&ecb);
+  flea_cbc_mode_ctx_t__INIT(&cbc);
+  flea_ctr_mode_ctx_t__INIT(&ctr);
 
   FLEA_THR_FIN_SEC(
     flea_ecb_mode_ctx_t__dtor(&ecb);
-    flea_ecb_mode_ctx_t__dtor(&ecb2);
     flea_cbc_mode_ctx_t__dtor(&cbc);
-    flea_cbc_mode_ctx_t__dtor(&cbc2);
     flea_ctr_mode_ctx_t__dtor(&ctr);
-    flea_ctr_mode_ctx_t__dtor(&ctr2);
   );
 }
 

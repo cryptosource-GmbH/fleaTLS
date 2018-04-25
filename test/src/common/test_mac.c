@@ -589,7 +589,9 @@ flea_err_e THR_flea_test_mac()
 # endif // #ifdef FLEA_HAVE_CMAC
 
 
+# if defined FLEA_HAVE_HMAC && defined FLEA_HAVE_SHA224_256
   FLEA_CCALL(THR_flea_test_mac_special_1());
+# endif
   // NOTE: non-full blocks are tested in test_ae.c in EAX mode, which internally
   // uses CMAC
   FLEA_CCALL(THR_flea_test_mac__init_dtor());
