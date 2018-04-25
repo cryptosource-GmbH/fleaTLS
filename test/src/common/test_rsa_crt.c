@@ -224,7 +224,8 @@ flea_err_e THR_flea_test_rsa_crt_mass_sig(flea_u32_t nb_iters)
   const flea_u32_t mod_len      = 256;
   const flea_u32_t mod_word_len = 256 / sizeof(flea_uword_t);
 
-  FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
+  flea_private_key_t privkey__t;
+
   FLEA_DECL_BUF(mess_arr, flea_u8_t, mod_len);
   FLEA_DECL_BUF(sig_arr, flea_u8_t, mod_len);
 # if !(FLEA_RSA_MAX_KEY_BIT_SIZE < 2048 && defined FLEA_STACK_MODE)
@@ -241,6 +242,7 @@ flea_err_e THR_flea_test_rsa_crt_mass_sig(flea_u32_t nb_iters)
   FLEA_DECL_BUF(q_word_arr, flea_uword_t, q_word_arr_word_len_static);
   flea_mpi_t p, q, mod;
   FLEA_THR_BEG_FUNC();
+  flea_private_key_t__INIT(&privkey__t);
 
   FLEA_ALLOC_BUF(mess_arr, mod_len);
   FLEA_ALLOC_BUF(sig_arr, mod_len);

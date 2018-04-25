@@ -53,7 +53,6 @@ typedef struct
   } mode_specific__u;
 } flea_ae_ctx_t;
 
-# define flea_ae_ctx_t__INIT_VALUE {.tag_len__u8 = 0}
 # define flea_ae_ctx_t__INIT(__p) do {memset(__p, 0, sizeof(*(__p)));} while(0)
 
 /**

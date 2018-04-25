@@ -13,12 +13,13 @@
 
 static flea_err_e THR_flea_test_ae_init_dtor()
 {
-  flea_ae_ctx_t ctx__t = flea_ae_ctx_t__INIT_VALUE;
+  flea_ae_ctx_t ctx__t;
   flea_ae_ctx_t ctx2__t;
 
-  flea_ae_ctx_t__INIT(&ctx2__t);
   FLEA_THR_BEG_FUNC();
 
+  flea_ae_ctx_t__INIT(&ctx__t);
+  flea_ae_ctx_t__INIT(&ctx2__t);
   FLEA_THR_FIN_SEC(
     flea_ae_ctx_t__dtor(&ctx__t);
     flea_ae_ctx_t__dtor(&ctx2__t);
@@ -123,14 +124,17 @@ static flea_err_e THR_flea_test_ae_inner_update__vary_update_lengths(
   flea_dtl_t decr_len__dtl;
   flea_dtl_t this_decr_len__dtl;
   flea_u8_t* decr_ptr__pu8;
-  flea_ae_ctx_t ctx__t       = flea_ae_ctx_t__INIT_VALUE;
-  flea_ae_ctx_t decr_ctx__t  = flea_ae_ctx_t__INIT_VALUE;
-  flea_ae_ctx_t decr2_ctx__t = flea_ae_ctx_t__INIT_VALUE;
+  flea_ae_ctx_t ctx__t;
+  flea_ae_ctx_t decr_ctx__t;
+  flea_ae_ctx_t decr2_ctx__t;
 
   FLEA_DECL_BUF(encr__bu8, flea_u8_t, TEST_MAX_CT_LEN);
   FLEA_DECL_BUF(decr__bu8, flea_u8_t, TEST_MAX_CT_LEN);
   FLEA_DECL_BUF(tag__bu8, flea_u8_t, FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH);
   FLEA_THR_BEG_FUNC();
+  flea_ae_ctx_t__INIT(&ctx__t);
+  flea_ae_ctx_t__INIT(&decr_ctx__t);
+  flea_ae_ctx_t__INIT(&decr2_ctx__t);
 
   if((pt_len__dtl > TEST_MAX_CT_LEN) || (pt_len__dtl != exp_ct_len__dtl))
   {
@@ -468,14 +472,17 @@ static flea_err_e THR_flea_test_ae_inner_update(
   flea_al_u8_t tag_len__alu8;
   flea_dtl_t decr_len__dtl;
   flea_u8_t* decr_ptr__pu8;
-  flea_ae_ctx_t ctx__t       = flea_ae_ctx_t__INIT_VALUE;
-  flea_ae_ctx_t decr_ctx__t  = flea_ae_ctx_t__INIT_VALUE;
-  flea_ae_ctx_t decr2_ctx__t = flea_ae_ctx_t__INIT_VALUE;
+  flea_ae_ctx_t ctx__t;
+  flea_ae_ctx_t decr_ctx__t;
+  flea_ae_ctx_t decr2_ctx__t;
 
   FLEA_DECL_BUF(encr__bu8, flea_u8_t, TEST_MAX_CT_LEN);
   FLEA_DECL_BUF(decr__bu8, flea_u8_t, TEST_MAX_CT_LEN);
   FLEA_DECL_BUF(tag__bu8, flea_u8_t, FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH);
   FLEA_THR_BEG_FUNC();
+  flea_ae_ctx_t__INIT(&ctx__t);
+  flea_ae_ctx_t__INIT(&decr_ctx__t);
+  flea_ae_ctx_t__INIT(&decr2_ctx__t);
 
   if((pt_len__dtl > TEST_MAX_CT_LEN) || (pt_len__dtl != exp_ct_len__dtl))
   {

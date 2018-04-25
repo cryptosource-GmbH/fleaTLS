@@ -101,12 +101,7 @@ struct struct_flea_tls_rec_prot_t
   flea_u8_t                    pending_close_notify__u8;
 };
 
-# ifdef FLEA_HEAP_MODE
-#  define flea_tls_rec_prot_t__INIT_VALUE {.send_rec_buf_raw__bu8 = 0}
-# else
-#  define flea_tls_rec_prot_t__INIT_VALUE {.send_rec_buf_raw__bu8[0] = 0}
-# endif
-# define flea_tls_rec_prot_t__INIT(__p) memset ((__p), 0, sizeof(*(__p))
+# define flea_tls_rec_prot_t__INIT(__p) FLEA_MEMSET ((__p), 0, sizeof(*(__p))
 
 void flea_tls_rec_prot_t__dtor(flea_tls_rec_prot_t* rec_prot__pt);
 

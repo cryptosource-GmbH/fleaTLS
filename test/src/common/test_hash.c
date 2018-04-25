@@ -9,14 +9,13 @@
 #include <string.h>
 static flea_err_e THR_flea_test_hash_init_dtor()
 {
-  FLEA_DECL_OBJ(ctx, flea_hash_ctx_t);
-  flea_hash_ctx_t ctx2;
+  flea_hash_ctx_t ctx;
+
   FLEA_THR_BEG_FUNC();
-  flea_hash_ctx_t__INIT(&ctx2);
+  flea_hash_ctx_t__INIT(&ctx);
 
   FLEA_THR_FIN_SEC(
     flea_hash_ctx_t__dtor(&ctx);
-    flea_hash_ctx_t__dtor(&ctx2);
   );
 }
 

@@ -58,9 +58,10 @@ static flea_err_e THR_flea_test_oaep_sha1_and_pkcs1_v1_5_reference_ct()
   };
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(decr_vec__t, 2048 / 8);
   const flea_u8_t exp_res__acu8[] = "abc";
-  FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
+  flea_private_key_t privkey__t;
   flea_ref_cu8_t priv_key_int_form__rcu8 = {.data__pcu8 = rsa_2048_crt_key_internal_format__acu8, .len__dtl = sizeof(rsa_2048_crt_key_internal_format__acu8)};
   FLEA_THR_BEG_FUNC();
+  flea_private_key_t__INIT(&privkey__t);
   FLEA_CCALL(
     THR_flea_private_key_t__ctor_rsa_internal_format(
       &privkey__t,
@@ -522,7 +523,7 @@ static flea_err_e THR_flea_inner_test_pk_encryption(
   const flea_u8_t rsa_pub_exp__acu8[] = {0x01, 0x00, 0x01};
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(ciphertext__t, 2048 / 8);
-  FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
+  flea_private_key_t privkey__t;
   const flea_u8_t message__acu8 [] = {0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
                                       0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
                                       0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB,
@@ -530,6 +531,7 @@ static flea_err_e THR_flea_inner_test_pk_encryption(
                                       0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0xAB, 0x11};
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(decr_vec__t, sizeof(message__acu8));
   FLEA_THR_BEG_FUNC();
+  flea_private_key_t__INIT(&privkey__t);
 
   flea_ref_cu8_t priv_key_int_form__rcu8 = {.data__pcu8 = rsa_2048_crt_key_internal_format__acu8, .len__dtl = sizeof(rsa_2048_crt_key_internal_format__acu8)};
   FLEA_CCALL(

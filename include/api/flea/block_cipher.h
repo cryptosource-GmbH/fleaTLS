@@ -20,16 +20,10 @@ extern "C" {
 # define flea_ecb_mode_ctx_t__INIT(__p) do {(__p)->expanded_key__bu8 = NULL; (__p)->config__pt = NULL;} while(0)
 # define flea_ctr_mode_ctx_t__INIT(__p) do {(__p)->ctr_block__bu8 = NULL; (__p)->pending_mask__bu8 = NULL; flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
 # define flea_cbc_mode_ctx_t__INIT(__p) do {(__p)->iv__bu8 = NULL; flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
-# define flea_ecb_mode_ctx_t__INIT_VALUE {.expanded_key__bu8 = NULL, .config__pt = NULL}
-# define flea_ctr_mode_ctx_t__INIT_VALUE {.ctr_block__bu8 = NULL, .pending_mask__bu8 = NULL, .cipher_ctx__t = flea_ecb_mode_ctx_t__INIT_VALUE}
-# define flea_cbc_mode_ctx_t__INIT_VALUE {.iv__bu8 = NULL, .cipher_ctx__t = flea_ecb_mode_ctx_t__INIT_VALUE}
 #else // ifdef FLEA_HEAP_MODE
 # define flea_ecb_mode_ctx_t__INIT(__p) do {(__p)->config__pt = NULL;} while(0)
 # define flea_ctr_mode_ctx_t__INIT(__p) do {flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
 # define flea_cbc_mode_ctx_t__INIT(__p) do {flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
-# define flea_ecb_mode_ctx_t__INIT_VALUE {.config__pt = NULL}
-# define flea_ctr_mode_ctx_t__INIT_VALUE {.cipher_ctx__t = flea_ecb_mode_ctx_t__INIT_VALUE}
-# define flea_cbc_mode_ctx_t__INIT_VALUE {.cipher_ctx__t = flea_ecb_mode_ctx_t__INIT_VALUE}
 #endif /* ifdef FLEA_HEAP_MODE */
 
 /**

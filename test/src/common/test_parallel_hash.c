@@ -20,10 +20,10 @@ flea_err_e THR_flea_test_parallel_hash()
 # endif
   };
   flea_u8_t hash_ids_len = FLEA_NB_ARRAY_ENTRIES(hash_ids);
-  flea_tls_parallel_hash_ctx_t p_hash_ctx = flea_tls_parallel_hash_ctx_t__INIT_VALUE;
+  flea_tls_parallel_hash_ctx_t p_hash_ctx;
 
-  flea_hash_ctx_t hash_ctx_sha256      = flea_hash_ctx_t__INIT_VALUE;
-  flea_hash_ctx_t hash_ctx_sha256_copy = flea_hash_ctx_t__INIT_VALUE;
+  flea_hash_ctx_t hash_ctx_sha256;
+  flea_hash_ctx_t hash_ctx_sha256_copy;
 
 
   const flea_u8_t* msg1 = (flea_u8_t*) "test message";
@@ -32,6 +32,9 @@ flea_err_e THR_flea_test_parallel_hash()
   flea_u8_t p_hash_ctx_sha256_out[32];
 
   FLEA_THR_BEG_FUNC();
+  flea_tls_parallel_hash_ctx_t__INIT(&p_hash_ctx);
+  flea_hash_ctx_t__INIT(&hash_ctx_sha256);
+  flea_hash_ctx_t__INIT(&hash_ctx_sha256_copy);
 
   /*
    *  Test one update
@@ -58,9 +61,9 @@ flea_err_e THR_flea_test_parallel_hash()
    */
 
   flea_hash_ctx_t__dtor(&hash_ctx_sha256);
-  flea_hash_ctx_t__INIT(&hash_ctx_sha256);
+  // flea_hash_ctx_t__INIT(&hash_ctx_sha256);
   flea_tls_parallel_hash_ctx_t__dtor(&p_hash_ctx);
-  flea_tls_parallel_hash_ctx_t__INIT(&p_hash_ctx);
+  // flea_tls_parallel_hash_ctx_t__INIT(&p_hash_ctx);
 
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx_sha256, flea_sha256));
   FLEA_CCALL(THR_flea_tls_parallel_hash_ctx_t__ctor(&p_hash_ctx, hash_ids, hash_ids_len));

@@ -84,10 +84,13 @@ flea_err_e THR_flea_x509_decode_ecdsa_signature(
   flea_al_u16_t r_offs, s_offs, diff, insert_offs;
   flea_al_u8_t sig_offs__alu8 = 0;
 
-  FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
+  flea_ber_dec_t dec__t;
+  flea_rw_stream_t source__t;
   flea_mem_read_stream_help_t hlp__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_ber_dec_t__INIT(&dec__t);
+  flea_rw_stream_t__INIT(&source__t);
 
   if(flea_byte_vec_t__GET_DATA_LEN(x509_enc_sig__pt) > 1)
   {
@@ -190,11 +193,14 @@ flea_err_e THR_flea_x509_parse_ecc_public_params(
   flea_ec_dom_par_ref_t* dom_par__pt
 )
 {
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
-  FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
+  flea_rw_stream_t source__t;
+  flea_ber_dec_t dec__t;
   flea_mem_read_stream_help_t hlp__t;
   flea_bool_t found__b;
+
   FLEA_THR_BEG_FUNC();
+  flea_rw_stream_t__INIT(&source__t);
+  flea_ber_dec_t__INIT(&dec__t);
 
 
   FLEA_CCALL(

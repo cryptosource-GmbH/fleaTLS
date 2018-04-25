@@ -156,13 +156,14 @@ flea_err_e THR_flea_x509__verify_tls_server_id(
   const flea_x509_cert_ref_t* server_cert__pt
 )
 {
-  FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
+  flea_ber_dec_t cont_dec__t;
+  flea_rw_stream_t source__t;
   const flea_x509_dn_ref_t* cert_subject_dn__pcrcu8 = &server_cert__pt->subject__t;
   const flea_ref_cu8_t user_id__crcu8 = {.data__pcu8 = user_id_vec__pt->data__pu8, .len__dtl = user_id_vec__pt->len__dtl};
   flea_mem_read_stream_help_t hlp__t;
 
   flea_hostn_match_info_t match_info__t;
+
   match_info__t.contains_dnsname__b = FLEA_FALSE;
   match_info__t.contains_ipaddr__b  = FLEA_FALSE;
   match_info__t.id_matched__b       = FLEA_FALSE;
@@ -170,6 +171,8 @@ flea_err_e THR_flea_x509__verify_tls_server_id(
   flea_byte_vec_t work_spc__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
 
   FLEA_THR_BEG_FUNC();
+  flea_ber_dec_t__INIT(&cont_dec__t);
+  flea_rw_stream_t__INIT(&source__t);
 
   if(server_cert__pt->extensions__t.san__t.is_present__u8)
   {

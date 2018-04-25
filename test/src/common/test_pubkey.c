@@ -17,12 +17,14 @@
 # ifdef FLEA_HAVE_ECKA
 static flea_err_e THR_flea_test_pub_priv_key_init_dtor()
 {
-  flea_private_key_t priv1__t = flea_private_key_t__INIT_VALUE;
+  flea_private_key_t priv1__t;
   flea_private_key_t priv2__t;
-  flea_public_key_t pub1__t = flea_public_key_t__INIT_VALUE;
+  flea_public_key_t pub1__t;
   flea_public_key_t pub2__t;
 
   FLEA_THR_BEG_FUNC();
+  flea_private_key_t__INIT(&priv1__t);
+  flea_public_key_t__INIT(&pub1__t);
   flea_private_key_t__INIT(&priv2__t);
   flea_public_key_t__INIT(&pub2__t);
   FLEA_THR_FIN_SEC(

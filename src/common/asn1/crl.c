@@ -25,8 +25,11 @@ static flea_err_e THR_flea_crl__does_cdp_contain_distrib_point(
   flea_bool_t*           result_update__pb
 )
 {
-  FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
+  flea_ber_dec_t dec__t;
+
+  flea_ber_dec_t__INIT(&dec__t);
+  flea_rw_stream_t source__t;
+  flea_rw_stream_t__INIT(&source__t);
   flea_mem_read_stream_help_t hlp__t;
   flea_bool_t full_name_present__b;
   FLEA_THR_BEG_FUNC();
@@ -262,8 +265,11 @@ static flea_err_e THR_flea_crl__parse_extensions(
   const flea_byte_vec_t* subjects_crldp_raw_mbn__pt
 )
 {
-  FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
+  flea_ber_dec_t cont_dec__t;
+
+  flea_ber_dec_t__INIT(&cont_dec__t);
+  flea_rw_stream_t source__t;
+  flea_rw_stream_t__INIT(&source__t);
   FLEA_THR_BEG_FUNC();
   /* open extensions */
   FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(dec__pt));
@@ -407,10 +413,10 @@ static flea_err_e THR_flea_crl__update_revocation_status_from_crl_stream(
   flea_x509_validation_flags_e cert_ver_flags__e
 )
 {
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
-  FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source_tbs__t, flea_rw_stream_t);
-  FLEA_DECL_OBJ(dec_tbs__t, flea_ber_dec_t);
+  flea_rw_stream_t source__t;
+  flea_ber_dec_t dec__t;
+  flea_rw_stream_t source_tbs__t;
+  flea_ber_dec_t dec_tbs__t;
   flea_mem_read_stream_help_t hlp__t;
   flea_mem_read_stream_help_t hlp_tbs__t;
   flea_byte_vec_t tbs__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
@@ -425,7 +431,12 @@ static flea_err_e THR_flea_crl__update_revocation_status_from_crl_stream(
   flea_bool_t have_extensions__b;
   flea_byte_vec_t crl_signature_as_bit_string__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
   flea_byte_vec_t sig_content__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+
   FLEA_THR_BEG_FUNC();
+  flea_rw_stream_t__INIT(&source__t);
+  flea_ber_dec_t__INIT(&dec__t);
+  flea_rw_stream_t__INIT(&source_tbs__t);
+  flea_ber_dec_t__INIT(&dec_tbs__t);
 
   FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&source_tbs__t, crl_der__pcu8, crl_der_len__dtl, &hlp_tbs__t));
   FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec_tbs__t, &source_tbs__t, 0, flea_decode_ref));

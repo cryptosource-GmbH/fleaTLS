@@ -16,8 +16,10 @@
 
 flea_err_e THR_flea_test_dec_tls_server_cert_broken()
 {
-  FLEA_DECL_OBJ(cert_ref__t, flea_x509_cert_ref_t);
+  flea_x509_cert_ref_t cert_ref__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_x509_cert_ref_t__INIT(&cert_ref__t);
   if(!THR_flea_x509_cert_ref_t__ctor(
       &cert_ref__t,
       flea_test_cert_tls_server_broken,
@@ -31,8 +33,10 @@ flea_err_e THR_flea_test_dec_tls_server_cert_broken()
 
 flea_err_e THR_flea_test_dec_tls_server_issuer_cert()
 {
-  FLEA_DECL_OBJ(cert_ref__t, flea_x509_cert_ref_t);
+  flea_x509_cert_ref_t cert_ref__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_x509_cert_ref_t__INIT(&cert_ref__t);
   FLEA_CCALL(
     THR_flea_x509_cert_ref_t__ctor(
       &cert_ref__t,
@@ -72,8 +76,9 @@ flea_err_e THR_flea_test_dec_tls_server_cert()
     sizeof(wrong_ipaddr__acu8)
   );
 
-  FLEA_DECL_OBJ(cert_ref__t, flea_x509_cert_ref_t);
+  flea_x509_cert_ref_t cert_ref__t;
   FLEA_THR_BEG_FUNC();
+  flea_x509_cert_ref_t__INIT(&cert_ref__t);
   FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&cert_ref__t, test_cert_tls_server_1, sizeof(test_cert_tls_server_1)));
 
   FLEA_CCALL(THR_flea_x509__verify_tls_server_id_cstr(hostname__cs, flea_host_dnsname, &cert_ref__t));
@@ -118,11 +123,12 @@ flea_err_e THR_flea_test_dec_tls_server_cert()
 
 flea_err_e THR_flea_test_dec_ca_cert()
 {
-  FLEA_DECL_OBJ(cert_ref__t, flea_x509_cert_ref_t);
-  flea_x509_cert_ref_t__INIT(&cert_ref__t);
+  flea_x509_cert_ref_t cert_ref__t;
   flea_ref_cu8_t ref__rcu8;
   const flea_gmt_time_t* time__pt;
+
   FLEA_THR_BEG_FUNC();
+  flea_x509_cert_ref_t__INIT(&cert_ref__t);
   FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&cert_ref__t, test_ca_cert_1, sizeof(test_ca_cert_1)));
   if(flea_x509_cert_ref_t__GET_CERT_VERSION(&cert_ref__t) != 3)
   {

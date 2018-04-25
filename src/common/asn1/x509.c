@@ -184,9 +184,12 @@ static flea_err_e THR_flea_x509_cert_ref__t__parse_extensions(
   flea_byte_vec_t ext_oid_ref__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
   flea_bool_t critical__b;
 
-  FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
+  flea_ber_dec_t cont_dec__t;
+  flea_rw_stream_t source__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_ber_dec_t__INIT(&cont_dec__t);
+  flea_rw_stream_t__INIT(&source__t);
   /* open implicit */
   FLEA_CCALL(
     THR_flea_ber_dec_t__open_constructed_optional(
@@ -404,10 +407,13 @@ flea_err_e THR_flea_x509__decode_dn_ref_elements(
   flea_bool_t         with_outer_seq__b
 )
 {
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
-  FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
+  flea_rw_stream_t source__t;
+  flea_ber_dec_t dec__t;
   flea_mem_read_stream_help_t hlp__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_rw_stream_t__INIT(&source__t);
+  flea_ber_dec_t__INIT(&dec__t);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor_memory(
       &source__t,
@@ -516,11 +522,14 @@ flea_err_e THR_flea_x509_cert__get_ref_to_tbs(
   flea_ref_cu8_t*  ref_to_tbs__pt
 )
 {
-  FLEA_DECL_OBJ(source_tbs__t, flea_rw_stream_t);
-  FLEA_DECL_OBJ(dec_tbs__t, flea_ber_dec_t);
+  flea_rw_stream_t source_tbs__t;
+  flea_ber_dec_t dec_tbs__t;
   flea_mem_read_stream_help_t hlp_tbs__t;
   flea_byte_vec_t intermed_ref = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+
   FLEA_THR_BEG_FUNC();
+  flea_rw_stream_t__INIT(&source_tbs__t);
+  flea_ber_dec_t__INIT(&dec_tbs__t);
 
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor_memory(
@@ -548,13 +557,16 @@ flea_err_e THR_flea_x509_cert_ref_t__ctor(
   flea_al_u16_t         der_encoded_cert_len__alu16
 )
 {
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
-  FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
+  flea_rw_stream_t source__t;
+  flea_ber_dec_t dec__t;
   flea_mem_read_stream_help_t hlp__t;
   flea_bool_t found_tag__b;
   flea_x509_algid_ref_t outer_sig_algid__t = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
+
   FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(version_vec__t, 1);
   FLEA_THR_BEG_FUNC();
+  flea_rw_stream_t__INIT(&source__t);
+  flea_ber_dec_t__INIT(&dec__t);
 
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor_memory(

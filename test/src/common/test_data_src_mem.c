@@ -11,13 +11,12 @@
 
 flea_err_e THR_flea_test_rw_stream_init_dtor()
 {
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
   flea_rw_stream_t source2__t;
+
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_t__INIT(&source2__t);
 
   FLEA_THR_FIN_SEC(
-    flea_rw_stream_t__dtor(&source__t);
     flea_rw_stream_t__dtor(&source2__t);
   );
 }
@@ -33,9 +32,10 @@ flea_err_e THR_flea_test_mem_read_stream()
 
   FLEA_DECL_BUF(trg_buf__bu8, flea_u8_t, sizeof(source_mem__au8));
   flea_mem_read_stream_help_t hlp__t;
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
+  flea_rw_stream_t source__t;
   flea_dtl_t nb_read = 60;
   FLEA_THR_BEG_FUNC();
+  flea_rw_stream_t__INIT(&source__t);
   FLEA_ALLOC_BUF(trg_buf__bu8, sizeof(source_mem__au8));
   memset(trg_buf__bu8, 0, sizeof(source_mem__au8));
   FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&source__t, source_mem__au8, sizeof(source_mem__au8), &hlp__t));

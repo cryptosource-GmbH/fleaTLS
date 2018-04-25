@@ -142,7 +142,6 @@ typedef struct
 } flea_x509_cert_ref_t;
 
 
-#define flea_x509_cert_ref_t__INIT_VALUE {.version__u8 = 0}
 #define flea_x509_cert_ref_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
 
 #define flea_x509_cert_ref_t__dtor(__p)

@@ -23,7 +23,9 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
 {
   flea_tls__kex_method_t kex_method__t;
 
-  FLEA_DECL_OBJ(params_hash_ctx__t, flea_hash_ctx_t);
+  flea_hash_ctx_t params_hash_ctx__t;
+
+  flea_hash_ctx_t__INIT(&params_hash_ctx__t);
   FLEA_DECL_BUF(hash__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, FLEA_ASYM_MAX_ENCODED_SIG_LEN);
   flea_u8_t hash_out_len__u8;
@@ -36,11 +38,11 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
   flea_u16_t sig_len__u16;
   flea_u8_t ec_curve__au8[2];
   flea_u8_t sig_len_enc__au8[2];
-  flea_public_key_t ecdhe_pub_key__t = flea_public_key_t__INIT_VALUE;
+  flea_public_key_t ecdhe_pub_key__t;
   flea_u8_t pub_point_len__u8;
 
   FLEA_THR_BEG_FUNC();
-
+  flea_public_key_t__INIT(&ecdhe_pub_key__t);
   FLEA_CCALL(THR_flea_tls__map_flea_curve_to_curve_bytes(tls_ctx__pt->chosen_ecc_dp_internal_id__u8, ec_curve__au8));
 
   hash_id__t      = tls_ctx__pt->chosen_hash_algorithm__t;

@@ -45,14 +45,9 @@ typedef enum
 # define flea_hash_ctx_t__INIT(__p) \
   do {(__p)->p_config = NULL; (__p)->pending_buffer = NULL; (__p)->hash_state = NULL; \
       flea_len_ctr_t__INIT(&(__p)->len_ctr__t);} while(0)
-# define flea_hash_ctx_t__INIT_VALUE \
-  {.p_config   = NULL, .pending_buffer = NULL, .hash_state = NULL, .pending = 0, \
-   .len_ctr__t = flea_len_ctr_t__INIT_VALUE}
 #else // ifdef FLEA_HEAP_MODE
 /* needed for secret wiping */
 # define flea_hash_ctx_t__INIT(__p) do {(__p)->p_config = NULL;} while(0)
-/* needed for secret wiping */
-# define flea_hash_ctx_t__INIT_VALUE {.p_config = NULL}
 #endif // ifdef FLEA_HEAP_MODE
 
 

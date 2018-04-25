@@ -290,11 +290,14 @@ const flea_u8_t tls_cert_chain__acu8 [] = {
 
 flea_err_e THR_flea_test_cert_path_valid_init()
 {
-  FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
-  FLEA_DECL_OBJ(cert_store__t, flea_cert_store_t);
+  flea_cert_path_validator_t cert_chain__t;
+  flea_cert_store_t cert_store__t;
   flea_cert_path_validator_t cert_chain2__t;
   flea_cert_store_t cert_store2__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_cert_path_validator_t__INIT(&cert_chain__t);
+  flea_cert_store_t__INIT(&cert_store__t);
   flea_cert_path_validator_t__INIT(&cert_chain2__t);
   flea_cert_store_t__INIT(&cert_store2__t);
 
@@ -309,7 +312,9 @@ flea_err_e THR_flea_test_cert_path_valid_init()
 # ifdef FLEA_HAVE_RSA
 flea_err_e THR_flea_test_cert_chain_correct_chain_of_two()
 {
-  FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
+  flea_cert_path_validator_t cert_chain__t;
+
+  flea_cert_path_validator_t__INIT(&cert_chain__t);
   const flea_u8_t date_str[] = "170228200000Z";
   flea_gmt_time_t time__t;
   flea_err_e err;
@@ -360,9 +365,12 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
   flea_u16_t nb_trusted_certs;
   flea_dtl_t i;
 
-  FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
-  FLEA_DECL_OBJ(trusted_store__t, flea_cert_store_t);
+  flea_cert_path_validator_t cert_chain__t;
+  flea_cert_store_t trusted_store__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_cert_path_validator_t__INIT(&cert_chain__t);
+  flea_cert_store_t__INIT(&trusted_store__t);
   FLEA_CCALL(THR_flea_cert_store_t__ctor(&trusted_store__t));
   FLEA_CCALL(
     THR_flea_cert_path_validator_t__ctor_cert(
@@ -433,7 +441,7 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
  */
 flea_err_e THR_flea_test_tls_cert_chain()
 {
-  FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
+  flea_cert_path_validator_t cert_chain__t;
   const flea_u8_t date_str[] = "170228200000Z";
   flea_gmt_time_t time__t;
   flea_bool_t first__b = FLEA_TRUE;
@@ -442,6 +450,8 @@ flea_err_e THR_flea_test_tls_cert_chain()
   flea_al_u16_t len    = sizeof(tls_cert_chain__acu8);
 
   FLEA_THR_BEG_FUNC();
+
+  flea_cert_path_validator_t__INIT(&cert_chain__t);
   while(len > 3)
   {
     /* testing a certificate chain as it is used in the TLS protocol with a length

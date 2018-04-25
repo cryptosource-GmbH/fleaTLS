@@ -118,10 +118,13 @@ flea_err_e THR_flea_public_key_t__ctor_asn1(
   const flea_byte_vec_t* alg_oid__pt
 )
 {
-  FLEA_DECL_OBJ(key_dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
+  flea_ber_dec_t key_dec__t;
+  flea_rw_stream_t source__t;
   flea_mem_read_stream_help_t hlp__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_ber_dec_t__INIT(&key_dec__t);
+  flea_rw_stream_t__INIT(&source__t);
   flea_byte_vec_t public_key_as_bitstr__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
   flea_byte_vec_t public_key_value__t     = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE; /* BIT STRING value */
   FLEA_CCALL(
@@ -311,7 +314,9 @@ static flea_err_e THR_flea_public_key_t__verify_signature_plain_format(
   const flea_byte_vec_t*   signature__prcu8
 )
 {
-  FLEA_DECL_OBJ(signer__t, flea_pk_signer_t);
+  flea_pk_signer_t signer__t;
+
+  flea_pk_signer_t__INIT(&signer__t);
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_pk_signer_t__ctor(&signer__t, hash_id__t));
   FLEA_CCALL(THR_flea_pk_signer_t__update(&signer__t, message__prcu8->data__pu8, message__prcu8->len__dtl));

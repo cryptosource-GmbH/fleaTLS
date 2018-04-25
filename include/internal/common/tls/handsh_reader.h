@@ -25,8 +25,7 @@ typedef struct
   flea_rw_stream_t             rec_prot_rd_stream__t;
 } flea_tls_handsh_reader_t;
 
-# define flea_tls_handsh_reader_t__INIT_VALUE {.handshake_read_stream__t.custom_obj__pv = NULL}
-# define flea_tls_handsh_reader_t__INIT(__p)
+# define flea_tls_handsh_reader_t__INIT(__p) FLEA_MEMSET(__p, 0, sizeof(*(__p)))
 
 # define flea_tls_handsh_reader_t__dtor(__p)
 

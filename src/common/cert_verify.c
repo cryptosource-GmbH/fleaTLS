@@ -27,9 +27,10 @@ static flea_err_e THR_flea_x509_verify_cert_ref_signature_inner(
 )
 {
   flea_byte_vec_t sig_content__t;
-  flea_public_key_t key__t = flea_public_key_t__INIT_VALUE;
+  flea_public_key_t key__t;
 
   FLEA_THR_BEG_FUNC();
+  flea_public_key_t__INIT(&key__t);
   FLEA_CCALL(THR_flea_public_key_t__ctor_cert(&key__t, issuer_cert_ref__pt));
   FLEA_CCALL(
     THR_flea_ber_dec__get_ref_to_bit_string_content_no_unused_bits(
@@ -60,10 +61,13 @@ flea_err_e THR_flea_x509_verify_cert_signature(
   flea_x509_validation_flags_e cert_ver_flags__e
 )
 {
-  FLEA_DECL_OBJ(subj_ref__t, flea_x509_cert_ref_t);
-  FLEA_DECL_OBJ(iss_ref__t, flea_x509_cert_ref_t);
+  flea_x509_cert_ref_t subj_ref__t;
+  flea_x509_cert_ref_t iss_ref__t;
   flea_byte_vec_t subj_tbs_ref__rcu8 = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
+
   FLEA_THR_BEG_FUNC();
+  flea_x509_cert_ref_t__INIT(&subj_ref__t);
+  flea_x509_cert_ref_t__INIT(&iss_ref__t);
   FLEA_CCALL(
     THR_flea_x509_cert__get_ref_to_tbs_byte_vec(
       enc_subject_cert__pcu8,

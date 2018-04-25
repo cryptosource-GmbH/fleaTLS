@@ -15,11 +15,13 @@ flea_err_e THR_flea_kdf_X9_63(
   flea_al_u16_t    output_len__alu16
 )
 {
-  FLEA_DECL_OBJ(ctx__t, flea_hash_ctx_t);
+  flea_hash_ctx_t ctx__t;
   flea_u8_t counter__au8[4] = {0, 0, 0, 1};
   flea_al_u8_t hash_out_len__alu8;
   flea_al_u16_t nb_full_blocks__alu16, i;
+
   FLEA_THR_BEG_FUNC();
+  flea_hash_ctx_t__INIT(&ctx__t);
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&ctx__t, id__t));
   hash_out_len__alu8    = flea_hash_ctx_t__get_output_length(&ctx__t);
   nb_full_blocks__alu16 = output_len__alu16 / hash_out_len__alu8;

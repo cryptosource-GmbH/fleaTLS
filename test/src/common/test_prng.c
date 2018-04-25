@@ -14,10 +14,12 @@
 
 static flea_err_e THR_flea_test_ctr_mode_prng_init_dtor()
 {
-  FLEA_DECL_OBJ(prng_ctx__t, flea_ctr_mode_prng_t);
+  flea_ctr_mode_prng_t prng_ctx__t;
   flea_ctr_mode_prng_t prng_ctx2__t;
+
   FLEA_THR_BEG_FUNC();
   flea_ctr_mode_prng_t__INIT(&prng_ctx2__t);
+  flea_ctr_mode_prng_t__INIT(&prng_ctx__t);
 
   FLEA_THR_FIN_SEC(
     flea_ctr_mode_prng_t__dtor(&prng_ctx__t);
@@ -28,7 +30,8 @@ static flea_err_e THR_flea_test_ctr_mode_prng_init_dtor()
 flea_err_e THR_flea_test_ctr_mode_prng()
 {
   FLEA_DECL_BUF(rnd__bu8, flea_u8_t, 17);
-  FLEA_DECL_OBJ(prng_ctx__t, flea_ctr_mode_prng_t);
+  flea_ctr_mode_prng_t prng_ctx__t;
+  flea_ctr_mode_prng_t__INIT(&prng_ctx__t);
   flea_u8_t seed__au8[] = {0xd6, 0x93, 0x35, 0xb9, 0x33, 0x25, 0x19, 0x2e, 0x51, 0x6a, 0x91, 0x2e, 0x6d, 0x19, 0xa1, 0x5c, 0xb5, 0x1c, 0x6e, 0xd5, 0xc1, 0x52, 0x43, 0xe7, 0xa7, 0xfd, 0x65, 0x3c};
   FLEA_THR_BEG_FUNC();
   FLEA_ALLOC_BUF(rnd__bu8, 17);

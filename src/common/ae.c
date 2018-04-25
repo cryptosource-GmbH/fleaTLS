@@ -352,9 +352,10 @@ flea_err_e THR_flea_ae__encrypt(
   flea_al_u8_t     tag_len__alu8
 )
 {
-  flea_ae_ctx_t ctx__t = flea_ae_ctx_t__INIT_VALUE;
+  flea_ae_ctx_t ctx__t;
 
   FLEA_THR_BEG_FUNC();
+  flea_ae_ctx_t__INIT(&ctx__t);
   FLEA_CCALL(
     THR_flea_ae_ctx_t__ctor(
       &ctx__t,
@@ -390,10 +391,11 @@ flea_err_e THR_flea_ae__decrypt(
   flea_al_u8_t     tag_len__alu8
 )
 {
-  flea_ae_ctx_t ctx__t       = flea_ae_ctx_t__INIT_VALUE;
+  flea_ae_ctx_t ctx__t;
   flea_dtl_t output_len__dtl = input_output_len__dtl;
 
   FLEA_THR_BEG_FUNC();
+  flea_ae_ctx_t__INIT(&ctx__t);
   FLEA_CCALL(
     THR_flea_ae_ctx_t__ctor(
       &ctx__t,

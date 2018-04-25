@@ -19,7 +19,7 @@ typedef struct
   flea_bool_t          is_trusted__b;
 } flea_x509_cert_info_t;
 
-#define flea_x509_cert_info_t__INIT_VALUE {.cert_ref__t.version__u8 = 0}
+#define flea_x509_cert_info_t__INIT(__p) memset(__p, 0, sizeof(*(__p)))
 
 #ifdef __cplusplus
 }

@@ -215,11 +215,12 @@ static flea_err_e P_Hash(
   flea_u8_t* A;
   flea_u8_t* B;
   flea_u8_t* tmp__pu8;
-  flea_mac_ctx_t hmac__t = flea_mac_ctx_t__INIT_VALUE;
+  flea_mac_ctx_t hmac__t;
 
   // expand to length bytes
   flea_al_u8_t len__alu8 = mac_out_len__alu8;
   FLEA_THR_BEG_FUNC();
+  flea_mac_ctx_t__INIT(&hmac__t);
   FLEA_ALLOC_BUF(a__bu8, 2 * FLEA_TLS_MAX_MAC_SIZE);
   A = a__bu8;
   B = a__bu8 + FLEA_TLS_MAX_MAC_SIZE;

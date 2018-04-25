@@ -130,8 +130,10 @@ flea_err_e THR_flea_ctr_mode_prng_t__reseed(
   flea_dtl_t            seed_len__dtl
 )
 {
-  FLEA_DECL_OBJ(hash_ctx__t, flea_hash_ctx_t);
+  flea_hash_ctx_t hash_ctx__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_hash_ctx_t__INIT(&hash_ctx__t);
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&hash_ctx__t, flea_sha256));
   FLEA_CCALL(THR_flea_hash_ctx_t__update(&hash_ctx__t, ctx__pt->key__bu8, FLEA_AES256_KEY_BYTE_LENGTH));
   FLEA_CCALL(THR_flea_hash_ctx_t__update(&hash_ctx__t, seed__pcu8, seed_len__dtl));

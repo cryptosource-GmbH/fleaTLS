@@ -658,9 +658,10 @@ flea_err_e THR_flea_mac__compute_mac(
   flea_al_u8_t*    result_len__palu8
 )
 {
-  FLEA_DECL_OBJ(ctx__t, flea_mac_ctx_t);
+  flea_mac_ctx_t ctx__t;
 
   FLEA_THR_BEG_FUNC();
+  flea_mac_ctx_t__INIT(&ctx__t);
   FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&ctx__t, id__t, key__pcu8, key_len__alu16));
   FLEA_CCALL(THR_flea_mac_ctx_t__update(&ctx__t, data__pcu8, data_len__dtl));
   FLEA_CCALL(THR_flea_mac_ctx_t__final_compute(&ctx__t, result__pu8, result_len__palu8));
@@ -679,8 +680,10 @@ flea_err_e THR_flea_mac__verify_mac(
   flea_al_u8_t     exp_mac_len__alu8
 )
 {
-  FLEA_DECL_OBJ(ctx__t, flea_mac_ctx_t);
+  flea_mac_ctx_t ctx__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_mac_ctx_t__INIT(&ctx__t);
   FLEA_CCALL(THR_flea_mac_ctx_t__ctor(&ctx__t, id__t, key__pcu8, key_len__alu16));
   FLEA_CCALL(THR_flea_mac_ctx_t__update(&ctx__t, data__pcu8, data_len__dtl));
   FLEA_CCALL(THR_flea_mac_ctx_t__final_verify(&ctx__t, exp_mac__pu8, exp_mac_len__alu8));

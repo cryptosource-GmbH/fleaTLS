@@ -354,8 +354,10 @@ flea_err_e THR_flea_ctr_mode_crypt_data(
   flea_al_u8_t           ctr_len__alu8
 )
 {
-  FLEA_DECL_OBJ(ctx, flea_ctr_mode_ctx_t);
+  flea_ctr_mode_ctx_t ctx;
+
   FLEA_THR_BEG_FUNC();
+  flea_ctr_mode_ctx_t__INIT(&ctx);
   FLEA_CCALL(
     THR_flea_ctr_mode_ctx_t__ctor(
       &ctx,
@@ -476,8 +478,10 @@ flea_err_e THR_flea_cbc_mode__crypt_data(
   flea_dtl_t             input_output_len__dtl
 )
 {
-  FLEA_DECL_OBJ(ctx__t, flea_cbc_mode_ctx_t);
+  flea_cbc_mode_ctx_t ctx__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_cbc_mode_ctx_t__INIT(&ctx__t);
   FLEA_CCALL(THR_flea_cbc_mode_ctx_t__ctor(&ctx__t, id__t, key__pcu8, key_len__alu8, iv__pcu8, iv_len__alu8, dir__t));
   FLEA_CCALL(THR_flea_cbc_mode_ctx_t__crypt(&ctx__t, input__pcu8, output__pu8, input_output_len__dtl));
   FLEA_THR_FIN_SEC(

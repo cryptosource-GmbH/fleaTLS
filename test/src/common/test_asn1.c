@@ -16,13 +16,16 @@
 
 flea_err_e THR_flea_test_ber_dec_basic()
 {
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
-  FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
+  flea_rw_stream_t source__t;
+  flea_ber_dec_t dec__t;
   flea_byte_vec_t oid_vec__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
   flea_mem_read_stream_help_t hlp__t;
   flea_bool_t found_tag__b;
+
   FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(version_vec__t, 10);
   FLEA_THR_BEG_FUNC();
+  flea_rw_stream_t__INIT(&source__t);
+  flea_ber_dec_t__INIT(&dec__t);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor_memory(
       &source__t,
@@ -135,9 +138,10 @@ static flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
   flea_err_e               second_func_exp_err_code
 )
 {
-  FLEA_DECL_OBJ(strm__t, flea_rw_stream_t);
-  FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
+  flea_rw_stream_t strm__t;
+  flea_ber_dec_t dec__t;
   flea_mem_read_stream_help_t hlp__t;
+
 #ifdef FLEA_STACK_MODE
   FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(dec_vec__t, 1000);
 #else
@@ -148,6 +152,8 @@ static flea_err_e THR_flea_test_ber_dec_opt_and_ref_and_cpy_inner(
   flea_u8_t exp_version_tlv__au8 [] = {0x02, 0x01, 0x00};
   flea_bool_t optional_found__b     = FLEA_TRUE;
   FLEA_THR_BEG_FUNC();
+  flea_rw_stream_t__INIT(&strm__t);
+  flea_ber_dec_t__INIT(&dec__t);
 
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor_memory(

@@ -25,9 +25,11 @@ static flea_err_e THR_flea_pkcs1_mgf1(
 
   flea_al_u16_t hash_len__alu16_t;
 
-  FLEA_DECL_OBJ(ctx__t, flea_hash_ctx_t);
+  flea_hash_ctx_t ctx__t;
+
   FLEA_DECL_BUF(hash_out__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
   FLEA_THR_BEG_FUNC();
+  flea_hash_ctx_t__INIT(&ctx__t);
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&ctx__t, hash_id__t));
   hash_len__alu16_t = flea_hash_ctx_t__get_output_length(&ctx__t);
   FLEA_ALLOC_BUF(hash_out__bu8, hash_len__alu16_t);

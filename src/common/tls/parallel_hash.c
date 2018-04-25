@@ -93,9 +93,10 @@ flea_err_e THR_flea_tls_parallel_hash_ctx_t__final(
 {
   flea_hash_ctx_t* hash_ctx__pt = NULL;
 
-  FLEA_DECL_OBJ(hash_ctx_cpy_t, flea_hash_ctx_t);
+  flea_hash_ctx_t hash_ctx_cpy_t;
 
   FLEA_THR_BEG_FUNC();
+  flea_hash_ctx_t__INIT(&hash_ctx_cpy_t);
 
   for(flea_u8_t i = 0; i < p_hash_ctx->num_hash_ctx__u8; i++)
   {

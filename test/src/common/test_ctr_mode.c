@@ -40,8 +40,10 @@ flea_err_e THR_flea_test_ctr_mode_1()
   flea_al_u8_t key_length   = sizeof(key);
   flea_al_u8_t nonce_length = sizeof(nonce);
 
-  FLEA_DECL_OBJ(ctx, flea_ctr_mode_ctx_t);
+  flea_ctr_mode_ctx_t ctx;
+
   FLEA_THR_BEG_FUNC();
+  flea_ctr_mode_ctx_t__INIT(&ctx);
   FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx, flea_aes128, key, key_length, nonce, nonce_length, 16));
   flea_ctr_mode_ctx_t__crypt(&ctx, message, encr, message_length);
   if(memcmp(encr, exp_ct, message_length))
@@ -106,8 +108,10 @@ flea_err_e THR_flea_test_ctr_mode_parts()
   flea_u8_t* encr = encr_arr;
   flea_al_u16_t part_size;
 
-  FLEA_DECL_OBJ(ctx, flea_ctr_mode_ctx_t);
+  flea_ctr_mode_ctx_t ctx;
+
   FLEA_THR_BEG_FUNC();
+  flea_ctr_mode_ctx_t__INIT(&ctx);
   FLEA_CCALL(THR_flea_ctr_mode_ctx_t__ctor(&ctx, flea_aes128, key, key_length, nonce, nonce_length, 16));
   part_size = 1;
   flea_ctr_mode_ctx_t__crypt(&ctx, message, encr, part_size);

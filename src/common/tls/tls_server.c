@@ -732,9 +732,10 @@ static flea_err_e THR_flea_tls__read_client_key_exchange_ecdhe(
 )
 {
   flea_rw_stream_t* hs_rd_stream__pt;
-  flea_public_key_t ecdhe_client_key__t = flea_public_key_t__INIT_VALUE;
+  flea_public_key_t ecdhe_client_key__t;
 
   FLEA_THR_BEG_FUNC();
+  flea_public_key_t__INIT(&ecdhe_client_key__t);
 
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
 
@@ -996,12 +997,15 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
   flea_private_key_t*           ecdhe_priv_key__pt
 )
 {
-  FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
-  FLEA_DECL_OBJ(hash_ctx_copy__t, flea_hash_ctx_t);
+  flea_tls_handsh_reader_t handsh_rdr__t;
+  flea_hash_ctx_t hash_ctx_copy__t;
   flea_hash_id_e hash_id__t;
 
   flea_tls_ctx_t* tls_ctx = &server_ctx__pt->tls_ctx__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_hash_ctx_t__INIT(&hash_ctx_copy__t);
+  flea_tls_handsh_reader_t__INIT(&handsh_rdr__t);
 
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t));
   if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED ||

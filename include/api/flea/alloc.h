@@ -72,7 +72,6 @@
 
 #define FLEA_FREE_MEM_SET_NULL_IF_USE_HEAP_BUF(__x) __FLEA_FREE_BUF_SET_NULL(__x)
 
-#define FLEA_DECL_OBJ(__name, __type)               __type __name = __type ## __INIT_VALUE
 #ifdef FLEA_HEAP_MODE
 
 # define FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(__name, __type_len) \

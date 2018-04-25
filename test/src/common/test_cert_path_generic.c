@@ -33,15 +33,18 @@ flea_err_e THR_flea_test_cert_path_generic(
   flea_host_id_type_e   host_id_type
 )
 {
-  flea_public_key_t target_pubkey__t = flea_public_key_t__INIT_VALUE;
+  flea_public_key_t target_pubkey__t;
 
   /** this parameter is actually superflous and misleading, the caller evaluates
    * the test result: */
   const flea_bool_t is_valid_chain = FLEA_TRUE;
   flea_err_e err;
 
-  FLEA_DECL_OBJ(cert_chain__t, flea_cert_path_validator_t);
+  flea_cert_path_validator_t cert_chain__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_public_key_t__INIT(&target_pubkey__t);
+  flea_cert_path_validator_t__INIT(&cert_chain__t);
 
   FLEA_CCALL(
     THR_flea_cert_path_validator_t__ctor_cert(

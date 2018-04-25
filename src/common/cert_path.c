@@ -120,11 +120,12 @@ static flea_err_e THR_validate_cert_path(
 {
   flea_s32_t i;
 
-  FLEA_DECL_OBJ(pubkey_for_crl_ver__t, flea_public_key_t);
+  flea_public_key_t pubkey_for_crl_ver__t;
   flea_al_u16_t chain_len__alu16 = cert_cpv__pt->chain_pos__u16 + 1;
   flea_al_u16_t m_path__u16      = chain_len__alu16;
 
   FLEA_THR_BEG_FUNC();
+  flea_public_key_t__INIT(&pubkey_for_crl_ver__t);
 
   if(chain_len__alu16 == 0)
   {
@@ -497,10 +498,10 @@ static flea_err_e THR_flea_cert_path_validator_t__add_cert(
   flea_bool_t                 is_trusted__b
 )
 {
-  flea_x509_cert_info_t cert_info__t = flea_x509_cert_info_t__INIT_VALUE;
+  flea_x509_cert_info_t cert_info__t;
 
   FLEA_THR_BEG_FUNC();
-
+  flea_x509_cert_info_t__INIT(&cert_info__t);
   flea_x509_cert_ref_t__INIT(&cert_info__t.cert_ref__t);
   FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&cert_info__t.cert_ref__t, cert__pcu8, cert_len__alu16));
   cert_info__t.is_trusted__b = is_trusted__b;

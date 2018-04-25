@@ -142,7 +142,6 @@ typedef struct
 
 
 # define flea_public_key_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
-# define flea_public_key_t__INIT_VALUE {.key_bit_size__u16 = 0}
 
 /**
  * Destroy a public key object.

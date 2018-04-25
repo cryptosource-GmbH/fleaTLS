@@ -32,7 +32,6 @@ typedef struct
   flea_ecb_mode_ctx_t cipher_ctx__t;
 } flea_ctr_mode_prng_t;
 
-#define flea_ctr_mode_prng_t__INIT_VALUE {.cipher_ctx__t = flea_ecb_mode_ctx_t__INIT_VALUE}
 
 #ifdef FLEA_HEAP_MODE
 # define flea_ctr_mode_prng_t__INIT(__p) \

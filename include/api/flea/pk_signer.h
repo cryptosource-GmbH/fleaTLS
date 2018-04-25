@@ -38,8 +38,6 @@ typedef struct
 } flea_pk_signer_t;
 
 
-# define flea_pk_signer_t__INIT_VALUE {.hash_ctx = flea_hash_ctx_t__INIT_VALUE}
-
 # ifdef FLEA_HEAP_MODE
 #  define flea_pk_signer_t__INIT(__p) do {flea_hash_ctx_t__INIT(&(__p)->hash_ctx);} while(0)
 # else

@@ -206,8 +206,10 @@ flea_err_e THR_flea_private_key_t__sign(
   flea_byte_vec_t*          signature__pru8
 )
 {
-  FLEA_DECL_OBJ(signer__t, flea_pk_signer_t);
+  flea_pk_signer_t signer__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_pk_signer_t__INIT(&signer__t);
   FLEA_CCALL(THR_flea_pk_signer_t__ctor(&signer__t, hash_id__t));
   FLEA_CCALL(THR_flea_pk_signer_t__update(&signer__t, message__prcu8->data__pu8, message__prcu8->len__dtl));
   FLEA_CCALL(

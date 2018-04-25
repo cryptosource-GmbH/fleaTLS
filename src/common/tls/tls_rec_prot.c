@@ -34,7 +34,7 @@ static flea_err_e THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
   flea_u8_t*             mac_out
 )
 {
-  flea_mac_ctx_t mac__t = flea_mac_ctx_t__INIT_VALUE;
+  flea_mac_ctx_t mac__t;
   flea_al_u8_t mac_len_out_alu8;
   flea_u8_t enc_len__au8[2];
   flea_u8_t enc_seq_nbr__au8[8];
@@ -45,6 +45,8 @@ static flea_err_e THR_flea_tls_rec_prot_t__compute_mac_cbc_hmac(
   flea_u8_t mac_key_len = conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_key_size__u8;
 
   FLEA_THR_BEG_FUNC();
+
+  flea_mac_ctx_t__INIT(&mac__t);
 
   /*
    * MAC(MAC_write_key, seq_num +

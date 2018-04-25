@@ -36,7 +36,6 @@ typedef struct
   } privkey_with_params__u;
 } flea_private_key_t;
 
-# define flea_private_key_t__INIT_VALUE {.key_bit_size__u16 = 0}
 
 /**
  * Initialize a private key object.

@@ -196,8 +196,8 @@ static flea_err_e THR_flea_tls__read_server_kex_ecdhe(
   flea_u8_t server_pub_point_len__u8;
 
 
-  flea_private_key_t ecdhe_priv_key__t  = flea_private_key_t__INIT_VALUE;
-  flea_public_key_t ecdhe_server_key__t = flea_private_key_t__INIT_VALUE;
+  flea_private_key_t ecdhe_priv_key__t;
+  flea_public_key_t ecdhe_server_key__t;
 
   flea_u8_t sig_and_hash_alg__au8[2];
   flea_u8_t sig_to_vfy_len_enc__au8[2];
@@ -208,12 +208,15 @@ static flea_err_e THR_flea_tls__read_server_kex_ecdhe(
   flea_u8_t i;
   flea_bool_t found__b = FLEA_FALSE;
 
-  FLEA_DECL_OBJ(params_hash_ctx__t, flea_hash_ctx_t);
+  flea_hash_ctx_t params_hash_ctx__t;
+
   FLEA_DECL_BUF(hash__bu8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
   FLEA_DECL_BUF(sig_to_vfy__bu8, flea_u8_t, FLEA_ASYM_MAX_ENCODED_SIG_LEN);
 
   FLEA_THR_BEG_FUNC();
-
+  flea_private_key_t__INIT(&ecdhe_priv_key__t);
+  flea_public_key_t__INIT(&ecdhe_server_key__t);
+  flea_hash_ctx_t__INIT(&params_hash_ctx__t);
 
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
   kex_method__t    = flea_tls_get_kex_method_by_cipher_suite_id(tls_ctx__pt->selected_cipher_suite__e);
@@ -980,8 +983,11 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
   const flea_hostn_validation_params_t* hostn_valid_params__pt
 )
 {
-  FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
-  FLEA_DECL_OBJ(hash_ctx_copy__t, flea_hash_ctx_t);
+  flea_tls_handsh_reader_t handsh_rdr__t;
+
+  flea_tls_handsh_reader_t__INIT(&handsh_rdr__t);
+  flea_hash_ctx_t hash_ctx_copy__t;
+  flea_hash_ctx_t__INIT(&hash_ctx_copy__t);
   flea_tls__kex_method_t kex_method__t;
   flea_tls_ctx_t* tls_ctx = &tls_client_ctx__pt->tls_ctx__t;
 
@@ -1629,7 +1635,9 @@ flea_err_e THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
   const flea_hostn_validation_params_t* hostn_valid_params__pt
 )
 {
-  FLEA_DECL_OBJ(handsh_rdr__t, flea_tls_handsh_reader_t);
+  flea_tls_handsh_reader_t handsh_rdr__t;
+
+  flea_tls_handsh_reader_t__INIT(&handsh_rdr__t);
   flea_al_u8_t handsh_type__u8;
   flea_tls_ctx_t* tls_ctx__pt = &tls_client_ctx__pt->tls_ctx__t;
   FLEA_THR_BEG_FUNC();

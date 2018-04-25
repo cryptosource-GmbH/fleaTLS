@@ -22,9 +22,11 @@ flea_err_e THR_flea_hash_davies_meyer_aes128_compression(
   const flea_u8_t* input
 )
 {
-  FLEA_DECL_OBJ(aes_ctx, flea_ecb_mode_ctx_t);
+  flea_ecb_mode_ctx_t aes_ctx;
+
   FLEA_DECL_BUF(tmp_state, flea_u8_t, FLEA_AES_BLOCK_LENGTH);
   FLEA_THR_BEG_FUNC();
+  flea_ecb_mode_ctx_t__INIT(&aes_ctx);
 
 
   FLEA_ALLOC_BUF(tmp_state, FLEA_AES_BLOCK_LENGTH);

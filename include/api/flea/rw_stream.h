@@ -148,7 +148,6 @@ typedef struct
 /**
  * Initialization value for an r/w stream object.
  */
-#define flea_rw_stream_t__INIT_VALUE {.custom_obj__pv = NULL}
 
 
 /**

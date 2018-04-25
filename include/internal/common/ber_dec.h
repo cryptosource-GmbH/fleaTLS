@@ -83,11 +83,7 @@ struct struct_flea_ber_dec_t
   flea_hash_ctx_t*         hash_ctx__pt;
 };
 
-#ifdef FLEA_HEAP_MODE
-# define flea_ber_dec_t__INIT_VALUE {.allo_open_cons__bdtl = NULL}
-#else
-# define flea_ber_dec_t__INIT_VALUE {.allo_open_cons__bdtl = {0}}
-#endif
+#define flea_ber_dec_t__INIT(__dec) memset((__dec), 0, sizeof(*(__dec)))
 
 /**
  * Create a DER decoder. Despite its name, this encoder currently only performs

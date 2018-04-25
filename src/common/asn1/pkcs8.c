@@ -167,11 +167,15 @@ static flea_err_e THR_flea_create_private_and_or_public_key_from_pkcs8(
   const flea_u8_t ecc_public_key_oid__acu8 [] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x02, 0x01};
 # endif
 
-  FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(cont_dec__t, flea_ber_dec_t);
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
-  FLEA_DECL_OBJ(cont_source__t, flea_rw_stream_t);
+  flea_ber_dec_t dec__t;
+  flea_ber_dec_t cont_dec__t;
+  flea_rw_stream_t source__t;
+  flea_rw_stream_t cont_source__t;
   FLEA_DECL_byte_vec_t__CONSTR_STACK_BUF_EMPTY_NOT_ALLOCATABLE(version_vec__t, 1);
+  flea_ber_dec_t__INIT(&dec__t);
+  flea_ber_dec_t__INIT(&cont_dec__t);
+  flea_rw_stream_t__INIT(&source__t);
+  flea_rw_stream_t__INIT(&cont_source__t);
   flea_mem_read_stream_help_t hlp__t;
   flea_mem_read_stream_help_t cont_hlp__t;
   flea_x509_algid_ref_t algid_ref__t = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;

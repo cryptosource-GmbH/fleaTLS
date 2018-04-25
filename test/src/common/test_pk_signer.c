@@ -22,14 +22,13 @@
 #ifdef FLEA_HAVE_ASYM_SIG
 static flea_err_e THR_flea_test_pk_signer_init_dtor()
 {
-  FLEA_DECL_OBJ(ctx__t, flea_pk_signer_t);
+  flea_pk_signer_t ctx__t;
+
   FLEA_THR_BEG_FUNC();
-  flea_pk_signer_t ctx2__t;
-  flea_pk_signer_t__INIT(&ctx2__t);
+  flea_pk_signer_t__INIT(&ctx__t);
 
   FLEA_THR_FIN_SEC(
     flea_pk_signer_t__dtor(&ctx__t);
-    flea_pk_signer_t__dtor(&ctx2__t);
   );
 }
 
@@ -67,8 +66,11 @@ static flea_err_e THR_flea_test_pkcs1_v1_5_signature_reference()
     .len__dtl   = sizeof(rsa_pub_exp__acu8)
   };
 
-  FLEA_DECL_OBJ(verifier__t, flea_pk_signer_t);
-  FLEA_DECL_OBJ(pubkey__t, flea_public_key_t);
+  flea_pk_signer_t verifier__t;
+
+  flea_pk_signer_t__INIT(&verifier__t);
+  flea_public_key_t pubkey__t;
+  flea_public_key_t__INIT(&pubkey__t);
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_pk_signer_t__ctor(&verifier__t, flea_sha384));
   FLEA_CCALL(THR_flea_pk_signer_t__update(&verifier__t, message__acu8, sizeof(message__acu8)));
@@ -107,11 +109,11 @@ static flea_err_e THR_flea_test_pk_signer_sign_verify_inner(
   flea_al_u8_t is_ecdsa = 0;
 # endif
 
-  FLEA_DECL_OBJ(privkey__t, flea_private_key_t);
-  FLEA_DECL_OBJ(pubkey__t, flea_public_key_t);
-  FLEA_DECL_OBJ(signer__t, flea_pk_signer_t);
-  FLEA_DECL_OBJ(verifier__t, flea_pk_signer_t);
-  FLEA_DECL_OBJ(verifier2__t, flea_pk_signer_t);
+  flea_private_key_t privkey__t;
+  flea_public_key_t pubkey__t;
+  flea_pk_signer_t signer__t;
+  flea_pk_signer_t verifier__t;
+  flea_pk_signer_t verifier2__t;
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(sig_vec__t, FLEA_ASYM_MAX_ENCODED_SIG_LEN);
 # ifdef FLEA_HAVE_ECC
@@ -124,6 +126,12 @@ static flea_err_e THR_flea_test_pk_signer_sign_verify_inner(
 # endif
 
   FLEA_THR_BEG_FUNC();
+
+  flea_private_key_t__INIT(&privkey__t);
+  flea_public_key_t__INIT(&pubkey__t);
+  flea_pk_signer_t__INIT(&signer__t);
+  flea_pk_signer_t__INIT(&verifier__t);
+  flea_pk_signer_t__INIT(&verifier2__t);
 
   if(is_ecdsa)
   {

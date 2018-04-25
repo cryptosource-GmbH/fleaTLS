@@ -34,9 +34,12 @@ flea_err_e THR_flea_test_cbc_mode_aes()
   const flea_u8_t* in_ptr__pcu8;
   flea_u8_t* out_ptr__pu8;
 
-  FLEA_DECL_OBJ(encr_ctx__t, flea_cbc_mode_ctx_t);
+  flea_cbc_mode_ctx_t encr_ctx__t;
+
+  flea_cbc_mode_ctx_t__INIT(&encr_ctx__t);
 #ifdef FLEA_HAVE_AES_BLOCK_DECR
-  FLEA_DECL_OBJ(decr_ctx__t, flea_cbc_mode_ctx_t);
+  flea_cbc_mode_ctx_t decr_ctx__t;
+  flea_cbc_mode_ctx_t__INIT(&decr_ctx__t);
 #endif
   FLEA_DECL_BUF(encr__bu8, flea_u8_t, sizeof(aes128_cbc_pt));
   FLEA_DECL_BUF(decr__bu8, flea_u8_t, sizeof(aes128_cbc_pt));
@@ -159,12 +162,15 @@ flea_err_e THR_flea_test_cbc_mode_3des()
   const flea_u8_t* in_ptr__pcu8;
   flea_u8_t* out_ptr__pu8;
 
-  FLEA_DECL_OBJ(encr_ctx__t, flea_cbc_mode_ctx_t);
-  FLEA_DECL_OBJ(decr_ctx__t, flea_cbc_mode_ctx_t);
+  flea_cbc_mode_ctx_t encr_ctx__t;
+  flea_cbc_mode_ctx_t decr_ctx__t;
+
   FLEA_DECL_BUF(decr__bu8, flea_u8_t, sizeof(tdes_cbc_pt));
   FLEA_DECL_BUF(encr__bu8, flea_u8_t, sizeof(tdes_cbc_pt));
   flea_u8_t block_len__u8 = 8; // DES
   FLEA_THR_BEG_FUNC();
+  flea_cbc_mode_ctx_t__INIT(&encr_ctx__t);
+  flea_cbc_mode_ctx_t__INIT(&decr_ctx__t);
 
   FLEA_ALLOC_BUF(encr__bu8, sizeof(tdes_cbc_pt));
   FLEA_ALLOC_BUF(decr__bu8, sizeof(tdes_cbc_pt));
