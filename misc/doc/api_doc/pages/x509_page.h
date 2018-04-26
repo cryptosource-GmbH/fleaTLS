@@ -58,6 +58,6 @@ In order to enable revocation checking, during the construction of the #flea_cer
 
 \subsubsection secX509PureSigVer Mere Checking of Signatures
 
-In order to check whether a certificate carries a correct signature produced by another certificate's associated  private key, the function #THR_flea_x509_verify_cert_signature() can be used.
+In order to check merely whether a certificate carries a correct signature produced by another certificate's associated  private key, the function #THR_flea_x509_verify_cert_signature() can be used.
 
 */
