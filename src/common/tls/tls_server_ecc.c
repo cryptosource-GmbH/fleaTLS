@@ -15,10 +15,10 @@
 
 #ifdef FLEA_HAVE_TLS_CS_ECDHE
 flea_err_e THR_flea_tls__send_server_kex_ecc(
-  flea_tls_ctx_t*               tls_ctx__pt,
-  flea_tls_handshake_ctx_t*     hs_ctx__pt,
-  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt,
-  flea_private_key_t*           ecdhe_priv_key__pt
+  flea_tls_ctx_t*           tls_ctx__pt,
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_prl_hash_ctx_t*  p_hash_ctx__pt,
+  flea_privkey_t*           ecdhe_priv_key__pt
 )
 {
   flea_tls__kex_method_t kex_method__t;
@@ -38,11 +38,11 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
   flea_u16_t sig_len__u16;
   flea_u8_t ec_curve__au8[2];
   flea_u8_t sig_len_enc__au8[2];
-  flea_public_key_t ecdhe_pub_key__t;
+  flea_pubkey_t ecdhe_pub_key__t;
   flea_u8_t pub_point_len__u8;
 
   FLEA_THR_BEG_FUNC();
-  flea_public_key_t__INIT(&ecdhe_pub_key__t);
+  flea_pubkey_t__INIT(&ecdhe_pub_key__t);
   FLEA_CCALL(THR_flea_tls__map_flea_curve_to_curve_bytes(tls_ctx__pt->chosen_ecc_dp_internal_id__u8, ec_curve__au8));
 
   hash_id__t      = tls_ctx__pt->chosen_hash_algorithm__t;
@@ -64,14 +64,14 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
      */
 
     FLEA_CCALL(
-      THR_flea_pubkey__generate_ecc_key_pair_by_dp_id(
+      THR_flea_pubkey__by_dp_id_gen_ecc_key_pair(
         &ecdhe_pub_key__t,
         ecdhe_priv_key__pt,
         (flea_ec_dom_par_id_e) tls_ctx__pt->chosen_ecc_dp_internal_id__u8
       )
     );
 
-    flea_public_key_t__get_encoded_plain_ref(&ecdhe_pub_key__t, &pub_point__rcu8);
+    flea_pubkey_t__get_encoded_plain_ref(&ecdhe_pub_key__t, &pub_point__rcu8);
     pub_point_len__u8 = (flea_u8_t) pub_point__rcu8.len__dtl;
 
     /*
@@ -96,7 +96,7 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
 
     // sign it
     FLEA_CCALL(
-      THR_flea_private_key_t__sign_digest(
+      THR_flea_privkey_t__sign_digest(
         tls_ctx__pt->private_key__pt,
         pk_scheme_id__t,
         hash_id__t,
@@ -116,7 +116,7 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
     hdr_len__u32 = 3 + 1 + pub_point__rcu8.len__dtl + 2 + 2 + sig_len__u16;   // 3 for named curve + 1 for pub point length + 2 for sig/hash alg + 2 sig length + len of signature
 
     FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_hdr(
+      THR_flea_tls__snd_hands_msg_hdr(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
         HANDSHAKE_TYPE_SERVER_KEY_EXCHANGE,
@@ -125,7 +125,7 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
     );
 
     FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
+      THR_flea_tls__snd_hands_msg_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
         ec_curve_type__au8,
@@ -134,7 +134,7 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
     );
 
     FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
+      THR_flea_tls__snd_hands_msg_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
         ec_curve__au8,
@@ -143,7 +143,7 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
     );
 
     FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
+      THR_flea_tls__snd_hands_msg_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
         &pub_point_len__u8,
@@ -152,7 +152,7 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
     );
 
     FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
+      THR_flea_tls__snd_hands_msg_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
         pub_point__rcu8.data__pcu8,
@@ -161,7 +161,7 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
     );
 
     FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
+      THR_flea_tls__snd_hands_msg_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
         sig_and_hash_alg,
@@ -171,7 +171,7 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
 
 
     FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
+      THR_flea_tls__snd_hands_msg_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
         sig_len_enc__au8,
@@ -180,7 +180,7 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
     );
 
     FLEA_CCALL(
-      THR_flea_tls__send_handshake_message_content(
+      THR_flea_tls__snd_hands_msg_content(
         &tls_ctx__pt->rec_prot__t,
         p_hash_ctx__pt,
         sig_vec__t.data__pu8,
@@ -198,7 +198,7 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
     flea_hash_ctx_t__dtor(&params_hash_ctx__t);
     FLEA_FREE_BUF_FINAL(hash__bu8);
     flea_byte_vec_t__dtor(&sig_vec__t);
-    flea_public_key_t__dtor(&ecdhe_pub_key__t);
+    flea_pubkey_t__dtor(&ecdhe_pub_key__t);
   );
 } /* THR_flea_tls__send_server_kex_ecc */
 

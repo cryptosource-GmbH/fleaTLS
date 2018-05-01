@@ -487,9 +487,9 @@ static std::string cert_info_to_string(const flea_x509_cert_ref_t* cert_ref__pt)
 } // cert_info_to_string
 
 void flea_tls_test_tool_print_peer_cert_info(
-  flea_tls_client_ctx_t* client_ctx_mbn__pt,
-  flea_tls_server_ctx_t* server_ctx_mbn__pt,
-  server_params_t*       server_params_mbn__pt
+  flea_tls_clt_ctx_t* client_ctx_mbn__pt,
+  flea_tls_srv_ctx_t* server_ctx_mbn__pt,
+  server_params_t*    server_params_mbn__pt
 )
 {
   std::string s;
@@ -498,18 +498,18 @@ void flea_tls_test_tool_print_peer_cert_info(
   if(client_ctx_mbn__pt)
   {
 #  ifdef FLEA_HAVE_TLS_CLIENT
-    if(flea_tls_client_ctx_t__have_peer_ee_cert_ref(client_ctx_mbn__pt))
+    if(flea_tls_clt_ctx_t__have_peer_ee_cert_ref(client_ctx_mbn__pt))
     {
-      ee_ref__pt = flea_tls_client_ctx_t__get_peer_ee_cert_ref(client_ctx_mbn__pt);
+      ee_ref__pt = flea_tls_clt_ctx_t__get_peer_ee_cert_ref(client_ctx_mbn__pt);
     }
 #  endif // ifdef FLEA_HAVE_TLS_CLIENT
   }
   else if(server_ctx_mbn__pt)
   {
 #  ifdef FLEA_HAVE_TLS_SERVER
-    if(flea_tls_server_ctx_t__have_peer_ee_cert_ref(server_ctx_mbn__pt))
+    if(flea_tls_srv_ctx_t__have_peer_ee_cert_ref(server_ctx_mbn__pt))
     {
-      ee_ref__pt = flea_tls_server_ctx_t__get_peer_ee_cert_ref(server_ctx_mbn__pt);
+      ee_ref__pt = flea_tls_srv_ctx_t__get_peer_ee_cert_ref(server_ctx_mbn__pt);
     }
 #  endif // ifdef FLEA_HAVE_TLS_SERVER
   }
@@ -524,18 +524,18 @@ void flea_tls_test_tool_print_peer_cert_info(
   if(client_ctx_mbn__pt)
   {
 #  ifdef FLEA_HAVE_TLS_CLIENT
-    if(flea_tls_client_ctx_t__have_peer_root_cert_ref(client_ctx_mbn__pt))
+    if(flea_tls_clt_ctx_t__have_peer_root_cert_ref(client_ctx_mbn__pt))
     {
-      root_ref__pt = flea_tls_client_ctx_t__get_peer_root_cert_ref(client_ctx_mbn__pt);
+      root_ref__pt = flea_tls_clt_ctx_t__get_peer_root_cert_ref(client_ctx_mbn__pt);
     }
 #  endif // ifdef FLEA_HAVE_TLS_CLIENT
   }
   else if(server_ctx_mbn__pt)
   {
 #  ifdef FLEA_HAVE_TLS_SERVER
-    if(flea_tls_server_ctx_t__have_peer_root_cert_ref(server_ctx_mbn__pt))
+    if(flea_tls_srv_ctx_t__have_peer_root_cert_ref(server_ctx_mbn__pt))
     {
-      root_ref__pt = flea_tls_server_ctx_t__get_peer_root_cert_ref(server_ctx_mbn__pt);
+      root_ref__pt = flea_tls_srv_ctx_t__get_peer_root_cert_ref(server_ctx_mbn__pt);
     }
 #  endif // ifdef FLEA_HAVE_TLS_SERVER
   }

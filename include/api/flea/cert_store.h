@@ -154,9 +154,9 @@ flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
  *
  * @return an error code
  */
-flea_err_e THR_flea_cert_store_t__add_trusted_to_path_validator(
-  const flea_cert_store_t*    cert_store,
-  flea_cert_path_validator_t* cpv
+flea_err_e THR_flea_cert_store_t__add_my_trusted_certs_to_path_validator(
+  const flea_cert_store_t* cert_store,
+  flea_cpv_t*              cpv
 );
 
 # ifdef __cplusplus

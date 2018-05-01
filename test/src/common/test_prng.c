@@ -40,8 +40,8 @@ flea_err_e THR_flea_test_ctr_mode_prng()
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&prng_ctx__t, seed__au8, sizeof(seed__au8)));
 
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&prng_ctx__t, seed__au8, 1));
-  flea_ctr_mode_prng_t__randomize_no_flush(&prng_ctx__t, rnd__bu8, 17);
-  flea_ctr_mode_prng_t__randomize(&prng_ctx__t, rnd__bu8, 17);
+  flea_ctr_mode_prng_t__rndmz_no_flush(&prng_ctx__t, rnd__bu8, 17);
+  flea_ctr_mode_prng_t__rndmz(&prng_ctx__t, rnd__bu8, 17);
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&prng_ctx__t, rnd__bu8, 17));
 
   FLEA_CCALL(THR_flea_test_ctr_mode_prng_init_dtor());

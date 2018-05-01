@@ -22,7 +22,7 @@
 #ifdef FLEA_HAVE_TLS
 struct server_params_t
 {
-  flea_private_key_t*               private_key__pt;
+  flea_privkey_t*                   private_key__pt;
   const flea_ref_cu8_t*             cert_chain__pcu8;
   flea_al_u16_t                     cert_chain_len__alu16;
   const flea_cert_store_t*          cert_store_mbn__pt;
@@ -101,9 +101,9 @@ flea_err_e THR_flea_tls_tool_set_tls_cfg(
 );
 
 void flea_tls_test_tool_print_peer_cert_info(
-  flea_tls_client_ctx_t* client_ctx_mbn__pt,
-  flea_tls_server_ctx_t* server_ctx_mbn__pt,
-  server_params_t*       serv_par__pt
+  flea_tls_clt_ctx_t* client_ctx_mbn__pt,
+  flea_tls_srv_ctx_t* server_ctx_mbn__pt,
+  server_params_t*    serv_par__pt
 );
 
 flea_err_e dummy_process_identity_hint(

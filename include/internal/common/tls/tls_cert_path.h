@@ -30,7 +30,7 @@ flea_err_e THR_flea_tls__cert_path_validation(
   flea_tls_ctx_t*                    tls_ctx__pt,
   flea_tls_handsh_reader_t*          hs_rdr__pt,
   const flea_cert_store_t*           trust_store__pt,
-  flea_public_key_t*                 pubkey_to_construct__pt,
+  flea_pubkey_t*                     pubkey_to_construct__pt,
   flea_tls_cert_path_params_t const* cert_path_params__pct
 );
 

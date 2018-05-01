@@ -86,7 +86,7 @@ void flea_gmt_time_t__add_seconds_to_date(
 
 #endif /* ifdef FLEA_HAVE_TLS_SESSION_SUPPORT */
 flea_err_e THR_flea_asn1_parse_gmt_time_optional(
-  flea_ber_dec_t*  dec__t,
+  flea_bdec_t*     dec__t,
   flea_gmt_time_t* utctime__pt,
   flea_bool_t*     found__pb
 )
@@ -98,7 +98,7 @@ flea_err_e THR_flea_asn1_parse_gmt_time_optional(
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
-    THR_flea_ber_dec_t__decode_date_opt(
+    THR_flea_bdec_t__dec_date_opt(
       dec__t,
       &date_ref__t.time_type__t,
       &byte_vec__t,
@@ -125,7 +125,7 @@ flea_err_e THR_flea_asn1_parse_gmt_time_optional(
 } /* THR_flea_asn1_parse_gmt_time_optional */
 
 flea_err_e THR_flea_asn1_parse_gmt_time(
-  flea_ber_dec_t*  dec__t,
+  flea_bdec_t*     dec__t,
   flea_gmt_time_t* utctime__pt
 )
 {
@@ -136,7 +136,7 @@ flea_err_e THR_flea_asn1_parse_gmt_time(
 
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(byte_vec__t, 20);
   FLEA_CCALL(
-    THR_flea_ber_dec_t__decode_date_opt(
+    THR_flea_bdec_t__dec_date_opt(
       dec__t,
       &date_ref__t.time_type__t,
       &byte_vec__t,
@@ -187,7 +187,7 @@ flea_err_e THR_flea_asn1_parse_date(
 }
 
 // function that parses up to 2 digits
-static void flea_asn1_date_parse_next_digits_u8(
+static void flea_asn1_dt_prs_digits_u8(
   const flea_u8_t* in,
   flea_u8_t        length,
   flea_u8_t*       out
@@ -208,7 +208,7 @@ static void flea_asn1_date_parse_next_digits_u8(
 }
 
 // function that parses up to 4 digits
-static void flea_asn1_date_parse_next_digits_u16(
+static void flea_asn1_dt_prs_digits_u16(
   const flea_u8_t* in,
   flea_u8_t        length,
   flea_u16_t*      out
@@ -265,12 +265,12 @@ flea_err_e THR_flea_asn1_parse_generalized_time(
 
   memset(value_out, 0, sizeof(flea_gmt_time_t));
 
-  flea_asn1_date_parse_next_digits_u16(v, 4, &value_out->year);
-  flea_asn1_date_parse_next_digits_u8(v + 4, 2, &value_out->month);
-  flea_asn1_date_parse_next_digits_u8(v + 6, 2, &value_out->day);
-  flea_asn1_date_parse_next_digits_u8(v + 8, 2, &value_out->hours);
-  flea_asn1_date_parse_next_digits_u8(v + 10, 2, &value_out->minutes);
-  flea_asn1_date_parse_next_digits_u8(v + 12, 2, &value_out->seconds);
+  flea_asn1_dt_prs_digits_u16(v, 4, &value_out->year);
+  flea_asn1_dt_prs_digits_u8(v + 4, 2, &value_out->month);
+  flea_asn1_dt_prs_digits_u8(v + 6, 2, &value_out->day);
+  flea_asn1_dt_prs_digits_u8(v + 8, 2, &value_out->hours);
+  flea_asn1_dt_prs_digits_u8(v + 10, 2, &value_out->minutes);
+  flea_asn1_dt_prs_digits_u8(v + 12, 2, &value_out->seconds);
 
 
   FLEA_THR_FIN_SEC_empty();
@@ -312,12 +312,12 @@ flea_err_e THR_flea_asn1_parse_utc_time(
 
   memset(value_out, 0, sizeof(flea_gmt_time_t));
 
-  flea_asn1_date_parse_next_digits_u16(v, 2, &value_out->year);
-  flea_asn1_date_parse_next_digits_u8(v + 2, 2, &value_out->month);
-  flea_asn1_date_parse_next_digits_u8(v + 4, 2, &value_out->day);
-  flea_asn1_date_parse_next_digits_u8(v + 6, 2, &value_out->hours);
-  flea_asn1_date_parse_next_digits_u8(v + 8, 2, &value_out->minutes);
-  flea_asn1_date_parse_next_digits_u8(v + 10, 2, &value_out->seconds);
+  flea_asn1_dt_prs_digits_u16(v, 2, &value_out->year);
+  flea_asn1_dt_prs_digits_u8(v + 2, 2, &value_out->month);
+  flea_asn1_dt_prs_digits_u8(v + 4, 2, &value_out->day);
+  flea_asn1_dt_prs_digits_u8(v + 6, 2, &value_out->hours);
+  flea_asn1_dt_prs_digits_u8(v + 8, 2, &value_out->minutes);
+  flea_asn1_dt_prs_digits_u8(v + 10, 2, &value_out->seconds);
 
   // set century for utc_time as specified in RFC 5280
   if(value_out->year >= 50)

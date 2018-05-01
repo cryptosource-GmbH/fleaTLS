@@ -29,7 +29,7 @@ const flea_u8_t ecdsa_oid_prefix__acu8[6] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x04}
  */
 
 
-flea_err_e THR_get_hash_id_from_x509_id_for_ecdsa(
+flea_err_e THR_flea_get_ecdsa_hash_id_from_x509_id(
   const flea_u8_t cert_id__pcu8[2],
   flea_hash_id_e* result__pt
 )
@@ -70,10 +70,10 @@ flea_err_e THR_get_hash_id_from_x509_id_for_ecdsa(
   }
 
   FLEA_THR_FIN_SEC_empty();
-} /* THR_get_hash_id_from_x509_id_for_ecdsa */
+} /* THR_flea_get_ecdsa_hash_id_from_x509_id */
 
 /* assumes that result__pu8 has sufficient length allocated */
-flea_err_e THR_flea_x509_decode_ecdsa_signature(
+flea_err_e THR_flea_x509_dec_ecdsa_signature(
   flea_u8_t*             result__pu8,
   flea_al_u16_t*         result_len__palu16,
   const flea_byte_vec_t* x509_enc_sig__pt
@@ -84,12 +84,12 @@ flea_err_e THR_flea_x509_decode_ecdsa_signature(
   flea_al_u16_t r_offs, s_offs, diff, insert_offs;
   flea_al_u8_t sig_offs__alu8 = 0;
 
-  flea_ber_dec_t dec__t;
+  flea_bdec_t dec__t;
   flea_rw_stream_t source__t;
   flea_mem_read_stream_help_t hlp__t;
 
   FLEA_THR_BEG_FUNC();
-  flea_ber_dec_t__INIT(&dec__t);
+  flea_bdec_t__INIT(&dec__t);
   flea_rw_stream_t__INIT(&source__t);
 
   if(flea_byte_vec_t__GET_DATA_LEN(x509_enc_sig__pt) > 1)
@@ -109,11 +109,11 @@ flea_err_e THR_flea_x509_decode_ecdsa_signature(
       &hlp__t
     )
   );
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref));
-  FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, &ref_r__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, &ref_s__t));
-  FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
+  FLEA_CCALL(THR_flea_bdec_t__ctor(&dec__t, &source__t, 0, flea_dec_ref));
+  FLEA_CCALL(THR_flea_bdec_t__open_sequence(&dec__t));
+  FLEA_CCALL(THR_flea_bdec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, &ref_r__t));
+  FLEA_CCALL(THR_flea_bdec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, &ref_s__t));
+  FLEA_CCALL(THR_flea_bdec_t__cl_cons_at_end(&dec__t));
   if(ref_r__t.len__dtl > ref_s__t.len__dtl)
   {
     diff        = ref_r__t.len__dtl - ref_s__t.len__dtl;
@@ -142,12 +142,12 @@ flea_err_e THR_flea_x509_decode_ecdsa_signature(
 
   FLEA_THR_FIN_SEC(
     flea_rw_stream_t__dtor(&source__t);
-    flea_ber_dec_t__dtor(&dec__t);
+    flea_bdec_t__dtor(&dec__t);
 
   );
-} /* THR_flea_x509_decode_ecdsa_signature */
+} /* THR_flea_x509_dec_ecdsa_signature */
 
-flea_err_e THR_flea_public_key_t__create_ecdsa_key(
+flea_err_e THR_flea_pubkey_t__create_ecdsa_key(
   flea_ec_pubkey_val_t*        ecc_key__pt,
   const flea_byte_vec_t*       public_point_encoded__pcrcu8,
   const flea_ec_dom_par_ref_t* dp_ref__pt
@@ -186,7 +186,7 @@ flea_err_e THR_flea_public_key_t__create_ecdsa_key(
     public_point_encoded__pcrcu8
   );
   FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_public_key_t__create_ecdsa_key */
+} /* THR_flea_pubkey_t__create_ecdsa_key */
 
 flea_err_e THR_flea_x509_parse_ecc_public_params(
   const flea_byte_vec_t* encoded_parameters__pt,
@@ -194,13 +194,13 @@ flea_err_e THR_flea_x509_parse_ecc_public_params(
 )
 {
   flea_rw_stream_t source__t;
-  flea_ber_dec_t dec__t;
+  flea_bdec_t dec__t;
   flea_mem_read_stream_help_t hlp__t;
   flea_bool_t found__b;
 
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_t__INIT(&source__t);
-  flea_ber_dec_t__INIT(&dec__t);
+  flea_bdec_t__INIT(&dec__t);
 
 
   FLEA_CCALL(
@@ -212,15 +212,15 @@ flea_err_e THR_flea_x509_parse_ecc_public_params(
     )
   );
   FLEA_CCALL(
-    THR_flea_ber_dec_t__ctor(
+    THR_flea_bdec_t__ctor(
       &dec__t,
       &source__t,
       FLEA_ECC_MAX_MOD_BYTE_SIZE * 10,
-      flea_decode_ref
+      flea_dec_ref
     )
   );
   FLEA_CCALL(
-    THR_flea_ber_dec_t__open_constructed_optional_cft(
+    THR_flea_bdec_t__op_cons_cft_optional(
       &dec__t,
       FLEA_ASN1_CFT_MAKE2(FLEA_ASN1_CONSTRUCTED, FLEA_ASN1_SEQUENCE),
       &found__b
@@ -233,37 +233,37 @@ flea_err_e THR_flea_x509_parse_ecc_public_params(
 
     const flea_u8_t prime_field_oid__acu8[] = {0x2A, 0x86, 0x48, 0xCE, 0x3D, 0x01, 0x01};
 
-    FLEA_CCALL(THR_flea_ber_dec_t__decode_integer_u32(&dec__t, FLEA_ASN1_INT, &version__u32));
+    FLEA_CCALL(THR_flea_bdec_t__dec_int_u32(&dec__t, FLEA_ASN1_INT, &version__u32));
     if(version__u32 != 1)
     {
       FLEA_THROW("invalid version in ECC parameters", FLEA_ERR_X509_INV_ECC_KEY_PARAMS);
     }
-    FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
-    FLEA_CCALL(THR_flea_ber_dec_t__get_der_ref_to_oid(&dec__t, &oid_ref__t));
+    FLEA_CCALL(THR_flea_bdec_t__open_sequence(&dec__t));
+    FLEA_CCALL(THR_flea_bdec_t__get_der_ref_to_oid(&dec__t, &oid_ref__t));
     if(oid_ref__t.len__dtl != sizeof(prime_field_oid__acu8) ||
       memcmp(oid_ref__t.data__pu8, prime_field_oid__acu8, sizeof(prime_field_oid__acu8)))
     {
       FLEA_THROW("unsupported field type in ECC parameters", FLEA_ERR_X509_INV_ECC_FIELD_TYPE);
     }
-    FLEA_CCALL(THR_flea_ber_dec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, &dom_par__pt->p__ru8));
-    FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
-    FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
+    FLEA_CCALL(THR_flea_bdec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, &dom_par__pt->p__ru8));
+    FLEA_CCALL(THR_flea_bdec_t__cl_cons_at_end(&dec__t));
+    FLEA_CCALL(THR_flea_bdec_t__open_sequence(&dec__t));
     FLEA_CCALL(
-      THR_flea_ber_dec_t__get_REF_to_raw_cft(
+      THR_flea_bdec_t__get_REF_to_raw_cft(
         &dec__t,
         FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, FLEA_ASN1_OCTET_STRING),
         &dom_par__pt->a__ru8
       )
     );
     FLEA_CCALL(
-      THR_flea_ber_dec_t__get_REF_to_raw_cft(
+      THR_flea_bdec_t__get_REF_to_raw_cft(
         &dec__t,
         FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, FLEA_ASN1_OCTET_STRING),
         &dom_par__pt->b__ru8
       )
     );
     FLEA_CCALL(
-      THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
+      THR_flea_bdec_t__get_r_cft_raw_optional(
         &dec__t,
         FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, FLEA_ASN1_BIT_STRING),
         &oid_ref__t,
@@ -271,31 +271,31 @@ flea_err_e THR_flea_x509_parse_ecc_public_params(
       )
     );
     /* close the curve: */
-    FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
+    FLEA_CCALL(THR_flea_bdec_t__cl_cons_at_end(&dec__t));
     /* the public point */
     FLEA_CCALL(
-      THR_flea_ber_dec_t__get_ref_to_raw_cft(
+      THR_flea_bdec_t__get_r_raw_cft(
         &dec__t,
         FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, FLEA_ASN1_OCTET_STRING),
         &oid_ref__t
       )
     );
-    FLEA_CCALL(THR_flea_ecc_key__decode_uncompressed_point(&oid_ref__t, &dom_par__pt->gx__ru8, &dom_par__pt->gy__ru8));
+    FLEA_CCALL(THR_flea_ecc_key__dec_uncompressed_point(&oid_ref__t, &dom_par__pt->gx__ru8, &dom_par__pt->gy__ru8));
 
-    FLEA_CCALL(THR_flea_ber_dec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, &dom_par__pt->n__ru8));
-    FLEA_CCALL(THR_flea_ber_dec_t__get_der_REF_to_positive_int_wo_lead_zeroes_optional(&dec__t, &dom_par__pt->h__ru8));
+    FLEA_CCALL(THR_flea_bdec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, &dom_par__pt->n__ru8));
+    FLEA_CCALL(THR_flea_bdec_t__get_r_opl_to_positive_int_wo_lead_zeroes(&dec__t, &dom_par__pt->h__ru8));
     if(dom_par__pt->h__ru8.len__dtl > FLEA_CEIL_BYTE_LEN_FROM_BIT_LEN(FLEA_ECC_MAX_COFACTOR_BIT_SIZE))
     {
       FLEA_THROW("invalid cofactor size", FLEA_ERR_X509_EXCSS_COFACTOR_SIZE);
     }
-    FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
+    FLEA_CCALL(THR_flea_bdec_t__cl_cons_at_end(&dec__t));
   }
   else
   {
     flea_byte_vec_t named_curve_oid__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
     flea_bool_t dummy;
     FLEA_CCALL(
-      THR_flea_ber_dec_t__get_ref_to_raw_optional_cft(
+      THR_flea_bdec_t__get_r_cft_raw_optional(
         &dec__t,
         FLEA_ASN1_CFT_MAKE2(UNIVERSAL_PRIMITIVE, FLEA_ASN1_OID),
         &named_curve_oid__t,
@@ -315,7 +315,7 @@ flea_err_e THR_flea_x509_parse_ecc_public_params(
     else
     {
       flea_byte_vec_t null__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_NOT_ALLOCATABLE;
-      FLEA_CCALL(THR_flea_ber_dec_t__get_ref_to_next_tlv_raw(&dec__t, &null__t));
+      FLEA_CCALL(THR_flea_bdec_t__get_r_next_tlv_raw(&dec__t, &null__t));
       if(flea_ber_dec__is_tlv_null_vec(&null__t))
       {
         FLEA_THROW("no explicit or named ECC domain parameters provided", FLEA_ERR_X509_IMPLICT_ECC_KEY_PARAMS);
@@ -326,7 +326,7 @@ flea_err_e THR_flea_x509_parse_ecc_public_params(
 
   FLEA_THR_FIN_SEC(
     flea_rw_stream_t__dtor(&source__t);
-    flea_ber_dec_t__dtor(&dec__t);
+    flea_bdec_t__dtor(&dec__t);
   );
 } /* THR_flea_x509_parse_ecc_public_params */
 

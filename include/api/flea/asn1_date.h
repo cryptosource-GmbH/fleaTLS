@@ -37,12 +37,12 @@ typedef struct
   } while(0);
 
 flea_err_e THR_flea_asn1_parse_gmt_time(
-  flea_ber_dec_t*  dec__t,
+  flea_bdec_t*     dec__t,
   flea_gmt_time_t* utctime__pt
 );
 
 flea_err_e THR_flea_asn1_parse_gmt_time_optional(
-  flea_ber_dec_t*  dec__t,
+  flea_bdec_t*     dec__t,
   flea_gmt_time_t* utctime__pt,
   flea_bool_t*     found__pb
 );

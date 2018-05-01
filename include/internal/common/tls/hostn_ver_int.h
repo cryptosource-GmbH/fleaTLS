@@ -26,7 +26,7 @@ typedef struct
 flea_err_e THR_flea_x509__parse_san_and_validate_hostn(
   const flea_ref_cu8_t*    user_id__pcrcu8,
   flea_host_id_type_e      host_type,
-  flea_ber_dec_t*          cont_dec__pt,
+  flea_bdec_t*             cont_dec__pt,
   flea_byte_vec_t*         work_spc__pt,
   flea_hostn_match_info_t* match_info__pt
 );
@@ -39,13 +39,13 @@ flea_err_e THR_flea_x509__verify_host_name(
 );
 
 
-flea_err_e THR_flea_x509__verify_tls_server_id(
+flea_err_e THR_flea_x509__vrfy_tls_srv_id(
   const flea_byte_vec_t*      user_id__pcrcu8,
   flea_host_id_type_e         host_type,
   const flea_x509_cert_ref_t* server_cert__pt
 );
 
-flea_err_e THR_flea_x509__verify_tls_server_id_cstr(
+flea_err_e THR_flea_x509__vrfy_tls_srv_id_cstr(
   const char*                 user_id__cs,
   flea_host_id_type_e         host_type,
   const flea_x509_cert_ref_t* server_cert__pt

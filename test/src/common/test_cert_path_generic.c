@@ -33,21 +33,21 @@ flea_err_e THR_flea_test_cert_path_generic(
   flea_host_id_type_e   host_id_type
 )
 {
-  flea_public_key_t target_pubkey__t;
+  flea_pubkey_t target_pubkey__t;
 
   /** this parameter is actually superflous and misleading, the caller evaluates
    * the test result: */
   const flea_bool_t is_valid_chain = FLEA_TRUE;
   flea_err_e err;
 
-  flea_cert_path_validator_t cert_chain__t;
+  flea_cpv_t cert_chain__t;
 
   FLEA_THR_BEG_FUNC();
-  flea_public_key_t__INIT(&target_pubkey__t);
-  flea_cert_path_validator_t__INIT(&cert_chain__t);
+  flea_pubkey_t__INIT(&target_pubkey__t);
+  flea_cpv_t__INIT(&cert_chain__t);
 
   FLEA_CCALL(
-    THR_flea_cert_path_validator_t__ctor_cert(
+    THR_flea_cpv_t__ctor_cert(
       &cert_chain__t,
       &target_cert_ptr[0],
       target_cert_len,
@@ -81,7 +81,7 @@ flea_err_e THR_flea_test_cert_path_generic(
     {
       i %= nb_trust_anchors;
       FLEA_CCALL(
-        THR_flea_cert_path_validator_t__add_trust_anchor_cert(
+        THR_flea_cpv_t__add_trust_anchor_cert(
           &cert_chain__t,
           trust_anchor_ptrs[i],
           trust_anchor_lens[i]
@@ -95,7 +95,7 @@ flea_err_e THR_flea_test_cert_path_generic(
     {
       i %= nb_certs;
       FLEA_CCALL(
-        THR_flea_cert_path_validator_t__add_cert_without_trust_status(
+        THR_flea_cpv_t__add_cert_without_trust_status(
           &cert_chain__t,
           cert_ptrs[i],
           cert_lens[i]
@@ -112,7 +112,7 @@ flea_err_e THR_flea_test_cert_path_generic(
     flea_u32_t i;
     FLEA_CCALL(THR_flea_rng__randomize((flea_u8_t*) &i, sizeof(i)));
     i %= nb_crls;
-    FLEA_CCALL(THR_flea_cert_path_validator_t__add_crl(&cert_chain__t, crl_ptrs[i], crl_lens[i]));
+    FLEA_CCALL(THR_flea_cpv_t__add_crl(&cert_chain__t, crl_ptrs[i], crl_lens[i]));
 
     crl_ptrs[i] = crl_ptrs[nb_crls - 1];
     crl_lens[i] = crl_lens[nb_crls - 1];
@@ -125,7 +125,7 @@ flea_err_e THR_flea_test_cert_path_generic(
       host_id_mbn__pcrcu8->data__pcu8,
       host_id_mbn__pcrcu8->len__dtl
       );
-    err = THR_flea_cert_path_validator__build_and_verify_cert_chain_and_hostid_and_create_pub_key(
+    err = THR_flea_cpv_t__validate_and_hostid_and_create_pub_key(
       &cert_chain__t,
       &time__t,
       &host_id_vec__t,
@@ -135,7 +135,7 @@ flea_err_e THR_flea_test_cert_path_generic(
   }
   else
   {
-    err = THR_flea_cert_path_validator__build_and_verify_cert_chain_and_create_pub_key(
+    err = THR_flea_cpv_t__validate_and_create_pub_key(
       &cert_chain__t,
       &time__t,
       &target_pubkey__t
@@ -153,8 +153,8 @@ flea_err_e THR_flea_test_cert_path_generic(
     FLEA_THROW("success of cert verification", FLEA_ERR_FAILED_TEST);
   }
   FLEA_THR_FIN_SEC(
-    flea_cert_path_validator_t__dtor(&cert_chain__t);
-    flea_public_key_t__dtor(&target_pubkey__t);
+    flea_cpv_t__dtor(&cert_chain__t);
+    flea_pubkey_t__dtor(&target_pubkey__t);
   );
 } /* THR_flea_test_cert_path_generic */
 

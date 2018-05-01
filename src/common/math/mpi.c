@@ -503,7 +503,7 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
 #ifdef FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
     if(delay_prng_mbn__pt)
     {
-      flea_ctr_mode_prng_t__randomize_no_flush(delay_prng_mbn__pt, rnd_bytes__au8, sizeof(rnd_bytes__au8));
+      flea_ctr_mode_prng_t__rndmz_no_flush(delay_prng_mbn__pt, rnd_bytes__au8, sizeof(rnd_bytes__au8));
       flea_al_u8_t cond__alu8 = rnd_bytes__au8[0] & 0x0F;
 # ifdef FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
       flea_al_u8_t cond2__alu8 = real_rnd_bytes__au8[0] & 0x0F;
@@ -1058,9 +1058,9 @@ flea_err_e THR_flea_mpi_t__random_integer_no_flush(
         THR_flea_rng__randomize_no_flush(enc__au8, sizeof(enc__au8))
       );
 #if FLEA_WORD_BIT_SIZE == 32
-      p_result->m_words[i] = flea__decode_U32_BE(enc__au8);
+      p_result->m_words[i] = flea__dec_U32_BE(enc__au8);
 #elif FLEA_WORD_BIT_SIZE == 16
-      p_result->m_words[i] = flea__decode_U16_BE(enc__au8);
+      p_result->m_words[i] = flea__dec_U16_BE(enc__au8);
 #else
       p_result->m_words[i] = enc__au8[0];
 #endif /* if FLEA_WORD_BIT_SIZE == 32 */

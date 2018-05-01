@@ -18,13 +18,13 @@
 #ifdef FLEA_HAVE_ECKA
 
 flea_err_e THR_flea_pubkey__compute_ecka(
-  const flea_public_key_t*  pubkey__pt,
-  const flea_private_key_t* privkey__pt,
-  flea_dtl_t                kdf_out_len__dtl,
-  const flea_u8_t*          shared_info_mbn__pcu8,
-  flea_al_u16_t             shared_info_mbn_len__alu16,
-  flea_hash_id_e            hash_id__e,
-  flea_byte_vec_t*          result__pt
+  const flea_pubkey_t*  pubkey__pt,
+  const flea_privkey_t* privkey__pt,
+  flea_dtl_t            kdf_out_len__dtl,
+  const flea_u8_t*      shared_info_mbn__pcu8,
+  flea_al_u16_t         shared_info_mbn_len__alu16,
+  flea_hash_id_e        hash_id__e,
+  flea_byte_vec_t*      result__pt
 )
 {
   flea_ref_cu8_t ref__t;
@@ -35,7 +35,7 @@ flea_err_e THR_flea_pubkey__compute_ecka(
   {
     FLEA_THROW("invalid key type for ECKA", FLEA_ERR_INV_KEY_TYPE);
   }
-  flea_public_key_t__get_encoded_plain_ref(pubkey__pt, &ref__t);
+  flea_pubkey_t__get_encoded_plain_ref(pubkey__pt, &ref__t);
   if(kdf_out_len__dtl == 0)
   {
     result_len__alu8 = (ref__t.len__dtl - 1) / 2;

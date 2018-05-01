@@ -63,14 +63,14 @@ struct struct_flea_tls_ctx_t
   flea_tls__hash_sig_t              kex_hash_sig__t;
 
   flea_rw_stream_t*                 rw_stream__pt;
-  flea_tls_rec_prot_t               rec_prot__t;
+  flea_recprot_t                    rec_prot__t;
   const flea_cert_store_t*          trust_store_mbn_for_server__pt;
   const flea_ref_cu8_t*             cert_chain_mbn__pt;
   flea_u8_t                         cert_chain_len__u8;
 
-  flea_private_key_t*               private_key__pt;
-  flea_tls_client_session_t*        client_session_mbn__pt;
-  flea_private_key_t*               private_key_for_client_mbn__pt;
+  flea_privkey_t*                   private_key__pt;
+  flea_tls_clt_session_t*           client_session_mbn__pt;
+  flea_privkey_t*                   private_key_for_client_mbn__pt;
   flea_revoc_chk_cfg_t              rev_chk_cfg__t;
   flea_u8_t                         sec_reneg_flag__u8;
 
@@ -112,21 +112,21 @@ struct struct_flea_tls_ctx_t
 struct struct_flea_tls_handshake_ctx_t
 {
   /* only used by tls_client: */
-  flea_public_key_t* ecdhe_pub_key__pt;
+  flea_pubkey_t*   ecdhe_pub_key__pt;
 
-  flea_byte_vec_t*   client_and_server_random__pt;
-  flea_tls_ctx_t*    tls_ctx__pt;
-  flea_u8_t          silent_alarm__u8;
-  flea_u8_t          is_reneg__b;
+  flea_byte_vec_t* client_and_server_random__pt;
+  flea_tls_ctx_t*  tls_ctx__pt;
+  flea_u8_t        silent_alarm__u8;
+  flea_u8_t        is_reneg__b;
 };
 
 # define flea_tls_handshake_ctx_t__INIT(__p) \
   do {(__p)->silent_alarm__u8 = 0; memset((__p), 0, sizeof(*(__p))); \
   } while(0)
 
-struct struct_flea_tls_server_ctx_t
+struct struct_flea_tls_srv_ctx_t
 {
-  flea_private_key_t*            private_key__pt;
+  flea_privkey_t*                private_key__pt;
   flea_tls_ctx_t                 tls_ctx__t;
   flea_tls_session_data_server_t active_session__t;
   flea_tls_session_mngr_t*       session_mngr_mbn__pt;
@@ -141,7 +141,7 @@ struct struct_flea_tls_server_ctx_t
 };
 
 
-struct struct_flea_tls_client_ctx_t
+struct struct_flea_tls_clt_ctx_t
 {
   flea_tls_ctx_t                  tls_ctx__t;
   flea_hostn_validation_params_t  hostn_valid_params__t;

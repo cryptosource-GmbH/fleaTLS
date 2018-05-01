@@ -150,10 +150,10 @@ flea_err_e THR_flea_ghash_ctx_t__ctor(
   vl_a[1] = FLEA_DECODE_U32_BE(h + 8);
   vl_a[0] = FLEA_DECODE_U32_BE(h + 12);
 # else  /* ifdef FLEA_HAVE_BE_ARCH_OPT */
-  vh_a[1] = flea__decode_U32_BE(h);
-  vh_a[0] = flea__decode_U32_BE(h + 4);
-  vl_a[1] = flea__decode_U32_BE(h + 8);
-  vl_a[0] = flea__decode_U32_BE(h + 12);
+  vh_a[1] = flea__dec_U32_BE(h);
+  vh_a[0] = flea__dec_U32_BE(h + 4);
+  vl_a[1] = flea__dec_U32_BE(h + 8);
+  vl_a[0] = flea__dec_U32_BE(h + 12);
 # endif /* ifdef FLEA_HAVE_BE_ARCH_OPT */
 
   ctx__pt->hl__bu32[16] = vl_a[0];

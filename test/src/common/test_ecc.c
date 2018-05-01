@@ -139,8 +139,8 @@ flea_err_e THR_flea_test_ecc_point_gfp_add()
   flea_curve_gfp_t curve;
   flea_point_gfp_t aff_point;
   flea_point_gfp_t aff_point_2;
-  flea_point_jac_proj_t work_point;
-  flea_point_jac_proj_t work_point_2;
+  flea_pnt_jac_proj_t work_point;
+  flea_pnt_jac_proj_t work_point_2;
 
   flea_mpi_t montg_const, montg_const_sq_mod_p, mod_sized_ws, montgm_mul_ws, aR_mod_p, bR_mod_p;
   flea_mpi_t exp_x, exp_y, x, y, x2, y2;
@@ -253,13 +253,13 @@ flea_err_e THR_flea_test_ecc_point_gfp_add()
 
   FLEA_CCALL(THR_flea_point_gfp_t__init(&aff_point, p_x1_enc, sizeof(p_x1_enc), p_y1_enc, sizeof(p_y1_enc), aff_point_word_arr, aff_point_word_arr_word_len));
   FLEA_CCALL(THR_flea_point_gfp_t__init(&aff_point_2, p_x2_enc, sizeof(p_x2_enc), p_y2_enc, sizeof(p_y2_enc), aff_point_word_arr_2, aff_point_word_arr_word_len));
-  FLEA_CCALL(THR_flea_point_jac_proj_t__init(&work_point, &aff_point, &montg_const_sq_mod_p, &mod_sized_ws, &mm_ctx, proj_point_word_arr, proj_point_word_arr_word_len, &mpi_worksp_arr_double_mod_size[0]));
-  FLEA_CCALL(THR_flea_point_jac_proj_t__init(&work_point_2, &aff_point_2, &montg_const_sq_mod_p, &mod_sized_ws, &mm_ctx, proj_point_word_arr_2, proj_point_word_arr_word_len, &mpi_worksp_arr_double_mod_size[0]));
+  FLEA_CCALL(THR_flea_pnt_jac_proj_t__init(&work_point, &aff_point, &montg_const_sq_mod_p, &mod_sized_ws, &mm_ctx, proj_point_word_arr, proj_point_word_arr_word_len, &mpi_worksp_arr_double_mod_size[0]));
+  FLEA_CCALL(THR_flea_pnt_jac_proj_t__init(&work_point_2, &aff_point_2, &montg_const_sq_mod_p, &mod_sized_ws, &mm_ctx, proj_point_word_arr_2, proj_point_word_arr_word_len, &mpi_worksp_arr_double_mod_size[0]));
 
-  FLEA_CCALL(THR_flea_point_jac_proj_t__add(&work_point, &work_point_2, &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+  FLEA_CCALL(THR_flea_pnt_jac_proj_t__add(&work_point, &work_point_2, &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
 
-  FLEA_CCALL(THR_flea_point_jac_proj_t__get_affine_x(&x, &work_point, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
-  FLEA_CCALL(THR_flea_point_jac_proj_t__get_affine_y(&y, &work_point, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+  FLEA_CCALL(THR_flea_pnt_jac_proj_t__get_x_affine(&x, &work_point, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+  FLEA_CCALL(THR_flea_pnt_jac_proj_t__get_y_affine(&y, &work_point, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
   // get affine x,y from work_point
   // compare them to the expected values
   if(flea_mpi_t__compare_absolute(&x, &exp_x) || flea_mpi_t__compare_absolute(&y, &exp_y))
@@ -330,7 +330,7 @@ flea_err_e THR_flea_test_ecc_point_gfp_double()
 
   flea_curve_gfp_t curve;
   flea_point_gfp_t aff_point;
-  flea_point_jac_proj_t work_point;
+  flea_pnt_jac_proj_t work_point;
 
   flea_mpi_t montg_const, montg_const_sq_mod_p, mod_sized_ws, montgm_mul_ws, aR_mod_p, bR_mod_p;
   flea_mpi_t exp_x, exp_y, x, y;
@@ -434,12 +434,12 @@ flea_err_e THR_flea_test_ecc_point_gfp_double()
   FLEA_CCALL(THR_flea_mpi_t__divide(NULL, &bR_mod_p, &mpi_worksp_arr_double_mod_size[0], &curve.m_p, &div_ctx));
 
   FLEA_CCALL(THR_flea_point_gfp_t__init(&aff_point, p_x_enc, sizeof(p_x_enc), p_y_enc, sizeof(p_y_enc), aff_point_word_arr, aff_point_word_arr_word_len));
-  FLEA_CCALL(THR_flea_point_jac_proj_t__init(&work_point, &aff_point, &montg_const_sq_mod_p, &mod_sized_ws, &mm_ctx, proj_point_word_arr, proj_point_word_arr_word_len, &mpi_worksp_arr_double_mod_size[0]));
+  FLEA_CCALL(THR_flea_pnt_jac_proj_t__init(&work_point, &aff_point, &montg_const_sq_mod_p, &mod_sized_ws, &mm_ctx, proj_point_word_arr, proj_point_word_arr_word_len, &mpi_worksp_arr_double_mod_size[0]));
 
-  FLEA_CCALL(THR_flea_point_jac_proj_t__double(&work_point, &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+  FLEA_CCALL(THR_flea_pnt_jac_proj_t__double(&work_point, &aR_mod_p, &bR_mod_p, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
 
-  FLEA_CCALL(THR_flea_point_jac_proj_t__get_affine_x(&x, &work_point, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
-  FLEA_CCALL(THR_flea_point_jac_proj_t__get_affine_y(&y, &work_point, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+  FLEA_CCALL(THR_flea_pnt_jac_proj_t__get_x_affine(&x, &work_point, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
+  FLEA_CCALL(THR_flea_pnt_jac_proj_t__get_y_affine(&y, &work_point, &mm_ctx, mpi_worksp_arr_double_mod_size, &montg_const_sq_mod_p));
   if(flea_mpi_t__compare_absolute(&x, &exp_x) || flea_mpi_t__compare_absolute(&y, &exp_y))
   {
     FLEA_THROW("error with point doubling", FLEA_ERR_FAILED_TEST);

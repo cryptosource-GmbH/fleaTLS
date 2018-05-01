@@ -397,7 +397,7 @@ flea_err_e THR_flea_x509_cert__get_ref_to_tbs(
  *
  * @return error code
  */
-flea_err_e THR_flea_x509_cert__get_ref_to_tbs_byte_vec(
+flea_err_e THR_flea_x509_cert__get_bv_ref_to_tbs(
   const flea_u8_t* der_encoded_cert,
   flea_al_u16_t    der_encoded_cert_len,
   flea_byte_vec_t* ref_to_tbs

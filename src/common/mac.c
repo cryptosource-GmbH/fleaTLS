@@ -462,7 +462,7 @@ static void flea_mac__polyn_double(
 # endif // #if defined FLEA_HAVE_CMAC
 
 # ifdef FLEA_HAVE_HMAC
-static flea_err_e THR_flea_mac_ctx_t__final_compute_hmac(
+static flea_err_e THR_flea_mac_ctx_t__final_hmac_compute(
   flea_mac_ctx_t* ctx__pt,
   flea_u8_t*      result__pu8,
   flea_al_u8_t*   result_len__palu8
@@ -516,11 +516,11 @@ static flea_err_e THR_flea_mac_ctx_t__final_compute_hmac(
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(hash_out__bu8);
   );
-} /* THR_flea_mac_ctx_t__final_compute_hmac */
+} /* THR_flea_mac_ctx_t__final_hmac_compute */
 
 # endif // #ifdef FLEA_HAVE_HMAC
 # ifdef FLEA_HAVE_CMAC
-static flea_err_e THR_flea_mac_ctx_t__final_compute_cmac(
+static flea_err_e THR_flea_mac_ctx_t__final_cmac_compute(
   flea_mac_ctx_t* ctx__pt,
   flea_u8_t*      result__pu8,
   flea_al_u8_t*   result_len__palu8
@@ -577,7 +577,7 @@ static flea_err_e THR_flea_mac_ctx_t__final_compute_cmac(
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(block__bu8);
   );
-} /* THR_flea_mac_ctx_t__final_compute_cmac */
+} /* THR_flea_mac_ctx_t__final_cmac_compute */
 
 # endif // #ifdef FLEA_HAVE_CMAC
 flea_err_e THR_flea_mac_ctx_t__final_compute(
@@ -590,7 +590,7 @@ flea_err_e THR_flea_mac_ctx_t__final_compute(
 # ifdef FLEA_HAVE_HMAC
   if(ctx__pt->mode_id__t == flea_hmac)
   {
-    FLEA_CCALL(THR_flea_mac_ctx_t__final_compute_hmac(ctx__pt, result__pu8, result_len__palu8));
+    FLEA_CCALL(THR_flea_mac_ctx_t__final_hmac_compute(ctx__pt, result__pu8, result_len__palu8));
   }
 # endif /* ifdef FLEA_HAVE_HMAC */
 # if defined FLEA_HAVE_CMAC && defined FLEA_HAVE_HMAC
@@ -598,7 +598,7 @@ flea_err_e THR_flea_mac_ctx_t__final_compute(
 # endif
 # if defined FLEA_HAVE_CMAC
   {
-    FLEA_CCALL(THR_flea_mac_ctx_t__final_compute_cmac(ctx__pt, result__pu8, result_len__palu8));
+    FLEA_CCALL(THR_flea_mac_ctx_t__final_cmac_compute(ctx__pt, result__pu8, result_len__palu8));
   }
 # endif
   if(*result_len__palu8 > ctx__pt->output_len__u8)

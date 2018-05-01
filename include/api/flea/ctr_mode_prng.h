@@ -74,7 +74,7 @@ flea_err_e THR_flea_ctr_mode_prng_t__ctor(
  * @param mem_len__dtl length of the memory area
  *
  */
-void flea_ctr_mode_prng_t__randomize_no_flush(
+void flea_ctr_mode_prng_t__rndmz_no_flush(
   flea_ctr_mode_prng_t* ctx__pt,
   flea_u8_t*            mem__pu8,
   flea_dtl_t            mem_len__dtl
@@ -90,7 +90,7 @@ void flea_ctr_mode_prng_t__randomize_no_flush(
  * @param mem_len__dtl length of the memory area
  *
  */
-void flea_ctr_mode_prng_t__randomize(
+void flea_ctr_mode_prng_t__rndmz(
   flea_ctr_mode_prng_t* ctx__pt,
   flea_u8_t*            mem__pu8,
   flea_dtl_t            mem_len__dtl

@@ -290,16 +290,16 @@ const flea_u8_t tls_cert_chain__acu8 [] = {
 
 flea_err_e THR_flea_test_cert_path_valid_init()
 {
-  flea_cert_path_validator_t cert_chain__t;
+  flea_cpv_t cert_chain__t;
   flea_cert_store_t cert_store__t;
 
   FLEA_THR_BEG_FUNC();
-  flea_cert_path_validator_t__INIT(&cert_chain__t);
+  flea_cpv_t__INIT(&cert_chain__t);
   flea_cert_store_t__INIT(&cert_store__t);
 
   FLEA_THR_FIN_SEC(
     flea_cert_store_t__dtor(&cert_store__t);
-    flea_cert_path_validator_t__dtor(&cert_chain__t);
+    flea_cpv_t__dtor(&cert_chain__t);
   );
 }
 
@@ -307,16 +307,16 @@ flea_err_e THR_flea_test_cert_path_valid_init()
 flea_err_e THR_flea_test_cert_chain_correct_chain_of_two()
 {
 /* ! [cert_validation_1] */
-  flea_cert_path_validator_t cert_chain__t;
+  flea_cpv_t cert_chain__t;
 
-  flea_cert_path_validator_t__INIT(&cert_chain__t);
+  flea_cpv_t__INIT(&cert_chain__t);
   const flea_u8_t date_str[] = "170228200000Z";
   flea_gmt_time_t time__t;
   flea_err_e err;
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(
-    THR_flea_cert_path_validator_t__ctor_cert(
+    THR_flea_cpv_t__ctor_cert(
       &cert_chain__t,
       test_cert_tls_server_1,
       sizeof(test_cert_tls_server_1),
@@ -325,14 +325,14 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two()
     )
   );
   FLEA_CCALL(
-    THR_flea_cert_path_validator_t__add_trust_anchor_cert(
+    THR_flea_cpv_t__add_trust_anchor_cert(
       &cert_chain__t,
       flea_test_cert_issuer_of_tls_server_1__cau8,
       sizeof(flea_test_cert_issuer_of_tls_server_1__cau8)
     )
   );
   FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) - 1, &time__t));
-  err = THR_flea_cert_path_validator__build_and_verify_cert_chain(&cert_chain__t, &time__t);
+  err = THR_flea_cpv_t__validate(&cert_chain__t, &time__t);
 /* ! [cert_validation_1] */
 #  if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
   if(err)
@@ -349,7 +349,7 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two()
   }
 #  endif /* if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096) */
   FLEA_THR_FIN_SEC(
-    flea_cert_path_validator_t__dtor(&cert_chain__t);
+    flea_cpv_t__dtor(&cert_chain__t);
   );
 } /* THR_flea_test_cert_chain_correct_chain_of_two */
 
@@ -361,15 +361,15 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
   flea_u16_t nb_trusted_certs;
   flea_dtl_t i;
 
-  flea_cert_path_validator_t cert_chain__t;
+  flea_cpv_t cert_chain__t;
   flea_cert_store_t trusted_store__t;
 
   FLEA_THR_BEG_FUNC();
-  flea_cert_path_validator_t__INIT(&cert_chain__t);
+  flea_cpv_t__INIT(&cert_chain__t);
   flea_cert_store_t__INIT(&trusted_store__t);
   FLEA_CCALL(THR_flea_cert_store_t__ctor(&trusted_store__t));
   FLEA_CCALL(
-    THR_flea_cert_path_validator_t__ctor_cert(
+    THR_flea_cpv_t__ctor_cert(
       &cert_chain__t,
       test_cert_tls_server_1,
       sizeof(test_cert_tls_server_1),
@@ -388,10 +388,10 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
       )
     );
   }
-  FLEA_CCALL(THR_flea_cert_store_t__add_trusted_to_path_validator(&trusted_store__t, &cert_chain__t));
+  FLEA_CCALL(THR_flea_cert_store_t__add_my_trusted_certs_to_path_validator(&trusted_store__t, &cert_chain__t));
   FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) - 1, &time__t));
 
-  err = THR_flea_cert_path_validator__build_and_verify_cert_chain(&cert_chain__t, &time__t);
+  err = THR_flea_cpv_t__validate(&cert_chain__t, &time__t);
 #  if (defined FLEA_HAVE_RSA) && (FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
   if(err)
   {
@@ -427,7 +427,7 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
     FLEA_THROW("max cert store capacity not respected", FLEA_ERR_FAILED_TEST);
   }
   FLEA_THR_FIN_SEC(
-    flea_cert_path_validator_t__dtor(&cert_chain__t);
+    flea_cpv_t__dtor(&cert_chain__t);
     flea_cert_store_t__dtor(&trusted_store__t);
   );
 } /* THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store */
@@ -437,7 +437,7 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store()
  */
 flea_err_e THR_flea_test_tls_cert_chain()
 {
-  flea_cert_path_validator_t cert_chain__t;
+  flea_cpv_t cert_chain__t;
   const flea_u8_t date_str[] = "170228200000Z";
   flea_gmt_time_t time__t;
   flea_bool_t first__b = FLEA_TRUE;
@@ -447,7 +447,7 @@ flea_err_e THR_flea_test_tls_cert_chain()
 
   FLEA_THR_BEG_FUNC();
 
-  flea_cert_path_validator_t__INIT(&cert_chain__t);
+  flea_cpv_t__INIT(&cert_chain__t);
   while(len > 3)
   {
     /* testing a certificate chain as it is used in the TLS protocol with a length
@@ -463,7 +463,7 @@ flea_err_e THR_flea_test_tls_cert_chain()
     if(first__b)
     {
       FLEA_CCALL(
-        THR_flea_cert_path_validator_t__ctor_cert(
+        THR_flea_cpv_t__ctor_cert(
           &cert_chain__t,
           ptr,
           new_len,
@@ -475,14 +475,14 @@ flea_err_e THR_flea_test_tls_cert_chain()
     }
     else
     {
-      FLEA_CCALL(THR_flea_cert_path_validator_t__add_cert_without_trust_status(&cert_chain__t, ptr, new_len));
+      FLEA_CCALL(THR_flea_cpv_t__add_cert_without_trust_status(&cert_chain__t, ptr, new_len));
     }
     ptr += new_len;
     len -= new_len;
   }
 
   FLEA_CCALL(THR_flea_asn1_parse_utc_time(date_str, sizeof(date_str) - 1, &time__t));
-  err = THR_flea_cert_path_validator__build_and_verify_cert_chain(&cert_chain__t, &time__t);
+  err = THR_flea_cpv_t__validate(&cert_chain__t, &time__t);
 
   if(!err)
   {
@@ -490,7 +490,7 @@ flea_err_e THR_flea_test_tls_cert_chain()
   }
 
   FLEA_THR_FIN_SEC(
-    flea_cert_path_validator_t__dtor(&cert_chain__t);
+    flea_cpv_t__dtor(&cert_chain__t);
   );
 } /* THR_flea_test_tls_cert_chain */
 

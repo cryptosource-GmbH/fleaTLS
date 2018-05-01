@@ -22,7 +22,7 @@ flea_err_e THR_flea_crl__check_revocation_status(
   const flea_byte_vec_t*       subjects_issuer_dn_raw__pt,
   const flea_byte_vec_t*       subjects_sn__pt,
   const flea_byte_vec_t*       subjects_crldp_raw__pt,
-  const flea_public_key_t*     issuers_public_key__pt,
+  const flea_pubkey_t*         issuers_public_key__pt,
   flea_x509_validation_flags_e cert_ver_flags__e
 );
 

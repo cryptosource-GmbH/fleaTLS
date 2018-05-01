@@ -25,8 +25,8 @@
 #ifdef FLEA_HAVE_ASYM_ALGS
 
 # ifdef FLEA_HAVE_ECC
-flea_err_e THR_flea_private_key_t__ctor_ecc(
-  flea_private_key_t*          key__pt,
+flea_err_e THR_flea_privkey_t__ctor_ecc(
+  flea_privkey_t*              key__pt,
   const flea_byte_vec_t*       scalar__cprcu8,
   const flea_ec_dom_par_ref_t* dp_ref__pt
 )
@@ -68,12 +68,12 @@ flea_err_e THR_flea_private_key_t__ctor_ecc(
     )
   );
   FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_private_key_t__ctor_ecc */
+} /* THR_flea_privkey_t__ctor_ecc */
 
 # endif /* #ifdef FLEA_HAVE_ECC */
 # ifdef FLEA_HAVE_RSA
-flea_err_e THR_flea_private_key_t__ctor_rsa_internal_format(
-  flea_private_key_t*   key__pt,
+flea_err_e THR_flea_privkey_t__ctor_rsa_internal_format(
+  flea_privkey_t*       key__pt,
   const flea_ref_cu8_t* priv_key_enc_internal_format__prcu8,
   flea_al_u16_t         key_bit_size__alu16
 )
@@ -93,7 +93,7 @@ flea_err_e THR_flea_private_key_t__ctor_rsa_internal_format(
   }
 
   FLEA_CCALL(
-    THR_flea_private_key_t__ctor_rsa_components(
+    THR_flea_privkey_t__ctor_rsa_components(
       key__pt,
       key_bit_size__alu16,
       key_mem__pcu8,
@@ -110,24 +110,24 @@ flea_err_e THR_flea_private_key_t__ctor_rsa_internal_format(
   );
 
   FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_private_key_t__ctor_rsa_internal_format */
+} /* THR_flea_privkey_t__ctor_rsa_internal_format */
 
 # endif /* #ifdef FLEA_HAVE_RSA */
 
 # ifdef FLEA_HAVE_RSA
-flea_err_e THR_flea_private_key_t__ctor_rsa_components(
-  flea_private_key_t* key__pt,
-  flea_al_u16_t       key_bit_size__alu16,
-  const flea_u8_t*    p__pcu8,
-  flea_al_u16_t       p_len__alu16,
-  const flea_u8_t*    q__pcu8,
-  flea_al_u16_t       q_len__alu16,
-  const flea_u8_t*    d1__pcu8,
-  flea_al_u16_t       d1_len__alu16,
-  const flea_u8_t*    d2__pcu8,
-  flea_al_u16_t       d2_len__alu16,
-  const flea_u8_t*    c__pcu8,
-  flea_al_u16_t       c_len__alu16
+flea_err_e THR_flea_privkey_t__ctor_rsa_components(
+  flea_privkey_t*  key__pt,
+  flea_al_u16_t    key_bit_size__alu16,
+  const flea_u8_t* p__pcu8,
+  flea_al_u16_t    p_len__alu16,
+  const flea_u8_t* q__pcu8,
+  flea_al_u16_t    q_len__alu16,
+  const flea_u8_t* d1__pcu8,
+  flea_al_u16_t    d1_len__alu16,
+  const flea_u8_t* d2__pcu8,
+  flea_al_u16_t    d2_len__alu16,
+  const flea_u8_t* c__pcu8,
+  flea_al_u16_t    c_len__alu16
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -172,11 +172,11 @@ flea_err_e THR_flea_private_key_t__ctor_rsa_components(
 
 
   FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_private_key_t__ctor_rsa_components */
+} /* THR_flea_privkey_t__ctor_rsa_components */
 
 # endif /* #ifdef FLEA_HAVE_RSA */
 
-void flea_private_key_t__dtor(flea_private_key_t* privkey__pt)
+void flea_privkey_t__dtor(flea_privkey_t* privkey__pt)
 {
 # ifdef FLEA_HEAP_MODE
 #  ifdef FLEA_HAVE_RSA
@@ -193,18 +193,18 @@ void flea_private_key_t__dtor(flea_private_key_t* privkey__pt)
   }
 #  endif /* ifdef FLEA_HAVE_ECC */
 # endif /* ifdef FLEA_HEAP_MODE */
-  flea_private_key_t__INIT(privkey__pt);
+  flea_privkey_t__INIT(privkey__pt);
 }
 
 # ifdef FLEA_HAVE_ASYM_SIG
 
 
-flea_err_e THR_flea_private_key_t__sign(
-  const flea_private_key_t* privkey__pt,
-  flea_pk_scheme_id_e       pk_scheme_id__t,
-  flea_hash_id_e            hash_id__t,
-  const flea_byte_vec_t*    message__prcu8,
-  flea_byte_vec_t*          signature__pru8
+flea_err_e THR_flea_privkey_t__sign(
+  const flea_privkey_t*  privkey__pt,
+  flea_pk_scheme_id_e    pk_scheme_id__t,
+  flea_hash_id_e         hash_id__t,
+  const flea_byte_vec_t* message__prcu8,
+  flea_byte_vec_t*       signature__pru8
 )
 {
   flea_pk_signer_t signer__t;
@@ -226,13 +226,13 @@ flea_err_e THR_flea_private_key_t__sign(
   );
 }
 
-flea_err_e THR_flea_private_key_t__sign_digest(
-  const flea_private_key_t* privkey__pt,
-  flea_pk_scheme_id_e       id__t,
-  flea_hash_id_e            hash_id__e,
-  const flea_u8_t*          digest__pcu8,
-  flea_al_u8_t              digest_len__alu8,
-  flea_byte_vec_t*          sig_vec__pt
+flea_err_e THR_flea_privkey_t__sign_digest(
+  const flea_privkey_t* privkey__pt,
+  flea_pk_scheme_id_e   id__t,
+  flea_hash_id_e        hash_id__e,
+  const flea_u8_t*      digest__pcu8,
+  flea_al_u8_t          digest_len__alu8,
+  flea_byte_vec_t*      sig_vec__pt
 )
 {
   flea_pk_primitive_id_e primitive_id__t;
@@ -270,7 +270,7 @@ flea_err_e THR_flea_private_key_t__sign_digest(
   if((encoding_id__t == flea_emsa1_asn1) || (encoding_id__t == flea_emsa1_concat))
   {
     FLEA_CCALL(
-      THR_flea_pk_api__encode_message__ansi_x9_62(
+      THR_flea_pk_api__enc_msg_ansi_x9_62(
         primitive_input__bu8,
         digest_len__alu8,
         &primitive_input_len__alu16,
@@ -281,7 +281,7 @@ flea_err_e THR_flea_private_key_t__sign_digest(
   else if(encoding_id__t == flea_pkcs1_v1_5)
   {
     FLEA_CCALL(
-      THR_flea_pk_api__encode_message__pkcs1_v1_5_sign(
+      THR_flea_pk_api__enc_msg_sign_pkcs1_v1_5(
         primitive_input__bu8,
         digest_len__alu8,
         &primitive_input_len__alu16,
@@ -402,9 +402,9 @@ flea_err_e THR_flea_private_key_t__sign_digest(
 
 # endif /* ifdef FLEA_HAVE_ASYM_SIG */
 
-flea_err_e THR_flea_private_key_t__get_encoded_plain(
-  const flea_private_key_t* privkey__cpt,
-  flea_byte_vec_t*          result__pt
+flea_err_e THR_flea_privkey_t__get_encoded_plain(
+  const flea_privkey_t* privkey__cpt,
+  flea_byte_vec_t*      result__pt
 )
 {
   FLEA_THR_BEG_FUNC();

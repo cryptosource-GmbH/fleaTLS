@@ -110,7 +110,7 @@ static flea_al_u16_t flea_pk_api__pkcs1_set_digest_info(
   return len__alu16 + target_buffer__pu8[len__alu16 - 1];
 } /* flea_pk_api__pkcs1_set_digest_info */
 
-flea_err_e THR_flea_pk_api__decode_message__pkcs1_v1_5(
+flea_err_e THR_flea_pk_api__dec_msg__pkcs1_v1_5(
   const flea_u8_t* encoded__pcu8,
   flea_al_u16_t    encoded_len__alu16,
   flea_byte_vec_t* result_vec__pt,
@@ -208,9 +208,9 @@ flea_err_e THR_flea_pk_api__decode_message__pkcs1_v1_5(
   }
   FLEA_CCALL(THR_flea_byte_vec_t__set_content(result_vec__pt, encoded__pcu8, encoded_len__alu16));
   FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_pk_api__decode_message__pkcs1_v1_5 */
+} /* THR_flea_pk_api__dec_msg__pkcs1_v1_5 */
 
-static flea_err_e THR_flea_pk_api__encode_message__pkcs1_v1_5(
+static flea_err_e THR_flea_pk_api__enc_msg_pkcs1_v1_5(
   flea_u8_t*     input_output__pu8,
   flea_al_u16_t  input_len__alu16,
   flea_al_u16_t* output_len__palu16,
@@ -286,9 +286,9 @@ static flea_err_e THR_flea_pk_api__encode_message__pkcs1_v1_5(
   input_output__pu8[1] = second_byte_val__alu8;
 
   FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_pk_api__encode_message__pkcs1_v1_5 */
+} /* THR_flea_pk_api__enc_msg_pkcs1_v1_5 */
 
-flea_err_e THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(
+flea_err_e THR_flea_pk_api__enc_msg_encr_pkcs1_v1_5(
   flea_u8_t*     input_output__pu8,
   flea_al_u16_t  input_len__alu16,
   flea_al_u16_t* output_len__palu16,
@@ -296,7 +296,7 @@ flea_err_e THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(
   flea_hash_id_e hash_id__t
 )
 {
-  return THR_flea_pk_api__encode_message__pkcs1_v1_5(
+  return THR_flea_pk_api__enc_msg_pkcs1_v1_5(
     input_output__pu8,
     input_len__alu16,
     output_len__palu16,
@@ -306,7 +306,7 @@ flea_err_e THR_flea_pk_api__encode_message__pkcs1_v1_5_encr(
   );
 }
 
-flea_err_e THR_flea_pk_api__encode_message__pkcs1_v1_5_sign(
+flea_err_e THR_flea_pk_api__enc_msg_sign_pkcs1_v1_5(
   flea_u8_t*     input_output__pu8,
   flea_al_u16_t  input_len__alu16,
   flea_al_u16_t* output_len__palu16,
@@ -314,7 +314,7 @@ flea_err_e THR_flea_pk_api__encode_message__pkcs1_v1_5_sign(
   flea_hash_id_e hash_id__t
 )
 {
-  return THR_flea_pk_api__encode_message__pkcs1_v1_5(
+  return THR_flea_pk_api__enc_msg_pkcs1_v1_5(
     input_output__pu8,
     input_len__alu16,
     output_len__palu16,

@@ -56,7 +56,7 @@ static flea_err_e THR_flea_pkcs1_mgf1(
   );
 } /* THR_flea_pkcs1_mgf1 */
 
-flea_err_e THR_flea_pk_api__encode_message__oaep(
+flea_err_e THR_flea_pk_api__enc_msg_oaep(
   flea_u8_t*     input_output__pu8,
   flea_al_u16_t  input_len__alu16,
   flea_al_u16_t* output_len__palu16,
@@ -134,10 +134,10 @@ flea_err_e THR_flea_pk_api__encode_message__oaep(
 
   *output_len__palu16 = k__alu16;
   FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_pk_api__encode_message__oaep */
+} /* THR_flea_pk_api__enc_msg_oaep */
 
 // will destroy input content
-flea_err_e THR_flea_pk_api__decode_message__oaep(
+flea_err_e THR_flea_pk_api__dec_msg__oaep(
 
   /*  flea_u8_t*     result__pu8,
    * flea_al_u16_t* result_len__palu16,*/
@@ -227,4 +227,4 @@ flea_err_e THR_flea_pk_api__decode_message__oaep(
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(lhash__bu8);
   );
-} /* THR_flea_pk_api__decode_message__oaep */
+} /* THR_flea_pk_api__dec_msg__oaep */

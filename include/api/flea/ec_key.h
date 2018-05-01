@@ -18,7 +18,7 @@
  * return an error code
  *
  */
-flea_err_e THR_flea_ecc_key__decode_uncompressed_point(
+flea_err_e THR_flea_ecc_key__dec_uncompressed_point(
   const flea_byte_vec_t* encoded,
   flea_ref_cu8_t*        x,
   flea_ref_cu8_t*        y

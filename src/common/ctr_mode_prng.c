@@ -70,17 +70,17 @@ void flea_ctr_mode_prng_t__dtor(flea_ctr_mode_prng_t* ctx__pt)
   flea_ctr_mode_ctx_t__INIT(ctx__pt);
 }
 
-void flea_ctr_mode_prng_t__randomize(
+void flea_ctr_mode_prng_t__rndmz(
   flea_ctr_mode_prng_t* ctx__pt,
   flea_u8_t*            mem__pu8,
   flea_dtl_t            mem_len__dtl
 )
 {
-  flea_ctr_mode_prng_t__randomize_no_flush(ctx__pt, mem__pu8, mem_len__dtl);
+  flea_ctr_mode_prng_t__rndmz_no_flush(ctx__pt, mem__pu8, mem_len__dtl);
   flea_ctr_mode_prng_t__flush(ctx__pt);
 }
 
-void flea_ctr_mode_prng_t__randomize_no_flush(
+void flea_ctr_mode_prng_t__rndmz_no_flush(
   flea_ctr_mode_prng_t* ctx__pt,
   flea_u8_t*            mem__pu8,
   flea_dtl_t            mem_len__dtl
@@ -123,7 +123,7 @@ void flea_ctr_mode_prng_t__randomize_no_flush(
     memcpy(mem__pu8, ctx__pt->pending_output__bu8, mem_len__dtl);
     ctx__pt->pending_output_len__u8 = FLEA_AES_BLOCK_LENGTH - mem_len__dtl;
   }
-} /* flea_ctr_mode_prng_t__randomize_no_flush */
+} /* flea_ctr_mode_prng_t__rndmz_no_flush */
 
 flea_err_e THR_flea_ctr_mode_prng_t__reseed(
   flea_ctr_mode_prng_t* ctx__pt,
@@ -154,7 +154,7 @@ flea_err_e THR_flea_ctr_mode_prng_t__reseed(
 
 void flea_ctr_mode_prng_t__flush(flea_ctr_mode_prng_t* ctx__pt)
 {
-  flea_ctr_mode_prng_t__randomize_no_flush(ctx__pt, ctx__pt->key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
+  flea_ctr_mode_prng_t__rndmz_no_flush(ctx__pt, ctx__pt->key__bu8, FLEA_AES256_KEY_BYTE_LENGTH);
   flea_aes_setup_encr_key(&ctx__pt->cipher_ctx__t, ctx__pt->key__bu8);
   flea_ctr_mode_prng_t__reset(ctx__pt);
 }

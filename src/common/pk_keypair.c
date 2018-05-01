@@ -8,9 +8,9 @@
 
 #ifdef FLEA_HAVE_ECC
 
-flea_err_e THR_flea_pubkey__generate_ecc_key_pair_by_dp_id(
-  flea_public_key_t*   pub_key__pt,
-  flea_private_key_t*  priv_key__pt,
+flea_err_e THR_flea_pubkey__by_dp_id_gen_ecc_key_pair(
+  flea_pubkey_t*       pub_key__pt,
+  flea_privkey_t*      priv_key__pt,
   flea_ec_dom_par_id_e id__e
 )
 {
@@ -29,8 +29,8 @@ flea_err_e THR_flea_pubkey__generate_ecc_key_pair_by_dp_id(
 }
 
 flea_err_e THR_flea_pubkey__generate_ecc_key_pair_by_dp(
-  flea_public_key_t*           pub_key__pt,
-  flea_private_key_t*          priv_key__pt,
+  flea_pubkey_t*               pub_key__pt,
+  flea_privkey_t*              priv_key__pt,
   const flea_ec_dom_par_ref_t* dp__pt
 )
 {
@@ -59,14 +59,14 @@ flea_err_e THR_flea_pubkey__generate_ecc_key_pair_by_dp(
   flea_byte_vec_t__set_as_ref(&scalar_vec__t, priv_key__bu8, priv_key_len__alu8);
 
   FLEA_CCALL(
-    THR_flea_private_key_t__ctor_ecc(
+    THR_flea_privkey_t__ctor_ecc(
       priv_key__pt,
       &scalar_vec__t,
       dp__pt
     )
   );
   FLEA_CCALL(
-    THR_flea_public_key_t__ctor_ecc(
+    THR_flea_pubkey_t__ctor_ecc(
       pub_key__pt,
       &pubpoint_vec__t,
       dp__pt
