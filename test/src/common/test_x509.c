@@ -246,8 +246,16 @@ flea_err_e THR_flea_test_dec_ca_cert()
     FLEA_THROW("error negative KU", FLEA_ERR_FAILED_TEST);
   }
 /* ! [parse_cert_eku] */
-  if(flea_x509_cert_ref_t__has_extended_key_usages(&cert_ref__t, flea_eku_time_stamping, flea_key_usage_implicit))
+  if(!flea_x509_cert_ref_t__has_extended_key_usages(&cert_ref__t, flea_eku_time_stamping, flea_key_usage_implicit))
 /* ! [parse_cert_eku] */
+  {
+    FLEA_THROW("error negative EKU", FLEA_ERR_FAILED_TEST);
+  }
+  if(flea_x509_cert_ref_t__has_extended_key_usages(
+      &cert_ref__t,
+      (flea_eku_server_auth | flea_eku_time_stamping),
+      flea_key_usage_explicit
+    ))
   {
     FLEA_THROW("error negative EKU", FLEA_ERR_FAILED_TEST);
   }
