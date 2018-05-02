@@ -79,7 +79,7 @@ flea_err_e THR_flea_tls_clt_session_t__deserialize(
   memcpy(client_session__pt->session_id__au8, &enc__pcu8[1], enc__pcu8[0]);
   ptr__pu8 = &enc__pcu8[enc__pcu8[0] + 1];
 
-  client_session__pt->session__t.cipher_suite_id__u16 = flea__dec_U16_BE(ptr__pu8);
+  client_session__pt->session__t.cipher_suite_id__u16 = flea__decode_U16_BE(ptr__pu8);
   ptr__pu8 += 2;
 
   memcpy(client_session__pt->session__t.master_secret__au8, ptr__pu8, FLEA_TLS_MASTER_SECRET_SIZE);

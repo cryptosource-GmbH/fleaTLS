@@ -374,8 +374,8 @@ void flea_single_des_encrypt_block_with_key_offset(
   flea_u32_t left, right;
   const flea_u32_t* keys;
 
-  left  = flea__dec_U32_BE(input__pc_u8);
-  right = flea__dec_U32_BE(input__pc_u8 + 4);
+  left  = flea__decode_U32_BE(input__pc_u8);
+  right = flea__decode_U32_BE(input__pc_u8 + 4);
 
   flea_des_iperm(&left, &right);
 
@@ -413,8 +413,8 @@ void flea_single_des_decrypt_block_with_key_offset(
   const flea_u32_t* keys;
 
 
-  left  = flea__dec_U32_BE(input__pc_u8);
-  right = flea__dec_U32_BE(input__pc_u8 + 4);
+  left  = flea__decode_U32_BE(input__pc_u8);
+  right = flea__decode_U32_BE(input__pc_u8 + 4);
   flea_des_iperm(&left, &right);
 
   keys = &ctx__p_t->expanded_key__bu8[30 + expanded_key_offset__alu16];

@@ -292,7 +292,7 @@ static flea_err_e THR_flea_tls__read_server_kex_ecdhe(
       )
     );
 
-    sig_to_vfy_len__u16 = flea__dec_U16_BE(sig_to_vfy_len_enc__au8);
+    sig_to_vfy_len__u16 = flea__decode_U16_BE(sig_to_vfy_len_enc__au8);
     if(sig_to_vfy_len__u16 > FLEA_ASYM_MAX_ENCODED_SIG_LEN)
     {
       FLEA_THROW("Signature too large for current flea config", FLEA_ERR_TLS_HANDSHK_FAILURE);
@@ -666,7 +666,7 @@ static flea_err_e THR_flea_tls__read_cert_request(
     )
   );
   // check length
-  sig_algs_len__u16 = flea__dec_U16_BE(sig_algs_len_to_dec__au8);
+  sig_algs_len__u16 = flea__decode_U16_BE(sig_algs_len_to_dec__au8);
   if(sig_algs_len__u16 % 2 != 0)
   {
     FLEA_THROW("Incorrect length for signature algorithms", FLEA_ERR_TLS_PROT_DECODE_ERR);
@@ -690,7 +690,7 @@ static flea_err_e THR_flea_tls__read_cert_request(
       2
     )
   );
-  cert_authorities_len__u16 = flea__dec_U16_BE(cert_authorities_len_to_dec__au8);
+  cert_authorities_len__u16 = flea__decode_U16_BE(cert_authorities_len_to_dec__au8);
 
   FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, cert_authorities_len__u16));
 

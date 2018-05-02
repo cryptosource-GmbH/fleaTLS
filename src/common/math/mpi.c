@@ -1058,9 +1058,9 @@ flea_err_e THR_flea_mpi_t__random_integer_no_flush(
         THR_flea_rng__randomize_no_flush(enc__au8, sizeof(enc__au8))
       );
 #if FLEA_WORD_BIT_SIZE == 32
-      p_result->m_words[i] = flea__dec_U32_BE(enc__au8);
+      p_result->m_words[i] = flea__decode_U32_BE(enc__au8);
 #elif FLEA_WORD_BIT_SIZE == 16
-      p_result->m_words[i] = flea__dec_U16_BE(enc__au8);
+      p_result->m_words[i] = flea__decode_U16_BE(enc__au8);
 #else
       p_result->m_words[i] = enc__au8[0];
 #endif /* if FLEA_WORD_BIT_SIZE == 32 */
