@@ -31,7 +31,7 @@ int main()
   flea_tls_session_mngr_t sess_man__t;
 
   const int one = 1;
-  flea_private_key_t server_key__t;
+  flea_privkey_t server_key__t;
   flea_u8_t buf[100];
   flea_err_e err = FLEA_ERR_FINE;
   flea_tls_sigalg_e sig_algs[2] = {
@@ -39,7 +39,7 @@ int main()
     flea_tls_sigalg_rsa_sha256
   };
   flea_rw_stream_t rw_stream__t;
-  flea_tls_server_ctx_t tls_ctx;
+  flea_tls_srv_ctx_t tls_ctx;
   flea_u8_t rnd_seed__au8 [32] = {0};
 
   flea_ref_cu8_t cert_chain [3] = {{ee_cert__au8, sizeof(ee_cert__au8)}, {sub_ca__au8, sizeof(sub_ca__au8)}, {root_cert__au8, sizeof(root_cert__au8)}};
@@ -71,8 +71,8 @@ int main()
 
 
   flea_rw_stream_t__INIT(&rw_stream__t);
-  flea_private_key_t__INIT(&server_key__t);
-  flea_tls_server_ctx_t__INIT(&tls_ctx);
+  flea_privkey_t__INIT(&server_key__t);
+  flea_tls_srv_ctx_t__INIT(&tls_ctx);
   flea_tls_session_mngr_t__INIT(&sess_man__t);
 
 
@@ -153,12 +153,12 @@ int main()
   memset(buf, 0x31, sizeof(buf));
 
   /* create the server's private key from a PKCS#8 / DER encoded array */
-  if((err = THR_flea_private_key_t__ctor_pkcs8(&server_key__t, ee_pkcs8__au8, sizeof(ee_pkcs8__au8))))
+  if((err = THR_flea_privkey_t__ctor_pkcs8(&server_key__t, ee_pkcs8__au8, sizeof(ee_pkcs8__au8))))
   {
     goto cleanup;
   }
 
-  if((err = THR_flea_tls_server_ctx_t__ctor(
+  if((err = THR_flea_tls_srv_ctx_t__ctor(
       &tls_ctx,
       &rw_stream__t,
       NULL, /* no cert store needed */
@@ -182,7 +182,7 @@ int main()
   }
   printf("handshake successfully done\n");
 
-  if((err = THR_flea_tls_server_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_nonblocking)))
+  if((err = THR_flea_tls_srv_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_nonblocking)))
   {
     goto cleanup;
   }
@@ -190,7 +190,7 @@ int main()
   {
     buf_len = sizeof(buf) - 1;
     sleep(1);
-    if((err = THR_flea_tls_server_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_nonblocking)))
+    if((err = THR_flea_tls_srv_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_nonblocking)))
     {
       goto cleanup;
     }
@@ -206,7 +206,7 @@ int main()
     printf("did not receive any data\n");
   }
 
-  if((err = THR_flea_tls_server_ctx_t__send_app_data(&tls_ctx, buf, buf_len)))
+  if((err = THR_flea_tls_srv_ctx_t__send_app_data(&tls_ctx, buf, buf_len)))
   {
     goto cleanup;
   }
@@ -214,14 +214,14 @@ int main()
   /*
    * ensure that it is acutally written on the wire
    */
-  if((err = THR_flea_tls_server_ctx_t__flush_write_app_data(&tls_ctx)))
+  if((err = THR_flea_tls_srv_ctx_t__flush_write_app_data(&tls_ctx)))
   {
     goto cleanup;
   }
 cleanup:
   flea_tls_session_mngr_t__dtor(&sess_man__t);
-  flea_private_key_t__dtor(&server_key__t);
-  flea_tls_server_ctx_t__dtor(&tls_ctx);
+  flea_privkey_t__dtor(&server_key__t);
+  flea_tls_srv_ctx_t__dtor(&tls_ctx);
   flea_lib__deinit();
   printf("ending with error code = %04x\n", err);
   return err;

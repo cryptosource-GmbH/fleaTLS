@@ -27,7 +27,7 @@ int main()
     flea_tls_sigalg_rsa_sha256
   };
   flea_rw_stream_t rw_stream__t;
-  flea_tls_client_ctx_t tls_ctx;
+  flea_tls_clt_ctx_t tls_ctx;
   flea_cert_store_t trust_store__t;
   flea_u8_t rnd_seed__au8 [32] = {0};
 
@@ -39,7 +39,7 @@ int main()
 
 
   flea_rw_stream_t__INIT(&rw_stream__t);
-  flea_tls_client_ctx_t__INIT(&tls_ctx);
+  flea_tls_clt_ctx_t__INIT(&tls_ctx);
   flea_cert_store_t__INIT(&trust_store__t);
 
   flea_dtl_t buf_len = sizeof(buf) - 1;
@@ -106,7 +106,7 @@ int main()
     goto cleanup;
   }
 
-  if((err = THR_flea_tls_client_ctx_t__ctor(
+  if((err = THR_flea_tls_clt_ctx_t__ctor(
       &tls_ctx,
       &rw_stream__t,
       &trust_store__t,
@@ -134,7 +134,7 @@ int main()
   /*
    * send some application data
    */
-  if((err = THR_flea_tls_client_ctx_t__send_app_data(&tls_ctx, buf, 10)))
+  if((err = THR_flea_tls_clt_ctx_t__send_app_data(&tls_ctx, buf, 10)))
   {
     goto cleanup;
   }
@@ -142,12 +142,12 @@ int main()
   /*
    * ensure that it is acutally written on the wire
    */
-  if((err = THR_flea_tls_client_ctx_t__flush_write_app_data(&tls_ctx)))
+  if((err = THR_flea_tls_clt_ctx_t__flush_write_app_data(&tls_ctx)))
   {
     goto cleanup;
   }
   buf_len = sizeof(buf) - 1;
-  if((err = THR_flea_tls_client_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_nonblocking)))
+  if((err = THR_flea_tls_clt_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_nonblocking)))
   {
     goto cleanup;
   }
@@ -155,7 +155,7 @@ int main()
   {
     buf_len = sizeof(buf) - 1;
     sleep(1);
-    if((err = THR_flea_tls_client_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_nonblocking)))
+    if((err = THR_flea_tls_clt_ctx_t__read_app_data(&tls_ctx, buf, &buf_len, flea_read_nonblocking)))
     {
       goto cleanup;
     }
@@ -172,7 +172,7 @@ int main()
   }
 cleanup:
 
-  flea_tls_client_ctx_t__dtor(&tls_ctx);
+  flea_tls_clt_ctx_t__dtor(&tls_ctx);
   flea_rw_stream_t__dtor(&rw_stream__t);
   flea_cert_store_t__dtor(&trust_store__t);
   flea_lib__deinit();
