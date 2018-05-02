@@ -45,11 +45,12 @@ flea_err_e THR_flea_len_ctr_t__ctor_copy(
 void flea_len_ctr_t__dtor(flea_len_ctr_t* len_ctr__pt)
 {
 #ifdef FLEA_HEAP_MODE
-  FLEA_FREE_MEM_CHK_SET_NULL(len_ctr__pt->counter__bu32);
+  FLEA_FREE_MEM_CHK_NULL(len_ctr__pt->counter__bu32);
 #endif
+  flea_len_ctr_t__INIT(len_ctr__pt);
 }
 
-static flea_err_e THR_flea_len_ctr_t__add_and_check_len_limit_inner(
+static flea_err_e THR_flea_len_ctr_t__inner_add_and_check_len_limit(
   flea_u32_t*  ctr_block__pu32,
   flea_al_u8_t ctr_block_arr_len__alu8,
   flea_dtl_t   add_len__dtl,
@@ -88,7 +89,7 @@ static flea_err_e THR_flea_len_ctr_t__add_and_check_len_limit_inner(
     ctr_block__pu32[0] = carry__u32;
   }
   FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_len_ctr_t__add_and_check_len_limit_inner */
+} /* THR_flea_len_ctr_t__inner_add_and_check_len_limit */
 
 void flea_len_ctr_t__reset(flea_len_ctr_t* len_ctr__pt)
 {
@@ -111,7 +112,7 @@ flea_err_e THR_flea_len_ctr_t__add_and_check_len_limit(
   );
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
-    THR_flea_len_ctr_t__add_and_check_len_limit_inner(
+    THR_flea_len_ctr_t__inner_add_and_check_len_limit(
       len_ctr__pt->counter__bu32,
       len_ctr__pt->counter_block_arr_len__u8,
       add_len__dtl,
@@ -124,7 +125,7 @@ flea_err_e THR_flea_len_ctr_t__add_and_check_len_limit(
     FLEA_CP_ARR(compare__bu32, len_ctr__pt->counter__bu32, len_ctr__pt->counter_block_arr_len__u8);
     compare__bu32[len_ctr__pt->counter_block_arr_len__u8] = 0;
     FLEA_CCALL(
-      THR_flea_len_ctr_t__add_and_check_len_limit_inner(
+      THR_flea_len_ctr_t__inner_add_and_check_len_limit(
         compare__bu32,
         len_ctr__pt->counter_block_arr_len__u8 + 1,
         len_ctr__pt->neg_limit_offset__u16,

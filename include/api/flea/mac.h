@@ -22,14 +22,13 @@ typedef enum { flea_hmac_md5, flea_hmac_sha1, flea_hmac_sha224, flea_hmac_sha256
                flea_cmac_aes256 } flea_mac_id_e;
 
 
-#define flea_mac_ctx_t__INIT_VALUE {.output_len__u8 = 0}
-
 #ifdef FLEA_HEAP_MODE
-# define flea_mac_ctx_t__INIT(__a) do {(__a)->output_len__u8 = 0;} while(0)
+# define flea_mac_ctx_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
 #else
-# define flea_mac_ctx_t__INIT(__a) do {(__a)->output_len__u8 = 0;} while(0)
+# define flea_mac_ctx_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
 
-#endif
+
+#endif // ifdef FLEA_HEAP_MODE
 
 flea_al_u8_t flea_mac__get_output_length_by_id(flea_mac_id_e mac_id__e);
 
@@ -103,7 +102,7 @@ flea_err_e THR_flea_mac_ctx_t__final_compute(
  * @param mac_len the length of mac
  *
  * @return flea error code: FLEA_ERR_FINE if the verification succeeded,
- * FLEA_ERR_INV_MAC if it failed
+ * FLEA_ERR_INV_MAC (or potentiall other error codes) if it failed
  */
 flea_err_e THR_flea_mac_ctx_t__final_verify(
   flea_mac_ctx_t*  ctx,

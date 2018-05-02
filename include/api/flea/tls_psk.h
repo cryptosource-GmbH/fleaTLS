@@ -12,6 +12,7 @@
 extern "C" {
 #endif
 
+#ifdef FLEA_HAVE_TLS
 
 /*
  * Callback function that will be called during handshake to determine the PSK
@@ -31,7 +32,7 @@ typedef flea_err_e (* flea_get_psk_cb_f)(
 );
 
 /**
- * Creates a TLS server object and is similar to THR_flea_tls_server_ctx_t__ctor
+ * Creates a TLS server object and is similar to THR_flea_tls_srv_ctx_t__ctor
  * with some additional arguments for PSK. This implies the execution of the initial
  * TLS handshake. After the call to this function, data can be exchanged over
  * the TLS connection. All pointer type parameters that are supplied to this function must stay valid for the
@@ -85,7 +86,7 @@ typedef flea_err_e (* flea_get_psk_cb_f)(
  * @param[in,out] session_mngr_mbn A session manager implementing a TLS session
  * cache used to store sessions
  * established with clients for later resumption. This object may be shared
- * between different threads in which different flea_tls_server_ctx_t objects
+ * between different threads in which different flea_tls_srv_ctx_t objects
  * handle different connections to different clients. Once a client connects and
  * requests connection resumption, the server performs a lookup in the
  * flea_tls_session_mngr_t object. If the session is in the cache, the server
@@ -94,20 +95,20 @@ typedef flea_err_e (* flea_get_psk_cb_f)(
  *
  * @return an error code
  */
-flea_err_e THR_flea_tls_server_ctx_t__ctor_psk(
-  flea_tls_server_ctx_t*            tls_server_ctx,
+flea_err_e THR_flea_tls_srv_ctx_t__ctor_psk(
+  flea_tls_srv_ctx_t*               tls_server_ctx,
   flea_rw_stream_t*                 rw_stream,
   const flea_cert_store_t*          trust_store_mbn,
   const flea_ref_cu8_t*             cert_chain,
   flea_al_u8_t                      cert_chain_len,
-  flea_private_key_t*               private_key,
+  flea_privkey_t*                   private_key,
   const flea_ref_cu8_t*             crls,
   flea_al_u16_t                     crls_len,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
   flea_al_u16_t                     allowed_cipher_suites_len,
-  flea_ec_dom_par_id_e*             allowed_ecc_curves,
+  const flea_ec_dom_par_id_e*       allowed_ecc_curves,
   flea_al_u16_t                     allowed_ecc_curves_len,
-  flea_tls_sigalg_e*                allowed_sig_algs,
+  const flea_tls_sigalg_e*          allowed_sig_algs,
   flea_al_u16_t                     allowed_sig_algs_len,
   const flea_u8_t*                  identity_hint_mbn,
   flea_u16_t                        identity_hint_len,
@@ -118,7 +119,7 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor_psk(
 );
 
 
-#ifdef FLEA_HAVE_TLS_CS_PSK
+# ifdef FLEA_HAVE_TLS_CS_PSK
 
 /*
  * Callback function that will be called during the handshake by the client to transform the
@@ -175,8 +176,8 @@ typedef flea_err_e (* flea_process_identity_hint_cb_f)(
  * @return an error code
  */
 
-flea_err_e THR_flea_tls_client_ctx_t__ctor_psk(
-  flea_tls_client_ctx_t*            tls_client_ctx,
+flea_err_e THR_flea_tls_clt_ctx_t__ctor_psk(
+  flea_tls_clt_ctx_t*               tls_client_ctx,
   flea_rw_stream_t*                 rw_stream,
   flea_u8_t*                        psk,
   flea_u16_t                        psk_len,
@@ -190,7 +191,9 @@ flea_err_e THR_flea_tls_client_ctx_t__ctor_psk(
   flea_tls_flag_e                   flags
 );
 
-#endif // ifdef FLEA_HAVE_TLS_CS_PSK
+# endif // ifdef FLEA_HAVE_TLS_CS_PSK
+
+#endif // ifdef FLEA_HAVE_TLS
 
 #ifdef __cplusplus
 }

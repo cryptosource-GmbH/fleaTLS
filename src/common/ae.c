@@ -285,6 +285,11 @@ flea_err_e THR_flea_ae_ctx_t__ctor(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_ae_ctx_t__ctor */
 
+flea_al_u8_t flea_ae_ctx_t__get_tag_length(flea_ae_ctx_t const* ctx__pt)
+{
+  return ctx__pt->tag_len__u8;
+}
+
 flea_err_e THR_flea_ae_ctx_t__update_encryption(
   flea_ae_ctx_t*   ctx__pt,
   const flea_u8_t* input__pcu8,
@@ -347,9 +352,10 @@ flea_err_e THR_flea_ae__encrypt(
   flea_al_u8_t     tag_len__alu8
 )
 {
-  flea_ae_ctx_t ctx__t = flea_ae_ctx_t__INIT_VALUE;
+  flea_ae_ctx_t ctx__t;
 
   FLEA_THR_BEG_FUNC();
+  flea_ae_ctx_t__INIT(&ctx__t);
   FLEA_CCALL(
     THR_flea_ae_ctx_t__ctor(
       &ctx__t,
@@ -385,10 +391,11 @@ flea_err_e THR_flea_ae__decrypt(
   flea_al_u8_t     tag_len__alu8
 )
 {
-  flea_ae_ctx_t ctx__t       = flea_ae_ctx_t__INIT_VALUE;
+  flea_ae_ctx_t ctx__t;
   flea_dtl_t output_len__dtl = input_output_len__dtl;
 
   FLEA_THR_BEG_FUNC();
+  flea_ae_ctx_t__INIT(&ctx__t);
   FLEA_CCALL(
     THR_flea_ae_ctx_t__ctor(
       &ctx__t,
@@ -420,7 +427,7 @@ flea_err_e THR_flea_ae__decrypt(
   );
 } /* THR_flea_ae__decrypt */
 
-static flea_err_e THR_flea_ae_ctx_t__update_decryption_inner(
+static flea_err_e THR_flea_ae_ctx_t__update_decr_inner(
   flea_ae_ctx_t*   ctx__pt,
   const flea_u8_t* input__pcu8,
   flea_dtl_t       input_len__dtl,
@@ -479,12 +486,12 @@ flea_err_e THR_flea_ae_ctx_t__update_decryption(
   {
     flea_dtl_t process_len__dtl = input_len__dtl - tag_len__alu8;
 
-    FLEA_CCALL(THR_flea_ae_ctx_t__update_decryption_inner(ctx__pt, pend_buffer__pu8, tag_len__alu8, output__pu8));
+    FLEA_CCALL(THR_flea_ae_ctx_t__update_decr_inner(ctx__pt, pend_buffer__pu8, tag_len__alu8, output__pu8));
 
     *output_len__pdtl = tag_len__alu8;
     output__pu8      += tag_len__alu8;
 
-    FLEA_CCALL(THR_flea_ae_ctx_t__update_decryption_inner(ctx__pt, input__pcu8, process_len__dtl, output__pu8));
+    FLEA_CCALL(THR_flea_ae_ctx_t__update_decr_inner(ctx__pt, input__pcu8, process_len__dtl, output__pu8));
 
     *output_len__pdtl += process_len__dtl;
     input_len__dtl    -= process_len__dtl;
@@ -495,7 +502,7 @@ flea_err_e THR_flea_ae_ctx_t__update_decryption(
     // only a part of the pending buffer may be processed and replaced by new
     // input
     flea_al_u8_t remaining__alu8 = tag_len__alu8 - input_len__dtl;
-    FLEA_CCALL(THR_flea_ae_ctx_t__update_decryption_inner(ctx__pt, pend_buffer__pu8, input_len__dtl, output__pu8));
+    FLEA_CCALL(THR_flea_ae_ctx_t__update_decr_inner(ctx__pt, pend_buffer__pu8, input_len__dtl, output__pu8));
 
     *output_len__pdtl = input_len__dtl;
     memmove(pend_buffer__pu8, pend_buffer__pu8 + input_len__dtl, remaining__alu8);
@@ -609,6 +616,7 @@ void flea_ae_ctx_t__dtor(flea_ae_ctx_t* ctx__pt)
     flea_ghash_ctx_t__dtor(&gcm__pt->ghash_ctx__t);
   }
 # endif /* ifdef FLEA_HAVE_GCM */
+  flea_ae_ctx_t__INIT(ctx__pt);
 }
 
 #endif // #ifdef FLEA_HAVE_AE

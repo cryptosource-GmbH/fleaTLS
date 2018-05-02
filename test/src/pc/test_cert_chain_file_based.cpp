@@ -214,7 +214,7 @@ static flea_err_e THR_flea_execute_path_test_case_for_properties(
 
 
   /*FLEA_CCALL(THR_flea_cert_chain_t__add_cert_without_trust_status(&cert_chain__t, &subject));
-   * err = THR_flea_cert_chain__build_and_verify_cert_chain(&cert_chain__t);*/
+   * err = THR_flea_cert_chain__validate(&cert_chain__t);*/
 
   FLEA_THR_FIN_SEC_empty(
     //   flea_cert_chain_t__dtor(&cert_chain__t);

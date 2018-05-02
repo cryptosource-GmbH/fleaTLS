@@ -25,14 +25,13 @@ typedef struct
   flea_rw_stream_t             rec_prot_rd_stream__t;
 } flea_tls_handsh_reader_t;
 
-# define flea_tls_handsh_reader_t__INIT_VALUE {.handshake_read_stream__t.custom_obj__pv = NULL}
-# define flea_tls_handsh_reader_t__INIT(__p)
+# define flea_tls_handsh_reader_t__INIT(__p) FLEA_MEMSET(__p, 0, sizeof(*(__p)))
 
 # define flea_tls_handsh_reader_t__dtor(__p)
 
 flea_err_e THR_flea_tls_handsh_reader_t__ctor(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
-  flea_tls_rec_prot_t*      rec_prot__pt
+  flea_recprot_t*           rec_prot__pt
 );
 
 flea_err_e THR_flea_tls__read_handsh_hdr(
@@ -49,8 +48,8 @@ flea_rw_stream_t* flea_tls_handsh_reader_t__get_read_stream(flea_tls_handsh_read
 flea_al_u8_t flea_tls_handsh_reader_t__get_handsh_msg_type(flea_tls_handsh_reader_t* handsh_rdr__pt);
 
 flea_err_e THR_flea_tls_handsh_reader_t__set_hash_ctx(
-  flea_tls_handsh_reader_t*     handsh_rdr__pt,
-  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
+  flea_tls_handsh_reader_t* handsh_rdr__pt,
+  flea_tls_prl_hash_ctx_t*  p_hash_ctx__pt
 );
 
 void flea_tls_handsh_reader_t__unset_hasher(flea_tls_handsh_reader_t* handsh_rdr__pt);

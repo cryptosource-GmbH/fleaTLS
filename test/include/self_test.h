@@ -8,7 +8,7 @@
 #include "flea/error.h"
 #include "flea/types.h"
 #include "flea/hostn_ver.h"
-#include "internal/common/crl_int.h"
+#include "flea/cert_path.h"
 
 #ifdef __cplusplus
 extern "C" {

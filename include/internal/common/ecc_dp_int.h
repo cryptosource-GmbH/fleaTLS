@@ -46,7 +46,7 @@ flea_al_u8_t flea_ec_dom_par__get_elem_len(
  * @return 0 if the domain parameters with the given id are not found,
  * otherwise the byte length of the domain parameters in the flea internal format
  */
-flea_al_u16_t flea_ec_dom_par__get_predefined_dp_len(flea_ec_dom_par_id_e dp_id);
+flea_al_u16_t flea_ec_dom_par__get_predef_len(flea_ec_dom_par_id_e dp_id);
 
 /**
  * Get the real byte the length of the order n in the domain parameters (in
@@ -70,7 +70,7 @@ flea_err_e THR_flea_ec_dom_par_ref_t__write_to_concat_array(
 );
 
 
-const flea_u8_t* flea_ec_dom_par__get_predefined_dp_ptr(flea_ec_dom_par_id_e dp_id);
+const flea_u8_t* flea_ec_dom_par__get_predef_ptr(flea_ec_dom_par_id_e dp_id);
 
 # ifdef __cplusplus
 }

@@ -6,10 +6,6 @@
 #include "flea/types.h"
 #include "flea/block_cipher.h"
 
-#define FLEA_AES256_KEY_BYTE_LENGTH 32
-#define FLEA_AES192_KEY_BYTE_LENGTH 24
-#define FLEA_AES128_KEY_BYTE_LENGTH 16
-#define FLEA_AES_BLOCK_LENGTH       16
 
 void flea_aes_decrypt_block(
   const flea_ecb_mode_ctx_t* ctx,

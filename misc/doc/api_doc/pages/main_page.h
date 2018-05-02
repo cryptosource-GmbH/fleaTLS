@@ -1,4 +1,4 @@
-/*! \mainpage Quickstart Manual
+/*! \mainpage fleaTLS Manual
  *
  * <PRE>
  * __________________
@@ -11,9 +11,8 @@
  *
  * </PRE>
  *
- * This quickstart manual explains the steps necessary to run fleaTLS under
- * Linux and how to include it in custom build projects, e.g. for your embedded
- * application.
+ * This manual explains the usage fleaTLS as a cryptography and TLS library.
+ * The first chapters explain how to compile fleaTLS with on Unix platforms and how to include it in custom build projects, e.g. for your embedded application. Note that the fleaTLS library itself does not require any operating system, only the test tools supplied with it do so.
  *
  * - \subpage gettingStarted "Getting started with fleaTLS on Linux"
  *
@@ -22,6 +21,15 @@
  * - \subpage devolopWflea "Using fleaTLS in development projects"
  *
  * - \subpage fleaTLSRestrictions "Restrictions of fleaTLS"
+ * - \subpage fleaRng "Random Number Generation"
+ * - \subpage pageHash "Hash Functions"
+ * - \subpage pageCipher "Block Ciphers"
+ * - \subpage pageMac "Message Authentication Codes"
+ * - \subpage pageAe "Authenticated Encryption"
+ * - \subpage pagePubkey "Public Key Schemes"
+ * - \subpage pageX509 "X.509 Certificate Handling"
+ * - \subpage tlsPage "The TLS API"
+ * - \subpage pageConcurrency "Concurrency"
  *
  */
 
@@ -33,7 +41,7 @@
  *   extremely complex and generally not suitable for software implementations on
  *   resource-constrained devices.
  *
- * fleaTLS supports the functionality for X.509 processing, but excludes some
+ * fleaTLS supports the functionality for X.509 certificate and CRL processing, but excludes some
  * features specified in RFC 5280, that are usually irrelevant to IoT and
  * industry applications.
  *
@@ -103,7 +111,7 @@ In order to execute the unit tests, run the command
 <PRE>
   $ ./build/flea-test
   </PRE>
-Get help supplying --help as an argument.
+Get help by supplying --help as an argument.
 
 \section tlsTestTools Starting TLS server and client
 
@@ -122,6 +130,20 @@ in two different console windows.
  *
  * In the following the principles of fleaTLS' API are explained.
  *
+ * \section apiConventions Conventions
+ *
+ *
+  In the function parameter lists, [in], [out], and [in,out] specifies
+  whether a parameter is a mere input, a mere output, or both for the function.
+  Here, a parameter is considered as an output if it is a pointer and the
+  object it points to is potentially updated by the function. An output
+  parameter is guaranteed to be updated by the function to the value specified
+  in the API documentation if the function returns without indicating an error,
+  i.e. when it returns FLEA_ERR_FINE.
+
+  A function parameter ending <code>_mbn</code> stands for "may be null" and
+  indicates that the caller my supply a null pointer for the parameter. The conditions for and effects of supplying a null pointer are explained in the respective parameter description.
+ *
  * \section apiErrHandl Error Handling
  *
  * fleaTLS functions starting with <code>THR_...</code>, i.e.  throwing
@@ -132,26 +154,20 @@ in two different console windows.
  *
  * fleaTLS realizes an object oriented API for a number of class-like types. Each type name in
  * fleaTLS ends in <code>..._t</code>.
- * The functions that are belonging to a certain type have the name pattern
+ * The functions that belong to a certain type have the name pattern
  * <code>[THR_]\<type-name\>__\<function-name\></code>.
  * Class-like types are
  * identified by having a <code>ctor</code>, i.e. constructor, and
  * a <code>dtor</code>, i.e. destructor, function.
  *
- * \subsection The Life-Cycle of the Class-Like Types
+ * \subsection secClassLikeTypes The Life-Cycle of the Class-Like Types
  *
  * The life-cycle model for the class-like types is as follows.
  *
  * When declaring an object, it will be in the UNINIT state. The first action
- * that must happen to an object in this state is initialization. Initialization
- * can be performed in two ways. The first is using the <code>\<type-name\>__INIT_VALUE</code>
- * macro as the right hand side initialization value when declaring the object.
- * For example like this:
- *
- * <code> flea_ae_ctx_t ctx__t = \link flea_ae_ctx_t__INIT_VALUE flea_ae_ctx_t__INIT_VALUE\endlink; </code>
- *
- * The second possibility is to use the <code>\<type-name\>__INIT(ptr)</code>
- * macro after the declaration and before the object is used:
+ * that must happen to an object in this state is initialization.
+ * This is done by invoking the macro <code>\<type-name\>__INIT(ptr)</code> for
+ * the respective type after the declaration and before the object is used:
  *
  * <CODE>
  *
@@ -174,7 +190,7 @@ in two different console windows.
  * <br>
  * <code>err = \link THR_flea_ae_ctx_t__update_encryption THR_flea_ae_ctx_t__update_encryption\endlink(&ctx__t, ...) </code>
  *
- * From the constructed state, the following state transitions are possible:
+ * From the CONSTRUCTED state, the following state transitions are possible:
  * - to the INIT state by calling the type's dtor
  * - to the ERROR state by receiving an error return code from a throwing
  *   function operating on the object.
@@ -194,7 +210,7 @@ in two different console windows.
  * - At the start of the function, declare all objects and initialize them, before entering any code that
  *   performs conditional branching, thus also doesn't possibly encounter any
  *   error conditions that need to be handled.
- * - After having initialized all objects, the function body is entered with all
+ * - After having initialized all objects, the "real" function body is entered with all
  *   kinds of conditional control flow and object creation using the fleaTLS
  *   ctor functions.
  * - the function's design ensures that after its completion, the dtor functions on all potentially constructed objects are called.
@@ -208,10 +224,10 @@ in two different console windows.
  * is still recommended to always call the dtor function on an object even in
  * \link FLEA_HEAP_MODE stack mode \endlink, since the dtor function also often overwrites secret values and their usage is thus a best practice for security.
  *
- * \subsection Class-Like Types with Non-Throwing ctors
+ * \subsection secClassLikeNonThrCtor Class-Like Types with Non-Throwing ctors
  *
  * Some types can enter the CONSTRUCTED state directly without previously
- * entering the INIT state, since they offer right hand side initialization
+ * entering the INIT state, since they offer right-hand side initialization
  * values putting them into the CONSTRUCTED state directly as well as
  * non-throwing ctors. A non-throwing ctor may be used at the start of a
  * function before entering the function body, i.e. where generally the
@@ -232,9 +248,10 @@ in two different console windows.
 * subdirectories of the flea directory must be in the compiler's include path:
 * - include
 * - include/api
-* - test/include
 * - build_cfg/general/[choose a subdirectory, e.g. <code>default</code>]
   - build_cfg/pltf_spec/32bit_default
+
+  In the case that also the unit tests shall be built, also the folder test/include must be included.
 *
 *
 * All the C source files of the fleaTLS library in the folder <code>src/</code> need be compiled to build
@@ -275,7 +292,7 @@ In order to enable TLS, the application code is required to supply a custom impl
 
 \subsection tlsRwStream Supporting the Read Modes
 
-While the implementation of the write functionality is straightforward,
+While the implementation of the write-functionality is straightforward,
 there exist three read modes (\link flea_stream_read_mode_e flea_stream_read_mode_e \endlink) which must be understood
 by the \link flea_rw_stream_read_f flea_rw_stream_read_f \endlink supplied to the custom flea_rw_stream_t type.
 - \link flea_stream_read_mode_e::flea_read_nonblocking flea_read_nonblocking \endlink means that the function quickly returns with the available incoming data and thus may return with fewer bytes than requested. If no read data is available on the interface, the function may return with zero bytes read. This mode may *not* cause a timeout (see \ref tlsTimeout ).
@@ -292,7 +309,7 @@ Otherwise the custom flea_rw_stream_t type shall implement the following error h
 
 - When the flea_rw_stream_open_f function fails, it should return \link FLEA_ERR_FAILED_TO_OPEN_CONNECTION FLEA_ERR_FAILED_TO_OPEN_CONNECTION \endlink.
 - When encountering a read error, \link FLEA_ERR_FAILED_STREAM_READ FLEA_ERR_FAILED_STREAM_READ \endlink is returned.
-- When encountering a write error, \link FLEA_ERR_FAILED_STREAM_WRITE FLEA_ERR_FAILED_STREAM_WRITE \endlink is returned.
+- When encountering a write-error, \link FLEA_ERR_FAILED_STREAM_WRITE FLEA_ERR_FAILED_STREAM_WRITE \endlink is returned.
 
 \subsection Example Implementation with Unix Sockets
 

@@ -17,10 +17,10 @@
 #ifdef FLEA_HAVE_RSA
 
 flea_err_e THR_flea_rsa_raw_operation_crt_private_key(
-  const flea_private_key_t* priv_key__pt,
-  flea_u8_t*                result_enc,
-  const flea_u8_t*          base_enc,
-  flea_al_u16_t             base_length
+  const flea_privkey_t* priv_key__pt,
+  flea_u8_t*            result_enc,
+  const flea_u8_t*      base_enc,
+  flea_al_u16_t         base_length
 )
 {
   FLEA_THR_BEG_FUNC();

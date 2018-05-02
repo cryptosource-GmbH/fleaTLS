@@ -38,8 +38,6 @@ typedef struct
 } flea_pk_signer_t;
 
 
-# define flea_pk_signer_t__INIT_VALUE {.hash_ctx = flea_hash_ctx_t__INIT_VALUE}
-
 # ifdef FLEA_HEAP_MODE
 #  define flea_pk_signer_t__INIT(__p) do {flea_hash_ctx_t__INIT(&(__p)->hash_ctx);} while(0)
 # else
@@ -99,11 +97,11 @@ flea_err_e THR_flea_pk_signer_t__update(
  * @return an error code
  */
 flea_err_e THR_flea_pk_signer_t__final_verify(
-  flea_pk_signer_t*        signer,
-  flea_pk_scheme_id_e      id,
-  const flea_public_key_t* pubkey,
-  const flea_u8_t*         signature,
-  flea_al_u16_t            signature_len
+  flea_pk_signer_t*    signer,
+  flea_pk_scheme_id_e  id,
+  const flea_pubkey_t* pubkey,
+  const flea_u8_t*     signature,
+  flea_al_u16_t        signature_len
 );
 
 
@@ -118,10 +116,10 @@ flea_err_e THR_flea_pk_signer_t__final_verify(
  * @return an error code
  */
 flea_err_e THR_flea_pk_signer_t__final_sign(
-  flea_pk_signer_t*         signer,
-  flea_pk_scheme_id_e       id,
-  const flea_private_key_t* privkey,
-  flea_byte_vec_t*          signature
+  flea_pk_signer_t*     signer,
+  flea_pk_scheme_id_e   id,
+  const flea_privkey_t* privkey,
+  flea_byte_vec_t*      signature
 );
 
 

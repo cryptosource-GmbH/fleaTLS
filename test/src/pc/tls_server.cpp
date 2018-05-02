@@ -108,25 +108,6 @@ static flea_err_e THR_check_keyb_input(/*fd_set & keyb_fds*/)
   FLEA_THR_FIN_SEC_empty();
 } // THR_check_keyb_input
 
-static int unix_tcpip_accept(
-  int      listen_fd,
-  unsigned read_timeout_ms
-)
-{
-  struct timeval tv;
-
-  set_timeval_from_millisecs(&tv, read_timeout_ms);
-  setsockopt(
-    listen_fd,
-    SOL_SOCKET,
-    SO_RCVTIMEO,
-    (struct timeval*) &tv,
-    sizeof(struct timeval)
-  );
-
-  return accept(listen_fd, (struct sockaddr*) NULL, NULL);
-} // THR_unix_tcpip_listen_accept
-
 #  ifdef FLEA_HAVE_TLS_CS_PSK
 static flea_err_e dummy_get_psk_cb(
   const void*      psk__pt,
@@ -164,13 +145,13 @@ static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
 {
   flea_rw_stream_t rw_stream__t;
   flea_u8_t buf[65000];
-  flea_tls_server_ctx_t tls_ctx;
+  flea_tls_srv_ctx_t tls_ctx;
 
   file_based_rw_stream_ctx_t fb_rws_ctx;
 
 
   FLEA_THR_BEG_FUNC();
-  flea_tls_server_ctx_t__INIT(&tls_ctx);
+  flea_tls_srv_ctx_t__INIT(&tls_ctx);
   flea_rw_stream_t__INIT(&rw_stream__t);
 
   if(serv_par__pt->dir_for_file_based_input != "")
@@ -206,7 +187,7 @@ static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
   {
 #  endif
   FLEA_CCALL(
-    THR_flea_tls_server_ctx_t__ctor(
+    THR_flea_tls_srv_ctx_t__ctor(
       &tls_ctx,
       &rw_stream__t,
       serv_par__pt->cert_store_mbn__pt,
@@ -231,7 +212,7 @@ static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
 else
 {
   FLEA_CCALL(
-    THR_flea_tls_server_ctx_t__ctor_psk(
+    THR_flea_tls_srv_ctx_t__ctor_psk(
       &tls_ctx,
       &rw_stream__t,
       serv_par__pt->cert_store_mbn__pt,
@@ -263,14 +244,14 @@ else
   {
     flea_bool_t reneg_done__b;
 
-    int reneg_allowed = flea_tls_server_ctx_t__is_reneg_allowed(&tls_ctx);
+    int reneg_allowed = flea_tls_srv_ctx_t__is_reneg_allowed(&tls_ctx);
     serv_par__pt->write_output_string(
       "renegotiation exptected to be successfull = " + std::to_string(
         reneg_allowed
       ) + " ...\n"
     );
     FLEA_CCALL(
-      THR_flea_tls_server_ctx_t__renegotiate(
+      THR_flea_tls_srv_ctx_t__renegotiate(
         &tls_ctx,
         &reneg_done__b,
         serv_par__pt->cert_store_mbn__pt,
@@ -306,7 +287,7 @@ else
       buf_len -= 1;
     }
     FLEA_CCALL(THR_check_user_abort(serv_par__pt));
-    flea_err_e retval = THR_flea_tls_server_ctx_t__read_app_data(
+    flea_err_e retval = THR_flea_tls_srv_ctx_t__read_app_data(
       &tls_ctx,
       buf,
       &buf_len,
@@ -360,9 +341,9 @@ else
 
       sprintf((char*) buf, response_hdr_1, strlen(content_fixed));
 
-      FLEA_CCALL(THR_flea_tls_server_ctx_t__send_app_data(&tls_ctx, (const flea_u8_t*) buf, strlen((const char*) buf)));
+      FLEA_CCALL(THR_flea_tls_srv_ctx_t__send_app_data(&tls_ctx, (const flea_u8_t*) buf, strlen((const char*) buf)));
       FLEA_CCALL(
-        THR_flea_tls_server_ctx_t__send_app_data(
+        THR_flea_tls_srv_ctx_t__send_app_data(
           &tls_ctx,
           (const flea_u8_t*) content_fixed,
           strlen((const char*) content_fixed)
@@ -371,15 +352,15 @@ else
     }
     else if(buf_len)
     {
-      serv_par__pt->write_output_string("sending pingback response\n");
-      FLEA_CCALL(THR_flea_tls_server_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
+      serv_par__pt->write_output_string("sending pingback response of length = " + std::to_string(buf_len));
+      FLEA_CCALL(THR_flea_tls_srv_ctx_t__send_app_data(&tls_ctx, buf, buf_len));
     }
-    FLEA_CCALL(THR_flea_tls_server_ctx_t__flush_write_app_data(&tls_ctx));
+    FLEA_CCALL(THR_flea_tls_srv_ctx_t__flush_write_app_data(&tls_ctx));
     usleep(10 * 1000);
   }
 
   FLEA_THR_FIN_SEC(
-    flea_tls_server_ctx_t__dtor(&tls_ctx);
+    flea_tls_srv_ctx_t__dtor(&tls_ctx);
     flea_rw_stream_t__dtor(&rw_stream__t);
   );
 } // THR_flea_tls_server_thread_inner
@@ -425,7 +406,7 @@ static flea_err_e THR_server_cycle(
 
   tls_test_cfg_t tls_cfg;
 
-  flea_private_key_t server_key_obj__t;
+  flea_privkey_t server_key_obj__t;
 
 #  ifdef FLEA_HAVE_TLS_CS_PSK
   std::vector<flea_u8_t> psk;
@@ -438,7 +419,7 @@ static flea_err_e THR_server_cycle(
 
   FLEA_THR_BEG_FUNC();
   flea_cert_store_t__INIT(&trust_store__t);
-  flea_private_key_t__INIT(&server_key_obj__t);
+  flea_privkey_t__INIT(&server_key_obj__t);
 
   bool stay = cmdl_args.have_index("stay");
 
@@ -463,7 +444,7 @@ static flea_err_e THR_server_cycle(
       tls_cfg
     )
   );
-  FLEA_CCALL(THR_flea_private_key_t__ctor_pkcs8(&server_key_obj__t, server_key__t.data__pcu8, server_key__t.len__dtl));
+  FLEA_CCALL(THR_flea_privkey_t__ctor_pkcs8(&server_key_obj__t, server_key__t.data__pcu8, server_key__t.len__dtl));
   if(cert_chain_len == 0)
   {
     throw test_utils_exceptn_t("missing own certificate for tls server");
@@ -485,6 +466,8 @@ static flea_err_e THR_server_cycle(
 
       // std::cout << "creating threads: max = " << thr_max << ", running currently = " << serv_pars.size() << std::endl;
       server_params_t serv_par__t;
+
+      /* sharing the server key over different threads like this is possible with fleaTLS */
       serv_par__t.private_key__pt       = &server_key_obj__t;
       serv_par__t.cert_chain__pcu8      = cert_chain;
       serv_par__t.cert_chain_len__alu16 = cert_chain_len;
@@ -657,8 +640,9 @@ static flea_err_e THR_server_cycle(
 
   FLEA_THR_FIN_SEC(
     // flea_tls_shared_server_ctx_t__dtor(&shrd_server_ctx__t);
-    flea_private_key_t__dtor(&server_key_obj__t);
+    flea_privkey_t__dtor(&server_key_obj__t);
     flea_cert_store_t__dtor(&trust_store__t);
+    flea_byte_vec_t__dtor(&psk_vec__t);
   );
 } // THR_server_cycle
 

@@ -142,7 +142,6 @@ typedef struct
 } flea_x509_cert_ref_t;
 
 
-#define flea_x509_cert_ref_t__INIT_VALUE {.version__u8 = 0}
 #define flea_x509_cert_ref_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
 
 #define flea_x509_cert_ref_t__dtor(__p)
@@ -322,6 +321,7 @@ flea_err_e THR_flea_x509_cert_ref_t__get_issuer_dn_component(
  *
  * @param cert_ref the certificate reference object to check for the key usages.
  * @param required_usages the required key usages to check for as a combination
+ * ( "AND" )
  * of values from flea_key_usage_e.
  * @param explicitness here, flea_key_usage_explicit means that the key usage
  * extension must be explicitly contained in the certificate for any key usage
@@ -344,6 +344,7 @@ flea_bool_t flea_x509_cert_ref_t__has_key_usages(
  *
  * @param cert_ref the certificate reference object to check for the key usages.
  * @param required_usages the required key usages to check for as a combination
+ * ( "AND" )
  * of values from flea_ext_key_usage_e.
  * @param explicitness here, flea_key_usage_explicit means that the extended key usage
  * extension must be explicitly contained in the certificate for any extended key usage
@@ -396,7 +397,7 @@ flea_err_e THR_flea_x509_cert__get_ref_to_tbs(
  *
  * @return error code
  */
-flea_err_e THR_flea_x509_cert__get_ref_to_tbs_byte_vec(
+flea_err_e THR_flea_x509_cert__get_bv_ref_to_tbs(
   const flea_u8_t* der_encoded_cert,
   flea_al_u16_t    der_encoded_cert_len,
   flea_byte_vec_t* ref_to_tbs

@@ -1,0 +1,3 @@
+#!/bin/sh
+
+./build/flea-test --tls_server --own_certs=./examples/tls/certs/CERT_PATH_TLS_CLIENT_valid_ipaddr_in_SAN/CERT_PATH_TLS_CLIENT_valid_ipaddr_in_SAN_EE.TC.crt --own_ca_chain=./examples/tls/certs/CERT_PATH_TLS_CLIENT_valid_ipaddr_in_SAN/CERT_PATH_TLS_CLIENT_valid_ipaddr_in_SAN_SUB_CA.CA.crt,./examples/tls/certs/CERT_PATH_TLS_CLIENT_valid_ipaddr_in_SAN/CERT_PATH_TLS_CLIENT_valid_ipaddr_in_SAN_ROOT_CA.TA.crt --own_private_key=./examples/tls/certs/CERT_PATH_TLS_CLIENT_valid_ipaddr_in_SAN/CERT_PATH_TLS_CLIENT_valid_ipaddr_in_SAN_EE.TC.pkcs8 --port=4444 --allowed_sig_algs=SHA512-RSA,SHA384-RSA,SHA256-RSA,SHA224-RSA,SHA1-RSA --reneg_mode=only_secure_reneg --rev_chk=none --stay

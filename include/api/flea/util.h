@@ -11,7 +11,11 @@
 extern "C" {
 #endif
 
-#define FLEA_COMMA ,
+#define FLEA_COMMA  ,
+
+#define FLEA_MEMSET memset
+
+#define FLEA_ZERO_STRUCT(__p) FLEA_MEMSET(__p, 0, sizeof(*(__p)))
 
 #define FLEA_SWAP(__type, __a, __b) \
   do \

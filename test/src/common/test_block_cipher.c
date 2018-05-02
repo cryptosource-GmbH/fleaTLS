@@ -13,24 +13,20 @@
 
 static flea_err_e THR_flea_test_block_cipher_init_dtor()
 {
-  FLEA_DECL_OBJ(ecb, flea_ecb_mode_ctx_t);
-  FLEA_DECL_OBJ(cbc, flea_cbc_mode_ctx_t);
-  FLEA_DECL_OBJ(ctr, flea_ctr_mode_ctx_t);
-  flea_ecb_mode_ctx_t ecb2;
-  flea_cbc_mode_ctx_t cbc2;
-  flea_ctr_mode_ctx_t ctr2;
+  flea_ecb_mode_ctx_t ecb;
+
+  flea_cbc_mode_ctx_t cbc;
+  flea_ctr_mode_ctx_t ctr;
+
   FLEA_THR_BEG_FUNC();
-  flea_ecb_mode_ctx_t__INIT(&ecb2);
-  flea_cbc_mode_ctx_t__INIT(&cbc2);
-  flea_ctr_mode_ctx_t__INIT(&ctr2);
+  flea_ecb_mode_ctx_t__INIT(&ecb);
+  flea_cbc_mode_ctx_t__INIT(&cbc);
+  flea_ctr_mode_ctx_t__INIT(&ctr);
 
   FLEA_THR_FIN_SEC(
     flea_ecb_mode_ctx_t__dtor(&ecb);
-    flea_ecb_mode_ctx_t__dtor(&ecb2);
     flea_cbc_mode_ctx_t__dtor(&cbc);
-    flea_cbc_mode_ctx_t__dtor(&cbc2);
     flea_ctr_mode_ctx_t__dtor(&ctr);
-    flea_ctr_mode_ctx_t__dtor(&ctr2);
   );
 }
 
@@ -42,9 +38,12 @@ static flea_err_e THR_flea_test_cipher_block_encr_decr_data(
   const flea_u8_t*       pt__pc_u8
 )
 {
-  FLEA_DECL_OBJ(encr_ctx, flea_ecb_mode_ctx_t);
+  flea_ecb_mode_ctx_t encr_ctx;
+
+  flea_ecb_mode_ctx_t__INIT(&encr_ctx);
 #ifdef FLEA_HAVE_AES_BLOCK_DECR
-  FLEA_DECL_OBJ(decr_ctx, flea_ecb_mode_ctx_t);
+  flea_ecb_mode_ctx_t decr_ctx;
+  flea_ecb_mode_ctx_t__INIT(&decr_ctx);
 #endif
 
   const flea_al_u8_t const_block_size = 16;
@@ -57,22 +56,24 @@ static flea_err_e THR_flea_test_cipher_block_encr_decr_data(
   flea_al_u8_t block_size;
   FLEA_THR_BEG_FUNC();
 
-  /*flea_ecb_mode_ctx_t__INIT(&encr_ctx);
-   * flea_ecb_mode_ctx_t__INIT(&decr_ctx); */
+#ifdef FLEA_HAVE_AES_BLOCK_DECR
+  flea_ecb_mode_ctx_t__INIT(&decr_ctx);
+#endif
+  flea_ecb_mode_ctx_t__INIT(&encr_ctx);
 
   FLEA_CCALL(THR_flea_ecb_mode_ctx_t__ctor(&encr_ctx, id__t, key__pc_u8, key_len__al_u16, flea_encrypt));
 #ifdef FLEA_HAVE_AES_BLOCK_DECR
   FLEA_CCALL(THR_flea_ecb_mode_ctx_t__ctor(&decr_ctx, id__t, key__pc_u8, key_len__al_u16, flea_decrypt));
 #endif // #ifndef FLEA_HAVE_AES_BLOCK_DECR
   block_size = encr_ctx.block_length__u8;
-  FLEA_CCALL(THR_flea_ecb_mode_crypt_data(&encr_ctx, pt__pc_u8, encr, block_size));
+  FLEA_CCALL(THR_flea_ecb_ctx_t__crypt_data(&encr_ctx, pt__pc_u8, encr, block_size));
   if(memcmp(encr, exp_ct__pc_u8, block_size))
   {
     FLEA_THROW("encrypted block incorrect", FLEA_ERR_FAILED_TEST);
   }
 
 #ifdef FLEA_HAVE_AES_BLOCK_DECR
-  FLEA_CCALL(THR_flea_ecb_mode_crypt_data(&decr_ctx, encr, decr, block_size));
+  FLEA_CCALL(THR_flea_ecb_ctx_t__crypt_data(&decr_ctx, encr, decr, block_size));
   if(memcmp(decr, pt__pc_u8, block_size))
   {
     FLEA_THROW("decrypted block incorrect", FLEA_ERR_FAILED_TEST);

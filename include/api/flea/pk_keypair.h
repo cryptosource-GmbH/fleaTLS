@@ -25,8 +25,8 @@ extern "C" {
  * @return an error code
  */
 flea_err_e THR_flea_pubkey__generate_ecc_key_pair_by_dp(
-  flea_public_key_t*           pubkey,
-  flea_private_key_t*          privkey,
+  flea_pubkey_t*               pubkey,
+  flea_privkey_t*              privkey,
   const flea_ec_dom_par_ref_t* dp
 );
 
@@ -39,9 +39,9 @@ flea_err_e THR_flea_pubkey__generate_ecc_key_pair_by_dp(
  *
  * @return an error code
  */
-flea_err_e THR_flea_pubkey__generate_ecc_key_pair_by_dp_id(
-  flea_public_key_t*   pubkey,
-  flea_private_key_t*  privkey,
+flea_err_e THR_flea_pubkey__by_dp_id_gen_ecc_key_pair(
+  flea_pubkey_t*       pubkey,
+  flea_privkey_t*      privkey,
   flea_ec_dom_par_id_e dp_id
 );
 # ifdef __cplusplus

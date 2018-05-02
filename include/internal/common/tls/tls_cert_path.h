@@ -22,7 +22,7 @@ typedef struct
   flea_u8_t                             client_cert_type_mask__u8;
   flea_tls__connection_end_t            validate_server_or_client__e;
   const flea_hostn_validation_params_t* hostn_valid_params__pt;
-  flea_tls_sigalg_e*                    allowed_sig_algs_mbn__pe;
+  const flea_tls_sigalg_e*              allowed_sig_algs_mbn__pe;
   flea_al_u16_t                         nb_allowed_sig_algs__alu16;
 } flea_tls_cert_path_params_t;
 
@@ -30,7 +30,7 @@ flea_err_e THR_flea_tls__cert_path_validation(
   flea_tls_ctx_t*                    tls_ctx__pt,
   flea_tls_handsh_reader_t*          hs_rdr__pt,
   const flea_cert_store_t*           trust_store__pt,
-  flea_public_key_t*                 pubkey_to_construct__pt,
+  flea_pubkey_t*                     pubkey_to_construct__pt,
   flea_tls_cert_path_params_t const* cert_path_params__pct
 );
 

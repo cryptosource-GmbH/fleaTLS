@@ -284,7 +284,7 @@ flea_err_e THR_flea_tls_session_mngr_t__load_session(
 void flea_tls_session_mngr_t__dtor(flea_tls_session_mngr_t* session_mngr__pt)
 {
 #ifdef FLEA_HEAP_MODE
-  FLEA_FREE_MEM_CHK_SET_NULL(session_mngr__pt->sessions__bt);
+  FLEA_FREE_MEM_CHK_NULL(session_mngr__pt->sessions__bt);
 #endif
 #ifdef FLEA_HAVE_MUTEX
   if(session_mngr__pt->is_mutex_init__u8)

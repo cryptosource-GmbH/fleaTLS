@@ -39,8 +39,8 @@ flea_err_e THR_flea_tls__map_flea_curve_to_curve_bytes(
 );
 
 flea_err_e THR_flea_tls_ctx_t__send_supported_ec_curves_ext(
-  flea_tls_ctx_t*               tls_ctx__pt,
-  flea_tls_parallel_hash_ctx_t* p_hash_ctx__pt
+  flea_tls_ctx_t*          tls_ctx__pt,
+  flea_tls_prl_hash_ctx_t* p_hash_ctx__pt
 );
 
 flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_tls_cipher_suite_id_t suite_id);
@@ -59,17 +59,17 @@ flea_err_e THR_flea_tls_ctx_t__parse_point_formats_ext(
 
 # ifdef FLEA_HAVE_TLS_CS_ECDHE
 flea_err_e THR_flea_tls__create_ecdhe_key(
-  flea_private_key_t*  priv_key__pt,
-  flea_public_key_t*   pub_key__pt,
+  flea_privkey_t*      priv_key__pt,
+  flea_pubkey_t*       pub_key__pt,
   flea_ec_dom_par_id_e dom_par_id__t
 );
 
 flea_err_e THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
-  flea_tls_ctx_t*     tls_ctx__pt,
-  flea_rw_stream_t*   hs_rd_stream__pt,
-  flea_byte_vec_t*    premaster_secret__pt,
-  flea_private_key_t* priv_key__pt,
-  flea_public_key_t*  peer_pubkey__pt
+  flea_tls_ctx_t*   tls_ctx__pt,
+  flea_rw_stream_t* hs_rd_stream__pt,
+  flea_byte_vec_t*  premaster_secret__pt,
+  flea_privkey_t*   priv_key__pt,
+  flea_pubkey_t*    peer_pubkey__pt
 );
 # endif // ifdef FLEA_HAVE_TLS_CS_ECDHE
 

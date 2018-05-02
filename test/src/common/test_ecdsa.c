@@ -28,8 +28,8 @@
 flea_err_e THR_flea_test_cvc_sig_ver()
 {
 # if FLEA_ECC_MAX_MOD_BIT_SIZE >= 224
-  FLEA_DECL_OBJ(verifier__t, flea_pk_signer_t);
-  FLEA_DECL_OBJ(public_key__t, flea_public_key_t);
+  flea_pk_signer_t verifier__t;
+  flea_pubkey_t public_key__t;
   const flea_u8_t sign_data__acu8[] =
   {0x7f, 0x4e, 0x82, 0x01, 0x43, 0x5f, 0x29, 0x01, 0x00, 0x42, 0x0b, 0x44, 0x45, 0x43, 0x56, 0x43, 0x41, 0x30, 0x30,
    0x30, 0x30, 0x31, 0x7f, 0x49, 0x81,
@@ -81,11 +81,13 @@ flea_err_e THR_flea_test_cvc_sig_ver()
 
   flea_ec_dom_par_ref_t ecc_dom_par__t;
   FLEA_THR_BEG_FUNC();
+  flea_pk_signer_t__INIT(&verifier__t);
+  flea_pubkey_t__INIT(&public_key__t);
   flea_al_u16_t sig_len__alu16 = sizeof(cvc_signature_rs__acu8);
   FLEA_CCALL(THR_flea_pk_signer_t__ctor(&verifier__t, flea_sha224));
   FLEA_CCALL(THR_flea_ec_dom_par_ref_t__set_by_builtin_id(&ecc_dom_par__t, flea_brainpoolP224r1));
   FLEA_CCALL(THR_flea_pk_signer_t__update(&verifier__t, sign_data__acu8, sizeof(sign_data__acu8)));
-  FLEA_CCALL(THR_flea_public_key_t__ctor_ecc(&public_key__t, &pubpoint_vec__t, &ecc_dom_par__t));
+  FLEA_CCALL(THR_flea_pubkey_t__ctor_ecc(&public_key__t, &pubpoint_vec__t, &ecc_dom_par__t));
   err_code = THR_flea_pk_signer_t__final_verify(
     &verifier__t,
     flea_ecdsa_emsa1_concat,
@@ -99,7 +101,7 @@ flea_err_e THR_flea_test_cvc_sig_ver()
   }
   FLEA_THR_FIN_SEC(
     flea_pk_signer_t__dtor(&verifier__t);
-    flea_public_key_t__dtor(&public_key__t);
+    flea_pubkey_t__dtor(&public_key__t);
   );
 # else /* if FLEA_ECC_MAX_MOD_BIT_SIZE >= 224 */
   return FLEA_ERR_FINE;

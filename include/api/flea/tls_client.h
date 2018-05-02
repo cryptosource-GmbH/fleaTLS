@@ -25,14 +25,14 @@ extern "C" {
  *
  * @param ctx pointer to the client ctx object to init
  */
-# define flea_tls_client_ctx_t__INIT(ctx) do {memset((ctx), 0, sizeof(*(ctx)));} while(0)
+# define flea_tls_clt_ctx_t__INIT(ctx) do {memset((ctx), 0, sizeof(*(ctx)));} while(0)
 
 /**
  * Destroy a TLS client context object.
  *
  * @param[in,out] tls_client_ctx The context object to destroy.
  */
-void flea_tls_client_ctx_t__dtor(flea_tls_client_ctx_t* tls_client_ctx);
+void flea_tls_clt_ctx_t__dtor(flea_tls_clt_ctx_t* tls_client_ctx);
 
 /**
  * Create a TLS client object. This implies the execution of the initial
@@ -88,7 +88,7 @@ void flea_tls_client_ctx_t__dtor(flea_tls_client_ctx_t* tls_client_ctx);
  * @param allowed_sig_algs_len The length of allowed_sig_algs
  * @param[in] flags A combination of flags to control the client's behaviour.
  * @param[in,out] session_mbn A session object which holds the session information for resumption.
- * Upon input, this may be a constructed flea_tls_client_session_t object
+ * Upon input, this may be a constructed flea_tls_clt_session_t object
  * without any content or it may be one which already contains a session. In the
  * latter case, this function will attempt to use session resumption during the
  * initial handshake. In any case, during the life-cycle of this TLS client context
@@ -99,25 +99,25 @@ void flea_tls_client_ctx_t__dtor(flea_tls_client_ctx_t* tls_client_ctx);
  *
  * @return an error code
  */
-flea_err_e THR_flea_tls_client_ctx_t__ctor(
-  flea_tls_client_ctx_t*            tls_client_ctx,
+flea_err_e THR_flea_tls_clt_ctx_t__ctor(
+  flea_tls_clt_ctx_t*               tls_client_ctx,
   flea_rw_stream_t*                 rw_stream,
   const flea_cert_store_t*          trust_store,
   const flea_ref_cu8_t*             server_name_mbn,
   flea_host_id_type_e               host_name_id,
   flea_ref_cu8_t*                   cert_chain_mbn,
   flea_al_u8_t                      cert_chain_len,
-  flea_private_key_t*               private_key_mbn,
+  flea_privkey_t*                   private_key_mbn,
   const flea_ref_cu8_t*             crls,
   flea_al_u16_t                     crls_len,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
   flea_al_u16_t                     allowed_cipher_suites_len,
-  flea_ec_dom_par_id_e*             allowed_ecc_curves,
+  const flea_ec_dom_par_id_e*       allowed_ecc_curves,
   flea_al_u16_t                     allowed_ecc_curves_len,
-  flea_tls_sigalg_e*                allowed_sig_algs,
+  const flea_tls_sigalg_e*          allowed_sig_algs,
   flea_al_u16_t                     allowed_sig_algs_len,
   flea_tls_flag_e                   flags,
-  flea_tls_client_session_t*        session_mbn
+  flea_tls_clt_session_t*           session_mbn
 );
 
 
@@ -138,8 +138,8 @@ flea_err_e THR_flea_tls_client_ctx_t__ctor(
  *
  * @return an error code
  */
-flea_err_e THR_flea_tls_client_ctx_t__read_app_data(
-  flea_tls_client_ctx_t*  tls_client_ctx,
+flea_err_e THR_flea_tls_clt_ctx_t__read_app_data(
+  flea_tls_clt_ctx_t*     tls_client_ctx,
   flea_u8_t*              dta,
   flea_dtl_t*             dta_len,
   flea_stream_read_mode_e read_mode
@@ -148,7 +148,7 @@ flea_err_e THR_flea_tls_client_ctx_t__read_app_data(
 /**
  * Send application data over the TLS channel. Note that this function may not
  * actually send the data over the underlying stream due to internal buffering. To enforce the sending of the written data, the
- * function THR_flea_tls_client_ctx_t__flush_write_app_data() needs to be
+ * function THR_flea_tls_clt_ctx_t__flush_write_app_data() needs to be
  * called afterwards.
  *
  * @param[in] tls_client_ctx The TLS client object.
@@ -157,10 +157,10 @@ flea_err_e THR_flea_tls_client_ctx_t__read_app_data(
  *
  * @return an error code
  */
-flea_err_e THR_flea_tls_client_ctx_t__send_app_data(
-  flea_tls_client_ctx_t* tls_client_ctx,
-  const flea_u8_t*       dta,
-  flea_dtl_t             dta_len
+flea_err_e THR_flea_tls_clt_ctx_t__send_app_data(
+  flea_tls_clt_ctx_t* tls_client_ctx,
+  const flea_u8_t*    dta,
+  flea_dtl_t          dta_len
 );
 
 /**
@@ -170,7 +170,7 @@ flea_err_e THR_flea_tls_client_ctx_t__send_app_data(
  *
  * @return an error code
  */
-flea_err_e THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t* tls_client_ctx);
+flea_err_e THR_flea_tls_clt_ctx_t__flush_write_app_data(flea_tls_clt_ctx_t* tls_client_ctx);
 
 
 /**
@@ -182,7 +182,7 @@ flea_err_e THR_flea_tls_client_ctx_t__flush_write_app_data(flea_tls_client_ctx_t
  * @return FLEA_TRUE if a renegotiation may be carried out, FLEA_FALSE
  * otherwise.
  */
-flea_bool_t flea_tls_client_ctx_t__is_reneg_allowed(flea_tls_client_ctx_t* tls_client_ctx);
+flea_bool_t flea_tls_clt_ctx_t__is_reneg_allowed(flea_tls_clt_ctx_t* tls_client_ctx);
 
 /**
  *
@@ -227,20 +227,20 @@ flea_bool_t flea_tls_client_ctx_t__is_reneg_allowed(flea_tls_client_ctx_t* tls_c
  *
  * @return an error code
  */
-flea_err_e THR_flea_tls_client_ctx_t__renegotiate(
-  flea_tls_client_ctx_t*            tls_client_ctx,
+flea_err_e THR_flea_tls_clt_ctx_t__renegotiate(
+  flea_tls_clt_ctx_t*               tls_client_ctx,
   flea_bool_t*                      result,
   const flea_cert_store_t*          trust_store,
   flea_ref_cu8_t*                   cert_chain_mbn,
   flea_al_u8_t                      cert_chain_len,
-  flea_private_key_t*               private_key_mbn,
+  flea_privkey_t*                   private_key_mbn,
   const flea_ref_cu8_t*             crls,
   flea_al_u16_t                     crls_len,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
   flea_al_u16_t                     allowed_cipher_suites_len,
-  flea_ec_dom_par_id_e*             allowed_ecc_curves,
+  const flea_ec_dom_par_id_e*       allowed_ecc_curves,
   flea_al_u16_t                     allowed_ecc_curves_len,
-  flea_tls_sigalg_e*                allowed_sig_algs,
+  const flea_tls_sigalg_e*          allowed_sig_algs,
   flea_al_u16_t                     allowed_sig_algs_len
 );
 
@@ -256,7 +256,7 @@ flea_err_e THR_flea_tls_client_ctx_t__renegotiate(
  * @return FLEA_TRUE if the peer EE certificate is available, FLEA_FALSE
  * otherwise.
  */
-flea_bool_t flea_tls_client_ctx_t__have_peer_ee_cert_ref(flea_tls_client_ctx_t* client_ctx);
+flea_bool_t flea_tls_clt_ctx_t__have_peer_ee_cert_ref(flea_tls_clt_ctx_t* client_ctx);
 
 /**
  * Get a pointer to the flea_x509_cert_ref_t of the peer's EE certificate from
@@ -267,7 +267,7 @@ flea_bool_t flea_tls_client_ctx_t__have_peer_ee_cert_ref(flea_tls_client_ctx_t* 
  * @return a pointer to the flea_x509_cert_ref_t object if it is available or
  * NULL otherwise.
  */
-const flea_x509_cert_ref_t* flea_tls_client_ctx_t__get_peer_ee_cert_ref(flea_tls_client_ctx_t* client_ctx);
+const flea_x509_cert_ref_t* flea_tls_clt_ctx_t__get_peer_ee_cert_ref(flea_tls_clt_ctx_t* client_ctx);
 # endif // ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
 
 # ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
@@ -282,7 +282,7 @@ const flea_x509_cert_ref_t* flea_tls_client_ctx_t__get_peer_ee_cert_ref(flea_tls
  * @return FLEA_TRUE if the peer EE certificate is available, FLEA_FALSE
  * otherwise.
  */
-flea_bool_t flea_tls_client_ctx_t__have_peer_root_cert_ref(flea_tls_client_ctx_t* client_ctx);
+flea_bool_t flea_tls_clt_ctx_t__have_peer_root_cert_ref(flea_tls_clt_ctx_t* client_ctx);
 
 /**
  * Get a pointer to the flea_x509_cert_ref_t of the trusted root certificate that was
@@ -293,7 +293,7 @@ flea_bool_t flea_tls_client_ctx_t__have_peer_root_cert_ref(flea_tls_client_ctx_t
  * @return a pointer to the flea_x509_cert_ref_t object if it is available or
  * NULL otherwise.
  */
-const flea_x509_cert_ref_t* flea_tls_client_ctx_t__get_peer_root_cert_ref(flea_tls_client_ctx_t* client_ctx);
+const flea_x509_cert_ref_t* flea_tls_clt_ctx_t__get_peer_root_cert_ref(flea_tls_clt_ctx_t* client_ctx);
 # endif // ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 

@@ -189,7 +189,7 @@ def call_make():
   
 
 def call_test():
-  p = subprocess.Popen('./build/flea-test', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=make_cwd_str)
+  p = subprocess.Popen('./build/flea-test-asan', shell=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT, cwd=make_cwd_str)
   #print("Test OUTPUT:")
   test_output = []
   for line in p.stdout.readlines():

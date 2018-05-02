@@ -1,0 +1,61 @@
+
+\begin{comment}
+\subsection Requirements for Server Certificates
+
+The current version of flea only supports the RSA KEX during the TLS handshake.
+This implies that the server must present an RSA certificate during the
+handshake. This certificate must feature an RSA public key.
+
+The server certificate does not necessarily have to include any certificate
+extensions. However, if certain extensions are present, then the following
+requirements must be fulfilled according to the TLS standard.
+\begin{description}
+  \item [Key Usage Extension] If present, this extension must feature at least
+    the \emph{keyEncipherment} key usage.
+  \item [Extended Key Usage Extension] If present, this extension must feature
+    the key usage \emph{serverAuth} or \emph{any}.
+  \item [Subject Alternative Name] This extension is recommended to be included
+    in the certificate and to include either the IP address or the DNS name of
+    the server. If this extension is not present, the client will use the Common
+Name within the certificate to verify the DNS name.
+\end{description}
+
+\subsubsection Using an ECDSA Server Certificate}
+
+An ECDSA certificate of the server can be configured for a fleaTLS server. It is used in the TLS handshake to sign
+ephemeral ECDH keys (\ie in an ECDHE cipher suite). In the following we address
+client and fleaTLS server interoperability with respect to the supported cipher
+suites.
+
+A client that supports
+elliptic curves sends the list of elliptic curves supported  by him in the
+ClientHello messsage within the Supported Elliptic
+   Curves Extension
+   \footnote{\url{https://tools.ietf.org/html/rfc4492\#section-5.1.1}}. 
+   
+   If the fleaTLS server is configured with an ECDSA server certificate, \ie one
+   which features an EC public key,  or if any of the certificates within the
+   server's certificate chain are signed by ECDSA, then the handhake can only
+   succeed if the client supports all the elliptic curves used in the
+   corresponding keys. 
+
+   
+   %The fleaTLS server doesn not verify that this is the case, since it
+   %does not have any chance to enable a successful handshake in this case. It
+   %will in any case send the configured certificate chain, resulting in the
+   %error detected by the client once it encounters an unsupported curve. 
+
+
+\subsection Requirements for Client Certificates}
+
+If TLS client authentication is used, then the client also presents a
+certificate chain. In the current version of flea, the client certificate must
+be an RSA certificate. Furthermore the following requirements must be fulfilled
+for the certificate extensions of this certificate according to the TLS standard.
+\begin{description}
+  \item [Key Usage Extension] If present, this extension must feature at least
+    the \emph{digitalSignature} key usage.
+  \item [Extended Key Usage Extension] If present, this extension must feature
+    the key usage \emph{clientAuth} or \emph{any}.
+\end{description}
+\end{comment}

@@ -410,9 +410,11 @@ flea_err_e THR_flea_compute_hash_byte_vec(
   flea_byte_vec_t* result__pt
 )
 {
-  FLEA_DECL_OBJ(ctx, flea_hash_ctx_t);
+  flea_hash_ctx_t ctx;
   flea_al_u16_t natural_output_len_al_u16;
+
   FLEA_THR_BEG_FUNC();
+  flea_hash_ctx_t__INIT(&ctx);
 
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&ctx, id));
   natural_output_len_al_u16 = flea_hash_ctx_t__get_output_length(&ctx);
@@ -434,9 +436,11 @@ flea_err_e THR_flea_compute_hash(
   flea_al_u16_t    output_len_al_u16
 )
 {
-  FLEA_DECL_OBJ(ctx, flea_hash_ctx_t);
+  flea_hash_ctx_t ctx;
   flea_al_u16_t natural_output_len_al_u16;
+
   FLEA_THR_BEG_FUNC();
+  flea_hash_ctx_t__INIT(&ctx);
 
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&ctx, id));
   natural_output_len_al_u16 = flea_hash_ctx_t__get_output_length(&ctx);

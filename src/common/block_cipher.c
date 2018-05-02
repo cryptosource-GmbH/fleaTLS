@@ -108,7 +108,7 @@ const flea_block_cipher_config_entry_t block_cipher_config[] = {
   {
     .ext_id__t    = flea_desx,
     .raw_id__t    = des,
-    .key_bit_size = 64 + 2 * 64, // 8 bits unused
+    .key_bit_size = 64 + 2 * 64, // 3*8 bits unused
     .expanded_key_u32_size__u16  = 32 + 4,
     .cipher_block_encr_function  = flea_desx_encrypt_block,
     .THR_key_sched_encr_function = THR_flea_desx_setup_key,
@@ -151,6 +151,7 @@ void flea_ecb_mode_ctx_t__dtor(flea_ecb_mode_ctx_t* ctx__pt)
     return;
   }
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(ctx__pt->expanded_key__bu8, ctx__pt->config__pt->expanded_key_u32_size__u16);
+  flea_ecb_mode_ctx_t__INIT(ctx__pt);
 }
 
 flea_err_e THR_flea_ecb_mode_ctx_t__ctor(
@@ -203,7 +204,7 @@ flea_err_e THR_flea_ecb_mode_ctx_t__ctor(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_ecb_mode_ctx_t__ctor */
 
-flea_err_e THR_flea_ecb_mode_crypt_data(
+flea_err_e THR_flea_ecb_ctx_t__crypt_data(
   const flea_ecb_mode_ctx_t* ctx__p_t,
   const flea_u8_t*           input__pc_u8,
   flea_u8_t*                 output__p_u8,
@@ -281,6 +282,7 @@ void flea_ctr_mode_ctx_t__dtor(flea_ctr_mode_ctx_t* p_ctx)
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(p_ctx->pending_mask__bu8, block_len__alu8);
 
   flea_ecb_mode_ctx_t__dtor(&p_ctx->cipher_ctx__t);
+  flea_ctr_mode_ctx_t__INIT(p_ctx);
 }
 
 void flea_ctr_mode_ctx_t__crypt(
@@ -354,8 +356,10 @@ flea_err_e THR_flea_ctr_mode_crypt_data(
   flea_al_u8_t           ctr_len__alu8
 )
 {
-  FLEA_DECL_OBJ(ctx, flea_ctr_mode_ctx_t);
+  flea_ctr_mode_ctx_t ctx;
+
   FLEA_THR_BEG_FUNC();
+  flea_ctr_mode_ctx_t__INIT(&ctx);
   FLEA_CCALL(
     THR_flea_ctr_mode_ctx_t__ctor(
       &ctx,
@@ -476,8 +480,10 @@ flea_err_e THR_flea_cbc_mode__crypt_data(
   flea_dtl_t             input_output_len__dtl
 )
 {
-  FLEA_DECL_OBJ(ctx__t, flea_cbc_mode_ctx_t);
+  flea_cbc_mode_ctx_t ctx__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_cbc_mode_ctx_t__INIT(&ctx__t);
   FLEA_CCALL(THR_flea_cbc_mode_ctx_t__ctor(&ctx__t, id__t, key__pcu8, key_len__alu8, iv__pcu8, iv_len__alu8, dir__t));
   FLEA_CCALL(THR_flea_cbc_mode_ctx_t__crypt(&ctx__t, input__pcu8, output__pu8, input_output_len__dtl));
   FLEA_THR_FIN_SEC(
@@ -540,4 +546,5 @@ void flea_cbc_mode_ctx_t__dtor(flea_cbc_mode_ctx_t* ctx__pt)
 #ifdef FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHK_SET_NULL(ctx__pt->iv__bu8);
 #endif
+  flea_cbc_mode_ctx_t__INIT(ctx__pt);
 }

@@ -12,6 +12,11 @@
 extern "C" {
 #endif
 
+int unix_tcpip_accept(
+  int      listen_fd,
+  unsigned read_timeout_ms
+);
+
 void set_timeval_from_millisecs(
   struct timeval* tv,
   size_t          time_millisecs

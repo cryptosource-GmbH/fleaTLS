@@ -5,9 +5,31 @@
 #include "internal/common/lib_int.h"
 #include "flea/error_handling.h"
 #include <time.h>
+#include <sys/socket.h>
 #ifdef FLEA_HAVE_MUTEX
 # include <pthread.h>
 #endif
+
+int unix_tcpip_accept(
+  int      listen_fd,
+  unsigned read_timeout_ms
+)
+{
+  struct timeval tv;
+
+  if(read_timeout_ms)
+  {
+    set_timeval_from_millisecs(&tv, read_timeout_ms);
+    setsockopt(
+      listen_fd,
+      SOL_SOCKET,
+      SO_RCVTIMEO,
+      (struct timeval*) &tv,
+      sizeof(struct timeval)
+    );
+  }
+  return accept(listen_fd, (struct sockaddr*) NULL, NULL);
+} // THR_unix_tcpip_listen_accept
 
 void set_timeval_from_millisecs(
   struct timeval* tv,

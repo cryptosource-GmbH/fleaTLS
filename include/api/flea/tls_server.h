@@ -14,10 +14,10 @@ extern "C" {
 
 #ifdef FLEA_HAVE_TLS_SERVER
 
-# define flea_tls_server_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
+# define flea_tls_srv_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
 
 
-void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx);
+void flea_tls_srv_ctx_t__dtor(flea_tls_srv_ctx_t* tls_server_ctx);
 
 
 /**
@@ -63,24 +63,24 @@ void flea_tls_server_ctx_t__dtor(flea_tls_server_ctx_t* tls_server_ctx);
  * @param[in,out] session_mngr_mbn A session manager implementing a TLS session
  * cache used to store sessions
  * established with clients for later resumption. This object may be shared
- * between different threads in which different flea_tls_server_ctx_t objects handle different connections to different clients. Once a client connects and requests connection resumption, the server performs a lookup in the flea_tls_session_mngr_t object. If the session is in the cache, the server accepts the resumption.  This parameter may be null, in which case the server does not support session resumption.
+ * between different threads in which different flea_tls_srv_ctx_t objects handle different connections to different clients. Once a client connects and requests connection resumption, the server performs a lookup in the flea_tls_session_mngr_t object. If the session is in the cache, the server accepts the resumption.  This parameter may be null, in which case the server does not support session resumption.
  *
  * @return an error code
  */
-flea_err_e THR_flea_tls_server_ctx_t__ctor(
-  flea_tls_server_ctx_t*            tls_server_ctx,
+flea_err_e THR_flea_tls_srv_ctx_t__ctor(
+  flea_tls_srv_ctx_t*               tls_server_ctx,
   flea_rw_stream_t*                 rw_stream,
   const flea_cert_store_t*          trust_store_mbn,
   const flea_ref_cu8_t*             cert_chain,
   flea_al_u8_t                      cert_chain_len,
-  flea_private_key_t*               private_key,
+  flea_privkey_t*                   private_key,
   const flea_ref_cu8_t*             crls,
   flea_al_u16_t                     crls_len,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
   flea_al_u16_t                     allowed_cipher_suites_len,
-  flea_ec_dom_par_id_e*             allowed_ecc_curves,
+  const flea_ec_dom_par_id_e*       allowed_ecc_curves,
   flea_al_u16_t                     allowed_ecc_curves_len,
-  flea_tls_sigalg_e*                allowed_sig_algs,
+  const flea_tls_sigalg_e*          allowed_sig_algs,
   flea_al_u16_t                     allowed_sig_algs_len,
   flea_tls_flag_e                   flags,
   flea_tls_session_mngr_t*          session_mngr_mbn
@@ -103,8 +103,8 @@ flea_err_e THR_flea_tls_server_ctx_t__ctor(
  *
  * @return an error code
  */
-flea_err_e THR_flea_tls_server_ctx_t__read_app_data(
-  flea_tls_server_ctx_t*  tls_server_ctx,
+flea_err_e THR_flea_tls_srv_ctx_t__read_app_data(
+  flea_tls_srv_ctx_t*     tls_server_ctx,
   flea_u8_t*              dta,
   flea_dtl_t*             dta_len,
   flea_stream_read_mode_e read_mode
@@ -113,7 +113,7 @@ flea_err_e THR_flea_tls_server_ctx_t__read_app_data(
 /**
  * Send application data over the TLS channel. Note that this function may not
  * actually send the data over the underlying stream due to internal buffering. To enforce the sending of the written data, the
- * function THR_flea_tls_server_ctx_t__flush_write_app_data() needs to be
+ * function THR_flea_tls_srv_ctx_t__flush_write_app_data() needs to be
  * called afterwards.
  *
  * @param[in] tls_server_ctx The TLS server object.
@@ -122,14 +122,14 @@ flea_err_e THR_flea_tls_server_ctx_t__read_app_data(
  *
  * @return an error code
  */
-flea_err_e THR_flea_tls_server_ctx_t__send_app_data(
-  flea_tls_server_ctx_t* tls_server_ctx,
-  const flea_u8_t*       dta,
-  flea_dtl_t             dta_len
+flea_err_e THR_flea_tls_srv_ctx_t__send_app_data(
+  flea_tls_srv_ctx_t* tls_server_ctx,
+  const flea_u8_t*    dta,
+  flea_dtl_t          dta_len
 );
 
 
-flea_err_e THR_flea_tls_server_ctx_t__flush_write_app_data(flea_tls_server_ctx_t* tls_ctx);
+flea_err_e THR_flea_tls_srv_ctx_t__flush_write_app_data(flea_tls_srv_ctx_t* tls_ctx);
 
 
 /**
@@ -141,7 +141,7 @@ flea_err_e THR_flea_tls_server_ctx_t__flush_write_app_data(flea_tls_server_ctx_t
  * @return FLEA_TRUE if a renegotiation may be carried out, FLEA_FALSE
  * otherwise.
  */
-flea_bool_t flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_server_ctx);
+flea_bool_t flea_tls_srv_ctx_t__is_reneg_allowed(flea_tls_srv_ctx_t* tls_server_ctx);
 
 /**
  *
@@ -190,24 +190,24 @@ flea_bool_t flea_tls_server_ctx_t__is_reneg_allowed(flea_tls_server_ctx_t* tls_s
  * @param allowed_sig_algs_len The length of allowed_sig_algs
  * cache used to store sessions
  * established with clients for later resumption. This object may be shared
- * between different threads in which different flea_tls_server_ctx_t objects handle different connections to different clients. Once a client connects and requests connection resumption, the server performs a lookup in the flea_tls_session_mngr_t object. If the session is in the cache, the server accepts the resumption.  This parameter may be null, in which case the server does not support session resumption.
+ * between different threads in which different flea_tls_srv_ctx_t objects handle different connections to different clients. Once a client connects and requests connection resumption, the server performs a lookup in the flea_tls_session_mngr_t object. If the session is in the cache, the server accepts the resumption.  This parameter may be null, in which case the server does not support session resumption.
  *
  * @return an error code
  */
-flea_err_e THR_flea_tls_server_ctx_t__renegotiate(
-  flea_tls_server_ctx_t*            tls_server_ctx,
+flea_err_e THR_flea_tls_srv_ctx_t__renegotiate(
+  flea_tls_srv_ctx_t*               tls_server_ctx,
   flea_bool_t*                      result,
   const flea_cert_store_t*          trust_store_mbn,
   const flea_ref_cu8_t*             cert_chain,
   flea_al_u8_t                      cert_chain_len,
-  flea_private_key_t*               private_key,
+  flea_privkey_t*                   private_key,
   const flea_ref_cu8_t*             crls,
   flea_al_u16_t                     crls_len,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
   flea_al_u16_t                     allowed_cipher_suites_len,
-  flea_ec_dom_par_id_e*             allowed_ecc_curves,
+  const flea_ec_dom_par_id_e*       allowed_ecc_curves,
   flea_al_u16_t                     allowed_ecc_curves_len,
-  flea_tls_sigalg_e*                allowed_sig_algs,
+  const flea_tls_sigalg_e*          allowed_sig_algs,
   flea_al_u16_t                     allowed_sig_algs_len
 );
 
@@ -222,7 +222,7 @@ flea_err_e THR_flea_tls_server_ctx_t__renegotiate(
  * @return FLEA_TRUE if the peer EE certificate is available, FLEA_FALSE
  * otherwise.
  */
-flea_bool_t flea_tls_server_ctx_t__have_peer_ee_cert_ref(flea_tls_server_ctx_t* server_ctx);
+flea_bool_t flea_tls_srv_ctx_t__have_peer_ee_cert_ref(flea_tls_srv_ctx_t* server_ctx);
 
 /**
  * Get a pointer to the flea_x509_cert_ref_t of the peer's EE certificate.
@@ -232,7 +232,7 @@ flea_bool_t flea_tls_server_ctx_t__have_peer_ee_cert_ref(flea_tls_server_ctx_t* 
  * @return a pointer to the flea_x509_cert_ref_t object if it is available or
  * NULL otherwise.
  */
-const flea_x509_cert_ref_t* flea_tls_server_ctx_t__get_peer_ee_cert_ref(flea_tls_server_ctx_t* server_ctx);
+const flea_x509_cert_ref_t* flea_tls_srv_ctx_t__get_peer_ee_cert_ref(flea_tls_srv_ctx_t* server_ctx);
 # endif // ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
 
 # ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
@@ -245,7 +245,7 @@ const flea_x509_cert_ref_t* flea_tls_server_ctx_t__get_peer_ee_cert_ref(flea_tls
  * @return FLEA_TRUE if the peer EE certificate is available, FLEA_FALSE
  * otherwise.
  */
-flea_bool_t flea_tls_server_ctx_t__have_peer_root_cert_ref(flea_tls_server_ctx_t* server_ctx);
+flea_bool_t flea_tls_srv_ctx_t__have_peer_root_cert_ref(flea_tls_srv_ctx_t* server_ctx);
 
 /**
  * Get a pointer to the flea_x509_cert_ref_t of the trusted certificate that was
@@ -256,7 +256,7 @@ flea_bool_t flea_tls_server_ctx_t__have_peer_root_cert_ref(flea_tls_server_ctx_t
  * @return a pointer to the flea_x509_cert_ref_t object if it is available or
  * NULL otherwise.
  */
-const flea_x509_cert_ref_t* flea_tls_server_ctx_t__get_peer_root_cert_ref(flea_tls_server_ctx_t* server_ctx);
+const flea_x509_cert_ref_t* flea_tls_srv_ctx_t__get_peer_root_cert_ref(flea_tls_srv_ctx_t* server_ctx);
 # endif // ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 #endif // ifdef FLEA_HAVE_TLS_SERVER

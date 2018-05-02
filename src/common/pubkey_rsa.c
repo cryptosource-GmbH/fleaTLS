@@ -14,7 +14,7 @@
 
 #ifdef FLEA_HAVE_RSA
 
-flea_err_e THR_get_hash_id_from_x509_id_for_rsa(
+flea_err_e THR_flea_get_rsa_hash_id_from_x509_id(
   flea_u8_t       cert_id__u8,
   flea_hash_id_e* result__pt
 )
@@ -47,7 +47,7 @@ flea_err_e THR_get_hash_id_from_x509_id_for_rsa(
   FLEA_THR_FIN_SEC_empty();
 }
 
-flea_err_e THR_flea_public_key_t__create_rsa_key(
+flea_err_e THR_flea_pubkey_t__create_rsa_key(
   flea_rsa_pubkey_val_t* key__pt,
   const flea_ref_cu8_t*  mod__pcrcu8,
   const flea_ref_cu8_t*  exp__pcrcu8
@@ -71,10 +71,13 @@ flea_err_e THR_flea_x509_parse_rsa_public_key(
   flea_ref_cu8_t*        pub_exp__pt
 )
 {
-  FLEA_DECL_OBJ(source__t, flea_rw_stream_t);
-  FLEA_DECL_OBJ(dec__t, flea_ber_dec_t);
+  flea_rw_stream_t source__t;
+  flea_bdec_t dec__t;
   flea_mem_read_stream_help_t hlp__t;
+
   FLEA_THR_BEG_FUNC();
+  flea_rw_stream_t__INIT(&source__t);
+  flea_bdec_t__INIT(&dec__t);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor_memory(
       &source__t,
@@ -83,23 +86,23 @@ flea_err_e THR_flea_x509_parse_rsa_public_key(
       &hlp__t
     )
   );
-  FLEA_CCALL(THR_flea_ber_dec_t__ctor(&dec__t, &source__t, 0, flea_decode_ref));
+  FLEA_CCALL(THR_flea_bdec_t__ctor(&dec__t, &source__t, 0, flea_dec_ref));
   /* open sequence */
-  FLEA_CCALL(THR_flea_ber_dec_t__open_sequence(&dec__t));
+  FLEA_CCALL(THR_flea_bdec_t__open_sequence(&dec__t));
   /* decode mod */
-  FLEA_CCALL(THR_flea_ber_dec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, modulus__pt));
+  FLEA_CCALL(THR_flea_bdec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, modulus__pt));
   /* decode exp */
-  FLEA_CCALL(THR_flea_ber_dec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, pub_exp__pt));
+  FLEA_CCALL(THR_flea_bdec_t__get_der_REF_to_positive_int_wo_lead_zeroes(&dec__t, pub_exp__pt));
   /* close sequence */
-  FLEA_CCALL(THR_flea_ber_dec_t__close_constructed_at_end(&dec__t));
+  FLEA_CCALL(THR_flea_bdec_t__cl_cons_at_end(&dec__t));
   FLEA_THR_FIN_SEC(
     flea_rw_stream_t__dtor(&source__t);
-    flea_ber_dec_t__dtor(&dec__t);
+    flea_bdec_t__dtor(&dec__t);
   );
 }
 
-flea_err_e THR_flea_public_key_t__ctor_rsa(
-  flea_public_key_t*    key__pt,
+flea_err_e THR_flea_pubkey_t__ctor_rsa(
+  flea_pubkey_t*        key__pt,
   const flea_ref_cu8_t* mod__pcrcu8,
   const flea_ref_cu8_t* pub_exp__pcrcu8
 )
@@ -108,7 +111,7 @@ flea_err_e THR_flea_public_key_t__ctor_rsa(
   key__pt->key_type__t = flea_rsa_key;
 
   FLEA_CCALL(
-    THR_flea_public_key_t__create_rsa_key(
+    THR_flea_pubkey_t__create_rsa_key(
       &key__pt->pubkey_with_params__u.rsa_public_val__t,
       mod__pcrcu8,
       pub_exp__pcrcu8

@@ -6,8 +6,10 @@ import os.path
 import glob
 import sys
 import shutil
+from shutil import make_archive
 import subprocess
 import fileinput
+import zipfile
 
 include_dir = "../../include"
 src_dir = "../../src"
@@ -15,7 +17,7 @@ test_dir = "../../test"
 test_data_dir = "../testdata"
 build_cfg_dir = "../../build_cfg"
 #pltf_supp_dir = "../../pltf_support"
-generate_dir = "../../../flea_generated_releases"
+generate_dir = "../../misc/run/generated_release"
 cmakelists_file = "../../CMakeLists.txt"
 changelog_src_path = "../../misc/changelog.txt"
 readme_src_path = "../../misc/README.txt"
@@ -26,7 +28,7 @@ license_name_closed_source = "flea"
 
 def ignore_svn_function(a, b):
   result = []
-  result.append(".svn")
+  result.append(".git")
   result.append("stm32f4")
   result.append("*.elf")
   result.append("*.map")
@@ -34,6 +36,14 @@ def ignore_svn_function(a, b):
   result.append("*~")
   result.append("makefile")
   return result
+
+def zipdir(path, ziph):
+    # ziph is zipfile handle
+    for root, dirs, files in os.walk(path):
+        for file in files:
+            ziph.write(os.path.join(root, file))
+
+#def create_zip_file(path, dir_to_zip):
 
 
 
@@ -118,12 +128,11 @@ def generate_with_license(license_name, have_test_data):
 
 have_test_data = True
 #have_test_data = False
-#if(len(sys.argv) == 2):
-#    if(sys.argv[1] == "--with_testdata"):
-#        have_test_data = True
+if(len(sys.argv) != 2):
+    print("missing version string argument")
+    sys.exit(1)
+version_str = sys.argv[1]
 #    else:
-#        print "error: invalid commandline argument"
-#        sys.exit(1)
 
 
 #shutil.rmtree(generate_dir + "/" + license_name_gpl + "/" + "flea", True)
@@ -135,3 +144,14 @@ if os.path.exists(generate_dir):
 generate_with_license(license_name_gpl, have_test_data)
 generate_with_license(license_name_closed_source, have_test_data)
 
+#flea_lic_str = generate_dir +  '/fleaTLS_' + version_str + '_flea_lic'
+flea_lic_str = '../fleaTLS_' + version_str + '_flea_lic'
+#gpl_str =  generate_dir +  '/fleaTLS_' + version_str + '_gpl'
+gpl_str =  '../fleaTLS_' + version_str + '_gpl'
+
+os.chdir(generate_dir + "/flea")
+make_archive(flea_lic_str, 'zip', ".", "flea" )
+os.chdir("../gpl")
+make_archive(gpl_str, 'zip', ".", "flea" )
+#make_archive(flea_lic_str, 'zip', generate_dir + "/flea", generate_dir + "/flea/flea")
+#make_archive(gpl_str, 'zip', generate_dir + "/gpl", generate_dir + "/gpl/flea")

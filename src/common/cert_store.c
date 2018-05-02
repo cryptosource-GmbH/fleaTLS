@@ -103,9 +103,9 @@ flea_err_e THR_flea_cert_store_t__add_untrusted_cert(
   return THR_flea_cert_store_t__add_cert(cert_store__pt, der_enc_cert__pcu8, der_enc_cert_len__alu16, FLEA_FALSE);
 }
 
-flea_err_e THR_flea_cert_store_t__add_trusted_to_path_validator(
-  const flea_cert_store_t*    cert_store__pct,
-  flea_cert_path_validator_t* cpv__pt
+flea_err_e THR_flea_cert_store_t__add_my_trusted_certs_to_path_validator(
+  const flea_cert_store_t* cert_store__pct,
+  flea_cpv_t*              cpv__pt
 )
 {
   flea_al_u16_t i;
@@ -117,7 +117,7 @@ flea_err_e THR_flea_cert_store_t__add_trusted_to_path_validator(
     if(cert_store__pct->enc_cert_refs__bcu8[i].trusted_flag)
     {
       FLEA_CCALL(
-        THR_flea_cert_path_validator_t__add_trust_anchor_cert(
+        THR_flea_cpv_t__add_trust_anchor_cert(
           cpv__pt,
           cert_store__pct->enc_cert_refs__bcu8[i].data_ref__rcu8.data__pcu8,
           cert_store__pct->enc_cert_refs__bcu8[i].data_ref__rcu8.len__dtl
@@ -185,8 +185,9 @@ flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
 void flea_cert_store_t__dtor(flea_cert_store_t* cert_store__pt)
 {
 # ifdef FLEA_HEAP_MODE
-  FLEA_FREE_MEM_CHK_SET_NULL(cert_store__pt->enc_cert_refs__bcu8);
+  FLEA_FREE_MEM_CHK_NULL(cert_store__pt->enc_cert_refs__bcu8);
 # endif
+  flea_cert_store_t__INIT(cert_store__pt);
 }
 
 #endif /* #ifdef FLEA_HAVE_ASYM_SIG */

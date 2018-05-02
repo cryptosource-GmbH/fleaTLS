@@ -41,7 +41,7 @@
  */
 #  define FLEA_DO_PRINTF_ERRS
 
-# endif // if 0
+# endif  // if 0
 /* end dgb_cfg */
 /**@}*/
 
@@ -71,7 +71,8 @@
 /**@{*/
 
 /**
- * When activated, fleaTLS offers file-based flea_rw_stream_t objects.
+ * When activated, fleaTLS offers file-based flea_rw_stream_t objects. If not
+ * FILE implementation is offered by the plattform, this feature must be deactivated.
  */
 # define FLEA_HAVE_STDLIB_FILESYSTEM
 
@@ -379,13 +380,14 @@
  * \defgroup tls_cfg TLS configuration
  */
 /**@{*/
-# if (defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && (defined FLEA_HAVE_HMAC || defined FLEA_HAVE_GCM)
+# if defined FLEA_HAVE_TLS_CS_PSK || ((defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && (defined FLEA_HAVE_HMAC || \
+  defined FLEA_HAVE_GCM))
 
 /**
  * Control whether fleaTLS supports TLS.
  */
 #  define FLEA_HAVE_TLS
-# endif
+# endif // if defined FLEA_HAVE_TLS_CS_PSK || ((defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && (defined FLEA_HAVE_HMAC || defined FLEA_HAVE_GCM))
 
 # ifdef FLEA_HAVE_TLS
 

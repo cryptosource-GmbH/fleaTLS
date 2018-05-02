@@ -9,16 +9,47 @@
 #include <string.h>
 static flea_err_e THR_flea_test_hash_init_dtor()
 {
-  FLEA_DECL_OBJ(ctx, flea_hash_ctx_t);
-  flea_hash_ctx_t ctx2;
+  flea_hash_ctx_t ctx;
+
   FLEA_THR_BEG_FUNC();
-  flea_hash_ctx_t__INIT(&ctx2);
+  flea_hash_ctx_t__INIT(&ctx);
 
   FLEA_THR_FIN_SEC(
     flea_hash_ctx_t__dtor(&ctx);
-    flea_hash_ctx_t__dtor(&ctx2);
   );
 }
+
+// ! [hash_ctx_example]
+static flea_err_e THR_flea_test_hash_mess_result_example(void)
+{
+  const flea_u8_t message__au8[] = {0x61, 0x62, 0x63};
+  flea_u8_t digest__bu8 [FLEA_MAX_HASH_OUT_LEN];
+
+  flea_hash_ctx_t ctx;
+
+  FLEA_THR_BEG_FUNC();
+
+  flea_hash_ctx_t__INIT(&ctx);
+
+  FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&ctx, flea_sha256));
+
+  FLEA_CCALL(THR_flea_hash_ctx_t__update(&ctx, message__au8, 1));
+  FLEA_CCALL(THR_flea_hash_ctx_t__update(&ctx, message__au8 + 1, 2));
+
+  if(sizeof(digest__bu8) < flea_hash_ctx_t__get_output_length(&ctx))
+  {
+    FLEA_THROW("error with length of hash output in test", FLEA_ERR_FAILED_TEST);
+  }
+
+  FLEA_CCALL(THR_flea_hash_ctx_t__final(&ctx, digest__bu8));
+
+  FLEA_THR_FIN_SEC(
+    flea_hash_ctx_t__dtor(&ctx);
+  );
+} /* THR_flea_test_hash_mess_result */
+
+// ! [hash_ctx_example]
+
 
 static flea_err_e THR_flea_test_hash_mess_result(
   flea_hash_id_e   id__t,
@@ -31,10 +62,12 @@ static flea_err_e THR_flea_test_hash_mess_result(
   FLEA_DECL_BUF(digest__b_u8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
   FLEA_DECL_BUF(digest_copy__b_u8, flea_u8_t, FLEA_MAX_HASH_OUT_LEN);
 
-  FLEA_DECL_OBJ(ctx, flea_hash_ctx_t);
-  FLEA_DECL_OBJ(ctx_copy, flea_hash_ctx_t);
+  flea_hash_ctx_t ctx;
+  flea_hash_ctx_t ctx_copy;
   FLEA_THR_BEG_FUNC();
 
+  flea_hash_ctx_t__INIT(&ctx);
+  flea_hash_ctx_t__INIT(&ctx_copy);
   FLEA_ALLOC_BUF(digest__b_u8, flea_hash__get_output_length_by_id(id__t));
   FLEA_ALLOC_BUF(digest_copy__b_u8, flea_hash__get_output_length_by_id(id__t));
 
@@ -79,9 +112,11 @@ static flea_err_e THR_flea_test_hash_abc(
   flea_al_u16_t    exp_res_len__alu16
 )
 {
-  flea_u8_t m__au8[] = {0x61, 0x62, 0x63};
+  const flea_u8_t m__au8[] = {0x61, 0x62, 0x63};
 
   return THR_flea_test_hash_mess_result(id__t, m__au8, sizeof(m__au8), exp_res__pcu8, exp_res_len__alu16);
+
+  return THR_flea_test_hash_mess_result_example();
 }
 
 flea_err_e THR_flea_test_hash()

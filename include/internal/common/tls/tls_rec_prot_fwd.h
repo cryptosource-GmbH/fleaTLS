@@ -8,9 +8,9 @@
 extern "C" {
 #endif
 
-struct struct_flea_tls_rec_prot_t;
+struct struct_flea_recprot_t;
 
-typedef struct struct_flea_tls_rec_prot_t flea_tls_rec_prot_t;
+typedef struct struct_flea_recprot_t flea_recprot_t;
 
 typedef enum
 {

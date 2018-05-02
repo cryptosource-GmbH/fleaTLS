@@ -8,7 +8,7 @@
 #include "flea/byte_vec.h"
 
 
-flea_err_e THR_flea_pk_api__encode_message__oaep(
+flea_err_e THR_flea_pk_api__enc_msg_oaep(
   flea_u8_t*     input_output__pu8,
   flea_al_u16_t  input_len__alu16,
   flea_al_u16_t* output_len__palu16,
@@ -16,7 +16,7 @@ flea_err_e THR_flea_pk_api__encode_message__oaep(
   flea_hash_id_e hash_id__t
 );
 
-flea_err_e THR_flea_pk_api__decode_message__oaep(
+flea_err_e THR_flea_pk_api__dec_msg__oaep(
   flea_byte_vec_t* result_vec__pt,
   flea_u8_t*       input__pu8,
   flea_al_u16_t    input_len__alu16,

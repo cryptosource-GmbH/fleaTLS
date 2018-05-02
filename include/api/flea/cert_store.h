@@ -31,10 +31,8 @@ typedef struct
 } flea_cert_store_t;
 
 # ifdef FLEA_HEAP_MODE
-#  define flea_cert_store_t__INIT_VALUE {.enc_cert_refs__bcu8 = NULL}
 #  define flea_cert_store_t__INIT(__p) do {(__p)->enc_cert_refs__bcu8 = NULL;} while(0)
 # else
-#  define flea_cert_store_t__INIT_VALUE {.enc_cert_refs__bcu8[0] = {{0, 0}, 0}}
 #  define flea_cert_store_t__INIT(__p)
 # endif // ifdef FLEA_HEAP_MODE
 
@@ -156,9 +154,9 @@ flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
  *
  * @return an error code
  */
-flea_err_e THR_flea_cert_store_t__add_trusted_to_path_validator(
-  const flea_cert_store_t*    cert_store,
-  flea_cert_path_validator_t* cpv
+flea_err_e THR_flea_cert_store_t__add_my_trusted_certs_to_path_validator(
+  const flea_cert_store_t* cert_store,
+  flea_cpv_t*              cpv
 );
 
 # ifdef __cplusplus

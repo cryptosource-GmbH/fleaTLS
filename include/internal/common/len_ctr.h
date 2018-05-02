@@ -25,10 +25,8 @@ typedef struct
 
 #ifdef FLEA_HEAP_MODE
 # define flea_len_ctr_t__INIT(__p) do {(__p)->counter__bu32 = NULL;} while(0)
-# define flea_len_ctr_t__INIT_VALUE {.counter__bu32 = NULL}
 #else
 # define flea_len_ctr_t__INIT(__p)
-# define flea_len_ctr_t__INIT_VALUE {.counter__bu32[0] = 0}
 #endif // ifdef FLEA_HEAP_MODE
 
 flea_err_e THR_flea_len_ctr_t__ctor(

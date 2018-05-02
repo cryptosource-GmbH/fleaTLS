@@ -647,7 +647,7 @@ flea_al_u8_t flea_ec_dom_par__get_real_order_byte_len(const flea_u8_t* enc_dp__p
   return order_byte_len__al_u8 - i__al_u8;
 }
 
-const flea_u8_t* flea_ec_dom_par__get_predefined_dp_ptr(flea_ec_dom_par_id_e dp_id)
+const flea_u8_t* flea_ec_dom_par__get_predef_ptr(flea_ec_dom_par_id_e dp_id)
 {
   flea_al_u8_t i;
 
@@ -661,7 +661,7 @@ const flea_u8_t* flea_ec_dom_par__get_predefined_dp_ptr(flea_ec_dom_par_id_e dp_
   return NULL;
 }
 
-flea_al_u16_t flea_ec_dom_par__get_predefined_dp_len(flea_ec_dom_par_id_e dp_id)
+flea_al_u16_t flea_ec_dom_par__get_predef_len(flea_ec_dom_par_id_e dp_id)
 {
   flea_al_u8_t i;
 
@@ -699,7 +699,7 @@ flea_err_e THR_flea_ec_dom_par_ref_t__set_by_builtin_id(
   const flea_u8_t* enc_dp__pcu8;
 
   FLEA_THR_BEG_FUNC();
-  enc_dp__pcu8 = flea_ec_dom_par__get_predefined_dp_ptr(id);
+  enc_dp__pcu8 = flea_ec_dom_par__get_predef_ptr(id);
   if(!enc_dp__pcu8)
   {
     FLEA_THROW("unsupported built-in ECC domain parameter id", FLEA_ERR_ECC_INV_BUILTIN_DP_ID);
@@ -725,7 +725,7 @@ flea_ec_dom_par_id_e flea_ec_dom_par_ref_t__determine_known_curve(const flea_ec_
   {
     const flea_u8_t* enc_dp__pcu8;
     flea_bool_t match__b = FLEA_TRUE;
-    enc_dp__pcu8 = flea_ec_dom_par__get_predefined_dp_ptr((flea_ec_dom_par_id_e) j);
+    enc_dp__pcu8 = flea_ec_dom_par__get_predef_ptr((flea_ec_dom_par_id_e) j);
     if(enc_dp__pcu8 == NULL)
     {
       continue;

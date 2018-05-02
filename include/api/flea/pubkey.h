@@ -138,18 +138,17 @@ typedef struct
   flea_u16_t                        key_bit_size__u16;
   flea_u16_t                        primitive_input_size__u16;
   flea_public_key_val_with_params_u pubkey_with_params__u;
-} flea_public_key_t;
+} flea_pubkey_t;
 
 
-# define flea_public_key_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
-# define flea_public_key_t__INIT_VALUE {.key_bit_size__u16 = 0}
+# define flea_pubkey_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
 
 /**
  * Destroy a public key object.
  *
  * @param [out] key the key to destroy
  */
-void flea_public_key_t__dtor(flea_public_key_t* key);
+void flea_pubkey_t__dtor(flea_pubkey_t* key);
 
 
 /**
@@ -168,9 +167,9 @@ void flea_public_key_t__dtor(flea_public_key_t* key);
  *
  * @return an error code
  */
-void flea_public_key_t__get_encoded_plain_ref(
-  const flea_public_key_t* key,
-  flea_ref_cu8_t*          result
+void flea_pubkey_t__get_encoded_plain_ref(
+  const flea_pubkey_t* key,
+  flea_ref_cu8_t*      result
 );
 
 /**
@@ -187,8 +186,8 @@ void flea_public_key_t__get_encoded_plain_ref(
  *
  * @return an error code
  */
-flea_err_e THR_flea_public_key_t__ctor_asn1(
-  flea_public_key_t*     key,
+flea_err_e THR_flea_pubkey_t__ctor_asn1(
+  flea_pubkey_t*         key,
   const flea_byte_vec_t* key_as_bit_string_tlv,
   const flea_byte_vec_t* encoded_params,
   const flea_byte_vec_t* alg_oid
@@ -203,8 +202,8 @@ flea_err_e THR_flea_public_key_t__ctor_asn1(
  *
  * @return an error code
  */
-flea_err_e THR_flea_public_key_t__ctor_cert(
-  flea_public_key_t*          key,
+flea_err_e THR_flea_pubkey_t__ctor_cert(
+  flea_pubkey_t*              key,
   const flea_x509_cert_ref_t* cert_ref
 );
 
@@ -219,8 +218,8 @@ flea_err_e THR_flea_public_key_t__ctor_cert(
  *
  * @return an error code
  */
-flea_err_e THR_flea_public_key_t__ctor_rsa(
-  flea_public_key_t*    key,
+flea_err_e THR_flea_pubkey_t__ctor_rsa(
+  flea_pubkey_t*        key,
   const flea_ref_cu8_t* mod,
   const flea_ref_cu8_t* pub_exp
 );
@@ -237,12 +236,14 @@ flea_err_e THR_flea_public_key_t__ctor_rsa(
  *
  * @return an error code
  */
-flea_err_e THR_flea_public_key_t__ctor_ecc(
-  flea_public_key_t*           key,
+flea_err_e THR_flea_pubkey_t__ctor_ecc(
+  flea_pubkey_t*               key,
   const flea_byte_vec_t*       public_key_value,
   const flea_ec_dom_par_ref_t* dp
 );
 # endif // ifdef FLEA_HAVE_ECC
+
+# ifdef FLEA_HAVE_ASYM_SIG
 
 /**
  * Verify a signature using a public key.
@@ -255,20 +256,17 @@ flea_err_e THR_flea_public_key_t__ctor_ecc(
  *
  * @return an error code
  */
-
-# ifdef FLEA_HAVE_ASYM_SIG
-
-flea_err_e THR_flea_public_key_t__verify_signature(
-  const flea_public_key_t* key,
-  flea_pk_scheme_id_e      pk_scheme_id,
-  flea_hash_id_e           hash_id,
-  const flea_byte_vec_t*   message,
-  const flea_byte_vec_t*   signature
+flea_err_e THR_flea_pubkey_t__vrfy_sgntr(
+  const flea_pubkey_t*   key,
+  flea_pk_scheme_id_e    pk_scheme_id,
+  flea_hash_id_e         hash_id,
+  const flea_byte_vec_t* message,
+  const flea_byte_vec_t* signature
 );
 
 
 /**
- * The same operation as THR_flea_public_key_t__verify_signature_plain_format(), except that the
+ * The same operation as #THR_flea_pubkey_t__vrfy_sgntr(), except that the
  * digest (i.e. hash value) is directly provided by the caller instead of being
  * computed by the function.
  *
@@ -282,14 +280,14 @@ flea_err_e THR_flea_public_key_t__verify_signature(
  *
  * @return an error code
  */
-flea_err_e THR_flea_public_key_t__verify_digest(
-  const flea_public_key_t* pubkey,
-  flea_pk_scheme_id_e      id,
-  flea_hash_id_e           hash_id,
-  const flea_u8_t*         digest,
-  flea_al_u8_t             digest_len,
-  const flea_u8_t*         signature,
-  flea_al_u16_t            signature_len
+flea_err_e THR_flea_pubkey_t__verify_digest(
+  const flea_pubkey_t* pubkey,
+  flea_pk_scheme_id_e  id,
+  flea_hash_id_e       hash_id,
+  const flea_u8_t*     digest,
+  flea_al_u8_t         digest_len,
+  const flea_u8_t*     signature,
+  flea_al_u16_t        signature_len
 );
 
 /**
@@ -303,8 +301,8 @@ flea_err_e THR_flea_public_key_t__verify_digest(
  *
  * @return an error code
  */
-flea_err_e THR_flea_public_key_t__verify_signature_use_sigalg_id(
-  const flea_public_key_t*     key,
+flea_err_e THR_flea_pubkey_t__vrfy_sgntr_use_sigalg_id(
+  const flea_pubkey_t*         key,
   const flea_x509_algid_ref_t* sigalg_id,
   const flea_byte_vec_t*       message,
   const flea_byte_vec_t*       signature,
@@ -318,20 +316,22 @@ flea_err_e THR_flea_public_key_t__verify_signature_use_sigalg_id(
  *
  * @param key the public key to be used for the encryption
  * @param pk_scheme_id the encryption scheme to be used for the encryption
- * @param hash_id the id of the hash algorithm used for the signature generation
+ * @param hash_id the id of the hash algorithm used in the encryption scheme, if
+ * applicable to the scheme. Otherwise, this value is unused, as it is for
+ * instance the case when pk_scheme_id amounts to flea_pkcs1_v1_5
  * @param message the message to be encrypted
  * @param message_len the length of the message to be encrypted
  * @param result receives the encrypted message after successful completion
  *
  * @return an error code
  */
-flea_err_e THR_flea_public_key_t__encrypt_message(
-  const flea_public_key_t* key,
-  flea_pk_scheme_id_e      pk_scheme_id,
-  flea_hash_id_e           hash_id,
-  const flea_u8_t*         message,
-  flea_al_u16_t            message_len,
-  flea_byte_vec_t*         result
+flea_err_e THR_flea_pubkey_t__encrypt_message(
+  const flea_pubkey_t* key,
+  flea_pk_scheme_id_e  pk_scheme_id,
+  flea_hash_id_e       hash_id,
+  const flea_u8_t*     message,
+  flea_al_u16_t        message_len,
+  flea_byte_vec_t*     result
 );
 
 /**
@@ -350,8 +350,8 @@ flea_err_e THR_flea_public_key_t__encrypt_message(
  * @return an error code
  */
 flea_err_e THR_flea_public_key__t__get_encoded_plain(
-  const flea_public_key_t* key,
-  flea_byte_vec_t*         result
+  const flea_pubkey_t* key,
+  flea_byte_vec_t*     result
 );
 
 

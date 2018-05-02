@@ -21,7 +21,7 @@ static flea_err_e THR_flea_rec_prot_rdr_t__read(
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
-    THR_flea_tls_rec_prot_t__read_data(
+    THR_flea_recprot_t__read_data(
       hlp__pt->rec_prot__pt,
       (flea_tls_rec_cont_type_e) hlp__pt->record_type__u8,
       target_buffer__pu8,
@@ -36,7 +36,7 @@ static flea_err_e THR_flea_rec_prot_rdr_t__read(
 flea_err_e THR_flea_rw_stream_t__ctor_rec_prot(
   flea_rw_stream_t*            rec_prot_read_str__pt,
   flea_tls_rec_prot_rdr_hlp_t* hlp__pt,
-  flea_tls_rec_prot_t*         rec_prot__pt,
+  flea_recprot_t*              rec_prot__pt,
   flea_al_u8_t                 record_type__alu8
 )
 {

@@ -6,6 +6,7 @@
 #include "flea/error_handling.h"
 #include "flea/error.h"
 
+
 void flea_swap_mem(
   flea_u8_t* mem_a__pu8,
   flea_u8_t* mem_b__pu8,

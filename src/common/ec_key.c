@@ -18,7 +18,7 @@ flea_al_u8_t flea_ecc_key__get_coordinate_len_from_encoded_point(const flea_byte
   return (encoded__pt->len__dtl - 1) / 2;
 }
 
-flea_err_e THR_flea_ecc_key__decode_uncompressed_point(
+flea_err_e THR_flea_ecc_key__dec_uncompressed_point(
   const flea_byte_vec_t* encoded__pt,
   flea_ref_cu8_t*        x__pt,
   flea_ref_cu8_t*        y__pt

@@ -34,17 +34,16 @@ typedef struct
     flea_ec_privkey_val_t  ec_priv_key_val__t;
 # endif
   } privkey_with_params__u;
-} flea_private_key_t;
+} flea_privkey_t;
 
-# define flea_private_key_t__INIT_VALUE {.key_bit_size__u16 = 0}
 
 /**
  * Initialize a private key object.
  *
- * @param [out] key pointer to the flea_private_key_t object to initialize
+ * @param [out] key pointer to the flea_privkey_t object to initialize
  *
  */
-# define flea_private_key_t__INIT(key) memset(key, 0, sizeof(*(key)))
+# define flea_privkey_t__INIT(key) memset(key, 0, sizeof(*(key)))
 
 /**
  * Destroy a private key object.
@@ -52,7 +51,7 @@ typedef struct
  * @param [out] privkey private key object to destroy
  *
  */
-void flea_private_key_t__dtor(flea_private_key_t* privkey);
+void flea_privkey_t__dtor(flea_privkey_t* privkey);
 
 # ifdef FLEA_HAVE_RSA
 
@@ -66,8 +65,8 @@ void flea_private_key_t__dtor(flea_private_key_t* privkey);
  *
  * @return an error code
  */
-flea_err_e THR_flea_private_key_t__ctor_rsa_internal_format(
-  flea_private_key_t*   key,
+flea_err_e THR_flea_privkey_t__ctor_rsa_internal_format(
+  flea_privkey_t*       key,
   const flea_ref_cu8_t* priv_key_enc_internal_format,
   flea_al_u16_t         key_bit_size
 );
@@ -91,19 +90,19 @@ flea_err_e THR_flea_private_key_t__ctor_rsa_internal_format(
  *
  * @return an error code
  */
-flea_err_e THR_flea_private_key_t__ctor_rsa_components(
-  flea_private_key_t* key,
-  flea_al_u16_t       key_bit_size,
-  const flea_u8_t*    p,
-  flea_al_u16_t       p_len,
-  const flea_u8_t*    q,
-  flea_al_u16_t       q_len,
-  const flea_u8_t*    dp,
-  flea_al_u16_t       dp_len,
-  const flea_u8_t*    dq,
-  flea_al_u16_t       dq_len,
-  const flea_u8_t*    c,
-  flea_al_u16_t       c_len
+flea_err_e THR_flea_privkey_t__ctor_rsa_components(
+  flea_privkey_t*  key,
+  flea_al_u16_t    key_bit_size,
+  const flea_u8_t* p,
+  flea_al_u16_t    p_len,
+  const flea_u8_t* q,
+  flea_al_u16_t    q_len,
+  const flea_u8_t* dp,
+  flea_al_u16_t    dp_len,
+  const flea_u8_t* dq,
+  flea_al_u16_t    dq_len,
+  const flea_u8_t* c,
+  flea_al_u16_t    c_len
 );
 # endif // ifdef FLEA_HAVE_RSA
 
@@ -123,8 +122,8 @@ flea_err_e THR_flea_private_key_t__ctor_rsa_components(
  * @return an error code
  *
  */
-flea_err_e THR_flea_private_key_t__ctor_ecc(
-  flea_private_key_t*          key,
+flea_err_e THR_flea_privkey_t__ctor_ecc(
+  flea_privkey_t*              key,
   const flea_byte_vec_t*       scalar,
   const flea_ec_dom_par_ref_t* dp_ref
 );
@@ -142,16 +141,16 @@ flea_err_e THR_flea_private_key_t__ctor_ecc(
  * @return an error code
  *
  */
-flea_err_e THR_flea_private_key_t__sign(
-  const flea_private_key_t* privkey,
-  flea_pk_scheme_id_e       pk_scheme_id,
-  flea_hash_id_e            hash_id,
-  const flea_byte_vec_t*    message,
-  flea_byte_vec_t*          signature
+flea_err_e THR_flea_privkey_t__sign(
+  const flea_privkey_t*  privkey,
+  flea_pk_scheme_id_e    pk_scheme_id,
+  flea_hash_id_e         hash_id,
+  const flea_byte_vec_t* message,
+  flea_byte_vec_t*       signature
 );
 
 /**
- * The same operation as THR_flea_private_key_t__sign_plain_format, except that the
+ * The same operation as THR_flea_privkey_t__sign_plain_format, except that the
  * digest (i.e. hash value) is directly provided by the caller instead of being
  * computed by the function.
  *
@@ -162,13 +161,13 @@ flea_err_e THR_flea_private_key_t__sign(
  * @param privkey the private key to be used for the signature operation
  * @param signature receives the generated signature after function completion
  */
-flea_err_e THR_flea_private_key_t__sign_digest(
-  const flea_private_key_t* privkey,
-  flea_pk_scheme_id_e       id,
-  flea_hash_id_e            hash_id,
-  const flea_u8_t*          digest,
-  flea_al_u8_t              digest_len,
-  flea_byte_vec_t*          signature
+flea_err_e THR_flea_privkey_t__sign_digest(
+  const flea_privkey_t* privkey,
+  flea_pk_scheme_id_e   id,
+  flea_hash_id_e        hash_id,
+  const flea_u8_t*      digest,
+  flea_al_u8_t          digest_len,
+  flea_byte_vec_t*      signature
 );
 
 /**
@@ -183,19 +182,19 @@ flea_err_e THR_flea_private_key_t__sign_digest(
  *
  *  @return an error code
  */
-flea_err_e THR_flea_private_key_t__decrypt_message(
-  const flea_private_key_t* privkey,
-  flea_pk_scheme_id_e       id,
-  flea_hash_id_e            hash_id,
-  const flea_u8_t*          ciphertext,
-  flea_al_u16_t             ciphertext_len,
-  flea_byte_vec_t*          result
+flea_err_e THR_flea_privkey_t__decrypt_message(
+  const flea_privkey_t* privkey,
+  flea_pk_scheme_id_e   id,
+  flea_hash_id_e        hash_id,
+  const flea_u8_t*      ciphertext,
+  flea_al_u16_t         ciphertext_len,
+  flea_byte_vec_t*      result
 );
 
 /**
  *  Decrypt a message using a public key scheme. Provides enhanced
  *  features to achieve secure application of the RSA-PKCS#1-v1.5 decryption
- *  with respect to Bleichenbacher's Attack by removing timing and error side-channels. For other public key schemes, it behaves equally to THR_flea_private_key_t__decrypt_message.
+ *  with respect to Bleichenbacher's Attack by removing timing and error side-channels. For other public key schemes, it behaves equally to THR_flea_privkey_t__decrypt_message.
  *
  *  @param [in] privkey the private key to use for the decryption
  *  @param [in] id ID of the encryption scheme to use
@@ -206,7 +205,7 @@ flea_err_e THR_flea_private_key_t__decrypt_message(
  *  @param [in] enforced_pkcs1_v1_5_decryption_result_len This value is only
  *  interpreted in case of PKCS#1 v1.5 decryption. For normal PKCS#1 v1.5
  *  decoding, this must be set to zero. Set this value to the expected message
- *  length to achieve timing neutral fake result generation in case of a padding
+ *  length to achieve constant time fake result generation in case of a padding
  *  error (defense against Bleichenbacher's attack).
  *  @param [out] silent_alarm_mbn meaningful only in case of PKCS#1 v1.5 decryption and if
  *  enforced_pkcs1_v1_5_decryption_result_len is non-zero. May be set to null.
@@ -216,15 +215,15 @@ flea_err_e THR_flea_private_key_t__decrypt_message(
  *
  *  @return an error code
  */
-flea_err_e THR_flea_private_key_t__decrypt_message_secure(
-  const flea_private_key_t* privkey,
-  flea_pk_scheme_id_e       id,
-  flea_hash_id_e            hash_id,
-  const flea_u8_t*          ciphertext,
-  flea_al_u16_t             ciphertext_len,
-  flea_byte_vec_t*          result,
-  flea_al_u16_t             enforced_pkcs1_v1_5_decryption_result_len,
-  flea_u8_t*                silent_alarm_mbn
+flea_err_e THR_flea_privkey_t__decr_msg_secure(
+  const flea_privkey_t* privkey,
+  flea_pk_scheme_id_e   id,
+  flea_hash_id_e        hash_id,
+  const flea_u8_t*      ciphertext,
+  flea_al_u16_t         ciphertext_len,
+  flea_byte_vec_t*      result,
+  flea_al_u16_t         enforced_pkcs1_v1_5_decryption_result_len,
+  flea_u8_t*            silent_alarm_mbn
 );
 
 
@@ -240,9 +239,9 @@ flea_err_e THR_flea_private_key_t__decrypt_message_secure(
  *
  * @return an error code
  */
-flea_err_e THR_flea_private_key_t__get_encoded_plain(
-  const flea_private_key_t* key,
-  flea_byte_vec_t*          result
+flea_err_e THR_flea_privkey_t__get_encoded_plain(
+  const flea_privkey_t* key,
+  flea_byte_vec_t*      result
 );
 
 
@@ -267,13 +266,13 @@ flea_err_e THR_flea_private_key_t__get_encoded_plain(
  * @return an error code
  */
 flea_err_e THR_flea_pubkey__compute_ecka(
-  const flea_public_key_t*  pubkey,
-  const flea_private_key_t* privkey,
-  flea_dtl_t                kdf_out_len,
-  const flea_u8_t*          shared_info_mbn,
-  flea_al_u16_t             shared_info_mbn_len,
-  flea_hash_id_e            hash_id,
-  flea_byte_vec_t*          result
+  const flea_pubkey_t*  pubkey,
+  const flea_privkey_t* privkey,
+  flea_dtl_t            kdf_out_len,
+  const flea_u8_t*      shared_info_mbn,
+  flea_al_u16_t         shared_info_mbn_len,
+  flea_hash_id_e        hash_id,
+  flea_byte_vec_t*      result
 );
 
 # ifdef __cplusplus

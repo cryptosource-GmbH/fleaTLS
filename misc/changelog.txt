@@ -9,8 +9,29 @@
 #
 # Changelog of the fleaTLS cryptographic library
 # http://keepachangelog.com/en/1.0.0/
+#
+# fleaTLS uses semantic versioning. However, in verion 1 there will still be
+# minor API changes between minor versions. From version 2 on, API changes will
+# only appear in new major versions.
+#
 
-## [ XXX ] unreleased
+## [ X.X.X ] UNRELEASED
+
+### Fixed
+- insufficient initialization in the flea_ae_ctx_t__INIT macro resp. ctor, leading to
+use of uninitialized value in the flea_ae_ctx_t object and thus faulty
+computations. No security implications known.
+
+### Changed
+- renamed THR_flea_ecb_mode_crypt_data to THR_flea_ecb_ctx_t__crypt_data to
+fit the naming convention
+
+### Removed
+- all <type>__INIT_VALUE macros and accordingly FLEA_DECL_OBJ(). They introduce too much redundancy and compatibility
+issues with C++. Their use needs to be replaced by usage of the corresponding
+<type>__INIT() macro.
+
+## [ 1.3.0 ] 2018-04-19 cryptosource GmbH	info@fleatls.com
 
 ### Fixed
 - fixed ECDSA signature encoding bug when using secp160r1 (order bit length = 161)
@@ -20,6 +41,7 @@ failures when compression is offered by the client. Reported by Andreas Walz (Ho
 
 ### Added
 - C-file based read stream
+- TLS PSK cipher suites
 
 ### Changed
 - removed version number from built library file
