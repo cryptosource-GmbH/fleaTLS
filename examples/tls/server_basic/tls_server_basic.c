@@ -47,11 +47,8 @@ int main()
   const flea_tls_cipher_suite_id_t cipher_suites[4] =
   {flea_tls_rsa_with_aes_128_cbc_sha,
    flea_tls_rsa_with_aes_256_cbc_sha,
-#ifdef FLEA_HAVE_TLS_CS_ECDHE
    flea_tls_ecdhe_rsa_with_aes_128_cbc_sha,
-   flea_tls_ecdhe_ecdsa_with_aes_256_cbc_sha
-#endif
-  };
+   flea_tls_ecdhe_ecdsa_with_aes_256_cbc_sha};
   const flea_ec_dom_par_id_e ec_curves[2] = {flea_brainpoolP256r1, flea_secp256r1};
 
   flea_dtl_t buf_len = sizeof(buf) - 1;
