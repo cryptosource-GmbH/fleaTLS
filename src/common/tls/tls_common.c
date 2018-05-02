@@ -1650,9 +1650,10 @@ flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
 } /* THR_flea_tls_ctx_t__send_max_fragment_length_ext */
 
 /*
- * returns 0 if not matching
- * otherwise returns the maximum possible setting.
- * buf_len__alu16 is supposed to be the plain text record size
+ * returns 0 to indicate that the extension can not be applied (buffer either
+ * too large or too small)
+ * otherwise returns the appropriate byte for the extension which ensures
+ * maximal size for the maximum record size.
  */
 flea_u8_t flea_tls__get_max_fragment_length_byte_for_buf_size(flea_u16_t buf_len__u16)
 {
