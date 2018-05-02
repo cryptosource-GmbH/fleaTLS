@@ -198,7 +198,7 @@ flea_err_e THR_flea_sha512_compression_function(
 
   for(i = 0; i < 32; i++)
   {
-    W[i] = flea__dec_U32_BE(input + 4 * i);
+    W[i] = flea__decode_U32_BE(input + 4 * i);
   }
 
   for(i = 32; i < 160; i += 2)

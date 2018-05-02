@@ -259,7 +259,7 @@ static flea_err_e THR_flea_tls__read_client_hello(
 # ifdef FLEA_HAVE_TLS_CS_ECC
   for(i = 0; i < peer_cipher_suites_u16_be__t.len__dtl; i += 2)
   {
-    curr_cs_from_peer__e = flea__dec_U16_BE(&peer_cipher_suites_u16_be__t.data__pu8[i]);
+    curr_cs_from_peer__e = flea__decode_U16_BE(&peer_cipher_suites_u16_be__t.data__pu8[i]);
 
     supported_cs_index__alu16 = 0;
     while(supported_cs_index__alu16 < supported_cs_len__alu16)
@@ -927,7 +927,7 @@ static flea_err_e THR_flea_tls__read_cert_verify(
       2
     )
   );
-  sig_len__u16 = flea__dec_U16_BE(sig_len_to_dec__au8);
+  sig_len__u16 = flea__decode_U16_BE(sig_len_to_dec__au8);
 
   // read signature
   FLEA_ALLOC_BUF(sig__bu8, sig_len__u16);
