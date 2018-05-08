@@ -21,6 +21,8 @@
 - insufficient initialization in the flea_ae_ctx_t__INIT macro resp. ctor, leading to
 use of uninitialized value in the flea_ae_ctx_t object and thus faulty
 computations. No security implications known.
+- failure during TLS KEX signature verification when a
+certificate chain of total length 2 is used and the root is not sent
 
 ### Changed
 - renamed THR_flea_ecb_mode_crypt_data to THR_flea_ecb_ctx_t__crypt_data to
