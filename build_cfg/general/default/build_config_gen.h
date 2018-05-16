@@ -674,13 +674,14 @@
 
 /**
  * Based on this value the buffer size for received records will be calculated.
- * The plaintext size does not include the header or additional data like padding. A complete record will
- * not exceed FlEA_TLS_RECORD_MAX_PLAINTEXT_SIZE + 325 but is dependent on the
- * negotiated cipher suite. If the maximum determined record size (including the
- * plaintext and additional data) is smaller than mandated by the TLS standard,
- * then fleaTLS will attempt to negotiate a smaller record size by using the
- * maximum fragment length extension. Sending the extension only applies to the client.
- * */
+ * The TLS standard mandates a size of 2^14. If a smaller size is chosen, an
+ * attempt will be made to negotiate smaller records using the maximum fragment
+ * length extension.
+ * If negotiation fails, fleaTLS will continue as long as no
+ * larger message is received.
+ * The receive buffer will be at most 325 byte larger than
+ * FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE, depending on compiled cipher suites.
+ */
 # define FlEA_TLS_RECORD_MAX_PLAINTEXT_SIZE 16384
 
 /**
