@@ -68,12 +68,12 @@ ELSE()
 ENDIF()
 
 
-SET(BUILD_STATIC false CACHE STRING
-      "Whether to build also a static version of the library or not: true/false"
-      )
-IF(BUILD_STATIC STREQUAL true)
-    SET(DO_BUILD_STATIC 1)
-ENDIF()
+#SET(BUILD_STATIC false CACHE STRING
+#      "Whether to build also a static version of the library or not: true/false"
+#      )
+#IF(BUILD_STATIC STREQUAL true)
+#    SET(DO_BUILD_STATIC 1)
+#ENDIF()
 
 SET(asan false CACHE STRING
       "Whether to build an additional version of the library and the tests using asan: true/false"
@@ -103,7 +103,7 @@ SET(TEST_LIB_STRING_ASAN ${TEST_LIB_NAME_STRING}${VERSION_STRING}${ASAN_STR})
 SET(TEST_LIB_STRING_STATIC${TEST_LIB_NAME_STRING}_static${VERSION_STRING})
 SET(TEST_LIB_STRING_STATIC_ASAN ${TEST_LIB_NAME_STRING}_static${VERSION_STRING}${ASAN_STR})
 
-SET(BUILD_CFG_SUFFIXES "record_pt_512" "record_pt_1024" "record_pt_2048" "record_pt_4096")
+SET(BUILD_CFG_SUFFIXES "rpt512" "rpt1024" "rpt2048" "rpt4096")
 
 SET(PROJECT_BINARY_DIR build)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
@@ -114,7 +114,8 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 SET(INCLUDE_DIR_NO_BUILD_CFG include include/api test/include test/include/api
   build_cfg/pltf_spec/32bit_default )
-SET(INCLUDE_DIR ${INCLUDE_DIR_NO_BUILD_CFG} build_cfg/general/${build_cfg}) 
+SET(BUILD_CFG_PATH build_cfg/general/)
+SET(INCLUDE_DIR ${INCLUDE_DIR_NO_BUILD_CFG} ${BUILD_CFG_PATH}${build_cfg}) 
 
 SET(SRC_DIR src )
 
@@ -147,14 +148,14 @@ IF(DO_BUILD_SHARED)
 
 	# add libraries for BUILD_CFG_SUFFIXES 
 	foreach(build_cfg_suff ${BUILD_CFG_SUFFIXES})
-		SET(INCLUDE_DIR_BUILD_CFG ${INCLUDE_DIR_NO_BUILD_CFG} build_cfg/general/internal_dragon_cfg/record_pt_512)
-		ADD_LIBRARY(${FULL_LIB_STRING}-build_cfg-${build_cfg_suff}_lib EXCLUDE_FROM_ALL SHARED ${FLEA_SRCS})
-		TARGET_LINK_LIBRARIES(${FULL_LIB_STRING}-build_cfg-${build_cfg_suff}_lib pthread )
-		target_include_directories(${FULL_LIB_STRING}-build_cfg-${build_cfg_suff}_lib PRIVATE ${INCLUDE_DIR_BUILD_CFG})
+		SET(INCLUDE_DIR_BUILD_CFG ${INCLUDE_DIR_NO_BUILD_CFG} ${BUILD_CFG_PATH}internal_${build_cfg_suff}) 
+		ADD_LIBRARY(${FULL_LIB_STRING}-${build_cfg_suff} EXCLUDE_FROM_ALL SHARED ${FLEA_SRCS})
+		TARGET_LINK_LIBRARIES(${FULL_LIB_STRING}-${build_cfg_suff} pthread )
+		target_include_directories(${FULL_LIB_STRING}-${build_cfg_suff} PRIVATE ${INCLUDE_DIR_BUILD_CFG})
 
-		ADD_LIBRARY(${TEST_LIB_STRING}-build_cfg-${build_cfg_suff} EXCLUDE_FROM_ALL SHARED ${TEST_LIB_SRCS})
-		TARGET_LINK_LIBRARIES(${TEST_LIB_STRING}-build_cfg-${build_cfg_suff} pthread )
-		target_include_directories(${TEST_LIB_STRING}-build_cfg-${build_cfg_suff} PRIVATE ${INCLUDE_DIR_BUILD_CFG})
+		ADD_LIBRARY(${TEST_LIB_STRING}-${build_cfg_suff} EXCLUDE_FROM_ALL SHARED ${TEST_LIB_SRCS})
+		TARGET_LINK_LIBRARIES(${TEST_LIB_STRING}-${build_cfg_suff} pthread )
+		target_include_directories(${TEST_LIB_STRING}-${build_cfg_suff} PRIVATE ${INCLUDE_DIR_BUILD_CFG})
 	endforeach(build_cfg_suff)
 ENDIF()
 
@@ -171,12 +172,12 @@ target_include_directories(flea-test PRIVATE ${INCLUDE_DIR})
 # add executables for BUILD_CFG_SUFFIXES 
 SET(BUILD_CFG_FULL)
 foreach(build_cfg_suff ${BUILD_CFG_SUFFIXES})
-	list(APPEND BUILD_CFG_FULL flea-build_cfg-${build_cfg_suff})
-	SET(INCLUDE_DIR_BUILD_CFG ${INCLUDE_DIR_NO_BUILD_CFG} build_cfg/general/internal_dragon_cfg/record_pt_512)
+    list(APPEND BUILD_CFG_FULL flea-test-${build_cfg_suff})
+    SET(INCLUDE_DIR_BUILD_CFG ${INCLUDE_DIR_NO_BUILD_CFG} ${BUILD_CFG_PATH}internal_${build_cfg_suff}) 
 
-	ADD_EXECUTABLE(flea-build_cfg-${build_cfg_suff} EXCLUDE_FROM_ALL test/src/pc/unit_test_main.cpp ${TEST_SRCS})
-	TARGET_LINK_LIBRARIES(flea-build_cfg-${build_cfg_suff} ${FULL_LIB_STRING}-build_cfg-${build_cfg_suff}_lib ${TEST_LIB_STRING}-build_cfg-${build_cfg_suff})
-	target_include_directories(flea-build_cfg-${build_cfg_suff} PRIVATE ${INCLUDE_DIR_BUILD_CFG})
+    ADD_EXECUTABLE(flea-test-${build_cfg_suff} EXCLUDE_FROM_ALL test/src/pc/unit_test_main.cpp ${TEST_SRCS})
+    TARGET_LINK_LIBRARIES(flea-test-${build_cfg_suff} ${FULL_LIB_STRING}-${build_cfg_suff} ${TEST_LIB_STRING}-${build_cfg_suff})
+    target_include_directories(flea-test-${build_cfg_suff} PRIVATE ${INCLUDE_DIR_BUILD_CFG})
 endforeach(build_cfg_suff)
 add_custom_target(build_cfg_all DEPENDS ${BUILD_CFG_FULL})
 
