@@ -104,6 +104,7 @@ SET(TEST_LIB_STRING_STATIC${TEST_LIB_NAME_STRING}_static${VERSION_STRING})
 SET(TEST_LIB_STRING_STATIC_ASAN ${TEST_LIB_NAME_STRING}_static${VERSION_STRING}${ASAN_STR})
 
 SET(BUILD_CFG_SUFFIXES "rpt512" "rpt1024" "rpt2048" "rpt4096")
+SET(BUILD_CFG_TARGETS_FULL_STR) 
 
 SET(PROJECT_BINARY_DIR build)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
@@ -138,25 +139,25 @@ FILE(GLOB TEST_LIB_SRCS test/src/test_lib/*.cpp test/src/test_lib/*.c )
 
 
 IF(DO_BUILD_SHARED)
-    ADD_LIBRARY(${FULL_LIB_STRING} SHARED ${FLEA_SRCS})
-    TARGET_LINK_LIBRARIES(${FULL_LIB_STRING} pthread )
-	target_include_directories(${FULL_LIB_STRING}  PRIVATE ${INCLUDE_DIR})
+  ADD_LIBRARY(${FULL_LIB_STRING} SHARED ${FLEA_SRCS})
+  TARGET_LINK_LIBRARIES(${FULL_LIB_STRING} pthread )
+  target_include_directories(${FULL_LIB_STRING}  PRIVATE ${INCLUDE_DIR})
 
-    ADD_LIBRARY(${TEST_LIB_STRING} SHARED ${TEST_LIB_SRCS})
-    TARGET_LINK_LIBRARIES(${TEST_LIB_STRING} pthread )
-	target_include_directories(${TEST_LIB_STRING}  PRIVATE ${INCLUDE_DIR})
+  ADD_LIBRARY(${TEST_LIB_STRING} SHARED ${TEST_LIB_SRCS})
+  TARGET_LINK_LIBRARIES(${TEST_LIB_STRING} pthread )
+  target_include_directories(${TEST_LIB_STRING}  PRIVATE ${INCLUDE_DIR})
 
-	# add libraries for BUILD_CFG_SUFFIXES 
-	foreach(build_cfg_suff ${BUILD_CFG_SUFFIXES})
-		SET(INCLUDE_DIR_BUILD_CFG ${INCLUDE_DIR_NO_BUILD_CFG} ${BUILD_CFG_PATH}internal_${build_cfg_suff}) 
-		ADD_LIBRARY(${FULL_LIB_STRING}-${build_cfg_suff} EXCLUDE_FROM_ALL SHARED ${FLEA_SRCS})
-		TARGET_LINK_LIBRARIES(${FULL_LIB_STRING}-${build_cfg_suff} pthread )
-		target_include_directories(${FULL_LIB_STRING}-${build_cfg_suff} PRIVATE ${INCLUDE_DIR_BUILD_CFG})
+  # add libraries for BUILD_CFG_SUFFIXES 
+  foreach(build_cfg_suff ${BUILD_CFG_SUFFIXES})
+    SET(INCLUDE_DIR_BUILD_CFG ${INCLUDE_DIR_NO_BUILD_CFG} ${BUILD_CFG_PATH}internal_${build_cfg_suff}) 
+    ADD_LIBRARY(${FULL_LIB_STRING}-${build_cfg_suff} EXCLUDE_FROM_ALL SHARED ${FLEA_SRCS})
+    TARGET_LINK_LIBRARIES(${FULL_LIB_STRING}-${build_cfg_suff} pthread )
+    target_include_directories(${FULL_LIB_STRING}-${build_cfg_suff} PRIVATE ${INCLUDE_DIR_BUILD_CFG})
 
-		ADD_LIBRARY(${TEST_LIB_STRING}-${build_cfg_suff} EXCLUDE_FROM_ALL SHARED ${TEST_LIB_SRCS})
-		TARGET_LINK_LIBRARIES(${TEST_LIB_STRING}-${build_cfg_suff} pthread )
-		target_include_directories(${TEST_LIB_STRING}-${build_cfg_suff} PRIVATE ${INCLUDE_DIR_BUILD_CFG})
-	endforeach(build_cfg_suff)
+    ADD_LIBRARY(${TEST_LIB_STRING}-${build_cfg_suff} EXCLUDE_FROM_ALL SHARED ${TEST_LIB_SRCS})
+    TARGET_LINK_LIBRARIES(${TEST_LIB_STRING}-${build_cfg_suff} pthread )
+    target_include_directories(${TEST_LIB_STRING}-${build_cfg_suff} PRIVATE ${INCLUDE_DIR_BUILD_CFG})
+  endforeach(build_cfg_suff)
 ENDIF()
 
 IF(DO_BUILD_STATIC)
@@ -170,16 +171,15 @@ TARGET_LINK_LIBRARIES(flea-test ${FULL_LIB_STRING} ${TEST_LIB_STRING})
 target_include_directories(flea-test PRIVATE ${INCLUDE_DIR})
 
 # add executables for BUILD_CFG_SUFFIXES 
-SET(BUILD_CFG_FULL)
 foreach(build_cfg_suff ${BUILD_CFG_SUFFIXES})
-    list(APPEND BUILD_CFG_FULL flea-test-${build_cfg_suff})
+    list(APPEND BUILD_CFG_TARGETS_FULL_STR flea-test-${build_cfg_suff})
     SET(INCLUDE_DIR_BUILD_CFG ${INCLUDE_DIR_NO_BUILD_CFG} ${BUILD_CFG_PATH}internal_${build_cfg_suff}) 
 
     ADD_EXECUTABLE(flea-test-${build_cfg_suff} EXCLUDE_FROM_ALL test/src/pc/unit_test_main.cpp ${TEST_SRCS})
     TARGET_LINK_LIBRARIES(flea-test-${build_cfg_suff} ${FULL_LIB_STRING}-${build_cfg_suff} ${TEST_LIB_STRING}-${build_cfg_suff})
     target_include_directories(flea-test-${build_cfg_suff} PRIVATE ${INCLUDE_DIR_BUILD_CFG})
 endforeach(build_cfg_suff)
-add_custom_target(build_cfg_all DEPENDS ${BUILD_CFG_FULL})
+
 
 
 #    set (CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS}  -static-libasan -fno-omit-frame-pointer -fsanitize=address")
@@ -195,7 +195,9 @@ SET(ASAN_FLAGS "-fno-omit-frame-pointer -fsanitize=address")
 
 IF(DO_USE_ASAN)
   ADD_LIBRARY(${FULL_LIB_STRING_STATIC_ASAN} STATIC ${FLEA_SRCS})
+  target_include_directories(${FULL_LIB_STRING_STATIC_ASAN} PUBLIC ${INCLUDE_DIR})
   ADD_LIBRARY(${TEST_LIB_STRING_STATIC_ASAN} STATIC ${TEST_LIB_SRCS})
+  target_include_directories(${TEST_LIB_STRING_STATIC_ASAN} PUBLIC ${INCLUDE_DIR})
   TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_STATIC_ASAN} ${TEST_LIB_STRING_STATIC_ASAN}  asan pthread )
   #set_target_properties(${FULL_LIB_STRING_STATIC_ASAN} PROPERTIES COMPILE_FLAGS ${ASAN_FLAGS})
   target_compile_options(${FULL_LIB_STRING_STATIC_ASAN} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
@@ -205,7 +207,31 @@ IF(DO_USE_ASAN)
   target_compile_options(flea-test-asan PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
   TARGET_LINK_LIBRARIES(flea-test-asan asan ${FULL_LIB_STRING_STATIC_ASAN}
     ${TEST_LIB_STRING_STATIC_ASAN} "-m32" )
+
+  # add libraries and executables for BUILD_CFG_SUFFIXES 
+  foreach(build_cfg_suff ${BUILD_CFG_SUFFIXES})
+    SET(INCLUDE_DIR_BUILD_CFG ${INCLUDE_DIR_NO_BUILD_CFG} ${BUILD_CFG_PATH}internal_${build_cfg_suff}) 
+
+    ADD_LIBRARY(${FULL_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} EXCLUDE_FROM_ALL STATIC ${FLEA_SRCS})
+    target_include_directories(${FULL_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} PUBLIC ${INCLUDE_DIR_BUILD_CFG})
+    TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} ${TEST_LIB_STRING_STATIC_ASAN}-${build_cfg_suff}  asan pthread )
+
+    ADD_LIBRARY(${TEST_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} EXCLUDE_FROM_ALL STATIC ${TEST_LIB_SRCS})
+    target_include_directories(${TEST_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} PUBLIC ${INCLUDE_DIR_BUILD_CFG})
+
+    target_compile_options(${FULL_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
+    target_compile_options(${TEST_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
+
+    ADD_EXECUTABLE(flea-test-asan-${build_cfg_suff} EXCLUDE_FROM_ALL test/src/pc/unit_test_main.cpp ${TEST_SRCS})
+    target_compile_options(flea-test-asan-${build_cfg_suff} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
+    TARGET_LINK_LIBRARIES(flea-test-asan-${build_cfg_suff} asan ${FULL_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} ${TEST_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} "-m32" )
+
+	list(APPEND BUILD_CFG_TARGETS_FULL_STR flea-test-asan-${build_cfg_suff})
+  endforeach(build_cfg_suff)
 ENDIF()
+
+# add custom target that will build flea for all configs (and asan if enabled)
+add_custom_target(build_cfg_all DEPENDS ${BUILD_CFG_TARGETS_FULL_STR})
 
 
 IF(${do_build_examples} STREQUAL "true" AND ${build_cfg} STREQUAL "default")
