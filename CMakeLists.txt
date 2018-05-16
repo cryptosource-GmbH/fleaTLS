@@ -167,17 +167,19 @@ ENDIF()
 
 
 ADD_EXECUTABLE(flea-test test/src/pc/unit_test_main.cpp ${TEST_SRCS})
+list(APPEND BUILD_CFG_TARGETS_FULL_STR flea-test)
 TARGET_LINK_LIBRARIES(flea-test ${FULL_LIB_STRING} ${TEST_LIB_STRING})
 target_include_directories(flea-test PRIVATE ${INCLUDE_DIR})
 
 # add executables for BUILD_CFG_SUFFIXES 
 foreach(build_cfg_suff ${BUILD_CFG_SUFFIXES})
-    list(APPEND BUILD_CFG_TARGETS_FULL_STR flea-test-${build_cfg_suff})
     SET(INCLUDE_DIR_BUILD_CFG ${INCLUDE_DIR_NO_BUILD_CFG} ${BUILD_CFG_PATH}internal_${build_cfg_suff}) 
 
     ADD_EXECUTABLE(flea-test-${build_cfg_suff} EXCLUDE_FROM_ALL test/src/pc/unit_test_main.cpp ${TEST_SRCS})
     TARGET_LINK_LIBRARIES(flea-test-${build_cfg_suff} ${FULL_LIB_STRING}-${build_cfg_suff} ${TEST_LIB_STRING}-${build_cfg_suff})
     target_include_directories(flea-test-${build_cfg_suff} PRIVATE ${INCLUDE_DIR_BUILD_CFG})
+
+    list(APPEND BUILD_CFG_TARGETS_FULL_STR flea-test-${build_cfg_suff})
 endforeach(build_cfg_suff)
 
 
@@ -204,6 +206,7 @@ IF(DO_USE_ASAN)
   target_compile_options(${TEST_LIB_STRING_STATIC_ASAN} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
 
   ADD_EXECUTABLE(flea-test-asan test/src/pc/unit_test_main.cpp ${TEST_SRCS})
+  list(APPEND BUILD_CFG_TARGETS_FULL_STR flea-test-asan)
   target_compile_options(flea-test-asan PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
   TARGET_LINK_LIBRARIES(flea-test-asan asan ${FULL_LIB_STRING_STATIC_ASAN}
     ${TEST_LIB_STRING_STATIC_ASAN} "-m32" )
@@ -230,14 +233,18 @@ IF(DO_USE_ASAN)
   endforeach(build_cfg_suff)
 ENDIF()
 
-# add custom target that will build flea for all configs (and asan if enabled)
-add_custom_target(build_cfg_all DEPENDS ${BUILD_CFG_TARGETS_FULL_STR})
-
 
 IF(${do_build_examples} STREQUAL "true" AND ${build_cfg} STREQUAL "default")
   ADD_EXECUTABLE(tls_client_basic ./examples/tls/client_basic/tls_client_basic.c)
+  list(APPEND BUILD_CFG_TARGETS_FULL_STR tls_client_basic)
   TARGET_LINK_LIBRARIES(tls_client_basic ${FULL_LIB_STRING} ${TEST_LIB_STRING} )
+  target_include_directories(tls_client_basic PRIVATE ${INCLUDE_DIR})
 
   ADD_EXECUTABLE(tls_server_basic ./examples/tls/server_basic/tls_server_basic.c)
+  list(APPEND BUILD_CFG_TARGETS_FULL_STR tls_server_basic)
   TARGET_LINK_LIBRARIES(tls_server_basic ${FULL_LIB_STRING} ${TEST_LIB_STRING} )
+  target_include_directories(tls_server_basic PRIVATE ${INCLUDE_DIR})
 ENDIF()
+
+# add custom target that will build flea for all configs (and asan if enabled)
+add_custom_target(build_cfg_all DEPENDS ${BUILD_CFG_TARGETS_FULL_STR})
