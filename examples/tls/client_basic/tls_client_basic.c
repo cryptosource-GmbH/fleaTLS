@@ -34,7 +34,12 @@ int main()
   const flea_u8_t hostname_arr[] = {127, 0, 0, 1};
   flea_ref_cu8_t hostname        = {hostname_arr, 4};
   const char* hostname_str       = {"127.0.0.1"};
-  const flea_tls_cipher_suite_id_t cipher_suites[4] = {flea_tls_rsa_with_aes_128_cbc_sha, flea_tls_rsa_with_aes_256_cbc_sha, flea_tls_ecdhe_rsa_with_aes_128_cbc_sha, flea_tls_ecdhe_ecdsa_with_aes_256_cbc_sha};
+  const flea_tls_cipher_suite_id_t cipher_suites[4] = {
+    flea_tls_rsa_with_aes_128_cbc_sha,
+    flea_tls_rsa_with_aes_256_cbc_sha,
+    flea_tls_ecdhe_rsa_with_aes_128_cbc_sha,
+    flea_tls_ecdhe_ecdsa_with_aes_256_cbc_sha
+  };
   const flea_ec_dom_par_id_e ec_curves[2] = {flea_brainpoolP256r1, flea_secp256r1};
 
 
@@ -123,7 +128,8 @@ int main()
       FLEA_NB_ARRAY_ENTRIES(ec_curves),
       sig_algs,
       FLEA_NB_ARRAY_ENTRIES(sig_algs),
-      flea_tls_flag__reneg_mode__allow_secure_reneg | flea_tls_flag__sha1_cert_sigalg__allow | flea_tls_flag__rev_chk_mode__check_none,
+      flea_tls_flag__reneg_mode__allow_secure_reneg | flea_tls_flag__sha1_cert_sigalg__allow
+      | flea_tls_flag__rev_chk_mode__check_none,
       NULL   /* session resumption is not supported */
     )))
   {

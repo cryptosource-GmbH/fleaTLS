@@ -862,11 +862,12 @@ flea_err_e THR_flea_tls__cert_path_validation(
         }
         FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&mem_rd_strm__t, trusted__prcu8->data__pcu8, trusted__prcu8->len__dtl, &mem_hlp__t));
 
+        flea_pubkey_t__dtor(&cycling_pubkey__t);
         if(FLEA_ERR_FINE == THR_flea_tls__validate_cert(
             tls_ctx__pt,
             &mem_rd_strm__t,
             trusted__prcu8->len__dtl,
-            pubkey_ptr__pt,
+            &cycling_pubkey__t,
             &cycling_signature__t,
             &cycling_tbs_hash__t,
             &cycling_hash_id,
