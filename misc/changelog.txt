@@ -17,6 +17,9 @@
 
 ## [ X.X.X ] UNRELEASED
 
+### Added 
+- tls client/server config flag to allow anonymous peer certificates
+
 ### Fixed
 - insufficient initialization in the flea_ae_ctx_t__INIT macro resp. ctor, leading to
 use of uninitialized value in the flea_ae_ctx_t object and thus faulty
