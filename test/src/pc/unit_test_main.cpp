@@ -168,6 +168,10 @@ static properties_spec_t create_properties_spec()
     "nb-renegs",
     "0"
     ).set_group(tls);
+  result["accept_untrusted"] = properties_spec_entry_t(
+    "Accept the peer's certificate without verifying the certificate chain",
+    ""
+    ).set_group(tls);
   result["session"] = properties_spec_entry_t(
     "A stored session to be resumed in the handshake encoded in hex.",
     "stored_session_hex"
