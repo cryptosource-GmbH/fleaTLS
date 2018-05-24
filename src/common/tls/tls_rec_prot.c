@@ -165,7 +165,8 @@ flea_err_e THR_flea_recprot_t__ctor(
 # endif
   rec_prot__pt->alt_send_buf__raw_len__u16 = FLEA_TLS_ALT_SEND_BUF_SIZE;
   rec_prot__pt->send_rec_buf_raw_len__u16  = FLEA_TLS_TRNSF_BUF_SIZE;
-  rec_prot__pt->record_plaintext_send_max_value__u16 = FlEA_TLS_RECORD_MAX_PLAINTEXT_SIZE;
+  rec_prot__pt->record_plaintext_send_max_value__u16 = rec_prot__pt->alt_send_buf__raw_len__u16
+    - FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE - FLEA_TLS_RECORD_HDR_LEN;
   rec_prot__pt->prot_version__t.major = prot_vers_major;
   rec_prot__pt->prot_version__t.minor = prot_vers_minor;
   rec_prot__pt->rw_stream__pt         = rw_stream__pt;
