@@ -165,10 +165,11 @@ flea_err_e THR_flea_recprot_t__ctor(
 # endif
   rec_prot__pt->alt_send_buf__raw_len__u16 = FLEA_TLS_ALT_SEND_BUF_SIZE;
   rec_prot__pt->send_rec_buf_raw_len__u16  = FLEA_TLS_TRNSF_BUF_SIZE;
-  rec_prot__pt->prot_version__t.major      = prot_vers_major;
-  rec_prot__pt->prot_version__t.minor      = prot_vers_minor;
-  rec_prot__pt->rw_stream__pt       = rw_stream__pt;
-  rec_prot__pt->payload_offset__u16 = 0;
+  rec_prot__pt->record_plaintext_send_max_value__u16 = FlEA_TLS_RECORD_MAX_PLAINTEXT_SIZE;
+  rec_prot__pt->prot_version__t.major = prot_vers_major;
+  rec_prot__pt->prot_version__t.minor = prot_vers_minor;
+  rec_prot__pt->rw_stream__pt         = rw_stream__pt;
+  rec_prot__pt->payload_offset__u16   = 0;
   rec_prot__pt->read_bytes_from_current_record__u16 = 0;
 
   rec_prot__pt->current_record_content_len__u16 = 0;
@@ -250,8 +251,10 @@ static flea_err_e THR_flea_recprot_t__set_cbc_cs_inner(
 
   rec_prot__pt->payload_max_len__u16 = rec_prot__pt->send_rec_buf_raw_len__u16 - FLEA_TLS_RECORD_HDR_LEN
     - reserved_payl_len__alu16;
-  rec_prot__pt->alt_payload_max_len__u16 = rec_prot__pt->alt_send_buf__raw_len__u16 - FLEA_TLS_RECORD_HDR_LEN
-    - reserved_payl_len__alu16;
+
+  /*rec_prot__pt->alt_payload_max_len__u16 = rec_prot__pt->alt_send_buf__raw_len__u16 - FLEA_TLS_RECORD_HDR_LEN
+    - reserved_payl_len__alu16;*/
+  rec_prot__pt->alt_payload_max_len__u16 = rec_prot__pt->record_plaintext_send_max_value__u16;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__set_cbc_cs_inner */
 
@@ -348,8 +351,10 @@ static flea_err_e THR_flea_recprot_t__set_gcm_cs_inner(
 
   rec_prot__pt->payload_max_len__u16 = rec_prot__pt->send_rec_buf_raw_len__u16 - FLEA_TLS_RECORD_HDR_LEN
     - reserved_payl_len__alu16;
-  rec_prot__pt->alt_payload_max_len__u16 = rec_prot__pt->alt_send_buf__raw_len__u16 - FLEA_TLS_RECORD_HDR_LEN
-    - reserved_payl_len__alu16;
+
+  /*rec_prot__pt->alt_payload_max_len__u16 = rec_prot__pt->alt_send_buf__raw_len__u16 - FLEA_TLS_RECORD_HDR_LEN
+    - reserved_payl_len__alu16;*/
+  rec_prot__pt->alt_payload_max_len__u16 = rec_prot__pt->record_plaintext_send_max_value__u16;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__set_gcm_cs_inner */
 

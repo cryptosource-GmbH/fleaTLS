@@ -86,6 +86,7 @@ struct struct_flea_recprot_t
   flea_u8_t*                   send_buf_raw__pu8;
   flea_u16_t                   payload_max_len__u16;
   flea_u16_t                   alt_payload_max_len__u16;
+  flea_u16_t                   record_plaintext_send_max_value__u16; // max. size for alt_payload_max_len__u16 (relevant for using the max fragment length extension)
   flea_u16_t                   send_payload_max_len__u16;
   flea_u16_t                   payload_used_len__u16;
   flea_u16_t                   send_payload_used_len__u16;
