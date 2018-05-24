@@ -1,16 +1,16 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_rw_stream__H_
-#define _flea_rw_stream__H_
+# define _flea_rw_stream__H_
 
-#include "flea/types.h"
-#include "internal/common/rw_stream_types.h"
-#include "flea/byte_vec.h"
+# include "flea/types.h"
+# include "internal/common/rw_stream_types.h"
+# include "flea/byte_vec.h"
 
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 /**
  * Read modes supported by flea_rw_stream_t.
@@ -143,7 +143,7 @@ typedef struct
  *
  * @param stream Pointer to the r/w stream object to init.
  */
-#define flea_rw_stream_t__INIT(stream) memset((stream), 0, sizeof(*(stream)))
+# define flea_rw_stream_t__INIT(stream) memset((stream), 0, sizeof(*(stream)))
 
 /**
  * Initialization value for an r/w stream object.
@@ -153,13 +153,13 @@ typedef struct
 /**
  * Determine whether the r/w stream has a read length limit.
  */
-#define flea_rw_stream_t__HAVE_READ_LIMIT(stream) (((stream)->have_read_limit__b) ? FLEA_TRUE : FLEA_FALSE)
+# define flea_rw_stream_t__HAVE_READ_LIMIT(stream) (((stream)->have_read_limit__b) ? FLEA_TRUE : FLEA_FALSE)
 
 /**
  * Determine the remaining read length in the case that the stream has a read
  * length limit.
  */
-#define flea_rw_stream_t__GET_REM_READ_LEN(stream) ((stream)->read_rem_len__u32 ? (stream)->read_rem_len__u32 : 0)
+# define flea_rw_stream_t__GET_REM_READ_LEN(stream) ((stream)->have_read_limit__b ? (stream)->read_rem_len__u32 : 0)
 
 
 /**
@@ -386,8 +386,8 @@ flea_err_e THR_flea_rw_stream_t__pump(
   flea_err_e*       result_read_strm_err
 );
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

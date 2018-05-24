@@ -308,9 +308,29 @@ static flea_err_e THR_flea_tls__validate_cert(
   flea_u8_t pubkey_oid__au8[10];
   flea_u8_t pubkey_params__au8[FLEA_STKMD_TLS_CERT_PATH_VLD_PUBKEY_PARAMS_BUF_SIZE];
 
-  flea_x509_algid_ref_t sigalg_id__t         = {.oid_ref__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(sigalg_oid__au8), .params_ref_as_tlv__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(sigalg_params__au8)};
-  flea_x509_algid_ref_t outer_sigalg_id__t   = {.oid_ref__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(outer_sigalg_oid__au8), .params_ref_as_tlv__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(outer_sigalg_params__au8)};
-  flea_x509_algid_ref_t public_key_alg_id__t = {.oid_ref__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(pubkey_oid__au8), .params_ref_as_tlv__t = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(pubkey_params__au8)};
+  flea_x509_algid_ref_t sigalg_id__t = {.oid_ref__t           = flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(
+                                          sigalg_oid__au8
+                                          ),
+                                        .params_ref_as_tlv__t =
+                                          flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(sigalg_params__au8)};
+  flea_x509_algid_ref_t outer_sigalg_id__t =
+  {.oid_ref__t           =
+     flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(
+     outer_sigalg_oid__au8
+     ),
+   .params_ref_as_tlv__t =
+     flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(
+     outer_sigalg_params__au8
+     )};
+  flea_x509_algid_ref_t public_key_alg_id__t =
+  {.oid_ref__t           =
+     flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(
+     pubkey_oid__au8
+     ),
+   .params_ref_as_tlv__t =
+     flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK_BUF(
+     pubkey_params__au8
+     )};
 # else /* ifdef FLEA_STACK_MODE */
   flea_x509_algid_ref_t sigalg_id__t         = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
   flea_x509_algid_ref_t outer_sigalg_id__t   = flea_x509_algid_ref_t__CONSTR_EMPTY_ALLOCATABLE;
@@ -323,9 +343,12 @@ static flea_err_e THR_flea_tls__validate_cert(
   flea_hash_id_e sigalg_hash_id;
   flea_pk_key_type_e key_type;
   flea_bool_t optional__b;
-  hostn_validation_info_t hostn_valid_info__t         = {.match_info__t = {.id_matched__b = 0, .contains_ipaddr__b = 0, .contains_dnsname__b = 0}, .host_type_id__e = 0, .user_id__pct = NULL};
+  hostn_validation_info_t hostn_valid_info__t =
+  {.match_info__t = {.id_matched__b = 0, .contains_ipaddr__b = 0, .contains_dnsname__b = 0}, .host_type_id__e = 0,
+   .user_id__pct  = NULL};
   hostn_validation_info_t* hostn_valid_params_mbn__pt = &hostn_valid_info__t;
-  flea_bool_t do_validate_host_name__b = (cert_path_params__pct->hostn_valid_params__pt != NULL) && (cert_path_params__pct->hostn_valid_params__pt->host_id__ct.data__pcu8 != NULL);
+  flea_bool_t do_validate_host_name__b = (cert_path_params__pct->hostn_valid_params__pt != NULL) &&
+    (cert_path_params__pct->hostn_valid_params__pt->host_id__ct.data__pcu8 != NULL);
 
   const flea_al_u16_t previous_non_self_issued_cnt__calu16 = *cnt_non_self_issued_in_path__palu16;
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(
@@ -513,7 +536,8 @@ static flea_err_e THR_flea_tls__validate_cert(
           prev_sn_buffer__pt,
           previous_crldp__pt,
           pubkey_out__pt,
-          tls_ctx__pt->cfg_flags__e & flea_tls_flag__sha1_cert_sigalg__allow ? flea_x509_validation_allow_sha1 : flea_x509_validation_empty_flags
+          tls_ctx__pt->cfg_flags__e
+          & flea_tls_flag__sha1_cert_sigalg__allow ? flea_x509_validation_allow_sha1 : flea_x509_validation_empty_flags
         )
       );
     }
@@ -605,7 +629,9 @@ static flea_err_e THR_flea_tls__validate_cert(
         // (sent in supported curves extension)
         flea_al_u16_t i;
         flea_bool_t curve_supported__b = FLEA_FALSE;
-        flea_ec_dom_par_id_e dp_id__e  = flea_ec_dom_par_ref_t__determine_known_curve(&pubkey_out__pt->pubkey_with_params__u.ec_public_val__t.dp__t);
+        flea_ec_dom_par_id_e dp_id__e  = flea_ec_dom_par_ref_t__determine_known_curve(
+          &pubkey_out__pt->pubkey_with_params__u.ec_public_val__t.dp__t
+          );
         for(i = 0; i < tls_ctx__pt->nb_allowed_curves__u16; i++)
         {
           if(tls_ctx__pt->allowed_ecc_curves__pe[i] == dp_id__e)
@@ -616,7 +642,10 @@ static flea_err_e THR_flea_tls__validate_cert(
         }
         if(curve_supported__b == FLEA_FALSE)
         {
-          FLEA_THROW("Server EE Cert contains a curve that is not allowed (not sent in supported curves extension)", FLEA_ERR_TLS_CERT_VER_FAILED);
+          FLEA_THROW(
+            "Server EE Cert contains a curve that is not allowed (not sent in supported curves extension)",
+            FLEA_ERR_TLS_CERT_VER_FAILED
+          );
         }
       }
 # endif /* if defined FLEA_HAVE_TLS_CS_ECDHE || defined FLEA_HAVE_TLS_CS_ECDSA */
@@ -659,7 +688,8 @@ static flea_err_e THR_flea_tls__validate_cert(
     {
       /* host name needs to be matched and wasn't so yet (in SAN) */
 
-      if((!hostn_valid_info__t.match_info__t.contains_dnsname__b && (hostn_valid_info__t.host_type_id__e == flea_host_dnsname)))
+      if((!hostn_valid_info__t.match_info__t.contains_dnsname__b &&
+        (hostn_valid_info__t.host_type_id__e == flea_host_dnsname)))
       {
         /* as specified in RFC 6125, only use CN if no appropirate SAN elements were
          * found, which is the case now. */
@@ -668,7 +698,14 @@ static flea_err_e THR_flea_tls__validate_cert(
 
         flea_bool_t names_match__b;
 
-        FLEA_CCALL(THR_flea_x509__dec_dn_ref_elements(&dn_ref__t, local_subject__t.data__pu8, local_subject__t.len__dtl, FLEA_TRUE));
+        FLEA_CCALL(
+          THR_flea_x509__dec_dn_ref_elements(
+            &dn_ref__t,
+            local_subject__t.data__pu8,
+            local_subject__t.len__dtl,
+            FLEA_TRUE
+          )
+        );
         FLEA_CCALL(
           THR_flea_x509__verify_host_name(
             &cert_path_params__pct->hostn_valid_params__pt->host_id__ct,
@@ -757,7 +794,10 @@ flea_err_e THR_flea_tls__cert_path_validation(
     FLEA_ASYM_MAX_ENCODED_SIG_LEN + 10
   );
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(cycling_tbs_hash__t, FLEA_MAX_HASH_OUT_LEN);
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(cycling_issuer_dn, FLEA_STKMD_X509_MAX_ISSUER_DN_RAW_BYTE_LEN);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(
+    cycling_issuer_dn,
+    FLEA_STKMD_X509_MAX_ISSUER_DN_RAW_BYTE_LEN
+  );
   flea_hash_id_e cycling_hash_id;
   flea_pubkey_t* pubkey_ptr__pt = pubkey_to_construct__pt;
   const flea_ref_cu8_t* trusted__prcu8;
@@ -787,6 +827,8 @@ flea_err_e THR_flea_tls__cert_path_validation(
     }
 
     FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(rd_strm__pt, &new_cert_len__u32, 3));
+
+
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
     if(iter__alu16 == 0)
     {
@@ -795,9 +837,22 @@ flea_err_e THR_flea_tls__cert_path_validation(
         FLEA_THROW("excessive certificate size", FLEA_ERR_ASN1_DER_EXCSS_LEN);
       }
       FLEA_CCALL(THR_flea_byte_vec_t__resize(&tls_ctx__pt->peer_ee_cert_data__t, new_cert_len__u32));
-      FLEA_CCALL(THR_flea_rw_stream_t__read_full(rd_strm__pt, tls_ctx__pt->peer_ee_cert_data__t.data__pu8, tls_ctx__pt->peer_ee_cert_data__t.len__dtl));
+      FLEA_CCALL(
+        THR_flea_rw_stream_t__read_full(
+          rd_strm__pt,
+          tls_ctx__pt->peer_ee_cert_data__t.data__pu8,
+          tls_ctx__pt->peer_ee_cert_data__t.len__dtl
+        )
+      );
 
-      FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&mem_rd_strm__t, tls_ctx__pt->peer_ee_cert_data__t.data__pu8, tls_ctx__pt->peer_ee_cert_data__t.len__dtl, &mem_hlp__t));
+      FLEA_CCALL(
+        THR_flea_rw_stream_t__ctor_memory(
+          &mem_rd_strm__t,
+          tls_ctx__pt->peer_ee_cert_data__t.data__pu8,
+          tls_ctx__pt->peer_ee_cert_data__t.len__dtl,
+          &mem_hlp__t
+        )
+      );
       rd_strm__pt = &mem_rd_strm__t;
     }
 # endif /* ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF */
@@ -817,11 +872,32 @@ flea_err_e THR_flea_tls__cert_path_validation(
         cert_path_params__pct,
         tls_ctx__pt->rev_chk_cfg__t.crl_der__pt,
         tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16,
-        tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_none ? FLEA_FALSE : (tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_only_ee ? ((iter__alu16 == 1) ? FLEA_TRUE : FLEA_FALSE) : (iter__alu16 > 0)),
+        tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e ==
+        flea_rev_chk_none ? FLEA_FALSE : (tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e ==
+        flea_rev_chk_only_ee ? ((iter__alu16 == 1) ? FLEA_TRUE : FLEA_FALSE) : (iter__alu16 > 0)),
         &sn_buffer__t,
         &previous_crldp__t
       )
     );
+    rd_strm__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
+    if(tls_ctx__pt->cfg_flags__e & flea_tls_flag__accept_untrusted_peer)
+    {
+      /* break after validation of the 1st cert (= peer's EE cert),
+       * ignore the other certificates.
+       */
+      flea_dtl_t rem_len__dtl = flea_rw_stream_t__GET_REM_READ_LEN(rd_strm__pt);
+      FLEA_CCALL(THR_flea_rw_stream_t__skip_read(rd_strm__pt, rem_len__dtl));
+# ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+      FLEA_CCALL(
+        THR_flea_x509_cert_ref_t__ctor(
+          &tls_ctx__pt->peer_ee_cert_ref__t,
+          tls_ctx__pt->peer_ee_cert_data__t.data__pu8,
+          tls_ctx__pt->peer_ee_cert_data__t.len__dtl
+        )
+      );
+# endif /* ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF */
+      FLEA_THR_RETURN();
+    }
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
     flea_rw_stream_t__dtor(&mem_rd_strm__t);
 # endif
@@ -860,7 +936,14 @@ flea_err_e THR_flea_tls__cert_path_validation(
         {
           continue;
         }
-        FLEA_CCALL(THR_flea_rw_stream_t__ctor_memory(&mem_rd_strm__t, trusted__prcu8->data__pcu8, trusted__prcu8->len__dtl, &mem_hlp__t));
+        FLEA_CCALL(
+          THR_flea_rw_stream_t__ctor_memory(
+            &mem_rd_strm__t,
+            trusted__prcu8->data__pcu8,
+            trusted__prcu8->len__dtl,
+            &mem_hlp__t
+          )
+        );
 
         flea_pubkey_t__dtor(&cycling_pubkey__t);
         if(FLEA_ERR_FINE == THR_flea_tls__validate_cert(
@@ -878,7 +961,9 @@ flea_err_e THR_flea_tls__cert_path_validation(
             cert_path_params__pct,
             tls_ctx__pt->rev_chk_cfg__t.crl_der__pt,
             tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16,
-            tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_none ? FLEA_FALSE : (tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e == flea_rev_chk_only_ee ? ((iter__alu16 == 1) ? FLEA_TRUE : FLEA_FALSE) : (iter__alu16 > 0)),
+            tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e ==
+            flea_rev_chk_none ? FLEA_FALSE : (tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e ==
+            flea_rev_chk_only_ee ? ((iter__alu16 == 1) ? FLEA_TRUE : FLEA_FALSE) : (iter__alu16 > 0)),
             &sn_buffer__t,
             &previous_crldp__t
           ))
@@ -892,12 +977,24 @@ flea_err_e THR_flea_tls__cert_path_validation(
 
 # ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
   /* if finished, then a trusted cert was found */
-  FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&tls_ctx__pt->peer_root_cert_ref__t, trusted__prcu8->data__pcu8, trusted__prcu8->len__dtl));
+  FLEA_CCALL(
+    THR_flea_x509_cert_ref_t__ctor(
+      &tls_ctx__pt->peer_root_cert_ref__t,
+      trusted__prcu8->data__pcu8,
+      trusted__prcu8->len__dtl
+    )
+  );
   tls_ctx__pt->peer_root_cert_set__u8 = FLEA_TRUE;
-# endif
+# endif /* ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF */
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
-  FLEA_CCALL(THR_flea_x509_cert_ref_t__ctor(&tls_ctx__pt->peer_ee_cert_ref__t, tls_ctx__pt->peer_ee_cert_data__t.data__pu8, tls_ctx__pt->peer_ee_cert_data__t.len__dtl));
-# endif
+  FLEA_CCALL(
+    THR_flea_x509_cert_ref_t__ctor(
+      &tls_ctx__pt->peer_ee_cert_ref__t,
+      tls_ctx__pt->peer_ee_cert_data__t.data__pu8,
+      tls_ctx__pt->peer_ee_cert_data__t.len__dtl
+    )
+  );
+# endif /* ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF */
 
   FLEA_THR_FIN_SEC(
     flea_pubkey_t__dtor(&cycling_pubkey__t);
