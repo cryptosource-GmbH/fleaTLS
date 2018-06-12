@@ -1,0 +1,9 @@
+
+bc=internal_tmp_test
+FLEA_HEAP_MODE disable
+FLEA_RSA_MAX_PUB_EXP_BIT_LEN set_to 64
+
+bc = internal_tmp_test_2
+FLEA_DO_PRINTF_TEST_OUTPUT    disable
+FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE   set_to  1
+
