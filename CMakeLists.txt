@@ -94,13 +94,13 @@ SET(VERSION_STRING ${DEBUG_STRING})
 SET(LIB_NAME_STRING flea)
 SET(FULL_LIB_STRING ${LIB_NAME_STRING}${VERSION_STRING})
 SET(FULL_LIB_STRING_ASAN ${LIB_NAME_STRING}${VERSION_STRING}${ASAN_STR})
-SET(FULL_LIB_STRING_STATIC${LIB_NAME_STRING}_static${VERSION_STRING})
+SET(FULL_LIB_STRING_STATIC ${LIB_NAME_STRING}_static${VERSION_STRING})
 SET(FULL_LIB_STRING_STATIC_ASAN ${LIB_NAME_STRING}_static${VERSION_STRING}${ASAN_STR})
 
 SET(TEST_LIB_NAME_STRING flea_test_lib)
 SET(TEST_LIB_STRING ${TEST_LIB_NAME_STRING}${VERSION_STRING})
 SET(TEST_LIB_STRING_ASAN ${TEST_LIB_NAME_STRING}${VERSION_STRING}${ASAN_STR})
-SET(TEST_LIB_STRING_STATIC${TEST_LIB_NAME_STRING}_static${VERSION_STRING})
+SET(TEST_LIB_STRING_STATIC ${TEST_LIB_NAME_STRING}_static${VERSION_STRING})
 SET(TEST_LIB_STRING_STATIC_ASAN ${TEST_LIB_NAME_STRING}_static${VERSION_STRING}${ASAN_STR})
 
 SET(BUILD_CFG_SUFFIXES "rpt512" "rpt1024" "rpt2048" "rpt4096")
@@ -205,31 +205,31 @@ IF(DO_USE_ASAN)
   target_compile_options(${FULL_LIB_STRING_STATIC_ASAN} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
   target_compile_options(${TEST_LIB_STRING_STATIC_ASAN} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
 
-  ADD_EXECUTABLE(flea-test-asan test/src/pc/unit_test_main.cpp ${TEST_SRCS})
-  list(APPEND BUILD_CFG_TARGETS_FULL_STR flea-test-asan)
-  target_compile_options(flea-test-asan PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
-  TARGET_LINK_LIBRARIES(flea-test-asan asan ${FULL_LIB_STRING_STATIC_ASAN}
+  ADD_EXECUTABLE(flea-test${ASAN_STR} test/src/pc/unit_test_main.cpp ${TEST_SRCS})
+  list(APPEND BUILD_CFG_TARGETS_FULL_STR flea-test${ASAN_STR})
+  target_compile_options(flea-test${ASAN_STR} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
+  TARGET_LINK_LIBRARIES(flea-test${ASAN_STR} asan ${FULL_LIB_STRING_STATIC_ASAN}
     ${TEST_LIB_STRING_STATIC_ASAN} "-m32" )
 
   # add libraries and executables for BUILD_CFG_SUFFIXES 
   foreach(build_cfg_suff ${BUILD_CFG_SUFFIXES})
     SET(INCLUDE_DIR_BUILD_CFG ${INCLUDE_DIR_NO_BUILD_CFG} ${BUILD_CFG_PATH}internal_${build_cfg_suff}) 
 
-    ADD_LIBRARY(${FULL_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} EXCLUDE_FROM_ALL STATIC ${FLEA_SRCS})
-    target_include_directories(${FULL_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} PUBLIC ${INCLUDE_DIR_BUILD_CFG})
-    TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} ${TEST_LIB_STRING_STATIC_ASAN}-${build_cfg_suff}  asan pthread )
+    ADD_LIBRARY(${FULL_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR} EXCLUDE_FROM_ALL STATIC ${FLEA_SRCS})
+    target_include_directories(${FULL_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR} PUBLIC ${INCLUDE_DIR_BUILD_CFG})
+    TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR} ${TEST_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR}  asan pthread )
 
-    ADD_LIBRARY(${TEST_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} EXCLUDE_FROM_ALL STATIC ${TEST_LIB_SRCS})
-    target_include_directories(${TEST_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} PUBLIC ${INCLUDE_DIR_BUILD_CFG})
+    ADD_LIBRARY(${TEST_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR} EXCLUDE_FROM_ALL STATIC ${TEST_LIB_SRCS})
+    target_include_directories(${TEST_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR} PUBLIC ${INCLUDE_DIR_BUILD_CFG})
 
-    target_compile_options(${FULL_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
-    target_compile_options(${TEST_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
+    target_compile_options(${FULL_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
+    target_compile_options(${TEST_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
 
-    ADD_EXECUTABLE(flea-test-asan-${build_cfg_suff} EXCLUDE_FROM_ALL test/src/pc/unit_test_main.cpp ${TEST_SRCS})
-    target_compile_options(flea-test-asan-${build_cfg_suff} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
-    TARGET_LINK_LIBRARIES(flea-test-asan-${build_cfg_suff} asan ${FULL_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} ${TEST_LIB_STRING_STATIC_ASAN}-${build_cfg_suff} "-m32" )
+    ADD_EXECUTABLE(flea-test-${build_cfg_suff}${ASAN_STR} EXCLUDE_FROM_ALL test/src/pc/unit_test_main.cpp ${TEST_SRCS})
+    target_compile_options(flea-test-${build_cfg_suff}${ASAN_STR} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
+    TARGET_LINK_LIBRARIES(flea-test-${build_cfg_suff}${ASAN_STR} asan ${FULL_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR} ${TEST_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR} "-m32" )
 
-	list(APPEND BUILD_CFG_TARGETS_FULL_STR flea-test-asan-${build_cfg_suff})
+	list(APPEND BUILD_CFG_TARGETS_FULL_STR flea-test-${build_cfg_suff}${ASAN_STR})
   endforeach(build_cfg_suff)
 ENDIF()
 
