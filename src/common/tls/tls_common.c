@@ -1778,7 +1778,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
 # endif /* ifdef FLEA_HEAP_MODE */
     }
   }
-  else if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
+  if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
     if(flea_tls__get_max_fragment_length_byte_for_buf_size(FlEA_TLS_RECORD_MAX_PLAINTEXT_SIZE) !=
       ext_value__u8)
