@@ -25,6 +25,7 @@
 #include "internal/common/crl_int.h"
 #include "flea/mem_read_stream.h"
 #include "internal/common/tls/tls_int.h"
+#include "internal/common/pubkey_int2.h"
 
 #ifdef FLEA_HAVE_TLS
 
@@ -471,6 +472,12 @@ static flea_err_e THR_flea_tls__validate_cert(
       &public_key_alg_id__t.oid_ref__t
     )
   );
+  FLEA_CCALL(
+    THR_flea_pubkey_t__ensure_key_strength(
+      pubkey_out__pt,
+      flea_pk_sec_lev_from_bit_mask(FLEA_PK_SEC_LEV_BIT_MASK_FROM_TLS_FLAGS(tls_ctx__pt->cfg_flags__e))
+    )
+  );
   flea_byte_vec_t__dtor(&public_key_value__t);
   if(have_precursor_to_verify__b)
   {
@@ -512,6 +519,7 @@ static flea_err_e THR_flea_tls__validate_cert(
       FLEA_THROW("SHA1 not supported", FLEA_ERR_X509_UNRECOG_HASH_FUNCTION);
     }
 # endif /* ifdef FLEA_HAVE_SHA1 */
+
     FLEA_CCALL(
       THR_flea_pubkey_t__verify_digest(
         pubkey_out__pt,

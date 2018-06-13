@@ -168,6 +168,11 @@ static properties_spec_t create_properties_spec()
     "nb-renegs",
     "0"
     ).set_group(tls);
+  result["min_key_strength"] = properties_spec_entry_t(
+    "The minimal key strength of public keys in bits within the peer's certificate chain in bits. Supported values are 0, 80, 112, 128, 192, 256",
+    "bit-security",
+    "80"
+    ).set_group(tls);
   result["accept_untrusted"] = properties_spec_entry_t(
     "Accept the peer's certificate without verifying the certificate chain",
     ""

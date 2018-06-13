@@ -129,6 +129,10 @@ std::string get_comma_seperated_list_of_allowed_values(std::map<std::string, T> 
   return result;
 }
 
+flea_u32_t reneg_flag_from_string(std::string const& s);
+
+flea_u32_t min_key_strength_from_string(std::string const& s);
+
 #endif // ifdef FLEA_HAVE_TLS
 
 

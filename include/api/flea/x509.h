@@ -34,48 +34,65 @@ typedef enum
   flea_key_usage_implicit
 } flea_key_usage_exlicitness_e;
 
+/**
+ * Flags affecting the standalone X.509 certificate validation.
+ * Some subsets of enum values represent alternative values for a single
+ * 'field'. In this case, the variable names are of the format
+ * flea_x509_validation__<field-name>_<field-value> and only a single field
+ * value may be chosen for a given field name.
+ *
+ * The minimal required cryptographic strength (field "sec") is specified according according to
+ * the NIST recommendation from 2016 ( https://www.keylength.com/en/4/ ).
+ */
 typedef enum
 {
   /**
    * No flag is set.
    */
-  flea_x509_validation_empty_flags      = 0,
+  flea_x509_validation_empty_flags = 0,
 
-  /**
-   * Enable SHA-1 as signature hash algorithm.
-   */
-  flea_x509_validation_allow_sha1       = 0x01,
 
   /*
    * Enforce a minimum of 80 bit security for the public keys involved in the
-   * certificate validation. This value is the default if no other value is
-   * specified.
+   * certificate validation according to NIST . This value is the default if no other value is
+   * specified for "sec" field of the X.509 validation flags.
    */
-  flea_x509_validation__sec_lev__80bit  = FLEA_PUBKEY_STRENGTH_MASK__80,
+  flea_x509_validation__sec__80bit  = FLEA_PUBKEY_STRENGTH_MASK__80,
 
   /**
    * Enforce a minimum of 112 bit security for the public keys involved in the
    * certificate validation.
    */
-  flea_x509_validation__sec_lev__112bit = FLEA_PUBKEY_STRENGTH_MASK__112 << FLEA_X509_FLAGS_SEC_LEVEL_OFFS,
+  flea_x509_validation__sec__112bit = FLEA_PUBKEY_STRENGTH_MASK__112 << FLEA_X509_FLAGS_SEC_LEVEL_OFFS,
 
   /**
    * Enforce a minimum of 128 bit security for the public keys involved in the
    * certificate validation.
    */
-  flea_x509_validation__sec_lev__128bit = FLEA_PUBKEY_STRENGTH_MASK__128 << FLEA_X509_FLAGS_SEC_LEVEL_OFFS,
+  flea_x509_validation__sec__128bit = FLEA_PUBKEY_STRENGTH_MASK__128 << FLEA_X509_FLAGS_SEC_LEVEL_OFFS,
+
+  /**
+   * Enforce a minimum of 192 bit security for the public keys involved in the
+   * certificate validation.
+   */
+  flea_x509_validation__sec__192bit = FLEA_PUBKEY_STRENGTH_MASK__192 << FLEA_X509_FLAGS_SEC_LEVEL_OFFS,
 
   /**
    * Enforce a minimum of 256 bit security for the public keys involved in the
    * certificate validation.
    */
-  flea_x509_validation__sec_lev__256bit = FLEA_PUBKEY_STRENGTH_MASK__256 << FLEA_X509_FLAGS_SEC_LEVEL_OFFS,
+  flea_x509_validation__sec__256bit = FLEA_PUBKEY_STRENGTH_MASK__256 << FLEA_X509_FLAGS_SEC_LEVEL_OFFS,
 
   /**
    * Disable the check for the key strength. Public keys of all strengths are
    * accepted.
    */
-  flea_x509_validation__sec_lev__0bit   = FLEA_PUBKEY_STRENGTH_MASK__0 << FLEA_X509_FLAGS_SEC_LEVEL_OFFS,
+  flea_x509_validation__sec__0bit   = FLEA_PUBKEY_STRENGTH_MASK__0 << FLEA_X509_FLAGS_SEC_LEVEL_OFFS,
+
+  /**
+   * Enable SHA-1 as signature hash algorithm.
+   */
+  flea_x509_validation_allow_sha1   = 0x08,
 } flea_x509_validation_flags_e;
 
 /**
