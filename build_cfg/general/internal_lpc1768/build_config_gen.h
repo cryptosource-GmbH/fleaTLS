@@ -682,7 +682,7 @@
  * The receive buffer will be at most 325 byte larger than
  * FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE, depending on compiled cipher suites.
  */
-# define FlEA_TLS_RECORD_MAX_PLAINTEXT_SIZE 1150
+# define FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE 1150
 
 /**
  * TLS send buffer size. This buffer used for sending data and determines the

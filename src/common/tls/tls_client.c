@@ -475,7 +475,7 @@ static flea_err_e THR_flea_tls__send_client_hello(
     }
   }
 # endif /* ifdef FLEA_HAVE_TLS_CS_ECC */
-  if(flea_tls__get_max_fragment_length_byte_for_buf_size(FlEA_TLS_RECORD_MAX_PLAINTEXT_SIZE))
+  if(flea_tls__get_max_fragment_length_byte_for_buf_size(FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE))
   {
     tls_ctx->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH;
   }
@@ -1051,13 +1051,13 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
   {
     flea_tls_cert_path_params_t cert_path_params__t =
-    {.kex_type__e                    = flea_tls__get_kex_and_auth_method_by_cipher_suite_id(
+    {.kex_type__e                  = flea_tls__get_kex_and_auth_method_by_cipher_suite_id(
        tls_ctx->selected_cipher_suite__e
-       ), .client_cert_type_mask__u8 = 0,
-     .validate_server_or_client__e   = FLEA_TLS_SERVER,
-     .hostn_valid_params__pt         = hostn_valid_params__pt,
-     .allowed_sig_algs_mbn__pe       = tls_ctx->allowed_sig_algs__pe,
-     .nb_allowed_sig_algs__alu16     = tls_ctx->nb_allowed_sig_algs__alu16};
+       ), .client_cert_type_mask__u8= 0,
+     .validate_server_or_client__e = FLEA_TLS_SERVER,
+     .hostn_valid_params__pt       = hostn_valid_params__pt,
+     .allowed_sig_algs_mbn__pe     = tls_ctx->allowed_sig_algs__pe,
+     .nb_allowed_sig_algs__alu16   = tls_ctx->nb_allowed_sig_algs__alu16};
     FLEA_CCALL(
       THR_flea_tls__read_certificate(
         tls_ctx,
