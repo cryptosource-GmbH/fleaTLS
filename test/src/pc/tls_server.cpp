@@ -413,6 +413,7 @@ static flea_err_e THR_server_cycle(
   flea_u8_t* psk_identity__pu8;
   flea_u16_t psk_identity_len__u16;
   flea_u8_t* psk_identity_hint__pu8;
+  std::string psk_identity_str;
   flea_tls_psk_t psk__t;
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(psk_vec__t, FLEA_TLS_PSK_MAX_PSK_LEN);
 #  endif // ifdef FLEA_HAVE_TLS_CS_PSK
@@ -521,8 +522,8 @@ static flea_err_e THR_server_cycle(
         if(cmdl_args.have_index("psk"))
         {
 #  ifdef FLEA_HAVE_TLS_CS_PSK
-          std::string psk_hex_str      = cmdl_args.get_property_as_string("psk");
-          std::string psk_identity_str = cmdl_args.get_property_as_string("psk_identity");
+          std::string psk_hex_str = cmdl_args.get_property_as_string("psk");
+          psk_identity_str = cmdl_args.get_property_as_string("psk_identity");
           if(psk_hex_str.empty() || psk_identity_str.empty())
           {
             test_utils_exceptn_t("Please use non-empty values for --psk <secret> and --psk_identity <identity>");
