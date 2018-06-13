@@ -413,6 +413,7 @@ static flea_err_e THR_server_cycle(
   flea_u8_t* psk_identity__pu8;
   flea_u16_t psk_identity_len__u16;
   flea_u8_t* psk_identity_hint__pu8;
+  std::string psk_identity_hint_str;
   std::string psk_identity_str;
   flea_tls_psk_t psk__t;
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(psk_vec__t, FLEA_TLS_PSK_MAX_PSK_LEN);
@@ -532,7 +533,8 @@ static flea_err_e THR_server_cycle(
 
           if(cmdl_args.have_index("psk_identity_hint"))
           {
-            psk_identity_hint__pu8 = (flea_u8_t*) cmdl_args.get_property_as_string("psk_identity_hint").c_str();
+            psk_identity_hint_str  = cmdl_args.get_property_as_string("psk_identity_hint");
+            psk_identity_hint__pu8 = (flea_u8_t*) psk_identity_hint_str.c_str();
             new_par__pt->identity_hint_mbn__pu8 = psk_identity_hint__pu8;
             new_par__pt->identity_hint_len__u16 = cmdl_args.get_property_as_string("psk_identity_hint").size();
             FLEA_CCALL(THR_flea_byte_vec_t__set_content(&psk_vec__t, &psk[0], psk.size()));
