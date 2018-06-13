@@ -40,7 +40,8 @@
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  */
 #  define FLEA_DO_PRINTF_ERRS
-# endif
+
+# endif  // if 0
 /* end dgb_cfg */
 /**@}*/
 
@@ -61,6 +62,21 @@
  */
 # define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
 /* end mem_cfg */
+/**@}*/
+
+
+/**
+ * \defgroup pltf_support Platform support
+ */
+/**@{*/
+
+/**
+ * When activated, fleaTLS offers file-based flea_rw_stream_t objects. If not
+ * FILE implementation is offered by the plattform, this feature must be deactivated.
+ */
+# define FLEA_HAVE_STDLIB_FILESYSTEM
+
+/* end pltf_support */
 /**@}*/
 
 /**
@@ -226,7 +242,7 @@
 /**
  * Control the window size for the RSA exponentiation. Choose 5 for greatest speed and 1 for smallest RAM footprint.
  */
-# define FLEA_CRT_RSA_WINDOW_SIZE 3 // FBFLAGS__INT_LIST 1 2 3 4 5
+# define FLEA_CRT_RSA_WINDOW_SIZE 5 // FBFLAGS__INT_LIST 1 2 3 4 5
 
 /**
  * Control the window size for the ECC exponentiation. Choose 4 or 5 for greatest speed and 1 for smallest RAM footprint.
@@ -364,13 +380,14 @@
  * \defgroup tls_cfg TLS configuration
  */
 /**@{*/
-# if defined FLEA_HAVE_RSA && defined FLEA_HAVE_HMAC
+# if defined FLEA_HAVE_TLS_CS_PSK || ((defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && (defined FLEA_HAVE_HMAC || \
+  defined FLEA_HAVE_GCM))
 
 /**
  * Control whether fleaTLS supports TLS.
  */
 #  define FLEA_HAVE_TLS
-# endif
+# endif // if defined FLEA_HAVE_TLS_CS_PSK || ((defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && (defined FLEA_HAVE_HMAC || defined FLEA_HAVE_GCM))
 
 # ifdef FLEA_HAVE_TLS
 
@@ -384,7 +401,27 @@
  */
 #  define FLEA_HAVE_TLS_SERVER
 
-#  define FLEA_HAVE_TLS
+
+/**
+ * Control whether support for PSK cipher suites shall be compiled.
+ */
+#  define FLEA_HAVE_TLS_CS_PSK
+
+/*
+ * Maximal size of identity length that will be processed from the peer.
+ */
+#  define FLEA_TLS_PSK_MAX_IDENTITY_LEN 128     //   RFC: MUST support 128 and can be up to 2^16
+
+/*
+ * Maximal size of identity hint length that will be processed from the peer.
+ */
+
+#  define FLEA_TLS_PSK_MAX_IDENTITY_HINT_LEN 128
+
+/*
+ * Maximal size of pre-shared keys that will be handled.
+ */
+#  define FLEA_TLS_PSK_MAX_PSK_LEN 64           //   RFC: MUST support 64 and can be up to 2^16
 
 #  if defined FLEA_HAVE_ECKA
 
@@ -565,6 +602,50 @@
 #  endif // ifdef FLEA_HAVE_TLS_CS_ECDHE
 # endif // ifdef FLEA_HAVE_TLS_CS_ECDSA
 
+# ifdef FLEA_HAVE_TLS_CS_PSK /* Ciphersuites that use pre-shared keys */
+#  ifdef FLEA_HAVE_TLS_CS_CBC
+#   ifdef FLEA_HAVE_SHA1
+
+/**
+ * Control whether the cipher suite is supported
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_CBC_SHA
+#   endif // ifdef FLEA_HAVE_SHA1
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#   define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA256
+#   ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_CBC_SHA384
+#   endif
+#  endif // ifdef FLEA_HAVE_TLS_CS_CBC
+
+#  ifdef FLEA_HAVE_TLS_CS_GCM
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#   define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_GCM_SHA256
+#   ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_GCM_SHA384
+#   endif
+#  endif // ifdef FLEA_HAVE_TLS_CS_GCM
+# endif // ifdef FLEA_HAVE_TLS_CS_PSK
+
 /**
  * Length of the session IDs that are used by the fleaTLS server.
  */
@@ -574,7 +655,7 @@
 /**
  * Maximal number of sessions held by the server session manager (flea_tls_session_mngr_t, session cache). May not be zero.
  */
-# define FLEA_TLS_MAX_NB_MNGD_SESSIONS 1 // FBFLAGS__INT_LIST 1 2 10 31 257
+# define FLEA_TLS_MAX_NB_MNGD_SESSIONS 1
 
 /**
  * If enabled, the tls client or server context will feature a flea_x509_cert_ref_t of the peer's
@@ -606,7 +687,6 @@
  */
 # define FLEA_TLS_ALT_SEND_BUF_SIZE 140
 
-
 /**
  * Maximal size of public key parameters object in an X.509 certificate. Mainly
  * relevant for certificates featuring EC public keys. Relevant only in stack
@@ -620,7 +700,6 @@
  * Relevant only in stack mode.
  */
 # define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 250
-
 /* end tls_cfg*/
 /**@}*/
 
@@ -666,10 +745,10 @@
 /**
  * Include the mutex header. Remove include directive in the build_config_gen.h file if no mutex support is required. The define is just a dummy for proper generation of this documentation.
  */
-
 // # define FLEA_MUTEX_HEADER_INCL
-
-// # include <pthread.h>
+# ifdef FLEA_HAVE_MUTEX
+#  include <pthread.h>
+# endif
 
 /**
  * Define the mutex type to be used. Disable this define if mutexes are

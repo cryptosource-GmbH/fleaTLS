@@ -23,13 +23,25 @@
 # define FLEA_DO_PRINTF_TEST_OUTPUT
 
 
+/**
+ * When activated, this switch disables assertions in the code that are only
+ * suitable during development.  Remove this define to enable these runtime
+ * development assertions. Enabling the development assertions is not suitable
+ * for production code.  When the development assertions are enabled, a
+ * violation of such an assertion causes the program abortion and printing of an
+ * error message.
+ */
+# define FLEA_NO_DEV_ASSERTIONS // FBFLAGS_CORE_ON_OFF
+
+
 # if 0
 
 /**
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  */
 #  define FLEA_DO_PRINTF_ERRS
-# endif
+
+# endif  // if 0
 /* end dgb_cfg */
 /**@}*/
 
@@ -39,12 +51,32 @@
 /**@{*/
 
 /**
- * Activate this flag to let flea make heap allocation for buffers (referred to
- * as "heap mode"). Deactivate this flag to let flea only use stack buffers
- * (referred to as "stack mode").
+ * Activate this flag to let fleaTLS make heap allocation for buffers (referred to
+ * as "heap mode"). In heap mode, fleaTLS' functions perform heap allocation for
+ * tempary variables and \link apiObjLifeCycle class-like types\endlink, and use
+ * stack memory only for small-sized buffers.
+ *
+ * Deactivate this flag to let fleaTLS only use stack buffers
+ * (referred to as "stack mode"). In stack mode, fleaTLS does not perform any
+ * heap allocations and instead only uses the stack memory. This means that fleaTLS' functions and objects reserve stack space according to the configured algorithms and maximal key size definitions made in the build configuration.
  */
 // # define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
 /* end mem_cfg */
+/**@}*/
+
+
+/**
+ * \defgroup pltf_support Platform support
+ */
+/**@{*/
+
+/**
+ * When activated, fleaTLS offers file-based flea_rw_stream_t objects. If not
+ * FILE implementation is offered by the plattform, this feature must be deactivated.
+ */
+# define FLEA_HAVE_STDLIB_FILESYSTEM
+
+/* end pltf_support */
 /**@}*/
 
 /**
@@ -60,10 +92,10 @@
 /**
  * Control whether CMAC support is compiled
  */
-// # define FLEA_HAVE_CMAC // FBFLAGS_MACALGS_ON_OFF
+// # define FLEA_HAVE_CMAC
 
 /**
- * Control whether EAX support is compiled
+ * Control whether EAX support is compiled. Requires CMAC as a prerequisite.
  */
 // # define FLEA_HAVE_EAX  // FBFLAGS_AEALGS_ON_OFF
 
@@ -150,7 +182,7 @@
 /**
  * Maximum supported key bit size for RSA (size of the public modulus).
  */
-# define FLEA_RSA_MAX_KEY_BIT_SIZE 1024      // FBFLAGS__INT_LIST 1024 1536 2048 4096
+# define FLEA_RSA_MAX_KEY_BIT_SIZE 1024
 
 /**
  * Maximum supported key public exponent bit size for RSA.
@@ -210,13 +242,12 @@
 /**
  * Control the window size for the RSA exponentiation. Choose 5 for greatest speed and 1 for smallest RAM footprint.
  */
-# define FLEA_CRT_RSA_WINDOW_SIZE 3 // FBFLAGS__INT_LIST 1 2 3 4 5
+# define FLEA_CRT_RSA_WINDOW_SIZE 3
 
 /**
  * Control the window size for the ECC exponentiation. Choose 4 or 5 for greatest speed and 1 for smallest RAM footprint.
  */
-# define FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE 3 // FBFLAGS__INT_LIST 1 2 3 4 5
-
+# define FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE 3
 /* end perfomance_cfg */
 /**@}*/
 
@@ -241,20 +272,20 @@
  * Side channel countermeasure which adds pseudo random delays within the public key
  * operations.
  */
-# define FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY
+# define FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY // FBFLAGS_SCM_ON_OFF
 
 /**
  * Side channel countermeasure which adds random delays within the public key
  * operations.
  */
-// # define FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY
+// # define FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY // FBFLAGS_SCM_ON_OFF
 
 /**
  * Perform pseudo operations or data access for cache warming to achieve timing
  * neutral behaviour on platforms with cache within timing attack
  * countermeasures. This feature should be disabled on platforms without cache.
  */
-# define FLEA_SCCM_USE_CACHEWARMING_IN_TA_CM
+# define FLEA_SCCM_USE_CACHEWARMING_IN_TA_CM // FBFLAGS_SCM_ON_OFF
 
 /**@}*/
 
@@ -319,7 +350,7 @@
 
 /**
  * If this switch is deactivated, then only the most common certificate
- * extensions are supported. Deactivate it to safe RAM.
+ * extensions are supported. Deactivate it to save RAM.
  */
 # define FLEA_X509_CERT_REF_WITH_DETAILS
 
@@ -335,7 +366,7 @@
 # define FLEA_STKMD_X509_SAN_ELEMENT_MAX_LEN 50
 
 /**
- * Maximal byte length of an issuerDN in an X.509 certificate. Take effect only
+ * Maximal byte length of an issuerDN in an X.509 certificate. Takes effect only
  * in stack mode.
  */
 # define FLEA_STKMD_X509_MAX_ISSUER_DN_RAW_BYTE_LEN 256
@@ -348,13 +379,14 @@
  * \defgroup tls_cfg TLS configuration
  */
 /**@{*/
-# if defined FLEA_HAVE_RSA && defined FLEA_HAVE_HMAC
+# if defined FLEA_HAVE_TLS_CS_PSK || ((defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && (defined FLEA_HAVE_HMAC || \
+  defined FLEA_HAVE_GCM))
 
 /**
  * Control whether fleaTLS supports TLS.
  */
 #  define FLEA_HAVE_TLS
-# endif
+# endif // if defined FLEA_HAVE_TLS_CS_PSK || ((defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && (defined FLEA_HAVE_HMAC || defined FLEA_HAVE_GCM))
 
 # ifdef FLEA_HAVE_TLS
 
@@ -367,6 +399,28 @@
  * Control whether TLS server will be compiled.
  */
 #  define FLEA_HAVE_TLS_SERVER
+
+
+/**
+ * Control whether support for PSK cipher suites shall be compiled.
+ */
+#  define FLEA_HAVE_TLS_CS_PSK
+
+/*
+ * Maximal size of identity length that will be processed from the peer.
+ */
+#  define FLEA_TLS_PSK_MAX_IDENTITY_LEN 128     //   RFC: MUST support 128 and can be up to 2^16
+
+/*
+ * Maximal size of identity hint length that will be processed from the peer.
+ */
+
+#  define FLEA_TLS_PSK_MAX_IDENTITY_HINT_LEN 128
+
+/*
+ * Maximal size of pre-shared keys that will be handled.
+ */
+#  define FLEA_TLS_PSK_MAX_PSK_LEN 64           //   RFC: MUST support 64 and can be up to 2^16
 
 #  if defined FLEA_HAVE_ECKA
 
@@ -502,6 +556,95 @@
 #  endif // ifdef FLEA_HAVE_TLS_CS_ECDHE
 # endif // ifdef FLEA_HAVE_TLS_CS_RSA
 
+# ifdef FLEA_HAVE_TLS_CS_ECDSA /* Ciphersuits that require ECDSA */
+#  ifdef FLEA_HAVE_TLS_CS_ECDHE
+#   ifdef FLEA_HAVE_TLS_CS_CBC
+#    ifdef FLEA_HAVE_SHA1
+
+/**
+ * Conrol whether the cipher suite is supported
+ */
+#     define FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA
+
+/**
+ * Conrol whether the cipher suite is supported
+ */
+#     define FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+#    endif // ifdef FLEA_HAVE_SHA1
+
+/**
+ * Conrol whether the cipher suite is supported
+ */
+#    define FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_CBC_SHA256
+#    ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Conrol whether the cipher suite is supported
+ */
+#     define FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA384
+#    endif
+#   endif // ifdef FLEA_HAVE_TLS_CS_CBC
+#   ifdef FLEA_HAVE_TLS_CS_GCM
+
+/**
+ * Conrol whether the cipher suite is supported
+ */
+#    define FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_128_GCM_SHA256
+#    ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Conrol whether the cipher suite is supported
+ */
+#     define FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_GCM_SHA384
+#    endif
+#   endif // ifdef FLEA_HAVE_TLS_CS_GCM
+#  endif // ifdef FLEA_HAVE_TLS_CS_ECDHE
+# endif // ifdef FLEA_HAVE_TLS_CS_ECDSA
+
+# ifdef FLEA_HAVE_TLS_CS_PSK /* Ciphersuites that use pre-shared keys */
+#  ifdef FLEA_HAVE_TLS_CS_CBC
+#   ifdef FLEA_HAVE_SHA1
+
+/**
+ * Control whether the cipher suite is supported
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_CBC_SHA
+#   endif // ifdef FLEA_HAVE_SHA1
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#   define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA256
+#   ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_CBC_SHA384
+#   endif
+#  endif // ifdef FLEA_HAVE_TLS_CS_CBC
+
+#  ifdef FLEA_HAVE_TLS_CS_GCM
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#   define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_GCM_SHA256
+#   ifdef FLEA_HAVE_SHA384_512
+
+/**
+ * Control whether the cipher suite is supported.
+ */
+#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_GCM_SHA384
+#   endif
+#  endif // ifdef FLEA_HAVE_TLS_CS_GCM
+# endif // ifdef FLEA_HAVE_TLS_CS_PSK
+
 /**
  * Length of the session IDs that are used by the fleaTLS server.
  */
@@ -509,21 +652,21 @@
 
 
 /**
- * Maximal number of sessions held be the server session manager (flea_tls_session_mngr_t, session cache).
+ * Maximal number of sessions held by the server session manager (flea_tls_session_mngr_t, session cache). May not be zero.
  */
 # define FLEA_TLS_MAX_NB_MNGD_SESSIONS 4 // FBFLAGS__INT_LIST 1 2 10 31 257
 
 /**
  * If enabled, the tls client or server context will feature a flea_x509_cert_ref_t of the peer's
  * EE certificate used during the handshake. Disable this feature to save
- * considerable RAM.
+ * a considerable amount of RAM.
  */
 # define FLEA_TLS_HAVE_PEER_EE_CERT_REF
 
 /**
  * If enabled, the tls client or server context will feature a flea_x509_cert_ref_t of the root
  * certificate used to authenticate the peer's EE certificate used during the handshake. Disable this feature to save
- * considerable RAM.
+ * a considerable amount of RAM.
  */
 # define FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
@@ -539,10 +682,9 @@
 /**
  * TLS send buffer size. This buffer used for sending data and determines the
  * maximal record size of records sent by fleaTLS. Should not be smaller than
- * 150 bytes. A small size reduces performance. May not be greater than 18432.
+ * 150 bytes. A small size reduces performance. May not be greater than 16384.
  */
 # define FLEA_TLS_ALT_SEND_BUF_SIZE 15000
-
 
 /**
  * Maximal size of public key parameters object in an X.509 certificate. Mainly
@@ -598,13 +740,15 @@
  * Control if fleaTLS supports concurrency for its global RNG and the TLS server. Remove the
  * definition in order to deactivate multithreading support in fleaTLS.
  */
-# define FLEA_HAVE_MUTEX
+# define FLEA_HAVE_MUTEX // FBFLAGS_CORE_ON_OFF
 
 /**
  * Include the mutex header. Remove include directive in the build_config_gen.h file if no mutex support is required. The define is just a dummy for proper generation of this documentation.
  */
 # define FLEA_MUTEX_HEADER_INCL
-# include <pthread.h>
+# ifdef FLEA_HAVE_MUTEX
+#  include <pthread.h>
+# endif
 
 /**
  * Define the mutex type to be used. Disable this define if mutexes are
