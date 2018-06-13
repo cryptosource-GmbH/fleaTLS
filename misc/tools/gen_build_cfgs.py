@@ -131,9 +131,7 @@ def create_build_configs(instructions):
             # entering a new build_cfg file
             if(current_output_file_name != ""):
                 # finish file
-                with open(current_output_file_name, 'w') as the_file:
-                    for line in current_file_contents:
-                        the_file.write(line)
+                write_file(current_output_file_name, current_file_contents) 
             current_bc_name = instr.bc_name
             current_output_file_name = "build_cfg/general/" + current_bc_name + "/build_config_gen.h"
             current_file_contents = default_bc_file_as_list()

@@ -139,6 +139,7 @@ static flea_err_e THR_flea_execute_path_test_case_for_properties(
     host_id_mbn__prcu8       = &host_id__rcu8;
   }
 
+  flea_u32_t validation_flags__u32    = (flea_u32_t) flea_x509_validation_allow_sha1;
   flea_rev_chk_mode_e rev_chk_mode__e = flea_rev_chk_none;
   if(!disable_revocation_checking)
   {
@@ -165,6 +166,37 @@ static flea_err_e THR_flea_execute_path_test_case_for_properties(
     }
   }
 
+
+  string min_key_strength_str = prop.get_property_as_string_default_empty("min_key_strength");
+
+  if((min_key_strength_str == "") || (min_key_strength_str == "80"))
+  {
+    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec_lev__80bit);
+  }
+  else if(min_key_strength_str == "0")
+  {
+    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec_lev__0bit);
+  }
+  else if(min_key_strength_str == "112")
+  {
+    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec_lev__112bit);
+  }
+  else if(min_key_strength_str == "128")
+  {
+    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec_lev__128bit);
+  }
+  else if(min_key_strength_str == "256")
+  {
+    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec_lev__256bit);
+  }
+  else
+  {
+    throw test_utils_exceptn_t("invalid specification of  key strength: " + min_key_strength_str);
+  }
+
+
+  flea_x509_validation_flags_e validation_flags__e = (flea_x509_validation_flags_e) validation_flags__u32;
+
   err = THR_flea_test_cert_path_generic(
     &target_cert[0],
     target_cert.size(),
@@ -181,7 +213,8 @@ static flea_err_e THR_flea_execute_path_test_case_for_properties(
     time_str.size(),
     rev_chk_mode__e,
     host_id_mbn__prcu8,
-    host_id_type
+    host_id_type,
+    validation_flags__e
     );
   bool valid = prop.get_as_bool_default_true("valid");
   if(valid && err)
@@ -254,6 +287,12 @@ static properties_spec_t create_cert_path_ini_file_spec()
     )
   );
   spec.insert(std::make_pair("rev_chk_mode", properties_spec_entry_t("revocation checking mode", "mode")));
+  spec.insert(
+    std::make_pair(
+      "min_key_strength",
+      properties_spec_entry_t("minimum enforced key strength in bits", "bit strength")
+    )
+  );
 
 
   return spec;

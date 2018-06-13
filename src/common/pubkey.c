@@ -18,11 +18,33 @@
 #include "flea/rsa_pub_op.h"
 #include "internal/common/oid.h"
 #include "internal/common/pubkey_int.h"
+#include "internal/common/pubkey_int2.h"
 #include "internal/common/pk_enc/pkcs1_v1_5.h"
 #include "flea/mem_read_stream.h"
 #include "flea/cert_path.h"
 
 #ifdef FLEA_HAVE_ASYM_ALGS
+
+flea_pk_sec_lev_e flea_pk_sec_lev_from_bit_mask(flea_al_u8_t bit_mask__alu8)
+{
+  if((bit_mask__alu8 & FLEA_PUBKEY_STRENGTH_MASK__256) == FLEA_PUBKEY_STRENGTH_MASK__256)
+  {
+    return flea_pubkey_256bit;
+  }
+  else if((bit_mask__alu8 & FLEA_PUBKEY_STRENGTH_MASK__128) == FLEA_PUBKEY_STRENGTH_MASK__128)
+  {
+    return flea_pubkey_128bit;
+  }
+  else if((bit_mask__alu8 & FLEA_PUBKEY_STRENGTH_MASK__112) == FLEA_PUBKEY_STRENGTH_MASK__112)
+  {
+    return flea_pubkey_112bit;
+  }
+  else if((bit_mask__alu8 & FLEA_PUBKEY_STRENGTH_MASK__0) == FLEA_PUBKEY_STRENGTH_MASK__0)
+  {
+    return flea_pubkey_0bit;
+  }
+  return flea_pubkey_80bit;
+}
 
 void flea_pubkey_t__get_encoded_plain_ref(
   const flea_pubkey_t* pk,
@@ -385,6 +407,18 @@ flea_err_e THR_flea_pubkey_t__vrfy_sgntr(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_pubkey_t__vrfy_sgntr */
 
+flea_err_e THR_flea_pubkey_t__ensure_key_strength(
+  const flea_pubkey_t* public_key__pt,
+  flea_pk_sec_lev_e    required_strength__e
+)
+{
+  return THR_flea_pk_ensure_key_strength(
+    required_strength__e,
+    public_key__pt->key_bit_size__u16,
+    public_key__pt->key_type__t
+  );
+}
+
 flea_err_e THR_flea_pubkey_t__vrfy_sgntr_use_sigalg_id(
   const flea_pubkey_t*         public_key__pt,
   const flea_x509_algid_ref_t* sigalg_id__t,
@@ -410,6 +444,12 @@ flea_err_e THR_flea_pubkey_t__vrfy_sgntr_use_sigalg_id(
   {
     FLEA_THROW("key type and algorithm don't match", FLEA_ERR_INV_ALGORITHM);
   }
+  FLEA_CCALL(
+    THR_flea_pubkey_t__ensure_key_strength(
+      public_key__pt,
+      flea_pk_sec_lev_from_bit_mask(FLEA_PK_SEC_LEV_BIT_MASK_FROM_X509_FLAGS(cert_ver_flags__e))
+    )
+  );
 #  ifdef FLEA_HAVE_SHA1
   if((hash_id == flea_sha1) && !(cert_ver_flags__e & flea_x509_validation_allow_sha1))
   {
@@ -449,7 +489,7 @@ flea_err_e THR_flea_pubkey_t__vrfy_sgntr_use_sigalg_id(
 #  endif /* ifdef FLEA_HAVE_ECC */
   { }
   FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_pubkey_t__vrfy_sgntr_use_sigalg_id */
+}     /* THR_flea_pubkey_t__vrfy_sgntr_use_sigalg_id */
 
 flea_err_e THR_flea_pubkey_t__verify_digest(
   const flea_pubkey_t* pubkey__pt,
@@ -464,7 +504,7 @@ flea_err_e THR_flea_pubkey_t__verify_digest(
   flea_pk_primitive_id_e primitive_id__t;
   flea_pk_encoding_id_e encoding_id__t;
   flea_al_u16_t digest_len__alu16;
-  flea_al_u16_t key_bit_size__alu16 = 0; // avoid warning
+  flea_al_u16_t key_bit_size__alu16 = 0;   // avoid warning
   flea_al_u16_t primitive_input_len__alu16;
 
   FLEA_DECL_BUF(primitive_input__bu8, flea_u8_t, FLEA_MAX(FLEA_PK_MAX_PRIMITIVE_INPUT_LEN, FLEA_MAX_HASH_OUT_LEN));
@@ -608,7 +648,7 @@ flea_err_e THR_flea_pubkey_t__verify_digest(
       FLEA_FREE_BUF_FINAL(concat_sig__bu8);
     );
   );
-} /* THR_flea_pk_signer_t__final_verify */
+}   /* THR_flea_pk_signer_t__final_verify */
 
 # endif /* ifdef FLEA_HAVE_ASYM_SIG */
 
@@ -624,7 +664,7 @@ flea_err_e THR_flea_public_key__t__get_encoded_plain(
   FLEA_CCALL(THR_flea_byte_vec_t__set_content(result__pt, ref__t.data__pcu8, ref__t.len__dtl));
 
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_pubkey_t__vrfy_sgntr_use_sigalg_id */
 
 void flea_pubkey_t__dtor(flea_pubkey_t* key__pt)
 {

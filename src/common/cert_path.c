@@ -16,6 +16,7 @@
 #include "internal/common/cert_path_int.h"
 #include "internal/common/cert_verify_int.h"
 #include "internal/common/lib_int.h"
+#include "internal/common/pubkey_int2.h"
 #include "internal/common/tls/hostn_ver_int.h"
 
 #ifdef FLEA_HAVE_ASYM_SIG
@@ -222,6 +223,12 @@ static flea_err_e THR_validate_cert_path(
       THR_flea_pubkey_t__ctor_cert(
         key_to_construct_mbn__pt,
         &cert_cpv__pt->cert_collection__bt[cert_cpv__pt->chain__bu16[0]].cert_ref__t
+      )
+    );
+    FLEA_CCALL(
+      THR_flea_pubkey_t__ensure_key_strength(
+        key_to_construct_mbn__pt,
+        flea_pk_sec_lev_from_bit_mask(FLEA_PK_SEC_LEV_BIT_MASK_FROM_X509_FLAGS(cert_ver_flags__e))
       )
     );
   }

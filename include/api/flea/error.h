@@ -1,11 +1,11 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef __flea_error_H_
-#define __flea_error_H_
+# define __flea_error_H_
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 
 typedef enum
@@ -79,6 +79,11 @@ typedef enum
    * An invalid cryptographic key type was specified for an operation.
    */
   FLEA_ERR_INV_KEY_TYPE                                 = 0x0E,
+
+  /**
+   * The public key size does not meet the required security level.
+   */
+  FLEA_ERR_PUBKEY_SEC_LEV_NOT_MET                       = 0x0F,
 
   /**
    * Attempt to transform the elliptic curve point O (zero) to affine
@@ -545,8 +550,8 @@ typedef enum
   FLEA_ERR_OUT_OF_MEM                    = 0xFFFF,
 } flea_err_e;
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

@@ -1,20 +1,20 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_pubkey__H_
-#define _flea_pubkey__H_
+# define _flea_pubkey__H_
 
-#include "internal/common/default.h"
-#include "internal/common/pubkey_int.h"
-#include "flea/types.h"
-#include "flea/hash.h"
-#include "flea/x509.h"
-#include "flea/ec_dom_par.h"
+# include "internal/common/default.h"
+# include "internal/common/pubkey_int.h"
+# include "flea/types.h"
+# include "flea/hash.h"
+# include "flea/x509.h"
+# include "flea/ec_dom_par.h"
 
-#ifdef FLEA_HAVE_ASYM_ALGS
+# ifdef FLEA_HAVE_ASYM_ALGS
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 extern "C" {
-# endif
+#  endif
 
 
 /**
@@ -25,17 +25,17 @@ typedef enum
   /**
    * RSA signature primitive
    */
-  flea_rsa_sign   = 0 << FLEA_PK_ID_OFFS_PRIMITIVE,
+  flea_rsa_sign = 0 << FLEA_PK_ID_OFFS_PRIMITIVE,
 
-    /**
-     * RSA encryption primitive
-     */
-    flea_rsa_encr = 1 << FLEA_PK_ID_OFFS_PRIMITIVE,
+  /**
+   * RSA encryption primitive
+   */
+  flea_rsa_encr = 1 << FLEA_PK_ID_OFFS_PRIMITIVE,
 
-    /**
-     * ECDSA signature primitive
-     */
-    flea_ecdsa    = 2 << FLEA_PK_ID_OFFS_PRIMITIVE
+  /**
+   * ECDSA signature primitive
+   */
+  flea_ecdsa    = 2 << FLEA_PK_ID_OFFS_PRIMITIVE
 } flea_pk_primitive_id_e;
 
 /**
@@ -111,7 +111,7 @@ typedef enum
   flea_rsa_pkcs1_v1_5_sign = flea_rsa_sign | flea_pkcs1_v1_5,
 } flea_pk_scheme_id_e;
 
-# define flea_pk_scheme_id_e__GET_pk_encoding_e(x) (x & ((1 << FLEA_PK_ID_OFFS_PRIMITIVE) - 1))
+#  define flea_pk_scheme_id_e__GET_pk_encoding_e(x) (x & ((1 << FLEA_PK_ID_OFFS_PRIMITIVE) - 1))
 
 /**
  * Key type enumeration.
@@ -129,6 +129,15 @@ typedef enum
   flea_rsa_key
 } flea_pk_key_type_e;
 
+typedef enum
+{
+  flea_pubkey_0bit   = 0,
+  flea_pubkey_80bit  = 40,
+  flea_pubkey_112bit = 56,
+  flea_pubkey_128bit = 64,
+  flea_pubkey_256bit = 128,
+} flea_pk_sec_lev_e;
+
 /**
  * Abstract public key type.
  */
@@ -141,7 +150,7 @@ typedef struct
 } flea_pubkey_t;
 
 
-# define flea_pubkey_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
+#  define flea_pubkey_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
 
 /**
  * Destroy a public key object.
@@ -207,7 +216,7 @@ flea_err_e THR_flea_pubkey_t__ctor_cert(
   const flea_x509_cert_ref_t* cert_ref
 );
 
-# ifdef FLEA_HAVE_RSA
+#  ifdef FLEA_HAVE_RSA
 
 /**
  * Create an RSA public key from the modulus and the public exponent.
@@ -223,9 +232,9 @@ flea_err_e THR_flea_pubkey_t__ctor_rsa(
   const flea_ref_cu8_t* mod,
   const flea_ref_cu8_t* pub_exp
 );
-# endif // ifdef FLEA_HAVE_RSA
+#  endif // ifdef FLEA_HAVE_RSA
 
-# ifdef FLEA_HAVE_ECC
+#  ifdef FLEA_HAVE_ECC
 
 /**
  * Create an ECC public key from the public point and the domain parameters.
@@ -241,9 +250,9 @@ flea_err_e THR_flea_pubkey_t__ctor_ecc(
   const flea_byte_vec_t*       public_key_value,
   const flea_ec_dom_par_ref_t* dp
 );
-# endif // ifdef FLEA_HAVE_ECC
+#  endif // ifdef FLEA_HAVE_ECC
 
-# ifdef FLEA_HAVE_ASYM_SIG
+#  ifdef FLEA_HAVE_ASYM_SIG
 
 /**
  * Verify a signature using a public key.
@@ -309,7 +318,7 @@ flea_err_e THR_flea_pubkey_t__vrfy_sgntr_use_sigalg_id(
   flea_x509_validation_flags_e flags
 );
 
-# endif // ifdef FLEA_HAVE_ASYM_SIG
+#  endif // ifdef FLEA_HAVE_ASYM_SIG
 
 /**
  * Encrypt a message using a public key.
@@ -354,11 +363,15 @@ flea_err_e THR_flea_public_key__t__get_encoded_plain(
   flea_byte_vec_t*     result
 );
 
+flea_err_e THR_flea_pubkey_t__ensure_key_strength(
+  const flea_pubkey_t* public_key__pt,
+  flea_pk_sec_lev_e    required_strength__e
+);
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 }
-# endif
+#  endif
 
-#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
+# endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
 
 #endif /* h-guard */

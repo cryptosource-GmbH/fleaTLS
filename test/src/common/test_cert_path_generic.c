@@ -15,22 +15,23 @@
 
 #if defined FLEA_HAVE_RSA && (defined FLEA_HEAP_MODE || FLEA_RSA_MAX_KEY_BIT_SIZE >= 4096)
 flea_err_e THR_flea_test_cert_path_generic(
-  const flea_u8_t*      target_cert_ptr,
-  flea_u32_t            target_cert_len,
-  flea_u8_t**           trust_anchor_ptrs,
-  flea_u32_t*           trust_anchor_lens,
-  flea_u32_t            nb_trust_anchors,
-  flea_u8_t**           cert_ptrs,
-  flea_u32_t*           cert_lens,
-  flea_u32_t            nb_certs,
-  flea_u8_t**           crl_ptrs,
-  flea_u32_t*           crl_lens,
-  flea_u32_t            nb_crls,
-  const flea_u8_t*      validation_date_utctime,
-  flea_al_u16_t         validation_date_utctime_len,
-  flea_rev_chk_mode_e   rev_chk_mode__e,
-  const flea_ref_cu8_t* host_id_mbn__pcrcu8,
-  flea_host_id_type_e   host_id_type
+  const flea_u8_t*             target_cert_ptr,
+  flea_u32_t                   target_cert_len,
+  flea_u8_t**                  trust_anchor_ptrs,
+  flea_u32_t*                  trust_anchor_lens,
+  flea_u32_t                   nb_trust_anchors,
+  flea_u8_t**                  cert_ptrs,
+  flea_u32_t*                  cert_lens,
+  flea_u32_t                   nb_certs,
+  flea_u8_t**                  crl_ptrs,
+  flea_u32_t*                  crl_lens,
+  flea_u32_t                   nb_crls,
+  const flea_u8_t*             validation_date_utctime,
+  flea_al_u16_t                validation_date_utctime_len,
+  flea_rev_chk_mode_e          rev_chk_mode__e,
+  const flea_ref_cu8_t*        host_id_mbn__pcrcu8,
+  flea_host_id_type_e          host_id_type,
+  flea_x509_validation_flags_e validation_flags__e
 )
 {
   flea_pubkey_t target_pubkey__t;
@@ -52,7 +53,7 @@ flea_err_e THR_flea_test_cert_path_generic(
       &target_cert_ptr[0],
       target_cert_len,
       rev_chk_mode__e,
-      flea_x509_validation_allow_sha1
+      validation_flags__e
     )
   );
   flea_gmt_time_t time__t;
