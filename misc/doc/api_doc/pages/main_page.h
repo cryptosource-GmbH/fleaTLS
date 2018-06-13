@@ -262,7 +262,7 @@ in two different console windows.
 *
 * fleaTLS' general compile-time switches can be set in the build_config_gen.h file in
 * the respective subdirectory of <code>build_cfg/general/</code>.
-* The <code>default</code> subdirectory contains a build configuration with all features activated.
+* The <code>default</code> subdirectory contains a build configuration with all features activated, including multithreading using the pthread API. The build configuration under <code>nomt_nofs</code> disables multithreading and filesystem support and is thus a suitable starting point for bare-metal implementations.
 
  Architecture specific configuration of the proper integer types are provided in <code>build_cfg/pltf_spec/32bit_default/</code>build_cfg_pltf.h. If using a 16-bit platform, FLEA_WORD_BIT_SIZE has to be adjusted in that file.
 *

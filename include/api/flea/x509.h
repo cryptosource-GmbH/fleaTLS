@@ -2,33 +2,80 @@
 
 
 #ifndef _flea_x509__H_
-#define _flea_x509__H_
+# define _flea_x509__H_
 
-#include "internal/common/default.h"
-#include "flea/types.h"
-#include "internal/common/ber_dec.h"
-#include "flea/asn1_date.h"
-#include "internal/common/x509_const_int.h"
+# include "internal/common/default.h"
+# include "flea/types.h"
+# include "internal/common/ber_dec.h"
+# include "flea/asn1_date.h"
+# include "internal/common/pk_def.h"
+# include "internal/common/x509_const_int.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 
 /**
  * Type to control the checking for specific key usages in key usage extensions (i.e. key usage or
  * extended key usage).
  *
- * flea_key_usage_explicit means the respective extension is present and the specified key usages are supported
- * flea_key_usage_implicit means the respective extension is not present and
- *                         thus the key usage is not restricted.
  */
-typedef enum { flea_key_usage_explicit, flea_key_usage_implicit } flea_key_usage_exlicitness_e;
+typedef enum
+{
+  /**
+   * The (extended) key usage extension is present and the specified key usages are supported.
+   */
+  flea_key_usage_explicit,
+
+  /*
+   * Either the (extended) key usage extension is present and the specified key usages are present or the extension not present and thus the key usage is not restricted.
+  */
+  flea_key_usage_implicit
+} flea_key_usage_exlicitness_e;
 
 typedef enum
 {
-  flea_x509_validation_empty_flags = 0,
-  flea_x509_validation_allow_sha1  = 0x01
+  /**
+   * No flag is set.
+   */
+  flea_x509_validation_empty_flags      = 0,
+
+  /**
+   * Enable SHA-1 as signature hash algorithm.
+   */
+  flea_x509_validation_allow_sha1       = 0x01,
+
+  /*
+   * Enforce a minimum of 80 bit security for the public keys involved in the
+   * certificate validation. This value is the default if no other value is
+   * specified.
+   */
+  flea_x509_validation__sec_lev__80bit  = FLEA_PUBKEY_STRENGTH_MASK__80,
+
+  /**
+   * Enforce a minimum of 112 bit security for the public keys involved in the
+   * certificate validation.
+   */
+  flea_x509_validation__sec_lev__112bit = FLEA_PUBKEY_STRENGTH_MASK__112 << FLEA_X509_FLAGS_SEC_LEVEL_OFFS,
+
+  /**
+   * Enforce a minimum of 128 bit security for the public keys involved in the
+   * certificate validation.
+   */
+  flea_x509_validation__sec_lev__128bit = FLEA_PUBKEY_STRENGTH_MASK__128 << FLEA_X509_FLAGS_SEC_LEVEL_OFFS,
+
+  /**
+   * Enforce a minimum of 256 bit security for the public keys involved in the
+   * certificate validation.
+   */
+  flea_x509_validation__sec_lev__256bit = FLEA_PUBKEY_STRENGTH_MASK__256 << FLEA_X509_FLAGS_SEC_LEVEL_OFFS,
+
+  /**
+   * Disable the check for the key strength. Public keys of all strengths are
+   * accepted.
+   */
+  flea_x509_validation__sec_lev__0bit   = FLEA_PUBKEY_STRENGTH_MASK__0 << FLEA_X509_FLAGS_SEC_LEVEL_OFFS,
 } flea_x509_validation_flags_e;
 
 /**
@@ -72,17 +119,17 @@ typedef enum
   flea_dn_cmpnt_country,
   flea_dn_cmpnt_org,
   flea_dn_cmpnt_org_unit,
-#ifdef FLEA_HAVE_X509_DN_DETAILS
+# ifdef FLEA_HAVE_X509_DN_DETAILS
   flea_dn_cmpnt_dn_qual,
   flea_dn_cmpnt_locality_name,
   flea_dn_cmpnt_state_or_province,
   flea_dn_cmpnt_serial_number,
   flea_dn_cmpnt_domain_cmpnt_attrib
-#endif // ifdef FLEA_HAVE_X509_DN_DETAILS
+# endif // ifdef FLEA_HAVE_X509_DN_DETAILS
 } flea_dn_cmpnt_e;
 
-#ifdef FLEA_HAVE_X509_DN_DETAILS
-# define flea_x509_dn_ref_t__CONSTR_EMPTY_ALLOCATABLE \
+# ifdef FLEA_HAVE_X509_DN_DETAILS
+#  define flea_x509_dn_ref_t__CONSTR_EMPTY_ALLOCATABLE \
   { \
     .raw_dn_complete__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
     .country__t         = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
@@ -95,8 +142,8 @@ typedef enum
     .serial_number__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
     .domain_component_attribute__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE \
   }
-#else // ifdef FLEA_HAVE_X509_DN_DETAILS
-# define flea_x509_dn_ref_t__CONSTR_EMPTY_ALLOCATABLE \
+# else // ifdef FLEA_HAVE_X509_DN_DETAILS
+#  define flea_x509_dn_ref_t__CONSTR_EMPTY_ALLOCATABLE \
   { \
     .raw_dn_complete__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
     .common_name__t     = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
@@ -104,7 +151,7 @@ typedef enum
     .org__t      = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
     .org_unit__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE, \
   }
-#endif // ifdef FLEA_HAVE_X509_DN_DETAILS
+# endif // ifdef FLEA_HAVE_X509_DN_DETAILS
 
 /**
  * An X.509 certificate reference type. Contains references to the individual
@@ -131,20 +178,20 @@ typedef struct
 
   flea_x509_public_key_info_t subject_public_key_info__t;
 
-#ifdef FLEA_X509_CERT_REF_WITH_DETAILS
+# ifdef FLEA_X509_CERT_REF_WITH_DETAILS
   flea_byte_vec_t             issuer_unique_id_as_bitstr__t;
 
   flea_byte_vec_t             subject_unique_id_as_bitstr__t;
-#endif
+# endif
   flea_x509_ext_ref_t         extensions__t;
 
   flea_byte_vec_t             cert_signature_as_bit_string__t;
 } flea_x509_cert_ref_t;
 
 
-#define flea_x509_cert_ref_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
+# define flea_x509_cert_ref_t__INIT(__p) memset((__p), 0, sizeof(*(__p)))
 
-#define flea_x509_cert_ref_t__dtor(__p)
+# define flea_x509_cert_ref_t__dtor(__p)
 
 
 /**
@@ -156,7 +203,7 @@ typedef struct
  * @return FLEA_TRUE if the certificate has a path length limit, FLEA_FALSE
  * otherwise.
  */
-#define flea_x509_cert_ref_t__HAS_PATH_LEN_LIMIT(cert_ref__pt) \
+# define flea_x509_cert_ref_t__HAS_PATH_LEN_LIMIT(cert_ref__pt) \
   (((cert_ref__pt)->extensions__t.basic_constraints__t. \
   is_present__u8 && (cert_ref__pt)->extensions__t.basic_constraints__t.has_path_len__b) ? FLEA_TRUE : FLEA_FALSE)
 
@@ -167,7 +214,7 @@ typedef struct
  *
  * @return the path length limit of the certificate.
  */
-#define flea_x509_cert_ref_t__GET_PATH_LEN_LIMIT(cert_ref__pt) \
+# define flea_x509_cert_ref_t__GET_PATH_LEN_LIMIT(cert_ref__pt) \
   ((cert_ref__pt)->extensions__t.basic_constraints__t. \
   path_len__u16)
 
@@ -178,7 +225,7 @@ typedef struct
  * @return FLEA_TRUE if the certificate is a CA certificate, FLEA_FALSE
  * otherwise.
  */
-#define flea_x509_cert_ref_t__IS_CA(cert_ref__pt) \
+# define flea_x509_cert_ref_t__IS_CA(cert_ref__pt) \
   (((cert_ref__pt)->extensions__t.basic_constraints__t.is_present__u8 && \
   (cert_ref__pt)->extensions__t.basic_constraints__t.is_ca__b) ? FLEA_TRUE : FLEA_FALSE)
 
@@ -188,14 +235,14 @@ typedef struct
  * @return FLEA_TRUE if the certificate has an issuer unique id, FLEA_FALSE
  * otherwise.
  */
-#define flea_x509_cert_ref_t__HAS_ISSUER_UNIQUE_ID(cert_ref__pt) \
+# define flea_x509_cert_ref_t__HAS_ISSUER_UNIQUE_ID(cert_ref__pt) \
   (FLEA_DER_REF_IS_ABSENT( \
     &(cert_ref__pt)-> \
     issuer_unique_id_as_bitstr__t \
   ) ? FLEA_FALSE : FLEA_TRUE)
 
 
-#ifdef FLEA_X509_CERT_REF_WITH_DETAILS
+# ifdef FLEA_X509_CERT_REF_WITH_DETAILS
 
 /**
  * Get the issuer unique id as bit string.
@@ -206,7 +253,7 @@ typedef struct
  * @param result_ref__prcu8 a pointer to a flea_ref_cu8_t which receives the result
  *
  */
-# define flea_x509_cert_ref_t__GET_REF_TO_ISSUER_UNIQUE_ID_AS_BIT_STRING(cert_ref__pt, result_ref__prcu8) \
+#  define flea_x509_cert_ref_t__GET_REF_TO_ISSUER_UNIQUE_ID_AS_BIT_STRING(cert_ref__pt, result_ref__prcu8) \
   do {if(FLEA_DER_REF_IS_ABSENT(&(cert_ref__pt)->issuer_unique_id_as_bitstr__t))  { \
         (result_ref__prcu8)->data__pcu8 = NULL; \
         (result_ref__prcu8)->len__dtl   = 0; \
@@ -215,7 +262,7 @@ typedef struct
         (result_ref__prcu8)->len__dtl   = (cert_ref__pt)->issuer_unique_id_as_bitstr__t.len__dtl; \
       } \
   } while(0)
-#endif // ifdef FLEA_X509_CERT_REF_WITH_DETAILS
+# endif // ifdef FLEA_X509_CERT_REF_WITH_DETAILS
 
 /**
  * Get the version of the certificate.
@@ -224,7 +271,7 @@ typedef struct
  *
  * @return the version of the certificate
  */
-#define flea_x509_cert_ref_t__GET_CERT_VERSION(cert_ref__pt) ((cert_ref__pt)->version__u8)
+# define flea_x509_cert_ref_t__GET_CERT_VERSION(cert_ref__pt) ((cert_ref__pt)->version__u8)
 
 /**
  * Get the serial number of the certificate.
@@ -233,7 +280,7 @@ typedef struct
  * @param result_ref__prcu8 a pointer to a flea_ref_u8_t which receives the result
  *
  */
-#define flea_x509_cert_ref_t__GET_SERIAL_NUMBER(cert_ref__pt, result_ref__prcu8) \
+# define flea_x509_cert_ref_t__GET_SERIAL_NUMBER(cert_ref__pt, result_ref__prcu8) \
   do { \
     (result_ref__prcu8)->data__pcu8 = (cert_ref__pt)->serial_number__t.data__pu8; \
     (result_ref__prcu8)->len__dtl   = (cert_ref__pt)->serial_number__t.len__dtl; \
@@ -246,7 +293,7 @@ typedef struct
  * @param result_ref__prcu8 a pointer to a flea_ref_u8_t which receives the result
  *
  */
-#define flea_x509_cert_ref_t__GET_SIGALG_OID(cert_ref__pt, result_ref__prcu8) \
+# define flea_x509_cert_ref_t__GET_SIGALG_OID(cert_ref__pt, result_ref__prcu8) \
   do { \
     (result_ref__prcu8)->data__pcu8 = (cert_ref__pt)->tbs_sig_algid__t.oid_ref__t.data__pu8; \
     (result_ref__prcu8)->len__dtl   = (cert_ref__pt)->tbs_sig_algid__t.oid_ref__t.len__dtl; \
@@ -404,8 +451,8 @@ flea_err_e THR_flea_x509_cert__get_bv_ref_to_tbs(
 );
 
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

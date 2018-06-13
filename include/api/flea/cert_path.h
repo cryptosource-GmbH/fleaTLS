@@ -1,21 +1,21 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_cert_path_validator__H_
-#define _flea_cert_path_validator__H_
+# define _flea_cert_path_validator__H_
 
-#include "internal/common/default.h"
-#include "flea/x509.h"
-#include "flea/pubkey.h"
-#include "flea/hostn_ver.h"
-#include "internal/common/cert_info_int.h"
-#include "internal/common/crl_int.h"
-#include "internal/common/crl_int.h"
+# include "internal/common/default.h"
+# include "flea/x509.h"
+# include "flea/pubkey.h"
+# include "flea/hostn_ver.h"
+# include "internal/common/cert_info_int.h"
+# include "internal/common/crl_int.h"
+# include "internal/common/crl_int.h"
 
-#ifdef FLEA_HAVE_ASYM_ALGS
+# ifdef FLEA_HAVE_ASYM_ALGS
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 extern "C" {
-# endif
+#  endif
 
 typedef enum
 {
@@ -38,15 +38,15 @@ typedef enum
  */
 typedef struct
 {
-# ifdef FLEA_HEAP_MODE
+#  ifdef FLEA_HEAP_MODE
   flea_ref_cu8_t*              crl_collection__brcu8;
   flea_x509_cert_info_t*       cert_collection__bt;
   flea_u16_t*                  chain__bu16;
-# else
+#  else
   flea_ref_cu8_t               crl_collection__brcu8[FLEA_MAX_CERT_COLLECTION_NB_CRLS];
   flea_x509_cert_info_t        cert_collection__bt[FLEA_MAX_CERT_COLLECTION_SIZE];
   flea_u16_t                   chain__bu16[FLEA_MAX_CERT_CHAIN_DEPTH]; // including target and TA
-# endif // ifdef FLEA_HEAP_MODE
+#  endif // ifdef FLEA_HEAP_MODE
   flea_u16_t                   crl_collection_allocated__u16;
   flea_u16_t                   cert_collection_allocated__u16;
   flea_u16_t                   nb_crls__u16;
@@ -59,7 +59,7 @@ typedef struct
 } flea_cpv_t;
 
 
-# define flea_cpv_t__INIT(cpv) FLEA_MEMSET(cpv, 0, sizeof(*(cpv)))
+#  define flea_cpv_t__INIT(cpv) FLEA_MEMSET(cpv, 0, sizeof(*(cpv)))
 
 void flea_cpv_t__dtor(flea_cpv_t* cpv);
 
@@ -137,6 +137,8 @@ flea_err_e THR_flea_cpv_t__add_trust_anchor_cert(
  * certificate for any specific purpose, which must be performed seperatly. In
  * case of a successful path validation the function returns without an error.
  *
+ * Note: The minimum key strength as specified in the flea_x509_validation_flags_e as specified in the object's ctor call will only be enforced for all issuing certificates in the chain, but not for the public key in the target certificate itself. To enforce also the minimum key strength for the target certificate's public key, use the function THR_flea_cpv_t__validate_and_create_pub_key() instead.
+ *
  * @param cpv the cert path validator object
  * @param time_mbn the current time in timezone GMT. May be null, then the
  * function determines the current time itself.
@@ -148,6 +150,8 @@ flea_err_e THR_flea_cpv_t__validate(
 
 /**
  * The same operation as THR_flea_cpv_t__validate(), but additionally constructs the public key of the the target certificate.
+ *
+ * Note: The minimum key strength as specified in the flea_x509_validation_flags_e as specified in the object's ctor call will be enforced for all certificates in the chain, including the target certificate's public key.
  *
  * @param cpv the cert path validator object
  * @param time_mbn the current time in timezone GMT. May be null, then the
@@ -191,10 +195,10 @@ flea_err_e THR_flea_cpv_t__validate_and_hostid_and_create_pub_key(
  */
 void flea_cpv_t__abort_cert_path_building(flea_cpv_t* cpv);
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 }
-# endif
+#  endif
 
-#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
+# endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
 
 #endif /* h-guard */

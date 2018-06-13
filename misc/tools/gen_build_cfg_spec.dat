@@ -1,0 +1,8 @@
+bc=nomt_nofs
+FLEA_HAVE_MUTEX disable
+FLEA_HAVE_STDLIB_FILESYSTEM disable
+
+bc = internal_tmp_test_2
+FLEA_DO_PRINTF_TEST_OUTPUT    disable
+FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE   set_to  1
+

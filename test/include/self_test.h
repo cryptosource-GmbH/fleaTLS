@@ -1,31 +1,31 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef __flea_self_test_H_
-#define __flea_self_test_H_
+# define __flea_self_test_H_
 
-#include "internal/common/default.h"
-#include "flea/hash.h"
-#include "flea/error.h"
-#include "flea/types.h"
-#include "flea/hostn_ver.h"
-#include "flea/cert_path.h"
+# include "internal/common/default.h"
+# include "flea/hash.h"
+# include "flea/error.h"
+# include "flea/types.h"
+# include "flea/hostn_ver.h"
+# include "flea/cert_path.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 
-#ifdef FLEA_DO_PRINTF_TEST_OUTPUT
-# define FLEA_PRINTF_TEST_OUTP_1_SWITCHED(__format)                 printf(__format)
-# define FLEA_PRINTF_TEST_OUTP_2_SWITCHED(__format, __arg1)         printf(__format, __arg1)
-# define FLEA_PRINTF_TEST_OUTP_3_SWITCHED(__format, __arg1, __arg2) printf(__format, __arg1, __arg2)
-# define __FLEA_EVTL_PRINT_TEST_OUTP(__func, __str)                 printf("%s: %s\n", __func, __str)
-#else // ifdef FLEA_DO_PRINTF_TEST_OUTPUT
-# define FLEA_PRINTF_TEST_OUTP_1_SWITCHED(__format)
-# define FLEA_PRINTF_TEST_OUTP_2_SWITCHED(__format, __arg1)
-# define FLEA_PRINTF_TEST_OUTP_3_SWITCHED(__format, __arg1, __arg2)
-# define __FLEA_EVTL_PRINT_TEST_OUTP(__func, __str) do { } while(0)
-#endif // ifdef FLEA_DO_PRINTF_TEST_OUTPUT
+# ifdef FLEA_DO_PRINTF_TEST_OUTPUT
+#  define FLEA_PRINTF_TEST_OUTP_1_SWITCHED(__format)                 printf(__format)
+#  define FLEA_PRINTF_TEST_OUTP_2_SWITCHED(__format, __arg1)         printf(__format, __arg1)
+#  define FLEA_PRINTF_TEST_OUTP_3_SWITCHED(__format, __arg1, __arg2) printf(__format, __arg1, __arg2)
+#  define __FLEA_EVTL_PRINT_TEST_OUTP(__func, __str)                 printf("%s: %s\n", __func, __str)
+# else // ifdef FLEA_DO_PRINTF_TEST_OUTPUT
+#  define FLEA_PRINTF_TEST_OUTP_1_SWITCHED(__format)
+#  define FLEA_PRINTF_TEST_OUTP_2_SWITCHED(__format, __arg1)
+#  define FLEA_PRINTF_TEST_OUTP_3_SWITCHED(__format, __arg1, __arg2)
+#  define __FLEA_EVTL_PRINT_TEST_OUTP(__func, __str) do { } while(0)
+# endif // ifdef FLEA_DO_PRINTF_TEST_OUTPUT
 
 flea_err_e THR_flea_test_flea_types(void);
 
@@ -140,9 +140,9 @@ flea_err_e THR_flea_test_mac(void);
 flea_err_e THR_flea_test_ae(void);
 
 flea_err_e THR_flea_test_cbc_mode_aes(void);
-#ifdef FLEA_HAVE_DES
+# ifdef FLEA_HAVE_DES
 flea_err_e THR_flea_test_cbc_mode_3des(void);
-#endif
+# endif
 flea_err_e THR_flea_test_ctr_mode_1(void);
 flea_err_e THR_flea_test_ctr_mode_parts(void);
 flea_err_e THR_flea_test_ctr_mode_prng(void);
@@ -198,27 +198,28 @@ flea_err_e THR_flea_test_cert_chain_correct_chain_of_two_using_cert_store(void);
 
 flea_err_e THR_flea_test_cert_path_valid_init(void);
 
-#ifdef FLEA_HAVE_ASYM_ALGS
+# ifdef FLEA_HAVE_ASYM_ALGS
 flea_err_e THR_flea_test_cert_path_generic(
-  const flea_u8_t*      target_cert_ptr,
-  flea_u32_t            target_cert_len,
-  flea_u8_t**           trust_anchor_ptrs,
-  flea_u32_t*           trust_anchor_lens,
-  flea_u32_t            nb_trust_anchors,
-  flea_u8_t**           cert_ptrs,
-  flea_u32_t*           cert_lens,
-  flea_u32_t            nb_certs,
-  flea_u8_t**           crl_ptrs,
-  flea_u32_t*           crl_lens,
-  flea_u32_t            nb_crls,
-  const flea_u8_t*      validation_date_utctime,
-  flea_al_u16_t         validation_date_utctime_len,
-  flea_rev_chk_mode_e   rev_chk_mode__e,
-  const flea_ref_cu8_t* host_id_mbn__pcrcu8,
-  flea_host_id_type_e   host_id_type
+  const flea_u8_t*             target_cert_ptr,
+  flea_u32_t                   target_cert_len,
+  flea_u8_t**                  trust_anchor_ptrs,
+  flea_u32_t*                  trust_anchor_lens,
+  flea_u32_t                   nb_trust_anchors,
+  flea_u8_t**                  cert_ptrs,
+  flea_u32_t*                  cert_lens,
+  flea_u32_t                   nb_certs,
+  flea_u8_t**                  crl_ptrs,
+  flea_u32_t*                  crl_lens,
+  flea_u32_t                   nb_crls,
+  const flea_u8_t*             validation_date_utctime,
+  flea_al_u16_t                validation_date_utctime_len,
+  flea_rev_chk_mode_e          rev_chk_mode__e,
+  const flea_ref_cu8_t*        host_id_mbn__pcrcu8,
+  flea_host_id_type_e          host_id_type,
+  flea_x509_validation_flags_e validation_flags__e
 );
 
-#endif // ifdef FLEA_HAVE_ASYM_ALGS
+# endif // ifdef FLEA_HAVE_ASYM_ALGS
 
 flea_err_e THR_flea_test_path_validation_file_based(
   const char* cert_path_prefix,
@@ -243,7 +244,7 @@ int flea_unit_tests(
 );
 
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 #endif /* h-guard */
