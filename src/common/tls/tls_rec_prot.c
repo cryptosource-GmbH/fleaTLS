@@ -253,8 +253,6 @@ static flea_err_e THR_flea_recprot_t__set_cbc_cs_inner(
   rec_prot__pt->payload_max_len__u16 = rec_prot__pt->send_rec_buf_raw_len__u16 - FLEA_TLS_RECORD_HDR_LEN
     - reserved_payl_len__alu16;
 
-  /*rec_prot__pt->alt_payload_max_len__u16 = rec_prot__pt->alt_send_buf__raw_len__u16 - FLEA_TLS_RECORD_HDR_LEN
-    - reserved_payl_len__alu16;*/
   rec_prot__pt->alt_payload_max_len__u16 = rec_prot__pt->record_plaintext_send_max_value__u16;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__set_cbc_cs_inner */

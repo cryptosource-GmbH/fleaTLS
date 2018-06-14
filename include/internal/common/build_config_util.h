@@ -108,9 +108,9 @@
 
 // FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE: maximum amount of data (padding, mac, ...) that can be added upon the plaintext of a record
 #if defined FLEA_HAVE_TLS_CS_CBC
-# define FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE 256 + 16 + 48 // Padding + IV(AES) + MAC(SHA384)
+# define FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE 256 + 16 + 48 /* Padding + IV(AES) + MAC(SHA384) */
 #else // GCM
-# define FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE 24
+# define FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE 8 + 16 /* Explicit IV + GCM tag */
 #endif
 
 #define FLEA_TLS_MAX_RECORD_SIZE FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE + FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE

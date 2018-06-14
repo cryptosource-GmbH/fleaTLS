@@ -1650,7 +1650,7 @@ flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
 } /* THR_flea_tls_ctx_t__send_max_fragment_length_ext */
 
 /*
- * returns 0 to indicate that the extension can not be applied (buffer either
+ * returns 0 to indicate that the extension cannot be applied (buffer either
  * too large or too small)
  * otherwise returns the appropriate byte for the extension which ensures
  * maximal size for the maximum record size.
