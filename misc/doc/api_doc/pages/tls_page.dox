@@ -219,6 +219,38 @@ fleaTLS always uses the Supported Point Formats Extension when elliptic curve
 cipher suites are configured. fleaTLS only supports the uncompressed point
 format.
 
+\subsection secFragLenExt Maximum Fragment Length Negotiation Extension 
+The Maximum Fragment Length Negotiation Extension (MFLNE)
+defined in <a href="https://tools.ietf.org/html/rfc6066#section-4">RFC 6066</a>,
+allows a TLS client to request a smaller maximum record plaintext size than normally
+used in TLS. The normal maximum record plaintext size is 16384. Without using the MFLNE, this is the only possibility in TLS. For the receiving of
+records, a buffer of a little larger this size is necessary for both client and server instances. In order to safe
+RAM, the required buffer size can be reduced in a fleaTLS client or server
+instance by setting the build configuration variable
+#FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE, which by default has the value 16384, to an 
+appropriate lower value from the set 512, 1024, 2048, and 4096. These are the
+reduced maximum record plaintext lengths supported by the MFLNE. Setting arbitrary values between 512 and 16384 for this variable is possible, but is not recommended. If a value lower than 512 is specified, the client of server instance will not operate and send internal error alerts.
+
+In this case that a value lower than 16384 is set, the fleaTLS client or server will make use of MFLNE. The following to subsections explain how the client and server behave during the handshake in this case. 
+
+\subsubsection secFragLenExtClient TLS Client
+In case the client has a value between 512 and 16383 for the build variable #FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE, it will include the MFLNE with an appropriate specification of the maximum record plaintext length within its clientHello message. If the server responds with a serverHello featuring the MFLNE with the same maximum plaintext size value as send in the clientHello, then the handshake will continue. Otherwise, the fleaTLS client responds with a record_overflow alert and aborts the handshake.
+
+\subsubsection secFragLenExtServer TLS Server 
+We consider the case of a fleaTLS server that is configured with a value 512 and
+16383 for the build variable #FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE. According to
+RFC 6066, the server is not allowed to actively indicate the MFLNE if the
+client does not do so itself. Accordingly, a fleaTLS server with a reduced
+maximum record plaintext size has to rely on the clients to use this extension.
+Given that a fleaTLS server receives a clientHello featuring an MFLNE indicating
+a buffer size no larger than that of the server's own maximum record plaintext
+size, it corresponds with the identical MFLNE in the serverHello, indicating
+successfull fragment length negotiation, and continues the handshake. Otherwise,
+if no MFLNE or only one with a maximum plaintext size larger than
+its own buffer is contained in the clientHello, it responds with a
+record_overflow alert and aborts the handshake.
+
+
 \section secTlsConc Concurrency Support
 fleaTLS offers concurrency support (see Section \ref secConcurrency) for the TLS server. For this reason the session manager object
 offers mutex support and may be shared among different server context objects.
