@@ -27,19 +27,23 @@
 
 flea_pk_sec_lev_e flea_pk_sec_lev_from_bit_mask(flea_al_u8_t bit_mask__alu8)
 {
-  if((bit_mask__alu8 & FLEA_PUBKEY_STRENGTH_MASK__256) == FLEA_PUBKEY_STRENGTH_MASK__256)
+  if((bit_mask__alu8 & FLEA_SEC_LEV_MASK) == FLEA_PUBKEY_STRENGTH_MASK__256)
   {
     return flea_pubkey_256bit;
   }
-  else if((bit_mask__alu8 & FLEA_PUBKEY_STRENGTH_MASK__128) == FLEA_PUBKEY_STRENGTH_MASK__128)
+  else if((bit_mask__alu8 & FLEA_SEC_LEV_MASK) == FLEA_PUBKEY_STRENGTH_MASK__192)
+  {
+    return flea_pubkey_192bit;
+  }
+  else if((bit_mask__alu8 & FLEA_SEC_LEV_MASK) == FLEA_PUBKEY_STRENGTH_MASK__128)
   {
     return flea_pubkey_128bit;
   }
-  else if((bit_mask__alu8 & FLEA_PUBKEY_STRENGTH_MASK__112) == FLEA_PUBKEY_STRENGTH_MASK__112)
+  else if((bit_mask__alu8 & FLEA_SEC_LEV_MASK) == FLEA_PUBKEY_STRENGTH_MASK__112)
   {
     return flea_pubkey_112bit;
   }
-  else if((bit_mask__alu8 & FLEA_PUBKEY_STRENGTH_MASK__0) == FLEA_PUBKEY_STRENGTH_MASK__0)
+  else if((bit_mask__alu8 & FLEA_SEC_LEV_MASK) == FLEA_PUBKEY_STRENGTH_MASK__0)
   {
     return flea_pubkey_0bit;
   }

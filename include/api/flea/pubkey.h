@@ -129,13 +129,18 @@ typedef enum
   flea_rsa_key
 } flea_pk_key_type_e;
 
+/**
+ * The minimal cryptographic strength of a public or private key. It is specified according according to
+ * the NIST recommendation from 2016 ( https://www.keylength.com/en/4/ ).
+ */
 typedef enum
 {
   flea_pubkey_0bit   = 0,
-  flea_pubkey_80bit  = 40,
-  flea_pubkey_112bit = 56,
-  flea_pubkey_128bit = 64,
-  flea_pubkey_256bit = 128,
+  flea_pubkey_80bit  = 80 / 2,
+  flea_pubkey_112bit = 112 / 2,
+  flea_pubkey_128bit = 128 / 2,
+  flea_pubkey_192bit = 192 / 2,
+  flea_pubkey_256bit = 256 / 2,
 } flea_pk_sec_lev_e;
 
 /**

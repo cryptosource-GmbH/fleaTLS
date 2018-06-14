@@ -24,6 +24,7 @@ flea_err_e THR_flea_pk_ensure_key_strength(
     if(((required_strength__e == flea_pubkey_80bit) && (key_bit_size__alu16 < 1024)) ||
       ((required_strength__e == flea_pubkey_112bit) && (key_bit_size__alu16 < 2048)) ||
       ((required_strength__e == flea_pubkey_128bit) && (key_bit_size__alu16 < 3072)) ||
+      ((required_strength__e == flea_pubkey_192bit) && (key_bit_size__alu16 < 7680)) ||
       ((required_strength__e == flea_pubkey_256bit) && (key_bit_size__alu16 < 15360)))
     {
       FLEA_THROW("public/private RSA key size does not meet required security level", FLEA_ERR_PUBKEY_SEC_LEV_NOT_MET);

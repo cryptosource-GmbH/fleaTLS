@@ -368,6 +368,8 @@ flea_err_e THR_flea_tls_tool_set_tls_cfg(
 
   cfg.flags |= reneg_flag_from_string(cmdl_args.get_property_as_string("reneg_mode"));
 
+  cfg.flags |= min_key_strength_from_string(cmdl_args.get_property_as_string("min_key_strength"));
+
 
   if(cmdl_args.have_index("accept_untrusted"))
   {

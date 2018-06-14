@@ -171,23 +171,27 @@ static flea_err_e THR_flea_execute_path_test_case_for_properties(
 
   if((min_key_strength_str == "") || (min_key_strength_str == "80"))
   {
-    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec_lev__80bit);
+    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec__80bit);
   }
   else if(min_key_strength_str == "0")
   {
-    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec_lev__0bit);
+    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec__0bit);
   }
   else if(min_key_strength_str == "112")
   {
-    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec_lev__112bit);
+    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec__112bit);
   }
   else if(min_key_strength_str == "128")
   {
-    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec_lev__128bit);
+    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec__128bit);
+  }
+  else if(min_key_strength_str == "192")
+  {
+    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec__192bit);
   }
   else if(min_key_strength_str == "256")
   {
-    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec_lev__256bit);
+    validation_flags__u32 |= ((flea_u32_t) flea_x509_validation__sec__256bit);
   }
   else
   {

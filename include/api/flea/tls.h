@@ -20,6 +20,12 @@ extern "C" {
  * are follow the pattern  flea_tls_flag__<field>__<value>. For each field,
  * only one value shall be used. For example, only one of the values flea_tls_flag__reneg_mode__... shall be combined with values of other fields.
  *
+ *
+ * The minimal required cryptographic strength (field "sec") is specified according according to
+ * the NIST recommendation from 2016 ( https://www.keylength.com/en/4/ ). It is
+ * applied to all public keys in the certificates in the peer's certificate
+ * chain that are used for signature verification.
+ *
  */
 typedef enum
 {
@@ -69,6 +75,44 @@ typedef enum
    */
   flea_tls_flag__rev_chk_mode__check_none         = 0x40,
 
+
+  /*
+   * Enforce a minimum of 80 bit security for the public keys involved in the
+   * certificate validation according to NIST . This value is the default if no other value is
+   * specified for the "sec" field of the TLS flags.
+   */
+  flea_tls_flag__sec__80bit            = FLEA_PUBKEY_STRENGTH_MASK__80 << FLEA_TLS_FLAGS_SEC_LEVEL_OFFS,
+
+  /**
+   * Enforce a minimum of 112 bit security for the public keys involved in the
+   * certificate validation.
+   */
+  flea_tls_flag__sec__112bit           = FLEA_PUBKEY_STRENGTH_MASK__112 << FLEA_TLS_FLAGS_SEC_LEVEL_OFFS,
+
+  /**
+   * Enforce a minimum of 128 bit security for the public keys involved in the
+   * certificate validation.
+   */
+  flea_tls_flag__sec__128bit           = FLEA_PUBKEY_STRENGTH_MASK__128 << FLEA_TLS_FLAGS_SEC_LEVEL_OFFS,
+
+  /**
+   * Enforce a minimum of 192 bit security for the public keys involved in the
+   * certificate validation.
+   */
+  flea_tls_flag__sec__192bit           = FLEA_PUBKEY_STRENGTH_MASK__192 << FLEA_TLS_FLAGS_SEC_LEVEL_OFFS,
+
+  /**
+   * Enforce a minimum of 112 bit security for the public keys involved in the
+   * certificate validation.
+   */
+  flea_tls_flag__sec__256bit           = FLEA_PUBKEY_STRENGTH_MASK__256 << FLEA_TLS_FLAGS_SEC_LEVEL_OFFS,
+
+  /**
+   * Disable the check for the key strength. Public keys of all strengths are
+   * accepted.
+   */
+  flea_tls_flag__sec__0bit             = FLEA_PUBKEY_STRENGTH_MASK__0 << FLEA_TLS_FLAGS_SEC_LEVEL_OFFS,
+
   /**
    * Accept any client or server certificate from the peer without verifying the certificate chain it
    * sends. Setting this flag renders the TLS connection insecure, since a
@@ -76,7 +120,7 @@ typedef enum
    * is that only the peer's own certificate is validated and all other issuer
    * certificates sent by the peer are ignored.
    */
-  flea_tls_flag__accept_untrusted_peer            = 0x80
+  flea_tls_flag__accept_untrusted_peer = 0x400,
 } flea_tls_flag_e;
 
 /**

@@ -161,7 +161,7 @@ std::vector<std::string> get_entries_of_dir(
   std::string const        & dir_name,
   dir_entry_extract_mode_t extr_mode,
   std::string const        & postfix = "",
-  std::string const        & prefix = ""
+  std::string const        & prefix  = ""
 );
 
 flea_u32_t string_to_u32bit(std::string const& str);
@@ -178,8 +178,6 @@ std::string bin_to_hex(
   const unsigned char* bin,
   size_t               len
 );
-
-flea_u32_t reneg_flag_from_string(std::string const& s);
 
 
 template <typename t>
