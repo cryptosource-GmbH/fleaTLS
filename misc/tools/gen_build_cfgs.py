@@ -82,8 +82,8 @@ def default_bc_file_as_list():
     current_file_contents = ""
     with open(def_cfg_path) as f:
         current_file_contents = f.readlines()
-    for i in range(len(current_file_contents)):
-        current_file_contents[i] = re.sub("// *FBFLAGS_.*", "", current_file_contents[i])
+    #for i in range(len(current_file_contents)):
+    #    current_file_contents[i] = re.sub("// *FBFLAGS_.*", "", current_file_contents[i])
     return current_file_contents
 
 def get_index_of_instruction_in_contents(instr, file_contents):

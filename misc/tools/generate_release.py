@@ -100,9 +100,11 @@ def generate_with_license(license_name, have_test_data):
   for filename in os.listdir(generate_dir + "/" + license_name + "/flea/build_cfg/general"):
     if re.match("internal_*", filename):
       shutil.rmtree(generate_dir + "/" + license_name + "/flea/build_cfg/general/" + filename)
-  myfile = fileinput.FileInput(generate_dir + "/" + license_name +
-          "/flea/build_cfg/general/default/build_config_gen.h", inplace=True)
-  for line in myfile:
+      continue
+      #generate_dir + "/" + license_name + "/flea/build_cfg/general/default/build_config_gen.h"
+    filePath = generate_dir + "/" + license_name + "/flea/build_cfg/general/"+ filename + "/build_config_gen.h"
+    myfile = fileinput.FileInput(filePath, inplace=True)
+    for line in myfile:
       line = re.sub(r"// *FBFLAGS.*$", "", line)
       print (line, end = '')
 
