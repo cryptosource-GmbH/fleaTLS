@@ -1,11 +1,11 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef __flea_error_H_
-# define __flea_error_H_
+#define __flea_error_H_
 
-# ifdef __cplusplus
+#ifdef __cplusplus
 extern "C" {
-# endif
+#endif
 
 
 typedef enum
@@ -245,6 +245,11 @@ typedef enum
    * with other fields
    */
   FLEA_ERR_TLS_ILLEGAL_PARAMETER           = 0x62,
+
+  /*
+   * thrown if we explicitely want to trigger a RECORD_OVERFLOW alert.
+   */
+  FLEA_ERR_TLS_RECORD_OVERFLOW             = 0x63,
 
   /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
@@ -556,8 +561,8 @@ typedef enum
   FLEA_ERR_OUT_OF_MEM                    = 0xFFFF,
 } flea_err_e;
 
-# ifdef __cplusplus
+#ifdef __cplusplus
 }
-# endif
+#endif
 
 #endif /* h-guard */

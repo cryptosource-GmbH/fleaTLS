@@ -99,7 +99,8 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_INV_KEY_SIZE,                       FLEA_TLS_ALERT_DESC_ILLEGAL_PARAMETER   },
   {FLEA_ERR_TLS_UNKNOWN_PSK_IDENTITY,           FLEA_TLS_ALERT_DESC_UNKNOWN_PSK_IDENTITY},
   {FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH,   FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE   },
-  {FLEA_ERR_TLS_ILLEGAL_PARAMETER,              FLEA_TLS_ALERT_DESC_ILLEGAL_PARAMETER   }
+  {FLEA_ERR_TLS_ILLEGAL_PARAMETER,              FLEA_TLS_ALERT_DESC_ILLEGAL_PARAMETER   },
+  {FLEA_ERR_TLS_RECORD_OVERFLOW,                FLEA_TLS_ALERT_DESC_RECORD_OVERFLOW     }
 };
 
 static flea_bool_t determine_alert_from_error(
@@ -1776,6 +1777,13 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
 # endif /* ifdef FLEA_HEAP_MODE */
     }
   }
+  else
+  {
+    FLEA_THROW(
+      "Max Fragmentation Length Extension: Client sent a value that is too large for the receive buffer",
+      FLEA_ERR_TLS_RECORD_OVERFLOW
+    );
+  }
   if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
     if(flea_tls__get_max_fragment_length_byte_for_buf_size(FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE) !=
@@ -1999,8 +2007,9 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
 {
   flea_u32_t extensions_len__u32;
   flea_rw_stream_t* hs_rd_stream__pt;
-  flea_bool_t receive_sig_algs_ext__b = FLEA_FALSE;
-  flea_bool_t support_sha1__b         = FLEA_FALSE;
+  flea_bool_t receive_sig_algs_ext__b     = FLEA_FALSE;
+  flea_bool_t support_sha1__b             = FLEA_FALSE;
+  flea_bool_t receive_max_frag_len_ext__b = FLEA_FALSE;
   flea_al_u8_t i;
 
   FLEA_THR_BEG_FUNC();
@@ -2081,6 +2090,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
     else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__MAX_FRAGMENT_LENGTH)
     {
       FLEA_CCALL(THR_flea_tls_ctx_t__parse_max_fragment_length_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
+      receive_max_frag_len_ext__b = FLEA_TRUE;
     }
 # endif /* ifdef FLEA_HAVE_TLS_CS_ECC */
     else
@@ -2092,6 +2102,14 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
         )
       );
     }
+  }
+
+  if(receive_max_frag_len_ext__b == FLEA_FALSE && FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE < 16384)
+  {
+    FLEA_THROW(
+      "Client did not send a Max Fragmentation Length Extension. Since the receive buffer doesn't support 2^14 Bytes as is mandatory for TLS 1.2 the handshake is aborted.",
+      FLEA_ERR_TLS_RECORD_OVERFLOW
+    );
   }
 
   // no signature_algorithms ext. received from client
