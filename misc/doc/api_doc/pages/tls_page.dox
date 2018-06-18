@@ -231,7 +231,11 @@ instance by setting the build configuration variable
 appropriate lower value from the set 512, 1024, 2048, and 4096. These are the
 reduced maximum record plaintext lengths supported by the MFLNE. Setting arbitrary values between 512 and 16384 for this variable is possible, but is not recommended. If a value lower than 512 is specified, the client of server instance will not operate and send internal error alerts.
 
-In this case that a value lower than 16384 is set, the fleaTLS client or server will make use of MFLNE. The following to subsections explain how the client and server behave during the handshake in this case. 
+In this case that a value lower than 16384 is set, the fleaTLS client or server
+will make use of MFLNE. The subsequent two subsections explain how the client
+and server behave during the handshake in this case. Afterwards, some specifics
+with respect to the handling of this extension during session resumption are
+discussed.
 
 \subsubsection secFragLenExtClient TLS Client
 In case the client has a value between 512 and 16383 for the build variable #FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE, it will include the MFLNE with an appropriate specification of the maximum record plaintext length within its clientHello message. If the server responds with a serverHello featuring the MFLNE with the same maximum plaintext size value as send in the clientHello, then the handshake will continue. Otherwise, the fleaTLS client responds with a record_overflow alert and aborts the handshake.
@@ -245,10 +249,20 @@ maximum record plaintext size has to rely on the clients to use this extension.
 Given that a fleaTLS server receives a clientHello featuring an MFLNE indicating
 a buffer size no larger than that of the server's own maximum record plaintext
 size, it corresponds with the identical MFLNE in the serverHello, indicating
-successfull fragment length negotiation, and continues the handshake. Otherwise,
+successful fragment length negotiation, and continues the handshake. Otherwise,
 if no MFLNE or only one with a maximum plaintext size larger than
 its own buffer is contained in the clientHello, it responds with a
 record_overflow alert and aborts the handshake.
+
+\subsubsection secFragLenExtResumption Session Resumption
+
+<a href="https://tools.ietf.org/html/rfc6066#section-1.1">RFC 6066</a> specifies
+that the MFLNE negotiation result from the initial handshake shall be used in a
+resumption handshake and the MFLNE from the clientHello of the resumption
+handshake should be ignored. However, fleaTLS does not implement this behaviour
+and instead, for reasons of simplicity and efficiency, negotiates the MFLNE also
+in the resumption handshake. This implementation choice has not been found to
+cause any problem with other TLS implementations supporting the MFLNE.
 
 
 \section secTlsConc Concurrency Support
