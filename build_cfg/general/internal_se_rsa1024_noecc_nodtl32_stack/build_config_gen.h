@@ -646,6 +646,14 @@
 # endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
 /**
+ *  The maximum number of supported signature algorithm hash functions in case
+ *  of FLEA_STACK_MODE. Internally, the implementation has to instantiate that
+ *  many parallel hash-context objects, in order to be able to start the
+ *  handshake without knowing the hash function actually agreed on.
+ */
+# define FLEA_STKMD_TLS_MAX_PARALLEL_HASHES 5
+
+/**
  * Length of the session IDs that are used by the fleaTLS server.
  */
 # define FLEA_TLS_SESSION_ID_LEN 16 // FBFLAGS__INT_LIST 1 2 16 31 32
