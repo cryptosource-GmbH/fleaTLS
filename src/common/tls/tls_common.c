@@ -1660,7 +1660,7 @@ flea_u8_t flea_tls__get_max_fragment_length_byte_for_buf_size(flea_u16_t buf_len
 {
   flea_u8_t result = 0;
 
-  if(buf_len__u16 <= 512)
+  if(buf_len__u16 < 512)
   {
     result = 0; // no value will suffice, omit extension
   }
