@@ -1731,7 +1731,6 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
       &ext_value__u8
     )
   );
-
   if(ext_value__u8 < 1 || ext_value__u8 > 4)
   {
     FLEA_THROW("invalid value of max_fragment_length extension", FLEA_ERR_TLS_ILLEGAL_PARAMETER);
@@ -1753,7 +1752,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
 
   max_fragment_length__u16 = get_max_fragment_length_by_ext_byte(ext_value__u8);
 
-  if(tls_ctx__pt->rec_prot__t.record_plaintext_send_max_value__u16 >= max_fragment_length__u16)
+  if(FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE >= max_fragment_length__u16)
   {
     tls_ctx__pt->rec_prot__t.alt_send_buf__raw_len__u16 = max_fragment_length__u16 + FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE
       + FLEA_TLS_RECORD_HDR_LEN;
