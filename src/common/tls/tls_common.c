@@ -128,6 +128,11 @@ flea_al_u8_t flea_tls__make_set_of_flea_hash_ids_from_tls_sig_algs(
     }
     mask |= (1 << hash__alu8);
   }
+  /* add the PRF hash-algs needed for the finish */
+  mask |= (1 << flea_sha256);
+# if (defined FLEA_HAVE_TLS_CS_PSK || defined FLEA_HAVE_TLS_CS_GCM) && defined FLEA_HAVE_SHA384_512
+  mask |= (1 << flea_sha384);
+# endif
   for(i = (unsigned) flea_md5; i <= flea_sha512; i++)
   {
     if(pos__alu8 >= result_len__alu8)
@@ -141,7 +146,7 @@ flea_al_u8_t flea_tls__make_set_of_flea_hash_ids_from_tls_sig_algs(
     }
   }
   return pos__alu8;
-}
+} /* flea_tls__make_set_of_flea_hash_ids_from_tls_sig_algs */
 
 static flea_bool_t determine_alert_from_error(
   flea_err_e                     err__t,
