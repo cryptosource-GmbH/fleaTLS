@@ -1633,7 +1633,7 @@ flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
   else
   {
     ext_byte__u8 = flea_tls__get_max_fragment_length_byte_for_buf_size(
-      tls_ctx__pt->rec_prot__t.alt_send_buf__raw_len__u16
+      tls_ctx__pt->rec_prot__t.record_plaintext_send_max_value__u16
       );
   }
 
