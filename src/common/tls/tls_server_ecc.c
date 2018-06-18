@@ -49,8 +49,8 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
   pk_scheme_id__t = flea_tls__get_sig_alg_from_key_type(tls_ctx__pt->private_key__pt->key_type__t);
 
   FLEA_CCALL(THR_flea_hash_ctx_t__ctor(&params_hash_ctx__t, hash_id__t));
-  hash_out_len__u8 = flea_hash_ctx_t__get_output_length(&params_hash_ctx__t);
-  FLEA_CCALL(THR_flea_tls__map_flea_hash_to_tls_hash(hash_id__t, &sig_and_hash_alg[0]));
+  hash_out_len__u8    = flea_hash_ctx_t__get_output_length(&params_hash_ctx__t);
+  sig_and_hash_alg[0] = (flea_u8_t) hash_id__t;
   FLEA_CCALL(THR_flea_tls__map_flea_sig_to_tls_sig(pk_scheme_id__t, &sig_and_hash_alg[1]));
 
   kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(

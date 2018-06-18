@@ -101,6 +101,48 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH,   FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE   }
 };
 
+
+flea_u8_t flea_tls_map_tls_sig_to_flea_sig__at[2][2] = {
+  {0x01, flea_rsa_pkcs1_v1_5_sign},
+  {0x03, flea_ecdsa_emsa1_asn1   }
+};
+
+flea_al_u8_t flea_tls__make_set_of_flea_hash_ids_from_tls_sig_algs(
+  flea_hash_id_e*          result__pe,
+  flea_al_u8_t             result_len__alu8,
+  const flea_tls_sigalg_e* sig_algs__pe,
+  flea_al_u16_t            sig_algs_len__alu16
+)
+{
+  flea_al_u16_t i;
+  flea_al_u8_t mask      = 0;
+  flea_al_u8_t pos__alu8 = 0;
+
+  FLEA_SET_ARR(result__pe, 0, result_len__alu8);
+  for(i = 0; i < sig_algs_len__alu16; i++)
+  {
+    flea_al_u8_t hash__alu8 = sig_algs__pe[i] >> 8;
+    if(!FLEA_TLS_IS_VALID_HASH_ID(hash__alu8))
+    {
+      continue;
+    }
+    mask |= (1 << hash__alu8);
+  }
+  for(i = (unsigned) flea_md5; i <= flea_sha512; i++)
+  {
+    if(pos__alu8 >= result_len__alu8)
+    {
+      // error?
+      break;
+    }
+    if(mask & (1 << ((unsigned) i)))
+    {
+      result__pe[pos__alu8++] = (flea_hash_id_e) i;
+    }
+  }
+  return pos__alu8;
+}
+
 static flea_bool_t determine_alert_from_error(
   flea_err_e                     err__t,
   flea_tls__alert_description_t* alert_desc__pe,
@@ -1446,27 +1488,6 @@ static flea_err_e THR_flea_tls_ctx__parse_reneg_ext(
   );
 } /* THR_flea_tls_ctx__parse_reneg_ext */
 
-flea_u8_t flea_tls_map_tls_hash_to_flea_hash__at[6][2] = {
-# ifdef FLEA_HAVE_MD5
-  {0x01, flea_md5   },
-# endif
-# ifdef FLEA_HAVE_SHA1
-  {0x02, flea_sha1  },
-# endif
-  {0x03, flea_sha224},
-  {0x04, flea_sha256},
-# ifdef FLEA_HAVE_SHA384_512
-  {0x05, flea_sha384},
-  {0x06, flea_sha512}
-# endif
-};
-
-flea_u8_t flea_tls_map_tls_sig_to_flea_sig__at[2][2] = {
-  {0x01, flea_rsa_pkcs1_v1_5_sign},
-  {0x03, flea_ecdsa_emsa1_asn1   }
-};
-
-
 flea_err_e THR_flea_tls__map_tls_sig_to_flea_sig(
   flea_u8_t            id__u8,
   flea_pk_scheme_id_e* pk_scheme_id__pt
@@ -1501,42 +1522,6 @@ flea_err_e THR_flea_tls__map_flea_sig_to_tls_sig(
     }
   }
   FLEA_THROW("signature algorithm has no mapping for tls", FLEA_ERR_INT_ERR);
-  FLEA_THR_FIN_SEC_empty();
-}
-
-flea_err_e THR_flea_tls__map_tls_hash_to_flea_hash(
-  flea_u8_t       id__u8,
-  flea_hash_id_e* hash_id__pt
-)
-{
-  FLEA_THR_BEG_FUNC();
-  for(flea_u8_t i = 0; i < FLEA_NB_ARRAY_ENTRIES(flea_tls_map_tls_hash_to_flea_hash__at); i++)
-  {
-    if(flea_tls_map_tls_hash_to_flea_hash__at[i][0] == id__u8)
-    {
-      *hash_id__pt = (flea_hash_id_e) flea_tls_map_tls_hash_to_flea_hash__at[i][1];
-      FLEA_THR_RETURN();
-    }
-  }
-  FLEA_THROW("unsupported hash algorithm", FLEA_ERR_TLS_HANDSHK_FAILURE);
-  FLEA_THR_FIN_SEC_empty();
-}
-
-flea_err_e THR_flea_tls__map_flea_hash_to_tls_hash(
-  flea_hash_id_e hash_id__t,
-  flea_u8_t*     id__pu8
-)
-{
-  FLEA_THR_BEG_FUNC();
-  for(flea_u8_t i = 0; i < FLEA_NB_ARRAY_ENTRIES(flea_tls_map_tls_hash_to_flea_hash__at); i++)
-  {
-    if(flea_tls_map_tls_hash_to_flea_hash__at[i][1] == hash_id__t)
-    {
-      *id__pu8 = flea_tls_map_tls_hash_to_flea_hash__at[i][0];
-      FLEA_THR_RETURN();
-    }
-  }
-  FLEA_THROW("hash algorithm has no mapping for tls", FLEA_ERR_INT_ERR);
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -1631,12 +1616,7 @@ flea_err_e THR_flea_tls_ctx_t__send_sig_alg_ext(
   // send supported sig algs
   for(flea_dtl_t i = 0; i < tls_ctx__pt->nb_allowed_sig_algs__alu16; i += 1)
   {
-    FLEA_CCALL(
-      THR_flea_tls__map_flea_hash_to_tls_hash(
-        (flea_hash_id_e) (tls_ctx__pt->allowed_sig_algs__pe[i] >> 8),
-        &curr_sig_alg_enc__au8[0]
-      )
-    );
+    curr_sig_alg_enc__au8[0] = tls_ctx__pt->allowed_sig_algs__pe[i] >> 8;
     FLEA_CCALL(
       THR_flea_tls__map_flea_sig_to_tls_sig(
         (flea_pk_scheme_id_e) (tls_ctx__pt->allowed_sig_algs__pe[i] & 0xFF),
@@ -1687,10 +1667,11 @@ flea_err_e THR_flea_tls__read_sig_algs_field_and_find_best_match(
       )
     );
     // map sig and hash alg and also check that the sig alg matches our key
-    if(THR_flea_tls__map_tls_hash_to_flea_hash(
-        curr_sig_alg__au8[0],
-        &hash_id__t
-      ) || THR_flea_tls__map_tls_sig_to_flea_sig(curr_sig_alg__au8[1], &pk_scheme_id__t))
+    hash_id__t = (flea_hash_id_e)  curr_sig_alg__au8[0];
+    if(!FLEA_TLS_IS_VALID_HASH_ID(
+        curr_sig_alg__au8[0]
+      ) ||
+      THR_flea_tls__map_tls_sig_to_flea_sig(curr_sig_alg__au8[1], &pk_scheme_id__t))
     {
       continue;
     }

@@ -1,33 +1,42 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_tls_common__H_
-#define _flea_tls_common__H_
+# define _flea_tls_common__H_
 
-#include "internal/common/default.h"
-#include "internal/common/tls/tls_ciph_suite.h"
-#include "internal/common/tls/tls_cert_path.h"
-#include "internal/common/tls/parallel_hash.h"
-#include "flea/tls_client_session.h"
-#include "flea/tls.h"
-#include "flea/tls_fwd.h"
+# include "internal/common/default.h"
+# include "internal/common/tls/tls_ciph_suite.h"
+# include "internal/common/tls/tls_cert_path.h"
+# include "internal/common/tls/parallel_hash.h"
+# include "flea/tls_client_session.h"
+# include "flea/tls.h"
+# include "flea/tls_fwd.h"
 
-#ifdef FLEA_HAVE_TLS
-# ifdef __cplusplus
+# ifdef FLEA_HAVE_TLS
+#  ifdef __cplusplus
 extern "C" {
-# endif
+#  endif
 
 
-# define FLEA_TLS_NO_COMPRESSION                  0
+#  define FLEA_TLS_NO_COMPRESSION                  0
 
-# define FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES 0x01
-# define FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS    0x02
-# define FLEA_TLS_EXT_CTRL_MASK__UNMATCHING       0x04
+#  define FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES 0x01
+#  define FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS    0x02
+#  define FLEA_TLS_EXT_CTRL_MASK__UNMATCHING       0x04
 
-# define FLEA_TLS_EXT_TYPE__RENEG_INFO            0xff01
-# define FLEA_TLS_EXT_TYPE__SUPPORTED_CURVES      0x000a
-# define FLEA_TLS_EXT_TYPE__POINT_FORMATS         0x000b
-# define FLEA_TLS_EXT_TYPE__SIGNATURE_ALGORITHMS  0x000d
+#  define FLEA_TLS_EXT_TYPE__RENEG_INFO            0xff01
+#  define FLEA_TLS_EXT_TYPE__SUPPORTED_CURVES      0x000a
+#  define FLEA_TLS_EXT_TYPE__POINT_FORMATS         0x000b
+#  define FLEA_TLS_EXT_TYPE__SIGNATURE_ALGORITHMS  0x000d
 
+#  define FLEA_TLS_IS_VALID_HASH_ID(x) (((x) >= (unsigned) flea_md5) && ((x) <= (unsigned) flea_sha512))
+
+
+flea_al_u8_t flea_tls__make_set_of_flea_hash_ids_from_tls_sig_algs(
+  flea_hash_id_e*          result__pe,
+  flea_al_u8_t             result_len__alu8,
+  const flea_tls_sigalg_e* sig_algs__pe,
+  flea_al_u16_t            sig_algs_len__alu16
+);
 
 flea_err_e THR_flea_tls__read_certificate(
   flea_tls_ctx_t*                    tls_ctx,
@@ -96,8 +105,8 @@ typedef enum
   FLEA_TLS_HANDSHAKE_EXPECT_FINISHED            = 0x400,
   FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC  = 0x800
 } flea_tls__expect_handshake_type_t;
-# define FLEA_TLS_SEC_RENEG_FINISHED_SIZE 12
-# define FLEA_TLS_VERIFY_DATA_SIZE        12
+#  define FLEA_TLS_SEC_RENEG_FINISHED_SIZE 12
+#  define FLEA_TLS_VERIFY_DATA_SIZE        12
 flea_err_e THR_flea_tls__send_change_cipher_spec(
   flea_tls_ctx_t* tls_ctx
 );
@@ -114,14 +123,14 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
 
 void flea_tls__handshake_state_ctor(flea_tls__handshake_state_t* state);
 
-# ifdef FLEA_HAVE_TLS_CS_PSK
+#  ifdef FLEA_HAVE_TLS_CS_PSK
 flea_err_e THR_flea_tls__create_premaster_secret_psk(
   flea_tls_ctx_t*  tls_ctx__pt,
   flea_u8_t*       psk__u8,
   flea_u16_t       psk_len__u16,
   flea_byte_vec_t* premaster_secret__pt
 );
-# endif // ifdef FLEA_HAVE_TLS_CS_PSK
+#  endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
 flea_err_e THR_flea_tls__create_master_secret(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
@@ -236,15 +245,6 @@ flea_err_e THR_flea_tls__check_sig_alg_compatibility_for_key_type(
   flea_pk_scheme_id_e pk_scheme_id__t
 );
 
-flea_err_e THR_flea_tls__map_flea_hash_to_tls_hash(
-  flea_hash_id_e hash_id__t,
-  flea_u8_t*     id__pu8
-);
-
-flea_err_e THR_flea_tls__map_tls_hash_to_flea_hash(
-  flea_u8_t       id__u8,
-  flea_hash_id_e* hash_id__pt
-);
 
 flea_err_e THR_flea_tls__map_flea_sig_to_tls_sig(
   flea_pk_scheme_id_e pk_scheme_id__t,
@@ -311,9 +311,9 @@ flea_bool_t flea_is_in_ciph_suite_list(
 
 void flea_tls_ctx_t__begin_handshake(flea_tls_ctx_t* tls_ctx__pt);
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 }
-# endif
+#  endif
 
-#endif // ifdef FLEA_HAVE_TLS
+# endif // ifdef FLEA_HAVE_TLS
 #endif /* h-guard */

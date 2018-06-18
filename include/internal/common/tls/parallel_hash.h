@@ -1,36 +1,35 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_parallel_hash__H_
-#define _flea_parallel_hash__H_
+# define _flea_parallel_hash__H_
 
-#include "internal/common/default.h"
-#include "flea/error_handling.h"
-#include "flea/alloc.h"
-#include "flea/types.h"
-#include "flea/hash.h"
+# include "internal/common/default.h"
+# include "flea/error_handling.h"
+# include "flea/alloc.h"
+# include "flea/types.h"
+# include "flea/hash.h"
 
-#ifdef FLEA_HAVE_TLS
+# ifdef FLEA_HAVE_TLS
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 extern "C" {
-# endif
+#  endif
 
-# define FLEA_TLS_MAX_PARALLEL_HASHES 5
 
 typedef struct
 {
-# ifdef FLEA_HEAP_MODE
+#  ifdef FLEA_HEAP_MODE
   flea_hash_ctx_t* hash_ctx__pt;
-# else
-  flea_hash_ctx_t  hash_ctx__pt[FLEA_TLS_MAX_PARALLEL_HASHES];
-# endif
+#  else
+  flea_hash_ctx_t  hash_ctx__pt[FLEA_STKMD_TLS_MAX_PARALLEL_HASHES];
+#  endif
   flea_u8_t        num_hash_ctx__u8;
   flea_bool_t      update_only_one__t; // switch to update only the update_only_hash_id__t hash
   flea_hash_id_e   update_only_hash_id__t;
 } flea_tls_prl_hash_ctx_t;
 
 
-# define flea_tls_prl_hash_ctx_t__INIT(__p) FLEA_MEMSET(__p, 0, sizeof(*(__p)))
+#  define flea_tls_prl_hash_ctx_t__INIT(__p) FLEA_MEMSET(__p, 0, sizeof(*(__p)))
 
 
 flea_err_e THR_flea_tls_prl_hash_ctx_t__ctor(
@@ -73,10 +72,10 @@ flea_err_e THR_flea_tls_prl_hash_ctx_t__select_hash_ctx(
   flea_hash_id_e           hash_id__t
 );
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 }
-# endif
+#  endif
 
-#endif // ifdef FLEA_HAVE_TLS
+# endif // ifdef FLEA_HAVE_TLS
 
 #endif /* h-guard */

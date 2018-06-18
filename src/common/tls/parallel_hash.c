@@ -17,12 +17,12 @@ flea_err_e THR_flea_tls_prl_hash_ctx_t__ctor(
 # ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(p_hash_ctx->hash_ctx__pt, hash_ids_len__alu8);
   FLEA_SET_ARR(p_hash_ctx->hash_ctx__pt, 0, hash_ids_len__alu8);
-# endif
-
-  if(hash_ids_len__alu8 > FLEA_TLS_MAX_PARALLEL_HASHES)
+# else
+  if(hash_ids_len__alu8 > FLEA_STKMD_TLS_MAX_PARALLEL_HASHES)
   {
     FLEA_THROW("too many hash algorithms for this configuration", FLEA_ERR_INV_ARG);
   }
+# endif /* ifdef FLEA_HEAP_MODE */
 
   p_hash_ctx->num_hash_ctx__u8 = 0;
 
