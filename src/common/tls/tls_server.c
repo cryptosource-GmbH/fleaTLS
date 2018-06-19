@@ -183,27 +183,27 @@ static flea_err_e THR_flea_tls__read_client_hello(
         }
       }
 # endif /* ifdef FLEA_HAVE_TLS_CS_PSK */
-# ifndef FLEA_HAVE_TLS_CS_ECC
       // iterate over all supported cipher suites
       supported_cs_index__alu16 = 0;
       while(supported_cs_index__alu16 < supported_cs_len__alu16)
       {
         if(curr_cs_from_peer__e == tls_ctx->allowed_cipher_suites__pe[ supported_cs_index__alu16 ])
         {
+# ifndef FLEA_HAVE_TLS_CS_ECC
           if(supported_cs_index__alu16 < chosen_cs_index__alu16)
           {
             /* update with the lower index = higher priority */
             chosen_cs_index__alu16 = supported_cs_index__alu16;
             tls_ctx->selected_cipher_suite__e = curr_cs_from_peer__e;
             found = FLEA_TRUE;
-            break;
           }
+# else  /* ifndef FLEA_HAVE_TLS_CS_ECC */
+          FLEA_CCALL(THR_flea_byte_vec_t__append(&peer_cipher_suites_u16_be__t, curr_cs__au8, sizeof(curr_cs__au8)));
+# endif  /* ifndef FLEA_HAVE_TLS_CS_ECC */
+          break;
         }
         supported_cs_index__alu16 += 1;
       }
-# else  /* ifndef FLEA_HAVE_TLS_CS_ECC */
-      FLEA_CCALL(THR_flea_byte_vec_t__append(&peer_cipher_suites_u16_be__t, curr_cs__au8, sizeof(curr_cs__au8)));
-# endif  /* ifndef FLEA_HAVE_TLS_CS_ECC */
     }
     cipher_suites_len_from_peer__u32 -= 2;
   }
