@@ -133,7 +133,7 @@ flea_al_u8_t flea_tls__make_set_of_flea_hash_ids_from_tls_sig_algs(
 # if (defined FLEA_HAVE_TLS_CS_PSK || defined FLEA_HAVE_TLS_CS_GCM) && defined FLEA_HAVE_SHA384_512
   mask |= (1 << flea_sha384);
 # endif
-  for(i = (unsigned) flea_md5; i <= flea_sha512; i++)
+  for(i = (unsigned) 1; i <= 6; i++)
   {
     if(pos__alu8 >= result_len__alu8)
     {

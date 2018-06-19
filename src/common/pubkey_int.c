@@ -5,6 +5,7 @@
 #include "internal/common/pubkey_int2.h"
 #include "flea/pubkey.h"
 
+#ifdef FLEA_HAVE_ASYM_ALGS
 flea_err_e THR_flea_pk_ensure_key_strength(
   flea_pk_sec_lev_e  required_strength__e,
   flea_al_u16_t      key_bit_size__alu16,
@@ -32,3 +33,5 @@ flea_err_e THR_flea_pk_ensure_key_strength(
   }
   FLEA_THR_FIN_SEC_empty();
 }
+
+#endif /* ifdef FLEA_HAVE_ASYM_ALGS */

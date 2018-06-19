@@ -9,6 +9,7 @@
 extern "C" {
 # endif
 
+# ifdef FLEA_HAVE_ASYM_ALGS
 
 flea_err_e THR_flea_pk_ensure_key_strength(
   flea_pk_sec_lev_e  required_strength__e,
@@ -18,6 +19,8 @@ flea_err_e THR_flea_pk_ensure_key_strength(
 
 
 flea_pk_sec_lev_e flea_pk_sec_lev_from_bit_mask(flea_al_u8_t bit_mask__alu8);
+
+# endif // ifdef FLEA_HAVE_ASYM_ALGS
 
 # ifdef __cplusplus
 }

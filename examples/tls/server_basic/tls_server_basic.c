@@ -24,6 +24,12 @@
 
 int main()
 {
+#if !defined FLEA_HAVE_TLS_SERVER || !defined FLEA_HAVE_SHA1 || !defined FLEA_HAVE_TLS_CS_CBC || \
+  !(defined FLEA_HAVE_TLS_CS_RSA || defined FLEA_HAVE_TLS_CS_ECDHE)
+  printf("not enough TLS features activated in build configuration\n");
+  return 0;
+
+#else  /* if !defined FLEA_HAVE_TLS_SERVER || !defined FLEA_HAVE_SHA1 || !defined FLEA_HAVE_TLS_CS_CBC || !(defined FLEA_HAVE_TLS_CS_RSA || defined FLEA_HAVE_TLS_CS_ECDHE) */
   /* implementation specific context object: */
   linux_socket_stream_ctx_t sock_stream_ctx;
 
@@ -42,18 +48,29 @@ int main()
   flea_tls_srv_ctx_t tls_ctx;
   flea_u8_t rnd_seed__au8 [32] = {0};
 
-  flea_ref_cu8_t cert_chain [3] = {{ee_cert__au8, sizeof(ee_cert__au8)}, {sub_ca__au8, sizeof(sub_ca__au8)}, {root_cert__au8, sizeof(root_cert__au8)}};
+  flea_ref_cu8_t cert_chain [3] =
+  {{ee_cert__au8,   sizeof(ee_cert__au8)  }, {sub_ca__au8, sizeof(sub_ca__au8)},
+   {root_cert__au8, sizeof(root_cert__au8)}};
 
-  const flea_tls_cipher_suite_id_t cipher_suites[4] =
-  {flea_tls_rsa_with_aes_128_cbc_sha,
-   flea_tls_rsa_with_aes_256_cbc_sha,
-   flea_tls_ecdhe_rsa_with_aes_128_cbc_sha,
-   flea_tls_ecdhe_ecdsa_with_aes_256_cbc_sha};
+  const flea_tls_cipher_suite_id_t cipher_suites[] = {
+# ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_128_CBC_SHA
+    flea_tls_rsa_with_aes_128_cbc_sha,
+# endif
+# ifdef FLEA_HAVE_TLS_CS_RSA_WITH_AES_256_CBC_SHA
+    flea_tls_rsa_with_aes_256_cbc_sha,
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+    flea_tls_ecdhe_rsa_with_aes_128_cbc_sha,
+# endif
+# ifdef FLEA_HAVE_TLS_CS_ECDHE_ECDSA_WITH_AES_256_CBC_SHA
+    flea_tls_ecdhe_ecdsa_with_aes_256_cbc_sha
+# endif
+  };
   const flea_ec_dom_par_id_e ec_curves[2] = {flea_brainpoolP256r1, flea_secp256r1};
 
   flea_dtl_t buf_len = sizeof(buf) - 1;
 
-#ifdef FLEA_HAVE_MUTEX
+# ifdef FLEA_HAVE_MUTEX
   flea_mutex_func_set_t mutex_func_set__t = {
     .init   = flea_linux__pthread_mutex_init,
     .destr  = pthread_mutex_destroy,
@@ -61,7 +78,7 @@ int main()
     .unlock = pthread_mutex_unlock
   };
 
-#endif // ifdef FLEA_HAVE_MUTEX
+# endif // ifdef FLEA_HAVE_MUTEX
 
   /* Draw a random seed - note that in a real world application rather /dev/random should be used */
   int rand_device        = open("/dev/urandom", O_RDONLY);
@@ -135,10 +152,10 @@ int main()
       (const flea_u8_t*) &rnd_seed__au8,
       sizeof(rnd_seed__au8),
       NULL
-#ifdef FLEA_HAVE_MUTEX
+# ifdef FLEA_HAVE_MUTEX
       ,
       &mutex_func_set__t
-#endif
+# endif
     ))
   {
     FLEA_PRINTF_1_SWITCHED("error with lib init, tests aborted\n");
@@ -229,6 +246,8 @@ cleanup:
   flea_lib__deinit();
   printf("ending with error code = %04x\n", err);
   return err;
+
+#endif /* if !defined FLEA_HAVE_TLS_SERVER || !defined FLEA_HAVE_SHA1 || !defined FLEA_HAVE_TLS_CS_CBC || !(defined FLEA_HAVE_TLS_CS_RSA || defined FLEA_HAVE_TLS_CS_ECDHE) */
 } /* main */
 
 // ! [whole_file]
