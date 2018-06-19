@@ -1016,7 +1016,8 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
       // one we will need in the following messages
       flea_tls_prl_hash_ctx_t__stop_update_for_all_but_one(
         p_hash_ctx__pt,
-        flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e)
+        flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e),
+        FLEA_FALSE
       );
     }
     hash_id__t = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e);

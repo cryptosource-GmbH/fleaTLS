@@ -62,7 +62,8 @@ void flea_tls_prl_hash_ctx_t__dtor(flea_tls_prl_hash_ctx_t* p_hash_ctx);
 
 void flea_tls_prl_hash_ctx_t__stop_update_for_all_but_one(
   flea_tls_prl_hash_ctx_t* p_hash_ctx,
-  flea_hash_id_e           hash_id__t
+  flea_hash_id_e           hash_id__t,
+  flea_bool_t              do_prune__b
 );
 
 // get pointer to hash_ctx with corresponding hash_id

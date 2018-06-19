@@ -904,6 +904,12 @@ static flea_err_e THR_flea_tls__send_cert_verify(
     )
   );
 
+  flea_tls_prl_hash_ctx_t__stop_update_for_all_but_one(
+    p_hash_ctx,
+    flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e),
+    FLEA_TRUE
+  );
+
   // digitally sign the messages hash
   FLEA_CCALL(
     THR_flea_byte_vec_t__set_content(

@@ -28,7 +28,11 @@ extern "C" {
 #  define FLEA_TLS_EXT_TYPE__POINT_FORMATS         0x000b
 #  define FLEA_TLS_EXT_TYPE__SIGNATURE_ALGORITHMS  0x000d
 
-#  define FLEA_TLS_IS_VALID_HASH_ID(x) (((x) >= (unsigned) flea_md5) && ((x) <= (unsigned) flea_sha512))
+#  define FLEA_TLS_IS_VALID_HASH_ID(x) (((x) >= (unsigned) 1) && ((x) <= (unsigned) 6))
+
+
+#  define FLEA_TLS_SEC_RENEG_FINISHED_SIZE 12
+#  define FLEA_TLS_VERIFY_DATA_SIZE        12
 
 
 flea_al_u8_t flea_tls__make_set_of_flea_hash_ids_from_tls_sig_algs(
@@ -105,8 +109,8 @@ typedef enum
   FLEA_TLS_HANDSHAKE_EXPECT_FINISHED            = 0x400,
   FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC  = 0x800
 } flea_tls__expect_handshake_type_t;
-#  define FLEA_TLS_SEC_RENEG_FINISHED_SIZE 12
-#  define FLEA_TLS_VERIFY_DATA_SIZE        12
+
+
 flea_err_e THR_flea_tls__send_change_cipher_spec(
   flea_tls_ctx_t* tls_ctx
 );
@@ -188,7 +192,7 @@ flea_err_e THR_flea_tls__client_handshake(
 );
 
 /**
- * send a positive iteger big endian encoded as part of a handshake message.
+ * send a positive integer big endian encoded as part of a handshake message.
  */
 flea_err_e THR_flea_tls__snd_hands_msg_int_be(
   flea_recprot_t*          rec_prot__pt,
