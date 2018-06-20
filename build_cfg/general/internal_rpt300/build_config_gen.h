@@ -242,12 +242,13 @@
 /**
  * Control the window size for the RSA exponentiation. Choose 5 for greatest speed and 1 for smallest RAM footprint.
  */
-# define FLEA_CRT_RSA_WINDOW_SIZE 4
+# define FLEA_CRT_RSA_WINDOW_SIZE 5 // FBFLAGS__INT_LIST 1 2 3 4 5
 
 /**
  * Control the window size for the ECC exponentiation. Choose 4 or 5 for greatest speed and 1 for smallest RAM footprint.
  */
-# define FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE 4
+# define FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE 5 // FBFLAGS__INT_LIST 1 2 3 4 5
+
 /* end perfomance_cfg */
 /**@}*/
 
@@ -393,7 +394,7 @@
 /**
  * Control whether TLS client will be compiled.
  */
-// #  define FLEA_HAVE_TLS_CLIENT
+#  define FLEA_HAVE_TLS_CLIENT
 
 /**
  * Control whether TLS server will be compiled.
@@ -681,8 +682,7 @@
  * The receive buffer will be at most 325 byte larger than
  * FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE, depending on compiled cipher suites.
  */
-# define FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE 16384
-
+# define FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE 300
 /**
  * If enabled, the maximum fragment length negotiation extension (RFC 6066) will
  * be sent if FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE is smaller than the 16834 bytes that
@@ -705,14 +705,14 @@
  *   chosen smaller than 512 bytes. This does not conform to the standard and
  *   the extension is not able to negotiate such a value.
  */
-# define FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
+// # define FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
 
 /**
  * TLS send buffer size. This buffer used for sending data and determines the
  * maximal record size of records sent by fleaTLS. Should not be smaller than
  * 150 bytes. A small size reduces performance. May not be greater than 16384.
  */
-# define FLEA_TLS_ALT_SEND_BUF_SIZE 15000
+# define FLEA_TLS_ALT_SEND_BUF_SIZE 300
 
 /**
  * Maximal size of public key parameters object in an X.509 certificate. Mainly

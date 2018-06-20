@@ -1389,6 +1389,40 @@ flea_bool_t flea_recprot_t__have_done_initial_handshake(const flea_recprot_t* re
   return FLEA_FALSE;
 }
 
+void flea_recprot_t__set_max_pt_len(
+  flea_recprot_t* rec_prot__pt,
+  flea_u16_t      pt_len__u16
+)
+{
+  rec_prot__pt->alt_payload_max_len__u16 = pt_len__u16;
+  rec_prot__pt->record_plaintext_send_max_value__u16 = pt_len__u16;
+}
+
+# ifdef FLEA_HEAP_MODE
+flea_err_e THR_flea_recprot_t__resize_send_buf(
+  flea_recprot_t* rec_prot__pt,
+  flea_u16_t      new_len__u16
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+  FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(
+    rec_prot__pt->alt_send_buf__raw__bu8,
+    rec_prot__pt->alt_send_buf__raw_len__u16
+  );
+
+  FLEA_ALLOC_BUF(
+    rec_prot__pt->alt_send_buf__raw__bu8,
+    new_len__u16
+  );
+
+  rec_prot__pt->alt_send_buf__raw_len__u16 = new_len__u16;
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
+# endif /* ifdef FLEA_HEAP_MODE */
+
 void flea_recprot_t__dtor(flea_recprot_t* rec_prot__pt)
 {
   /* no way to handle error here: */

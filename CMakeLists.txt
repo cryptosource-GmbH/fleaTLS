@@ -103,8 +103,9 @@ SET(TEST_LIB_STRING_ASAN ${TEST_LIB_NAME_STRING}${VERSION_STRING}${ASAN_STR})
 SET(TEST_LIB_STRING_STATIC ${TEST_LIB_NAME_STRING}_static${VERSION_STRING})
 SET(TEST_LIB_STRING_STATIC_ASAN ${TEST_LIB_NAME_STRING}_static${VERSION_STRING}${ASAN_STR})
 
-SET(BUILD_CFG_SUFFIXES "rpt512" "rpt1024" "rpt2048" "rpt4096")
-SET(BUILD_CFG_TARGETS_FULL_STR) 
+SET(BUILD_CFG_SUFFIXES "rpt300" "rpt512" "rpt1024" "rpt2048" "rpt4096")
+SET(BUILD_CFG_TARGETS_FULL_STR) # contains all executables
+SET(BUILD_CFG_TARGETS_FULL_STR_LIBRARIES) # contains all libraries
 
 SET(PROJECT_BINARY_DIR build)
 SET(LIBRARY_OUTPUT_PATH ${PROJECT_BINARY_DIR})
@@ -120,7 +121,7 @@ SET(INCLUDE_DIR ${INCLUDE_DIR_NO_BUILD_CFG} ${BUILD_CFG_PATH}${build_cfg})
 
 SET(SRC_DIR src )
 
-
+add_custom_target(default ALL COMMAND rm -rf ${PROJECT_BINARY_DIR} && mkdir ${PROJECT_BINARY_DIR})
 
 # List of source files
 FILE(GLOB FLEA_SRCS ${SRC_DIR}/x86/*.c ${SRC_DIR}/common/*.c ${SRC_DIR}/user/*.c
@@ -147,6 +148,11 @@ IF(DO_BUILD_SHARED)
   TARGET_LINK_LIBRARIES(${TEST_LIB_STRING} pthread )
   target_include_directories(${TEST_LIB_STRING}  PRIVATE ${INCLUDE_DIR})
 
+  list(APPEND BUILD_CFG_TARGETS_FULL_STR_LIBRARIES ${FULL_LIB_STRING})
+  list(APPEND BUILD_CFG_TARGETS_FULL_STR_LIBRARIES ${TEST_LIB_STRING})
+
+
+
   # add libraries for BUILD_CFG_SUFFIXES 
   foreach(build_cfg_suff ${BUILD_CFG_SUFFIXES})
     SET(INCLUDE_DIR_BUILD_CFG ${INCLUDE_DIR_NO_BUILD_CFG} ${BUILD_CFG_PATH}internal_${build_cfg_suff}) 
@@ -157,12 +163,17 @@ IF(DO_BUILD_SHARED)
     ADD_LIBRARY(${TEST_LIB_STRING}-${build_cfg_suff} EXCLUDE_FROM_ALL SHARED ${TEST_LIB_SRCS})
     TARGET_LINK_LIBRARIES(${TEST_LIB_STRING}-${build_cfg_suff} pthread )
     target_include_directories(${TEST_LIB_STRING}-${build_cfg_suff} PRIVATE ${INCLUDE_DIR_BUILD_CFG})
+
+    list(APPEND BUILD_CFG_TARGETS_FULL_STR_LIBRARIES ${FULL_LIB_STRING}-${build_cfg_suff})
+    list(APPEND BUILD_CFG_TARGETS_FULL_STR_LIBRARIES ${TEST_LIB_STRING}-${build_cfg_suff})
   endforeach(build_cfg_suff)
 ENDIF()
 
 IF(DO_BUILD_STATIC)
     ADD_LIBRARY(${FULL_LIB_STRING_STATIC} STATIC ${FLEA_SRCS})
     ADD_LIBRARY(${TEST_LIB_STRING_STATIC} STATIC ${TEST_LIB_SRCS})
+    list(APPEND BUILD_CFG_TARGETS_FULL_STR_LIBRARIES ${FULL_LIB_STRING_STATIC})
+    list(APPEND BUILD_CFG_TARGETS_FULL_STR_LIBRARIES ${TEST_LIB_STRING_STATIC})
 ENDIF()
 
 
@@ -170,6 +181,8 @@ ADD_EXECUTABLE(flea-test test/src/pc/unit_test_main.cpp ${TEST_SRCS})
 list(APPEND BUILD_CFG_TARGETS_FULL_STR flea-test)
 TARGET_LINK_LIBRARIES(flea-test ${FULL_LIB_STRING} ${TEST_LIB_STRING})
 target_include_directories(flea-test PRIVATE ${INCLUDE_DIR})
+#add_dependencies(flea-test default)
+
 
 # add executables for BUILD_CFG_SUFFIXES 
 foreach(build_cfg_suff ${BUILD_CFG_SUFFIXES})
@@ -199,6 +212,8 @@ IF(DO_USE_ASAN)
   ADD_LIBRARY(${FULL_LIB_STRING_STATIC_ASAN} STATIC ${FLEA_SRCS})
   target_include_directories(${FULL_LIB_STRING_STATIC_ASAN} PUBLIC ${INCLUDE_DIR})
   ADD_LIBRARY(${TEST_LIB_STRING_STATIC_ASAN} STATIC ${TEST_LIB_SRCS})
+   list(APPEND BUILD_CFG_TARGETS_FULL_STR_LIBRARIES ${FULL_LIB_STRING_STATIC_ASAN})
+   list(APPEND BUILD_CFG_TARGETS_FULL_STR_LIBRARIES ${TEST_LIB_STRING_STATIC_ASAN})
   target_include_directories(${TEST_LIB_STRING_STATIC_ASAN} PUBLIC ${INCLUDE_DIR})
   TARGET_LINK_LIBRARIES(${FULL_LIB_STRING_STATIC_ASAN} ${TEST_LIB_STRING_STATIC_ASAN}  asan pthread )
   #set_target_properties(${FULL_LIB_STRING_STATIC_ASAN} PROPERTIES COMPILE_FLAGS ${ASAN_FLAGS})
@@ -221,6 +236,9 @@ IF(DO_USE_ASAN)
 
     ADD_LIBRARY(${TEST_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR} EXCLUDE_FROM_ALL STATIC ${TEST_LIB_SRCS})
     target_include_directories(${TEST_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR} PUBLIC ${INCLUDE_DIR_BUILD_CFG})
+
+   list(APPEND BUILD_CFG_TARGETS_FULL_STR_LIBRARIES ${FULL_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR})
+   list(APPEND BUILD_CFG_TARGETS_FULL_STR_LIBRARIES ${TEST_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR})
 
     target_compile_options(${FULL_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
     target_compile_options(${TEST_LIB_STRING_STATIC}-${build_cfg_suff}${ASAN_STR} PUBLIC -m32 -fno-omit-frame-pointer -fsanitize=address)
@@ -248,3 +266,11 @@ ENDIF()
 
 # add custom target that will build flea for all configs (and asan if enabled)
 add_custom_target(build_cfg_all DEPENDS ${BUILD_CFG_TARGETS_FULL_STR})
+
+foreach(target ${BUILD_CFG_TARGETS_FULL_STR})
+  add_dependencies(${target} default)
+endforeach(target)
+
+foreach(target ${BUILD_CFG_TARGETS_FULL_STR_LIBRARIES})
+  add_dependencies(${target} default)
+endforeach(target)

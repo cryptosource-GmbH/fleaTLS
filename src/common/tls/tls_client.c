@@ -104,6 +104,7 @@ static flea_err_e THR_flea_tls__read_server_hello(
       )))
     {
       client_session_mbn__pt->for_resumption__u8 = 1;
+      hs_ctx__pt->is_sess_res__b = FLEA_TRUE;
     }
     else
     {
@@ -153,6 +154,7 @@ static flea_err_e THR_flea_tls__read_server_hello(
     FLEA_CCALL(
       THR_flea_tls_ctx_t__parse_hello_extensions(
         tls_ctx,
+        hs_ctx__pt,
         hs_rdr__pt,
         &found_sec_reneg__b,
         tls_ctx->private_key_for_client_mbn__pt
@@ -475,10 +477,12 @@ static flea_err_e THR_flea_tls__send_client_hello(
     }
   }
 # endif /* ifdef FLEA_HAVE_TLS_CS_ECC */
+# ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
   if(flea_tls__get_max_fragment_length_byte_for_buf_size(FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE))
   {
     tls_ctx->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH;
   }
+# endif /* ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT */
   ext_len__alu16 = flea_tls_ctx_t__compute_extensions_length(tls_ctx);
 
   len = 2 + 1 + 0 + 32 + 2 + 2 * tls_ctx->nb_allowed_cipher_suites__u16 + 1 + 1 + 0 + ext_len__alu16;
@@ -591,10 +595,12 @@ static flea_err_e THR_flea_tls__send_client_hello(
     FLEA_CCALL(THR_flea_tls_ctx_t__send_sig_alg_ext(tls_ctx, p_hash_ctx));
   }
 
+# ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
   if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH)
   {
     FLEA_CCALL(THR_flea_tls_ctx_t__send_max_fragment_length_ext(tls_ctx, p_hash_ctx));
   }
+# endif /* ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT */
 
   /**
    * both ECC extensions are set or none, so it's sufficient to check one

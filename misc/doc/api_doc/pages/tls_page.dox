@@ -238,7 +238,7 @@ with respect to the handling of this extension during session resumption are
 discussed.
 
 \subsubsection secFragLenExtClient TLS Client
-In case the client has a value between 512 and 16383 for the build variable #FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE, it will include the MFLNE with an appropriate specification of the maximum record plaintext length within its clientHello message. If the server responds with a serverHello featuring the MFLNE with the same maximum plaintext size value as send in the clientHello, then the handshake will continue. Otherwise, the fleaTLS client responds with a record_overflow alert and aborts the handshake.
+In case the client has a value between 512 and 16383 for the build variable #FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE, it will include the MFLNE with an appropriate specification of the maximum record plaintext length within its clientHello message. If the server responds with a serverHello featuring the MFLNE with the same maximum plaintext size value as send in the clientHello, then the handshake will continue. Otherwise, the fleaTLS client responds with a illegal_parameter alert and aborts the handshake.
 
 \subsubsection secFragLenExtServer TLS Server 
 We consider the case of a fleaTLS server that is configured with a value 512 and

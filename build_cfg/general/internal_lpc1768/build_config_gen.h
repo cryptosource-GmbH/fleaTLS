@@ -674,15 +674,39 @@
 
 /**
  * Based on this value the buffer size for received records will be calculated.
- * The TLS standard mandates a size of 2^14. If a smaller size is chosen, an
+ * The TLS standard mandates a size of 2^14 = 16384. If a smaller size is chosen, an
  * attempt will be made to negotiate smaller records using the maximum fragment
- * length extension.
+ * length negotiation extension (RFC 6066). The record plaintext sizes supported by this extension are 512, 1024, 2048, and 4096. One of these value may be configured for this variable.
  * If negotiation fails, fleaTLS will continue as long as no
  * larger message is received.
  * The receive buffer will be at most 325 byte larger than
  * FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE, depending on compiled cipher suites.
  */
 # define FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE 1150
+
+/**
+ * If enabled, the maximum fragment length negotiation extension (RFC 6066) will
+ * be sent if FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE is smaller than the 16834 bytes that
+ * are mandated by the TLS 1.2 standard.
+ * If the extension is active the following behaviour is shown:
+ * - Client side: Send the extension if FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE < 16384.
+ *   If the server does not accept the value, abort the handshake
+ * - Server side: If FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE < 16384 and the client
+ *   does not offer an appropriate value (the suggested plaintext size has to be
+ *   equal or smaller to FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE) or no value at all
+ *   the server aborts the handshake.
+ *
+ *   If one wants to use arbitrary buffer sizes or communicate with a TLS
+ *   implementation that does not implement the maximum fragment length
+ *   extension, one can disable the negotiation and the handshake and the
+ *   following sending/receiving of application data will work as long as there
+ *   is no record_overflow (no message exceeds the plaintext size).
+ *
+ *   The extension has to be disabled if FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE is
+ *   chosen smaller than 512 bytes. This does not conform to the standard and
+ *   the extension is not able to negotiate such a value.
+ */
+# define FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
 
 /**
  * TLS send buffer size. This buffer used for sending data and determines the
