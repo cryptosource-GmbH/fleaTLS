@@ -1596,6 +1596,7 @@ flea_err_e THR_flea_tls__check_sig_alg_compatibility_for_key_type(
   FLEA_THR_FIN_SEC_empty();
 }
 
+# ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
 flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
   flea_tls_ctx_t*          tls_ctx__pt,
   flea_tls_prl_hash_ctx_t* p_hash_ctx__pt
@@ -1764,7 +1765,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
       // update extension ctrl to send max frag ext in server hello
       tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH;
 
-# ifdef FLEA_HEAP_MODE
+#  ifdef FLEA_HEAP_MODE
       // resize receive buffer for server
       FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(
         tls_ctx__pt->rec_prot__t.alt_send_buf__raw__bu8,
@@ -1774,7 +1775,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
         tls_ctx__pt->rec_prot__t.alt_send_buf__raw__bu8,
         tls_ctx__pt->rec_prot__t.alt_send_buf__raw_len__u16
       );
-# endif /* ifdef FLEA_HEAP_MODE */
+#  endif /* ifdef FLEA_HEAP_MODE */
     }
   }
   else
@@ -1798,6 +1799,8 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__parse_max_fragment_length_ext */
+
+# endif /* ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT */
 
 flea_err_e THR_flea_tls_ctx_t__send_sig_alg_ext(
   flea_tls_ctx_t*          tls_ctx__pt,
@@ -2000,6 +2003,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_sig_alg_ext(
  * }*/
 flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
   flea_tls_ctx_t*           tls_ctx__pt,
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
   flea_tls_handsh_reader_t* hs_rdr__pt,
   flea_bool_t*              found_sec_reneg__pb,
   flea_privkey_t*           priv_key_mbn__pt
@@ -2007,9 +2011,12 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
 {
   flea_u32_t extensions_len__u32;
   flea_rw_stream_t* hs_rd_stream__pt;
-  flea_bool_t receive_sig_algs_ext__b     = FLEA_FALSE;
-  flea_bool_t support_sha1__b             = FLEA_FALSE;
+  flea_bool_t receive_sig_algs_ext__b = FLEA_FALSE;
+  flea_bool_t support_sha1__b         = FLEA_FALSE;
+
+# ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
   flea_bool_t receive_max_frag_len_ext__b = FLEA_FALSE;
+# endif
   flea_al_u8_t i;
 
   FLEA_THR_BEG_FUNC();
@@ -2087,11 +2094,13 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
       FLEA_CCALL(THR_flea_tls_ctx_t__parse_supported_curves_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
       tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES;
     }
+#  ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
     else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__MAX_FRAGMENT_LENGTH)
     {
       FLEA_CCALL(THR_flea_tls_ctx_t__parse_max_fragment_length_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
       receive_max_frag_len_ext__b = FLEA_TRUE;
     }
+#  endif /* ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT */
 # endif /* ifdef FLEA_HAVE_TLS_CS_ECC */
     else
     {
@@ -2104,6 +2113,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
     }
   }
 
+# ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
   if(receive_max_frag_len_ext__b == FLEA_FALSE &&
     flea_tls__get_max_fragment_length_byte_for_buf_size(FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE) &&
     tls_ctx__pt->connection_end == FLEA_TLS_SERVER)
@@ -2118,11 +2128,16 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
     tls_ctx__pt->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH &&
     tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
-    FLEA_THROW(
-      "Server did not negotiate the Max Fragmentation Length Extension. Handshake is aborted",
-      FLEA_ERR_TLS_ILLEGAL_PARAMETER
-    );
+    // for sess res case the server does not need to respond with the extension
+    if(!hs_ctx__pt->is_sess_res__b)
+    {
+      FLEA_THROW(
+        "Server did not negotiate the Max Fragmentation Length Extension. Handshake is aborted",
+        FLEA_ERR_TLS_ILLEGAL_PARAMETER
+      );
+    }
   }
+# endif /* ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT */
 
   // no signature_algorithms ext. received from client
   if(receive_sig_algs_ext__b == FLEA_FALSE && tls_ctx__pt->connection_end == FLEA_TLS_SERVER)

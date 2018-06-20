@@ -246,6 +246,7 @@ static flea_err_e THR_flea_tls__read_client_hello(
   FLEA_CCALL(
     THR_flea_tls_ctx_t__parse_hello_extensions(
       tls_ctx,
+      hs_ctx__pt,
       hs_rdr__pt,
       &found_sec_reneg__b,
       tls_ctx->private_key__pt
@@ -452,10 +453,12 @@ static flea_err_e THR_flea_tls__send_server_hello(
     }
   }
 # endif /* ifdef FLEA_HAVE_TLS_CS_ECC */
+# ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
   if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH)
   {
     FLEA_CCALL(THR_flea_tls_ctx_t__send_max_fragment_length_ext(tls_ctx, p_hash_ctx));
   }
+# endif /* ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT */
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_server_hello */
@@ -1072,7 +1075,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
       }
     }
     flea_tls_cert_path_params_t cert_path_params__t =
-    {.kex_type__e                  =               0,
+    {.kex_type__e                  = 0,
      .client_cert_type_mask__u8    = cert_mask__u8,
      .validate_server_or_client__e = FLEA_TLS_CLIENT,
      .hostn_valid_params__pt       = NULL,
