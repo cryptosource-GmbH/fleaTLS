@@ -1763,7 +1763,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
 #  ifdef FLEA_HEAP_MODE
       // resize recv buffer
       FLEA_CCALL(
-        THR_flea_recprot_t__resize_recv_buf(
+        THR_flea_recprot_t__resize_send_buf(
           &tls_ctx__pt->rec_prot__t,
           max_fragment_length__u16 + FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE + FLEA_TLS_RECORD_HDR_LEN
         )

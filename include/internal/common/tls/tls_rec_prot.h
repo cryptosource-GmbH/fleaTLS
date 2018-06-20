@@ -184,7 +184,7 @@ void flea_recprot_t__set_max_pt_len(
 );
 
 # ifdef FLEA_HEAP_MODE
-flea_err_e THR_flea_recprot_t__resize_recv_buf(
+flea_err_e THR_flea_recprot_t__resize_send_buf(
   flea_recprot_t* rec_prot__pt,
   flea_u16_t      new_len__u16
 );
