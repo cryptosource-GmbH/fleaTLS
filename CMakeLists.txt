@@ -121,7 +121,7 @@ SET(INCLUDE_DIR ${INCLUDE_DIR_NO_BUILD_CFG} ${BUILD_CFG_PATH}${build_cfg})
 
 SET(SRC_DIR src )
 
-add_custom_target(default ALL COMMAND rm -rf build && mkdir build)
+add_custom_target(default ALL COMMAND rm -rf ${PROJECT_BINARY_DIR} && mkdir ${PROJECT_BINARY_DIR})
 
 # List of source files
 FILE(GLOB FLEA_SRCS ${SRC_DIR}/x86/*.c ${SRC_DIR}/common/*.c ${SRC_DIR}/user/*.c
