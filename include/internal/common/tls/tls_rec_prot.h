@@ -177,6 +177,19 @@ flea_bool_t flea_recprot_t__have_done_initial_handshake(const flea_recprot_t* re
 void flea_recprot_t__discard_current_read_record(flea_recprot_t* rec_prot__pt);
 
 flea_err_e THR_flea_recprot_t__close_and_send_close_notify(flea_recprot_t* rec_prot__pt);
+
+void flea_recprot_t__set_max_pt_len(
+  flea_recprot_t* rec_prot__pt,
+  flea_u16_t      pt_len__u16
+);
+
+# ifdef FLEA_HEAP_MODE
+flea_err_e THR_flea_recprot_t__resize_recv_buf(
+  flea_recprot_t* rec_prot__pt,
+  flea_u16_t      new_len__u16
+);
+# endif // ifdef FLEA_HEAP_MODE
+
 #endif // ifdef FLEA_HAVE_TLS
 #ifdef __cplusplus
 }
