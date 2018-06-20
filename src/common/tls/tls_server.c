@@ -242,7 +242,7 @@ static flea_err_e THR_flea_tls__read_client_hello(
   {
     FLEA_THROW("Could not agree on compression method", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH);
   }
-
+  tls_ctx->fragm_len_code__u8 = 0;
   FLEA_CCALL(
     THR_flea_tls_ctx_t__parse_hello_extensions(
       tls_ctx,
@@ -413,6 +413,7 @@ static flea_err_e THR_flea_tls__send_server_hello(
       &server_ctx__pt->active_session__t.valid_until__t,
       server_ctx__pt->session_mngr_mbn__pt->session_validity_period_seconds__u32
     );
+    server_ctx__pt->active_session__t.session_data__t.max_frag_len_code__u8 = tls_ctx->max_fragm_len_code__u8;
   }
 
   FLEA_CCALL(

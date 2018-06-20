@@ -1403,4 +1403,40 @@ void flea_recprot_t__dtor(flea_recprot_t* rec_prot__pt)
   flea_recprot_t__INIT(rec_prot__pt);
 }
 
+flea_err_e THR_flea_recprot_t__set_max_plaintext_len(
+  flea_recprot_t* rec_prot__pt,
+  flea_al_u16_t   max_fragment_length__alu16,
+  flea_bool_t     do_shrink_send_buf
+)
+{
+  FLEA_THR_BEG_FUNC();
+  if(rec_prot__t.record_plaintext_send_max_value__u16 >= max_fragment_length__alu16)
+  {
+    rec_prot__t.alt_send_buf__raw_len__u16 = max_fragment_length__alu16 + FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE
+      + FLEA_TLS_RECORD_HDR_LEN;
+    rec_prot__t.alt_payload_max_len__u16 = max_fragment_length__alu16;
+    rec_prot__t.record_plaintext_send_max_value__u16 = max_fragment_length__alu16;
+
+    if(tls_ctx__pt->connection_end == FLEA_TLS_SERVER)
+    {
+      // update extension ctrl to send max frag ext in server hello
+      tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH;
+
+# ifdef FLEA_HEAP_MODE
+      // resize receive buffer for server
+      // TODO: WICHTIGER IST ES DEN RECEIVE BUFFER ZU VERKLEINERN
+      FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(
+        tls_ctx__pt->rec_prot__t.alt_send_buf__raw__bu8,
+        tls_ctx__pt->rec_prot__t.alt_send_buf__raw_len__u16
+      );
+      FLEA_ALLOC_BUF(
+        tls_ctx__pt->rec_prot__t.alt_send_buf__raw__bu8,
+        tls_ctx__pt->rec_prot__t.alt_send_buf__raw_len__u16
+      );
+# endif /* ifdef FLEA_HEAP_MODE */
+    }
+    FLEA_THR_FIN_SEC_empty();
+  }
+}
+
 #endif /* ifdef FLEA_HAVE_TLS */
