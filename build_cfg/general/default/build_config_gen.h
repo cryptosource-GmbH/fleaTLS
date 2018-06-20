@@ -677,9 +677,8 @@
  * The TLS standard mandates a size of 2^14 = 16384. If a smaller size is chosen, an
  * attempt will be made to negotiate smaller records using the maximum fragment
  * length negotiation extension (RFC 6066). The record plaintext sizes supported by this extension are 512, 1024, 2048, and 4096. One of these value may be configured for this variable.
- * If negotiation fails, fleaTLS will continue as long as no
- * larger message is received.
- * The receive buffer will be at most 325 byte larger than
+ * If negotiation fails, fleaTLS will abort the handshake with a fatal alert.
+ * The receive buffer will be at most 325 bytes larger than
  * FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE, depending on compiled cipher suites.
  */
 # define FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE 16384

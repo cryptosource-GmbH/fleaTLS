@@ -42,6 +42,7 @@ typedef struct
 struct struct_flea_tls_ctx_t
 {
   flea_tls__connection_end_t connection_end; /* Server or Client */
+  void*                      client_or_server_ctx__pv;
 #  ifdef FLEA_STACK_MODE
   flea_u8_t                  master_secret__bu8[FLEA_TLS_MASTER_SECRET_SIZE]; /* symmetric keys are derived from this */
 #  else
@@ -107,7 +108,6 @@ struct struct_flea_tls_ctx_t
   flea_x509_cert_ref_t        peer_root_cert_ref__t;
   flea_u8_t                   peer_root_cert_set__u8;
 #  endif
-  flea_u8_t                   max_fragm_len_code__u8;
 };
 
 struct struct_flea_tls_handshake_ctx_t
@@ -134,6 +134,7 @@ struct struct_flea_tls_srv_ctx_t
   flea_tls_session_mngr_t*       session_mngr_mbn__pt;
   flea_u8_t                      server_resume_session__u8;
   flea_u8_t                      server_session_id_assigned__u8;
+  flea_u8_t                      max_fragm_len_code__u8;
 #  ifdef FLEA_HAVE_TLS_CS_PSK
   flea_get_psk_cb_f              get_psk_mbn_cb__f;
   const void*                    psk_lookup_ctx_mbn__vp;

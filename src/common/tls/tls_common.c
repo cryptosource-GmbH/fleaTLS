@@ -160,7 +160,6 @@ static flea_u16_t get_max_fragment_length_by_ext_byte(flea_u8_t byte__u8)
   return 0; // should never happen if we perform the range check before calling the function
 }
 
-
 flea_mac_id_e flea_tls__map_hmac_to_hash(flea_hash_id_e hash)
 {
   flea_mac_id_e hmac;
@@ -221,9 +220,13 @@ static void flea_tls_ctx_t__set_sec_reneg_flags(
   }
 }
 
-flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(flea_tls_ctx_t* tls_ctx__pt, flea_al_u8_t max_fragment_code__alu8)
+flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(
+  flea_tls_ctx_t* tls_ctx__pt,
+  flea_al_u8_t    max_fragment_code__alu8
+)
 {
   flea_al_u16_t max_fragment_length__alu16;
+
   FLEA_THR_BEG_FUNC();
   if(max_fragment_code__alu8 == 0)
   {
@@ -241,6 +244,7 @@ flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(flea_tls_ctx_t* tls_ctx__pt, fl
         FLEA_THR_RETURN();
       }
       server_ctx__pt->max_fragm_len_code__u8 = max_fragment_code__alu8;
+
       /* update extension ctrl to send max frag ext in server hello. The
        * extension will be sent even when the server agrees to a session
        * resumption request. */
@@ -249,15 +253,15 @@ flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(flea_tls_ctx_t* tls_ctx__pt, fl
       // flush buffer before altering it
       FLEA_CCALL(THR_flea_rw_stream_t__flush_write(tls_ctx__pt->rec_prot__t.rw_stream__pt));
 
-#  ifdef FLEA_HEAP_MODE
+# ifdef FLEA_HEAP_MODE
       // resize recv buffer
       FLEA_CCALL(
-          THR_flea_recprot_t__resize_send_buf(
-            &tls_ctx__pt->rec_prot__t,
-            max_fragment_length__alu16 + FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE + FLEA_TLS_RECORD_HDR_LEN
-            )
-          );
-#  endif /* ifdef FLEA_HEAP_MODE */
+        THR_flea_recprot_t__resize_send_buf(
+          &tls_ctx__pt->rec_prot__t,
+          max_fragment_length__alu16 + FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE + FLEA_TLS_RECORD_HDR_LEN
+        )
+      );
+# endif  /* ifdef FLEA_HEAP_MODE */
     }
 
     // set the new max plaintext length
@@ -266,12 +270,12 @@ flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(flea_tls_ctx_t* tls_ctx__pt, fl
   else
   {
     FLEA_THROW(
-        "Max Fragmentation Length Extension: Client sent a value that is too large for the receive buffer",
-        FLEA_ERR_TLS_RECORD_OVERFLOW
-        );
+      "Max Fragmentation Length Extension: Client sent a value that is too large for the receive buffer",
+      FLEA_ERR_TLS_RECORD_OVERFLOW
+    );
   }
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls_ctx_t__set_max_fragm_len */
 
 static flea_err_e P_Hash(
   const flea_u8_t* secret,
@@ -399,7 +403,6 @@ static flea_err_e flea_tls__prf(
   );
   FLEA_THR_FIN_SEC_empty();
 } /* flea_tls__prf */
-
 
 static flea_mac_id_e flea_tls__prf_mac_id_from_suite_id(flea_tls_cipher_suite_id_t cs_id__t)
 {
@@ -1759,7 +1762,6 @@ flea_u8_t flea_tls__get_max_fragment_length_byte_for_buf_size(flea_u16_t buf_len
 
   return result;
 }
-
 
 flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
   flea_tls_ctx_t*   tls_ctx__pt,

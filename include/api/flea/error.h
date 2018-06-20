@@ -1,11 +1,11 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef __flea_error_H_
-#define __flea_error_H_
+# define __flea_error_H_
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 
 typedef enum
@@ -561,8 +561,8 @@ typedef enum
   FLEA_ERR_OUT_OF_MEM                    = 0xFFFF,
 } flea_err_e;
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

@@ -134,8 +134,13 @@ static flea_err_e THR_flea_tls__read_client_hello(
         &resume__b
       )
     );
-
-    server_ctx__pt->server_resume_session__u8 = resume__b;
+    FLEA_CCALL(
+      THR_flea_tls_ctx_t__set_max_fragm_len(
+        &server_ctx__pt->tls_ctx__t,
+        server_ctx__pt->active_session__t.session_data__t.max_frag_len_code__u8
+      )
+    );
+    server_ctx__pt->server_resume_session__u8 = resume__b; /* must come after the set_max_fragm_len call */
   }
 
   FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, &cipher_suites_len_from_peer__u32, 2));
@@ -242,7 +247,6 @@ static flea_err_e THR_flea_tls__read_client_hello(
   {
     FLEA_THROW("Could not agree on compression method", FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH);
   }
-  tls_ctx->fragm_len_code__u8 = 0;
   FLEA_CCALL(
     THR_flea_tls_ctx_t__parse_hello_extensions(
       tls_ctx,
@@ -252,6 +256,7 @@ static flea_err_e THR_flea_tls__read_client_hello(
       tls_ctx->private_key__pt
     )
   );
+
   if(tls_ctx->sec_reneg_flag__u8 && !found_sec_reneg__b)
   {
     FLEA_THROW("missing renegotiation info in peer's extensions", FLEA_ERR_TLS_HANDSHK_FAILURE);
@@ -414,7 +419,7 @@ static flea_err_e THR_flea_tls__send_server_hello(
       &server_ctx__pt->active_session__t.valid_until__t,
       server_ctx__pt->session_mngr_mbn__pt->session_validity_period_seconds__u32
     );
-    server_ctx__pt->active_session__t.session_data__t.max_frag_len_code__u8 = tls_ctx->max_fragm_len_code__u8;
+    server_ctx__pt->active_session__t.session_data__t.max_frag_len_code__u8 = server_ctx__pt->max_fragm_len_code__u8;
   }
 
   FLEA_CCALL(
@@ -1076,7 +1081,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
       }
     }
     flea_tls_cert_path_params_t cert_path_params__t =
-    {.kex_type__e                  = 0,
+    {.kex_type__e                  =               0,
      .client_cert_type_mask__u8    = cert_mask__u8,
      .validate_server_or_client__e = FLEA_TLS_CLIENT,
      .hostn_valid_params__pt       = NULL,
@@ -1547,6 +1552,7 @@ flea_err_e THR_flea_tls_srv_ctx_t__ctor_psk(
 
   FLEA_THR_BEG_FUNC();
   flea_tls_ctx_t* tls_ctx__pt = &tls_server_ctx__pt->tls_ctx__t;
+  tls_ctx__pt->client_or_server_ctx__pv = (void*) tls_server_ctx__pt;
   tls_ctx__pt->cfg_flags__e = flags__e;
   tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16 = nb_crls__alu16;
   tls_ctx__pt->rev_chk_cfg__t.crl_der__pt  = crl_der__pt;

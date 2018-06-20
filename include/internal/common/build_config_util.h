@@ -118,7 +118,7 @@
 // throw error if
 #if FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE < 512 && defined FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
 # error \
-  for TLS. Please deactivate the FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT flag when using a FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE <= 512
+  for TLS. Please deactivate the FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT flag when using a FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE < 512
 #endif
 
 /************ End Record Size Configuration ************/
