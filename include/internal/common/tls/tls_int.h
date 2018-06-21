@@ -21,6 +21,16 @@ extern "C" {
 # endif
 
 # ifdef FLEA_HAVE_TLS
+
+#  define FLEA_TLS_1_2_VERSION_MAJOR  3
+#  define FLEA_TLS_1_2_VERSION_MINOR  3
+
+#  define FLEA_DTLS_1_2_VERSION_MAJOR 254
+#  define FLEA_DTLS_1_2_VERSION_MINOR 253
+
+#  define FLEA_TLS_1_2_VERSION        (FLEA_TLS_1_2_VERSION_MAJOR << 8 | FLEA_TLS_1_2_VERSION_MINOR)
+#  define FLEA_DTLS_1_2_VERSION       (FLEA_DTLS_1_2_VERSION_MAJOR << 8 | FLEA_DTLS_1_2_VERSION_MINOR)
+
 #  define flea_tls_ctx_t__INIT(__p) do {memset((__p), 0, sizeof(*(__p)));} while(0)
 
 typedef struct
@@ -54,7 +64,7 @@ struct struct_flea_tls_ctx_t
   flea_u16_t                        nb_allowed_cipher_suites__u16;
   flea_tls_cipher_suite_id_t        selected_cipher_suite__e;
 
-  /* max. supported TLS version */
+  /* current tls version */
   flea_tls__protocol_version_t      version;
 
   /* stores hash function to use for the PRF algorithm */

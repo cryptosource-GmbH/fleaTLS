@@ -18,7 +18,6 @@ extern "C" {
 
 # ifdef FLEA_HAVE_TLS
 
-#  define FLEA_TLS_RECORD_HDR_LEN      5
 #  define FLEA_TLS_TRNSF_BUF_SIZE      (FLEA_TLS_MAX_RECORD_SIZE + FLEA_TLS_RECORD_HDR_LEN)
 #  define FLEA_TLS_STD_MAX_RECORD_SIZE 18432
 
@@ -84,22 +83,26 @@ struct struct_flea_recprot_t
   flea_u8_t*                   payload_buf__pu8;
   flea_u8_t*                   send_payload_buf__pu8;
   flea_u8_t*                   send_buf_raw__pu8;
-  flea_u16_t                   payload_max_len__u16;
-  flea_u16_t                   alt_payload_max_len__u16;
+  // flea_u16_t                   payload_max_len__u16; // TODO: REMOVE THIS, NOT READ AT ALL
+  // flea_u16_t                   alt_payload_max_len__u16;
   flea_u16_t                   record_plaintext_send_max_value__u16; // max. size for alt_payload_max_len__u16 (relevant for using the max fragment length extension)
-  flea_u16_t                   send_payload_max_len__u16;
+  // flea_u16_t                   send_payload_max_len__u16;
   flea_u16_t                   payload_used_len__u16;
   flea_u16_t                   send_payload_used_len__u16;
   flea_u16_t                   payload_offset__u16;
   flea_u16_t                   send_payload_offset__u16;
+  flea_u16_t                   reserved_payl_len__u16;
   flea_tls__protocol_version_t prot_version__t;
+  // flea_u16_t tls_version__u16;
   flea_rw_stream_t*            rw_stream__pt;
-  flea_u8_t                    write_ongoing__u8;
+  // flea_u8_t                    write_ongoing__u8; // TODO: PUT INTO CTRL_FIELD
   flea_u16_t                   read_bytes_from_current_record__u16;
   flea_u16_t                   current_record_content_len__u16;
-  flea_u8_t                    is_session_closed__u8;
-  flea_u8_t                    is_current_record_alert__u8;
-  flea_u8_t                    pending_close_notify__u8;
+  flea_u8_t                    is_session_closed__u8; // TODO: PUT INTO CTRL_FIELD
+  flea_u8_t                    is_current_record_alert__u8; // TODO: PUT INTO CTRL_FIELD
+  flea_u8_t                    pending_close_notify__u8; // TODO: PUT INTO CTRL_FIELD
+  flea_u8_t                    record_hdr_len__u8;
+  flea_u8_t                    ctrl_field__u8;
 };
 
 #  define flea_recprot_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
@@ -110,7 +113,8 @@ flea_err_e THR_flea_recprot_t__ctor(
   flea_recprot_t*   rec_prot__pt,
   flea_al_u8_t      prot_vers_major,
   flea_al_u8_t      prot_vers_minor,
-  flea_rw_stream_t* rw_stream__pt
+  flea_rw_stream_t* rw_stream__pt,
+  flea_bool_t       allow_dtls__b
 );
 
 void flea_recprot_t__set_null_ciphersuite(
@@ -184,9 +188,10 @@ void flea_recprot_t__set_max_pt_len(
 );
 
 #  ifdef FLEA_HEAP_MODE
-flea_err_e THR_flea_recprot_t__resize_send_buf(
+
+flea_err_e THR_flea_recprot_t__resize_send_plaintext_size(
   flea_recprot_t* rec_prot__pt,
-  flea_u16_t      new_len__u16
+  flea_al_u16_t   new_len__alu16
 );
 #  endif // ifdef FLEA_HEAP_MODE
 

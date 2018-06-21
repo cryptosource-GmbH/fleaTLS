@@ -113,12 +113,13 @@
 # define FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE 8 + 16 /* Explicit IV + GCM tag */
 #endif
 
-#define FLEA_TLS_MAX_RECORD_SIZE FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE + FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE
+/** the maximal data content of a TLS record */
+#define FLEA_TLS_MAX_RECORD_SIZE (FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE + FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE)
 
 // throw error if
-#if FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE < 512 && defined FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
+#if FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE < 512 && defined FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
 # error \
-  for TLS. Please deactivate the FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT flag when using a FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE < 512
+  for TLS. Please deactivate the FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT flag when using a FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE < 512
 #endif
 
 /************ End Record Size Configuration ************/
