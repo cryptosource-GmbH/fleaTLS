@@ -864,24 +864,6 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
 # endif /* ifdef FLEA_HEAP_MODE */
   tls_ctx__pt->sec_reneg_flag__u8 = FLEA_FALSE;
 
-# ifdef FLEA_HAVE_TLS_SERVER
-
-  if(flags__e & flea_tls_flag__allow_dtls1_2)
-  {
-    allow_dtls__b = FLEA_TRUE;
-    if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
-    {
-      /* client only knows one protocol to use */
-      tls_ctx__pt->version.major = FLEA_DTLS_1_2_VERSION_MAJOR;
-      tls_ctx__pt->version.minor = FLEA_DTLS_1_2_VERSION_MINOR;
-    }
-  }
-  if(flags__e & flea_tls_flag__disallow_tls1_2)
-  {
-    tls_ctx__pt->version.major = FLEA_DTLS_1_2_VERSION_MAJOR;
-    tls_ctx__pt->version.minor = FLEA_DTLS_1_2_VERSION_MINOR;
-  }
-# endif /* ifdef FLEA_HAVE_TLS_SERVER */
   FLEA_CCALL(
     THR_flea_recprot_t__ctor(
       &tls_ctx__pt->rec_prot__t,
