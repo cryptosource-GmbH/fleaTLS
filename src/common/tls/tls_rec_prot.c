@@ -20,8 +20,11 @@
 
 #ifdef FLEA_HAVE_TLS
 
-# define FLEA_RP_CTRL__DTLS_ALLOWED_BIT  (1 << 0)
-# define FLEA_RP_CTRL__WRITE_ONGOING_BIT (1 << 1)
+# define FLEA_RP_CTRL__DTLS_ALLOWED_BIT         (1 << 0)
+# define FLEA_RP_CTRL__WRITE_ONGOING_BIT        (1 << 1)
+# define FLEA_RP_CTRL__SESSION_CLOSED_BIT       (1 << 2)
+# define FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT (1 << 3)
+# define FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT (1 << 4)
 
 # define FLEA_RP__SET_ALLOW_DTLS(rec_prot__pt)    ((rec_prot__pt)->ctrl_field__u8 |= FLEA_RP_CTRL__DTLS_ALLOWED_BIT)
 # define FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt)   ((rec_prot__pt)->ctrl_field__u8 & FLEA_RP_CTRL__DTLS_ALLOWED_BIT)
@@ -32,11 +35,33 @@
   (~FLEA_RP_CTRL__WRITE_ONGOING_BIT))
 # define FLEA_RP__IS_WRITE_ONGOING(rec_prot__pt)  ((rec_prot__pt)->ctrl_field__u8 & FLEA_RP_CTRL__WRITE_ONGOING_BIT)
 
-/*
-#define FLEA_RP__
-  rec_prot__pt->payload_max_len__u16 = rec_prot__pt->send_rec_buf_raw_len__u16 - rec_prot__pt->record_hdr_len__u8
-    - reserved_payl_len__alu16;
-    */
+
+# define FLEA_RP__SET_SESSION_CLOSED(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 |= \
+  FLEA_RP_CTRL__SESSION_CLOSED_BIT)
+# define FLEA_RP__IS_SESSION_CLOSED(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 \
+  & FLEA_RP_CTRL__SESSION_CLOSED_BIT)
+
+# define FLEA_RP__SET_CURRENT_RECORD_ALERT(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 |= \
+  FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT)
+# define FLEA_RP__SET_NOT_CURRENT_RECORD_ALERT(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 &= \
+  (~FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT))
+# define FLEA_RP__IS_CURRENT_RECORD_ALERT(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 \
+  & FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT)
+
+# define FLEA_RP__SET_PENDING_CLOSE_NOTIFY(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 |= \
+  FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT)
+# define FLEA_RP__SET_NO_PENDING_CLOSE_NOTIFY(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 &= \
+  (~FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT))
+# define FLEA_RP__IS_PENDING_CLOSE_NOTIFY(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 \
+  & FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT)
 
 static void inc_seq_nbr(flea_u32_t* seq__au32)
 {
@@ -134,7 +159,7 @@ static flea_err_e THR_flea_recprot_t__close_with_fatal_alert_and_throw(
       FLEA_TLS_ALERT_LEVEL_FATAL
     )
   );
-  rec_prot__pt->is_session_closed__u8 = FLEA_TRUE;
+  FLEA_RP__SET_SESSION_CLOSED(rec_prot__pt);
   FLEA_THROW("closing session with fatal alert", error__e);
   FLEA_THR_FIN_SEC_empty();
 }
@@ -161,7 +186,7 @@ static flea_err_e THR_flea_recprot_t__handle_alert(
   rec_prot__pt->payload_used_len__u16 = 0;
   if(rec_prot__pt->payload_buf__pu8[0] == FLEA_TLS_ALERT_LEVEL_FATAL)
   {
-    rec_prot__pt->is_session_closed__u8 = FLEA_TRUE;
+    FLEA_RP__SET_SESSION_CLOSED(rec_prot__pt);
     FLEA_THROW("received fatal alert", FLEA_ERR_TLS_REC_FATAL_ALERT);
   }
 
@@ -204,9 +229,6 @@ flea_err_e THR_flea_recprot_t__ctor(
   rec_prot__pt->read_bytes_from_current_record__u16 = 0;
 
   rec_prot__pt->current_record_content_len__u16 = 0;
-  rec_prot__pt->is_session_closed__u8       = FLEA_FALSE;
-  rec_prot__pt->is_current_record_alert__u8 = FLEA_FALSE;
-  rec_prot__pt->pending_close_notify__u8    = FLEA_FALSE;
 
   flea_recprot_t__set_null_ciphersuite(rec_prot__pt, flea_tls_write);
   flea_recprot_t__set_null_ciphersuite(rec_prot__pt, flea_tls_read);
@@ -502,11 +524,11 @@ flea_err_e THR_flea_recprot_t__wrt_data(
 
   FLEA_THR_BEG_FUNC();
 
-  if(rec_prot__pt->pending_close_notify__u8)
+  if(FLEA_RP__IS_PENDING_CLOSE_NOTIFY(rec_prot__pt))
   {
     FLEA_THROW("connection closed by peer", FLEA_ERR_TLS_REC_CLOSE_NOTIFY);
   }
-  if(rec_prot__pt->is_session_closed__u8)
+  if(FLEA_RP__IS_SESSION_CLOSED(rec_prot__pt))
   {
     FLEA_THROW("tls session closed", FLEA_ERR_TLS_SESSION_CLOSED);
   }
@@ -1047,7 +1069,7 @@ flea_err_e THR_flea_recprot_t__send_alert_and_throw(
   flea_tls__alert_level_t lev = FLEA_TLS_ALERT_LEVEL_FATAL;
 
   FLEA_THR_BEG_FUNC();
-  if(rec_prot__pt->is_session_closed__u8)
+  if(FLEA_RP__IS_SESSION_CLOSED(rec_prot__pt))
   {
     FLEA_THROW(
       "unable to send fatal alert due to session being already closed",
@@ -1062,7 +1084,7 @@ flea_err_e THR_flea_recprot_t__send_alert_and_throw(
   {
     flea_recprot_t__discard_pending_write(rec_prot__pt);
     FLEA_CCALL(THR_flea_recprot_t__send_alert(rec_prot__pt, description, lev));
-    rec_prot__pt->is_session_closed__u8 = 1;
+    FLEA_RP__SET_SESSION_CLOSED(rec_prot__pt);
   }
   FLEA_THROW("throwing error after (potentially) sending fatal TLS alert", err__t);
 
@@ -1089,7 +1111,7 @@ flea_err_e THR_flea_recprot_t__close_and_send_close_notify(flea_recprot_t* rec_p
 {
   FLEA_THR_BEG_FUNC();
 
-  if(!rec_prot__pt->is_session_closed__u8)
+  if(!FLEA_RP__IS_SESSION_CLOSED(rec_prot__pt))
   {
     flea_recprot_t__discard_pending_write(rec_prot__pt);
     FLEA_CCALL(
@@ -1099,7 +1121,7 @@ flea_err_e THR_flea_recprot_t__close_and_send_close_notify(flea_recprot_t* rec_p
         FLEA_TLS_ALERT_LEVEL_WARNING
       )
     );
-    rec_prot__pt->is_session_closed__u8 = FLEA_TRUE;
+    FLEA_RP__SET_SESSION_CLOSED(rec_prot__pt);
   }
   FLEA_THR_FIN_SEC_empty();
 }
@@ -1130,11 +1152,11 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
   FLEA_THR_BEG_FUNC();
   *data_len__pdtl = 0;
 
-  if(rec_prot__pt->pending_close_notify__u8)
+  if(FLEA_RP__IS_PENDING_CLOSE_NOTIFY(rec_prot__pt))
   {
     FLEA_THROW("connection closed by peer", FLEA_ERR_TLS_REC_CLOSE_NOTIFY);
   }
-  if(rec_prot__pt->is_session_closed__u8)
+  if(FLEA_RP__IS_SESSION_CLOSED(rec_prot__pt))
   {
     FLEA_THROW("tls session closed", FLEA_ERR_TLS_SESSION_CLOSED);
   }
@@ -1228,13 +1250,13 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
         /* header is read completely */
         if(rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_ALERT)
         {
-          rec_prot__pt->is_current_record_alert__u8 = FLEA_TRUE;
+          FLEA_RP__SET_CURRENT_RECORD_ALERT(rec_prot__pt);
         }
         else
         {
-          rec_prot__pt->is_current_record_alert__u8 = 0;
+          FLEA_RP__SET_NOT_CURRENT_RECORD_ALERT(rec_prot__pt);
         }
-        if(!rec_prot__pt->is_current_record_alert__u8)
+        if(!FLEA_RP__IS_CURRENT_RECORD_ALERT(rec_prot__pt))
         {
           if(
             (cont_type__e == CONTENT_TYPE_APPLICATION_DATA) &&
@@ -1248,9 +1270,6 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
             FLEA_THROW("content type does not match", FLEA_ERR_TLS_INV_REC_HDR);
           }
 
-          /* }
-             if(!rec_prot__pt->is_current_record_alert__u8)
-             {*/
           if(do_verify_prot_version__b)
           {
             if((prot_version_mbn__pt->major != rec_prot__pt->send_rec_buf_raw__bu8[1]) ||
@@ -1279,7 +1298,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
       {
         flea_stream_read_mode_e content_read_mode__e = local_rd_mode__e;
         flea_al_u16_t needed_read_len__alu16;
-        if(rec_prot__pt->is_current_record_alert__u8)
+        if(FLEA_RP__IS_CURRENT_RECORD_ALERT(rec_prot__pt))
         {
           content_read_mode__e = flea_read_full;
         }
@@ -1352,7 +1371,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
       {
         FLEA_THROW("received tls handshake message when app data was expected", FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA);
       }
-      else if(rec_prot__pt->is_current_record_alert__u8)
+      else if(FLEA_RP__IS_CURRENT_RECORD_ALERT(rec_prot__pt))
       {
         if(rec_prot__pt->payload_buf__pu8[1] == FLEA_TLS_ALERT_DESC_CLOSE_NOTIFY)
         {
@@ -1362,7 +1381,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
           }
           else
           {
-            rec_prot__pt->pending_close_notify__u8 = 1;
+            FLEA_RP__SET_PENDING_CLOSE_NOTIFY(rec_prot__pt);
           }
         }
 
@@ -1379,7 +1398,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
         *data_len__pdtl = read_bytes_count__dtl;
       }
     } while(
-      rec_prot__pt->is_current_record_alert__u8 || ((rd_mode__e == flea_read_full) && data_len__dtl) ||
+      FLEA_RP__IS_CURRENT_RECORD_ALERT(rec_prot__pt) || ((rd_mode__e == flea_read_full) && data_len__dtl) ||
       ((rd_mode__e == flea_read_blocking) && !read_bytes_count__dtl)
     );
   } /* end of ' get new record hdr and content' */
