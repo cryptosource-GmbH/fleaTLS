@@ -671,6 +671,10 @@
  */
 # define FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
+/**
+ * This variable controls whether support for DTLS 1.2 is available.
+ */
+# define FLEA_HAVE_DTLS
 
 /**
  * Based on this value the buffer size for received records will be calculated.

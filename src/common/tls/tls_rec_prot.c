@@ -16,15 +16,16 @@
 
 // TODO: ANY CALCULATIONS FOR MAXIMAL SIZES MUST USE DTLS HDR-LEN IS CONFIGURED
 #define FLEA_TLS_RECORD_HDR_LEN  5
-#define FLEA_DTLS_RECORD_HDR_LEN (FLEA_TLS_RECORD_HDR_LEN + 4)
+#define FLEA_DTLS_RECORD_HDR_LEN (FLEA_TLS_RECORD_HDR_LEN + 8)
 
 #ifdef FLEA_HAVE_TLS
 
-# define FLEA_RP_CTRL__DTLS_ALLOWED_BIT         (1 << 0)
-# define FLEA_RP_CTRL__WRITE_ONGOING_BIT        (1 << 1)
-# define FLEA_RP_CTRL__SESSION_CLOSED_BIT       (1 << 2)
-# define FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT (1 << 3)
-# define FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT (1 << 4)
+# define FLEA_RP_CTRL__DTLS_ALLOWED_BIT              (1 << 0)
+# define FLEA_RP_CTRL__WRITE_ONGOING_BIT             (1 << 1)
+# define FLEA_RP_CTRL__SESSION_CLOSED_BIT            (1 << 2)
+# define FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT      (1 << 3)
+# define FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT      (1 << 4)
+# define FLEA_RP_CTRL__IN_HANDSHAKE_IN_NEW_EPOCH_BIT (1 << 5)
 
 # define FLEA_RP__SET_ALLOW_DTLS(rec_prot__pt)    ((rec_prot__pt)->ctrl_field__u8 |= FLEA_RP_CTRL__DTLS_ALLOWED_BIT)
 # define FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt)   ((rec_prot__pt)->ctrl_field__u8 & FLEA_RP_CTRL__DTLS_ALLOWED_BIT)
@@ -62,6 +63,23 @@
 # define FLEA_RP__IS_PENDING_CLOSE_NOTIFY(rec_prot__pt) \
   ((rec_prot__pt)->ctrl_field__u8 \
   & FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT)
+
+
+# define FLEA_RP__SET_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 |= \
+  FLEA_RP_CTRL__IN_HANDSHAKE_IN_NEW_EPOCH_BIT)
+# define FLEA_RP__IS_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 \
+  & FLEA_RP_CTRL__IN_HANDSHAKE_IN_NEW_EPOCH_BIT)
+
+# define FLEA_RP_COMPUTE_MAX_SEND_PT_SIZE_FROM_BUFFER_SIZE(rec_prot__pt) \
+  ((rec_prot__pt)->alt_send_buf__raw_len__u16 - FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE - (rec_prot__pt)->record_hdr_len__u8)
+
+# define FLEA_RP__IS_DTLS_ACTIVE(rec_prot__pt) ((rec_prot__pt)->is_dtls_active__u8)
+
+# define FLEA_RP__GET_RD_CURR_REC_EPOCH_FROM_SEQ(rec_prot__pt) \
+  ((rec_prot__pt)->read_state__t.sequence_number__au32[0] \
+  >> 16)
 
 static void inc_seq_nbr(flea_u32_t* seq__au32)
 {
@@ -220,8 +238,7 @@ flea_err_e THR_flea_recprot_t__ctor(
   rec_prot__pt->record_hdr_len__u8         = FLEA_TLS_RECORD_HDR_LEN;
   rec_prot__pt->alt_send_buf__raw_len__u16 = FLEA_TLS_ALT_SEND_BUF_SIZE;
   rec_prot__pt->send_rec_buf_raw_len__u16  = FLEA_TLS_TRNSF_BUF_SIZE;
-  rec_prot__pt->record_plaintext_send_max_value__u16 = rec_prot__pt->alt_send_buf__raw_len__u16
-    - FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE - rec_prot__pt->record_hdr_len__u8;
+  rec_prot__pt->record_plaintext_send_max_value__u16 = FLEA_RP_COMPUTE_MAX_SEND_PT_SIZE_FROM_BUFFER_SIZE(rec_prot__pt);
   rec_prot__pt->prot_version__t.major = prot_vers_major;
   rec_prot__pt->prot_version__t.minor = prot_vers_minor;
   rec_prot__pt->rw_stream__pt         = rw_stream__pt;
@@ -1188,6 +1205,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
     flea_stream_read_mode_e local_rd_mode__e = rd_mode__e;
     flea_dtl_t raw_read_len__dtl;
     flea_al_u16_t raw_rec_content_len__alu16;
+    flea_al_u8_t hdr_pos__alu8;
+
     if(local_rd_mode__e == flea_read_blocking)
     {
       local_rd_mode__e = flea_read_full;
@@ -1217,19 +1236,26 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
 
           if(rec_prot__pt->read_bytes_from_current_record__u16 >= rec_hdr_up_to_incl_version__calu8)
           {
-            // TODO: IF RECEIVED IS DTLS1.2, AND TRANSITION IS ALLOWED, THEN
-            // MAKE THE TRANSITION.
-            // - BEFORE THAT, ENCAPSULATE ALL REC-HDR-LEN DEPENDENT CALCULATIONS
-            if((rec_prot__pt->send_rec_buf_raw__bu8[1] == FLEA_DTLS_1_2_VERSION_MAJOR) && (
-                rec_prot__pt->send_rec_buf_raw__bu8[2] == FLEA_DTLS_1_2_VERSION_MINOR))
+            if(((rec_prot__pt->send_rec_buf_raw__bu8[1] == FLEA_DTLS_1_2_VERSION_MAJOR) && (
+                rec_prot__pt->send_rec_buf_raw__bu8[2] == FLEA_DTLS_1_2_VERSION_MINOR)) &&
+              (prot_version_mbn__pt && ((prot_version_mbn__pt->major != FLEA_DTLS_1_2_VERSION_MAJOR) || (
+                prot_version_mbn__pt->minor != FLEA_DTLS_1_2_VERSION_MINOR))))
             {
               if(FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt))
               {
-                // TODO: CALL FUNCTION WHICH ENCAPSULATES THE RECORD-HDR-LEN
-                // DEPENDENT CALCULATIONS
-                // note:
-                // - receive length is not affected
-                // - send len is affected directly by
+                flea_al_u16_t new_from_buf__alu16;
+                rec_prot__pt->record_hdr_len__u8 = FLEA_DTLS_RECORD_HDR_LEN;
+
+                /* note:
+                   - receive length is not affected, since the DTLS header
+                   length is considered in the calculation of the buffer size
+                   - send len is affected directly */
+                new_from_buf__alu16 = FLEA_RP_COMPUTE_MAX_SEND_PT_SIZE_FROM_BUFFER_SIZE(rec_prot__pt);
+                rec_prot__pt->record_plaintext_send_max_value__u16 = FLEA_MIN(
+                  new_from_buf__alu16,
+                  rec_prot__pt->record_plaintext_send_max_value__u16
+                  );
+                rec_prot__pt->is_dtls_active__u8 = 1;
               }
             }
           }
@@ -1284,8 +1310,52 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
             prot_version_mbn__pt->minor = rec_prot__pt->send_rec_buf_raw__bu8[2];
           }
         }
-        rec_prot__pt->current_record_content_len__u16  = rec_prot__pt->send_rec_buf_raw__bu8[3] << 8;
-        rec_prot__pt->current_record_content_len__u16 |= rec_prot__pt->send_rec_buf_raw__bu8[4];
+        hdr_pos__alu8 = 3;
+# ifdef FLEA_HAVE_DTLS
+        if(FLEA_RP__IS_DTLS_ACTIVE(rec_prot__pt))
+        {
+          flea_al_u8_t i;
+          flea_al_u16_t rec_epoch__alu16;
+          // flea_al_u16_t old_epoch__alu16 = FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt);
+          rec_prot__pt->read_state__t.sequence_number__au32[0] = 0;
+          rec_prot__pt->read_state__t.sequence_number__au32[1] = 0;
+          for(i = 0; i < 8; i++)
+          {
+            flea_u32_t s__u32 = rec_prot__pt->read_state__t.sequence_number__au32[i / 4];
+            s__u32 <<= 8;
+            s__u32  |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++];
+            rec_prot__pt->read_state__t.sequence_number__au32[i / 4] = s__u32;
+          }
+          rec_epoch__alu16 = FLEA_RP__GET_RD_CURR_REC_EPOCH_FROM_SEQ(rec_prot__pt);
+          if(rec_epoch__alu16 != rec_prot__pt->read_state__t.next_rec_epoch__u16)
+          {
+            if((rec_epoch__alu16 + 1 == rec_prot__pt->read_state__t.next_rec_epoch__u16) &&
+              FLEA_RP__IS_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt))
+            {
+              /* accept this record (nothing to do) */
+            }
+            else
+            {
+              /* TODO: DISCARD THIS RECORD! */
+            }
+          }
+          if(cont_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
+          {
+            FLEA_RP__SET_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt);
+            rec_prot__pt->read_state__t.next_rec_epoch__u16++;
+
+            if(rec_prot__pt->read_state__t.next_rec_epoch__u16 == 0)
+            {
+              FLEA_THROW("DTLS epoch exhausted", FLEA_ERR_TLS_SQN_EXHAUSTED);
+            }
+            // TODO: WHEN INVOKING RECORD_RECEIVED, THE EPOCHE FROM THE SEQ MUST
+            // BE USED
+          }
+        }
+# endif /* ifdef FLEA_HAVE_DTLS */
+
+        rec_prot__pt->current_record_content_len__u16  = rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++] << 8;
+        rec_prot__pt->current_record_content_len__u16 |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8];
 
         if(rec_prot__pt->current_record_content_len__u16 > FLEA_TLS_TRNSF_BUF_SIZE - rec_prot__pt->record_hdr_len__u8)
         {

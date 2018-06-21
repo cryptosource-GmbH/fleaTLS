@@ -69,29 +69,35 @@ typedef enum
 
 struct struct_flea_recprot_t
 {
-  flea_tls_con_stt_t           read_state__t;
-  flea_tls_con_stt_t           write_state__t;
+  flea_tls_con_stt_t read_state__t;
+  flea_tls_con_stt_t write_state__t;
 #  ifdef FLEA_HEAP_MODE
-  flea_u8_t*                   send_rec_buf_raw__bu8;
-  flea_u8_t*                   alt_send_buf__raw__bu8;
+  flea_u8_t*         send_rec_buf_raw__bu8;
+  flea_u8_t*         alt_send_buf__raw__bu8;
 #  else
-  flea_u8_t                    send_rec_buf_raw__bu8[FLEA_TLS_TRNSF_BUF_SIZE + FLEA_TLS_RECORD_HDR_LEN ];
-  flea_u8_t                    alt_send_buf__raw__bu8[FLEA_TLS_ALT_SEND_BUF_SIZE];
+  flea_u8_t          send_rec_buf_raw__bu8[FLEA_TLS_TRNSF_BUF_SIZE + FLEA_TLS_RECORD_HDR_LEN ];
+  flea_u8_t          alt_send_buf__raw__bu8[FLEA_TLS_ALT_SEND_BUF_SIZE];
 #  endif // ifdef FLEA_HEAP_MODE
-  flea_u16_t                   alt_send_buf__raw_len__u16;
-  flea_u16_t                   send_rec_buf_raw_len__u16;
-  flea_u8_t*                   payload_buf__pu8;
-  flea_u8_t*                   send_payload_buf__pu8;
-  flea_u8_t*                   send_buf_raw__pu8;
+  flea_u16_t         alt_send_buf__raw_len__u16;
+  flea_u16_t         send_rec_buf_raw_len__u16;
+  flea_u8_t*         payload_buf__pu8;
+  flea_u8_t*         send_payload_buf__pu8;
+  flea_u8_t*         send_buf_raw__pu8;
   // flea_u16_t                   payload_max_len__u16; // TODO: REMOVE THIS, NOT READ AT ALL
   // flea_u16_t                   alt_payload_max_len__u16;
-  flea_u16_t                   record_plaintext_send_max_value__u16; // max. size for alt_payload_max_len__u16 (relevant for using the max fragment length extension)
+  flea_u16_t         record_plaintext_send_max_value__u16;           // max. size for alt_payload_max_len__u16 (relevant for using the max fragment length extension)
   // flea_u16_t                   send_payload_max_len__u16;
-  flea_u16_t                   payload_used_len__u16;
-  flea_u16_t                   send_payload_used_len__u16;
-  flea_u16_t                   payload_offset__u16;
-  flea_u16_t                   send_payload_offset__u16;
-  flea_u16_t                   reserved_payl_len__u16;
+  flea_u16_t         payload_used_len__u16;
+  flea_u16_t         send_payload_used_len__u16;
+  flea_u16_t         payload_offset__u16;
+  flea_u16_t         send_payload_offset__u16;
+  flea_u16_t         reserved_payl_len__u16;
+
+/*#ifdef FLEA_HAVE_DTLS
+  flea_u16_t send_epoch__u16;
+  flea_u16_t rec_epoch__u16;
+  flea_u32_t rec_seq__au32[2];
+#endif*/
   flea_tls__protocol_version_t prot_version__t;
   // flea_u16_t tls_version__u16;
   flea_rw_stream_t*            rw_stream__pt;
@@ -99,9 +105,25 @@ struct struct_flea_recprot_t
   flea_u16_t                   current_record_content_len__u16;
   flea_u8_t                    record_hdr_len__u8;
   flea_u8_t                    ctrl_field__u8;
+  flea_u8_t                    is_dtls_active__u8;
 };
 
 #  define flea_recprot_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
+
+
+#  define FLEA_RP__SET_NOT_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 &= \
+  (~FLEA_RP_CTRL__IN_HANDSHAKE_IN_NEW_EPOCH_BIT))
+
+// TODO: THIS FUNCTION MUST BE CALLED BY CLIENT AND SERVER
+#  ifdef FLEA_HAVE_DTLS
+#   define FLEA_RECPROT_T__NOTIFY_HANDSHAKE_FINISHED(rec_prot__pt) \
+  FLEA_RP__SET_NOT_IN_HANDSHAKE_IN_NEW_EPOCH( \
+    rec_prot__pt \
+  )
+#  else // ifdef FLEA_HAVE_DTLS
+#   define FLEA_RECPROT_T__NOTIFY_HANDSHAKE_FINISHED(rec_prot__pt)
+#  endif // ifdef FLEA_HAVE_DTLS
 
 void flea_recprot_t__dtor(flea_recprot_t* rec_prot__pt);
 

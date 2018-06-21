@@ -252,6 +252,11 @@ typedef enum
   FLEA_ERR_TLS_RECORD_OVERFLOW             = 0x63,
 
   /**
+   * The DTLS epoch counter has been exhausted.
+   */
+  FLEA_ERR_TLS_SQN_EXHAUSTED               = 0x64,
+
+  /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */
   FLEA_ERR_PKCS8_INVALID_KEY_OID           = 0x70,
