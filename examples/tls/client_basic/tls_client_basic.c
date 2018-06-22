@@ -105,7 +105,8 @@ int main()
       4444,   /* port */
       0,   /* read timeout */
       hostname_str,
-      FLEA_FALSE   /* use ip address, not DNS name */
+      FLEA_FALSE,   /* use ip address, not DNS name */
+      tcp
     )))
   {
     goto cleanup;

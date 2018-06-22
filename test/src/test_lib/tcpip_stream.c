@@ -16,14 +16,13 @@
 #include <netdb.h>
 
 
-// static linux_socket_stream_ctx_t stc_sock_stream__t;
-
 static void init_sock_stream_client(
   linux_socket_stream_ctx_t* sock_stream__pt,
   flea_u16_t                 port__u16,
   unsigned                   timeout_millisecs,
   const char*                hostname,
-  flea_bool_t                is_dns_name
+  flea_bool_t                is_dns_name,
+  socket_type_t              socket_type
 )
 {
   memset(sock_stream__pt, 0, sizeof(*sock_stream__pt));
@@ -33,6 +32,7 @@ static void init_sock_stream_client(
   sock_stream__pt->timeout_millisecs = timeout_millisecs;
   sock_stream__pt->hostname    = hostname;
   sock_stream__pt->is_dns_name = is_dns_name;
+  sock_stream__pt->is_tcp      = (socket_type == tcp);
 }
 
 static void init_sock_stream_server(
@@ -54,7 +54,8 @@ static flea_err_e THR_open_socket_client(void* ctx__pv)
   linux_socket_stream_ctx_t* ctx__pt = (linux_socket_stream_ctx_t*) ctx__pv;
   struct sockaddr_in addr;
   int socket_fd = -1;
-  socket_fd = socket(AF_INET, SOCK_STREAM, 0);
+  int type      = ctx__pt->is_tcp ? SOCK_STREAM : SOCK_DGRAM;
+  socket_fd = socket(AF_INET, type, 0);
 
   if(socket_fd == -1)
   {
@@ -256,13 +257,14 @@ flea_err_e THR_flea_pltfif_tcpip__create_rw_stream_server(
   flea_rw_stream_t*          stream__pt,
   linux_socket_stream_ctx_t* sock_stream_ctx,
   int                        sock_fd,
-  unsigned                   timeout_millisecs
+  unsigned                   timeout_millisecs,
+  flea_bool_t                is_tcp
 
 )
 {
   FLEA_THR_BEG_FUNC();
   flea_rw_stream_open_f open__f         = NULL; // THR_open_socket_server;
-  flea_rw_stream_close_f close__f       = close_socket;
+  flea_rw_stream_close_f close__f       = is_tcp ? close_socket : NULL;
   flea_rw_stream_write_f write__f       = THR_write_socket;
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
@@ -289,7 +291,8 @@ flea_err_e THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_u16_t                 port__u16,
   unsigned                   timeout_millisecs,
   const char*                hostname,
-  flea_bool_t                is_dns_name
+  flea_bool_t                is_dns_name,
+  socket_type_t              socket_type
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -298,7 +301,7 @@ flea_err_e THR_flea_pltfif_tcpip__create_rw_stream_client(
   flea_rw_stream_write_f write__f       = THR_write_socket;
   flea_rw_stream_flush_write_f flush__f = THR_write_flush_socket;
   flea_rw_stream_read_f read__f         = THR_read_socket;
-  init_sock_stream_client(sock_stream_ctx, port__u16, timeout_millisecs, hostname, is_dns_name);
+  init_sock_stream_client(sock_stream_ctx, port__u16, timeout_millisecs, hostname, is_dns_name, socket_type);
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,

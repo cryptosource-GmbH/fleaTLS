@@ -872,13 +872,13 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
     if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
     {
       /* client only knows one protocol to use */
-      tls_ctx__pt->version.major = FLEA_DTLS_1_2_VERSION_MAJOR;
+      tls_ctx__pt->version.major = FLEA_DTLS_1_X_VERSION_MAJOR;
       tls_ctx__pt->version.minor = FLEA_DTLS_1_2_VERSION_MINOR;
     }
   }
   if(flags__e & flea_tls_flag__disallow_tls1_2)
   {
-    tls_ctx__pt->version.major = FLEA_DTLS_1_2_VERSION_MAJOR;
+    tls_ctx__pt->version.major = FLEA_DTLS_1_X_VERSION_MAJOR;
     tls_ctx__pt->version.minor = FLEA_DTLS_1_2_VERSION_MINOR;
   }
 # endif /* ifdef FLEA_HAVE_TLS_SERVER */

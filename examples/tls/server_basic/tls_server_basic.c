@@ -42,7 +42,9 @@ int main()
   flea_tls_srv_ctx_t tls_ctx;
   flea_u8_t rnd_seed__au8 [32] = {0};
 
-  flea_ref_cu8_t cert_chain [3] = {{ee_cert__au8, sizeof(ee_cert__au8)}, {sub_ca__au8, sizeof(sub_ca__au8)}, {root_cert__au8, sizeof(root_cert__au8)}};
+  flea_ref_cu8_t cert_chain [3] =
+  {{ee_cert__au8,   sizeof(ee_cert__au8)  }, {sub_ca__au8, sizeof(sub_ca__au8)},
+   {root_cert__au8, sizeof(root_cert__au8)}};
 
   const flea_tls_cipher_suite_id_t cipher_suites[4] =
   {flea_tls_rsa_with_aes_128_cbc_sha,
@@ -122,7 +124,8 @@ int main()
       &rw_stream__t,
       &sock_stream_ctx,
       sock_fd,
-      0   /* no read_timeout */
+      0,   /* no read_timeout */
+      FLEA_TRUE /* is_tcp */
     )
     ))
   {

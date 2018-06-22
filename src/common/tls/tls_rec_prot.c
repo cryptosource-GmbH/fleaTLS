@@ -1236,15 +1236,18 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
 
           if(rec_prot__pt->read_bytes_from_current_record__u16 >= rec_hdr_up_to_incl_version__calu8)
           {
-            if(((rec_prot__pt->send_rec_buf_raw__bu8[1] == FLEA_DTLS_1_2_VERSION_MAJOR) && (
-                rec_prot__pt->send_rec_buf_raw__bu8[2] == FLEA_DTLS_1_2_VERSION_MINOR)) &&
-              (prot_version_mbn__pt && ((prot_version_mbn__pt->major != FLEA_DTLS_1_2_VERSION_MAJOR) || (
+            if(((rec_prot__pt->send_rec_buf_raw__bu8[1] == FLEA_DTLS_1_X_VERSION_MAJOR) &&
+              ((rec_prot__pt->send_rec_buf_raw__bu8[2] == FLEA_DTLS_1_0_VERSION_MINOR) ||
+              (rec_prot__pt->send_rec_buf_raw__bu8[2] == FLEA_DTLS_1_2_VERSION_MINOR))) &&
+              (prot_version_mbn__pt && ((prot_version_mbn__pt->major != FLEA_DTLS_1_X_VERSION_MAJOR) || (
                 prot_version_mbn__pt->minor != FLEA_DTLS_1_2_VERSION_MINOR))))
             {
               if(FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt))
               {
                 flea_al_u16_t new_from_buf__alu16;
                 rec_prot__pt->record_hdr_len__u8 = FLEA_DTLS_RECORD_HDR_LEN;
+                rec_prot__pt->payload_buf__pu8   = rec_prot__pt->send_rec_buf_raw__bu8
+                  + rec_prot__pt->record_hdr_len__u8;
 
                 /* note:
                    - receive length is not affected, since the DTLS header
@@ -1306,6 +1309,9 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
           }
           else if(prot_version_mbn__pt)
           {
+            // TODO: FOR DTLS, this is incorrent, when openssl sends DTLS1.0 in
+            // record, but DTLS1.2 in handshake msg
+            // => find out what the meaning is
             prot_version_mbn__pt->major = rec_prot__pt->send_rec_buf_raw__bu8[1];
             prot_version_mbn__pt->minor = rec_prot__pt->send_rec_buf_raw__bu8[2];
           }

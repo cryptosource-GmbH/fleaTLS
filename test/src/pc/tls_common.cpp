@@ -282,6 +282,32 @@ namespace {
   }
 }
 
+socket_type_t get_socket_type(property_set_t const& props)
+{
+  if(use_dtls(props))
+  {
+    return udp;
+  }
+  else
+  {
+    return tcp;
+  }
+}
+
+bool use_dtls(property_set_t const& props)
+{
+  std::string s = props.get_property_as_string("protocol_variant");
+  if(s == "tls")
+  {
+    return false;
+  }
+  else if(s == "dtls")
+  {
+    return true;
+  }
+  throw test_utils_exceptn_t("invlalid protocol_variant provided: " + s);
+}
+
 std::string get_comma_seperated_list_of_supported_sig_algs()
 {
   std::string result;
@@ -416,6 +442,11 @@ flea_err_e THR_flea_tls_tool_set_tls_cfg(
     server_key->data__pcu8 = NULL;
     server_key->len__dtl   = 0;
     *cert_chain_len        = 0;
+  }
+
+  if(use_dtls(cmdl_args))
+  {
+    cfg.flags |= flea_tls_flag__allow_dtls1_2;
   }
 
 

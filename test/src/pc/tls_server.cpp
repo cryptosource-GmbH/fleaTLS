@@ -178,7 +178,8 @@ static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
         &rw_stream__t,
         &serv_par__pt->sock_stream_ctx,
         serv_par__pt->sock_fd,
-        serv_par__pt->read_timeout
+        serv_par__pt->read_timeout,
+        serv_par__pt->is_tcp
       )
     );
   }
@@ -386,7 +387,7 @@ static void* flea_tls_server_thread(void* sv__pv)
 
 static flea_err_e THR_server_cycle(
   property_set_t const     & cmdl_args,
-  int                      listen_fd,
+  int                      server_fd,
   flea_tls_session_mngr_t* sess_man__pt,
   std::string const        & dir_for_file_based_input,
   bool                     is_https_server
@@ -426,7 +427,7 @@ static flea_err_e THR_server_cycle(
   bool stay = cmdl_args.have_index("stay");
 
   const unsigned thr_max = cmdl_args.get_property_as_u32("threads");
-  listen(listen_fd, thr_max);
+
   std::vector<std::unique_ptr<server_params_t> > serv_pars;
   bool stop = false;
   if(thr_max > 1)
@@ -434,6 +435,13 @@ static flea_err_e THR_server_cycle(
     stay = true;
   }
   bool create_new_threads = true;
+  if(get_socket_type(cmdl_args) == socket_type_t::tcp)
+  {
+    if(0 != listen(server_fd, thr_max))
+    {
+      FLEA_THROW("listen failed", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
+    }
+  }
   FLEA_CCALL(THR_flea_cert_store_t__ctor(&trust_store__t));
 
   FLEA_CCALL(
@@ -493,14 +501,58 @@ static flea_err_e THR_server_cycle(
       serv_par__t.server_error__e = FLEA_ERR_FINE;
       serv_par__t.finished__b     = FLEA_FALSE;
       serv_par__t.is_https_server = is_https_server;
+      serv_par__t.is_tcp = get_socket_type(cmdl_args) == socket_type_t::tcp;
 
 #  ifdef FLEA_HAVE_TLS_CS_PSK
       serv_par__t.get_psk_mbn_cb__f = NULL;
 #  endif
 
+      std::cout << "sever_fd before accept / recvfrom = " << server_fd << std::endl;
       if(dir_for_file_based_input == "")
       {
-        sock_fd = unix_tcpip_accept(listen_fd, read_timeout_ms);
+        if(get_socket_type(cmdl_args) == socket_type_t::tcp)
+        {
+          sock_fd = unix_tcpip_accept(server_fd, read_timeout_ms);
+        }
+        else if(get_socket_type(cmdl_args) == socket_type_t::udp)
+        {
+          struct sockaddr_in from;
+          socklen_t from_len = sizeof(sockaddr_in);
+
+
+          /*struct timeval tv;
+          tv.tv_sec  = 300; // TODO: SET TIMEOUT ACCORDING TO COMMANDLINE ARGS
+          tv.tv_usec = 0;
+          setsockopt(
+            server_fd,
+            SOL_SOCKET,
+            SO_RCVTIMEO,
+            (struct timeval*) &tv,
+            sizeof(struct timeval)
+          );*/
+          if(::recvfrom(
+              server_fd,
+              nullptr,
+              0,
+              MSG_PEEK,
+              reinterpret_cast<struct sockaddr*>(&from),
+              &from_len
+            ) != 0)
+          {
+            std::cout << strerror(errno) << std::endl;
+            FLEA_THROW("Could not peek next packet", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
+          }
+
+          if(::connect(server_fd, reinterpret_cast<struct sockaddr*>(&from), from_len) != 0)
+          {
+            FLEA_THROW("Could not connect UDP socket", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
+          }
+          sock_fd = server_fd;
+        }
+        else
+        {
+          throw test_utils_exceptn_t("invalid socket type encountered");
+        }
       }
       if((dir_for_file_based_input != "") || (0 <= sock_fd))
       {
@@ -656,39 +708,67 @@ static flea_err_e THR_flea_start_tls_server(
 )
 {
   struct sockaddr_in addr;
-  int listen_fd     = -1;// client_fd = 0;
+  int server_fd     = -1;// client_fd = 0;
   int one           = 1;
   flea_err_e err__t = FLEA_ERR_FINE;
 
   FLEA_THR_BEG_FUNC();
-
+  int port = cmdl_args.get_property_as_u32("port");
   std::string dir_for_file_based_input = cmdl_args.get_property_as_string_default_empty("stream_input_file_dir");
+  socket_type_t type = get_socket_type(cmdl_args);
   if(dir_for_file_based_input == "")
   {
-    listen_fd = socket(AF_INET, SOCK_STREAM, 0);
-
-    if(listen_fd == -1)
+    if(type == socket_type_t::tcp)
     {
-      FLEA_THROW("error opening linux socket", FLEA_ERR_INV_STATE);
+      server_fd = socket(AF_INET, SOCK_STREAM, 0);
+
+      if(server_fd == -1)
+      {
+        FLEA_THROW("error opening linux socket", FLEA_ERR_INV_STATE);
+      }
+      if(setsockopt(server_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(int)) < 0)
+      {
+        FLEA_THROW("setsockopt(SO_REUSEADDR) failed", FLEA_ERR_INV_STATE);
+      }
+
+
+      memset(&addr, 0, sizeof(addr));
+      addr.sin_addr.s_addr = htonl(INADDR_ANY);
+      addr.sin_family      = AF_INET;
+      addr.sin_port        = htons(port);
+
+      if((bind(server_fd, (struct sockaddr*) &addr, sizeof(addr))) < 0)
+      {
+        FLEA_THROW("Socket bind failed", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
+      }
     }
-    if(setsockopt(listen_fd, SOL_SOCKET, SO_REUSEADDR, &one, sizeof(int)) < 0)
+    else
     {
-      FLEA_THROW("setsockopt(SO_REUSEADDR) failed", FLEA_ERR_INV_STATE);
-    }
+      std::cout << "opening UDP socket\n";
+      server_fd = ::socket(PF_INET, SOCK_DGRAM, 0);
 
+      if(server_fd == -1)
+      {
+        FLEA_THROW("Unable to acquire socket", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
+      }
 
-    memset(&addr, 0, sizeof(addr));
-    addr.sin_addr.s_addr = htonl(INADDR_ANY);
-    addr.sin_family      = AF_INET;
-    addr.sin_port        = htons(cmdl_args.get_property_as_u32("port"));
+      sockaddr_in socket_info;
+      ::memset(&socket_info, 0, sizeof(socket_info));
+      socket_info.sin_family = AF_INET;
+      socket_info.sin_port   = htons(port);
 
-    if((bind(listen_fd, (struct sockaddr*) &addr, sizeof(addr))) < 0)
-    {
-      FLEA_THROW("Socket bind failed", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
+      // FIXME: support limiting listeners
+      socket_info.sin_addr.s_addr = INADDR_ANY;
+
+      if(::bind(server_fd, reinterpret_cast<struct sockaddr*>(&socket_info), sizeof(struct sockaddr)) != 0)
+      {
+        ::close(server_fd);
+        FLEA_THROW("Socket bind failed", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
+      }
     }
   }
 
-  err__t = THR_server_cycle(cmdl_args, listen_fd, sess_man__pt, dir_for_file_based_input, is_https_server);
+  err__t = THR_server_cycle(cmdl_args, server_fd, sess_man__pt, dir_for_file_based_input, is_https_server);
   printf("connection aborted with error %04x\n", err__t);
   if(!err__t)
   {

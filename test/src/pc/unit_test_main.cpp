@@ -68,6 +68,12 @@ static properties_spec_t create_properties_spec()
     "1000"
     ).set_group(tls);
 
+  result["protocol_variant"] = properties_spec_entry_t(
+    "Whether to use TLS or DTLS, possible values are 'tls' and 'dtls'.",
+    "protocol",
+    "tls"
+    ).set_group(tls);
+
   result["tls_client"] = properties_spec_entry_t("instantiate a fleaTLS client", "").set_group(cl);
   result["tls_server"] = properties_spec_entry_t("instantiate a fleaTLS server", "").set_group(se);
 

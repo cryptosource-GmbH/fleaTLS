@@ -56,6 +56,7 @@ struct server_params_t
   flea_u16_t                        identity_hint_len__u16;
   flea_get_psk_cb_f                 get_psk_mbn_cb__f;
   void*                             psk_lookup_ctx_mbn__vp;
+  flea_bool_t                       is_tcp;
 # endif // ifdef FLEA_HAVE_TLS_CS_PSK
   void write_output_string(std::string const& s)
   {
@@ -132,6 +133,9 @@ std::string get_comma_seperated_list_of_allowed_values(std::map<std::string, T> 
 flea_u32_t reneg_flag_from_string(std::string const& s);
 
 flea_u32_t min_key_strength_from_string(std::string const& s);
+
+socket_type_t get_socket_type(property_set_t const& props);
+bool use_dtls(property_set_t const& props);
 
 #endif // ifdef FLEA_HAVE_TLS
 
