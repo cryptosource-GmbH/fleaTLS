@@ -1679,8 +1679,9 @@ flea_err_e THR_flea_tls__check_sig_alg_compatibility_for_key_type(
 
 # ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
 flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
-  flea_tls_ctx_t*          tls_ctx__pt,
-  flea_tls_prl_hash_ctx_t* p_hash_ctx__pt
+  flea_tls_ctx_t*           tls_ctx__pt,
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_prl_hash_ctx_t*  p_hash_ctx__pt
 )
 {
   flea_u8_t ext__au8[] = {
@@ -1715,9 +1716,7 @@ flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
   }
   else
   {
-    ext_byte__u8 = flea_tls__get_max_fragment_length_byte_for_buf_size(
-      tls_ctx__pt->rec_prot__t.record_plaintext_send_max_value__u16
-      );
+    ext_byte__u8 = hs_ctx__pt->cl_max_frag_len_val__u8;
   }
 
   FLEA_CCALL(
@@ -1767,9 +1766,10 @@ flea_u8_t flea_tls__get_max_fragment_length_byte_for_buf_size(flea_u16_t buf_len
 }
 
 flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
-  flea_tls_ctx_t*   tls_ctx__pt,
-  flea_rw_stream_t* rd_strm__pt,
-  flea_al_u16_t     ext_len__alu16
+  flea_tls_ctx_t*           tls_ctx__pt,
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_rw_stream_t*         rd_strm__pt,
+  flea_al_u16_t             ext_len__alu16
 )
 {
   flea_u8_t ext_value__u8;
@@ -1818,6 +1818,10 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
         FLEA_ERR_TLS_ILLEGAL_PARAMETER
       );
     }
+  }
+  else
+  {
+    hs_ctx__pt->cl_max_frag_len_val__u8 = ext_value__u8;
   }
 
   FLEA_THR_FIN_SEC_empty();
@@ -2120,7 +2124,14 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
 #  ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
     else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__MAX_FRAGMENT_LENGTH)
     {
-      FLEA_CCALL(THR_flea_tls_ctx_t__parse_max_fragment_length_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
+      FLEA_CCALL(
+        THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
+          tls_ctx__pt,
+          hs_ctx__pt,
+          hs_rd_stream__pt,
+          ext_len__u32
+        )
+      );
       receive_max_frag_len_ext__b = FLEA_TRUE;
     }
 #  endif /* ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT */

@@ -712,8 +712,7 @@
  * maximal record size of records sent by fleaTLS. Should not be smaller than
  * 150 bytes. A small size reduces performance. May not be greater than 16384.
  */
-# define FLEA_TLS_ALT_SEND_BUF_SIZE 16384
-
+# define FLEA_TLS_ALT_SEND_BUF_SIZE 300
 
 /**
  * Maximal size of public key parameters object in an X.509 certificate. Mainly

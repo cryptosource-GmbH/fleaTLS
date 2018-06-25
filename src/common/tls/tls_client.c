@@ -598,7 +598,7 @@ static flea_err_e THR_flea_tls__send_client_hello(
 # ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
   if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH)
   {
-    FLEA_CCALL(THR_flea_tls_ctx_t__send_max_fragment_length_ext(tls_ctx, p_hash_ctx));
+    FLEA_CCALL(THR_flea_tls_ctx_t__send_max_fragment_length_ext(tls_ctx, hs_ctx__pt, p_hash_ctx));
   }
 # endif /* ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT */
 
@@ -1057,13 +1057,13 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
   {
     flea_tls_cert_path_params_t cert_path_params__t =
-    {.kex_type__e                    = flea_tls__get_kex_and_auth_method_by_cipher_suite_id(
+    {.kex_type__e                  = flea_tls__get_kex_and_auth_method_by_cipher_suite_id(
        tls_ctx->selected_cipher_suite__e
-       ), .client_cert_type_mask__u8 =                             0,
-     .validate_server_or_client__e   = FLEA_TLS_SERVER,
-     .hostn_valid_params__pt         = hostn_valid_params__pt,
-     .allowed_sig_algs_mbn__pe       = tls_ctx->allowed_sig_algs__pe,
-     .nb_allowed_sig_algs__alu16     = tls_ctx->nb_allowed_sig_algs__alu16};
+       ), .client_cert_type_mask__u8= 0,
+     .validate_server_or_client__e = FLEA_TLS_SERVER,
+     .hostn_valid_params__pt       = hostn_valid_params__pt,
+     .allowed_sig_algs_mbn__pe     = tls_ctx->allowed_sig_algs__pe,
+     .nb_allowed_sig_algs__alu16   = tls_ctx->nb_allowed_sig_algs__alu16};
     FLEA_CCALL(
       THR_flea_tls__read_certificate(
         tls_ctx,
