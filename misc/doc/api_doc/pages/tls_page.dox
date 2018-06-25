@@ -252,7 +252,7 @@ size, it corresponds with the identical MFLNE in the serverHello, indicating
 successful fragment length negotiation, and continues the handshake. Otherwise,
 if no MFLNE or only one with a maximum plaintext size larger than
 its own buffer is contained in the clientHello, it responds with a
-record_overflow alert and aborts the handshake.
+illegal_parameter alert and aborts the handshake.
 
 \subsubsection secFragLenExtResumption Session Resumption
 

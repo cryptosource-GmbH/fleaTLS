@@ -271,7 +271,7 @@ flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(
   {
     FLEA_THROW(
       "Max Fragmentation Length Extension: Client sent a value that is too large for the receive buffer",
-      FLEA_ERR_TLS_RECORD_OVERFLOW
+      FLEA_ERR_TLS_ILLEGAL_PARAMETER
     );
   }
   FLEA_THR_FIN_SEC_empty();
@@ -2154,7 +2154,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
   {
     FLEA_THROW(
       "Client did not send a Max Fragmentation Length Extension. Since the receive buffer doesn't support 2^14 Bytes as is mandatory for TLS 1.2 the handshake is aborted.",
-      FLEA_ERR_TLS_RECORD_OVERFLOW
+      FLEA_ERR_TLS_ILLEGAL_PARAMETER
     );
   }
 
