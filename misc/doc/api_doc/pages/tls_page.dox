@@ -224,15 +224,18 @@ The Maximum Fragment Length Negotiation Extension (MFLNE)
 defined in <a href="https://tools.ietf.org/html/rfc6066#section-4">RFC 6066</a>,
 allows a TLS client to request a smaller maximum record plaintext size than normally
 used in TLS. The normal maximum record plaintext size is 16384. Without using the MFLNE, this is the only possibility in TLS. For the receiving of
-records, a buffer of a little larger this size is necessary for both client and server instances. In order to safe
+records, a buffer of a little larger this size is necessary for both client and server instances. In order to save
 RAM, the required buffer size can be reduced in a fleaTLS client or server
 instance by setting the build configuration variable
 #FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE, which by default has the value 16384, to an 
 appropriate lower value from the set 512, 1024, 2048, and 4096. These are the
-reduced maximum record plaintext lengths supported by the MFLNE. Setting arbitrary values between 512 and 16384 for this variable is possible, but is not recommended. If a value lower than 512 is specified, the client of server instance will not operate and send internal error alerts.
+reduced maximum record plaintext lengths supported by the MFLNE. Setting arbitrary values between 512 and 16384 for this variable is possible, but is not recommended. 
 
-In this case that a value lower than 16384 is set, the fleaTLS client or server
-will make use of MFLNE. The subsequent two subsections explain how the client
+If a value lower than 512 is specified, the extension has to be disabled by disabling the #FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT flag. The TLS 1.2 standard and the extension both do not cover this case so there is no meaningful way the extension could handle this. In this scenario it is assumed that the user controls both end points and knows the configuration of both end points.
+In case the user controls both end points, the extension can also be disabled to make use of arbitrary values for #FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE. This can be useful since without the extension one is not bound to the values 512, 1024, 2048 and 4096.
+
+In case that a value between 512 bytes and 16383 is set and the extension is not disabled, the fleaTLS client will make use of MFLNE and try to negotiate the appropriate maximum record plaintext size. The fleaTLS server will accept a client's proposal if its receive buffer is large enough and the extension is enabled.
+The subsequent two subsections explain how the client
 and server behave during the handshake in this case. Afterwards, some specifics
 with respect to the handling of this extension during session resumption are
 discussed.
