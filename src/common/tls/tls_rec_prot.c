@@ -1228,8 +1228,22 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
             THR_flea_rw_stream_t__read(
               rec_prot__pt->rw_stream__pt,
               &rec_prot__pt->send_rec_buf_raw__bu8[rec_prot__pt->read_bytes_from_current_record__u16],
-              &raw_read_len__dtl,
-              local_rd_mode__e
+              &raw_read_len__dtl, // this becomes the maximal record size (?), then change:
+              local_rd_mode__e // read_mode = non_blocking => local_read_mode = non_blocking (v)
+                               //         ... blocking     =>                   ... blocking (was: " => full")
+                               //         ... full         =>                   ... blocking (we don't yet know how many bytes we actually exptect!
+
+              /*         expected for TLS: depending on read mode, as before
+                                for DTLS: full record
+                       to check once content length is known:
+                           TLS: if rd_mode = blocking: at least one data byte can be returned (i.e. at least one full record must have been read, and more will not be read in this function invocation)
+                                if rd_mode = full: if current record competely read, then continue reading next record.
+                                if not all requested bytes have been read after the first failing of incomplete record read, return T/O
+                           DTLS: always: content length must be within currently read packet size
+                                 if rd_mode = blocking: like TLS
+                                 if rd_mode = full:  like TLS
+
+                           */
             )
           );
           rec_prot__pt->read_bytes_from_current_record__u16 += raw_read_len__dtl;
@@ -1262,7 +1276,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
               }
             }
           }
-
+          /* we had to read header bytes, but couldn't */
           if(raw_read_len__dtl == 0)
           {
             if(local_rd_mode__e == flea_read_nonblocking)
@@ -1345,6 +1359,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
               /* TODO: DISCARD THIS RECORD! */
             }
           }
+          // TODO: CHECK THAT RECORD IS WITHIN ACCEPTANCE WINDOW
           if(cont_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
           {
             FLEA_RP__SET_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt);
@@ -1363,12 +1378,18 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
         rec_prot__pt->current_record_content_len__u16  = rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++] << 8;
         rec_prot__pt->current_record_content_len__u16 |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8];
 
+        // if DTLS: check the the content was completely received // MAY
+        // THERE BY ADDITIONAL RECORDS IN THE PACKET? ANSWER: yes!
+        // => TODO: for DTLS, after processing this record, shift down the received data
+        //          for TSL, do the same (cannot read only the header of the initial ClientHello: if the client uses DTLS, then the packet would already be lost)
+
         if(rec_prot__pt->current_record_content_len__u16 > FLEA_TLS_TRNSF_BUF_SIZE - rec_prot__pt->record_hdr_len__u8)
         {
           FLEA_THROW("received record does not fit into receive buffer", FLEA_ERR_TLS_EXCSS_REC_LEN);
         }
       } /* end of 'read the hdr' */
 
+      /* complete the content read if necessary (TODO: still needed to consider a further read at all?) */
       if(rec_prot__pt->read_bytes_from_current_record__u16 <
         rec_prot__pt->current_record_content_len__u16 + rec_prot__pt->record_hdr_len__u8)
       {
@@ -1473,6 +1494,12 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
         data__pu8      += to_cp__alu16;
         *data_len__pdtl = read_bytes_count__dtl;
       }
+      // TODO: IF record read finished AND further data left in currently read
+      // packet
+      // - shift down the remaining data to the start of the receive buffer
+      // - update rec_prot__pt->read_bytes_from_current_record__u16
+      // - then depending on the below evaluation, either another loop iteration
+      // occurs or the data is ready for the next function call
     } while(
       FLEA_RP__IS_CURRENT_RECORD_ALERT(rec_prot__pt) || ((rd_mode__e == flea_read_full) && data_len__dtl) ||
       ((rd_mode__e == flea_read_blocking) && !read_bytes_count__dtl)
