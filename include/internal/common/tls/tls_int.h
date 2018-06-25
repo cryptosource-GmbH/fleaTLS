@@ -125,9 +125,6 @@ struct struct_flea_tls_handshake_ctx_t
   /* only used by tls_client: */
   flea_pubkey_t*   ecdhe_pub_key__pt;
 
-  /* used by tls server to store the client's value */
-  flea_u8_t        cl_max_frag_len_val__u8;
-
   flea_byte_vec_t* client_and_server_random__pt;
   flea_tls_ctx_t*  tls_ctx__pt;
   flea_u8_t        silent_alarm__u8;

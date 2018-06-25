@@ -270,16 +270,14 @@ flea_err_e THR_flea_tls__read_sig_algs_field_and_find_best_match(
 flea_u8_t flea_tls__get_max_fragment_length_byte_for_buf_size(flea_u16_t buf_len__u16);
 
 flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
-  flea_tls_ctx_t*           tls_ctx__pt,
-  flea_tls_handshake_ctx_t* hs_ctx__pt,
-  flea_rw_stream_t*         rd_strm__pt,
-  flea_al_u16_t             ext_len__alu16
+  flea_tls_ctx_t*   tls_ctx__pt,
+  flea_rw_stream_t* rd_strm__pt,
+  flea_al_u16_t     ext_len__alu16
 );
 
 flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
-  flea_tls_ctx_t*           tls_ctx__pt,
-  flea_tls_handshake_ctx_t* hs_ctx__pt,
-  flea_tls_prl_hash_ctx_t*  p_hash_ctx__pt
+  flea_tls_ctx_t*          tls_ctx__pt,
+  flea_tls_prl_hash_ctx_t* p_hash_ctx__pt
 );
 # endif  // ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
 

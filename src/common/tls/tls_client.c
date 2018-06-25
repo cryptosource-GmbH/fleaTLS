@@ -598,7 +598,7 @@ static flea_err_e THR_flea_tls__send_client_hello(
 # ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
   if(tls_ctx->extension_ctrl__u8 & FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH)
   {
-    FLEA_CCALL(THR_flea_tls_ctx_t__send_max_fragment_length_ext(tls_ctx, hs_ctx__pt, p_hash_ctx));
+    FLEA_CCALL(THR_flea_tls_ctx_t__send_max_fragment_length_ext(tls_ctx, p_hash_ctx));
   }
 # endif /* ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT */
 
