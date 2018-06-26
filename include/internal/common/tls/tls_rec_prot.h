@@ -18,11 +18,12 @@ extern "C" {
 
 # ifdef FLEA_HAVE_TLS
 
-#  define FLEA_TLS_TRNSF_BUF_SIZE      (FLEA_TLS_MAX_RECORD_SIZE + FLEA_TLS_RECORD_HDR_LEN)
+#  define FLEA_TLS_TRNSF_BUF_SIZE      (FLEA_TLS_RECORD_MAX_RECEIVE_SIZE + FLEA_TLS_RECORD_HDR_LEN)
 #  define FLEA_TLS_STD_MAX_RECORD_SIZE 18432
 
 typedef enum
 {
+  CONTENT_TYPE_ANY                = 0,
   CONTENT_TYPE_CHANGE_CIPHER_SPEC = 20,
   CONTENT_TYPE_ALERT              = 21,
   CONTENT_TYPE_HANDSHAKE          = 22,
@@ -87,10 +88,11 @@ struct struct_flea_recprot_t
   // flea_u16_t                   alt_payload_max_len__u16;
   flea_u16_t         record_plaintext_send_max_value__u16;           // max. size for alt_payload_max_len__u16 (relevant for using the max fragment length extension)
   // flea_u16_t                   send_payload_max_len__u16;
-  flea_u16_t         payload_used_len__u16;
-  flea_u16_t         send_payload_used_len__u16;
-  flea_u16_t         payload_offset__u16;
-  flea_u16_t         send_payload_offset__u16;
+  flea_u16_t         curr_rec_content_len__u16; // was payload_used_len__u16
+  flea_u16_t         curr_pt_content_len__u16; // was payload_used_len__u16
+  flea_u16_t         send_curr_rec_content_len__u16;
+  flea_u16_t         curr_rec_content_offs__u16;
+  flea_u16_t         send_curr_rec_content_offs__u16;
   flea_u16_t         reserved_payl_len__u16;
 
 /*#ifdef FLEA_HAVE_DTLS
@@ -101,11 +103,12 @@ struct struct_flea_recprot_t
   flea_tls__protocol_version_t prot_version__t;
   // flea_u16_t tls_version__u16;
   flea_rw_stream_t*            rw_stream__pt;
-  flea_u16_t                   read_bytes_from_current_record__u16;
-  flea_u16_t                   current_record_content_len__u16;
+  flea_u16_t                   raw_read_buf_content__u16;
+  // flea_u16_t                   current_record_content_len__u16;
   flea_u8_t                    record_hdr_len__u8;
   flea_u8_t                    ctrl_field__u8;
   flea_u8_t                    is_dtls_active__u8;
+  flea_u8_t                    skip_empty_record__b;
 };
 
 #  define flea_recprot_t__INIT(__p) FLEA_ZERO_STRUCT(__p)

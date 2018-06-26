@@ -1,5 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
+
 #include "internal/common/default.h"
 #include "internal/common/tls/tls_rec_prot.h"
 #include "internal/common/tls/tls_ciph_suite.h"
@@ -158,8 +159,8 @@ static void flea_recprot_t__discard_pending_write(flea_recprot_t* rec_prot__pt)
 {
   // rec_prot__pt->write_ongoing__u8          = 0;
   FLEA_RP__SET_NO_WRITE_ONGOING(rec_prot__pt);
-  rec_prot__pt->send_payload_offset__u16   = 0;
-  rec_prot__pt->send_payload_used_len__u16 = 0;
+  rec_prot__pt->send_curr_rec_content_offs__u16 = 0;
+  rec_prot__pt->send_curr_rec_content_len__u16  = 0;
 }
 
 static flea_err_e THR_flea_recprot_t__close_with_fatal_alert_and_throw(
@@ -189,7 +190,7 @@ static flea_err_e THR_flea_recprot_t__handle_alert(
 )
 {
   FLEA_THR_BEG_FUNC();
-  if(rec_prot__pt->payload_used_len__u16 != 2)
+  if(rec_prot__pt->curr_pt_content_len__u16 != 2)
   {
     FLEA_CCALL(
       THR_flea_recprot_t__close_with_fatal_alert_and_throw(
@@ -200,8 +201,9 @@ static flea_err_e THR_flea_recprot_t__handle_alert(
     );
   }
 
-  rec_prot__pt->payload_offset__u16   = 0;
-  rec_prot__pt->payload_used_len__u16 = 0;
+  // rec_prot__pt->curr_rec_content_offs__u16   = 0;
+  rec_prot__pt->curr_rec_content_offs__u16 += 2;
+  // rec_prot__pt->curr_rec_content_len__u16 = 0;
   if(rec_prot__pt->payload_buf__pu8[0] == FLEA_TLS_ALERT_LEVEL_FATAL)
   {
     FLEA_RP__SET_SESSION_CLOSED(rec_prot__pt);
@@ -212,14 +214,15 @@ static flea_err_e THR_flea_recprot_t__handle_alert(
   {
     FLEA_THROW("received no renegotiation alert", FLEA_ERR_TLS_REC_NORENEG_AL_DURING_RENEG);
   }
-  rec_prot__pt->payload_offset__u16   = 0;
-  rec_prot__pt->payload_used_len__u16 = 0;
+
+  /*rec_prot__pt->curr_rec_content_offs__u16   = 0;
+    rec_prot__pt->curr_rec_content_len__u16 = 0;*/
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__handle_alert */
 
 flea_err_e THR_flea_recprot_t__ctor(
   flea_recprot_t*   rec_prot__pt,
-  flea_al_u8_t      prot_vers_major, // TODO: turn into u16?
+  flea_al_u8_t      prot_vers_major,   // TODO: turn into u16?
   flea_al_u8_t      prot_vers_minor,
   flea_rw_stream_t* rw_stream__pt,
   flea_bool_t       allow_dtls__b
@@ -239,13 +242,13 @@ flea_err_e THR_flea_recprot_t__ctor(
   rec_prot__pt->alt_send_buf__raw_len__u16 = FLEA_TLS_ALT_SEND_BUF_SIZE;
   rec_prot__pt->send_rec_buf_raw_len__u16  = FLEA_TLS_TRNSF_BUF_SIZE;
   rec_prot__pt->record_plaintext_send_max_value__u16 = FLEA_RP_COMPUTE_MAX_SEND_PT_SIZE_FROM_BUFFER_SIZE(rec_prot__pt);
-  rec_prot__pt->prot_version__t.major = prot_vers_major;
-  rec_prot__pt->prot_version__t.minor = prot_vers_minor;
-  rec_prot__pt->rw_stream__pt         = rw_stream__pt;
-  rec_prot__pt->payload_offset__u16   = 0;
-  rec_prot__pt->read_bytes_from_current_record__u16 = 0;
+  rec_prot__pt->prot_version__t.major      = prot_vers_major;
+  rec_prot__pt->prot_version__t.minor      = prot_vers_minor;
+  rec_prot__pt->rw_stream__pt              = rw_stream__pt;
+  rec_prot__pt->curr_rec_content_offs__u16 = 0;
+  rec_prot__pt->raw_read_buf_content__u16  = 0;
 
-  rec_prot__pt->current_record_content_len__u16 = 0;
+  rec_prot__pt->curr_rec_content_len__u16 = 0;
 
   flea_recprot_t__set_null_ciphersuite(rec_prot__pt, flea_tls_write);
   flea_recprot_t__set_null_ciphersuite(rec_prot__pt, flea_tls_read);
@@ -459,7 +462,7 @@ static flea_err_e THR_flea_recprot_t__set_gcm_cs(
       key_block__pcu8 + ciph_key_offs__alu8,
       cipher_key_len__alu8,
       key_block__pcu8 + 2 * cipher_key_len__alu8 + fixed_iv_offs__alu8,
-      fixed_iv_len__alu8 // 4
+      fixed_iv_len__alu8   // 4
     )
   );
   FLEA_THR_FIN_SEC_empty();
@@ -518,16 +521,16 @@ static void flea_recprot_t__set_record_header(
   flea_tls_rec_cont_type_e content_type__e
 )
 {
-  rec_prot__pt->send_buf_raw__pu8[0]       = content_type__e;
-  rec_prot__pt->send_buf_raw__pu8[1]       = rec_prot__pt->prot_version__t.major;
-  rec_prot__pt->send_buf_raw__pu8[2]       = rec_prot__pt->prot_version__t.minor;
-  rec_prot__pt->send_payload_used_len__u16 = 0;
-  rec_prot__pt->send_payload_offset__u16   = 0;
+  rec_prot__pt->send_buf_raw__pu8[0] = content_type__e;
+  rec_prot__pt->send_buf_raw__pu8[1] = rec_prot__pt->prot_version__t.major;
+  rec_prot__pt->send_buf_raw__pu8[2] = rec_prot__pt->prot_version__t.minor;
+  rec_prot__pt->send_curr_rec_content_len__u16  = 0;
+  rec_prot__pt->send_curr_rec_content_offs__u16 = 0;
 }
 
-static flea_bool_t flea_recprot_t__have_pending_read_data(const flea_recprot_t* rec_prot__pt)
+static flea_bool_t flea_recprot_t__have_pending_read_data_in_current_record(const flea_recprot_t* rec_prot__pt)
 {
-  return (rec_prot__pt->payload_used_len__u16 - rec_prot__pt->payload_offset__u16 > 0);
+  return (rec_prot__pt->curr_pt_content_len__u16 - rec_prot__pt->curr_rec_content_offs__u16 > 0);
 }
 
 flea_err_e THR_flea_recprot_t__wrt_data(
@@ -569,23 +572,28 @@ flea_err_e THR_flea_recprot_t__wrt_data(
   rec_prot__pt->send_payload_buf__pu8 = rec_prot__pt->send_buf_raw__pu8 + rec_prot__pt->record_hdr_len__u8
     + rec_prot__pt->write_state__t.reserved_iv_len__u8;
 
-  buf_free_len__alu16 = rec_prot__pt->record_plaintext_send_max_value__u16 - rec_prot__pt->send_payload_used_len__u16;
+  buf_free_len__alu16 = rec_prot__pt->record_plaintext_send_max_value__u16
+    - rec_prot__pt->send_curr_rec_content_len__u16;
   while(data_len__dtl)
   {
     // rec_prot__pt->write_ongoing__u8 = 1;
     FLEA_RP__SET_WRITE_ONGOING(rec_prot__pt);
     flea_al_u16_t to_go__alu16 = FLEA_MIN(data_len__dtl, buf_free_len__alu16);
-    memcpy(rec_prot__pt->send_payload_buf__pu8 + rec_prot__pt->send_payload_used_len__u16, data__pcu8, to_go__alu16);
+    memcpy(
+      rec_prot__pt->send_payload_buf__pu8 + rec_prot__pt->send_curr_rec_content_len__u16,
+      data__pcu8,
+      to_go__alu16
+    );
     data_len__dtl -= to_go__alu16;
     data__pcu8    += to_go__alu16;
-    rec_prot__pt->send_payload_used_len__u16 += to_go__alu16;
+    rec_prot__pt->send_curr_rec_content_len__u16 += to_go__alu16;
     buf_free_len__alu16 -= to_go__alu16;
 
     if(buf_free_len__alu16 == 0)
     {
       FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
       buf_free_len__alu16 = rec_prot__pt->record_plaintext_send_max_value__u16
-        - rec_prot__pt->send_payload_used_len__u16;
+        - rec_prot__pt->send_curr_rec_content_len__u16;
       /* no need to write new header in this case: content stays, length comes later */
     }
   }
@@ -612,7 +620,7 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_cbc_hmac(
   flea_u8_t* enc_key = rec_prot__pt->read_state__t.suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8;
   flea_u8_t iv_len   = flea_block_cipher__get_block_size(
     rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id
-    );
+  );
   flea_u8_t enc_key_len =
     rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_key_size__u8;
 
@@ -621,7 +629,7 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_cbc_hmac(
   flea_al_u8_t last_padd_byte__alu8;
   flea_u8_t* data        = rec_prot__pt->payload_buf__pu8;
   flea_u8_t* iv          = data;
-  flea_al_u16_t data_len = rec_prot__pt->payload_used_len__u16;
+  flea_al_u16_t data_len = rec_prot__pt->curr_rec_content_len__u16;
 
   FLEA_THR_BEG_FUNC();
   seq_lo__u32 = rec_prot__pt->read_state__t.sequence_number__au32[0];
@@ -635,7 +643,7 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_cbc_hmac(
      * signal false positives */
     FLEA_THROW(
       "invalid payload length of encrypted TLS_**_WITH_**_CBC_SHA** message",
-      FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC /*FLEA_ERR_TLS_PROT_DECODE_ERR*/
+      FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC   /*FLEA_ERR_TLS_PROT_DECODE_ERR*/
     );
   }
 
@@ -665,7 +673,7 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_cbc_hmac(
      * signal false positives */
     FLEA_THROW(
       "invalid plaintext size in CBC-based ciphersuite",
-      FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC /*FLEA_ERR_TLS_PROT_DECODE_ERR*/
+      FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC   /*FLEA_ERR_TLS_PROT_DECODE_ERR*/
     );
   }
   if(max_padd_len__als16 > 256)
@@ -773,7 +781,7 @@ static flea_err_e THR_flea_recprot_t__encr_rcrd_cbc_hmac(
   flea_u8_t* enc_key = rec_prot__pt->write_state__t.suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8;
   flea_u8_t iv_len   = flea_block_cipher__get_block_size(
     rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id
-    );
+  );
   flea_u8_t mac_len =
     rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_size__u8;
   flea_u8_t enc_key_len =
@@ -782,7 +790,7 @@ static flea_err_e THR_flea_recprot_t__encr_rcrd_cbc_hmac(
   flea_u8_t block_len = iv_len;
 
   flea_u8_t* data        = rec_prot__pt->send_payload_buf__pu8;
-  flea_al_u16_t data_len = rec_prot__pt->send_payload_used_len__u16;
+  flea_al_u16_t data_len = rec_prot__pt->send_curr_rec_content_len__u16;
   flea_u8_t padding_len  = (block_len - (data_len + mac_len + 1) % block_len) + 1; // +1 for padding_length entry
 
   flea_u8_t* mac     = data + data_len;
@@ -859,7 +867,7 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_gcm(
   flea_u8_t iv_len = fixed_iv_len__u8 + record_iv_len__u8;
 
   flea_u8_t* data        = rec_prot__pt->payload_buf__pu8;
-  flea_al_u16_t data_len = rec_prot__pt->payload_used_len__u16;
+  flea_al_u16_t data_len = rec_prot__pt->curr_rec_content_len__u16;
 
   if(data_len <= record_iv_len__u8 + gcm_tag_len__u8)
   {
@@ -953,7 +961,7 @@ static flea_err_e THR_flea_recprot_t__encr_rcrd_gcm(
   );
 
   flea_u8_t* data        = rec_prot__pt->send_payload_buf__pu8;
-  flea_al_u16_t data_len = rec_prot__pt->send_payload_used_len__u16;
+  flea_al_u16_t data_len = rec_prot__pt->send_curr_rec_content_len__u16;
 
   // copy seq nr, type, version, length into gcm header
   enc_data_len__au8[0] = data_len >> 8;
@@ -972,7 +980,7 @@ static flea_err_e THR_flea_recprot_t__encr_rcrd_gcm(
       rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.cipher_id,
       enc_key,
       enc_key_len,
-      iv, // fixed iv || record iv
+      iv,   // fixed iv || record iv
       iv_len,
       gcm_header__au8,
       sizeof(gcm_header__au8),
@@ -1002,7 +1010,7 @@ flea_err_e THR_flea_recprot_t__write_flush(
 )
 {
   FLEA_THR_BEG_FUNC();
-  if((rec_prot__pt->send_payload_used_len__u16 == 0) || !FLEA_RP__IS_WRITE_ONGOING(rec_prot__pt))
+  if((rec_prot__pt->send_curr_rec_content_len__u16 == 0) || !FLEA_RP__IS_WRITE_ONGOING(rec_prot__pt))
   {
     FLEA_THR_RETURN();
   }
@@ -1042,13 +1050,13 @@ flea_err_e THR_flea_recprot_t__write_flush(
 # endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
   if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_null_cipher_suite)
   {
-    rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->send_payload_used_len__u16 >> 8;
-    rec_prot__pt->send_buf_raw__pu8[4] = rec_prot__pt->send_payload_used_len__u16;
+    rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->send_curr_rec_content_len__u16 >> 8;
+    rec_prot__pt->send_buf_raw__pu8[4] = rec_prot__pt->send_curr_rec_content_len__u16;
     FLEA_CCALL(
       THR_flea_rw_stream_t__write(
         rec_prot__pt->rw_stream__pt,
         rec_prot__pt->send_buf_raw__pu8,
-        rec_prot__pt->send_payload_used_len__u16 + rec_prot__pt->record_hdr_len__u8
+        rec_prot__pt->send_curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8
       )
     );
   }
@@ -1145,11 +1153,19 @@ flea_err_e THR_flea_recprot_t__close_and_send_close_notify(flea_recprot_t* rec_p
 
 void flea_recprot_t__discard_current_read_record(flea_recprot_t* rec_prot__pt)
 {
-  rec_prot__pt->payload_offset__u16   = 0;
-  rec_prot__pt->payload_used_len__u16 = 0;
-  rec_prot__pt->read_bytes_from_current_record__u16 = 0;
+  rec_prot__pt->curr_rec_content_offs__u16 = rec_prot__pt->curr_pt_content_len__u16;
+  // rec_prot__pt->raw_read_buf_content__u16 = 0; // TODO: THIS CAN BE MORE THAN
+  // THE CURRENT RECORD!
 }
 
+// #define DBG_PRINT
+//
+
+/**
+ * current_or_next_record_for_content_type__b = TRUE means that the function
+ * shall read in the next record, if no record with remaining unread content is
+ * held as the current record, irrespectively of whether *data_len__pdtl > 0.
+ */
 static flea_err_e THR_flea_recprot_t__read_data_inner(
   flea_recprot_t*               rec_prot__pt,
   flea_u8_t*                    data__pu8,
@@ -1180,26 +1196,37 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
   if(FLEA_RP__IS_WRITE_ONGOING(rec_prot__pt))
   {
     FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
-    rec_prot__pt->read_bytes_from_current_record__u16 = 0;
-    rec_prot__pt->current_record_content_len__u16     = 0;
+    // rec_prot__pt->raw_read_buf_content__u16 = 0;
+    // rec_prot__pt->curr_rec_content_len__u16     = 0;
   }
 
-  rec_prot__pt->payload_buf__pu8 = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->record_hdr_len__u8;
+  /*if(10 > (rec_prot__pt->curr_rec_content_len__u16 - rec_prot__pt->curr_rec_content_offs__u16))
+    {
+    printf("current record almost read completely\n");
+    }*/
 
-  to_cp__alu16 = FLEA_MIN(data_len__dtl, rec_prot__pt->payload_used_len__u16 - rec_prot__pt->payload_offset__u16);
-  memcpy(data__pu8, rec_prot__pt->payload_buf__pu8 + rec_prot__pt->payload_offset__u16, to_cp__alu16);
-  rec_prot__pt->payload_offset__u16 += to_cp__alu16;
+  // printf("\nread_data_inner starting\n");
+  // printf("current_or_next_record_for_content_type__b  = %u\n", current_or_next_record_for_content_type__b );
+  // printf("data_read for length = %u\n", data_len__dtl);
+  rec_prot__pt->payload_buf__pu8 = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->record_hdr_len__u8;
+  /* output data from a possibly held record witz nonzero payload data left */
+  to_cp__alu16 = FLEA_MIN(
+    data_len__dtl,
+    rec_prot__pt->curr_pt_content_len__u16 - rec_prot__pt->curr_rec_content_offs__u16
+  );
+  memcpy(data__pu8, rec_prot__pt->payload_buf__pu8 + rec_prot__pt->curr_rec_content_offs__u16, to_cp__alu16);
+  rec_prot__pt->curr_rec_content_offs__u16 += to_cp__alu16;
   data_len__dtl         -= to_cp__alu16;
   data__pu8             += to_cp__alu16;
   read_bytes_count__dtl += to_cp__alu16;
+  // printf("read_bytes before loop = %u\n", read_bytes_count__dtl );
   // enter only if
   // - called with current_or_next_record_for_content_type__b
   //   OR
   // - called with non-zero length and data copied above did not suffice.
-
   /* get new record hdr and content */
   if((current_or_next_record_for_content_type__b &&
-    !flea_recprot_t__have_pending_read_data(rec_prot__pt)) || data_len__dtl)
+    !flea_recprot_t__have_pending_read_data_in_current_record(rec_prot__pt)) || data_len__dtl)
   {
     /* start reading a new record */
     flea_stream_read_mode_e local_rd_mode__e = rd_mode__e;
@@ -1207,48 +1234,140 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
     flea_al_u16_t raw_rec_content_len__alu16;
     flea_al_u8_t hdr_pos__alu8;
 
-    if(local_rd_mode__e == flea_read_blocking)
-    {
+    /*if(local_rd_mode__e == flea_read_blocking)
+      {
       local_rd_mode__e = flea_read_full;
+      }*/
+    if(local_rd_mode__e == flea_read_full)
+    {
+      local_rd_mode__e = flea_read_blocking;
     }
+
+    unsigned dbg_loop_cnt = 0;
     do
     {
+      flea_al_u16_t curr_rec_full_len__alu16 = 0;
+# ifdef DBG_PRINT
+      printf("dbg_loop_cnt = %u\n", dbg_loop_cnt++);
+      unsigned i;
+      printf("entering loop\n");
+      printf("rec_prot__pt->curr_rec_content_len__u16 = %u\n", rec_prot__pt->curr_rec_content_len__u16);
+      printf("record_content with hdr = ");
+      for(i = 0; i < rec_prot__pt->curr_rec_content_len__u16 + 5; i++)
+      {
+        printf("%02x ", rec_prot__pt->send_rec_buf_raw__bu8[i]);
+      }
+      printf("\n");
+      printf("current rec content offs = %u\n", rec_prot__pt->curr_rec_content_offs__u16);
+      printf("current rec pt len = %u\n", rec_prot__pt->curr_pt_content_len__u16);
+
+      printf("rec_prot__pt->raw_read_buf_content__u16= %u\n", rec_prot__pt->raw_read_buf_content__u16);
+      printf("raw read buf content = ");
+      for(i = 0; i < rec_prot__pt->raw_read_buf_content__u16; i++)
+      {
+        printf("%02x ", rec_prot__pt->send_rec_buf_raw__bu8[i]);
+      }
+      printf("\n");
+# endif /* ifdef DBG_PRINT */
+
+      /* test if content might have been only partially read: */
+      if(rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8 <=
+        rec_prot__pt->raw_read_buf_content__u16)
+      {
+        if(rec_prot__pt->curr_rec_content_len__u16 || rec_prot__pt->skip_empty_record__b)
+        {
+          curr_rec_full_len__alu16 = rec_prot__pt->record_hdr_len__u8 + rec_prot__pt->curr_rec_content_len__u16;
+        }
+        printf("curr_rec_full_len__alu16 = %u\n", curr_rec_full_len__alu16);
+        flea_al_u16_t next_rec_size__alu16 = rec_prot__pt->raw_read_buf_content__u16 - curr_rec_full_len__alu16;
+        if((rec_prot__pt->skip_empty_record__b ||
+          (rec_prot__pt->curr_pt_content_len__u16 == rec_prot__pt->curr_rec_content_offs__u16)) && next_rec_size__alu16)
+        {
+          flea_al_u16_t shift_size__alu16;
+          shift_size__alu16 = curr_rec_full_len__alu16;
+          printf(
+            "next_rec_size__alu16 = %u, raw_read_buf_content__u16 = %u, curr_rec_full_len__alu16 = %u\n",
+            next_rec_size__alu16,
+            rec_prot__pt->raw_read_buf_content__u16,
+            curr_rec_full_len__alu16
+          );
+          memmove(
+            rec_prot__pt->send_rec_buf_raw__bu8,
+            rec_prot__pt->send_rec_buf_raw__bu8 + shift_size__alu16,
+            next_rec_size__alu16
+          );
+          // rec_prot__pt->raw_read_buf_content__u16 -= shift_size__alu16;
+        }
+
+
+        if(rec_prot__pt->curr_rec_content_len__u16 || rec_prot__pt->skip_empty_record__b)
+        {
+          rec_prot__pt->skip_empty_record__b = FLEA_FALSE;
+
+          /* if no data is requested, and only the content type is desired, then
+           * this loop is only entered if there is no pending data in the current
+           * record.
+           * if data is request, and there was any data left in the current
+           * record, it did not suffice if we arrive here*/
+
+          /* if there was a previous record held, then now is the time to remove
+           * it. content size zero records are discarded directly when detected.*/
+          rec_prot__pt->raw_read_buf_content__u16 -= rec_prot__pt->record_hdr_len__u8
+            + rec_prot__pt->curr_rec_content_len__u16;
+        }
+        rec_prot__pt->curr_rec_content_offs__u16 = 0;
+        rec_prot__pt->curr_rec_content_len__u16  = 0;
+        rec_prot__pt->curr_pt_content_len__u16   = 0;
+      }
+      else
+      {
+        printf("current record content not yet completely read\n");
+      }
+
+      // if(rec_prot__pt->raw_read_buf_content__u16 > rec_ &&
+
       const flea_al_u8_t rec_hdr_up_to_incl_version__calu8 = 3;
       /* read the hdr */
-      if(rec_prot__pt->read_bytes_from_current_record__u16 < rec_prot__pt->record_hdr_len__u8)
+      /* header must be parsed even if record has been shifted in */
+      // if(rec_prot__pt->raw_read_buf_content__u16 < rec_prot__pt->record_hdr_len__u8)
       {
-        while(rec_prot__pt->read_bytes_from_current_record__u16 < rec_prot__pt->record_hdr_len__u8)
+        // while(rec_prot__pt->raw_read_buf_content__u16 < rec_prot__pt->record_hdr_len__u8)
+        do
         {
-          raw_read_len__dtl = rec_prot__pt->record_hdr_len__u8 - rec_prot__pt->read_bytes_from_current_record__u16;
+          raw_read_len__dtl = 0;
+          // raw_read_len__dtl = rec_prot__pt->record_hdr_len__u8 - rec_prot__pt->raw_read_buf_content__u16;
+          if(rec_prot__pt->raw_read_buf_content__u16 < rec_prot__pt->record_hdr_len__u8)
+          {
+            raw_read_len__dtl = FLEA_TLS_TRNSF_BUF_SIZE - rec_prot__pt->raw_read_buf_content__u16; // TODO: IF DTLS IS EXCLUDED (EITHER BY CONFIGURATION OR BECAUSE THE INITIAL RECORD HAS ALREADY BEEN READ, CONSIDER TO RENDER THIS JUST TO THE TLS RECORD HDR SIZE => UNUSED BUFFER SPACE CAN BE USED FOR SENDING)
 
-          // TODO: read until version first, then make potentially TLS=>DTLS
-          // transition,
-          // that is: if (not already version=DTLS1.2) AND (DTLS is allowed)
-          FLEA_CCALL(
-            THR_flea_rw_stream_t__read(
-              rec_prot__pt->rw_stream__pt,
-              &rec_prot__pt->send_rec_buf_raw__bu8[rec_prot__pt->read_bytes_from_current_record__u16],
-              &raw_read_len__dtl, // this becomes the maximal record size (?), then change:
-              local_rd_mode__e // read_mode = non_blocking => local_read_mode = non_blocking (v)
-                               //         ... blocking     =>                   ... blocking (was: " => full")
-                               //         ... full         =>                   ... blocking (we don't yet know how many bytes we actually exptect!
+            // TODO: read until version first, then make potentially TLS=>DTLS
+            // transition,
+            // that is: if (not already version=DTLS1.2) AND (DTLS is allowed)
+            FLEA_CCALL(
+              THR_flea_rw_stream_t__read(
+                rec_prot__pt->rw_stream__pt,
+                &rec_prot__pt->send_rec_buf_raw__bu8[rec_prot__pt->raw_read_buf_content__u16],
+                &raw_read_len__dtl,   // this becomes the maximal record size (?), then change:
+                local_rd_mode__e   // read_mode = non_blocking => local_read_mode = non_blocking (v)
+                //         ... blocking     =>                   ... blocking (was: " => full")
+                //         ... full         =>                   ... blocking (was: " => full") (we don't yet know how many bytes we actually expect!
 
-              /*         expected for TLS: depending on read mode, as before
-                                for DTLS: full record
-                       to check once content length is known:
-                           TLS: if rd_mode = blocking: at least one data byte can be returned (i.e. at least one full record must have been read, and more will not be read in this function invocation)
-                                if rd_mode = full: if current record competely read, then continue reading next record.
-                                if not all requested bytes have been read after the first failing of incomplete record read, return T/O
-                           DTLS: always: content length must be within currently read packet size
-                                 if rd_mode = blocking: like TLS
-                                 if rd_mode = full:  like TLS
+                //         expected for TLS: depending on read mode, as before
+                //          for DTLS: full record
+                //         to check once content length is known:
+                //        TLS: if rd_mode = blocking: at least one data byte can be returned (i.e. at least one full record must have been read, and more will not be read in this function invocation)
+                //       if rd_mode = full: if current record completely read, then continue reading next record.
+                //      if not all requested bytes have been read after the first failing of incomplete record read, return T/O
+                //     DTLS: always: content length must be within currently read packet size
+                //    if rd_mode = blocking: like TLS
+                //   if rd_mode = full:  like TLS
 
-                           */
-            )
-          );
-          rec_prot__pt->read_bytes_from_current_record__u16 += raw_read_len__dtl;
+              )
+            );
+          }
+          rec_prot__pt->raw_read_buf_content__u16 += raw_read_len__dtl;
 
-          if(rec_prot__pt->read_bytes_from_current_record__u16 >= rec_hdr_up_to_incl_version__calu8)
+          if(rec_prot__pt->raw_read_buf_content__u16 >= rec_hdr_up_to_incl_version__calu8)
           {
             if(((rec_prot__pt->send_rec_buf_raw__bu8[1] == FLEA_DTLS_1_X_VERSION_MAJOR) &&
               ((rec_prot__pt->send_rec_buf_raw__bu8[2] == FLEA_DTLS_1_0_VERSION_MINOR) ||
@@ -1271,13 +1390,20 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
                 rec_prot__pt->record_plaintext_send_max_value__u16 = FLEA_MIN(
                   new_from_buf__alu16,
                   rec_prot__pt->record_plaintext_send_max_value__u16
-                  );
+                );
                 rec_prot__pt->is_dtls_active__u8 = 1;
               }
             }
           }
+          if(rec_prot__pt->is_dtls_active__u8)
+          {
+            if(rec_prot__pt->raw_read_buf_content__u16 < rec_prot__pt->record_hdr_len__u8)
+            {
+              // TODO: DISCARD THE RECORD READ BUFFER CONTENTS
+            }
+          }
           /* we had to read header bytes, but couldn't */
-          if(raw_read_len__dtl == 0)
+          if(rec_prot__pt->raw_read_buf_content__u16 < rec_prot__pt->record_hdr_len__u8)
           {
             if(local_rd_mode__e == flea_read_nonblocking)
             {
@@ -1286,10 +1412,21 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
             }
             else
             {
-              FLEA_THROW("0 bytes returned from blocking read", FLEA_ERR_FAILED_STREAM_READ);
+              /* TODO: this should be potentially  a timeout (?): */
+
+              printf(
+                "needed = rec_prot__pt->record_hdr_len__u8 = %u, current_raw_read_content = %u, raw_read_len__dtl = %u\n",
+                rec_prot__pt->record_hdr_len__u8,
+                rec_prot__pt->raw_read_buf_content__u16,
+                raw_read_len__dtl
+              );
+              if(!raw_read_len__dtl)
+              {
+                FLEA_THROW("0 bytes returned from blocking read", FLEA_ERR_TIMEOUT_ON_STREAM_READ);
+              }
             }
           }
-        }
+        } while(rec_prot__pt->raw_read_buf_content__u16 < rec_prot__pt->record_hdr_len__u8);
         /* header is read completely */
         if(rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_ALERT)
         {
@@ -1310,8 +1447,22 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
           else if(!current_or_next_record_for_content_type__b &&
             (cont_type__e != rec_prot__pt->send_rec_buf_raw__bu8[0]))
           {
+            printf("content type required: %u, ", cont_type__e);
+            printf("content type found: %u\n", rec_prot__pt->send_rec_buf_raw__bu8[0]);
+            printf(
+              "this record's content len = %u\n",
+              (rec_prot__pt->send_rec_buf_raw__bu8[3] << 8) | rec_prot__pt->send_rec_buf_raw__bu8[4]
+            );
             FLEA_THROW("content type does not match", FLEA_ERR_TLS_INV_REC_HDR);
           }
+          else
+          {
+            printf("content type inquired: %u\n", rec_prot__pt->send_rec_buf_raw__bu8[0]);
+          }
+          printf(
+            "this record's content len = %u\n",
+            (rec_prot__pt->send_rec_buf_raw__bu8[3] << 8) | rec_prot__pt->send_rec_buf_raw__bu8[4]
+          );
 
           if(do_verify_prot_version__b)
           {
@@ -1375,23 +1526,44 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
         }
 # endif /* ifdef FLEA_HAVE_DTLS */
 
-        rec_prot__pt->current_record_content_len__u16  = rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++] << 8;
-        rec_prot__pt->current_record_content_len__u16 |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8];
+        rec_prot__pt->curr_rec_content_len__u16  = rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++] << 8;
+        rec_prot__pt->curr_rec_content_len__u16 |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8];
+
+        if(rec_prot__pt->curr_rec_content_len__u16 == 0)
+        {
+          rec_prot__pt->skip_empty_record__b = FLEA_TRUE;
+        }
+        // TODO: DISCARD SIZE ZERO RECORD ('delete' the header offset (?), and
+        // continue)
+
+        printf("newley read record content len = %u\n", rec_prot__pt->curr_rec_content_len__u16);
 
         // if DTLS: check the the content was completely received // MAY
         // THERE BY ADDITIONAL RECORDS IN THE PACKET? ANSWER: yes!
         // => TODO: for DTLS, after processing this record, shift down the received data
         //          for TSL, do the same (cannot read only the header of the initial ClientHello: if the client uses DTLS, then the packet would already be lost)
 
-        if(rec_prot__pt->current_record_content_len__u16 > FLEA_TLS_TRNSF_BUF_SIZE - rec_prot__pt->record_hdr_len__u8)
+        if(rec_prot__pt->curr_rec_content_len__u16 > FLEA_TLS_TRNSF_BUF_SIZE - rec_prot__pt->record_hdr_len__u8)
         {
           FLEA_THROW("received record does not fit into receive buffer", FLEA_ERR_TLS_EXCSS_REC_LEN);
         }
+        if(rec_prot__pt->is_dtls_active__u8)
+        {
+          if(rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8 >
+            rec_prot__pt->raw_read_buf_content__u16)
+          {
+            // TODO: DISCARD THE RECORD, in this case the whole rec_buf can be
+            // discarded
+          }
+        }
       } /* end of 'read the hdr' */
 
-      /* complete the content read if necessary (TODO: still needed to consider a further read at all?) */
-      if(rec_prot__pt->read_bytes_from_current_record__u16 <
-        rec_prot__pt->current_record_content_len__u16 + rec_prot__pt->record_hdr_len__u8)
+      /* complete the content read if necessary (not relevant for DTLS) (TODO: still needed to consider a further read at all?) */
+
+      /*if(rec_prot__pt->raw_read_buf_content__u16 <
+        rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8)*/
+      while(rec_prot__pt->raw_read_buf_content__u16 <
+        rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8)
       {
         flea_stream_read_mode_e content_read_mode__e = local_rd_mode__e;
         flea_al_u16_t needed_read_len__alu16;
@@ -1399,18 +1571,18 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
         {
           content_read_mode__e = flea_read_full;
         }
-        needed_read_len__alu16 = raw_read_len__dtl = rec_prot__pt->current_record_content_len__u16
-            - (rec_prot__pt->read_bytes_from_current_record__u16 - rec_prot__pt->record_hdr_len__u8);
+        needed_read_len__alu16 = raw_read_len__dtl = rec_prot__pt->curr_rec_content_len__u16
+          - (rec_prot__pt->raw_read_buf_content__u16 - rec_prot__pt->record_hdr_len__u8);
         FLEA_CCALL(
           THR_flea_rw_stream_t__read(
             rec_prot__pt->rw_stream__pt,
-            rec_prot__pt->payload_buf__pu8 + rec_prot__pt->read_bytes_from_current_record__u16
+            rec_prot__pt->payload_buf__pu8 + rec_prot__pt->raw_read_buf_content__u16
             - rec_prot__pt->record_hdr_len__u8,
             &raw_read_len__dtl,
             content_read_mode__e
           )
         );
-        rec_prot__pt->read_bytes_from_current_record__u16 += raw_read_len__dtl;
+        rec_prot__pt->raw_read_buf_content__u16 += raw_read_len__dtl;
 
         if(raw_read_len__dtl < needed_read_len__alu16)
         {
@@ -1421,19 +1593,33 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
           }
           else
           {
-            FLEA_THROW("0 bytes returned from blocking read", FLEA_ERR_FAILED_STREAM_READ);
+            printf(
+              "needed = %u, raw_read_len__dtl = %u, current_raw_read_content = %u\n",
+              needed_read_len__alu16,
+              raw_read_len__dtl,
+              rec_prot__pt->raw_read_buf_content__u16
+            );
+            if(raw_read_len__dtl == 0)
+            {
+              FLEA_THROW("0 bytes returned from blocking read", FLEA_ERR_TIMEOUT_ON_STREAM_READ);
+            }
           }
         }
       } /* did read full content */
-      rec_prot__pt->payload_used_len__u16 = rec_prot__pt->read_bytes_from_current_record__u16
-        - rec_prot__pt->record_hdr_len__u8;
-      rec_prot__pt->payload_offset__u16 = 0;
 
-      raw_rec_content_len__alu16 = rec_prot__pt->current_record_content_len__u16;
+      /*rec_prot__pt->curr_rec_content_len__u16 = rec_prot__pt->raw_read_buf_content__u16
+        - rec_prot__pt->record_hdr_len__u8;*/
+      rec_prot__pt->curr_rec_content_offs__u16 = 0;
 
-      /* not needed any more, reset: */
-      rec_prot__pt->read_bytes_from_current_record__u16 = 0;
-      rec_prot__pt->current_record_content_len__u16     = 0;
+      raw_rec_content_len__alu16 = rec_prot__pt->curr_rec_content_len__u16;
+
+      // rec_prot__pt->raw_read_buf_content__u16 = 0; // STILL NEEDED!
+      // rec_prot__pt->curr_rec_content_len__u16     = 0;
+      //
+      if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_null_cipher_suite)
+      {
+        rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
+      }
 # ifdef FLEA_HAVE_TLS_CS_CBC
       if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
       {
@@ -1444,7 +1630,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
             (flea_tls_rec_cont_type_e) rec_prot__pt->send_rec_buf_raw__bu8[0]
           )
         );
-        rec_prot__pt->payload_used_len__u16 = raw_rec_content_len__alu16;
+        rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
         inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
       }
 # endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
@@ -1458,12 +1644,15 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
             (flea_tls_rec_cont_type_e) rec_prot__pt->send_rec_buf_raw__bu8[0]
           )
         );
-        rec_prot__pt->payload_used_len__u16 = raw_rec_content_len__alu16;
+        rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
         inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
       }
 # endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
 
+      /*if(rec_prot__pt->curr_pt_content_len__u16 == 0)
+        {
 
+        }*/
       if(is_handsh_msg_during_app_data__b)
       {
         FLEA_THROW("received tls handshake message when app data was expected", FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA);
@@ -1486,9 +1675,9 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
       }
       else
       {
-        to_cp__alu16 = FLEA_MIN(raw_rec_content_len__alu16, data_len__dtl);
+        to_cp__alu16 = FLEA_MIN(rec_prot__pt->curr_pt_content_len__u16, data_len__dtl);
         memcpy(data__pu8, rec_prot__pt->payload_buf__pu8, to_cp__alu16);
-        rec_prot__pt->payload_offset__u16 += to_cp__alu16;
+        rec_prot__pt->curr_rec_content_offs__u16 += to_cp__alu16;
         read_bytes_count__dtl += to_cp__alu16;
         data_len__dtl         -= to_cp__alu16;
         data__pu8      += to_cp__alu16;
@@ -1497,7 +1686,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
       // TODO: IF record read finished AND further data left in currently read
       // packet
       // - shift down the remaining data to the start of the receive buffer
-      // - update rec_prot__pt->read_bytes_from_current_record__u16
+      // - update rec_prot__pt->raw_read_buf_content__u16
       // - then depending on the below evaluation, either another loop iteration
       // occurs or the data is ready for the next function call
     } while(
@@ -1507,10 +1696,10 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
   } /* end of ' get new record hdr and content' */
 
 
-  if(!flea_recprot_t__have_pending_read_data(rec_prot__pt))
-  {
+  /*if(!flea_recprot_t__have_pending_read_data(rec_prot__pt))
+    {
     flea_recprot_t__discard_current_read_record(rec_prot__pt);
-  }
+    }*/
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__read_data_inner */
 

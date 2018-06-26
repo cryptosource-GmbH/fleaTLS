@@ -586,7 +586,7 @@ static flea_err_e THR_flea_tls__send_cert_request(
         }
         cert_types__au8[cert_types_len__u8++] = flea_tls__tls_cert_type_from_pk_scheme(
           supported_pk_schemes__at[j]
-          );
+        );
       }
     }
   }
@@ -1052,7 +1052,8 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
 
   if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_HELLO)
   {
-    if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CLIENT_HELLO)
+    flea_al_u8_t cont_type__alu8 = flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t);
+    if(cont_type__alu8 == HANDSHAKE_TYPE_CLIENT_HELLO)
     {
       FLEA_CCALL(THR_flea_tls__read_client_hello(server_ctx__pt, hs_ctx__pt, &handsh_rdr__t));
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
@@ -1060,6 +1061,11 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
     }
     else
     {
+      printf(
+        "tls_server:handle_handsh_msg: exp = CLIENT_HELLO = %u, rec = %u\n",
+        HANDSHAKE_TYPE_CLIENT_HELLO,
+        cont_type__alu8
+      );
       FLEA_THROW("Unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
     }
   }
@@ -1174,7 +1180,7 @@ flea_err_e THR_flea_tls__server_handshake(
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_NOT_ALLOCATABLE(
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
-    );
+  );
 # endif /* ifdef FLEA_HEAP_MODE */
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, 256);
   flea_pubkey_t peer_public_key__t;
@@ -1353,7 +1359,7 @@ flea_err_e THR_flea_tls__server_handshake(
       {
         flea_tls__kex_method_t kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(
           tls_ctx->selected_cipher_suite__e
-          );
+        );
         if(kex_method__t == FLEA_TLS_KEX_PSK)
         {
           // overwrite asking for certs in case of PSK

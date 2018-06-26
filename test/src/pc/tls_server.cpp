@@ -122,7 +122,7 @@ static flea_err_e dummy_get_psk_cb(
       identity_len__u16,
       ((flea_tls_psk_t*) psk__pt)->identity__pu8,
       ((flea_tls_psk_t*) psk__pt)->identity_len__u16
-    ))
+  ))
   {
     FLEA_THROW("psk identity unknown", FLEA_ERR_TLS_UNKNOWN_PSK_IDENTITY);
   }
@@ -293,7 +293,7 @@ else
       buf,
       &buf_len,
       serv_par__pt->rd_mode__e
-      );
+    );
     if(retval == FLEA_ERR_TIMEOUT_ON_STREAM_READ)
     {
       serv_par__pt->write_output_string("read_mode = " + std::to_string(serv_par__pt->rd_mode__e) + "\n");
@@ -507,7 +507,6 @@ static flea_err_e THR_server_cycle(
       serv_par__t.get_psk_mbn_cb__f = NULL;
 #  endif
 
-      std::cout << "sever_fd before accept / recvfrom = " << server_fd << std::endl;
       if(dir_for_file_based_input == "")
       {
         if(get_socket_type(cmdl_args) == socket_type_t::tcp)
