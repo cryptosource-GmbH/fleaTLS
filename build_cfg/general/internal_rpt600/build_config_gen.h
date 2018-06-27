@@ -60,7 +60,7 @@
  * (referred to as "stack mode"). In stack mode, fleaTLS does not perform any
  * heap allocations and instead only uses the stack memory. This means that fleaTLS' functions and objects reserve stack space according to the configured algorithms and maximal key size definitions made in the build configuration.
  */
-// # define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
+# define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
 /* end mem_cfg */
 /**@}*/
 
@@ -102,12 +102,12 @@
 /**
  * Control whether GCM support is compiled
  */
-// # define FLEA_HAVE_GCM
+# define FLEA_HAVE_GCM
 
 /**
  * Control whether MD5 support is compiled
  */
-// # define FLEA_HAVE_MD5               // FBFLAGS_MD5_ON_OFF
+# define FLEA_HAVE_MD5               // FBFLAGS_MD5_ON_OFF
 
 /**
  * Control whether SHA1 support is compiled
@@ -123,7 +123,7 @@
 /**
  * Control whether SHA384 and SHA512 support is compiled.
  */
-// # define FLEA_HAVE_SHA384_512        // FBFLAGS_HAVE_SHA512_ON_OFF
+# define FLEA_HAVE_SHA384_512        // FBFLAGS_HAVE_SHA512_ON_OFF
 
 /**
  * Control whether support for the AES-based hash function based on the Davies-Meyer-construction is compiled.
@@ -208,22 +208,22 @@
 /**
  * Control whether loop unrolling within MD5 shall be used.
  */
-// # define FLEA_USE_MD5_LOOP_UNROLL    // FBFLAGS_MD5_ON_OFF
+# define FLEA_USE_MD5_LOOP_UNROLL    // FBFLAGS_MD5_ON_OFF
 
 /**
  * Control whether loop unrolling within SHA1 shall be used.
  */
-// # define FLEA_USE_SHA1_LOOP_UNROLL   // FBFLAGS_SHA1_ON_OFF
+# define FLEA_USE_SHA1_LOOP_UNROLL   // FBFLAGS_SHA1_ON_OFF
 
 /**
  * Control whether loop unrolling within SHA256 (and SHA224) shall be used.
  */
-// # define FLEA_USE_SHA256_LOOP_UNROLL // FBFLAGS_SHA256_ON_OFF
+# define FLEA_USE_SHA256_LOOP_UNROLL // FBFLAGS_SHA256_ON_OFF
 
 /**
  * Control whether loop unrolling within SHA512 (and SHA384) shall be used.
  */
-// # define FLEA_USE_SHA512_LOOP_UNROLL // FBFLAGS_SHA512_ON_OFF
+# define FLEA_USE_SHA512_LOOP_UNROLL // FBFLAGS_SHA512_ON_OFF
 
 
 /**
@@ -242,12 +242,13 @@
 /**
  * Control the window size for the RSA exponentiation. Choose 5 for greatest speed and 1 for smallest RAM footprint.
  */
-# define FLEA_CRT_RSA_WINDOW_SIZE 1
+# define FLEA_CRT_RSA_WINDOW_SIZE 5 // FBFLAGS__INT_LIST 1 2 3 4 5
 
 /**
  * Control the window size for the ECC exponentiation. Choose 4 or 5 for greatest speed and 1 for smallest RAM footprint.
  */
-# define FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE 1
+# define FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE 5 // FBFLAGS__INT_LIST 1 2 3 4 5
+
 /* end perfomance_cfg */
 /**@}*/
 
@@ -272,13 +273,13 @@
  * Side channel countermeasure which adds pseudo random delays within the public key
  * operations.
  */
-// # define FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY // FBFLAGS_SCM_ON_OFF
+# define FLEA_SCCM_USE_PUBKEY_INPUT_BASED_DELAY // FBFLAGS_SCM_ON_OFF
 
 /**
  * Side channel countermeasure which adds random delays within the public key
  * operations.
  */
-// # define FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY // FBFLAGS_SCM_ON_OFF
+# define FLEA_SCCM_USE_PUBKEY_USE_RAND_DELAY // FBFLAGS_SCM_ON_OFF
 
 /**
  * Perform pseudo operations or data access for cache warming to achieve timing
@@ -398,7 +399,7 @@
 /**
  * Control whether TLS server will be compiled.
  */
-// #  define FLEA_HAVE_TLS_SERVER
+#  define FLEA_HAVE_TLS_SERVER
 
 
 /**
@@ -680,7 +681,7 @@
  * The receive buffer will be at most 325 bytes larger than
  * FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE, depending on compiled cipher suites.
  */
-# define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 16384
+# define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 600
 
 /**
  * If enabled, the maximum fragment length negotiation extension (RFC 6066) can
