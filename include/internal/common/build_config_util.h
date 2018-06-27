@@ -100,8 +100,21 @@
 # endif
 #endif
 
-
 /************ End Check Ciphersuite Configuration ************/
 
+
+/************ Begin Calculate Maximum Key Block Size ************/
+
+#if defined FLEA_HAVE_TLS_CS_CBC
+# if defined FLEA_HAVE_SHA384_512
+#  define FLEA_TLS_MAX_KEY_BLOCK_SIZE 2 * (32 + 48) // AES256 + SHA384 is possible
+# else
+#  define FLEA_TLS_MAX_KEY_BLOCK_SIZE 2 * (32 + 32) // AES256 + SHA256
+# endif
+#else // GCM only case
+# define FLEA_TLS_MAX_KEY_BLOCK_SIZE 2 * (32 + FLEA_CONST_TLS_GCM_FIXED_IV_LEN) // AES256 + salt/implicit nonce
+#endif // if defined FLEA_HAVE_TLS_CS_CBC
+
+/************ End Calculate Maximum Key Block Size ************/
 
 #endif /* h-guard */

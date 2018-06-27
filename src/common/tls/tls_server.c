@@ -1063,7 +1063,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
       }
     }
     flea_tls_cert_path_params_t cert_path_params__t =
-    {.kex_type__e                  =               0,
+    {.kex_type__e                  = 0,
      .client_cert_type_mask__u8    = cert_mask__u8,
      .validate_server_or_client__e = FLEA_TLS_CLIENT,
      .hostn_valid_params__pt       = NULL,
@@ -1161,7 +1161,7 @@ flea_err_e THR_flea_tls__server_handshake(
     sizeof(premaster_secret__au8)
     );
 # endif /* ifdef FLEA_HEAP_MODE */
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, 256);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, FLEA_TLS_MAX_KEY_BLOCK_SIZE);
   flea_pubkey_t peer_public_key__t;
   tls_ctx->extension_ctrl__u8 = 0;
   flea_tls__handshake_state_t handshake_state;
