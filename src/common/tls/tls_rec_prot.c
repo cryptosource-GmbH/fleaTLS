@@ -524,6 +524,7 @@ static void flea_recprot_t__set_record_header(
   rec_prot__pt->send_buf_raw__pu8[0] = content_type__e;
   rec_prot__pt->send_buf_raw__pu8[1] = rec_prot__pt->prot_version__t.major;
   rec_prot__pt->send_buf_raw__pu8[2] = rec_prot__pt->prot_version__t.minor;
+# ifdef FLEA_HAVE_DTLS
   if(rec_prot__pt->is_dtls_active__u8)
   {
     // flea_al_s8_t i;
@@ -548,6 +549,7 @@ static void flea_recprot_t__set_record_header(
 
     // after setting the header, increment the record sequ.
   }
+# endif /* ifdef FLEA_HAVE_DTLS */
   rec_prot__pt->send_curr_rec_content_len__u16  = 0;
   rec_prot__pt->send_curr_rec_content_offs__u16 = 0;
 }

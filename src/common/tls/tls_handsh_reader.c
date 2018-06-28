@@ -41,19 +41,21 @@ flea_err_e THR_flea_tls__read_handsh_hdr(
 
   /* (((flea_u32_t) hdr__au8[1]) << 16) | (((flea_u32_t) hdr__au8[2]) << 8)
    | (((flea_u32_t) hdr__au8[3]));*/
+# ifdef FLEA_HAVE_DTLS
   if(handsh_rdr__pt->is_dtls__b)
   {
     handsh_rdr__pt->hlp__t.msg_seq__u16      = flea__decode_U16_BE(&hdr__au8[4]);
     handsh_rdr__pt->hlp__t.fragm_offset__u32 = flea__decode_U24_BE(&hdr__au8[6]);
     handsh_rdr__pt->hlp__t.fragm_length__u32 = flea__decode_U24_BE(&hdr__au8[9]);
   }
+# endif /* ifdef FLEA_HAVE_DTLS */
 
   if(handsh_hdr_mbn__pu8)
   {
     memcpy(handsh_hdr_mbn__pu8, hdr__au8, sizeof(hdr__au8));
   }
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls__read_handsh_hdr */
 
 flea_err_e THR_flea_tls_handsh_reader_t__ctor(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
