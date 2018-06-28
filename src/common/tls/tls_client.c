@@ -1048,13 +1048,13 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
   {
     flea_tls_cert_path_params_t cert_path_params__t =
-    {.kex_type__e                    = flea_tls__get_kex_and_auth_method_by_cipher_suite_id(
+    {.kex_type__e                  = flea_tls__get_kex_and_auth_method_by_cipher_suite_id(
        tls_ctx->selected_cipher_suite__e
-       ), .client_cert_type_mask__u8 =                             0,
-     .validate_server_or_client__e   = FLEA_TLS_SERVER,
-     .hostn_valid_params__pt         = hostn_valid_params__pt,
-     .allowed_sig_algs_mbn__pe       = tls_ctx->allowed_sig_algs__pe,
-     .nb_allowed_sig_algs__alu16     = tls_ctx->nb_allowed_sig_algs__alu16};
+       ), .client_cert_type_mask__u8= 0,
+     .validate_server_or_client__e = FLEA_TLS_SERVER,
+     .hostn_valid_params__pt       = hostn_valid_params__pt,
+     .allowed_sig_algs_mbn__pe     = tls_ctx->allowed_sig_algs__pe,
+     .nb_allowed_sig_algs__alu16   = tls_ctx->nb_allowed_sig_algs__alu16};
     FLEA_CCALL(
       THR_flea_tls__read_certificate(
         tls_ctx,
@@ -1188,7 +1188,7 @@ flea_err_e THR_flea_tls__client_handshake(
   flea_hash_id_e hash_ids[6];
   flea_al_u8_t hash_sig_algs_len__alu8;
 
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, 256);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, FLEA_TLS_MAX_KEY_BLOCK_SIZE);
 
   flea_pubkey_t peer_public_key__t;
 
