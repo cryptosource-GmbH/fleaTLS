@@ -162,6 +162,38 @@ namespace {
     return result;
   } // get_allowed_ecc_curves_from_cmdl
 
+  flea_u8_t flea_tls_map_tls_hash_to_flea_hash__at[6][2] = {
+# ifdef FLEA_HAVE_MD5
+    {0x01, flea_md5   },
+# endif
+# ifdef FLEA_HAVE_SHA1
+    {0x02, flea_sha1  },
+# endif
+    {0x03, flea_sha224},
+    {0x04, flea_sha256},
+# ifdef FLEA_HAVE_SHA384_512
+    {0x05, flea_sha384},
+    {0x06, flea_sha512}
+# endif
+  };
+  static flea_err_e THR_flea_tls__map_flea_hash_to_tls_hash(
+    flea_hash_id_e hash_id__t,
+    flea_u8_t*     id__pu8
+  )
+  {
+    FLEA_THR_BEG_FUNC();
+    for(flea_u8_t i = 0; i < FLEA_NB_ARRAY_ENTRIES(flea_tls_map_tls_hash_to_flea_hash__at); i++)
+    {
+      if(flea_tls_map_tls_hash_to_flea_hash__at[i][1] == hash_id__t)
+      {
+        *id__pu8 = flea_tls_map_tls_hash_to_flea_hash__at[i][0];
+        FLEA_THR_RETURN();
+      }
+    }
+    FLEA_THROW("hash algorithm has no mapping for tls", FLEA_ERR_INT_ERR);
+    FLEA_THR_FIN_SEC_empty();
+  }
+
   std::vector<flea_tls_sigalg_e> get_allowed_sig_algs_from_cmdl(property_set_t const& cmdl_args)
   {
     flea_u8_t dummy;
