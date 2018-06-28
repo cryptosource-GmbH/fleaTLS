@@ -131,6 +131,7 @@ namespace {
   std::vector<flea_ec_dom_par_id_e> get_allowed_ecc_curves_from_cmdl(property_set_t const& cmdl_args)
   {
     std::vector<flea_ec_dom_par_id_e> result;
+
 # ifdef FLEA_HAVE_TLS_CS_ECC
     flea_u8_t dummy[2];
     if(cmdl_args.have_index("allowed_curves"))
@@ -199,6 +200,7 @@ namespace {
     flea_u8_t dummy;
 
     std::vector<flea_tls_sigalg_e> result;
+
     if(cmdl_args.have_index("allowed_sig_algs"))
     {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("allowed_sig_algs"), ',');
@@ -262,6 +264,7 @@ namespace {
   std::vector<flea_tls_cipher_suite_id_t> get_cipher_suites_from_cmdl(property_set_t const& cmdl_args)
   {
     std::vector<flea_tls_cipher_suite_id_t> result;
+
     if(cmdl_args.have_index("cipher_suites"))
     {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("cipher_suites"), ',');
@@ -318,6 +321,7 @@ std::string get_comma_seperated_list_of_supported_sig_algs()
 {
   std::string result;
   std::map<string, flea_pk_scheme_id_e>::iterator pk_it;
+
   for(pk_it = sig_algs_map__t.begin(); pk_it != sig_algs_map__t.end(); pk_it++)
   {
     std::string pk = pk_it->first;
@@ -498,6 +502,7 @@ static std::string cert_info_to_string(const flea_x509_cert_ref_t* cert_ref__pt)
 # endif // ifdef FLEA_HAVE_X509_DN_DETAILS
   };
   std::string subject_str, issuer_str;
+
   for(unsigned i = 0; i < FLEA_NB_ARRAY_ENTRIES(dn_comps__ace); i++)
   {
     flea_ref_cu8_t ref__rcu8;
@@ -533,6 +538,7 @@ void flea_tls_test_tool_print_peer_cert_info(
 )
 {
   std::string s;
+
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
   const flea_x509_cert_ref_t* ee_ref__pt = nullptr;
   if(client_ctx_mbn__pt)

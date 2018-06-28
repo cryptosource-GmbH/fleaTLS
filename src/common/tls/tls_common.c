@@ -543,7 +543,7 @@ flea_err_e THR_flea_tls__handle_tls_error(
       &alert_desc__e,
       is_reneg_then_not_null__was_accepted_out___pb,
       is_read_app_data__b
-      );
+    );
     if(do_send_alert__b)
     {
       flea_tls_ctx_t* tls_ctx__pt =
@@ -1180,7 +1180,7 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
     data__pu8,
     data_len__pdtl,
     rd_mode__e
-    );
+  );
   if(err__t == FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA)
   {
     /* assume it's the appropriate ClientHello or HelloRequest in order to
@@ -1277,7 +1277,7 @@ flea_err_e THR_flea_tls_ctx_t__read_app_data(
     data_len__pdtl,
     rd_mode__e,
     hostn_valid_params_mbn__pt
-    );
+  );
 
   FLEA_CCALL(THR_flea_tls__handle_tls_error(server_ctx_mbn__pt, client_ctx_mbn__pt, err__t, NULL, FLEA_TRUE));
   if(requested__dtl && requested__dtl > *data_len__pdtl)
@@ -1980,7 +1980,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_sig_alg_ext(
     rd_strm__pt,
     len__alu16,
     tls_ctx__pt->private_key__pt
-    );
+  );
 
   if(err__t)
   {
@@ -2165,7 +2165,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
       if(priv_key_mbn__pt && THR_flea_tls__check_sig_alg_compatibility_for_key_type(
           priv_key_mbn__pt->key_type__t,
           (flea_pk_scheme_id_e) (tls_ctx__pt->allowed_sig_algs__pe[i] & 0xFF)
-        ))
+      ))
       {
         continue;
       }

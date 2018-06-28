@@ -101,7 +101,7 @@ static flea_err_e THR_flea_tls__read_server_hello(
         client_session_mbn__pt->session_id_len__u8,
         session_id__bu8,
         session_id_len__u8
-      )))
+    )))
     {
       client_session_mbn__pt->for_resumption__u8 = 1;
       hs_ctx__pt->is_sess_res__b = FLEA_TRUE;
@@ -133,7 +133,7 @@ static flea_err_e THR_flea_tls__read_server_hello(
       tls_ctx->selected_cipher_suite__e,
       tls_ctx->allowed_cipher_suites__pe,
       tls_ctx->nb_allowed_cipher_suites__u16
-    ))
+  ))
   {
     FLEA_THROW("invalid ciphersuite selected by peer", FLEA_ERR_TLS_PROT_DECODE_ERR);
   }
@@ -494,7 +494,7 @@ static flea_err_e THR_flea_tls__send_client_hello(
   }
   use_resumption__b = !hs_ctx__pt->is_reneg__b && session_mbn__pt && flea_tls_session_data_t__is_valid_session(
     &session_mbn__pt->session__t
-    );
+  );
   if(use_resumption__b)
   {
     len += session_mbn__pt->session_id_len__u8;
@@ -1063,13 +1063,13 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE)
   {
     flea_tls_cert_path_params_t cert_path_params__t =
-    {.kex_type__e                  = flea_tls__get_kex_and_auth_method_by_cipher_suite_id(
+    {.kex_type__e                    = flea_tls__get_kex_and_auth_method_by_cipher_suite_id(
        tls_ctx->selected_cipher_suite__e
-       ), .client_cert_type_mask__u8= 0,
-     .validate_server_or_client__e = FLEA_TLS_SERVER,
-     .hostn_valid_params__pt       = hostn_valid_params__pt,
-     .allowed_sig_algs_mbn__pe     = tls_ctx->allowed_sig_algs__pe,
-     .nb_allowed_sig_algs__alu16   = tls_ctx->nb_allowed_sig_algs__alu16};
+       ), .client_cert_type_mask__u8 =                             0,
+     .validate_server_or_client__e   = FLEA_TLS_SERVER,
+     .hostn_valid_params__pt         = hostn_valid_params__pt,
+     .allowed_sig_algs_mbn__pe       = tls_ctx->allowed_sig_algs__pe,
+     .nb_allowed_sig_algs__alu16     = tls_ctx->nb_allowed_sig_algs__alu16};
     FLEA_CCALL(
       THR_flea_tls__read_certificate(
         tls_ctx,
@@ -1232,7 +1232,7 @@ flea_err_e THR_flea_tls__client_handshake(
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_NOT_ALLOCATABLE(
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
-    );
+  );
 # endif /* ifdef FLEA_HEAP_MODE */
   flea_tls_prl_hash_ctx_t__INIT(&p_hash_ctx);
 
@@ -1641,7 +1641,7 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor(
     session_mbn__pt,
     &tls_client_ctx__pt->hostn_valid_params__t,
     FLEA_FALSE
-    );
+  );
   FLEA_CCALL(THR_flea_tls__handle_tls_error(NULL, tls_client_ctx__pt, err__t, NULL, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__ctor_client */

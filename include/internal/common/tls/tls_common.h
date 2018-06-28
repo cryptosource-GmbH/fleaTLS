@@ -17,18 +17,18 @@ extern "C" {
 #  endif
 
 
-# define FLEA_TLS_NO_COMPRESSION                     0
+#  define FLEA_TLS_NO_COMPRESSION                     0
 
-# define FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES    0x01
-# define FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS       0x02
-# define FLEA_TLS_EXT_CTRL_MASK__UNMATCHING          0x04
-# define FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH 0x08
+#  define FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES    0x01
+#  define FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS       0x02
+#  define FLEA_TLS_EXT_CTRL_MASK__UNMATCHING          0x04
+#  define FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH 0x08
 
-# define FLEA_TLS_EXT_TYPE__RENEG_INFO               0xff01
-# define FLEA_TLS_EXT_TYPE__SUPPORTED_CURVES         0x000a
-# define FLEA_TLS_EXT_TYPE__POINT_FORMATS            0x000b
-# define FLEA_TLS_EXT_TYPE__SIGNATURE_ALGORITHMS     0x000d
-# define FLEA_TLS_EXT_TYPE__MAX_FRAGMENT_LENGTH      0x0001
+#  define FLEA_TLS_EXT_TYPE__RENEG_INFO               0xff01
+#  define FLEA_TLS_EXT_TYPE__SUPPORTED_CURVES         0x000a
+#  define FLEA_TLS_EXT_TYPE__POINT_FORMATS            0x000b
+#  define FLEA_TLS_EXT_TYPE__SIGNATURE_ALGORITHMS     0x000d
+#  define FLEA_TLS_EXT_TYPE__MAX_FRAGMENT_LENGTH      0x0001
 
 #  define FLEA_TLS_IS_VALID_HASH_ID(x) (((x) >= (unsigned) 1) && ((x) <= (unsigned) 6))
 
@@ -136,7 +136,7 @@ flea_err_e THR_flea_tls__create_premaster_secret_psk(
   flea_u16_t       psk_len__u16,
   flea_byte_vec_t* premaster_secret__pt
 );
-# endif  // ifdef FLEA_HAVE_TLS_CS_PSK
+#  endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
 flea_err_e THR_flea_tls__create_master_secret(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
@@ -270,7 +270,7 @@ flea_err_e THR_flea_tls__read_sig_algs_field_and_find_best_match(
   flea_privkey_t*   priv_key_mbn__pt
 );
 
-# ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
+#  ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
 flea_u8_t flea_tls__get_max_fragment_length_byte_for_buf_size(flea_u16_t buf_len__u16);
 
 flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
@@ -283,7 +283,7 @@ flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
   flea_tls_ctx_t*          tls_ctx__pt,
   flea_tls_prl_hash_ctx_t* p_hash_ctx__pt
 );
-# endif  // ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
+#  endif // ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
 
 flea_err_e THR_flea_tls_ctx_t__parse_sig_alg_ext(
   flea_tls_ctx_t*   tls_ctx__pt,
@@ -339,7 +339,7 @@ flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(
   flea_al_u8_t    max_fragment_coe__alu8
 );
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 }
 #  endif
 

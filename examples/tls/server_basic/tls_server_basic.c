@@ -141,7 +141,7 @@ int main()
       sock_fd,
       0   /* no read_timeout */
     )
-    ))
+  ))
   {
     goto cleanup;
   }
@@ -156,7 +156,7 @@ int main()
       ,
       &mutex_func_set__t
 # endif
-    ))
+  ))
   {
     FLEA_PRINTF_1_SWITCHED("error with lib init, tests aborted\n");
     return 1;
@@ -165,8 +165,8 @@ int main()
   if((err = THR_flea_tls_session_mngr_t__ctor(
       &sess_man__t,
       3600 /* stored session is valid for one hour */
-    )
-    ))
+  )
+  ))
   {
     goto cleanup;
   }
@@ -196,8 +196,8 @@ int main()
       FLEA_NB_ARRAY_ENTRIES(sig_algs),
       flea_tls_flag__rev_chk_mode__check_none | flea_tls_flag__sha1_cert_sigalg__allow,
       &sess_man__t
-    )
-    ))
+  )
+  ))
   {
     goto cleanup;
   }

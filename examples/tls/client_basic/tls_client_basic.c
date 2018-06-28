@@ -93,7 +93,7 @@ int main()
       ,
       &mutex_func_set__t
 # endif
-    ))
+  ))
   {
     FLEA_PRINTF_1_SWITCHED("error with lib init, tests aborted\n");
     return 1;
@@ -108,7 +108,7 @@ int main()
       &trust_store__t,
       root_cert__au8,
       sizeof(root_cert__au8)
-    )))
+  )))
   {
     goto cleanup;
   }
@@ -120,7 +120,7 @@ int main()
       0,   /* read timeout */
       hostname_str,
       FLEA_FALSE   /* use ip address, not DNS name */
-    )))
+  )))
   {
     goto cleanup;
   }
@@ -145,7 +145,7 @@ int main()
       flea_tls_flag__reneg_mode__allow_secure_reneg | flea_tls_flag__sha1_cert_sigalg__allow
       | flea_tls_flag__rev_chk_mode__check_none,
       NULL   /* session resumption is not supported */
-    )))
+  )))
   {
     goto cleanup;
   }

@@ -55,7 +55,7 @@ flea_err_e THR_flea_tls__send_server_kex_ecc(
 
   kex_method__t = flea_tls_get_kex_method_by_cipher_suite_id(
     (flea_tls_cipher_suite_id_t) tls_ctx__pt->selected_cipher_suite__e
-    );
+  );
 
   if(kex_method__t == FLEA_TLS_KEX_ECDHE)
   {
