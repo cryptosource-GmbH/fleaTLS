@@ -85,6 +85,9 @@ static flea_err_e THR_flea_tls__read_client_hello(
   if(client_version_major_minor__au8[0] < tls_ctx->version.major ||
     client_version_major_minor__au8[1] < tls_ctx->version.minor)
   {
+    // TODO: REMOVE DBG PRINT
+    printf("client hello version = %u %u\n", client_version_major_minor__au8[0], client_version_major_minor__au8[1]);
+    printf("own version = %u %u\n", tls_ctx->version.major, tls_ctx->version.minor);
     FLEA_THROW("Version mismatch!", FLEA_ERR_TLS_UNSUPP_PROT_VERSION);
   }
 
@@ -141,6 +144,16 @@ static flea_err_e THR_flea_tls__read_client_hello(
       )
     );
     server_ctx__pt->server_resume_session__u8 = resume__b; /* must come after the set_max_fragm_len call */
+  }
+
+  if(FLEA_TLS_CTX_IS_DTLS(tls_ctx))
+  {
+    /* read the client cookie */
+    FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &session_id_len__u8));
+    if(session_id_len__u8 != 0)
+    {
+      FLEA_THROW("non empty DTLS client cookie received", FLEA_ERR_TLS_PROT_DECODE_ERR);
+    }
   }
 
   FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, &cipher_suites_len_from_peer__u32, 2));
@@ -1020,7 +1033,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
   flea_hash_ctx_t__INIT(&hash_ctx_copy__t);
   flea_tls_handsh_reader_t__INIT(&handsh_rdr__t);
 
-  FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t));
+  FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t, FLEA_TLS_CTX_IS_DTLS(tls_ctx)));
   if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED ||
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_VERIFY)
   {

@@ -2,35 +2,35 @@
 
 
 #ifndef __flea_bin_utils_H_
-#define __flea_bin_utils_H_
+# define __flea_bin_utils_H_
 
-#include "flea/types.h"
+# include "flea/types.h"
 
 /**
  * number of bits in a flea_uword_t
  */
-#define FLEA_BITS_PER_WORD (sizeof(flea_uword_t) * 8)
+# define FLEA_BITS_PER_WORD (sizeof(flea_uword_t) * 8)
 
 /**
  * decode a 4-byte big endian array to an u32
  */
-#define FLEA_DECODE_U32_BE(arr) \
+# define FLEA_DECODE_U32_BE(arr) \
   (((flea_u32_t) (arr)[0] \
     << 24) ^ ((flea_u32_t) (arr)[1] << 16) ^ ((flea_u32_t) (arr)[2] << 8) ^ ((flea_u32_t) (arr)[3]))
 
 /**
  * encode an u32 value into a 4-byte big endian array
  */
-#define FLEA_ENCODE_U32_BE(u32_val, result_arr) \
+# define FLEA_ENCODE_U32_BE(u32_val, result_arr) \
   do {(result_arr)[0] = (flea_u8_t) ((u32_val) >> 24); \
       (result_arr)[1] = (flea_u8_t) ((u32_val) >> 16); \
       (result_arr)[2] = (flea_u8_t) ((u32_val) >> 8); \
       (result_arr)[3] = (flea_u8_t) (u32_val);} while(0)
 
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 /**
  * XOR bytes.
@@ -71,7 +71,16 @@ void flea__xor_bytes(
 flea_u32_t flea__decode_U32_BE(const flea_u8_t enc[4]);
 
 /**
- * Decode a 2-byte big endian encoded array.
+ * decode a 3-byte big endian encoded array.
+ *
+ * @param enc the 3-byte data to decode
+ *
+ * @return the big endian decoded value of the input data
+ */
+flea_u32_t flea__decode_U24_BE(const flea_u8_t enc[3]);
+
+/**
+ * decode a 2-byte big endian encoded array.
  *
  * @param enc the 2-byte data to decode
  *
@@ -149,8 +158,8 @@ flea_mpi_ulen_t flea__get_BE_int_bit_len(
   flea_mpi_ulen_t  enc_len
 );
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

@@ -26,6 +26,7 @@ extern "C" {
 #  define FLEA_TLS_1_2_VERSION_MINOR  3
 
 #  define FLEA_DTLS_1_X_VERSION_MAJOR 254
+#  define FLEA_DTLS_1_2_VERSION_MAJOR FLEA_DTLS_1_X_VERSION_MAJOR
 #  define FLEA_DTLS_1_0_VERSION_MINOR 255
 #  define FLEA_DTLS_1_2_VERSION_MINOR 253
 
@@ -120,6 +121,10 @@ struct struct_flea_tls_ctx_t
   flea_u8_t                   peer_root_cert_set__u8;
 #  endif
 };
+
+#  define FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt) \
+  (((flea_u32_t) ((tls_ctx__pt)->cfg_flags__e) \
+  & flea_tls_flag__allow_dtls1_2) != 0)
 
 struct struct_flea_tls_handshake_ctx_t
 {

@@ -524,6 +524,30 @@ static void flea_recprot_t__set_record_header(
   rec_prot__pt->send_buf_raw__pu8[0] = content_type__e;
   rec_prot__pt->send_buf_raw__pu8[1] = rec_prot__pt->prot_version__t.major;
   rec_prot__pt->send_buf_raw__pu8[2] = rec_prot__pt->prot_version__t.minor;
+  if(rec_prot__pt->is_dtls_active__u8)
+  {
+    // flea_al_s8_t i;
+    // flea_u32_t low__u32 = rec_prot__pt->write_state__t.sequence_number__au32[1];
+
+    // TODO: CONSIDER WRITING THE EPOCH INTO THE SEQ EVERYTIME IT CHANGES, THIS
+    // WOULD SIMPLIFY THE CODE HERE
+    rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->write_state__t.next_rec_epoch__u16 >> 8;
+    rec_prot__pt->send_buf_raw__pu8[4] = rec_prot__pt->write_state__t.next_rec_epoch__u16;
+    rec_prot__pt->send_buf_raw__pu8[5] = rec_prot__pt->write_state__t.sequence_number__au32[0] >> 8;
+    rec_prot__pt->send_buf_raw__pu8[6] = rec_prot__pt->write_state__t.sequence_number__au32[0];
+    flea__encode_U32_BE(rec_prot__pt->write_state__t.sequence_number__au32[1], &rec_prot__pt->send_buf_raw__pu8[7]);
+
+    /*for(i = 3; i >= 0; i--)
+    {
+     rec_prot__pt->send_buf_raw__pu8[7+i] = low__u32;
+     low__u32 >>= 8;
+    }*/
+// uint16 epoch;                                    // New field
+//          uint48 sequence_number;                          // New field
+//           uint16 length;
+
+    // after setting the header, increment the record sequ.
+  }
   rec_prot__pt->send_curr_rec_content_len__u16  = 0;
   rec_prot__pt->send_curr_rec_content_offs__u16 = 0;
 }
@@ -830,8 +854,8 @@ static flea_err_e THR_flea_recprot_t__encr_rcrd_cbc_hmac(
   );
 
   length_tot = input_output_len + iv_len;
-  rec_prot__pt->send_buf_raw__pu8[3] = length_tot >> 8;
-  rec_prot__pt->send_buf_raw__pu8[4] = length_tot;
+  rec_prot__pt->send_buf_raw__pu8[rec_prot__pt->record_hdr_len__u8 - 2] = length_tot >> 8;
+  rec_prot__pt->send_buf_raw__pu8[rec_prot__pt->record_hdr_len__u8 - 1] = length_tot;
   *encrypted_len__palu16 = input_output_len;
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__encr_rcrd_cbc_hmac */
@@ -942,8 +966,10 @@ static flea_err_e THR_flea_recprot_t__encr_rcrd_gcm(
     + rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8;
 
   // copy sequence number to explicit nonce part as suggested in RFC 5288
+  // TODO: REMOVE UNNECCESSARY DECODING/ ENCODING!
   seq_lo__u32 = rec_prot__pt->write_state__t.sequence_number__au32[0];
   seq_hi__u32 = rec_prot__pt->write_state__t.sequence_number__au32[1];
+  // TODO: FOR DTLS, COMPUTE RECORD MAC (PROBABLY) DIRECTLY ON ENCODED RECORD HRD+DATA
   flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
   flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
   memcpy(
@@ -997,8 +1023,8 @@ static flea_err_e THR_flea_recprot_t__encr_rcrd_gcm(
   length_tot = data_len
     + rec_prot__pt->write_state__t.cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8
     + gcm_tag_len__u8;
-  rec_prot__pt->send_buf_raw__pu8[3] = length_tot >> 8;
-  rec_prot__pt->send_buf_raw__pu8[4] = length_tot;
+  rec_prot__pt->send_buf_raw__pu8[rec_prot__pt->record_hdr_len__u8 - 2] = length_tot >> 8;
+  rec_prot__pt->send_buf_raw__pu8[rec_prot__pt->record_hdr_len__u8 - 1] = length_tot;
   *encrypted_len__palu16 = data_len + gcm_tag_len__u8;
 
   FLEA_THR_FIN_SEC_empty();
@@ -1050,8 +1076,10 @@ flea_err_e THR_flea_recprot_t__write_flush(
 # endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
   if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_null_cipher_suite)
   {
-    rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->send_curr_rec_content_len__u16 >> 8;
-    rec_prot__pt->send_buf_raw__pu8[4] = rec_prot__pt->send_curr_rec_content_len__u16;
+    rec_prot__pt->send_buf_raw__pu8[rec_prot__pt->record_hdr_len__u8
+    - 2] = rec_prot__pt->send_curr_rec_content_len__u16 >> 8;
+    rec_prot__pt->send_buf_raw__pu8[rec_prot__pt->record_hdr_len__u8
+    - 1] = rec_prot__pt->send_curr_rec_content_len__u16;
     FLEA_CCALL(
       THR_flea_rw_stream_t__write(
         rec_prot__pt->rw_stream__pt,
@@ -1205,9 +1233,9 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
     printf("current record almost read completely\n");
     }*/
 
-  // printf("\nread_data_inner starting\n");
-  // printf("current_or_next_record_for_content_type__b  = %u\n", current_or_next_record_for_content_type__b );
-  // printf("data_read for length = %u\n", data_len__dtl);
+  printf("\nread_data_inner starting\n");
+  printf("current_or_next_record_for_content_type__b  = %u\n", current_or_next_record_for_content_type__b);
+  printf("data_read for length = %u\n", data_len__dtl);
   rec_prot__pt->payload_buf__pu8 = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->record_hdr_len__u8;
   /* output data from a possibly held record witz nonzero payload data left */
   to_cp__alu16 = FLEA_MIN(
@@ -1252,12 +1280,15 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
       unsigned i;
       printf("entering loop\n");
       printf("rec_prot__pt->curr_rec_content_len__u16 = %u\n", rec_prot__pt->curr_rec_content_len__u16);
-      printf("record_content with hdr = ");
-      for(i = 0; i < rec_prot__pt->curr_rec_content_len__u16 + 5; i++)
+      if(rec_prot__pt->curr_rec_content_len__u16)
       {
-        printf("%02x ", rec_prot__pt->send_rec_buf_raw__bu8[i]);
+        printf("record_content with hdr = ");
+        for(i = 0; i < rec_prot__pt->curr_rec_content_len__u16 + 5; i++)
+        {
+          printf("%02x ", rec_prot__pt->send_rec_buf_raw__bu8[i]);
+        }
+        printf("\n");
       }
-      printf("\n");
       printf("current rec content offs = %u\n", rec_prot__pt->curr_rec_content_offs__u16);
       printf("current rec pt len = %u\n", rec_prot__pt->curr_pt_content_len__u16);
 
@@ -1343,6 +1374,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
             // TODO: read until version first, then make potentially TLS=>DTLS
             // transition,
             // that is: if (not already version=DTLS1.2) AND (DTLS is allowed)
+            printf("initial read request for  %u bytes\n", raw_read_len__dtl);
             FLEA_CCALL(
               THR_flea_rw_stream_t__read(
                 rec_prot__pt->rw_stream__pt,
@@ -1364,19 +1396,44 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
 
               )
             );
+            printf("initial read request actual read size = %u bytes\n", raw_read_len__dtl);
           }
           rec_prot__pt->raw_read_buf_content__u16 += raw_read_len__dtl;
+# ifdef DBG_PRINT
+          printf(
+            "before version check: rec_prot__pt->raw_read_buf_content__u16 = %u\n",
+            rec_prot__pt->raw_read_buf_content__u16
+          );
+          printf("raw read buf content = ");
+          for(i = 0; i < rec_prot__pt->raw_read_buf_content__u16; i++)
+          {
+            printf("%02x ", rec_prot__pt->send_rec_buf_raw__bu8[i]);
+          }
+          printf("\n");
+# endif /* ifdef DBG_PRINT */
 
+          /*printf("prot_version_mbn__pt = %p\n", prot_version_mbn__pt);
+        printf("prot_version_mbn__pt->major = %u\n", prot_version_mbn__pt->major);
+        printf("prot_version_mbn__pt->minor = %u\n", prot_version_mbn__pt->minor);*/
           if(rec_prot__pt->raw_read_buf_content__u16 >= rec_hdr_up_to_incl_version__calu8)
           {
             if(((rec_prot__pt->send_rec_buf_raw__bu8[1] == FLEA_DTLS_1_X_VERSION_MAJOR) &&
               ((rec_prot__pt->send_rec_buf_raw__bu8[2] == FLEA_DTLS_1_0_VERSION_MINOR) ||
-              (rec_prot__pt->send_rec_buf_raw__bu8[2] == FLEA_DTLS_1_2_VERSION_MINOR))) &&
-              (prot_version_mbn__pt && ((prot_version_mbn__pt->major != FLEA_DTLS_1_X_VERSION_MAJOR) || (
-                prot_version_mbn__pt->minor != FLEA_DTLS_1_2_VERSION_MINOR))))
+              (rec_prot__pt->send_rec_buf_raw__bu8[2] == FLEA_DTLS_1_2_VERSION_MINOR)))
+
+              /*&& // TODO: CHECK THE VERSION IN EXTERNAL FUNCTION. HERE THE
+               * VERSION NUMBER MAY ONLY BE REQUESTED, NO INPUT IN
+               * prot_version_mbn__pt
+            (prot_version_mbn__pt && ((prot_version_mbn__pt->major != FLEA_DTLS_1_X_VERSION_MAJOR) || (
+              prot_version_mbn__pt->minor != FLEA_DTLS_1_2_VERSION_MINOR)))*/
+            )
             {
+              printf(
+                "DTLS 1.2 requested by peer, checking if (possibly again, already done) switching to it is allowed\n"
+              );
               if(FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt))
               {
+                printf("activating DTLS\n");
                 flea_al_u16_t new_from_buf__alu16;
                 rec_prot__pt->record_hdr_len__u8 = FLEA_DTLS_RECORD_HDR_LEN;
                 rec_prot__pt->payload_buf__pu8   = rec_prot__pt->send_rec_buf_raw__bu8
@@ -1399,7 +1456,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
           {
             if(rec_prot__pt->raw_read_buf_content__u16 < rec_prot__pt->record_hdr_len__u8)
             {
-              // TODO: DISCARD THE RECORD READ BUFFER CONTENTS
+              rec_prot__pt->raw_read_buf_content__u16 = 0;
             }
           }
           /* we had to read header bytes, but couldn't */
@@ -1412,8 +1469,6 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
             }
             else
             {
-              /* TODO: this should be potentially  a timeout (?): */
-
               printf(
                 "needed = rec_prot__pt->record_hdr_len__u8 = %u, current_raw_read_content = %u, raw_read_len__dtl = %u\n",
                 rec_prot__pt->record_hdr_len__u8,
@@ -1449,9 +1504,14 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
           {
             printf("content type required: %u, ", cont_type__e);
             printf("content type found: %u\n", rec_prot__pt->send_rec_buf_raw__bu8[0]);
+            unsigned add = 0;
+            if(rec_prot__pt->is_dtls_active__u8)
+            {
+              add = 8;
+            }
             printf(
               "this record's content len = %u\n",
-              (rec_prot__pt->send_rec_buf_raw__bu8[3] << 8) | rec_prot__pt->send_rec_buf_raw__bu8[4]
+              (rec_prot__pt->send_rec_buf_raw__bu8[3 + add] << 8) | rec_prot__pt->send_rec_buf_raw__bu8[4 + add]
             );
             FLEA_THROW("content type does not match", FLEA_ERR_TLS_INV_REC_HDR);
           }
@@ -1459,9 +1519,15 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
           {
             printf("content type inquired: %u\n", rec_prot__pt->send_rec_buf_raw__bu8[0]);
           }
+
+          unsigned add = 0;
+          if(rec_prot__pt->is_dtls_active__u8)
+          {
+            add = 8;
+          }
           printf(
             "this record's content len = %u\n",
-            (rec_prot__pt->send_rec_buf_raw__bu8[3] << 8) | rec_prot__pt->send_rec_buf_raw__bu8[4]
+            (rec_prot__pt->send_rec_buf_raw__bu8[3 + add] << 8) | rec_prot__pt->send_rec_buf_raw__bu8[4 + add]
           );
 
           if(do_verify_prot_version__b)
@@ -1474,11 +1540,20 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
           }
           else if(prot_version_mbn__pt)
           {
+            flea_al_u8_t add = 0;
+            printf(
+              "setting the record version number into result struct (dtls_active = %u)\n",
+              rec_prot__pt->is_dtls_active__u8
+            );
             // TODO: FOR DTLS, this is incorrent, when openssl sends DTLS1.0 in
             // record, but DTLS1.2 in handshake msg
             // => find out what the meaning is
-            prot_version_mbn__pt->major = rec_prot__pt->send_rec_buf_raw__bu8[1];
-            prot_version_mbn__pt->minor = rec_prot__pt->send_rec_buf_raw__bu8[2];
+            if(rec_prot__pt->is_dtls_active__u8)
+            {
+              add = 8;
+            }
+            prot_version_mbn__pt->major = rec_prot__pt->send_rec_buf_raw__bu8[1 + add];
+            prot_version_mbn__pt->minor = rec_prot__pt->send_rec_buf_raw__bu8[2 + add];
           }
         }
         hdr_pos__alu8 = 3;
@@ -1507,7 +1582,9 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
             }
             else
             {
-              /* TODO: DISCARD THIS RECORD! */
+              rec_prot__pt->raw_read_buf_content__u16 = 0;
+              continue;
+              /* TODO: [DISCARD THIS RECORD] have test for this, yet untested */
             }
           }
           // TODO: CHECK THAT RECORD IS WITHIN ACCEPTANCE WINDOW
@@ -1533,7 +1610,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
         {
           rec_prot__pt->skip_empty_record__b = FLEA_TRUE;
         }
-        // TODO: DISCARD SIZE ZERO RECORD ('delete' the header offset (?), and
+        // done: DISCARD SIZE ZERO RECORD ('delete' the header offset (?), and
         // continue)
 
         printf("newley read record content len = %u\n", rec_prot__pt->curr_rec_content_len__u16);
@@ -1552,8 +1629,11 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
           if(rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8 >
             rec_prot__pt->raw_read_buf_content__u16)
           {
-            // TODO: DISCARD THE RECORD, in this case the whole rec_buf can be
-            // discarded
+            rec_prot__pt->curr_rec_content_len__u16 = 0;
+            rec_prot__pt->raw_read_buf_content__u16 = 0;
+            continue;
+            // TODO: test this ( DISCARD THE RECORD, in this case the whole rec_buf can be
+            // discarded)
           }
         }
       } /* end of 'read the hdr' */
@@ -1676,6 +1756,17 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
       else
       {
         to_cp__alu16 = FLEA_MIN(rec_prot__pt->curr_pt_content_len__u16, data_len__dtl);
+# ifdef DBG_PRINT
+        printf("trailing read: reading %u bytes = ", to_cp__alu16);
+        unsigned i;
+        for(i = 0; i < to_cp__alu16; i++)
+        {
+          printf("%02x ", data__pu8[i]);
+        }
+        printf("\n");
+# endif /* ifdef DBG_PRINT */
+
+
         memcpy(data__pu8, rec_prot__pt->payload_buf__pu8, to_cp__alu16);
         rec_prot__pt->curr_rec_content_offs__u16 += to_cp__alu16;
         read_bytes_count__dtl += to_cp__alu16;
@@ -1683,12 +1774,6 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
         data__pu8      += to_cp__alu16;
         *data_len__pdtl = read_bytes_count__dtl;
       }
-      // TODO: IF record read finished AND further data left in currently read
-      // packet
-      // - shift down the remaining data to the start of the receive buffer
-      // - update rec_prot__pt->raw_read_buf_content__u16
-      // - then depending on the below evaluation, either another loop iteration
-      // occurs or the data is ready for the next function call
     } while(
       FLEA_RP__IS_CURRENT_RECORD_ALERT(rec_prot__pt) || ((rd_mode__e == flea_read_full) && data_len__dtl) ||
       ((rd_mode__e == flea_read_blocking) && !read_bytes_count__dtl)
