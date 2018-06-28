@@ -105,15 +105,17 @@
 
 /************ Begin Record Size Configuration ************/
 
-// FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE: maximum amount of data (padding, mac, ...) that can be added upon the plaintext of a record
+// FLEA_TLS_RECORD_MAX_RECEIVE_ADD_DATA_SIZE: maximum amount of data (padding, mac, ...) that can be added upon the plaintext of a record
 #if defined FLEA_HAVE_TLS_CS_CBC
-# define FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE 256 + 16 + 48 /* Padding + IV(AES) + MAC(SHA384) */
+# define FLEA_TLS_RECORD_MAX_RECEIVE_ADD_DATA_SIZE 256 + 16 + 48 /* Padding + IV(AES) + MAC(SHA384) */
 #else // GCM
-# define FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE 8 + 16 /* Explicit IV + GCM tag */
+# define FLEA_TLS_RECORD_MAX_RECEIVE_ADD_DATA_SIZE 8 + 16 /* Explicit IV + GCM tag */
 #endif
 
 /** the maximal data content of a TLS record */
-#define FLEA_TLS_MAX_RECORD_SIZE (FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE + FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE)
+#define FLEA_TLS_MAX_RECORD_SIZE \
+  (FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE \
+  + FLEA_TLS_RECORD_MAX_RECEIVE_ADD_DATA_SIZE)
 
 // throw error if
 #if FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE < 512 && defined FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
