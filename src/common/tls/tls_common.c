@@ -713,15 +713,16 @@ flea_err_e THR_flea_tls__read_certificate(
 } /* THR_flea_tls__read_certificate */
 
 flea_err_e THR_flea_tls__send_certificate(
-  flea_tls_ctx_t*          tls_ctx,
-  flea_tls_prl_hash_ctx_t* p_hash_ctx,
-  const flea_ref_cu8_t*    cert_chain__pt,
-  flea_u8_t                cert_chain_len__u8
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_prl_hash_ctx_t*  p_hash_ctx,
+  const flea_ref_cu8_t*     cert_chain__pt,
+  flea_u8_t                 cert_chain_len__u8
 )
 {
   flea_u32_t hdr_len__u32;
   flea_u32_t cert_list_len__u32;
 
+  // flea_tls_ctx_t* tls_ctx = hs_ctx__pt->tls_ctx__pt;
   FLEA_THR_BEG_FUNC();
 
   // calculate length for the header
@@ -734,7 +735,7 @@ flea_err_e THR_flea_tls__send_certificate(
 
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_hdr(
-      &tls_ctx->rec_prot__t,
+      hs_ctx__pt,
       p_hash_ctx,
       HANDSHAKE_TYPE_CERTIFICATE,
       hdr_len__u32
@@ -742,13 +743,13 @@ flea_err_e THR_flea_tls__send_certificate(
   );
 
   cert_list_len__u32 = hdr_len__u32 - 3;
-  FLEA_CCALL(THR_flea_tls__snd_hands_msg_int_be(&tls_ctx->rec_prot__t, p_hash_ctx, cert_list_len__u32, 3));
+  FLEA_CCALL(THR_flea_tls__snd_hands_msg_int_be(hs_ctx__pt, p_hash_ctx, cert_list_len__u32, 3));
 
   for(flea_u8_t i = 0; i < cert_chain_len__u8; i++)
   {
     FLEA_CCALL(
       THR_flea_tls__snd_hands_msg_int_be(
-        &tls_ctx->rec_prot__t,
+        hs_ctx__pt,
         p_hash_ctx,
         cert_chain__pt[i].len__dtl,
         3
@@ -757,7 +758,7 @@ flea_err_e THR_flea_tls__send_certificate(
 
     FLEA_CCALL(
       THR_flea_tls__snd_hands_msg_content(
-        &tls_ctx->rec_prot__t,
+        hs_ctx__pt,
         p_hash_ctx,
         cert_chain__pt[i].data__pcu8,
         cert_chain__pt[i].len__dtl
@@ -770,13 +771,15 @@ flea_err_e THR_flea_tls__send_certificate(
 } /* THR_flea_tls__send_certificate */
 
 flea_err_e THR_flea_tls__snd_hands_msg_hdr(
-  flea_recprot_t*          rec_prot__pt,
-  flea_tls_prl_hash_ctx_t* p_hash_ctx_mbn__pt,
-  HandshakeType            type,
-  flea_u32_t               content_len__u32
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_prl_hash_ctx_t*  p_hash_ctx_mbn__pt,
+  HandshakeType             type,
+  flea_u32_t                content_len__u32
 )
 {
   flea_u8_t enc_for_hash__au8[4];
+
+  flea_recprot_t* rec_prot__pt = &hs_ctx__pt->tls_ctx__pt->rec_prot__t;
 
   FLEA_THR_BEG_FUNC();
 
@@ -954,13 +957,17 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
 } /* THR_flea_tls_ctx_t__construction_helper */
 
 flea_err_e THR_flea_tls__snd_hands_msg_content(
-  flea_recprot_t*          rec_prot__pt,
-  flea_tls_prl_hash_ctx_t* p_hash_ctx_mbn__pt,
-  const flea_u8_t*         msg_bytes,
-  flea_u32_t               msg_bytes_len
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  // flea_recprot_t*          rec_prot__pt,
+  flea_tls_prl_hash_ctx_t*  p_hash_ctx_mbn__pt,
+  const flea_u8_t*          msg_bytes,
+  flea_u32_t                msg_bytes_len
 )
 {
+  flea_recprot_t* rec_prot__pt = &hs_ctx__pt->tls_ctx__pt->rec_prot__t;
+
   FLEA_THR_BEG_FUNC();
+
   FLEA_CCALL(
     THR_flea_recprot_t__wrt_data(
       rec_prot__pt,
@@ -977,10 +984,10 @@ flea_err_e THR_flea_tls__snd_hands_msg_content(
 }
 
 flea_err_e THR_flea_tls__snd_hands_msg_int_be(
-  flea_recprot_t*          rec_prot__pt,
-  flea_tls_prl_hash_ctx_t* p_hash_ctx_mbn__pt,
-  flea_u32_t               int__u32,
-  flea_al_u8_t             int_byte_width__alu8
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_prl_hash_ctx_t*  prl_hash_ctx__pt,
+  flea_u32_t                int__u32,
+  flea_al_u8_t              int_byte_width__alu8
 )
 {
   flea_u8_t enc__au8[4];
@@ -993,8 +1000,8 @@ flea_err_e THR_flea_tls__snd_hands_msg_int_be(
   flea__encode_U32_BE(int__u32, enc__au8);
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_content(
-      rec_prot__pt,
-      p_hash_ctx_mbn__pt,
+      hs_ctx__pt,
+      prl_hash_ctx__pt,
       enc__au8 + (4 - int_byte_width__alu8),
       int_byte_width__alu8
     )
@@ -1004,17 +1011,19 @@ flea_err_e THR_flea_tls__snd_hands_msg_int_be(
 }
 
 flea_err_e THR_flea_tls__snd_hands_msg(
-  flea_recprot_t*          rec_prot__pt,
-  flea_tls_prl_hash_ctx_t* p_hash_ctx_mbn__pt,
-  HandshakeType            type,
-  const flea_u8_t*         msg_bytes,
-  flea_u32_t               msg_bytes_len
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_prl_hash_ctx_t*  p_hash_ctx_mbn__pt,
+  HandshakeType             type,
+  const flea_u8_t*          msg_bytes,
+  flea_u32_t                msg_bytes_len
 )
 {
+  flea_recprot_t* rec_prot__pt = &hs_ctx__pt->tls_ctx__pt->rec_prot__t;
+
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_hdr(
-      rec_prot__pt,
+      hs_ctx__pt,
       p_hash_ctx_mbn__pt,
       type,
       msg_bytes_len
@@ -1023,12 +1032,13 @@ flea_err_e THR_flea_tls__snd_hands_msg(
 
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_content(
-      rec_prot__pt,
+      hs_ctx__pt,
       p_hash_ctx_mbn__pt,
       msg_bytes,
       msg_bytes_len
     )
   );
+  // TODO: THIS MAY NOT STAY
   FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__snd_hands_msg */
@@ -1054,11 +1064,13 @@ flea_err_e THR_flea_tls__send_change_cipher_spec(
 }
 
 flea_err_e THR_flea_tls__send_finished(
-  flea_tls_ctx_t*          tls_ctx,
-  flea_tls_prl_hash_ctx_t* p_hash_ctx
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_prl_hash_ctx_t*  p_hash_ctx
 
 )
 {
+  flea_tls_ctx_t* tls_ctx = hs_ctx__pt->tls_ctx__pt;
+
   FLEA_DECL_BUF(verify_data__bu8, flea_u8_t, FLEA_TLS_VERIFY_DATA_SIZE + FLEA_MAX_HASH_OUT_LEN);
   flea_u8_t* messages_hash__pu8;
   PRFLabel label;
@@ -1098,7 +1110,7 @@ flea_err_e THR_flea_tls__send_finished(
 
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg(
-      &tls_ctx->rec_prot__t,
+      hs_ctx__pt,
       p_hash_ctx,
       HANDSHAKE_TYPE_FINISHED,
       verify_data__bu8,
@@ -1335,9 +1347,16 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
 {
   flea_err_e err__t;
   flea_tls_ctx_t* tls_ctx__pt;
+  flea_tls_handshake_ctx_t hs_ctx__t;
 
   FLEA_THR_BEG_FUNC();
+
+  flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
   tls_ctx__pt = server_ctx_mbn__pt ? &server_ctx_mbn__pt->tls_ctx__t : &client_ctx_mbn__pt->tls_ctx__t;
+
+  hs_ctx__t.is_reneg__b = FLEA_TRUE;
+
+  hs_ctx__t.tls_ctx__pt = tls_ctx__pt;
 
   if(!tls_ctx__pt->allow_reneg__u8)
   {
@@ -1361,9 +1380,10 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
     err__t =
       THR_flea_tls__client_handshake(
       client_ctx_mbn__pt,
+      &hs_ctx__t,
       tls_ctx__pt->client_session_mbn__pt,
-      hostn_valid_params_mbn__pt,
-      FLEA_TRUE
+      hostn_valid_params_mbn__pt
+      // FLEA_TRUE
       );
 # else  /* ifdef FLEA_HAVE_TLS_CLIENT */
     FLEA_THROW("Invalid State, Client not compiled", FLEA_ERR_INT_ERR);
@@ -1374,7 +1394,7 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
 # ifdef FLEA_HAVE_TLS_SERVER
     FLEA_CCALL(
       THR_flea_tls__snd_hands_msg(
-        &tls_ctx__pt->rec_prot__t,
+        &hs_ctx__t,
         NULL,
         HANDSHAKE_TYPE_HELLO_REQUEST,
         NULL,
@@ -1477,22 +1497,23 @@ flea_al_u16_t flea_tls_ctx_t__compute_extensions_length(flea_tls_ctx_t* tls_ctx_
 } /* flea_tls_ctx_t__compute_extensions_length */
 
 flea_err_e THR_flea_tls_ctx_t__send_extensions_length(
-  flea_tls_ctx_t*          tls_ctx__pt,
-  flea_tls_prl_hash_ctx_t* p_hash_ctx_mbn__pt
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_prl_hash_ctx_t*  p_hash_ctx_mbn__pt
 )
 {
   flea_u8_t enc_len__au8[2] = {0, 0};
   flea_al_u16_t len__alu16  = 0;
 
+
   FLEA_THR_BEG_FUNC();
-  len__alu16 = flea_tls_ctx_t__compute_extensions_length(tls_ctx__pt);
+  len__alu16 = flea_tls_ctx_t__compute_extensions_length(hs_ctx__pt->tls_ctx__pt);
 
   if(len__alu16)
   {
     flea__encode_U16_BE(len__alu16, enc_len__au8);
     FLEA_CCALL(
       THR_flea_tls__snd_hands_msg_content(
-        &tls_ctx__pt->rec_prot__t,
+        hs_ctx__pt,
         p_hash_ctx_mbn__pt,
         enc_len__au8,
         sizeof(enc_len__au8)
@@ -1503,23 +1524,24 @@ flea_err_e THR_flea_tls_ctx_t__send_extensions_length(
 }
 
 flea_err_e THR_flea_tls_ctx_t__send_reneg_ext(
-  flea_tls_ctx_t*          tls_ctx__pt,
-  flea_tls_prl_hash_ctx_t* p_hash_ctx__pt
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_prl_hash_ctx_t*  p_hash_ctx__pt
 )
 {
   const flea_u8_t reneg_ext_type__cau8[] = {0xff, 0x01};
   flea_u8_t len__u8 = 0;
+  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_content(
-      &tls_ctx__pt->rec_prot__t,
+      hs_ctx__pt,
       p_hash_ctx__pt,
       reneg_ext_type__cau8,
       sizeof(reneg_ext_type__cau8)
     )
   );
-  FLEA_CCALL(THR_flea_tls__snd_hands_msg_content(&tls_ctx__pt->rec_prot__t, p_hash_ctx__pt, &len__u8, 1));
+  FLEA_CCALL(THR_flea_tls__snd_hands_msg_content(hs_ctx__pt, p_hash_ctx__pt, &len__u8, 1));
   if(tls_ctx__pt->sec_reneg_flag__u8)
   {
     if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
@@ -1532,12 +1554,12 @@ flea_err_e THR_flea_tls_ctx_t__send_reneg_ext(
     }
   }
   len__u8 += 1;
-  FLEA_CCALL(THR_flea_tls__snd_hands_msg_content(&tls_ctx__pt->rec_prot__t, p_hash_ctx__pt, &len__u8, 1));
+  FLEA_CCALL(THR_flea_tls__snd_hands_msg_content(hs_ctx__pt, p_hash_ctx__pt, &len__u8, 1));
   len__u8 -= 1;
-  FLEA_CCALL(THR_flea_tls__snd_hands_msg_content(&tls_ctx__pt->rec_prot__t, p_hash_ctx__pt, &len__u8, 1));
+  FLEA_CCALL(THR_flea_tls__snd_hands_msg_content(hs_ctx__pt, p_hash_ctx__pt, &len__u8, 1));
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_content(
-      &tls_ctx__pt->rec_prot__t,
+      hs_ctx__pt,
       p_hash_ctx__pt,
       tls_ctx__pt->own_vfy_data__bu8,
       len__u8
@@ -1696,21 +1718,21 @@ flea_err_e THR_flea_tls__check_sig_alg_compatibility_for_key_type(
 
 # ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
 flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
-  flea_tls_ctx_t*          tls_ctx__pt,
-  flea_tls_prl_hash_ctx_t* p_hash_ctx__pt
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_prl_hash_ctx_t*  p_hash_ctx__pt
 )
 {
   flea_u8_t ext__au8[] = {
     0x00, 0x01
   };
-
+  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
   flea_u8_t ext_byte__u8;
 
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_content(
-      &tls_ctx__pt->rec_prot__t,
+      hs_ctx__pt,
       p_hash_ctx__pt,
       ext__au8,
       sizeof(ext__au8)
@@ -1719,8 +1741,9 @@ flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
 
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_int_be(
-      &tls_ctx__pt->rec_prot__t,
+      hs_ctx__pt,
       p_hash_ctx__pt,
+
       1,
       2
     )
@@ -1738,7 +1761,7 @@ flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
 
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_content(
-      &tls_ctx__pt->rec_prot__t,
+      hs_ctx__pt,
       p_hash_ctx__pt,
       &ext_byte__u8,
       1
@@ -1842,8 +1865,8 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
 # endif /* ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT */
 
 flea_err_e THR_flea_tls_ctx_t__send_sig_alg_ext(
-  flea_tls_ctx_t*          tls_ctx__pt,
-  flea_tls_prl_hash_ctx_t* p_hash_ctx__pt
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_prl_hash_ctx_t*  p_hash_ctx__pt
 )
 {
   const flea_u8_t ext__au8[] = {
@@ -1851,12 +1874,15 @@ flea_err_e THR_flea_tls_ctx_t__send_sig_alg_ext(
   };
   flea_u8_t curr_sig_alg_enc__au8[2];
 
+  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
+
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_content(
-      &tls_ctx__pt->rec_prot__t,
+      hs_ctx__pt,
       p_hash_ctx__pt,
+
       ext__au8,
       sizeof(ext__au8)
     )
@@ -1864,8 +1890,9 @@ flea_err_e THR_flea_tls_ctx_t__send_sig_alg_ext(
 
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_int_be(
-      &tls_ctx__pt->rec_prot__t,
+      hs_ctx__pt,
       p_hash_ctx__pt,
+
       tls_ctx__pt->nb_allowed_sig_algs__alu16 * 2 + 2,
       2
     )
@@ -1873,8 +1900,9 @@ flea_err_e THR_flea_tls_ctx_t__send_sig_alg_ext(
 
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_int_be(
-      &tls_ctx__pt->rec_prot__t,
+      hs_ctx__pt,
       p_hash_ctx__pt,
+
       tls_ctx__pt->nb_allowed_sig_algs__alu16 * 2,
       2
     )
@@ -1894,8 +1922,9 @@ flea_err_e THR_flea_tls_ctx_t__send_sig_alg_ext(
     FLEA_CCALL(
 
       THR_flea_tls__snd_hands_msg_content(
-        &tls_ctx__pt->rec_prot__t,
+        hs_ctx__pt,
         p_hash_ctx__pt,
+
         curr_sig_alg_enc__au8,
         sizeof(curr_sig_alg_enc__au8)
       )

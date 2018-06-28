@@ -51,8 +51,14 @@ typedef struct
   flea_pk_scheme_id_e pk_scheme_id__t;
 } flea_tls__hash_sig_t;
 
+typedef struct
+{
+  flea_u16_t current_hs_msg_len__u16;
+} flea_dtls_ctx_t;
+
 struct struct_flea_tls_ctx_t
 {
+  flea_recprot_t             rec_prot__t;
   flea_tls__connection_end_t connection_end; /* Server or Client */
   void*                      client_or_server_ctx__pv;
 #  ifdef FLEA_STACK_MODE
@@ -76,7 +82,6 @@ struct struct_flea_tls_ctx_t
   flea_tls__hash_sig_t              kex_hash_sig__t;
 
   flea_rw_stream_t*                 rw_stream__pt;
-  flea_recprot_t                    rec_prot__t;
   const flea_cert_store_t*          trust_store_mbn_for_server__pt;
   const flea_ref_cu8_t*             cert_chain_mbn__pt;
   flea_u8_t                         cert_chain_len__u8;
@@ -120,6 +125,11 @@ struct struct_flea_tls_ctx_t
   flea_x509_cert_ref_t        peer_root_cert_ref__t;
   flea_u8_t                   peer_root_cert_set__u8;
 #  endif
+#  ifdef FLEA_HAVE_DTLS
+
+  flea_dtls_ctx_t dtls_ctx__t;
+
+#  endif
 };
 
 #  define FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt) \
@@ -128,11 +138,10 @@ struct struct_flea_tls_ctx_t
 
 struct struct_flea_tls_handshake_ctx_t
 {
+  flea_tls_ctx_t*  tls_ctx__pt;
   /* only used by tls_client: */
   flea_pubkey_t*   ecdhe_pub_key__pt;
-
   flea_byte_vec_t* client_and_server_random__pt;
-  flea_tls_ctx_t*  tls_ctx__pt;
   flea_u8_t        silent_alarm__u8;
   flea_u8_t        is_reneg__b;
   flea_bool_t      is_sess_res__b;

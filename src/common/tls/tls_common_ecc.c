@@ -91,7 +91,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_supported_curves_ext(
     privkey_curve_supported__b = FLEA_FALSE;
     privkey_dp_id__e = flea_ec_dom_par_ref_t__determine_known_curve(
       &tls_ctx__pt->private_key__pt->privkey_with_params__u.ec_priv_key_val__t.dp__t
-      );
+    );
   }
   else
   {
@@ -216,17 +216,18 @@ flea_bool_t flea_tls__is_cipher_suite_ecc_suite(flea_tls_cipher_suite_id_t suite
 }
 
 flea_err_e THR_flea_tls_ctx_t__send_ecc_point_format_ext(
-  flea_tls_ctx_t*          tls_ctx__pt,
-  flea_tls_prl_hash_ctx_t* p_hash_ctx__pt
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_prl_hash_ctx_t*  p_hash_ctx__pt
 )
 {
   FLEA_THR_BEG_FUNC();
+
   const flea_u8_t ext__acu8[] = {
     0x00, 0x0b, 0x00, 0x02, 0x01, 0x00 /* point formats */
   };
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_content(
-      &tls_ctx__pt->rec_prot__t,
+      hs_ctx__pt,
       p_hash_ctx__pt,
       ext__acu8,
       sizeof(ext__acu8)
@@ -236,18 +237,19 @@ flea_err_e THR_flea_tls_ctx_t__send_ecc_point_format_ext(
 }
 
 flea_err_e THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
-  flea_tls_ctx_t*          tls_ctx__pt,
-  flea_tls_prl_hash_ctx_t* p_hash_ctx__pt
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_prl_hash_ctx_t*  p_hash_ctx__pt
 )
 {
   FLEA_THR_BEG_FUNC();
   flea_u8_t ext__au8[] = {
     0x00, 0x0a
   };
+  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
 
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_content(
-      &tls_ctx__pt->rec_prot__t,
+      hs_ctx__pt,
       p_hash_ctx__pt,
       ext__au8,
       sizeof(ext__au8)
@@ -256,7 +258,7 @@ flea_err_e THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
   flea__encode_U16_BE(tls_ctx__pt->nb_allowed_curves__u16 * 2 + 2, ext__au8);
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_content(
-      &tls_ctx__pt->rec_prot__t,
+      hs_ctx__pt,
       p_hash_ctx__pt,
       ext__au8,
       sizeof(ext__au8)
@@ -265,7 +267,7 @@ flea_err_e THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
   flea__encode_U16_BE(tls_ctx__pt->nb_allowed_curves__u16 * 2, ext__au8);
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_content(
-      &tls_ctx__pt->rec_prot__t,
+      hs_ctx__pt,
       p_hash_ctx__pt,
       ext__au8,
       sizeof(ext__au8)
@@ -284,7 +286,7 @@ flea_err_e THR_flea_tls_ctx_t__send_ecc_supported_curves_ext(
     );
     FLEA_CCALL(
       THR_flea_tls__snd_hands_msg_content(
-        &tls_ctx__pt->rec_prot__t,
+        hs_ctx__pt,
         p_hash_ctx__pt,
         ext__au8,
         sizeof(ext__au8)

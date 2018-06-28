@@ -1278,7 +1278,9 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
       local_rd_mode__e = flea_read_blocking;
     }
 
+# ifdef DBG_PRINT
     unsigned dbg_loop_cnt = 0;
+# endif
     do
     {
       flea_al_u16_t curr_rec_full_len__alu16 = 0;
