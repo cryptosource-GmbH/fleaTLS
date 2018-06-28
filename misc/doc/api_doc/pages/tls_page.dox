@@ -27,32 +27,32 @@ associated functions of the fleaTLS client and server API.</CENTER>
 The above figure shows the potential events in the TLS protocol flow
 and the associated functions of the fleaTLS client and server API. Any TLS
 connections starts with a call to the ctor function of the TLS client
- (#flea_tls_client_ctx_t) or server (#flea_tls_server_ctx_t) context object.
+ (#flea_tls_clt_ctx_t) or server (#flea_tls_srv_ctx_t) context object.
 
 \section secInitHsAndAppData Initial Handshake and Application Data Transfer
 After the initial handshake, the TLS channel is established and all subsequent
 data exchanges between the peers take place over the secure TLS channel. The
 main purpose of the TLS channel is the secure exchange of application data,
 which is done using the fleaTLS functions
-- <code>THR_flea_tls_client_ctx_t__read_app_data()</code>
-- <code>THR_flea_tls_client_ctx_t__send_app_data()</code>
-- <code>THR_flea_tls_server_ctx_t__read_app_data()</code>
-- <code>THR_flea_tls_server_ctx_t__send_app_data()</code>
+- <code>THR_flea_tls_clt_ctx_t__read_app_data()</code>
+- <code>THR_flea_tls_clt_ctx_t__send_app_data()</code>
+- <code>THR_flea_tls_srv_ctx_t__read_app_data()</code>
+- <code>THR_flea_tls_srv_ctx_t__send_app_data()</code>
 
 Note that in order to ensure the sending of the application over the wire a call
 to
-- <code>THR_flea_tls_client_ctx_t__flush_write_app_data()</code> or
-- <code>#THR_flea_tls_server_ctx_t__flush_write_app_data()</code>
+- <code>THR_flea_tls_clt_ctx_t__flush_write_app_data()</code> or
+- <code>#THR_flea_tls_srv_ctx_t__flush_write_app_data()</code>
   is necessary since the <code>send_app_data</code> functions may buffer the data.
 
   \section secReneg Renegotiation
 A renegotiation can be triggered either by a call to the corresponding
 renegotiation function
 
-- <code>THR_flea_tls_client_ctx_t__renegotiate()</code> or
-- <code>THR_flea_tls_server_ctx_t__renegotiate()</code>.
+- <code>THR_flea_tls_clt_ctx_t__renegotiate()</code> or
+- <code>THR_flea_tls_srv_ctx_t__renegotiate()</code>.
 
-Before a call one of these functions #flea_tls_client_ctx_t__is_reneg_allowed or #flea_tls_server_ctx_t__is_reneg_allowed() should be made in order to determine whether renegotiation is possible according to the current configuration.
+Before a call one of these functions #flea_tls_clt_ctx_t__is_reneg_allowed or #flea_tls_srv_ctx_t__is_reneg_allowed() should be made in order to determine whether renegotiation is possible according to the current configuration.
 
 
 Furthermore, a renegotiation can be executed during a call to a <code>read_app_data</code> function, if the peer initiates a
@@ -82,24 +82,24 @@ Furthermore, a renegotiation can be executed during a call to a <code>read_app_d
 
 
   \subsection secTlsSessResServer TLS Server
-  For the TLS server, session resumption is enabled by providing a non-null pointer to a constructed #flea_tls_session_mngr_t  object in the call to #THR_flea_tls_server_ctx_t__ctor(). The configuration property #FLEA_TLS_MAX_NB_MNGD_SESSIONS determines how many sessions can be cached.
+  For the TLS server, session resumption is enabled by providing a non-null pointer to a constructed #flea_tls_session_mngr_t  object in the call to #THR_flea_tls_srv_ctx_t__ctor(). The configuration property #FLEA_TLS_MAX_NB_MNGD_SESSIONS determines how many sessions can be cached.
 
 
   \subsection secTlsSessResClient TLS Client
-For the client, a session can be saved for later resumption by creating an object of type #flea_tls_client_session_t using the function #flea_tls_client_session_t__ctor() and providing it in the call to #THR_flea_tls_client_ctx_t__ctor().
-After the successful completion of #THR_flea_tls_client_ctx_t__ctor(), the #flea_tls_client_session_t object should now contain a valid session. This can be tested with the function #flea_tls_client_session_t__has_valid_session(). The valid session can be serialized using #THR_flea_tls_client_session_t__serialize().
+For the client, a session can be saved for later resumption by creating an object of type #flea_tls_clt_session_t using the function #flea_tls_clt_session_t__ctor() and providing it in the call to #THR_flea_tls_clt_ctx_t__ctor().
+After the successful completion of #THR_flea_tls_clt_ctx_t__ctor(), the #flea_tls_clt_session_t object should now contain a valid session. This can be tested with the function #flea_tls_clt_session_t__has_valid_session(). The valid session can be serialized using #THR_flea_tls_clt_session_t__serialize().
 
-In order to resume a session, first an object of type #flea_tls_client_session_t containing a valid session has to be present. This can be achieved either
+In order to resume a session, first an object of type #flea_tls_clt_session_t containing a valid session has to be present. This can be achieved either
 
 - by keeping the object after the above described procedure to record a session during a handshake,
-- or by creating a new #flea_tls_client_session_t via #flea_tls_client_session_t__ctor() and then deserializing a previously serialized session using the function #THR_flea_tls_client_session_t__deserialize() on the same object.
+- or by creating a new #flea_tls_clt_session_t via #flea_tls_clt_session_t__ctor() and then deserializing a previously serialized session using the function #THR_flea_tls_clt_session_t__deserialize() on the same object.
 
-Afterwards, this object is provided to the call to #THR_flea_tls_client_ctx_t__ctor(), causing the client to attempt to resume that session.
+Afterwards, this object is provided to the call to #THR_flea_tls_clt_ctx_t__ctor(), causing the client to attempt to resume that session.
 
       \section secTlsCloseConn Closing the connection
   The closing of a connection happens when dtor function of the respective tls
   client or server context object is called. Furthermore, the connection is
-  closed if an error occurs during any of the other functions of #flea_tls_client_ctx_t or #flea_tls_server_ctx_t.
+  closed if an error occurs during any of the other functions of #flea_tls_clt_ctx_t or #flea_tls_srv_ctx_t.
 
   \section secTlsAlerts TLS Alert Handling and Sending
 
@@ -224,15 +224,18 @@ The Maximum Fragment Length Negotiation Extension (MFLNE)
 defined in <a href="https://tools.ietf.org/html/rfc6066#section-4">RFC 6066</a>,
 allows a TLS client to request a smaller maximum record plaintext size than normally
 used in TLS. The normal maximum record plaintext size is 16384. Without using the MFLNE, this is the only possibility in TLS. For the receiving of
-records, a buffer of a little larger this size is necessary for both client and server instances. In order to safe
+records, a buffer of a little larger this size is necessary for both client and server instances. In order to save
 RAM, the required buffer size can be reduced in a fleaTLS client or server
 instance by setting the build configuration variable
 #FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE, which by default has the value 16384, to an 
 appropriate lower value from the set 512, 1024, 2048, and 4096. These are the
-reduced maximum record plaintext lengths supported by the MFLNE. Setting arbitrary values between 512 and 16384 for this variable is possible, but is not recommended. If a value lower than 512 is specified, the client of server instance will not operate and send internal error alerts.
+reduced maximum record plaintext lengths supported by the MFLNE. Setting arbitrary values between 512 and 16384 for this variable is possible, but is not recommended. 
 
-In this case that a value lower than 16384 is set, the fleaTLS client or server
-will make use of MFLNE. The subsequent two subsections explain how the client
+If a value lower than 512 is specified, the extension has to be disabled by disabling the #FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT flag. The TLS 1.2 standard and the extension both do not cover this case so there is no meaningful way the extension could handle this. In this scenario it is assumed that the user controls both end points and knows the configuration of both end points.
+In case the user controls both end points, the extension can also be disabled to make use of arbitrary values for #FLEA_TLS_RECORD_MAX_PLAINTEXT_SIZE. This can be useful since without the extension one is not bound to the values 512, 1024, 2048 and 4096.
+
+In case that a value between 512 bytes and 16383 is set and the extension is not disabled, the fleaTLS client will make use of MFLNE and try to negotiate the appropriate maximum record plaintext size. The fleaTLS server will accept a client's proposal if its receive buffer is large enough and the extension is enabled.
+The subsequent two subsections explain how the client
 and server behave during the handshake in this case. Afterwards, some specifics
 with respect to the handling of this extension during session resumption are
 discussed.
@@ -252,7 +255,7 @@ size, it corresponds with the identical MFLNE in the serverHello, indicating
 successful fragment length negotiation, and continues the handshake. Otherwise,
 if no MFLNE or only one with a maximum plaintext size larger than
 its own buffer is contained in the clientHello, it responds with a
-record_overflow alert and aborts the handshake.
+illegal_parameter alert and aborts the handshake.
 
 \subsubsection secFragLenExtResumption Session Resumption
 
@@ -274,12 +277,12 @@ The server's private key may be shared among threads as well.
 \section secInstTlsClientAndServer Instantiating TLS Server and Client
 
 The fleaTLS server and client API types are given by the
-#flea_tls_server_ctx_t and #flea_tls_client_ctx_t. Their life cycle is modelled such that their
+#flea_tls_srv_ctx_t and #flea_tls_clt_ctx_t. Their life cycle is modelled such that their
 constructor call carries out the TLS handshake. The constructed object is thus
 directly in the state where the TLS channel is established and data can be
 exchanged.
 
-Note that for both the client and the server it must be ensured that all pointers provided in the respective ctor call must remain valid throughout the whole life-time of the #flea_tls_client_ctx_t or #flea_tls_server_ctx_t object, i.e. until the dtor function is called.
+Note that for both the client and the server it must be ensured that all pointers provided in the respective ctor call must remain valid throughout the whole life-time of the #flea_tls_clt_ctx_t or #flea_tls_srv_ctx_t object, i.e. until the dtor function is called.
 
 \section secInstTlsClient Instantiating a TLS Client
 
@@ -288,7 +291,7 @@ The following example is found under <code>examples/tls/client_basic/</code> and
 $ ./build/tls_client_basic
 </PRE>
 in the flea main directory.
-The directory contains also a script to start a fleaTLS server against which the client example can run. The script must be invoked from the flea main directory. The TLS client connects to the server and executes a handshake with hostname verification (in this case using the IP address 127.0.0.1) and verifies the authenticity of the server certificate.  Afterwards, it sends some application data which is pinged back by the server. The example does not use client authentication. In order to enable client authentication, #THR_flea_tls_client_ctx_t__ctor() must be invoked with a certificate chain and a private key in the same way as it is shown for the TLS server in Section \ref secInstTlsServer.
+The directory contains also a script to start a fleaTLS server against which the client example can run. The script must be invoked from the flea main directory. The TLS client connects to the server and executes a handshake with hostname verification (in this case using the IP address 127.0.0.1) and verifies the authenticity of the server certificate.  Afterwards, it sends some application data which is pinged back by the server. The example does not use client authentication. In order to enable client authentication, #THR_flea_tls_clt_ctx_t__ctor() must be invoked with a certificate chain and a private key in the same way as it is shown for the TLS server in Section \ref secInstTlsServer.
 
 \snippet tls/client_basic/tls_client_basic.c whole_file
 
@@ -303,7 +306,7 @@ in the flea main directory.
 It can be run against
 the client example from Section \ref secInstTlsClient. The server doesn't
 request client authentication. In order to enforce client authentication, the flea_cert_store_t
-parameter in the THR_flea_tls_server_ctx_t__ctor() must be non-null and contain
+parameter in the THR_flea_tls_srv_ctx_t__ctor() must be non-null and contain
 the root certificates that are trusted for client authentication. For setting
 up the cert store see Section \ref secInstTlsClient. Revocation checking is also not used by the server. A flea_tls_session_mngr_t object is used so that the server supports session resumption.
 

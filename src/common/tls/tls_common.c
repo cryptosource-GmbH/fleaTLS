@@ -103,6 +103,53 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_TLS_RECORD_OVERFLOW,                FLEA_TLS_ALERT_DESC_RECORD_OVERFLOW     }
 };
 
+
+flea_u8_t flea_tls_map_tls_sig_to_flea_sig__at[2][2] = {
+  {0x01, flea_rsa_pkcs1_v1_5_sign},
+  {0x03, flea_ecdsa_emsa1_asn1   }
+};
+
+flea_al_u8_t flea_tls__make_set_of_flea_hash_ids_from_tls_sig_algs(
+  flea_hash_id_e*          result__pe,
+  flea_al_u8_t             result_len__alu8,
+  const flea_tls_sigalg_e* sig_algs__pe,
+  flea_al_u16_t            sig_algs_len__alu16
+)
+{
+  flea_al_u16_t i;
+  flea_al_u8_t mask      = 0;
+  flea_al_u8_t pos__alu8 = 0;
+
+  FLEA_SET_ARR(result__pe, 0, result_len__alu8);
+  for(i = 0; i < sig_algs_len__alu16; i++)
+  {
+    flea_al_u8_t hash__alu8 = sig_algs__pe[i] >> 8;
+    if(!FLEA_TLS_IS_VALID_HASH_ID(hash__alu8))
+    {
+      continue;
+    }
+    mask |= (1 << hash__alu8);
+  }
+  /* add the PRF hash-algs needed for the finish */
+  mask |= (1 << flea_sha256);
+# if (defined FLEA_HAVE_TLS_CS_PSK || defined FLEA_HAVE_TLS_CS_GCM) && defined FLEA_HAVE_SHA384_512
+  mask |= (1 << flea_sha384);
+# endif
+  for(i = (unsigned) 1; i <= 6; i++)
+  {
+    if(pos__alu8 >= result_len__alu8)
+    {
+      // error?
+      break;
+    }
+    if(mask & (1 << ((unsigned) i)))
+    {
+      result__pe[pos__alu8++] = (flea_hash_id_e) i;
+    }
+  }
+  return pos__alu8;
+} /* flea_tls__make_set_of_flea_hash_ids_from_tls_sig_algs */
+
 static flea_bool_t determine_alert_from_error(
   flea_err_e                     err__t,
   flea_tls__alert_description_t* alert_desc__pe,
@@ -271,7 +318,7 @@ flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(
   {
     FLEA_THROW(
       "Max Fragmentation Length Extension: Client sent a value that is too large for the receive buffer",
-      FLEA_ERR_TLS_RECORD_OVERFLOW
+      FLEA_ERR_TLS_ILLEGAL_PARAMETER
     );
   }
   FLEA_THR_FIN_SEC_empty();
@@ -1561,27 +1608,6 @@ static flea_err_e THR_flea_tls_ctx__parse_reneg_ext(
   );
 } /* THR_flea_tls_ctx__parse_reneg_ext */
 
-flea_u8_t flea_tls_map_tls_hash_to_flea_hash__at[6][2] = {
-# ifdef FLEA_HAVE_MD5
-  {0x01, flea_md5   },
-# endif
-# ifdef FLEA_HAVE_SHA1
-  {0x02, flea_sha1  },
-# endif
-  {0x03, flea_sha224},
-  {0x04, flea_sha256},
-# ifdef FLEA_HAVE_SHA384_512
-  {0x05, flea_sha384},
-  {0x06, flea_sha512}
-# endif
-};
-
-flea_u8_t flea_tls_map_tls_sig_to_flea_sig__at[2][2] = {
-  {0x01, flea_rsa_pkcs1_v1_5_sign},
-  {0x03, flea_ecdsa_emsa1_asn1   }
-};
-
-
 flea_err_e THR_flea_tls__map_tls_sig_to_flea_sig(
   flea_u8_t            id__u8,
   flea_pk_scheme_id_e* pk_scheme_id__pt
@@ -1616,42 +1642,6 @@ flea_err_e THR_flea_tls__map_flea_sig_to_tls_sig(
     }
   }
   FLEA_THROW("signature algorithm has no mapping for tls", FLEA_ERR_INT_ERR);
-  FLEA_THR_FIN_SEC_empty();
-}
-
-flea_err_e THR_flea_tls__map_tls_hash_to_flea_hash(
-  flea_u8_t       id__u8,
-  flea_hash_id_e* hash_id__pt
-)
-{
-  FLEA_THR_BEG_FUNC();
-  for(flea_u8_t i = 0; i < FLEA_NB_ARRAY_ENTRIES(flea_tls_map_tls_hash_to_flea_hash__at); i++)
-  {
-    if(flea_tls_map_tls_hash_to_flea_hash__at[i][0] == id__u8)
-    {
-      *hash_id__pt = (flea_hash_id_e) flea_tls_map_tls_hash_to_flea_hash__at[i][1];
-      FLEA_THR_RETURN();
-    }
-  }
-  FLEA_THROW("unsupported hash algorithm", FLEA_ERR_TLS_HANDSHK_FAILURE);
-  FLEA_THR_FIN_SEC_empty();
-}
-
-flea_err_e THR_flea_tls__map_flea_hash_to_tls_hash(
-  flea_hash_id_e hash_id__t,
-  flea_u8_t*     id__pu8
-)
-{
-  FLEA_THR_BEG_FUNC();
-  for(flea_u8_t i = 0; i < FLEA_NB_ARRAY_ENTRIES(flea_tls_map_tls_hash_to_flea_hash__at); i++)
-  {
-    if(flea_tls_map_tls_hash_to_flea_hash__at[i][1] == hash_id__t)
-    {
-      *id__pu8 = flea_tls_map_tls_hash_to_flea_hash__at[i][0];
-      FLEA_THR_RETURN();
-    }
-  }
-  FLEA_THROW("hash algorithm has no mapping for tls", FLEA_ERR_INT_ERR);
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -1742,9 +1732,14 @@ flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
   }
   else
   {
+<<<<<<< HEAD
     ext_byte__u8 = flea_tls__get_max_fragment_length_byte_for_buf_size(
       tls_ctx__pt->rec_prot__t.record_plaintext_send_max_value__u16
     );
+=======
+    flea_tls_srv_ctx_t* server_ctx__pt = (flea_tls_srv_ctx_t*) tls_ctx__pt->client_or_server_ctx__pv;
+    ext_byte__u8 = server_ctx__pt->max_fragm_len_code__u8;
+>>>>>>> dev_tls_2
   }
 
   FLEA_CCALL(
@@ -1894,12 +1889,7 @@ flea_err_e THR_flea_tls_ctx_t__send_sig_alg_ext(
   // send supported sig algs
   for(flea_dtl_t i = 0; i < tls_ctx__pt->nb_allowed_sig_algs__alu16; i += 1)
   {
-    FLEA_CCALL(
-      THR_flea_tls__map_flea_hash_to_tls_hash(
-        (flea_hash_id_e) (tls_ctx__pt->allowed_sig_algs__pe[i] >> 8),
-        &curr_sig_alg_enc__au8[0]
-      )
-    );
+    curr_sig_alg_enc__au8[0] = tls_ctx__pt->allowed_sig_algs__pe[i] >> 8;
     FLEA_CCALL(
       THR_flea_tls__map_flea_sig_to_tls_sig(
         (flea_pk_scheme_id_e) (tls_ctx__pt->allowed_sig_algs__pe[i] & 0xFF),
@@ -1950,10 +1940,11 @@ flea_err_e THR_flea_tls__read_sig_algs_field_and_find_best_match(
       )
     );
     // map sig and hash alg and also check that the sig alg matches our key
-    if(THR_flea_tls__map_tls_hash_to_flea_hash(
-        curr_sig_alg__au8[0],
-        &hash_id__t
-      ) || THR_flea_tls__map_tls_sig_to_flea_sig(curr_sig_alg__au8[1], &pk_scheme_id__t))
+    hash_id__t = (flea_hash_id_e)  curr_sig_alg__au8[0];
+    if(!FLEA_TLS_IS_VALID_HASH_ID(
+        curr_sig_alg__au8[0]
+      ) ||
+      THR_flea_tls__map_tls_sig_to_flea_sig(curr_sig_alg__au8[1], &pk_scheme_id__t))
     {
       continue;
     }
@@ -2147,7 +2138,13 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
 #  ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
     else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__MAX_FRAGMENT_LENGTH)
     {
-      FLEA_CCALL(THR_flea_tls_ctx_t__parse_max_fragment_length_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
+      FLEA_CCALL(
+        THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
+          tls_ctx__pt,
+          hs_rd_stream__pt,
+          ext_len__u32
+        )
+      );
       receive_max_frag_len_ext__b = FLEA_TRUE;
     }
 #  endif /* ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT */
@@ -2170,7 +2167,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
   {
     FLEA_THROW(
       "Client did not send a Max Fragmentation Length Extension. Since the receive buffer doesn't support 2^14 Bytes as is mandatory for TLS 1.2 the handshake is aborted.",
-      FLEA_ERR_TLS_RECORD_OVERFLOW
+      FLEA_ERR_TLS_ILLEGAL_PARAMETER
     );
   }
 

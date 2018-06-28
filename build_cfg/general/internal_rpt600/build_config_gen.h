@@ -20,7 +20,7 @@
 /**
  * When set, print test failures and summary with printf.
  */
-// # define FLEA_DO_PRINTF_TEST_OUTPUT
+# define FLEA_DO_PRINTF_TEST_OUTPUT
 
 
 /**
@@ -92,12 +92,12 @@
 /**
  * Control whether CMAC support is compiled
  */
-// # define FLEA_HAVE_CMAC
+# define FLEA_HAVE_CMAC
 
 /**
  * Control whether EAX support is compiled. Requires CMAC as a prerequisite.
  */
-// # define FLEA_HAVE_EAX  // FBFLAGS_AEALGS_ON_OFF
+# define FLEA_HAVE_EAX  // FBFLAGS_AEALGS_ON_OFF
 
 /**
  * Control whether GCM support is compiled
@@ -107,7 +107,7 @@
 /**
  * Control whether MD5 support is compiled
  */
-// # define FLEA_HAVE_MD5               // FBFLAGS_MD5_ON_OFF
+# define FLEA_HAVE_MD5               // FBFLAGS_MD5_ON_OFF
 
 /**
  * Control whether SHA1 support is compiled
@@ -128,27 +128,27 @@
 /**
  * Control whether support for the AES-based hash function based on the Davies-Meyer-construction is compiled.
  */
-// # define FLEA_HAVE_DAVIES_MEYER_HASH // FBFLAGS_DAVIES_MEYER_HASH_ON_OFF
+# define FLEA_HAVE_DAVIES_MEYER_HASH // FBFLAGS_DAVIES_MEYER_HASH_ON_OFF
 
 /**
  * Control whether support for the DES cipher is compiled.
  */
-// # define FLEA_HAVE_DES               // FBFLAGS_HAVE_DES_ON_OFF
+# define FLEA_HAVE_DES               // FBFLAGS_HAVE_DES_ON_OFF
 
 /**
  * Control whether support for the 2-key triple-DES cipher is compiled.
  */
-// # define FLEA_HAVE_TDES_2KEY         // FBFLAGS_HAVE_TDES_ON_OFF
+# define FLEA_HAVE_TDES_2KEY         // FBFLAGS_HAVE_TDES_ON_OFF
 
 /**
  * Control whether support for the 3-key triple-DES cipher is compiled.
  */
-// # define FLEA_HAVE_TDES_3KEY         // FBFLAGS_HAVE_TDES_ON_OFF
+# define FLEA_HAVE_TDES_3KEY         // FBFLAGS_HAVE_TDES_ON_OFF
 
 /**
  * Control whether support for the DESX cipher is compiled.
  */
-// # define FLEA_HAVE_DESX // FBFLAGS_HAVE_DESX_ON_OFF
+# define FLEA_HAVE_DESX // FBFLAGS_HAVE_DESX_ON_OFF
 
 /**
  * Configure whether support for AES is compiled. In the current version of
@@ -164,7 +164,7 @@
 /**
  * Control whether support for ECDSA shall be compiled.
  */
-// # define FLEA_HAVE_ECDSA          // FBFLAGS_PKALGS_ON_OFF
+# define FLEA_HAVE_ECDSA          // FBFLAGS_PKALGS_ON_OFF
 
 /**
  * Control whether support for ECKA (=ECDH) shall be compiled.
@@ -208,22 +208,22 @@
 /**
  * Control whether loop unrolling within MD5 shall be used.
  */
-// # define FLEA_USE_MD5_LOOP_UNROLL    // FBFLAGS_MD5_ON_OFF
+# define FLEA_USE_MD5_LOOP_UNROLL    // FBFLAGS_MD5_ON_OFF
 
 /**
  * Control whether loop unrolling within SHA1 shall be used.
  */
-// # define FLEA_USE_SHA1_LOOP_UNROLL   // FBFLAGS_SHA1_ON_OFF
+# define FLEA_USE_SHA1_LOOP_UNROLL   // FBFLAGS_SHA1_ON_OFF
 
 /**
  * Control whether loop unrolling within SHA256 (and SHA224) shall be used.
  */
-// # define FLEA_USE_SHA256_LOOP_UNROLL // FBFLAGS_SHA256_ON_OFF
+# define FLEA_USE_SHA256_LOOP_UNROLL // FBFLAGS_SHA256_ON_OFF
 
 /**
  * Control whether loop unrolling within SHA512 (and SHA384) shall be used.
  */
-// # define FLEA_USE_SHA512_LOOP_UNROLL // FBFLAGS_SHA512_ON_OFF
+# define FLEA_USE_SHA512_LOOP_UNROLL // FBFLAGS_SHA512_ON_OFF
 
 
 /**
@@ -353,7 +353,7 @@
  * If this switch is deactivated, then only the most common certificate
  * extensions are supported. Deactivate it to save RAM.
  */
-// # define FLEA_X509_CERT_REF_WITH_DETAILS
+# define FLEA_X509_CERT_REF_WITH_DETAILS
 
 /**
  * If this is switch is deactivated, then only the most typical DN components
@@ -647,14 +647,6 @@
 # endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
 /**
- *  The maximum number of supported signature algorithm hash functions in case
- *  of FLEA_STACK_MODE. Internally, the implementation has to instantiate that
- *  many parallel hash-context objects, in order to be able to start the
- *  handshake without knowing the hash function actually agreed on.
- */
-# define FLEA_STKMD_TLS_MAX_PARALLEL_HASHES 5
-
-/**
  * Length of the session IDs that are used by the fleaTLS server.
  */
 # define FLEA_TLS_SESSION_ID_LEN 16 // FBFLAGS__INT_LIST 1 2 16 31 32
@@ -663,7 +655,7 @@
 /**
  * Maximal number of sessions held by the server session manager (flea_tls_session_mngr_t, session cache). May not be zero.
  */
-# define FLEA_TLS_MAX_NB_MNGD_SESSIONS 1
+# define FLEA_TLS_MAX_NB_MNGD_SESSIONS 4 // FBFLAGS__INT_LIST 1 2 10 31 257
 
 /**
  * If enabled, the tls client or server context will feature a flea_x509_cert_ref_t of the peer's
@@ -689,7 +681,7 @@
  * The receive buffer will be at most 325 bytes larger than
  * FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE, depending on compiled cipher suites.
  */
-# define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 1150
+# define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 600
 
 /**
  * If enabled, the maximum fragment length negotiation extension (RFC 6066) can
@@ -705,7 +697,8 @@
  * maximal record size of records sent by fleaTLS. Should not be smaller than
  * 150 bytes. A small size reduces performance. May not be greater than 16384.
  */
-# define FLEA_TLS_ALT_SEND_BUF_SIZE 140
+# define FLEA_TLS_ALT_SEND_BUF_SIZE 16384
+
 
 /**
  * Maximal size of public key parameters object in an X.509 certificate. Mainly
@@ -719,7 +712,8 @@
  * Has to be a multiple of 2 as every cipher suite takes up two bytes.
  * Relevant only in stack mode.
  */
-# define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 250
+# define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 40
+
 /* end tls_cfg*/
 /**@}*/
 
@@ -760,12 +754,12 @@
  * Control if fleaTLS supports concurrency for its global RNG and the TLS server. Remove the
  * definition in order to deactivate multithreading support in fleaTLS.
  */
-// # define FLEA_HAVE_MUTEX // FBFLAGS_CORE_ON_OFF
+# define FLEA_HAVE_MUTEX // FBFLAGS_CORE_ON_OFF
 
 /**
  * Include the mutex header. Remove include directive in the build_config_gen.h file if no mutex support is required. The define is just a dummy for proper generation of this documentation.
  */
-// # define FLEA_MUTEX_HEADER_INCL
+# define FLEA_MUTEX_HEADER_INCL
 # ifdef FLEA_HAVE_MUTEX
 #  include <pthread.h>
 # endif
@@ -774,7 +768,7 @@
  * Define the mutex type to be used. Disable this define if mutexes are
  * disabled.
  */
-// # define FLEA_MUTEX_TYPE pthread_mutex_t
+# define FLEA_MUTEX_TYPE pthread_mutex_t
 
 /* end mt_cfg */
 /**@}*/

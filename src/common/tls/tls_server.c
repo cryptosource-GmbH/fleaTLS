@@ -201,27 +201,27 @@ static flea_err_e THR_flea_tls__read_client_hello(
         }
       }
 # endif /* ifdef FLEA_HAVE_TLS_CS_PSK */
-# ifndef FLEA_HAVE_TLS_CS_ECC
       // iterate over all supported cipher suites
       supported_cs_index__alu16 = 0;
       while(supported_cs_index__alu16 < supported_cs_len__alu16)
       {
         if(curr_cs_from_peer__e == tls_ctx->allowed_cipher_suites__pe[ supported_cs_index__alu16 ])
         {
+# ifndef FLEA_HAVE_TLS_CS_ECC
           if(supported_cs_index__alu16 < chosen_cs_index__alu16)
           {
             /* update with the lower index = higher priority */
             chosen_cs_index__alu16 = supported_cs_index__alu16;
             tls_ctx->selected_cipher_suite__e = curr_cs_from_peer__e;
             found = FLEA_TRUE;
-            break;
           }
+# else  /* ifndef FLEA_HAVE_TLS_CS_ECC */
+          FLEA_CCALL(THR_flea_byte_vec_t__append(&peer_cipher_suites_u16_be__t, curr_cs__au8, sizeof(curr_cs__au8)));
+# endif  /* ifndef FLEA_HAVE_TLS_CS_ECC */
+          break;
         }
         supported_cs_index__alu16 += 1;
       }
-# else  /* ifndef FLEA_HAVE_TLS_CS_ECC */
-      FLEA_CCALL(THR_flea_byte_vec_t__append(&peer_cipher_suites_u16_be__t, curr_cs__au8, sizeof(curr_cs__au8)));
-# endif  /* ifndef FLEA_HAVE_TLS_CS_ECC */
     }
     cipher_suites_len_from_peer__u32 -= 2;
   }
@@ -648,12 +648,7 @@ static flea_err_e THR_flea_tls__send_cert_request(
   for(flea_dtl_t i = 0; i < tls_ctx->nb_allowed_sig_algs__alu16; i += 1)
   {
     flea_u8_t tmp_buf__au8[2];
-    FLEA_CCALL(
-      THR_flea_tls__map_flea_hash_to_tls_hash(
-        (flea_hash_id_e) (tls_ctx->allowed_sig_algs__pe[i] >> 8),
-        &tmp_buf__au8[0]
-      )
-    );
+    tmp_buf__au8[0] = tls_ctx->allowed_sig_algs__pe[i] >> 8;
 
     FLEA_CCALL(
       THR_flea_tls__map_flea_sig_to_tls_sig(
@@ -960,8 +955,7 @@ static flea_err_e THR_flea_tls__read_cert_verify(
       sig_len__u16
     )
   );
-
-  FLEA_CCALL(THR_flea_tls__map_tls_hash_to_flea_hash(sig_hash_alg__au8[0], &hash_id__t));
+  hash_id__t = (flea_hash_id_e)  sig_hash_alg__au8[0];
   FLEA_CCALL(THR_flea_tls__map_tls_sig_to_flea_sig(sig_hash_alg__au8[1], &pk_scheme_id__t));
 
   // check that we support the combination of hash/sig alg and the client has
@@ -1048,7 +1042,8 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
       // one we will need in the following messages
       flea_tls_prl_hash_ctx_t__stop_update_for_all_but_one(
         p_hash_ctx__pt,
-        flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e)
+        flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e),
+        FLEA_FALSE
       );
     }
     hash_id__t = flea_tls_get_prf_hash_by_cipher_suite_id(tls_ctx->selected_cipher_suite__e);
@@ -1186,6 +1181,9 @@ flea_err_e THR_flea_tls__server_handshake(
 {
   flea_tls_ctx_t* tls_ctx = &server_ctx__pt->tls_ctx__t;
 
+  flea_hash_id_e hash_ids[6];
+  flea_al_u8_t hash_sig_algs_len__alu8;
+
 # ifdef FLEA_HEAP_MODE
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
 # else
@@ -1195,7 +1193,7 @@ flea_err_e THR_flea_tls__server_handshake(
     sizeof(premaster_secret__au8)
   );
 # endif /* ifdef FLEA_HEAP_MODE */
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, 256);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, FLEA_TLS_MAX_KEY_BLOCK_SIZE);
   flea_pubkey_t peer_public_key__t;
   tls_ctx->extension_ctrl__u8 = 0;
   flea_tls__handshake_state_t handshake_state;
@@ -1219,17 +1217,14 @@ flea_err_e THR_flea_tls__server_handshake(
   flea_tls_prl_hash_ctx_t__INIT(&p_hash_ctx);
   flea_tls__handshake_state_ctor(&handshake_state);
 
-  flea_hash_id_e hash_ids[] = {
-# ifdef FLEA_HAVE_SHA1
-    flea_sha1,
-# endif
-    flea_sha224,flea_sha256
-# ifdef FLEA_HAVE_SHA384_512
-    ,           flea_sha384, flea_sha512
-# endif
-  };
-
-  FLEA_CCALL(THR_flea_tls_prl_hash_ctx_t__ctor(&p_hash_ctx, hash_ids, FLEA_NB_ARRAY_ENTRIES(hash_ids)));
+  hash_sig_algs_len__alu8 =
+    flea_tls__make_set_of_flea_hash_ids_from_tls_sig_algs(
+    hash_ids,
+    FLEA_NB_ARRAY_ENTRIES(hash_ids),
+    tls_ctx->allowed_sig_algs__pe,
+    tls_ctx->nb_allowed_sig_algs__alu16
+    );
+  FLEA_CCALL(THR_flea_tls_prl_hash_ctx_t__ctor(&p_hash_ctx, hash_ids, hash_sig_algs_len__alu8));
 
   FLEA_CCALL(THR_flea_byte_vec_t__resize(hs_ctx__t.client_and_server_random__pt, 2 * FLEA_TLS_HELLO_RANDOM_SIZE));
 

@@ -1,5 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
+#include "internal/common/default.h"
 #include "internal/common/tls/parallel_hash.h"
 #include "flea/array_util.h"
 
@@ -17,12 +18,12 @@ flea_err_e THR_flea_tls_prl_hash_ctx_t__ctor(
 # ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM_ARR(p_hash_ctx->hash_ctx__pt, hash_ids_len__alu8);
   FLEA_SET_ARR(p_hash_ctx->hash_ctx__pt, 0, hash_ids_len__alu8);
-# endif
-
-  if(hash_ids_len__alu8 > FLEA_TLS_MAX_PARALLEL_HASHES)
+# else
+  if(hash_ids_len__alu8 > FLEA_STKMD_TLS_MAX_PARALLEL_HASHES)
   {
     FLEA_THROW("too many hash algorithms for this configuration", FLEA_ERR_INV_ARG);
   }
+# endif /* ifdef FLEA_HEAP_MODE */
 
   p_hash_ctx->num_hash_ctx__u8 = 0;
 
@@ -58,11 +59,40 @@ flea_err_e THR_flea_tls_prl_hash_ctx_t__create_hash_ctx_as_copy(
 
 void flea_tls_prl_hash_ctx_t__stop_update_for_all_but_one(
   flea_tls_prl_hash_ctx_t* p_hash_ctx,
-  flea_hash_id_e           hash_id__t
+  flea_hash_id_e           hash_id__t,
+  flea_bool_t              do_prune__b
 )
 {
   p_hash_ctx->update_only_one__t     = FLEA_TRUE;
   p_hash_ctx->update_only_hash_id__t = hash_id__t;
+
+# if defined FLEA_HEAP_MODE && defined FLEA_HAVE_TLS_CLIENT
+  if(do_prune__b)
+  {
+    flea_al_u8_t i;
+    flea_hash_ctx_t* tmp_ptr;
+    flea_bool_t found__b = FLEA_FALSE;
+    FLEA_ALLOC_MEM_NOCHK(tmp_ptr, sizeof(flea_hash_ctx_t));
+    for(i = 0; i < p_hash_ctx->num_hash_ctx__u8; i++)
+    {
+      if(hash_id__t != flea_hash_ctx_t__get_hash_id(&p_hash_ctx->hash_ctx__pt[i]))
+      {
+        flea_hash_ctx_t__dtor(&p_hash_ctx->hash_ctx__pt[i]);
+      }
+      else if(tmp_ptr)
+      {
+        memcpy(tmp_ptr, &p_hash_ctx->hash_ctx__pt[i], sizeof(flea_hash_ctx_t));
+        found__b = FLEA_TRUE;
+      }
+    }
+    if(found__b && tmp_ptr)
+    {
+      FLEA_FREE_MEM(p_hash_ctx->hash_ctx__pt);
+      p_hash_ctx->hash_ctx__pt     = tmp_ptr;
+      p_hash_ctx->num_hash_ctx__u8 = 1;
+    }
+  }
+# endif /* if defined FLEA_HEAP_MODE && defined FLEA_HAVE_TLS_CLIENT */
 }
 
 flea_err_e THR_flea_tls_prl_hash_ctx_t__update(

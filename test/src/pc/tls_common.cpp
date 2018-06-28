@@ -131,6 +131,7 @@ namespace {
   std::vector<flea_ec_dom_par_id_e> get_allowed_ecc_curves_from_cmdl(property_set_t const& cmdl_args)
   {
     std::vector<flea_ec_dom_par_id_e> result;
+
 # ifdef FLEA_HAVE_TLS_CS_ECC
     flea_u8_t dummy[2];
     if(cmdl_args.have_index("allowed_curves"))
@@ -162,11 +163,44 @@ namespace {
     return result;
   } // get_allowed_ecc_curves_from_cmdl
 
+  flea_u8_t flea_tls_map_tls_hash_to_flea_hash__at[6][2] = {
+# ifdef FLEA_HAVE_MD5
+    {0x01, flea_md5   },
+# endif
+# ifdef FLEA_HAVE_SHA1
+    {0x02, flea_sha1  },
+# endif
+    {0x03, flea_sha224},
+    {0x04, flea_sha256},
+# ifdef FLEA_HAVE_SHA384_512
+    {0x05, flea_sha384},
+    {0x06, flea_sha512}
+# endif
+  };
+  static flea_err_e THR_flea_tls__map_flea_hash_to_tls_hash(
+    flea_hash_id_e hash_id__t,
+    flea_u8_t*     id__pu8
+  )
+  {
+    FLEA_THR_BEG_FUNC();
+    for(flea_u8_t i = 0; i < FLEA_NB_ARRAY_ENTRIES(flea_tls_map_tls_hash_to_flea_hash__at); i++)
+    {
+      if(flea_tls_map_tls_hash_to_flea_hash__at[i][1] == hash_id__t)
+      {
+        *id__pu8 = flea_tls_map_tls_hash_to_flea_hash__at[i][0];
+        FLEA_THR_RETURN();
+      }
+    }
+    FLEA_THROW("hash algorithm has no mapping for tls", FLEA_ERR_INT_ERR);
+    FLEA_THR_FIN_SEC_empty();
+  }
+
   std::vector<flea_tls_sigalg_e> get_allowed_sig_algs_from_cmdl(property_set_t const& cmdl_args)
   {
     flea_u8_t dummy;
 
     std::vector<flea_tls_sigalg_e> result;
+
     if(cmdl_args.have_index("allowed_sig_algs"))
     {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("allowed_sig_algs"), ',');
@@ -230,6 +264,7 @@ namespace {
   std::vector<flea_tls_cipher_suite_id_t> get_cipher_suites_from_cmdl(property_set_t const& cmdl_args)
   {
     std::vector<flea_tls_cipher_suite_id_t> result;
+
     if(cmdl_args.have_index("cipher_suites"))
     {
       std::vector<string> strings = tokenize_string(cmdl_args.get_property_as_string("cipher_suites"), ',');
@@ -312,6 +347,7 @@ std::string get_comma_seperated_list_of_supported_sig_algs()
 {
   std::string result;
   std::map<string, flea_pk_scheme_id_e>::iterator pk_it;
+
   for(pk_it = sig_algs_map__t.begin(); pk_it != sig_algs_map__t.end(); pk_it++)
   {
     std::string pk = pk_it->first;
@@ -497,6 +533,7 @@ static std::string cert_info_to_string(const flea_x509_cert_ref_t* cert_ref__pt)
 # endif // ifdef FLEA_HAVE_X509_DN_DETAILS
   };
   std::string subject_str, issuer_str;
+
   for(unsigned i = 0; i < FLEA_NB_ARRAY_ENTRIES(dn_comps__ace); i++)
   {
     flea_ref_cu8_t ref__rcu8;
@@ -532,6 +569,7 @@ void flea_tls_test_tool_print_peer_cert_info(
 )
 {
   std::string s;
+
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
   const flea_x509_cert_ref_t* ee_ref__pt = nullptr;
   if(client_ctx_mbn__pt)

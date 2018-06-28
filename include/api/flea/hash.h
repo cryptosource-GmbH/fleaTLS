@@ -1,19 +1,19 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_hash__H_
-#define _flea_hash__H_
+# define _flea_hash__H_
 
-#include "internal/common/default.h"
-#include "flea/error.h"
-#include "flea/types.h"
-#include "flea/byte_vec.h"
-#include "internal/common/len_ctr.h"
-#include "flea/block_cipher.h"
-#include "internal/common/hash_int.h"
+# include "internal/common/default.h"
+# include "flea/error.h"
+# include "flea/types.h"
+# include "flea/byte_vec.h"
+# include "internal/common/len_ctr.h"
+# include "flea/block_cipher.h"
+# include "internal/common/hash_int.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 
 /**
@@ -21,34 +21,34 @@ extern "C" {
  */
 typedef enum
 {
-#ifdef FLEA_HAVE_DAVIES_MEYER_HASH
-  flea_davies_meyer_aes128,
-#endif
-#ifdef FLEA_HAVE_MD5
-  flea_md5,
-#endif
-#ifdef FLEA_HAVE_SHA1
-  flea_sha1,
-#endif
-#ifdef FLEA_HAVE_SHA224_256
-  flea_sha224,
-  flea_sha256,
-#endif
-#ifdef FLEA_HAVE_SHA384_512
-  flea_sha384,
-  flea_sha512
-#endif
+# ifdef FLEA_HAVE_MD5
+  flea_md5                 = 1,
+# endif
+# ifdef FLEA_HAVE_SHA1
+  flea_sha1                = 2,
+# endif
+# ifdef FLEA_HAVE_SHA224_256
+  flea_sha224              = 3,
+  flea_sha256              = 4,
+# endif
+# ifdef FLEA_HAVE_SHA384_512
+  flea_sha384              = 5,
+  flea_sha512              = 6,
+# endif
+# ifdef FLEA_HAVE_DAVIES_MEYER_HASH
+  flea_davies_meyer_aes128 = 30,
+# endif
 } flea_hash_id_e;
 
 
-#ifdef FLEA_HEAP_MODE
-# define flea_hash_ctx_t__INIT(__p) \
+# ifdef FLEA_HEAP_MODE
+#  define flea_hash_ctx_t__INIT(__p) \
   do {(__p)->p_config = NULL; (__p)->pending_buffer = NULL; (__p)->hash_state = NULL; \
       flea_len_ctr_t__INIT(&(__p)->len_ctr__t);} while(0)
-#else // ifdef FLEA_HEAP_MODE
+# else // ifdef FLEA_HEAP_MODE
 /* needed for secret wiping */
-# define flea_hash_ctx_t__INIT(__p) do {(__p)->p_config = NULL;} while(0)
-#endif // ifdef FLEA_HEAP_MODE
+#  define flea_hash_ctx_t__INIT(__p) do {(__p)->p_config = NULL;} while(0)
+# endif // ifdef FLEA_HEAP_MODE
 
 
 /**
@@ -225,8 +225,8 @@ flea_err_e THR_flea_compute_hash_byte_vec(
   flea_byte_vec_t* result
 );
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

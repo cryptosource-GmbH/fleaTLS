@@ -10,7 +10,7 @@
 /**
  * use standard malloc and free
  */
-#define MY_FLEA_ALLOC_MEM(__ptr, __size) \
+#define FLEA_ALLOC_MEM_NOCHK(__ptr, __size) \
   do {(__ptr) = malloc(__size); \
   } while(0)
 
@@ -21,7 +21,7 @@
 
 #define FLEA_ALLOC_MEM(__ptr, __size) \
   do { \
-    MY_FLEA_ALLOC_MEM(__ptr, __size); \
+    FLEA_ALLOC_MEM_NOCHK(__ptr, __size); \
     if(!(__ptr)) { \
       FLEA_THROW("could not aquire memory", FLEA_ERR_OUT_OF_MEM);} \
   } while(0)

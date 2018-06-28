@@ -647,6 +647,14 @@
 # endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
 /**
+ *  The maximum number of supported signature algorithm hash functions in case
+ *  of FLEA_STACK_MODE. Internally, the implementation has to instantiate that
+ *  many parallel hash-context objects, in order to be able to start the
+ *  handshake without knowing the hash function actually agreed on.
+ */
+# define FLEA_STKMD_TLS_MAX_PARALLEL_HASHES 5
+
+/**
  * Length of the session IDs that are used by the fleaTLS server.
  */
 # define FLEA_TLS_SESSION_ID_LEN 16 // FBFLAGS__INT_LIST 1 2 16 31 32
@@ -684,26 +692,11 @@
 # define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 16384
 
 /**
- * If enabled, the maximum fragment length negotiation extension (RFC 6066) will
- * be sent if FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE is smaller than the 16834 bytes that
- * are mandated by the TLS 1.2 standard.
- * If the extension is active the following behaviour is shown:
- * - Client side: Send the extension if FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE < 16384.
- *   If the server does not accept the value, abort the handshake
- * - Server side: If FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE < 16384 and the client
- *   does not offer an appropriate value (the suggested plaintext size has to be
- *   equal or smaller to FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE) or no value at all
- *   the server aborts the handshake.
+ * If enabled, the maximum fragment length negotiation extension (RFC 6066) can
+ * be negotiated if FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE is smaller than the 16834 bytes that
+ * are mandated by the TLS 1.2 standard and at least 512 bytes large.
  *
- *   If one wants to use arbitrary buffer sizes or communicate with a TLS
- *   implementation that does not implement the maximum fragment length
- *   extension, one can disable the negotiation and the handshake and the
- *   following sending/receiving of application data will work as long as there
- *   is no record_overflow (no message exceeds the plaintext size).
- *
- *   The extension has to be disabled if FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE is
- *   chosen smaller than 512 bytes. This does not conform to the standard and
- *   the extension is not able to negotiate such a value.
+ * For further details see the API documentation.
  */
 # define FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
 
