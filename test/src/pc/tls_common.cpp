@@ -332,6 +332,7 @@ socket_type_t get_socket_type(property_set_t const& props)
 bool use_dtls(property_set_t const& props)
 {
   std::string s = props.get_property_as_string("protocol_variant");
+
   if(s == "tls")
   {
     return false;

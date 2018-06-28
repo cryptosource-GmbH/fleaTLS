@@ -1732,14 +1732,14 @@ flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
   }
   else
   {
-<<<<<<< HEAD
-    ext_byte__u8 = flea_tls__get_max_fragment_length_byte_for_buf_size(
+      << << << < HEAD
+      ext_byte__u8 = flea_tls__get_max_fragment_length_byte_for_buf_size(
       tls_ctx__pt->rec_prot__t.record_plaintext_send_max_value__u16
-    );
-=======
-    flea_tls_srv_ctx_t* server_ctx__pt = (flea_tls_srv_ctx_t*) tls_ctx__pt->client_or_server_ctx__pv;
+      );
+    == == == =
+      flea_tls_srv_ctx_t * server_ctx__pt = (flea_tls_srv_ctx_t*) tls_ctx__pt->client_or_server_ctx__pv;
     ext_byte__u8 = server_ctx__pt->max_fragm_len_code__u8;
->>>>>>> dev_tls_2
+    >> >> >> > dev_tls_2
   }
 
   FLEA_CCALL(

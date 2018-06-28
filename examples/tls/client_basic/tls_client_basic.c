@@ -121,7 +121,7 @@ int main()
       hostname_str,
       FLEA_FALSE,   /* use ip address, not DNS name */
       tcp
-    )))
+  )))
   {
     goto cleanup;
   }
