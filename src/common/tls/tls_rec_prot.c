@@ -16,8 +16,15 @@
 #include "internal/common/tls/tls_int.h"
 
 // TODO: ANY CALCULATIONS FOR MAXIMAL SIZES MUST USE DTLS HDR-LEN IS CONFIGURED
+
 #define FLEA_TLS_RECORD_HDR_LEN  5
 #define FLEA_DTLS_RECORD_HDR_LEN (FLEA_TLS_RECORD_HDR_LEN + 8)
+
+#ifdef FLEA_HAVE_DTLS
+# define FLEA_XTLS_MAX_RECORD_HDR_LEN FLEA_DTLS_RECORD_HDR_LEN
+#else
+# define FLEA_XTLS_MAX_RECORD_HDR_LEN FLEA_TLS_RECORD_HDR_LEN
+#endif
 
 #ifdef FLEA_HAVE_TLS
 
@@ -73,8 +80,6 @@
   ((rec_prot__pt)->ctrl_field__u8 \
   & FLEA_RP_CTRL__IN_HANDSHAKE_IN_NEW_EPOCH_BIT)
 
-# define FLEA_RP_COMPUTE_MAX_SEND_PT_SIZE_FROM_BUFFER_SIZE(rec_prot__pt) \
-  ((rec_prot__pt)->alt_send_buf__raw_len__u16 - FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE - (rec_prot__pt)->record_hdr_len__u8)
 
 # define FLEA_RP__IS_DTLS_ACTIVE(rec_prot__pt) ((rec_prot__pt)->is_dtls_active__u8)
 
@@ -241,7 +246,7 @@ flea_err_e THR_flea_recprot_t__ctor(
   rec_prot__pt->record_hdr_len__u8         = FLEA_TLS_RECORD_HDR_LEN;
   rec_prot__pt->alt_send_buf__raw_len__u16 = FLEA_TLS_ALT_SEND_BUF_SIZE;
   rec_prot__pt->send_rec_buf_raw_len__u16  = FLEA_TLS_TRNSF_BUF_SIZE;
-  rec_prot__pt->record_plaintext_send_max_value__u16 = FLEA_RP_COMPUTE_MAX_SEND_PT_SIZE_FROM_BUFFER_SIZE(rec_prot__pt);
+  rec_prot__pt->record_plaintext_send_max_value__u16 = FLEA_TLS_RECORD_MAX_SEND_ADD_DATA_SIZE;
   rec_prot__pt->prot_version__t.major      = prot_vers_major;
   rec_prot__pt->prot_version__t.minor      = prot_vers_minor;
   rec_prot__pt->rw_stream__pt              = rw_stream__pt;
@@ -1436,7 +1441,6 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
               if(FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt))
               {
                 printf("activating DTLS\n");
-                flea_al_u16_t new_from_buf__alu16;
                 rec_prot__pt->record_hdr_len__u8 = FLEA_DTLS_RECORD_HDR_LEN;
                 rec_prot__pt->payload_buf__pu8   = rec_prot__pt->send_rec_buf_raw__bu8
                   + rec_prot__pt->record_hdr_len__u8;
@@ -1445,11 +1449,11 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
                    - receive length is not affected, since the DTLS header
                    length is considered in the calculation of the buffer size
                    - send len is affected directly */
-                new_from_buf__alu16 = FLEA_RP_COMPUTE_MAX_SEND_PT_SIZE_FROM_BUFFER_SIZE(rec_prot__pt);
-                rec_prot__pt->record_plaintext_send_max_value__u16 = FLEA_MIN(
-                  new_from_buf__alu16,
+
+                /*rec_prot__pt->record_plaintext_send_max_value__u16 = FLEA_MIN(
+                  FLEA_TLS_RECORD_MAX_SEND_PLAINTEXT_SIZE,
                   rec_prot__pt->record_plaintext_send_max_value__u16
-                );
+                );*/
                 rec_prot__pt->is_dtls_active__u8 = 1;
               }
             }
@@ -1730,8 +1734,12 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
         inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
       }
 # endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
+      if(rec_prot__pt->curr_pt_content_len__u16 > FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE)
+      {
+        FLEA_THROW("record plaintext size too large", FLEA_ERR_TLS_RECORD_OVERFLOW);
+      }
 
-      /*if(rec_prot__pt->curr_pt_content_len__u16 == 0)
+      /*  if(rec_prot__pt->curr_pt_content_len__u16 == 0)
         {
 
         }*/
@@ -1865,7 +1873,7 @@ flea_err_e THR_flea_recprot_t__resize_send_plaintext_size(
 )
 {
   FLEA_THR_BEG_FUNC();
-  new_len__alu16 += FLEA_TLS_RECORD_MAX_RECEIVE_ADD_DATA_SIZE + rec_prot__pt->record_hdr_len__u8;
+  new_len__alu16 += FLEA_TLS_RECORD_MAX_SEND_ADD_DATA_SIZE + rec_prot__pt->record_hdr_len__u8;
 
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(
     rec_prot__pt->alt_send_buf__raw__bu8,

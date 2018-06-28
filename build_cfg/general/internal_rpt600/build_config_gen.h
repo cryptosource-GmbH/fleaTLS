@@ -34,14 +34,14 @@
 # define FLEA_NO_DEV_ASSERTIONS // FBFLAGS_CORE_ON_OFF
 
 
-# if 0
+// # if 0
 
 /**
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  */
-#  define FLEA_DO_PRINTF_ERRS
+# define FLEA_DO_PRINTF_ERRS
 
-# endif  // if 0
+// # endif  // if 0
 /* end dgb_cfg */
 /**@}*/
 
@@ -647,6 +647,14 @@
 # endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
 /**
+ *  The maximum number of supported signature algorithm hash functions in case
+ *  of FLEA_STACK_MODE. Internally, the implementation has to instantiate that
+ *  many parallel hash-context objects, in order to be able to start the
+ *  handshake without knowing the hash function actually agreed on.
+ */
+# define FLEA_STKMD_TLS_MAX_PARALLEL_HASHES 5
+
+/**
  * Length of the session IDs that are used by the fleaTLS server.
  */
 # define FLEA_TLS_SESSION_ID_LEN 16 // FBFLAGS__INT_LIST 1 2 16 31 32
@@ -671,6 +679,10 @@
  */
 # define FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
+/**
+ * This variable controls whether support for DTLS 1.2 is available.
+ */
+# define FLEA_HAVE_DTLS
 
 /**
  * Based on this value the buffer size for received records will be calculated.
@@ -693,11 +705,11 @@
 # define FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
 
 /**
- * TLS send buffer size. This buffer used for sending data and determines the
+ * TLS send plaintext size. This buffer used for sending data and determines the
  * maximal record size of records sent by fleaTLS. Should not be smaller than
  * 150 bytes. A small size reduces performance. May not be greater than 16384.
  */
-# define FLEA_TLS_ALT_SEND_BUF_SIZE 16384
+# define FLEA_TLS_RECORD_MAX_SEND_PLAINTEXT_SIZE 150
 
 
 /**
