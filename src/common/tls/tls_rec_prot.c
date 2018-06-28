@@ -1865,7 +1865,7 @@ flea_err_e THR_flea_recprot_t__resize_send_plaintext_size(
 )
 {
   FLEA_THR_BEG_FUNC();
-  new_len__alu16 += FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE + rec_prot__pt->record_hdr_len__u8;
+  new_len__alu16 += FLEA_TLS_RECORD_MAX_RECEIVE_ADD_DATA_SIZE + rec_prot__pt->record_hdr_len__u8;
 
   FLEA_FREE_MEM_CHECK_SET_NULL_SECRET_ARR(
     rec_prot__pt->alt_send_buf__raw__bu8,
