@@ -107,8 +107,9 @@ flea_err_e THR_flea_dtls_hdsh__snd_hands_msg_hdr(
 )
 {
   flea_u8_t hdr__au8[FLEA_DTLS_HANDSH_HDR_LEN];
-  flea_recprot_t* rec_prot__pt = &hs_ctx__pt->tls_ctx__pt->rec_prot__t;
-  flea_al_u16_t wrt_rcrd_free_len__alu16;
+
+  /*flea_recprot_t* rec_prot__pt = &hs_ctx__pt->tls_ctx__pt->rec_prot__t;
+  flea_al_u16_t wrt_rcrd_free_len__alu16;*/
 
   FLEA_THR_BEG_FUNC();
 

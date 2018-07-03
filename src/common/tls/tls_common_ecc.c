@@ -4,6 +4,7 @@
 #include "internal/common/tls/tls_common_ecc.h"
 #include "flea/bin_utils.h"
 #include "flea/array_util.h"
+#include "internal/common/tls/tls_hndsh_ctx.h"
 
 #ifdef FLEA_HAVE_TLS_CS_ECC
 

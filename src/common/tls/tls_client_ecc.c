@@ -5,6 +5,7 @@
 #include "flea/error_handling.h"
 #include "flea/tls_session_mngr.h"
 #include "flea/alloc.h"
+#include "internal/common/tls/tls_hndsh_ctx.h"
 
 #ifdef FLEA_HAVE_TLS_CLIENT
 

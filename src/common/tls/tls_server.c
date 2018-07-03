@@ -23,6 +23,7 @@
 #include "internal/common/lib_int.h"
 #include "internal/common/tls/tls_server_int_ecc.h"
 #include "internal/common/tls/tls_common_ecc.h"
+#include "internal/common/tls/tls_hndsh_ctx.h"
 
 #ifdef FLEA_HAVE_TLS_SERVER
 
@@ -795,7 +796,6 @@ static flea_err_e THR_flea_tls__rd_clt_kex_psk(
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(psk_vec__t, FLEA_TLS_PSK_MAX_PSK_LEN);
   FLEA_DECL_BUF(psk_identity__bu8, flea_u8_t, FLEA_TLS_PSK_MAX_IDENTITY_LEN);
 
-  flea_tls_ctx_t* tls_ctx__pt = &tls_server_ctx__pt->tls_ctx__t;
   FLEA_THR_BEG_FUNC();
 
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);

@@ -685,13 +685,16 @@
 # define FLEA_HAVE_DTLS
 
 /**
- * Based on this value the buffer size for received records will be calculated.
- * The TLS standard mandates a size of 2^14 = 16384. If a smaller size is chosen, an
+ * The maximal plaintext size of TLS record that can received. Based on this
+ * value the buffer size for received records will be calculated.  The TLS
+ * standard mandates a size of 2^14 = 16384. If a smaller size is chosen, an
  * attempt will be made to negotiate smaller records using the maximum fragment
- * length negotiation extension (RFC 6066). The record plaintext sizes supported by this extension are 512, 1024, 2048, and 4096. One of these value may be configured for this variable.
- * If negotiation fails, fleaTLS will abort the handshake with a fatal alert.
- * The receive buffer will be at most 325 bytes larger than
- * FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE, depending on compiled cipher suites.
+ * length negotiation extension (RFC 6066). The record plaintext sizes supported
+ * by this extension are 512, 1024, 2048, and 4096. One of these value may be
+ * configured for this variable.  If negotiation fails, fleaTLS will abort the
+ * handshake with a fatal alert.  The receive buffer will be at most 325 bytes
+ * larger than FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE, depending on compiled
+ * cipher suites.
  */
 # define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 16384
 
@@ -711,6 +714,13 @@
  */
 # define FLEA_TLS_RECORD_MAX_SEND_PLAINTEXT_SIZE 150
 
+/**
+ * The size of the flight buffer used within DTLS to store outgoing handshake messages for
+ * being able to resend them if required and to assemble incoming handshake message
+ * fragments. This buffer is part of the tls-handshake-context object and will
+ * thus only be allocated during a TLS handshake.
+ */
+# define FLEA_DTLS_FLIGHT_BUF_SIZE 7000
 
 /**
  * Maximal size of public key parameters object in an X.509 certificate. Mainly

@@ -391,7 +391,6 @@ static flea_err_e THR_flea_tls__read_server_kex_psk(
 {
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_u32_t psk_identity_hint_len__u32;
-  flea_tls_ctx_t* tls_ctx__pt = &tls_client_ctx__pt->tls_ctx__t;
 
   FLEA_DECL_BUF(psk_identity_hint__bu8, flea_u8_t, FLEA_TLS_PSK_MAX_IDENTITY_LEN);
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(psk_vec__t, FLEA_TLS_PSK_MAX_PSK_LEN);
@@ -1669,10 +1668,11 @@ flea_err_e THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
   flea_al_u8_t handsh_type__u8;
   flea_tls_ctx_t* tls_ctx__pt = &tls_client_ctx__pt->tls_ctx__t;
 
+
   flea_tls_handshake_ctx_t hs_ctx__t;
 
   FLEA_THR_BEG_FUNC();
-  flea_tls_handshake_ctx_t__INIT(&hs_ctx);
+  flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
   FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t));
 
   hs_ctx__t.is_reneg__b = FLEA_TRUE;
