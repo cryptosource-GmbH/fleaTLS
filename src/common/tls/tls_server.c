@@ -825,7 +825,6 @@ static flea_err_e THR_flea_tls__rd_clt_kex_psk(
 
   FLEA_CCALL(
     THR_flea_tls__create_premaster_secret_psk(
-      tls_ctx__pt,
       psk_vec__t.data__pu8,
       psk_vec__t.len__dtl,
       premaster_secret__pt
@@ -1211,6 +1210,8 @@ flea_err_e THR_flea_tls__server_handshake(
   );
   FLEA_THR_BEG_FUNC();
   flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
+
+  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t));
   flea_tls_ctx_t__begin_handshake(tls_ctx);
   hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
   hs_ctx__t.tls_ctx__pt = tls_ctx;
@@ -1523,6 +1524,7 @@ flea_err_e THR_flea_tls__server_handshake(
     flea_byte_vec_t__dtor(&client_and_server_random__t);
     flea_pubkey_t__dtor(&peer_public_key__t);
     flea_privkey_t__dtor(&ecdhe_priv_key__t);
+    flea_tls_handshake_ctx_t__dtor(&hs_ctx__t);
   );
 } /* THR_flea_tls__server_handshake */
 

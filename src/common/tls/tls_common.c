@@ -14,7 +14,7 @@
 #include "internal/common/tls/tls_common.h"
 #include "internal/common/tls/tls_cert_path.h"
 #include "internal/common/tls/tls_client_int.h"
-
+#include "internal/common/tls/tls_hndsh_layer.h"
 #include "flea/pubkey.h"
 #include "flea/asn1_date.h"
 #include "api/flea/cert_path.h"
@@ -777,41 +777,21 @@ flea_err_e THR_flea_tls__snd_hands_msg_hdr(
   flea_u32_t                content_len__u32
 )
 {
-  flea_u8_t enc_for_hash__au8[4];
+  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
 
-  flea_recprot_t* rec_prot__pt = &hs_ctx__pt->tls_ctx__pt->rec_prot__t;
-
-  FLEA_THR_BEG_FUNC();
-
-  enc_for_hash__au8[0] = type;
-
-  enc_for_hash__au8[1] = content_len__u32 >> 16;
-  enc_for_hash__au8[2] = content_len__u32 >> 8;
-  enc_for_hash__au8[3] = content_len__u32;
-  FLEA_CCALL(
-    THR_flea_recprot_t__wrt_data(
-      rec_prot__pt,
-      CONTENT_TYPE_HANDSHAKE,
-      enc_for_hash__au8,
-      sizeof(enc_for_hash__au8)
-    )
-  );
-  if(p_hash_ctx_mbn__pt)
+  // flea_u8_t enc_for_hash__au8[4];
+  if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
   {
-    FLEA_CCALL(
-      THR_flea_tls_prl_hash_ctx_t__update(
-        p_hash_ctx_mbn__pt,
-        enc_for_hash__au8,
-        sizeof(enc_for_hash__au8)
-      )
-    );
+    return THR_flea_dtls_hdsh__snd_hands_msg_hdr(hs_ctx__pt, p_hash_ctx_mbn__pt, type, content_len__u32);
   }
-  FLEA_THR_FIN_SEC_empty();
+  else
+  {
+    return THR_flea_tls_hdsh__snd_hands_msg_hdr(hs_ctx__pt, p_hash_ctx_mbn__pt, type, content_len__u32);
+  }
 } /* THR_flea_tls__snd_hands_msg_hdr */
 
 # ifdef FLEA_HAVE_TLS_CS_PSK
 flea_err_e THR_flea_tls__create_premaster_secret_psk(
-  flea_tls_ctx_t*  tls_ctx__pt,
   flea_u8_t*       psk__pu8,
   flea_u16_t       psk_len__u16,
   flea_byte_vec_t* premaster_secret__pt

@@ -17,8 +17,6 @@
 
 // TODO: ANY CALCULATIONS FOR MAXIMAL SIZES MUST USE DTLS HDR-LEN IS CONFIGURED
 
-#define FLEA_TLS_RECORD_HDR_LEN  5
-#define FLEA_DTLS_RECORD_HDR_LEN (FLEA_TLS_RECORD_HDR_LEN + 8)
 
 #ifdef FLEA_HAVE_DTLS
 # define FLEA_XTLS_MAX_RECORD_HDR_LEN FLEA_DTLS_RECORD_HDR_LEN
@@ -246,7 +244,9 @@ flea_err_e THR_flea_recprot_t__ctor(
   rec_prot__pt->record_hdr_len__u8         = FLEA_TLS_RECORD_HDR_LEN;
   rec_prot__pt->alt_send_buf__raw_len__u16 = FLEA_TLS_ALT_SEND_BUF_SIZE;
   rec_prot__pt->send_rec_buf_raw_len__u16  = FLEA_TLS_TRNSF_BUF_SIZE;
-  rec_prot__pt->record_plaintext_send_max_value__u16 = FLEA_TLS_RECORD_MAX_SEND_ADD_DATA_SIZE;
+  // TODO: THIS SHOULD BE CALCULATED DYNAMICALLY AS THE MIN(buffer capacity, allowed
+  // pt size) for each cipher suite
+  rec_prot__pt->record_plaintext_send_max_value__u16 = FLEA_TLS_RECORD_MAX_SEND_PLAINTEXT_SIZE;
   rec_prot__pt->prot_version__t.major      = prot_vers_major;
   rec_prot__pt->prot_version__t.minor      = prot_vers_minor;
   rec_prot__pt->rw_stream__pt              = rw_stream__pt;
@@ -323,8 +323,8 @@ static flea_err_e THR_flea_recprot_t__set_cbc_cs_inner(
 
   reserved_payl_len__alu16 = mac_size__alu8 + 2 * rec_prot__pt->read_state__t.reserved_iv_len__u8; /* 2* block size: one for IV, one for padding */
 
-  if(((reserved_payl_len__alu16 + rec_prot__pt->record_hdr_len__u8) > rec_prot__pt->send_rec_buf_raw_len__u16) ||
-    ((reserved_payl_len__alu16 + rec_prot__pt->record_hdr_len__u8) > rec_prot__pt->alt_send_buf__raw_len__u16))
+  if(((reserved_payl_len__alu16 + rec_prot__pt->record_hdr_len__u8) >= rec_prot__pt->send_rec_buf_raw_len__u16) ||
+    ((reserved_payl_len__alu16 + rec_prot__pt->record_hdr_len__u8) >= rec_prot__pt->alt_send_buf__raw_len__u16))
   {
     FLEA_THROW("send/receive buffer is too small", FLEA_ERR_BUFF_TOO_SMALL);
   }
@@ -420,7 +420,7 @@ static flea_err_e THR_flea_recprot_t__set_gcm_cs_inner(
 
   /* 16 is the GCM tag length */
   reserved_payl_len__alu16 = 16 + rec_prot__pt->read_state__t.reserved_iv_len__u8;
-
+// TODO: FACTOR THIS OUT, COMPARE CBC
   if(((reserved_payl_len__alu16 + rec_prot__pt->record_hdr_len__u8) > rec_prot__pt->send_rec_buf_raw_len__u16) ||
     ((reserved_payl_len__alu16 + rec_prot__pt->record_hdr_len__u8) > rec_prot__pt->alt_send_buf__raw_len__u16))
   {
@@ -624,7 +624,7 @@ flea_err_e THR_flea_recprot_t__wrt_data(
     {
       FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
       buf_free_len__alu16 = rec_prot__pt->record_plaintext_send_max_value__u16
-        - rec_prot__pt->send_curr_rec_content_len__u16;
+        - rec_prot__pt->send_curr_rec_content_len__u16; // <= TODO: send_curr_rec_content_len__u16 is always zero here
       /* no need to write new header in this case: content stays, length comes later */
     }
   }
@@ -1105,6 +1105,16 @@ flea_err_e THR_flea_recprot_t__write_flush(
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__write_flush */
+
+flea_al_u16_t flea_recprot_t__get_current_max_pt_expansion(flea_recprot_t* rec_prot__pt)
+{
+  return rec_prot__pt->reserved_payl_len__u16;
+}
+
+flea_al_u16_t flea_recprot_t__get_current_max_record_pt_size(flea_recprot_t* rec_prot__pt)
+{
+  return rec_prot__pt->record_plaintext_send_max_value__u16;
+}
 
 flea_err_e THR_flea_recprot_t__send_record(
   flea_recprot_t*          rec_prot__pt,
@@ -1853,6 +1863,12 @@ flea_bool_t flea_recprot_t__have_done_initial_handshake(const flea_recprot_t* re
     return FLEA_TRUE;
   }
   return FLEA_FALSE;
+}
+
+flea_al_u16_t flea_recprot_t__get_curr_wrt_rcrd_rem_free_len(const flea_recprot_t* rec_prot__pt)
+{
+  return rec_prot__pt->record_plaintext_send_max_value__u16
+         - rec_prot__pt->send_curr_rec_content_len__u16;
 }
 
 void flea_recprot_t__set_max_pt_len(

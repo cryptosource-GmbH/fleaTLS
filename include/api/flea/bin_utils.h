@@ -86,7 +86,7 @@ flea_u32_t flea__decode_U24_BE(const flea_u8_t enc[3]);
  *
  * @return the big endian decoded value of the input data
  */
-flea_u16_t flea__decode_U16_BE(const flea_u8_t enc[2]);
+flea_al_u16_t flea__decode_U16_BE(const flea_u8_t enc[2]);
 
 
 /**
@@ -101,17 +101,28 @@ void flea__encode_U32_BE(
 );
 
 /**
+ * Encode a 3-byte value big endian.
+ *
+ * @param to_enc the value to encode
+ * @param res 3-byte memory location to store the encoded result
+ */
+void flea__encode_U24_BE(
+  flea_u32_t to_enc,
+  flea_u8_t  res[3]
+);
+
+/**
  * Encode a 2-byte value big endian.
  *
  * @param to_enc the value to encode
  * @param res 2-byte memory location to store the encoded result
  */
 void flea__encode_U16_BE(
-  flea_u16_t to_enc,
-  flea_u8_t  res[2]
+  flea_al_u16_t to_enc,
+  flea_u8_t     res[2]
 );
 
-flea_u16_t flea__decode_U16_LE(const flea_u8_t enc[2]);
+flea_al_u16_t flea__decode_U16_LE(const flea_u8_t enc[2]);
 
 /**
  * Encode a 4-byte value little endian.

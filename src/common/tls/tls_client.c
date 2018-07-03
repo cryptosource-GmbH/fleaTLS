@@ -22,6 +22,7 @@
 #include "internal/common/tls/tls_client_int_ecc.h"
 #include "internal/common/tls/tls_common_ecc.h"
 #include "flea/pk_keypair.h"
+#include "internal/common/tls/tls_hndsh_ctx.h"
 
 #ifdef FLEA_HAVE_TLS_CLIENT
 
@@ -435,7 +436,6 @@ static flea_err_e THR_flea_tls__read_server_kex_psk(
 
     FLEA_CCALL(
       THR_flea_tls__create_premaster_secret_psk(
-        tls_ctx__pt,
         psk_vec__t.data__pu8,
         psk_vec__t.len__dtl,
         premaster_secret__pt
@@ -1142,7 +1142,6 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
       {
         FLEA_CCALL(
           THR_flea_tls__create_premaster_secret_psk(
-            tls_ctx,
             tls_client_ctx__pt->psk__pu8,
             tls_client_ctx__pt->psk_len__u16,
             premaster_secret__pt
@@ -1673,6 +1672,9 @@ flea_err_e THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
   flea_tls_handshake_ctx_t hs_ctx__t;
 
   FLEA_THR_BEG_FUNC();
+  flea_tls_handshake_ctx_t__INIT(&hs_ctx);
+  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t));
+
   hs_ctx__t.is_reneg__b = FLEA_TRUE;
   hs_ctx__t.tls_ctx__pt = tls_ctx__pt;
 
@@ -1699,6 +1701,7 @@ flea_err_e THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
 
   FLEA_THR_FIN_SEC(
     flea_tls_handsh_reader_t__dtor(&handsh_rdr__t);
+    flea_tls_handshake_ctx_t__dtor(&hs_ctx__t);
   );
 } /* THR_flea_tls_ctx_t__client_handle_server_initiated_reneg */
 

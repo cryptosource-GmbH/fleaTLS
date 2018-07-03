@@ -51,10 +51,10 @@ typedef struct
   flea_pk_scheme_id_e pk_scheme_id__t;
 } flea_tls__hash_sig_t;
 
-typedef struct
+/*typedef struct
 {
   flea_u16_t current_hs_msg_len__u16;
-} flea_dtls_ctx_t;
+} flea_dtls_ctx_t;*/
 
 struct struct_flea_tls_ctx_t
 {
@@ -125,27 +125,12 @@ struct struct_flea_tls_ctx_t
   flea_x509_cert_ref_t        peer_root_cert_ref__t;
   flea_u8_t                   peer_root_cert_set__u8;
 #  endif
-#  ifdef FLEA_HAVE_DTLS
-
-  flea_dtls_ctx_t dtls_ctx__t;
-
-#  endif
 };
 
 #  define FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt) \
   (((flea_u32_t) ((tls_ctx__pt)->cfg_flags__e) \
   & flea_tls_flag__allow_dtls1_2) != 0)
 
-struct struct_flea_tls_handshake_ctx_t
-{
-  flea_tls_ctx_t*  tls_ctx__pt;
-  /* only used by tls_client: */
-  flea_pubkey_t*   ecdhe_pub_key__pt;
-  flea_byte_vec_t* client_and_server_random__pt;
-  flea_u8_t        silent_alarm__u8;
-  flea_u8_t        is_reneg__b;
-  flea_bool_t      is_sess_res__b;
-};
 
 #  define flea_tls_handshake_ctx_t__INIT(__p) \
   do {(__p)->silent_alarm__u8 = 0; memset((__p), 0, sizeof(*(__p))); \
@@ -181,6 +166,7 @@ struct struct_flea_tls_clt_ctx_t
   flea_process_identity_hint_cb_f process_identity_hint_mbn_cb__f;
 #  endif // ifdef FLEA_HAVE_TLS_CS_PSK
 };
+
 
 # endif // ifdef FLEA_HAVE_TLS
 # ifdef __cplusplus

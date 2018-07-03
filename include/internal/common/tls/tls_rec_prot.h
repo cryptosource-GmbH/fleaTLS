@@ -18,6 +18,9 @@ extern "C" {
 
 # ifdef FLEA_HAVE_TLS
 
+#  define FLEA_TLS_RECORD_HDR_LEN      5
+#  define FLEA_DTLS_RECORD_HDR_LEN     (FLEA_TLS_RECORD_HDR_LEN + 8)
+
 #  define FLEA_TLS_TRNSF_BUF_SIZE      (FLEA_TLS_RECORD_MAX_RECEIVE_SIZE + FLEA_XTLS_MAX_RECORD_HDR_LEN)
 #  define FLEA_TLS_ALT_SEND_BUF_SIZE   (FLEA_TLS_RECORD_MAX_SEND_SIZE + FLEA_XTLS_MAX_RECORD_HDR_LEN)
 #  define FLEA_TLS_STD_MAX_RECORD_SIZE 18432
@@ -198,6 +201,12 @@ flea_err_e THR_flea_recprot_t__set_ciphersuite(
 );
 
 flea_bool_t flea_recprot_t__have_done_initial_handshake(const flea_recprot_t* rec_prot__pt);
+
+flea_al_u16_t flea_recprot_t__get_current_max_record_pt_size(flea_recprot_t* rec_prot__pt);
+
+flea_al_u16_t flea_recprot_t__get_current_max_pt_expansion(flea_recprot_t* rec_prot__pt);
+
+flea_al_u16_t flea_recprot_t__get_curr_wrt_rcrd_rem_free_len(const flea_recprot_t* rec_prot__pt);
 
 void flea_recprot_t__discard_current_read_record(flea_recprot_t* rec_prot__pt);
 

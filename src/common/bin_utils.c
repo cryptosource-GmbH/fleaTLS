@@ -56,12 +56,22 @@ void flea__encode_U32_BE(
 }
 
 void flea__encode_U16_BE(
-  flea_u16_t to_enc,
-  flea_u8_t  res[2]
+  flea_al_u16_t to_enc,
+  flea_u8_t     res[2]
 )
 {
   res[0] = to_enc >> 8;
   res[1] = to_enc & 0xFF;
+}
+
+void flea__encode_U24_BE(
+  flea_u32_t to_enc,
+  flea_u8_t  res[3]
+)
+{
+  res[0] = to_enc >> 16;
+  res[1] = to_enc >> 8;
+  res[2] = to_enc & 0xFF;
 }
 
 flea_u32_t flea__decode_U32_BE(const flea_u8_t enc[4])
@@ -77,15 +87,15 @@ flea_u32_t flea__decode_U24_BE(const flea_u8_t enc[3])
   return ((flea_u16_t) enc[0] << 16) | ((flea_u16_t) enc[1] << 8) | ((flea_u16_t) enc[2]);
 }
 
-flea_u16_t flea__decode_U16_BE(const flea_u8_t enc[2])
+flea_al_u16_t flea__decode_U16_BE(const flea_u8_t enc[2])
 {
-  return ((flea_u16_t) enc[0] << 8) | ((flea_u16_t) enc[1] & 0xFF);
+  return ((flea_al_u16_t) enc[0] << 8) | ((flea_al_u16_t) enc[1] & 0xFF);
 }
 
-flea_u16_t flea__decode_U16_LE(const flea_u8_t enc[2])
+flea_al_u16_t flea__decode_U16_LE(const flea_u8_t enc[2])
 {
-  return ((flea_u16_t) enc[1] << 8)
-         | ((flea_u16_t) (enc[0] & 0xFF));
+  return ((flea_al_u16_t) enc[1] << 8)
+         | ((flea_al_u16_t) (enc[0] & 0xFF));
 }
 
 void flea__increment_encoded_BE_int(
