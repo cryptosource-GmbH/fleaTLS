@@ -58,20 +58,6 @@ flea_err_e THR_flea_tls__send_certificate(
   flea_u8_t                 cert_chain_len__u8
 );
 
-flea_err_e THR_flea_tls__snd_hands_msg_hdr(
-  flea_tls_handshake_ctx_t* hs_ctx__pt,
-  flea_tls_prl_hash_ctx_t*  p_hash_ctx_mbn__pt,
-  HandshakeType             type,
-  flea_u32_t                content_len__u32
-);
-
-flea_err_e THR_flea_tls__snd_hands_msg_content(
-  flea_tls_handshake_ctx_t* hs_ctx__pt,
-  flea_tls_prl_hash_ctx_t*  p_hash_ctx_mbn__pt,
-  const flea_u8_t*          msg_bytes,
-  flea_u32_t                msg_bytes_len
-);
-
 flea_err_e THR_flea_tls__snd_hands_msg(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
   flea_tls_prl_hash_ctx_t*  p_hash_ctx_mbn__pt,
@@ -79,6 +65,7 @@ flea_err_e THR_flea_tls__snd_hands_msg(
   const flea_u8_t*          msg_bytes,
   flea_u32_t                msg_bytes_len
 );
+
 
 flea_err_e THR_flea_tls__read_finished(
   flea_tls_ctx_t*           tls_ctx,

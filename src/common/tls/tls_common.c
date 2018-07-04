@@ -771,26 +771,6 @@ flea_err_e THR_flea_tls__send_certificate(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_certificate */
 
-flea_err_e THR_flea_tls__snd_hands_msg_hdr(
-  flea_tls_handshake_ctx_t* hs_ctx__pt,
-  flea_tls_prl_hash_ctx_t*  p_hash_ctx_mbn__pt,
-  HandshakeType             type,
-  flea_u32_t                content_len__u32
-)
-{
-  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
-
-  // flea_u8_t enc_for_hash__au8[4];
-  if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
-  {
-    return THR_flea_dtls_hdsh__snd_hands_msg_hdr(hs_ctx__pt, p_hash_ctx_mbn__pt, type, content_len__u32);
-  }
-  else
-  {
-    return THR_flea_tls_hdsh__snd_hands_msg_hdr(hs_ctx__pt, p_hash_ctx_mbn__pt, type, content_len__u32);
-  }
-} /* THR_flea_tls__snd_hands_msg_hdr */
-
 # ifdef FLEA_HAVE_TLS_CS_PSK
 flea_err_e THR_flea_tls__create_premaster_secret_psk(
   flea_u8_t*       psk__pu8,
@@ -936,33 +916,6 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__construction_helper */
-
-flea_err_e THR_flea_tls__snd_hands_msg_content(
-  flea_tls_handshake_ctx_t* hs_ctx__pt,
-  // flea_recprot_t*          rec_prot__pt,
-  flea_tls_prl_hash_ctx_t*  p_hash_ctx_mbn__pt,
-  const flea_u8_t*          msg_bytes,
-  flea_u32_t                msg_bytes_len
-)
-{
-  flea_recprot_t* rec_prot__pt = &hs_ctx__pt->tls_ctx__pt->rec_prot__t;
-
-  FLEA_THR_BEG_FUNC();
-
-  FLEA_CCALL(
-    THR_flea_recprot_t__wrt_data(
-      rec_prot__pt,
-      CONTENT_TYPE_HANDSHAKE,
-      msg_bytes,
-      msg_bytes_len
-    )
-  );
-  if(p_hash_ctx_mbn__pt)
-  {
-    FLEA_CCALL(THR_flea_tls_prl_hash_ctx_t__update(p_hash_ctx_mbn__pt, msg_bytes, msg_bytes_len));
-  }
-  FLEA_THR_FIN_SEC_empty();
-}
 
 flea_err_e THR_flea_tls__snd_hands_msg_int_be(
   flea_tls_handshake_ctx_t* hs_ctx__pt,

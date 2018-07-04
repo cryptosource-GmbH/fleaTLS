@@ -24,6 +24,7 @@
 #include "internal/common/tls/tls_server_int_ecc.h"
 #include "internal/common/tls/tls_common_ecc.h"
 #include "internal/common/tls/tls_hndsh_ctx.h"
+#include "internal/common/tls/tls_hndsh_layer.h"
 
 #ifdef FLEA_HAVE_TLS_SERVER
 
@@ -149,6 +150,7 @@ static flea_err_e THR_flea_tls__read_client_hello(
 
   if(FLEA_TLS_CTX_IS_DTLS(tls_ctx))
   {
+    // TODO: implement handling of a non-empty cookie
     /* read the client cookie */
     FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &session_id_len__u8));
     if(session_id_len__u8 != 0)
@@ -444,7 +446,21 @@ static flea_err_e THR_flea_tls__send_server_hello(
       session_id_len__u8
     )
   );
-  // }
+
+  if(FLEA_TLS_CTX_IS_DTLS(tls_ctx))
+  {
+    const flea_u8_t zero_byte__cu8 = 0;
+    /* send an empty server cookie */
+    FLEA_CCALL(
+      THR_flea_tls__snd_hands_msg_content(
+        hs_ctx__pt,
+        p_hash_ctx,
+        &zero_byte__cu8,
+        1
+      )
+    );
+  }
+
   suite__au8[0] = tls_ctx->selected_cipher_suite__e >> 8;
   suite__au8[1] = tls_ctx->selected_cipher_suite__e;
   FLEA_CCALL(

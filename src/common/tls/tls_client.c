@@ -23,6 +23,7 @@
 #include "internal/common/tls/tls_common_ecc.h"
 #include "flea/pk_keypair.h"
 #include "internal/common/tls/tls_hndsh_ctx.h"
+#include "internal/common/tls/tls_hndsh_layer.h"
 
 #ifdef FLEA_HAVE_TLS_CLIENT
 

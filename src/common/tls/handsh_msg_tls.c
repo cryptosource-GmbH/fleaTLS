@@ -7,7 +7,8 @@
 #include "internal/common/tls/handsh_read_stream.h"
 #include "internal/common/tls/tls_int.h"
 #include "internal/common/tls/tls_hndsh_ctx.h"
-#include "internal/common/tls/tls_hndsh_layer.h"
+// #include "internal/common/tls/tls_hndsh_layer.h"
+#include "internal/common/tls/hndsh_msg_tls.h"
 
 flea_err_e THR_flea_tls_hdsh__snd_hands_msg_hdr(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
