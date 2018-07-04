@@ -7,6 +7,7 @@
 #include "internal/common/tls/tls_int.h"
 #include "internal/common/tls/tls_hndsh_ctx.h"
 
+// TODO: RENAME THESE FUNCTION AS ...hndsh_layer...
 
 flea_err_e THR_flea_tls__snd_hands_msg_hdr(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
@@ -64,5 +65,33 @@ flea_err_e THR_flea_tls__snd_hands_msg_content(
   {
     FLEA_CCALL(THR_flea_tls_prl_hash_ctx_t__update(p_hash_ctx_mbn__pt, msg_bytes, msg_bytes_len));
   }
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_e THR_flea_tls__send_change_cipher_spec(
+  flea_tls_handshake_ctx_t* hs_ctx__pt
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+
+  const flea_u8_t css_code__cu8 = 0xFF;
+  if(FLEA_TLS_CTX_IS_DTLS(hs_ctx__pt->tls_ctx__pt))
+  {
+    FLEA_CCALL(
+      THR_flea_dtls_hndsh__append_to_flight_buffer_and_try_to_send_record(
+        hs_ctx__pt,
+        &css_code__cu8,
+        sizeof(css_code__cu8)
+      )
+    );
+  }
+  else
+  {
+    FLEA_CCALL(
+      THR_flea_tls__send_change_cipher_spec_directly(hs_ctx__pt->tls_ctx__pt)
+    );
+  }
+
   FLEA_THR_FIN_SEC_empty();
 }

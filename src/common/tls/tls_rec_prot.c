@@ -1250,9 +1250,9 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
     printf("current record almost read completely\n");
     }*/
 
-  printf("\nread_data_inner starting\n");
+  /*printf("\nread_data_inner starting\n");
   printf("current_or_next_record_for_content_type__b  = %u\n", current_or_next_record_for_content_type__b);
-  printf("data_read for length = %u\n", data_len__dtl);
+  printf("data_read for length = %u\n", data_len__dtl);*/
   rec_prot__pt->payload_buf__pu8 = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->record_hdr_len__u8;
   /* output data from a possibly held record witz nonzero payload data left */
   to_cp__alu16 = FLEA_MIN(

@@ -977,13 +977,13 @@ flea_err_e THR_flea_tls__snd_hands_msg(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__snd_hands_msg */
 
-flea_err_e THR_flea_tls__send_change_cipher_spec(
+flea_err_e THR_flea_tls__send_change_cipher_spec_directly(
   flea_tls_ctx_t* tls_ctx
 )
 {
   FLEA_THR_BEG_FUNC();
 
-  flea_u8_t css_bytes[1] = {1};
+  const flea_u8_t css_bytes[1] = {1};
 
   FLEA_CCALL(
     THR_flea_recprot_t__send_record(

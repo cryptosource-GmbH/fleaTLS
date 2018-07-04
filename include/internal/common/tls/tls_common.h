@@ -100,7 +100,7 @@ typedef enum
 } flea_tls__expect_handshake_type_t;
 
 
-flea_err_e THR_flea_tls__send_change_cipher_spec(
+flea_err_e THR_flea_tls__send_change_cipher_spec_directly(
   flea_tls_ctx_t* tls_ctx
 );
 

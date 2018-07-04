@@ -447,19 +447,6 @@ static flea_err_e THR_flea_tls__send_server_hello(
     )
   );
 
-  if(FLEA_TLS_CTX_IS_DTLS(tls_ctx))
-  {
-    const flea_u8_t zero_byte__cu8 = 0;
-    /* send an empty server cookie */
-    FLEA_CCALL(
-      THR_flea_tls__snd_hands_msg_content(
-        hs_ctx__pt,
-        p_hash_ctx,
-        &zero_byte__cu8,
-        1
-      )
-    );
-  }
 
   suite__au8[0] = tls_ctx->selected_cipher_suite__e >> 8;
   suite__au8[1] = tls_ctx->selected_cipher_suite__e;
@@ -1473,7 +1460,7 @@ flea_err_e THR_flea_tls__server_handshake(
         {
           FLEA_THROW("delayed error in tls handshake", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
         }
-        FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx));
+        FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(hs_ctx__pt));
         if(server_ctx__pt->server_resume_session__u8)
         {
           flea_al_u16_t key_block_len__alu16;

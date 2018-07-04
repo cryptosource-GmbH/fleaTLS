@@ -1424,7 +1424,7 @@ flea_err_e THR_flea_tls__client_handshake(
         }
       }
       // send change cipher spec (initiate encryption/authentication)
-      FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(tls_ctx));
+      FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(hs_ctx__pt));
 
       /*
        * Enable encryption for outgoing messages

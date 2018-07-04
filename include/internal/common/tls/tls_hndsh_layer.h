@@ -22,5 +22,8 @@ flea_err_e THR_flea_tls__snd_hands_msg_content(
   flea_u32_t                msg_bytes_len
 );
 
+flea_err_e THR_flea_tls__send_change_cipher_spec(
+  flea_tls_handshake_ctx_t* hs_ctx__pt
+);
 
 #endif /* h-guard */
