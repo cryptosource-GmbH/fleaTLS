@@ -14,10 +14,6 @@
 #include "internal/common/mask.h"
 #include "internal/common/tls/tls_int.h"
 
-// TODO: ANY CALCULATIONS FOR MAXIMAL SIZES MUST USE DTLS HDR-LEN IS CONFIGURED
-#define FLEA_TLS_RECORD_HDR_LEN  5
-#define FLEA_DTLS_RECORD_HDR_LEN (FLEA_TLS_RECORD_HDR_LEN + 4)
-
 #ifdef FLEA_HAVE_TLS
 
 # define FLEA_RP_CTRL__DTLS_ALLOWED_BIT         (1 << 0)

@@ -298,7 +298,7 @@ flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(
       tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH;
 
       // flush buffer before altering it
-      FLEA_CCALL(THR_flea_rw_stream_t__flush_write(tls_ctx__pt->rec_prot__t.rw_stream__pt));
+      FLEA_CCALL(THR_flea_recprot_t__write_flush(&tls_ctx__pt->rec_prot__t));
 
 # ifdef FLEA_HEAP_MODE
       // resize recv buffer
@@ -543,7 +543,7 @@ flea_err_e THR_flea_tls__handle_tls_error(
       &alert_desc__e,
       is_reneg_then_not_null__was_accepted_out___pb,
       is_read_app_data__b
-    );
+      );
     if(do_send_alert__b)
     {
       flea_tls_ctx_t* tls_ctx__pt =
@@ -1180,7 +1180,7 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
     data__pu8,
     data_len__pdtl,
     rd_mode__e
-  );
+    );
   if(err__t == FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA)
   {
     /* assume it's the appropriate ClientHello or HelloRequest in order to
@@ -1277,7 +1277,7 @@ flea_err_e THR_flea_tls_ctx_t__read_app_data(
     data_len__pdtl,
     rd_mode__e,
     hostn_valid_params_mbn__pt
-  );
+    );
 
   FLEA_CCALL(THR_flea_tls__handle_tls_error(server_ctx_mbn__pt, client_ctx_mbn__pt, err__t, NULL, FLEA_TRUE));
   if(requested__dtl && requested__dtl > *data_len__pdtl)
@@ -1980,7 +1980,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_sig_alg_ext(
     rd_strm__pt,
     len__alu16,
     tls_ctx__pt->private_key__pt
-  );
+    );
 
   if(err__t)
   {
@@ -2132,10 +2132,14 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
     flea_tls__get_max_fragment_length_byte_for_buf_size(FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE) &&
     tls_ctx__pt->connection_end == FLEA_TLS_SERVER)
   {
-    FLEA_THROW(
-      "Client did not send a Max Fragmentation Length Extension. Since the receive buffer doesn't support 2^14 Bytes as is mandatory for TLS 1.2 the handshake is aborted.",
-      FLEA_ERR_TLS_ILLEGAL_PARAMETER
-    );
+    // for sess res case the client can ommit the extension
+    if(!hs_ctx__pt->is_sess_res__b)
+    {
+      FLEA_THROW(
+        "Client did not send a Max Fragmentation Length Extension. Since the receive buffer doesn't support 2^14 Bytes as is mandatory for TLS 1.2 the handshake is aborted.",
+        FLEA_ERR_TLS_ILLEGAL_PARAMETER
+      );
+    }
   }
 
   if(receive_max_frag_len_ext__b == FLEA_FALSE &&
@@ -2165,7 +2169,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
       if(priv_key_mbn__pt && THR_flea_tls__check_sig_alg_compatibility_for_key_type(
           priv_key_mbn__pt->key_type__t,
           (flea_pk_scheme_id_e) (tls_ctx__pt->allowed_sig_algs__pe[i] & 0xFF)
-      ))
+        ))
       {
         continue;
       }

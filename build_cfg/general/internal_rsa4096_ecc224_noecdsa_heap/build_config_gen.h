@@ -379,14 +379,13 @@
  * \defgroup tls_cfg TLS configuration
  */
 /**@{*/
-# if defined FLEA_HAVE_TLS_CS_PSK || ((defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && (defined FLEA_HAVE_HMAC || \
-  defined FLEA_HAVE_GCM))
+# if defined FLEA_HAVE_TLS_CS_PSK || ((defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && defined FLEA_HAVE_HMAC)
 
 /**
  * Control whether fleaTLS supports TLS.
  */
 #  define FLEA_HAVE_TLS
-# endif // if defined FLEA_HAVE_TLS_CS_PSK || ((defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && (defined FLEA_HAVE_HMAC || defined FLEA_HAVE_GCM))
+# endif
 
 # ifdef FLEA_HAVE_TLS
 
@@ -453,13 +452,13 @@
 #   define FLEA_HAVE_TLS_CS_RSA
 #  endif
 
-#  ifdef FLEA_HAVE_HMAC
+// #  ifdef FLEA_HAVE_HMAC
 
 /**
  * Control whether support for CBC-based cipher suites shall be compiled.
  */
-#   define FLEA_HAVE_TLS_CS_CBC
-#  endif
+#  define FLEA_HAVE_TLS_CS_CBC
+// #  endif
 
 #  ifdef FLEA_HAVE_GCM
 
@@ -515,30 +514,32 @@
 #   endif
 #  endif // ifdef FLEA_HAVE_TLS_CS_GCM
 #  ifdef FLEA_HAVE_TLS_CS_ECDHE
-#   ifdef FLEA_HAVE_SHA1
+#   ifdef FLEA_HAVE_TLS_CS_CBC
+#    ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
-#   endif // ifdef FLEA_HAVE_SHA1
+#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+#    endif // ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported.
  */
-#   define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-#   ifdef FLEA_HAVE_SHA384_512
+#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+#    ifdef FLEA_HAVE_SHA384_512
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
-#   endif
+#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+#    endif
+#   endif // ifdef FLEA_HAVE_TLS_CS_CBC
 #   ifdef FLEA_HAVE_TLS_CS_GCM
 
 /**
