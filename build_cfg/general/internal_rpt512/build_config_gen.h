@@ -60,7 +60,7 @@
  * (referred to as "stack mode"). In stack mode, fleaTLS does not perform any
  * heap allocations and instead only uses the stack memory. This means that fleaTLS' functions and objects reserve stack space according to the configured algorithms and maximal key size definitions made in the build configuration.
  */
-# define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
+// # define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
 /* end mem_cfg */
 /**@}*/
 
@@ -102,7 +102,7 @@
 /**
  * Control whether GCM support is compiled
  */
-# define FLEA_HAVE_GCM
+// # define FLEA_HAVE_GCM
 
 /**
  * Control whether MD5 support is compiled
@@ -516,30 +516,32 @@
 #   endif
 #  endif // ifdef FLEA_HAVE_TLS_CS_GCM
 #  ifdef FLEA_HAVE_TLS_CS_ECDHE
-#   ifdef FLEA_HAVE_SHA1
+#   ifdef FLEA_HAVE_TLS_CS_CBC
+#    ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
-#   endif // ifdef FLEA_HAVE_SHA1
+#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+#    endif // ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported.
  */
-#   define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-#   ifdef FLEA_HAVE_SHA384_512
+#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+#    ifdef FLEA_HAVE_SHA384_512
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
-#   endif
+#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+#    endif
+#   endif // ifdef FLEA_HAVE_TLS_CS_CBC
 #   ifdef FLEA_HAVE_TLS_CS_GCM
 
 /**
@@ -645,6 +647,14 @@
 #   endif
 #  endif // ifdef FLEA_HAVE_TLS_CS_GCM
 # endif // ifdef FLEA_HAVE_TLS_CS_PSK
+
+/**
+ *  The maximum number of supported signature algorithm hash functions in case
+ *  of FLEA_STACK_MODE. Internally, the implementation has to instantiate that
+ *  many parallel hash-context objects, in order to be able to start the
+ *  handshake without knowing the hash function actually agreed on.
+ */
+# define FLEA_STKMD_TLS_MAX_PARALLEL_HASHES 5
 
 /**
  * Length of the session IDs that are used by the fleaTLS server.

@@ -516,30 +516,32 @@
 #   endif
 #  endif // ifdef FLEA_HAVE_TLS_CS_GCM
 #  ifdef FLEA_HAVE_TLS_CS_ECDHE
-#   ifdef FLEA_HAVE_SHA1
+#   ifdef FLEA_HAVE_TLS_CS_CBC
+#    ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
-#   endif // ifdef FLEA_HAVE_SHA1
+#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+#    endif // ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported.
  */
-#   define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-#   ifdef FLEA_HAVE_SHA384_512
+#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+#    ifdef FLEA_HAVE_SHA384_512
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
-#   endif
+#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+#    endif
+#   endif // ifdef FLEA_HAVE_TLS_CS_CBC
 #   ifdef FLEA_HAVE_TLS_CS_GCM
 
 /**

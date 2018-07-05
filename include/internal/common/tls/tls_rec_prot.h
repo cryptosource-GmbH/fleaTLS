@@ -1,25 +1,29 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_tls_rec_prot__H_
-# define _flea_tls_rec_prot__H_
+#define _flea_tls_rec_prot__H_
 
-# include "flea/types.h"
-# include "flea/error.h"
-# include "internal/common/tls/tls_ciph_suite.h"
-# include "internal/common/tls/tls_conn_state.h"
-# include "internal/common/tls/tls_ctx_fwd.h"
+#include "flea/types.h"
+#include "flea/error.h"
+#include "internal/common/tls/tls_ciph_suite.h"
+#include "internal/common/tls/tls_conn_state.h"
+#include "internal/common/tls/tls_ctx_fwd.h"
 // #include "internal/common/tls/tls_common.h"
-# include "flea/rw_stream.h"
-# include "internal/common/tls/tls_rec_prot_fwd.h"
+#include "flea/rw_stream.h"
+#include "internal/common/tls/tls_rec_prot_fwd.h"
 
-# ifdef __cplusplus
+#ifdef __cplusplus
 extern "C" {
-# endif
+#endif
 
-# ifdef FLEA_HAVE_TLS
+#ifdef FLEA_HAVE_TLS
 
-#  define FLEA_TLS_TRNSF_BUF_SIZE      (FLEA_TLS_MAX_RECORD_SIZE + FLEA_TLS_RECORD_HDR_LEN)
-#  define FLEA_TLS_STD_MAX_RECORD_SIZE 18432
+// TODO: ANY CALCULATIONS FOR MAXIMAL SIZES MUST USE DTLS HDR-LEN IS CONFIGURED
+# define FLEA_TLS_RECORD_HDR_LEN      5
+# define FLEA_DTLS_RECORD_HDR_LEN     (FLEA_TLS_RECORD_HDR_LEN + 4)
+
+# define FLEA_TLS_TRNSF_BUF_SIZE      (FLEA_TLS_MAX_RECORD_SIZE + FLEA_TLS_RECORD_HDR_LEN)
+# define FLEA_TLS_STD_MAX_RECORD_SIZE 18432
 
 typedef enum
 {
@@ -71,13 +75,13 @@ struct struct_flea_recprot_t
 {
   flea_tls_con_stt_t           read_state__t;
   flea_tls_con_stt_t           write_state__t;
-#  ifdef FLEA_HEAP_MODE
+# ifdef FLEA_HEAP_MODE
   flea_u8_t*                   send_rec_buf_raw__bu8;
   flea_u8_t*                   alt_send_buf__raw__bu8;
-#  else
+# else
   flea_u8_t                    send_rec_buf_raw__bu8[FLEA_TLS_TRNSF_BUF_SIZE + FLEA_TLS_RECORD_HDR_LEN ];
   flea_u8_t                    alt_send_buf__raw__bu8[FLEA_TLS_ALT_SEND_BUF_SIZE];
-#  endif // ifdef FLEA_HEAP_MODE
+# endif  // ifdef FLEA_HEAP_MODE
   flea_u16_t                   alt_send_buf__raw_len__u16;
   flea_u16_t                   send_rec_buf_raw_len__u16;
   flea_u8_t*                   payload_buf__pu8;
@@ -101,7 +105,7 @@ struct struct_flea_recprot_t
   flea_u8_t                    ctrl_field__u8;
 };
 
-#  define flea_recprot_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
+# define flea_recprot_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
 
 void flea_recprot_t__dtor(flea_recprot_t* rec_prot__pt);
 
@@ -183,16 +187,16 @@ void flea_recprot_t__set_max_pt_len(
   flea_u16_t      pt_len__u16
 );
 
-#  ifdef FLEA_HEAP_MODE
+# ifdef FLEA_HEAP_MODE
 
 flea_err_e THR_flea_recprot_t__resize_send_plaintext_size(
   flea_recprot_t* rec_prot__pt,
   flea_al_u16_t   new_len__alu16
 );
-#  endif // ifdef FLEA_HEAP_MODE
+# endif  // ifdef FLEA_HEAP_MODE
 
-# endif // ifdef FLEA_HAVE_TLS
-# ifdef __cplusplus
+#endif  // ifdef FLEA_HAVE_TLS
+#ifdef __cplusplus
 }
-# endif
+#endif
 #endif /* h-guard */
