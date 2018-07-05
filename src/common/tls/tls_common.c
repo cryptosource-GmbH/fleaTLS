@@ -298,7 +298,7 @@ flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(
       tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH;
 
       // flush buffer before altering it
-      FLEA_CCALL(THR_flea_rw_stream_t__flush_write(tls_ctx__pt->rec_prot__t.rw_stream__pt));
+      FLEA_CCALL(THR_flea_recprot_t__write_flush(&tls_ctx__pt->rec_prot__t));
 
 # ifdef FLEA_HEAP_MODE
       // resize recv buffer
