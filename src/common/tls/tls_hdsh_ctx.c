@@ -8,7 +8,7 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(flea_tls_handshake_ctx_t* hs_ctx__
   // TODO: MAKE FLIGHT BUFFER SIZE CONTROLLABLE VIA API OR DYNAMICALLY
   FLEA_THR_BEG_FUNC();
 #if defined FLEA_HAVE_DTLS
-  hs_ctx__pt->dtls_ctx__t.msg_seq__s16 = -1;
+  hs_ctx__pt->dtls_ctx__t.send_msg_seq__s16 = -1;
   // TODO: MAKE PMTU-EST. AN ARGUMENT
   hs_ctx__pt->dtls_ctx__t.pmtu_estimate__alu16 = 256;
 # if defined FLEA_HEAP_MODE

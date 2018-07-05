@@ -17,9 +17,17 @@ extern "C" {
 
 typedef struct
 {
-  flea_s16_t    msg_seq__s16;
+  flea_s16_t send_msg_seq__s16;
+/* first seq-no of the last completely received flight: */
+  flea_s16_t rec_last_flight_initial_msg_seq__s16;
+  flea_s16_t rec_last_flight_final_msg_seq__s16;
+
+  /* seq-no of the hs-msg, from which at least the first header has been
+   * received: */
+  flea_s16_t    rec_msg_seq__s16;
   flea_u32_t    flight_buf_write_pos__u32;
   flea_u32_t    flight_buf_read_pos__u32;
+  flea_u8_t*    assembly_buf__pu8;
   flea_u8_t*    fragm_info_ptr__pu8;
   flea_al_u16_t pmtu_estimate__alu16;
   // flea_u16_t curr_frag_len__alu16;

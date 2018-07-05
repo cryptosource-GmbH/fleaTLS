@@ -236,9 +236,9 @@ flea_err_e THR_flea_dtls_hdsh__snd_hands_msg_hdr(
   hdr__au8[2] = content_len__u32 >> 8;
   hdr__au8[3] = content_len__u32;
 
-  hs_ctx__pt->dtls_ctx__t.msg_seq__s16 += 1; // is 0 when called for the first time
+  hs_ctx__pt->dtls_ctx__t.send_msg_seq__s16 += 1; // is 0 when called for the first time
 
-  flea__encode_U16_BE(hs_ctx__pt->dtls_ctx__t.msg_seq__s16, &hdr__au8[4]);
+  flea__encode_U16_BE(hs_ctx__pt->dtls_ctx__t.send_msg_seq__s16, &hdr__au8[4]);
   flea__encode_U24_BE(0, &hdr__au8[6]);
   flea__encode_U24_BE(content_len__u32, &hdr__au8[9]);
 
@@ -260,7 +260,7 @@ flea_err_e THR_flea_dtls_hdsh__snd_hands_msg_hdr(
       )
     );
   }
-  // hs_ctx__pt->dtls_ctx__t.msg_seq__s16++; // this is done in the
+  // hs_ctx__pt->dtls_ctx__t.send_msg_seq__s16++; // this is done in the
   // flight_buffer_writing
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__snd_hands_msg_hdr */

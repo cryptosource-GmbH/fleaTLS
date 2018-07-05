@@ -36,14 +36,6 @@ flea_err_e THR_flea_tls_handsh_reader_t__ctor(
   flea_bool_t               is_dtls__b
 );
 
-flea_err_e THR_flea_tls__read_handsh_hdr(
-  flea_tls_handsh_reader_t* handsh_rdr__pt,
-  flea_rw_stream_t*         stream__pt,
-  flea_u8_t*                handsh_type__pu8,
-  flea_u32_t*               msg_len__pu32,
-  flea_u8_t                 handsh_hdr_mbn__pu8[4]
-);
-
 flea_u32_t flea_tls_handsh_reader_t__get_msg_rem_len(flea_tls_handsh_reader_t* handsh_rdr__pt);
 
 flea_rw_stream_t* flea_tls_handsh_reader_t__get_read_stream(flea_tls_handsh_reader_t* handsh_rdr__pt);
