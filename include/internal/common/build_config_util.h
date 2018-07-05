@@ -112,6 +112,10 @@
 # define FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE (8 + 16) /* Explicit IV + GCM tag */
 #endif
 
+#if FLEA_TLS_ALT_SEND_BUF_SIZE - FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE - FLEA_TLS_RECORD_HDR_LEN <= 0
+# error The send buffer is too small to guarantee the use of all configured cipher suites
+#endif
+
 /** the maximal data content of a TLS record */
 #define FLEA_TLS_MAX_RECORD_SIZE (FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE + FLEA_TLS_MAX_RECORD_ADD_DATA_SIZE)
 
