@@ -691,7 +691,7 @@
  * The receive buffer will be at most 325 bytes larger than
  * FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE, depending on compiled cipher suites.
  */
-# define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 300
+# define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 400
 
 /**
  * If enabled, the maximum fragment length negotiation extension (RFC 6066) can
@@ -707,7 +707,7 @@
  * maximal record size of records sent by fleaTLS. Should not be smaller than
  * 150 bytes. A small size reduces performance. May not be greater than 16384.
  */
-# define FLEA_TLS_ALT_SEND_BUF_SIZE 300
+# define FLEA_TLS_ALT_SEND_BUF_SIZE 400
 
 /**
  * Maximal size of public key parameters object in an X.509 certificate. Mainly
