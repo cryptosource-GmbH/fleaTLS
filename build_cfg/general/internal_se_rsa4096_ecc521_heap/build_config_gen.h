@@ -453,13 +453,13 @@
 #   define FLEA_HAVE_TLS_CS_RSA
 #  endif
 
-#  ifdef FLEA_HAVE_HMAC
+// #  ifdef FLEA_HAVE_HMAC
 
 /**
  * Control whether support for CBC-based cipher suites shall be compiled.
  */
-#   define FLEA_HAVE_TLS_CS_CBC
-#  endif
+#  define FLEA_HAVE_TLS_CS_CBC
+// #  endif
 
 #  ifdef FLEA_HAVE_GCM
 
