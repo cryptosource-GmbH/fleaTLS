@@ -972,7 +972,7 @@ flea_err_e THR_flea_tls__snd_hands_msg(
       msg_bytes_len
     )
   );
-  // TODO: THIS MAY NOT STAY
+  // TODO: THIS MAY NOT STAY FOR DTLS (SHOULDN'T DO HARM, THOUGH)
   FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__snd_hands_msg */
