@@ -268,11 +268,12 @@ static void flea_tls_ctx_t__set_sec_reneg_flags(
 }
 
 flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(
-  flea_tls_ctx_t* tls_ctx__pt,
-  flea_al_u8_t    max_fragment_code__alu8
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_al_u8_t              max_fragment_code__alu8
 )
 {
   flea_al_u16_t max_fragment_length__alu16;
+  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
 
   FLEA_THR_BEG_FUNC();
   if(max_fragment_code__alu8 == 0)
@@ -285,7 +286,7 @@ flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(
     if(tls_ctx__pt->connection_end == FLEA_TLS_SERVER)
     {
       flea_tls_srv_ctx_t* server_ctx__pt = (flea_tls_srv_ctx_t*) tls_ctx__pt->client_or_server_ctx__pv;
-      if(server_ctx__pt->server_resume_session__u8)
+      if(hs_ctx__pt->is_sess_res__b)
       {
         /* do not evaluate the extension value */
         FLEA_THR_RETURN();
@@ -543,7 +544,7 @@ flea_err_e THR_flea_tls__handle_tls_error(
       &alert_desc__e,
       is_reneg_then_not_null__was_accepted_out___pb,
       is_read_app_data__b
-      );
+    );
     if(do_send_alert__b)
     {
       flea_tls_ctx_t* tls_ctx__pt =
@@ -1180,7 +1181,7 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
     data__pu8,
     data_len__pdtl,
     rd_mode__e
-    );
+  );
   if(err__t == FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA)
   {
     /* assume it's the appropriate ClientHello or HelloRequest in order to
@@ -1277,7 +1278,7 @@ flea_err_e THR_flea_tls_ctx_t__read_app_data(
     data_len__pdtl,
     rd_mode__e,
     hostn_valid_params_mbn__pt
-    );
+  );
 
   FLEA_CCALL(THR_flea_tls__handle_tls_error(server_ctx_mbn__pt, client_ctx_mbn__pt, err__t, NULL, FLEA_TRUE));
   if(requested__dtl && requested__dtl > *data_len__pdtl)
@@ -1756,12 +1757,14 @@ flea_u8_t flea_tls__get_max_fragment_length_byte_for_buf_size(flea_u16_t buf_len
 }
 
 flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
-  flea_tls_ctx_t*   tls_ctx__pt,
-  flea_rw_stream_t* rd_strm__pt,
-  flea_al_u16_t     ext_len__alu16
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_rw_stream_t*         rd_strm__pt,
+  flea_al_u16_t             ext_len__alu16
 )
 {
   flea_u8_t ext_value__u8;
+
+  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
 
   FLEA_THR_BEG_FUNC();
 
@@ -1795,7 +1798,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
    */
 
 
-  FLEA_CCALL(THR_flea_tls_ctx_t__set_max_fragm_len(tls_ctx__pt, ext_value__u8));
+  FLEA_CCALL(THR_flea_tls_ctx_t__set_max_fragm_len(hs_ctx__pt, ext_value__u8));
 
   if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
@@ -1980,7 +1983,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_sig_alg_ext(
     rd_strm__pt,
     len__alu16,
     tls_ctx__pt->private_key__pt
-    );
+  );
 
   if(err__t)
   {
@@ -2107,7 +2110,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
     {
       FLEA_CCALL(
         THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
-          tls_ctx__pt,
+          hs_ctx__pt,
           hs_rd_stream__pt,
           ext_len__u32
         )
@@ -2169,7 +2172,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
       if(priv_key_mbn__pt && THR_flea_tls__check_sig_alg_compatibility_for_key_type(
           priv_key_mbn__pt->key_type__t,
           (flea_pk_scheme_id_e) (tls_ctx__pt->allowed_sig_algs__pe[i] & 0xFF)
-        ))
+      ))
       {
         continue;
       }
