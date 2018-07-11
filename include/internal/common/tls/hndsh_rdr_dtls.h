@@ -11,10 +11,10 @@ extern "C" {
 # endif
 
 
-flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
+/*flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
   flea_recprot_t*           rec_prot__pt
-);
+);*/
 # ifdef __cplusplus
 }
 # endif

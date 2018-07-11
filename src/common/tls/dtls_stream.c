@@ -33,14 +33,50 @@
  *   will be read by the logic layer at the right time. But this means that
  *   records following the CCS cannot be decrypted until the CCS has been read
  *   by the logic layer. One possibility would be to buffer the undecrypted
- *   records, they can be ordered by the record sequence. Each record is
- *   decrypted only when it is being read from. But if there are gaps, then
- *   future records must be checked for containing a missing fragment.
+ *   records, they can be ordered by the record sequence. <= NO, in a
+ *   retransmission the record number changes! => perform trial decryption of
+ *   each record, if it fails with the previous conn-state, try to decrypt it
+ *   with the new conn-state once it is established.
  * - THR_flea_recprot_t__read_data() within THR_flea_tls_ctx_t__rd_appdat_inner() ==> TODO: needs to be replaced
  * - flea_recprot_t__discard_current_read_record() within THR_flea_tls_ctx_t__rd_appdat_inner() to reject renge request ==> TODO: needs to be replaced
  *
  *
+ * on the tls_handsh_rdr level:
+ * - TODO: in case of DTLS, the dtls_stream must feed the hash values of the dtls handhs. headers, and
+ *   the tls_handsh_rdr must not at all feed the handhs. hdrs. to the hash
+ *   computation
  */
+
+/*
+ *    curr_hs->type
+ *
+ *
+ *
+ *                                         full hdr len
+ *                                     +------------------------+
+ *                                     |                        v
+ *    +-------------------+------------+---------------+.........
+ *    | current hs_msg    | tag:hs | hs_hdr | hs_cont. |        .
+ *    +-------------------+----------------------------+.........
+ *      ^         ^                                    ^
+ *      |         |                                    |
+ *      |         curr_hs->avail_mbz              flight_buf_write_pos
+ *      curr_hs->read_pos <= ^
+ *                                                     +--------+------------------------+
+ *                                                     |tag:enc | rec_hdr | enc rec cont.|
+ *                                                     +--------+------------------------+
+ *
+ *                                                     ===> shifted up when
+ *                                                     space for further records
+ *                                                     for the previous hs-msg
+ *                                                     are needed
+ *
+ */
+
+/*static flea_al_u16_t flea_dtls_rd_strm_have_data_left_in_curr_hs_msg(flea_dtls_hdsh_ctx_t* dtls_ctx__pt)
+{
+  return
+}*/
 
 // stream to be used by handsh_rdr and by TLS logic layer directly
 static flea_err_e THR_dtls_rd_strm_rd_func(
@@ -50,10 +86,24 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
   flea_stream_read_mode_e read_mode
 )
 {
+  flea_recprot_t* rec_prot__pt;
+  flea_dtls_hdsh_ctx_t* dtls_ctx__pt;
+  flea_dtls_rd_stream_hlp_t* hlp__pt = (flea_dtls_rd_stream_hlp_t*) custom_obj;
+
   FLEA_THR_BEG_FUNC();
+  rec_prot__pt = hlp__pt->rec_prot__pt;
+  dtls_ctx__pt = hlp__pt->dtls_ctx__pt;
 
-  /* read the next record */
+  if(!dtls_ctx__pt->is_flight_buf_incoming__u8)
+  {
+    dtls_ctx__pt->flight_buf_read_pos__u32  = 0;
+    dtls_ctx__pt->flight_buf_write_pos__u32 = 0;
+  }
 
+
+  /* check if the flight buffer has data left */
+
+  // FLEA_CCALL(THR_flea_recprot_t__read_data_inner(rec_prot__pt,
   /* TODO: remove the dtls handshake header fields */
 
   FLEA_THR_FIN_SEC_empty();

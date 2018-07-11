@@ -64,6 +64,15 @@ void flea__encode_U16_BE(
   res[1] = to_enc & 0xFF;
 }
 
+void flea__encode_U16_LE(
+  flea_al_u16_t to_enc,
+  flea_u8_t     res[2]
+)
+{
+  res[1] = to_enc >> 8;
+  res[0] = to_enc & 0xFF;
+}
+
 void flea__encode_U24_BE(
   flea_u32_t to_enc,
   flea_u8_t  res[3]

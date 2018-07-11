@@ -17,6 +17,11 @@ extern "C" {
 
 typedef struct
 {
+  flea_u16_t alfj;
+} flea_hs_msg_vn_assmb_buf_t;
+
+typedef struct
+{
   flea_s16_t send_msg_seq__s16;
 /* first seq-no of the last completely received flight: */
   flea_s16_t rec_last_flight_initial_msg_seq__s16;
@@ -27,12 +32,15 @@ typedef struct
   flea_s16_t    rec_msg_seq__s16;
   flea_u32_t    flight_buf_write_pos__u32;
   flea_u32_t    flight_buf_read_pos__u32;
+  flea_u16_t    assembly_read_pos__u16;
+  // flea_u16_t    assembly_write_pos__u16;
   flea_u8_t*    assembly_buf__pu8;
   flea_u8_t*    fragm_info_ptr__pu8;
   flea_al_u16_t pmtu_estimate__alu16;
   // flea_u16_t curr_frag_len__alu16;
 # ifdef FLEA_HEAP_MODE
   flea_u8_t*    flight_buf__bu8;
+  flea_u8_t     is_flight_buf_incoming__u8;
 # else
   flea_u8_t     flight_buf__bu8[FLEA_DTLS_FLIGHT_BUF_SIZE];
 # endif

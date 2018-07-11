@@ -10,6 +10,7 @@
 // TODO: GET RID OF THIS FILE
 
 #ifdef FLEA_HAVE_DTLS
+# if 0
 
 static flea_err_e THR_flea_dtls_hndsh_rdr__read_handsh_hdr(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
@@ -129,4 +130,5 @@ flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_hndsh_rdr__ctor_dtls */
 
+# endif /* if 0 */
 #endif /* ifdef FLEA_HAVE_DTLS */

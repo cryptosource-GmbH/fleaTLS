@@ -122,7 +122,26 @@ void flea__encode_U16_BE(
   flea_u8_t     res[2]
 );
 
+/**
+ * decode a 2-byte little endian encoded array.
+ *
+ * @param enc the 2-byte data to decode
+ *
+ * @return the little endian decoded value of the input data
+ */
 flea_al_u16_t flea__decode_U16_LE(const flea_u8_t enc[2]);
+
+/**
+ * Encode a 3-byte value little endian.
+ *
+ * @param to_enc the value to encode
+ * @param res 3-byte memory location to store the encoded result
+ */
+void flea__encode_U16_LE(
+  flea_al_u16_t to_enc,
+  flea_u8_t     res[2]
+);
+
 
 /**
  * Encode a 4-byte value little endian.

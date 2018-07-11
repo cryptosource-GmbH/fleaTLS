@@ -139,7 +139,8 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
 
         flea__encode_U24_BE(fragm_off__u32, frag_offs_and_len__alu8);
         flea__encode_U24_BE(to_go__u32, frag_offs_and_len__alu8 + 3);
-        // TODO: ENSURE THAT RECORD CANNOT BE BE FLUSHED PREMATURELY
+        // TODO: ENSURE THAT RECORD CANNOT BE BE FLUSHED PREMATURELY (necessary?
+        // why?).
         /* write the fragment offset and length */
         FLEA_CCALL(THR_flea_recprot_t__wrt_data(rec_prot__pt, CONTENT_TYPE_HANDSHAKE, frag_offs_and_len__alu8, 6));
         for(unsigned i = 0; i < 6; i++)
