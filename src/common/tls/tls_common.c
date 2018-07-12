@@ -1784,6 +1784,20 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
     FLEA_THROW("invalid value of max_fragment_length extension", FLEA_ERR_TLS_ILLEGAL_PARAMETER);
   }
 
+  // handle sess res case
+  if(hs_ctx__pt->is_sess_res__b)
+  {
+    flea_tls_srv_ctx_t* server_ctx__pt = (flea_tls_srv_ctx_t*) tls_ctx__pt->client_or_server_ctx__pv;
+    if(server_ctx__pt->active_session__t.session_data__t.max_frag_len_code__u8 != ext_value__u8)
+    {
+      FLEA_THROW(
+        "max_fragment_length extension value inconsisent with previously negotiated value",
+        FLEA_ERR_TLS_ILLEGAL_PARAMETER
+      );
+    }
+    FLEA_THR_RETURN();
+  }
+
   /*
    * If we are the server, we can resize our internal send/recv buffer.
    * If we are the client, we have to make sure that the extension has the
