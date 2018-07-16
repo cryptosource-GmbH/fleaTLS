@@ -698,6 +698,7 @@
  * cipher suites.
  */
 # define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 1024
+
 /**
  * If enabled, the maximum fragment length negotiation extension (RFC 6066) can
  * be negotiated if FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE is smaller than the 16834 bytes that

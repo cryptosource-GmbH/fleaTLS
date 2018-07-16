@@ -1,22 +1,22 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_tls_rec_prot__H_
-#define _flea_tls_rec_prot__H_
+# define _flea_tls_rec_prot__H_
 
-#include "flea/types.h"
-#include "flea/error.h"
-#include "internal/common/tls/tls_ciph_suite.h"
-#include "internal/common/tls/tls_conn_state.h"
-#include "internal/common/tls/tls_ctx_fwd.h"
+# include "flea/types.h"
+# include "flea/error.h"
+# include "internal/common/tls/tls_ciph_suite.h"
+# include "internal/common/tls/tls_conn_state.h"
+# include "internal/common/tls/tls_ctx_fwd.h"
 // #include "internal/common/tls/tls_common.h"
-#include "flea/rw_stream.h"
-#include "internal/common/tls/tls_rec_prot_fwd.h"
+# include "flea/rw_stream.h"
+# include "internal/common/tls/tls_rec_prot_fwd.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-#ifdef FLEA_HAVE_TLS
+# ifdef FLEA_HAVE_TLS
 
 #  define FLEA_TLS_RECORD_HDR_LEN      5
 #  define FLEA_DTLS_RECORD_HDR_LEN     (FLEA_TLS_RECORD_HDR_LEN + 8)
@@ -114,7 +114,7 @@ struct struct_flea_recprot_t
   flea_u8_t                    skip_empty_record__b;
 };
 
-# define flea_recprot_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
+#  define flea_recprot_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
 
 
 #  define FLEA_RP__SET_NOT_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt) \
@@ -217,16 +217,16 @@ void flea_recprot_t__set_max_pt_len(
   flea_u16_t      pt_len__u16
 );
 
-# ifdef FLEA_HEAP_MODE
+#  ifdef FLEA_HEAP_MODE
 
 flea_err_e THR_flea_recprot_t__resize_send_plaintext_size(
   flea_recprot_t* rec_prot__pt,
   flea_al_u16_t   new_len__alu16
 );
-# endif  // ifdef FLEA_HEAP_MODE
+#  endif // ifdef FLEA_HEAP_MODE
 
-#endif  // ifdef FLEA_HAVE_TLS
-#ifdef __cplusplus
+# endif // ifdef FLEA_HAVE_TLS
+# ifdef __cplusplus
 }
-#endif
+# endif
 #endif /* h-guard */
