@@ -15,10 +15,11 @@
 # only appear in new major versions.
 #
 
-## [ X.X.X ] UNRELEASED
+## [ 1.4.0 ] 2018-07-16 cryptosource GmbH	info@fleatls.com
 
 ### Added 
 - tls client/server config flag to allow anonymous peer certificates
+- maximum fragment length negotiation extension (RFC 6066)
 
 ### Fixed
 - insufficient initialization in the flea_ae_ctx_t__INIT macro resp. ctor, leading to
@@ -30,7 +31,7 @@ certificate chain of total length 2 is used and the root is not sent
 ### Changed
 - renamed THR_flea_ecb_mode_crypt_data to THR_flea_ecb_ctx_t__crypt_data to
 fit the naming convention
-- changed a number of API functions to fulfill the C99 limitation of 31
+- changed a number of API function names to fulfill the C99 limitation of 31
 	significant characters for external identifiers. The following renamings
 	(<from> <to>) were perfomed on the API of fleaTLS (with substring matching):
   - flea_public_key_t flea_pubkey_t

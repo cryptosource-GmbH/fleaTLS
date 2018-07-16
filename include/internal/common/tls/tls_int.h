@@ -131,7 +131,6 @@ struct struct_flea_tls_ctx_t
   (((flea_u32_t) ((tls_ctx__pt)->cfg_flags__e) \
   & flea_tls_flag__allow_dtls1_2) != 0)
 
-
 #  define flea_tls_handshake_ctx_t__INIT(__p) \
   do {(__p)->silent_alarm__u8 = 0; memset((__p), 0, sizeof(*(__p))); \
   } while(0)
@@ -142,7 +141,6 @@ struct struct_flea_tls_srv_ctx_t
   flea_tls_ctx_t                 tls_ctx__t;
   flea_tls_session_data_server_t active_session__t;
   flea_tls_session_mngr_t*       session_mngr_mbn__pt;
-  flea_u8_t                      server_resume_session__u8;
   flea_u8_t                      server_session_id_assigned__u8;
   flea_u8_t                      max_fragm_len_code__u8;
 #  ifdef FLEA_HAVE_TLS_CS_PSK
@@ -166,7 +164,6 @@ struct struct_flea_tls_clt_ctx_t
   flea_process_identity_hint_cb_f process_identity_hint_mbn_cb__f;
 #  endif // ifdef FLEA_HAVE_TLS_CS_PSK
 };
-
 
 # endif // ifdef FLEA_HAVE_TLS
 # ifdef __cplusplus

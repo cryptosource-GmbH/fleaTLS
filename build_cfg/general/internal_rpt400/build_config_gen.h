@@ -380,14 +380,13 @@
  * \defgroup tls_cfg TLS configuration
  */
 /**@{*/
-# if defined FLEA_HAVE_TLS_CS_PSK || ((defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && (defined FLEA_HAVE_HMAC || \
-  defined FLEA_HAVE_GCM))
+# if defined FLEA_HAVE_TLS_CS_PSK || ((defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && defined FLEA_HAVE_HMAC)
 
 /**
  * Control whether fleaTLS supports TLS.
  */
 #  define FLEA_HAVE_TLS
-# endif // if defined FLEA_HAVE_TLS_CS_PSK || ((defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && (defined FLEA_HAVE_HMAC || defined FLEA_HAVE_GCM))
+# endif
 
 # ifdef FLEA_HAVE_TLS
 
@@ -454,13 +453,13 @@
 #   define FLEA_HAVE_TLS_CS_RSA
 #  endif
 
-#  ifdef FLEA_HAVE_HMAC
+// #  ifdef FLEA_HAVE_HMAC
 
 /**
  * Control whether support for CBC-based cipher suites shall be compiled.
  */
-#   define FLEA_HAVE_TLS_CS_CBC
-#  endif
+#  define FLEA_HAVE_TLS_CS_CBC
+// #  endif
 
 #  ifdef FLEA_HAVE_GCM
 
@@ -516,30 +515,32 @@
 #   endif
 #  endif // ifdef FLEA_HAVE_TLS_CS_GCM
 #  ifdef FLEA_HAVE_TLS_CS_ECDHE
-#   ifdef FLEA_HAVE_SHA1
+#   ifdef FLEA_HAVE_TLS_CS_CBC
+#    ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
-#   endif // ifdef FLEA_HAVE_SHA1
+#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+#    endif // ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported.
  */
-#   define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-#   ifdef FLEA_HAVE_SHA384_512
+#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+#    ifdef FLEA_HAVE_SHA384_512
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
-#   endif
+#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+#    endif
+#   endif // ifdef FLEA_HAVE_TLS_CS_CBC
 #   ifdef FLEA_HAVE_TLS_CS_GCM
 
 /**
@@ -696,8 +697,7 @@
  * larger than FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE, depending on compiled
  * cipher suites.
  */
-# define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 300
-
+# define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 400
 /**
  * If enabled, the maximum fragment length negotiation extension (RFC 6066) can
  * be negotiated if FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE is smaller than the 16834 bytes that
@@ -712,7 +712,7 @@
  * maximal record size of records sent by fleaTLS. Should not be smaller than
  * 150 bytes. A small size reduces performance. May not be greater than 16384.
  */
-# define FLEA_TLS_RECORD_MAX_SEND_PLAINTEXT_SIZE 300
+# define FLEA_TLS_RECORD_MAX_SEND_PLAINTEXT_SIZE 150
 
 /**
  * The size of the flight buffer used within DTLS to store outgoing handshake messages for

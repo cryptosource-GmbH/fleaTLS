@@ -101,7 +101,8 @@ static const error_alert_pair_t error_alert_map__act [] = {
   {FLEA_ERR_TLS_UNKNOWN_PSK_IDENTITY,           FLEA_TLS_ALERT_DESC_UNKNOWN_PSK_IDENTITY},
   {FLEA_ERR_TLS_COULD_NOT_AGREE_ON_CMPR_METH,   FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE   },
   {FLEA_ERR_TLS_ILLEGAL_PARAMETER,              FLEA_TLS_ALERT_DESC_ILLEGAL_PARAMETER   },
-  {FLEA_ERR_TLS_RECORD_OVERFLOW,                FLEA_TLS_ALERT_DESC_RECORD_OVERFLOW     }
+  {FLEA_ERR_TLS_RECORD_OVERFLOW,                FLEA_TLS_ALERT_DESC_RECORD_OVERFLOW     },
+  {FLEA_ERR_PUBKEY_SEC_LEV_NOT_MET,             FLEA_TLS_ALERT_DESC_HANDSHAKE_FAILURE   }
 };
 
 
@@ -269,11 +270,12 @@ static void flea_tls_ctx_t__set_sec_reneg_flags(
 }
 
 flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(
-  flea_tls_ctx_t* tls_ctx__pt,
-  flea_al_u8_t    max_fragment_code__alu8
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_al_u8_t              max_fragment_code__alu8
 )
 {
   flea_al_u16_t max_fragment_length__alu16;
+  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
 
   FLEA_THR_BEG_FUNC();
   if(max_fragment_code__alu8 == 0)
@@ -286,20 +288,15 @@ flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(
     if(tls_ctx__pt->connection_end == FLEA_TLS_SERVER)
     {
       flea_tls_srv_ctx_t* server_ctx__pt = (flea_tls_srv_ctx_t*) tls_ctx__pt->client_or_server_ctx__pv;
-      if(server_ctx__pt->server_resume_session__u8)
+      if(hs_ctx__pt->is_sess_res__b)
       {
         /* do not evaluate the extension value */
         FLEA_THR_RETURN();
       }
       server_ctx__pt->max_fragm_len_code__u8 = max_fragment_code__alu8;
 
-      /* update extension ctrl to send max frag ext in server hello. The
-       * extension will be sent even when the server agrees to a session
-       * resumption request. */
-      tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH;
-
       // flush buffer before altering it
-      FLEA_CCALL(THR_flea_rw_stream_t__flush_write(tls_ctx__pt->rec_prot__t.rw_stream__pt));
+      FLEA_CCALL(THR_flea_recprot_t__write_flush(&tls_ctx__pt->rec_prot__t));
 
 # ifdef FLEA_HEAP_MODE
       // resize recv buffer
@@ -1740,12 +1737,14 @@ flea_u8_t flea_tls__get_max_fragment_length_byte_for_buf_size(flea_u16_t buf_len
 }
 
 flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
-  flea_tls_ctx_t*   tls_ctx__pt,
-  flea_rw_stream_t* rd_strm__pt,
-  flea_al_u16_t     ext_len__alu16
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_rw_stream_t*         rd_strm__pt,
+  flea_al_u16_t             ext_len__alu16
 )
 {
   flea_u8_t ext_value__u8;
+
+  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
 
   FLEA_THR_BEG_FUNC();
 
@@ -1770,6 +1769,20 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
     FLEA_THROW("invalid value of max_fragment_length extension", FLEA_ERR_TLS_ILLEGAL_PARAMETER);
   }
 
+  // handle sess res case
+  if(hs_ctx__pt->is_sess_res__b)
+  {
+    flea_tls_srv_ctx_t* server_ctx__pt = (flea_tls_srv_ctx_t*) tls_ctx__pt->client_or_server_ctx__pv;
+    if(server_ctx__pt->active_session__t.session_data__t.max_frag_len_code__u8 != ext_value__u8)
+    {
+      FLEA_THROW(
+        "max_fragment_length extension value inconsisent with previously negotiated value",
+        FLEA_ERR_TLS_ILLEGAL_PARAMETER
+      );
+    }
+    FLEA_THR_RETURN();
+  }
+
   /*
    * If we are the server, we can resize our internal send/recv buffer.
    * If we are the client, we have to make sure that the extension has the
@@ -1779,7 +1792,13 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
    */
 
 
-  FLEA_CCALL(THR_flea_tls_ctx_t__set_max_fragm_len(tls_ctx__pt, ext_value__u8));
+  FLEA_CCALL(THR_flea_tls_ctx_t__set_max_fragm_len(hs_ctx__pt, ext_value__u8));
+
+  /* update extension ctrl to send max frag ext in server hello. The
+   * extension will be sent even when the server agrees to a session
+   * resumption request. */
+  tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH;
+
 
   if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
@@ -2097,7 +2116,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
     {
       FLEA_CCALL(
         THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
-          tls_ctx__pt,
+          hs_ctx__pt,
           hs_rd_stream__pt,
           ext_len__u32
         )
@@ -2122,10 +2141,14 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
     flea_tls__get_max_fragment_length_byte_for_buf_size(FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE) &&
     tls_ctx__pt->connection_end == FLEA_TLS_SERVER)
   {
-    FLEA_THROW(
-      "Client did not send a Max Fragmentation Length Extension. Since the receive buffer doesn't support 2^14 Bytes as is mandatory for TLS 1.2 the handshake is aborted.",
-      FLEA_ERR_TLS_ILLEGAL_PARAMETER
-    );
+    // for sess res case the client can ommit the extension
+    if(!hs_ctx__pt->is_sess_res__b)
+    {
+      FLEA_THROW(
+        "Client did not send a Max Fragmentation Length Extension. Since the receive buffer doesn't support 2^14 Bytes as is mandatory for TLS 1.2 the handshake is aborted.",
+        FLEA_ERR_TLS_ILLEGAL_PARAMETER
+      );
+    }
   }
 
   if(receive_max_frag_len_ext__b == FLEA_FALSE &&

@@ -125,7 +125,7 @@ static flea_err_e THR_flea_tls__read_client_hello(
       session_id_len__u8
     )
   );
-  server_ctx__pt->server_resume_session__u8      = 0;
+  hs_ctx__pt->is_sess_res__b = 0;
   server_ctx__pt->server_session_id_assigned__u8 = (session_id_len__u8 != 0);
   if(!hs_ctx__pt->is_reneg__b && session_id_len__u8 && server_ctx__pt->session_mngr_mbn__pt)
   {
@@ -141,11 +141,11 @@ static flea_err_e THR_flea_tls__read_client_hello(
     );
     FLEA_CCALL(
       THR_flea_tls_ctx_t__set_max_fragm_len(
-        &server_ctx__pt->tls_ctx__t,
+        hs_ctx__pt,
         server_ctx__pt->active_session__t.session_data__t.max_frag_len_code__u8
       )
     );
-    server_ctx__pt->server_resume_session__u8 = resume__b; /* must come after the set_max_fragm_len call */
+    hs_ctx__pt->is_sess_res__b = resume__b; /* must come after the set_max_fragm_len call */
   }
 
   if(FLEA_TLS_CTX_IS_DTLS(tls_ctx))
@@ -426,7 +426,7 @@ static flea_err_e THR_flea_tls__send_server_hello(
   );
 
   FLEA_CCALL(THR_flea_tls__snd_hands_msg_content(hs_ctx__pt, p_hash_ctx, &session_id_len__u8, 1));
-  if(!server_ctx__pt->server_resume_session__u8 && server_ctx__pt->session_mngr_mbn__pt)
+  if(!hs_ctx__pt->is_sess_res__b && server_ctx__pt->session_mngr_mbn__pt)
   {
     FLEA_CCALL(THR_flea_rng__randomize(server_ctx__pt->active_session__t.session_id__au8, FLEA_TLS_SESSION_ID_LEN));
 
@@ -446,8 +446,6 @@ static flea_err_e THR_flea_tls__send_server_hello(
       session_id_len__u8
     )
   );
-
-
   suite__au8[0] = tls_ctx->selected_cipher_suite__e >> 8;
   suite__au8[1] = tls_ctx->selected_cipher_suite__e;
   FLEA_CCALL(
@@ -1159,7 +1157,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
     (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED))
   {
     FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx_copy__t));
-    if(!server_ctx__pt->server_resume_session__u8)
+    if(!hs_ctx__pt->is_sess_res__b)
     {
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
     }
@@ -1242,7 +1240,7 @@ flea_err_e THR_flea_tls__server_handshake(
       2 * FLEA_TLS_HELLO_RANDOM_SIZE
     )
   );
-  server_ctx__pt->server_resume_session__u8 = 0;
+  hs_ctx__t.is_sess_res__b          = FLEA_FALSE;
   handshake_state.initialized       = FLEA_TRUE;
   handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_HELLO;
   if(!tls_ctx->trust_store_mbn_for_server__pt)
@@ -1309,7 +1307,7 @@ flea_err_e THR_flea_tls__server_handshake(
           /*
            * Enable encryption for incoming messages
            */
-          if(!server_ctx__pt->server_resume_session__u8)
+          if(!hs_ctx__t.is_sess_res__b)
           {
             // setup key material
             FLEA_CCALL(
@@ -1353,7 +1351,7 @@ flea_err_e THR_flea_tls__server_handshake(
               key_block__t.data__pu8
             )
           );
-          if(server_ctx__pt->server_resume_session__u8)
+          if(hs_ctx__t.is_sess_res__b)
           {
             flea_byte_vec_t__dtor(&key_block__t);
           }
@@ -1384,7 +1382,7 @@ flea_err_e THR_flea_tls__server_handshake(
 
         FLEA_CCALL(THR_flea_tls__send_server_hello(server_ctx__pt, &hs_ctx__t, &p_hash_ctx));
 
-        if(!server_ctx__pt->server_resume_session__u8)
+        if(!hs_ctx__t.is_sess_res__b)
         {
           if(kex_method__t != FLEA_TLS_KEX_PSK)
           {
@@ -1461,7 +1459,7 @@ flea_err_e THR_flea_tls__server_handshake(
           FLEA_THROW("delayed error in tls handshake", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
         }
         FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(hs_ctx__pt));
-        if(server_ctx__pt->server_resume_session__u8)
+        if(hs_ctx__t.is_sess_res__b)
         {
           flea_al_u16_t key_block_len__alu16;
           memcpy(
@@ -1497,7 +1495,7 @@ flea_err_e THR_flea_tls__server_handshake(
         );
 
         FLEA_CCALL(THR_flea_tls__send_finished(hs_ctx__pt, &p_hash_ctx));
-        if(!server_ctx__pt->server_resume_session__u8)
+        if(!hs_ctx__t.is_sess_res__b)
         {
           handshake_state.finished = FLEA_TRUE;
           break;

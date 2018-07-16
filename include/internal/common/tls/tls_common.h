@@ -260,9 +260,9 @@ flea_err_e THR_flea_tls__read_sig_algs_field_and_find_best_match(
 flea_u8_t flea_tls__get_max_fragment_length_byte_for_buf_size(flea_u16_t buf_len__u16);
 
 flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
-  flea_tls_ctx_t*   tls_ctx__pt,
-  flea_rw_stream_t* rd_strm__pt,
-  flea_al_u16_t     ext_len__alu16
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_rw_stream_t*         rd_strm__pt,
+  flea_al_u16_t             ext_len__alu16
 );
 
 flea_err_e THR_flea_tls_ctx_t__send_max_fragment_length_ext(
@@ -321,8 +321,8 @@ void flea_tls_ctx_t__begin_handshake(flea_tls_ctx_t* tls_ctx__pt);
 
 
 flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(
-  flea_tls_ctx_t* tls_ctx__pt,
-  flea_al_u8_t    max_fragment_coe__alu8
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_al_u8_t              max_fragment_coe__alu8
 );
 
 #  ifdef __cplusplus

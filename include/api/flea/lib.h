@@ -1,5 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
+
 #include "internal/common/default.h"
 #include "flea/types.h"
 #include "flea/asn1_date.h"
@@ -27,7 +28,7 @@ extern "C" {
 /**
  * fleaTLS minor version number
  */
-# define FLEA_VERSION_MINOR 3
+# define FLEA_VERSION_MINOR 4
 
 /**
  * fleaTLS path version number
