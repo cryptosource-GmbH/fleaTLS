@@ -14,7 +14,7 @@
 #ifdef FLEA_HAVE_DAVIES_MEYER_HASH
 void flea_hash_davies_meyer_aes128_init(flea_hash_ctx_t* ctx__pt)
 {
-  memset(ctx__pt->hash_state, 0, sizeof(ctx__pt->hash_state) * 4);
+  memset(ctx__pt->hash_state, 0, sizeof(ctx__pt->hash_state[0]) * 4);
 }
 
 flea_err_e THR_flea_hash_davies_meyer_aes128_compression(
