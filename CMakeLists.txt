@@ -37,6 +37,13 @@ IF(NOT CMAKE_BUILD_TYPE)
       FORCE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
 
+
+SET(WarningIsError "false" CACHE STRING "whether to consider compilation warnings
+errors")
+IF(${WarningIsError} STREQUAL "true")
+  ADD_DEFINITIONS(-Werror)
+ENDIF()
+
 SET(afl "false" CACHE STRING "wether to compile with afl-gcc")
 IF(${afl} STREQUAL "true")
   SET($ENV{AFL_USE_ASAN} "1")  
