@@ -16,6 +16,12 @@
 extern "C" {
 # endif
 
+# ifdef FLEA_HAVE_DTLS
+#  define FLEA_XTLS_MAX_RECORD_HDR_LEN FLEA_DTLS_RECORD_HDR_LEN
+# else
+#  define FLEA_XTLS_MAX_RECORD_HDR_LEN FLEA_TLS_RECORD_HDR_LEN
+# endif
+
 # ifdef FLEA_HAVE_TLS
 
 #  define FLEA_TLS_RECORD_HDR_LEN      5
