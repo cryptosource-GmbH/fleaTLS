@@ -1,6 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
-// some comment26
+// some comment27
 #include "internal/common/tls/dtls_stream.h"
 
 /*
@@ -87,12 +87,12 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
   flea_stream_read_mode_e read_mode
 )
 {
-  flea_recprot_t* rec_prot__pt;
+  // flea_recprot_t* rec_prot__pt;
   flea_dtls_hdsh_ctx_t* dtls_ctx__pt;
   flea_dtls_rd_stream_hlp_t* hlp__pt = (flea_dtls_rd_stream_hlp_t*) custom_obj;
 
   FLEA_THR_BEG_FUNC();
-  rec_prot__pt = hlp__pt->rec_prot__pt;
+  // rec_prot__pt = hlp__pt->rec_prot__pt;
   dtls_ctx__pt = hlp__pt->dtls_ctx__pt;
 
   if(!dtls_ctx__pt->is_flight_buf_incoming__u8)
