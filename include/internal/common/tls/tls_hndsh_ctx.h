@@ -38,9 +38,9 @@ typedef struct
   flea_u8_t*    fragm_info_ptr__pu8;
   flea_al_u16_t pmtu_estimate__alu16;
   // flea_u16_t curr_frag_len__alu16;
+  flea_u8_t     is_flight_buf_incoming__u8;
 # ifdef FLEA_HEAP_MODE
   flea_u8_t*    flight_buf__bu8;
-  flea_u8_t     is_flight_buf_incoming__u8;
 # else
   flea_u8_t     flight_buf__bu8[FLEA_DTLS_FLIGHT_BUF_SIZE];
 # endif
