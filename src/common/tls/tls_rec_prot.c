@@ -1315,7 +1315,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
 # endif /* ifdef DBG_PRINT */
 
       /* test if content might have been only partially read: */
-      if(rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8 <=
+      if(rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8 <
         rec_prot__pt->raw_read_buf_content__u16)
       {
         if(rec_prot__pt->curr_rec_content_len__u16 || rec_prot__pt->skip_empty_record__b)
@@ -1365,6 +1365,11 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
       }
       else
       {
+        printf("total record content : %u\n", rec_prot__pt->curr_rec_content_len__u16);
+        printf(
+          "read so far (minus header lengt) = %u\n",
+          rec_prot__pt->raw_read_buf_content__u16 - rec_prot__pt->record_hdr_len__u8
+        );
         printf("current record content not yet completely read\n");
       }
 

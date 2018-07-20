@@ -1029,9 +1029,14 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
   flea_hash_ctx_t__INIT(&hash_ctx_copy__t);
   flea_tls_handsh_reader_t__INIT(&handsh_rdr__t);
 
+  printf("sel. cs. start of handle hs msg = %u\n", tls_ctx->selected_cipher_suite__e);
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t, FLEA_TLS_CTX_IS_DTLS(tls_ctx)));
-  if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED ||
-    flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_VERIFY)
+  // TODO: PUT IN:
+  if(/*((handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_FINISHED) ||
+      handshake_state->expected_messages &  FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY) &&*/
+    (
+      (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED) ||
+      (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_VERIFY)))
   {
     /*
      * for read_finished use a copy of hash_ctx where the finished message is not included yet
@@ -1129,6 +1134,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
         ecdhe_priv_key__pt
       )
     );
+    printf("sel. cs. after read_key = %u\n", tls_ctx->selected_cipher_suite__e);
     if(handshake_state->send_client_cert == FLEA_TRUE)
     {
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY;
@@ -1150,12 +1156,15 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
         peer_public_key__pt
       )
     );
+    printf("sel. cs. after read cert ver. = %u\n", tls_ctx->selected_cipher_suite__e);
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC;
   }
   else if((handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED) &&
     (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED))
   {
+    printf("starting to read finished\n");
     FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx_copy__t));
+    printf("did read finished\n");
     if(!hs_ctx__pt->is_sess_res__b)
     {
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
@@ -1269,6 +1278,7 @@ flea_err_e THR_flea_tls__server_handshake(
 
       if(cont_type__e == CONTENT_TYPE_HANDSHAKE)
       {
+        printf("sel. cs. before handle hs msg = %u\n", tls_ctx->selected_cipher_suite__e);
         FLEA_CCALL(
           THR_flea_tls_server_handle_handsh_msg(
             server_ctx__pt,
@@ -1280,6 +1290,7 @@ flea_err_e THR_flea_tls__server_handshake(
             &ecdhe_priv_key__t
           )
         );
+        printf("sel. cs. after handle hs msg = %u\n", tls_ctx->selected_cipher_suite__e);
       }
       else if(cont_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
       {
