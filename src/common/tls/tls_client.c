@@ -1016,7 +1016,8 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
 
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t));
 
-  if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
+  if((handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED) &&
+    (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED))
   {
     FLEA_CCALL(
       THR_flea_tls_prl_hash_ctx_t__create_hash_ctx_as_copy(

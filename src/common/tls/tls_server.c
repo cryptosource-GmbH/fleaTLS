@@ -1014,8 +1014,10 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
   flea_tls_handsh_reader_t__INIT(&handsh_rdr__t);
 
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t));
-  if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED ||
-    flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_VERIFY)
+  if(((handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_FINISHED) ||
+    (handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY)) &&
+    (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED ||
+    flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_VERIFY))
   {
     /*
      * for read_finished use a copy of hash_ctx where the finished message is not included yet
