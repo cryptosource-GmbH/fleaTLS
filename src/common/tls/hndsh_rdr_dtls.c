@@ -68,7 +68,7 @@ static flea_err_e THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
   handsh_rdr__pt->hlp__t.fragm_length__u32 = flea__decode_U24_BE(&hdr__au8[9]);
 
   FLEA_THR_FIN_SEC_empty();
-} /* THR_flea_dtls_hndsh_rdr__read_handsh_hdr */
+} /* THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls */
 
 flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
