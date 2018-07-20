@@ -23,14 +23,14 @@ flea_err_e THR_flea_tls_handsh_reader_t__ctor(
   FLEA_THR_BEG_FUNC();
   handsh_rdr__pt->is_dtls__b = is_dtls__b;
 
-  /*if(is_dtls__b)
+  if(is_dtls__b)
   {
     FLEA_CCALL(THR_flea_tls_hndsh_rdr__ctor_dtls(handsh_rdr__pt, rec_prot__pt));
   }
   else
-  {*/
-  FLEA_CCALL(THR_flea_tls_hndsh_rdr__ctor_tls(handsh_rdr__pt, rec_prot__pt));
-  // }
+  {
+    FLEA_CCALL(THR_flea_tls_hndsh_rdr__ctor_tls(handsh_rdr__pt, rec_prot__pt));
+  }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_handsh_reader_t__ctor */
 
@@ -57,10 +57,23 @@ flea_err_e THR_flea_tls_handsh_reader_t__set_hash_ctx(
   flea_tls_prl_hash_ctx_t*  p_hash_ctx__pt
 )
 {
+  flea_al_u8_t hdr_size__alu8 = FLEA_TLS_HANDSH_HDR_LEN;
+
   FLEA_THR_BEG_FUNC();
   handsh_rdr__pt->hlp__t.p_hash_ctx__pt = p_hash_ctx__pt;
-  // TODO: ADAPT LENGTH 4 FOR DTLS
-  FLEA_CCALL(THR_flea_tls_prl_hash_ctx_t__update(p_hash_ctx__pt, handsh_rdr__pt->hlp__t.handsh_hdr__au8, 4));
+# ifdef FLEA_HAVE_DTLS
+  if(handsh_rdr__pt->is_dtls__b)
+  {
+    hdr_size__alu8 = FLEA_DTLS_HANDSH_HDR_LEN;
+  }
+# endif /* ifdef FLEA_HAVE_DTLS */
+  FLEA_CCALL(
+    THR_flea_tls_prl_hash_ctx_t__update(
+      p_hash_ctx__pt,
+      handsh_rdr__pt->hlp__t.handsh_hdr__au8,
+      hdr_size__alu8
+    )
+  );
   FLEA_THR_FIN_SEC_empty();
 }
 

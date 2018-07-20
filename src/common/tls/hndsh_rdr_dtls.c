@@ -10,14 +10,13 @@
 // TODO: GET RID OF THIS FILE
 
 #ifdef FLEA_HAVE_DTLS
-# if 0
 
-static flea_err_e THR_flea_dtls_hndsh_rdr__read_handsh_hdr(
+static flea_err_e THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
   flea_rw_stream_t*         stream__pt,
   flea_u8_t*                handsh_type__pu8,
   flea_u32_t*               msg_len__pu32,
-  flea_u8_t                 handsh_hdr_mbn__pu8[4]
+  flea_u8_t*                handsh_hdr_mbn__pu8
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -63,6 +62,7 @@ static flea_err_e THR_flea_dtls_hndsh_rdr__read_handsh_hdr(
      uint24 fragment_offset;                           // New field
      uint24 fragment_length;                           // New field
      */
+  /* these fields are all irrelevant on this layer. fragmentation information was already corrected by the underlying assembly layer. */
   handsh_rdr__pt->hlp__t.msg_seq__u16      = flea__decode_U16_BE(&hdr__au8[4]);
   handsh_rdr__pt->hlp__t.fragm_offset__u32 = flea__decode_U24_BE(&hdr__au8[6]);
   handsh_rdr__pt->hlp__t.fragm_length__u32 = flea__decode_U24_BE(&hdr__au8[9]);
@@ -72,10 +72,8 @@ static flea_err_e THR_flea_dtls_hndsh_rdr__read_handsh_hdr(
 
 flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
-  flea_dtls_hdsh_ctx_t*     dtls_ctx__pt,
+  // flea_dtls_hdsh_ctx_t*     dtls_ctx__pt,
   flea_recprot_t*           rec_prot__pt
-  // TODO: NEED EXPTECTED MESSAGE TYPE: HS OR CCS,
-  // BETTER DO THIS BEFORE THE CURRENT.
   //
   // TODO: THE ASSEMBLY MUST BE ACCROSS THE WHOLE FLIGHT, WHILE THIS OBJECT IS
   // JUST FOR A SINGLE HS-MSG
@@ -83,9 +81,50 @@ flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
 )
 {
   flea_u32_t read_limit__u32;
-  bool received_hdr_from_current_flight__b = FLEA_FALSE;
+
+  // bool received_hdr_from_current_flight__b = FLEA_FALSE;
 
   FLEA_THR_BEG_FUNC();
+
+
+  FLEA_CCALL(
+    // can stay
+    THR_flea_rw_stream_t__ctor_rec_prot(
+      &handsh_rdr__pt->rec_prot_rd_stream__t,
+      &handsh_rdr__pt->rec_prot_rdr_hlp__t,
+      rec_prot__pt,
+      CONTENT_TYPE_HANDSHAKE
+    )
+  );
+
+  FLEA_CCALL(
+    THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
+      handsh_rdr__pt,
+      &handsh_rdr__pt->rec_prot_rd_stream__t,
+      &handsh_rdr__pt->hlp__t.handshake_msg_type__u8,
+      &read_limit__u32,
+      handsh_rdr__pt->hlp__t.handsh_hdr__au8
+    )
+  );
+# if 0
+  FLEA_CCALL(
+    THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
+      // &handsh_rdr__pt->rec_prot_rd_stream__t,
+      &handsh_rdr__pt->hlp__t.handshake_msg_type__u8,
+      &read_limit__u32,
+      handsh_rdr__pt->hlp__t.handsh_hdr__au8
+    )
+  );
+# endif /* if 0 */
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__ctor_tls_handsh_reader(
+      &handsh_rdr__pt->handshake_read_stream__t,
+      &handsh_rdr__pt->hlp__t,
+      &handsh_rdr__pt->rec_prot_rd_stream__t,
+      read_limit__u32
+    )
+  );
+# if 0
 // TODO: THIS FUNCTION IS INVOKED FOR EACH NEW HANDSHAKE MESSAGE
 // BUT THE RESENDING CAN ONLY BE DONE WHILE THE PREVIOUS FLIGHT IS STILL IN THE
 // FLIGHT BUFFER, I.E. NO RECORDS FORM THE NEW FLIGHT HAVE BEEN RECEIVED SO FAR
@@ -126,9 +165,8 @@ flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
   }
   dtls_ctx__pt->flight_buf_read_pos__u32  = 0;
   dtls_ctx__pt->flight_buf_write_pos__u32 = 0;
-
+# endif /* if 0 */
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_hndsh_rdr__ctor_dtls */
 
-# endif /* if 0 */
 #endif /* ifdef FLEA_HAVE_DTLS */

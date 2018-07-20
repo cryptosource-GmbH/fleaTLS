@@ -101,7 +101,6 @@ static flea_err_e THR_flea_tls__read_client_hello(
     )
   );
 
-
   // read session id length
   FLEA_CCALL(
     THR_flea_rw_stream_t__read_byte(
