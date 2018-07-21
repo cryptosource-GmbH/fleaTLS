@@ -1031,12 +1031,10 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
 
   printf("sel. cs. start of handle hs msg = %u\n", tls_ctx->selected_cipher_suite__e);
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t, FLEA_TLS_CTX_IS_DTLS(tls_ctx)));
-  // TODO: PUT IN:
-  if(/*((handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_FINISHED) ||
-      handshake_state->expected_messages &  FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY) &&*/
-    (
-      (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED) ||
-      (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_VERIFY)))
+  if(((handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_FINISHED) ||
+    (handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY)) &&
+    (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED ||
+    flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_VERIFY))
   {
     /*
      * for read_finished use a copy of hash_ctx where the finished message is not included yet
