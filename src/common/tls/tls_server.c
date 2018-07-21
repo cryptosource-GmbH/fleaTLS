@@ -1035,6 +1035,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
     (handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY)) &&
     (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED ||
     flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_VERIFY))
+
   {
     /*
      * for read_finished use a copy of hash_ctx where the finished message is not included yet
