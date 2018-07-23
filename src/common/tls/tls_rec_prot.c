@@ -97,7 +97,8 @@ static flea_err_e THR_flea_recprot_t__compute_mac_cbc_hmac(
   flea_tls_con_stt_t* conn_state__pt,
   flea_u8_t*          data,
   flea_u32_t          data_len,
-  flea_u8_t*          mac_out
+  flea_u8_t*          mac_out,
+  flea_u16_t          epoch_mbn_pu16
 )
 {
   flea_mac_ctx_t mac__t;
@@ -126,6 +127,12 @@ static flea_err_e THR_flea_recprot_t__compute_mac_cbc_hmac(
   // TODO: make a function to set the encoded sequence number
   seq_lo__u32 = conn_state__pt->sequence_number__au32[0];
   seq_hi__u32 = conn_state__pt->sequence_number__au32[1];
+
+  /* set the DTLS epcoh in the high u32 */
+  if(epoch_mbn_pu16)
+  {
+    seq_hi__u32 |= (epoch_mbn_pu16 << 16);
+  }
   flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
   flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
   FLEA_CCALL(
@@ -625,6 +632,10 @@ flea_err_e THR_flea_recprot_t__wrt_data(
       /* no need to write new header in this case: content stays, length comes later */
     }
   }
+  if(content_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
+  {
+    rec_prot__pt->write_next_rec_epoch__u16++;
+  }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__wrt_data */
 
@@ -745,7 +756,9 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_cbc_hmac(
       &rec_prot__pt->read_state__t,
       data + iv_len,
       plaintext_len__alu16,
-      mac__bu8
+      mac__bu8,
+      FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt)
+      // rec_prot__pt->write_next_rec_epoch__u16
     )
   );
 #  endif /* ifdef FLEA_SCCM_USE_CACHEWARMING_IN_TA_CM */
@@ -756,7 +769,8 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_cbc_hmac(
       &rec_prot__pt->read_state__t,
       data + iv_len,
       data_len,
-      mac__bu8
+      mac__bu8,
+      FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt)
     )
   );
 
@@ -780,7 +794,8 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_cbc_hmac(
           &rec_prot__pt->read_state__t,
           data + iv_len,
           maced_data_len__alu16,
-          mac__bu8
+          mac__bu8,
+          FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt)
         )
       );
     }
@@ -831,7 +846,8 @@ static flea_err_e THR_flea_recprot_t__encr_rcrd_cbc_hmac(
       &rec_prot__pt->write_state__t,
       data,
       data_len,
-      mac
+      mac,
+      rec_prot__pt->write_next_rec_epoch__u16
     )
   );
 
@@ -973,6 +989,11 @@ static flea_err_e THR_flea_recprot_t__encr_rcrd_gcm(
   // TODO: REMOVE UNNECCESSARY DECODING/ ENCODING!
   seq_lo__u32 = rec_prot__pt->write_state__t.sequence_number__au32[0];
   seq_hi__u32 = rec_prot__pt->write_state__t.sequence_number__au32[1];
+
+  if(FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt))
+  {
+    seq_hi__u32 |= (rec_prot__pt->write_next_rec_epoch__u16 << 16);
+  }
   // TODO: FOR DTLS, COMPUTE RECORD MAC (PROBABLY) DIRECTLY ON ENCODED RECORD HRD+DATA
   flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
   flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
