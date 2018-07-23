@@ -1608,10 +1608,10 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           rec_prot__pt->read_state__t.sequence_number__au32[1] = 0;
           for(i = 0; i < 8; i++)
           {
-            flea_u32_t s__u32 = rec_prot__pt->read_state__t.sequence_number__au32[i / 4];
+            flea_u32_t s__u32 = rec_prot__pt->read_state__t.sequence_number__au32[1 - (i / 4)];
             s__u32 <<= 8;
             s__u32  |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++];
-            rec_prot__pt->read_state__t.sequence_number__au32[i / 4] = s__u32;
+            rec_prot__pt->read_state__t.sequence_number__au32[1 - (i / 4)] = s__u32;
           }
           rec_epoch__alu16 = FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt);
           if(rec_epoch__alu16 != rec_prot__pt->read_next_rec_epoch__u16)
