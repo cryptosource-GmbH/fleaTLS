@@ -2300,6 +2300,7 @@ flea_err_e THR_flea_tls__read_peer_ecdhe_key_and_compute_premaster_secret(
 
 void flea_tls_ctx_t__begin_handshake(flea_tls_ctx_t* tls_ctx__pt)
 {
+  // TODO: IN CASE OF DTLS, THIS MAY ONLY BE DONE AFTER THE HANDSHAKE IS COMPLETED
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
   flea_byte_vec_t__reset(&tls_ctx__pt->peer_ee_cert_data__t);
   flea_x509_cert_ref_t__dtor(&tls_ctx__pt->peer_ee_cert_ref__t);

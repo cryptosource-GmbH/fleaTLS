@@ -31,6 +31,13 @@ extern "C" {
 #  define FLEA_TLS_ALT_SEND_BUF_SIZE   (FLEA_TLS_RECORD_MAX_SEND_SIZE + FLEA_XTLS_MAX_RECORD_HDR_LEN)
 #  define FLEA_TLS_STD_MAX_RECORD_SIZE 18432
 
+/**
+ * Get the epoch of the currently held received record.
+ */
+#  define FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt) \
+  ((rec_prot__pt)->read_state__t.sequence_number__au32[0] \
+  >> 16)
+
 typedef enum
 {
   CONTENT_TYPE_ANY                = 0,
@@ -81,6 +88,8 @@ struct struct_flea_recprot_t
 {
   flea_tls_con_stt_t read_state__t;
   flea_tls_con_stt_t write_state__t;
+  flea_u16_t         read_next_rec_epoch__u16;
+  flea_u16_t         write_next_rec_epoch__u16;
 #  ifdef FLEA_HEAP_MODE
   flea_u8_t*         send_rec_buf_raw__bu8;
   flea_u8_t*         alt_send_buf__raw__bu8;
@@ -117,7 +126,7 @@ struct struct_flea_recprot_t
   flea_u8_t                    record_hdr_len__u8;
   flea_u8_t                    ctrl_field__u8;
   flea_u8_t                    is_dtls_active__u8;
-  flea_u8_t                    skip_empty_record__b;
+//  flea_u8_t                    skip_empty_record__b;
 };
 
 #  define flea_recprot_t__INIT(__p) FLEA_ZERO_STRUCT(__p)

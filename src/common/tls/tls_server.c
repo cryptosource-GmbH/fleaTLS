@@ -1022,7 +1022,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
   flea_tls_handsh_reader_t handsh_rdr__t;
   flea_hash_ctx_t hash_ctx_copy__t;
   flea_hash_id_e hash_id__t;
-
+  flea_al_u8_t cont_type__alu8;
   flea_tls_ctx_t* tls_ctx = &server_ctx__pt->tls_ctx__t;
 
   FLEA_THR_BEG_FUNC();
@@ -1064,9 +1064,9 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, p_hash_ctx__pt));
 
 
+  cont_type__alu8 = flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t);
   if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_HELLO)
   {
-    flea_al_u8_t cont_type__alu8 = flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t);
     if(cont_type__alu8 == HANDSHAKE_TYPE_CLIENT_HELLO)
     {
       FLEA_CCALL(THR_flea_tls__read_client_hello(server_ctx__pt, hs_ctx__pt, &handsh_rdr__t));
@@ -1083,8 +1083,21 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
       FLEA_THROW("Unexpected message", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
     }
   }
+  else if(FLEA_TLS_CTX_IS_DTLS(tls_ctx) && (cont_type__alu8 == HANDSHAKE_TYPE_CLIENT_HELLO))
+  {
+    // TODO: SAVE CURRENT CONNECTION IF ALREADY ESTABLISHED AND RENABLE IT AFTER THE NEW HANDSHAKE HAS FAILED
+    flea_al_u16_t rec_epoch__alu16 = FLEA_RP__GET_RD_CURR_REC_EPOCH(&tls_ctx->rec_prot__t);
+    if(rec_epoch__alu16 == 0)
+    {
+      FLEA_THROW("received new initial client hello", FLEA_ERR_INIT_CLHELLO_DURING_ACTIVE_DTLS_CONN);
+    }
+    else
+    {
+      FLEA_THROW("received client hello when it was unexptected", FLEA_ERR_TLS_UNEXP_MSG_IN_HANDSH);
+    }
+  }
   else if((handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE) &&
-    (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE))
+    (cont_type__alu8))
   {
     // base allowed cl_certs on allowed signature algorithms
     flea_u8_t cert_mask__u8 = 0;
@@ -1122,7 +1135,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
   // else if because if we don't get a certificate when we expect one we also
   // don't want to process the Cl. KEX
   else if((handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_KEY_EXCHANGE) &&
-    (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE))
+    (cont_type__alu8 == HANDSHAKE_TYPE_CLIENT_KEY_EXCHANGE))
   {
     FLEA_CCALL(
       THR_flea_tls__rd_clt_kex(
@@ -1144,7 +1157,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
     }
   }
   else if((handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY) &&
-    (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_VERIFY))
+    (cont_type__alu8 == HANDSHAKE_TYPE_CERTIFICATE_VERIFY))
   {
     FLEA_CCALL(
       THR_flea_tls__read_cert_verify(
@@ -1159,7 +1172,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC;
   }
   else if((handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED) &&
-    (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED))
+    (cont_type__alu8 == HANDSHAKE_TYPE_FINISHED))
   {
     printf("starting to read finished\n");
     FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx_copy__t));
@@ -1184,7 +1197,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
   );
 } /* THR_flea_tls_server_handle_handsh_msg */
 
-flea_err_e THR_flea_tls__server_handshake(
+static flea_err_e THR_flea_tls__server_handshake_inner(
   flea_tls_srv_ctx_t* server_ctx__pt,
   flea_bool_t         is_reneg__b
 )
@@ -1312,6 +1325,7 @@ flea_err_e THR_flea_tls__server_handshake(
               flea_read_full
             )
           );
+          printf("sel. cs. after read CCS\n");
 
           /*
            * Enable encryption for incoming messages
@@ -1536,7 +1550,25 @@ flea_err_e THR_flea_tls__server_handshake(
     flea_privkey_t__dtor(&ecdhe_priv_key__t);
     flea_tls_handshake_ctx_t__dtor(&hs_ctx__t);
   );
-} /* THR_flea_tls__server_handshake */
+} /* THR_flea_tls__server_handshake_inner */
+
+flea_err_e THR_flea_tls__server_handshake(
+  flea_tls_srv_ctx_t* server_ctx__pt,
+  flea_bool_t         is_reneg__b
+)
+{
+  flea_err_e err;
+
+  FLEA_THR_BEG_FUNC();
+  do
+  {
+    err = THR_flea_tls__server_handshake_inner(server_ctx__pt, is_reneg__b);
+  } while(err == FLEA_ERR_INIT_CLHELLO_DURING_ACTIVE_DTLS_CONN);
+
+  FLEA_THROW("rethrowing error during server handshake", err);
+
+  FLEA_THR_FIN_SEC_empty();
+}
 
 flea_err_e THR_flea_tls_srv_ctx_t__read_app_data(
   flea_tls_srv_ctx_t*     tls_server_ctx__pt,

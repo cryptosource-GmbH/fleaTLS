@@ -217,129 +217,134 @@ typedef enum
    * Thrown if renegotiation is requested through the API but due to the
    * connection's configuration, renegotiation is not allowed.
    */
-  FLEA_ERR_TLS_RENEG_NOT_ALLOWED           = 0x57,
+  FLEA_ERR_TLS_RENEG_NOT_ALLOWED                = 0x57,
 
   /**
    * The parameters sent by the peer during the TLS handshake led to a handshake
    * failure.
    */
-  FLEA_ERR_TLS_HANDSHK_FAILURE             = 0x58,
+  FLEA_ERR_TLS_HANDSHK_FAILURE                  = 0x58,
 
   /**
    * The TLS connection was ended due to receiving a close-notify alert.
    */
-  FLEA_ERR_TLS_REC_CLOSE_NOTIFY            = 0x59,
+  FLEA_ERR_TLS_REC_CLOSE_NOTIFY                 = 0x59,
+
+  /**
+   * Only for DTLS: signal to the server's main handshake function that a new handshake was initiated from the client.
+   */
+  FLEA_ERR_INIT_CLHELLO_DURING_ACTIVE_DTLS_CONN = 0x5A,
 
   /**
    * thrown if we couldn't agree on a received SignatureAlgorithms field
    */
-  FLEA_ERR_TLS_NO_SIG_ALG_MATCH            = 0x60,
+  FLEA_ERR_TLS_NO_SIG_ALG_MATCH                 = 0x60,
 
   /**
    * thrown if the server does not recognize the client's psk_identity.
    */
-  FLEA_ERR_TLS_UNKNOWN_PSK_IDENTITY        = 0x61,
+  FLEA_ERR_TLS_UNKNOWN_PSK_IDENTITY             = 0x61,
 
   /**
    * thrown if a parameter in a handshake message is out of range / inconsistent
    * with other fields
    */
-  FLEA_ERR_TLS_ILLEGAL_PARAMETER           = 0x62,
+  FLEA_ERR_TLS_ILLEGAL_PARAMETER                = 0x62,
 
   /*
    * thrown if we explicitely want to trigger a RECORD_OVERFLOW alert.
    */
-  FLEA_ERR_TLS_RECORD_OVERFLOW             = 0x63,
+  FLEA_ERR_TLS_RECORD_OVERFLOW                  = 0x63,
 
   /**
    * The DTLS epoch counter has been exhausted.
    */
-  FLEA_ERR_TLS_SQN_EXHAUSTED               = 0x64,
+  FLEA_ERR_TLS_SQN_EXHAUSTED                    = 0x64,
 
   /**
    * The PKCS#8 key type provided in the algorithm identifier is not supported.
    */
-  FLEA_ERR_PKCS8_INVALID_KEY_OID           = 0x70,
+  FLEA_ERR_PKCS8_INVALID_KEY_OID                = 0x70,
 
   /**
    * An optional element in a PKCS#8 structure (optional in the ASN.1 specification) is missing which is necessary for the requested operation, e.g. for the creation of a public key.
    */
-  FLEA_ERR_PKCS8_MISSING_OPT_ELEMENT       = 0x71,
+  FLEA_ERR_PKCS8_MISSING_OPT_ELEMENT            = 0x71,
 
   /**
    * A requested operation on a flea_rw_stream_t object is not supported by that
    * object.
    */
-  FLEA_ERR_STREAM_FUNC_NOT_SUPPORTED       = 0x90,
+  FLEA_ERR_STREAM_FUNC_NOT_SUPPORTED            = 0x90,
 
   /**
    * A read stream has reached end-of-file.
    */
-  FLEA_ERR_STREAM_EOF                      = 0x91,
+  FLEA_ERR_STREAM_EOF                           = 0x91,
 
   /**
    * During a stream read operation in timeout mode (flea_read_timeout), a
    * timeout occurred.
    */
-  FLEA_ERR_TIMEOUT_ON_STREAM_READ          = 0x92,
+  FLEA_ERR_TIMEOUT_ON_STREAM_READ               = 0x92,
 
   /**
    * An internal buffer is too small for the requested operation.
    */
-  FLEA_ERR_BUFF_TOO_SMALL                  = 0xA0,
+  FLEA_ERR_BUFF_TOO_SMALL                       = 0xA0,
 
   /**
    * A general ASN.1 decoding error occurred.
    */
-  FLEA_ERR_ASN1_DER_DEC_ERR                = 0xA3,
+  FLEA_ERR_ASN1_DER_DEC_ERR                     = 0xA3,
 
   /**
    * An unexpected tag was encountered during ASN.1 decoding.
    */
-  FLEA_ERR_ASN1_DER_UNEXP_TAG              = 0xA4,
+  FLEA_ERR_ASN1_DER_UNEXP_TAG                   = 0xA4,
 
   /**
    * An excessive length was encountered during ASN.1 decoding.
    */
-  FLEA_ERR_ASN1_DER_EXCSS_LEN              = 0xA5,
+  FLEA_ERR_ASN1_DER_EXCSS_LEN                   = 0xA5,
 
   /**
    * An excessive nesting was encountered during ASN.1 decoding.
    */
-  FLEA_ERR_ASN1_DER_EXCSS_NST              = 0xA6,
+  FLEA_ERR_ASN1_DER_EXCSS_NST                   = 0xA6,
 
   /**
    * The provided target buffer is too small during an ASN.1 decoding request.
    */
-  FLEA_ERR_ASN1_DEC_TRGT_BUF_TOO_SMALL     = 0xA7,
+  FLEA_ERR_ASN1_DEC_TRGT_BUF_TOO_SMALL          = 0xA7,
 
   /**
    * The program's call sequence for ASN.1 decoding is invalid, for instance due
    * to closing more constructed types than previously opened.
    */
-  FLEA_ERR_ASN1_DER_CALL_SEQ_ERR           = 0xA8,
+  FLEA_ERR_ASN1_DER_CALL_SEQ_ERR                = 0xA8,
 
   /**
    * An length limit was exceeded during ASN.1 decoding.
    */
-  FLEA_ERR_ASN1_DER_CST_LEN_LIMIT_EXCEEDED = 0xA9,
+  FLEA_ERR_ASN1_DER_CST_LEN_LIMIT_EXCEEDED      = 0xA9,
 
   /**
    * Unspecified error while trying to read from a stream.
    */
-  FLEA_ERR_FAILED_STREAM_READ              = 0xAD,
+  FLEA_ERR_FAILED_STREAM_READ                   = 0xAD,
 
   /**
    * Unspecified error while trying to write to a stream.
    */
-  FLEA_ERR_FAILED_STREAM_WRITE             = 0xAE,
+  FLEA_ERR_FAILED_STREAM_WRITE                  = 0xAE,
 
   /**
    * An error occurred when opening a connection. This value is not thrown by
    * fleaTLS itself, but may be used by flea_rw_stream_t implementations to indicate
    * errors.
    */
-  FLEA_ERR_FAILED_TO_OPEN_CONNECTION       = 0xAF,
+  FLEA_ERR_FAILED_TO_OPEN_CONNECTION            = 0xAF,
 
 
   /**

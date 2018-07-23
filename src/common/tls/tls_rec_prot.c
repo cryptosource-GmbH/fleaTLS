@@ -16,13 +16,14 @@
 #include "internal/common/tls/tls_int.h"
 
 // TODO: ANY CALCULATIONS FOR MAXIMAL SIZES MUST USE DTLS HDR-LEN IS CONFIGURED
-// #define DBG_PRINT
+#define DBG_PRINT
 
 #ifdef DBG_PRINT
-# define DBG_PRINTF(...) printf(...)
+# define DBG_PRINTF(...) printf(__VA_ARGS__)
 #else
+# define DBG_PRINTF(...)
 #endif
-#define DBG_PRINTF(...)
+
 #ifdef FLEA_HAVE_TLS
 
 # define FLEA_RP_CTRL__DTLS_ALLOWED_BIT              (1 << 0)
@@ -80,9 +81,6 @@
 
 # define FLEA_RP__IS_DTLS_ACTIVE(rec_prot__pt) ((rec_prot__pt)->is_dtls_active__u8)
 
-# define FLEA_RP__GET_RD_CURR_REC_EPOCH_FROM_SEQ(rec_prot__pt) \
-  ((rec_prot__pt)->read_state__t.sequence_number__au32[0] \
-  >> 16)
 
 static void inc_seq_nbr(flea_u32_t* seq__au32)
 {
@@ -536,8 +534,8 @@ static void flea_recprot_t__set_record_header(
 
     // TODO: CONSIDER WRITING THE EPOCH INTO THE SEQ EVERYTIME IT CHANGES, THIS
     // WOULD SIMPLIFY THE CODE HERE
-    rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->write_state__t.next_rec_epoch__u16 >> 8;
-    rec_prot__pt->send_buf_raw__pu8[4] = rec_prot__pt->write_state__t.next_rec_epoch__u16;
+    rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->write_next_rec_epoch__u16 >> 8;
+    rec_prot__pt->send_buf_raw__pu8[4] = rec_prot__pt->write_next_rec_epoch__u16;
     rec_prot__pt->send_buf_raw__pu8[5] = rec_prot__pt->write_state__t.sequence_number__au32[0] >> 8;
     rec_prot__pt->send_buf_raw__pu8[6] = rec_prot__pt->write_state__t.sequence_number__au32[0];
     flea__encode_U32_BE(rec_prot__pt->write_state__t.sequence_number__au32[1], &rec_prot__pt->send_buf_raw__pu8[7]);
@@ -1319,63 +1317,80 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
       DBG_PRINTF("\n");
 # endif /* ifdef DBG_PRINT */
 
-      /* test if content might have been only partially read: */
-      if(rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8 <
-        rec_prot__pt->raw_read_buf_content__u16)
+      /* if we arrive here, there is the need to read a further record, either for the content type or for content data */
+      /* test if there is a further record in the current buffer. */
+      if(rec_prot__pt->curr_rec_content_offs__u16 == rec_prot__pt->curr_pt_content_len__u16)
       {
-        if(rec_prot__pt->curr_rec_content_len__u16 || rec_prot__pt->skip_empty_record__b)
+        /* the current record has been completely read (or was empty in the first place) */
+
+        /* now determine whether there is a further record behing the current one, and if so shift it in. otherwise, reset the buffer state to 'empty'. */
+
+        if(rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8 <
+          rec_prot__pt->raw_read_buf_content__u16)
         {
-          curr_rec_full_len__alu16 = rec_prot__pt->record_hdr_len__u8 + rec_prot__pt->curr_rec_content_len__u16;
+          if(rec_prot__pt->curr_rec_content_len__u16)// || rec_prot__pt->skip_empty_record__b)
+          {
+            curr_rec_full_len__alu16 = rec_prot__pt->record_hdr_len__u8 + rec_prot__pt->curr_rec_content_len__u16;
+          }
+          DBG_PRINTF("shifting down next record, curr_rec_full_len__alu16 = %u\n", curr_rec_full_len__alu16);
+          flea_al_u16_t next_rec_size__alu16 = rec_prot__pt->raw_read_buf_content__u16 - curr_rec_full_len__alu16;
+          if((// rec_prot__pt->skip_empty_record__b ||
+              (rec_prot__pt->curr_pt_content_len__u16 == rec_prot__pt->curr_rec_content_offs__u16)) &&
+            next_rec_size__alu16)
+          {
+            flea_al_u16_t shift_size__alu16;
+            shift_size__alu16 = curr_rec_full_len__alu16;
+            DBG_PRINTF(
+              "shifting down record, next_rec_size__alu16 = %u, raw_read_buf_content__u16 = %u, curr_rec_full_len__alu16 = %u\n",
+              next_rec_size__alu16,
+              rec_prot__pt->raw_read_buf_content__u16,
+              curr_rec_full_len__alu16
+            );
+            memmove(
+              rec_prot__pt->send_rec_buf_raw__bu8,
+              rec_prot__pt->send_rec_buf_raw__bu8 + shift_size__alu16,
+              next_rec_size__alu16
+            );
+            // rec_prot__pt->raw_read_buf_content__u16 -= shift_size__alu16;
+          }
+
+
+          if(rec_prot__pt->curr_rec_content_len__u16)// || rec_prot__pt->skip_empty_record__b)
+          {
+            // rec_prot__pt->skip_empty_record__b = FLEA_FALSE;
+
+            /* if no data is requested, and only the content type is desired, then
+             * this loop is only entered if there is no pending data in the current
+             * record.
+             * if data is request, and there was any data left in the current
+             * record, it did not suffice if we arrive here*/
+
+            /* if there was a previous record held, then now is the time to remove
+             * it. content size zero records are discarded directly when detected.*/
+            rec_prot__pt->raw_read_buf_content__u16 -= rec_prot__pt->record_hdr_len__u8
+              + rec_prot__pt->curr_rec_content_len__u16;
+          }
+          rec_prot__pt->curr_rec_content_offs__u16 = 0;
+          rec_prot__pt->curr_rec_content_len__u16  = 0;
+          rec_prot__pt->curr_pt_content_len__u16   = 0;
         }
-        DBG_PRINTF("curr_rec_full_len__alu16 = %u\n", curr_rec_full_len__alu16);
-        flea_al_u16_t next_rec_size__alu16 = rec_prot__pt->raw_read_buf_content__u16 - curr_rec_full_len__alu16;
-        if((rec_prot__pt->skip_empty_record__b ||
-          (rec_prot__pt->curr_pt_content_len__u16 == rec_prot__pt->curr_rec_content_offs__u16)) && next_rec_size__alu16)
+        else
         {
-          flea_al_u16_t shift_size__alu16;
-          shift_size__alu16 = curr_rec_full_len__alu16;
           DBG_PRINTF(
-            "next_rec_size__alu16 = %u, raw_read_buf_content__u16 = %u, curr_rec_full_len__alu16 = %u\n",
-            next_rec_size__alu16,
-            rec_prot__pt->raw_read_buf_content__u16,
-            curr_rec_full_len__alu16
+            "current record content completely read, with no trailing record in buffer, resetting buffer state to 'empty'\n"
           );
-          memmove(
-            rec_prot__pt->send_rec_buf_raw__bu8,
-            rec_prot__pt->send_rec_buf_raw__bu8 + shift_size__alu16,
-            next_rec_size__alu16
+          DBG_PRINTF("   total record pt content : %u\n", rec_prot__pt->curr_pt_content_len__u16);
+          DBG_PRINTF(
+            "   read so far (including header) = %u\n",
+            rec_prot__pt->raw_read_buf_content__u16
           );
-          // rec_prot__pt->raw_read_buf_content__u16 -= shift_size__alu16;
+          // TODO: MERGE WITH OTHER CASE:
+          rec_prot__pt->curr_rec_content_offs__u16 = 0;
+          rec_prot__pt->curr_rec_content_len__u16  = 0;
+          rec_prot__pt->curr_pt_content_len__u16   = 0;
+
+          rec_prot__pt->raw_read_buf_content__u16 = 0;
         }
-
-
-        if(rec_prot__pt->curr_rec_content_len__u16 || rec_prot__pt->skip_empty_record__b)
-        {
-          rec_prot__pt->skip_empty_record__b = FLEA_FALSE;
-
-          /* if no data is requested, and only the content type is desired, then
-           * this loop is only entered if there is no pending data in the current
-           * record.
-           * if data is request, and there was any data left in the current
-           * record, it did not suffice if we arrive here*/
-
-          /* if there was a previous record held, then now is the time to remove
-           * it. content size zero records are discarded directly when detected.*/
-          rec_prot__pt->raw_read_buf_content__u16 -= rec_prot__pt->record_hdr_len__u8
-            + rec_prot__pt->curr_rec_content_len__u16;
-        }
-        rec_prot__pt->curr_rec_content_offs__u16 = 0;
-        rec_prot__pt->curr_rec_content_len__u16  = 0;
-        rec_prot__pt->curr_pt_content_len__u16   = 0;
-      }
-      else
-      {
-        DBG_PRINTF("total record content : %u\n", rec_prot__pt->curr_rec_content_len__u16);
-        DBG_PRINTF(
-          "read so far (minus header lengt) = %u\n",
-          rec_prot__pt->raw_read_buf_content__u16 - rec_prot__pt->record_hdr_len__u8
-        );
-        DBG_PRINTF("current record content not yet completely read\n");
       }
 
       // if(rec_prot__pt->raw_read_buf_content__u16 > rec_ &&
@@ -1598,28 +1613,30 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             s__u32  |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++];
             rec_prot__pt->read_state__t.sequence_number__au32[i / 4] = s__u32;
           }
-          rec_epoch__alu16 = FLEA_RP__GET_RD_CURR_REC_EPOCH_FROM_SEQ(rec_prot__pt);
-          if(rec_epoch__alu16 != rec_prot__pt->read_state__t.next_rec_epoch__u16)
+          rec_epoch__alu16 = FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt);
+          if(rec_epoch__alu16 != rec_prot__pt->read_next_rec_epoch__u16)
           {
-            if((rec_epoch__alu16 + 1 == rec_prot__pt->read_state__t.next_rec_epoch__u16) &&
+            if((rec_epoch__alu16 + 1 == rec_prot__pt->read_next_rec_epoch__u16) &&
               FLEA_RP__IS_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt))
             {
               /* accept this record (nothing to do) */
             }
             else
             {
+              printf("discarding record due to invalid epoch\n");
               rec_prot__pt->raw_read_buf_content__u16 = 0;
               continue;
-              /* TODO: [DISCARD THIS RECORD] have test for this, yet untested */
+              /* TODO: can't do this here, need to store encrypted record */
             }
           }
           // TODO: CHECK THAT RECORD IS WITHIN ACCEPTANCE WINDOW
-          if(cont_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
+          if(rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
           {
+            printf("increasing epoch since CCS was received\n");
             FLEA_RP__SET_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt);
-            rec_prot__pt->read_state__t.next_rec_epoch__u16++;
+            rec_prot__pt->read_next_rec_epoch__u16++;
 
-            if(rec_prot__pt->read_state__t.next_rec_epoch__u16 == 0)
+            if(rec_prot__pt->read_next_rec_epoch__u16 == 0)
             {
               FLEA_THROW("DTLS epoch exhausted", FLEA_ERR_TLS_SQN_EXHAUSTED);
             }
@@ -1632,10 +1649,10 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         rec_prot__pt->curr_rec_content_len__u16  = rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++] << 8;
         rec_prot__pt->curr_rec_content_len__u16 |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8];
 
-        if(rec_prot__pt->curr_rec_content_len__u16 == 0)
+        /*if(rec_prot__pt->curr_rec_content_len__u16 == 0)
         {
           rec_prot__pt->skip_empty_record__b = FLEA_TRUE;
-        }
+        }*/
         // done: DISCARD SIZE ZERO RECORD ('delete' the header offset (?), and
         // continue)
 
@@ -1738,6 +1755,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         );
         rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
         inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
+        printf("after record decryption (CBC)\n");
       }
 # endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
 # ifdef FLEA_HAVE_TLS_CS_GCM
@@ -1752,6 +1770,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         );
         rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
         inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
+        printf("after record decryption (GCM)\n");
       }
 # endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
       if(rec_prot__pt->curr_pt_content_len__u16 > FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE)
@@ -2042,10 +2061,10 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
       rec_prot__pt->curr_rec_content_len__u16  = rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++] << 8;
       rec_prot__pt->curr_rec_content_len__u16 |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8];
 
-      if(rec_prot__pt->curr_rec_content_len__u16 == 0)
+      /*if(rec_prot__pt->curr_rec_content_len__u16 == 0)
       {
         rec_prot__pt->skip_empty_record__b = FLEA_TRUE;
-      }
+      }*/
 
       if(rec_prot__pt->curr_rec_content_len__u16 > FLEA_TLS_TRNSF_BUF_SIZE - rec_prot__pt->record_hdr_len__u8)
       {
