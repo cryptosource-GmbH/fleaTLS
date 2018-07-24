@@ -1631,7 +1631,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             }
             else
             {
-              printf("discarding record due to invalid epoch\n");
+              FLEA_DBG_PRINTF("discarding record due to invalid epoch\n");
               rec_prot__pt->raw_read_buf_content__u16 = 0;
               continue;
               /* TODO: can't do this here, need to store encrypted record */
@@ -1640,7 +1640,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           // TODO: CHECK THAT RECORD IS WITHIN ACCEPTANCE WINDOW
           if(rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
           {
-            printf("increasing epoch since CCS was received\n");
+            FLEA_DBG_PRINTF("increasing epoch since CCS was received\n");
             FLEA_RP__SET_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt);
             rec_prot__pt->read_next_rec_epoch__u16++;
 
@@ -1763,7 +1763,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         );
         rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
         inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
-        printf("after record decryption (CBC)\n");
+        FLEA_DBG_PRINTF("after record decryption (CBC)\n");
       }
 # endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
 # ifdef FLEA_HAVE_TLS_CS_GCM
@@ -1778,7 +1778,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         );
         rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
         inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
-        printf("after record decryption (GCM)\n");
+        FLEA_DBG_PRINTF("after record decryption (GCM)\n");
       }
 # endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
       if(rec_prot__pt->curr_pt_content_len__u16 > FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE)

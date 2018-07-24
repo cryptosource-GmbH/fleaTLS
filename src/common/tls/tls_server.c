@@ -88,8 +88,12 @@ static flea_err_e THR_flea_tls__read_client_hello(
     client_version_major_minor__au8[1] < tls_ctx->version.minor)
   {
     // TODO: REMOVE DBG PRINT
-    printf("client hello version = %u %u\n", client_version_major_minor__au8[0], client_version_major_minor__au8[1]);
-    printf("own version = %u %u\n", tls_ctx->version.major, tls_ctx->version.minor);
+    FLEA_DBG_PRINTF(
+      "client hello version = %u %u\n",
+      client_version_major_minor__au8[0],
+      client_version_major_minor__au8[1]
+    );
+    FLEA_DBG_PRINTF("own version = %u %u\n", tls_ctx->version.major, tls_ctx->version.minor);
     FLEA_THROW("Version mismatch!", FLEA_ERR_TLS_UNSUPP_PROT_VERSION);
   }
 
@@ -1029,7 +1033,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
   flea_hash_ctx_t__INIT(&hash_ctx_copy__t);
   flea_tls_handsh_reader_t__INIT(&handsh_rdr__t);
 
-  printf("sel. cs. start of handle hs msg = %u\n", tls_ctx->selected_cipher_suite__e);
+  FLEA_DBG_PRINTF("sel. cs. start of handle hs msg = %u\n", tls_ctx->selected_cipher_suite__e);
   FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t, FLEA_TLS_CTX_IS_DTLS(tls_ctx)));
   if(((handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_FINISHED) ||
     (handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY)) &&
@@ -1075,7 +1079,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
     }
     else
     {
-      printf(
+      FLEA_DBG_PRINTF(
         "tls_server:handle_handsh_msg: exp = CLIENT_HELLO = %u, rec = %u\n",
         HANDSHAKE_TYPE_CLIENT_HELLO,
         cont_type__alu8
@@ -1146,7 +1150,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
         ecdhe_priv_key__pt
       )
     );
-    printf("sel. cs. after read_key = %u\n", tls_ctx->selected_cipher_suite__e);
+    FLEA_DBG_PRINTF("sel. cs. after read_key = %u\n", tls_ctx->selected_cipher_suite__e);
     if(handshake_state->send_client_cert == FLEA_TRUE)
     {
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY;
@@ -1168,15 +1172,15 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
         peer_public_key__pt
       )
     );
-    printf("sel. cs. after read cert ver. = %u\n", tls_ctx->selected_cipher_suite__e);
+    FLEA_DBG_PRINTF("sel. cs. after read cert ver. = %u\n", tls_ctx->selected_cipher_suite__e);
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC;
   }
   else if((handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED) &&
     (cont_type__alu8 == HANDSHAKE_TYPE_FINISHED))
   {
-    printf("starting to read finished\n");
+    FLEA_DBG_PRINTF("starting to read finished\n");
     FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx_copy__t));
-    printf("did read finished\n");
+    FLEA_DBG_PRINTF("did read finished\n");
     if(!hs_ctx__pt->is_sess_res__b)
     {
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
@@ -1290,7 +1294,7 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
 
       if(cont_type__e == CONTENT_TYPE_HANDSHAKE)
       {
-        printf("sel. cs. before handle hs msg = %u\n", tls_ctx->selected_cipher_suite__e);
+        FLEA_DBG_PRINTF("sel. cs. before handle hs msg = %u\n", tls_ctx->selected_cipher_suite__e);
         FLEA_CCALL(
           THR_flea_tls_server_handle_handsh_msg(
             server_ctx__pt,
@@ -1302,7 +1306,7 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
             &ecdhe_priv_key__t
           )
         );
-        printf("sel. cs. after handle hs msg = %u\n", tls_ctx->selected_cipher_suite__e);
+        FLEA_DBG_PRINTF("sel. cs. after handle hs msg = %u\n", tls_ctx->selected_cipher_suite__e);
       }
       else if(cont_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
       {
@@ -1325,7 +1329,7 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
               flea_read_full
             )
           );
-          printf("sel. cs. after read CCS\n");
+          FLEA_DBG_PRINTF("sel. cs. after read CCS\n");
 
           /*
            * Enable encryption for incoming messages
