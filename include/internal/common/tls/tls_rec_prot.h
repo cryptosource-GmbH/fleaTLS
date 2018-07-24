@@ -35,7 +35,7 @@ extern "C" {
  * Get the epoch of the currently held received record.
  */
 #  define FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt) \
-  ((rec_prot__pt)->read_state__t.sequence_number__au32[0] \
+  ((rec_prot__pt)->read_state__t.sequence_number__au32[1] \
   >> 16)
 
 typedef enum

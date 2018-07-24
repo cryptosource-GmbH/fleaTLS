@@ -706,6 +706,7 @@ static flea_err_e THR_flea_tls__rd_clt_kex_rsa(
   flea_u32_t enc_premaster_secret_len__u32;
   flea_tls_ctx_t* tls_ctx = hs_ctx__pt->tls_ctx__pt;
 
+
   FLEA_DECL_BUF(enc_premaster_secret__bu8, flea_u8_t, FLEA_RSA_MAX_MOD_BYTE_LEN);
   FLEA_THR_BEG_FUNC();
 
@@ -739,13 +740,16 @@ static flea_err_e THR_flea_tls__rd_clt_kex_rsa(
       &hs_ctx__pt->silent_alarm__u8
     )
   );
-  hs_ctx__pt->silent_alarm__u8 |= (premaster_secret__pt->data__pu8[0] ^ 0x03);
-  hs_ctx__pt->silent_alarm__u8 |= (premaster_secret__pt->data__pu8[1] ^ 0x03);
-
+  hs_ctx__pt->silent_alarm__u8 |= (premaster_secret__pt->data__pu8[0] ^ tls_ctx->version.major);
+  hs_ctx__pt->silent_alarm__u8 |= (premaster_secret__pt->data__pu8[1] ^ tls_ctx->version.minor);
+  FLEA_DBG_PRINTF(
+    "TRIGGERING SILENT ALARM DEPENDING ON MATCHING VERSION NUMBER = %u %u\n",
+    tls_ctx->version.major,
+    tls_ctx->version.minor
+  );
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(enc_premaster_secret__bu8);
-    // flea_privkey_t__dtor(&key__t);
   );
 } /* THR_flea_tls__rd_clt_kex_rsa */
 
@@ -1343,6 +1347,10 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
                 &premaster_secret__t
               )
             );
+
+            FLEA_DBG_PRINTF("master secret = ");
+            FLEA_DBG_PRINT_BYTE_ARRAY(tls_ctx->master_secret__bu8, FLEA_TLS_MASTER_SECRET_SIZE);
+            FLEA_DBG_PRINTF("\n");
 
             memcpy(
               server_ctx__pt->active_session__t.session_data__t.master_secret__au8,

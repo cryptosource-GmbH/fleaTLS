@@ -92,7 +92,7 @@ static flea_err_e THR_flea_recprot_t__compute_mac_cbc_hmac(
   flea_u8_t*          data,
   flea_u32_t          data_len,
   flea_u8_t*          mac_out,
-  flea_u16_t          epoch_mbn_pu16
+  flea_u16_t          epoch_u16
 )
 {
   flea_mac_ctx_t mac__t;
@@ -123,12 +123,21 @@ static flea_err_e THR_flea_recprot_t__compute_mac_cbc_hmac(
   seq_hi__u32 = conn_state__pt->sequence_number__au32[1];
 
   /* set the DTLS epcoh in the high u32 */
-  if(epoch_mbn_pu16)
+  if(epoch_u16)
   {
-    seq_hi__u32 |= (epoch_mbn_pu16 << 16);
+    FLEA_DBG_PRINTF("setting epoch for CBC ciphersuite's compute HMAC: %u\n", epoch_u16);
+    seq_hi__u32 |= (epoch_u16 << 16);
   }
   flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
   flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
+
+  FLEA_DBG_PRINTF("cbc compute HMAC: encoded epoch | seq = ");
+  for(unsigned i = 0; i < 8; i++)
+  {
+    FLEA_DBG_PRINTF("%02x ", enc_seq_nbr__au8[i]);
+  }
+  FLEA_DBG_PRINTF("\n");
+
   FLEA_CCALL(
     THR_flea_mac_ctx_t__ctor(
       &mac__t,
@@ -375,6 +384,21 @@ static flea_err_e THR_flea_recprot_t__set_cbc_cs(
       mac_len__alu8
     )
   );
+
+// ==========
+  FLEA_DBG_PRINTF("setting mac key for ");
+  if(direction == flea_tls_read)
+  {
+    FLEA_DBG_PRINTF("incoming");
+  }
+  else
+  {
+    FLEA_DBG_PRINTF("outgoing");
+  }
+
+  FLEA_DBG_PRINTF(" direction = ");
+  FLEA_DBG_PRINT_BYTE_ARRAY(key_block__pcu8 + mac_key_offs__alu8, mac_key_len__alu8);
+// =============
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__set_cbc_cs */
 
@@ -537,9 +561,9 @@ static void flea_recprot_t__set_record_header(
     // WOULD SIMPLIFY THE CODE HERE
     rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->write_next_rec_epoch__u16 >> 8;
     rec_prot__pt->send_buf_raw__pu8[4] = rec_prot__pt->write_next_rec_epoch__u16;
-    rec_prot__pt->send_buf_raw__pu8[5] = rec_prot__pt->write_state__t.sequence_number__au32[0] >> 8;
-    rec_prot__pt->send_buf_raw__pu8[6] = rec_prot__pt->write_state__t.sequence_number__au32[0];
-    flea__encode_U32_BE(rec_prot__pt->write_state__t.sequence_number__au32[1], &rec_prot__pt->send_buf_raw__pu8[7]);
+    rec_prot__pt->send_buf_raw__pu8[5] = rec_prot__pt->write_state__t.sequence_number__au32[1] >> 8;
+    rec_prot__pt->send_buf_raw__pu8[6] = rec_prot__pt->write_state__t.sequence_number__au32[1];
+    flea__encode_U32_BE(rec_prot__pt->write_state__t.sequence_number__au32[0], &rec_prot__pt->send_buf_raw__pu8[7]);
 
     /*for(i = 3; i >= 0; i--)
     {
@@ -769,6 +793,10 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_cbc_hmac(
     )
   );
 
+  FLEA_DBG_PRINTF("cbc hmac computed mac tag = ");
+  FLEA_DBG_PRINT_BYTE_ARRAY(mac__bu8, mac_len);
+  FLEA_DBG_PRINTF("cbc hmac received mac tag = ");
+  FLEA_DBG_PRINT_BYTE_ARRAY(data + iv_len + data_len, mac_len);
 
   padd_err__alu8 |= !flea_sec_mem_equal(mac__bu8, data + iv_len + data_len, mac_len);
   if(padd_err__alu8)
@@ -1622,6 +1650,15 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             rec_prot__pt->read_state__t.sequence_number__au32[1 - (i / 4)] = s__u32;
           }
           rec_epoch__alu16 = FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt);
+
+          FLEA_DBG_PRINTF("from recevied record hdr: epoch | seq = ");
+          for(int i = 1; i >= 0; i--)
+          {
+            FLEA_DBG_PRINTF("%08x ", rec_prot__pt->read_state__t.sequence_number__au32[i]);
+          }
+          FLEA_DBG_PRINTF("\n");
+
+          FLEA_DBG_PRINTF("epoch decoded from incoming record header = %u\n", rec_epoch__alu16);
           if(rec_epoch__alu16 != rec_prot__pt->read_next_rec_epoch__u16)
           {
             if((rec_epoch__alu16 + 1 == rec_prot__pt->read_next_rec_epoch__u16) &&

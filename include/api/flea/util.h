@@ -50,6 +50,13 @@ extern "C" {
 #  define FLEA_DBG_PRINTF(...)
 # endif
 
+# define FLEA_DBG_PRINT_BYTE_ARRAY(ptr, len) \
+  do {size_t __i; for(__i = 0; __i < (len); __i++) {FLEA_DBG_PRINTF( \
+                                                      "%02x ", \
+                                                      (ptr) [__i] \
+                                                    ); \
+      } FLEA_DBG_PRINTF("\n");} while(0)
+
 /**
  * Type which represents a reference to strings of const u8 in memory.
  */
