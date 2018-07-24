@@ -642,7 +642,11 @@ flea_err_e THR_flea_recprot_t__wrt_data(
     rec_prot__pt->send_curr_rec_content_len__u16 += to_go__alu16;
     buf_free_len__alu16 -= to_go__alu16;
 
-    if(buf_free_len__alu16 == 0)
+    /**
+     * send out the CCS, because it must be encrypted under the current epoch.
+     */
+    if(buf_free_len__alu16 == 0 ||
+      (FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt) && (content_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC)))
     {
       FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
       buf_free_len__alu16 = rec_prot__pt->record_plaintext_send_max_value__u16
@@ -652,6 +656,8 @@ flea_err_e THR_flea_recprot_t__wrt_data(
   }
   if(FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt) && (content_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC))
   {
+    rec_prot__pt->write_state__t.sequence_number__au32[0] = 0; // INCREMENTING HERE, BUT THE RECORD MAY STILL BE AWAITING ENCRYPTION
+    rec_prot__pt->write_state__t.sequence_number__au32[1] = 0;
     rec_prot__pt->write_next_rec_epoch__u16++;
     FLEA_DBG_PRINTF("increased next write epoch to %u\n", rec_prot__pt->write_next_rec_epoch__u16);
   }
