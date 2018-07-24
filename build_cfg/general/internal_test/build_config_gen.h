@@ -39,7 +39,7 @@
 /**
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  */
-#  define FLEA_DO_PRINTF_ERRS
+#  define FLEA_DO_DBG_PRINT
 # endif
 /* end dgb_cfg */
 /**@}*/
