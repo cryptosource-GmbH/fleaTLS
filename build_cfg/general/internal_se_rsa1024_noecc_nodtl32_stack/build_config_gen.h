@@ -40,7 +40,7 @@
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  *  Furthermore, if activated, the arguments to the macro #FLEA_DBG_PRINTF will be passed to printf.
  */
-#  define FLEA_DO_DBG_PRINT
+# define FLEA_DO_DBG_PRINT
 
 // # endif  // if 0
 /* end dgb_cfg */
@@ -184,6 +184,7 @@
  * Maximum supported key bit size for RSA (size of the public modulus).
  */
 # define FLEA_RSA_MAX_KEY_BIT_SIZE 1024
+
 /**
  * Maximum supported key public exponent bit size for RSA.
  */
@@ -243,6 +244,7 @@
  * Control the window size for the RSA exponentiation. Choose 5 for greatest speed and 1 for smallest RAM footprint.
  */
 # define FLEA_CRT_RSA_WINDOW_SIZE 3
+
 /**
  * Control the window size for the ECC exponentiation. Choose 4 or 5 for greatest speed and 1 for smallest RAM footprint.
  */
@@ -712,6 +714,7 @@
  * 150 bytes. A small size reduces performance. May not be greater than 16384.
  */
 # define FLEA_TLS_RECORD_MAX_SEND_PLAINTEXT_SIZE 15000
+
 /**
  * The size of the flight buffer used within DTLS to store outgoing handshake messages for
  * being able to resend them if required and to assemble incoming handshake message

@@ -40,7 +40,7 @@
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  *  Furthermore, if activated, the arguments to the macro #FLEA_DBG_PRINTF will be passed to printf.
  */
-#  define FLEA_DO_DBG_PRINT
+# define FLEA_DO_DBG_PRINT
 
 // # endif  // if 0
 /* end dgb_cfg */
@@ -699,6 +699,7 @@
  * cipher suites.
  */
 # define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 1024
+
 /**
  * If enabled, the maximum fragment length negotiation extension (RFC 6066) can
  * be negotiated if FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE is smaller than the 16834 bytes that
@@ -714,6 +715,7 @@
  * 150 bytes. A small size reduces performance. May not be greater than 16384.
  */
 # define FLEA_TLS_RECORD_MAX_SEND_PLAINTEXT_SIZE 400
+
 /**
  * The size of the flight buffer used within DTLS to store outgoing handshake messages for
  * being able to resend them if required and to assemble incoming handshake message

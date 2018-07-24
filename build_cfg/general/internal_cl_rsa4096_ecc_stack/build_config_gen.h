@@ -40,7 +40,7 @@
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
  *  Furthermore, if activated, the arguments to the macro #FLEA_DBG_PRINTF will be passed to printf.
  */
-#  define FLEA_DO_DBG_PRINT
+# define FLEA_DO_DBG_PRINT
 
 // # endif  // if 0
 /* end dgb_cfg */
@@ -244,6 +244,7 @@
  * Control the window size for the RSA exponentiation. Choose 5 for greatest speed and 1 for smallest RAM footprint.
  */
 # define FLEA_CRT_RSA_WINDOW_SIZE 1
+
 /**
  * Control the window size for the ECC exponentiation. Choose 4 or 5 for greatest speed and 1 for smallest RAM footprint.
  */
