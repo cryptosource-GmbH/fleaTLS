@@ -38,8 +38,9 @@
 
 /**
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
+ *  Furthermore, if activated, the arguments to the macro #FLEA_DBG_PRINTF will be passed to printf.
  */
-# define FLEA_DO_PRINTF_ERRS
+#  define FLEA_DO_DBG_PRINT
 
 // # endif  // if 0
 /* end dgb_cfg */

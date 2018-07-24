@@ -1,23 +1,23 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_util__H_
-#define _flea_util__H_
+# define _flea_util__H_
 
-#include "flea/types.h"
-#include "flea/calc_util.h"
-#include "internal/common/assert.h"
+# include "flea/types.h"
+# include "flea/calc_util.h"
+# include "internal/common/assert.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-#define FLEA_COMMA  ,
+# define FLEA_COMMA  ,
 
-#define FLEA_MEMSET memset
+# define FLEA_MEMSET memset
 
-#define FLEA_ZERO_STRUCT(__p) FLEA_MEMSET(__p, 0, sizeof(*(__p)))
+# define FLEA_ZERO_STRUCT(__p) FLEA_MEMSET(__p, 0, sizeof(*(__p)))
 
-#define FLEA_SWAP(__type, __a, __b) \
+# define FLEA_SWAP(__type, __a, __b) \
   do \
   { \
     __type __tmp; \
@@ -32,18 +32,23 @@ extern "C" {
  * @param ptr_b pointer to the second object which is of the same type as
  * *ptr_a
  */
-#define FLEA_SWAP_TYPE(ptr_a, ptr_b) \
+# define FLEA_SWAP_TYPE(ptr_a, ptr_b) \
   do { \
     FLEA_DEV_ASSERT(sizeof(*ptr_a) == sizeof(*ptr_b)); \
     flea_swap_mem((flea_u8_t*) (ptr_a), (flea_u8_t*) (ptr_b), sizeof(*ptr_a)); \
   } while(0)
 
-#define FLEA_ASSGN_REF_FROM_BYTE_VEC(ref__pt, vec__pt) \
+# define FLEA_ASSGN_REF_FROM_BYTE_VEC(ref__pt, vec__pt) \
   do { \
     (ref__pt)->data__pcu8 = (vec__pt)->data__pu8; \
     (ref__pt)->len__dtl   = (vec__pt)->len__dtl; \
   } while(0)
 
+# ifdef FLEA_DO_DBG_PRINT
+#  define FLEA_DBG_PRINTF(...) printf(__VA_ARGS__)
+# else
+#  define FLEA_DBG_PRINTF(...)
+# endif
 
 /**
  * Type which represents a reference to strings of const u8 in memory.
@@ -112,8 +117,8 @@ flea_err_e THR_flea_add_dtl_with_overflow_check(
 
 flea_u32_t flea_waste_cycles(flea_u32_t iters__u32);
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

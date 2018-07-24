@@ -9,7 +9,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#ifdef FLEA_DO_PRINTF_ERRS
+#ifdef FLEA_DO_DBG_PRINT
 # include <stdio.h>
 #endif
 

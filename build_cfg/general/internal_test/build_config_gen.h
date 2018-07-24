@@ -20,7 +20,7 @@
 /**
  * When set, print test failures and summary with printf.
  */
-# define FLEA_DO_PRINTF_TEST_OUTPUT
+// # define FLEA_DO_PRINTF_TEST_OUTPUT
 
 
 /**
@@ -34,15 +34,13 @@
 # define FLEA_NO_DEV_ASSERTIONS // FBFLAGS_CORE_ON_OFF
 
 
-// # if 0
+# if 0
 
 /**
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
- *  Furthermore, if activated, the arguments to the macro #FLEA_DBG_PRINTF will be passed to printf.
  */
 #  define FLEA_DO_DBG_PRINT
-
-// # endif  // if 0
+# endif
 /* end dgb_cfg */
 /**@}*/
 
@@ -65,21 +63,6 @@
 /* end mem_cfg */
 /**@}*/
 
-
-/**
- * \defgroup pltf_support Platform support
- */
-/**@{*/
-
-/**
- * When activated, fleaTLS offers file-based flea_rw_stream_t objects. If not
- * FILE implementation is offered by the plattform, this feature must be deactivated.
- */
-# define FLEA_HAVE_STDLIB_FILESYSTEM
-
-/* end pltf_support */
-/**@}*/
-
 /**
  * \defgroup algo_support_cfg Algorithm support configuration
  */
@@ -93,12 +76,12 @@
 /**
  * Control whether CMAC support is compiled
  */
-# define FLEA_HAVE_CMAC
+// # define FLEA_HAVE_CMAC
 
 /**
  * Control whether EAX support is compiled. Requires CMAC as a prerequisite.
  */
-# define FLEA_HAVE_EAX  // FBFLAGS_AEALGS_ON_OFF
+// # define FLEA_HAVE_EAX  // FBFLAGS_AEALGS_ON_OFF
 
 /**
  * Control whether GCM support is compiled
@@ -108,7 +91,7 @@
 /**
  * Control whether MD5 support is compiled
  */
-# define FLEA_HAVE_MD5               // FBFLAGS_MD5_ON_OFF
+// # define FLEA_HAVE_MD5               // FBFLAGS_MD5_ON_OFF
 
 /**
  * Control whether SHA1 support is compiled
@@ -129,27 +112,27 @@
 /**
  * Control whether support for the AES-based hash function based on the Davies-Meyer-construction is compiled.
  */
-# define FLEA_HAVE_DAVIES_MEYER_HASH // FBFLAGS_DAVIES_MEYER_HASH_ON_OFF
+// # define FLEA_HAVE_DAVIES_MEYER_HASH // FBFLAGS_DAVIES_MEYER_HASH_ON_OFF
 
 /**
  * Control whether support for the DES cipher is compiled.
  */
-# define FLEA_HAVE_DES               // FBFLAGS_HAVE_DES_ON_OFF
+// # define FLEA_HAVE_DES               // FBFLAGS_HAVE_DES_ON_OFF
 
 /**
  * Control whether support for the 2-key triple-DES cipher is compiled.
  */
-# define FLEA_HAVE_TDES_2KEY         // FBFLAGS_HAVE_TDES_ON_OFF
+// # define FLEA_HAVE_TDES_2KEY         // FBFLAGS_HAVE_TDES_ON_OFF
 
 /**
  * Control whether support for the 3-key triple-DES cipher is compiled.
  */
-# define FLEA_HAVE_TDES_3KEY         // FBFLAGS_HAVE_TDES_ON_OFF
+// # define FLEA_HAVE_TDES_3KEY         // FBFLAGS_HAVE_TDES_ON_OFF
 
 /**
  * Control whether support for the DESX cipher is compiled.
  */
-# define FLEA_HAVE_DESX // FBFLAGS_HAVE_DESX_ON_OFF
+// # define FLEA_HAVE_DESX // FBFLAGS_HAVE_DESX_ON_OFF
 
 /**
  * Configure whether support for AES is compiled. In the current version of
@@ -165,7 +148,7 @@
 /**
  * Control whether support for ECDSA shall be compiled.
  */
-# define FLEA_HAVE_ECDSA          // FBFLAGS_PKALGS_ON_OFF
+// # define FLEA_HAVE_ECDSA          // FBFLAGS_PKALGS_ON_OFF
 
 /**
  * Control whether support for ECKA (=ECDH) shall be compiled.
@@ -209,22 +192,22 @@
 /**
  * Control whether loop unrolling within MD5 shall be used.
  */
-# define FLEA_USE_MD5_LOOP_UNROLL    // FBFLAGS_MD5_ON_OFF
+// # define FLEA_USE_MD5_LOOP_UNROLL    // FBFLAGS_MD5_ON_OFF
 
 /**
  * Control whether loop unrolling within SHA1 shall be used.
  */
-# define FLEA_USE_SHA1_LOOP_UNROLL   // FBFLAGS_SHA1_ON_OFF
+// # define FLEA_USE_SHA1_LOOP_UNROLL   // FBFLAGS_SHA1_ON_OFF
 
 /**
  * Control whether loop unrolling within SHA256 (and SHA224) shall be used.
  */
-# define FLEA_USE_SHA256_LOOP_UNROLL // FBFLAGS_SHA256_ON_OFF
+// # define FLEA_USE_SHA256_LOOP_UNROLL // FBFLAGS_SHA256_ON_OFF
 
 /**
  * Control whether loop unrolling within SHA512 (and SHA384) shall be used.
  */
-# define FLEA_USE_SHA512_LOOP_UNROLL // FBFLAGS_SHA512_ON_OFF
+// # define FLEA_USE_SHA512_LOOP_UNROLL // FBFLAGS_SHA512_ON_OFF
 
 
 /**
@@ -243,7 +226,7 @@
 /**
  * Control the window size for the RSA exponentiation. Choose 5 for greatest speed and 1 for smallest RAM footprint.
  */
-# define FLEA_CRT_RSA_WINDOW_SIZE 5 // FBFLAGS__INT_LIST 1 2 3 4 5
+# define FLEA_CRT_RSA_WINDOW_SIZE 3 // FBFLAGS__INT_LIST 1 2 3 4 5
 
 /**
  * Control the window size for the ECC exponentiation. Choose 4 or 5 for greatest speed and 1 for smallest RAM footprint.
@@ -354,7 +337,7 @@
  * If this switch is deactivated, then only the most common certificate
  * extensions are supported. Deactivate it to save RAM.
  */
-# define FLEA_X509_CERT_REF_WITH_DETAILS
+// # define FLEA_X509_CERT_REF_WITH_DETAILS
 
 /**
  * If this is switch is deactivated, then only the most typical DN components
@@ -381,7 +364,7 @@
  * \defgroup tls_cfg TLS configuration
  */
 /**@{*/
-# if defined FLEA_HAVE_TLS_CS_PSK || ((defined FLEA_HAVE_RSA || defined FLEA_HAVE_ECDSA) && defined FLEA_HAVE_HMAC)
+# if defined FLEA_HAVE_RSA && defined FLEA_HAVE_HMAC
 
 /**
  * Control whether fleaTLS supports TLS.
@@ -401,27 +384,7 @@
  */
 #  define FLEA_HAVE_TLS_SERVER
 
-
-/**
- * Control whether support for PSK cipher suites shall be compiled.
- */
-#  define FLEA_HAVE_TLS_CS_PSK
-
-/*
- * Maximal size of identity length that will be processed from the peer.
- */
-#  define FLEA_TLS_PSK_MAX_IDENTITY_LEN 128     //   RFC: MUST support 128 and can be up to 2^16
-
-/*
- * Maximal size of identity hint length that will be processed from the peer.
- */
-
-#  define FLEA_TLS_PSK_MAX_IDENTITY_HINT_LEN 128
-
-/*
- * Maximal size of pre-shared keys that will be handled.
- */
-#  define FLEA_TLS_PSK_MAX_PSK_LEN 64           //   RFC: MUST support 64 and can be up to 2^16
+#  define FLEA_HAVE_TLS
 
 #  if defined FLEA_HAVE_ECKA
 
@@ -454,13 +417,13 @@
 #   define FLEA_HAVE_TLS_CS_RSA
 #  endif
 
-// #  ifdef FLEA_HAVE_HMAC
+#  ifdef FLEA_HAVE_HMAC
 
 /**
  * Control whether support for CBC-based cipher suites shall be compiled.
  */
-#  define FLEA_HAVE_TLS_CS_CBC
-// #  endif
+#   define FLEA_HAVE_TLS_CS_CBC
+#  endif
 
 #  ifdef FLEA_HAVE_GCM
 
@@ -516,32 +479,30 @@
 #   endif
 #  endif // ifdef FLEA_HAVE_TLS_CS_GCM
 #  ifdef FLEA_HAVE_TLS_CS_ECDHE
-#   ifdef FLEA_HAVE_TLS_CS_CBC
-#    ifdef FLEA_HAVE_SHA1
+#   ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported.
  */
-#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
+#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA
 
 /**
  * Control whether the cipher suite is supported.
  */
-#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
-#    endif // ifdef FLEA_HAVE_SHA1
+#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA
+#   endif // ifdef FLEA_HAVE_SHA1
 
 /**
  * Control whether the cipher suite is supported.
  */
-#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
-#    ifdef FLEA_HAVE_SHA384_512
+#   define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_128_CBC_SHA256
+#   ifdef FLEA_HAVE_SHA384_512
 
 /**
  * Control whether the cipher suite is supported.
  */
-#     define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
-#    endif
-#   endif // ifdef FLEA_HAVE_TLS_CS_CBC
+#    define FLEA_HAVE_TLS_CS_ECDHE_RSA_WITH_AES_256_CBC_SHA384
+#   endif
 #   ifdef FLEA_HAVE_TLS_CS_GCM
 
 /**
@@ -604,58 +565,6 @@
 #  endif // ifdef FLEA_HAVE_TLS_CS_ECDHE
 # endif // ifdef FLEA_HAVE_TLS_CS_ECDSA
 
-# ifdef FLEA_HAVE_TLS_CS_PSK /* Ciphersuites that use pre-shared keys */
-#  ifdef FLEA_HAVE_TLS_CS_CBC
-#   ifdef FLEA_HAVE_SHA1
-
-/**
- * Control whether the cipher suite is supported
- */
-#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA
-
-/**
- * Control whether the cipher suite is supported.
- */
-#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_CBC_SHA
-#   endif // ifdef FLEA_HAVE_SHA1
-
-/**
- * Control whether the cipher suite is supported.
- */
-#   define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_CBC_SHA256
-#   ifdef FLEA_HAVE_SHA384_512
-
-/**
- * Control whether the cipher suite is supported.
- */
-#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_CBC_SHA384
-#   endif
-#  endif // ifdef FLEA_HAVE_TLS_CS_CBC
-
-#  ifdef FLEA_HAVE_TLS_CS_GCM
-
-/**
- * Control whether the cipher suite is supported.
- */
-#   define FLEA_HAVE_TLS_CS_PSK_WITH_AES_128_GCM_SHA256
-#   ifdef FLEA_HAVE_SHA384_512
-
-/**
- * Control whether the cipher suite is supported.
- */
-#    define FLEA_HAVE_TLS_CS_PSK_WITH_AES_256_GCM_SHA384
-#   endif
-#  endif // ifdef FLEA_HAVE_TLS_CS_GCM
-# endif // ifdef FLEA_HAVE_TLS_CS_PSK
-
-/**
- *  The maximum number of supported signature algorithm hash functions in case
- *  of FLEA_STACK_MODE. Internally, the implementation has to instantiate that
- *  many parallel hash-context objects, in order to be able to start the
- *  handshake without knowing the hash function actually agreed on.
- */
-# define FLEA_STKMD_TLS_MAX_PARALLEL_HASHES 5
-
 /**
  * Length of the session IDs that are used by the fleaTLS server.
  */
@@ -682,45 +591,21 @@
 # define FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 /**
- * This variable controls whether support for DTLS 1.2 is available.
+ *  Record payload size supported by fleaTLS on the TLS record level for received records.  18432
+ *  bytes is the record payload size mandated by the TLS standard.  Smaller
+ *  sizes may only be set if the implementation is used in an application
+ *  context for which it is known that only smaller sized records are received
+ *  by fleaTLS.
  */
-# define FLEA_HAVE_DTLS
+# define FLEA_TLS_MAX_RECORD_SIZE 1150
 
 /**
- * The maximal plaintext size of TLS record that can received. Based on this
- * value the buffer size for received records will be calculated.  The TLS
- * standard mandates a size of 2^14 = 16384. If a smaller size is chosen, an
- * attempt will be made to negotiate smaller records using the maximum fragment
- * length negotiation extension (RFC 6066). The record plaintext sizes supported
- * by this extension are 512, 1024, 2048, and 4096. One of these value may be
- * configured for this variable.  If negotiation fails, fleaTLS will abort the
- * handshake with a fatal alert.  The receive buffer will be at most 325 bytes
- * larger than FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE, depending on compiled
- * cipher suites.
- */
-# define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 1024
-/**
- * If enabled, the maximum fragment length negotiation extension (RFC 6066) can
- * be negotiated if FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE is smaller than the 16834 bytes that
- * are mandated by the TLS 1.2 standard and at least 512 bytes large.
- *
- * For further details see the API documentation.
- */
-# define FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
-
-/**
- * TLS send plaintext size. This buffer used for sending data and determines the
+ * TLS send buffer size. This buffer used for sending data and determines the
  * maximal record size of records sent by fleaTLS. Should not be smaller than
  * 150 bytes. A small size reduces performance. May not be greater than 16384.
  */
-# define FLEA_TLS_RECORD_MAX_SEND_PLAINTEXT_SIZE 400
-/**
- * The size of the flight buffer used within DTLS to store outgoing handshake messages for
- * being able to resend them if required and to assemble incoming handshake message
- * fragments. This buffer is part of the tls-handshake-context object and will
- * thus only be allocated during a TLS handshake.
- */
-# define FLEA_DTLS_FLIGHT_BUF_SIZE 7000
+# define FLEA_TLS_ALT_SEND_BUF_SIZE 140
+
 
 /**
  * Maximal size of public key parameters object in an X.509 certificate. Mainly
@@ -734,7 +619,7 @@
  * Has to be a multiple of 2 as every cipher suite takes up two bytes.
  * Relevant only in stack mode.
  */
-# define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 40
+# define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 250
 
 /* end tls_cfg*/
 /**@}*/
@@ -776,21 +661,19 @@
  * Control if fleaTLS supports concurrency for its global RNG and the TLS server. Remove the
  * definition in order to deactivate multithreading support in fleaTLS.
  */
-# define FLEA_HAVE_MUTEX // FBFLAGS_CORE_ON_OFF
+// # define FLEA_HAVE_MUTEX // FBFLAGS_CORE_ON_OFF
 
 /**
  * Include the mutex header. Remove include directive in the build_config_gen.h file if no mutex support is required. The define is just a dummy for proper generation of this documentation.
  */
-# define FLEA_MUTEX_HEADER_INCL
-# ifdef FLEA_HAVE_MUTEX
-#  include <pthread.h>
-# endif
+// # define FLEA_MUTEX_HEADER_INCL
+// # include <pthread.h>
 
 /**
  * Define the mutex type to be used. Disable this define if mutexes are
  * disabled.
  */
-# define FLEA_MUTEX_TYPE pthread_mutex_t
+// # define FLEA_MUTEX_TYPE pthread_mutex_t
 
 /* end mt_cfg */
 /**@}*/

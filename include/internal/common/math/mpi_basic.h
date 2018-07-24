@@ -1,13 +1,13 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_mpi_basic__H_
-#define _flea_mpi_basic__H_
+# define _flea_mpi_basic__H_
 
-#include "flea/types.h"
+# include "flea/types.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 typedef struct
 {
@@ -82,10 +82,10 @@ flea_al_u8_t flea__nlz_uword(flea_uword_t x);
 
 void flea_mpi_t__set_used_words(flea_mpi_t* p_mpi);
 
-#ifdef FLEA_DO_PRINTF_ERRS
+# ifdef FLEA_DO_DBG_PRINT
 void flea_mpi_t__print(const flea_mpi_t* p_mpi);
-#endif
-#ifdef __cplusplus
+# endif
+# ifdef __cplusplus
 }
-#endif
+# endif
 #endif /* h-guard */

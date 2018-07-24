@@ -45,7 +45,7 @@
  * exceptions. In this case a specific error value provided as second argument
  * to that macro is set as the return value, and the execution jumps to the
  * cleanup section. The first argument to that macro is a string, which is only
- * used to print an error message using printf if the FLEA_DO_PRINTF_ERRS define
+ * used to print an error message using printf if the FLEA_DO_DBG_PRINT define
  * is set. This mechanism can be used in operating system environments to ease
  * debugging.
  *
@@ -73,17 +73,17 @@
 /**/
 
 
-#ifdef FLEA_DO_PRINTF_ERRS
+#ifdef FLEA_DO_DBG_PRINT
 # define FLEA_PRINTF_1_SWITCHED(__format)                 printf(__format)
 # define FLEA_PRINTF_2_SWITCHED(__format, __arg1)         printf(__format, __arg1)
 # define FLEA_PRINTF_3_SWITCHED(__format, __arg1, __arg2) printf(__format, __arg1, __arg2)
 # define __FLEA_EVTL_PRINT_ERR(__func, __str)             printf("%s: %s\n", __func, __str)
-#else // ifdef FLEA_DO_PRINTF_ERRS
+#else // ifdef FLEA_DO_DBG_PRINT
 # define FLEA_PRINTF_1_SWITCHED(__format)
 # define FLEA_PRINTF_2_SWITCHED(__format, __arg1)
 # define FLEA_PRINTF_3_SWITCHED(__format, __arg1, __arg2)
 # define __FLEA_EVTL_PRINT_ERR(__func, __str) do { } while(0)
-#endif // ifdef FLEA_DO_PRINTF_ERRS
+#endif // ifdef FLEA_DO_DBG_PRINT
 
 #define FLEA_THR_HAVE_ERROR() (_flea_err_retval != FLEA_ERR_FINE)
 

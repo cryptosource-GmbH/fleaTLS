@@ -279,7 +279,7 @@ flea_err_e THR_flea_mpi_t__copy_no_realloc(
   FLEA_THR_FIN_SEC();
 }
 
-#ifdef FLEA_DO_PRINTF_ERRS
+#ifdef FLEA_DO_DBG_PRINT
 void flea_mpi_t__print(const flea_mpi_t* p_mpi)
 {
   flea_s16_t i;
@@ -306,7 +306,7 @@ void flea_mpi_t__print(const flea_mpi_t* p_mpi)
   FLEA_PRINTF_1_SWITCHED("\n");
 }
 
-#endif /* ifdef FLEA_DO_PRINTF_ERRS */
+#endif /* ifdef FLEA_DO_DBG_PRINT */
 
 void flea_mpi_t__set_used_words(flea_mpi_t* p_mpi)
 {
