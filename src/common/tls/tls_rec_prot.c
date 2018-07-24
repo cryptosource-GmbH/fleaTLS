@@ -16,7 +16,7 @@
 #include "internal/common/tls/tls_int.h"
 
 // TODO: ANY CALCULATIONS FOR MAXIMAL SIZES MUST USE DTLS HDR-LEN IS CONFIGURED
-#define DBG_PRINT
+// #define DBG_PRINT
 
 #ifdef DBG_PRINT
 # define DBG_PRINTF(...) printf(__VA_ARGS__)
@@ -632,7 +632,7 @@ flea_err_e THR_flea_recprot_t__wrt_data(
       /* no need to write new header in this case: content stays, length comes later */
     }
   }
-  if(content_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
+  if(FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt) && (content_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC))
   {
     rec_prot__pt->write_next_rec_epoch__u16++;
   }
@@ -2216,7 +2216,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
       unsigned i;
       for(i = 0; i < to_cp__alu16; i++)
       {
-        DBG_PRINTF("%02x ", data__pu8[i]);
+        DBG_PRINTF("%02x ", rec_prot__pt->payload_buf__pu8[i]);
       }
       DBG_PRINTF("\n");
 # endif /* ifdef DBG_PRINT */
