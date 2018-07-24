@@ -61,9 +61,29 @@ SET(ASAN_STR -asan)
 
 IF(CMAKE_BUILD_TYPE STREQUAL "Debug" OR CMAKE_BUILD_TYPE STREQUAL "DEBUG" OR CMAKE_BUILD_TYPE STREQUAL "debug")
   ADD_DEFINITIONS(-g)
+ENDIF()
   #SET(DEBUG_STRING -d)
-ELSE()
+
+SET(BUILD_OPTM "full" CACHE STRING "optimizations: choose 'none' or 'full'")
+
+IF(BUILD_OPTM STREQUAL "full")
   ADD_DEFINITIONS( -O3 )
+ELSEIF(BUILD_OPTM STREQUAL "none")
+  ADD_DEFINITIONS( -O0 )
+ELSE()
+  MESSAGE(FATAL_ERROR, "invalid string for optimizations")
+  #-fomit-frame-pointer  -momit-leaf-frame-pointer 
+ENDIF()
+
+
+SET(DEBUG_MSGS "false" CACHE STRING "print exception and debug messages with printf: choose 'false' or 'true'")
+
+IF(DEBUG_MSGS STREQUAL "true")
+  ADD_DEFINITIONS( -DFLEA_SWITCH_ON_DBG_PRINT)
+ELSEIF(DEBUG_MSGS STREQUAL "false")
+  ADD_DEFINITIONS( )
+ELSE()
+  MESSAGE(FATAL_ERROR, "invalid string for DBG_MSGS")
   #-fomit-frame-pointer  -momit-leaf-frame-pointer 
 ENDIF()
 
