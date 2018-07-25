@@ -56,9 +56,13 @@ static flea_err_e THR_open_socket_client(void* ctx__pv)
   int socket_fd = -1;
   int type      = ctx__pt->is_tcp ? SOCK_STREAM : SOCK_DGRAM;
   socket_fd = socket(AF_INET, type, 0);
+  // socket_fd = socket(AF_UNSPEC, type, 0);
 
   if(socket_fd == -1)
   {
+    // TODO: REMOVE
+    FLEA_DBG_PRINTF("error opening socket: %s\n", strerror(errno));
+
     FLEA_THROW("error opening linux socket", FLEA_ERR_INV_STATE);
   }
 
@@ -89,14 +93,15 @@ static flea_err_e THR_open_socket_client(void* ctx__pv)
     addr.sin_addr.s_addr = inet_addr(ctx__pt->hostname);
   }
   addr.sin_family = AF_INET;
-  addr.sin_port   = htons(ctx__pt->port__u16);
+  // addr.sin_family = AF_UNSPEC;
+  addr.sin_port = htons(ctx__pt->port__u16);
 
   if(connect(socket_fd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
   {
     // addr.sin_port = htons(4445);
     // if(connect(socket_fd, (struct sockaddr*) &addr, sizeof(addr)) < 0)
     {
-      FLEA_THROW("could not open client TCP/IP socket", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
+      FLEA_THROW("could not open client socket", FLEA_ERR_FAILED_TO_OPEN_CONNECTION);
     }
   }
   ctx__pt->socket_fd__int = socket_fd;
@@ -122,9 +127,10 @@ static flea_err_e THR_send_socket_inner(
 )
 {
   FLEA_THR_BEG_FUNC();
-
-  if(send(socket_fd, source_buffer__pcu8, nb_bytes_to_write__dtl, MSG_NOSIGNAL) < 0)
+  int ret;
+  if(0 > (ret = send(socket_fd, source_buffer__pcu8, nb_bytes_to_write__dtl, MSG_NOSIGNAL)))
   {
+    FLEA_DBG_PRINTF("error from send over socket: %s\n", strerror(errno));
     FLEA_THROW("Send failed!", FLEA_ERR_FAILED_STREAM_WRITE);
   }
   FLEA_THR_FIN_SEC_empty();

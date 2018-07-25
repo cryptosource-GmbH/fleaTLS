@@ -195,6 +195,7 @@ flea_err_e THR_flea_dtls_hndsh__append_to_flight_buffer_and_try_to_send_record(
     to_go__u32 = FLEA_MIN(flight_buf_rem_free_len__u32, data_len__u32);
     // TODO: HANDLE THE CASE WHERE DESPITE AN EMPTY FLIGHT BUFFER THE MESSAGE
     // IS TOO LARGE
+    FLEA_DBG_PRINTF("flight buf write pos = %u\n", hs_ctx__pt->dtls_ctx__t.flight_buf_write_pos__u32);
     memcpy(
       &hs_ctx__pt->dtls_ctx__t.flight_buf__bu8[ hs_ctx__pt->dtls_ctx__t.flight_buf_write_pos__u32],
       data__pcu8,

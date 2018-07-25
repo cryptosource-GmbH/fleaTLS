@@ -861,7 +861,7 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
     tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = flea_rev_chk_none;
   }
   /* set TLS version */
-  // if(tls_ctx__pt->cfg_flags__e & flea_tls_flag__allow_dtls1_2)
+  // if(tls_ctx__pt->cfg_flags__e & flea_tls_flag__use_dtls1_2)
   if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
   {
     tls_ctx__pt->version.major = FLEA_DTLS_1_2_VERSION_MAJOR;
@@ -883,7 +883,7 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
 
 # ifdef FLEA_HAVE_TLS_SERVER
 
-  if(flags__e & flea_tls_flag__allow_dtls1_2)
+  if(flags__e & flea_tls_flag__use_dtls1_2)
   {
     allow_dtls__b = FLEA_TRUE;
     if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
@@ -892,11 +892,6 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
       tls_ctx__pt->version.major = FLEA_DTLS_1_X_VERSION_MAJOR;
       tls_ctx__pt->version.minor = FLEA_DTLS_1_2_VERSION_MINOR;
     }
-  }
-  if(flags__e & flea_tls_flag__disallow_tls1_2)
-  {
-    tls_ctx__pt->version.major = FLEA_DTLS_1_X_VERSION_MAJOR;
-    tls_ctx__pt->version.minor = FLEA_DTLS_1_2_VERSION_MINOR;
   }
 # endif /* ifdef FLEA_HAVE_TLS_SERVER */
   FLEA_CCALL(
@@ -1164,7 +1159,7 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
 # ifdef FLEA_HAVE_TLS_SERVER
       if(tls_ctx__pt->allow_reneg__u8)
       {
-        FLEA_CCALL(THR_flea_tls__server_handshake(server_ctx_mbn__pt, FLEA_TRUE));
+        FLEA_CCALL(THR_flea_tls__server_handshake(server_ctx_mbn__pt, FLEA_TRUE, FLEA_FALSE));
       }
       else
       {
@@ -1278,16 +1273,11 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
 {
   flea_err_e err__t;
   flea_tls_ctx_t* tls_ctx__pt;
-  flea_tls_handshake_ctx_t hs_ctx__t;
 
   FLEA_THR_BEG_FUNC();
 
-  flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
   tls_ctx__pt = server_ctx_mbn__pt ? &server_ctx_mbn__pt->tls_ctx__t : &client_ctx_mbn__pt->tls_ctx__t;
 
-  hs_ctx__t.is_reneg__b = FLEA_TRUE;
-
-  hs_ctx__t.tls_ctx__pt = tls_ctx__pt;
 
   if(!tls_ctx__pt->allow_reneg__u8)
   {
@@ -1311,10 +1301,9 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
     err__t =
       THR_flea_tls__client_handshake(
       client_ctx_mbn__pt,
-      &hs_ctx__t,
       tls_ctx__pt->client_session_mbn__pt,
-      hostn_valid_params_mbn__pt
-      // FLEA_TRUE
+      hostn_valid_params_mbn__pt,
+      FLEA_TRUE
       );
 # else  /* ifdef FLEA_HAVE_TLS_CLIENT */
     FLEA_THROW("Invalid State, Client not compiled", FLEA_ERR_INT_ERR);
@@ -1322,17 +1311,9 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
   }
   else
   {
+    // TODO: MOVE THE SENDING OF CLIENT HELLO INTO SERVER CONTEXT
 # ifdef FLEA_HAVE_TLS_SERVER
-    FLEA_CCALL(
-      THR_flea_tls__snd_hands_msg(
-        &hs_ctx__t,
-        NULL,
-        HANDSHAKE_TYPE_HELLO_REQUEST,
-        NULL,
-        0
-      )
-    );
-    err__t = THR_flea_tls__server_handshake(server_ctx_mbn__pt, FLEA_TRUE);
+    err__t = THR_flea_tls__server_handshake(server_ctx_mbn__pt, FLEA_TRUE, FLEA_TRUE);
 # else  /* ifdef FLEA_HAVE_TLS_SERVER */
     FLEA_THROW("Invalid State, Server not compiled", FLEA_ERR_INT_ERR);
 # endif /* ifdef FLEA_HAVE_TLS_SERVER */

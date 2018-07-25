@@ -483,7 +483,7 @@ flea_err_e THR_flea_tls_tool_set_tls_cfg(
 
   if(use_dtls(cmdl_args))
   {
-    cfg.flags |= flea_tls_flag__allow_dtls1_2;
+    cfg.flags |= flea_tls_flag__use_dtls1_2;
   }
 
 

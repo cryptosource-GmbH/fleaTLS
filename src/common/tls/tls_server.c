@@ -1207,7 +1207,8 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
 
 static flea_err_e THR_flea_tls__server_handshake_inner(
   flea_tls_srv_ctx_t* server_ctx__pt,
-  flea_bool_t         is_reneg__b
+  flea_bool_t         is_reneg__b,
+  flea_bool_t         do_send_server_hello__b
 )
 {
   flea_tls_ctx_t* tls_ctx = &server_ctx__pt->tls_ctx__t;
@@ -1242,6 +1243,20 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
 
   FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t));
   flea_tls_ctx_t__begin_handshake(tls_ctx);
+
+  if(do_send_server_hello__b)
+  {
+    FLEA_CCALL(
+      THR_flea_tls__snd_hands_msg(
+        &hs_ctx__t,
+        NULL,
+        HANDSHAKE_TYPE_HELLO_REQUEST,
+        NULL,
+        0
+      )
+    );
+  }
+
   hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
   hs_ctx__t.tls_ctx__pt = tls_ctx;
   hs_ctx__t.is_reneg__b = is_reneg__b;
@@ -1566,7 +1581,8 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
 
 flea_err_e THR_flea_tls__server_handshake(
   flea_tls_srv_ctx_t* server_ctx__pt,
-  flea_bool_t         is_reneg__b
+  flea_bool_t         is_reneg__b,
+  flea_bool_t         do_send_server_hello__b
 )
 {
   flea_err_e err;
@@ -1574,7 +1590,7 @@ flea_err_e THR_flea_tls__server_handshake(
   FLEA_THR_BEG_FUNC();
   do
   {
-    err = THR_flea_tls__server_handshake_inner(server_ctx__pt, is_reneg__b);
+    err = THR_flea_tls__server_handshake_inner(server_ctx__pt, is_reneg__b, do_send_server_hello__b);
   } while(err == FLEA_ERR_INIT_CLHELLO_DURING_ACTIVE_DTLS_CONN);
 
   FLEA_THROW("rethrowing error during server handshake", err);
@@ -1655,7 +1671,7 @@ flea_err_e THR_flea_tls_srv_ctx_t__ctor_psk(
 
 
   FLEA_CCALL(THR_flea_tls_ctx_t__construction_helper(tls_ctx__pt, rw_stream__pt));
-  err__t = THR_flea_tls__server_handshake(tls_server_ctx__pt, FLEA_FALSE);
+  err__t = THR_flea_tls__server_handshake(tls_server_ctx__pt, FLEA_FALSE, FLEA_FALSE);
   FLEA_CCALL(THR_flea_tls__handle_tls_error(tls_server_ctx__pt, NULL, err__t, FLEA_FALSE, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_srv_ctx_t__ctor */

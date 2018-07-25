@@ -125,7 +125,6 @@ struct struct_flea_recprot_t
   // flea_u16_t                   current_record_content_len__u16;
   flea_u8_t                    record_hdr_len__u8;
   flea_u8_t                    ctrl_field__u8;
-  flea_u8_t                    is_dtls_active__u8;
 //  flea_u8_t                    skip_empty_record__b;
 };
 
@@ -153,7 +152,7 @@ flea_err_e THR_flea_recprot_t__ctor(
   flea_al_u8_t      prot_vers_major,
   flea_al_u8_t      prot_vers_minor,
   flea_rw_stream_t* rw_stream__pt,
-  flea_bool_t       allow_dtls__b
+  flea_bool_t       is_dtls__b
 );
 
 void flea_recprot_t__set_null_ciphersuite(

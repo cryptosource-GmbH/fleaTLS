@@ -122,32 +122,12 @@ typedef enum
    */
   flea_tls_flag__accept_untrusted_peer = 0x400,
 
-  // TODO: MAKE SINGLE FLAG ENABLING DTLS AND DISABLING TLS
-
-  /*
-   * This flag enables the use TLS. This is feature is by default enabled. It
-   * can only be disabled by setting #flea_tls_flag__disallow_tls1_2 explicitly
-   * or for the client by enabling DTLS.
-   */
-  flea_tls_flag__allow_tls1_2     = 0x00,
-
-  /*
-   * This flag disables the use TLS.
-   */
-  flea_tls_flag__disallow_tls1_2  = 0x800,
-
   /*
    * For the fleaTLS client, this flag enables the use of DTLS irrespectively of
    * whether TLS was activated or not, for the fleaTLS
    * server, it enables the DTLS potentially additionally to TLS support.
    */
-  flea_tls_flag__allow_dtls1_2    = 0x1000,
-
-  /*
-   * This flag disables the use DTLS. This feature is activated by default, i.e.
-   * DTLS is deactivated by default.
-   */
-  flea_tls_flag__disallow_dtls1_2 = 0x00,
+  flea_tls_flag__use_dtls1_2           = 0x800,
 } flea_tls_flag_e;
 
 /**

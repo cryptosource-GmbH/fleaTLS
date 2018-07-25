@@ -129,7 +129,7 @@ struct struct_flea_tls_ctx_t
 
 #  define FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt) \
   (((flea_u32_t) ((tls_ctx__pt)->cfg_flags__e) \
-  & flea_tls_flag__allow_dtls1_2) != 0)
+  & flea_tls_flag__use_dtls1_2) != 0)
 
 #  define flea_tls_handshake_ctx_t__INIT(__p) \
   do {(__p)->silent_alarm__u8 = 0; memset((__p), 0, sizeof(*(__p))); \

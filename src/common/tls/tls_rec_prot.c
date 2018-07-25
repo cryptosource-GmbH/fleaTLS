@@ -20,15 +20,15 @@
 
 #ifdef FLEA_HAVE_TLS
 
-# define FLEA_RP_CTRL__DTLS_ALLOWED_BIT              (1 << 0)
+# define FLEA_RP_CTRL__DTLS_BIT                      (1 << 0)
 # define FLEA_RP_CTRL__WRITE_ONGOING_BIT             (1 << 1)
 # define FLEA_RP_CTRL__SESSION_CLOSED_BIT            (1 << 2)
 # define FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT      (1 << 3)
 # define FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT      (1 << 4)
 # define FLEA_RP_CTRL__IN_HANDSHAKE_IN_NEW_EPOCH_BIT (1 << 5)
 
-# define FLEA_RP__SET_ALLOW_DTLS(rec_prot__pt)    ((rec_prot__pt)->ctrl_field__u8 |= FLEA_RP_CTRL__DTLS_ALLOWED_BIT)
-# define FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt)   ((rec_prot__pt)->ctrl_field__u8 & FLEA_RP_CTRL__DTLS_ALLOWED_BIT)
+# define FLEA_RP__SET_DTLS(rec_prot__pt)          ((rec_prot__pt)->ctrl_field__u8 |= FLEA_RP_CTRL__DTLS_BIT)
+# define FLEA_RP__IS_DTLS(rec_prot__pt)           ((rec_prot__pt)->ctrl_field__u8 & FLEA_RP_CTRL__DTLS_BIT)
 
 # define FLEA_RP__SET_WRITE_ONGOING(rec_prot__pt) ((rec_prot__pt)->ctrl_field__u8 |= FLEA_RP_CTRL__WRITE_ONGOING_BIT)
 # define FLEA_RP__SET_NO_WRITE_ONGOING(rec_prot__pt) \
@@ -73,7 +73,7 @@
   & FLEA_RP_CTRL__IN_HANDSHAKE_IN_NEW_EPOCH_BIT)
 
 
-# define FLEA_RP__IS_DTLS_ACTIVE(rec_prot__pt) ((rec_prot__pt)->is_dtls_active__u8)
+// # define FLEA_RP__IS_DTLS(rec_prot__pt) ((rec_prot__pt)->is_dtls_active__u8)
 
 
 static void inc_seq_nbr(flea_u32_t* seq__au32)
@@ -235,7 +235,7 @@ flea_err_e THR_flea_recprot_t__ctor(
   flea_al_u8_t      prot_vers_major,   // TODO: turn into u16?
   flea_al_u8_t      prot_vers_minor,
   flea_rw_stream_t* rw_stream__pt,
-  flea_bool_t       allow_dtls__b
+  flea_bool_t       is_dtls__b
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -244,11 +244,13 @@ flea_err_e THR_flea_recprot_t__ctor(
   FLEA_ALLOC_MEM_ARR(rec_prot__pt->send_rec_buf_raw__bu8, FLEA_TLS_TRNSF_BUF_SIZE);
   FLEA_ALLOC_MEM_ARR(rec_prot__pt->alt_send_buf__raw__bu8, FLEA_TLS_ALT_SEND_BUF_SIZE);
 # endif
-  if(allow_dtls__b)
+
+  rec_prot__pt->record_hdr_len__u8 = FLEA_TLS_RECORD_HDR_LEN;
+  if(is_dtls__b)
   {
-    FLEA_RP__SET_ALLOW_DTLS(rec_prot__pt);
+    rec_prot__pt->record_hdr_len__u8 = FLEA_DTLS_RECORD_HDR_LEN;
+    FLEA_RP__SET_DTLS(rec_prot__pt);
   }
-  rec_prot__pt->record_hdr_len__u8         = FLEA_TLS_RECORD_HDR_LEN;
   rec_prot__pt->alt_send_buf__raw_len__u16 = FLEA_TLS_ALT_SEND_BUF_SIZE;
   rec_prot__pt->send_rec_buf_raw_len__u16  = FLEA_TLS_TRNSF_BUF_SIZE;
   // TODO: THIS SHOULD BE CALCULATED DYNAMICALLY AS THE MIN(buffer capacity, allowed
@@ -552,7 +554,7 @@ static void flea_recprot_t__set_record_header(
   rec_prot__pt->send_buf_raw__pu8[1] = rec_prot__pt->prot_version__t.major;
   rec_prot__pt->send_buf_raw__pu8[2] = rec_prot__pt->prot_version__t.minor;
 # ifdef FLEA_HAVE_DTLS
-  if(rec_prot__pt->is_dtls_active__u8)
+  if(FLEA_RP__IS_DTLS(rec_prot__pt))
   {
     // flea_al_s8_t i;
     // flea_u32_t low__u32 = rec_prot__pt->write_state__t.sequence_number__au32[1];
@@ -646,7 +648,7 @@ flea_err_e THR_flea_recprot_t__wrt_data(
      * send out the CCS, because it must be encrypted under the current epoch.
      */
     if(buf_free_len__alu16 == 0 ||
-      (FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt) && (content_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC)))
+      (FLEA_RP__IS_DTLS(rec_prot__pt) && (content_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC)))
     {
       FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
       buf_free_len__alu16 = rec_prot__pt->record_plaintext_send_max_value__u16
@@ -654,7 +656,7 @@ flea_err_e THR_flea_recprot_t__wrt_data(
       /* no need to write new header in this case: content stays, length comes later */
     }
   }
-  if(FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt) && (content_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC))
+  if(FLEA_RP__IS_DTLS(rec_prot__pt) && (content_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC))
   {
     rec_prot__pt->write_state__t.sequence_number__au32[0] = 0; // INCREMENTING HERE, BUT THE RECORD MAY STILL BE AWAITING ENCRYPTION
     rec_prot__pt->write_state__t.sequence_number__au32[1] = 0;
@@ -1019,7 +1021,7 @@ static flea_err_e THR_flea_recprot_t__encr_rcrd_gcm(
   seq_lo__u32 = rec_prot__pt->write_state__t.sequence_number__au32[0];
   seq_hi__u32 = rec_prot__pt->write_state__t.sequence_number__au32[1];
 
-  if(FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt))
+  if(FLEA_RP__IS_DTLS(rec_prot__pt))
   {
     seq_hi__u32 |= (rec_prot__pt->write_next_rec_epoch__u16 << 16);
   }
@@ -1134,6 +1136,19 @@ flea_err_e THR_flea_recprot_t__write_flush(
     - 2] = rec_prot__pt->send_curr_rec_content_len__u16 >> 8;
     rec_prot__pt->send_buf_raw__pu8[rec_prot__pt->record_hdr_len__u8
     - 1] = rec_prot__pt->send_curr_rec_content_len__u16;
+
+    FLEA_DBG_PRINTF(
+      "sending unencrypted record, dtls = %u, hdr-len = %u\n",
+      FLEA_RP__IS_DTLS(rec_prot__pt),
+      rec_prot__pt->record_hdr_len__u8
+    );
+    FLEA_DBG_PRINTF("  with header  = ");
+    FLEA_DBG_PRINT_BYTE_ARRAY(rec_prot__pt->send_buf_raw__pu8, rec_prot__pt->record_hdr_len__u8);
+    FLEA_DBG_PRINTF("  with content = ");
+    FLEA_DBG_PRINT_BYTE_ARRAY(
+      rec_prot__pt->send_buf_raw__pu8 + rec_prot__pt->record_hdr_len__u8,
+      rec_prot__pt->send_curr_rec_content_len__u16
+    );
     FLEA_CCALL(
       THR_flea_rw_stream_t__write(
         rec_prot__pt->rw_stream__pt,
@@ -1511,7 +1526,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
               FLEA_DBG_PRINTF(
                 "DTLS 1.2 requested by peer, checking if (possibly again, already done) switching to it is allowed\n"
               );
-              if(FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt))
+              if(FLEA_RP__IS_DTLS(rec_prot__pt))
               {
                 FLEA_DBG_PRINTF("activating DTLS\n");
                 rec_prot__pt->record_hdr_len__u8 = FLEA_DTLS_RECORD_HDR_LEN;
@@ -1527,11 +1542,11 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
                   FLEA_TLS_RECORD_MAX_SEND_PLAINTEXT_SIZE,
                   rec_prot__pt->record_plaintext_send_max_value__u16
                 );*/
-                rec_prot__pt->is_dtls_active__u8 = 1;
+                // rec_prot__pt->is_dtls_active__u8 = 1;
               }
             }
           }
-          if(rec_prot__pt->is_dtls_active__u8)
+          if(FLEA_RP__IS_DTLS(rec_prot__pt))
           {
             if(rec_prot__pt->raw_read_buf_content__u16 < rec_prot__pt->record_hdr_len__u8)
             {
@@ -1585,7 +1600,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             FLEA_DBG_PRINTF("content type required: %u, ", cont_type__e);
             FLEA_DBG_PRINTF("content type found: %u\n", rec_prot__pt->send_rec_buf_raw__bu8[0]);
             unsigned add = 0;
-            if(rec_prot__pt->is_dtls_active__u8)
+            if(FLEA_RP__IS_DTLS(rec_prot__pt))
             {
               add = 8;
             }
@@ -1603,7 +1618,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
 
 # ifdef FLEA_DO_DBG_PRINT
           unsigned add = 0;
-          if(rec_prot__pt->is_dtls_active__u8)
+          if(FLEA_RP__IS_DTLS(rec_prot__pt))
           {
             add = 8;
           }
@@ -1624,14 +1639,15 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           else if(prot_version_mbn__pt)
           {
             flea_al_u8_t add = 0;
-            FLEA_DBG_PRINTF(
+
+            /*FLEA_DBG_PRINTF(
               "setting the record version number into result struct (dtls_active = %u)\n",
               rec_prot__pt->is_dtls_active__u8
-            );
+            );*/
             // TODO: FOR DTLS, this is incorrent, when openssl sends DTLS1.0 in
             // record, but DTLS1.2 in handshake msg
             // => find out what the meaning is
-            if(rec_prot__pt->is_dtls_active__u8)
+            if(FLEA_RP__IS_DTLS(rec_prot__pt))
             {
               add = 8;
             }
@@ -1641,7 +1657,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         }
         hdr_pos__alu8 = 3;
 # ifdef FLEA_HAVE_DTLS
-        if(FLEA_RP__IS_DTLS_ACTIVE(rec_prot__pt))
+        if(FLEA_RP__IS_DTLS(rec_prot__pt))
         {
           flea_al_u8_t i;
           flea_al_u16_t rec_epoch__alu16;
@@ -1718,7 +1734,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         {
           FLEA_THROW("received record does not fit into receive buffer", FLEA_ERR_TLS_EXCSS_REC_LEN);
         }
-        if(rec_prot__pt->is_dtls_active__u8)
+        if(FLEA_RP__IS_DTLS(rec_prot__pt))
         {
           if(rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8 >
             rec_prot__pt->raw_read_buf_content__u16)
@@ -1861,7 +1877,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         unsigned i;
         for(i = 0; i < to_cp__alu16; i++)
         {
-          FLEA_DBG_PRINTF("%02x ", data__pu8[i]);
+          FLEA_DBG_PRINTF("%02x ", rec_prot__pt->payload_buf__pu8[i]);
         }
         FLEA_DBG_PRINTF("\n");
 # endif /* ifdef FLEA_DO_DBG_PRINT */
@@ -2026,7 +2042,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
             ((rec_prot__pt->send_rec_buf_raw__bu8[2] == FLEA_DTLS_1_0_VERSION_MINOR) ||
             (rec_prot__pt->send_rec_buf_raw__bu8[2] == FLEA_DTLS_1_2_VERSION_MINOR))))
           {
-            if(FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt))
+            if(FLEA_RP__IS_DTLS(rec_prot__pt))
             {
               rec_prot__pt->record_hdr_len__u8 = FLEA_DTLS_RECORD_HDR_LEN;
               rec_prot__pt->payload_buf__pu8   = rec_prot__pt->send_rec_buf_raw__bu8
@@ -2037,11 +2053,11 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
                  length is considered in the calculation of the buffer size
                  - send len is affected directly */
 
-              rec_prot__pt->is_dtls_active__u8 = 1;
+              // rec_prot__pt->is_dtls_active__u8 = 1;
             }
           }
         }
-        if(rec_prot__pt->is_dtls_active__u8)
+        if(FLEA_RP__IS_DTLS(rec_prot__pt))
         {
           if(rec_prot__pt->raw_read_buf_content__u16 < rec_prot__pt->record_hdr_len__u8)
           {
@@ -2121,7 +2137,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
       {
         FLEA_THROW("received record does not fit into receive buffer", FLEA_ERR_TLS_EXCSS_REC_LEN);
       }
-      if(rec_prot__pt->is_dtls_active__u8)
+      if(FLEA_RP__IS_DTLS(rec_prot__pt))
       {
         if(rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8 >
           rec_prot__pt->raw_read_buf_content__u16)
@@ -2283,7 +2299,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
   flea_stream_read_mode_e       rd_mode__e
 )
 {
-  if(FLEA_RP__IS_DTLS_ALLOWED(rec_prot__pt))
+  if(FLEA_RP__IS_DTLS(rec_prot__pt))
   {
     return THR_flea_recprot_t__read_data_inner_dtls(
       rec_prot__pt,
