@@ -736,10 +736,30 @@
  * Has to be a multiple of 2 as every cipher suite takes up two bytes.
  * Relevant only in stack mode.
  */
-# define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE     250
-# define FLEA_STKMD_DTLS_MAX_HELLO_COOKIE_SIZE 256
+# define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 250/* end tls_cfg*/
+/**@}*/
 
-/* end tls_cfg*/
+/**
+ * \defgroup dtls_cfg TLS configuration
+ */
+/**@{*/
+
+/**
+ * This is the maximal cookie size supported by the flea DTLS client in stack mode.
+ */
+# define FLEA_STKMD_DTLS_CLT_MAX_HELLO_COOKIE_SIZE 256
+
+/**
+ * The lenght of the server cookie sent by the flea DTLS server in bytes. May have any value between 1 and 255. It is recommended to use at least a length of 8 bytes.
+ */
+# define FLEA_DTLS_SRV_HELLO_COOKIE_SIZE 10
+
+/**
+ * If the server is configured to request a hello cookie in the client's ClientHello, then the server aborts the handshake if receives n invalid ClientHellos that do not contain the requested cookie, where n is the number configured in this property. This value must be at least 1 and should not be set too large.
+ */
+# define FLEA_STKMD_DTLS_MAX_TRIES_FOR_HELLO_COOKIE 3
+
+/* end dtls_cfg*/
 /**@}*/
 
 /**
