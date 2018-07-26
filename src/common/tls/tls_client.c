@@ -659,7 +659,7 @@ static flea_err_e THR_flea_tls__process_hello_verify_req(
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_u8_t len__u8;
 
-  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(vec__t, FLEA_STKMD_DTLS_MAX_HELLO_COOKIE_SIZE);
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(vec__t, FLEA_STKMD_DTLS_CLT_MAX_HELLO_COOKIE_SIZE);
   FLEA_THR_BEG_FUNC();
   hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
   // TODO: CHECK PROTOCOL VERSION OF THE HVR (TO BE AT LEAST DTLS1.0 (?))

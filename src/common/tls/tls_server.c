@@ -1705,7 +1705,7 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
     flea_pubkey_t__dtor(&peer_public_key__t);
     flea_privkey_t__dtor(&ecdhe_priv_key__t);
     flea_tls_handshake_ctx_t__dtor(&hs_ctx__t);
-    FLEA_FREE_MEM_CHK_NULL(hello_cookie__bu8);
+    FLEA_FREE_BUF_FINAL(hello_cookie__bu8);
   );
 } /* THR_flea_tls__server_handshake_inner */
 
