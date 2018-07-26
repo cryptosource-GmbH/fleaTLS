@@ -73,6 +73,11 @@ flea_err_e THR_flea_tls_prl_hash_ctx_t__select_hash_ctx(
   flea_hash_id_e           hash_id__t
 );
 
+/**
+ * Reset the object, i.e. all internal hash context objects, to the initial state.
+ */
+void flea_tls_prl_hash_ctx_t__reset(flea_tls_prl_hash_ctx_t* p_hash_ctx);
+
 #  ifdef __cplusplus
 }
 #  endif

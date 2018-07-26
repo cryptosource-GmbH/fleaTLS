@@ -147,4 +147,14 @@
 
 /************ End Calculate Maximum Key Block Size ************/
 
+
+/*********** Begin TLS/DTLS ********************************/
+
+#ifdef FLEA_HAVE_DTLS
+# define FLEA_DO_IF_HAVE_DTLS(x) x
+#else
+# define FLEA_DO_IF_HAVE_DTLS(x)
+#endif
+
+/*********** End TLS/DTLS ********************************/
 #endif /* h-guard */

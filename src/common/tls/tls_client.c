@@ -453,10 +453,14 @@ static flea_err_e THR_flea_tls__read_server_kex_psk(
 # endif  /* if defined FLEA_HAVE_TLS_CS_PSK */
 
 static flea_err_e THR_flea_tls__send_client_hello(
-  flea_tls_ctx_t*           tls_ctx__pt,
   flea_tls_handshake_ctx_t* hs_ctx__pt,
   flea_tls_prl_hash_ctx_t*  p_hash_ctx,
-  flea_tls_clt_session_t*   session_mbn__pt
+  flea_tls_clt_session_t* session_mbn__pt
+# ifdef                     FLEA_HAVE_DTLS
+  ,
+  const flea_u8_t*          hello_verify_cookie__pcu8,
+  flea_al_u8_t              hello_verify_cookie_len__alu8
+# endif
 )
 {
   flea_al_u16_t i;
@@ -465,6 +469,7 @@ static flea_err_e THR_flea_tls__send_client_hello(
   flea_u8_t version__au8[2];
   flea_bool_t use_resumption__b;
   flea_u8_t len__u8;
+  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
 
   FLEA_THR_BEG_FUNC();
 
@@ -501,11 +506,12 @@ static flea_err_e THR_flea_tls__send_client_hello(
   {
     len += session_mbn__pt->session_id_len__u8;
   }
+# ifdef FLEA_HAVE_DTLS
   if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
   {
-    len += 1;
-    // TODO: ADJUST LEN FOR SENDING BACK COOKIE
+    len += hello_verify_cookie_len__alu8 + 1;
   }
+# endif /* ifdef FLEA_HAVE_DTLS */
 
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_hdr(
@@ -564,14 +570,24 @@ static flea_err_e THR_flea_tls__send_client_hello(
     }
   }
 
+# ifdef FLEA_HAVE_DTLS
   if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
   {
     /*
      * send empty server cookie
      */
-    len__u8 = 0;
+    len__u8 = hello_verify_cookie_len__alu8;
     FLEA_CCALL(THR_flea_tls__snd_hands_msg_content(hs_ctx__pt, p_hash_ctx, &len__u8, 1));
+    FLEA_CCALL(
+      THR_flea_tls__snd_hands_msg_content(
+        hs_ctx__pt,
+        p_hash_ctx,
+        hello_verify_cookie__pcu8,
+        hello_verify_cookie_len__alu8
+      )
+    );
   }
+# endif /* ifdef FLEA_HAVE_DTLS */
 
   FLEA_CCALL(
     THR_flea_tls__snd_hands_msg_int_be(
@@ -631,6 +647,44 @@ static flea_err_e THR_flea_tls__send_client_hello(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__send_client_hello */
 
+# ifdef FLEA_HAVE_DTLS
+static flea_err_e THR_flea_tls__process_hello_verify_req(
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_tls_handsh_reader_t* hs_rdr__pt,
+  flea_tls_prl_hash_ctx_t*  prl_hash_ctx__pt,
+  flea_tls_clt_session_t*   client_session_mbn__pt
+)
+{
+  flea_u8_t hvr_hdr__au8[3];
+  flea_rw_stream_t* hs_rd_stream__pt;
+  flea_u8_t len__u8;
+
+  FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(vec__t, FLEA_STKMD_DTLS_MAX_HELLO_COOKIE_SIZE);
+  FLEA_THR_BEG_FUNC();
+  hs_rd_stream__pt = flea_tls_handsh_reader_t__get_read_stream(hs_rdr__pt);
+  // TODO: CHECK PROTOCOL VERSION OF THE HVR (TO BE AT LEAST DTLS1.0 (?))
+
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, hvr_hdr__au8, sizeof(hvr_hdr__au8)));
+  len__u8 = hvr_hdr__au8[2];
+  FLEA_CCALL(THR_flea_byte_vec_t__resize(&vec__t, len__u8));
+  FLEA_CCALL(THR_flea_rw_stream_t__read_full(hs_rd_stream__pt, flea_byte_vec_t__GET_DATA_PTR(&vec__t), len__u8));
+
+  flea_tls_prl_hash_ctx_t__reset(prl_hash_ctx__pt);
+  FLEA_CCALL(
+    THR_flea_tls__send_client_hello(
+      hs_ctx__pt,
+      prl_hash_ctx__pt,
+      client_session_mbn__pt,
+      flea_byte_vec_t__GET_DATA_PTR(&vec__t),
+      flea_byte_vec_t__GET_DATA_LEN(&vec__t)
+    )
+  );
+  FLEA_THR_FIN_SEC(
+    flea_byte_vec_t__dtor(&vec__t);
+  );
+}
+
+# endif /* ifdef FLEA_HAVE_DTLS */
 static flea_err_e THR_flea_tls__read_cert_request(
   flea_tls_ctx_t*           tls_ctx__pt,
   flea_tls_handsh_reader_t* hs_rdr__pt
@@ -1052,7 +1106,23 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
   {
     FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, p_hash_ctx__pt));
   }
-  if(handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO)
+# ifdef FLEA_HAVE_DTLS
+  if((handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_HELLO_VERIFY_REQUEST) &&
+    (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_HELLO_VERIFY_REQUEST))
+  {
+    FLEA_CCALL(
+      THR_flea_tls__process_hello_verify_req(
+        hs_ctx__pt,
+        &handsh_rdr__t,
+        p_hash_ctx__pt,
+        client_session_mbn__pt
+      )
+    );
+    /* handshake_state->expected_messages remains unchanged */
+  }
+  else
+# endif /* ifdef FLEA_HAVE_DTLS */
+  if(handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO)
   {
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_HELLO)
     {
@@ -1287,9 +1357,21 @@ flea_err_e THR_flea_tls__client_handshake(
     if(handshake_state.initialized == FLEA_FALSE)
     {
       // send client hello
-      FLEA_CCALL(THR_flea_tls__send_client_hello(tls_ctx__pt, hs_ctx__pt, &p_hash_ctx, session_mbn__pt));
+      FLEA_CCALL(
+        THR_flea_tls__send_client_hello(
+          hs_ctx__pt,
+          &p_hash_ctx,
+          session_mbn__pt
+          FLEA_DO_IF_HAVE_DTLS(
+            FLEA_COMMA NULL FLEA_COMMA 0
+          )
+        )
+      );
       handshake_state.initialized       = FLEA_TRUE;
       handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO;
+# ifdef FLEA_HAVE_DTLS
+      handshake_state.expected_messages |= FLEA_TLS_HANDSHAKE_EXPECT_HELLO_VERIFY_REQUEST;
+# endif
     }
 
     /*

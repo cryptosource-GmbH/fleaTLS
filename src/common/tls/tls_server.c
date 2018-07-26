@@ -1242,6 +1242,11 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
   flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
 
   FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t));
+
+  hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
+  hs_ctx__t.tls_ctx__pt = tls_ctx;
+  hs_ctx__t.is_reneg__b = is_reneg__b;
+
   flea_tls_ctx_t__begin_handshake(tls_ctx);
 
   if(do_send_server_hello__b)
@@ -1257,9 +1262,6 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
     );
   }
 
-  hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
-  hs_ctx__t.tls_ctx__pt = tls_ctx;
-  hs_ctx__t.is_reneg__b = is_reneg__b;
 
   flea_pubkey_t__INIT(&peer_public_key__t);
   flea_privkey_t__INIT(&ecdhe_priv_key__t);

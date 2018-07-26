@@ -95,6 +95,14 @@ void flea_tls_prl_hash_ctx_t__stop_update_for_all_but_one(
 # endif /* if defined FLEA_HEAP_MODE && defined FLEA_HAVE_TLS_CLIENT */
 }
 
+void flea_tls_prl_hash_ctx_t__reset(flea_tls_prl_hash_ctx_t* p_hash_ctx)
+{
+  for(flea_u8_t i = 0; i < p_hash_ctx->num_hash_ctx__u8; i++)
+  {
+    flea_hash_ctx_t__reset(&p_hash_ctx->hash_ctx__pt[i]);
+  }
+}
+
 flea_err_e THR_flea_tls_prl_hash_ctx_t__update(
   flea_tls_prl_hash_ctx_t* p_hash_ctx,
   const flea_u8_t*         bytes__u8,
