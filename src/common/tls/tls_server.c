@@ -28,6 +28,39 @@
 
 #ifdef FLEA_HAVE_TLS_SERVER
 
+static flea_err_e THR_flea_tls__send_hello_verify_request(
+  flea_tls_handshake_ctx_t* hs_ctx__pt
+)
+{
+  flea_al_u8_t len__alu8;
+  const flea_u8_t version_len__acu8[3] =
+  {FLEA_DTLS_1_2_VERSION_MAJOR, FLEA_DTLS_1_0_VERSION_MINOR, FLEA_DTLS_SRV_HELLO_COOKIE_SIZE};
+
+  FLEA_THR_BEG_FUNC();
+  len__alu8 = FLEA_DTLS_SRV_HELLO_COOKIE_SIZE + 3;
+  FLEA_CCALL(
+    THR_flea_tls__snd_hands_msg_hdr(
+      hs_ctx__pt,
+      NULL,
+      HANDSHAKE_TYPE_HELLO_VERIFY_REQUEST,
+      len__alu8
+    )
+  );
+  /* send DTLS 1.0 version */
+  FLEA_CCALL(THR_flea_tls__snd_hands_msg_content(hs_ctx__pt, NULL, version_len__acu8, sizeof(version_len__acu8)));
+  FLEA_CCALL(
+    THR_flea_tls__snd_hands_msg_content(
+      hs_ctx__pt,
+      NULL,
+      hs_ctx__pt->dtls_ctx__t.hello_cookie__pu8,
+      FLEA_DTLS_SRV_HELLO_COOKIE_SIZE
+    )
+  );
+
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
 static flea_err_e THR_flea_tls__read_client_hello(
   flea_tls_srv_ctx_t*       server_ctx__pt,
   flea_tls_handshake_ctx_t* hs_ctx__pt,
@@ -45,6 +78,9 @@ static flea_err_e THR_flea_tls__read_client_hello(
   flea_al_u16_t chosen_cs_index__alu16 = supported_cs_len__alu16;
 
   FLEA_DECL_BUF(session_id__bu8, flea_u8_t, FLEA_TLS_SESSION_ID_LEN);
+# ifdef FLEA_HAVE_DTLS
+  FLEA_DECL_BUF(client_cookie__bu8, flea_u8_t, FLEA_DTLS_SRV_HELLO_COOKIE_SIZE);
+# endif
   const flea_al_u8_t max_session_id_len__alu8 = FLEA_TLS_SESSION_ID_LEN;
   flea_u8_t client_compression_methods_len__u8;
   flea_u32_t cipher_suites_len_from_peer__u32;
@@ -150,17 +186,64 @@ static flea_err_e THR_flea_tls__read_client_hello(
     );
     hs_ctx__pt->is_sess_res__b = resume__b; /* must come after the set_max_fragm_len call */
   }
-
+# ifdef FLEA_HAVE_DTLS
+  /* read the hello cookie */
+  // *result_do_snd_hvr__pb = FLEA_FALSE;
   if(FLEA_TLS_CTX_IS_DTLS(tls_ctx))
   {
-    // TODO: implement handling of a non-empty cookie
-    /* read the client cookie */
     FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &session_id_len__u8));
-    if(session_id_len__u8 != 0)
+    if(hs_ctx__pt->is_reneg__b)
     {
-      FLEA_THROW("non empty DTLS client cookie received", FLEA_ERR_TLS_PROT_DECODE_ERR);
+      /* the client cookie is ignored */
+      FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, session_id_len__u8));
+    }
+    else if(!(tls_ctx->cfg_flags__e & flea_tls_flag__dtls_srv_send_hvr))
+    {
+      /* the client cookie is ignored */
+      FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, session_id_len__u8));
+    }
+    else
+    {
+      /* we require a cookie verification */
+      if(hs_ctx__pt->dtls_ctx__t.hello_cookie__pu8[0] == 0)
+      {
+        /* no cookie was yet sent */
+        FLEA_CCALL(THR_flea_rng__randomize(hs_ctx__pt->dtls_ctx__t.hello_cookie__pu8, FLEA_DTLS_SRV_HELLO_COOKIE_SIZE));
+        /* indicate that a cookie should be sent */
+        hs_ctx__pt->dtls_ctx__t.hello_cookie__pu8[0] |= 1;
+        FLEA_CCALL(THR_flea_tls_handsh_reader_t__skip_rem_msg(hs_rdr__pt));
+        // *result_do_snd_hvr__pb = FLEA_TRUE;
+        FLEA_THR_RETURN();
+      }
+      /* we are expecting a cookie, this is already indicated in the first byte of the hello cookie */
+      if(session_id_len__u8 != FLEA_DTLS_SRV_HELLO_COOKIE_SIZE)
+      {
+        // *result_do_snd_hvr__pb = FLEA_TRUE;
+        FLEA_THR_RETURN();
+      }
+
+      FLEA_ALLOC_BUF(client_cookie__bu8, FLEA_DTLS_SRV_HELLO_COOKIE_SIZE);
+      FLEA_CCALL(
+        THR_flea_rw_stream_t__read_full(
+          hs_rd_stream__pt,
+          client_cookie__bu8,
+          FLEA_DTLS_SRV_HELLO_COOKIE_SIZE
+        )
+      );
+      if(!flea_sec_mem_equal(
+          hs_ctx__pt->dtls_ctx__t.hello_cookie__pu8,
+          client_cookie__bu8,
+          FLEA_DTLS_SRV_HELLO_COOKIE_SIZE
+      ))
+      {
+        // *result_do_snd_hvr__pb = FLEA_TRUE;
+        FLEA_THR_RETURN();
+      }
+      /* a valid cookie was found, signal that we don't require a further clientHello. */
+      hs_ctx__pt->dtls_ctx__t.hello_cookie__pu8[0] = 0;
     }
   }
+# endif /* ifdef FLEA_HAVE_DTLS */
 
   FLEA_CCALL(THR_flea_rw_stream_t__read_int_be(hs_rd_stream__pt, &cipher_suites_len_from_peer__u32, 2));
 
@@ -357,6 +440,7 @@ static flea_err_e THR_flea_tls__read_client_hello(
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(session_id__bu8);
+    FLEA_FREE_BUF_FINAL(client_cookie__bu8);
     FLEA_DO_IF_HAVE_TLS_ECC(
       flea_byte_vec_t__dtor(&peer_cipher_suites_u16_be__t);
     )
@@ -1077,8 +1161,38 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
   {
     if(cont_type__alu8 == HANDSHAKE_TYPE_CLIENT_HELLO)
     {
-      FLEA_CCALL(THR_flea_tls__read_client_hello(server_ctx__pt, hs_ctx__pt, &handsh_rdr__t));
+      FLEA_CCALL(
+        THR_flea_tls__read_client_hello(
+          server_ctx__pt,
+          hs_ctx__pt,
+          &handsh_rdr__t
+          // FLEA_DO_IF_HAVE_DTLS( FLEA_COMMA &do_snd_hvr__b)
+        )
+      );
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
+# ifdef FLEA_HAVE_DTLS
+      if(hs_ctx__pt->dtls_ctx__t.hello_cookie__pu8[0])
+      {
+        if(hs_ctx__pt->dtls_ctx__t.hello_verify_tries__u8 > FLEA_STKMD_DTLS_MAX_TRIES_FOR_HELLO_COOKIE)
+        {
+          FLEA_THROW(
+            "too many client hellos with invalid cookies have been received",
+            FLEA_ERR_DTLS_HELLO_COOKIE_TRIES_EXHAUSTED
+          );
+        }
+
+        /* The standard requires that the HelloVerifyRequest used the same
+         * record sequence number as the clientHello to which it is a response.
+         * */
+        // TODO: CHECK IF THIS CAN BE UPHELD AFTER THE FRAGMENT ASSEMBLY IS IMPLEMENTED:
+        flea_recprot_t__SET_LO_WRT_STATE_SEQ_FROM_RD_STATE(&hs_ctx__pt->tls_ctx__pt->rec_prot__t);
+        FLEA_CCALL(THR_flea_tls__send_hello_verify_request(hs_ctx__pt));
+        hs_ctx__pt->dtls_ctx__t.hello_verify_tries__u8++;
+        flea_tls_prl_hash_ctx_t__reset(p_hash_ctx__pt);
+        handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_HELLO;
+      }
+      /* it would be fine to free the hello cookie buf right here, but it is not accessible here. */
+# endif /* ifdef FLEA_HAVE_DTLS */
       FLEA_THR_RETURN();
     }
     else
@@ -1213,17 +1327,20 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
 {
   flea_tls_ctx_t* tls_ctx = &server_ctx__pt->tls_ctx__t;
 
+  // TODO: MAKE BUILD CONFIG DEFINE:
   flea_hash_id_e hash_ids[6];
   flea_al_u8_t hash_sig_algs_len__alu8;
 
 # ifdef FLEA_HEAP_MODE
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_ZERO_CAPACITY_ALLOCATABLE;
+  flea_u8_t* hello_cookie__bu8        = NULL;
 # else
   flea_u8_t premaster_secret__au8[FLEA_MAX(48, FLEA_ECC_MAX_ENCODED_POINT_LEN)];
   flea_byte_vec_t premaster_secret__t = flea_byte_vec_t__CONSTR_EXISTING_BUF_NOT_ALLOCATABLE(
     premaster_secret__au8,
     sizeof(premaster_secret__au8)
   );
+  flea_u8_t hello_cookie__bu8[FLEA_DTLS_SRV_HELLO_COOKIE_SIZE];
 # endif /* ifdef FLEA_HEAP_MODE */
   FLEA_DECL_flea_byte_vec_t__CONSTR_HEAP_ALLOCATABLE_OR_STACK(key_block__t, FLEA_TLS_MAX_KEY_BLOCK_SIZE);
   flea_pubkey_t peer_public_key__t;
@@ -1246,6 +1363,16 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
   hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
   hs_ctx__t.tls_ctx__pt = tls_ctx;
   hs_ctx__t.is_reneg__b = is_reneg__b;
+
+# ifdef FLEA_HEAP_MODE
+  FLEA_ALLOC_MEM(hello_cookie__bu8, FLEA_DTLS_SRV_HELLO_COOKIE_SIZE);
+# endif
+# if FLEA_DTLS_SRV_HELLO_COOKIE_SIZE < 1
+#  error FLEA_DTLS_SRV_HELLO_COOKIE_SIZE < 1
+# endif
+/* first byte = 0 indicates that no cookie has yet been sent */
+  hello_cookie__bu8[0] = 0;
+  hs_ctx__pt->dtls_ctx__t.hello_cookie__pu8 = hello_cookie__bu8;
 
   flea_tls_ctx_t__begin_handshake(tls_ctx);
 
@@ -1578,6 +1705,7 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
     flea_pubkey_t__dtor(&peer_public_key__t);
     flea_privkey_t__dtor(&ecdhe_priv_key__t);
     flea_tls_handshake_ctx_t__dtor(&hs_ctx__t);
+    FLEA_FREE_MEM_CHK_NULL(hello_cookie__bu8);
   );
 } /* THR_flea_tls__server_handshake_inner */
 

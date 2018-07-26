@@ -433,6 +433,7 @@ flea_err_e THR_flea_tls_tool_set_tls_cfg(
 
   cfg.flags |= min_key_strength_from_string(cmdl_args.get_property_as_string("min_key_strength"));
 
+  cfg.flags |= cmdl_args.get_as_bool_required("svr_do_send_hvr") ? flea_tls_flag__dtls_srv_send_hvr : 0;
 
   if(cmdl_args.have_index("accept_untrusted"))
   {

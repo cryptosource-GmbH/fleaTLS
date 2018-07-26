@@ -46,6 +46,14 @@ flea_rw_stream_t* flea_tls_handsh_reader_t__get_read_stream(flea_tls_handsh_read
   return &handsh_rdr__pt->handshake_read_stream__t;
 }
 
+flea_err_e THR_flea_tls_handsh_reader_t__skip_rem_msg(flea_tls_handsh_reader_t* handsh_rdr__pt)
+{
+  return THR_flea_rw_stream_t__skip_read(
+    &handsh_rdr__pt->handshake_read_stream__t,
+    handsh_rdr__pt->handshake_read_stream__t.read_rem_len__u32
+  );
+}
+
 flea_al_u8_t flea_tls_handsh_reader_t__get_handsh_msg_type(flea_tls_handsh_reader_t* handsh_rdr__pt)
 {
   // TODO: NEEDS TO BLOCK FOR FIRST HS-HDR THAT HAS NEXT EXPECTED SEQ

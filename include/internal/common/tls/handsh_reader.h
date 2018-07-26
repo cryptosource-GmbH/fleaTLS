@@ -38,6 +38,11 @@ flea_err_e THR_flea_tls_handsh_reader_t__ctor(
 
 flea_u32_t flea_tls_handsh_reader_t__get_msg_rem_len(flea_tls_handsh_reader_t* handsh_rdr__pt);
 
+/**
+ * Discard the remaining message ( read it off the stream ).
+ */
+flea_err_e THR_flea_tls_handsh_reader_t__skip_rem_msg(flea_tls_handsh_reader_t* handsh_rdr__pt);
+
 flea_rw_stream_t* flea_tls_handsh_reader_t__get_read_stream(flea_tls_handsh_reader_t* handsh_rdr__pt);
 
 flea_al_u8_t flea_tls_handsh_reader_t__get_handsh_msg_type(flea_tls_handsh_reader_t* handsh_rdr__pt);

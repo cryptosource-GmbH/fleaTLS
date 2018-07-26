@@ -29,9 +29,11 @@ static properties_spec_t create_properties_spec()
   std::string cl("TLS client");
   std::string se("TLS server");
   std::string un("unit tests");
-  std::string tls("TLS client and server");
+  std::string tls("TLS (and DTLS) client and server options");
+  std::string dtls("DTLS specific client and server options");
   std::string fz("Fuzzing with AFL");
   std::string ge("General");
+
   result["help"] = properties_spec_entry_t("print this help text").set_group(ge);
 
   result["stream_input_file_dir"] = properties_spec_entry_t(
@@ -58,7 +60,7 @@ static properties_spec_t create_properties_spec()
     "Number of repetitions for the execution of the unit test suite",
     "iterations",
     "1"
-    );
+  );
   result["full"] = properties_spec_entry_t("Execute additional extensive tests").set_group(un);
 
 #ifdef FLEA_HAVE_TLS
@@ -208,6 +210,11 @@ static properties_spec_t create_properties_spec()
     "seconds",
     "3600"
     ).set_group(se);
+  result["svr_do_send_hvr"] = properties_spec_entry_t(
+    "Specifies whether the DTLS server requires a cookie verification from client by sending a HelloVerifyRequest message after receiving the client hello. Possible value are 'true' and 'false'. Refer to https://tools.ietf.org/html/rfc6347#section-4.2.1 for details.",
+    "boolean",
+    "true"
+    ).set_group(dtls);
 #endif // ifdef FLEA_HAVE_TLS
 
 
@@ -270,7 +277,7 @@ int main(
       ,
       &mutex_func_set__t
 #endif
-    ))
+  ))
   {
     FLEA_PRINTF_1_SWITCHED("error with lib init, tests aborted\n");
     return 1;
@@ -351,7 +358,7 @@ int main(
 
       std::string file_path_to_be_replaced_by_std_in_str = cmdl_args.get_property_as_string_default_empty(
         "path_rpl_stdin"
-        );
+      );
       const char* file_path_to_be_replaced_by_std_in = file_path_to_be_replaced_by_std_in_str.c_str();
 
       res = flea_unit_tests(reps, cert_path_prefix, file_path_to_be_replaced_by_std_in, func_prefix, full__b);

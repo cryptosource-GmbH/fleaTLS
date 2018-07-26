@@ -75,8 +75,8 @@ flea_err_e THR_flea_tls_con_stt_t__ctor_cbc_hmac(
     cipher_key_len__alu8;
   conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_id = mac_id;
 
-  conn_state__pt->sequence_number__au32[0] = 0;
-  conn_state__pt->sequence_number__au32[1] = 0;
+  conn_state__pt->seqno_lo_hi__au32[0] = 0;
+  conn_state__pt->seqno_lo_hi__au32[1] = 0;
   memcpy(conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.mac_key__bu8, mac_key__pcu8, mac_key_len__alu8);
   memcpy(
     conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8,
@@ -123,8 +123,8 @@ flea_err_e THR_flea_tls_con_stt_t__ctor_gcm(
   conn_state__pt->cipher_suite_config__t.suite_specific__u.gcm_config__t.record_iv_length__u8 =
     FLEA_CONST_TLS_GCM_RECORD_IV_LEN;
 
-  conn_state__pt->sequence_number__au32[0] = 0;
-  conn_state__pt->sequence_number__au32[1] = 0;
+  conn_state__pt->seqno_lo_hi__au32[0] = 0;
+  conn_state__pt->seqno_lo_hi__au32[1] = 0;
   memcpy(
     conn_state__pt->suite_specific__u.gcm_conn_state__t.cipher_key__bu8,
     cipher_key__pcu8,

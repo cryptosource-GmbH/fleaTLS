@@ -128,6 +128,11 @@ typedef enum
    * server, it enables the DTLS potentially additionally to TLS support.
    */
   flea_tls_flag__use_dtls1_2           = 0x800,
+
+  /** When this flag is set, a DTLS server will send a HelloVerifyRequest after
+   * receiving a ClientHello as a measure against denial of service attacks.
+   */
+  flea_tls_flag__dtls_srv_send_hvr     = 0x1000
 } flea_tls_flag_e;
 
 /**

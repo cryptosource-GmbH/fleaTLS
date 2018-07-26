@@ -35,7 +35,7 @@ extern "C" {
  * Get the epoch of the currently held received record.
  */
 #  define FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt) \
-  ((rec_prot__pt)->read_state__t.sequence_number__au32[1] \
+  ((rec_prot__pt)->read_state__t.seqno_lo_hi__au32[1] \
   >> 16)
 
 typedef enum
@@ -144,6 +144,12 @@ struct struct_flea_recprot_t
 #  else // ifdef FLEA_HAVE_DTLS
 #   define FLEA_RECPROT_T__NOTIFY_HANDSHAKE_FINISHED(rec_prot__pt)
 #  endif // ifdef FLEA_HAVE_DTLS
+
+#  define flea_recprot_t__SET_LO_WRT_STATE_SEQ_FROM_RD_STATE(rec_prot__pt) \
+  do {(rec_prot__pt)->write_state__t. \
+      seqno_lo_hi__au32[0] = \
+        (rec_prot__pt)->read_state__t. \
+        seqno_lo_hi__au32[0];} while(0)
 
 void flea_recprot_t__dtor(flea_recprot_t* rec_prot__pt);
 

@@ -231,9 +231,14 @@ typedef enum
   FLEA_ERR_TLS_REC_CLOSE_NOTIFY                 = 0x59,
 
   /**
-   * Only for DTLS: signal to the server's main handshake function that a new handshake was initiated from the client.
+   * Only for DTLS: signal to the server's main handshake function that a new handshake was initiated by the client.
    */
   FLEA_ERR_INIT_CLHELLO_DURING_ACTIVE_DTLS_CONN = 0x5A,
+
+  /**
+   * Only for DTLS: Signal that #FLEA_STKMD_DTLS_MAX_TRIES_FOR_HELLO_COOKIE have been exhausted by receiving invalid ClientHello messages from the client.
+   */
+  FLEA_ERR_DTLS_HELLO_COOKIE_TRIES_EXHAUSTED    = 0x5B,
 
   /**
    * thrown if we couldn't agree on a received SignatureAlgorithms field

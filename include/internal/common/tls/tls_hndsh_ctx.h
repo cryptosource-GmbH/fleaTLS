@@ -17,6 +17,7 @@ extern "C" {
 
 typedef struct
 {
+  // TODO:
   flea_u16_t alfj;
 } flea_hs_msg_vn_assmb_buf_t;
 
@@ -41,8 +42,14 @@ typedef struct
   flea_u8_t     is_flight_buf_incoming__u8;
 # ifdef FLEA_HEAP_MODE
   flea_u8_t*    flight_buf__bu8;
+  // flea_u8_t*     hello_verify_cookie__bu8;
 # else
   flea_u8_t     flight_buf__bu8[FLEA_DTLS_FLIGHT_BUF_SIZE];
+  // flea_u8_t     hello_verify_cookie__bu8[FLEA_DTLS_SRV_HELLO_COOKIE_SIZE]
+# endif // ifdef FLEA_HEAP_MODE
+# ifdef FLEA_HAVE_TLS_SERVER
+  flea_u8_t* hello_cookie__pu8;
+  flea_u8_t  hello_verify_tries__u8;
 # endif
 } flea_dtls_hdsh_ctx_t;
 

@@ -119,8 +119,8 @@ static flea_err_e THR_flea_recprot_t__compute_mac_cbc_hmac(
   // 8 + 1 + (1+1) + 2 + length
 
   // TODO: make a function to set the encoded sequence number
-  seq_lo__u32 = conn_state__pt->sequence_number__au32[0];
-  seq_hi__u32 = conn_state__pt->sequence_number__au32[1];
+  seq_lo__u32 = conn_state__pt->seqno_lo_hi__au32[0];
+  seq_hi__u32 = conn_state__pt->seqno_lo_hi__au32[1];
 
   /* set the DTLS epcoh in the high u32 */
   if(epoch_u16)
@@ -557,15 +557,15 @@ static void flea_recprot_t__set_record_header(
   if(FLEA_RP__IS_DTLS(rec_prot__pt))
   {
     // flea_al_s8_t i;
-    // flea_u32_t low__u32 = rec_prot__pt->write_state__t.sequence_number__au32[1];
+    // flea_u32_t low__u32 = rec_prot__pt->write_state__t.seqno_lo_hi__au32[1];
 
     // TODO: CONSIDER WRITING THE EPOCH INTO THE SEQ EVERYTIME IT CHANGES, THIS
     // WOULD SIMPLIFY THE CODE HERE
     rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->write_next_rec_epoch__u16 >> 8;
     rec_prot__pt->send_buf_raw__pu8[4] = rec_prot__pt->write_next_rec_epoch__u16;
-    rec_prot__pt->send_buf_raw__pu8[5] = rec_prot__pt->write_state__t.sequence_number__au32[1] >> 8;
-    rec_prot__pt->send_buf_raw__pu8[6] = rec_prot__pt->write_state__t.sequence_number__au32[1];
-    flea__encode_U32_BE(rec_prot__pt->write_state__t.sequence_number__au32[0], &rec_prot__pt->send_buf_raw__pu8[7]);
+    rec_prot__pt->send_buf_raw__pu8[5] = rec_prot__pt->write_state__t.seqno_lo_hi__au32[1] >> 8;
+    rec_prot__pt->send_buf_raw__pu8[6] = rec_prot__pt->write_state__t.seqno_lo_hi__au32[1];
+    flea__encode_U32_BE(rec_prot__pt->write_state__t.seqno_lo_hi__au32[0], &rec_prot__pt->send_buf_raw__pu8[7]);
 
     /*for(i = 3; i >= 0; i--)
     {
@@ -658,8 +658,8 @@ flea_err_e THR_flea_recprot_t__wrt_data(
   }
   if(FLEA_RP__IS_DTLS(rec_prot__pt) && (content_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC))
   {
-    rec_prot__pt->write_state__t.sequence_number__au32[0] = 0; // INCREMENTING HERE, BUT THE RECORD MAY STILL BE AWAITING ENCRYPTION
-    rec_prot__pt->write_state__t.sequence_number__au32[1] = 0;
+    rec_prot__pt->write_state__t.seqno_lo_hi__au32[0] = 0; // INCREMENTING HERE, BUT THE RECORD MAY STILL BE AWAITING ENCRYPTION
+    rec_prot__pt->write_state__t.seqno_lo_hi__au32[1] = 0;
     rec_prot__pt->write_next_rec_epoch__u16++;
     FLEA_DBG_PRINTF("increased next write epoch to %u\n", rec_prot__pt->write_next_rec_epoch__u16);
   }
@@ -698,8 +698,8 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_cbc_hmac(
   flea_al_u16_t data_len = rec_prot__pt->curr_rec_content_len__u16;
 
   FLEA_THR_BEG_FUNC();
-  seq_lo__u32 = rec_prot__pt->read_state__t.sequence_number__au32[0];
-  seq_hi__u32 = rec_prot__pt->read_state__t.sequence_number__au32[1];
+  seq_lo__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[0];
+  seq_hi__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[1];
 
   flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
   flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
@@ -952,8 +952,8 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_gcm(
   // copy received explicit nonce into record iv
   memcpy(iv + fixed_iv_len__u8, data, record_iv_len__u8);
 
-  seq_lo__u32 = rec_prot__pt->read_state__t.sequence_number__au32[0];
-  seq_hi__u32 = rec_prot__pt->read_state__t.sequence_number__au32[1];
+  seq_lo__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[0];
+  seq_hi__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[1];
 
   flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
   flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
@@ -1018,8 +1018,8 @@ static flea_err_e THR_flea_recprot_t__encr_rcrd_gcm(
 
   // copy sequence number to explicit nonce part as suggested in RFC 5288
   // TODO: REMOVE UNNECCESSARY DECODING/ ENCODING!
-  seq_lo__u32 = rec_prot__pt->write_state__t.sequence_number__au32[0];
-  seq_hi__u32 = rec_prot__pt->write_state__t.sequence_number__au32[1];
+  seq_lo__u32 = rec_prot__pt->write_state__t.seqno_lo_hi__au32[0];
+  seq_hi__u32 = rec_prot__pt->write_state__t.seqno_lo_hi__au32[1];
 
   if(FLEA_RP__IS_DTLS(rec_prot__pt))
   {
@@ -1109,7 +1109,7 @@ flea_err_e THR_flea_recprot_t__write_flush(
       )
     );
 
-    inc_seq_nbr(rec_prot__pt->write_state__t.sequence_number__au32);
+    inc_seq_nbr(rec_prot__pt->write_state__t.seqno_lo_hi__au32);
   }
   else
 # endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
@@ -1126,7 +1126,7 @@ flea_err_e THR_flea_recprot_t__write_flush(
       )
     );
 
-    inc_seq_nbr(rec_prot__pt->write_state__t.sequence_number__au32);
+    inc_seq_nbr(rec_prot__pt->write_state__t.seqno_lo_hi__au32);
   }
   else
 # endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
@@ -1662,21 +1662,24 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           flea_al_u8_t i;
           flea_al_u16_t rec_epoch__alu16;
           // flea_al_u16_t old_epoch__alu16 = FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt);
-          rec_prot__pt->read_state__t.sequence_number__au32[0] = 0;
-          rec_prot__pt->read_state__t.sequence_number__au32[1] = 0;
+          rec_prot__pt->read_state__t.seqno_lo_hi__au32[0] = 0;
+          rec_prot__pt->read_state__t.seqno_lo_hi__au32[1] = 0;
+
+          /* read seqno is currently needed in order to use this value from the
+           * clientHello in the helloVerifyRequest */
           for(i = 0; i < 8; i++)
           {
-            flea_u32_t s__u32 = rec_prot__pt->read_state__t.sequence_number__au32[1 - (i / 4)];
+            flea_u32_t s__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[1 - (i / 4)];
             s__u32 <<= 8;
             s__u32  |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++];
-            rec_prot__pt->read_state__t.sequence_number__au32[1 - (i / 4)] = s__u32;
+            rec_prot__pt->read_state__t.seqno_lo_hi__au32[1 - (i / 4)] = s__u32;
           }
           rec_epoch__alu16 = FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt);
 
           FLEA_DBG_PRINTF("from recevied record hdr: epoch | seq = ");
           for(int i = 1; i >= 0; i--)
           {
-            FLEA_DBG_PRINTF("%08x ", rec_prot__pt->read_state__t.sequence_number__au32[i]);
+            FLEA_DBG_PRINTF("%08x ", rec_prot__pt->read_state__t.seqno_lo_hi__au32[i]);
           }
           FLEA_DBG_PRINTF("\n");
 
@@ -1821,7 +1824,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           )
         );
         rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
-        inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
+        // TODO: REMOVE THIS, NOT NEEDED FOR DTLS
+        inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
         FLEA_DBG_PRINTF("after record decryption (CBC)\n");
       }
 # endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
@@ -1836,7 +1840,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           )
         );
         rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
-        inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
+        // TODO: REMOVE THIS, NOT NEEDED FOR DTLS
+        inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
         FLEA_DBG_PRINTF("after record decryption (GCM)\n");
       }
 # endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
@@ -2212,7 +2217,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
         )
       );
       rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
-      inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
+      inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
     }
 # endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
 # ifdef FLEA_HAVE_TLS_CS_GCM
@@ -2226,7 +2231,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
         )
       );
       rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
-      inc_seq_nbr(rec_prot__pt->read_state__t.sequence_number__au32);
+      inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
     }
 # endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
     if(rec_prot__pt->curr_pt_content_len__u16 > FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE)
@@ -2426,6 +2431,7 @@ flea_err_e THR_flea_recprot_t__resize_send_plaintext_size(
 }
 
 # endif /* ifdef FLEA_HEAP_MODE */
+
 
 void flea_recprot_t__dtor(flea_recprot_t* rec_prot__pt)
 {
