@@ -194,19 +194,23 @@ static flea_err_e THR_flea_tls__read_client_hello(
     FLEA_CCALL(THR_flea_rw_stream_t__read_byte(hs_rd_stream__pt, &session_id_len__u8));
     if(hs_ctx__pt->is_reneg__b)
     {
+      FLEA_DBG_PRINTF("reneg handshake: no HVR is sent\n");
       /* the client cookie is ignored */
       FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, session_id_len__u8));
     }
-    else if(!(tls_ctx->cfg_flags__e & flea_tls_flag__dtls_srv_send_hvr))
+    else if(!(tls_ctx->cfg_flags__e & flea_tls_flag__dtls_srv_send_hvr)) // TODO: UNIT WITH ABOVE
     {
       /* the client cookie is ignored */
       FLEA_CCALL(THR_flea_rw_stream_t__skip_read(hs_rd_stream__pt, session_id_len__u8));
     }
     else
     {
+      /* not a renegotiation */
+      FLEA_DBG_PRINTF("HVR: cookie verification required\n");
       /* we require a cookie verification */
       if(hs_ctx__pt->dtls_ctx__t.hello_cookie__pu8[0] == 0)
       {
+        FLEA_DBG_PRINTF("HVR: initializing cookie\n");
         /* no cookie was yet sent */
         FLEA_CCALL(THR_flea_rng__randomize(hs_ctx__pt->dtls_ctx__t.hello_cookie__pu8, FLEA_DTLS_SRV_HELLO_COOKIE_SIZE));
         /* indicate that a cookie should be sent */
@@ -215,10 +219,13 @@ static flea_err_e THR_flea_tls__read_client_hello(
         // *result_do_snd_hvr__pb = FLEA_TRUE;
         FLEA_THR_RETURN();
       }
+      FLEA_DBG_PRINTF("HVR: cookie already initialized\n");
       /* we are expecting a cookie, this is already indicated in the first byte of the hello cookie */
       if(session_id_len__u8 != FLEA_DTLS_SRV_HELLO_COOKIE_SIZE)
       {
+        FLEA_DBG_PRINTF("HVR: cookie has invalid size\n");
         // *result_do_snd_hvr__pb = FLEA_TRUE;
+        FLEA_CCALL(THR_flea_tls_handsh_reader_t__skip_rem_msg(hs_rdr__pt));
         FLEA_THR_RETURN();
       }
 
@@ -236,6 +243,8 @@ static flea_err_e THR_flea_tls__read_client_hello(
           FLEA_DTLS_SRV_HELLO_COOKIE_SIZE
       ))
       {
+        FLEA_DBG_PRINTF("HVR: cookie has invalid content\n");
+        FLEA_CCALL(THR_flea_tls_handsh_reader_t__skip_rem_msg(hs_rdr__pt));
         // *result_do_snd_hvr__pb = FLEA_TRUE;
         FLEA_THR_RETURN();
       }
@@ -1173,10 +1182,11 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
 # ifdef FLEA_HAVE_DTLS
       if(hs_ctx__pt->dtls_ctx__t.hello_cookie__pu8[0])
       {
-        if(hs_ctx__pt->dtls_ctx__t.hello_verify_tries__u8 > FLEA_STKMD_DTLS_MAX_TRIES_FOR_HELLO_COOKIE)
+        if(hs_ctx__pt->dtls_ctx__t.hello_verify_tries__u8 > FLEA_DTLS_MAX_TRIES_FOR_HELLO_COOKIE)
         {
           FLEA_THROW(
             "too many client hellos with invalid cookies have been received",
+            // TODO: THROW HANDSH_FAILURE
             FLEA_ERR_DTLS_HELLO_COOKIE_TRIES_EXHAUSTED
           );
         }

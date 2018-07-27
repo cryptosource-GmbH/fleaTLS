@@ -757,7 +757,7 @@
 /**
  * If the server is configured to request a hello cookie in the client's ClientHello, then the server aborts the handshake if receives n invalid ClientHellos that do not contain the requested cookie, where n is the number configured in this property. This value must be at least 1 and should not be set too large.
  */
-# define FLEA_STKMD_DTLS_MAX_TRIES_FOR_HELLO_COOKIE 3
+# define FLEA_DTLS_MAX_TRIES_FOR_HELLO_COOKIE 3
 
 /* end dtls_cfg*/
 /**@}*/

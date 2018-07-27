@@ -48,6 +48,7 @@ flea_rw_stream_t* flea_tls_handsh_reader_t__get_read_stream(flea_tls_handsh_read
 
 flea_err_e THR_flea_tls_handsh_reader_t__skip_rem_msg(flea_tls_handsh_reader_t* handsh_rdr__pt)
 {
+  FLEA_DBG_PRINTF("skipping %u bytes in handsh_rd_strm\n", handsh_rdr__pt->handshake_read_stream__t.read_rem_len__u32);
   return THR_flea_rw_stream_t__skip_read(
     &handsh_rdr__pt->handshake_read_stream__t,
     handsh_rdr__pt->handshake_read_stream__t.read_rem_len__u32
