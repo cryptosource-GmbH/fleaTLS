@@ -1180,6 +1180,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
       );
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
 # ifdef FLEA_HAVE_DTLS
+      /* the first by of the cookie signals whether another cookie verification has to be requested. */
       if(hs_ctx__pt->dtls_ctx__t.hello_cookie__pu8[0])
       {
         if(hs_ctx__pt->dtls_ctx__t.hello_verify_tries__u8 > FLEA_DTLS_MAX_TRIES_FOR_HELLO_COOKIE)
@@ -1187,7 +1188,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
           FLEA_THROW(
             "too many client hellos with invalid cookies have been received",
             // TODO: THROW HANDSH_FAILURE
-            FLEA_ERR_DTLS_HELLO_COOKIE_TRIES_EXHAUSTED
+            FLEA_ERR_TLS_HANDSHK_FAILURE
           );
         }
 
