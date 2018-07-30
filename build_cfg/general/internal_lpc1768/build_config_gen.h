@@ -736,7 +736,8 @@
  * Has to be a multiple of 2 as every cipher suite takes up two bytes.
  * Relevant only in stack mode.
  */
-# define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 250/* end tls_cfg*/
+# define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 250
+/* end tls_cfg*/
 /**@}*/
 
 /**

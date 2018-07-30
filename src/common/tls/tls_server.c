@@ -1131,7 +1131,14 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
   flea_tls_handsh_reader_t__INIT(&handsh_rdr__t);
 
   FLEA_DBG_PRINTF("sel. cs. start of handle hs msg = %u\n", tls_ctx->selected_cipher_suite__e);
-  FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t, FLEA_TLS_CTX_IS_DTLS(tls_ctx)));
+  FLEA_CCALL(
+    THR_flea_tls_handsh_reader_t__ctor(
+      &handsh_rdr__t,
+      &tls_ctx->rec_prot__t,
+      FLEA_TLS_CTX_IS_DTLS(tls_ctx)
+      FLEA_DO_IF_HAVE_DTLS(FLEA_COMMA & hs_ctx__pt->dtls_ctx__t)
+    )
+  );
   if(((handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_FINISHED) ||
     (handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY)) &&
     (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED ||

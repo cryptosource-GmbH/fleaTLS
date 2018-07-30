@@ -105,7 +105,7 @@ def exec_instruction(instr, file_contents):
         m = re.match("( *# *define +)" + instr.define_name + " *([^ ]*)", line)
         if(m == None):
             error("could not parse for set_to. line = '" + line + "'")
-        file_contents[line_nb] = m.group(1) + instr.define_name + " " + instr.new_value #+ m.group(3)
+        file_contents[line_nb] = m.group(1) + instr.define_name + " " + instr.new_value + "\n" #+ m.group(3)
         
 
 

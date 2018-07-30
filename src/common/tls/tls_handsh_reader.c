@@ -17,7 +17,11 @@
 flea_err_e THR_flea_tls_handsh_reader_t__ctor(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
   flea_recprot_t*           rec_prot__pt,
-  flea_bool_t               is_dtls__b
+  flea_bool_t is_dtls__b
+# ifdef                     FLEA_HAVE_DTLS
+  ,
+  flea_dtls_hdsh_ctx_t*     dtls_hs_ctx__pt
+# endif
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -25,7 +29,7 @@ flea_err_e THR_flea_tls_handsh_reader_t__ctor(
 
   if(is_dtls__b)
   {
-    FLEA_CCALL(THR_flea_tls_hndsh_rdr__ctor_dtls(handsh_rdr__pt, rec_prot__pt));
+    FLEA_CCALL(THR_flea_tls_hndsh_rdr__ctor_dtls(handsh_rdr__pt, dtls_hs_ctx__pt, rec_prot__pt));
   }
   else
   {

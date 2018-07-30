@@ -249,6 +249,7 @@
  * Control the window size for the ECC exponentiation. Choose 4 or 5 for greatest speed and 1 for smallest RAM footprint.
  */
 # define FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE 2
+
 /* end perfomance_cfg */
 /**@}*/
 

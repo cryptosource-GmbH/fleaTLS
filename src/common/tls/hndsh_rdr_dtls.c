@@ -72,7 +72,7 @@ static flea_err_e THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
 
 flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
-  // flea_dtls_hdsh_ctx_t*     dtls_ctx__pt,
+  flea_dtls_hdsh_ctx_t*     dtls_ctx__pt,
   flea_recprot_t*           rec_prot__pt
   //
   // TODO: THE ASSEMBLY MUST BE ACCROSS THE WHOLE FLIGHT, WHILE THIS OBJECT IS
@@ -85,8 +85,15 @@ flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
   // bool received_hdr_from_current_flight__b = FLEA_FALSE;
 
   FLEA_THR_BEG_FUNC();
-
-
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__ctor_dtls_rd_strm(
+      &handsh_rdr__pt->rec_prot_rd_stream__t,
+      &dtls_ctx__pt->dtls_rd_strm_hlp__t,
+      dtls_ctx__pt,
+      rec_prot__pt
+    )
+  );
+# if 0
   FLEA_CCALL(
     // can stay
     THR_flea_rw_stream_t__ctor_rec_prot(
@@ -96,6 +103,7 @@ flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
       CONTENT_TYPE_HANDSHAKE
     )
   );
+# endif /* if 0 */
 
   FLEA_CCALL(
     THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
@@ -106,16 +114,6 @@ flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
       handsh_rdr__pt->hlp__t.handsh_hdr__au8
     )
   );
-# if 0
-  FLEA_CCALL(
-    THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
-      // &handsh_rdr__pt->rec_prot_rd_stream__t,
-      &handsh_rdr__pt->hlp__t.handshake_msg_type__u8,
-      &read_limit__u32,
-      handsh_rdr__pt->hlp__t.handsh_hdr__au8
-    )
-  );
-# endif /* if 0 */
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor_tls_handsh_reader(
       &handsh_rdr__pt->handshake_read_stream__t,

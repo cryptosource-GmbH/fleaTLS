@@ -9,6 +9,7 @@
 # include "internal/common/tls/tls_rec_prot_rdr.h"
 # include "internal/common/tls/tls_rec_prot_fwd.h"
 # include "internal/common/tls/parallel_hash.h"
+# include "internal/common/tls/tls_hndsh_ctx.h"
 
 # ifdef __cplusplus
 extern "C" {
@@ -22,7 +23,7 @@ typedef struct
   flea_tls_handsh_reader_hlp_t hlp__t;
 
   flea_tls_rec_prot_rdr_hlp_t  rec_prot_rdr_hlp__t;
-  flea_rw_stream_t             rec_prot_rd_stream__t;
+  flea_rw_stream_t             rec_prot_rd_stream__t; // TODO: RENAME TO REC_CONTENT_RD_STREAM__T
   flea_u8_t                    is_dtls__b;
 } flea_tls_handsh_reader_t;
 
@@ -33,7 +34,11 @@ typedef struct
 flea_err_e THR_flea_tls_handsh_reader_t__ctor(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
   flea_recprot_t*           rec_prot__pt,
-  flea_bool_t               is_dtls__b
+  flea_bool_t is_dtls__b
+#  ifdef                    FLEA_HAVE_DTLS
+  ,
+  flea_dtls_hdsh_ctx_t*     dtls_hs_ctx__pt
+#  endif
 );
 
 flea_u32_t flea_tls_handsh_reader_t__get_msg_rem_len(flea_tls_handsh_reader_t* handsh_rdr__pt);

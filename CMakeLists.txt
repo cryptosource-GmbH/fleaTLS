@@ -147,8 +147,9 @@ SET(EXECUTABLE_OUTPUT_PATH ${PROJECT_BINARY_DIR})
 
 # Directories
 
-SET(INCLUDE_DIR_NO_BUILD_CFG include include/api test/include test/include/api
-  build_cfg/pltf_spec/32bit_default )
+SET(INCLUDE_DIR_NO_BUILD_CFG include include/api test/include test/include/api 
+  build_cfg/pltf_spec/32bit_default ext_lib/qheap/include/api ext_lib/qheap/internal )
+
 SET(BUILD_CFG_PATH build_cfg/general/)
 SET(INCLUDE_DIR ${INCLUDE_DIR_NO_BUILD_CFG} ${BUILD_CFG_PATH}${build_cfg}) 
 
@@ -162,7 +163,9 @@ FILE(GLOB FLEA_SRCS ${SRC_DIR}/x86/*.c ${SRC_DIR}/common/*.c ${SRC_DIR}/user/*.c
   ${SRC_DIR}/common/asn1/*.c ${SRC_DIR}/common/streams/*.c
   ${SRC_DIR}/common/file_io/*.c
   ${SRC_DIR}/pc/*.c ${SRC_DIR}/pc/*.cpp
-   ${SRC_DIR}/common/tls/*.c pltf_support/linux/src/*.c)
+   ${SRC_DIR}/common/tls/*.c pltf_support/linux/src/*.c
+  ext_lib/qheap/src/*.c 
+   )
 
 FILE(GLOB TEST_SRCS test/src/pc/*.cpp test/src/pc/*.c test/src/common/*.c)
 FILE(GLOB TEST_LIB_SRCS test/src/test_lib/*.cpp test/src/test_lib/*.c )

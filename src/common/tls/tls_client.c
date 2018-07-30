@@ -1087,7 +1087,14 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
 
   FLEA_THR_BEG_FUNC();
 
-  FLEA_CCALL(THR_flea_tls_handsh_reader_t__ctor(&handsh_rdr__t, &tls_ctx->rec_prot__t, FLEA_TLS_CTX_IS_DTLS(tls_ctx)));
+  FLEA_CCALL(
+    THR_flea_tls_handsh_reader_t__ctor(
+      &handsh_rdr__t,
+      &tls_ctx->rec_prot__t,
+      FLEA_TLS_CTX_IS_DTLS(tls_ctx)
+      FLEA_DO_IF_HAVE_DTLS(FLEA_COMMA & hs_ctx__pt->dtls_ctx__t)
+    )
+  );
 
   if((handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED) &&
     (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED))
@@ -1787,6 +1794,7 @@ flea_err_e THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
       &handsh_rdr__t,
       &tls_ctx__pt->rec_prot__t,
       FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt)
+      FLEA_DO_IF_HAVE_DTLS(FLEA_COMMA & hs_ctx__t.dtls_ctx__t)
     )
   );
   handsh_type__u8 = flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t);

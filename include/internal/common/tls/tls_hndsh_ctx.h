@@ -9,6 +9,8 @@
 # include "internal/common/tls/tls_ctx_fwd.h"
 # include "flea/byte_vec.h"
 # include "flea/pubkey.h"
+# include "internal/common/tls/dtls_stream.h"
+# include "internal/common/tls/tls_hndsh_ctx_fwd.h"
 
 
 # ifdef __cplusplus
@@ -21,7 +23,7 @@ typedef struct
   flea_u16_t alfj;
 } flea_hs_msg_vn_assmb_buf_t;
 
-typedef struct
+struct struct_flea_dtls_hdsh_ctx_t
 {
   flea_s16_t send_msg_seq__s16;
 /* first seq-no of the last completely received flight: */
@@ -48,10 +50,11 @@ typedef struct
   // flea_u8_t     hello_verify_cookie__bu8[FLEA_DTLS_SRV_HELLO_COOKIE_SIZE]
 # endif // ifdef FLEA_HEAP_MODE
 # ifdef FLEA_HAVE_TLS_SERVER
-  flea_u8_t* hello_cookie__pu8;
-  flea_u8_t  hello_verify_tries__u8;
+  flea_u8_t*                hello_cookie__pu8;
+  flea_u8_t                 hello_verify_tries__u8;
 # endif
-} flea_dtls_hdsh_ctx_t;
+  flea_dtls_rd_stream_hlp_t dtls_rd_strm_hlp__t;
+};
 
 # define FLEA_DTLS_HDSH_CTX_HAVE_PEND_WRT_MSG(hs_ctx__pt)   ((hs_ctx__pt)->dtls_ctx__t.fragm_info_ptr__pu8 != 0)
 # define FLEA_DTLS_HDSH_CTX_SET_NO_PEND_WRT_MSG(hs_ctx__pt) do {(hs_ctx__pt)->fragm_info_ptr__pu8 = 0;} while(0)

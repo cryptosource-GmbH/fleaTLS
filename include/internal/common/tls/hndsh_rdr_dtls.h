@@ -5,6 +5,7 @@
 
 # include "internal/common/default.h"
 # include "internal/common/tls/handsh_reader.h"
+# include "internal/common/tls/tls_hndsh_ctx.h"
 
 # ifdef __cplusplus
 extern "C" {
@@ -13,6 +14,7 @@ extern "C" {
 
 flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
+  flea_dtls_hdsh_ctx_t*     dtls_ctx__pt,
   flea_recprot_t*           rec_prot__pt
 );
 # ifdef __cplusplus

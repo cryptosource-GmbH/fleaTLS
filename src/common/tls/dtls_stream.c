@@ -2,6 +2,7 @@
 
 // some comment29
 #include "internal/common/tls/dtls_stream.h"
+#include "internal/common/tls/tls_rec_prot.h"
 
 /*
  * recprot used in tls layer (tls_server, tls_client, tls_common):
@@ -81,12 +82,36 @@
 
 // stream to be used by handsh_rdr and by TLS logic layer directly
 static flea_err_e THR_dtls_rd_strm_rd_func(
-  void*                   custom_obj,
-  flea_u8_t*              target_buffer,
-  flea_dtl_t*             nb_bytes_to_read,
-  flea_stream_read_mode_e read_mode
+  void*                   custom_obj__pv,
+  flea_u8_t*              target_buffer__pu8,
+  flea_dtl_t*             nb_bytes_to_read__pdtl,
+  flea_stream_read_mode_e read_mode__e
 )
 {
+  flea_dtls_rd_stream_hlp_t* hlp__pt = (flea_dtls_rd_stream_hlp_t*) custom_obj__pv;
+
+  return THR_flea_recprot_t__read_data(
+    hlp__pt->rec_prot__pt,
+    /* TODO: */ CONTENT_TYPE_HANDSHAKE,
+    target_buffer__pu8,
+    nb_bytes_to_read__pdtl,
+    read_mode__e
+  );
+
+#if 0
+  flea_dtls_rd_stream_hlp_t* hlp__pt = (flea_dtls_rd_stream_hlp_t*) custom_obj__p;
+  flea_rw_stream_t rec_prot_rd_stream__t;
+  FLEA_CCALL(
+    // can stay
+    THR_flea_rw_stream_t__ctor_rec_prot(
+      &rec_prot_rd_stream__t,
+      &hlp__pt->rec_prot_rdr_hlp__t,
+      rec_prot__pt,
+      CONTENT_TYPE_HANDSHAKE
+    )
+  );
+#endif /* if 0 */
+#if 0
   // flea_recprot_t* rec_prot__pt;
   flea_dtls_hdsh_ctx_t* dtls_ctx__pt;
   flea_dtls_rd_stream_hlp_t* hlp__pt = (flea_dtls_rd_stream_hlp_t*) custom_obj;
@@ -106,11 +131,12 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
 
   // FLEA_CCALL(THR_flea_recprot_t__read_data_inner(rec_prot__pt,
   /* TODO: remove the dtls handshake header fields */
-
   FLEA_THR_FIN_SEC_empty();
-}
+#endif /* if 0 */
+} /* THR_dtls_rd_strm_rd_func */
 
 // dtls assembly layer for the handshake only
+// TODO: ADD CONTENT TYPE ARGUMENT TO SPECIFY EXPECTED MSG (HS/CCS)
 flea_err_e THR_flea_rw_stream_t__ctor_dtls_rd_strm(
   flea_rw_stream_t*          stream__pt,
   flea_dtls_rd_stream_hlp_t* hlp__pt,
