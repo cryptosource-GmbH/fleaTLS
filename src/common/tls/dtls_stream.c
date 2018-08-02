@@ -424,7 +424,7 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   flea_al_u8_t i;
   flea_al_u16_t curr_rec_cont_len__alu16;
   qheap_queue_heap_t* heap__pt = dtls_hs_ctx__pt->qheap__pt;
-
+// TODO: MAKE DYNAMIC: + enc_hs, (plain_alert,) enc_alert, plain_ccs
   const flea_u8_t rec_type__cu8 = (flea_u8_t) rec_type_hndsh_plain;
   flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
   flea_byte_vec_t* incom_hndls__pt = &assmbl_state__pt->qheap_handles_incoming__t;
@@ -437,27 +437,25 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   //  - set a flag in the rec_prot
   //  - add rec_prot macro which can querry this
   FLEA_CCALL(THR_flea_recprot_t__get_current_record_type(rec_prot__pt, &cont_type__e, flea_read_full));
-  /* get the length of the current record */
+  /* get the length of the current record */ // TODO: DIFFERENT FOR ENCRYPTED ALERTS
   curr_rec_cont_len__alu16 = flea_recprot_t__GET_CURR_REC_PT_SIZE(rec_prot__pt);
   hndl_alqhh = qheap_qh_alloc_queue(heap__pt, FLEA_FALSE);
-
-  qheap_qh_append_to_queue(heap__pt, hndl_alqhh, &rec_type__cu8, 1);
-
   if(hndl_alqhh == 0)
   {
     FLEA_THROW("could not allocate memory queue", FLEA_ERR_OUT_OF_MEM);
   }
+
+  qheap_qh_append_to_queue(heap__pt, hndl_alqhh, &rec_type__cu8, 1);
   // TODO: USE BETTER WAY TO WRITE THE RECORD CONTENT TO THE QUEUE (TURN THE RECORD CONTENT INTO A QUEUE ITSELF)
   while(curr_rec_cont_len__alu16)
   {
     flea_u8_t small_buf[8];
-
-    flea_dtl_t to_go__alu16 = FLEA_MIN(curr_rec_cont_len__alu16, sizeof(small_buf));
-    FLEA_CCALL(THR_flea_recprot_t__read_data(rec_prot__pt, cont_type__e, small_buf, &to_go__alu16, flea_read_full));
+    flea_dtl_t to_go__dtl = FLEA_MIN(curr_rec_cont_len__alu16, sizeof(small_buf));
+    FLEA_CCALL(THR_flea_recprot_t__read_data(rec_prot__pt, cont_type__e, small_buf, &to_go__dtl, flea_read_full));
 
     // TODO: SHORT WRITES TO THE QUEUE ARE NOT OPTIMAL
-    qheap_qh_append_to_queue(heap__pt, hndl_alqhh, small_buf, to_go__alu16);
-    curr_rec_cont_len__alu16 -= to_go__alu16;
+    qheap_qh_append_to_queue(heap__pt, hndl_alqhh, small_buf, to_go__dtl);
+    curr_rec_cont_len__alu16 -= to_go__dtl;
   }
 
   /* set the handle in the handle list. try to find an empty position. otherwise */
@@ -505,10 +503,6 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_hs_msg(
   flea_dtls_hndsh_msg_state_info_t* curr_msg_state__pt = &assmbl_state__pt->curr_msg_state_info__t;
   flea_al_u16_t i;
 
-  // TODO: WHEN TO INCREMENT THIS VARIABLE? ANSWER: EVERYTIME A MESSAGE HAS BEEN COMPLETELY READ OR JUST HERE:
-  // flea_al_u16_t sought_hs_seq__alu16 = assmbl_state__pt->curr_msg_state_info__t.msg_hdr_info__t.msg_seq__u16;
-  // get current record content type to force the initial read, or just read the
-  // first byte separately
   // TODO: HANDLE TIMEOUT =>
   //                    IF NOT RECORD FROM NEXT EXPECTED FLIGHT WAS YET RECEIVED
   //                      THEN RESEND THE FLIGHT BUFFER:
@@ -528,6 +522,14 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_hs_msg(
   {
     flea_al_u16_t seq__alu16;
     flea_dtls_hndsh_hdr_info_t* curr_hdr_info__pt = &curr_msg_state__pt->msg_hdr_info__t;
+
+    if(curr_msg_state__pt->rd_offs__u32 != curr_msg_state__pt->msg_hdr_info__t.msg_len__u32)
+    {
+      FLEA_THROW(
+        "invalid state: attempting to read new HS msg when current one has not been completeley read",
+        FLEA_ERR_INT_ERR
+      );
+    }
 
     /* the message with curr_msg_seq has already been processed (read) */
     seq__alu16 = curr_hdr_info__pt->msg_seq__u16 + 1;

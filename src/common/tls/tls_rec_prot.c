@@ -1901,6 +1901,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
     );
   } /* end of ' get new record hdr and content' */
 
+  *data_len__pdtl = read_bytes_count__dtl;
 
   /*if(!flea_recprot_t__have_pending_read_data(rec_prot__pt))
     {
