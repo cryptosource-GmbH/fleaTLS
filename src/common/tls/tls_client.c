@@ -1393,6 +1393,18 @@ flea_err_e THR_flea_tls__client_handshake(
     if(handshake_state.expected_messages != FLEA_TLS_HANDSHAKE_EXPECT_NONE)
     {
       flea_tls_rec_cont_type_e cont_type__e;
+# ifdef FLEA_HAVE_DTLS
+      if(handshake_state.expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC)
+      {
+        cont_type__e = CONTENT_TYPE_CHANGE_CIPHER_SPEC;
+      }
+      else
+      {
+        cont_type__e = CONTENT_TYPE_HANDSHAKE;
+      }
+      // TODO: ^THIS SHOULD ALSO BE USED FOR TLS
+# else  /* ifdef FLEA_HAVE_DTLS */
+      flea_tls_rec_cont_type_e cont_type__e;
       FLEA_CCALL(
         THR_flea_recprot_t__get_current_record_type(
           &tls_ctx__pt->rec_prot__t,
@@ -1400,6 +1412,7 @@ flea_err_e THR_flea_tls__client_handshake(
           flea_read_full
         )
       );
+# endif /* ifdef FLEA_HAVE_DTLS */
 
       if(cont_type__e == CONTENT_TYPE_HANDSHAKE)
       {
@@ -1432,11 +1445,18 @@ flea_err_e THR_flea_tls__client_handshake(
         else
         {
           flea_u8_t dummy_byte;
-          flea_al_u16_t len_one__alu16 = 1;
+          flea_dtl_t len_one__dtl = 1;
 
 # ifdef FLEA_HAVE_DTLS
           flea_dtls_rd_strm__expect_ccs(&hs_ctx__pt->dtls_ctx__t);
-# endif
+          FLEA_CCALL(
+            THR_flea_rw_stream_t__read_full(
+              &hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.dtls_assmbld_rd_stream__t,
+              &dummy_byte,
+              len_one__dtl
+            )
+          );
+# else  /* ifdef FLEA_HAVE_DTLS */
           FLEA_CCALL(
             THR_flea_recprot_t__read_data(
               &tls_ctx__pt->rec_prot__t,
@@ -1446,6 +1466,7 @@ flea_err_e THR_flea_tls__client_handshake(
               flea_read_full
             )
           );
+# endif /* ifdef FLEA_HAVE_DTLS */
 
           /*
            * Enable encryption for incoming messages
@@ -1475,6 +1496,7 @@ flea_err_e THR_flea_tls__client_handshake(
               )
             );
           }
+          // (DTLS: no further records under the old epoch can possibly be received)
           FLEA_CCALL(
             THR_flea_recprot_t__set_ciphersuite(
               &tls_ctx__pt->rec_prot__t,
