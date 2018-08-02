@@ -2108,7 +2108,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
     {
       if(hs_ctx__pt->is_sess_res__b)
       {
-        // RFC 5246: don't process the extension in sess res case
+        // RFC 5246: don't process the extension in sess. res. case
         do_skip_ext = FLEA_TRUE;
       }
       else
@@ -2121,9 +2121,9 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
 # ifdef FLEA_HAVE_TLS_CS_ECC
     else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__POINT_FORMATS)
     {
-      if(tls_ctx__pt->connection_end == FLEA_TLS_SERVER && hs_ctx__pt->is_sess_res__b)
+      if(hs_ctx__pt->is_sess_res__b)
       {
-        // RFC 4492: don't process the extension in sess res case
+        // RFC 4492: don't process the extension in sess. res. case
         do_skip_ext = FLEA_TRUE;
       }
       else
@@ -2137,7 +2137,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
     {
       if(hs_ctx__pt->is_sess_res__b)
       {
-        // RFC 4492: don't process the extension in sess res case
+        // RFC 4492: don't process the extension in sess. res. case
         do_skip_ext = FLEA_TRUE;
       }
       else
@@ -2146,22 +2146,33 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
         tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES;
       }
     }
-#  ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
+
+# endif /* ifdef FLEA_HAVE_TLS_CS_ECC */
+# ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
     else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__MAX_FRAGMENT_LENGTH)
     {
-      FLEA_CCALL(
-        THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
-          hs_ctx__pt,
-          hs_rd_stream__pt,
-          ext_len__u32
-        )
-      );
-      receive_max_frag_len_ext__b = FLEA_TRUE;
+      if(hs_ctx__pt->is_sess_res__b)
+      {
+        // RFC 6066: extension only relevant for initial handshake - no need to
+        // parse in sess. res. case!
+        do_skip_ext = FLEA_TRUE;
+      }
+      else
+      {
+        FLEA_CCALL(
+          THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
+            hs_ctx__pt,
+            hs_rd_stream__pt,
+            ext_len__u32
+          )
+        );
+        receive_max_frag_len_ext__b = FLEA_TRUE;
+      }
     }
-#  endif /* ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT */
-# endif /* ifdef FLEA_HAVE_TLS_CS_ECC */
+# endif /* ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT */
     else
     {
+      // unknown extension, skip
       do_skip_ext = FLEA_TRUE;
     }
     if(do_skip_ext)
