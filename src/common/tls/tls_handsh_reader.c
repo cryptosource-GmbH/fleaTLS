@@ -30,7 +30,7 @@ flea_err_e THR_flea_tls_handsh_reader_t__ctor(
 
   if(is_dtls__b)
   {
-    FLEA_CCALL(THR_flea_tls_hndsh_rdr__ctor_dtls(handsh_rdr__pt, dtls_hs_ctx__pt, rec_prot__pt, cont_type__e));
+    FLEA_CCALL(THR_flea_tls_hndsh_rdr__ctor_dtls(handsh_rdr__pt, dtls_hs_ctx__pt, cont_type__e));
   }
   else
   {

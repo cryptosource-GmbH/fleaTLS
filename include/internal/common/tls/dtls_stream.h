@@ -25,6 +25,16 @@ flea_err_e THR_flea_rw_stream_t__ctor_dtls_rd_strm(
   flea_recprot_t*            rec_prot__pt
 );
 
+
+void flea_dtls_rd_strm__expect_ccs(
+  flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt
+);
+
+
+void flea_dtls_rd_strm__expect_hndhs(
+  flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt
+);
+
 // TODO:
 flea_err_e THR_flea_rw_stream_t__flight_completely_read(
   flea_rw_stream_t* stream__pt

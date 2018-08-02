@@ -1704,6 +1704,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           {
             FLEA_DBG_PRINTF("increasing epoch since CCS was received\n");
             FLEA_RP__SET_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt);
+            // TODO: MUST HAPPEN WHEN CCS IS READ ON TLS LAYER
             rec_prot__pt->read_next_rec_epoch__u16++;
 
             if(rec_prot__pt->read_next_rec_epoch__u16 == 0)

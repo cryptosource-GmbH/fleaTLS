@@ -1324,7 +1324,7 @@ flea_err_e THR_flea_tls__client_handshake(
   FLEA_THR_BEG_FUNC();
   flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
 
-  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t));
+  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, &tls_ctx__pt->rec_prot__t));
   hs_ctx__t.is_reneg__b = is_reneg__b;
   hs_ctx__t.tls_ctx__pt = tls_ctx__pt;
 
@@ -1434,6 +1434,9 @@ flea_err_e THR_flea_tls__client_handshake(
           flea_u8_t dummy_byte;
           flea_al_u16_t len_one__alu16 = 1;
 
+# ifdef FLEA_HAVE_DTLS
+          flea_dtls_rd_strm__expect_ccs(&hs_ctx__pt->dtls_ctx__t);
+# endif
           FLEA_CCALL(
             THR_flea_recprot_t__read_data(
               &tls_ctx__pt->rec_prot__t,
@@ -1787,7 +1790,7 @@ flea_err_e THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
 
   FLEA_THR_BEG_FUNC();
   flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
-  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t));
+  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, &tls_ctx__pt->rec_prot__t));
 
   FLEA_CCALL(
     THR_flea_tls_handsh_reader_t__ctor(

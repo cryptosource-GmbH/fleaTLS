@@ -1134,7 +1134,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
   FLEA_CCALL(
     THR_flea_tls_handsh_reader_t__ctor(
       &handsh_rdr__t,
-      &tls_ctx->rec_prot__t,
+      &tls_ctx->rec_prot__t, // only used in case of TLS
       FLEA_TLS_CTX_IS_DTLS(tls_ctx)
       FLEA_DO_IF_HAVE_DTLS(FLEA_COMMA & hs_ctx__pt->dtls_ctx__t FLEA_COMMA CONTENT_TYPE_HANDSHAKE)
     )
@@ -1185,6 +1185,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
           // FLEA_DO_IF_HAVE_DTLS( FLEA_COMMA &do_snd_hvr__b)
         )
       );
+      FLEA_DBG_PRINTF("READ CLIENT HELLO\n");
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
 # ifdef FLEA_HAVE_DTLS
       /* the first by of the cookie signals whether another cookie verification has to be requested. */
@@ -1205,6 +1206,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
         // TODO: CHECK IF THIS CAN BE UPHELD AFTER THE FRAGMENT ASSEMBLY IS IMPLEMENTED:
         flea_recprot_t__SET_LO_WRT_STATE_SEQ_FROM_RD_STATE(&hs_ctx__pt->tls_ctx__pt->rec_prot__t);
         FLEA_CCALL(THR_flea_tls__send_hello_verify_request(hs_ctx__pt));
+        FLEA_DBG_PRINTF("SENT HVR\n");
         hs_ctx__pt->dtls_ctx__t.hello_verify_tries__u8++;
         flea_tls_prl_hash_ctx_t__reset(p_hash_ctx__pt);
         handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_HELLO;
@@ -1269,7 +1271,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
         &cert_path_params__t
       )
     );
-
+    FLEA_DBG_PRINTF("READ CERTIFICATE\n");
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CLIENT_KEY_EXCHANGE;
   }
   // else if because if we don't get a certificate when we expect one we also
@@ -1286,7 +1288,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
         ecdhe_priv_key__pt
       )
     );
-    FLEA_DBG_PRINTF("sel. cs. after read_key = %u\n", tls_ctx->selected_cipher_suite__e);
+    FLEA_DBG_PRINTF("READ CLIENT KEX\n");
     if(handshake_state->send_client_cert == FLEA_TRUE)
     {
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_VERIFY;
@@ -1308,15 +1310,15 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
         peer_public_key__pt
       )
     );
-    FLEA_DBG_PRINTF("sel. cs. after read cert ver. = %u\n", tls_ctx->selected_cipher_suite__e);
+    FLEA_DBG_PRINTF("READ CERT VERIFY\n");
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC;
   }
   else if((handshake_state->expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_FINISHED) &&
     (cont_type__alu8 == HANDSHAKE_TYPE_FINISHED))
   {
-    FLEA_DBG_PRINTF("starting to read finished\n");
+    FLEA_DBG_PRINTF("STARTING TO READ FINISHED\n");
     FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx_copy__t));
-    FLEA_DBG_PRINTF("did read finished\n");
+    FLEA_DBG_PRINTF("DID READ FINISHED\n");
     if(!hs_ctx__pt->is_sess_res__b)
     {
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
@@ -1376,7 +1378,7 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
   FLEA_THR_BEG_FUNC();
   flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
 
-  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t));
+  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, &tls_ctx->rec_prot__t));
 
   hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
   hs_ctx__t.tls_ctx__pt = tls_ctx;
@@ -1450,6 +1452,17 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
     if(handshake_state.expected_messages != FLEA_TLS_HANDSHAKE_EXPECT_NONE)
     {
       flea_tls_rec_cont_type_e cont_type__e;
+# ifdef FLEA_HAVE_DTLS
+      if(handshake_state.expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC)
+      {
+        cont_type__e = CONTENT_TYPE_CHANGE_CIPHER_SPEC;
+      }
+      else
+      {
+        cont_type__e = CONTENT_TYPE_HANDSHAKE;
+      }
+      // TODO: ^THIS SHOULD ALSO BE USED FOR TLS
+# else  /* ifdef FLEA_HAVE_DTLS */
       FLEA_CCALL(
         THR_flea_recprot_t__get_current_record_type(
           &tls_ctx->rec_prot__t,
@@ -1457,6 +1470,7 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
           flea_read_full
         )
       );
+# endif /* ifdef FLEA_HAVE_DTLS */
 
       if(cont_type__e == CONTENT_TYPE_HANDSHAKE)
       {
@@ -1485,7 +1499,17 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
           flea_u8_t dummy_byte;
           flea_dtl_t len_one__dtl = 1;
           flea_al_u16_t key_block_len__alu16;
+# ifdef FLEA_HAVE_DTLS
+          flea_dtls_rd_strm__expect_ccs(&hs_ctx__pt->dtls_ctx__t);
+          FLEA_CCALL(
+            THR_flea_rw_stream_t__read_full(
+              &hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.dtls_assmbld_rd_stream__t,
+              &dummy_byte,
+              len_one__dtl
+            )
+          );
 
+# else  /* ifdef FLEA_HAVE_DTLS */
           FLEA_CCALL(
             THR_flea_recprot_t__read_data(
               &tls_ctx->rec_prot__t,
@@ -1495,7 +1519,9 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
               flea_read_full
             )
           );
-          FLEA_DBG_PRINTF("sel. cs. after read CCS\n");
+# endif /* ifdef FLEA_HAVE_DTLS */
+          FLEA_DBG_PRINTF("after read CCS\n");
+
 
           /*
            * Enable encryption for incoming messages

@@ -31,6 +31,7 @@ typedef struct
 
 typedef struct
 {
+  flea_u32_t                 msg_len_incl_hs_hdr__u32;
   flea_u32_t                 rd_offs__u32;
   flea_dtls_hndsh_hdr_info_t msg_hdr_info__t;
   qh_hndl_t                  hndl_qhh;
@@ -50,6 +51,8 @@ typedef struct
   flea_u32_t                       curr_fragm_offs__u32;
 # endif // if 0
   flea_dtls_hndsh_msg_state_info_t curr_msg_state_info__t;
+  flea_tls_rec_cont_type_e         req_next_rec_cont_type__e;
+  flea_rw_stream_t                 dtls_assmbld_rd_stream__t;
 // flea_dtls_hndsh_hdr_info_t curr_msg_hdr_info__t;
 // flea_u8_t curr_hndsh_msg_type__u8; => this is stored in the handsh_rdr
 } flea_dtls_hs_assmb_state_t;
@@ -121,7 +124,11 @@ struct struct_flea_tls_handshake_ctx_t
 # endif
 };
 
-flea_err_e THR_flea_tls_handshake_ctx_t__ctor(flea_tls_handshake_ctx_t* hs_ctx__pt);
+// flea_err_e THR_flea_tls_handshake_ctx_t__ctor(flea_tls_handshake_ctx_t* hs_ctx__pt);
+flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_recprot_t*           rec_prot__pt
+);
 
 void flea_tls_handshake_ctx_t__dtor(flea_tls_handshake_ctx_t* hs_ctx__pt);
 

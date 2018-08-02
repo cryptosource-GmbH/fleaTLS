@@ -191,7 +191,12 @@ flea_err_e THR_flea_rw_stream_t__read(
     FLEA_THROW("reading not supported by this stream", FLEA_ERR_STREAM_FUNC_NOT_SUPPORTED);
   }
   FLEA_CCALL(stream__pt->read_func__f(stream__pt->custom_obj__pv, data__pu8, data_len__pdtl, rd_mode__e));
+  if(stream__pt->have_read_limit__b && stream__pt->read_rem_len__u32 < *data_len__pdtl)
+  {
+    FLEA_THROW("read_stream read-limit underflow\n", FLEA_ERR_INT_ERR);
+  }
   stream__pt->read_rem_len__u32 -= *data_len__pdtl;
+
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_rw_stream_t__read */
 

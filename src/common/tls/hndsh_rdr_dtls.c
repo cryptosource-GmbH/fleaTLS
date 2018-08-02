@@ -79,7 +79,7 @@ static flea_err_e THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
 flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
   flea_dtls_hdsh_ctx_t*     dtls_hs_ctx__pt,
-  flea_recprot_t*           rec_prot__pt,
+  // flea_recprot_t*           rec_prot__pt,
   flea_tls_rec_cont_type_e  rec_cont_type__e
   //
   // THE ASSEMBLY MUST BE ACCROSS THE WHOLE FLIGHT, WHILE THIS OBJECT IS
@@ -93,19 +93,21 @@ flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
   handsh_rdr__pt->rec_content_type__u8 = (flea_u8_t) rec_cont_type__e;
   handsh_rdr__pt->dtls_hs_ctx__pt      = dtls_hs_ctx__pt;
   FLEA_THR_BEG_FUNC();
-  FLEA_CCALL(
+  handsh_rdr__pt->rec_content_rd_stream__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t.dtls_assmbld_rd_stream__t;
+
+  /*FLEA_CCALL(
     THR_flea_rw_stream_t__ctor_dtls_rd_strm(
-      &handsh_rdr__pt->rec_content_rd_stream__t,
+      handsh_rdr__pt->rec_content_rd_stream__pt,
       &dtls_hs_ctx__pt->incom_assmbl_state__t.dtls_rd_strm_hlp__t,
       dtls_hs_ctx__pt,
       rec_prot__pt
     )
-  );
+  );*/
 
   FLEA_CCALL(
     THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
       handsh_rdr__pt,
-      &handsh_rdr__pt->rec_content_rd_stream__t,
+      handsh_rdr__pt->rec_content_rd_stream__pt,
       &read_limit__u32,
       handsh_rdr__pt->hlp__t.handsh_hdr__au8
     )
@@ -114,7 +116,7 @@ flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
     THR_flea_rw_stream_t__ctor_tls_handsh_reader(
       &handsh_rdr__pt->handshake_read_stream__t,
       &handsh_rdr__pt->hlp__t,
-      &handsh_rdr__pt->rec_content_rd_stream__t,
+      handsh_rdr__pt->rec_content_rd_stream__pt,
       read_limit__u32
     )
   );

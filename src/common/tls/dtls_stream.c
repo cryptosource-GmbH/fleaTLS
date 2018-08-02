@@ -140,6 +140,12 @@
 #define FLEA_DTLS_HS_HDR_OFFS__FRAGM_OFFS 6
 #define FLEA_DTLS_HS_HDR_OFFS__FRAGM_LEN  9
 
+/* typedef enum
+{
+  flea_requ_ccs = 1,
+  flea_requ_hndsh = 2
+} flea_req_msg_type_e; */
+
 typedef enum
 {
   rec_type_hndsh_plain = 1,
@@ -162,8 +168,16 @@ static flea_err_e THR_flea_dtls_rd_strm__hndsh_hdr_info_from_queue(
 
   FLEA_DECL_BUF(hs_hdr_buf__bu8, flea_u8_t, FLEA_DTLS_HANDSH_HDR_LEN + 1);
   FLEA_THR_BEG_FUNC();
-
   FLEA_ALLOC_BUF(hs_hdr_buf__bu8, FLEA_DTLS_HANDSH_HDR_LEN + 1);
+  if(1 != qheap_qh_peek(heap__pt, hndl__alqhh, 0, hs_hdr_buf__bu8, 1))
+  {
+    FLEA_THROW("insufficient queue length to read type byte", FLEA_ERR_INT_ERR);
+  }
+  if(hs_hdr_buf__bu8[0] != rec_type_hndsh_plain)
+  {
+    memset(result__pt, 0, sizeof(*result__pt));
+    FLEA_THR_RETURN();
+  }
   if(FLEA_DTLS_HANDSH_HDR_LEN != qheap_qh_peek(heap__pt, hndl__alqhh, 0, hs_hdr_buf__bu8, FLEA_DTLS_HANDSH_HDR_LEN))
   {
     FLEA_THROW("insufficient queue length to read handshake header", FLEA_ERR_INT_ERR);
@@ -175,14 +189,9 @@ static flea_err_e THR_flea_dtls_rd_strm__hndsh_hdr_info_from_queue(
      uint24 fragment_offset;                           // New field
      uint24 fragment_length;                           // New field
      */
-  if(hs_hdr_buf__bu8[0] != rec_type_hndsh_plain)
-  {
-    memset(result__pt, 0, sizeof(*result__pt));
-    FLEA_THR_RETURN();
-  }
 
   /*if((flea_u8_t ) rec_cont_type__e  == CONTENT_TYPE_HANDSHAKE )
-  {*/
+    {*/
   hdr_ptr__pu8 = &hs_hdr_buf__bu8[1];
   // TODO: THIS SHOULD BE THE ONE AND ONLY VALUE WITH WHICH THE FUNCTION IS CALLED
   result__pt->msg_type__u8    = hdr_ptr__pu8[0];
@@ -410,6 +419,8 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_dtls_rd_strm__merge_fragments */
 
+// static flea_err_e THR_flea_dtls_rd_strm__rd_ccs(
+
 /**
  * read the next record and place it into the array of queues.
  */
@@ -425,7 +436,7 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   flea_al_u16_t curr_rec_cont_len__alu16;
   qheap_queue_heap_t* heap__pt = dtls_hs_ctx__pt->qheap__pt;
 // TODO: MAKE DYNAMIC: + enc_hs, (plain_alert,) enc_alert, plain_ccs
-  const flea_u8_t rec_type__cu8 = (flea_u8_t) rec_type_hndsh_plain;
+  flea_u8_t rec_type__cu8; // = (flea_u8_t) rec_type_hndsh_plain;
   flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
   flea_byte_vec_t* incom_hndls__pt = &assmbl_state__pt->qheap_handles_incoming__t;
   qh_al_hndl_t hndl_alqhh;
@@ -436,7 +447,27 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   //  - in case of DTLS, a record with "epoch + 1" is just kept as an encrypted record
   //  - set a flag in the rec_prot
   //  - add rec_prot macro which can querry this
+
+  // TODO: ADD RESULT-ARG TO LEARN WHETHER RECORD COULD BE DECRYPTED FOR DTLS.
   FLEA_CCALL(THR_flea_recprot_t__get_current_record_type(rec_prot__pt, &cont_type__e, flea_read_full));
+  switch(cont_type__e)
+  {
+      case CONTENT_TYPE_HANDSHAKE:
+        rec_type__cu8 = (flea_u8_t) rec_type_hndsh_plain;
+        break;
+      case CONTENT_TYPE_CHANGE_CIPHER_SPEC:
+        rec_type__cu8 = (flea_u8_t) rec_type_ccs;
+        /* TODO: may not be encrypted, in this case discard it */
+        break;
+      case CONTENT_TYPE_APPLICATION_DATA:
+        // TODO: plain (=> invoke callback) or encrypted (store in incom. flight state, output after *completed handshake*, then destroy the incom. flight state)
+        break;
+      case CONTENT_TYPE_ALERT:
+        // TODO: handle encrypted alert (unencrypted should be handled by rec_prot => check)
+        break;
+      default:
+        break;
+  }
   /* get the length of the current record */ // TODO: DIFFERENT FOR ENCRYPTED ALERTS
   curr_rec_cont_len__alu16 = flea_recprot_t__GET_CURR_REC_PT_SIZE(rec_prot__pt);
   hndl_alqhh = qheap_qh_alloc_queue(heap__pt, FLEA_FALSE);
@@ -451,6 +482,15 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   {
     flea_u8_t small_buf[8];
     flea_dtl_t to_go__dtl = FLEA_MIN(curr_rec_cont_len__alu16, sizeof(small_buf));
+
+    if(rec_type__cu8 == rec_type_ccs)
+    {
+      if(to_go__dtl != 1)
+      {
+        FLEA_THROW("invalid read length for CCS read from the rec_prot", FLEA_ERR_INT_ERR);
+      }
+    }
+
     FLEA_CCALL(THR_flea_recprot_t__read_data(rec_prot__pt, cont_type__e, small_buf, &to_go__dtl, flea_read_full));
 
     // TODO: SHORT WRITES TO THE QUEUE ARE NOT OPTIMAL
@@ -479,10 +519,11 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire */
 
-static flea_err_e THR_flea_dtls_rd_strm__start_new_hs_msg(
+static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
   // flea_tls_handsh_reader_t* handsh_rdr__pt,
-  flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt,
-  flea_recprot_t*       rec_prot__pt
+  flea_dtls_hdsh_ctx_t*    dtls_hs_ctx__pt,
+  flea_recprot_t*          rec_prot__pt,
+  flea_tls_rec_cont_type_e rec_cont_type__e
   // flea_rw_stream_t*         rec_prot_stream__pt,
   // flea_u8_t*                handsh_type__pu8,
   // flea_u32_t*               msg_len__pu32,
@@ -502,7 +543,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_hs_msg(
   qheap_queue_heap_t* heap__pt     = dtls_hs_ctx__pt->qheap__pt;
   flea_dtls_hndsh_msg_state_info_t* curr_msg_state__pt = &assmbl_state__pt->curr_msg_state_info__t;
   flea_al_u16_t i;
-
+  flight_buf_rec_type_e req_msg_type__e;
   // TODO: HANDLE TIMEOUT =>
   //                    IF NOT RECORD FROM NEXT EXPECTED FLIGHT WAS YET RECEIVED
   //                      THEN RESEND THE FLIGHT BUFFER:
@@ -512,6 +553,24 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_hs_msg(
   //          TODO:  IF RECEIVING A RECORD FROM THE PREVIOUS (COMPLETED) FLIGHT,
   //          THEN ALSO RESEND THE LAST FLIGHT
   FLEA_THR_BEG_FUNC();
+  switch(rec_cont_type__e)
+  {
+      case CONTENT_TYPE_HANDSHAKE:
+      {
+        req_msg_type__e = rec_type_hndsh_plain;
+        FLEA_DBG_PRINTF("THR_flea_dtls_rd_strm__start_new_msg called with expected record content 'HANDSHAKE'\n");
+        break;
+      }
+      case CONTENT_TYPE_CHANGE_CIPHER_SPEC:
+      {
+        req_msg_type__e = rec_type_ccs;
+        FLEA_DBG_PRINTF("THR_flea_dtls_rd_strm__start_new_msg called with expected record content 'CCS'\n");
+        break;
+      }
+      default:
+        FLEA_THROW("unhandled content type for start_new_msg", FLEA_ERR_INT_ERR);
+  }
+
   FLEA_ALLOC_BUF(hs_hdr_buf__bu8, FLEA_DTLS_HANDSH_HDR_LEN + 1);
   if(sizeof(qh_hndl_t) != 1)
   {
@@ -523,7 +582,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_hs_msg(
     flea_al_u16_t seq__alu16;
     flea_dtls_hndsh_hdr_info_t* curr_hdr_info__pt = &curr_msg_state__pt->msg_hdr_info__t;
 
-    if(curr_msg_state__pt->rd_offs__u32 != curr_msg_state__pt->msg_hdr_info__t.msg_len__u32)
+    if(curr_msg_state__pt->rd_offs__u32 != curr_msg_state__pt->msg_len_incl_hs_hdr__u32) // curr_msg_state__pt->msg_hdr_info__t.msg_len__u32)
     {
       FLEA_THROW(
         "invalid state: attempting to read new HS msg when current one has not been completeley read",
@@ -532,7 +591,11 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_hs_msg(
     }
 
     /* the message with curr_msg_seq has already been processed (read) */
-    seq__alu16 = curr_hdr_info__pt->msg_seq__u16 + 1;
+    seq__alu16 = curr_hdr_info__pt->msg_seq__u16;
+    if(req_msg_type__e == rec_type_hndsh_plain)
+    {
+      seq__alu16 += 1;
+    }
     memset(curr_msg_state__pt, 0, sizeof(*curr_msg_state__pt));
     curr_hdr_info__pt->msg_seq__u16 = seq__alu16;
     // assmbl_state__pt->curr_msg_seq__u16++;
@@ -558,7 +621,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_hs_msg(
       }
       /* scan the header of this queue */
       // TODO: USE LINEARIZE FROM QH
-      qheap_qh_peek(heap__pt, hndl, 0, hs_hdr_buf__bu8, FLEA_DTLS_HANDSH_HDR_LEN);
+      qheap_qh_peek(heap__pt, hndl, 0, hs_hdr_buf__bu8, 1);
 
       /* HandshakeType msg_type;
          uint24 length;
@@ -571,12 +634,13 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_hs_msg(
       {*/
       flea_u8_t* hdr_ptr__pu8 = &hs_hdr_buf__bu8[1];
       // TODO: THIS SHOULD BE THE ONE AND ONLY VALUE WITH WHICH THE FUNCTION IS CALLED
-      if(hs_hdr_buf__bu8[0] == rec_type_hndsh_plain)
+      if((req_msg_type__e == rec_type_hndsh_plain) && (hs_hdr_buf__bu8[0] == rec_type_hndsh_plain))
       {
         flea_u32_t fragm_offs__u32;
         flea_u16_t msg_seq__u16;
         flea_dtls_hndsh_msg_state_info_t* curr_msg_state_info__pt = &assmbl_state__pt->curr_msg_state_info__t;
         flea_dtls_hndsh_hdr_info_t* curr_msg_hdr_info__pt         = &curr_msg_state_info__pt->msg_hdr_info__t;
+        qheap_qh_peek(heap__pt, hndl, 0, hs_hdr_buf__bu8, FLEA_DTLS_HANDSH_HDR_LEN + 1);
         /* check if the handshake msg header whether it the next message in the row */
         msg_seq__u16 = flea__decode_U16_BE(&hdr_ptr__pu8[4]);
         if(curr_msg_hdr_info__pt->msg_seq__u16 != msg_seq__u16)
@@ -590,7 +654,8 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_hs_msg(
           continue;
         }
         /* this is the very first fragment and thus we can start outputting it */
-        curr_msg_hdr_info__pt->msg_len__u32    = flea__decode_U24_BE(&hdr_ptr__pu8[1]);
+        curr_msg_hdr_info__pt->msg_len__u32 = flea__decode_U24_BE(&hdr_ptr__pu8[1]);
+        curr_msg_state__pt->msg_len_incl_hs_hdr__u32 = curr_msg_hdr_info__pt->msg_len__u32 + FLEA_DTLS_HANDSH_HDR_LEN;
         curr_msg_hdr_info__pt->msg_type__u8    = hdr_ptr__pu8[0];
         curr_msg_hdr_info__pt->fragm_len__u32  = flea__decode_U24_BE(&hdr_ptr__pu8[9]);
         curr_msg_hdr_info__pt->fragm_offs__u32 = fragm_offs__u32;
@@ -612,6 +677,19 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_hs_msg(
 
         /* invalidate the handle */
         flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i] = 0;
+        FLEA_THR_RETURN();
+      }
+      else if((req_msg_type__e == rec_type_ccs) && (hs_hdr_buf__bu8[0] == rec_type_ccs))
+      {
+        flea_dtls_hndsh_msg_state_info_t* curr_msg_state_info__pt = &assmbl_state__pt->curr_msg_state_info__t;
+        /* skip over the type byte */
+
+        qheap_qh_skip(heap__pt, hndl, 1);
+        curr_msg_state_info__pt->hndl_qhh = hndl;
+        curr_msg_state__pt->msg_len_incl_hs_hdr__u32      = qheap_qh_get_queue_len(heap__pt, hndl);
+        flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i] = 0;
+        /* automatically expect again a handshake message */
+        dtls_hs_ctx__pt->incom_assmbl_state__t.req_next_rec_cont_type__e = CONTENT_TYPE_HANDSHAKE;
         FLEA_THR_RETURN();
       }
       // }
@@ -646,6 +724,13 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_hs_msg(
   );
 } /* THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls */
 
+void flea_dtls_rd_strm__expect_ccs(
+  flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt
+)
+{
+  dtls_hs_ctx__pt->incom_assmbl_state__t.req_next_rec_cont_type__e = CONTENT_TYPE_CHANGE_CIPHER_SPEC;
+}
+
 // stream to be used by handsh_rdr and by TLS logic layer directly
 static flea_err_e THR_dtls_rd_strm_rd_func(
   void*                   custom_obj__pv,
@@ -670,19 +755,28 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
   flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
   flea_dtl_t rem_read_len__dtl = *nb_bytes_to_read__pdtl;
   flea_dtls_hndsh_msg_state_info_t* curr_msg_state_info__pt = &assmbl_state__pt->curr_msg_state_info__t;
-  flea_dtls_hndsh_hdr_info_t* curr_msg_hs_hdr_info__pt      = &curr_msg_state_info__pt->msg_hdr_info__t;
+
+  // flea_dtls_hndsh_hdr_info_t* curr_msg_hs_hdr_info__pt      = &curr_msg_state_info__pt->msg_hdr_info__t;
 
   FLEA_THR_BEG_FUNC();
   // READ MODE IS IGNORED SINCE THIS FUNCTION IS ONLY USED DURING THE HANDSH
-  while(rem_read_len__dtl)
+  while(rem_read_len__dtl) // TODO: MUST BE U32 ?
   {
-    flea_u32_t rem_in_curr_msg__u32 = curr_msg_hs_hdr_info__pt->msg_len__u32 - curr_msg_state_info__pt->rd_offs__u32;
+    flea_u32_t did_read__u32;
+    flea_u32_t rem_in_curr_msg__u32 = curr_msg_state_info__pt->msg_len_incl_hs_hdr__u32
+      - curr_msg_state_info__pt->rd_offs__u32;
     if(!rem_in_curr_msg__u32)
     {
       /* a new handshake msg is implicitly requested */
-      FLEA_CCALL(THR_flea_dtls_rd_strm__start_new_hs_msg(dtls_hs_ctx__pt, hlp__pt->rec_prot__pt));
+      FLEA_CCALL(
+        THR_flea_dtls_rd_strm__start_new_msg(
+          dtls_hs_ctx__pt,
+          hlp__pt->rec_prot__pt,
+          dtls_hs_ctx__pt->incom_assmbl_state__t.req_next_rec_cont_type__e
+        )
+      );
     }
-    if(!curr_msg_hs_hdr_info__pt->msg_len__u32)
+    if(!curr_msg_state_info__pt->msg_len_incl_hs_hdr__u32) // TODO: replace by msg_len_incl_hs_hdr ?
     {
       FLEA_THROW("assertion for length of current msg failed", FLEA_ERR_INT_ERR);
     }
@@ -690,15 +784,18 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
     {
       FLEA_THROW("assertion for hndl of current msg failed", FLEA_ERR_INT_ERR);
     }
-    rem_read_len__dtl -= qheap_qh_read(
+    did_read__u32 = qheap_qh_read(
       dtls_hs_ctx__pt->qheap__pt,
       curr_msg_state_info__pt->hndl_qhh,
       target_buffer__pu8,
       rem_read_len__dtl
     );
+    rem_read_len__dtl -= did_read__u32;
+    curr_msg_state_info__pt->rd_offs__u32 += did_read__u32;
     if(rem_read_len__dtl)
     {
       FLEA_CCALL(THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(dtls_hs_ctx__pt, hlp__pt->rec_prot__pt));
+      FLEA_CCALL(THR_flea_dtls_rd_strm__merge_fragments(dtls_hs_ctx__pt));
     }
     // TODO: NEED TO FREE THE QUEUE HERE IF EMPTY? CAN PERFORM THE CURRENT QUEUE RESET HERE, FREE THE QUEUE. IN STARTE NEW MSG FUNCTION, ONLY ASSERT THAT THE CURR MSG IS EMPTY
   }
@@ -729,7 +826,8 @@ flea_err_e THR_flea_rw_stream_t__ctor_dtls_rd_strm(
   FLEA_THR_BEG_FUNC();
 
   hlp__pt->dtls_hs_ctx__pt = dtls_hs_ctx__pt;
-  hlp__pt->rec_prot__pt    = rec_prot__pt;
+  dtls_hs_ctx__pt->incom_assmbl_state__t.req_next_rec_cont_type__e = CONTENT_TYPE_HANDSHAKE;
+  hlp__pt->rec_prot__pt = rec_prot__pt;
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor(
       stream__pt,

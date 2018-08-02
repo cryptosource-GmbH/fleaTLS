@@ -24,7 +24,7 @@ typedef struct
   flea_tls_handsh_reader_hlp_t hlp__t;
 
   flea_tls_rec_prot_rdr_hlp_t  rec_prot_rdr_hlp__t;
-  flea_rw_stream_t             rec_content_rd_stream__t; // TODO: RENAME TO REC_CONTENT_RD_STREAM__T
+  flea_rw_stream_t*            rec_content_rd_stream__pt;  // TODO:  USED BY TLS?
   flea_u8_t                    is_dtls__b;
   flea_u8_t                    rec_content_type__u8;
 #  ifdef FLEA_HAVE_DTLS

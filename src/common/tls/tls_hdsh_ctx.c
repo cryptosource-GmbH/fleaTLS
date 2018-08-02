@@ -3,7 +3,10 @@
 #include "internal/common/tls/tls_hndsh_ctx.h"
 #include "flea/alloc.h"
 
-flea_err_e THR_flea_tls_handshake_ctx_t__ctor(flea_tls_handshake_ctx_t* hs_ctx__pt)
+flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  flea_recprot_t*           rec_prot__pt
+)
 {
   // TODO: MAKE FLIGHT BUFFER SIZE CONTROLLABLE VIA API OR DYNAMICALLY
   FLEA_THR_BEG_FUNC();
@@ -29,14 +32,26 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(flea_tls_handshake_ctx_t* hs_ctx__
     sizeof(hs_ctx__pt->dtls_ctx__t.qheap_handles_incoming_memory__au8)
   );
 # endif /* if defined FLEA_HEAP_MODE */
+
+  FLEA_CCALL(
+    THR_flea_rw_stream_t__ctor_dtls_rd_strm(
+      &hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.dtls_assmbld_rd_stream__t,
+      &hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.dtls_rd_strm_hlp__t,
+      &hs_ctx__pt->dtls_ctx__t,
+      rec_prot__pt
+    )
+  );
 #endif /* if defined FLEA_HAVE_DTLS */
 
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls_handshake_ctx_t__ctor */
 
 void flea_tls_handshake_ctx_t__dtor(flea_tls_handshake_ctx_t* hs_ctx__pt)
 {
 #if defined FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHK_NULL(hs_ctx__pt->dtls_ctx__t.flight_buf__bu8);
-#endif
+# ifdef FLEA_HAVE_DTLS
+  flea_byte_vec_t__dtor(&hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.qheap_handles_incoming__t);
+# endif
+#endif /* if defined FLEA_HEAP_MODE */
 }
