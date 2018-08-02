@@ -540,7 +540,7 @@ flea_err_e THR_flea_tls__handle_tls_error(
       &alert_desc__e,
       is_reneg_then_not_null__was_accepted_out___pb,
       is_read_app_data__b
-    );
+      );
     if(do_send_alert__b)
     {
       flea_tls_ctx_t* tls_ctx__pt =
@@ -1177,7 +1177,7 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
     data__pu8,
     data_len__pdtl,
     rd_mode__e
-  );
+    );
   if(err__t == FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA)
   {
     /* assume it's the appropriate ClientHello or HelloRequest in order to
@@ -1274,7 +1274,7 @@ flea_err_e THR_flea_tls_ctx_t__read_app_data(
     data_len__pdtl,
     rd_mode__e,
     hostn_valid_params_mbn__pt
-  );
+    );
 
   FLEA_CCALL(THR_flea_tls__handle_tls_error(server_ctx_mbn__pt, client_ctx_mbn__pt, err__t, NULL, FLEA_TRUE));
   if(requested__dtl && requested__dtl > *data_len__pdtl)
@@ -1999,7 +1999,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_sig_alg_ext(
     rd_strm__pt,
     len__alu16,
     tls_ctx__pt->private_key__pt
-  );
+    );
 
   if(err__t)
   {
@@ -2040,6 +2040,8 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
   flea_rw_stream_t* hs_rd_stream__pt;
   flea_bool_t receive_sig_algs_ext__b = FLEA_FALSE;
   flea_bool_t support_sha1__b         = FLEA_FALSE;
+
+  flea_bool_t do_skip_ext = FLEA_FALSE;
 
 # ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
   flea_bool_t receive_max_frag_len_ext__b = FLEA_FALSE;
@@ -2100,26 +2102,49 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
       FLEA_CCALL(THR_flea_tls_ctx__parse_reneg_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
       *found_sec_reneg__pb = FLEA_TRUE;
     }
-    // skip over ext. if received from server (not allowed)
 # ifdef FLEA_HAVE_TLS_SERVER
     else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__SIGNATURE_ALGORITHMS &&
       tls_ctx__pt->connection_end == FLEA_TLS_SERVER)
     {
-      FLEA_CCALL(THR_flea_tls_ctx_t__parse_sig_alg_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
-      receive_sig_algs_ext__b = FLEA_TRUE;
+      if(hs_ctx__pt->is_sess_res__b)
+      {
+        // RFC 5246: don't process the extension in sess res case
+        do_skip_ext = FLEA_TRUE;
+      }
+      else
+      {
+        FLEA_CCALL(THR_flea_tls_ctx_t__parse_sig_alg_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
+        receive_sig_algs_ext__b = FLEA_TRUE;
+      }
     }
 # endif /* ifdef FLEA_HAVE_TLS_SERVER */
 # ifdef FLEA_HAVE_TLS_CS_ECC
     else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__POINT_FORMATS)
     {
-      FLEA_CCALL(THR_flea_tls_ctx_t__parse_point_formats_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
-      tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS;
+      if(tls_ctx__pt->connection_end == FLEA_TLS_SERVER && hs_ctx__pt->is_sess_res__b)
+      {
+        // RFC 4492: don't process the extension in sess res case
+        do_skip_ext = FLEA_TRUE;
+      }
+      else
+      {
+        FLEA_CCALL(THR_flea_tls_ctx_t__parse_point_formats_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
+        tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__POINT_FORMATS;
+      }
     }
     else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__SUPPORTED_CURVES &&
       tls_ctx__pt->connection_end == FLEA_TLS_SERVER)
     {
-      FLEA_CCALL(THR_flea_tls_ctx_t__parse_supported_curves_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
-      tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES;
+      if(hs_ctx__pt->is_sess_res__b)
+      {
+        // RFC 4492: don't process the extension in sess res case
+        do_skip_ext = FLEA_TRUE;
+      }
+      else
+      {
+        FLEA_CCALL(THR_flea_tls_ctx_t__parse_supported_curves_ext(tls_ctx__pt, hs_rd_stream__pt, ext_len__u32));
+        tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__SUPPORTED_CURVES;
+      }
     }
 #  ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
     else if(ext_type_be__u32 == FLEA_TLS_EXT_TYPE__MAX_FRAGMENT_LENGTH)
@@ -2137,12 +2162,17 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
 # endif /* ifdef FLEA_HAVE_TLS_CS_ECC */
     else
     {
+      do_skip_ext = FLEA_TRUE;
+    }
+    if(do_skip_ext)
+    {
       FLEA_CCALL(
         THR_flea_rw_stream_t__skip_read(
           hs_rd_stream__pt,
           ext_len__u32
         )
       );
+      do_skip_ext = FLEA_FALSE;
     }
   }
 
@@ -2176,8 +2206,9 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
   }
 # endif /* ifdef FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT */
 
-  // no signature_algorithms ext. received from client
-  if(receive_sig_algs_ext__b == FLEA_FALSE && tls_ctx__pt->connection_end == FLEA_TLS_SERVER)
+  // no signature_algorithms ext. received from client in initial handshake
+  if(receive_sig_algs_ext__b == FLEA_FALSE && tls_ctx__pt->connection_end == FLEA_TLS_SERVER &&
+    !hs_ctx__pt->is_sess_res__b)
   {
     // we need to set the default signature and hash algorithm because the
     // client does not support any other. This means sha1 + signature scheme
@@ -2188,7 +2219,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
       if(priv_key_mbn__pt && THR_flea_tls__check_sig_alg_compatibility_for_key_type(
           priv_key_mbn__pt->key_type__t,
           (flea_pk_scheme_id_e) (tls_ctx__pt->allowed_sig_algs__pe[i] & 0xFF)
-      ))
+        ))
       {
         continue;
       }
