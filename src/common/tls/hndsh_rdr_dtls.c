@@ -6,15 +6,15 @@
 #include "flea/bin_utils.h"
 #include "internal/common/tls/hndsh_rdr_dtls.h"
 #include "internal/common/tls/tls_hndsh_ctx.h"
+#include "internal/common/tls/tls_int.h"
 
-// TODO: GET RID OF THIS FILE
 
 #ifdef FLEA_HAVE_DTLS
 
 static flea_err_e THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
   flea_rw_stream_t*         stream__pt,
-  flea_u8_t*                handsh_type__pu8,
+  // flea_u8_t*                handsh_type__pu8,
   flea_u32_t*               msg_len__pu32,
   flea_u8_t*                handsh_hdr_mbn__pu8
 )
@@ -39,8 +39,9 @@ static flea_err_e THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
   //          THEN ALSO RESEND THE LAST FLIGHT
   //
   FLEA_CCALL(THR_flea_rw_stream_t__read_full(stream__pt, hdr__au8, hdr_size__alu8));
-  *handsh_type__pu8 = hdr__au8[0];
-  *msg_len__pu32    = flea__decode_U24_BE(&hdr__au8[1]);
+  // *handsh_type__pu8 = hdr__au8[0];
+  handsh_rdr__pt->hlp__t.handshake_msg_type__u8 = hdr__au8[0];
+  *msg_len__pu32 = flea__decode_U24_BE(&hdr__au8[1]);
 
   // first, check sequence
   //   if older than current: resend
@@ -63,53 +64,48 @@ static flea_err_e THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
      uint24 fragment_length;                           // New field
      */
   /* these fields are all irrelevant on this layer. fragmentation information was already corrected by the underlying assembly layer. */
-  handsh_rdr__pt->hlp__t.msg_seq__u16      = flea__decode_U16_BE(&hdr__au8[4]);
-  handsh_rdr__pt->hlp__t.fragm_offset__u32 = flea__decode_U24_BE(&hdr__au8[6]);
-  handsh_rdr__pt->hlp__t.fragm_length__u32 = flea__decode_U24_BE(&hdr__au8[9]);
 
+  /*handsh_rdr__pt->hlp__t.msg_seq__u16      = flea__decode_U16_BE(&hdr__au8[4]);
+  handsh_rdr__pt->hlp__t.fragm_offset__u32 = ;
+  handsh_rdr__pt->hlp__t.fragm_length__u32 = flea__decode_U24_BE(&hdr__au8[9]);*/
+
+  if((flea__decode_U24_BE(&hdr__au8[6]) != 0) || (flea__decode_U24_BE(&hdr__au8[9]) != *msg_len__pu32))
+  {
+    FLEA_THROW("handshake read stream received non-zero fragm offs or invalid fragm length", FLEA_ERR_INT_ERR);
+  }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls */
 
 flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
-  flea_dtls_hdsh_ctx_t*     dtls_ctx__pt,
-  flea_recprot_t*           rec_prot__pt
+  flea_dtls_hdsh_ctx_t*     dtls_hs_ctx__pt,
+  flea_recprot_t*           rec_prot__pt,
+  flea_tls_rec_cont_type_e  rec_cont_type__e
   //
-  // TODO: THE ASSEMBLY MUST BE ACCROSS THE WHOLE FLIGHT, WHILE THIS OBJECT IS
+  // THE ASSEMBLY MUST BE ACCROSS THE WHOLE FLIGHT, WHILE THIS OBJECT IS
   // JUST FOR A SINGLE HS-MSG
-  // => implement a stream above the tls_record_stream
+  // => store the state in the dtls handshake ctx
 )
 {
   flea_u32_t read_limit__u32;
 
   // bool received_hdr_from_current_flight__b = FLEA_FALSE;
-
+  handsh_rdr__pt->rec_content_type__u8 = (flea_u8_t) rec_cont_type__e;
+  handsh_rdr__pt->dtls_hs_ctx__pt      = dtls_hs_ctx__pt;
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(
     THR_flea_rw_stream_t__ctor_dtls_rd_strm(
-      &handsh_rdr__pt->rec_prot_rd_stream__t,
-      &dtls_ctx__pt->dtls_rd_strm_hlp__t,
-      dtls_ctx__pt,
+      &handsh_rdr__pt->rec_content_rd_stream__t,
+      &dtls_hs_ctx__pt->incom_assmbl_state__t.dtls_rd_strm_hlp__t,
+      dtls_hs_ctx__pt,
       rec_prot__pt
     )
   );
-# if 0
-  FLEA_CCALL(
-    // can stay
-    THR_flea_rw_stream_t__ctor_rec_prot(
-      &handsh_rdr__pt->rec_prot_rd_stream__t,
-      &handsh_rdr__pt->rec_prot_rdr_hlp__t,
-      rec_prot__pt,
-      CONTENT_TYPE_HANDSHAKE
-    )
-  );
-# endif /* if 0 */
 
   FLEA_CCALL(
     THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
       handsh_rdr__pt,
-      &handsh_rdr__pt->rec_prot_rd_stream__t,
-      &handsh_rdr__pt->hlp__t.handshake_msg_type__u8,
+      &handsh_rdr__pt->rec_content_rd_stream__t,
       &read_limit__u32,
       handsh_rdr__pt->hlp__t.handsh_hdr__au8
     )
@@ -118,7 +114,7 @@ flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
     THR_flea_rw_stream_t__ctor_tls_handsh_reader(
       &handsh_rdr__pt->handshake_read_stream__t,
       &handsh_rdr__pt->hlp__t,
-      &handsh_rdr__pt->rec_prot_rd_stream__t,
+      &handsh_rdr__pt->rec_content_rd_stream__t,
       read_limit__u32
     )
   );

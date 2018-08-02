@@ -62,6 +62,12 @@
  * heap allocations and instead only uses the stack memory. This means that fleaTLS' functions and objects reserve stack space according to the configured algorithms and maximal key size definitions made in the build configuration.
  */
 // # define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
+
+/**
+ * Size of the qheap area used within the DTLS implementation for efficient record / handshake message buffering.
+ */
+# define FLEA_QHEAP_MEMORY_SIZE 18000
+
 /* end mem_cfg */
 /**@}*/
 

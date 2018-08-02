@@ -11,6 +11,7 @@
 # include "flea/pubkey.h"
 # include "internal/common/tls/dtls_stream.h"
 # include "internal/common/tls/tls_hndsh_ctx_fwd.h"
+# include "qheap/queue_heap.h"
 
 
 # ifdef __cplusplus
@@ -19,9 +20,39 @@ extern "C" {
 
 typedef struct
 {
-  // TODO:
-  flea_u16_t alfj;
-} flea_hs_msg_vn_assmb_buf_t;
+  flea_u32_t fragm_offs__u32;
+  flea_u32_t fragm_len__u32;
+  flea_u32_t msg_len__u32;
+  flea_u16_t msg_seq__u16;
+  flea_u8_t  msg_type__u8;
+} flea_dtls_hndsh_hdr_info_t;
+
+# define FLEA_DTLS_HNDSH_HDR_FRGM_END(hdr_info__pt) ((hdr_info__pt)->fragm_offs__u32 + (hdr_info__pt)->fragm_len__u32)
+
+typedef struct
+{
+  flea_u32_t                 rd_offs__u32;
+  flea_dtls_hndsh_hdr_info_t msg_hdr_info__t;
+  qh_hndl_t                  hndl_qhh;
+} flea_dtls_hndsh_msg_state_info_t;
+
+typedef struct
+{
+# ifdef FLEA_STACK_MODE
+  qh_hndl_t                        qheap_handles_incoming_memory__au8[FLEA_STKMD_DTLS_DTLS_MAX_NB_INCM_FRGMS]
+# endif
+  flea_dtls_rd_stream_hlp_t dtls_rd_strm_hlp__t;
+  flea_byte_vec_t                  qheap_handles_incoming__t;
+# if 0
+  flea_u16_t                       curr_msg_seq__u16; /* from hndsh-hdr, and next expected msg */
+  flea_u32_t                       curr_msg_len__u32; /* from hndsh-hdr */
+  flea_u32_t                       curr_fragm_len__u32; /* from hndsh-hdr, updated when receiving next adjacent fragment */
+  flea_u32_t                       curr_fragm_offs__u32;
+# endif // if 0
+  flea_dtls_hndsh_msg_state_info_t curr_msg_state_info__t;
+// flea_dtls_hndsh_hdr_info_t curr_msg_hdr_info__t;
+// flea_u8_t curr_hndsh_msg_type__u8; => this is stored in the handsh_rdr
+} flea_dtls_hs_assmb_state_t;
 
 struct struct_flea_dtls_hdsh_ctx_t
 {
@@ -50,10 +81,15 @@ struct struct_flea_dtls_hdsh_ctx_t
   // flea_u8_t     hello_verify_cookie__bu8[FLEA_DTLS_SRV_HELLO_COOKIE_SIZE]
 # endif // ifdef FLEA_HEAP_MODE
 # ifdef FLEA_HAVE_TLS_SERVER
-  flea_u8_t*                hello_cookie__pu8;
-  flea_u8_t                 hello_verify_tries__u8;
+  flea_u8_t*                 hello_cookie__pu8;
+  flea_u8_t                  hello_verify_tries__u8;
 # endif
-  flea_dtls_rd_stream_hlp_t dtls_rd_strm_hlp__t;
+  qheap_queue_heap_t*        qheap__pt;
+  // TODO: EITHER GLOBALLY PROVIDED OR FLEA/TLS-WIDE
+  qheap_queue_heap_t         qheap__t;
+  // TODO: PONDER VARIANTS OF HOW TO PLACE THIS BUFFER (STACK/HEAP?)
+  flea_u32_t                 qh_mem_area__au32[(FLEA_QHEAP_MEMORY_SIZE + 3) / 4];
+  flea_dtls_hs_assmb_state_t incom_assmbl_state__t;
 };
 
 # define FLEA_DTLS_HDSH_CTX_HAVE_PEND_WRT_MSG(hs_ctx__pt)   ((hs_ctx__pt)->dtls_ctx__t.fragm_info_ptr__pu8 != 0)

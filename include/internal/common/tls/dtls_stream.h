@@ -13,7 +13,7 @@ extern "C" {
 
 typedef struct
 {
-  flea_dtls_hdsh_ctx_t*       dtls_ctx__pt;
+  flea_dtls_hdsh_ctx_t*       dtls_hs_ctx__pt;
   flea_recprot_t*             rec_prot__pt;
   flea_tls_rec_prot_rdr_hlp_t rec_prot_rdr_hlp__t;
 } flea_dtls_rd_stream_hlp_t;

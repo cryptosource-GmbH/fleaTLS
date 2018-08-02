@@ -11,9 +11,24 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(flea_tls_handshake_ctx_t* hs_ctx__
   hs_ctx__pt->dtls_ctx__t.send_msg_seq__s16 = -1;
   // TODO: MAKE PMTU-EST. AN ARGUMENT
   hs_ctx__pt->dtls_ctx__t.pmtu_estimate__alu16 = 256;
+  qheap_qh_ctor(
+    &hs_ctx__pt->dtls_ctx__t.qheap__t,
+    (flea_u8_t*) hs_ctx__pt->dtls_ctx__t.qh_mem_area__au32,
+    sizeof(hs_ctx__pt->dtls_ctx__t.qh_mem_area__au32),
+    0
+  );
+  hs_ctx__pt->dtls_ctx__t.qheap__pt = &hs_ctx__pt->dtls_ctx__t.qheap__t;
+
 # if defined FLEA_HEAP_MODE
   FLEA_ALLOC_MEM(hs_ctx__pt->dtls_ctx__t.flight_buf__bu8, FLEA_DTLS_FLIGHT_BUF_SIZE);
-# endif
+  flea_byte_vec_t__ctor_empty_allocatable(&hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.qheap_handles_incoming__t);
+# else
+  flea_byte_vec_t__ctor_empty_use_ext_buf(
+    &hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.qheap_handles_incoming__t,
+    hs_ctx__pt->dtls_ctx__t.qheap_handles_incoming_memory__au8,
+    sizeof(hs_ctx__pt->dtls_ctx__t.qheap_handles_incoming_memory__au8)
+  );
+# endif /* if defined FLEA_HEAP_MODE */
 #endif /* if defined FLEA_HAVE_DTLS */
 
   FLEA_THR_FIN_SEC_empty();

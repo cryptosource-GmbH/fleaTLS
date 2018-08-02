@@ -1136,7 +1136,7 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
       &handsh_rdr__t,
       &tls_ctx->rec_prot__t,
       FLEA_TLS_CTX_IS_DTLS(tls_ctx)
-      FLEA_DO_IF_HAVE_DTLS(FLEA_COMMA & hs_ctx__pt->dtls_ctx__t)
+      FLEA_DO_IF_HAVE_DTLS(FLEA_COMMA & hs_ctx__pt->dtls_ctx__t FLEA_COMMA CONTENT_TYPE_HANDSHAKE)
     )
   );
   if(((handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_FINISHED) ||

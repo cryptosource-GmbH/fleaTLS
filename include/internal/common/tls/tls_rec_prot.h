@@ -131,6 +131,8 @@ struct struct_flea_recprot_t
 #  define flea_recprot_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
 
 
+#  define flea_recprot_t__GET_CURR_REC_PT_SIZE(rec_prot__pt) (rec_prot__pt)->curr_pt_content_len__u16
+
 #  define FLEA_RP__SET_NOT_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt) \
   ((rec_prot__pt)->ctrl_field__u8 &= \
   (~FLEA_RP_CTRL__IN_HANDSHAKE_IN_NEW_EPOCH_BIT))
@@ -219,6 +221,7 @@ flea_err_e THR_flea_recprot_t__set_ciphersuite(
   flea_tls_cipher_suite_id_t suite_id,
   const flea_u8_t*           key_block__pcu8
 );
+
 
 flea_bool_t flea_recprot_t__have_done_initial_handshake(const flea_recprot_t* rec_prot__pt);
 

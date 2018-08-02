@@ -3,6 +3,7 @@
 #ifndef _flea_handsh_reader__H_
 # define _flea_handsh_reader__H_
 
+# include "internal/common/default.h"
 # include "flea/types.h"
 # include "flea/rw_stream.h"
 # include "internal/common/tls/handsh_read_stream.h"
@@ -23,8 +24,12 @@ typedef struct
   flea_tls_handsh_reader_hlp_t hlp__t;
 
   flea_tls_rec_prot_rdr_hlp_t  rec_prot_rdr_hlp__t;
-  flea_rw_stream_t             rec_prot_rd_stream__t; // TODO: RENAME TO REC_CONTENT_RD_STREAM__T
+  flea_rw_stream_t             rec_content_rd_stream__t; // TODO: RENAME TO REC_CONTENT_RD_STREAM__T
   flea_u8_t                    is_dtls__b;
+  flea_u8_t                    rec_content_type__u8;
+#  ifdef FLEA_HAVE_DTLS
+  flea_dtls_hdsh_ctx_t*        dtls_hs_ctx__pt;
+#  endif
 } flea_tls_handsh_reader_t;
 
 #  define flea_tls_handsh_reader_t__INIT(__p) FLEA_MEMSET(__p, 0, sizeof(*(__p)))
@@ -37,7 +42,8 @@ flea_err_e THR_flea_tls_handsh_reader_t__ctor(
   flea_bool_t is_dtls__b
 #  ifdef                    FLEA_HAVE_DTLS
   ,
-  flea_dtls_hdsh_ctx_t*     dtls_hs_ctx__pt
+  flea_dtls_hdsh_ctx_t*     dtls_hs_ctx__pt,
+  flea_tls_rec_cont_type_e  cont_type__e
 #  endif
 );
 
