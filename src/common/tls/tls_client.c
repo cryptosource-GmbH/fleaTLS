@@ -1134,6 +1134,7 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_SERVER_HELLO)
     {
       FLEA_CCALL(THR_flea_tls__read_server_hello(tls_ctx, hs_ctx__pt, &handsh_rdr__t, client_session_mbn__pt));
+      FLEA_DBG_PRINTF("READ SERVER HELLO\n");
       if(client_session_mbn__pt && client_session_mbn__pt->for_resumption__u8)
       {
         handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC;
@@ -1175,6 +1176,7 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
         &cert_path_params__t
       )
     );
+    FLEA_DBG_PRINTF("READ CERT\n");
     handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_KEY_EXCHANGE
       | FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
       | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
@@ -1195,6 +1197,7 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
           peer_public_key__pt
         )
       );
+      FLEA_DBG_PRINTF("READ SERVER KEX\n");
       handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_CERTIFICATE_REQUEST
         | FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO_DONE;
 # else   /* if defined FLEA_HAVE_TLS_CS_ECDHE || defined FLEA_HAVE_TLS_CS_ECDH */
@@ -1254,6 +1257,7 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_FINISHED)
     {
       FLEA_CCALL(THR_flea_tls__read_finished(tls_ctx, &handsh_rdr__t, &hash_ctx_copy__t));
+      FLEA_DBG_PRINTF("READ FINISHED\n");
       if(client_session_mbn__pt && client_session_mbn__pt->for_resumption__u8)
       {
         handshake_state->expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_NONE;
@@ -1288,14 +1292,15 @@ flea_err_e THR_flea_tls__client_handshake(
   flea_tls_clt_ctx_t*                   tls_client_ctx__pt,
   flea_tls_clt_session_t*               session_mbn__pt,
   const flea_hostn_validation_params_t* hostn_valid_params__pt,
-  flea_bool_t                           is_reneg__b
+  flea_tls_handshake_ctx_t*             hs_ctx__pt
+  // flea_bool_t                           is_reneg__b
 )
 {
   flea_tls__handshake_state_t handshake_state;
   flea_pubkey_t ecdhe_pub_key__t;
 
   flea_tls_handshake_ctx_t hs_ctx__t;
-  flea_tls_handshake_ctx_t* hs_ctx__pt = &hs_ctx__t;
+  // flea_tls_handshake_ctx_t* hs_ctx__pt = &hs_ctx__t;
 
   flea_tls_ctx_t* tls_ctx__pt = &tls_client_ctx__pt->tls_ctx__t;
 
@@ -1322,11 +1327,12 @@ flea_err_e THR_flea_tls__client_handshake(
     2 * FLEA_TLS_HELLO_RANDOM_SIZE
   );
   FLEA_THR_BEG_FUNC();
-  flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
+  // flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
 
-  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, &tls_ctx__pt->rec_prot__t));
-  hs_ctx__t.is_reneg__b = is_reneg__b;
-  hs_ctx__t.tls_ctx__pt = tls_ctx__pt;
+  // FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, &tls_ctx__pt->rec_prot__t));
+
+/*  hs_ctx__t.is_reneg__b = is_reneg__b;
+  hs_ctx__t.tls_ctx__pt = tls_ctx__pt;*/
 
   // flea_tls_handshake_ctx_t__INIT(hs_ctx__pt);
   flea_tls_ctx_t__begin_handshake(tls_ctx__pt);
@@ -1729,9 +1735,14 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor(
 
   flea_tls_ctx_t* tls_ctx__pt = &tls_client_ctx__pt->tls_ctx__t;
 
-  // flea_tls_handshake_ctx_t hs_ctx__t;
+  flea_tls_handshake_ctx_t hs_ctx__t;
+
+  //
 
   FLEA_THR_BEG_FUNC();
+  flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
+  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, tls_ctx__pt, FLEA_FALSE));
+
   tls_ctx__pt->client_or_server_ctx__pv = (void*) tls_client_ctx__pt;
   tls_ctx__pt->cfg_flags__e = flags__e;
   tls_ctx__pt->rev_chk_cfg__t.nb_crls__u16 = nb_crls__alu16;
@@ -1781,10 +1792,9 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor(
   }
   err__t = THR_flea_tls__client_handshake(
     tls_client_ctx__pt,
-    // &hs_ctx__t,
     session_mbn__pt,
     &tls_client_ctx__pt->hostn_valid_params__t,
-    FLEA_FALSE
+    &hs_ctx__t
   );
   FLEA_CCALL(THR_flea_tls__handle_tls_error(NULL, tls_client_ctx__pt, err__t, NULL, FLEA_FALSE));
   FLEA_THR_FIN_SEC_empty();
@@ -1807,12 +1817,12 @@ flea_err_e THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
   flea_al_u8_t handsh_type__u8;
   flea_tls_ctx_t* tls_ctx__pt = &tls_client_ctx__pt->tls_ctx__t;
 
-
+// TODO: THE CLIENT HANDSHAKE OBJECT MUST BE RE-USED IN THE CLIENT_HANDSHAKE FUNCTION. CURRENTLY THAT FUNCTION CREATES ITS OWN HS_CTX, YIELDING TWO OF THEM IN MEMORY !
   flea_tls_handshake_ctx_t hs_ctx__t;
 
   FLEA_THR_BEG_FUNC();
   flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
-  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, &tls_ctx__pt->rec_prot__t));
+  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, tls_ctx__pt, FLEA_TRUE));
 
   FLEA_CCALL(
     THR_flea_tls_handsh_reader_t__ctor(
@@ -1832,7 +1842,7 @@ flea_err_e THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
       tls_client_ctx__pt,
       tls_ctx__pt->client_session_mbn__pt,
       hostn_valid_params__pt,
-      FLEA_TRUE
+      &hs_ctx__t
     )
   );
 

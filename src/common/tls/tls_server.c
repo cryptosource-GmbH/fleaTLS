@@ -1378,11 +1378,12 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
   FLEA_THR_BEG_FUNC();
   flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
 
-  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, &tls_ctx->rec_prot__t));
+  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, tls_ctx, is_reneg__b));
 
+  // TODO: why necessary for server but not for client? (assigning random)
   hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
-  hs_ctx__t.tls_ctx__pt = tls_ctx;
-  hs_ctx__t.is_reneg__b = is_reneg__b;
+  // hs_ctx__t.tls_ctx__pt = tls_ctx;
+  // hs_ctx__t.is_reneg__b = is_reneg__b;
 
 # ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM(hello_cookie__bu8, FLEA_DTLS_SRV_HELLO_COOKIE_SIZE);

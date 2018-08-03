@@ -31,7 +31,7 @@ typedef struct
 
 typedef struct
 {
-  flea_u32_t                 msg_len_incl_hs_hdr__u32;
+  flea_u32_t                 fragm_len_incl_hs_hdr__u32;
   flea_u32_t                 rd_offs__u32;
   flea_dtls_hndsh_hdr_info_t msg_hdr_info__t;
   qh_hndl_t                  hndl_qhh;
@@ -127,7 +127,9 @@ struct struct_flea_tls_handshake_ctx_t
 // flea_err_e THR_flea_tls_handshake_ctx_t__ctor(flea_tls_handshake_ctx_t* hs_ctx__pt);
 flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
-  flea_recprot_t*           rec_prot__pt
+  // flea_recprot_t*           rec_prot__pt
+  flea_tls_ctx_t*           tls_ctx__pt,
+  flea_bool_t               is_reneg__b
 );
 
 void flea_tls_handshake_ctx_t__dtor(flea_tls_handshake_ctx_t* hs_ctx__pt);

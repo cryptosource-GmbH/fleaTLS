@@ -1274,9 +1274,12 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
   flea_err_e err__t;
   flea_tls_ctx_t* tls_ctx__pt;
 
-  FLEA_THR_BEG_FUNC();
+  flea_tls_handshake_ctx_t hs_ctx__t;
 
+  FLEA_THR_BEG_FUNC();
+  flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
   tls_ctx__pt = server_ctx_mbn__pt ? &server_ctx_mbn__pt->tls_ctx__t : &client_ctx_mbn__pt->tls_ctx__t;
+  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, tls_ctx__pt, FLEA_TRUE));
 
 
   if(!tls_ctx__pt->allow_reneg__u8)
@@ -1303,7 +1306,7 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
       client_ctx_mbn__pt,
       tls_ctx__pt->client_session_mbn__pt,
       hostn_valid_params_mbn__pt,
-      FLEA_TRUE
+      &hs_ctx__t
       );
 # else  /* ifdef FLEA_HAVE_TLS_CLIENT */
     FLEA_THROW("Invalid State, Client not compiled", FLEA_ERR_INT_ERR);

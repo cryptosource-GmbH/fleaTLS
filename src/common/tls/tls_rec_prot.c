@@ -1156,6 +1156,7 @@ flea_err_e THR_flea_recprot_t__write_flush(
         rec_prot__pt->send_curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8
       )
     );
+    inc_seq_nbr(rec_prot__pt->write_state__t.seqno_lo_hi__au32);
   }
   else
   {

@@ -2,10 +2,13 @@
 
 #include "internal/common/tls/tls_hndsh_ctx.h"
 #include "flea/alloc.h"
+#include "internal/common/tls/tls_int.h"
 
 flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
-  flea_recprot_t*           rec_prot__pt
+  // flea_recprot_t*           rec_prot__pt,
+  flea_tls_ctx_t*           tls_ctx__pt,
+  flea_bool_t               is_reneg__b
 )
 {
   // TODO: MAKE FLIGHT BUFFER SIZE CONTROLLABLE VIA API OR DYNAMICALLY
@@ -38,10 +41,13 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
       &hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.dtls_assmbld_rd_stream__t,
       &hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.dtls_rd_strm_hlp__t,
       &hs_ctx__pt->dtls_ctx__t,
-      rec_prot__pt
+      &tls_ctx__pt->rec_prot__t
     )
   );
 #endif /* if defined FLEA_HAVE_DTLS */
+
+  hs_ctx__pt->is_reneg__b = is_reneg__b;
+  hs_ctx__pt->tls_ctx__pt = tls_ctx__pt;
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_handshake_ctx_t__ctor */
