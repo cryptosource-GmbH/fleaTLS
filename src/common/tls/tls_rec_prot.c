@@ -1283,7 +1283,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
         rec_prot__pt->current_record_content_len__u16  = rec_prot__pt->send_rec_buf_raw__bu8[3] << 8;
         rec_prot__pt->current_record_content_len__u16 |= rec_prot__pt->send_rec_buf_raw__bu8[4];
 
-        if(rec_prot__pt->current_record_content_len__u16 > FLEA_TLS_TRNSF_BUF_SIZE - rec_prot__pt->record_hdr_len__u8)
+        if(rec_prot__pt->current_record_content_len__u16 > FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE)
         {
           FLEA_THROW("received record does not fit into receive buffer", FLEA_ERR_TLS_EXCSS_REC_LEN);
         }
