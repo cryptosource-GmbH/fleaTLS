@@ -589,7 +589,10 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
         FLEA_ERR_INT_ERR
       );
     }
-
+    qheap_qh_free_queue(
+      dtls_hs_ctx__pt->qheap__pt,
+      dtls_hs_ctx__pt->incom_assmbl_state__t.curr_msg_state_info__t.hndl_qhh
+    );
     /* the message with curr_msg_seq has already been processed (read) */
     seq__alu16 = curr_hdr_info__pt->msg_seq__u16;
     if(req_msg_type__e == rec_type_hndsh_plain)

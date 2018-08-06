@@ -24,7 +24,8 @@ typedef struct
   flea_tls_handsh_reader_hlp_t hlp__t;
 
   flea_tls_rec_prot_rdr_hlp_t  rec_prot_rdr_hlp__t;
-  flea_rw_stream_t*            rec_content_rd_stream__pt;  // TODO:  USED BY TLS?
+  flea_rw_stream_t*            rec_content_rd_stream__pt;
+  flea_rw_stream_t             rec_prot_rd_stream__t;   // TODO: RELOCATE SO THAT THIS CAN BE MERGED WITH dtls_assmbld_rd_stream__t WHICH IS CURRENTLY PART OF THE DTLS_HS_ASSMB_STATE. place in hs-ctx
   flea_u8_t                    is_dtls__b;
   flea_u8_t                    rec_content_type__u8;
 #  ifdef FLEA_HAVE_DTLS

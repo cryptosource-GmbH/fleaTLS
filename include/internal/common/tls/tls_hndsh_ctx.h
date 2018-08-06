@@ -40,9 +40,9 @@ typedef struct
 typedef struct
 {
 # ifdef FLEA_STACK_MODE
-  qh_hndl_t                        qheap_handles_incoming_memory__au8[FLEA_STKMD_DTLS_DTLS_MAX_NB_INCM_FRGMS]
+  qh_hndl_t                        qheap_handles_incoming_memory__au8[FLEA_STKMD_DTLS_DTLS_MAX_NB_INCM_FRGMS];
 # endif
-  flea_dtls_rd_stream_hlp_t dtls_rd_strm_hlp__t;
+  flea_dtls_rd_stream_hlp_t        dtls_rd_strm_hlp__t;
   flea_byte_vec_t                  qheap_handles_incoming__t;
 # if 0
   flea_u16_t                       curr_msg_seq__u16; /* from hndsh-hdr, and next expected msg */
@@ -52,6 +52,8 @@ typedef struct
 # endif // if 0
   flea_dtls_hndsh_msg_state_info_t curr_msg_state_info__t;
   flea_tls_rec_cont_type_e         req_next_rec_cont_type__e;
+
+  // TODO: RELOCATE THIS STREAM SO THAT IT CAN BE THE SAME AS THE STREAM NEEDED TO BE INSTANTIATED BY THR_flea_tls_hndsh_rdr__ctor_tls->THR_flea_rw_stream_t__ctor_rec_prot
   flea_rw_stream_t                 dtls_assmbld_rd_stream__t;
 // flea_dtls_hndsh_hdr_info_t curr_msg_hdr_info__t;
 // flea_u8_t curr_hndsh_msg_type__u8; => this is stored in the handsh_rdr

@@ -731,6 +731,13 @@
 # define FLEA_DTLS_FLIGHT_BUF_SIZE 7000
 
 /**
+ * The maximal number of incoming fragments that can be chached by the DTLS
+ * assembly buffer. Only relevant in stack mode. In the default configuration
+ * one byte per fragment is allocated as management data.
+ */
+# define FLEA_STKMD_DTLS_DTLS_MAX_NB_INCM_FRGMS 30
+
+/**
  * Maximal size of public key parameters object in an X.509 certificate. Mainly
  * relevant for certificates featuring EC public keys. Relevant only in stack
  * mode.

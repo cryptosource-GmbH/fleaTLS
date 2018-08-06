@@ -44,15 +44,19 @@ flea_err_e THR_flea_tls_hndsh_rdr__ctor_tls(
   flea_u32_t read_limit__u32;
 
   FLEA_THR_BEG_FUNC();
+  flea_rw_stream_t__INIT(&handsh_rdr__pt->rec_prot_rd_stream__t);
   FLEA_CCALL(
     // can stay
     THR_flea_rw_stream_t__ctor_rec_prot(
-      handsh_rdr__pt->rec_content_rd_stream__pt,
+      &handsh_rdr__pt->rec_prot_rd_stream__t, // TODO: THIS IS WRONG, UNINIT POINTER
+      // was:
+      //  &handsh_rdr__pt->rec_prot_rd_stream__t
       &handsh_rdr__pt->rec_prot_rdr_hlp__t,
       rec_prot__pt,
       CONTENT_TYPE_HANDSHAKE
     )
   );
+  handsh_rdr__pt->rec_content_rd_stream__pt = &handsh_rdr__pt->rec_prot_rd_stream__t;
 
   FLEA_CCALL(
     THR_flea_tls_hndsh_rdr__read_handsh_hdr(

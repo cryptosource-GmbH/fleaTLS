@@ -1,5 +1,6 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
+#include "internal/common/default.h"
 #include "internal/common/tls/tls_hndsh_ctx.h"
 #include "flea/alloc.h"
 #include "internal/common/tls/tls_int.h"
@@ -26,13 +27,14 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
   hs_ctx__pt->dtls_ctx__t.qheap__pt = &hs_ctx__pt->dtls_ctx__t.qheap__t;
 
 # if defined FLEA_HEAP_MODE
-  FLEA_ALLOC_MEM(hs_ctx__pt->dtls_ctx__t.flight_buf__bu8, FLEA_DTLS_FLIGHT_BUF_SIZE);
+  // TODO: ONLY FOR DTLS:
   flea_byte_vec_t__ctor_empty_allocatable(&hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.qheap_handles_incoming__t);
+  FLEA_ALLOC_MEM(hs_ctx__pt->dtls_ctx__t.flight_buf__bu8, FLEA_DTLS_FLIGHT_BUF_SIZE);
 # else
   flea_byte_vec_t__ctor_empty_use_ext_buf(
     &hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.qheap_handles_incoming__t,
-    hs_ctx__pt->dtls_ctx__t.qheap_handles_incoming_memory__au8,
-    sizeof(hs_ctx__pt->dtls_ctx__t.qheap_handles_incoming_memory__au8)
+    hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.qheap_handles_incoming_memory__au8,
+    sizeof(hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.qheap_handles_incoming_memory__au8)
   );
 # endif /* if defined FLEA_HEAP_MODE */
 

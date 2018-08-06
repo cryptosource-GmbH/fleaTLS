@@ -574,7 +574,7 @@ static flea_err_e THR_flea_tls__send_client_hello(
   if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
   {
     /*
-     * send empty server cookie
+     * send server cookie
      */
     len__u8 = hello_verify_cookie_len__alu8;
     FLEA_CCALL(THR_flea_tls__snd_hands_msg_content(hs_ctx__pt, p_hash_ctx, &len__u8, 1));
@@ -1114,7 +1114,8 @@ static flea_err_e THR_flea_client_handle_handsh_msg(
     FLEA_CCALL(THR_flea_tls_handsh_reader_t__set_hash_ctx(&handsh_rdr__t, p_hash_ctx__pt));
   }
 # ifdef FLEA_HAVE_DTLS
-  if((handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_HELLO_VERIFY_REQUEST) &&
+  if(FLEA_TLS_CTX_IS_DTLS(tls_ctx) &&
+    (handshake_state->expected_messages & FLEA_TLS_HANDSHAKE_EXPECT_HELLO_VERIFY_REQUEST) &&
     (flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_HELLO_VERIFY_REQUEST))
   {
     FLEA_CCALL(
@@ -1299,7 +1300,7 @@ flea_err_e THR_flea_tls__client_handshake(
   flea_tls__handshake_state_t handshake_state;
   flea_pubkey_t ecdhe_pub_key__t;
 
-  flea_tls_handshake_ctx_t hs_ctx__t;
+  // flea_tls_handshake_ctx_t hs_ctx__t;
   // flea_tls_handshake_ctx_t* hs_ctx__pt = &hs_ctx__t;
 
   flea_tls_ctx_t* tls_ctx__pt = &tls_client_ctx__pt->tls_ctx__t;
@@ -1383,8 +1384,11 @@ flea_err_e THR_flea_tls__client_handshake(
       handshake_state.initialized       = FLEA_TRUE;
       handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_SERVER_HELLO;
 # ifdef FLEA_HAVE_DTLS
-      handshake_state.expected_messages |= FLEA_TLS_HANDSHAKE_EXPECT_HELLO_VERIFY_REQUEST;
-# endif
+      if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
+      {
+        handshake_state.expected_messages |= FLEA_TLS_HANDSHAKE_EXPECT_HELLO_VERIFY_REQUEST;
+      }
+# endif /* ifdef FLEA_HAVE_DTLS */
     }
 
     /*
@@ -1400,25 +1404,29 @@ flea_err_e THR_flea_tls__client_handshake(
     {
       flea_tls_rec_cont_type_e cont_type__e;
 # ifdef FLEA_HAVE_DTLS
-      if(handshake_state.expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC)
+      if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
       {
-        cont_type__e = CONTENT_TYPE_CHANGE_CIPHER_SPEC;
+        if(handshake_state.expected_messages == FLEA_TLS_HANDSHAKE_EXPECT_CHANGE_CIPHER_SPEC)
+        {
+          cont_type__e = CONTENT_TYPE_CHANGE_CIPHER_SPEC;
+        }
+        else
+        {
+          cont_type__e = CONTENT_TYPE_HANDSHAKE;
+        }
       }
       else
-      {
-        cont_type__e = CONTENT_TYPE_HANDSHAKE;
-      }
       // TODO: ^THIS SHOULD ALSO BE USED FOR TLS
-# else  /* ifdef FLEA_HAVE_DTLS */
-      flea_tls_rec_cont_type_e cont_type__e;
-      FLEA_CCALL(
-        THR_flea_recprot_t__get_current_record_type(
-          &tls_ctx__pt->rec_prot__t,
-          &cont_type__e,
-          flea_read_full
-        )
-      );
 # endif /* ifdef FLEA_HAVE_DTLS */
+      {
+        FLEA_CCALL(
+          THR_flea_recprot_t__get_current_record_type(
+            &tls_ctx__pt->rec_prot__t,
+            &cont_type__e,
+            flea_read_full
+          )
+        );
+      }
 
       if(cont_type__e == CONTENT_TYPE_HANDSHAKE)
       {
@@ -1454,25 +1462,30 @@ flea_err_e THR_flea_tls__client_handshake(
           flea_dtl_t len_one__dtl = 1;
 
 # ifdef FLEA_HAVE_DTLS
-          flea_dtls_rd_strm__expect_ccs(&hs_ctx__pt->dtls_ctx__t);
-          FLEA_CCALL(
-            THR_flea_rw_stream_t__read_full(
-              &hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.dtls_assmbld_rd_stream__t,
-              &dummy_byte,
-              len_one__dtl
-            )
-          );
-# else  /* ifdef FLEA_HAVE_DTLS */
-          FLEA_CCALL(
-            THR_flea_recprot_t__read_data(
-              &tls_ctx__pt->rec_prot__t,
-              CONTENT_TYPE_CHANGE_CIPHER_SPEC,
-              &dummy_byte,
-              &len_one__alu16,
-              flea_read_full
-            )
-          );
+          if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
+          {
+            flea_dtls_rd_strm__expect_ccs(&hs_ctx__pt->dtls_ctx__t);
+            FLEA_CCALL(
+              THR_flea_rw_stream_t__read_full(
+                &hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.dtls_assmbld_rd_stream__t,
+                &dummy_byte,
+                len_one__dtl
+              )
+            );
+          }
+          else
 # endif /* ifdef FLEA_HAVE_DTLS */
+          {
+            FLEA_CCALL(
+              THR_flea_recprot_t__read_data(
+                &tls_ctx__pt->rec_prot__t,
+                CONTENT_TYPE_CHANGE_CIPHER_SPEC,
+                &dummy_byte,
+                &len_one__dtl,
+                flea_read_full
+              )
+            );
+          }
 
           /*
            * Enable encryption for incoming messages
@@ -1653,7 +1666,7 @@ flea_err_e THR_flea_tls__client_handshake(
     flea_tls_prl_hash_ctx_t__dtor(&p_hash_ctx);
     flea_pubkey_t__dtor(&peer_public_key__t);
     flea_pubkey_t__dtor(&ecdhe_pub_key__t);
-    flea_tls_handshake_ctx_t__dtor(&hs_ctx__t);
+    // flea_tls_handshake_ctx_t__dtor(&hs_ctx__t);
   );
 } /* THR_flea_tls__client_handshake */
 
