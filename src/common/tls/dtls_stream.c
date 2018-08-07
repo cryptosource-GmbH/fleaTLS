@@ -140,6 +140,12 @@
 #define FLEA_DTLS_HS_HDR_OFFS__FRAGM_OFFS 6
 #define FLEA_DTLS_HS_HDR_OFFS__FRAGM_LEN  9
 
+#define FLEA_DTLS_HS_HDR_LEN__MSG_TYPE    1
+#define FLEA_DTLS_HS_HDR_LEN__MSG_LEN     3
+#define FLEA_DTLS_HS_HDR_LEN__MSG_SEQ     2
+#define FLEA_DTLS_HS_HDR_LEN__FRAGM_OFFS  3
+#define FLEA_DTLS_HS_HDR_LEN__FRAGM_LEN   3
+
 /* typedef enum
 {
   flea_requ_ccs = 1,
@@ -178,7 +184,8 @@ static flea_err_e THR_flea_dtls_rd_strm__hndsh_hdr_info_from_queue(
     memset(result__pt, 0, sizeof(*result__pt));
     FLEA_THR_RETURN();
   }
-  if(FLEA_DTLS_HANDSH_HDR_LEN != qheap_qh_peek(heap__pt, hndl__alqhh, 0, hs_hdr_buf__bu8, FLEA_DTLS_HANDSH_HDR_LEN))
+  if(1 + FLEA_DTLS_HANDSH_HDR_LEN !=
+    qheap_qh_peek(heap__pt, hndl__alqhh, 0, hs_hdr_buf__bu8, FLEA_DTLS_HANDSH_HDR_LEN + 1))
   {
     FLEA_THROW("insufficient queue length to read handshake header", FLEA_ERR_INT_ERR);
   }
@@ -200,7 +207,12 @@ static flea_err_e THR_flea_dtls_rd_strm__hndsh_hdr_info_from_queue(
   result__pt->fragm_offs__u32 = flea__decode_U24_BE(&hdr_ptr__pu8[6]);
   /* this is the very first fragment and thus we can start outputting it */
   result__pt->fragm_len__u32 = flea__decode_U24_BE(&hdr_ptr__pu8[9]);
-
+  FLEA_DBG_PRINTF("read hs-hdr:\n");
+  FLEA_DBG_PRINTF(" msg_type = %02x\n", result__pt->msg_type__u8);
+  FLEA_DBG_PRINTF(" msg_len = %02x\n", result__pt->msg_len__u32);
+  FLEA_DBG_PRINTF(" msg_seq = %02x\n", result__pt->msg_seq__u16);
+  FLEA_DBG_PRINTF(" fragm_offs = %02x\n", result__pt->fragm_offs__u32);
+  FLEA_DBG_PRINTF(" fragm_len = %02x\n", result__pt->fragm_len__u32);
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(hs_hdr_buf__bu8);
   );
@@ -259,6 +271,7 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
       {
         continue;
       }
+      FLEA_DBG_PRINTF("reading src-hdr:\n");
       FLEA_CCALL(THR_flea_dtls_rd_strm__hndsh_hdr_info_from_queue(dtls_hs_ctx__pt, src_hndl, &src_hdr_info__t));
       if(src_hdr_info__t.msg_len__u32 == 0)
       {
@@ -319,10 +332,12 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
         }
         if(!is_iter_for_curr_msg__b)
         {
+          FLEA_DBG_PRINTF("reading trgt-hdr:\n");
           FLEA_CCALL(THR_flea_dtls_rd_strm__hndsh_hdr_info_from_queue(dtls_hs_ctx__pt, trgt_hndl, &trgt_hdr_info__t));
         }
         else
         {
+          FLEA_DBG_PRINTF("taking trgt-hdr from current msg\n");
           trgt_hdr_info__t = *curr_hdr_info__pt;
         }
         if((trgt_hdr_info__t.msg_len__u32 == 0) || (trgt_hdr_info__t.msg_seq__u16 != src_hdr_info__t.msg_seq__u16))
@@ -368,21 +383,42 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
         skip_len__u32 = trgt_fragm_end__u32 - src_hdr_info__t.fragm_offs__u32;
         /* skip over the type byte and the DTLS Handsh. header */
         qheap_qh_skip(heap__pt, src_hndl, skip_len__u32 + FLEA_DTLS_HANDSH_HDR_LEN + 1);
-        copy_len_orig__u32 = copy_len__u32 = src_hdr_info__t.msg_len__u32 - skip_len__u32;
-        // TODO: USE QUEUE-CHAIN
+        copy_len_orig__u32 = copy_len__u32 = src_hdr_info__t.fragm_len__u32 - skip_len__u32;
+        FLEA_DBG_PRINTF("copy_len = %u\n", copy_len_orig__u32);
+        FLEA_DBG_PRINTF("skip_len = %u\n", skip_len__u32);
+        FLEA_DBG_PRINTF("appended content = ");
+        // TODO: USE QUEUE-CHAIN FUNCTION
         while(copy_len__u32)
         {
           flea_u8_t buf__au8[8];
           flea_al_u8_t to_go__alu8 = FLEA_MIN(copy_len__u32, sizeof(buf__au8));
-          qheap_qh_read(heap__pt, src_hndl, buf__au8, to_go__alu8);
+          if(to_go__alu8 != qheap_qh_read(heap__pt, src_hndl, buf__au8, to_go__alu8))
+          {
+            FLEA_THROW("invalid return code from queue read during queue merge", FLEA_ERR_INT_ERR);
+          }
+          for(unsigned int i = 0; i < to_go__alu8; i++)
+          {
+            FLEA_DBG_PRINTF("%02x", buf__au8[i]);
+          }
+
           qheap_qh_append_to_queue(heap__pt, trgt_hndl, buf__au8, to_go__alu8);
           copy_len__u32 -= to_go__alu8;
         }
+        FLEA_DBG_PRINTF("\n");
         qheap_qh_free_queue(heap__pt, src_hndl);
         new_fragm_len__u32 = trgt_hdr_info__t.fragm_len__u32 + copy_len_orig__u32;
         flea__encode_U24_BE(new_fragm_len__u32, new_trgt_fragm_len_encoded__au8);
+        FLEA_DBG_PRINTF(
+          "dtls: merge_fragms: merging (increased fragment length from %u by %u to %u from total msg len %u, with rd_offs = %u) queue to ",
+          trgt_hdr_info__t.fragm_len__u32,
+          copy_len_orig__u32,
+          new_fragm_len__u32,
+          curr_hdr_info__pt->msg_len__u32,
+          curr_msg_state_info__pt->rd_offs__u32
+        );
         if(!is_iter_for_curr_msg__b)
         {
+          FLEA_DBG_PRINTF("other stored queue\n");
           if(sizeof(new_trgt_fragm_len_encoded__au8) !=
             qheap_qh_rewrite(
               heap__pt,
@@ -397,7 +433,9 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
         }
         else
         {
-          curr_hdr_info__pt->fragm_len__u32 = new_fragm_len__u32;
+          FLEA_DBG_PRINTF("currently acitve queue\n");
+          curr_hdr_info__pt->fragm_len__u32 = new_fragm_len__u32; // TODO: NEEDED AT ALL?
+          curr_msg_state_info__pt->fragm_len_incl_hs_hdr__u32 += copy_len_orig__u32;
         }
         /* delete the source from the handle list */
         flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i] = 0;
@@ -597,6 +635,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
     seq__alu16 = curr_hdr_info__pt->msg_seq__u16;
     if(req_msg_type__e == rec_type_hndsh_plain)
     {
+      FLEA_DBG_PRINTF("THR_flea_dtls_rd_strm__start_new_msg: incrementing rec. seq.\n");
       seq__alu16 += 1;
     }
     memset(curr_msg_state__pt, 0, sizeof(*curr_msg_state__pt));
@@ -641,11 +680,12 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
       {
         flea_u32_t fragm_offs__u32;
         flea_u16_t msg_seq__u16;
+        // flea_u8_t frag_len_enc__au8[3];
         flea_dtls_hndsh_msg_state_info_t* curr_msg_state_info__pt = &assmbl_state__pt->curr_msg_state_info__t;
         flea_dtls_hndsh_hdr_info_t* curr_msg_hdr_info__pt         = &curr_msg_state_info__pt->msg_hdr_info__t;
         qheap_qh_peek(heap__pt, hndl, 0, hs_hdr_buf__bu8, FLEA_DTLS_HANDSH_HDR_LEN + 1);
         /* check if the handshake msg header whether it the next message in the row */
-        msg_seq__u16 = flea__decode_U16_BE(&hdr_ptr__pu8[4]);
+        msg_seq__u16 = flea__decode_U16_BE(&hdr_ptr__pu8[FLEA_DTLS_HS_HDR_OFFS__MSG_SEQ]);
         if(curr_msg_hdr_info__pt->msg_seq__u16 != msg_seq__u16)
         {
           continue;
@@ -657,15 +697,28 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
           continue;
         }
         /* this is the very first fragment and thus we can start outputting it */
-        curr_msg_hdr_info__pt->msg_len__u32   = flea__decode_U24_BE(&hdr_ptr__pu8[1]);
-        curr_msg_hdr_info__pt->msg_type__u8   = hdr_ptr__pu8[0];
-        curr_msg_hdr_info__pt->fragm_len__u32 = flea__decode_U24_BE(&hdr_ptr__pu8[9]);
+        curr_msg_hdr_info__pt->msg_len__u32   = flea__decode_U24_BE(&hdr_ptr__pu8[FLEA_DTLS_HS_HDR_OFFS__MSG_LEN]);
+        curr_msg_hdr_info__pt->msg_type__u8   = hdr_ptr__pu8[FLEA_DTLS_HS_HDR_OFFS__MSG_TYPE];
+        curr_msg_hdr_info__pt->fragm_len__u32 = flea__decode_U24_BE(&hdr_ptr__pu8[FLEA_DTLS_HS_HDR_OFFS__FRAGM_LEN]);
         curr_msg_state__pt->fragm_len_incl_hs_hdr__u32 = curr_msg_hdr_info__pt->fragm_len__u32
           + FLEA_DTLS_HANDSH_HDR_LEN;
         curr_msg_hdr_info__pt->fragm_offs__u32 = fragm_offs__u32;
         curr_msg_state_info__pt->hndl_qhh      = hndl;
         /* now read away the type-byte */
         qheap_qh_skip(heap__pt, hndl, 1);
+
+        /* rewrite the fragm len to be equal to the msg len */
+        if(FLEA_DTLS_HS_HDR_LEN__FRAGM_LEN !=
+          qheap_qh_rewrite(
+            heap__pt,
+            hndl,
+            FLEA_DTLS_HS_HDR_OFFS__FRAGM_LEN /*offset*/,
+            hdr_ptr__pu8 + FLEA_DTLS_HS_HDR_OFFS__MSG_LEN,
+            FLEA_DTLS_HS_HDR_LEN__FRAGM_LEN
+        ))
+        {
+          FLEA_THROW("invalid result from queue rewrite", FLEA_ERR_INT_ERR);
+        }
 
         /*if(handsh_hdr_mbn__pu8)
         {
@@ -794,10 +847,15 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
       target_buffer__pu8,
       rem_read_len__dtl
     );
+
+    /*FLEA_DBG_PRINTF("dtls_rd_funct: outputting: ");
+    FLEA_DBG_PRINT_BYTE_ARRAY(target_buffer__pu8, rem_read_len__dtl);*/
     rem_read_len__dtl -= did_read__u32;
     curr_msg_state_info__pt->rd_offs__u32 += did_read__u32;
+    target_buffer__pu8 += did_read__u32;
     if(rem_read_len__dtl)
     {
+      FLEA_DBG_PRINTF("dtls_stream read function: requiring more data, reading new record from wire\n");
       FLEA_CCALL(THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(dtls_hs_ctx__pt, hlp__pt->rec_prot__pt));
       FLEA_CCALL(THR_flea_dtls_rd_strm__merge_fragments(dtls_hs_ctx__pt));
     }

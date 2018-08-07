@@ -25,7 +25,7 @@ static flea_err_e THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
 // THIS ONE
   flea_u8_t hdr__au8[FLEA_DTLS_HANDSH_HDR_LEN];
   flea_al_u8_t hdr_size__alu8 = sizeof(hdr__au8);
-
+  flea_u32_t fragm_len__u32, fragm_offs__u32;
 
   // get current record content type to force the initial read, or just read the
   // first byte separately
@@ -68,9 +68,11 @@ static flea_err_e THR_flea_tls_hndsh_rdr__read_handsh_hdr_dtls(
   /*handsh_rdr__pt->hlp__t.msg_seq__u16      = flea__decode_U16_BE(&hdr__au8[4]);
   handsh_rdr__pt->hlp__t.fragm_offset__u32 = ;
   handsh_rdr__pt->hlp__t.fragm_length__u32 = flea__decode_U24_BE(&hdr__au8[9]);*/
-
-  if((flea__decode_U24_BE(&hdr__au8[6]) != 0) || (flea__decode_U24_BE(&hdr__au8[9]) != *msg_len__pu32))
+  fragm_offs__u32 = flea__decode_U24_BE(&hdr__au8[6]);
+  fragm_len__u32  = flea__decode_U24_BE(&hdr__au8[9]);
+  if((fragm_offs__u32 != 0) || (fragm_len__u32 != *msg_len__pu32))
   {
+    FLEA_DBG_PRINTF("fragm_offs = %u, fragm_len = %u\n", fragm_offs__u32, fragm_len__u32);
     FLEA_THROW("handshake read stream received non-zero fragm offs or invalid fragm length", FLEA_ERR_INT_ERR);
   }
   FLEA_THR_FIN_SEC_empty();

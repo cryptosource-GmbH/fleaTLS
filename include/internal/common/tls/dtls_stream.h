@@ -11,6 +11,8 @@
 extern "C" {
 # endif
 
+# define FLEA_DTLS_HANDSH_HDR_FRGM_LEN__OFFS 9
+
 typedef struct
 {
   flea_dtls_hdsh_ctx_t*       dtls_hs_ctx__pt;
