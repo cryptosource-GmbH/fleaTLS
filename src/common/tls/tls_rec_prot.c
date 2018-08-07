@@ -1362,7 +1362,10 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
       }
 # endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
 
-
+      if(rec_prot__pt->payload_used_len__u16 > FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE)
+      {
+        FLEA_THROW("record plaintext overflow", FLEA_ERR_TLS_EXCSS_REC_LEN);
+      }
       if(is_handsh_msg_during_app_data__b)
       {
         FLEA_THROW("received tls handshake message when app data was expected", FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA);
