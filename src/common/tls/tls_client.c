@@ -1810,7 +1810,9 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor(
     &hs_ctx__t
   );
   FLEA_CCALL(THR_flea_tls__handle_tls_error(NULL, tls_client_ctx__pt, err__t, NULL, FLEA_FALSE));
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC(
+    flea_tls_handshake_ctx_t__dtor(&hs_ctx__t);
+  );
 } /* THR_flea_tls_ctx_t__ctor_client */
 
 flea_bool_t flea_tls_clt_ctx_t__is_reneg_allowed(flea_tls_clt_ctx_t* tls_client_ctx__pt)
