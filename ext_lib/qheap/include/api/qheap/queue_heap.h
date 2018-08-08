@@ -17,7 +17,7 @@ extern "C" {
 # define QHEAP_QH_SEGM_HDR_SIZE 4
 
 # define QHEAP_QH_IS_HANDLE_CACHE_QUEUE(x) (x & 1)
-# define QHEAP_QH_MAX_NB_QUEUES 8
+# define QHEAP_QH_MAX_NB_QUEUES 40
 
 /* +----------------------------------------------------------------------------------------------+
 *  | q-hdr: len = 0|len1 noffs = ... |  len1 bytes | free-seg: len = 1|len2 noffs= not used |
