@@ -109,7 +109,7 @@
  *
  *   msg_type=handsh_encr  / accessed via tls_hndsh_rdr
  *      +--------------+-----------------------------------------+
- *      | u8: msg_type | encrypted record                        |
+ *      | u8: msg_type | encrypted record: rec-hdr| content      |
  *      +--------------+-----------------------------------------+
  *
  *   msg_type=CCS(plain)  / accessed via dtls_hnds_ctx_t
@@ -124,10 +124,6 @@
  *      +--------------+-----------------------------------------+
  *        // TODO: when completing the handshake, before leaving the handshake function, invoke the received_record callback
  *
- *  msg_type:
- *   - handsh_plain
- *   - handsh_encr
- *   - CCS (plain)
  *
  *
  *
@@ -155,7 +151,7 @@
 typedef enum
 {
   rec_type_hndsh_plain = 1,
-  rec_type_hndsh_encr  = 2,
+  rec_type_encr_rec    = 2,
   rec_type_ccs         = 3
 } flight_buf_rec_type_e;
 
@@ -490,7 +486,7 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   flea_al_u16_t curr_rec_cont_len__alu16;
   qheap_queue_heap_t* heap__pt = dtls_hs_ctx__pt->qheap__pt;
 // TODO: MAKE DYNAMIC: + enc_hs, (plain_alert,) enc_alert, plain_ccs
-  flea_u8_t rec_type__cu8; // = (flea_u8_t) rec_type_hndsh_plain;
+  flea_u8_t rec_type__u8; // = (flea_u8_t) rec_type_hndsh_plain;
   flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
   flea_byte_vec_t* incom_hndls__pt = &assmbl_state__pt->qheap_handles_incoming__t;
   qh_al_hndl_t hndl_alqhh;
@@ -504,25 +500,31 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
 
   // TODO: ADD RESULT-ARG TO LEARN WHETHER RECORD COULD BE DECRYPTED FOR DTLS.
   FLEA_CCALL(THR_flea_recprot_t__get_current_record_type(rec_prot__pt, &cont_type__e, flea_read_full));
-  switch(cont_type__e)
+  if(FLEA_RP__IS_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt))
   {
-      case CONTENT_TYPE_HANDSHAKE:
-        rec_type__cu8 = (flea_u8_t) rec_type_hndsh_plain;
-        break;
-      case CONTENT_TYPE_CHANGE_CIPHER_SPEC:
-        rec_type__cu8 = (flea_u8_t) rec_type_ccs;
-        /* TODO: may not be encrypted, in this case discard it */
-        break;
-      case CONTENT_TYPE_APPLICATION_DATA:
-        // TODO: plain (=> invoke callback) or encrypted (store in incom. flight state, output after *completed handshake*, then destroy the incom. flight state)
-        break;
-      case CONTENT_TYPE_ALERT:
-        // TODO: handle encrypted alert (unencrypted should be handled by rec_prot => check)
-        break;
-      default:
-        break;
+    rec_type__u8 = rec_type_encr_rec;
   }
-  /* get the length of the current record */ // TODO: DIFFERENT FOR ENCRYPTED ALERTS
+  else
+  {
+    switch(cont_type__e)
+    {
+        case CONTENT_TYPE_HANDSHAKE:
+          rec_type__u8 = (flea_u8_t) rec_type_hndsh_plain;
+          break;
+        case CONTENT_TYPE_CHANGE_CIPHER_SPEC:
+          rec_type__u8 = (flea_u8_t) rec_type_ccs;
+          break;
+        case CONTENT_TYPE_APPLICATION_DATA:
+          // TODO: plain (=> invoke callback) or encrypted (store in incom. flight state, output after *completed handshake*, then destroy the incom. flight state)
+          break;
+        case CONTENT_TYPE_ALERT:
+          // cannot happen. an encrypted alert is generically stored (unencrypted alert is directly handled by rec_prot )
+          break;
+        default:
+          break;
+    }
+  }
+  /* get the length of the current record */
   curr_rec_cont_len__alu16 = flea_recprot_t__GET_CURR_REC_PT_SIZE(rec_prot__pt);
   hndl_alqhh = qheap_qh_alloc_queue(heap__pt, FLEA_FALSE);
   if(hndl_alqhh == 0)
@@ -530,29 +532,37 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
     FLEA_THROW("could not allocate memory queue", FLEA_ERR_OUT_OF_MEM);
   }
 
-  qheap_qh_append_to_queue(heap__pt, hndl_alqhh, &rec_type__cu8, 1);
+  qheap_qh_append_to_queue(heap__pt, hndl_alqhh, &rec_type__u8, 1);
   // TODO: USE BETTER WAY TO WRITE THE RECORD CONTENT TO THE QUEUE (TURN THE RECORD CONTENT INTO A QUEUE ITSELF)
-  while(curr_rec_cont_len__alu16)
+  //
+  if(rec_type__u8 == rec_type_encr_rec)
   {
-    flea_u8_t small_buf[8];
-    flea_dtl_t to_go__dtl = FLEA_MIN(curr_rec_cont_len__alu16, sizeof(small_buf));
-
-    if(rec_type__cu8 == rec_type_ccs)
+    FLEA_CCALL(THR_flea_recprot_t__write_encr_rec_to_queue(rec_prot__pt, dtls_hs_ctx__pt->qheap__pt, hndl_alqhh));
+  }
+  else
+  {
+    while(curr_rec_cont_len__alu16)
     {
-      if(to_go__dtl != 1)
+      flea_u8_t small_buf[8];
+      flea_dtl_t to_go__dtl = FLEA_MIN(curr_rec_cont_len__alu16, sizeof(small_buf));
+
+      if(rec_type__u8 == rec_type_ccs)
       {
-        FLEA_THROW("invalid read length for CCS read from the rec_prot", FLEA_ERR_INT_ERR);
+        if(to_go__dtl != 1)
+        {
+          FLEA_THROW("invalid read length for CCS read from the rec_prot", FLEA_ERR_INT_ERR);
+        }
       }
+      FLEA_CCALL(THR_flea_recprot_t__read_data(rec_prot__pt, cont_type__e, small_buf, &to_go__dtl, flea_read_full));
+
+
+      // TODO: SHORT WRITES TO THE QUEUE ARE NOT OPTIMAL
+      qheap_qh_append_to_queue(heap__pt, hndl_alqhh, small_buf, to_go__dtl);
+      curr_rec_cont_len__alu16 -= to_go__dtl;
     }
-
-    FLEA_CCALL(THR_flea_recprot_t__read_data(rec_prot__pt, cont_type__e, small_buf, &to_go__dtl, flea_read_full));
-
-    // TODO: SHORT WRITES TO THE QUEUE ARE NOT OPTIMAL
-    qheap_qh_append_to_queue(heap__pt, hndl_alqhh, small_buf, to_go__dtl);
-    curr_rec_cont_len__alu16 -= to_go__dtl;
   }
 
-  /* set the handle in the handle list. try to find an empty position. otherwise */
+  /* set the handle in the handle list. try to find an empty position. otherwise append it. */
   for(i = 0; i < flea_byte_vec_t__GET_DATA_LEN(incom_hndls__pt); i += sizeof(qh_hndl_t))
   {
     qh_hndl_t chk_hndl = flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i];
@@ -567,9 +577,7 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
     FLEA_CCALL(THR_flea_byte_vec_t__push_back(incom_hndls__pt, hndl_alqhh));
   }
 
-  /* no trigger the handsh-msg merging */
 
-  /* read the decrypted record into a new queue */
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire */
 
@@ -912,16 +920,6 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
   }
 // WE READ ALL THE REQUESTED DATA:
   *nb_bytes_to_read__pdtl = *nb_bytes_to_read__pdtl;
-#if 0
-  return THR_flea_recprot_t__read_data(
-    hlp__pt->rec_prot__pt,
-    /* TODO: */ CONTENT_TYPE_HANDSHAKE,
-    target_buffer__pu8,
-    nb_bytes_to_read__pdtl,
-    read_mode__e
-  );
-
-#endif /* if 0 */
   FLEA_THR_FIN_SEC_empty();
 } /* THR_dtls_rd_strm_rd_func */
 

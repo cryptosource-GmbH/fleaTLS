@@ -14,63 +14,14 @@
 #include "internal/common/tls/tls_common.h"
 #include "internal/common/mask.h"
 #include "internal/common/tls/tls_int.h"
+#ifdef FLEA_HAVE_DTLS
+# include "qheap/queue_heap.h"
+#endif
 
 // TODO: ANY CALCULATIONS FOR MAXIMAL SIZES MUST USE DTLS HDR-LEN IS CONFIGURED
 // #define DBG_PRINT
 
 #ifdef FLEA_HAVE_TLS
-
-# define FLEA_RP_CTRL__DTLS_BIT                      (1 << 0)
-# define FLEA_RP_CTRL__WRITE_ONGOING_BIT             (1 << 1)
-# define FLEA_RP_CTRL__SESSION_CLOSED_BIT            (1 << 2)
-# define FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT      (1 << 3)
-# define FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT      (1 << 4)
-# define FLEA_RP_CTRL__IN_HANDSHAKE_IN_NEW_EPOCH_BIT (1 << 5)
-
-# define FLEA_RP__SET_DTLS(rec_prot__pt)          ((rec_prot__pt)->ctrl_field__u8 |= FLEA_RP_CTRL__DTLS_BIT)
-# define FLEA_RP__IS_DTLS(rec_prot__pt)           ((rec_prot__pt)->ctrl_field__u8 & FLEA_RP_CTRL__DTLS_BIT)
-
-# define FLEA_RP__SET_WRITE_ONGOING(rec_prot__pt) ((rec_prot__pt)->ctrl_field__u8 |= FLEA_RP_CTRL__WRITE_ONGOING_BIT)
-# define FLEA_RP__SET_NO_WRITE_ONGOING(rec_prot__pt) \
-  ((rec_prot__pt)->ctrl_field__u8 &= \
-  (~FLEA_RP_CTRL__WRITE_ONGOING_BIT))
-# define FLEA_RP__IS_WRITE_ONGOING(rec_prot__pt)  ((rec_prot__pt)->ctrl_field__u8 & FLEA_RP_CTRL__WRITE_ONGOING_BIT)
-
-
-# define FLEA_RP__SET_SESSION_CLOSED(rec_prot__pt) \
-  ((rec_prot__pt)->ctrl_field__u8 |= \
-  FLEA_RP_CTRL__SESSION_CLOSED_BIT)
-# define FLEA_RP__IS_SESSION_CLOSED(rec_prot__pt) \
-  ((rec_prot__pt)->ctrl_field__u8 \
-  & FLEA_RP_CTRL__SESSION_CLOSED_BIT)
-
-# define FLEA_RP__SET_CURRENT_RECORD_ALERT(rec_prot__pt) \
-  ((rec_prot__pt)->ctrl_field__u8 |= \
-  FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT)
-# define FLEA_RP__SET_NOT_CURRENT_RECORD_ALERT(rec_prot__pt) \
-  ((rec_prot__pt)->ctrl_field__u8 &= \
-  (~FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT))
-# define FLEA_RP__IS_CURRENT_RECORD_ALERT(rec_prot__pt) \
-  ((rec_prot__pt)->ctrl_field__u8 \
-  & FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT)
-
-# define FLEA_RP__SET_PENDING_CLOSE_NOTIFY(rec_prot__pt) \
-  ((rec_prot__pt)->ctrl_field__u8 |= \
-  FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT)
-# define FLEA_RP__SET_NO_PENDING_CLOSE_NOTIFY(rec_prot__pt) \
-  ((rec_prot__pt)->ctrl_field__u8 &= \
-  (~FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT))
-# define FLEA_RP__IS_PENDING_CLOSE_NOTIFY(rec_prot__pt) \
-  ((rec_prot__pt)->ctrl_field__u8 \
-  & FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT)
-
-
-# define FLEA_RP__SET_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt) \
-  ((rec_prot__pt)->ctrl_field__u8 |= \
-  FLEA_RP_CTRL__IN_HANDSHAKE_IN_NEW_EPOCH_BIT)
-# define FLEA_RP__IS_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt) \
-  ((rec_prot__pt)->ctrl_field__u8 \
-  & FLEA_RP_CTRL__IN_HANDSHAKE_IN_NEW_EPOCH_BIT)
 
 
 // # define FLEA_RP__IS_DTLS(rec_prot__pt) ((rec_prot__pt)->is_dtls_active__u8)
@@ -230,6 +181,33 @@ static flea_err_e THR_flea_recprot_t__handle_alert(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__handle_alert */
 
+# ifdef FLEA_HAVE_DTLS
+static void flea_recprot_t__set_current_rd_rec_empty(flea_recprot_t* rec_prot__pt)
+{
+  rec_prot__pt->curr_rec_content_offs__u16 = 0;
+  rec_prot__pt->curr_rec_content_len__u16  = 0;
+  rec_prot__pt->curr_pt_content_len__u16   = 0;
+}
+
+#  if 0
+void flea_recprot_t__extract_encrypted_record(
+  flea_recprot_t*     rec_prot__pt,
+  qheap_queue_heap_t* heap__pt,
+  qh_al_hndl_t        hndl
+)
+{
+  qheap_qh_append_to_queue(
+    heap__pt,
+    hndl,
+    rec_prot__pt->send_rec_buf_raw__bu8,
+    rec_prot__pt->curr_rec_content_len__u16 + FLEA_DTLS_RECORD_HDR_LEN
+  );
+  FLEA_RP__SET_NO_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt);
+}
+
+#  endif /* if 0 */
+
+# endif /* ifdef FLEA_HAVE_DTLS */
 flea_err_e THR_flea_recprot_t__ctor(
   flea_recprot_t*   rec_prot__pt,
   flea_al_u8_t      prot_vers_major,   // TODO: turn into u16?
@@ -1266,6 +1244,56 @@ void flea_recprot_t__discard_current_read_record(flea_recprot_t* rec_prot__pt)
   // THE CURRENT RECORD!
 }
 
+# ifdef FLEA_HAVE_DTLS
+flea_err_e THR_flea_recprot_t__write_encr_rec_to_queue(
+  flea_recprot_t*     rec_prot__pt,
+  qheap_queue_heap_t* qh__pt,
+  qh_al_hndl_t        hndl_for_encryped_rec__alqhh
+)
+{
+  FLEA_THR_BEG_FUNC();
+  flea_u16_t append_len__u16 = rec_prot__pt->curr_rec_content_len__u16 + FLEA_DTLS_RECORD_HDR_LEN;
+  if(!FLEA_RP__IS_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt))
+  {
+    FLEA_THROW("invalid request for encrypted record", FLEA_ERR_INT_ERR);
+  }
+  if(rec_prot__pt->curr_rec_content_offs__u16 != 0)
+  {
+    FLEA_THROW("non-zero rd offset when requesting encrypted record", FLEA_ERR_INT_ERR);
+  }
+  if(qheap_qh_append_to_queue(
+      qh__pt,
+      hndl_for_encryped_rec__alqhh,
+      rec_prot__pt->send_rec_buf_raw__bu8,
+      append_len__u16
+  ))
+  {
+    FLEA_THROW("could not write the full encrypted record to the queue", FLEA_ERR_BUFF_TOO_SMALL);
+  }
+  rec_prot__pt->curr_rec_content_offs__u16 = rec_prot__pt->curr_pt_content_len__u16;
+  // rec_prot__pt->curr_rec_content_offs__u16 += append_len__u16;
+  FLEA_RP__SET_NO_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt);
+  FLEA_THR_FIN_SEC_empty();
+}
+
+flea_err_e THR_flea_recprot_t__increment_read_epoch(flea_recprot_t* rec_prot__pt)
+{
+  FLEA_THR_BEG_FUNC();
+  if(FLEA_RP__IS_DTLS(rec_prot__pt))
+  {
+    rec_prot__pt->read_next_rec_epoch__u16++;
+
+    if(rec_prot__pt->read_next_rec_epoch__u16 == 0)
+    {
+      FLEA_THROW("DTLS epoch exhausted", FLEA_ERR_TLS_SQN_EXHAUSTED);
+    }
+  }
+  // NOTE: TODO: WHEN INVOKING RECORD_RECEIVED, THE EPOCHE FROM THE SEQ MUST
+  // BE USED
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
 /**
  * current_or_next_record_for_content_type__b = TRUE means that the function
  * shall read in the next record, if no record with remaining unread content is
@@ -1279,7 +1307,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
   flea_bool_t                   do_verify_prot_version__b,
   flea_tls_rec_cont_type_e      cont_type__e,
   flea_bool_t                   current_or_next_record_for_content_type__b,
-  flea_stream_read_mode_e       rd_mode__e
+  flea_stream_read_mode_e       rd_mode__e// ,
 )
 {
   flea_al_u16_t to_cp__alu16, read_bytes_count__dtl = 0;
@@ -1303,6 +1331,11 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
     FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
     // rec_prot__pt->raw_read_buf_content__u16 = 0;
     // rec_prot__pt->curr_rec_content_len__u16     = 0;
+  }
+
+  if(*data_len__pdtl && FLEA_RP__IS_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt))
+  {
+    FLEA_THROW("read request to encrypted record", FLEA_ERR_INT_ERR);
   }
 
 /*FLEA_DBG_PRINTF("\nread_data_inner starting\n");
@@ -1343,13 +1376,13 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
       local_rd_mode__e = flea_read_blocking;
     }
 
-# ifdef FLEA_DO_DBG_PRINT
+#  ifdef FLEA_DO_DBG_PRINT
     unsigned dbg_loop_cnt = 0;
-# endif
+#  endif
     do
     {
       flea_al_u16_t curr_rec_full_len__alu16 = 0;
-# ifdef FLEA_DO_DBG_PRINT
+#  ifdef FLEA_DO_DBG_PRINT
       FLEA_DBG_PRINTF("dbg_loop_cnt = %u\n", dbg_loop_cnt++);
       unsigned i;
       FLEA_DBG_PRINTF("entering loop\n");
@@ -1373,7 +1406,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         FLEA_DBG_PRINTF("%02x ", rec_prot__pt->send_rec_buf_raw__bu8[i]);
       }
       FLEA_DBG_PRINTF("\n");
-# endif /* ifdef FLEA_DO_DBG_PRINT */
+#  endif /* ifdef FLEA_DO_DBG_PRINT */
 
       /* if we arrive here, there is the need to read a further record, either for the content type or for content data */
       /* test if there is a further record in the current buffer. */
@@ -1428,9 +1461,11 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             rec_prot__pt->raw_read_buf_content__u16 -= rec_prot__pt->record_hdr_len__u8
               + rec_prot__pt->curr_rec_content_len__u16;
           }
-          rec_prot__pt->curr_rec_content_offs__u16 = 0;
+          flea_recprot_t__set_current_rd_rec_empty(rec_prot__pt);
+
+          /*rec_prot__pt->curr_rec_content_offs__u16 = 0;
           rec_prot__pt->curr_rec_content_len__u16  = 0;
-          rec_prot__pt->curr_pt_content_len__u16   = 0;
+          rec_prot__pt->curr_pt_content_len__u16   = 0;*/
         }
         else
         {
@@ -1443,9 +1478,12 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             rec_prot__pt->raw_read_buf_content__u16
           );
           // TODO: MERGE WITH OTHER CASE:
-          rec_prot__pt->curr_rec_content_offs__u16 = 0;
+
+          flea_recprot_t__set_current_rd_rec_empty(rec_prot__pt);
+
+          /*rec_prot__pt->curr_rec_content_offs__u16 = 0;
           rec_prot__pt->curr_rec_content_len__u16  = 0;
-          rec_prot__pt->curr_pt_content_len__u16   = 0;
+          rec_prot__pt->curr_pt_content_len__u16   = 0;*/
 
           rec_prot__pt->raw_read_buf_content__u16 = 0;
         }
@@ -1495,7 +1533,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             FLEA_DBG_PRINTF("initial read request actual read size = %u bytes\n", raw_read_len__dtl);
           }
           rec_prot__pt->raw_read_buf_content__u16 += raw_read_len__dtl;
-# ifdef FLEA_DO_DBG_PRINT
+#  ifdef FLEA_DO_DBG_PRINT
           FLEA_DBG_PRINTF(
             "before version check: rec_prot__pt->raw_read_buf_content__u16 = %u\n",
             rec_prot__pt->raw_read_buf_content__u16
@@ -1506,7 +1544,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             FLEA_DBG_PRINTF("%02x ", rec_prot__pt->send_rec_buf_raw__bu8[i]);
           }
           FLEA_DBG_PRINTF("\n");
-# endif /* ifdef FLEA_DO_DBG_PRINT */
+#  endif /* ifdef FLEA_DO_DBG_PRINT */
 
           /*FLEA_DBG_PRINTF("prot_version_mbn__pt = %p\n", prot_version_mbn__pt);
         FLEA_DBG_PRINTF("prot_version_mbn__pt->major = %u\n", prot_version_mbn__pt->major);
@@ -1597,7 +1635,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           else if(!current_or_next_record_for_content_type__b &&
             (cont_type__e != rec_prot__pt->send_rec_buf_raw__bu8[0]))
           {
-# ifdef FLEA_DO_DBG_PRINT
+#  ifdef FLEA_DO_DBG_PRINT
             FLEA_DBG_PRINTF("content type required: %u, ", cont_type__e);
             FLEA_DBG_PRINTF("content type found: %u\n", rec_prot__pt->send_rec_buf_raw__bu8[0]);
             unsigned add = 0;
@@ -1609,7 +1647,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
               "this record's content len = %u\n",
               (rec_prot__pt->send_rec_buf_raw__bu8[3 + add] << 8) | rec_prot__pt->send_rec_buf_raw__bu8[4 + add]
             );
-# endif /* ifdef FLEA_DO_DBG_PRINT */
+#  endif /* ifdef FLEA_DO_DBG_PRINT */
             FLEA_THROW("content type does not match", FLEA_ERR_TLS_INV_REC_HDR);
           }
           else
@@ -1617,7 +1655,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             FLEA_DBG_PRINTF("content type inquired: %u\n", rec_prot__pt->send_rec_buf_raw__bu8[0]);
           }
 
-# ifdef FLEA_DO_DBG_PRINT
+#  ifdef FLEA_DO_DBG_PRINT
           unsigned add = 0;
           if(FLEA_RP__IS_DTLS(rec_prot__pt))
           {
@@ -1627,7 +1665,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             "this record's content len = %u\n",
             (rec_prot__pt->send_rec_buf_raw__bu8[3 + add] << 8) | rec_prot__pt->send_rec_buf_raw__bu8[4 + add]
           );
-# endif /* ifdef FLEA_DO_DBG_PRINT */
+#  endif /* ifdef FLEA_DO_DBG_PRINT */
 
           if(do_verify_prot_version__b)
           {
@@ -1657,7 +1695,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           }
         }
         hdr_pos__alu8 = 3;
-# ifdef FLEA_HAVE_DTLS
+#  ifdef FLEA_HAVE_DTLS
         if(FLEA_RP__IS_DTLS(rec_prot__pt))
         {
           flea_al_u8_t i;
@@ -1687,20 +1725,34 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           FLEA_DBG_PRINTF("epoch decoded from incoming record header = %u\n", rec_epoch__alu16);
           if(rec_epoch__alu16 != rec_prot__pt->read_next_rec_epoch__u16)
           {
+#   if 0
             if((rec_epoch__alu16 + 1 == rec_prot__pt->read_next_rec_epoch__u16) &&
               FLEA_RP__IS_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt))
             {
               /* accept this record (nothing to do) */
             }
             else
+#   endif /* if 0 */
+            if(rec_epoch__alu16 == rec_prot__pt->read_next_rec_epoch__u16 + 1)
+            {
+              /* can be an out of order finished or application data */
+
+              /* set current_rec_undecrypted = true
+               * return
+               *
+               */
+              FLEA_RP__SET_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt);
+            }
+            else
             {
               FLEA_DBG_PRINTF("discarding record due to invalid epoch\n");
               rec_prot__pt->raw_read_buf_content__u16 = 0;
               continue;
-              /* TODO: can't do this here, need to store encrypted record */
             }
           }
           // TODO: CHECK THAT RECORD IS WITHIN ACCEPTANCE WINDOW
+
+#   if 0
           if(rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
           {
             FLEA_DBG_PRINTF("increasing epoch since CCS was received\n");
@@ -1715,8 +1767,9 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             // TODO: WHEN INVOKING RECORD_RECEIVED, THE EPOCHE FROM THE SEQ MUST
             // BE USED
           }
+#   endif /* if 0 */
         }
-# endif /* ifdef FLEA_HAVE_DTLS */
+#  endif /* ifdef FLEA_HAVE_DTLS */
 
         rec_prot__pt->curr_rec_content_len__u16  = rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++] << 8;
         rec_prot__pt->curr_rec_content_len__u16 |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8];
@@ -1735,28 +1788,31 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         // => TODO: for DTLS, after processing this record, shift down the received data
         //          for TSL, do the same (cannot read only the header of the initial ClientHello: if the client uses DTLS, then the packet would already be lost)
 
-        if(rec_prot__pt->curr_rec_content_len__u16 > FLEA_TLS_TRNSF_BUF_SIZE - rec_prot__pt->record_hdr_len__u8)
+        /*if(rec_prot__pt->curr_rec_content_len__u16 > FLEA_TLS_TRNSF_BUF_SIZE - rec_prot__pt->record_hdr_len__u8)
         {
           FLEA_THROW("received record does not fit into receive buffer", FLEA_ERR_TLS_EXCSS_REC_LEN);
-        }
-        if(FLEA_RP__IS_DTLS(rec_prot__pt))
+        }*/
+
+        /*if(FLEA_RP__IS_DTLS(rec_prot__pt))
+        {*/
+        if(rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8 >
+          rec_prot__pt->raw_read_buf_content__u16)
         {
-          if(rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8 >
-            rec_prot__pt->raw_read_buf_content__u16)
-          {
-            rec_prot__pt->curr_rec_content_len__u16 = 0;
-            rec_prot__pt->raw_read_buf_content__u16 = 0;
-            continue;
-            // TODO: test this ( DISCARD THE RECORD, in this case the whole rec_buf can be
-            // discarded)
-          }
+          rec_prot__pt->curr_rec_content_len__u16 = 0;
+          rec_prot__pt->raw_read_buf_content__u16 = 0;
+          continue;
+          // TODO: test this ( DISCARD THE RECORD, in this case the whole rec_buf can be
+          // discarded)
         }
+        // }
       } /* end of 'read the hdr' */
 
       /* complete the content read if necessary (not relevant for DTLS) (TODO: still needed to consider a further read at all?) */
 
       /*if(rec_prot__pt->raw_read_buf_content__u16 <
         rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8)*/
+
+#  if 0
       while(rec_prot__pt->raw_read_buf_content__u16 <
         rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8)
       {
@@ -1801,11 +1857,20 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           }
         }
       } /* did read full content */
+#  endif /* if 0 */
 
       /*rec_prot__pt->curr_rec_content_len__u16 = rec_prot__pt->raw_read_buf_content__u16
         - rec_prot__pt->record_hdr_len__u8;*/
       rec_prot__pt->curr_rec_content_offs__u16 = 0;
 
+      if(FLEA_RP__IS_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt))
+      {
+        rec_prot__pt->curr_pt_content_len__u16 = rec_prot__pt->curr_rec_content_len__u16;
+
+        /* we expect always that the first the record type is determined. That call would return here.
+         * Subsequently, the encrypted record is read completely using the designated special function*/
+        FLEA_THR_RETURN();
+      }
       raw_rec_content_len__alu16 = rec_prot__pt->curr_rec_content_len__u16;
 
       // rec_prot__pt->raw_read_buf_content__u16 = 0; // STILL NEEDED!
@@ -1815,7 +1880,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
       {
         rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
       }
-# ifdef FLEA_HAVE_TLS_CS_CBC
+#  ifdef FLEA_HAVE_TLS_CS_CBC
       if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
       {
         FLEA_CCALL(
@@ -1830,8 +1895,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
         FLEA_DBG_PRINTF("after record decryption (CBC)\n");
       }
-# endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
-# ifdef FLEA_HAVE_TLS_CS_GCM
+#  endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
+#  ifdef FLEA_HAVE_TLS_CS_GCM
       if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_gcm_cipher_suite)
       {
         FLEA_CCALL(
@@ -1846,7 +1911,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
         FLEA_DBG_PRINTF("after record decryption (GCM)\n");
       }
-# endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
+#  endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
       if(rec_prot__pt->curr_pt_content_len__u16 > FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE)
       {
         FLEA_THROW("record plaintext size too large", FLEA_ERR_TLS_RECORD_OVERFLOW);
@@ -1879,7 +1944,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
       else
       {
         to_cp__alu16 = FLEA_MIN(rec_prot__pt->curr_pt_content_len__u16, data_len__dtl);
-# ifdef FLEA_DO_DBG_PRINT
+#  ifdef FLEA_DO_DBG_PRINT
         FLEA_DBG_PRINTF("trailing read: reading %u bytes = ", to_cp__alu16);
         unsigned i;
         for(i = 0; i < to_cp__alu16; i++)
@@ -1887,7 +1952,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           FLEA_DBG_PRINTF("%02x ", rec_prot__pt->payload_buf__pu8[i]);
         }
         FLEA_DBG_PRINTF("\n");
-# endif /* ifdef FLEA_DO_DBG_PRINT */
+#  endif /* ifdef FLEA_DO_DBG_PRINT */
 
 
         memcpy(data__pu8, rec_prot__pt->payload_buf__pu8, to_cp__alu16);
@@ -1912,6 +1977,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__read_data_inner_dtls */
 
+# endif /* ifdef FLEA_HAVE_DTLS */
 static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
   flea_recprot_t*               rec_prot__pt,
   flea_u8_t*                    data__pu8,
@@ -2369,6 +2435,7 @@ flea_err_e THR_flea_recprot_t__read_data(
   flea_stream_read_mode_e  rd_mode__e
 )
 {
+  // TODO: FLATTEN, CALLED FUNCTION CAN BE INCLUDED HERE!
   return THR_flea_recprot_t__read_data_inner(
     rec_prot__pt,
     data__pu8,

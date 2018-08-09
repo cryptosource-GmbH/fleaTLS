@@ -1533,6 +1533,27 @@ flea_err_e THR_flea_tls__client_handshake(
              */
             flea_byte_vec_t__dtor(&key_block__t);
           }
+
+          /* also in case of DTLS all records for the current handshake prior to the CCS have already been received,
+           * thus we can switch to the new epoch
+           * */
+# ifdef FLEA_HAVE_DTLS
+          FLEA_CCALL(THR_flea_recprot_t__increment_read_epoch(&tls_ctx__pt->rec_prot__t));
+# endif
+
+/*if(rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
+          {
+            FLEA_DBG_PRINTF("increasing epoch since CCS was received\n");
+            FLEA_RP__SET_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt);
+            rec_prot__pt->read_next_rec_epoch__u16++;
+
+            if(rec_prot__pt->read_next_rec_epoch__u16 == 0)
+            {
+              FLEA_THROW("DTLS epoch exhausted", FLEA_ERR_TLS_SQN_EXHAUSTED);
+            }
+          }*/
+
+
           handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
 
           continue;

@@ -11,6 +11,9 @@
 // #include "internal/common/tls/tls_common.h"
 # include "flea/rw_stream.h"
 # include "internal/common/tls/tls_rec_prot_fwd.h"
+# ifdef FLEA_HAVE_DTLS
+#  include "qheap/queue_heap.h"
+# endif
 
 # ifdef __cplusplus
 extern "C" {
@@ -23,6 +26,72 @@ extern "C" {
 # endif
 
 # ifdef FLEA_HAVE_TLS
+
+
+#  define FLEA_RP_CTRL__DTLS_BIT                      (1 << 0)
+#  define FLEA_RP_CTRL__WRITE_ONGOING_BIT             (1 << 1)
+#  define FLEA_RP_CTRL__SESSION_CLOSED_BIT            (1 << 2)
+#  define FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT      (1 << 3)
+#  define FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT      (1 << 4)
+#  define FLEA_RP_CTRL__IN_HANDSHAKE_IN_NEW_EPOCH_BIT (1 << 5)
+#  define FLEA_RP_CTRL__DTLS_REC_FROM_FUT_EPOCH_BIT   (1 << 6)
+
+#  define FLEA_RP__SET_DTLS(rec_prot__pt)          ((rec_prot__pt)->ctrl_field__u8 |= FLEA_RP_CTRL__DTLS_BIT)
+#  define FLEA_RP__IS_DTLS(rec_prot__pt)           ((rec_prot__pt)->ctrl_field__u8 & FLEA_RP_CTRL__DTLS_BIT)
+
+#  define FLEA_RP__SET_WRITE_ONGOING(rec_prot__pt) ((rec_prot__pt)->ctrl_field__u8 |= FLEA_RP_CTRL__WRITE_ONGOING_BIT)
+#  define FLEA_RP__SET_NO_WRITE_ONGOING(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 &= \
+  (~FLEA_RP_CTRL__WRITE_ONGOING_BIT))
+#  define FLEA_RP__IS_WRITE_ONGOING(rec_prot__pt)  ((rec_prot__pt)->ctrl_field__u8 & FLEA_RP_CTRL__WRITE_ONGOING_BIT)
+
+
+#  define FLEA_RP__SET_SESSION_CLOSED(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 |= \
+  FLEA_RP_CTRL__SESSION_CLOSED_BIT)
+#  define FLEA_RP__IS_SESSION_CLOSED(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 \
+  & FLEA_RP_CTRL__SESSION_CLOSED_BIT)
+
+#  define FLEA_RP__SET_CURRENT_RECORD_ALERT(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 |= \
+  FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT)
+#  define FLEA_RP__SET_NOT_CURRENT_RECORD_ALERT(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 &= \
+  (~FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT))
+#  define FLEA_RP__IS_CURRENT_RECORD_ALERT(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 \
+  & FLEA_RP_CTRL__CURRENT_RECORD_ALERT_BIT)
+
+#  define FLEA_RP__SET_PENDING_CLOSE_NOTIFY(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 |= \
+  FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT)
+#  define FLEA_RP__SET_NO_PENDING_CLOSE_NOTIFY(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 &= \
+  (~FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT))
+#  define FLEA_RP__IS_PENDING_CLOSE_NOTIFY(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 \
+  & FLEA_RP_CTRL__PENDING_CLOSE_NOTIFY_BIT)
+
+
+/*# define FLEA_RP__SET_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 |= \
+  FLEA_RP_CTRL__IN_HANDSHAKE_IN_NEW_EPOCH_BIT)
+# define FLEA_RP__IS_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 \
+  & FLEA_RP_CTRL__IN_HANDSHAKE_IN_NEW_EPOCH_BIT)*/
+
+
+#  define FLEA_RP__SET_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 |= \
+  FLEA_RP_CTRL__DTLS_REC_FROM_FUT_EPOCH_BIT)
+#  define FLEA_RP__SET_NO_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 &= \
+  (~FLEA_RP_CTRL__DTLS_REC_FROM_FUT_EPOCH_BIT))
+#  define FLEA_RP__IS_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt) \
+  ((rec_prot__pt)->ctrl_field__u8 \
+  & FLEA_RP_CTRL__DTLS_REC_FROM_FUT_EPOCH_BIT)
+
 
 #  define FLEA_TLS_RECORD_HDR_LEN      5
 #  define FLEA_DTLS_RECORD_HDR_LEN     (FLEA_TLS_RECORD_HDR_LEN + 8)
@@ -125,6 +194,7 @@ struct struct_flea_recprot_t
   // flea_u16_t                   current_record_content_len__u16;
   flea_u8_t                    record_hdr_len__u8;
   flea_u8_t                    ctrl_field__u8;
+  // flea_u8_t    is_curr_rec_from_future_epoch__u8;
 //  flea_u8_t                    skip_empty_record__b;
 };
 
@@ -239,6 +309,17 @@ void flea_recprot_t__set_max_pt_len(
   flea_recprot_t* rec_prot__pt,
   flea_u16_t      pt_len__u16
 );
+
+#  ifdef FLEA_HAVE_DTLS
+flea_err_e THR_flea_recprot_t__write_encr_rec_to_queue(
+  flea_recprot_t*     rec_prot__pt,
+  qheap_queue_heap_t* qh__pt,
+  qh_al_hndl_t        hndl_for_encryped_rec__alqhh
+);
+
+
+flea_err_e THR_flea_recprot_t__increment_read_epoch(flea_recprot_t* rec_prot__pt);
+#  endif // ifdef FLEA_HAVE_DTLS
 
 #  ifdef FLEA_HEAP_MODE
 
