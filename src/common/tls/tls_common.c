@@ -1324,7 +1324,9 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
   *result__pb = FLEA_TRUE; /* might be overriden by handle_tls_error */
   FLEA_CCALL(THR_flea_tls__handle_tls_error(server_ctx_mbn__pt, client_ctx_mbn__pt, err__t, result__pb, FLEA_FALSE));
 
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC(
+    flea_tls_handshake_ctx_t__dtor(&hs_ctx__t);
+  );
 } /* THR_flea_tls_ctx_t__renegotiate */
 
 flea_bool_t flea_tls_ctx_t__do_send_sec_reneg_ext(flea_tls_ctx_t* tls_ctx__pt)

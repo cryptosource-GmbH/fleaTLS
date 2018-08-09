@@ -386,7 +386,12 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
         copy_len_orig__u32 = copy_len__u32 = src_hdr_info__t.fragm_len__u32 - skip_len__u32;
         FLEA_DBG_PRINTF("copy_len = %u\n", copy_len_orig__u32);
         FLEA_DBG_PRINTF("skip_len = %u\n", skip_len__u32);
-        FLEA_DBG_PRINTF("appended content = ");
+        FLEA_DBG_PRINTF(
+          "trgt Q-len before appending content = %u\n",
+          (unsigned) qheap_qh_get_queue_len(heap__pt, trgt_hndl)
+        );
+        FLEA_DBG_PRINTF("appending content = ");
+
         // TODO: USE QUEUE-CHAIN FUNCTION
         while(copy_len__u32)
         {
@@ -405,12 +410,18 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
           copy_len__u32 -= to_go__alu8;
         }
         FLEA_DBG_PRINTF("\n");
+        FLEA_DBG_PRINTF(
+          "trgt Q-len after appending content = %u\n",
+          (unsigned) qheap_qh_get_queue_len(heap__pt, trgt_hndl)
+        );
         qheap_qh_free_queue(heap__pt, src_hndl);
         new_fragm_len__u32 = trgt_hdr_info__t.fragm_len__u32 + copy_len_orig__u32;
         flea__encode_U24_BE(new_fragm_len__u32, new_trgt_fragm_len_encoded__au8);
+
         FLEA_DBG_PRINTF(
-          "dtls: merge_fragms: merging (increased fragment length from %u by %u to %u from total msg len %u, with rd_offs = %u) queue to ",
+          "dtls: merge_fragms: merging (increased fragment length from %u (%u including header) by %u to %u ( for including header see below)from total msg len %u (without hdr) , with rd_offs = %u) queue to ",
           trgt_hdr_info__t.fragm_len__u32,
+          curr_msg_state_info__pt->fragm_len_incl_hs_hdr__u32,
           copy_len_orig__u32,
           new_fragm_len__u32,
           curr_hdr_info__pt->msg_len__u32,
@@ -436,6 +447,11 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
           FLEA_DBG_PRINTF("currently acitve queue\n");
           curr_hdr_info__pt->fragm_len__u32 = new_fragm_len__u32; // TODO: NEEDED AT ALL?
           curr_msg_state_info__pt->fragm_len_incl_hs_hdr__u32 += copy_len_orig__u32;
+          FLEA_DBG_PRINTF("updated: curr_hdr_info__pt->fragm_len__u32  = %u\n", curr_hdr_info__pt->fragm_len__u32);
+          FLEA_DBG_PRINTF(
+            "updated: curr_msg_state_info__pt->fragm_len_incl_hs_hdr__u32 = %u\n",
+            curr_msg_state_info__pt->fragm_len_incl_hs_hdr__u32
+          );
         }
         /* delete the source from the handle list */
         flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i] = 0;
@@ -821,7 +837,7 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
   {
     flea_u32_t did_read__u32;
     flea_u32_t rem_in_curr_msg__u32 = curr_msg_state_info__pt->fragm_len_incl_hs_hdr__u32
-      - curr_msg_state_info__pt->rd_offs__u32;
+      - curr_msg_state_info__pt->rd_offs__u32; /* here we do not have to consider the DTLS header */
     if(!rem_in_curr_msg__u32)
     {
       /* a new handshake msg is implicitly requested */
@@ -841,15 +857,33 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
     {
       FLEA_THROW("assertion for hndl of current msg failed", FLEA_ERR_INT_ERR);
     }
+
+    FLEA_DBG_PRINTF(
+      "read_request = %u\nq-len before => after read: %u => ",
+      rem_read_len__dtl,
+      (unsigned) qheap_qh_get_queue_len(dtls_hs_ctx__pt->qheap__pt, curr_msg_state_info__pt->hndl_qhh)
+    );
     did_read__u32 = qheap_qh_read(
       dtls_hs_ctx__pt->qheap__pt,
       curr_msg_state_info__pt->hndl_qhh,
       target_buffer__pu8,
       rem_read_len__dtl
     );
+    FLEA_DBG_PRINTF(
+      "%u\n",
+      (unsigned) qheap_qh_get_queue_len(dtls_hs_ctx__pt->qheap__pt, curr_msg_state_info__pt->hndl_qhh)
+    );
 
     /*FLEA_DBG_PRINTF("dtls_rd_funct: outputting: ");
     FLEA_DBG_PRINT_BYTE_ARRAY(target_buffer__pu8, rem_read_len__dtl);*/
+
+    FLEA_DBG_PRINTF(
+      "dtls rd func: did_read = %u, read_offs (before read) = %u\n",
+      did_read__u32,
+      curr_msg_state_info__pt->rd_offs__u32
+    );
+    FLEA_DBG_PRINTF("dtls rd func: output = ");
+    FLEA_DBG_PRINT_BYTE_ARRAY(target_buffer__pu8, did_read__u32);
     rem_read_len__dtl -= did_read__u32;
     curr_msg_state_info__pt->rd_offs__u32 += did_read__u32;
     target_buffer__pu8 += did_read__u32;
