@@ -361,7 +361,7 @@ static void qheap_merge_all_adjacent_free_segments(qheap_queue_heap_t* qh__pt)
 
 /*
  * make room (partially in / from ) a free segment. Global heap state is updated
- * accordingly. The requested_len__alqhl attempted to be reserved. this input must include the length of a potentially
+ * accordingly. The requested_len__alqhl is attempted to be reserved. this input must include the length of a potentially
  * necessary new header.
  * @return the length of the allocated data, i.e., the number of bytes made
  * available from the free block
@@ -755,9 +755,9 @@ static qh_al_size_t qheap_qh_process_queue_and_buf(
 
   // curr_sgm_data_offs__s32 -= curr_sgm_rd_offs;
   start__alqhl += curr_sgm_rd_offs;
-  qh_al_size_t initial_sgm_rd_offs = curr_sgm_rd_offs;
-  qh_al_size_t prev_offs__alqhl    = QHEAP_QH_OFFS_INVALID;
-  qheap_bool_t incompletely_consumed_first_sgm__b = QHEAP_FALSE;
+  qh_al_size_t initial_sgm_rd_offs     = curr_sgm_rd_offs;
+  qh_al_size_t prev_offs__alqhl        = QHEAP_QH_OFFS_INVALID;
+  qheap_bool_t consumed_current_sgm__b = QHEAP_FALSE;
   qh_al_size_t curr_sgm_len__alqhl;
   qh_al_size_t curr_noffs__alqhl;
   while((curr_offs__alqhl != QHEAP_QH_OFFS_INVALID) && len__alqhl)
@@ -773,6 +773,7 @@ static qh_al_size_t qheap_qh_process_queue_and_buf(
       /* more data is read. if there is a trailing element with non-zero length,
        * then now we must delete this one.
        */
+// TODO: THE SEGMENT MUST BE DELETED IN CASE OF A CONSUMING PROCESSING
     }
     else
     {
@@ -846,7 +847,8 @@ static qh_al_size_t qheap_qh_process_queue_and_buf(
           {
             /* this is the last segment and was completely consumed. */
             // completely_consumed_first_sgm__b = 1;
-            curr_sgm_rd_offs = curr_sgm_len__alqhl;
+            curr_sgm_rd_offs        = curr_sgm_len__alqhl;
+            consumed_current_sgm__b = QHEAP_TRUE;
             break;
           }
         }
@@ -854,8 +856,8 @@ static qh_al_size_t qheap_qh_process_queue_and_buf(
         {
           /* segement was not consumed, this implies that the read request was
            * already satisfied */
-          curr_sgm_rd_offs += to_go__alqhl; // this much was read from the current segment (either all or a part)
-          incompletely_consumed_first_sgm__b = 1;
+          curr_sgm_rd_offs       += to_go__alqhl; // this much was read from the current segment (either all or a part)
+          consumed_current_sgm__b = 1;
           /* leave the loop early to preserve curr- and prev-offs */
           break;
         }
@@ -871,7 +873,7 @@ static qh_al_size_t qheap_qh_process_queue_and_buf(
   // TODO: DISTINGUISH INCOMPLETELY CONSUMED WHICH MIGHT BE SHORTENED IF
   // POSSIBLE, OR A COMPLETELY CONSUMED WITH A TRAILING SEGMENT (WHICH CANNOT BE
   // EMPTY BY ASSUMPTION).
-  if(incompletely_consumed_first_sgm__b && (curr_sgm_rd_offs >= QHEAP_QH_READ_OFFS_SHIFTDOWN_THRHLD))
+  if(consumed_current_sgm__b && (curr_sgm_rd_offs >= QHEAP_QH_READ_OFFS_SHIFTDOWN_THRHLD))
   {
     /* this case implies that the last processed segment was not completely
      * consumed */

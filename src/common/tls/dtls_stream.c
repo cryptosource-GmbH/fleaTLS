@@ -288,7 +288,7 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
 /* check if the new fragment can be appended to the current queue */
 #if 0
       if(assmbl_state__pt->curr_msg_len__u32 &&
-        (assmbl_state__pt->curr_rd_offs__u32 <
+        (assmbl_state__pt->curr_rd_offs_incl_hdr__u32 <
         assmbl_state__pt->curr_msg_len__u32) &&
         (assmbl_state__pt->curr_msg_seq__u16 == src_hdr_info__t.msg_seq__u16))
       {
@@ -317,7 +317,7 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
           trgt_hndl = flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[j];
         }
         // TODO: THE CHECK FOR THE LENGTH COMES LATER ON ANYWAY:
-        else if(!curr_hdr_info__pt->msg_len__u32)//  || (curr_hdr_info__pt->msg_len__u32 == curr_msg_state_info__pt->rd_offs__u32))
+        else if(!curr_hdr_info__pt->msg_len__u32)//  || (curr_hdr_info__pt->msg_len__u32 == curr_msg_state_info__pt->rd_offs_incl_hdr__u32))
         {
           /* current message is not set */
           continue; // TODO: THE SUBSEQUENT CHECK OF THE HANDLE SHOULD SUFFICE => REMOVE THIS BRANCH
@@ -403,7 +403,7 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
           }
           for(unsigned int i = 0; i < to_go__alu8; i++)
           {
-            FLEA_DBG_PRINTF("%02x", buf__au8[i]);
+            FLEA_DBG_PRINTF("%02x ", buf__au8[i]);
           }
 
           qheap_qh_append_to_queue(heap__pt, trgt_hndl, buf__au8, to_go__alu8);
@@ -425,7 +425,7 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
           copy_len_orig__u32,
           new_fragm_len__u32,
           curr_hdr_info__pt->msg_len__u32,
-          curr_msg_state_info__pt->rd_offs__u32
+          curr_msg_state_info__pt->rd_offs_incl_hdr__u32
         );
         if(!is_iter_for_curr_msg__b)
         {
@@ -631,12 +631,12 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
     FLEA_THROW("invalid size of qheap handle type", FLEA_ERR_INT_ERR);
   }
 
-  if(curr_msg_state__pt->rd_offs__u32)
+  if(curr_msg_state__pt->rd_offs_incl_hdr__u32)
   {
     flea_al_u16_t seq__alu16;
     flea_dtls_hndsh_hdr_info_t* curr_hdr_info__pt = &curr_msg_state__pt->msg_hdr_info__t;
 
-    if(curr_msg_state__pt->rd_offs__u32 != curr_msg_state__pt->fragm_len_incl_hs_hdr__u32) // curr_msg_state__pt->msg_hdr_info__t.msg_len__u32)
+    if(curr_msg_state__pt->rd_offs_incl_hdr__u32 != curr_msg_state__pt->fragm_len_incl_hs_hdr__u32) // curr_msg_state__pt->msg_hdr_info__t.msg_len__u32)
     {
       FLEA_THROW(
         "invalid state: attempting to read new HS msg when current one has not been completeley read",
@@ -665,7 +665,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
     // curr_msg_state__pt->curr_hndl_qhh = 0;
     // assmbl_state__pt->curr_hndl_qhh        = 0;
 
-    // curr_msg_state__pt->rd_offs__u32    = 0;
+    // curr_msg_state__pt->rd_offs_incl_hdr__u32    = 0;
   }
   /* scan through the incoming queue handles and look if the subsequent handshake msg number is available */
   while(1) // TODO: RESENDING / BREAKING OFF WHEN TIMEOUT EXCEEDED
@@ -836,9 +836,10 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
   while(rem_read_len__dtl) // TODO: MUST BE U32 ?
   {
     flea_u32_t did_read__u32;
-    flea_u32_t rem_in_curr_msg__u32 = curr_msg_state_info__pt->fragm_len_incl_hs_hdr__u32
-      - curr_msg_state_info__pt->rd_offs__u32; /* here we do not have to consider the DTLS header */
-    if(!rem_in_curr_msg__u32)
+    flea_u32_t rem_in_curr_msg__u32 = curr_msg_state_info__pt->msg_hdr_info__t.msg_len__u32 + FLEA_DTLS_HANDSH_HDR_LEN
+      - curr_msg_state_info__pt->rd_offs_incl_hdr__u32;
+    // curr_msg_state_info__pt->fragm_len_incl_hs_hdr__u32
+    if(!curr_msg_state_info__pt->msg_hdr_info__t.msg_len__u32 || !rem_in_curr_msg__u32)
     {
       /* a new handshake msg is implicitly requested */
       FLEA_CCALL(
@@ -849,10 +850,12 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
         )
       );
     }
-    if(!curr_msg_state_info__pt->fragm_len_incl_hs_hdr__u32)
+    // if(!curr_msg_state_info__pt->fragm_len_incl_hs_hdr__u32)
+
+    /*if(!curr_msg_state_info__pt->msg_hdr_info__t.msg_len__u32) // there are also msgs with length 0
     {
       FLEA_THROW("assertion for length of current msg failed", FLEA_ERR_INT_ERR);
-    }
+    }*/
     if(!curr_msg_state_info__pt->hndl_qhh)
     {
       FLEA_THROW("assertion for hndl of current msg failed", FLEA_ERR_INT_ERR);
@@ -863,6 +866,14 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
       rem_read_len__dtl,
       (unsigned) qheap_qh_get_queue_len(dtls_hs_ctx__pt->qheap__pt, curr_msg_state_info__pt->hndl_qhh)
     );
+// dbg =>
+    if(rem_read_len__dtl == 827)
+    {
+      FLEA_DBG_PRINTF("BREAKPOINT\n");
+    }
+// <= dbg
+
+
     did_read__u32 = qheap_qh_read(
       dtls_hs_ctx__pt->qheap__pt,
       curr_msg_state_info__pt->hndl_qhh,
@@ -878,14 +889,18 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
     FLEA_DBG_PRINT_BYTE_ARRAY(target_buffer__pu8, rem_read_len__dtl);*/
 
     FLEA_DBG_PRINTF(
-      "dtls rd func: did_read = %u, read_offs (before read) = %u\n",
+      "dtls rd func: msg_type = %u, did_read = %u, read_offs (before read) = %u, msg_len =%u, fragm_len_incl_hdr = %u\n",
+      assmbl_state__pt->curr_msg_state_info__t.msg_hdr_info__t.msg_type__u8,
       did_read__u32,
-      curr_msg_state_info__pt->rd_offs__u32
+      curr_msg_state_info__pt->rd_offs_incl_hdr__u32,
+      assmbl_state__pt->curr_msg_state_info__t.msg_hdr_info__t.msg_len__u32,
+      curr_msg_state_info__pt->fragm_len_incl_hs_hdr__u32
+
     );
     FLEA_DBG_PRINTF("dtls rd func: output = ");
     FLEA_DBG_PRINT_BYTE_ARRAY(target_buffer__pu8, did_read__u32);
     rem_read_len__dtl -= did_read__u32;
-    curr_msg_state_info__pt->rd_offs__u32 += did_read__u32;
+    curr_msg_state_info__pt->rd_offs_incl_hdr__u32 += did_read__u32;
     target_buffer__pu8 += did_read__u32;
     if(rem_read_len__dtl)
     {

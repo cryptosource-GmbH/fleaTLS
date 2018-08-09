@@ -32,7 +32,7 @@ typedef struct
 typedef struct
 {
   flea_u32_t                 fragm_len_incl_hs_hdr__u32;
-  flea_u32_t                 rd_offs__u32;
+  flea_u32_t                 rd_offs_incl_hdr__u32;
   flea_dtls_hndsh_hdr_info_t msg_hdr_info__t;
   qh_hndl_t                  hndl_qhh;
 } flea_dtls_hndsh_msg_state_info_t;
