@@ -1249,47 +1249,47 @@ void flea_recprot_t__discard_current_read_record(flea_recprot_t* rec_prot__pt)
 static flea_err_e THR_flea_recprot_t__decrypt_current_record(flea_recprot_t* rec_prot__pt)
 {
   flea_al_u16_t raw_rec_content_len__alu16 = rec_prot__pt->curr_rec_content_len__u16;
+
   FLEA_THR_BEG_FUNC();
 
   if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_null_cipher_suite)
-    {
-      rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
-    }
-#  ifdef FLEA_HAVE_TLS_CS_CBC
-      if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
-      {
-        FLEA_CCALL(
-          THR_flea_recprot_t__decr_rcrd_cbc_hmac(
-            rec_prot__pt,
-            &raw_rec_content_len__alu16,
-            (flea_tls_rec_cont_type_e) rec_prot__pt->send_rec_buf_raw__bu8[0]
-          )
-        );
-        rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
-        // TODO: REMOVE THIS, NOT NEEDED FOR DTLS
-        inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
-        FLEA_DBG_PRINTF("after record decryption (CBC)\n");
-      }
-#  endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
-#  ifdef FLEA_HAVE_TLS_CS_GCM
-      if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_gcm_cipher_suite)
-      {
-        FLEA_CCALL(
-          THR_flea_recprot_t__decr_rcrd_gcm(
-            rec_prot__pt,
-            &raw_rec_content_len__alu16,
-            (flea_tls_rec_cont_type_e) rec_prot__pt->send_rec_buf_raw__bu8[0]
-          )
-        );
-        rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
-        // TODO: NOT NEEDED FOR DTLS, BUT ALSO DOESN'T DO ANY HARM
-        inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
-        FLEA_DBG_PRINTF("after record decryption (GCM)\n");
-      }
-#  endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
-      FLEA_THR_FIN_SEC_empty();
-}
-
+  {
+    rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
+  }
+# ifdef FLEA_HAVE_TLS_CS_CBC
+  if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
+  {
+    FLEA_CCALL(
+      THR_flea_recprot_t__decr_rcrd_cbc_hmac(
+        rec_prot__pt,
+        &raw_rec_content_len__alu16,
+        (flea_tls_rec_cont_type_e) rec_prot__pt->send_rec_buf_raw__bu8[0]
+      )
+    );
+    rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
+    // TODO: REMOVE THIS, NOT NEEDED FOR DTLS
+    inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
+    FLEA_DBG_PRINTF("after record decryption (CBC)\n");
+  }
+# endif  /* ifdef FLEA_HAVE_TLS_CS_CBC */
+# ifdef FLEA_HAVE_TLS_CS_GCM
+  if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_gcm_cipher_suite)
+  {
+    FLEA_CCALL(
+      THR_flea_recprot_t__decr_rcrd_gcm(
+        rec_prot__pt,
+        &raw_rec_content_len__alu16,
+        (flea_tls_rec_cont_type_e) rec_prot__pt->send_rec_buf_raw__bu8[0]
+      )
+    );
+    rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
+    // TODO: NOT NEEDED FOR DTLS, BUT ALSO DOESN'T DO ANY HARM
+    inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
+    FLEA_DBG_PRINTF("after record decryption (GCM)\n");
+  }
+# endif  /* ifdef FLEA_HAVE_TLS_CS_GCM */
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_recprot_t__decrypt_current_record */
 
 # ifdef FLEA_HAVE_DTLS
 flea_err_e THR_flea_recprot_t__write_encr_rec_to_queue(
@@ -1340,8 +1340,6 @@ flea_err_e THR_flea_recprot_t__increment_read_epoch(flea_recprot_t* rec_prot__pt
 
   FLEA_THR_FIN_SEC_empty();
 }
-
-
 
 /**
  * current_or_next_record_for_content_type__b = TRUE means that the function
@@ -1925,13 +1923,14 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
       //
       //
       FLEA_CCALL(THR_flea_recprot_t__decrypt_current_record(rec_prot__pt));
-      //raw_rec_content_len__alu16 = rec_prot__pt->curr_rec_content_len__u16;
+      // raw_rec_content_len__alu16 = rec_prot__pt->curr_rec_content_len__u16;
+
       /*if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_null_cipher_suite)
       {
         rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
       }*/
-#if 0
-#  ifdef FLEA_HAVE_TLS_CS_CBC
+#  if 0
+#   ifdef FLEA_HAVE_TLS_CS_CBC
       if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
       {
         FLEA_CCALL(
@@ -1946,8 +1945,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
         FLEA_DBG_PRINTF("after record decryption (CBC)\n");
       }
-#  endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
-#  ifdef FLEA_HAVE_TLS_CS_GCM
+#   endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
+#   ifdef FLEA_HAVE_TLS_CS_GCM
       if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_gcm_cipher_suite)
       {
         FLEA_CCALL(
@@ -1962,8 +1961,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
         FLEA_DBG_PRINTF("after record decryption (GCM)\n");
       }
-#  endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
-#endif
+#   endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
+#  endif /* if 0 */
       if(rec_prot__pt->curr_pt_content_len__u16 > FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE)
       {
         FLEA_THROW("record plaintext size too large", FLEA_ERR_TLS_RECORD_OVERFLOW);
@@ -2318,13 +2317,14 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
 
 
     FLEA_CCALL(THR_flea_recprot_t__decrypt_current_record(rec_prot__pt));
-    //raw_rec_content_len__alu16 = rec_prot__pt->curr_rec_content_len__u16;
+    // raw_rec_content_len__alu16 = rec_prot__pt->curr_rec_content_len__u16;
+
     /*if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_null_cipher_suite)
     {
       rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
     }*/
-#if 0
-# ifdef FLEA_HAVE_TLS_CS_CBC
+# if 0
+#  ifdef FLEA_HAVE_TLS_CS_CBC
     if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
     {
       FLEA_CCALL(
@@ -2337,8 +2337,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
       rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
       inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
     }
-# endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
-# ifdef FLEA_HAVE_TLS_CS_GCM
+#  endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
+#  ifdef FLEA_HAVE_TLS_CS_GCM
     if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_gcm_cipher_suite)
     {
       FLEA_CCALL(
@@ -2351,8 +2351,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
       rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
       inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
     }
-# endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
-#endif
+#  endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
+# endif /* if 0 */
     if(rec_prot__pt->curr_pt_content_len__u16 > FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE)
     {
       FLEA_THROW("record plaintext size too large", FLEA_ERR_TLS_RECORD_OVERFLOW);
@@ -2566,7 +2566,5 @@ void flea_recprot_t__dtor(flea_recprot_t* rec_prot__pt)
   FLEA_FREE_MEM_CHECK_NULL_SECRET_ARR(rec_prot__pt->alt_send_buf__raw__bu8, rec_prot__pt->alt_send_buf__raw_len__u16);
   flea_recprot_t__INIT(rec_prot__pt);
 }
-
-
 
 #endif /* ifdef FLEA_HAVE_TLS */
