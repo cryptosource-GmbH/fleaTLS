@@ -685,8 +685,6 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
       {
         continue;
       }
-      /* scan the header of this queue */
-      // TODO: USE LINEARIZE FROM QH
       qheap_qh_peek(heap__pt, hndl, 0, hs_hdr_buf__bu8, 1);
 
       /* HandshakeType msg_type;
@@ -699,7 +697,6 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
       /*if((flea_u8_t ) rec_cont_type__e  == CONTENT_TYPE_HANDSHAKE )
       {*/
       flea_u8_t* hdr_ptr__pu8 = &hs_hdr_buf__bu8[1];
-      // TODO: THIS SHOULD BE THE ONE AND ONLY VALUE WITH WHICH THE FUNCTION IS CALLED
       if((req_msg_type__e == rec_type_hndsh_plain) && (hs_hdr_buf__bu8[0] == rec_type_hndsh_plain))
       {
         flea_u32_t fragm_offs__u32;
@@ -707,6 +704,9 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
         // flea_u8_t frag_len_enc__au8[3];
         flea_dtls_hndsh_msg_state_info_t* curr_msg_state_info__pt = &assmbl_state__pt->curr_msg_state_info__t;
         flea_dtls_hndsh_hdr_info_t* curr_msg_hdr_info__pt         = &curr_msg_state_info__pt->msg_hdr_info__t;
+
+        /* scan the header of this queue */
+        // TODO: USE LINEARIZE FROM QH
         qheap_qh_peek(heap__pt, hndl, 0, hs_hdr_buf__bu8, FLEA_DTLS_HANDSH_HDR_LEN + 1);
         /* check if the handshake msg header whether it the next message in the row */
         msg_seq__u16 = flea__decode_U16_BE(&hdr_ptr__pu8[FLEA_DTLS_HS_HDR_OFFS__MSG_SEQ]);
@@ -952,3 +952,58 @@ flea_err_e THR_flea_rw_stream_t__ctor_dtls_rd_strm(
 
   FLEA_THR_FIN_SEC_empty();
 }
+
+flea_err_e THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(flea_tls_handshake_ctx_t* hs_ctx__pt)
+{
+  flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt        = &hs_ctx__pt->dtls_ctx__t;
+  flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
+  flea_byte_vec_t* incom_hndls__pt = &assmbl_state__pt->qheap_handles_incoming__t;
+  qheap_queue_heap_t* heap__pt     = dtls_hs_ctx__pt->qheap__pt;
+  flea_recprot_t* rec_prot__pt     = &hs_ctx__pt->tls_ctx__pt->rec_prot__t;
+
+  FLEA_THR_BEG_FUNC();
+
+  if(!FLEA_TLS_CTX_IS_DTLS(hs_ctx__pt->tls_ctx__pt))
+  {
+    FLEA_THR_RETURN();
+  }
+  flea_al_u16_t i;
+
+  /* read the pending records in the read-buffer into the assmbl state */
+  while(!flea_recprot_t__is_rd_buf_empty(rec_prot__pt))
+  {
+    FLEA_CCALL(THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(dtls_hs_ctx__pt, rec_prot__pt));
+  }
+
+  /* the incom_hndls__pt is changing during this loop: decrypted records are
+   * added. If they are added before the current position by replacing a
+   * zero-handle, then they are not considered at all. If they are placed in a
+   * later position or appended, then they are checked by this loop. They would
+   * be processed only if they were encrypted records. Since they were decrypted
+   * here, no encrypted record can be added in this way. Note the only records
+   * from current epoch + 1 have been previously stored in the assmbl state.
+   * Thus there is no chance for encrypted records to be stored in the assmbl
+   * state which would still be considered from a future epoch when this
+   * function is called.  Thus the modifications to the vector in this loop are
+   * irrelevant to the processing of the loop.
+   *
+   * */
+  for(i = 0; i < flea_byte_vec_t__GET_DATA_LEN(incom_hndls__pt); i += sizeof(qh_hndl_t))
+  {
+    flea_u8_t type_byte;
+    qh_hndl_t hndl = flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i];
+    if(hndl == 0)
+    {
+      continue;
+    }
+    /* scan the type byte of this queue */
+    qheap_qh_peek(heap__pt, hndl, 0, &type_byte, 1);
+    if((flight_buf_rec_type_e) type_byte == rec_type_encr_rec)
+    {
+      FLEA_CCALL(THR_flea_recprot_t__set_encr_rd_rec_and_decrypt_it(rec_prot__pt, heap__pt, hndl));
+      /* read the record that was just decrypted into the assmbl state */
+      FLEA_CCALL(THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(dtls_hs_ctx__pt, rec_prot__pt));
+    }
+  }
+  FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch */

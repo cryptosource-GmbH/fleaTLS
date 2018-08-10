@@ -1592,6 +1592,7 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
 
 # ifdef FLEA_HAVE_DTLS
           FLEA_CCALL(THR_flea_recprot_t__increment_read_epoch(&tls_ctx->rec_prot__t));
+          FLEA_CCALL(THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(hs_ctx__pt));
 # endif
 
           handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;

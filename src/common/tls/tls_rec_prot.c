@@ -1291,6 +1291,21 @@ static flea_err_e THR_flea_recprot_t__decrypt_current_record(flea_recprot_t* rec
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__decrypt_current_record */
 
+flea_err_e THR_flea_recprot_t__set_encr_rd_rec_and_decrypt_it(
+  flea_recprot_t*     rec_prot__pt,
+  qheap_queue_heap_t* heap__pt,
+  qh_al_hndl_t        hndl__alqhh
+)
+{
+  FLEA_THR_BEG_FUNC();
+  qh_size_t len__qsz = qheap_qh_get_queue_len(heap__pt, hndl__alqhh);
+  qheap_qh_read(heap__pt, hndl__alqhh, &rec_prot__pt->send_rec_buf_raw__bu8[0], len__qsz);
+  rec_prot__pt->curr_rec_content_len__u16 = len__qsz + FLEA_DTLS_RECORD_HDR_LEN;
+  /* sets curr_pt_content_len__u16: */
+  FLEA_CCALL(THR_flea_recprot_t__decrypt_current_record(rec_prot__pt));
+  FLEA_THR_FIN_SEC_empty();
+}
+
 # ifdef FLEA_HAVE_DTLS
 flea_err_e THR_flea_recprot_t__write_encr_rec_to_queue(
   flea_recprot_t*     rec_prot__pt,
@@ -1339,6 +1354,21 @@ flea_err_e THR_flea_recprot_t__increment_read_epoch(flea_recprot_t* rec_prot__pt
   // BE USED
 
   FLEA_THR_FIN_SEC_empty();
+}
+
+flea_bool_t flea_recprot_t__is_rd_buf_empty(flea_recprot_t* rec_prot__pt)
+{
+  if( /* check if the first record has pending read data */
+    (rec_prot__pt->curr_rec_content_offs__u16 < rec_prot__pt->curr_pt_content_len__u16)
+    ||
+    /* check for pending record behind the current one */
+    (rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8 <
+    rec_prot__pt->raw_read_buf_content__u16)
+  )
+  {
+    return FLEA_FALSE;
+  }
+  return FLEA_TRUE;
 }
 
 /**

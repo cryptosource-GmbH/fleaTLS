@@ -319,6 +319,16 @@ flea_err_e THR_flea_recprot_t__write_encr_rec_to_queue(
 
 
 flea_err_e THR_flea_recprot_t__increment_read_epoch(flea_recprot_t* rec_prot__pt);
+
+flea_err_e THR_flea_recprot_t__set_encr_rd_rec_and_decrypt_it(
+  flea_recprot_t*     rec_prot__pt,
+  qheap_queue_heap_t* heap__pt,
+  qh_al_hndl_t        hndl__alqhh
+);
+
+flea_bool_t flea_recprot_t__is_rd_buf_empty(flea_recprot_t* rec_prot__pt);
+
+
 #  endif // ifdef FLEA_HAVE_DTLS
 
 #  ifdef FLEA_HEAP_MODE

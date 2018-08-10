@@ -1539,6 +1539,7 @@ flea_err_e THR_flea_tls__client_handshake(
            * */
 # ifdef FLEA_HAVE_DTLS
           FLEA_CCALL(THR_flea_recprot_t__increment_read_epoch(&tls_ctx__pt->rec_prot__t));
+          FLEA_CCALL(THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(hs_ctx__pt));
 # endif
 
 /*if(rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_CHANGE_CIPHER_SPEC)

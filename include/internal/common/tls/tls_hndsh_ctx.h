@@ -136,6 +136,10 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
 
 void flea_tls_handshake_ctx_t__dtor(flea_tls_handshake_ctx_t* hs_ctx__pt);
 
+# ifdef FLEA_HAVE_DTLS
+flea_err_e THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(flea_tls_handshake_ctx_t* hs_ctx__pt);
+# endif
+
 # ifdef __cplusplus
 }
 # endif
