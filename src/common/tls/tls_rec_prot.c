@@ -365,7 +365,6 @@ static flea_err_e THR_flea_recprot_t__set_cbc_cs(
     )
   );
 
-// ==========
   FLEA_DBG_PRINTF("setting mac key for ");
   if(direction == flea_tls_read)
   {
@@ -378,7 +377,6 @@ static flea_err_e THR_flea_recprot_t__set_cbc_cs(
 
   FLEA_DBG_PRINTF(" direction = ");
   FLEA_DBG_PRINT_BYTE_ARRAY(key_block__pcu8 + mac_key_offs__alu8, mac_key_len__alu8);
-// =============
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__set_cbc_cs */
 
@@ -695,8 +693,7 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_cbc_hmac(
    * First decrypt
    */
 
-  FLEA_CCALL(
-    THR_flea_cbc_mode__decrypt_data(
+  if(THR_flea_cbc_mode__decrypt_data(
       rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id,
       enc_key,
       enc_key_len,
@@ -705,8 +702,13 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_cbc_hmac(
       data + iv_len,
       data + iv_len,
       data_len - iv_len
-    )
-  );
+  )
+  )
+  {
+    /* there is no need to hide this type of error */
+    FLEA_THROW("error during decryption", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
+  }
+
 
   plaintext_len__alu16 = data_len - iv_len;
 
@@ -1244,6 +1246,51 @@ void flea_recprot_t__discard_current_read_record(flea_recprot_t* rec_prot__pt)
   // THE CURRENT RECORD!
 }
 
+static flea_err_e THR_flea_recprot_t__decrypt_current_record(flea_recprot_t* rec_prot__pt)
+{
+  flea_al_u16_t raw_rec_content_len__alu16 = rec_prot__pt->curr_rec_content_len__u16;
+  FLEA_THR_BEG_FUNC();
+
+  if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_null_cipher_suite)
+    {
+      rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
+    }
+#  ifdef FLEA_HAVE_TLS_CS_CBC
+      if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
+      {
+        FLEA_CCALL(
+          THR_flea_recprot_t__decr_rcrd_cbc_hmac(
+            rec_prot__pt,
+            &raw_rec_content_len__alu16,
+            (flea_tls_rec_cont_type_e) rec_prot__pt->send_rec_buf_raw__bu8[0]
+          )
+        );
+        rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
+        // TODO: REMOVE THIS, NOT NEEDED FOR DTLS
+        inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
+        FLEA_DBG_PRINTF("after record decryption (CBC)\n");
+      }
+#  endif /* ifdef FLEA_HAVE_TLS_CS_CBC */
+#  ifdef FLEA_HAVE_TLS_CS_GCM
+      if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_gcm_cipher_suite)
+      {
+        FLEA_CCALL(
+          THR_flea_recprot_t__decr_rcrd_gcm(
+            rec_prot__pt,
+            &raw_rec_content_len__alu16,
+            (flea_tls_rec_cont_type_e) rec_prot__pt->send_rec_buf_raw__bu8[0]
+          )
+        );
+        rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
+        // TODO: NOT NEEDED FOR DTLS, BUT ALSO DOESN'T DO ANY HARM
+        inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
+        FLEA_DBG_PRINTF("after record decryption (GCM)\n");
+      }
+#  endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
+      FLEA_THR_FIN_SEC_empty();
+}
+
+
 # ifdef FLEA_HAVE_DTLS
 flea_err_e THR_flea_recprot_t__write_encr_rec_to_queue(
   flea_recprot_t*     rec_prot__pt,
@@ -1293,6 +1340,8 @@ flea_err_e THR_flea_recprot_t__increment_read_epoch(flea_recprot_t* rec_prot__pt
 
   FLEA_THR_FIN_SEC_empty();
 }
+
+
 
 /**
  * current_or_next_record_for_content_type__b = TRUE means that the function
@@ -1364,7 +1413,6 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
     /* start reading a new record */
     flea_stream_read_mode_e local_rd_mode__e = rd_mode__e;
     flea_dtl_t raw_read_len__dtl;
-    flea_al_u16_t raw_rec_content_len__alu16;
     flea_al_u8_t hdr_pos__alu8;
 
     /*if(local_rd_mode__e == flea_read_blocking)
@@ -1871,15 +1919,18 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
          * Subsequently, the encrypted record is read completely using the designated special function*/
         FLEA_THR_RETURN();
       }
-      raw_rec_content_len__alu16 = rec_prot__pt->curr_rec_content_len__u16;
 
       // rec_prot__pt->raw_read_buf_content__u16 = 0; // STILL NEEDED!
       // rec_prot__pt->curr_rec_content_len__u16     = 0;
       //
-      if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_null_cipher_suite)
+      //
+      FLEA_CCALL(THR_flea_recprot_t__decrypt_current_record(rec_prot__pt));
+      //raw_rec_content_len__alu16 = rec_prot__pt->curr_rec_content_len__u16;
+      /*if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_null_cipher_suite)
       {
         rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
-      }
+      }*/
+#if 0
 #  ifdef FLEA_HAVE_TLS_CS_CBC
       if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
       {
@@ -1912,15 +1963,12 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         FLEA_DBG_PRINTF("after record decryption (GCM)\n");
       }
 #  endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
+#endif
       if(rec_prot__pt->curr_pt_content_len__u16 > FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE)
       {
         FLEA_THROW("record plaintext size too large", FLEA_ERR_TLS_RECORD_OVERFLOW);
       }
 
-      /*  if(rec_prot__pt->curr_pt_content_len__u16 == 0)
-        {
-
-        }*/
       if(is_handsh_msg_during_app_data__b)
       {
         FLEA_THROW("received tls handshake message when app data was expected", FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA);
@@ -1993,7 +2041,6 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
   flea_dtl_t data_len__dtl = *data_len__pdtl;
 
   flea_dtl_t raw_read_len__dtl;
-  flea_al_u16_t raw_rec_content_len__alu16;
   flea_al_u8_t hdr_pos__alu8;
   flea_bool_t is_handsh_msg_during_app_data__b = FLEA_FALSE;
 
@@ -2269,12 +2316,14 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
 
     rec_prot__pt->curr_rec_content_offs__u16 = 0;
 
-    raw_rec_content_len__alu16 = rec_prot__pt->curr_rec_content_len__u16;
 
-    if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_null_cipher_suite)
+    FLEA_CCALL(THR_flea_recprot_t__decrypt_current_record(rec_prot__pt));
+    //raw_rec_content_len__alu16 = rec_prot__pt->curr_rec_content_len__u16;
+    /*if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_null_cipher_suite)
     {
       rec_prot__pt->curr_pt_content_len__u16 = raw_rec_content_len__alu16;
-    }
+    }*/
+#if 0
 # ifdef FLEA_HAVE_TLS_CS_CBC
     if(rec_prot__pt->read_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
     {
@@ -2303,6 +2352,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
       inc_seq_nbr(rec_prot__pt->read_state__t.seqno_lo_hi__au32);
     }
 # endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
+#endif
     if(rec_prot__pt->curr_pt_content_len__u16 > FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE)
     {
       FLEA_THROW("record plaintext size too large", FLEA_ERR_TLS_RECORD_OVERFLOW);
@@ -2516,5 +2566,7 @@ void flea_recprot_t__dtor(flea_recprot_t* rec_prot__pt)
   FLEA_FREE_MEM_CHECK_NULL_SECRET_ARR(rec_prot__pt->alt_send_buf__raw__bu8, rec_prot__pt->alt_send_buf__raw_len__u16);
   flea_recprot_t__INIT(rec_prot__pt);
 }
+
+
 
 #endif /* ifdef FLEA_HAVE_TLS */
