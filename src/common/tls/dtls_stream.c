@@ -130,17 +130,6 @@
  *
  */
 
-#define FLEA_DTLS_HS_HDR_OFFS__MSG_TYPE   0
-#define FLEA_DTLS_HS_HDR_OFFS__MSG_LEN    1
-#define FLEA_DTLS_HS_HDR_OFFS__MSG_SEQ    4
-#define FLEA_DTLS_HS_HDR_OFFS__FRAGM_OFFS 6
-#define FLEA_DTLS_HS_HDR_OFFS__FRAGM_LEN  9
-
-#define FLEA_DTLS_HS_HDR_LEN__MSG_TYPE    1
-#define FLEA_DTLS_HS_HDR_LEN__MSG_LEN     3
-#define FLEA_DTLS_HS_HDR_LEN__MSG_SEQ     2
-#define FLEA_DTLS_HS_HDR_LEN__FRAGM_OFFS  3
-#define FLEA_DTLS_HS_HDR_LEN__FRAGM_LEN   3
 
 /* typedef enum
 {
@@ -537,6 +526,7 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   //
   if(rec_type__u8 == rec_type_encr_rec)
   {
+    FLEA_DBG_PRINTF("writing encrypted record to queue\n");
     FLEA_CCALL(THR_flea_recprot_t__write_encr_rec_to_queue(rec_prot__pt, dtls_hs_ctx__pt->qheap__pt, hndl_alqhh));
   }
   else
@@ -685,7 +675,13 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
       {
         continue;
       }
-      qheap_qh_peek(heap__pt, hndl, 0, hs_hdr_buf__bu8, 1);
+      if(1 != qheap_qh_peek(heap__pt, hndl, 0, hs_hdr_buf__bu8, 1))
+      {
+        FLEA_THROW(
+          "invalid read length from queue, THIS CAN ONLY HAPPEND IF INVALID QUEUES REMAIN IN THE QUEUE-LIST\n",
+          FLEA_ERR_INT_ERR
+        );
+      }
 
       /* HandshakeType msg_type;
          uint24 length;
@@ -697,6 +693,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
       /*if((flea_u8_t ) rec_cont_type__e  == CONTENT_TYPE_HANDSHAKE )
       {*/
       flea_u8_t* hdr_ptr__pu8 = &hs_hdr_buf__bu8[1];
+      FLEA_DBG_PRINTF("start_new_msg: currently checking type = %u\n", hs_hdr_buf__bu8[0]);
       if((req_msg_type__e == rec_type_hndsh_plain) && (hs_hdr_buf__bu8[0] == rec_type_hndsh_plain))
       {
         flea_u32_t fragm_offs__u32;
@@ -962,7 +959,7 @@ flea_err_e THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(flea_tls_hands
   flea_recprot_t* rec_prot__pt     = &hs_ctx__pt->tls_ctx__pt->rec_prot__t;
 
   FLEA_THR_BEG_FUNC();
-
+  FLEA_DBG_PRINTF("stnde: started\n");
   if(!FLEA_TLS_CTX_IS_DTLS(hs_ctx__pt->tls_ctx__pt))
   {
     FLEA_THR_RETURN();
@@ -1000,9 +997,13 @@ flea_err_e THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(flea_tls_hands
     qheap_qh_peek(heap__pt, hndl, 0, &type_byte, 1);
     if((flight_buf_rec_type_e) type_byte == rec_type_encr_rec)
     {
+      FLEA_DBG_PRINTF("stnde: starting decryption of held back record\n");
+      qheap_qh_skip(heap__pt, hndl, 1);
       FLEA_CCALL(THR_flea_recprot_t__set_encr_rd_rec_and_decrypt_it(rec_prot__pt, heap__pt, hndl));
       /* read the record that was just decrypted into the assmbl state */
       FLEA_CCALL(THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(dtls_hs_ctx__pt, rec_prot__pt));
+      flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i] = 0;
+      FLEA_DBG_PRINTF("stnde: decrypted held back record\n");
     }
   }
   FLEA_THR_FIN_SEC_empty();

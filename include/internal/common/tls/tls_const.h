@@ -29,6 +29,21 @@
 #  define FLEA_XTLS_MAX_HANDSH_HDR_LEN FLEA_TLS_HANDSH_HDR_LEN
 # endif
 
+# define FLEA_DTLS_HS_HDR_OFFS__MSG_TYPE   0
+# define FLEA_DTLS_HS_HDR_OFFS__MSG_LEN    1
+# define FLEA_DTLS_HS_HDR_OFFS__MSG_SEQ    4
+# define FLEA_DTLS_HS_HDR_OFFS__FRAGM_OFFS 6
+# define FLEA_DTLS_HS_HDR_OFFS__FRAGM_LEN  9
+
+# define FLEA_DTLS_HS_HDR_LEN__MSG_TYPE    1
+# define FLEA_DTLS_HS_HDR_LEN__MSG_LEN     3
+# define FLEA_DTLS_HS_HDR_LEN__MSG_SEQ     2
+# define FLEA_DTLS_HS_HDR_LEN__FRAGM_OFFS  3
+# define FLEA_DTLS_HS_HDR_LEN__FRAGM_LEN   3
+
+# define FLEA_DTLS_REC_HDR_OFFS__SEQ       3
+# define FLEA_DTLS_REC_HDR_LEN__SEQ        8
+
 # ifdef __cplusplus
 extern "C" {
 # endif

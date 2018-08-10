@@ -674,11 +674,26 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_cbc_hmac(
   flea_al_u16_t data_len = rec_prot__pt->curr_rec_content_len__u16;
 
   FLEA_THR_BEG_FUNC();
-  seq_lo__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[0];
-  seq_hi__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[1];
 
-  flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
-  flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
+
+#  ifdef FLEA_HAVE_DTLS
+  if(FLEA_RP__IS_DTLS(rec_prot__pt))
+  {
+    memcpy(
+      enc_seq_nbr__au8,
+      rec_prot__pt->send_rec_buf_raw__bu8 + FLEA_DTLS_REC_HDR_OFFS__SEQ,
+      FLEA_DTLS_REC_HDR_LEN__SEQ
+    );
+  }
+  else
+#  endif /* ifdef FLEA_HAVE_DTLS */
+  {
+    seq_lo__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[0];
+    seq_hi__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[1];
+
+    flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
+    flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
+  }
   if(data_len < 2 * iv_len)
   {
     /* sending a different alert than BAD_RECORD_MAC here causes TLS_Attacker to
@@ -931,12 +946,24 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_gcm(
 
   // copy received explicit nonce into record iv
   memcpy(iv + fixed_iv_len__u8, data, record_iv_len__u8);
+#  ifdef FLEA_HAVE_DTLS
+  if(FLEA_RP__IS_DTLS(rec_prot__pt))
+  {
+    memcpy(
+      enc_seq_nbr__au8,
+      rec_prot__pt->send_rec_buf_raw__bu8 + FLEA_DTLS_REC_HDR_OFFS__SEQ,
+      FLEA_DTLS_REC_HDR_LEN__SEQ
+    );
+  }
+  else
+#  endif /* ifdef FLEA_HAVE_DTLS */
+  {
+    seq_lo__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[0];
+    seq_hi__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[1];
+    flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8); // TODO: GET RID OF THE BUFFER, ENCODE DIRECTLY IN GCM HEADER
+    flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
+  }
 
-  seq_lo__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[0];
-  seq_hi__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[1];
-
-  flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
-  flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
 
   *decrypted_len__palu16 = data_len - record_iv_len__u8 - gcm_tag_len__u8;
 
@@ -1299,10 +1326,15 @@ flea_err_e THR_flea_recprot_t__set_encr_rd_rec_and_decrypt_it(
 {
   FLEA_THR_BEG_FUNC();
   qh_size_t len__qsz = qheap_qh_get_queue_len(heap__pt, hndl__alqhh);
+  FLEA_DBG_PRINTF("serradi: total len of encr rec incl hdr = %u\n", len__qsz);
   qheap_qh_read(heap__pt, hndl__alqhh, &rec_prot__pt->send_rec_buf_raw__bu8[0], len__qsz);
-  rec_prot__pt->curr_rec_content_len__u16 = len__qsz + FLEA_DTLS_RECORD_HDR_LEN;
+  rec_prot__pt->curr_rec_content_len__u16  = len__qsz - FLEA_DTLS_RECORD_HDR_LEN;
+  rec_prot__pt->raw_read_buf_content__u16  = len__qsz;
+  rec_prot__pt->curr_rec_content_offs__u16 = 0;
+  FLEA_DBG_PRINTF("serradi: setting content len of encrypted record = %u\n", rec_prot__pt->curr_rec_content_len__u16);
   /* sets curr_pt_content_len__u16: */
   FLEA_CCALL(THR_flea_recprot_t__decrypt_current_record(rec_prot__pt));
+  FLEA_DBG_PRINTF("serradi: decrypted the record, plaintext len = %u\n", rec_prot__pt->curr_pt_content_len__u16);
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -1466,7 +1498,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
       if(rec_prot__pt->curr_rec_content_len__u16)
       {
         FLEA_DBG_PRINTF("record_content with hdr = ");
-        for(i = 0; i < rec_prot__pt->curr_rec_content_len__u16 + 5; i++)
+        for(i = 0; i < rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8; i++)
         {
           FLEA_DBG_PRINTF("%02x ", rec_prot__pt->send_rec_buf_raw__bu8[i]);
         }
@@ -1529,11 +1561,11 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             /* if no data is requested, and only the content type is desired, then
              * this loop is only entered if there is no pending data in the current
              * record.
-             * if data is request, and there was any data left in the current
+             * if data is request, and there was some data left in the current
              * record, it did not suffice if we arrive here*/
 
             /* if there was a previous record held, then now is the time to remove
-             * it. content size zero records are discarded directly when detected.*/
+             * it. thus we reduced raw_read_buf_content__u16 by the removed hdr len. content size zero records are discarded directly when detected.*/
             rec_prot__pt->raw_read_buf_content__u16 -= rec_prot__pt->record_hdr_len__u8
               + rec_prot__pt->curr_rec_content_len__u16;
           }
