@@ -622,8 +622,7 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_cbc_hmac(
    * First decrypt
    */
 
-  FLEA_CCALL(
-    THR_flea_cbc_mode__decrypt_data(
+  if(THR_flea_cbc_mode__decrypt_data(
       rec_prot__pt->read_state__t.cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_id,
       enc_key,
       enc_key_len,
@@ -632,8 +631,13 @@ static flea_err_e THR_flea_recprot_t__decr_rcrd_cbc_hmac(
       data + iv_len,
       data + iv_len,
       data_len - iv_len
-    )
-  );
+  )
+  )
+  {
+    /* there is no need to hide this type of error */
+    FLEA_THROW("error during decryption", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
+  }
+
 
   plaintext_len__alu16 = data_len - iv_len;
 
