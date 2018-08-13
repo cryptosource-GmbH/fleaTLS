@@ -1003,6 +1003,7 @@ flea_err_e THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(flea_tls_hands
       /* read the record that was just decrypted into the assmbl state */
       FLEA_CCALL(THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(dtls_hs_ctx__pt, rec_prot__pt));
       flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i] = 0;
+      qheap_qh_free_queue(heap__pt, hndl);
       FLEA_DBG_PRINTF("stnde: decrypted held back record\n");
     }
   }
