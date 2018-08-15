@@ -226,6 +226,12 @@ static flea_dtl_t flea_find_byte_in_byte_vec(
 
 #endif /* if 0 */
 
+
+/**
+ *
+ *
+ *
+ */
 static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
   // flea_tls_handsh_reader_t* handsh_rdr__pt
   flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt
@@ -263,11 +269,15 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
         /* not a plaintext handshake message */
         continue;
       }
+#if 0
       if(src_hdr_info__t.fragm_offs__u32 == 0)
       {
         /* this message is itself the start of a handshake message, thus it cannot be appended to another */
+
+// this prevents deleting smaller completely overlapping messages!
         continue;
       }
+#endif /* if 0 */
 
 
 /* check if the new fragment can be appended to the current queue */
@@ -330,11 +340,79 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
           /* not a plaintext handshake message or not the correct msg. seq. nr. */
           continue;
         }
+        trgt_fragm_end__u32 = FLEA_DTLS_HNDSH_HDR_FRGM_END(&trgt_hdr_info__t);
+        src_fragm_end__u32  = FLEA_DTLS_HNDSH_HDR_FRGM_END(&src_hdr_info__t);
+
+/*
+ *___________________________________________________________________________
+ *
+ * I)
+ *    +-------------------+
+ *    | trgt              |
+ *    +-------------------+
+ *
+ *                            +-------------------+
+ *                            | src               |
+ *                            +-------------------+
+ *
+ *  The source is not right-adjenct to the target, thus ignore this combination.
+ *
+ *
+ * __________________________________________________________________________
+ *
+ * II)
+ *
+ *                A)           B)
+ *                +--........  +-------------------+
+ *                |            | trgt              |
+ *                +--........  +-------------------+
+ *
+ *
+ *                +-------------------+
+ *                | src               |
+ *                +-------------------+
+ *
+ * The source's end is behind the target. It may also be completely contained
+ * within the target (A).
+ *
+ * If the source is beginning before the target (B), then both will be merged in
+ * the iteration where they change their roles.
+ *
+ * If the source is completely contained within the target (A), then it must be
+ * deleted now, since if the target is the initial block, both will never
+ * exchange roles.
+ *
+ *
+ */
+
+        if((src_hdr_info__t.fragm_offs__u32 > trgt_fragm_end__u32) || /* I */ /* equality would mean no gap */
+          (src_fragm_end__u32 <= trgt_fragm_end__u32))               /* II */
+        {
+          if(trgt_hdr_info__t.fragm_offs__u32 <= src_hdr_info__t.fragm_offs__u32) /* II-A */
+          {
+            qheap_qh_free_queue(heap__pt, src_hndl);
+            flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i] = 0;
+            /* break out from the loop over the targets, i.e. go the next source (i-iteration) */
+            break;
+          }
+          /* the source is not the adjacent fragment to the right */
+          continue;
+        }
+
+#if 0
+        Not needed:
         if(trgt_hdr_info__t.msg_len__u32 == trgt_hdr_info__t.fragm_offs__u32 + trgt_hdr_info__t.fragm_len__u32)
         {
           /* the potential target is itself a final fragment */
           continue;
         }
+#endif /* if 0 */
+        if(src_hdr_info__t.fragm_offs__u32 > trgt_fragm_end__u32) /* this case is handled already above */
+        {
+          /** only assertion **/
+          FLEA_THROW("skip length underflow", FLEA_ERR_INT_ERR);
+        }
+
         /* the source can be appended to the target, if the source's range contains at least one byte adjacent to the target's contents*/
 
         /*
@@ -357,14 +435,8 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
          *
          *         src->fragm_offs <= trgt->end && src->end > trgt->end
          */
-        trgt_fragm_end__u32 = FLEA_DTLS_HNDSH_HDR_FRGM_END(&trgt_hdr_info__t);
-        src_fragm_end__u32  = FLEA_DTLS_HNDSH_HDR_FRGM_END(&src_hdr_info__t);
-        if((src_hdr_info__t.fragm_offs__u32 > trgt_fragm_end__u32) ||
-          (src_fragm_end__u32 <= trgt_fragm_end__u32))
-        {
-          /* the source is not the adjacent fragment to the right */
-          continue;
-        }
+
+
         skip_len__u32 = trgt_fragm_end__u32 - src_hdr_info__t.fragm_offs__u32;
         /* skip over the type byte and the DTLS Handsh. header */
         qheap_qh_skip(heap__pt, src_hndl, skip_len__u32 + FLEA_DTLS_HANDSH_HDR_LEN + 1);
