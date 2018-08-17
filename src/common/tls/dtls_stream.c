@@ -372,7 +372,7 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
  *                | src               |
  *                +-------------------+
  *
- * The source's end is behind the target. It may also be completely contained
+ * The source's end is before the target's end. It may also be completely contained
  * within the target (A).
  *
  * If the source is beginning before the target (B), then both will be merged in
@@ -385,8 +385,11 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
  *
  */
 
-        if((src_hdr_info__t.fragm_offs__u32 > trgt_fragm_end__u32) || /* I */ /* equality would mean no gap */
-          (src_fragm_end__u32 <= trgt_fragm_end__u32))               /* II */
+        if((src_hdr_info__t.fragm_offs__u32 > trgt_fragm_end__u32))  /* I */ /* equality would mean no gap */
+        {
+          continue;
+        }
+        if(src_fragm_end__u32 <= trgt_fragm_end__u32)               /* II */
         {
           if(trgt_hdr_info__t.fragm_offs__u32 <= src_hdr_info__t.fragm_offs__u32) /* II-A */
           {
