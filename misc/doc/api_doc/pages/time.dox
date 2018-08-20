@@ -1,0 +1,14 @@
+/*! \page pageTime The Time Functionality
+ *
+fleaTLs includes some basic functionality for handling time. 
+
+First, there is the function #THR_flea_lib__get_gmt_time_now() to get the current time. This function depends a corresponding function
+pointer being 
+handed to the #THR_flea_lib__init() function. 
+
+Second, there is the timer functionality defined in the file timer.h. In the default build configuration (i.e. if #FLEA_USE_WALL_CLOCK_BASED_TIMER is active), the implementation of this
+timer functionality is provided based on #THR_flea_lib__get_gmt_time_now(). If a timer is required on a platform which does not have a wall clock available, the functions in timer.h must be implemented by other means.
+
+Using the wall clock timer results in a timer resolution of 1 second. This is fine for the applications of the timer within fleaTLS. Namely, this is the detection of timeouts in the DTLS implementation. 
+
+*/

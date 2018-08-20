@@ -30,6 +30,7 @@
  * - \subpage pageX509 "X.509 Certificate Handling"
  * - \subpage tlsPage "The TLS API"
  * - \subpage pageConcurrency "Concurrency"
+ * - \subpage pageTime "The Time Functionality"
  *
  */
 

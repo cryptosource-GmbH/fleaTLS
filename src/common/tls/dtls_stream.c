@@ -146,7 +146,6 @@ typedef enum
 
 
 static flea_err_e THR_flea_dtls_rd_strm__hndsh_hdr_info_from_queue(
-  // flea_tls_handsh_reader_t*   handsh_rdr__pt,
   flea_dtls_hdsh_ctx_t*       dtls_hs_ctx__pt,
   qh_al_hndl_t                hndl__alqhh,
   flea_dtls_hndsh_hdr_info_t* result__pt
@@ -233,7 +232,6 @@ static flea_dtl_t flea_find_byte_in_byte_vec(
  *
  */
 static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
-  // flea_tls_handsh_reader_t* handsh_rdr__pt
   flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt
 )
 {
@@ -533,15 +531,11 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_dtls_rd_strm__merge_fragments */
 
-// static flea_err_e THR_flea_dtls_rd_strm__rd_ccs(
-
 /**
  * read the next record and place it into the array of queues.
  */
 static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
-  // flea_tls_handsh_reader_t* handsh_rdr__pt,
   flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt,
-  // flea_rw_stream_t*         rec_prot_stream__pt
   flea_recprot_t*       rec_prot__pt
 )
 {
@@ -557,12 +551,8 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
 
   FLEA_THR_BEG_FUNC();
   /* trigger the reading of a new record */
-  // TODO: COVER THE CASE OF A YET UNDECRYPTABLE RECORD
-  //  - in case of DTLS, a record with "epoch + 1" is just kept as an encrypted record
-  //  - set a flag in the rec_prot
-  //  - add rec_prot macro which can querry this
 
-  // TODO: ADD RESULT-ARG TO LEARN WHETHER RECORD COULD BE DECRYPTED FOR DTLS.
+  /* TODO: read non-blocking, can timeout */
   FLEA_CCALL(THR_flea_recprot_t__get_current_record_type(rec_prot__pt, &cont_type__e, flea_read_full));
   if(FLEA_RP__IS_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt))
   {
@@ -583,6 +573,8 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
           break;
         case CONTENT_TYPE_ALERT:
           // cannot happen. an encrypted alert is generically stored (unencrypted alert is directly handled by rec_prot )
+          // TODO: MAKE SURE THAT DECRYPTED ALERTS ARE SEEN FIRST (MAY BE DONE LATER, SINCE FLEA ANYWAY IGNORES ALL WARN ALERTS,
+          // AND FATAL ALERTS ARE THE LAST THING SEEN ON THE WIRE ANYWAY)
           break;
         default:
           break;
@@ -618,6 +610,7 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
           FLEA_THROW("invalid read length for CCS read from the rec_prot", FLEA_ERR_INT_ERR);
         }
       }
+      /* TODO: read non-blocking, can timeout */
       FLEA_CCALL(THR_flea_recprot_t__read_data(rec_prot__pt, cont_type__e, small_buf, &to_go__dtl, flea_read_full));
 
 
@@ -647,15 +640,9 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
 } /* THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire */
 
 static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
-  // flea_tls_handsh_reader_t* handsh_rdr__pt,
   flea_dtls_hdsh_ctx_t*    dtls_hs_ctx__pt,
   flea_recprot_t*          rec_prot__pt,
   flea_tls_rec_cont_type_e rec_cont_type__e
-  // flea_rw_stream_t*         rec_prot_stream__pt,
-  // flea_u8_t*                handsh_type__pu8,
-  // flea_u32_t*               msg_len__pu32,
-  // flea_u8_t*                handsh_hdr_mbn__pu8,
-  // flea_tls_rec_cont_type_e  rec_cont_type__e
 )
 {
 // TODO: CAN USE THE HEADER FROM THE ARGUMENT (SEE BELOW) RIGHT AWAY AND REMOVE
