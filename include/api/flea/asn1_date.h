@@ -1,17 +1,17 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_asn1_date__H_
-#define _flea_asn1_date__H_
+# define _flea_asn1_date__H_
 
-#include "internal/common/default.h"
-#include "flea/error.h"
-#include "flea/types.h"
-#include <stdlib.h>
-#include "internal/common/ber_dec.h"
+# include "internal/common/default.h"
+# include "flea/error.h"
+# include "flea/types.h"
+# include <stdlib.h>
+# include "internal/common/ber_dec.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 /**
  * Type representing a time value in the GMT time zone.
@@ -26,7 +26,7 @@ typedef struct
   flea_u8_t  seconds;
 } flea_gmt_time_t;
 
-#define flea_gmt_time_t__SET_YMDhms(__gmt_time__pt, Y, M, D, h, m, s) \
+# define flea_gmt_time_t__SET_YMDhms(__gmt_time__pt, Y, M, D, h, m, s) \
   do { \
     (__gmt_time__pt)->year    = (Y);  \
     (__gmt_time__pt)->month   = (M);  \
@@ -77,8 +77,16 @@ void flea_gmt_time_t__add_seconds_to_date(
   flea_u32_t       time_span_seconds__u32
 );
 
-#ifdef __cplusplus
+
+# ifdef FLEA_USE_WALL_CLOCK_BASED_TIMER
+flea_s32_t flea_gmt_time_t__diff_secs(
+  const flea_gmt_time_t* date1,
+  const flea_gmt_time_t* date2
+);
+# endif // ifdef FLEA_USE_WALL_CLOCK_BASED_TIMER
+
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

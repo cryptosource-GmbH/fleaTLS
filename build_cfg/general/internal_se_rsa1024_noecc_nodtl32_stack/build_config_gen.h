@@ -832,6 +832,19 @@
 /* end mt_cfg */
 /**@}*/
 
+/**
+ * \defgroup timer_cfg Timer support
+ *
+ */
+
+# define FLEA_HAVE_TIMER
+
+# define FLEA_USE_WALL_CLOCK_BASED_TIMER
+
+/**@{*/
+
+/* end timer_cfg */
+/**@}*/
 /* include must remain at the very end: */
 # include "internal/common/build_config_util.h"
 

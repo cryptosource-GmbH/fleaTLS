@@ -324,6 +324,80 @@ flea_err_e THR_flea_asn1_parse_utc_time(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_asn1_parse_utc_time */
 
+#ifdef FLEA_USE_WALL_CLOCK_BASED_TIMER
+flea_s32_t flea_gmt_time_t__diff_secs(
+  const flea_gmt_time_t* date1,
+  const flea_gmt_time_t* date2
+)
+{
+  flea_s32_t diff__s32            = 0; /* by this much date1 is larger than date2 */
+  flea_al_s8_t sign               = 1;
+  flea_al_s8_t year_diff_al_s8    = ((flea_s32_t) date1->year) - ((flea_s32_t) date2->year);
+  flea_al_s8_t month_diff_al_s8   = ((flea_s32_t) date1->month) - ((flea_s32_t) date2->month);
+  flea_al_u16_t year__alu16       = date2->year; /* the year to increase */
+  flea_al_u8_t day__alu8          = date2->day;
+  flea_al_u8_t day_goal__alu8     = date1->day;
+  flea_al_u16_t year_goal__alu16  = date1->year;
+  flea_al_u16_t month__alu16      = date2->month; /* the month to increase */
+  flea_al_u16_t month_goal__alu16 = date1->month;
+  flea_s32_t accu__s32            = 0;
+
+  if((year_diff_al_s8 < 0) || ((year_diff_al_s8 == 0) && (month_diff_al_s8 < 0)))
+  {
+    /* date1 is smaller based on year & month */
+    year__alu16       = date1->year;
+    year_goal__alu16  = date2->year;
+    month__alu16      = date1->month;
+    month_goal__alu16 = date2->month;
+    day__alu8         = date1->day;
+    day_goal__alu8    = date2->day;
+    sign = -1;
+  }
+
+  /* advance to the 1st of the next month */
+  if((year__alu16 < year_goal__alu16) || (month__alu16 < month_goal__alu16))
+  {
+    flea_al_u8_t days_in_month__alu8 = days_of_month(month__alu16, year__alu16);
+    accu__s32 += days_in_month__alu8 - day__alu8 + 1;
+    month__alu16++;
+    if(month__alu16 > 12)
+    {
+      month__alu16 = 1;
+      year__alu16++;
+    }
+    day__alu8 = 1;
+  }
+  while((year__alu16 < year_goal__alu16) || (month__alu16 < month_goal__alu16))
+  {
+    flea_al_u8_t days_in_month__alu8 = days_of_month(month__alu16, year__alu16);
+    month__alu16++;
+    if(month__alu16 > 12)
+    {
+      month__alu16 = 1;
+      year__alu16++;
+    }
+    diff__s32 += days_in_month__alu8 * 24 * 60 * 60;
+  }
+  diff__s32 *= sign;
+  accu__s32 += day_goal__alu8 - day__alu8;
+
+  accu__s32 *= sign;
+
+  accu__s32 *= 24; /* to hours */
+  accu__s32 += date1->hours - date2->hours;
+  accu__s32 *= 60; /* to minutes */
+  accu__s32 += date1->minutes - date2->minutes;
+  accu__s32 *= 60; /* to seconds */
+  accu__s32 += date1->seconds - date2->seconds;
+
+  diff__s32 += accu__s32;
+
+  return diff__s32;
+} /* flea_gmt_time_t__diff_secs */
+
+#endif /* ifdef FLEA_USE_WALL_CLOCK_BASED_TIMER */
+
+
 // -1: date1 < date2
 // 0: equal
 // 1: date1 > date2
