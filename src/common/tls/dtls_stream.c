@@ -559,7 +559,7 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   if(dtls_hs_ctx__pt->is_in_sending_state__u8)
   {
     /* outgoing flight has been completed, start the receive timer. */
-    flea_timer_t__start(&dtls_hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t.timer__t);
+    flea_timer_t__start(&dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t.timer__t);
     dtls_hs_ctx__pt->is_in_sending_state__u8 = 0;
   }
 
