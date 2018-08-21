@@ -61,11 +61,11 @@ typedef struct
 
 struct struct_flea_dtls_hdsh_ctx_t
 {
-  flea_tls_ctx_t* tls_ctx__pt;
-  flea_s16_t      send_msg_seq__s16;
+  flea_tls_handshake_ctx_t* hs_ctx__pt;
+  flea_s16_t                send_msg_seq__s16;
 /* first seq-no of the last completely received flight: */
-  flea_s16_t      rec_last_flight_initial_msg_seq__s16;
-  flea_s16_t      rec_last_flight_final_msg_seq__s16;
+  flea_s16_t                rec_last_flight_initial_msg_seq__s16;
+  flea_s16_t                rec_last_flight_final_msg_seq__s16;
 
   /* seq-no of the hs-msg, from which at least the first header has been
    * received: */
@@ -99,6 +99,8 @@ struct struct_flea_dtls_hdsh_ctx_t
   // TODO: PONDER VARIANTS OF HOW TO PLACE THIS BUFFER (STACK/HEAP?)
   flea_u32_t                 qh_mem_area__au32[(FLEA_QHEAP_MEMORY_SIZE + 3) / 4];
   flea_dtls_hs_assmb_state_t incom_assmbl_state__t;
+
+  flea_u8_t                  current_timeout_secs__u8;
 };
 
 # define FLEA_DTLS_HDSH_CTX_HAVE_PEND_WRT_MSG(hs_ctx__pt)   ((hs_ctx__pt)->dtls_ctx__t.fragm_info_ptr__pu8 != 0)

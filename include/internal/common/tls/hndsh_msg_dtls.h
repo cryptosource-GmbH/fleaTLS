@@ -6,6 +6,7 @@
 # include "flea/types.h"
 # include "internal/common/tls/tls_ctx_fwd.h"
 # include "internal/common/tls/parallel_hash.h"
+# include "internal/common/tls/tls_hndsh_ctx_fwd.h"
 
 # ifdef __cplusplus
 extern "C" {
@@ -24,6 +25,12 @@ flea_err_e THR_flea_dtls_hndsh__append_to_flight_buffer_and_try_to_send_record(
   const flea_u8_t*          data__pcu8,
   flea_u32_t                data_len__u32
 );
+
+
+void flea_dtls_hndsh__set_flight_buffer_empty(flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt);
+
+
+flea_err_e THR_flea_dtls_hdsh__retransmit_flight_buf(flea_tls_handshake_ctx_t* hs_ctx__pt);
 
 # ifdef __cplusplus
 }

@@ -48,14 +48,14 @@ void flea_timer_t__start(flea_timer_t* tmr__pt);
  *
  * @return the number of elapsed microsecs since the last call to flea_timer_t__start().
  */
-flea_u32_t flea_timer_t__get_elapsed_microsecs(flea_timer_t* tmr__pt);
+flea_u32_t flea_timer_t__get_elapsed_millisecs(flea_timer_t* tmr__pt);
 
 /**
  * Get the resolution of flea_timer_t timers in microseconds.
  *
  * @return the resolution of the timer in microseconds.
  */
-flea_u32_t flea_timer_t__get_resolution_in_microsecs(void);
+flea_u32_t flea_timer_t__get_resolution_in_millisecs(void);
 
 #endif // ifdef FLEA_HAVE_TIMER
 

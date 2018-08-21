@@ -8,6 +8,11 @@
 #include "internal/common/tls/tls_hndsh_ctx.h"
 #include "internal/common/tls/tls_int.h"
 #include "flea/bin_utils.h"
+#include "internal/common/tls/hndsh_msg_dtls.h"
+
+// TODO: REMOVE: again the header
+#include <unistd.h>
+#include <time.h>
 
 /*
  * recprot used in tls layer (tls_server, tls_client, tls_common):
@@ -539,7 +544,7 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   flea_recprot_t*       rec_prot__pt
 )
 {
-  flea_tls_rec_cont_type_e cont_type__e;
+  flea_tls_rec_cont_type_e cont_type__e = CONTENT_TYPE_ANY;
   flea_al_u8_t i;
   flea_al_u16_t curr_rec_cont_len__alu16;
   qheap_queue_heap_t* heap__pt = dtls_hs_ctx__pt->qheap__pt;
@@ -562,7 +567,28 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   /* trigger the reading of a new record */
 
   /* TODO: read non-blocking, can timeout */
-  FLEA_CCALL(THR_flea_recprot_t__get_current_record_type(rec_prot__pt, &cont_type__e, flea_read_full)); // WAS: READ_FULL
+  while(cont_type__e == CONTENT_TYPE_ANY)
+  {
+    flea_u32_t millisecs__u32;
+    // TODO: MAKE READ NON-BLOCKING WORK
+    FLEA_CCALL(THR_flea_recprot_t__get_current_record_type(rec_prot__pt, &cont_type__e, flea_read_nonblocking)); // WAS: READ_FULL
+    FLEA_DBG_PRINTF("rd_dtls_rec_from_wire: cont_type__e = %u\n", cont_type__e);
+    millisecs__u32 = flea_timer_t__get_elapsed_millisecs(
+      &dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t.timer__t
+    );
+    if(cont_type__e == CONTENT_TYPE_ANY)
+    {
+      if(millisecs__u32 > 1000 * dtls_hs_ctx__pt->current_timeout_secs__u8)
+      // if(millisecs__u32 > 1000 /*extra factor!*/ * 10 * dtls_hs_ctx__pt->current_timeout_secs__u8)
+      {
+        FLEA_DBG_PRINTF("ran into DTLS receive timeout for handshake msg\n");
+        /* TODO: resend the flight buffer */
+        FLEA_CCALL(THR_flea_dtls_hdsh__retransmit_flight_buf(dtls_hs_ctx__pt->hs_ctx__pt));
+        flea_timer_t__start(&dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t.timer__t);
+      }
+    }
+  }
+  FLEA_DBG_PRINTF("did receive DTLS record after receive-with-T/O loop\n");
 
   if(FLEA_RP__IS_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt))
   {
@@ -620,7 +646,7 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
           FLEA_THROW("invalid read length for CCS read from the rec_prot", FLEA_ERR_INT_ERR);
         }
       }
-      /* TODO: read non-blocking, can timeout */
+      /* read full, this cannot timeout any more because in DTLS, record must be within one packet */
       FLEA_CCALL(THR_flea_recprot_t__read_data(rec_prot__pt, cont_type__e, small_buf, &to_go__dtl, flea_read_full));
 
 
@@ -668,6 +694,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
   flea_dtls_hndsh_msg_state_info_t* curr_msg_state__pt = &assmbl_state__pt->curr_msg_state_info__t;
   flea_al_u16_t i;
   flight_buf_rec_type_e req_msg_type__e;
+  flea_bool_t is_first_msg_of_new_flight__b = FLEA_FALSE;
   // TODO: HANDLE TIMEOUT =>
   //                    IF NOT RECORD FROM NEXT EXPECTED FLIGHT WAS YET RECEIVED
   //                      THEN RESEND THE FLIGHT BUFFER:
@@ -677,6 +704,11 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
   //          TODO:  IF RECEIVING A RECORD FROM THE PREVIOUS (COMPLETED) FLIGHT,
   //          THEN ALSO RESEND THE LAST FLIGHT
   FLEA_THR_BEG_FUNC();
+  if(dtls_hs_ctx__pt->is_in_sending_state__u8)
+  {
+    /* the state variable is reset deeper in this call stack */
+    is_first_msg_of_new_flight__b = FLEA_TRUE;
+  }
   switch(rec_cont_type__e)
   {
       case CONTENT_TYPE_HANDSHAKE:
@@ -811,6 +843,10 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
         ))
         {
           FLEA_THROW("invalid result from queue rewrite", FLEA_ERR_INT_ERR);
+        }
+        if(is_first_msg_of_new_flight__b)
+        {
+          flea_dtls_hndsh__set_flight_buffer_empty(dtls_hs_ctx__pt);
         }
 
         /*if(handsh_hdr_mbn__pu8)

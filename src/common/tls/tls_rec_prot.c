@@ -1493,7 +1493,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
   /* output data from a possibly held record witz nonzero payload data left */
 
 
-  if(result_cont_type__pe && rec_prot__pt->curr_pt_content_len__u16)
+  if(result_cont_type__pe && rec_prot__pt->curr_pt_content_len__u16 - rec_prot__pt->curr_rec_content_offs__u16)
   {
     *result_cont_type__pe = rec_prot__pt->send_rec_buf_raw__bu8[0];
   }
@@ -1616,7 +1616,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
               + rec_prot__pt->curr_rec_content_len__u16;
           }
           // TODO: THIS IS WRONG, THE NEW RECORD WAS JUST SHIFTED DOWN !
-          flea_recprot_t__set_current_rd_rec_empty(rec_prot__pt);
+          // flea_recprot_t__set_current_rd_rec_empty(rec_prot__pt);
 
           /*rec_prot__pt->curr_rec_content_offs__u16 = 0;
           rec_prot__pt->curr_rec_content_len__u16  = 0;
@@ -1753,6 +1753,10 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           {
             if(local_rd_mode__e == flea_read_nonblocking)
             {
+              FLEA_DBG_PRINTF(
+                "THR_flea_recprot_t__read_data_inner_dtls returning with %u read bytes\n",
+                rec_prot__pt->raw_read_buf_content__u16
+              );
               *data_len__pdtl = 0;
               FLEA_THR_RETURN();
             }
@@ -2184,7 +2188,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
   rec_prot__pt->payload_buf__pu8 = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->record_hdr_len__u8;
 
 
-  if(result_cont_type__pe && rec_prot__pt->curr_pt_content_len__u16)
+  if(result_cont_type__pe && rec_prot__pt->curr_pt_content_len__u16 - rec_prot__pt->curr_rec_content_offs__u16)
   {
     *result_cont_type__pe = rec_prot__pt->send_rec_buf_raw__bu8[0];
   }

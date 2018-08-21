@@ -16,6 +16,20 @@
   (&(hs_ctx__pt)->dtls_ctx__t.flight_buf__bu8[(hs_ctx__pt)-> \
   dtls_ctx__t.flight_buf_read_pos__u32])
 
+
+/*
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ *
+ */
+
 static flea_u32_t flea_dtls_hndsh__get_flight_buf_rem_free_size(
   flea_tls_handshake_ctx_t* hs_ctx__pt
 )
@@ -267,5 +281,19 @@ flea_err_e THR_flea_dtls_hdsh__snd_hands_msg_hdr(
   // flight_buffer_writing
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__snd_hands_msg_hdr */
+
+void flea_dtls_hndsh__set_flight_buffer_empty(flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt)
+{
+  dtls_hs_ctx__pt->flight_buf_write_pos__u32 = 0;
+  dtls_hs_ctx__pt->flight_buf_read_pos__u32  = 0;
+}
+
+flea_err_e THR_flea_dtls_hdsh__retransmit_flight_buf(flea_tls_handshake_ctx_t* hs_ctx__pt)
+{
+  FLEA_THR_BEG_FUNC();
+  hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32 = 0;
+  FLEA_CCALL(THR_flea_dtls_hndsh__try_send_out_from_flight_buf(hs_ctx__pt));
+  FLEA_THR_FIN_SEC_empty();
+}
 
 #endif /* ifdef FLEA_HAVE_DTLS */

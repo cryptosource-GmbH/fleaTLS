@@ -18,7 +18,7 @@ void flea_timer_t__start(flea_timer_t* tmr__pt)
   THR_flea_lib__get_gmt_time_now(&tmr__pt->start_time__t);
 }
 
-flea_u32_t flea_timer_t__get_elapsed_microsecs(flea_timer_t* tmr__pt)
+flea_u32_t flea_timer_t__get_elapsed_millisecs(flea_timer_t* tmr__pt)
 {
   flea_gmt_time_t end__t;
 
@@ -26,7 +26,7 @@ flea_u32_t flea_timer_t__get_elapsed_microsecs(flea_timer_t* tmr__pt)
   return 1000 * flea_gmt_time_t__diff_secs(&end__t, &tmr__pt->start_time__t);
 }
 
-flea_u32_t flea_timer_t__get_resolution_in_microsecs(void)
+flea_u32_t flea_timer_t__get_resolution_in_millisecs(void)
 {
   return 1000;
 }
