@@ -61,10 +61,11 @@ typedef struct
 
 struct struct_flea_dtls_hdsh_ctx_t
 {
-  flea_s16_t send_msg_seq__s16;
+  flea_tls_ctx_t* tls_ctx__pt;
+  flea_s16_t      send_msg_seq__s16;
 /* first seq-no of the last completely received flight: */
-  flea_s16_t rec_last_flight_initial_msg_seq__s16;
-  flea_s16_t rec_last_flight_final_msg_seq__s16;
+  flea_s16_t      rec_last_flight_initial_msg_seq__s16;
+  flea_s16_t      rec_last_flight_final_msg_seq__s16;
 
   /* seq-no of the hs-msg, from which at least the first header has been
    * received: */
@@ -77,7 +78,10 @@ struct struct_flea_dtls_hdsh_ctx_t
   flea_u8_t*    fragm_info_ptr__pu8;
   flea_al_u16_t pmtu_estimate__alu16;
   // flea_u16_t curr_frag_len__alu16;
+  // TODO: remove:
   flea_u8_t     is_flight_buf_incoming__u8;
+
+  flea_u8_t     is_in_sending_state__u8;
 # ifdef FLEA_HEAP_MODE
   flea_u8_t*    flight_buf__bu8;
   // flea_u8_t*     hello_verify_cookie__bu8;

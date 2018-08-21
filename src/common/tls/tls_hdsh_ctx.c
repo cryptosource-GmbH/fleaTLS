@@ -15,6 +15,8 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
   // TODO: MAKE FLIGHT BUFFER SIZE CONTROLLABLE VIA API OR DYNAMICALLY
   FLEA_THR_BEG_FUNC();
 #if defined FLEA_HAVE_DTLS
+  hs_ctx__pt->dtls_ctx__t.tls_ctx__pt = tls_ctx__pt;
+  FLEA_CCALL(THR_flea_timer_t__ctor(&hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t.timer__t));
   hs_ctx__pt->dtls_ctx__t.send_msg_seq__s16 = -1;
   // TODO: MAKE PMTU-EST. AN ARGUMENT
   hs_ctx__pt->dtls_ctx__t.pmtu_estimate__alu16 = 256;
@@ -59,6 +61,7 @@ void flea_tls_handshake_ctx_t__dtor(flea_tls_handshake_ctx_t* hs_ctx__pt)
 #if defined FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHK_NULL(hs_ctx__pt->dtls_ctx__t.flight_buf__bu8);
 # ifdef FLEA_HAVE_DTLS
+  flea_timer_t__dtor(&hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t.timer__t);
   flea_byte_vec_t__dtor(&hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.qheap_handles_incoming__t);
 # endif
 #endif /* if defined FLEA_HEAP_MODE */

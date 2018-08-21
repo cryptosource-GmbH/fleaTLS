@@ -550,10 +550,20 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   qh_al_hndl_t hndl_alqhh;
 
   FLEA_THR_BEG_FUNC();
+
+  if(dtls_hs_ctx__pt->is_in_sending_state__u8)
+  {
+    /* outgoing flight has been completed, start the receive timer. */
+    flea_timer_t__start(&dtls_hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t.timer__t);
+    dtls_hs_ctx__pt->is_in_sending_state__u8 = 0;
+  }
+
+
   /* trigger the reading of a new record */
 
   /* TODO: read non-blocking, can timeout */
-  FLEA_CCALL(THR_flea_recprot_t__get_current_record_type(rec_prot__pt, &cont_type__e, flea_read_full));
+  FLEA_CCALL(THR_flea_recprot_t__get_current_record_type(rec_prot__pt, &cont_type__e, flea_read_full)); // WAS: READ_FULL
+
   if(FLEA_RP__IS_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt))
   {
     rec_type__u8 = rec_type_encr_rec;

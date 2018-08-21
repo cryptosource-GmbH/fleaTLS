@@ -15,6 +15,7 @@
 # include "internal/common/tls/tls_const.h"
 # include "flea/tls_fwd.h"
 # include "flea/tls_psk.h"
+# include "flea/timer.h"
 
 # ifdef __cplusplus
 extern "C" {
@@ -52,10 +53,15 @@ typedef struct
   flea_pk_scheme_id_e pk_scheme_id__t;
 } flea_tls__hash_sig_t;
 
-/*typedef struct
+#  ifdef FLEA_HAVE_DTLS
+
+typedef struct
 {
-  flea_u16_t current_hs_msg_len__u16;
-} flea_dtls_ctx_t;*/
+  // DONE in HS_CTX_CTOR: WHEN A HANDSHAKE IS STARTET, THIS MUST BE SET TO ZERO:
+  // flea_u8_t is_in_sending_state__u8;
+  flea_timer_t timer__t;
+} flea_dtls_retransm_state_t;
+#  endif // ifdef FLEA_HAVE_DTLS
 
 struct struct_flea_tls_ctx_t
 {
@@ -125,6 +131,9 @@ struct struct_flea_tls_ctx_t
 #  ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
   flea_x509_cert_ref_t        peer_root_cert_ref__t;
   flea_u8_t                   peer_root_cert_set__u8;
+#  endif
+#  ifdef FLEA_HAVE_DTLS
+  flea_dtls_retransm_state_t  dtls_retransm_state__t;
 #  endif
 };
 

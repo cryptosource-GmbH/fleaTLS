@@ -1447,7 +1447,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
   flea_tls__protocol_version_t* prot_version_mbn__pt,
   flea_bool_t                   do_verify_prot_version__b,
   flea_tls_rec_cont_type_e      cont_type__e,
-  flea_bool_t                   current_or_next_record_for_content_type__b,
+  flea_tls_rec_cont_type_e*     result_cont_type__pe,
   flea_stream_read_mode_e       rd_mode__e// ,
 )
 {
@@ -1456,8 +1456,15 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
 
   flea_bool_t is_handsh_msg_during_app_data__b = FLEA_FALSE;
 
+  flea_bool_t current_or_next_record_for_content_type__b = (result_cont_type__pe != NULL);
+
   FLEA_THR_BEG_FUNC();
   *data_len__pdtl = 0;
+
+  if(result_cont_type__pe)
+  {
+    *result_cont_type__pe = CONTENT_TYPE_ANY;
+  }
 
   if(FLEA_RP__IS_PENDING_CLOSE_NOTIFY(rec_prot__pt))
   {
@@ -1484,6 +1491,13 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
   FLEA_DBG_PRINTF("data_read for length = %u\n", data_len__dtl);*/
   rec_prot__pt->payload_buf__pu8 = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->record_hdr_len__u8;
   /* output data from a possibly held record witz nonzero payload data left */
+
+
+  if(result_cont_type__pe && rec_prot__pt->curr_pt_content_len__u16)
+  {
+    *result_cont_type__pe = rec_prot__pt->send_rec_buf_raw__bu8[0];
+  }
+
   to_cp__alu16 = FLEA_MIN(
     data_len__dtl,
     rec_prot__pt->curr_pt_content_len__u16 - rec_prot__pt->curr_rec_content_offs__u16
@@ -1601,6 +1615,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             rec_prot__pt->raw_read_buf_content__u16 -= rec_prot__pt->record_hdr_len__u8
               + rec_prot__pt->curr_rec_content_len__u16;
           }
+          // TODO: THIS IS WRONG, THE NEW RECORD WAS JUST SHIFTED DOWN !
           flea_recprot_t__set_current_rd_rec_empty(rec_prot__pt);
 
           /*rec_prot__pt->curr_rec_content_offs__u16 = 0;
@@ -1707,6 +1722,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
               );
               if(FLEA_RP__IS_DTLS(rec_prot__pt))
               {
+                // TODO: REMOVE, AND ALSO VERIFY DTLS VERSION CHECK AGAIN
                 FLEA_DBG_PRINTF("activating DTLS\n");
                 rec_prot__pt->record_hdr_len__u8 = FLEA_DTLS_RECORD_HDR_LEN;
                 rec_prot__pt->payload_buf__pu8   = rec_prot__pt->send_rec_buf_raw__bu8
@@ -1913,6 +1929,11 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
 
         rec_prot__pt->curr_rec_content_len__u16  = rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++] << 8;
         rec_prot__pt->curr_rec_content_len__u16 |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8];
+
+        if(result_cont_type__pe)
+        {
+          *result_cont_type__pe = rec_prot__pt->send_rec_buf_raw__bu8[0];
+        }
 
         /*if(rec_prot__pt->curr_rec_content_len__u16 == 0)
         {
@@ -2126,7 +2147,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
   flea_tls__protocol_version_t* prot_version_mbn__pt,
   flea_bool_t                   do_verify_prot_version__b,
   flea_tls_rec_cont_type_e      cont_type__e,
-  flea_bool_t                   current_or_next_record_for_content_type__b,
+  flea_tls_rec_cont_type_e*     result_cont_type__pe,
   flea_stream_read_mode_e       rd_mode__e
 )
 {
@@ -2137,8 +2158,15 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
   flea_al_u8_t hdr_pos__alu8;
   flea_bool_t is_handsh_msg_during_app_data__b = FLEA_FALSE;
 
+  flea_bool_t current_or_next_record_for_content_type__b = (result_cont_type__pe != NULL);
+
   FLEA_THR_BEG_FUNC();
   *data_len__pdtl = 0;
+
+  if(result_cont_type__pe)
+  {
+    *result_cont_type__pe = CONTENT_TYPE_ANY;
+  }
 
   if(FLEA_RP__IS_PENDING_CLOSE_NOTIFY(rec_prot__pt))
   {
@@ -2154,11 +2182,19 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
   }
 
   rec_prot__pt->payload_buf__pu8 = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->record_hdr_len__u8;
+
+
+  if(result_cont_type__pe && rec_prot__pt->curr_pt_content_len__u16)
+  {
+    *result_cont_type__pe = rec_prot__pt->send_rec_buf_raw__bu8[0];
+  }
+
   /* output data from a possibly held record witz nonzero payload data left */
   to_cp__alu16 = FLEA_MIN(
     data_len__dtl,
     rec_prot__pt->curr_pt_content_len__u16 - rec_prot__pt->curr_rec_content_offs__u16
   );
+
   memcpy(data__pu8, rec_prot__pt->payload_buf__pu8 + rec_prot__pt->curr_rec_content_offs__u16, to_cp__alu16);
   rec_prot__pt->curr_rec_content_offs__u16 += to_cp__alu16;
   data_len__dtl         -= to_cp__alu16;
@@ -2342,6 +2378,11 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_tls(
       rec_prot__pt->curr_rec_content_len__u16  = rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++] << 8;
       rec_prot__pt->curr_rec_content_len__u16 |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8];
 
+      if(result_cont_type__pe)
+      {
+        *result_cont_type__pe = rec_prot__pt->send_rec_buf_raw__bu8[0];
+      }
+
       /*if(rec_prot__pt->curr_rec_content_len__u16 == 0)
       {
         rec_prot__pt->skip_empty_record__b = FLEA_TRUE;
@@ -2513,7 +2554,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
   flea_tls__protocol_version_t* prot_version_mbn__pt,
   flea_bool_t                   do_verify_prot_version__b,
   flea_tls_rec_cont_type_e      cont_type__e,
-  flea_bool_t                   current_or_next_record_for_content_type__b,
+  flea_tls_rec_cont_type_e*     result_cont_type__pe,
   flea_stream_read_mode_e       rd_mode__e
 )
 {
@@ -2526,7 +2567,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
       prot_version_mbn__pt,
       do_verify_prot_version__b,
       cont_type__e,
-      current_or_next_record_for_content_type__b,
+      result_cont_type__pe,
       rd_mode__e
     );
   }
@@ -2539,7 +2580,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner(
       prot_version_mbn__pt,
       do_verify_prot_version__b,
       cont_type__e,
-      current_or_next_record_for_content_type__b,
+      result_cont_type__pe,
       rd_mode__e
     );
   }
@@ -2563,11 +2604,12 @@ flea_err_e THR_flea_recprot_t__get_current_record_type(
       &dummy_version__t,
       FLEA_FALSE,
       0 /*dummy_content_type */,
-      FLEA_TRUE,
+      cont_type__pe,
+      // FLEA_TRUE,
       rd_mode__e
     )
   );
-  *cont_type__pe = rec_prot__pt->send_rec_buf_raw__bu8[0];
+  // *cont_type__pe = rec_prot__pt->send_rec_buf_raw__bu8[0];
   FLEA_THR_FIN_SEC_empty();
 }
 
@@ -2587,7 +2629,7 @@ flea_err_e THR_flea_recprot_t__read_data(
     NULL,
     FLEA_FALSE,
     cont_type__e,
-    FLEA_FALSE,
+    NULL,
     rd_mode__e
   );
 }

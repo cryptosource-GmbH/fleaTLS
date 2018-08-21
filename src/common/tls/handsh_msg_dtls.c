@@ -180,6 +180,7 @@ flea_err_e THR_flea_dtls_hndsh__append_to_flight_buffer_and_try_to_send_record(
 )
 {
   FLEA_THR_BEG_FUNC();
+  hs_ctx__pt->dtls_ctx__t.is_in_sending_state__u8 = 1;
   FLEA_DBG_PRINTF("data to be appended to flight buf = ");
 
   for(unsigned i = 0; i < data_len__u32; i++)
@@ -251,7 +252,7 @@ flea_err_e THR_flea_dtls_hdsh__snd_hands_msg_hdr(
       sizeof(hdr__au8)
     )
   );
-// TOOD: DRAW OUT TO CALLER (TLS/DTLS DISPATCHER)
+// TODO: DRAW OUT TO CALLER (TLS/DTLS DISPATCHER)
   if(p_hash_ctx_mbn__pt)
   {
     FLEA_CCALL(
