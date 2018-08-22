@@ -66,7 +66,6 @@ flea_err_e THR_flea_tls__snd_hands_msg(
   flea_u32_t                msg_bytes_len
 ) FLEA_ATTRIB_UNUSED_RESULT;
 
-
 flea_err_e THR_flea_tls__read_finished(
   flea_tls_ctx_t*           tls_ctx,
   flea_tls_handsh_reader_t* hs_rdr__pt,
@@ -178,7 +177,6 @@ flea_err_e THR_flea_tls__client_handshake(
   flea_tls_clt_ctx_t*                   tls_client_ctx__pt,
   flea_tls_clt_session_t*               session_mbn__pt,
   const flea_hostn_validation_params_t* hostn_valid_params__pt,
-  // flea_bool_t                           is_reneg__b
   flea_tls_handshake_ctx_t*             hs_ctx__pt
 ) FLEA_ATTRIB_UNUSED_RESULT;
 
