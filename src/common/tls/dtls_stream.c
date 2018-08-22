@@ -579,7 +579,6 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
     if(cont_type__e == CONTENT_TYPE_ANY)
     {
       if(millisecs__u32 > 1000 * dtls_hs_ctx__pt->current_timeout_secs__u8)
-      // if(millisecs__u32 > 1000 /*extra factor!*/ * 10 * dtls_hs_ctx__pt->current_timeout_secs__u8)
       {
         FLEA_DBG_PRINTF("ran into DTLS receive timeout for handshake msg\n");
         /* TODO: resend the flight buffer */

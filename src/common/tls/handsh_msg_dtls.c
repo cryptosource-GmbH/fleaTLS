@@ -61,7 +61,8 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
   while(1)
   {
     // read in the header
-    if(flea_dtls_hndsh__flight_buf_avail_send_len(hs_ctx__pt) &&
+    flea_u32_t avail_len__u32 = flea_dtls_hndsh__flight_buf_avail_send_len(hs_ctx__pt);
+    if(avail_len__u32 &&
       flight_ptr__pu8[hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32] == 0xFF)
     {
       FLEA_DBG_PRINTF(" sending out CCS\n");
@@ -75,7 +76,7 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
       FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
       hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32++;
     }
-    else if(flea_dtls_hndsh__flight_buf_avail_send_len(hs_ctx__pt) >= FLEA_DTLS_HANDSH_HDR_LEN)
+    else if(avail_len__u32 >= FLEA_DTLS_HANDSH_HDR_LEN)
     {
       FLEA_DBG_PRINTF(" have at least HS-HDR len in flight buffer\n");
       // (introduce further pos: ready_for_read_until_here)
@@ -292,6 +293,7 @@ flea_err_e THR_flea_dtls_hdsh__retransmit_flight_buf(flea_tls_handshake_ctx_t* h
 {
   FLEA_THR_BEG_FUNC();
   hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32 = 0;
+  // TODO: IF CURRENTLY HELD FLIGHT CONTAINS CCS, THEN REVERT THE OLD WRITE CONNECTION STATE NOW
   FLEA_CCALL(THR_flea_dtls_hndsh__try_send_out_from_flight_buf(hs_ctx__pt));
   FLEA_THR_FIN_SEC_empty();
 }

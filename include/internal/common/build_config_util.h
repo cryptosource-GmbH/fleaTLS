@@ -157,4 +157,11 @@
 #endif
 
 /*********** End TLS/DTLS ********************************/
+
+#ifdef FLEA_COMPILER_GCC
+# define FLEA_ATTRIB_UNUSED_RESULT __attribute__((warn_unused_result))
+#else
+# define FLEA_ATTRIB_UNUSED_RESULT
+#endif
+
 #endif /* h-guard */

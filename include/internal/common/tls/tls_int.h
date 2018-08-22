@@ -134,7 +134,11 @@ struct struct_flea_tls_ctx_t
 #  endif
 #  ifdef FLEA_HAVE_DTLS
   flea_dtls_retransm_state_t  dtls_retransm_state__t;
-#  endif
+#   ifdef FLEA_STACK_MODE
+  flea_u8_t                   dtls_previous_write_key_block_mem__au8[FLEA_TLS_MAX_KEY_BLOCK_SIZE];
+#   endif
+  flea_byte_vec_t             dtls_previous_write_key_block__t;
+#  endif // ifdef FLEA_HAVE_DTLS
 };
 
 #  define FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt) \

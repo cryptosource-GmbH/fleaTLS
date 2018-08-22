@@ -642,6 +642,16 @@ flea_err_e THR_flea_recprot_t__wrt_data(
     rec_prot__pt->write_state__t.seqno_lo_hi__au32[0] = 0; // INCREMENTING HERE, BUT THE RECORD MAY STILL BE AWAITING ENCRYPTION
     rec_prot__pt->write_state__t.seqno_lo_hi__au32[1] = 0;
     rec_prot__pt->write_next_rec_epoch__u16++;
+
+    /** In case of DTLS, as in TLS, the activation of the new write connection
+     * state is done in the TLS logic layer, directly after the logical sending
+     * of the of the CCS. The above code ensures that the CCS record is
+     * prepared under the write connection before the activation of the new
+     * connection. In case of a flight retransmission from the flight buffer,
+     * the old write connection is restored before the flight including the
+     * CCS is sent out.
+     */
+
     FLEA_DBG_PRINTF("increased next write epoch to %u\n", rec_prot__pt->write_next_rec_epoch__u16);
   }
   FLEA_THR_FIN_SEC_empty();
