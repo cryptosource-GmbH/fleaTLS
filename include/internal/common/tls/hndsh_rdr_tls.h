@@ -14,7 +14,7 @@ extern "C" {
 flea_err_e THR_flea_tls_hndsh_rdr__ctor_tls(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
   flea_recprot_t*           rec_prot__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 # ifdef __cplusplus

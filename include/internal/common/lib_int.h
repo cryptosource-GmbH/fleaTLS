@@ -9,6 +9,6 @@
 /**
  * Function which determines the current time.
  */
-flea_err_e THR_flea_lib__get_gmt_time_now(flea_gmt_time_t* time__pt);
+flea_err_e THR_flea_lib__get_gmt_time_now(flea_gmt_time_t* time__pt) FLEA_ATTRIB_UNUSED_RESULT;
 
 #endif /* h-guard */

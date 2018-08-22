@@ -30,7 +30,7 @@ flea_err_e THR_flea_rw_stream_t__ctor_tls_handsh_reader(
   flea_tls_handsh_reader_hlp_t* hlp__pt,
   flea_rw_stream_t*             underlying_read_stream__pt,
   flea_u32_t                    msg_len__u32
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 # endif // ifdef FLEA_HAVE_TLS
 # ifdef __cplusplus

@@ -1,22 +1,22 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_pk_api__H_
-#define _flea_pk_api__H_
+# define _flea_pk_api__H_
 
-#include "internal/common/default.h"
-#include "flea/types.h"
-#include "flea/hash.h"
-#include "internal/common/pk_api_int.h"
-#include "flea/ec_dom_par.h"
-#include "flea/pubkey.h"
-#include "flea/privkey.h"
+# include "internal/common/default.h"
+# include "flea/types.h"
+# include "flea/hash.h"
+# include "internal/common/pk_api_int.h"
+# include "flea/ec_dom_par.h"
+# include "flea/pubkey.h"
+# include "flea/privkey.h"
 
 
-#ifdef FLEA_HAVE_ASYM_ALGS
+# ifdef FLEA_HAVE_ASYM_ALGS
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 extern "C" {
-# endif
+#  endif
 
 
 /**
@@ -38,11 +38,11 @@ typedef struct
 } flea_pk_signer_t;
 
 
-# ifdef FLEA_HEAP_MODE
-#  define flea_pk_signer_t__INIT(__p) do {flea_hash_ctx_t__INIT(&(__p)->hash_ctx);} while(0)
-# else
-#  define flea_pk_signer_t__INIT(__p) do {flea_hash_ctx_t__INIT(&(__p)->hash_ctx);} while(0)
-# endif
+#  ifdef FLEA_HEAP_MODE
+#   define flea_pk_signer_t__INIT(__p) do {flea_hash_ctx_t__INIT(&(__p)->hash_ctx);} while(0)
+#  else
+#   define flea_pk_signer_t__INIT(__p) do {flea_hash_ctx_t__INIT(&(__p)->hash_ctx);} while(0)
+#  endif
 
 
 /**
@@ -58,7 +58,7 @@ typedef struct
 flea_err_e THR_flea_pk_signer_t__ctor(
   flea_pk_signer_t* signer,
   flea_hash_id_e    hash_id
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Destroy a public key signer object.
@@ -80,7 +80,7 @@ flea_err_e THR_flea_pk_signer_t__update(
   flea_pk_signer_t* signer,
   const flea_u8_t*  message,
   flea_al_u16_t     message_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -102,7 +102,7 @@ flea_err_e THR_flea_pk_signer_t__final_verify(
   const flea_pubkey_t* pubkey,
   const flea_u8_t*     signature,
   flea_al_u16_t        signature_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -120,13 +120,13 @@ flea_err_e THR_flea_pk_signer_t__final_sign(
   flea_pk_scheme_id_e   id,
   const flea_privkey_t* privkey,
   flea_byte_vec_t*      signature
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 }
-# endif
+#  endif
 
-#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
+# endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
 
 #endif /* h-guard */

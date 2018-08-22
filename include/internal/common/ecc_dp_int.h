@@ -1,16 +1,16 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_ecc_dp_int__H_
-#define _flea_ecc_dp_int__H_
+# define _flea_ecc_dp_int__H_
 
-#include "internal/common/default.h"
-#include "flea/ec_dom_par.h"
+# include "internal/common/default.h"
+# include "flea/ec_dom_par.h"
 
-#ifdef FLEA_HAVE_ECC
+# ifdef FLEA_HAVE_ECC
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 extern "C" {
-# endif
+#  endif
 
 extern const flea_ec_dom_par_id_e flea_gl_ec_dom_par_max_id;
 
@@ -20,8 +20,8 @@ extern const flea_ec_dom_par_id_e flea_gl_ec_dom_par_max_id;
 typedef enum { flea_dp__p = 0, flea_dp__a = 1, flea_dp__b = 2, flea_dp__Gx = 3, flea_dp__Gy = 4, flea_dp__n,
                flea_dp__h } flea_ec_dom_par_element_id_e;
 
-# define FLEA_EC_DP_ELEM_ID_FIRST flea_dp__p
-# define FLEA_EC_DP_ELEM_ID_LAST  flea_dp__h
+#  define FLEA_EC_DP_ELEM_ID_FIRST flea_dp__p
+#  define FLEA_EC_DP_ELEM_ID_LAST  flea_dp__h
 
 
 /**
@@ -67,14 +67,14 @@ flea_err_e THR_flea_ec_dom_par_ref_t__write_to_concat_array(
   flea_u8_t*                   trg_mem__pu8,
   flea_dtl_t                   trgt_mem_size__dtl,
   const flea_ec_dom_par_ref_t* input__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 const flea_u8_t* flea_ec_dom_par__get_predef_ptr(flea_ec_dom_par_id_e dp_id);
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 }
-# endif
+#  endif
 
-#endif // ifdef FLEA_HAVE_ECC
+# endif // ifdef FLEA_HAVE_ECC
 #endif /* h-guard */

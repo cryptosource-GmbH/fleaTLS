@@ -1,13 +1,13 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_kdf__H_
-#define _flea_kdf__H_
+# define _flea_kdf__H_
 
-#include "flea/hash.h"
+# include "flea/hash.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 
 /**
@@ -35,10 +35,10 @@ flea_err_e THR_flea_kdf_X9_63(
   flea_al_u16_t    shared_info_len,
   flea_u8_t*       output,
   flea_al_u16_t    output_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

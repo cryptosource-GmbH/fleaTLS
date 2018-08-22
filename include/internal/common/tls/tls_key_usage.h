@@ -1,13 +1,13 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_tls_kex_key_usage__H_
-#define _flea_tls_kex_key_usage__H_
+# define _flea_tls_kex_key_usage__H_
 
-#include "flea/types.h"
+# include "flea/types.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 typedef enum { flea_tls_kex__rsa, flea_tls_kex__psa_psk, flea_tls_kex__ecdh_ecdsa, flea_tls_kex__ecdh_rsa,
                flea_tls_kex__ecdhe_rsa, flea_tls_kex__ecdhe_ecdsa } flea_tls_kex_e;
@@ -20,16 +20,16 @@ flea_err_e THR_flea_tls__chck_key_usg_of_server(
   flea_key_usage_t const* key_usage__pt,
   flea_key_usage_t const* extended_key_usage__pt,
   flea_tls_kex_e          kex_type
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_tls__chck_key_usg_of_client(
   flea_key_usage_t const*     key_usage__pt,
   flea_key_usage_t const*     extended_key_usage__pt,
   flea_tls_client_cert_type_e cert_type
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

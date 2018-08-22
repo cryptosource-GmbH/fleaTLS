@@ -62,6 +62,6 @@ flea_err_e THR_flea_mac_ctx_t__ctor_cmac(
   const flea_u8_t*          key,
   flea_al_u16_t             key_len,
   flea_ecb_mode_ctx_t*      ciph_ctx_ref
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 #endif /* h-guard */

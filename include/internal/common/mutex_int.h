@@ -14,13 +14,13 @@
 
 void flea_mutex__set_funcs(const flea_mutex_func_set_t* funcs__pt);
 
-flea_err_e THR_flea_mutex__init(flea_mutex_t* mutex__pt);
+flea_err_e THR_flea_mutex__init(flea_mutex_t* mutex__pt) FLEA_ATTRIB_UNUSED_RESULT;
 
 void flea_mutex__destroy(flea_mutex_t* mutex__pt);
 
-flea_err_e THR_flea_mutex__lock(flea_mutex_t* mutex__pt);
+flea_err_e THR_flea_mutex__lock(flea_mutex_t* mutex__pt) FLEA_ATTRIB_UNUSED_RESULT;
 
-flea_err_e THR_flea_mutex__unlock(flea_mutex_t* mutex__pt);
+flea_err_e THR_flea_mutex__unlock(flea_mutex_t* mutex__pt) FLEA_ATTRIB_UNUSED_RESULT;
 
 void flea_mutex__set_funcs(const flea_mutex_func_set_t* funcs__pt);
 

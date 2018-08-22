@@ -1,15 +1,15 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_tls_rec_prot_rdr__H_
-#define _flea_tls_rec_prot_rdr__H_
+# define _flea_tls_rec_prot_rdr__H_
 
-#include "flea/types.h"
-#include "flea/rw_stream.h"
-#include "internal/common/tls/tls_rec_prot_fwd.h"
+# include "flea/types.h"
+# include "flea/rw_stream.h"
+# include "internal/common/tls/tls_rec_prot_fwd.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 typedef struct
 {
@@ -23,10 +23,10 @@ flea_err_e THR_flea_rw_stream_t__ctor_rec_prot(
   flea_tls_rec_prot_rdr_hlp_t* hlp__pt,
   flea_recprot_t*              rec_prot__pt,
   flea_al_u8_t                 record_type__alu8
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

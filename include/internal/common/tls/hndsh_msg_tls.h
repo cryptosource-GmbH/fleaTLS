@@ -12,7 +12,7 @@ flea_err_e THR_flea_tls_hdsh__snd_hands_msg_hdr(
   flea_tls_prl_hash_ctx_t*  p_hash_ctx_mbn__pt,
   HandshakeType             type,
   flea_u32_t                content_len__u32
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 # ifdef __cplusplus

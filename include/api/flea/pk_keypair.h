@@ -1,19 +1,19 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_pk_keypair__H_
-#define _flea_pk_keypair__H_
+# define _flea_pk_keypair__H_
 
 
-#include "internal/common/default.h"
-#include "flea/ec_dom_par.h"
-#include "flea/pubkey.h"
-#include "flea/privkey.h"
+# include "internal/common/default.h"
+# include "flea/ec_dom_par.h"
+# include "flea/pubkey.h"
+# include "flea/privkey.h"
 
-#ifdef FLEA_HAVE_ECC
+# ifdef FLEA_HAVE_ECC
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 extern "C" {
-# endif
+#  endif
 
 /**
  * Generate an ECC key pair.
@@ -28,7 +28,7 @@ flea_err_e THR_flea_pubkey__generate_ecc_key_pair_by_dp(
   flea_pubkey_t*               pubkey,
   flea_privkey_t*              privkey,
   const flea_ec_dom_par_ref_t* dp
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Generate an ECC key pair.
@@ -43,10 +43,10 @@ flea_err_e THR_flea_pubkey__by_dp_id_gen_ecc_key_pair(
   flea_pubkey_t*       pubkey,
   flea_privkey_t*      privkey,
   flea_ec_dom_par_id_e dp_id
-);
-# ifdef __cplusplus
+) FLEA_ATTRIB_UNUSED_RESULT;
+#  ifdef __cplusplus
 }
-# endif
+#  endif
 
-#endif // ifdef FLEA_HAVE_ECC
+# endif // ifdef FLEA_HAVE_ECC
 #endif /* h-guard */

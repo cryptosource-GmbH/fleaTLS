@@ -23,7 +23,7 @@ typedef flea_wall_clock_timer_t flea_timer_t;
  *
  * @param tmr__pt Pointer to the timer object.
  */
-flea_err_e THR_flea_timer_t__ctor(flea_timer_t* tmr__pt);
+flea_err_e THR_flea_timer_t__ctor(flea_timer_t* tmr__pt) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Destroy a timer object.

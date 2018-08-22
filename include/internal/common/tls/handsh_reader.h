@@ -46,14 +46,15 @@ flea_err_e THR_flea_tls_handsh_reader_t__ctor(
   flea_dtls_hdsh_ctx_t*     dtls_hs_ctx__pt,
   flea_tls_rec_cont_type_e  cont_type__e
 #  endif
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_u32_t flea_tls_handsh_reader_t__get_msg_rem_len(flea_tls_handsh_reader_t* handsh_rdr__pt);
 
 /**
  * Discard the remaining message ( read it off the stream ).
  */
-flea_err_e THR_flea_tls_handsh_reader_t__skip_rem_msg(flea_tls_handsh_reader_t* handsh_rdr__pt);
+flea_err_e THR_flea_tls_handsh_reader_t__skip_rem_msg(flea_tls_handsh_reader_t* handsh_rdr__pt)
+FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_rw_stream_t* flea_tls_handsh_reader_t__get_read_stream(flea_tls_handsh_reader_t* handsh_rdr__pt);
 
@@ -62,7 +63,7 @@ flea_al_u8_t flea_tls_handsh_reader_t__get_handsh_msg_type(flea_tls_handsh_reade
 flea_err_e THR_flea_tls_handsh_reader_t__set_hash_ctx(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
   flea_tls_prl_hash_ctx_t*  p_hash_ctx__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 void flea_tls_handsh_reader_t__unset_hasher(flea_tls_handsh_reader_t* handsh_rdr__pt);
 

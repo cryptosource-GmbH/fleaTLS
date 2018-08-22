@@ -132,18 +132,19 @@ struct struct_flea_tls_handshake_ctx_t
 # endif
 };
 
-// flea_err_e THR_flea_tls_handshake_ctx_t__ctor(flea_tls_handshake_ctx_t* hs_ctx__pt);
+// flea_err_e THR_flea_tls_handshake_ctx_t__ctor(flea_tls_handshake_ctx_t* hs_ctx__pt) FLEA_ATTRIB_UNUSED_RESULT;
 flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
   // flea_recprot_t*           rec_prot__pt
   flea_tls_ctx_t*           tls_ctx__pt,
   flea_bool_t               is_reneg__b
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 void flea_tls_handshake_ctx_t__dtor(flea_tls_handshake_ctx_t* hs_ctx__pt);
 
 # ifdef FLEA_HAVE_DTLS
-flea_err_e THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(flea_tls_handshake_ctx_t* hs_ctx__pt);
+flea_err_e THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(flea_tls_handshake_ctx_t* hs_ctx__pt)
+FLEA_ATTRIB_UNUSED_RESULT;
 # endif
 
 # ifdef __cplusplus

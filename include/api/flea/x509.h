@@ -331,7 +331,7 @@ flea_err_e THR_flea_x509_cert_ref_t__ctor(
   flea_x509_cert_ref_t* cert_ref,
   const flea_u8_t*      der_encoded_cert,
   flea_al_u16_t         der_encoded_cert_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Get a pointer to the notBefore time field of the certificate as a reference
@@ -364,7 +364,7 @@ flea_err_e THR_flea_x509_cert_ref_t__get_subject_dn_component(
   flea_x509_cert_ref_t const* cert_ref,
   flea_dn_cmpnt_e             cmpnt,
   flea_ref_cu8_t*             result
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -378,7 +378,7 @@ flea_err_e THR_flea_x509_cert_ref_t__get_issuer_dn_component(
   flea_x509_cert_ref_t const* cert_ref,
   flea_dn_cmpnt_e             cmpnt,
   flea_ref_cu8_t*             result
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Test for allowed key usages in the certificate.
@@ -448,7 +448,7 @@ flea_err_e THR_flea_x509_cert__get_ref_to_tbs(
   const flea_u8_t* der_encoded_cert,
   flea_al_u16_t    der_encoded_cert_len,
   flea_ref_cu8_t*  ref_to_tbs
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -465,7 +465,7 @@ flea_err_e THR_flea_x509_cert__get_bv_ref_to_tbs(
   const flea_u8_t* der_encoded_cert,
   flea_al_u16_t    der_encoded_cert_len,
   flea_byte_vec_t* ref_to_tbs
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 # ifdef __cplusplus

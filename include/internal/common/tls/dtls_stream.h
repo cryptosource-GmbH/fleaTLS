@@ -25,7 +25,7 @@ flea_err_e THR_flea_rw_stream_t__ctor_dtls_rd_strm(
   flea_dtls_rd_stream_hlp_t* hlp__pt,
   flea_dtls_hdsh_ctx_t*      dtls_ctx__pt,
   flea_recprot_t*            rec_prot__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 void flea_dtls_rd_strm__expect_ccs(
@@ -40,7 +40,7 @@ void flea_dtls_rd_strm__expect_hndhs(
 // TODO:
 flea_err_e THR_flea_rw_stream_t__flight_completely_read(
   flea_rw_stream_t* stream__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 # ifdef __cplusplus
 }

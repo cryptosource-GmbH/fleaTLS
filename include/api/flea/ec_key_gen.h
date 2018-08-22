@@ -1,15 +1,15 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 #ifndef _flea_ec_key_gen__H_
-#define _flea_ec_key_gen__H_
+# define _flea_ec_key_gen__H_
 
-#include "flea/types.h"
-#include "flea/ec_dom_par.h"
+# include "flea/types.h"
+# include "flea/ec_dom_par.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-#ifdef FLEA_HAVE_ECC
+# ifdef FLEA_HAVE_ECC
 
 /**
  * Generate an EC key pair.
@@ -32,12 +32,12 @@ flea_err_e THR_flea_generate_ecc_key(
   flea_u8_t*                   result_private,
   flea_al_u8_t*                result_private_len,
   const flea_ec_dom_par_ref_t* dom_par
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-#endif /* #ifdef FLEA_HAVE_ECC */
+# endif /* #ifdef FLEA_HAVE_ECC */
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

@@ -79,7 +79,7 @@ flea_err_e THR_flea_cpv_t__ctor_cert(
   flea_al_u16_t                target_cert_len,
   flea_rev_chk_mode_e          rev_chk_mode,
   flea_x509_validation_flags_e cert_ver_flags
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -95,7 +95,7 @@ flea_err_e THR_flea_cpv_t__add_crl(
   flea_cpv_t*      cpv,
   const flea_u8_t* crl_der,
   flea_dtl_t       crl_der_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Add an untrusted certificate to a cert path validator. The encoded certificate must stay in the same
@@ -110,7 +110,7 @@ flea_err_e THR_flea_cpv_t__add_cert_without_trust_status(
   flea_cpv_t*      cpv,
   const flea_u8_t* cert,
   flea_al_u16_t    cert_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Add a trust anchor to object. It is possible to add the target cert itself again if it is trusted. This is
@@ -126,7 +126,7 @@ flea_err_e THR_flea_cpv_t__add_trust_anchor_cert(
   flea_cpv_t*      cpv,
   const flea_u8_t* cert,
   flea_al_u16_t    cert_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -146,7 +146,7 @@ flea_err_e THR_flea_cpv_t__add_trust_anchor_cert(
 flea_err_e THR_flea_cpv_t__validate(
   flea_cpv_t*            cpv,
   const flea_gmt_time_t* time_mbn
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * The same operation as THR_flea_cpv_t__validate(), but additionally constructs the public key of the the target certificate.
@@ -162,7 +162,7 @@ flea_err_e THR_flea_cpv_t__validate_and_create_pub_key(
   flea_cpv_t*            cpv,
   const flea_gmt_time_t* time_mbn,
   flea_pubkey_t*         key_to_construct_mbn
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * The same as THR_flea_cpv_t__validate_and_create_pub_key(), but additionally verifies the host ID.
@@ -181,7 +181,7 @@ flea_err_e THR_flea_cpv_t__validate_and_hostid_and_create_pub_key(
   const flea_byte_vec_t* host_id,
   flea_host_id_type_e    host_id_type,
   flea_pubkey_t*         key_to_construct_mbn
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * This function is intended to be called from another thread while the

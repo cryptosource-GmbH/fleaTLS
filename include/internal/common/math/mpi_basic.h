@@ -33,13 +33,13 @@ flea_err_e THR_flea_mpi_t__decode(
   flea_mpi_t*      p_result,
   const flea_u8_t* encoded,
   flea_mpi_ulen_t  encoded_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_mpi_t__encode(
   flea_u8_t*        p_result,
   flea_al_u16_t     result_len,
   const flea_mpi_t* p_mpi
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_al_s8_t flea_mpi_t__compare_absolute(
   const flea_mpi_t* p_a,
@@ -74,7 +74,7 @@ flea_u8_t flea_mpi_t__get_bit(
 flea_err_e THR_flea_mpi_t__copy_no_realloc(
   flea_mpi_t*       p_target,
   const flea_mpi_t* p_source
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_bool_t flea_mpi_t__is_zero(const flea_mpi_t* p_mpi);
 

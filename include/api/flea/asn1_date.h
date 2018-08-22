@@ -39,32 +39,32 @@ typedef struct
 flea_err_e THR_flea_asn1_parse_gmt_time(
   flea_bdec_t*     dec__t,
   flea_gmt_time_t* utctime__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_asn1_parse_gmt_time_optional(
   flea_bdec_t*     dec__t,
   flea_gmt_time_t* utctime__pt,
   flea_bool_t*     found__pb
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_asn1_parse_date(
   flea_asn1_time_type_t tag__t,
   const flea_u8_t*      value_in,
   flea_dtl_t            value_length,
   flea_gmt_time_t*      value_out
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_asn1_parse_generalized_time(
   const flea_u8_t* value_in,
   size_t           value_length,
   flea_gmt_time_t* value_out
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_asn1_parse_utc_time(
   const flea_u8_t* value_in,
   size_t           value_length,
   flea_gmt_time_t* value_out
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 int flea_asn1_cmp_utc_time(
   const flea_gmt_time_t* date1,

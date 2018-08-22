@@ -13,7 +13,7 @@ flea_err_e THR_flea_ecc_gfp_dom_par_t__set_by_named_curve_oid(
   flea_ec_dom_par_ref_t* dp_to_set__pt,
   const flea_u8_t*       oid__pcu8,
   flea_al_u8_t           oid_len__alu8
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 #endif /* #ifdef FLEA_HAVE_ECC */
 #endif /* h-guard */

@@ -11,7 +11,7 @@
 flea_err_e THR_flea_triple_des_ede_2key_setup_key(
   flea_ecb_mode_ctx_t* ctx__pt,
   const flea_u8_t*     key
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 void flea_triple_des_ede_2key_encrypt_block(
   const flea_ecb_mode_ctx_t* ctx__pt,
@@ -28,7 +28,7 @@ void flea_triple_des_ede_2key_decrypt_block(
 flea_err_e THR_flea_triple_des_ede_3key_setup_key(
   flea_ecb_mode_ctx_t* ctx__pt,
   const flea_u8_t*     key
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 void flea_triple_des_ede_3key_encrypt_block(
   const flea_ecb_mode_ctx_t* ctx__pt,

@@ -28,7 +28,7 @@ flea_err_e THR_flea_mpi_t__montgm_mul(
   const flea_mpi_t*      p_a,
   const flea_mpi_t*      p_b,
   flea_montgm_mul_ctx_t* p_ctx
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /*
  * p_result must be different from p_a and p_b
@@ -37,7 +37,7 @@ flea_err_e THR_flea_mpi_t__subtract(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_a,
   const flea_mpi_t* p_b
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  *  both a and b must be between 0 and p-1
@@ -49,29 +49,29 @@ flea_err_e THR_flea_mpi_t__subtract_mod(
   const flea_mpi_t* p_b,
   const flea_mpi_t* p_mod,
   flea_mpi_t*       p_workspace_mod_size
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_mpi_t__add_in_place_ignore_sign(
   flea_mpi_t*       p_in_out,
   const flea_mpi_t* p_b
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_mpi_t__add_ignore_sign(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_a,
   const flea_mpi_t* p_b
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_mpi_t__add_in_place(
   flea_mpi_t*       p_in_out,
   const flea_mpi_t* p_b,
   flea_mpi_t*       p_ws
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_mpi_square(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_a
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 flea_al_u8_t flea_mpi_t__get_window(
@@ -95,7 +95,7 @@ flea_err_e THR_flea_mpi_t__mod_exp_window(
   ,
   flea_ctr_mode_prng_t* delay_prng__pt
 #endif
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 flea_mpi_ulen_t flea_mpi_t__nb_trailing_zero_bits(flea_mpi_t* p_mpi);
@@ -108,42 +108,42 @@ void flea_mpi_t__shift_right(
 flea_err_e THR_flea_mpi_t__set_pow_2(
   flea_mpi_t*   p_result,
   flea_al_u16_t exp
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 flea_err_e THR_flea_mpi_t__shift_left_small(
   flea_mpi_t*   p_mpi,
   flea_al_u16_t shift
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_mpi_t__invert_odd_mod(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_mpi,
   const flea_mpi_t* p_mod,
   flea_mpi_t        ws_mod_size[4]
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_mpi_t__random_integer(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_limit
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_mpi_t__random_integer_no_flush(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_limit
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_mpi_t__quick_reduce_greater_zero(
   flea_mpi_t*       p_in_out,
   const flea_mpi_t* p_mod,
   flea_mpi_t*       p_ws
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_mpi_t__quick_reduce_smaller_zero(
   flea_mpi_t*       p_in_out,
   const flea_mpi_t* p_mod,
   flea_mpi_t*       p_ws
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 #endif /* h-guard */

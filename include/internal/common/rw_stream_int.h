@@ -1,14 +1,14 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_rw_stream_int__H_
-#define _flea_rw_stream_int__H_
+# define _flea_rw_stream_int__H_
 
-#include "flea/rw_stream.h"
-#include "internal/common/rw_stream_types.h"
+# include "flea/rw_stream.h"
+# include "internal/common/rw_stream_types.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 
 flea_err_e THR_flea_rw_stream_t__ctor_detailed(
@@ -21,13 +21,13 @@ flea_err_e THR_flea_rw_stream_t__ctor_detailed(
   flea_rw_stream_flush_write_f flush_write_func,
   flea_u32_t                   read_limit,
   flea_rw_stream_type_e        strm_type
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_rw_stream_type_e flea_rw_stream_t__get_strm_type(const flea_rw_stream_t* rw_stream);
 
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

@@ -19,6 +19,6 @@ void flea_sha224_init(flea_hash_ctx_t* ctx__t);
 flea_err_e THR_flea_sha256_compression_function(
   flea_hash_ctx_t* ctx__t,
   const flea_u8_t* input
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 #endif /* h-guard */

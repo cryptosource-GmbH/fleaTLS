@@ -1,18 +1,18 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_tls_psk__H_
-#define _flea_tls_psk__H_
+# define _flea_tls_psk__H_
 
-#include "flea/tls.h"
-#include "flea/tls_server.h"
-#include "flea/cert_store.h"
-#include "flea/privkey.h"
+# include "flea/tls.h"
+# include "flea/tls_server.h"
+# include "flea/cert_store.h"
+# include "flea/privkey.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-#ifdef FLEA_HAVE_TLS
+# ifdef FLEA_HAVE_TLS
 
 /*
  * Callback function that will be called during handshake to determine the PSK
@@ -116,10 +116,10 @@ flea_err_e THR_flea_tls_srv_ctx_t__ctor_psk(
   const void*                       psk_lookup_ctx_mbn,
   flea_tls_flag_e                   flags,
   flea_tls_session_mngr_t*          session_mngr_mbn
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
-# ifdef FLEA_HAVE_TLS_CS_PSK
+#  ifdef FLEA_HAVE_TLS_CS_PSK
 
 /*
  * Callback function that will be called during the handshake by the client to transform the
@@ -189,13 +189,13 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor_psk(
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
   flea_al_u16_t                     nb_allowed_cipher_suites,
   flea_tls_flag_e                   flags
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-# endif // ifdef FLEA_HAVE_TLS_CS_PSK
+#  endif // ifdef FLEA_HAVE_TLS_CS_PSK
 
-#endif // ifdef FLEA_HAVE_TLS
+# endif // ifdef FLEA_HAVE_TLS
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 #endif /* h-guard */

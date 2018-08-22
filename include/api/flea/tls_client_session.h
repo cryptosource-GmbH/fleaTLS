@@ -1,15 +1,15 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_tls_client_session__H_
-#define _flea_tls_client_session__H_
+# define _flea_tls_client_session__H_
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-#include "flea/types.h"
-#include "flea/byte_vec.h"
-#include "internal/common/tls/tls_session_mngr_int.h"
+# include "flea/types.h"
+# include "flea/byte_vec.h"
+# include "internal/common/tls/tls_session_mngr_int.h"
 
 /**
  * Type to hold information of a TLS session for a TLS client. When
@@ -31,7 +31,7 @@ typedef struct
  *
  * @param client_session pointer to the client session object to initialize.
  */
-#define flea_tls_clt_session_t__INIT(client_session)
+# define flea_tls_clt_session_t__INIT(client_session)
 
 /**
  * Destroy a client session object.
@@ -39,7 +39,7 @@ typedef struct
  * @param client_session pointer to the client session object to destroy.
  *
  */
-#define flea_tls_clt_session_t__dtor(client_session)
+# define flea_tls_clt_session_t__dtor(client_session)
 
 /**
  * Determine whether this object holds a valid TLS session.
@@ -72,7 +72,7 @@ flea_err_e THR_flea_tls_clt_session_t__deserialize(
   flea_tls_clt_session_t* client_session,
   const flea_u8_t*        enc,
   flea_al_u16_t           enc_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Serialize the session held by the client session object. If no valid session
@@ -87,9 +87,9 @@ flea_err_e THR_flea_tls_clt_session_t__deserialize(
 flea_err_e THR_flea_tls_clt_session_t__serialize(
   const flea_tls_clt_session_t* client_session,
   flea_byte_vec_t*              result
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 #endif /* h-guard */

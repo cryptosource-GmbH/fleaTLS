@@ -1,13 +1,13 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_cert_path_int__H_
-#define _flea_cert_path_int__H_
+# define _flea_cert_path_int__H_
 
-#include "flea/x509.h"
+# include "flea/x509.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 typedef struct
 {
@@ -23,9 +23,9 @@ flea_err_e THR_flea_cert_path__validate_single_cert(
   flea_bool_t            is_trusted__b,
   flea_bool_t            is_target__b,
   const flea_gmt_time_t* arg_compare_time_mbn__pt
-);
-#ifdef __cplusplus
+) FLEA_ATTRIB_UNUSED_RESULT;
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

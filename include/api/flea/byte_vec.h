@@ -318,7 +318,7 @@ flea_err_e THR_flea_byte_vec_t__append(
 flea_err_e THR_flea_byte_vec_t__push_back(
   flea_byte_vec_t* byte_vec,
   flea_u8_t        byte
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Only supported in heap mode. Enlarge the byte vector's internal capacity.
@@ -331,7 +331,7 @@ flea_err_e THR_flea_byte_vec_t__push_back(
 flea_err_e THR_flea_byte_vec_t__reserve(
   flea_byte_vec_t* byte_vec,
   flea_dtl_t       reserve_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Set the content of a byte vector. The previous content of the vector is
@@ -347,7 +347,7 @@ flea_err_e THR_flea_byte_vec_t__set_content(
   flea_byte_vec_t* byte_vec,
   const flea_u8_t* data,
   flea_dtl_t       len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Set the vector to the new size. If the new size is smaller than the previous
@@ -362,7 +362,7 @@ flea_err_e THR_flea_byte_vec_t__set_content(
 flea_err_e THR_flea_byte_vec_t__resize(
   flea_byte_vec_t* byte_vec,
   unsigned         new_size
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 # ifdef __cplusplus

@@ -10,7 +10,7 @@
 flea_err_e THR_flea_desx_setup_key(
   flea_ecb_mode_ctx_t* ctx__pt,
   const flea_u8_t*     key
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 void flea_desx_encrypt_block(
   const flea_ecb_mode_ctx_t* ctx__pt,

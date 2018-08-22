@@ -7,7 +7,7 @@
 flea_err_e THR_flea_sha1_compression_function(
   flea_hash_ctx_t* ctx__pt,
   const flea_u8_t* input__pc_u8
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 void flea_sha1_init(flea_hash_ctx_t* ctx__pt);
 

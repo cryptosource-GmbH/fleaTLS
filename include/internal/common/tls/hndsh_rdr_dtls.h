@@ -17,7 +17,7 @@ flea_err_e THR_flea_tls_hndsh_rdr__ctor_dtls(
   flea_dtls_hdsh_ctx_t*     dtls_ctx__pt,
 //  flea_recprot_t*           rec_prot__pt,
   flea_tls_rec_cont_type_e  rec_cont_type__e
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 # ifdef __cplusplus
 }
 # endif

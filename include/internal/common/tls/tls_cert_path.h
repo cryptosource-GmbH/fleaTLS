@@ -1,20 +1,20 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_tls_cert_path__H_
-#define _flea_tls_cert_path__H_
+# define _flea_tls_cert_path__H_
 
-#include "flea/types.h"
-#include "internal/common/tls/tls_ctx_fwd.h"
-#include "internal/common/tls/handsh_reader.h"
-#include "flea/cert_store.h"
-#include "internal/common/tls/tls_key_usage.h"
-#include "internal/common/tls/hostn_ver_int.h"
-#include "flea/tls.h"
+# include "flea/types.h"
+# include "internal/common/tls/tls_ctx_fwd.h"
+# include "internal/common/tls/handsh_reader.h"
+# include "flea/cert_store.h"
+# include "internal/common/tls/tls_key_usage.h"
+# include "internal/common/tls/hostn_ver_int.h"
+# include "flea/tls.h"
 
-#ifdef FLEA_HAVE_TLS
-# ifdef __cplusplus
+# ifdef FLEA_HAVE_TLS
+#  ifdef __cplusplus
 extern "C" {
-# endif
+#  endif
 
 typedef struct
 {
@@ -32,11 +32,11 @@ flea_err_e THR_flea_tls__cert_path_validation(
   const flea_cert_store_t*           trust_store__pt,
   flea_pubkey_t*                     pubkey_to_construct__pt,
   flea_tls_cert_path_params_t const* cert_path_params__pct
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 }
-# endif
-#endif // ifdef FLEA_HAVE_TLS
+#  endif
+# endif // ifdef FLEA_HAVE_TLS
 #endif /* h-guard */

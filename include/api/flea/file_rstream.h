@@ -1,18 +1,18 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_file_rstream__H_
-#define _flea_file_rstream__H_
+# define _flea_file_rstream__H_
 
-#ifdef FLEA_HAVE_STDLIB_FILESYSTEM
-# include "internal/common/default.h"
-# include "flea/error.h"
-# include "flea/types.h"
-# include "flea/rw_stream.h"
-# include <stdio.h>
+# ifdef FLEA_HAVE_STDLIB_FILESYSTEM
+#  include "internal/common/default.h"
+#  include "flea/error.h"
+#  include "flea/types.h"
+#  include "flea/rw_stream.h"
+#  include <stdio.h>
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 extern "C" {
-# endif
+#  endif
 
 typedef struct
 {
@@ -43,12 +43,12 @@ flea_err_e THR_flea_rw_stream_t__ctor_cfile_reader(
   FILE*                         file_open_for_reading,
   flea_dtl_t                    read_limit,
   flea_bool_t                   do_close_file_in_dtor
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 }
-# endif
+#  endif
 
-#endif // ifdef FLEA_HAVE_STDLIB_FILESYSTEM
+# endif // ifdef FLEA_HAVE_STDLIB_FILESYSTEM
 
 #endif /* h-guard */

@@ -231,7 +231,7 @@ flea_err_e THR_flea_recprot_t__ctor(
   flea_al_u8_t      prot_vers_minor,
   flea_rw_stream_t* rw_stream__pt,
   flea_bool_t       is_dtls__b
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 void flea_recprot_t__set_null_ciphersuite(
   flea_recprot_t*       rec_prot__pt,
@@ -244,11 +244,11 @@ flea_err_e THR_flea_recprot_t__wrt_data(
   flea_tls_rec_cont_type_e content_type__e,
   const flea_u8_t*         data__pcu8,
   flea_dtl_t               data_len__dtl
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_recprot_t__write_flush(
   flea_recprot_t* rec_prot__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_recprot_t__read_data(
   flea_recprot_t*          rec_prot__pt,
@@ -256,33 +256,33 @@ flea_err_e THR_flea_recprot_t__read_data(
   flea_u8_t*               data__pu8,
   flea_dtl_t*              data_len__pdtl,
   flea_stream_read_mode_e  rd_mode__e
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 flea_err_e THR_flea_recprot_t__get_current_record_type(
   flea_recprot_t*           rec_prot__pt,
   flea_tls_rec_cont_type_e* cont_type__pe,
   flea_stream_read_mode_e   rd_mode__e
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_recprot_t__send_record(
   flea_recprot_t*          rec_prot__pt,
   const flea_u8_t*         bytes,
   flea_dtl_t               bytes_len,
   flea_tls_rec_cont_type_e content_type
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_recprot_t__send_alert(
   flea_recprot_t*               rec_prot__pt,
   flea_tls__alert_description_t description,
   flea_tls__alert_level_t       level
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_recprot_t__send_alert_and_throw(
   flea_recprot_t*               rec_prot__pt,
   flea_tls__alert_description_t description,
   flea_err_e                    err__t
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_recprot_t__set_ciphersuite(
   flea_recprot_t*            rec_prot__pt,
@@ -290,7 +290,7 @@ flea_err_e THR_flea_recprot_t__set_ciphersuite(
   flea_tls__connection_end_t conn_end__e,
   flea_tls_cipher_suite_id_t suite_id,
   const flea_u8_t*           key_block__pcu8
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 flea_bool_t flea_recprot_t__have_done_initial_handshake(const flea_recprot_t* rec_prot__pt);
@@ -303,7 +303,7 @@ flea_al_u16_t flea_recprot_t__get_curr_wrt_rcrd_rem_free_len(const flea_recprot_
 
 void flea_recprot_t__discard_current_read_record(flea_recprot_t* rec_prot__pt);
 
-flea_err_e THR_flea_recprot_t__close_and_send_close_notify(flea_recprot_t* rec_prot__pt);
+flea_err_e THR_flea_recprot_t__close_and_send_close_notify(flea_recprot_t* rec_prot__pt) FLEA_ATTRIB_UNUSED_RESULT;
 
 void flea_recprot_t__set_max_pt_len(
   flea_recprot_t* rec_prot__pt,
@@ -315,16 +315,16 @@ flea_err_e THR_flea_recprot_t__write_encr_rec_to_queue(
   flea_recprot_t*     rec_prot__pt,
   qheap_queue_heap_t* qh__pt,
   qh_al_hndl_t        hndl_for_encryped_rec__alqhh
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
-flea_err_e THR_flea_recprot_t__increment_read_epoch(flea_recprot_t* rec_prot__pt);
+flea_err_e THR_flea_recprot_t__increment_read_epoch(flea_recprot_t* rec_prot__pt) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_recprot_t__set_encr_rd_rec_and_decrypt_it(
   flea_recprot_t*     rec_prot__pt,
   qheap_queue_heap_t* heap__pt,
   qh_al_hndl_t        hndl__alqhh
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_bool_t flea_recprot_t__is_rd_buf_empty(flea_recprot_t* rec_prot__pt);
 
@@ -336,7 +336,7 @@ flea_bool_t flea_recprot_t__is_rd_buf_empty(flea_recprot_t* rec_prot__pt);
 flea_err_e THR_flea_recprot_t__resize_send_plaintext_size(
   flea_recprot_t* rec_prot__pt,
   flea_al_u16_t   new_len__alu16
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 #  endif // ifdef FLEA_HEAP_MODE
 
 # endif // ifdef FLEA_HAVE_TLS

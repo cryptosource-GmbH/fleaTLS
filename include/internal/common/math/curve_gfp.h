@@ -26,14 +26,14 @@ flea_err_e THR_flea_curve_gfp_t__init(
   flea_al_u16_t     p_enc_len,
   flea_uword_t*     memory,
   flea_al_u16_t     memory_word_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_curve_gfp_t__init_dp_array(
   flea_curve_gfp_t*            p_curve,
   const flea_ec_dom_par_ref_t* dp__pt,
   flea_uword_t*                memory,
   flea_al_u16_t                memory_word_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 #endif /* #ifdef FLEA_HAVE_ECC */
 #endif /* h-guard */

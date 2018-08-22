@@ -120,7 +120,7 @@ void flea_copy_rcu8_use_mem(
 flea_err_e THR_flea_add_dtl_with_overflow_check(
   flea_dtl_t* in_out__pdtl,
   flea_dtl_t  b__dtl
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_u32_t flea_waste_cycles(flea_u32_t iters__u32);
 

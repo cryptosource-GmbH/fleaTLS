@@ -123,7 +123,7 @@ flea_err_e THR_flea_alloc__realloc_mem(
   void**     mem_in_out__ppv,
   flea_u32_t orig_size__u32,
   flea_u32_t new_size__u32
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Ensure the size of a buffer providing minimal and maximal growth size and the
@@ -153,6 +153,6 @@ flea_err_e THR_flea_alloc__ensure_buffer_capacity(
   flea_dtl_t    max_grow_units__dtl,
   flea_dtl_t    max_alloc_units__dtl,
   flea_al_u16_t unit_byte_size__alu16
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 #endif /* h-guard */

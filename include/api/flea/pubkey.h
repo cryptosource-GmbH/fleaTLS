@@ -207,7 +207,7 @@ flea_err_e THR_flea_pubkey_t__ctor_asn1(
   const flea_byte_vec_t* key_as_bit_string_tlv,
   const flea_byte_vec_t* encoded_params,
   const flea_byte_vec_t* alg_oid
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Create a public key from a certificate.
@@ -221,7 +221,7 @@ flea_err_e THR_flea_pubkey_t__ctor_asn1(
 flea_err_e THR_flea_pubkey_t__ctor_cert(
   flea_pubkey_t*              key,
   const flea_x509_cert_ref_t* cert_ref
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 #  ifdef FLEA_HAVE_RSA
 
@@ -238,7 +238,7 @@ flea_err_e THR_flea_pubkey_t__ctor_rsa(
   flea_pubkey_t*        key,
   const flea_ref_cu8_t* mod,
   const flea_ref_cu8_t* pub_exp
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 #  endif // ifdef FLEA_HAVE_RSA
 
 #  ifdef FLEA_HAVE_ECC
@@ -256,7 +256,7 @@ flea_err_e THR_flea_pubkey_t__ctor_ecc(
   flea_pubkey_t*               key,
   const flea_byte_vec_t*       public_key_value,
   const flea_ec_dom_par_ref_t* dp
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 #  endif // ifdef FLEA_HAVE_ECC
 
 #  ifdef FLEA_HAVE_ASYM_SIG
@@ -278,7 +278,7 @@ flea_err_e THR_flea_pubkey_t__vrfy_sgntr(
   flea_hash_id_e         hash_id,
   const flea_byte_vec_t* message,
   const flea_byte_vec_t* signature
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -304,7 +304,7 @@ flea_err_e THR_flea_pubkey_t__verify_digest(
   flea_al_u8_t         digest_len,
   const flea_u8_t*     signature,
   flea_al_u16_t        signature_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Verify a signature using a specific X.509 signature algorithm ID.
@@ -323,7 +323,7 @@ flea_err_e THR_flea_pubkey_t__vrfy_sgntr_use_sigalg_id(
   const flea_byte_vec_t*       message,
   const flea_byte_vec_t*       signature,
   flea_x509_validation_flags_e flags
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 #  endif // ifdef FLEA_HAVE_ASYM_SIG
 
@@ -348,7 +348,7 @@ flea_err_e THR_flea_pubkey_t__encrypt_message(
   const flea_u8_t*     message,
   flea_al_u16_t        message_len,
   flea_byte_vec_t*     result
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Encode a public key in plain format.
@@ -368,12 +368,12 @@ flea_err_e THR_flea_pubkey_t__encrypt_message(
 flea_err_e THR_flea_public_key__t__get_encoded_plain(
   const flea_pubkey_t* key,
   flea_byte_vec_t*     result
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_pubkey_t__ensure_key_strength(
   const flea_pubkey_t* public_key__pt,
   flea_pk_sec_lev_e    required_strength__e
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 #  ifdef __cplusplus
 }

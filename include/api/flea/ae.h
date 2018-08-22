@@ -1,31 +1,31 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_ae__H_
-#define _flea_ae__H_
+# define _flea_ae__H_
 
-#include "internal/common/default.h"
-#include "flea/block_cipher.h"
-#include "flea/mac.h"
-#include "internal/common/ae_int.h"
-#include "internal/common/hash/ghash.h"
+# include "internal/common/default.h"
+# include "flea/block_cipher.h"
+# include "flea/mac.h"
+# include "internal/common/ae_int.h"
+# include "internal/common/hash/ghash.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-#ifdef FLEA_HAVE_AE
+# ifdef FLEA_HAVE_AE
 
 /**
  * Available Authenticate Encryption modes.
  */
 typedef enum
 {
-# ifdef FLEA_HAVE_EAX
+#  ifdef FLEA_HAVE_EAX
   flea_eax_aes128, flea_eax_aes192, flea_eax_aes256,
-# endif
-# ifdef FLEA_HAVE_GCM
+#  endif
+#  ifdef FLEA_HAVE_GCM
   flea_gcm_aes128, flea_gcm_aes192, flea_gcm_aes256
-# endif
+#  endif
 } flea_ae_id_e;
 
 
@@ -37,23 +37,23 @@ typedef struct
   flea_u8_t                     tag_len__u8;
   const flea_ae_config_entry_t* config__pt;
   flea_u8_t                     pending__u8;
-# ifdef FLEA_HEAP_MODE
+#  ifdef FLEA_HEAP_MODE
   flea_u8_t*                    buffer__bu8;
-# else
+#  else
   flea_u8_t                     buffer__bu8[FLEA_BLOCK_CIPHER_MAX_BLOCK_LENGTH];
-# endif
+#  endif
   union
   {
-# ifdef FLEA_HAVE_EAX
+#  ifdef FLEA_HAVE_EAX
     flea_ae_eax_specific_t eax;
-# endif
-# ifdef FLEA_HAVE_GCM
+#  endif
+#  ifdef FLEA_HAVE_GCM
     flea_ae_gcm_specific_t gcm;
-# endif
+#  endif
   } mode_specific__u;
 } flea_ae_ctx_t;
 
-# define flea_ae_ctx_t__INIT(__p) do {memset(__p, 0, sizeof(*(__p)));} while(0)
+#  define flea_ae_ctx_t__INIT(__p) do {memset(__p, 0, sizeof(*(__p)));} while(0)
 
 /**
  * Create an AE context. The context can be used for either encryption or
@@ -84,7 +84,7 @@ flea_err_e THR_flea_ae_ctx_t__ctor(
   const flea_u8_t* header,
   flea_u16_t       header_len,
   flea_al_u8_t     tag_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -120,7 +120,7 @@ flea_err_e THR_flea_ae_ctx_t__update_encryption(
   const flea_u8_t* input,
   flea_u8_t*       output,
   flea_dtl_t       input_output_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Finalize an AE encryption operation. The number of bytes written to tag is
@@ -136,7 +136,7 @@ flea_err_e THR_flea_ae_ctx_t__final_encryption(
   flea_ae_ctx_t* ctx,
   flea_u8_t*     tag,
   flea_al_u8_t*  tag_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Feed an AE ctx with ciphertext data for decryption. The number of bytes
@@ -164,7 +164,7 @@ flea_err_e THR_flea_ae_ctx_t__update_decryption(
   flea_dtl_t       input_len,
   flea_u8_t*       output,
   flea_dtl_t*      output_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Finalize the decryption operation. All plaintext has already been output by
@@ -179,7 +179,7 @@ flea_err_e THR_flea_ae_ctx_t__update_decryption(
  * returned. if it succeeded, FLEA_ERR_FINE is returned.
  *
  */
-flea_err_e THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t* ctx);
+flea_err_e THR_flea_ae_ctx_t__final_decryption(flea_ae_ctx_t* ctx) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Encrypt a complete plaintext using an AE scheme.
@@ -213,7 +213,7 @@ flea_err_e THR_flea_ae__encrypt(
   flea_dtl_t       input_output_len,
   flea_u8_t*       tag,
   flea_al_u8_t     tag_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Decrypt a complete plaintext using an AE scheme.
@@ -249,13 +249,13 @@ flea_err_e THR_flea_ae__decrypt(
   flea_dtl_t       input_output_len,
   const flea_u8_t* tag,
   flea_al_u8_t     tag_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-#endif // ifdef FLEA_HAVE_AE
+# endif // ifdef FLEA_HAVE_AE
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 
 #endif /* h-guard */

@@ -1,15 +1,15 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_fortuna__H_
-#define _flea_fortuna__H_
+# define _flea_fortuna__H_
 
-#include "flea/types.h"
-#include "internal/common/block_cipher/aes.h"
-#include "flea/hash.h"
+# include "flea/types.h"
+# include "internal/common/block_cipher/aes.h"
+# include "flea/hash.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 
 /**
@@ -19,31 +19,31 @@ extern "C" {
 typedef struct
 {
   flea_u8_t           pending_output_len__u8;
-#ifdef FLEA_HEAP_MODE
+# ifdef FLEA_HEAP_MODE
   flea_u8_t*          pending_output__bu8;
   flea_u8_t*          count_block__bu8;
   flea_u8_t*          key__bu8;
   flea_u8_t*          accu__bu8;
-#else // ifdef FLEA_HEAP_MODE
+# else // ifdef FLEA_HEAP_MODE
   flea_u8_t           pending_output__bu8[FLEA_AES_BLOCK_LENGTH];
   flea_u8_t           count_block__bu8[FLEA_AES_BLOCK_LENGTH];
   flea_u8_t           key__bu8[FLEA_AES256_KEY_BYTE_LENGTH];
-#endif // ifdef FLEA_HEAP_MODE
+# endif // ifdef FLEA_HEAP_MODE
   flea_ecb_mode_ctx_t cipher_ctx__t;
 } flea_ctr_mode_prng_t;
 
 
-#ifdef FLEA_HEAP_MODE
-# define flea_ctr_mode_prng_t__INIT(__p) \
+# ifdef FLEA_HEAP_MODE
+#  define flea_ctr_mode_prng_t__INIT(__p) \
   do { \
     flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t); \
   } while(0)
-#else // ifdef FLEA_HEAP_MODE
-# define flea_ctr_mode_prng_t__INIT(__p) \
+# else // ifdef FLEA_HEAP_MODE
+#  define flea_ctr_mode_prng_t__INIT(__p) \
   do { \
     flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t); \
   } while(0)
-#endif // ifdef FLEA_HEAP_MODE
+# endif // ifdef FLEA_HEAP_MODE
 
 /**
  * Create a PRNG object.
@@ -59,7 +59,7 @@ flea_err_e THR_flea_ctr_mode_prng_t__ctor(
   flea_ctr_mode_prng_t* ctx__pt,
   const flea_u8_t*      state__pcu8,
   flea_al_u8_t          state_len__alu8
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Randomize a buffer without flushing the PRNG. 'Flushing' means to apply a
@@ -109,7 +109,7 @@ flea_err_e THR_flea_ctr_mode_prng_t__reseed(
   flea_ctr_mode_prng_t* ctx__pt,
   const flea_u8_t*      seed__pcu8,
   flea_dtl_t            seed_len__dtl
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Flush the internal state of the PRNG. After this operation, even when the
@@ -127,8 +127,8 @@ void flea_ctr_mode_prng_t__flush(flea_ctr_mode_prng_t* ctx__pt);
  */
 void flea_ctr_mode_prng_t__dtor(flea_ctr_mode_prng_t* ctx__pt);
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */
