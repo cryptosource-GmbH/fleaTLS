@@ -106,6 +106,7 @@ extern "C" {
 #  define FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt) \
   ((rec_prot__pt)->read_state__t.seqno_lo_hi__au32[1] \
   >> 16)
+
 typedef enum
 {
   CONTENT_TYPE_ANY                = 0,

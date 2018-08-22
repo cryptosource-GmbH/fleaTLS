@@ -15,14 +15,22 @@ void flea_timer_t__dtor(flea_timer_t* tmr__pt)
 void flea_timer_t__start(flea_timer_t* tmr__pt)
 {
   // TODO: will become a non-thrower
-  THR_flea_lib__get_gmt_time_now(&tmr__pt->start_time__t);
+  flea_err_e dummy;
+  flea_err_e ignore = THR_flea_lib__get_gmt_time_now(&tmr__pt->start_time__t);
+
+  dummy  = ignore;
+  ignore = dummy;
 }
 
 flea_u32_t flea_timer_t__get_elapsed_millisecs(flea_timer_t* tmr__pt)
 {
   flea_gmt_time_t end__t;
 
-  THR_flea_lib__get_gmt_time_now(&end__t);
+  flea_err_e dummy;
+  flea_err_e ignore = THR_flea_lib__get_gmt_time_now(&end__t);
+
+  dummy  = ignore;
+  ignore = dummy;
   return 1000 * flea_gmt_time_t__diff_secs(&end__t, &tmr__pt->start_time__t);
 }
 
