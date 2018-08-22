@@ -142,5 +142,10 @@
 #endif // if defined FLEA_HAVE_TLS_CS_CBC
 
 /************ End Calculate Maximum Key Block Size ************/
+#ifdef FLEA_COMPILER_GCC
+# define FLEA_ATTRIB_UNUSED_RESULT __attribute__((warn_unused_result))
+#else
+# define FLEA_ATTRIB_UNUSED_RESULT
+#endif
 
 #endif /* h-guard */

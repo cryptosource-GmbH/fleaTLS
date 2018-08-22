@@ -2,13 +2,13 @@
 
 
 #ifndef __flea_rng_H_
-#define __flea_rng_H_
+# define __flea_rng_H_
 
-#include "flea/types.h"
+# include "flea/types.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 /**
  * Function for feeding low entropy value to fleaTLS' global RNG's entropy pool.
@@ -38,7 +38,7 @@ void flea_rng__feed_low_entropy_data_to_pool(
 flea_err_e THR_flea_rng__randomize(
   flea_u8_t* mem,
   flea_dtl_t mem_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -54,7 +54,7 @@ flea_err_e THR_flea_rng__randomize(
 flea_err_e THR_flea_rng__reseed_volatile(
   const flea_u8_t* seed,
   flea_dtl_t       seed_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Reseed the global RNG state in RAM. The persistent NVM state is also set to a
@@ -72,10 +72,10 @@ flea_err_e THR_flea_rng__reseed_volatile(
 flea_err_e THR_flea_rng__reseed_persistent(
   const flea_u8_t* seed,
   flea_dtl_t       seed_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

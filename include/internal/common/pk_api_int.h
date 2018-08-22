@@ -17,7 +17,7 @@ flea_err_e THR_flea_pk_api__enc_msg_ansi_x9_62(
   flea_al_u16_t  input_len,
   flea_al_u16_t* output_len,
   flea_al_u16_t  bit_size
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -43,7 +43,7 @@ flea_err_e THR_flea_pk_api__encrypt_message(
   flea_al_u16_t       key_len,
   const flea_u8_t*    params,
   flea_al_u16_t       params_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 # endif // ifdef FLEA_HAVE_ASYM_ALGS
 

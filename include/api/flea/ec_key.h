@@ -22,7 +22,7 @@ flea_err_e THR_flea_ecc_key__dec_uncompressed_point(
   const flea_byte_vec_t* encoded,
   flea_ref_cu8_t*        x,
   flea_ref_cu8_t*        y
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Determine the byte length of a point coordinate from an encoded elliptic curve point (i.e. 0x04 | x | y), which is equal to the byte length of the curve's prime p.

@@ -1,15 +1,15 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_rsa__H_
-#define _flea_rsa__H_
+# define _flea_rsa__H_
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 
-#include "internal/common/default.h"
-#include  "flea/types.h"
+# include "internal/common/default.h"
+# include  "flea/types.h"
 
 
 /**
@@ -49,11 +49,11 @@ flea_err_e THR_flea_rsa_raw_operation_crt(
   flea_mpi_ulen_t  d2_enc_len,
   const flea_u8_t* c_enc,
   flea_mpi_ulen_t  c_enc_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

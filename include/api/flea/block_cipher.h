@@ -1,30 +1,30 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_block_cipher__H_
-#define _flea_block_cipher__H_
+# define _flea_block_cipher__H_
 
-#include "internal/common/default.h"
-#include "flea/types.h"
-#include "internal/common/block_cipher/block_cipher_int.h"
+# include "internal/common/default.h"
+# include "flea/types.h"
+# include "internal/common/block_cipher/block_cipher_int.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-#define FLEA_AES256_KEY_BYTE_LENGTH 32
-#define FLEA_AES192_KEY_BYTE_LENGTH 24
-#define FLEA_AES128_KEY_BYTE_LENGTH 16
-#define FLEA_AES_BLOCK_LENGTH       16
+# define FLEA_AES256_KEY_BYTE_LENGTH 32
+# define FLEA_AES192_KEY_BYTE_LENGTH 24
+# define FLEA_AES128_KEY_BYTE_LENGTH 16
+# define FLEA_AES_BLOCK_LENGTH       16
 
-#ifdef FLEA_HEAP_MODE
-# define flea_ecb_mode_ctx_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
-# define flea_ctr_mode_ctx_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
-# define flea_cbc_mode_ctx_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
-#else // ifdef FLEA_HEAP_MODE
-# define flea_ecb_mode_ctx_t__INIT(__p) do {(__p)->config__pt = NULL;} while(0)
-# define flea_ctr_mode_ctx_t__INIT(__p) do {flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
-# define flea_cbc_mode_ctx_t__INIT(__p) do {flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
-#endif /* ifdef FLEA_HEAP_MODE */
+# ifdef FLEA_HEAP_MODE
+#  define flea_ecb_mode_ctx_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
+#  define flea_ctr_mode_ctx_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
+#  define flea_cbc_mode_ctx_t__INIT(__p) FLEA_ZERO_STRUCT(__p)
+# else // ifdef FLEA_HEAP_MODE
+#  define flea_ecb_mode_ctx_t__INIT(__p) do {(__p)->config__pt = NULL;} while(0)
+#  define flea_ctr_mode_ctx_t__INIT(__p) do {flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
+#  define flea_cbc_mode_ctx_t__INIT(__p) do {flea_ecb_mode_ctx_t__INIT(&(__p)->cipher_ctx__t);} while(0)
+# endif /* ifdef FLEA_HEAP_MODE */
 
 /**
  * Find out the block byte size of a given cipher.
@@ -59,7 +59,7 @@ flea_err_e THR_flea_ecb_mode_ctx_t__ctor(
   const flea_u8_t*       key,
   flea_al_u16_t          key_len,
   flea_cipher_dir_e      dir
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Destroy an ECB mode context.
@@ -83,7 +83,7 @@ flea_err_e THR_flea_ecb_ctx_t__crypt_data(
   const flea_u8_t*           input,
   flea_u8_t*                 output,
   flea_dtl_t                 input_output_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Create a CTR mode cipher context. The following uses a notation with
@@ -113,7 +113,7 @@ flea_err_e THR_flea_ctr_mode_ctx_t__ctor(
   const flea_u8_t*       nonce,
   flea_al_u8_t           nonce_len,
   flea_al_u8_t           ctr_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Destroy a CTR mode context object.
@@ -165,7 +165,7 @@ flea_err_e THR_flea_ctr_mode_crypt_data(
   flea_u8_t*             output,
   flea_dtl_t             input_output_len,
   flea_al_u8_t           ctr_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -187,7 +187,7 @@ flea_err_e THR_flea_cbc_mode_ctx_t__ctor(
   const flea_u8_t*       iv,
   flea_al_u8_t           iv_len,
   flea_cipher_dir_e      dir
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Destroy a CBC mode context object.
@@ -211,7 +211,7 @@ flea_err_e THR_flea_cbc_mode_ctx_t__crypt(
   const flea_u8_t*     input,
   flea_u8_t*           output,
   flea_dtl_t           input_output_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Encrypt or decrypt data in CBC mode without using a context object.
@@ -236,7 +236,7 @@ flea_err_e THR_flea_cbc_mode__crypt_data(
   const flea_u8_t*       input,
   flea_u8_t*             output,
   flea_dtl_t             input_output_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Encrypt data in CBC mode without using a context object.
@@ -259,7 +259,7 @@ flea_err_e THR_flea_cbc_mode__encrypt_data(
   const flea_u8_t*       input,
   flea_u8_t*             output,
   flea_dtl_t             input_output_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Decrypt data in CBC mode without using a context object.
@@ -282,10 +282,10 @@ flea_err_e THR_flea_cbc_mode__decrypt_data(
   const flea_u8_t*       input,
   flea_u8_t*             output,
   flea_dtl_t             input_output_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

@@ -2,18 +2,18 @@
 
 
 #ifndef _flea_handsh_read_stream__H_
-#define _flea_handsh_read_stream__H_
+# define _flea_handsh_read_stream__H_
 
-#include "flea/types.h"
-#include "flea/rw_stream.h"
-#include "flea/hash.h"
-#include "internal/common/tls/parallel_hash.h"
+# include "flea/types.h"
+# include "flea/rw_stream.h"
+# include "flea/hash.h"
+# include "internal/common/tls/parallel_hash.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-#ifdef FLEA_HAVE_TLS
+# ifdef FLEA_HAVE_TLS
 
 typedef struct
 {
@@ -28,11 +28,11 @@ flea_err_e THR_flea_rw_stream_t__ctor_tls_handsh_reader(
   flea_tls_handsh_reader_hlp_t* hlp__pt,
   flea_rw_stream_t*             underlying_read_stream__pt,
   flea_u32_t                    msg_len__u32
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-#endif // ifdef FLEA_HAVE_TLS
-#ifdef __cplusplus
+# endif // ifdef FLEA_HAVE_TLS
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

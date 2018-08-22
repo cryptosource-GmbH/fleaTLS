@@ -36,19 +36,19 @@ flea_err_e THR_flea_tls_prl_hash_ctx_t__ctor(
   flea_tls_prl_hash_ctx_t* p_hash_ctx,
   const flea_hash_id_e*    hash_ids__pt,
   flea_al_u8_t             hashes_ids_len__alu8
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_tls_prl_hash_ctx_t__create_hash_ctx_as_copy(
   flea_hash_ctx_t*               hash_ctx_new__pt,
   const flea_tls_prl_hash_ctx_t* p_hash_ctx__pt,
   flea_hash_id_e                 hash_id__t
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_tls_prl_hash_ctx_t__update(
   flea_tls_prl_hash_ctx_t* p_hash_ctx,
   const flea_u8_t*         bytes__u8,
   flea_dtl_t               bytes_len__dtl
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 flea_err_e THR_flea_tls_prl_hash_ctx_t__final(
@@ -56,7 +56,7 @@ flea_err_e THR_flea_tls_prl_hash_ctx_t__final(
   flea_hash_id_e           hash_id__t,
   flea_bool_t              copy,
   flea_u8_t*               output__u8
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 void flea_tls_prl_hash_ctx_t__dtor(flea_tls_prl_hash_ctx_t* p_hash_ctx);
 
@@ -71,7 +71,7 @@ flea_err_e THR_flea_tls_prl_hash_ctx_t__select_hash_ctx(
   flea_tls_prl_hash_ctx_t* p_hash_ctx__pt,
   flea_hash_ctx_t**        hash_ctx__ppt,
   flea_hash_id_e           hash_id__t
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 #  ifdef __cplusplus
 }

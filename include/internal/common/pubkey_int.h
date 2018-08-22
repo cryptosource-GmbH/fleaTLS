@@ -36,20 +36,20 @@ typedef struct
 flea_err_e THR_flea_get_rsa_hash_id_from_x509_id(
   flea_u8_t       cert_id__u8,
   flea_hash_id_e* result__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 flea_err_e THR_flea_x509_parse_rsa_public_key(
   const flea_byte_vec_t* public_key_value__pt,
   flea_ref_cu8_t*        modulus__pt,
   flea_ref_cu8_t*        pub_exp__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_pubkey_t__create_rsa_key(
   flea_rsa_pubkey_val_t* key__pt,
   const flea_ref_cu8_t*  mod__pcrcu8,
   const flea_ref_cu8_t*  exp__pcrcu8
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 #  endif // ifdef FLEA_HAVE_RSA
 
 
@@ -84,25 +84,25 @@ typedef union
 flea_err_e THR_flea_get_ecdsa_hash_id_from_x509_id(
   const flea_u8_t cert_id__pcu8[2],
   flea_hash_id_e* result__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /* assumes that result__pu8 has sufficient length allocated */
 flea_err_e THR_flea_x509_dec_ecdsa_signature(
   flea_u8_t*             result__pu8,
   flea_al_u16_t*         result_len__palu16,
   const flea_byte_vec_t* x509_enc_sig__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_pubkey_t__create_ecdsa_key(
   flea_ec_pubkey_val_t*        ecc_key__pt,
   const flea_byte_vec_t*       public_point_encoded__pcrcu8,
   const flea_ec_dom_par_ref_t* dp_ref__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_x509_parse_ecc_public_params(
   const flea_byte_vec_t* encoded_parameters__pt,
   flea_ec_dom_par_ref_t* dom_par__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 #  endif // ifdef FLEA_HAVE_ECC

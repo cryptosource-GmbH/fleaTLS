@@ -29,6 +29,11 @@ ADD_DEFINITIONS(
   #out: -Wconversion 
   )
 
+IF(CMAKE_COMPILER_IS_GNUCC)
+  ADD_DEFINITIONS(-DFLEA_COMPILER_GCC)
+ENDIF(CMAKE_COMPILER_IS_GNUCC)
+  
+
 ADD_DEFINITIONS(-D__FLEA_HAVE_LINUX_FILESYSTEM)
 
 IF(NOT CMAKE_BUILD_TYPE)
@@ -36,6 +41,13 @@ IF(NOT CMAKE_BUILD_TYPE)
       "Choose the type of build, options are: 'Debug' and 'Release'."
       FORCE)
 ENDIF(NOT CMAKE_BUILD_TYPE)
+
+
+SET(WarningIsError "false" CACHE STRING "whether to consider compilation warnings
+errors")
+IF(${WarningIsError} STREQUAL "true")
+  ADD_DEFINITIONS(-Werror)
+ENDIF()
 
 SET(afl "false" CACHE STRING "wether to compile with afl-gcc")
 IF(${afl} STREQUAL "true")
@@ -48,6 +60,11 @@ SET(build_cfg "default" CACHE STRING "which build_cfg to use")
 SET(do_build_examples "true" CACHE STRING "set to 'true' to build examples. Note that
 the examples are only built with the 'default' build config")
 
+
+SET(internal_dev_build "false" CACHE STRING "must remain 'false' when building a public release.")
+IF(${internal_dev_build} STREQUAL "true")
+  SET(INT_DEV_CMDS 1)
+ENDIF()
 #SET(mudflap "false" CACHE STRING "wether to compile in mudflap for gcc")
 #IF(${mudflap} STREQUAL "true")
 #	ADD_DEFINITIONS(-fmudflap )
@@ -202,6 +219,15 @@ list(APPEND BUILD_CFG_TARGETS_FULL_STR flea-test)
 TARGET_LINK_LIBRARIES(flea-test ${FULL_LIB_STRING} ${TEST_LIB_STRING})
 target_include_directories(flea-test PRIVATE ${INCLUDE_DIR})
 #add_dependencies(flea-test default)
+
+IF(INT_DEV_CMDS)
+  add_custom_command(TARGET flea-test 
+    PRE_BUILD
+    COMMAND python misc/tools/gen_build_cfgs.py)
+  add_custom_command(TARGET flea-test 
+    PRE_BUILD
+    COMMAND ./misc/tools/ensure_unused_result_attrib.sh)
+ENDIF()
 
 
 # add executables for BUILD_CFG_SUFFIXES 

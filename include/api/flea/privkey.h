@@ -1,21 +1,21 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_privkey__H_
-#define _flea_privkey__H_
+# define _flea_privkey__H_
 
-#include "internal/common/default.h"
-#include "flea/types.h"
-#include "flea/hash.h"
-#include "flea/x509.h"
-#include "flea/ec_dom_par.h"
-#include "flea/pubkey.h"
-#include "internal/common/privkey_val.h"
+# include "internal/common/default.h"
+# include "flea/types.h"
+# include "flea/hash.h"
+# include "flea/x509.h"
+# include "flea/ec_dom_par.h"
+# include "flea/pubkey.h"
+# include "internal/common/privkey_val.h"
 
-#ifdef FLEA_HAVE_ASYM_ALGS
+# ifdef FLEA_HAVE_ASYM_ALGS
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 extern "C" {
-# endif
+#  endif
 
 /**
  * Abstract private key type.
@@ -27,12 +27,12 @@ typedef struct
   flea_u16_t         max_primitive_input_len__u16;
   union
   {
-# ifdef FLEA_HAVE_RSA
+#  ifdef FLEA_HAVE_RSA
     flea_rsa_privkey_val_t rsa_priv_key_val__t;
-# endif
-# ifdef FLEA_HAVE_ECC
+#  endif
+#  ifdef FLEA_HAVE_ECC
     flea_ec_privkey_val_t  ec_priv_key_val__t;
-# endif
+#  endif
   } privkey_with_params__u;
 } flea_privkey_t;
 
@@ -43,7 +43,7 @@ typedef struct
  * @param [out] key pointer to the flea_privkey_t object to initialize
  *
  */
-# define flea_privkey_t__INIT(key) memset(key, 0, sizeof(*(key)))
+#  define flea_privkey_t__INIT(key) memset(key, 0, sizeof(*(key)))
 
 /**
  * Destroy a private key object.
@@ -53,7 +53,7 @@ typedef struct
  */
 void flea_privkey_t__dtor(flea_privkey_t* privkey);
 
-# ifdef FLEA_HAVE_RSA
+#  ifdef FLEA_HAVE_RSA
 
 /**
  * Create an RSA private key fromt the flea RSA private key internal format.
@@ -69,7 +69,7 @@ flea_err_e THR_flea_privkey_t__ctor_rsa_internal_format(
   flea_privkey_t*       key,
   const flea_ref_cu8_t* priv_key_enc_internal_format,
   flea_al_u16_t         key_bit_size
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Create an RSA key from the CRT key components. All supplied numbers are big endian
@@ -103,10 +103,10 @@ flea_err_e THR_flea_privkey_t__ctor_rsa_components(
   flea_al_u16_t    dq_len,
   const flea_u8_t* c,
   flea_al_u16_t    c_len
-);
-# endif // ifdef FLEA_HAVE_RSA
+) FLEA_ATTRIB_UNUSED_RESULT;
+#  endif // ifdef FLEA_HAVE_RSA
 
-# ifdef FLEA_HAVE_ECC
+#  ifdef FLEA_HAVE_ECC
 
 /**
  * Create an ECC public key from the compontents.
@@ -126,8 +126,8 @@ flea_err_e THR_flea_privkey_t__ctor_ecc(
   flea_privkey_t*              key,
   const flea_byte_vec_t*       scalar,
   const flea_ec_dom_par_ref_t* dp_ref
-);
-# endif // ifdef FLEA_HAVE_ECC
+) FLEA_ATTRIB_UNUSED_RESULT;
+#  endif // ifdef FLEA_HAVE_ECC
 
 /**
  * Create a signature using a private key.
@@ -147,7 +147,7 @@ flea_err_e THR_flea_privkey_t__sign(
   flea_hash_id_e         hash_id,
   const flea_byte_vec_t* message,
   flea_byte_vec_t*       signature
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * The same operation as THR_flea_privkey_t__sign_plain_format, except that the
@@ -168,7 +168,7 @@ flea_err_e THR_flea_privkey_t__sign_digest(
   const flea_u8_t*      digest,
   flea_al_u8_t          digest_len,
   flea_byte_vec_t*      signature
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  *  Decrypt a message using a public key scheme.
@@ -189,7 +189,7 @@ flea_err_e THR_flea_privkey_t__decrypt_message(
   const flea_u8_t*      ciphertext,
   flea_al_u16_t         ciphertext_len,
   flea_byte_vec_t*      result
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  *  Decrypt a message using a public key scheme. Provides enhanced
@@ -224,7 +224,7 @@ flea_err_e THR_flea_privkey_t__decr_msg_secure(
   flea_byte_vec_t*      result,
   flea_al_u16_t         enforced_pkcs1_v1_5_decryption_result_len,
   flea_u8_t*            silent_alarm_mbn
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -242,7 +242,7 @@ flea_err_e THR_flea_privkey_t__decr_msg_secure(
 flea_err_e THR_flea_privkey_t__get_encoded_plain(
   const flea_privkey_t* key,
   flea_byte_vec_t*      result
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -273,12 +273,12 @@ flea_err_e THR_flea_pubkey__compute_ecka(
   flea_al_u16_t         shared_info_mbn_len,
   flea_hash_id_e        hash_id,
   flea_byte_vec_t*      result
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 }
-# endif
+#  endif
 
-#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
+# endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
 
 #endif /* h-guard */

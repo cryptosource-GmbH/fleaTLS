@@ -208,7 +208,7 @@ flea_err_e THR_flea_rw_stream_t__ctor(
   flea_rw_stream_write_f       write_func_mbn,
   flea_rw_stream_flush_write_f flush_write_func_mbn,
   flea_u32_t                   read_limit
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Write data to an r/w stream object. The data is not necessarily written to
@@ -224,7 +224,7 @@ flea_err_e THR_flea_rw_stream_t__write(
   flea_rw_stream_t* stream,
   const flea_u8_t*  dta,
   flea_dtl_t        dta_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Write a byte to an r/w stream object. The data is not necessarily written to
@@ -238,7 +238,7 @@ flea_err_e THR_flea_rw_stream_t__write(
 flea_err_e THR_flea_rw_stream_t__write_byte(
   flea_rw_stream_t* stream,
   flea_u8_t         byte
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Write a numeric value in big endian byte order to an r/w stream object. The data is not necessarily written to
@@ -255,7 +255,7 @@ flea_err_e THR_flea_rw_stream_t__write_int_be(
   flea_rw_stream_t* stream,
   flea_u32_t        value,
   flea_al_u8_t      enc_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Enforce the writing of all pending write data to the underlying data sink.
@@ -264,7 +264,7 @@ flea_err_e THR_flea_rw_stream_t__write_int_be(
  *
  * @return an error code
  */
-flea_err_e THR_flea_rw_stream_t__flush_write(flea_rw_stream_t* stream);
+flea_err_e THR_flea_rw_stream_t__flush_write(flea_rw_stream_t* stream) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Read data from an r/w stream object.
@@ -281,7 +281,7 @@ flea_err_e THR_flea_rw_stream_t__read(
   flea_u8_t*              dta,
   flea_dtl_t*             dta_len,
   flea_stream_read_mode_e read_mode
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Read data from an r/w stream object with read mode \link flea_stream_read_mode_e::flea_read_full flea_read_full \endlink.
@@ -296,7 +296,7 @@ flea_err_e THR_flea_rw_stream_t__read_full(
   flea_rw_stream_t* stream,
   flea_u8_t*        dta,
   flea_dtl_t        dta_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Skip input data from an r/w stream object.
@@ -309,7 +309,7 @@ flea_err_e THR_flea_rw_stream_t__read_full(
 flea_err_e THR_flea_rw_stream_t__skip_read(
   flea_rw_stream_t* stream,
   flea_dtl_t        skip_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Read a byte from an r/w stream object with read mode \link flea_stream_read_mode_e::flea_read_full flea_read_full \endlink.
@@ -322,7 +322,7 @@ flea_err_e THR_flea_rw_stream_t__skip_read(
 flea_err_e THR_flea_rw_stream_t__read_byte(
   flea_rw_stream_t* stream,
   flea_u8_t*        result
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -336,7 +336,7 @@ flea_err_e THR_flea_rw_stream_t__read_byte(
 flea_err_e THR_flea_rw_stream_t__read_u16_be(
   flea_rw_stream_t* stream,
   flea_u16_t*       result
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Read a big endian encoded positive integer from the stream with read mode \link flea_stream_read_mode_e::flea_read_full flea_read_full \endlink. The width of the integer
@@ -354,7 +354,7 @@ flea_err_e THR_flea_rw_stream_t__read_int_be(
   flea_rw_stream_t* stream,
   flea_u32_t*       result,
   flea_al_u8_t      nb_bytes
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Transfer data from a source read-stream to a destination write-stream.
@@ -384,7 +384,7 @@ flea_err_e THR_flea_rw_stream_t__pump(
   flea_u8_t*        buffer,
   flea_dtl_t        buffer_len,
   flea_err_e*       result_read_strm_err
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 # ifdef __cplusplus
 }

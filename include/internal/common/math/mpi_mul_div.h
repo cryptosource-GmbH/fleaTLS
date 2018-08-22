@@ -1,18 +1,18 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_mpi_mul_div__H_
-#define _flea_mpi_mul_div__H_
+# define _flea_mpi_mul_div__H_
 
-#include "internal/common/math/mpi_basic.h"
+# include "internal/common/math/mpi_basic.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-#define FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(__divident_word_len) \
+# define FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(__divident_word_len) \
   ((2 * (__divident_word_len) + 1))
 
-#define FLEA_MPI_DIV_VN_HLFW_LEN_FROM_DIVISOR_W_LEN(__divisor_word_len) \
+# define FLEA_MPI_DIV_VN_HLFW_LEN_FROM_DIVISOR_W_LEN(__divisor_word_len) \
   (2 * (__divisor_word_len))
 
 typedef struct
@@ -30,13 +30,13 @@ flea_err_e THR_flea_mpi_t__divide(
   const flea_mpi_t*   p_divident,
   const flea_mpi_t*   p_divisor,
   flea_mpi_div_ctx_t* p_div_ctx
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_mpi_t__mul(
   flea_mpi_t*       p_result,
   const flea_mpi_t* p_a,
   const flea_mpi_t* p_b
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 flea_err_e THR_flea_mpi_t__mod_exp_simple(
@@ -46,9 +46,9 @@ flea_err_e THR_flea_mpi_t__mod_exp_simple(
   flea_mpi_t*         p_mod,
   flea_mpi_t*         p_workspace_double_plus_one_sized,
   flea_mpi_div_ctx_t* p_div_ctx
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 #endif /* h-guard */

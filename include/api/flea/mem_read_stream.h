@@ -1,13 +1,13 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_mem_read_stream__H_
-#define _flea_mem_read_stream__H_
+# define _flea_mem_read_stream__H_
 
-#include "flea/rw_stream.h"
+# include "flea/rw_stream.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 /**
  * Helper type for memory-based flea_rw_stream_t type.
@@ -25,10 +25,10 @@ flea_err_e THR_flea_rw_stream_t__ctor_memory(
   const flea_u8_t*             source_mem__pcu8,
   flea_dtl_t                   source_mem_len__dtl,
   flea_mem_read_stream_help_t* hlp_uninit__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

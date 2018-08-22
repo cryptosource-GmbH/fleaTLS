@@ -62,7 +62,7 @@ typedef enum
 flea_err_e THR_flea_hash_ctx_t__ctor(
   flea_hash_ctx_t* ctx,
   flea_hash_id_e   id
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -75,7 +75,7 @@ flea_err_e THR_flea_hash_ctx_t__ctor(
 flea_err_e THR_flea_hash_ctx_t__ctor_copy(
   flea_hash_ctx_t*       p_ctx_new,
   const flea_hash_ctx_t* p_ctx
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Destroy a hash context object.
@@ -105,7 +105,7 @@ flea_err_e THR_flea_hash_ctx_t__update(
   flea_hash_ctx_t* ctx,
   const flea_u8_t* input,
   flea_dtl_t       input_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Finalize the hash computation of a context object and generate the hash
@@ -120,7 +120,7 @@ flea_err_e THR_flea_hash_ctx_t__update(
 flea_err_e THR_flea_hash_ctx_t__final_byte_vec(
   flea_hash_ctx_t* ctx,
   flea_byte_vec_t* result
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Finalize the hash computation of a context object and generate the hash
@@ -135,7 +135,7 @@ flea_err_e THR_flea_hash_ctx_t__final_byte_vec(
 flea_err_e THR_flea_hash_ctx_t__final(
   flea_hash_ctx_t* ctx,
   flea_u8_t*       output
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Finalize the hash computation of a context object and generate the hash
@@ -152,7 +152,7 @@ flea_err_e THR_flea_hash_ctx_t__final_with_length_limit(
   flea_hash_ctx_t* ctx,
   flea_u8_t*       output,
   flea_al_u16_t    output_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Find out the output length in bytes of a the hash algorithm used within a
@@ -205,7 +205,7 @@ flea_err_e THR_flea_compute_hash(
   flea_dtl_t       input_len,
   flea_u8_t*       output,
   flea_al_u16_t    output_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Compute the hash value of a data string.
@@ -223,7 +223,7 @@ flea_err_e THR_flea_compute_hash_byte_vec(
   const flea_u8_t* input,
   flea_dtl_t       input_len,
   flea_byte_vec_t* result
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 # ifdef __cplusplus
 }

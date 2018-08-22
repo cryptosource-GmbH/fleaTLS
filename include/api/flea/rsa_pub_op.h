@@ -1,14 +1,14 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_rsa_pub_op__H_
-#define _flea_rsa_pub_op__H_
+# define _flea_rsa_pub_op__H_
 
-#include "internal/common/default.h"
-#include  "flea/types.h"
+# include "internal/common/default.h"
+# include  "flea/types.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
 /**
  *  RSA raw public operation for the RSA public operation.
@@ -31,10 +31,10 @@ flea_err_e THR_flea_rsa_raw_operation(
   flea_al_u16_t    base_length,
   const flea_u8_t* modulus_enc,
   flea_al_u16_t    modulus_length
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 #endif /* h-guard */

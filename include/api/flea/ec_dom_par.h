@@ -1,19 +1,19 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_ec_gfp_dom_par__H_
-#define _flea_ec_gfp_dom_par__H_
+# define _flea_ec_gfp_dom_par__H_
 
-#include "internal/common/default.h"
-#include "flea/types.h"
-#include "flea/util.h"
+# include "internal/common/default.h"
+# include "flea/types.h"
+# include "flea/util.h"
 
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-#define FLEA_EC_DOM_PAR_FIRST_ID flea_brainpoolP160r1
-#define FLEA_EC_DOM_PAR_LAST_ID  flea_secp521r1
+# define FLEA_EC_DOM_PAR_FIRST_ID flea_brainpoolP160r1
+# define FLEA_EC_DOM_PAR_LAST_ID  flea_secp521r1
 
 typedef enum
 {
@@ -58,7 +58,7 @@ typedef enum
   flea_secp521r1
 } flea_ec_dom_par_id_e;
 
-#ifdef FLEA_HAVE_ECC
+# ifdef FLEA_HAVE_ECC
 
 /**
  * ECC domain parameters reference type. The object does only reference the
@@ -93,7 +93,7 @@ typedef struct
 flea_err_e THR_flea_ec_dom_par_ref_t__set_by_builtin_id(
   flea_ec_dom_par_ref_t* dp_to_set,
   flea_ec_dom_par_id_e   id
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Determine the ID of a domain parameter reference object.
@@ -105,11 +105,11 @@ flea_err_e THR_flea_ec_dom_par_ref_t__set_by_builtin_id(
  */
 flea_ec_dom_par_id_e flea_ec_dom_par_ref_t__determine_known_curve(const flea_ec_dom_par_ref_t* dp);
 
-#endif /* #ifdef FLEA_HAVE_ECC */
+# endif /* #ifdef FLEA_HAVE_ECC */
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 
 #endif /* h-guard */

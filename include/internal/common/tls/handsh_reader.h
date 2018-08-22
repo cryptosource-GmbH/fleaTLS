@@ -1,20 +1,20 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_handsh_reader__H_
-#define _flea_handsh_reader__H_
+# define _flea_handsh_reader__H_
 
-#include "flea/types.h"
-#include "flea/rw_stream.h"
-#include "internal/common/tls/handsh_read_stream.h"
-#include "internal/common/tls/tls_rec_prot_rdr.h"
-#include "internal/common/tls/tls_rec_prot_fwd.h"
-#include "internal/common/tls/parallel_hash.h"
+# include "flea/types.h"
+# include "flea/rw_stream.h"
+# include "internal/common/tls/handsh_read_stream.h"
+# include "internal/common/tls/tls_rec_prot_rdr.h"
+# include "internal/common/tls/tls_rec_prot_fwd.h"
+# include "internal/common/tls/parallel_hash.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-#ifdef FLEA_HAVE_TLS
+# ifdef FLEA_HAVE_TLS
 
 typedef struct
 {
@@ -25,21 +25,21 @@ typedef struct
   flea_rw_stream_t             rec_prot_rd_stream__t;
 } flea_tls_handsh_reader_t;
 
-# define flea_tls_handsh_reader_t__INIT(__p) FLEA_MEMSET(__p, 0, sizeof(*(__p)))
+#  define flea_tls_handsh_reader_t__INIT(__p) FLEA_MEMSET(__p, 0, sizeof(*(__p)))
 
-# define flea_tls_handsh_reader_t__dtor(__p)
+#  define flea_tls_handsh_reader_t__dtor(__p)
 
 flea_err_e THR_flea_tls_handsh_reader_t__ctor(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
   flea_recprot_t*           rec_prot__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_tls__read_handsh_hdr(
   flea_rw_stream_t* stream__pt,
   flea_u8_t*        handsh_type__pu8,
   flea_u32_t*       msg_len__pu32,
   flea_u8_t         handsh_hdr_mbn__pu8[4]
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_u32_t flea_tls_handsh_reader_t__get_msg_rem_len(flea_tls_handsh_reader_t* handsh_rdr__pt);
 
@@ -50,14 +50,14 @@ flea_al_u8_t flea_tls_handsh_reader_t__get_handsh_msg_type(flea_tls_handsh_reade
 flea_err_e THR_flea_tls_handsh_reader_t__set_hash_ctx(
   flea_tls_handsh_reader_t* handsh_rdr__pt,
   flea_tls_prl_hash_ctx_t*  p_hash_ctx__pt
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 void flea_tls_handsh_reader_t__unset_hasher(flea_tls_handsh_reader_t* handsh_rdr__pt);
 
-#endif // ifdef FLEA_HAVE_TLS
+# endif // ifdef FLEA_HAVE_TLS
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 }
-#endif
+# endif
 
 #endif /* h-guard */

@@ -1,23 +1,23 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_tls_client__H_
-#define _flea_tls_client__H_
+# define _flea_tls_client__H_
 
-#include "internal/common/default.h"
-#include "internal/common/tls/tls_int.h"
-#include "flea/privkey.h"
-#include "internal/common/tls/tls_rec_prot.h"
-#include "flea/cert_store.h"
-#include "internal/common/tls/hostn_ver_int.h"
-#include "flea/tls_client_session.h"
-#include "flea/tls.h"
-#include "flea/tls_fwd.h"
+# include "internal/common/default.h"
+# include "internal/common/tls/tls_int.h"
+# include "flea/privkey.h"
+# include "internal/common/tls/tls_rec_prot.h"
+# include "flea/cert_store.h"
+# include "internal/common/tls/hostn_ver_int.h"
+# include "flea/tls_client_session.h"
+# include "flea/tls.h"
+# include "flea/tls_fwd.h"
 
-#ifdef FLEA_HAVE_TLS_CLIENT
+# ifdef FLEA_HAVE_TLS_CLIENT
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 extern "C" {
-# endif
+#  endif
 
 
 /**
@@ -25,7 +25,7 @@ extern "C" {
  *
  * @param ctx pointer to the client ctx object to init
  */
-# define flea_tls_clt_ctx_t__INIT(ctx) do {memset((ctx), 0, sizeof(*(ctx)));} while(0)
+#  define flea_tls_clt_ctx_t__INIT(ctx) do {memset((ctx), 0, sizeof(*(ctx)));} while(0)
 
 /**
  * Destroy a TLS client context object.
@@ -118,7 +118,7 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor(
   flea_al_u16_t                     allowed_sig_algs_len,
   flea_tls_flag_e                   flags,
   flea_tls_clt_session_t*           session_mbn
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -143,7 +143,7 @@ flea_err_e THR_flea_tls_clt_ctx_t__read_app_data(
   flea_u8_t*              dta,
   flea_dtl_t*             dta_len,
   flea_stream_read_mode_e read_mode
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Send application data over the TLS channel. Note that this function may not
@@ -161,7 +161,7 @@ flea_err_e THR_flea_tls_clt_ctx_t__send_app_data(
   flea_tls_clt_ctx_t* tls_client_ctx,
   const flea_u8_t*    dta,
   flea_dtl_t          dta_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Flush pending write data.
@@ -170,7 +170,7 @@ flea_err_e THR_flea_tls_clt_ctx_t__send_app_data(
  *
  * @return an error code
  */
-flea_err_e THR_flea_tls_clt_ctx_t__flush_write_app_data(flea_tls_clt_ctx_t* tls_client_ctx);
+flea_err_e THR_flea_tls_clt_ctx_t__flush_write_app_data(flea_tls_clt_ctx_t* tls_client_ctx) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -242,9 +242,9 @@ flea_err_e THR_flea_tls_clt_ctx_t__renegotiate(
   flea_al_u16_t                     allowed_ecc_curves_len,
   const flea_tls_sigalg_e*          allowed_sig_algs,
   flea_al_u16_t                     allowed_sig_algs_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-# ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+#  ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
 
 /**
  * Find out if the peer's EE certificate is available. In case the connection
@@ -268,9 +268,9 @@ flea_bool_t flea_tls_clt_ctx_t__have_peer_ee_cert_ref(flea_tls_clt_ctx_t* client
  * NULL otherwise.
  */
 const flea_x509_cert_ref_t* flea_tls_clt_ctx_t__get_peer_ee_cert_ref(flea_tls_clt_ctx_t* client_ctx);
-# endif // ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
+#  endif // ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
 
-# ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
+#  ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 /**
  * Find out if the trusted root certificate used to authenticate the peer is available. In case the connection
@@ -294,12 +294,12 @@ flea_bool_t flea_tls_clt_ctx_t__have_peer_root_cert_ref(flea_tls_clt_ctx_t* clie
  * NULL otherwise.
  */
 const flea_x509_cert_ref_t* flea_tls_clt_ctx_t__get_peer_root_cert_ref(flea_tls_clt_ctx_t* client_ctx);
-# endif // ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
+#  endif // ifdef FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 }
-# endif
+#  endif
 
-#endif // ifdef FLEA_HAVE_TLS_CLIENT
+# endif // ifdef FLEA_HAVE_TLS_CLIENT
 #endif /* h-guard */

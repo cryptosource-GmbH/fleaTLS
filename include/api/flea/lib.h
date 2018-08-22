@@ -95,7 +95,7 @@ flea_err_e THR_flea_lib__init(
   ,
   const flea_mutex_func_set_t* mutex_func_set
 # endif
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Function that may be called at a point after which no more

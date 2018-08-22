@@ -1,17 +1,17 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_cert_store__H_
-#define _flea_cert_store__H_
+# define _flea_cert_store__H_
 
-#include "flea/x509.h"
-#include "flea/cert_path.h"
-#include "internal/common/cert_path_int.h"
+# include "flea/x509.h"
+# include "flea/cert_path.h"
+# include "internal/common/cert_path_int.h"
 
-#ifdef FLEA_HAVE_ASYM_ALGS
+# ifdef FLEA_HAVE_ASYM_ALGS
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 extern "C" {
-# endif
+#  endif
 
 
 /**
@@ -20,24 +20,24 @@ extern "C" {
  */
 typedef struct
 {
-# ifdef FLEA_HEAP_MODE
+#  ifdef FLEA_HEAP_MODE
   flea_enc_cert_ref_t* enc_cert_refs__bcu8;
-# else
+#  else
   flea_enc_cert_ref_t  enc_cert_refs__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
   flea_u8_t            trust_flags__bcu8[FLEA_MAX_CERT_COLLECTION_SIZE];
-# endif // ifdef FLEA_HEAP_MODE
+#  endif // ifdef FLEA_HEAP_MODE
   flea_dtl_t           nb_alloc_certs__dtl;
   flea_u16_t           nb_set_certs__u16;
 } flea_cert_store_t;
 
-# ifdef FLEA_HEAP_MODE
-#  define flea_cert_store_t__INIT(__p) do {(__p)->enc_cert_refs__bcu8 = NULL;} while(0)
-# else
-#  define flea_cert_store_t__INIT(__p)
-# endif // ifdef FLEA_HEAP_MODE
+#  ifdef FLEA_HEAP_MODE
+#   define flea_cert_store_t__INIT(__p) do {(__p)->enc_cert_refs__bcu8 = NULL;} while(0)
+#  else
+#   define flea_cert_store_t__INIT(__p)
+#  endif // ifdef FLEA_HEAP_MODE
 
-# define flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(__p, __i) (&(__p)->enc_cert_refs__bcu8[__i].data_ref__rcu8)
-# define flea_cert_store_t__GET_NB_CERTS(__p)                  ((__p)->nb_set_certs__u16)
+#  define flea_cert_store_t__GET_PTR_TO_ENC_CERT_RCU8(__p, __i) (&(__p)->enc_cert_refs__bcu8[__i].data_ref__rcu8)
+#  define flea_cert_store_t__GET_NB_CERTS(__p)                  ((__p)->nb_set_certs__u16)
 
 /**
  * Destroy a cert store.
@@ -52,7 +52,7 @@ void flea_cert_store_t__dtor(flea_cert_store_t* cert_store);
  * @param cert_store pointer to the cert store object to construct.
  *
  */
-flea_err_e THR_flea_cert_store_t__ctor(flea_cert_store_t* cert_store);
+flea_err_e THR_flea_cert_store_t__ctor(flea_cert_store_t* cert_store) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Add a trusted certificate to the cert store. The encoded certificate must
@@ -68,7 +68,7 @@ flea_err_e THR_flea_cert_store_t__add_trusted_cert(
   flea_cert_store_t* cert_store,
   const flea_u8_t*   der_enc_cert,
   flea_al_u16_t      der_enc_cert_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 
 /**
@@ -85,7 +85,7 @@ flea_err_e THR_flea_cert_store_t__add_untrusted_cert(
   flea_cert_store_t* cert_store,
   const flea_u8_t*   der_enc_cert,
   flea_al_u16_t      der_enc_cert_len
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Determine whether the certificate at a given index within the store is
@@ -139,7 +139,7 @@ flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
   flea_al_u8_t             tbs_cert_hash_to_check_len,
   flea_bool_t*             result_is_trusted,
   flea_al_u16_t*           trusted_cert_idx
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Add the trusted certs in a cert store to a path validator object as trust
@@ -157,12 +157,12 @@ flea_err_e THR_flea_cert_store_t__is_tbs_hash_trusted(
 flea_err_e THR_flea_cert_store_t__add_my_trusted_certs_to_path_validator(
   const flea_cert_store_t* cert_store,
   flea_cpv_t*              cpv
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 }
-# endif
+#  endif
 
-#endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
+# endif /* #ifdef FLEA_HAVE_ASYM_ALGS */
 
 #endif /* h-guard */

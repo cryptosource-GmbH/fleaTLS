@@ -1513,7 +1513,10 @@ void flea_recprot_t__dtor(flea_recprot_t* rec_prot__pt)
   /* no way to handle error here: */
   if(rec_prot__pt->payload_buf__pu8)
   {
-    THR_flea_recprot_t__close_and_send_close_notify(rec_prot__pt);
+    flea_err_e dummy;
+    flea_err_e ignore = THR_flea_recprot_t__close_and_send_close_notify(rec_prot__pt);
+    dummy  = ignore;
+    ignore = dummy;
   }
   flea_tls_con_stt_t__dtor(&rec_prot__pt->write_state__t);
   flea_tls_con_stt_t__dtor(&rec_prot__pt->read_state__t);

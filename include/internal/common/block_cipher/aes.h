@@ -27,11 +27,11 @@ void flea_aes_setup_encr_key(
 flea_err_e THR_flea_aes_setup_encr_key(
   flea_ecb_mode_ctx_t* ctx,
   const flea_u8_t*     key
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_aes_setup_decr_key(
   flea_ecb_mode_ctx_t* ctx,
   const flea_u8_t*     key
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 #endif /* h-guard */

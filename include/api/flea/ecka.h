@@ -1,17 +1,17 @@
 /* ##__FLEA_LICENSE_TEXT_PLACEHOLDER__## */
 
 #ifndef _flea_ecka__H_
-#define _flea_ecka__H_
+# define _flea_ecka__H_
 
-#include "flea/types.h"
-#include "flea/hash.h"
-#include "flea/ec_dom_par.h"
+# include "flea/types.h"
+# include "flea/hash.h"
+# include "flea/ec_dom_par.h"
 
-#ifdef __cplusplus
+# ifdef __cplusplus
 extern "C" {
-#endif
+# endif
 
-#ifdef FLEA_HAVE_ECC
+# ifdef FLEA_HAVE_ECC
 
 /**
  * Carry out the EC key agreement operation as specified in ANSI X9.63 and BSI TR-03111 v2.0 (Section 4.3)
@@ -38,7 +38,7 @@ flea_err_e THR_flea_ecka__compute_raw(
   flea_u8_t*                   result,
   flea_al_u8_t*                result_len,
   const flea_ec_dom_par_ref_t* dom_par
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**
  * Carry out the EC key agreement operation using ANSI X9.63 key derivation
@@ -73,12 +73,12 @@ flea_err_e THR_flea_ecka__compute_ecka_with_kdf_ansi_x9_63(
   flea_u8_t*                   result,
   flea_al_u16_t                result_len,
   const flea_ec_dom_par_ref_t* dom_par
-);
+) FLEA_ATTRIB_UNUSED_RESULT;
 
-# ifdef __cplusplus
+#  ifdef __cplusplus
 }
-# endif
+#  endif
 
-#endif /* #ifdef FLEA_HAVE_ECC */
+# endif /* #ifdef FLEA_HAVE_ECC */
 
 #endif /* h-guard */
