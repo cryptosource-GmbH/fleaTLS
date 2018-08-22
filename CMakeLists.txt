@@ -23,7 +23,7 @@ ADD_DEFINITIONS(
       -fstrict-aliasing
       -W -Wall -Wextra -Wno-long-long -Wmissing-declarations
      -Wno-sign-compare -Wno-unused-parameter -Wno-unused-label -Wno-cast-qual
-     -Wno-char-subscripts 
+     -Wno-char-subscripts -Wno-memset-elt-size
      -Wunused-function   -Wunused-value -Wunused-variable
   -Wpointer-arith  -Wcast-align -Wwrite-strings
   #out: -Wconversion 

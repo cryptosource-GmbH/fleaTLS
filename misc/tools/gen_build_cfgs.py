@@ -34,13 +34,13 @@ def read_build_config_spec():
     for the_line in meta_cfg_file:
         line_nb = line_nb + 1
         line = the_line.strip()
-        print("is_comment: " + str(line.startswith("#"))) 
+        #print("is_comment: " + str(line.startswith("#"))) 
         #print("current_bc_name = '" + current_bc_name + "'")
         if(line == "" or line.startswith("#")):
             continue
         if(line.startswith("bc")):
             line = line.replace(" ", "") 
-            print("line without ws = '" + line + "'")
+            #print("line without ws = '" + line + "'")
             tokens = line.split('=')
             if(len(tokens) != 2):
                 line_error(the_line, line_nb, "error with number of tokens")
@@ -55,7 +55,7 @@ def read_build_config_spec():
         if(None != m):
             check_current_bc_name(current_bc_name, line_nb)
             define = m.group(1) 
-            print("matched 'disable': '" + define + "'") 
+            #print("matched 'disable': '" + define + "'") 
             x=instruction()
             x.bc_name = current_bc_name
             x.define_name = define
@@ -67,7 +67,7 @@ def read_build_config_spec():
             check_current_bc_name(current_bc_name, line_nb)
             define = m.group(1) 
             new_val = m.group(2) 
-            print("matched 'set_to': '" + define + "'" + " => '" + new_val + "'") 
+            #print("matched 'set_to': '" + define + "'" + " => '" + new_val + "'") 
             x=instruction()
             x.bc_name = current_bc_name
             x.define_name = define
@@ -105,7 +105,7 @@ def exec_instruction(instr, file_contents):
         m = re.match("( *# *define +)" + instr.define_name + " *([^ ]*)", line)
         if(m == None):
             error("could not parse for set_to. line = '" + line + "'")
-        file_contents[line_nb] = m.group(1) + instr.define_name + " " + instr.new_value #+ m.group(3)
+        file_contents[line_nb] = m.group(1) + instr.define_name + " " + instr.new_value + "\n" #+ m.group(3)
         
 
 
@@ -142,6 +142,6 @@ def create_build_configs(instructions):
         
         
 instructions = read_build_config_spec()
-print("instructions len = " + str(len(instructions)))
+#print("instructions len = " + str(len(instructions)))
 create_build_configs(instructions)
 
