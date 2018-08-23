@@ -303,7 +303,8 @@ static flea_err_e THR_flea_recprot_t__set_cbc_cs_inner(
 #  ifdef FLEA_HAVE_DTLS
   if(FLEA_RP__IS_DTLS(rec_prot__pt))
   {
-    new_epoch__alu16 = conn_state__pt->seqno_lo_hi__au32[1] >> 16;
+    new_epoch__alu16 = conn_state__pt->epoch__u16;
+    FLEA_DBG_PRINTF("new epoch for new cbc conn (dir = %u) = %u\n", direction, new_epoch__alu16);
   }
 #  endif /* ifdef FLEA_HAVE_DTLS */
   flea_tls_con_stt_t__dtor(conn_state__pt);
@@ -320,6 +321,7 @@ static flea_err_e THR_flea_recprot_t__set_cbc_cs_inner(
       new_epoch__alu16
     )
   );
+  FLEA_DBG_PRINTF("new epoch cbc conn after cbc conn ctor = %u\n", conn_state__pt->epoch__u16);
 
   reserved_payl_len__alu16 = mac_size__alu8 + 2 * rec_prot__pt->read_state__t.reserved_iv_len__u8; /* 2* block size: one for IV, one for padding */
 
@@ -424,7 +426,8 @@ static flea_err_e THR_flea_recprot_t__set_gcm_cs_inner(
 #  ifdef FLEA_HAVE_DTLS
   if(FLEA_RP__IS_DTLS(rec_prot__pt))
   {
-    new_epoch__alu16 = conn_state__pt->seqno_lo_hi__au32[1] >> 16;
+    new_epoch__alu16 = conn_state__pt->epoch__u16;
+    FLEA_DBG_PRINTF("new epoch for new gcm conn = %u\n", new_epoch__alu16);
   }
 #  endif /* ifdef FLEA_HAVE_DTLS */
   flea_tls_con_stt_t__dtor(conn_state__pt);
@@ -441,6 +444,7 @@ static flea_err_e THR_flea_recprot_t__set_gcm_cs_inner(
   );
 
   /* 16 is the GCM tag length */
+  // TODO: ERROR, NEED TO USE CONN STATE, NOT READ STATE!:
   reserved_payl_len__alu16 = 16 + rec_prot__pt->read_state__t.reserved_iv_len__u8;
 // TODO: FACTOR THIS OUT, COMPARE CBC
   if(((reserved_payl_len__alu16 + rec_prot__pt->record_hdr_len__u8) > rec_prot__pt->send_rec_buf_raw_len__u16) ||
@@ -559,8 +563,8 @@ static void flea_recprot_t__set_record_header(
 
     // TODO: CONSIDER WRITING THE EPOCH INTO THE SEQ EVERYTIME IT CHANGES, THIS
     // WOULD SIMPLIFY THE CODE HERE
-    rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->write_next_rec_epoch__u16 >> 8;
-    rec_prot__pt->send_buf_raw__pu8[4] = rec_prot__pt->write_next_rec_epoch__u16;
+    rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->write_state__t.epoch__u16 >> 8;
+    rec_prot__pt->send_buf_raw__pu8[4] = rec_prot__pt->write_state__t.epoch__u16;
     rec_prot__pt->send_buf_raw__pu8[5] = rec_prot__pt->write_state__t.seqno_lo_hi__au32[1] >> 8;
     rec_prot__pt->send_buf_raw__pu8[6] = rec_prot__pt->write_state__t.seqno_lo_hi__au32[1];
     flea__encode_U32_BE(rec_prot__pt->write_state__t.seqno_lo_hi__au32[0], &rec_prot__pt->send_buf_raw__pu8[7]);
@@ -658,7 +662,7 @@ flea_err_e THR_flea_recprot_t__wrt_data(
   {
     rec_prot__pt->write_state__t.seqno_lo_hi__au32[0] = 0; // INCREMENTING HERE, BUT THE RECORD MAY STILL BE AWAITING ENCRYPTION
     rec_prot__pt->write_state__t.seqno_lo_hi__au32[1] = 0;
-    rec_prot__pt->write_next_rec_epoch__u16++;
+    rec_prot__pt->write_state__t.epoch__u16++;
 
     /** In case of DTLS, as in TLS, the activation of the new write connection
      * state is done in the TLS logic layer, directly after the logical sending
@@ -669,7 +673,7 @@ flea_err_e THR_flea_recprot_t__wrt_data(
      * CCS is sent out.
      */
 
-    FLEA_DBG_PRINTF("increased next write epoch to %u\n", rec_prot__pt->write_next_rec_epoch__u16);
+    FLEA_DBG_PRINTF("increased next write epoch to %u\n", rec_prot__pt->write_state__t.epoch__u16);
   }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__wrt_data */
@@ -910,10 +914,10 @@ static flea_err_e THR_flea_recprot_t__encr_rcrd_cbc_hmac(
 
   /* set the DTLS epcoh in the high u32 */
 
-  if(rec_prot__pt->write_next_rec_epoch__u16)
+  if(rec_prot__pt->write_state__t.epoch__u16)
   {
-    FLEA_DBG_PRINTF("setting epoch for CBC ciphersuite's compute HMAC: %u\n", rec_prot__pt->write_next_rec_epoch__u16);
-    seq_hi__u32 |= (rec_prot__pt->write_next_rec_epoch__u16 << 16);
+    FLEA_DBG_PRINTF("setting epoch for CBC ciphersuite's compute HMAC: %u\n", rec_prot__pt->write_state__t.epoch__u16);
+    seq_hi__u32 |= (rec_prot__pt->write_state__t.epoch__u16 << 16);
   }
   flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
   flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
@@ -1089,7 +1093,7 @@ static flea_err_e THR_flea_recprot_t__encr_rcrd_gcm(
 
   if(FLEA_RP__IS_DTLS(rec_prot__pt))
   {
-    seq_hi__u32 |= (rec_prot__pt->write_next_rec_epoch__u16 << 16);
+    seq_hi__u32 |= (rec_prot__pt->write_state__t.epoch__u16 << 16);
   }
   // TODO: FOR DTLS, COMPUTE RECORD MAC (PROBABLY) DIRECTLY ON ENCODED RECORD HRD+DATA
   flea__encode_U32_BE(seq_hi__u32, enc_seq_nbr__au8);
@@ -1434,9 +1438,9 @@ flea_err_e THR_flea_recprot_t__increment_read_epoch(flea_recprot_t* rec_prot__pt
   FLEA_THR_BEG_FUNC();
   if(FLEA_RP__IS_DTLS(rec_prot__pt))
   {
-    rec_prot__pt->read_next_rec_epoch__u16++;
-
-    if(rec_prot__pt->read_next_rec_epoch__u16 == 0)
+    rec_prot__pt->read_state__t.epoch__u16++;
+    FLEA_DBG_PRINTF("incremented read epoch to %u\n", rec_prot__pt->read_state__t.epoch__u16);
+    if(rec_prot__pt->read_state__t.epoch__u16 == 0)
     {
       FLEA_THROW("DTLS epoch exhausted", FLEA_ERR_TLS_SQN_EXHAUSTED);
     }
@@ -1534,7 +1538,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
   data_len__dtl         -= to_cp__alu16;
   data__pu8             += to_cp__alu16;
   read_bytes_count__dtl += to_cp__alu16;
-  // FLEA_DBG_PRINTF("read_bytes before loop = %u\n", read_bytes_count__dtl );
+
+  FLEA_DBG_PRINTF("read_bytes before loop = %u\n", read_bytes_count__dtl);
   // enter only if
   // - called with current_or_next_record_for_content_type__b
   //   OR
@@ -1910,8 +1915,13 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           FLEA_DBG_PRINTF("\n");
 
           FLEA_DBG_PRINTF("epoch decoded from incoming record header = %u\n", rec_epoch__alu16);
-          if(rec_epoch__alu16 != rec_prot__pt->read_next_rec_epoch__u16)
+          if(rec_epoch__alu16 != rec_prot__pt->read_state__t.epoch__u16)
           {
+            FLEA_DBG_PRINTF(
+              "received record from wrong epoch = %u, expected epoch = %u\n",
+              rec_epoch__alu16,
+              rec_prot__pt->read_state__t.epoch__u16
+            );
 #   if 0
             if((rec_epoch__alu16 + 1 == rec_prot__pt->read_next_rec_epoch__u16) &&
               FLEA_RP__IS_IN_HANDSHAKE_IN_NEW_EPOCH(rec_prot__pt))
@@ -1920,7 +1930,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             }
             else
 #   endif /* if 0 */
-            if(rec_epoch__alu16 == rec_prot__pt->read_next_rec_epoch__u16 + 1)
+            if(rec_epoch__alu16 == rec_prot__pt->read_state__t.epoch__u16 + 1)
             {
               /* can be an out of order finished or application data */
 

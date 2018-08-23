@@ -87,8 +87,9 @@ typedef struct
 {
   flea_tls_cipher_suite_config_t cipher_suite_config__t;
   flea_u32_t                     seqno_lo_hi__au32[2];
+
 #  ifdef FLEA_HAVE_DTLS
-  // flea_u16_t                     next_rec_epoch__u16;
+  flea_u16_t                     epoch__u16;
 #  endif
   union
   {

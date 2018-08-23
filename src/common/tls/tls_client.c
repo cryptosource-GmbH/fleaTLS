@@ -1516,6 +1516,10 @@ flea_err_e THR_flea_tls__client_handshake(
             );
           }
           // (DTLS: no further records under the old epoch can possibly be received)
+          //
+# ifdef FLEA_HAVE_DTLS
+          FLEA_CCALL(THR_flea_recprot_t__increment_read_epoch(&tls_ctx__pt->rec_prot__t));
+# endif
           FLEA_CCALL(
             THR_flea_recprot_t__set_ciphersuite(
               &tls_ctx__pt->rec_prot__t,
@@ -1538,7 +1542,7 @@ flea_err_e THR_flea_tls__client_handshake(
            * thus we can switch to the new epoch
            * */
 # ifdef FLEA_HAVE_DTLS
-          FLEA_CCALL(THR_flea_recprot_t__increment_read_epoch(&tls_ctx__pt->rec_prot__t));
+          // FLEA_CCALL(THR_flea_recprot_t__increment_read_epoch(&tls_ctx__pt->rec_prot__t));
           FLEA_CCALL(THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(hs_ctx__pt));
 # endif
 

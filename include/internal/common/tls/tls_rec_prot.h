@@ -158,32 +158,32 @@ struct struct_flea_recprot_t
 {
   flea_tls_con_stt_t read_state__t;
   flea_tls_con_stt_t write_state__t;
-  flea_u16_t         read_next_rec_epoch__u16;
+  // flea_u16_t         read_next_rec_epoch__u16;
 // #ifdef OLD_WR_EP
-  flea_u16_t         write_next_rec_epoch__u16;
+// flea_u16_t         write_next_rec_epoch__u16;
 // #endif
 #  ifdef FLEA_HEAP_MODE
-  flea_u8_t*         send_rec_buf_raw__bu8;
-  flea_u8_t*         alt_send_buf__raw__bu8;
+  flea_u8_t* send_rec_buf_raw__bu8;
+  flea_u8_t* alt_send_buf__raw__bu8;
 #  else
-  flea_u8_t          send_rec_buf_raw__bu8[FLEA_TLS_TRNSF_BUF_SIZE + FLEA_TLS_RECORD_HDR_LEN ];
-  flea_u8_t          alt_send_buf__raw__bu8[FLEA_TLS_ALT_SEND_BUF_SIZE];
+  flea_u8_t  send_rec_buf_raw__bu8[FLEA_TLS_TRNSF_BUF_SIZE + FLEA_TLS_RECORD_HDR_LEN ];
+  flea_u8_t  alt_send_buf__raw__bu8[FLEA_TLS_ALT_SEND_BUF_SIZE];
 #  endif // ifdef FLEA_HEAP_MODE
-  flea_u16_t         alt_send_buf__raw_len__u16;
-  flea_u16_t         send_rec_buf_raw_len__u16;
-  flea_u8_t*         payload_buf__pu8;
-  flea_u8_t*         send_payload_buf__pu8;
-  flea_u8_t*         send_buf_raw__pu8;
+  flea_u16_t alt_send_buf__raw_len__u16;
+  flea_u16_t send_rec_buf_raw_len__u16;
+  flea_u8_t* payload_buf__pu8;
+  flea_u8_t* send_payload_buf__pu8;
+  flea_u8_t* send_buf_raw__pu8;
   // flea_u16_t                   payload_max_len__u16; // TODO: REMOVE THIS, NOT READ AT ALL
   // flea_u16_t                   alt_payload_max_len__u16;
-  flea_u16_t         record_plaintext_send_max_value__u16;           // max. size for alt_payload_max_len__u16 (relevant for using the max fragment length extension)
+  flea_u16_t record_plaintext_send_max_value__u16;                   // max. size for alt_payload_max_len__u16 (relevant for using the max fragment length extension)
   // flea_u16_t                   send_payload_max_len__u16;
-  flea_u16_t         curr_rec_content_len__u16; // was payload_used_len__u16
-  flea_u16_t         curr_pt_content_len__u16; // was payload_used_len__u16
-  flea_u16_t         send_curr_rec_content_len__u16;
-  flea_u16_t         curr_rec_content_offs__u16;
-  flea_u16_t         send_curr_rec_content_offs__u16;
-  flea_u16_t         reserved_payl_len__u16;
+  flea_u16_t curr_rec_content_len__u16;         // was payload_used_len__u16
+  flea_u16_t curr_pt_content_len__u16;         // was payload_used_len__u16
+  flea_u16_t send_curr_rec_content_len__u16;
+  flea_u16_t curr_rec_content_offs__u16;
+  flea_u16_t send_curr_rec_content_offs__u16;
+  flea_u16_t reserved_payl_len__u16;
 
 #  ifdef FLEA_HAVE_DTLS
 

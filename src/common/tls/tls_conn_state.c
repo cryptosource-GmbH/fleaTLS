@@ -10,14 +10,15 @@
 
 #ifdef FLEA_HAVE_TLS
 
-
-# define FLEA_CONNST__INCR_EPOCH(connstate__pt) \
+# if 0
+#  define FLEA_CONNST__INCR_EPOCH(connstate__pt) \
   do { \
     flea_al_u16_t e = (connstate__pt)->seqno_lo_hi__au32[1] >> 16; \
     e++; \
     (connstate__pt)->seqno_lo_hi__au32[1] = (e << 16); \
     (connstate__pt)->seqno_lo_hi__au32[0] = 0; \
   } while(0)
+# endif /* if 0 */
 
 static void flea_tls_con_stt_t__unset_cipher_suite(flea_tls_con_stt_t* conn_state__pt)
 {
@@ -85,7 +86,8 @@ flea_err_e THR_flea_tls_con_stt_t__ctor_cbc_hmac(
     cipher_key_len__alu8;
   conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_id = mac_id;
   conn_state__pt->seqno_lo_hi__au32[0] = 0;
-  conn_state__pt->seqno_lo_hi__au32[1] = new_epoch__alu16 << 16;
+  conn_state__pt->seqno_lo_hi__au32[1] = 0;
+  conn_state__pt->epoch__u16 = new_epoch__alu16;
 // TODO: CHECK FOR EPOCH OVERFLOW IN CALLER (REC_PROT!)
 
   FLEA_DBG_PRINTF(
@@ -93,7 +95,7 @@ flea_err_e THR_flea_tls_con_stt_t__ctor_cbc_hmac(
     conn_state__pt->seqno_lo_hi__au32[1]
   );
   FLEA_DBG_PRINTF(
-    "write seq with epoch = %08x %08x\n",
+    "connstate ctor cbc: seq with epoch = %08x %08x\n",
     conn_state__pt->seqno_lo_hi__au32[1],
     conn_state__pt->seqno_lo_hi__au32[0]
   );
@@ -144,17 +146,18 @@ flea_err_e THR_flea_tls_con_stt_t__ctor_gcm(
     FLEA_CONST_TLS_GCM_RECORD_IV_LEN;
 
   conn_state__pt->seqno_lo_hi__au32[0] = 0;
-  conn_state__pt->seqno_lo_hi__au32[1] = new_epoch__alu16 << 16;
+  conn_state__pt->seqno_lo_hi__au32[1] = 0; // new_epoch__alu16 << 16;
+  conn_state__pt->epoch__u16 = new_epoch__alu16;
 
-  FLEA_DBG_PRINTF(
+  /*FLEA_DBG_PRINTF(
     "connstate ctor gcm: increased next write epoch (hi sqn) to %08x\n",
     conn_state__pt->seqno_lo_hi__au32[1]
   );
   FLEA_DBG_PRINTF(
-    "write seq with epoch = %08x %08x\n",
+    "connstate ctor gcm: seq with epoch = %08x %08x\n",
     conn_state__pt->seqno_lo_hi__au32[1],
     conn_state__pt->seqno_lo_hi__au32[0]
-  );
+  );*/
 
   memcpy(
     conn_state__pt->suite_specific__u.gcm_conn_state__t.cipher_key__bu8,
