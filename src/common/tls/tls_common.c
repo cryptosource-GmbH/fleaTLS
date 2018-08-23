@@ -839,9 +839,9 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
 # ifdef FLEA_HAVE_DTLS
 #  ifdef FLEA_STACK_MODE
   flea_byte_vec_t__ctor_empty_use_ext_buf(
-    &tls_ctx__pt->dtls_previous_write_key_block__t,
-    tls_ctx__pt->dtls_previous_write_key_block_mem__au8,
-    sizeof(dtls_previous_write_key_block_mem__au8)
+    &tls_ctx__pt->dtls_retransm_state__t.previous_write_key_block__t,
+    tls_ctx__pt->dtls_retransm_state__t.previous_write_key_block_mem__au8,
+    sizeof(tls_ctx__pt->dtls_retransm_state__t.previous_write_key_block_mem__au8)
   );
 #  else  /* ifdef FLEA_STACK_MODE */
   flea_byte_vec_t__ctor_empty_allocatable(&tls_ctx__pt->dtls_retransm_state__t.previous_write_key_block__t);
