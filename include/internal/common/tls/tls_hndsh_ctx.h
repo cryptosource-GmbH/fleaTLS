@@ -82,6 +82,9 @@ struct struct_flea_dtls_hdsh_ctx_t
   flea_u8_t     is_flight_buf_incoming__u8;
 
   flea_u8_t     is_in_sending_state__u8;
+
+  // TODO: MAKE TYPE WIHT OWN FILE FOR FLIGHT BUF
+  flea_u8_t     flight_buf_contains_ccs__u8;
 # ifdef FLEA_HEAP_MODE
   flea_u8_t*    flight_buf__bu8;
   // flea_u8_t*     hello_verify_cookie__bu8;

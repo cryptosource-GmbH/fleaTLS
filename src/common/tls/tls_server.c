@@ -1565,6 +1565,9 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
             )
           );
           FLEA_CCALL(THR_flea_byte_vec_t__resize(&key_block__t, key_block_len__alu16));
+
+# ifdef FLEA_HAVE_DTLS
+# endif
           FLEA_CCALL(
             THR_flea_tls__generate_key_block(
               &hs_ctx__t,
@@ -1574,12 +1577,10 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
             )
           );
 
+
           // enable encryption for read direction
           // (DTLS: no further records under the old epoch can possibly be received)
           //
-# ifdef FLEA_HAVE_DTLS
-          // FLEA_CCALL(THR_flea_recprot_t__increment_read_epoch(&tls_ctx->rec_prot__t));
-# endif
           FLEA_CCALL(
             THR_flea_recprot_t__set_ciphersuite(
               &tls_ctx->rec_prot__t,
@@ -1597,6 +1598,7 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
 # ifdef FLEA_HAVE_DTLS
           // FLEA_CCALL(THR_flea_recprot_t__increment_read_epoch(&tls_ctx->rec_prot__t));
           FLEA_CCALL(THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(hs_ctx__pt));
+
 # endif
 
           handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
@@ -1702,7 +1704,8 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
           FLEA_THROW("delayed error in tls handshake", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
         }
         FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(hs_ctx__pt));
-# ifdef FLEA_HAVE_DTLS
+# if 0
+#  ifdef FLEA_HAVE_DTLS
         if(FLEA_TLS_CTX_IS_DTLS(tls_ctx))
         {
           flea_byte_vec_t__reset(&tls_ctx->dtls_retransm_state__t.previous_write_key_block__t);
@@ -1716,7 +1719,8 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
           // TODO: SAVE THE NEXT WRITE EPOCH
           // memcpy(tls_ctx->rec_prot__t.write_state__t.
         }
-# endif /* ifdef FLEA_HAVE_DTLS */
+#  endif /* ifdef FLEA_HAVE_DTLS */
+# endif /* if 0 */
         if(hs_ctx__t.is_sess_res__b)
         {
           flea_al_u16_t key_block_len__alu16;
@@ -1742,6 +1746,12 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
             )
           );
         }
+# ifdef FLEA_HAVE_DTLS
+
+        /* save the current write conn information (key block was already saved when creating the new one)
+         * for the case of a DTLS retransmission of the flight containing the CCS. */
+        flea_dtls_save_write_conn_epoch_and_sqn(tls_ctx, &tls_ctx->dtls_retransm_state__t.previous_conn_st__t);
+# endif
         FLEA_CCALL(
           THR_flea_recprot_t__set_ciphersuite(
             &tls_ctx->rec_prot__t,

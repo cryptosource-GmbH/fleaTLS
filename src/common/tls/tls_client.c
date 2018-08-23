@@ -1657,6 +1657,12 @@ flea_err_e THR_flea_tls__client_handshake(
         );
       }
 
+# ifdef FLEA_HAVE_DTLS
+
+      /* save the current write conn information (key block was already saved when creating the new one)
+       * for the case of a DTLS retransmission of the flight containing the CCS. */
+      flea_dtls_save_write_conn_epoch_and_sqn(tls_ctx__pt, &tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t);
+# endif
       FLEA_CCALL(
         THR_flea_recprot_t__set_ciphersuite(
           &tls_ctx__pt->rec_prot__t,

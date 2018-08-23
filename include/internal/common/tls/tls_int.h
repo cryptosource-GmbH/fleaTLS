@@ -55,18 +55,25 @@ typedef struct
 
 #  ifdef FLEA_HAVE_DTLS
 
+struct struct_flea_dtls_conn_state_data_t
+{
+#   ifdef FLEA_STACK_MODE
+  flea_u8_t                  write_key_block_mem__au8[FLEA_TLS_MAX_KEY_BLOCK_SIZE];
+#   endif
+  flea_tls_cipher_suite_id_t cipher_suite_id;
+  flea_byte_vec_t            write_key_block__t;
+  // flea_u16_t previous_rec_sqn__u16;
+  flea_u16_t                 write_epoch__u16;
+  flea_u32_t                 write_sqn__au32 [2];
+};
+
 typedef struct
 {
   // DONE in HS_CTX_CTOR: WHEN A HANDSHAKE IS STARTET, THIS MUST BE SET TO ZERO:
   // flea_u8_t is_in_sending_state__u8;
-  flea_timer_t    timer__t;
-
-#   ifdef FLEA_STACK_MODE
-  flea_u8_t       previous_write_key_block_mem__au8[FLEA_TLS_MAX_KEY_BLOCK_SIZE];
-#   endif
-  flea_byte_vec_t previous_write_key_block__t;
-  // flea_u16_t previous_rec_sqn__u16;
-  flea_u8_t       previous_rec_sqn_with_epoch__u16[8];
+  flea_timer_t                timer__t;
+  flea_dtls_conn_state_data_t previous_conn_st__t;
+  flea_dtls_conn_state_data_t current_conn_st__t;
 } flea_dtls_retransm_state_t;
 #  endif // ifdef FLEA_HAVE_DTLS
 

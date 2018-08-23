@@ -326,6 +326,18 @@ flea_err_e THR_flea_tls_ctx_t__set_max_fragm_len(
   flea_al_u8_t              max_fragment_coe__alu8
 ) FLEA_ATTRIB_UNUSED_RESULT;
 
+
+flea_err_e THR_flea_dtls_update_saved_key_blocks(
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  const flea_u8_t*          new_key_block__pcu8,
+  flea_al_u8_t              new_key_block_len__alu8,
+  flea_al_u16_t             selected_cipher_suite__alu16
+) FLEA_ATTRIB_UNUSED_RESULT;
+
+void flea_dtls_save_write_conn_epoch_and_sqn(
+  flea_tls_ctx_t*              tls_ctx__pt,
+  flea_dtls_conn_state_data_t* conn_state_data__pt
+);
 #  ifdef __cplusplus
 }
 #  endif

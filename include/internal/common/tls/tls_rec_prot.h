@@ -334,6 +334,11 @@ flea_err_e THR_flea_recprot_t__set_encr_rd_rec_and_decrypt_it(
 
 flea_bool_t flea_recprot_t__is_rd_buf_empty(flea_recprot_t* rec_prot__pt);
 
+flea_err_e THR_flea_recprot_t__set_dtls_conn_state_and_epoch_and_sqn_in_write_conn(
+  flea_recprot_t*                    rec_prot__pt,
+  const flea_dtls_conn_state_data_t* conn_state_data__pt,
+  flea_tls__connection_end_t         conn_end__e
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 #  endif // ifdef FLEA_HAVE_DTLS
 

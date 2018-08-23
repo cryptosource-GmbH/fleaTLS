@@ -35,6 +35,8 @@ struct struct_flea_tls_ctx_t;
 
 typedef struct struct_flea_tls_ctx_t flea_tls_ctx_t;
 
+typedef struct struct_flea_dtls_conn_state_data_t flea_dtls_conn_state_data_t;
+
 struct struct_flea_tls_handshake_ctx_t;
 
 typedef struct struct_flea_tls_handshake_ctx_t flea_tls_handshake_ctx_t;

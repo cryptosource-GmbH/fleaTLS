@@ -142,6 +142,7 @@
 #  define FLEA_TLS_MAX_KEY_BLOCK_SIZE (2 * (32 + 32)) // AES256 + SHA256
 # endif
 #else // GCM only case
+/* always smaller than CBC case */
 # define FLEA_TLS_MAX_KEY_BLOCK_SIZE (2 * (32 + FLEA_CONST_TLS_GCM_FIXED_IV_LEN)) // AES256 + salt/implicit nonce
 #endif // if defined FLEA_HAVE_TLS_CS_CBC
 

@@ -498,6 +498,18 @@ flea_err_e THR_flea_tls__generate_key_block(
       flea_tls__prf_mac_id_from_suite_id((flea_tls_cipher_suite_id_t) selected_cipher_suite__alu16)
     )
   );
+# ifdef FLEA_HAVE_DTLS
+  FLEA_CCALL(
+    THR_flea_dtls_update_saved_key_blocks(
+      hs_ctx__pt,
+      key_block,
+      key_block_len__alu8,
+      selected_cipher_suite__alu16
+    )
+  );
+# endif /* ifdef FLEA_HAVE_DTLS */
+
+
   FLEA_THR_FIN_SEC(
     flea_swap_mem(
       hs_ctx__pt->client_and_server_random__pt->data__pu8,
@@ -839,12 +851,18 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
 # ifdef FLEA_HAVE_DTLS
 #  ifdef FLEA_STACK_MODE
   flea_byte_vec_t__ctor_empty_use_ext_buf(
-    &tls_ctx__pt->dtls_retransm_state__t.previous_write_key_block__t,
-    tls_ctx__pt->dtls_retransm_state__t.previous_write_key_block_mem__au8,
-    sizeof(tls_ctx__pt->dtls_retransm_state__t.previous_write_key_block_mem__au8)
+    &tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t.write_key_block__t,
+    tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t.write_key_block_mem__au8,
+    sizeof(tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t.write_key_block_mem__au8)
+  );
+  flea_byte_vec_t__ctor_empty_use_ext_buf(
+    &tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.write_key_block__t,
+    tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.write_key_block_mem__au8,
+    sizeof(tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.write_key_block_mem__au8)
   );
 #  else  /* ifdef FLEA_STACK_MODE */
-  flea_byte_vec_t__ctor_empty_allocatable(&tls_ctx__pt->dtls_retransm_state__t.previous_write_key_block__t);
+  flea_byte_vec_t__ctor_empty_allocatable(&tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t.write_key_block__t);
+  flea_byte_vec_t__ctor_empty_allocatable(&tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.write_key_block__t);
 #  endif /* ifdef FLEA_STACK_MODE */
 # endif /* ifdef FLEA_HAVE_DTLS */
 
@@ -2353,6 +2371,64 @@ void flea_tls_ctx_t__begin_handshake(flea_tls_ctx_t* tls_ctx__pt)
 # endif
 }
 
+# ifdef FLEA_HAVE_DTLS
+flea_err_e THR_flea_dtls_update_saved_key_blocks(
+  flea_tls_handshake_ctx_t* hs_ctx__pt,
+  const flea_u8_t*          new_key_block__pcu8,
+  flea_al_u8_t              new_key_block_len__alu8,
+  flea_al_u16_t             selected_cipher_suite__alu16
+)
+{
+  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
+
+  FLEA_THR_BEG_FUNC();
+/* save the key block for a future return to the connection during retransmission */
+  if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
+  {
+    /* save the previous valid key block with the corresponding ciphersuite ID */
+    flea_byte_vec_t__reset(&tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t.write_key_block__t);
+    FLEA_CCALL(
+      THR_flea_byte_vec_t__append(
+        &tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t.write_key_block__t,
+        flea_byte_vec_t__GET_DATA_PTR(&tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.write_key_block__t),
+        flea_byte_vec_t__GET_DATA_LEN(&tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.write_key_block__t)
+      )
+    );
+    tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t.cipher_suite_id =
+      tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.cipher_suite_id;
+
+    /* ... and set the newley generated as the current */
+    flea_byte_vec_t__reset(&tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.write_key_block__t);
+    FLEA_CCALL(
+      THR_flea_byte_vec_t__append(
+        &tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.write_key_block__t,
+        new_key_block__pcu8,
+        new_key_block_len__alu8
+      )
+    );
+    tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.cipher_suite_id = selected_cipher_suite__alu16;
+  }
+  FLEA_THR_FIN_SEC_empty();
+}
+
+# endif /* ifdef FLEA_HAVE_DTLS */
+
+# ifdef FLEA_HAVE_DTLS
+void flea_dtls_save_write_conn_epoch_and_sqn(
+  flea_tls_ctx_t*              tls_ctx__pt,
+  flea_dtls_conn_state_data_t* conn_state_data__pt
+)
+{
+  conn_state_data__pt->write_epoch__u16 = tls_ctx__pt->rec_prot__t.write_state__t.epoch__u16;
+  memcpy(
+    conn_state_data__pt->write_sqn__au32,
+    tls_ctx__pt->rec_prot__t.write_state__t.seqno_lo_hi__au32,
+    sizeof(conn_state_data__pt->write_sqn__au32)
+  );
+}
+
+# endif /* ifdef FLEA_HAVE_DTLS */
+
 void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
 {
   flea_recprot_t__dtor(&tls_ctx__pt->rec_prot__t);
@@ -2366,7 +2442,8 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
   FLEA_FREE_MEM_CHK_NULL(tls_ctx__pt->own_vfy_data__bu8);
 # endif
 # ifdef FLEA_HAVE_DTLS
-  flea_byte_vec_t__dtor(&tls_ctx__pt->dtls_retransm_state__t.previous_write_key_block__t);
+  flea_byte_vec_t__dtor(&tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t.write_key_block__t);
+  flea_byte_vec_t__dtor(&tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.write_key_block__t);
 # endif
 }
 

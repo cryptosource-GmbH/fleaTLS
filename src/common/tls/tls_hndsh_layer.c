@@ -75,18 +75,13 @@ flea_err_e THR_flea_tls__send_change_cipher_spec(
   FLEA_THR_BEG_FUNC();
 
 
-  const flea_u8_t css_code__cu8 = 0xFF;
+#ifdef FLEA_HAVE_DTLS
   if(FLEA_TLS_CTX_IS_DTLS(hs_ctx__pt->tls_ctx__pt))
   {
-    FLEA_CCALL(
-      THR_flea_dtls_hndsh__append_to_flight_buffer_and_try_to_send_record(
-        hs_ctx__pt,
-        &css_code__cu8,
-        sizeof(css_code__cu8)
-      )
-    );
+    FLEA_CCALL(THR_flea_dtls_hndsh__append_ccs_to_flight_buffer_and_try_to_send_record(hs_ctx__pt));
   }
   else
+#endif /* ifdef FLEA_HAVE_DTLS */
   {
     FLEA_CCALL(
       THR_flea_tls__send_change_cipher_spec_directly(hs_ctx__pt->tls_ctx__pt)

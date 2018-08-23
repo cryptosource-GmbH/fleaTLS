@@ -9,8 +9,11 @@
 #include "flea/bin_utils.h"
 #include "internal/common/tls/tls_hndsh_ctx.h"
 #include "internal/common/tls/hndsh_msg_dtls.h"
+#include "internal/common/tls/tls_int.h"
 
 #ifdef FLEA_HAVE_DTLS
+
+# define FLEA_DTLS_FLIGHT_BUF_CCS_CODE 0xFF
 
 # define FLIGHT_BUF_AT_CURRENT_READ_POS(hs_ctx__pt) \
   (&(hs_ctx__pt)->dtls_ctx__t.flight_buf__bu8[(hs_ctx__pt)-> \
@@ -45,7 +48,8 @@ static flea_u32_t flea_dtls_hndsh__flight_buf_avail_send_len(
 }
 
 static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
-  flea_tls_handshake_ctx_t* hs_ctx__pt
+  flea_tls_handshake_ctx_t*    hs_ctx__pt,
+  flea_dtls_conn_state_data_t* conn_state_to_activate_after_ccs_mbn__pt
 )
 {
   flea_u8_t* flight_ptr__pu8         = hs_ctx__pt->dtls_ctx__t.flight_buf__bu8;
@@ -63,7 +67,7 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
     // read in the header
     flea_u32_t avail_len__u32 = flea_dtls_hndsh__flight_buf_avail_send_len(hs_ctx__pt);
     if(avail_len__u32 &&
-      flight_ptr__pu8[hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32] == 0xFF)
+      flight_ptr__pu8[hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32] == FLEA_DTLS_FLIGHT_BUF_CCS_CODE)
     {
       FLEA_DBG_PRINTF(" sending out CCS\n");
       // TODO: SET A FLAG THAT CURRENT FLIGHT HAS CCS: BEFORE RETRANSMIT, THE RP'S
@@ -76,6 +80,20 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
 
       FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
       hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32++;
+
+      if(conn_state_to_activate_after_ccs_mbn__pt)
+      {
+        flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
+        /* activate the logically current connection again, the one that was active until now was due to retransmission of handshake messages in a flight containing a CCS. */
+        FLEA_CCALL(
+          THR_flea_recprot_t__set_dtls_conn_state_and_epoch_and_sqn_in_write_conn(
+            &hs_ctx__pt->tls_ctx__pt->
+            rec_prot__t,
+            conn_state_to_activate_after_ccs_mbn__pt,
+            tls_ctx__pt->connection_end
+          )
+        );
+      }
     }
     else if(avail_len__u32 >= FLEA_DTLS_HANDSH_HDR_LEN)
     {
@@ -189,6 +207,18 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_dtls_hndsh__try_send_out_from_flight_buf */
 
+flea_err_e THR_flea_dtls_hndsh__append_ccs_to_flight_buffer_and_try_to_send_record(flea_tls_handshake_ctx_t* hs_ctx__pt)
+{
+  const flea_u8_t css_code__cu8 = FLEA_DTLS_FLIGHT_BUF_CCS_CODE;
+
+  hs_ctx__pt->dtls_ctx__t.flight_buf_contains_ccs__u8 = 1;
+  return THR_flea_dtls_hndsh__append_to_flight_buffer_and_try_to_send_record(
+    hs_ctx__pt,
+    &css_code__cu8,
+    sizeof(css_code__cu8)
+  );
+}
+
 flea_err_e THR_flea_dtls_hndsh__append_to_flight_buffer_and_try_to_send_record(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
   const flea_u8_t*          data__pcu8,
@@ -221,7 +251,7 @@ flea_err_e THR_flea_dtls_hndsh__append_to_flight_buffer_and_try_to_send_record(
     data_len__u32 -= to_go__u32;
     data__pcu8    += to_go__u32;
     hs_ctx__pt->dtls_ctx__t.flight_buf_write_pos__u32 += to_go__u32;
-    FLEA_CCALL(THR_flea_dtls_hndsh__try_send_out_from_flight_buf(hs_ctx__pt));
+    FLEA_CCALL(THR_flea_dtls_hndsh__try_send_out_from_flight_buf(hs_ctx__pt, NULL));
   }
   FLEA_THR_FIN_SEC_empty();
 }
@@ -286,16 +316,40 @@ flea_err_e THR_flea_dtls_hdsh__snd_hands_msg_hdr(
 
 void flea_dtls_hndsh__set_flight_buffer_empty(flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt)
 {
-  dtls_hs_ctx__pt->flight_buf_write_pos__u32 = 0;
-  dtls_hs_ctx__pt->flight_buf_read_pos__u32  = 0;
+  dtls_hs_ctx__pt->flight_buf_write_pos__u32   = 0;
+  dtls_hs_ctx__pt->flight_buf_read_pos__u32    = 0;
+  dtls_hs_ctx__pt->flight_buf_contains_ccs__u8 = 0;
 }
 
 flea_err_e THR_flea_dtls_hdsh__retransmit_flight_buf(flea_tls_handshake_ctx_t* hs_ctx__pt)
 {
+  flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt = &hs_ctx__pt->dtls_ctx__t;
+  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
+
   FLEA_THR_BEG_FUNC();
-  hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32 = 0;
+  dtls_hs_ctx__pt->flight_buf_read_pos__u32 = 0;
   // TODO: IF CURRENTLY HELD FLIGHT CONTAINS CCS, THEN REVERT THE OLD WRITE CONNECTION STATE NOW
-  FLEA_CCALL(THR_flea_dtls_hndsh__try_send_out_from_flight_buf(hs_ctx__pt));
+  if(dtls_hs_ctx__pt->flight_buf_contains_ccs__u8)
+  {
+    // - store the current write connection of the rec_prot (except key block)
+    // - restore the previous write conn. to the rec_prot
+    // - the called function THR_flea_dtls_hndsh__try_send_out_from_flight_buf switches back to the current write conn after it sent out the CCS
+    flea_dtls_save_write_conn_epoch_and_sqn(tls_ctx__pt, &tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t);
+// set...
+    FLEA_CCALL(
+      THR_flea_recprot_t__set_dtls_conn_state_and_epoch_and_sqn_in_write_conn(
+        &tls_ctx__pt->rec_prot__t,
+        &tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t,
+        tls_ctx__pt->connection_end
+      )
+    );
+  }
+  FLEA_CCALL(
+    THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
+      hs_ctx__pt,
+      &tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t
+    )
+  );
   FLEA_THR_FIN_SEC_empty();
 }
 

@@ -503,6 +503,35 @@ static flea_err_e THR_flea_recprot_t__set_gcm_cs(
 
 # endif /* ifdef FLEA_HAVE_TLS_CS_GCM */
 
+# ifdef FLEA_HAVE_DTLS
+flea_err_e THR_flea_recprot_t__set_dtls_conn_state_and_epoch_and_sqn_in_write_conn(
+  flea_recprot_t*                    rec_prot__pt,
+  const flea_dtls_conn_state_data_t* conn_state_data__pt,
+  flea_tls__connection_end_t         conn_end__e
+)
+{
+  FLEA_THR_BEG_FUNC();
+  FLEA_CCALL(
+    THR_flea_recprot_t__set_ciphersuite(
+      rec_prot__pt,
+      flea_tls_write,
+      conn_end__e,
+      conn_state_data__pt->cipher_suite_id,
+      flea_byte_vec_t__GET_DATA_PTR(&conn_state_data__pt->write_key_block__t)
+    )
+  );
+  /* set the previous seq and epoch */
+  rec_prot__pt->write_state__t.epoch__u16 = conn_state_data__pt->write_epoch__u16;
+  memcpy(
+    rec_prot__pt->write_state__t.seqno_lo_hi__au32,
+    conn_state_data__pt->write_sqn__au32,
+    sizeof(conn_state_data__pt->write_sqn__au32)
+  );
+  FLEA_THR_FIN_SEC_empty();
+}
+
+# endif /* ifdef FLEA_HAVE_DTLS */
+
 flea_err_e THR_flea_recprot_t__set_ciphersuite(
   flea_recprot_t*            rec_prot__pt,
   flea_tls_stream_dir_e      direction,
