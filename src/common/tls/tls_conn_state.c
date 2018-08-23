@@ -10,6 +10,15 @@
 
 #ifdef FLEA_HAVE_TLS
 
+
+# define FLEA_CONNST__INCR_EPOCH(connstate__pt) \
+  do { \
+    flea_al_u16_t e = (connstate__pt)->seqno_lo_hi__au32[1] >> 16; \
+    e++; \
+    (connstate__pt)->seqno_lo_hi__au32[1] = (e << 16); \
+    (connstate__pt)->seqno_lo_hi__au32[0] = 0; \
+  } while(0)
+
 static void flea_tls_con_stt_t__unset_cipher_suite(flea_tls_con_stt_t* conn_state__pt)
 {
 # ifdef FLEA_HAVE_TLS_CS_CBC
@@ -53,7 +62,8 @@ flea_err_e THR_flea_tls_con_stt_t__ctor_cbc_hmac(
   flea_al_u8_t           cipher_key_len__alu8,
   const flea_u8_t*       mac_key__pcu8,
   flea_al_u8_t           mac_key_len__alu8,
-  flea_al_u8_t           mac_size__alu8
+  flea_al_u8_t           mac_size__alu8,
+  flea_al_u16_t          new_epoch__alu16
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -74,9 +84,19 @@ flea_err_e THR_flea_tls_con_stt_t__ctor_cbc_hmac(
   conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.cipher_key_size__u8 =
     cipher_key_len__alu8;
   conn_state__pt->cipher_suite_config__t.suite_specific__u.cbc_hmac_config__t.mac_id = mac_id;
-
   conn_state__pt->seqno_lo_hi__au32[0] = 0;
-  conn_state__pt->seqno_lo_hi__au32[1] = 0;
+  conn_state__pt->seqno_lo_hi__au32[1] = new_epoch__alu16 << 16;
+// TODO: CHECK FOR EPOCH OVERFLOW IN CALLER (REC_PROT!)
+
+  FLEA_DBG_PRINTF(
+    "connstate ctor cbc: increased next write epoch (hi sqn) to %08x\n",
+    conn_state__pt->seqno_lo_hi__au32[1]
+  );
+  FLEA_DBG_PRINTF(
+    "write seq with epoch = %08x %08x\n",
+    conn_state__pt->seqno_lo_hi__au32[1],
+    conn_state__pt->seqno_lo_hi__au32[0]
+  );
   memcpy(conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.mac_key__bu8, mac_key__pcu8, mac_key_len__alu8);
   memcpy(
     conn_state__pt->suite_specific__u.cbc_hmac_conn_state__t.cipher_key__bu8,
@@ -96,7 +116,8 @@ flea_err_e THR_flea_tls_con_stt_t__ctor_gcm(
   const flea_u8_t*    cipher_key__pcu8,
   flea_al_u8_t        cipher_key_len__alu8,
   const flea_u8_t*    fixed_iv__pcu8,
-  flea_al_u8_t        fixed_iv_len__alu8
+  flea_al_u8_t        fixed_iv_len__alu8,
+  flea_al_u16_t       new_epoch__alu16
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -114,7 +135,6 @@ flea_err_e THR_flea_tls_con_stt_t__ctor_gcm(
     conn_state__pt->suite_specific__u.gcm_conn_state__t.cipher_key__bu8 + cipher_key_len__alu8 + fixed_iv_len__alu8;
 #  endif /* ifdef FLEA_HEAP_MODE */
   conn_state__pt->reserved_iv_len__u8 = FLEA_CONST_TLS_GCM_RECORD_IV_LEN;
-  // conn_state__pt->cipher_suite_config__t.cipher_suite_id = ;
   conn_state__pt->cipher_suite_config__t.cipher_suite_class__e = flea_gcm_cipher_suite;
   conn_state__pt->cipher_suite_config__t.suite_specific__u.gcm_config__t.cipher_id = ae_cipher_id;
 
@@ -124,7 +144,18 @@ flea_err_e THR_flea_tls_con_stt_t__ctor_gcm(
     FLEA_CONST_TLS_GCM_RECORD_IV_LEN;
 
   conn_state__pt->seqno_lo_hi__au32[0] = 0;
-  conn_state__pt->seqno_lo_hi__au32[1] = 0;
+  conn_state__pt->seqno_lo_hi__au32[1] = new_epoch__alu16 << 16;
+
+  FLEA_DBG_PRINTF(
+    "connstate ctor gcm: increased next write epoch (hi sqn) to %08x\n",
+    conn_state__pt->seqno_lo_hi__au32[1]
+  );
+  FLEA_DBG_PRINTF(
+    "write seq with epoch = %08x %08x\n",
+    conn_state__pt->seqno_lo_hi__au32[1],
+    conn_state__pt->seqno_lo_hi__au32[0]
+  );
+
   memcpy(
     conn_state__pt->suite_specific__u.gcm_conn_state__t.cipher_key__bu8,
     cipher_key__pcu8,

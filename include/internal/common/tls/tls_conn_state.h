@@ -117,7 +117,8 @@ flea_err_e THR_flea_tls_con_stt_t__ctor_cbc_hmac(
   flea_al_u8_t           cipher_key_len__alu8,
   const flea_u8_t*       mac_key__pcu8,
   flea_al_u8_t           mac_key_len__alu8,
-  flea_al_u8_t           mac_size__alu8
+  flea_al_u8_t           mac_size__alu8,
+  flea_al_u16_t          new_epoch__alu16
 ) FLEA_ATTRIB_UNUSED_RESULT;
 #  endif // ifdef FLEA_HAVE_TLS_CS_CBC
 
@@ -128,7 +129,8 @@ flea_err_e THR_flea_tls_con_stt_t__ctor_gcm(
   const flea_u8_t*    cipher_key__pcu8,
   flea_al_u8_t        cipher_key_len__alu8,
   const flea_u8_t*    fixed_iv__pcu8,
-  flea_al_u8_t        fixed_iv_len__alu8
+  flea_al_u8_t        fixed_iv_len__alu8,
+  flea_al_u16_t       new_epoch__alu16
 ) FLEA_ATTRIB_UNUSED_RESULT;
 #  endif // ifdef FLEA_HAVE_TLS_CS_GCM
 

@@ -1698,6 +1698,21 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
           FLEA_THROW("delayed error in tls handshake", FLEA_ERR_TLS_ENCOUNTERED_BAD_RECORD_MAC);
         }
         FLEA_CCALL(THR_flea_tls__send_change_cipher_spec(hs_ctx__pt));
+# ifdef FLEA_HAVE_DTLS
+        if(FLEA_TLS_CTX_IS_DTLS(tls_ctx))
+        {
+          flea_byte_vec_t__reset(&tls_ctx->dtls_retransm_state__t.previous_write_key_block__t);
+          FLEA_CCALL(
+            THR_flea_byte_vec_t__append(
+              &tls_ctx->dtls_retransm_state__t.previous_write_key_block__t,
+              flea_byte_vec_t__GET_DATA_PTR(&key_block__t),
+              flea_byte_vec_t__GET_DATA_LEN(&key_block__t)
+            )
+          );
+          // TODO: SAVE THE NEXT WRITE EPOCH
+          // memcpy(tls_ctx->rec_prot__t.write_state__t.
+        }
+# endif /* ifdef FLEA_HAVE_DTLS */
         if(hs_ctx__t.is_sess_res__b)
         {
           flea_al_u16_t key_block_len__alu16;

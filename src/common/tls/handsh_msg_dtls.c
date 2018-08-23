@@ -69,10 +69,11 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
       // TODO: SET A FLAG THAT CURRENT FLIGHT HAS CCS: BEFORE RETRANSMIT, THE RP'S
       // SEND EPOCH MUST BE DECREASED AGAIN
       FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
-      // TODO: THR_flea_tls__send_change_cipher_spec() is the
-      // handshake-logic-level function. It must be reimplemented as a
-      // dispatcher. Here we must call the raw send-function
+
       FLEA_CCALL(THR_flea_tls__send_change_cipher_spec_directly(hs_ctx__pt->tls_ctx__pt));
+      /* if this is a retransmission, we must now restore the actual current write connection state */
+
+
       FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
       hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32++;
     }

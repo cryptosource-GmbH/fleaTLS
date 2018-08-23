@@ -289,6 +289,7 @@ static flea_err_e THR_flea_recprot_t__set_cbc_cs_inner(
 {
   flea_tls_con_stt_t* conn_state__pt;
   flea_al_u16_t reserved_payl_len__alu16;
+  flea_al_u16_t new_epoch__alu16 = 0;
 
   FLEA_THR_BEG_FUNC();
   if(direction == flea_tls_write)
@@ -299,6 +300,12 @@ static flea_err_e THR_flea_recprot_t__set_cbc_cs_inner(
   {
     conn_state__pt = &rec_prot__pt->read_state__t;
   }
+#  ifdef FLEA_HAVE_DTLS
+  if(FLEA_RP__IS_DTLS(rec_prot__pt))
+  {
+    new_epoch__alu16 = conn_state__pt->seqno_lo_hi__au32[1] >> 16;
+  }
+#  endif /* ifdef FLEA_HAVE_DTLS */
   flea_tls_con_stt_t__dtor(conn_state__pt);
   FLEA_CCALL(
     THR_flea_tls_con_stt_t__ctor_cbc_hmac(
@@ -309,7 +316,8 @@ static flea_err_e THR_flea_recprot_t__set_cbc_cs_inner(
       cipher_key_len__alu8,
       mac_key__pcu8,
       mac_key_len__alu8,
-      mac_size__alu8
+      mac_size__alu8,
+      new_epoch__alu16
     )
   );
 
@@ -400,6 +408,7 @@ static flea_err_e THR_flea_recprot_t__set_gcm_cs_inner(
 {
   flea_tls_con_stt_t* conn_state__pt;
   flea_al_u16_t reserved_payl_len__alu16;
+  flea_al_u16_t new_epoch__alu16 = 0;
 
   FLEA_THR_BEG_FUNC();
 
@@ -411,6 +420,13 @@ static flea_err_e THR_flea_recprot_t__set_gcm_cs_inner(
   {
     conn_state__pt = &rec_prot__pt->read_state__t;
   }
+
+#  ifdef FLEA_HAVE_DTLS
+  if(FLEA_RP__IS_DTLS(rec_prot__pt))
+  {
+    new_epoch__alu16 = conn_state__pt->seqno_lo_hi__au32[1] >> 16;
+  }
+#  endif /* ifdef FLEA_HAVE_DTLS */
   flea_tls_con_stt_t__dtor(conn_state__pt);
   FLEA_CCALL(
     THR_flea_tls_con_stt_t__ctor_gcm(
@@ -419,7 +435,8 @@ static flea_err_e THR_flea_recprot_t__set_gcm_cs_inner(
       cipher_key__pcu8,
       cipher_key_len__alu8,
       fixed_iv__pcu8,
-      fixed_iv_len__alu8
+      fixed_iv_len__alu8,
+      new_epoch__alu16
     )
   );
 

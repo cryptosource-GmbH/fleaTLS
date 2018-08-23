@@ -476,7 +476,7 @@ flea_err_e THR_flea_tls__generate_key_block(
   flea_al_u8_t              key_block_len__alu8
 )
 {
-  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
+  // flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
 
   FLEA_THR_BEG_FUNC();
 
@@ -505,20 +505,6 @@ flea_err_e THR_flea_tls__generate_key_block(
       FLEA_TLS_HELLO_RANDOM_SIZE
     );
   );
-
-# ifdef FLEA_HAVE_DTLS
-  if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
-  {
-    flea_byte_vec_t__reset(&tls_ctx__pt->dtls_previous_write_key_block__t);
-    FLEA_CCALL(
-      THR_flea_byte_vec_t__append(
-        &tls_ctx__pt->dtls_previous_write_key_block__t,
-        key_block,
-        key_block_len__alu8
-      )
-    );
-  }
-# endif /* ifdef FLEA_HAVE_DTLS */
 } /* THR_flea_tls__generate_key_block */
 
 flea_bool_t flea_is_in_ciph_suite_list(
@@ -858,7 +844,7 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
     sizeof(dtls_previous_write_key_block_mem__au8)
   );
 #  else  /* ifdef FLEA_STACK_MODE */
-  flea_byte_vec_t__ctor_empty_allocatable(&tls_ctx__pt->dtls_previous_write_key_block__t);
+  flea_byte_vec_t__ctor_empty_allocatable(&tls_ctx__pt->dtls_retransm_state__t.previous_write_key_block__t);
 #  endif /* ifdef FLEA_STACK_MODE */
 # endif /* ifdef FLEA_HAVE_DTLS */
 

@@ -153,12 +153,15 @@ typedef enum
   FLEA_TLS_ALERT_LEVEL_FATAL   = 2
 } flea_tls__alert_level_t;
 
+// #define OLD_WR_EP
 struct struct_flea_recprot_t
 {
   flea_tls_con_stt_t read_state__t;
   flea_tls_con_stt_t write_state__t;
   flea_u16_t         read_next_rec_epoch__u16;
+// #ifdef OLD_WR_EP
   flea_u16_t         write_next_rec_epoch__u16;
+// #endif
 #  ifdef FLEA_HEAP_MODE
   flea_u8_t*         send_rec_buf_raw__bu8;
   flea_u8_t*         alt_send_buf__raw__bu8;
@@ -182,11 +185,14 @@ struct struct_flea_recprot_t
   flea_u16_t         send_curr_rec_content_offs__u16;
   flea_u16_t         reserved_payl_len__u16;
 
-/*#ifdef FLEA_HAVE_DTLS
-  flea_u16_t send_epoch__u16;
-  flea_u16_t rec_epoch__u16;
-  flea_u32_t rec_seq__au32[2];
-#endif*/
+#  ifdef FLEA_HAVE_DTLS
+
+  /**
+   * if this variable is non-null, then in case of DTLS the record protocol is informed that after having sent out a CCS over the wire,
+   * the
+   */
+  const flea_byte_vec_t*       key_block_indicate_ccs_retransm_mbn__pt;
+#  endif
   flea_tls__protocol_version_t prot_version__t;
   // flea_u16_t tls_version__u16;
   flea_rw_stream_t*            rw_stream__pt;

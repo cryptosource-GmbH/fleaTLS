@@ -250,7 +250,9 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
   /* repeat the merging attempts as long as merging was successful */
   while(try_again__b)
   {
-    flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
+    flea_dtls_hndsh_msg_state_info_t* curr_msg_state_info__pt = &assmbl_state__pt->curr_msg_state_info__t;
+    flea_dtls_hndsh_hdr_info_t* curr_hdr_info__pt = &curr_msg_state_info__pt->msg_hdr_info__t;
+    // flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
     try_again__b = FLEA_FALSE;
 
 
@@ -272,27 +274,16 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
         /* not a plaintext handshake message */
         continue;
       }
-#if 0
-      if(src_hdr_info__t.fragm_offs__u32 == 0)
-      {
-        /* this message is itself the start of a handshake message, thus it cannot be appended to another */
 
-// this prevents deleting smaller completely overlapping messages!
+      if(src_hdr_info__t.msg_seq__u16 < curr_msg_state_info__pt->msg_hdr_info__t.msg_seq__u16)
+      {
+        /* the source message fragment is a retransmission or an otherwise
+         * superfluous fragment, delete it */
+        qheap_qh_free_queue(heap__pt, src_hndl);
+        flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i] = 0;
+        /* break out from the loop over the targets, i.e. go the next source (i-iteration) */
         continue;
       }
-#endif /* if 0 */
-
-
-/* check if the new fragment can be appended to the current queue */
-#if 0
-      if(assmbl_state__pt->curr_msg_len__u32 &&
-        (assmbl_state__pt->curr_rd_offs_incl_hdr__u32 <
-        assmbl_state__pt->curr_msg_len__u32) &&
-        (assmbl_state__pt->curr_msg_seq__u16 == src_hdr_info__t.msg_seq__u16))
-      {
-        // TODO: INTEGRATE THE CHECK/UPDATE OF THE CURRENT QUEUE AS A FURHTER ITER OF THE J LOOP
-      }
-#endif /* if 0 */
 
       /* it is a non-initial fragment. look for the precursor. */
       for(j = 0; j <= flea_byte_vec_t__GET_DATA_LEN(incom_hndls__pt); j += sizeof(qh_hndl_t))
@@ -301,8 +292,6 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
         flea_u8_t new_trgt_fragm_len_encoded__au8[3];
         flea_u32_t new_fragm_len__u32;
         qh_hndl_t trgt_hndl;
-        flea_dtls_hndsh_msg_state_info_t* curr_msg_state_info__pt = &assmbl_state__pt->curr_msg_state_info__t;
-        flea_dtls_hndsh_hdr_info_t* curr_hdr_info__pt = &curr_msg_state_info__pt->msg_hdr_info__t;
         flea_bool_t is_iter_for_curr_msg__b = (j == flea_byte_vec_t__GET_DATA_LEN(incom_hndls__pt));
         flea_dtls_hndsh_hdr_info_t trgt_hdr_info__t;
         flea_u32_t trgt_fragm_end__u32, src_fragm_end__u32;
