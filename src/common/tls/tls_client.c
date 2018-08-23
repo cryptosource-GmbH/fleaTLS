@@ -1518,7 +1518,7 @@ flea_err_e THR_flea_tls__client_handshake(
           // (DTLS: no further records under the old epoch can possibly be received)
           //
 # ifdef FLEA_HAVE_DTLS
-          FLEA_CCALL(THR_flea_recprot_t__increment_read_epoch(&tls_ctx__pt->rec_prot__t));
+          // FLEA_CCALL(THR_flea_recprot_t__increment_read_epoch(&tls_ctx__pt->rec_prot__t));
 # endif
           FLEA_CCALL(
             THR_flea_recprot_t__set_ciphersuite(

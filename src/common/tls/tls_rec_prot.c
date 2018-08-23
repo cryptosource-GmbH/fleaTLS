@@ -303,7 +303,7 @@ static flea_err_e THR_flea_recprot_t__set_cbc_cs_inner(
 #  ifdef FLEA_HAVE_DTLS
   if(FLEA_RP__IS_DTLS(rec_prot__pt))
   {
-    new_epoch__alu16 = conn_state__pt->epoch__u16;
+    new_epoch__alu16 = conn_state__pt->epoch__u16 + 1;
     FLEA_DBG_PRINTF("new epoch for new cbc conn (dir = %u) = %u\n", direction, new_epoch__alu16);
   }
 #  endif /* ifdef FLEA_HAVE_DTLS */
@@ -426,7 +426,7 @@ static flea_err_e THR_flea_recprot_t__set_gcm_cs_inner(
 #  ifdef FLEA_HAVE_DTLS
   if(FLEA_RP__IS_DTLS(rec_prot__pt))
   {
-    new_epoch__alu16 = conn_state__pt->epoch__u16;
+    new_epoch__alu16 = conn_state__pt->epoch__u16 + 1;
     FLEA_DBG_PRINTF("new epoch for new gcm conn = %u\n", new_epoch__alu16);
   }
 #  endif /* ifdef FLEA_HAVE_DTLS */
@@ -658,6 +658,7 @@ flea_err_e THR_flea_recprot_t__wrt_data(
       /* no need to write new header in this case: content stays, length comes later */
     }
   }
+# if 0
   if(FLEA_RP__IS_DTLS(rec_prot__pt) && (content_type__e == CONTENT_TYPE_CHANGE_CIPHER_SPEC))
   {
     rec_prot__pt->write_state__t.seqno_lo_hi__au32[0] = 0; // INCREMENTING HERE, BUT THE RECORD MAY STILL BE AWAITING ENCRYPTION
@@ -675,6 +676,7 @@ flea_err_e THR_flea_recprot_t__wrt_data(
 
     FLEA_DBG_PRINTF("increased next write epoch to %u\n", rec_prot__pt->write_state__t.epoch__u16);
   }
+# endif /* if 0 */
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_recprot_t__wrt_data */
 
@@ -1433,6 +1435,7 @@ flea_err_e THR_flea_recprot_t__write_encr_rec_to_queue(
   FLEA_THR_FIN_SEC_empty();
 }
 
+#  if 0
 flea_err_e THR_flea_recprot_t__increment_read_epoch(flea_recprot_t* rec_prot__pt)
 {
   FLEA_THR_BEG_FUNC();
@@ -1450,6 +1453,8 @@ flea_err_e THR_flea_recprot_t__increment_read_epoch(flea_recprot_t* rec_prot__pt
 
   FLEA_THR_FIN_SEC_empty();
 }
+
+#  endif /* if 0 */
 
 flea_bool_t flea_recprot_t__is_rd_buf_empty(flea_recprot_t* rec_prot__pt)
 {
