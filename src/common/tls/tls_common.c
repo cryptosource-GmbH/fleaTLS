@@ -2365,6 +2365,9 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
 # ifdef FLEA_HEAP_MODE
   FLEA_FREE_MEM_CHK_NULL(tls_ctx__pt->own_vfy_data__bu8);
 # endif
+# ifdef FLEA_HAVE_DTLS
+  flea_byte_vec_t__dtor(&tls_ctx__pt->dtls_retransm_state__t.previous_write_key_block__t);
+# endif
 }
 
 #endif /* ifdef FLEA_HAVE_TLS */
