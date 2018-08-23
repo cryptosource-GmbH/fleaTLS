@@ -323,7 +323,8 @@ static flea_err_e THR_flea_recprot_t__set_cbc_cs_inner(
   );
   FLEA_DBG_PRINTF("new epoch cbc conn after cbc conn ctor = %u\n", conn_state__pt->epoch__u16);
 
-  reserved_payl_len__alu16 = mac_size__alu8 + 2 * rec_prot__pt->read_state__t.reserved_iv_len__u8; /* 2* block size: one for IV, one for padding */
+  // reserved_payl_len__alu16 = mac_size__alu8 + 2 * rec_prot__pt->read_state__t.reserved_iv_len__u8; /* 2* block size: one for IV, one for padding */
+  reserved_payl_len__alu16 = mac_size__alu8 + 2 * conn_state__pt->reserved_iv_len__u8; /* 2* block size: one for IV, one for padding */
 
   if(((reserved_payl_len__alu16 + rec_prot__pt->record_hdr_len__u8) >= rec_prot__pt->send_rec_buf_raw_len__u16) ||
     ((reserved_payl_len__alu16 + rec_prot__pt->record_hdr_len__u8) >= rec_prot__pt->alt_send_buf__raw_len__u16))
@@ -445,7 +446,8 @@ static flea_err_e THR_flea_recprot_t__set_gcm_cs_inner(
 
   /* 16 is the GCM tag length */
   // TODO: ERROR, NEED TO USE CONN STATE, NOT READ STATE!:
-  reserved_payl_len__alu16 = 16 + rec_prot__pt->read_state__t.reserved_iv_len__u8;
+  // reserved_payl_len__alu16 = 16 + rec_prot__pt->read_state__t.reserved_iv_len__u8;
+  reserved_payl_len__alu16 = 16 + conn_state__pt->reserved_iv_len__u8;
 // TODO: FACTOR THIS OUT, COMPARE CBC
   if(((reserved_payl_len__alu16 + rec_prot__pt->record_hdr_len__u8) > rec_prot__pt->send_rec_buf_raw_len__u16) ||
     ((reserved_payl_len__alu16 + rec_prot__pt->record_hdr_len__u8) > rec_prot__pt->alt_send_buf__raw_len__u16))
