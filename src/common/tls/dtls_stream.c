@@ -561,11 +561,11 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
     flea_u32_t millisecs__u32;
     // TODO: MAKE READ NON-BLOCKING WORK
     FLEA_CCALL(THR_flea_recprot_t__get_current_record_type(rec_prot__pt, &cont_type__e, flea_read_nonblocking)); // WAS: READ_FULL
-    FLEA_DBG_PRINTF("rd_dtls_rec_from_wire: cont_type__e = %u\n", cont_type__e);
+    // FLEA_DBG_PRINTF("rd_dtls_rec_from_wire: cont_type__e = %u\n", cont_type__e);
     millisecs__u32 = flea_timer_t__get_elapsed_millisecs(
       &dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t.timer__t
     );
-    if(cont_type__e == CONTENT_TYPE_ANY)
+    if(cont_type__e == CONTENT_TYPE_ANY) /* CONTENT_TYPE_ANY means no record was found */
     {
       if(millisecs__u32 > 1000 * dtls_hs_ctx__pt->current_timeout_secs__u8)
       {

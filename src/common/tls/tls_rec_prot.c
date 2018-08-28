@@ -544,7 +544,18 @@ flea_err_e THR_flea_recprot_t__set_ciphersuite(
 
   FLEA_THR_BEG_FUNC();
   FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
+
+# ifdef FLEA_HAVE_DTLS
+  /* DTLS must be able to revert to null cs for retransmission */
+  if(suite_id == 0)
+  {
+    flea_recprot_t__set_null_ciphersuite(rec_prot__pt, direction);
+    FLEA_THR_RETURN();
+  }
+# endif /* ifdef FLEA_HAVE_DTLS */
+
   FLEA_CCALL(THR_flea_tls_get_cipher_suite_by_id(suite_id, &suite__pt));
+
 
 # ifdef FLEA_HAVE_TLS_CS_GCM
   if(FLEA_TLS_IS_AE_CIPHER(suite__pt->cipher))
@@ -1575,7 +1586,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
   data__pu8             += to_cp__alu16;
   read_bytes_count__dtl += to_cp__alu16;
 
-  FLEA_DBG_PRINTF("read_bytes before loop = %u\n", read_bytes_count__dtl);
+  // FLEA_DBG_PRINTF("read_bytes before loop = %u\n", read_bytes_count__dtl);
   // enter only if
   // - called with current_or_next_record_for_content_type__b
   //   OR
@@ -1605,29 +1616,32 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
     {
       flea_al_u16_t curr_rec_full_len__alu16 = 0;
 #  ifdef FLEA_DO_DBG_PRINT
-      FLEA_DBG_PRINTF("dbg_loop_cnt = %u\n", dbg_loop_cnt++);
-      unsigned i;
-      FLEA_DBG_PRINTF("entering loop\n");
-      FLEA_DBG_PRINTF("rec_prot__pt->curr_rec_content_len__u16 = %u\n", rec_prot__pt->curr_rec_content_len__u16);
       if(rec_prot__pt->curr_rec_content_len__u16)
       {
-        FLEA_DBG_PRINTF("record_content with hdr = ");
-        for(i = 0; i < rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8; i++)
+        FLEA_DBG_PRINTF("dbg_loop_cnt = %u\n", dbg_loop_cnt++);
+        unsigned i;
+        FLEA_DBG_PRINTF("entering loop\n");
+        FLEA_DBG_PRINTF("rec_prot__pt->curr_rec_content_len__u16 = %u\n", rec_prot__pt->curr_rec_content_len__u16);
+        if(rec_prot__pt->curr_rec_content_len__u16)
+        {
+          FLEA_DBG_PRINTF("record_content with hdr = ");
+          for(i = 0; i < rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8; i++)
+          {
+            FLEA_DBG_PRINTF("%02x ", rec_prot__pt->send_rec_buf_raw__bu8[i]);
+          }
+          FLEA_DBG_PRINTF("\n");
+        }
+        FLEA_DBG_PRINTF("current rec content offs = %u\n", rec_prot__pt->curr_rec_content_offs__u16);
+        FLEA_DBG_PRINTF("current rec pt len = %u\n", rec_prot__pt->curr_pt_content_len__u16);
+
+        FLEA_DBG_PRINTF("rec_prot__pt->raw_read_buf_content__u16= %u\n", rec_prot__pt->raw_read_buf_content__u16);
+        FLEA_DBG_PRINTF("raw read buf content = ");
+        for(i = 0; i < rec_prot__pt->raw_read_buf_content__u16; i++)
         {
           FLEA_DBG_PRINTF("%02x ", rec_prot__pt->send_rec_buf_raw__bu8[i]);
         }
         FLEA_DBG_PRINTF("\n");
       }
-      FLEA_DBG_PRINTF("current rec content offs = %u\n", rec_prot__pt->curr_rec_content_offs__u16);
-      FLEA_DBG_PRINTF("current rec pt len = %u\n", rec_prot__pt->curr_pt_content_len__u16);
-
-      FLEA_DBG_PRINTF("rec_prot__pt->raw_read_buf_content__u16= %u\n", rec_prot__pt->raw_read_buf_content__u16);
-      FLEA_DBG_PRINTF("raw read buf content = ");
-      for(i = 0; i < rec_prot__pt->raw_read_buf_content__u16; i++)
-      {
-        FLEA_DBG_PRINTF("%02x ", rec_prot__pt->send_rec_buf_raw__bu8[i]);
-      }
-      FLEA_DBG_PRINTF("\n");
 #  endif /* ifdef FLEA_DO_DBG_PRINT */
 
       /* if we arrive here, there is the need to read a further record, either for the content type or for content data */
@@ -1692,6 +1706,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         }
         else
         {
+#  if 0
           FLEA_DBG_PRINTF(
             "current record content completely read, with no trailing record in buffer, resetting buffer state to 'empty'\n"
           );
@@ -1700,7 +1715,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             "   read so far (including header) = %u\n",
             rec_prot__pt->raw_read_buf_content__u16
           );
-          // TODO: MERGE WITH OTHER CASE:
+#  endif /* if 0 */
+         // TODO: MERGE WITH OTHER CASE:
 
           flea_recprot_t__set_current_rd_rec_empty(rec_prot__pt);
 
@@ -1731,7 +1747,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             // TODO: read until version first, then make potentially TLS=>DTLS
             // transition,
             // that is: if (not already version=DTLS1.2) AND (DTLS is allowed)
-            FLEA_DBG_PRINTF("initial read request for  %u bytes\n", raw_read_len__dtl);
+            // FLEA_DBG_PRINTF("initial read request for  %u bytes\n", raw_read_len__dtl);
             FLEA_CCALL(
               THR_flea_rw_stream_t__read(
                 rec_prot__pt->rw_stream__pt,
@@ -1753,20 +1769,23 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
 
               )
             );
-            FLEA_DBG_PRINTF("initial read request actual read size = %u bytes\n", raw_read_len__dtl);
+            // FLEA_DBG_PRINTF("initial read request actual read size = %u bytes\n", raw_read_len__dtl);
           }
           rec_prot__pt->raw_read_buf_content__u16 += raw_read_len__dtl;
 #  ifdef FLEA_DO_DBG_PRINT
-          FLEA_DBG_PRINTF(
+
+          /*FLEA_DBG_PRINTF(
             "before version check: rec_prot__pt->raw_read_buf_content__u16 = %u\n",
             rec_prot__pt->raw_read_buf_content__u16
-          );
-          FLEA_DBG_PRINTF("raw read buf content = ");
-          for(i = 0; i < rec_prot__pt->raw_read_buf_content__u16; i++)
+          );*/
+
+          /*FLEA_DBG_PRINTF("raw read buf content = ");
+          for(unsigned i = 0; i < rec_prot__pt->raw_read_buf_content__u16; i++)
           {
             FLEA_DBG_PRINTF("%02x ", rec_prot__pt->send_rec_buf_raw__bu8[i]);
           }
           FLEA_DBG_PRINTF("\n");
+          */
 #  endif /* ifdef FLEA_DO_DBG_PRINT */
 
           /*FLEA_DBG_PRINTF("prot_version_mbn__pt = %p\n", prot_version_mbn__pt);
@@ -1821,21 +1840,21 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           {
             if(local_rd_mode__e == flea_read_nonblocking)
             {
-              FLEA_DBG_PRINTF(
+              /*FLEA_DBG_PRINTF(
                 "THR_flea_recprot_t__read_data_inner_dtls returning with %u read bytes\n",
                 rec_prot__pt->raw_read_buf_content__u16
-              );
+              );*/
               *data_len__pdtl = 0;
               FLEA_THR_RETURN();
             }
             else
             {
-              FLEA_DBG_PRINTF(
+              /*FLEA_DBG_PRINTF(
                 "needed = rec_prot__pt->record_hdr_len__u8 = %u, current_raw_read_content = %u, raw_read_len__dtl = %u\n",
                 rec_prot__pt->record_hdr_len__u8,
                 rec_prot__pt->raw_read_buf_content__u16,
                 raw_read_len__dtl
-              );
+              );*/
               if(!raw_read_len__dtl)
               {
                 FLEA_THROW("0 bytes returned from blocking read", FLEA_ERR_TIMEOUT_ON_STREAM_READ);
@@ -1863,7 +1882,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           else if(!current_or_next_record_for_content_type__b &&
             (cont_type__e != rec_prot__pt->send_rec_buf_raw__bu8[0]))
           {
-#  ifdef FLEA_DO_DBG_PRINT
+#  if 0
+#   ifdef FLEA_DO_DBG_PRINT
             FLEA_DBG_PRINTF("content type required: %u, ", cont_type__e);
             FLEA_DBG_PRINTF("content type found: %u\n", rec_prot__pt->send_rec_buf_raw__bu8[0]);
             unsigned add = 0;
@@ -1875,7 +1895,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
               "this record's content len = %u\n",
               (rec_prot__pt->send_rec_buf_raw__bu8[3 + add] << 8) | rec_prot__pt->send_rec_buf_raw__bu8[4 + add]
             );
-#  endif /* ifdef FLEA_DO_DBG_PRINT */
+#   endif /* ifdef FLEA_DO_DBG_PRINT */
+#  endif /* if 0 */
             FLEA_THROW("content type does not match", FLEA_ERR_TLS_INV_REC_HDR);
           }
           else
@@ -1883,7 +1904,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             FLEA_DBG_PRINTF("content type inquired: %u\n", rec_prot__pt->send_rec_buf_raw__bu8[0]);
           }
 
-#  ifdef FLEA_DO_DBG_PRINT
+#  if 0
+#   ifdef FLEA_DO_DBG_PRINT
           unsigned add = 0;
           if(FLEA_RP__IS_DTLS(rec_prot__pt))
           {
@@ -1893,7 +1915,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
             "this record's content len = %u\n",
             (rec_prot__pt->send_rec_buf_raw__bu8[3 + add] << 8) | rec_prot__pt->send_rec_buf_raw__bu8[4 + add]
           );
-#  endif /* ifdef FLEA_DO_DBG_PRINT */
+#   endif /* ifdef FLEA_DO_DBG_PRINT */
+#  endif /* if 0 */
 
           if(do_verify_prot_version__b)
           {
