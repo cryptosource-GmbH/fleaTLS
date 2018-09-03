@@ -33,18 +33,25 @@
  *
  */
 
-static flea_u32_t flea_dtls_hndsh__get_flight_buf_rem_free_size(
+/*static flea_u32_t flea_dtls_hndsh__get_flight_buf_rem_free_size(
   flea_tls_handshake_ctx_t* hs_ctx__pt
 )
 {
   return FLEA_DTLS_FLIGHT_BUF_SIZE - hs_ctx__pt->dtls_ctx__t.flight_buf_write_pos__u32;
-}
+}*/
 
+/*
+ * returns the available send length based on the current read position. Does not at all take into account whether there
+ * is a completed handshake message within the data characterized by that length.
+ */
 static flea_u32_t flea_dtls_hndsh__flight_buf_avail_send_len(
   flea_tls_handshake_ctx_t* hs_ctx__pt
 )
 {
-  return hs_ctx__pt->dtls_ctx__t.flight_buf_write_pos__u32 - hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32;
+  return /*hs_ctx__pt->dtls_ctx__t.flight_buf_write_pos__u32*/ qheap_qh_get_queue_len(
+    hs_ctx__pt->dtls_ctx__t.qheap__pt,
+    hs_ctx__pt->dtls_ctx__t.current_flight_buf__qhh
+  ) - hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32;
 }
 
 static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
@@ -52,13 +59,15 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
   flea_dtls_conn_state_data_t* conn_state_to_activate_after_ccs_mbn__pt
 )
 {
-  flea_u8_t* flight_ptr__pu8         = hs_ctx__pt->dtls_ctx__t.flight_buf__bu8;
+  // flea_u8_t* flight_ptr__pu8         = hs_ctx__pt->dtls_ctx__t.flight_buf__bu8;
   flea_recprot_t* rec_prot__pt       = &hs_ctx__pt->tls_ctx__pt->rec_prot__t;
   flea_dtls_hdsh_ctx_t* dtls_ctx__pt = &hs_ctx__pt->dtls_ctx__t;
 
+  FLEA_DECL_BUF(send_portion__bu8, flea_u8_t, 64); /* must at least be FLEA_DTLS_HANDSH_HDR_LEN */
   // flea_bool_t in_sending__b = FLEA_TRUE;
 
   FLEA_THR_BEG_FUNC();
+  FLEA_ALLOC_BUF(send_portion__bu8, 64);
 
   // TODO: THIS FUNCTION NEEDS TO LOOP UNTIL NO MORE RECORDS CAN BE SEND
   FLEA_DBG_PRINTF("starting THR_flea_dtls_hndsh__try_send_out_from_flight_buf()\n");
@@ -66,8 +75,20 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
   {
     // read in the header
     flea_u32_t avail_len__u32 = flea_dtls_hndsh__flight_buf_avail_send_len(hs_ctx__pt);
+    flea_u8_t first_byte;
+    if(!qheap_qh_peek(
+        dtls_ctx__pt->qheap__pt,
+        dtls_ctx__pt->current_flight_buf__qhh,
+        hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32,
+        &first_byte,
+        1
+    ))
+    {
+      /* no avail_len */
+      FLEA_THR_RETURN();
+    }
     if(avail_len__u32 &&
-      flight_ptr__pu8[hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32] == FLEA_DTLS_FLIGHT_BUF_CCS_CODE)
+      first_byte == FLEA_DTLS_FLIGHT_BUF_CCS_CODE)
     {
       FLEA_DBG_PRINTF(" sending out CCS\n");
       // TODO: SET A FLAG THAT CURRENT FLIGHT HAS CCS: BEFORE RETRANSMIT, THE RP'S
@@ -97,23 +118,36 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
     }
     else if(avail_len__u32 >= FLEA_DTLS_HANDSH_HDR_LEN)
     {
+      // TODO: ONLY TYPE BYTE, MESSAGE LENGTH AND SEQ IS NEEDED
+      flea_u8_t dtls_hs_hdr__au8[FLEA_DTLS_HANDSH_HDR_LEN];
       FLEA_DBG_PRINTF(" have at least HS-HDR len in flight buffer\n");
       // (introduce further pos: ready_for_read_until_here)
       flea_al_u16_t max_record_pt__alu16;
       flea_al_u16_t max_pt_expansion__alu16;
       flea_al_u16_t limit__alu16;
       flea_u32_t rem_msg_len__u32;
+      /* check of avail_len ensures that this peek can be satisfied */
+      qheap_qh_peek(
+        dtls_ctx__pt->qheap__pt,
+        dtls_ctx__pt->current_flight_buf__qhh,
+        hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32,
+        dtls_hs_hdr__au8,
+        sizeof(dtls_hs_hdr__au8)
+      );
       // message type not needed.
       // determine this msg's length, then check whether it must be fragmented.
-      flea_u32_t msg_len__u32 = flea__decode_U24_BE(&FLIGHT_BUF_AT_CURRENT_READ_POS(hs_ctx__pt)[1]);
+      // flea_u32_t msg_len__u32 = flea__decode_U24_BE(&FLIGHT_BUF_AT_CURRENT_READ_POS(hs_ctx__pt)[1]);
+      flea_u32_t msg_len__u32 = flea__decode_U24_BE(&dtls_hs_hdr__au8[1]);
       rem_msg_len__u32 = msg_len__u32;
       // need information from record protocol about the maximal add data
       max_record_pt__alu16    = flea_recprot_t__get_current_max_record_pt_size(&hs_ctx__pt->tls_ctx__pt->rec_prot__t);
       max_pt_expansion__alu16 = flea_recprot_t__get_current_max_pt_expansion(&hs_ctx__pt->tls_ctx__pt->rec_prot__t);
 
       /* must have at least one byte of content: */
-      if(msg_len__u32 + FLEA_DTLS_HANDSH_HDR_LEN + dtls_ctx__pt->flight_buf_read_pos__u32 >
-        dtls_ctx__pt->flight_buf_write_pos__u32)
+      if(msg_len__u32 + FLEA_DTLS_HANDSH_HDR_LEN /*+ dtls_ctx__pt->flight_buf_read_pos__u32*/ >
+        avail_len__u32
+        // dtls_ctx__pt->flight_buf_write_pos__u32
+      )
       {
         /* hndsh msg is not yet completed */
         FLEA_THR_RETURN();
@@ -131,11 +165,14 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
       );
       FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
 
-      flea_u8_t* data_ptr__pu8 = dtls_ctx__pt->flight_buf__bu8 + dtls_ctx__pt->flight_buf_read_pos__u32
-        + FLEA_DTLS_HANDSH_HDR_LEN;
+      flea_u32_t data_pos__u32 = dtls_ctx__pt->flight_buf_read_pos__u32 + FLEA_DTLS_HANDSH_HDR_LEN;
+
+      /*flea_u8_t* data_ptr__pu8 = dtls_ctx__pt->flight_buf__bu8 + dtls_ctx__pt->flight_buf_read_pos__u32
+        + FLEA_DTLS_HANDSH_HDR_LEN;*/
       flea_u32_t fragm_off__u32 = 0;
       flea_u8_t frag_offs_and_len__alu8[6];
-      FLEA_DBG_PRINTF("dtls_ctx__pt->flight_buf_read_pos__u32 = %u\n", dtls_ctx__pt->flight_buf_read_pos__u32);
+
+      /*FLEA_DBG_PRINTF("dtls_ctx__pt->flight_buf_read_pos__u32 = %u\n", dtls_ctx__pt->flight_buf_read_pos__u32);
       FLEA_DBG_PRINTF("hs_msg in flight buffer to be sent: header = ");
       for(unsigned i = 0; i < FLEA_DTLS_HANDSH_HDR_LEN; i++)
       {
@@ -147,29 +184,34 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
       {
         FLEA_DBG_PRINTF("%02x ", data_ptr__pu8[i]);
       }
-      FLEA_DBG_PRINTF("\n");
+      FLEA_DBG_PRINTF("\n");*/
+
+      /* loop over the handshake msg fragments to send */
       do
       {
-        // create handshake header with fragment information.
-        // then send the hdr | content-fragment.
+        /* create handshake header with fragment information.
+        * then send the hdr | content-fragment.*/
         flea_u32_t to_go__u32;
+        flea_u32_t to_go_countdown__u32;
         /* write hs_type, hs_length, and hs_seq */
         FLEA_CCALL(
           THR_flea_recprot_t__wrt_data(
             rec_prot__pt,
             CONTENT_TYPE_HANDSHAKE,
-            &dtls_ctx__pt->flight_buf__bu8[dtls_ctx__pt->flight_buf_read_pos__u32],
+            &dtls_hs_hdr__au8[0],
+            // &dtls_ctx__pt->flight_buf__bu8[dtls_ctx__pt->flight_buf_read_pos__u32],
             6
           )
         );
 
         to_go__u32 = FLEA_MIN(rem_msg_len__u32, limit__alu16);
-        FLEA_DBG_PRINTF(" sending hs-msg fragment of length %u\n", to_go__u32);
+
+        /*FLEA_DBG_PRINTF(" sending hs-msg fragment of length %u\n", to_go__u32);
         FLEA_DBG_PRINTF("hs_msg content fragment: header = ");
         for(unsigned i = 0; i < 6; i++)
         {
           FLEA_DBG_PRINTF("%02x ", dtls_ctx__pt->flight_buf__bu8[dtls_ctx__pt->flight_buf_read_pos__u32 + i]);
-        }
+        }*/
 
         flea__encode_U24_BE(fragm_off__u32, frag_offs_and_len__alu8);
         flea__encode_U24_BE(to_go__u32, frag_offs_and_len__alu8 + 3);
@@ -183,17 +225,41 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
         }
         FLEA_DBG_PRINTF("\n");
         /* write the data */
-        FLEA_CCALL(THR_flea_recprot_t__wrt_data(rec_prot__pt, CONTENT_TYPE_HANDSHAKE, data_ptr__pu8, to_go__u32));
+        to_go_countdown__u32 = to_go__u32;
+        while(to_go_countdown__u32)
+        {
+          // TODO: use linearize or let wrt_data accept a qheap handle
+          flea_al_u16_t to_go_inner__alu16 = FLEA_MIN(to_go_countdown__u32, 64);
+          qheap_qh_peek(
+            hs_ctx__pt->dtls_ctx__t.qheap__pt,
+            hs_ctx__pt->dtls_ctx__t.current_flight_buf__qhh,
+            data_pos__u32,
+            send_portion__bu8,
+            64
+          );
+          // FLEA_CCALL(THR_flea_recprot_t__wrt_data(rec_prot__pt, CONTENT_TYPE_HANDSHAKE, data_ptr__pu8, to_go__u32));
+          FLEA_CCALL(
+            THR_flea_recprot_t__wrt_data(
+              rec_prot__pt,
+              CONTENT_TYPE_HANDSHAKE,
+              send_portion__bu8,
+              to_go_inner__alu16
+            )
+          );
+          to_go_countdown__u32 -= to_go_inner__alu16;
+          data_pos__u32        += to_go_inner__alu16;
+          // hs_ctx__pt->dtls_ctx__t.flight_buf_read_pos__u32 += to_go_inner__alu16;
+        }
 
-        FLEA_DBG_PRINTF("hs_msg content fragment of length %u: content = ", to_go__u32);
+        /*FLEA_DBG_PRINTF("hs_msg content fragment of length %u: content = ", to_go__u32);
         for(unsigned i = 0; i < to_go__u32; i++)
         {
           FLEA_DBG_PRINTF("%02x ", data_ptr__pu8[i]);
-        }
+        }*/
 
         FLEA_DBG_PRINTF("\n");
         FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
-        data_ptr__pu8    += to_go__u32;
+        // data_ptr__pu8    += to_go__u32;
         rem_msg_len__u32 -= to_go__u32;
         fragm_off__u32   += to_go__u32;
       } while(rem_msg_len__u32);
@@ -204,7 +270,9 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
       break;
     }
   }
-  FLEA_THR_FIN_SEC_empty();
+  FLEA_THR_FIN_SEC(
+    FLEA_FREE_BUF_FINAL_SECRET_ARR(send_portion__bu8, 64);
+  );
 } /* THR_flea_dtls_hndsh__try_send_out_from_flight_buf */
 
 flea_err_e THR_flea_dtls_hndsh__append_ccs_to_flight_buffer_and_try_to_send_record(flea_tls_handshake_ctx_t* hs_ctx__pt)
@@ -233,28 +301,44 @@ flea_err_e THR_flea_dtls_hndsh__append_to_flight_buffer_and_try_to_send_record(
   {
     FLEA_DBG_PRINTF("%02x ", data__pcu8[i]);
   }
-  FLEA_DBG_PRINTF("\nat write pos = %u\n", hs_ctx__pt->dtls_ctx__t.flight_buf_write_pos__u32);
+  FLEA_DBG_PRINTF("\n");
+
+  // FLEA_DBG_PRINTF("\nat write pos = %u\n", hs_ctx__pt->dtls_ctx__t.flight_buf_write_pos__u32);
+
   while(data_len__u32)
   {
     flea_u32_t to_go__u32;
-    flea_u32_t flight_buf_rem_free_len__u32;
-    flight_buf_rem_free_len__u32 = flea_dtls_hndsh__get_flight_buf_rem_free_size(hs_ctx__pt);
-    to_go__u32 = FLEA_MIN(flight_buf_rem_free_len__u32, data_len__u32);
-    // TODO: HANDLE THE CASE WHERE DESPITE AN EMPTY FLIGHT BUFFER THE MESSAGE
-    // IS TOO LARGE
-    FLEA_DBG_PRINTF("flight buf write pos = %u\n", hs_ctx__pt->dtls_ctx__t.flight_buf_write_pos__u32);
-    memcpy(
+    // flea_u32_t flight_buf_rem_free_len__u32;
+    // flight_buf_rem_free_len__u32 = flea_dtls_hndsh__get_flight_buf_rem_free_size(hs_ctx__pt);
+    // to_go__u32 = FLEA_MIN(flight_buf_rem_free_len__u32, data_len__u32);
+    to_go__u32 = data_len__u32;
+    // TODO: HANDLE THE CASE WHERE THE MESSAGE
+    // IS TOO LARGE => START FREEING THE PREV-BUF
+    // FLEA_DBG_PRINTF("flight buf write pos = %u\n", hs_ctx__pt->dtls_ctx__t.flight_buf_write_pos__u32);
+
+    FLEA_DBG_PRINTF("appending to flight buf queue\n");
+    if(qheap_qh_append_to_queue(
+        hs_ctx__pt->dtls_ctx__t.qheap__pt,
+        hs_ctx__pt->dtls_ctx__t.current_flight_buf__qhh,
+        data__pcu8,
+        to_go__u32
+    ))
+    {
+      FLEA_THROW("could not write all data to flight buffer", FLEA_ERR_OUT_OF_MEM);
+    }
+
+    /*memcpy(
       &hs_ctx__pt->dtls_ctx__t.flight_buf__bu8[ hs_ctx__pt->dtls_ctx__t.flight_buf_write_pos__u32],
       data__pcu8,
       to_go__u32
-    );
+    );*/
     data_len__u32 -= to_go__u32;
     data__pcu8    += to_go__u32;
-    hs_ctx__pt->dtls_ctx__t.flight_buf_write_pos__u32 += to_go__u32;
+    // hs_ctx__pt->dtls_ctx__t.flight_buf_write_pos__u32 += to_go__u32;
     FLEA_CCALL(THR_flea_dtls_hndsh__try_send_out_from_flight_buf(hs_ctx__pt, NULL));
   }
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_dtls_hndsh__append_to_flight_buffer_and_try_to_send_record */
 
 flea_err_e THR_flea_dtls_hdsh__snd_hands_msg_hdr(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
@@ -316,9 +400,15 @@ flea_err_e THR_flea_dtls_hdsh__snd_hands_msg_hdr(
 
 void flea_dtls_hndsh__set_flight_buffer_empty(flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt)
 {
-  dtls_hs_ctx__pt->flight_buf_write_pos__u32   = 0;
-  dtls_hs_ctx__pt->flight_buf_read_pos__u32    = 0;
+  // dtls_hs_ctx__pt->flight_buf_write_pos__u32   = 0;
+  dtls_hs_ctx__pt->flight_buf_read_pos__u32 = 0;
+  // TODO: struct to hold flight buffer hndl together with ccs flag
   dtls_hs_ctx__pt->flight_buf_contains_ccs__u8 = 0;
+  qheap_qh_skip(
+    dtls_hs_ctx__pt->qheap__pt,
+    dtls_hs_ctx__pt->current_flight_buf__qhh,
+    qheap_qh_get_queue_len(dtls_hs_ctx__pt->qheap__pt, dtls_hs_ctx__pt->current_flight_buf__qhh)
+  );
 }
 
 flea_err_e THR_flea_dtls_hdsh__retransmit_flight_buf(flea_tls_handshake_ctx_t* hs_ctx__pt)

@@ -69,12 +69,12 @@ struct struct_flea_dtls_hdsh_ctx_t
 
   /* seq-no of the hs-msg, from which at least the first header has been
    * received: */
-  flea_s16_t    rec_msg_seq__s16;
-  flea_u32_t    flight_buf_write_pos__u32;
-  flea_u32_t    flight_buf_read_pos__u32;
-  flea_u16_t    assembly_read_pos__u16;
+  flea_s16_t rec_msg_seq__s16;
+  // flea_u32_t    flight_buf_write_pos__u32;
+  flea_u32_t flight_buf_read_pos__u32;
+  // flea_u16_t    assembly_read_pos__u16;
   // flea_u16_t    assembly_write_pos__u16;
-  flea_u8_t*    assembly_buf__pu8;
+  // flea_u8_t*    assembly_buf__pu8;
   flea_u8_t*    fragm_info_ptr__pu8;
   flea_al_u16_t pmtu_estimate__alu16;
   // flea_u16_t curr_frag_len__alu16;
@@ -85,13 +85,16 @@ struct struct_flea_dtls_hdsh_ctx_t
 
   // TODO: MAKE TYPE WIHT OWN FILE FOR FLIGHT BUF
   flea_u8_t     flight_buf_contains_ccs__u8;
-# ifdef FLEA_HEAP_MODE
+  qh_hndl_t     current_flight_buf__qhh;
+# if 0
+#  ifdef FLEA_HEAP_MODE
   flea_u8_t*    flight_buf__bu8;
   // flea_u8_t*     hello_verify_cookie__bu8;
-# else
+#  else
   flea_u8_t     flight_buf__bu8[FLEA_DTLS_FLIGHT_BUF_SIZE];
   // flea_u8_t     hello_verify_cookie__bu8[FLEA_DTLS_SRV_HELLO_COOKIE_SIZE]
-# endif // ifdef FLEA_HEAP_MODE
+#  endif // ifdef FLEA_HEAP_MODE
+# endif // if 0
 # ifdef FLEA_HAVE_TLS_SERVER
   flea_u8_t*                 hello_cookie__pu8;
   flea_u8_t                  hello_verify_tries__u8;

@@ -820,6 +820,33 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
         /* now read away the type-byte */
         qheap_qh_skip(heap__pt, hndl, 1);
 
+
+        // DBG ========>
+        {
+          flea_u8_t reread_fragm_len_2_au8[3];
+          flea_u8_t peaked_cnt;
+          peaked_cnt = qheap_qh_peek(
+            heap__pt,
+            hndl,
+            FLEA_DTLS_HS_HDR_OFFS__FRAGM_LEN /*offset*/,
+            reread_fragm_len_2_au8,
+            sizeof(reread_fragm_len_2_au8)
+          );
+          FLEA_DBG_PRINTF("fragm len in THR_flea_dtls_rd_strm__start_new_msg before rewrite: ");
+          FLEA_DBG_PRINT_BYTE_ARRAY(reread_fragm_len_2_au8, peaked_cnt);
+          FLEA_DBG_PRINTF("\n");
+        }
+        FLEA_DBG_PRINTF("hdr_msg_len (src) = ");
+        FLEA_DBG_PRINT_BYTE_ARRAY(hdr_ptr__pu8 + FLEA_DTLS_HS_HDR_OFFS__MSG_LEN, 3);
+        FLEA_DBG_PRINTF("\n");
+        const flea_u8_t comp__au8 [] = {0x00, 0x09, 0x97};
+        if(!memcmp(hdr_ptr__pu8 + FLEA_DTLS_HS_HDR_OFFS__MSG_LEN, comp__au8, 3))
+        {
+          FLEA_DBG_PRINTF("BREAKPOINT\n");
+        }
+
+        // <======== DBG
+
         /* rewrite the fragm len to be equal to the msg len */
         if(FLEA_DTLS_HS_HDR_LEN__FRAGM_LEN !=
           qheap_qh_rewrite(
@@ -832,10 +859,57 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
         {
           FLEA_THROW("invalid result from queue rewrite", FLEA_ERR_INT_ERR);
         }
+
+        // DBG ========>
+        flea_u8_t reread_fragm_len_2_au8[3];
+        flea_u8_t peaked_cnt;
+        peaked_cnt = qheap_qh_peek(
+          heap__pt,
+          hndl,
+          FLEA_DTLS_HS_HDR_OFFS__FRAGM_LEN /*offset*/,
+          reread_fragm_len_2_au8,
+          sizeof(reread_fragm_len_2_au8)
+        );
+        FLEA_DBG_PRINTF("reread fragm len in THR_flea_dtls_rd_strm__start_new_msg: ");
+        FLEA_DBG_PRINT_BYTE_ARRAY(reread_fragm_len_2_au8, peaked_cnt);
+        FLEA_DBG_PRINTF("\n");
+
+        /*if(memcmp(reread_fragm_len_au8, hdr_ptr__pu8 + FLEA_DTLS_HS_HDR_OFFS__MSG_LEN, 3))
+        {
+          FLEA_THROW("error with rewritten fragm len", FLEA_ERR_INT_ERR);
+        }*/
+        // <======== DBG
+        // DBG ========>
+        flea_u8_t reread_fragm_len_au8[12];
+        peaked_cnt = qheap_qh_peek(heap__pt, hndl, 0 /*offset*/, reread_fragm_len_au8, sizeof(reread_fragm_len_au8));
+        FLEA_DBG_PRINTF("reread fragm len in THR_flea_dtls_rd_strm__start_new_msg: ");
+        FLEA_DBG_PRINT_BYTE_ARRAY(reread_fragm_len_au8, peaked_cnt);
+        FLEA_DBG_PRINTF("\n");
+
+        /*if(memcmp(reread_fragm_len_au8, hdr_ptr__pu8 + FLEA_DTLS_HS_HDR_OFFS__MSG_LEN, 3))
+        {
+          FLEA_THROW("error with rewritten fragm len", FLEA_ERR_INT_ERR);
+        }*/
+        // <======== DBG
+
         if(is_first_msg_of_new_flight__b)
         {
+          // TODO: THIS IS NOT CORRECT: PEER MAY HAVE STARTED TO PROCESS HANDSHAKE MSGS BASED ON WHAT HE RECEIVED FROM OUR PREVIOUS FLIGHT, BUT
+          // THE WHOLE FLIGHT MAY BE INCOMPLETELY RECEIVED
           flea_dtls_hndsh__set_flight_buffer_empty(dtls_hs_ctx__pt);
         }
+
+        // DBG ========>
+        peaked_cnt = qheap_qh_peek(heap__pt, hndl, 0 /*offset*/, reread_fragm_len_au8, sizeof(reread_fragm_len_au8));
+        FLEA_DBG_PRINTF("reread fragm len in THR_flea_dtls_rd_strm__start_new_msg: ");
+        FLEA_DBG_PRINT_BYTE_ARRAY(reread_fragm_len_au8, peaked_cnt);
+        FLEA_DBG_PRINTF("\n");
+
+        /*if(memcmp(reread_fragm_len_au8, hdr_ptr__pu8 + FLEA_DTLS_HS_HDR_OFFS__MSG_LEN, 3))
+        {
+          FLEA_THROW("error with rewritten fragm len 2", FLEA_ERR_INT_ERR);
+        }*/
+        // <======== DBG
 
         /*if(handsh_hdr_mbn__pu8)
         {
@@ -950,6 +1024,19 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
           dtls_hs_ctx__pt->incom_assmbl_state__t.req_next_rec_cont_type__e
         )
       );
+
+      // DBG ==============>
+      flea_u8_t peeked_buf__au8[20];
+      flea_al_u8_t did_peek = qheap_qh_peek(
+        dtls_hs_ctx__pt->qheap__pt,
+        curr_msg_state_info__pt->hndl_qhh,
+        0 /*offset*/,
+        peeked_buf__au8,
+        sizeof(peeked_buf__au8)
+      );
+      FLEA_DBG_PRINTF("peeked before rd_func read in current queue: ");
+      FLEA_DBG_PRINT_BYTE_ARRAY(peeked_buf__au8, did_peek);
+      // <============== DBG
     }
     // if(!curr_msg_state_info__pt->fragm_len_incl_hs_hdr__u32)
 

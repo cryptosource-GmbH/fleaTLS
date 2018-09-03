@@ -21,6 +21,7 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
   hs_ctx__pt->dtls_ctx__t.send_msg_seq__s16 = -1;
   // TODO: MAKE PMTU-EST. AN ARGUMENT
   hs_ctx__pt->dtls_ctx__t.pmtu_estimate__alu16 = 256;
+  // TODO: QHEAP MUST BECOME "DYNAMIC"
   qheap_qh_ctor(
     &hs_ctx__pt->dtls_ctx__t.qheap__t,
     (flea_u8_t*) hs_ctx__pt->dtls_ctx__t.qh_mem_area__au32,
@@ -28,11 +29,16 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
     0
   );
   hs_ctx__pt->dtls_ctx__t.qheap__pt = &hs_ctx__pt->dtls_ctx__t.qheap__t;
-
+  hs_ctx__pt->dtls_ctx__t.current_flight_buf__qhh =
+    qheap_qh_alloc_queue(hs_ctx__pt->dtls_ctx__t.qheap__pt, QHEAP_FALSE);
+  if(!hs_ctx__pt->dtls_ctx__t.current_flight_buf__qhh)
+  {
+    FLEA_THROW("error allocating queue", FLEA_ERR_OUT_OF_MEM);
+  }
 # if defined FLEA_HEAP_MODE
   // TODO: ONLY FOR DTLS:
   flea_byte_vec_t__ctor_empty_allocatable(&hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.qheap_handles_incoming__t);
-  FLEA_ALLOC_MEM(hs_ctx__pt->dtls_ctx__t.flight_buf__bu8, FLEA_DTLS_FLIGHT_BUF_SIZE);
+  // FLEA_ALLOC_MEM(hs_ctx__pt->dtls_ctx__t.flight_buf__bu8, FLEA_DTLS_FLIGHT_BUF_SIZE);
 # else
   flea_byte_vec_t__ctor_empty_use_ext_buf(
     &hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.qheap_handles_incoming__t,
@@ -59,8 +65,9 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
 
 void flea_tls_handshake_ctx_t__dtor(flea_tls_handshake_ctx_t* hs_ctx__pt)
 {
+  qheap_qh_free_queue(hs_ctx__pt->dtls_ctx__t.qheap__pt, hs_ctx__pt->dtls_ctx__t.current_flight_buf__qhh);
 #if defined FLEA_HEAP_MODE
-  FLEA_FREE_MEM_CHK_NULL(hs_ctx__pt->dtls_ctx__t.flight_buf__bu8);
+  // FLEA_FREE_MEM_CHK_NULL(hs_ctx__pt->dtls_ctx__t.flight_buf__bu8);
 # ifdef FLEA_HAVE_DTLS
   flea_timer_t__dtor(&hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t.timer__t);
   flea_byte_vec_t__dtor(&hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.qheap_handles_incoming__t);

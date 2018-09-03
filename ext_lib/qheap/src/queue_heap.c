@@ -754,20 +754,25 @@ static qh_al_size_t qheap_qh_process_queue_and_buf(
   qh_al_size_t curr_sgm_rd_offs   = qh__pt->queue_rd_offs__u8[idx__alu16];
 
   // curr_sgm_data_offs__s32 -= curr_sgm_rd_offs;
-  start__alqhl += curr_sgm_rd_offs;
+  // start__alqhl += curr_sgm_rd_offs;
   qh_al_size_t initial_sgm_rd_offs     = curr_sgm_rd_offs;
   qh_al_size_t prev_offs__alqhl        = QHEAP_QH_OFFS_INVALID;
   qheap_bool_t consumed_current_sgm__b = QHEAP_FALSE;
   qh_al_size_t curr_sgm_len__alqhl;
   qh_al_size_t curr_noffs__alqhl;
+
+  /* start__alqhl always points to the offset where to read next */
   while((curr_offs__alqhl != QHEAP_QH_OFFS_INVALID) && len__alqhl)
   {
     /* determine the current segement's range */
     curr_sgm_len__alqhl = QHEAP_QH_GET_FROM_SEGM_HDR_THE_LEN(qh__pt->heap__pu8 + curr_offs__alqhl);
     curr_noffs__alqhl   = QHEAP_QH_GET_FROM_SEGM_HDR_THE_NOFFS(qh__pt->heap__pu8 + curr_offs__alqhl);
-    if(start__alqhl >= curr_sgm_data_offs__s32 + curr_sgm_len__alqhl)
+    // printf("loop begin: start = %u, curr_sgm_rd_offs = %u, curr_sgm_data_offs__s32  = %u, curr_sgm_len__alqhl = %u\n", start__alqhl, curr_sgm_rd_offs, curr_sgm_data_offs__s32, curr_sgm_len__alqhl);
+    if(start__alqhl + curr_sgm_rd_offs >= curr_sgm_data_offs__s32 + curr_sgm_len__alqhl) /* I  */
     {
+      // printf("  skipping this segment, because start is behind it\n");
       /* this sgm is to be skipped completely */
+      /* read offset can only be within the first segment! */
       curr_sgm_rd_offs = 0;
 
       /* more data is read. if there is a trailing element with non-zero length,
@@ -778,9 +783,10 @@ static qh_al_size_t qheap_qh_process_queue_and_buf(
     else
     {
       /* this sgm is (fully or partially) read */
-      qh_al_size_t intra_sgm_off__alqhl = start__alqhl - curr_sgm_data_offs__s32; /* read_offs > 0 contained in start__alqhl */
+      qh_al_size_t intra_sgm_off__alqhl = start__alqhl + curr_sgm_rd_offs - curr_sgm_data_offs__s32; /* read_offs > 0 contained in start__alqhl */
       qh_al_size_t sgm_rem_len__alqhl   = curr_sgm_len__alqhl - intra_sgm_off__alqhl;
       qh_al_size_t to_go__alqhl         = QHEAP_MIN(len__alqhl, sgm_rem_len__alqhl);
+      // printf("  using this segment with intra_sgm_off__alqhl = %u, sgm_rem_len__alqhl = %u, to_go__alqhl = %u\n", intra_sgm_off__alqhl, sgm_rem_len__alqhl, to_go__alqhl  );
       if(op__f)
       {
         /*memcpy(
@@ -798,14 +804,19 @@ static qh_al_size_t qheap_qh_process_queue_and_buf(
       }
       len__alqhl    -= to_go__alqhl;
       result__alqhl += to_go__alqhl;
-      start__alqhl  += to_go__alqhl - curr_sgm_rd_offs; // subtract rd_offs ?
+      start__alqhl  += to_go__alqhl /*- curr_sgm_rd_offs*/; // subtract rd_offs ?
       // read_offs__alqhl += to_go__alqhl;
+      //
+      if(to_go__alqhl == sgm_rem_len__alqhl)
+      {
+        curr_sgm_rd_offs = 0;
+      }
       if(do_advance_rd_offs__b)
       {
         do_upd_rd_offs__b = QHEAP_TRUE;
         if(to_go__alqhl == sgm_rem_len__alqhl)
         {
-          curr_sgm_rd_offs = 0;
+          // curr_sgm_rd_offs = 0;
 
           /* the segment was consumed, check if is not the last element. then we have to delete it */
           if(curr_noffs__alqhl != QHEAP_QH_OFFS_INVALID)
