@@ -70,28 +70,18 @@ struct struct_flea_dtls_hdsh_ctx_t
   /* seq-no of the hs-msg, from which at least the first header has been
    * received: */
   flea_s16_t rec_msg_seq__s16;
-  // flea_u32_t    flight_buf_write_pos__u32;
-  flea_u32_t flight_buf_read_pos__u32;
-  // flea_u16_t    assembly_read_pos__u16;
-  // flea_u16_t    assembly_write_pos__u16;
-  // flea_u8_t*    assembly_buf__pu8;
-  flea_u8_t*    fragm_info_ptr__pu8;
-  flea_al_u16_t pmtu_estimate__alu16;
-  // flea_u16_t curr_frag_len__alu16;
+  flea_u8_t* fragm_info_ptr__pu8;
   // TODO: remove:
-  flea_u8_t     is_flight_buf_incoming__u8;
+  flea_u8_t  is_flight_buf_incoming__u8;
 
-  flea_u8_t     is_in_sending_state__u8;
+  flea_u8_t  is_in_sending_state__u8;
 
-  // TODO: MAKE TYPE WIHT OWN FILE FOR FLIGHT BUF
-  flea_u8_t     flight_buf_contains_ccs__u8;
-  qh_hndl_t     current_flight_buf__qhh;
 # if 0
 #  ifdef FLEA_HEAP_MODE
-  flea_u8_t*    flight_buf__bu8;
+  flea_u8_t* flight_buf__bu8;
   // flea_u8_t*     hello_verify_cookie__bu8;
 #  else
-  flea_u8_t     flight_buf__bu8[FLEA_DTLS_FLIGHT_BUF_SIZE];
+  flea_u8_t  flight_buf__bu8[FLEA_DTLS_FLIGHT_BUF_SIZE];
   // flea_u8_t     hello_verify_cookie__bu8[FLEA_DTLS_SRV_HELLO_COOKIE_SIZE]
 #  endif // ifdef FLEA_HEAP_MODE
 # endif // if 0
@@ -99,11 +89,6 @@ struct struct_flea_dtls_hdsh_ctx_t
   flea_u8_t*                 hello_cookie__pu8;
   flea_u8_t                  hello_verify_tries__u8;
 # endif
-  qheap_queue_heap_t*        qheap__pt;
-  // TODO: EITHER GLOBALLY PROVIDED OR FLEA/TLS-WIDE
-  qheap_queue_heap_t         qheap__t;
-  // TODO: PONDER VARIANTS OF HOW TO PLACE THIS BUFFER (STACK/HEAP?)
-  flea_u32_t                 qh_mem_area__au32[(FLEA_QHEAP_MEMORY_SIZE + 3) / 4];
   flea_dtls_hs_assmb_state_t incom_assmbl_state__t;
 
   flea_u8_t                  current_timeout_secs__u8;
@@ -112,15 +97,6 @@ struct struct_flea_dtls_hdsh_ctx_t
 # define FLEA_DTLS_HDSH_CTX_HAVE_PEND_WRT_MSG(hs_ctx__pt)   ((hs_ctx__pt)->dtls_ctx__t.fragm_info_ptr__pu8 != 0)
 # define FLEA_DTLS_HDSH_CTX_SET_NO_PEND_WRT_MSG(hs_ctx__pt) do {(hs_ctx__pt)->fragm_info_ptr__pu8 = 0;} while(0)
 
-# if 0
-
-typedef flea_err_e (* flea_send_handsh_msg_hdr_f)(
-  flea_tls_handshake_ctx_t* hs_ctx__pt,
-  flea_tls_prl_hash_ctx_t*  p_hash_ctx_mbn__pt,
-  HandshakeType             type,
-  flea_u32_t                content_len__u32
-);
-# endif // if 0
 
 // TOOD: ALL HANDSHAKE STRINGS TO HNDSH
 struct struct_flea_tls_handshake_ctx_t

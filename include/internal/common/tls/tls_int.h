@@ -55,6 +55,9 @@ typedef struct
 
 #  ifdef FLEA_HAVE_DTLS
 
+/**
+ * type to hold a connection state for later activation.
+ */
 struct struct_flea_dtls_conn_state_data_t
 {
 #   ifdef FLEA_STACK_MODE
@@ -74,6 +77,16 @@ typedef struct
   flea_timer_t                timer__t;
   flea_dtls_conn_state_data_t previous_conn_st__t;
   flea_dtls_conn_state_data_t current_conn_st__t;
+  flea_u8_t                   flight_buf_contains_ccs__u8;
+  qh_hndl_t                   current_flight_buf__qhh;
+  flea_u32_t                  flight_buf_read_pos__u32;
+  qheap_queue_heap_t*         qheap__pt;
+  flea_al_u16_t               pmtu_estimate__alu16;
+
+  // TODO: EITHER GLOBALLY PROVIDED OR FLEA/TLS-WIDE
+  qheap_queue_heap_t          qheap__t;
+  // TODO: PONDER VARIANTS OF HOW TO PLACE THIS BUFFER (STACK/HEAP?)
+  flea_u32_t                  qh_mem_area__au32[(FLEA_QHEAP_MEMORY_SIZE + 3) / 4];
 } flea_dtls_retransm_state_t;
 #  endif // ifdef FLEA_HAVE_DTLS
 

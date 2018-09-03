@@ -156,9 +156,10 @@ static flea_err_e THR_flea_dtls_rd_strm__hndsh_hdr_info_from_queue(
   flea_dtls_hndsh_hdr_info_t* result__pt
 )
 {
+  flea_tls_ctx_t* tls_ctx__pt = dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt;
   // flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
   // flea_byte_vec_t* incom_hndls__pt = &assmbl_state__pt->qheap_handles_incoming__t;
-  qheap_queue_heap_t* heap__pt = dtls_hs_ctx__pt->qheap__pt;
+  qheap_queue_heap_t* heap__pt = tls_ctx__pt->dtls_retransm_state__t.qheap__pt;
   flea_u8_t* hdr_ptr__pu8;
 
   FLEA_DECL_BUF(hs_hdr_buf__bu8, flea_u8_t, FLEA_DTLS_HANDSH_HDR_LEN + 1);
@@ -241,8 +242,9 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
 )
 {
   flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
+  flea_tls_ctx_t* tls_ctx__pt      = dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt;
   flea_byte_vec_t* incom_hndls__pt = &assmbl_state__pt->qheap_handles_incoming__t;
-  qheap_queue_heap_t* heap__pt     = dtls_hs_ctx__pt->qheap__pt;
+  qheap_queue_heap_t* heap__pt     = tls_ctx__pt->dtls_retransm_state__t.qheap__pt;
   flea_al_u8_t i;
   flea_bool_t try_again__b = FLEA_TRUE;
 
@@ -533,10 +535,11 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   flea_recprot_t*       rec_prot__pt
 )
 {
+  flea_tls_ctx_t* tls_ctx__pt = dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt;
   flea_tls_rec_cont_type_e cont_type__e = CONTENT_TYPE_ANY;
   flea_al_u8_t i;
   flea_al_u16_t curr_rec_cont_len__alu16;
-  qheap_queue_heap_t* heap__pt = dtls_hs_ctx__pt->qheap__pt;
+  qheap_queue_heap_t* heap__pt = tls_ctx__pt->dtls_retransm_state__t.qheap__pt;
 // TODO: MAKE DYNAMIC: + enc_hs, (plain_alert,) enc_alert, plain_ccs
   flea_u8_t rec_type__u8; // = (flea_u8_t) rec_type_hndsh_plain;
   flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
@@ -618,7 +621,13 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   if(rec_type__u8 == rec_type_encr_rec)
   {
     FLEA_DBG_PRINTF("writing encrypted record to queue\n");
-    FLEA_CCALL(THR_flea_recprot_t__write_encr_rec_to_queue(rec_prot__pt, dtls_hs_ctx__pt->qheap__pt, hndl_alqhh));
+    FLEA_CCALL(
+      THR_flea_recprot_t__write_encr_rec_to_queue(
+        rec_prot__pt,
+        tls_ctx__pt->dtls_retransm_state__t.qheap__pt,
+        hndl_alqhh
+      )
+    );
   }
   else
   {
@@ -673,12 +682,14 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
 // THIS ONE
 // flea_u8_t hdr__au8[FLEA_DTLS_HANDSH_HDR_LEN];
 
+  flea_tls_ctx_t* tls_ctx__pt = dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt;
+
   FLEA_DECL_BUF(hs_hdr_buf__bu8, flea_u8_t, FLEA_DTLS_HANDSH_HDR_LEN + 1);
   // flea_al_u8_t hdr_size__alu8 = sizeof(hdr__au8);
   // flea_dtls_hdsh_ctx_t *dtls_hs_ctx__pt = handsh_rdr__pt->dtls_hs_ctx__pt;
   flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
   flea_byte_vec_t* incom_hndls__pt = &assmbl_state__pt->qheap_handles_incoming__t;
-  qheap_queue_heap_t* heap__pt     = dtls_hs_ctx__pt->qheap__pt;
+  qheap_queue_heap_t* heap__pt     = tls_ctx__pt->dtls_retransm_state__t.qheap__pt;
   flea_dtls_hndsh_msg_state_info_t* curr_msg_state__pt = &assmbl_state__pt->curr_msg_state_info__t;
   flea_al_u16_t i;
   flight_buf_rec_type_e req_msg_type__e;
@@ -734,7 +745,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
       );
     }
     qheap_qh_free_queue(
-      dtls_hs_ctx__pt->qheap__pt,
+      tls_ctx__pt->dtls_retransm_state__t.qheap__pt,
       dtls_hs_ctx__pt->incom_assmbl_state__t.curr_msg_state_info__t.hndl_qhh
     );
     /* the message with curr_msg_seq has already been processed (read) */
@@ -999,8 +1010,9 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
   //  app_data is decrypted once possible and fed to callback
   flea_dtls_rd_stream_hlp_t* hlp__pt    = (flea_dtls_rd_stream_hlp_t*) custom_obj__pv;
   flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt = hlp__pt->dtls_hs_ctx__pt;
-
-  flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
+  flea_tls_ctx_t* tls_ctx__pt = dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt;
+  flea_dtls_retransm_state_t* dtls_retransm_state__pt = &tls_ctx__pt->dtls_retransm_state__t;
+  flea_dtls_hs_assmb_state_t* assmbl_state__pt        = &dtls_hs_ctx__pt->incom_assmbl_state__t;
   flea_dtl_t rem_read_len__dtl = *nb_bytes_to_read__pdtl;
   flea_dtls_hndsh_msg_state_info_t* curr_msg_state_info__pt = &assmbl_state__pt->curr_msg_state_info__t;
 
@@ -1026,9 +1038,10 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
       );
 
       // DBG ==============>
+#if 0
       flea_u8_t peeked_buf__au8[20];
       flea_al_u8_t did_peek = qheap_qh_peek(
-        dtls_hs_ctx__pt->qheap__pt,
+        tls_ctx__pt->dtls_retransm_state__t.qheap__pt,
         curr_msg_state_info__pt->hndl_qhh,
         0 /*offset*/,
         peeked_buf__au8,
@@ -1036,7 +1049,8 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
       );
       FLEA_DBG_PRINTF("peeked before rd_func read in current queue: ");
       FLEA_DBG_PRINT_BYTE_ARRAY(peeked_buf__au8, did_peek);
-      // <============== DBG
+#endif /* if 0 */
+       // <============== DBG
     }
     // if(!curr_msg_state_info__pt->fragm_len_incl_hs_hdr__u32)
 
@@ -1049,28 +1063,22 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
       FLEA_THROW("assertion for hndl of current msg failed", FLEA_ERR_INT_ERR);
     }
 
-    FLEA_DBG_PRINTF(
+    /*FLEA_DBG_PRINTF(
       "read_request = %u\nq-len before => after read: %u => ",
       rem_read_len__dtl,
       (unsigned) qheap_qh_get_queue_len(dtls_hs_ctx__pt->qheap__pt, curr_msg_state_info__pt->hndl_qhh)
-    );
-// dbg =>
-    if(rem_read_len__dtl == 827)
-    {
-      FLEA_DBG_PRINTF("BREAKPOINT\n");
-    }
-// <= dbg
+    );*/
 
 
     did_read__u32 = qheap_qh_read(
-      dtls_hs_ctx__pt->qheap__pt,
+      tls_ctx__pt->dtls_retransm_state__t.qheap__pt,
       curr_msg_state_info__pt->hndl_qhh,
       target_buffer__pu8,
       rem_read_len__dtl
     );
     FLEA_DBG_PRINTF(
       "%u\n",
-      (unsigned) qheap_qh_get_queue_len(dtls_hs_ctx__pt->qheap__pt, curr_msg_state_info__pt->hndl_qhh)
+      (unsigned) qheap_qh_get_queue_len(dtls_retransm_state__pt->qheap__pt, curr_msg_state_info__pt->hndl_qhh)
     );
 
     /*FLEA_DBG_PRINTF("dtls_rd_funct: outputting: ");
@@ -1135,10 +1143,11 @@ flea_err_e THR_flea_rw_stream_t__ctor_dtls_rd_strm(
 
 flea_err_e THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(flea_tls_handshake_ctx_t* hs_ctx__pt)
 {
-  flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt        = &hs_ctx__pt->dtls_ctx__t;
+  flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt = &hs_ctx__pt->dtls_ctx__t;
+  flea_tls_ctx_t* tls_ctx__pt = dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt;
   flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
   flea_byte_vec_t* incom_hndls__pt = &assmbl_state__pt->qheap_handles_incoming__t;
-  qheap_queue_heap_t* heap__pt     = dtls_hs_ctx__pt->qheap__pt;
+  qheap_queue_heap_t* heap__pt     = tls_ctx__pt->dtls_retransm_state__t.qheap__pt;
   flea_recprot_t* rec_prot__pt     = &hs_ctx__pt->tls_ctx__pt->rec_prot__t;
 
   FLEA_THR_BEG_FUNC();
