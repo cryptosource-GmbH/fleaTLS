@@ -14,7 +14,10 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
 {
   // TODO: MAKE FLIGHT BUFFER SIZE CONTROLLABLE VIA API OR DYNAMICALLY
   FLEA_THR_BEG_FUNC();
+  // FLEA_ZERO_STRUCT(&tls_ctx__pt->dtls_retransm_state__t);
 #if defined FLEA_HAVE_DTLS
+  tls_ctx__pt->dtls_retransm_state__t.flight_buf_read_pos__u32    = 0;
+  tls_ctx__pt->dtls_retransm_state__t.flight_buf_contains_ccs__u8 = 0;
   hs_ctx__pt->dtls_ctx__t.hs_ctx__pt = hs_ctx__pt;
   hs_ctx__pt->dtls_ctx__t.current_timeout_secs__u8 = 1;
   FLEA_CCALL(THR_flea_timer_t__ctor(&hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t.timer__t));
