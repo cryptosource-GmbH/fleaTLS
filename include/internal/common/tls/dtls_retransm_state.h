@@ -92,6 +92,7 @@ flea_err_e THR_flea_dtls_rtrsm_t__retransmit_flight_buf(
   flea_tls__connection_end_t  conn_end__e
 ) FLEA_ATTRIB_UNUSED_RESULT;
 
+void flea_dtls_rtrsm_st_t__reset(flea_dtls_retransm_state_t* dtls_rtrsm_st__pt);
 
 # ifdef __cplusplus
 }

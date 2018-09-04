@@ -14,7 +14,6 @@ flea_err_e THR_flea_dtls_rtrsm_t__ctor(
   dtls_rtrsm_st__pt->flight_buf_read_pos__u32    = 0;
   dtls_rtrsm_st__pt->flight_buf_contains_ccs__u8 = 0;
 
-  // TODO: MAKE PMTU-EST. AN ARGUMENT
   // TODO: QHEAP MUST BECOME "DYNAMIC"
   qheap_qh_ctor(
     &dtls_rtrsm_st__pt->qheap__t,
@@ -30,8 +29,42 @@ flea_err_e THR_flea_dtls_rtrsm_t__ctor(
     FLEA_THROW("error allocating queue", FLEA_ERR_OUT_OF_MEM);
   }
   FLEA_CCALL(THR_flea_timer_t__ctor(&dtls_rtrsm_st__pt->timer__t));
+  // TODO: MAKE PMTU-EST. AN ARGUMENT
   dtls_rtrsm_st__pt->pmtu_estimate__alu16 = 256;
+
+#ifdef FLEA_STACK_MODE
+  flea_byte_vec_t__ctor_empty_use_ext_buf(
+    &dtls_rtrsm_st__pt->previous_conn_st__t.write_key_block__t,
+    dtls_rtrsm_st__pt->previous_conn_st__t.write_key_block_mem__au8,
+    sizeof(dtls_rtrsm_st__pt->previous_conn_st__t.write_key_block_mem__au8)
+  );
+  flea_byte_vec_t__ctor_empty_use_ext_buf(
+    &dtls_rtrsm_st__pt->current_conn_st__t.write_key_block__t,
+    dtls_rtrsm_st__pt->current_conn_st__t.write_key_block_mem__au8,
+    sizeof(dtls_rtrsm_st__pt->current_conn_st__t.write_key_block_mem__au8)
+  );
+#else    /* ifdef FLEA_STACK_MODE */
+  flea_byte_vec_t__ctor_empty_allocatable(&dtls_rtrsm_st__pt->previous_conn_st__t.write_key_block__t);
+  flea_byte_vec_t__ctor_empty_allocatable(&dtls_rtrsm_st__pt->current_conn_st__t.write_key_block__t);
+#endif   /* ifdef FLEA_STACK_MODE */
+
   FLEA_THR_FIN_SEC_empty();
+} /* THR_flea_dtls_rtrsm_t__ctor */
+
+void flea_dtls_rtrsm_st_t__reset(
+  flea_dtls_retransm_state_t* dtls_rtrsm_st__pt
+)
+{
+  dtls_rtrsm_st__pt->flight_buf_read_pos__u32    = 0;
+  dtls_rtrsm_st__pt->flight_buf_contains_ccs__u8 = 0;
+
+  /*flea_byte_vec_t__reset(&dtls_rtrsm_st__pt->previous_conn_st__t.write_key_block__t);
+  flea_byte_vec_t__reset(&dtls_rtrsm_st__pt->current_conn_st__t.write_key_block__t);*/
+  qheap_qh_skip(
+    dtls_rtrsm_st__pt->qheap__pt,
+    dtls_rtrsm_st__pt->current_flight_buf__qhh,
+    qheap_qh_get_queue_len(dtls_rtrsm_st__pt->qheap__pt, dtls_rtrsm_st__pt->current_flight_buf__qhh)
+  );
 }
 
 /*
@@ -390,4 +423,7 @@ void flea_dtls_rtrsm_st_t__dtor(flea_dtls_retransm_state_t* dtls_rtrsm_st__pt)
     dtls_rtrsm_st__pt->current_flight_buf__qhh
   );
   flea_timer_t__dtor(&dtls_rtrsm_st__pt->timer__t);
+
+  flea_byte_vec_t__dtor(&dtls_rtrsm_st__pt->previous_conn_st__t.write_key_block__t);
+  flea_byte_vec_t__dtor(&dtls_rtrsm_st__pt->current_conn_st__t.write_key_block__t);
 }

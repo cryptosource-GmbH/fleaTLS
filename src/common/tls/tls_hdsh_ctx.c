@@ -21,7 +21,7 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
   hs_ctx__pt->dtls_ctx__t.hs_ctx__pt = hs_ctx__pt;
   hs_ctx__pt->dtls_ctx__t.current_timeout_secs__u8 = 1;
   hs_ctx__pt->dtls_ctx__t.send_msg_seq__s16        = -1;
-  FLEA_CCALL(THR_flea_dtls_rtrsm_t__ctor(&hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t));
+  // FLEA_CCALL(THR_flea_dtls_rtrsm_t__ctor(&hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t));
 # if defined FLEA_HEAP_MODE
   // TODO: ONLY FOR DTLS:
   flea_byte_vec_t__ctor_empty_allocatable(&hs_ctx__pt->dtls_ctx__t.incom_assmbl_state__t.qheap_handles_incoming__t);
@@ -50,7 +50,8 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
 
 void flea_tls_handshake_ctx_t__dtor(flea_tls_handshake_ctx_t* hs_ctx__pt)
 {
-  flea_dtls_rtrsm_st_t__dtor(&hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t);
+  flea_dtls_rtrsm_st_t__reset(&hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t);
+  // flea_dtls_rtrsm_st_t__dtor(&hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t);
 #if defined FLEA_HEAP_MODE
   // FLEA_FREE_MEM_CHK_NULL(hs_ctx__pt->dtls_ctx__t.flight_buf__bu8);
 # ifdef FLEA_HAVE_DTLS

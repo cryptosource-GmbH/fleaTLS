@@ -849,21 +849,8 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
   FLEA_THR_BEG_FUNC();
 
 # ifdef FLEA_HAVE_DTLS
-#  ifdef FLEA_STACK_MODE
-  flea_byte_vec_t__ctor_empty_use_ext_buf(
-    &tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t.write_key_block__t,
-    tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t.write_key_block_mem__au8,
-    sizeof(tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t.write_key_block_mem__au8)
-  );
-  flea_byte_vec_t__ctor_empty_use_ext_buf(
-    &tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.write_key_block__t,
-    tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.write_key_block_mem__au8,
-    sizeof(tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.write_key_block_mem__au8)
-  );
-#  else  /* ifdef FLEA_STACK_MODE */
-  flea_byte_vec_t__ctor_empty_allocatable(&tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t.write_key_block__t);
-  flea_byte_vec_t__ctor_empty_allocatable(&tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.write_key_block__t);
-#  endif /* ifdef FLEA_STACK_MODE */
+
+  FLEA_CCALL(THR_flea_dtls_rtrsm_t__ctor(&tls_ctx__pt->dtls_retransm_state__t));
 # endif /* ifdef FLEA_HAVE_DTLS */
 
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
@@ -894,7 +881,6 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
     tls_ctx__pt->rev_chk_cfg__t.rev_chk_mode__e = flea_rev_chk_none;
   }
   /* set TLS version */
-  // if(tls_ctx__pt->cfg_flags__e & flea_tls_flag__use_dtls1_2)
   if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
   {
     tls_ctx__pt->version.major = FLEA_DTLS_1_2_VERSION_MAJOR;
@@ -2429,8 +2415,7 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
   FLEA_FREE_MEM_CHK_NULL(tls_ctx__pt->own_vfy_data__bu8);
 # endif
 # ifdef FLEA_HAVE_DTLS
-  flea_byte_vec_t__dtor(&tls_ctx__pt->dtls_retransm_state__t.previous_conn_st__t.write_key_block__t);
-  flea_byte_vec_t__dtor(&tls_ctx__pt->dtls_retransm_state__t.current_conn_st__t.write_key_block__t);
+  flea_dtls_rtrsm_st_t__dtor(&tls_ctx__pt->dtls_retransm_state__t);
 # endif
 }
 
