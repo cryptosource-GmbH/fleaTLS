@@ -49,6 +49,11 @@ typedef struct
   flea_u32_t                  qh_mem_area__au32[(FLEA_QHEAP_MEMORY_SIZE + 3) / 4];
 } flea_dtls_retransm_state_t;
 
+flea_err_e THR_flea_dtls_rtrsm_t__ctor(
+  flea_dtls_retransm_state_t* dtls_rtrsm_st__pt
+) FLEA_ATTRIB_UNUSED_RESULT;
+
+void flea_dtls_rtrsm_st_t__dtor(flea_dtls_retransm_state_t* dtls_rtrsm_st__pt);
 
 flea_u32_t flea_dtls_rtrsm_st_t__flight_buf_avail_send_len(
   flea_dtls_retransm_state_t* rtrsm_st__pt
@@ -86,6 +91,7 @@ flea_err_e THR_flea_dtls_rtrsm_t__retransmit_flight_buf(
   flea_recprot_t*             rec_prot__pt,
   flea_tls__connection_end_t  conn_end__e
 ) FLEA_ATTRIB_UNUSED_RESULT;
+
 
 # ifdef __cplusplus
 }

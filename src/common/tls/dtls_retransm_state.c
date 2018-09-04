@@ -6,6 +6,34 @@
 
 #define FLEA_DTLS_FLIGHT_BUF_CCS_CODE 0xFF
 
+flea_err_e THR_flea_dtls_rtrsm_t__ctor(
+  flea_dtls_retransm_state_t* dtls_rtrsm_st__pt
+)
+{
+  FLEA_THR_BEG_FUNC();
+  dtls_rtrsm_st__pt->flight_buf_read_pos__u32    = 0;
+  dtls_rtrsm_st__pt->flight_buf_contains_ccs__u8 = 0;
+
+  // TODO: MAKE PMTU-EST. AN ARGUMENT
+  // TODO: QHEAP MUST BECOME "DYNAMIC"
+  qheap_qh_ctor(
+    &dtls_rtrsm_st__pt->qheap__t,
+    (flea_u8_t*) dtls_rtrsm_st__pt->qh_mem_area__au32,
+    sizeof(dtls_rtrsm_st__pt->qh_mem_area__au32),
+    0
+  );
+  dtls_rtrsm_st__pt->qheap__pt = &dtls_rtrsm_st__pt->qheap__t;
+  dtls_rtrsm_st__pt->current_flight_buf__qhh =
+    qheap_qh_alloc_queue(dtls_rtrsm_st__pt->qheap__pt, QHEAP_FALSE);
+  if(!dtls_rtrsm_st__pt->current_flight_buf__qhh)
+  {
+    FLEA_THROW("error allocating queue", FLEA_ERR_OUT_OF_MEM);
+  }
+  FLEA_CCALL(THR_flea_timer_t__ctor(&dtls_rtrsm_st__pt->timer__t));
+  dtls_rtrsm_st__pt->pmtu_estimate__alu16 = 256;
+  FLEA_THR_FIN_SEC_empty();
+}
+
 /*
  * returns the available send length based on the current read position. Does not at all take into account whether there
  * is a completed handshake message within the data characterized by that length.
@@ -353,4 +381,13 @@ flea_err_e THR_flea_dtls_rtrsm_t__retransmit_flight_buf(
     )
   );
   FLEA_THR_FIN_SEC_empty();
+}
+
+void flea_dtls_rtrsm_st_t__dtor(flea_dtls_retransm_state_t* dtls_rtrsm_st__pt)
+{
+  qheap_qh_free_queue(
+    dtls_rtrsm_st__pt->qheap__pt,
+    dtls_rtrsm_st__pt->current_flight_buf__qhh
+  );
+  flea_timer_t__dtor(&dtls_rtrsm_st__pt->timer__t);
 }
