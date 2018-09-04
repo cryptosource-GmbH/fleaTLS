@@ -1179,6 +1179,13 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
     data_len__pdtl,
     rd_mode__e
   );
+# ifdef FLEA_HAVE_DTLS
+  if(err__t == FLEA_EXC_TLS_HS_MSG_FR_PREV_EPOCH)
+  {
+    // TODO: trigger retransmission!
+  }
+  else
+# endif /* ifdef FLEA_HAVE_DTLS */
   if(err__t == FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA)
   {
     /* assume it's the appropriate ClientHello or HelloRequest in order to

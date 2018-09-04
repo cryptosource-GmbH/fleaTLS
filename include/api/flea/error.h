@@ -171,6 +171,11 @@ typedef enum
   FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA                   = 0x4C,
 
   /**
+   * Indication of internal exceptional control flow.
+   */
+  FLEA_EXC_TLS_HS_MSG_FR_PREV_EPOCH                     = 0x4D,
+
+  /**
    * Invalid contents of a TLS record header.
    */
   FLEA_ERR_TLS_INV_REC_HDR                              = 0x4E,

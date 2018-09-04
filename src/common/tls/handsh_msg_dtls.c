@@ -40,22 +40,8 @@
   return FLEA_DTLS_FLIGHT_BUF_SIZE - tls_ctx__pt->dtls_retransm_state__t.flight_buf_write_pos__u32;
 }*/
 
-/*
- * returns the available send length based on the current read position. Does not at all take into account whether there
- * is a completed handshake message within the data characterized by that length.
- */
-static flea_u32_t flea_dtls_hndsh__flight_buf_avail_send_len(
-  flea_tls_handshake_ctx_t* hs_ctx__pt
-)
-{
-  flea_tls_ctx_t* tls_ctx__pt = hs_ctx__pt->tls_ctx__pt;
 
-  return /*tls_ctx__pt->dtls_retransm_state__t.flight_buf_write_pos__u32*/ qheap_qh_get_queue_len(
-    tls_ctx__pt->dtls_retransm_state__t.qheap__pt,
-    tls_ctx__pt->dtls_retransm_state__t.current_flight_buf__qhh
-  ) - tls_ctx__pt->dtls_retransm_state__t.flight_buf_read_pos__u32;
-}
-
+// TODO: MOVE TO RETRANSM_STATE
 static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
   flea_tls_handshake_ctx_t*    hs_ctx__pt,
   flea_dtls_conn_state_data_t* conn_state_to_activate_after_ccs_mbn__pt
@@ -78,7 +64,10 @@ static flea_err_e THR_flea_dtls_hndsh__try_send_out_from_flight_buf(
   while(1)
   {
     // read in the header
-    flea_u32_t avail_len__u32 = flea_dtls_hndsh__flight_buf_avail_send_len(hs_ctx__pt);
+    // flea_u32_t avail_len__u32 = flea_dtls_hndsh__flight_buf_avail_send_len(hs_ctx__pt);
+    flea_u32_t avail_len__u32 = flea_dtls_rtrsm_st_t__flight_buf_avail_send_len(
+      &hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t
+    );
     flea_u8_t first_byte;
     if(!qheap_qh_peek(
         dtls_retransm_state__pt->qheap__pt,

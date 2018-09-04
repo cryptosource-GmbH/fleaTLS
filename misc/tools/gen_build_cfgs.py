@@ -3,6 +3,7 @@
 import re
 import os
 import os.path
+import filecmp
 
 class instruction:
     bc_name = ""
@@ -137,7 +138,11 @@ def create_build_configs(instructions):
             current_file_contents = default_bc_file_as_list()
         exec_instruction(instr, current_file_contents)
     if(current_output_file_name != ""):
-        write_file(current_output_file_name, current_file_contents)
+        curr_out_tmp_file_name = current_output_file_name + "_tmp"
+        write_file(curr_out_tmp_file_name, current_file_contents)
+        if(not filecmp.cmp(curr_out_tmp_file_name, current_output_file_name)):
+            write_file(current_output_file_name, current_file_contents)
+        os.remove(curr_out_tmp_file_name)
         
         
         

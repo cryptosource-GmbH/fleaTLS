@@ -1011,8 +1011,7 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
   flea_dtls_rd_stream_hlp_t* hlp__pt    = (flea_dtls_rd_stream_hlp_t*) custom_obj__pv;
   flea_dtls_hdsh_ctx_t* dtls_hs_ctx__pt = hlp__pt->dtls_hs_ctx__pt;
   flea_tls_ctx_t* tls_ctx__pt = dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt;
-  flea_dtls_retransm_state_t* dtls_retransm_state__pt = &tls_ctx__pt->dtls_retransm_state__t;
-  flea_dtls_hs_assmb_state_t* assmbl_state__pt        = &dtls_hs_ctx__pt->incom_assmbl_state__t;
+  flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
   flea_dtl_t rem_read_len__dtl = *nb_bytes_to_read__pdtl;
   flea_dtls_hndsh_msg_state_info_t* curr_msg_state_info__pt = &assmbl_state__pt->curr_msg_state_info__t;
 
@@ -1076,10 +1075,11 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
       target_buffer__pu8,
       rem_read_len__dtl
     );
-    FLEA_DBG_PRINTF(
+
+    /*FLEA_DBG_PRINTF(
       "%u\n",
       (unsigned) qheap_qh_get_queue_len(dtls_retransm_state__pt->qheap__pt, curr_msg_state_info__pt->hndl_qhh)
-    );
+    );*/
 
     /*FLEA_DBG_PRINTF("dtls_rd_funct: outputting: ");
     FLEA_DBG_PRINT_BYTE_ARRAY(target_buffer__pu8, rem_read_len__dtl);*/
