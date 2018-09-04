@@ -342,6 +342,9 @@ flea_err_e THR_flea_recprot_t__set_dtls_conn_state_and_epoch_and_sqn_in_write_co
 
 #  endif // ifdef FLEA_HAVE_DTLS
 
+
+flea_err_e THR_flea_recprot_t__send_change_cipher_spec_directly(flea_recprot_t* rec_prot__pt) FLEA_ATTRIB_UNUSED_RESULT;
+
 #  ifdef FLEA_HEAP_MODE
 
 flea_err_e THR_flea_recprot_t__resize_send_plaintext_size(

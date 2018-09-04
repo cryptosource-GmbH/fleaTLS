@@ -574,7 +574,13 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
       {
         FLEA_DBG_PRINTF("ran into DTLS receive timeout for handshake msg\n");
         /* TODO: resend the flight buffer */
-        FLEA_CCALL(THR_flea_dtls_hdsh__retransmit_flight_buf(dtls_hs_ctx__pt->hs_ctx__pt));
+        FLEA_CCALL(
+          THR_flea_dtls_rtrsm_t__retransmit_flight_buf(
+            &tls_ctx__pt->dtls_retransm_state__t,
+            &tls_ctx__pt->rec_prot__t,
+            tls_ctx__pt->connection_end
+          )
+        );
         flea_timer_t__start(&dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t.timer__t);
       }
     }
@@ -907,7 +913,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
         {
           // TODO: THIS IS NOT CORRECT: PEER MAY HAVE STARTED TO PROCESS HANDSHAKE MSGS BASED ON WHAT HE RECEIVED FROM OUR PREVIOUS FLIGHT, BUT
           // THE WHOLE FLIGHT MAY BE INCOMPLETELY RECEIVED
-          flea_dtls_hndsh__set_flight_buffer_empty(dtls_hs_ctx__pt);
+          flea_dtls_rtrsm_st_t__empty_flight_buf(&tls_ctx__pt->dtls_retransm_state__t);
         }
 
         // DBG ========>

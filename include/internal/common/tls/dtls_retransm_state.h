@@ -8,6 +8,7 @@
 # include "internal/common/tls/tls_ctx_fwd.h"
 # include "flea/tls.h"
 # include "qheap/queue_heap.h"
+# include "internal/common/tls/tls_rec_prot_fwd.h"
 
 # ifdef __cplusplus
 extern "C" {
@@ -53,6 +54,38 @@ flea_u32_t flea_dtls_rtrsm_st_t__flight_buf_avail_send_len(
   flea_dtls_retransm_state_t* rtrsm_st__pt
 );
 
+flea_err_e THR_flea_dtls_rtrsm_st_t__try_send_out_from_flight_buf(
+  flea_dtls_retransm_state_t*  dtls_rtrsm_st__pt,
+  flea_tls__connection_end_t   conn_end__e,
+  flea_recprot_t*              rec_prot__pt,
+  flea_dtls_conn_state_data_t* conn_state_to_activate_after_ccs_mbn__pt
+) FLEA_ATTRIB_UNUSED_RESULT;
+
+
+flea_err_e THR_flea_dtls_rtrsm_st_t__append_to_flight_buffer_and_try_to_send_record(
+  flea_dtls_retransm_state_t* dtls_rtrsm_st__pt,
+  flea_tls__connection_end_t  conn_end__e,
+  flea_recprot_t*             rec_prot__pt,
+  flea_u8_t*                  is_in_sending_state__pu8,
+  const flea_u8_t*            data__pcu8,
+  flea_u32_t                  data_len__u32
+) FLEA_ATTRIB_UNUSED_RESULT;
+
+flea_err_e THR_flea_dtls_rtrsm_st_t__append_ccs_to_flight_buffer_and_try_to_send_record(
+  flea_dtls_retransm_state_t* dtls_rtrsm_st__pt,
+  flea_tls__connection_end_t  conn_end__e,
+  flea_recprot_t*             rec_prot__pt,
+  flea_u8_t*                  is_in_sending_state__pu8
+) FLEA_ATTRIB_UNUSED_RESULT;
+
+void flea_dtls_rtrsm_st_t__empty_flight_buf(flea_dtls_retransm_state_t* dtls_retransm_state__pt);
+
+
+flea_err_e THR_flea_dtls_rtrsm_t__retransmit_flight_buf(
+  flea_dtls_retransm_state_t* dtls_rtrsm_st__pt,
+  flea_recprot_t*             rec_prot__pt,
+  flea_tls__connection_end_t  conn_end__e
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 # ifdef __cplusplus
 }

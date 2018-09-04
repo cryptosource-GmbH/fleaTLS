@@ -100,10 +100,6 @@ typedef enum
 } flea_tls__expect_handshake_type_t;
 
 
-flea_err_e THR_flea_tls__send_change_cipher_spec_directly(
-  flea_tls_ctx_t* tls_ctx
-) FLEA_ATTRIB_UNUSED_RESULT;
-
 flea_err_e THR_flea_tls__send_finished(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
   flea_tls_prl_hash_ctx_t*  p_hash_ctx
@@ -335,7 +331,7 @@ flea_err_e THR_flea_dtls_update_saved_key_blocks(
 ) FLEA_ATTRIB_UNUSED_RESULT;
 
 void flea_dtls_save_write_conn_epoch_and_sqn(
-  flea_tls_ctx_t*              tls_ctx__pt,
+  flea_recprot_t*              rec_prot__pt,
   flea_dtls_conn_state_data_t* conn_state_data__pt
 );
 #  ifdef __cplusplus

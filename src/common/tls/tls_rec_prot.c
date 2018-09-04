@@ -2647,4 +2647,24 @@ void flea_recprot_t__dtor(flea_recprot_t* rec_prot__pt)
   flea_recprot_t__INIT(rec_prot__pt);
 }
 
+flea_err_e THR_flea_recprot_t__send_change_cipher_spec_directly(
+  flea_recprot_t* rec_prot__pt
+)
+{
+  FLEA_THR_BEG_FUNC();
+
+  const flea_u8_t css_bytes[1] = {1};
+
+  FLEA_CCALL(
+    THR_flea_recprot_t__send_record(
+      rec_prot__pt,
+      css_bytes,
+      sizeof(css_bytes),
+      CONTENT_TYPE_CHANGE_CIPHER_SPEC
+    )
+  );
+
+  FLEA_THR_FIN_SEC_empty();
+}
+
 #endif /* ifdef FLEA_HAVE_TLS */

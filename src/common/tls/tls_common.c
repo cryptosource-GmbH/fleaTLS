@@ -1002,26 +1002,6 @@ flea_err_e THR_flea_tls__snd_hands_msg(
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls__snd_hands_msg */
 
-flea_err_e THR_flea_tls__send_change_cipher_spec_directly(
-  flea_tls_ctx_t* tls_ctx
-)
-{
-  FLEA_THR_BEG_FUNC();
-
-  const flea_u8_t css_bytes[1] = {1};
-
-  FLEA_CCALL(
-    THR_flea_recprot_t__send_record(
-      &tls_ctx->rec_prot__t,
-      css_bytes,
-      sizeof(css_bytes),
-      CONTENT_TYPE_CHANGE_CIPHER_SPEC
-    )
-  );
-
-  FLEA_THR_FIN_SEC_empty();
-}
-
 flea_err_e THR_flea_tls__send_finished(
   flea_tls_handshake_ctx_t* hs_ctx__pt,
   flea_tls_prl_hash_ctx_t*  p_hash_ctx
@@ -2422,14 +2402,14 @@ flea_err_e THR_flea_dtls_update_saved_key_blocks(
 
 # ifdef FLEA_HAVE_DTLS
 void flea_dtls_save_write_conn_epoch_and_sqn(
-  flea_tls_ctx_t*              tls_ctx__pt,
+  flea_recprot_t*              rec_prot__pt,
   flea_dtls_conn_state_data_t* conn_state_data__pt
 )
 {
-  conn_state_data__pt->write_epoch__u16 = tls_ctx__pt->rec_prot__t.write_state__t.epoch__u16;
+  conn_state_data__pt->write_epoch__u16 = rec_prot__pt->write_state__t.epoch__u16;
   memcpy(
     conn_state_data__pt->write_sqn__au32,
-    tls_ctx__pt->rec_prot__t.write_state__t.seqno_lo_hi__au32,
+    rec_prot__pt->write_state__t.seqno_lo_hi__au32,
     sizeof(conn_state_data__pt->write_sqn__au32)
   );
 }
