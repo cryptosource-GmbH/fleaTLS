@@ -86,7 +86,7 @@ flea_err_e THR_flea_dtls_rtrsm_st_t__append_ccs_to_flight_buffer_and_try_to_send
 void flea_dtls_rtrsm_st_t__empty_flight_buf(flea_dtls_retransm_state_t* dtls_retransm_state__pt);
 
 
-flea_err_e THR_flea_dtls_rtrsm_t__retransmit_flight_buf(
+flea_err_e THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
   flea_dtls_retransm_state_t* dtls_rtrsm_st__pt,
   flea_recprot_t*             rec_prot__pt,
   flea_tls__connection_end_t  conn_end__e

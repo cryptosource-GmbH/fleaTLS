@@ -44,13 +44,13 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
   );
 #endif /* if defined FLEA_HAVE_DTLS */
 
+  flea_dtls_rtrsm_st_t__reset(&hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t);
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_handshake_ctx_t__ctor */
 
 void flea_tls_handshake_ctx_t__dtor(flea_tls_handshake_ctx_t* hs_ctx__pt)
 {
-  flea_dtls_rtrsm_st_t__reset(&hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t);
   // flea_dtls_rtrsm_st_t__dtor(&hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t);
 #if defined FLEA_HEAP_MODE
   // FLEA_FREE_MEM_CHK_NULL(hs_ctx__pt->dtls_ctx__t.flight_buf__bu8);

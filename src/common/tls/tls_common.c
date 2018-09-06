@@ -1138,6 +1138,7 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
 
   /*do
   {*/
+  FLEA_DBG_PRINTF("rd_app_data: calling read_data\n");
   err__t = THR_flea_recprot_t__read_data(
     &tls_ctx__pt->rec_prot__t,
     CONTENT_TYPE_APPLICATION_DATA,
@@ -1145,10 +1146,18 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
     data_len__pdtl,
     rd_mode__e
   );
+  FLEA_DBG_PRINTF("rd_app_data: read_data returned, read %u bytes, err = %u\n", *data_len__pdtl, err__t);
 # ifdef FLEA_HAVE_DTLS
   if(err__t == FLEA_EXC_TLS_HS_MSG_FR_PREV_EPOCH)
   {
-    // TODO: trigger retransmission!
+    FLEA_DBG_PRINTF("[rtrsm] rd_appdata_inner: FLEA_EXC_TLS_HS_MSG_FR_PREV_EPOCH\n");
+    FLEA_CCALL(
+      THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
+        &tls_ctx__pt->dtls_retransm_state__t,
+        &tls_ctx__pt->rec_prot__t,
+        tls_ctx__pt->connection_end
+      )
+    );
   }
   else
 # endif /* ifdef FLEA_HAVE_DTLS */

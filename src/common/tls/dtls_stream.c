@@ -575,7 +575,7 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
         FLEA_DBG_PRINTF("ran into DTLS receive timeout for handshake msg\n");
         /* TODO: resend the flight buffer */
         FLEA_CCALL(
-          THR_flea_dtls_rtrsm_t__retransmit_flight_buf(
+          THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
             &tls_ctx__pt->dtls_retransm_state__t,
             &tls_ctx__pt->rec_prot__t,
             tls_ctx__pt->connection_end

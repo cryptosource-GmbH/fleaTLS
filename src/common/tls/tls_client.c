@@ -1789,7 +1789,6 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor(
 
   FLEA_THR_BEG_FUNC();
   flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
-  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, tls_ctx__pt, FLEA_FALSE));
 
   tls_ctx__pt->client_or_server_ctx__pv = (void*) tls_client_ctx__pt;
   tls_ctx__pt->cfg_flags__e = flags__e;
@@ -1834,6 +1833,8 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor(
       rw_stream__pt
     )
   );
+
+  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, tls_ctx__pt, FLEA_FALSE));
   if(tls_ctx__pt->client_use_psk__b)
   {
     tls_ctx__pt->allow_reneg__u8 = FLEA_FALSE;

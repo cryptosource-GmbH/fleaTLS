@@ -65,6 +65,8 @@ void flea_dtls_rtrsm_st_t__reset(
     dtls_rtrsm_st__pt->current_flight_buf__qhh,
     qheap_qh_get_queue_len(dtls_rtrsm_st__pt->qheap__pt, dtls_rtrsm_st__pt->current_flight_buf__qhh)
   );
+  /* start the post hs-completion timer window ( for the peer that might have to retransmitt the very final flight of handshake ) */
+  flea_timer_t__start(&dtls_rtrsm_st__pt->timer__t);
 }
 
 /*
@@ -93,7 +95,6 @@ flea_err_e THR_flea_dtls_rtrsm_st_t__try_send_out_from_flight_buf(
   FLEA_THR_BEG_FUNC();
   FLEA_ALLOC_BUF(send_portion__bu8, 64);
 
-  // TODO: THIS FUNCTION NEEDS TO LOOP UNTIL NO MORE RECORDS CAN BE SEND
   FLEA_DBG_PRINTF("starting THR_flea_dtls_hndsh__try_send_out_from_flight_buf()\n");
   while(1)
   {
@@ -381,7 +382,7 @@ flea_err_e THR_flea_dtls_rtrsm_st_t__append_to_flight_buffer_and_try_to_send_rec
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_dtls_hndsh__append_to_flight_buffer_and_try_to_send_record */
 
-flea_err_e THR_flea_dtls_rtrsm_t__retransmit_flight_buf(
+flea_err_e THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
   flea_dtls_retransm_state_t* dtls_rtrsm_st__pt,
   flea_recprot_t*             rec_prot__pt,
   flea_tls__connection_end_t  conn_end__e
@@ -389,6 +390,11 @@ flea_err_e THR_flea_dtls_rtrsm_t__retransmit_flight_buf(
 {
   FLEA_THR_BEG_FUNC();
   dtls_rtrsm_st__pt->flight_buf_read_pos__u32 = 0;
+
+  FLEA_DBG_PRINTF(
+    "[rtrsm] retransmit_flight_buf(): rtrsm-buf-size = %u\n",
+    (unsigned) qheap_qh_get_queue_len(dtls_rtrsm_st__pt->qheap__pt, dtls_rtrsm_st__pt->current_flight_buf__qhh)
+  );
   // TODO: IF CURRENTLY HELD FLIGHT CONTAINS CCS, THEN REVERT THE OLD WRITE CONNECTION STATE NOW
   if(dtls_rtrsm_st__pt->flight_buf_contains_ccs__u8)
   {
@@ -414,7 +420,7 @@ flea_err_e THR_flea_dtls_rtrsm_t__retransmit_flight_buf(
     )
   );
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf */
 
 void flea_dtls_rtrsm_st_t__dtor(flea_dtls_retransm_state_t* dtls_rtrsm_st__pt)
 {

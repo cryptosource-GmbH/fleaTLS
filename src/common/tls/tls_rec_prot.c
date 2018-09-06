@@ -1210,6 +1210,11 @@ flea_err_e THR_flea_recprot_t__write_flush(
   {
     FLEA_THR_RETURN();
   }
+  FLEA_DBG_PRINTF(
+    "recprot_t__write_flush() called with non-zero content: send_curr_rec_content_len = %u, record type byte = %02x\n",
+    rec_prot__pt->send_curr_rec_content_len__u16,
+    rec_prot__pt->send_buf_raw__pu8[0]
+  );
 # ifdef FLEA_HAVE_TLS_CS_CBC
   if(rec_prot__pt->write_state__t.cipher_suite_config__t.cipher_suite_class__e == flea_cbc_cipher_suite)
   {
@@ -1526,13 +1531,14 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
   flea_bool_t                   do_verify_prot_version__b,
   flea_tls_rec_cont_type_e      cont_type__e,
   flea_tls_rec_cont_type_e*     result_cont_type__pe,
-  flea_stream_read_mode_e       rd_mode__e// ,
+  flea_stream_read_mode_e       rd_mode__e
 )
 {
   flea_al_u16_t to_cp__alu16, read_bytes_count__dtl = 0;
   flea_dtl_t data_len__dtl = *data_len__pdtl;
 
   flea_bool_t is_handsh_msg_during_app_data__b = FLEA_FALSE;
+  flea_bool_t is_rec_from_prev_epoch__b        = FLEA_FALSE;
   // flea_bool_t is_handsh_msg_fr_prev_epoch__b = FLEA_FALSE;
 
   flea_bool_t current_or_next_record_for_content_type__b = (result_cont_type__pe != NULL);
@@ -1560,14 +1566,14 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
     // rec_prot__pt->curr_rec_content_len__u16     = 0;
   }
 
-  if(*data_len__pdtl && FLEA_RP__IS_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt))
+  if(data_len__dtl && FLEA_RP__IS_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt))
   {
     FLEA_THROW("read request to encrypted record", FLEA_ERR_INT_ERR);
   }
 
-/*FLEA_DBG_PRINTF("\nread_data_inner starting\n");
+  FLEA_DBG_PRINTF("\nread_data_inner starting\n");
   FLEA_DBG_PRINTF("current_or_next_record_for_content_type__b  = %u\n", current_or_next_record_for_content_type__b);
-  FLEA_DBG_PRINTF("data_read for length = %u\n", data_len__dtl);*/
+  FLEA_DBG_PRINTF("data_read for length = %u\n", data_len__dtl);
   rec_prot__pt->payload_buf__pu8 = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->record_hdr_len__u8;
   /* output data from a possibly held record witz nonzero payload data left */
 
@@ -1587,7 +1593,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
   data__pu8             += to_cp__alu16;
   read_bytes_count__dtl += to_cp__alu16;
 
-  // FLEA_DBG_PRINTF("read_bytes before loop = %u\n", read_bytes_count__dtl);
+  FLEA_DBG_PRINTF("read_bytes before loop = %u\n", read_bytes_count__dtl);
   // enter only if
   // - called with current_or_next_record_for_content_type__b
   //   OR
@@ -1658,9 +1664,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           }
           FLEA_DBG_PRINTF("shifting down next record, curr_rec_full_len__alu16 = %u\n", curr_rec_full_len__alu16);
           flea_al_u16_t next_rec_size__alu16 = rec_prot__pt->raw_read_buf_content__u16 - curr_rec_full_len__alu16;
-          if((// rec_prot__pt->skip_empty_record__b ||
-              (rec_prot__pt->curr_pt_content_len__u16 == rec_prot__pt->curr_rec_content_offs__u16)) &&
-            next_rec_size__alu16)
+          if(next_rec_size__alu16)
           {
             flea_al_u16_t shift_size__alu16;
             shift_size__alu16 = curr_rec_full_len__alu16;
@@ -1789,18 +1793,17 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
               }
             }
           }
-          if(FLEA_RP__IS_DTLS(rec_prot__pt))
+          if(rec_prot__pt->raw_read_buf_content__u16 < rec_prot__pt->record_hdr_len__u8)
           {
-            if(rec_prot__pt->raw_read_buf_content__u16 < rec_prot__pt->record_hdr_len__u8)
-            {
-              rec_prot__pt->raw_read_buf_content__u16 = 0;
-            }
+            rec_prot__pt->raw_read_buf_content__u16 = 0;
           }
           /* we had to read header bytes, but couldn't */
-          if(rec_prot__pt->raw_read_buf_content__u16 < rec_prot__pt->record_hdr_len__u8)
+          if(rec_prot__pt->raw_read_buf_content__u16 == 0)
           {
             if(local_rd_mode__e == flea_read_nonblocking)
             {
+              /* discard empty read or non-full header read */
+
               /*FLEA_DBG_PRINTF(
                 "THR_flea_recprot_t__read_data_inner_dtls returning with %u read bytes\n",
                 rec_prot__pt->raw_read_buf_content__u16
@@ -1815,11 +1818,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
                 rec_prot__pt->record_hdr_len__u8,
                 rec_prot__pt->raw_read_buf_content__u16,
                 raw_read_len__dtl
-              );*/
-              if(!raw_read_len__dtl)
-              {
-                FLEA_THROW("0 bytes returned from blocking read", FLEA_ERR_TIMEOUT_ON_STREAM_READ);
-              }
+                );*/
+              FLEA_THROW("0 bytes returned from blocking read", FLEA_ERR_TIMEOUT_ON_STREAM_READ);
             }
           }
         } while(rec_prot__pt->raw_read_buf_content__u16 < rec_prot__pt->record_hdr_len__u8);
@@ -1834,9 +1834,15 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         }
         if(!FLEA_RP__IS_CURRENT_RECORD_ALERT(rec_prot__pt))
         {
+          /* in case of DTLS we must also accept CCS for now in case of retransmission by
+           * the peer in order to trigger us to retransmit the very final flight of the
+           * handshake. If this
+           */
           if(
             (cont_type__e == CONTENT_TYPE_APPLICATION_DATA) &&
-            (rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_HANDSHAKE))
+            ((rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_HANDSHAKE) ||
+            (rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_CHANGE_CIPHER_SPEC))
+          )
           {
             is_handsh_msg_during_app_data__b = FLEA_TRUE;
           }
@@ -1907,76 +1913,77 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           }
         }
         hdr_pos__alu8 = 3;
-        if(FLEA_RP__IS_DTLS(rec_prot__pt))
+        flea_al_u8_t i;
+        flea_al_u16_t rec_epoch__alu16;
+        // flea_al_u16_t old_epoch__alu16 = FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt);
+        rec_prot__pt->read_state__t.seqno_lo_hi__au32[0] = 0;
+        rec_prot__pt->read_state__t.seqno_lo_hi__au32[1] = 0;
+
+        /* read seqno is currently needed in order to use this value from the
+         * clientHello in the helloVerifyRequest */
+        for(i = 0; i < 8; i++)
         {
-          flea_al_u8_t i;
-          flea_al_u16_t rec_epoch__alu16;
-          // flea_al_u16_t old_epoch__alu16 = FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt);
-          rec_prot__pt->read_state__t.seqno_lo_hi__au32[0] = 0;
-          rec_prot__pt->read_state__t.seqno_lo_hi__au32[1] = 0;
-
-          /* read seqno is currently needed in order to use this value from the
-           * clientHello in the helloVerifyRequest */
-          for(i = 0; i < 8; i++)
-          {
-            flea_u32_t s__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[1 - (i / 4)];
-            s__u32 <<= 8;
-            s__u32  |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++];
-            rec_prot__pt->read_state__t.seqno_lo_hi__au32[1 - (i / 4)] = s__u32;
-          }
-          rec_epoch__alu16 = FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt);
-
-          FLEA_DBG_PRINTF("from recevied record hdr: epoch | seq = ");
-          for(int i = 1; i >= 0; i--)
-          {
-            FLEA_DBG_PRINTF("%08x ", rec_prot__pt->read_state__t.seqno_lo_hi__au32[i]);
-          }
-          FLEA_DBG_PRINTF("\n");
-
-          FLEA_DBG_PRINTF("epoch decoded from incoming record header = %u\n", rec_epoch__alu16);
-          if(rec_epoch__alu16 != rec_prot__pt->read_state__t.epoch__u16)
-          {
-            FLEA_DBG_PRINTF(
-              "received record from wrong epoch = %u, expected epoch = %u\n",
-              rec_epoch__alu16,
-              rec_prot__pt->read_state__t.epoch__u16
-            );
-            if(rec_epoch__alu16 == rec_prot__pt->read_state__t.epoch__u16 + 1)
-            {
-              /* can be an out of order finished or application data */
-
-              /* set current_rec_undecrypted = true
-               * return
-               *
-               */
-              FLEA_RP__SET_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt);
-            }
-            else
-            {
-              FLEA_DBG_PRINTF("discarding record due to invalid epoch\n");
-              rec_prot__pt->raw_read_buf_content__u16 = 0;
-
-              if(1 + rec_epoch__alu16 == rec_prot__pt->read_state__t.epoch__u16)
-              {
-                /* may be a retransmission of the previous epoch */
-                // is_handsh_msg_fr_prev_epoch__b  = FLEA_TRUE;
-                /* during read_app_data, we have to throw */
-                if(cont_type__e == CONTENT_TYPE_APPLICATION_DATA &&
-                  ((rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_HANDSHAKE) &&
-                  (rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_CHANGE_CIPHER_SPEC)))
-                {
-                  FLEA_THROW("received record from previous epoch", FLEA_EXC_TLS_HS_MSG_FR_PREV_EPOCH);
-                }
-                else
-                {
-                  // TODO: need to notify the caller who must retransmit if this can be a retransmission
-                }
-              }
-              continue;
-            }
-          }
-          // TODO: CHECK THAT RECORD IS WITHIN ACCEPTANCE WINDOW
+          flea_u32_t s__u32 = rec_prot__pt->read_state__t.seqno_lo_hi__au32[1 - (i / 4)];
+          s__u32 <<= 8;
+          s__u32  |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++];
+          rec_prot__pt->read_state__t.seqno_lo_hi__au32[1 - (i / 4)] = s__u32;
         }
+        rec_epoch__alu16 = FLEA_RP__GET_RD_CURR_REC_EPOCH(rec_prot__pt);
+
+        FLEA_DBG_PRINTF("from recevied record hdr: epoch | seq = ");
+        for(int i = 1; i >= 0; i--)
+        {
+          FLEA_DBG_PRINTF("%08x ", rec_prot__pt->read_state__t.seqno_lo_hi__au32[i]);
+        }
+        FLEA_DBG_PRINTF("\n");
+
+        FLEA_DBG_PRINTF("epoch decoded from incoming record header = %u\n", rec_epoch__alu16);
+        if(rec_epoch__alu16 != rec_prot__pt->read_state__t.epoch__u16)
+        {
+          FLEA_DBG_PRINTF(
+            "received record from wrong epoch = %u, expected epoch = %u\n",
+            rec_epoch__alu16,
+            rec_prot__pt->read_state__t.epoch__u16
+          );
+          if(rec_epoch__alu16 == rec_prot__pt->read_state__t.epoch__u16 + 1)
+          {
+            /* can be an out of order finished or application data */
+
+            /* set current_rec_undecrypted = true
+             * return
+             *
+             */
+            FLEA_RP__SET_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt);
+          }
+          else if(1 + rec_epoch__alu16 == rec_prot__pt->read_state__t.epoch__u16)
+          {
+            // if(1 + rec_epoch__alu16 == rec_prot__pt->read_state__t.epoch__u16)
+            {
+              FLEA_DBG_PRINTF("outer recv rec. from prev-epoch\n");
+              /* may be a retransmission of the previous epoch */
+              // is_handsh_msg_fr_prev_epoch__b  = FLEA_TRUE;
+              /* during read_app_data, we have to throw */
+#  if 0
+              if(  /*cont_type__e == CONTENT_TYPE_APPLICATION_DATA &&*/
+                ((rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_HANDSHAKE) &&
+                (rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_CHANGE_CIPHER_SPEC)))
+#  endif
+              {
+                FLEA_DBG_PRINTF("recv rec. from prev-epoch\n");
+                is_rec_from_prev_epoch__b = FLEA_TRUE;
+              }
+            }
+            // continue;
+          }
+          else
+          {
+            FLEA_DBG_PRINTF("TODO: discarding record due to invalid epoch\n");
+            // TODO: DISCARD/IGNORE THIS RECORD, BUT NOT THE WHOLE PACKET
+            // TODO: TEST FOR EPOCH +- 2 and more
+          }
+        }
+        // TODO: CHECK THAT RECORD IS WITHIN ACCEPTANCE WINDOW
+
 
         rec_prot__pt->curr_rec_content_len__u16  = rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8++] << 8;
         rec_prot__pt->curr_rec_content_len__u16 |= rec_prot__pt->send_rec_buf_raw__bu8[hdr_pos__alu8];
@@ -1997,6 +2004,11 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         if(rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8 >
           rec_prot__pt->raw_read_buf_content__u16)
         {
+          FLEA_DBG_PRINTF(
+            "[prev-epoch] discarding rec due to insuff. len.: lhs = %u, rhs = %u \n",
+            rec_prot__pt->curr_rec_content_len__u16 + rec_prot__pt->record_hdr_len__u8,
+            rec_prot__pt->raw_read_buf_content__u16
+          );
           rec_prot__pt->curr_rec_content_len__u16 = 0;
           rec_prot__pt->raw_read_buf_content__u16 = 0;
           continue;
@@ -2008,9 +2020,16 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
 
       rec_prot__pt->curr_rec_content_offs__u16 = 0;
 
-      if(FLEA_RP__IS_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt))
+      if(FLEA_RP__IS_DTLS_REC_FROM_FUT_EPOCH(rec_prot__pt) || is_rec_from_prev_epoch__b)
       {
-        rec_prot__pt->curr_pt_content_len__u16 = rec_prot__pt->curr_rec_content_len__u16;
+        /* skip over the current record so that a potentially trailing record would be read next */
+        // rec_prot__pt->curr_rec_content_offs__u16 = rec_prot__pt->curr_pt_content_len__u16;
+        flea_recprot_t__discard_current_read_record(rec_prot__pt);
+        if(is_rec_from_prev_epoch__b)
+        {
+          FLEA_DBG_PRINTF("throwing 'recv rec. from prev-epoch'\n");
+          FLEA_THROW("received record from previous epoch", FLEA_EXC_TLS_HS_MSG_FR_PREV_EPOCH);
+        }
 
         /* we expect always that the first the record type is determined. That call would return here.
          * Subsequently, the encrypted record is read completely using the designated special function*/
@@ -2026,7 +2045,24 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
 
       if(is_handsh_msg_during_app_data__b)
       {
-        FLEA_THROW("received tls handshake message when app data was expected", FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA);
+        if((rec_prot__pt->curr_pt_content_len__u16 >= FLEA_DTLS_HANDSH_HDR_LEN))
+        {
+          flea_al_u8_t type =
+            rec_prot__pt->send_rec_buf_raw__bu8[FLEA_DTLS_RECORD_HDR_LEN + FLEA_DTLS_HS_HDR_OFFS__MSG_TYPE];
+          /* check if this can be a record to trigger renegotiation */
+          if((type == HANDSHAKE_TYPE_CLIENT_HELLO) || (type == HANDSHAKE_TYPE_HELLO_REQUEST))
+          {
+            /* is NOT triggered during handshake, only during rd_app_data */
+            FLEA_THROW(
+              "received tls handshake message when app data was expected",
+              FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA
+            );
+          }
+        }
+        FLEA_DBG_PRINTF("dropping non-initial handshake msg during read_app_data\n");
+        // rec_prot__pt->curr_rec_content_offs__u16 = rec_prot__pt->curr_pt_content_len__u16;
+        flea_recprot_t__discard_current_read_record(rec_prot__pt);
+        // IE: DROP THE RECORD
       }
       else if(FLEA_RP__IS_CURRENT_RECORD_ALERT(rec_prot__pt))
       {
@@ -2046,8 +2082,12 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
       }
       else
       {
-        to_cp__alu16 = FLEA_MIN(rec_prot__pt->curr_pt_content_len__u16, data_len__dtl);
+        to_cp__alu16 = FLEA_MIN(
+          rec_prot__pt->curr_pt_content_len__u16 - rec_prot__pt->curr_rec_content_offs__u16,
+          data_len__dtl
+        );
 #  ifdef FLEA_DO_DBG_PRINT
+        FLEA_DBG_PRINTF("before trailing read: previously read %u bytes\n", read_bytes_count__dtl);
         FLEA_DBG_PRINTF("trailing read: reading %u bytes = ", to_cp__alu16);
         unsigned i;
         for(i = 0; i < to_cp__alu16; i++)
@@ -2062,8 +2102,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         rec_prot__pt->curr_rec_content_offs__u16 += to_cp__alu16;
         read_bytes_count__dtl += to_cp__alu16;
         data_len__dtl         -= to_cp__alu16;
-        data__pu8      += to_cp__alu16;
-        *data_len__pdtl = read_bytes_count__dtl;
+        data__pu8 += to_cp__alu16;
+        // *data_len__pdtl = read_bytes_count__dtl; // IS SUPERFLOUS
       }
     } while(
       FLEA_RP__IS_CURRENT_RECORD_ALERT(rec_prot__pt) || ((rd_mode__e == flea_read_full) && data_len__dtl) ||
