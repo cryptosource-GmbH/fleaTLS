@@ -1378,7 +1378,14 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
   FLEA_THR_BEG_FUNC();
   flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
 
-  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, tls_ctx, is_reneg__b));
+  FLEA_CCALL(
+    THR_flea_tls_handshake_ctx_t__ctor(
+      &hs_ctx__t,
+      tls_ctx,
+      is_reneg__b,
+      tls_ctx->dtls_cfg_mbn__pt->initial_recv_tmo_secs__u8
+    )
+  );
 
   // TODO: why necessary for server but not for client? (assigning random)
   hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
@@ -1857,7 +1864,11 @@ flea_err_e THR_flea_tls_srv_ctx_t__ctor_psk(
   flea_get_psk_cb_f                 get_psk_mbn_cb__f,
   const void*                       psk_lookup_ctx_mbn__vp,
   flea_tls_flag_e                   flags__e,
-  flea_tls_session_mngr_t*          session_mngr_mbn__pt
+  flea_tls_session_mngr_t* session_mngr_mbn__pt
+# ifdef                             FLEA_HAVE_DTLS
+  ,
+  const flea_dtls_cfg_t*            dtls_cfg_mbn__pt
+# endif
 )
 {
   flea_err_e err__t;
@@ -1882,6 +1893,7 @@ flea_err_e THR_flea_tls_srv_ctx_t__ctor_psk(
   tls_ctx__pt->nb_allowed_cipher_suites__u16  = nb_allowed_cipher_suites__alu16;
   tls_ctx__pt->connection_end              = FLEA_TLS_SERVER;
   tls_ctx__pt->client_session_mbn__pt      = NULL;
+  tls_ctx__pt->dtls_cfg_mbn__pt            = dtls_cfg_mbn__pt;
   tls_server_ctx__pt->session_mngr_mbn__pt = session_mngr_mbn__pt;
 
 # ifdef FLEA_HAVE_TLS_CS_PSK
@@ -1951,7 +1963,11 @@ flea_err_e THR_flea_tls_srv_ctx_t__ctor(
   const flea_tls_sigalg_e*          allowed_sig_algs__pe,
   flea_al_u16_t                     nb_allowed_sig_algs__alu16,
   flea_tls_flag_e                   flags__e,
-  flea_tls_session_mngr_t*          session_mngr_mbn__pt
+  flea_tls_session_mngr_t* session_mngr_mbn__pt
+# ifdef                             FLEA_HAVE_DTLS
+  ,
+  const flea_dtls_cfg_t*            dtls_cfg_mbn__pt
+# endif
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -1978,11 +1994,15 @@ flea_err_e THR_flea_tls_srv_ctx_t__ctor(
       NULL,
       flags__e,
       session_mngr_mbn__pt
+      FLEA_DO_IF_HAVE_DTLS(
+        FLEA_COMMA
+        dtls_cfg_mbn__pt
+      )
     )
   );
 
   FLEA_THR_FIN_SEC_empty();
-}
+} /* THR_flea_tls_srv_ctx_t__ctor */
 
 void flea_tls_srv_ctx_t__dtor(flea_tls_srv_ctx_t* tls_server_ctx__pt)
 {

@@ -196,7 +196,8 @@ int main()
       sig_algs,
       FLEA_NB_ARRAY_ENTRIES(sig_algs),
       flea_tls_flag__rev_chk_mode__check_none | flea_tls_flag__sha1_cert_sigalg__allow,
-      &sess_man__t
+      &sess_man__t,
+      NULL /* dtls_cfg */
   )
   ))
   {

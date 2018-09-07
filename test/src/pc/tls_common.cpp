@@ -372,7 +372,8 @@ flea_err_e THR_flea_tls_tool_set_tls_cfg(
   flea_al_u16_t*      cert_chain_len,
   flea_ref_cu8_t*     server_key,
   property_set_t const& cmdl_args,
-  tls_test_cfg_t      & cfg
+  tls_test_cfg_t      & cfg,
+  flea_dtls_cfg_t     & dtls_cfg__t
 )
 {
   cfg.flags = (flea_tls_flag_e) 0;
@@ -486,7 +487,11 @@ flea_err_e THR_flea_tls_tool_set_tls_cfg(
   {
     cfg.flags |= flea_tls_flag__use_dtls1_2;
   }
-
+  if(255 < cmdl_args.get_property_as_u32("dtls_inital_recv_tmo_secs"))
+  {
+    throw test_utils_exceptn_t("value for dtls_inital_recv_tmo_secs larger than 255");
+  }
+  dtls_cfg__t.initial_recv_tmo_secs__u8 = cmdl_args.get_property_as_u32("dtls_inital_recv_tmo_secs");
 
   FLEA_THR_FIN_SEC_empty();
 } // THR_flea_tls_tool_set_tls_cfg

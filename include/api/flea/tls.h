@@ -7,6 +7,7 @@
 # include "flea/types.h"
 # include "flea/byte_vec.h"
 # include "internal/common/crl_int.h"
+# include "flea/dtls.h"
 
 # ifdef FLEA_HAVE_TLS
 

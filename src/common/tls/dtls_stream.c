@@ -558,12 +558,11 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
 
   /* trigger the reading of a new record */
 
-  /* TODO: read non-blocking, can timeout */
   while(cont_type__e == CONTENT_TYPE_ANY)
   {
     flea_u32_t millisecs__u32;
     // TODO: MAKE READ NON-BLOCKING WORK
-    FLEA_CCALL(THR_flea_recprot_t__get_current_record_type(rec_prot__pt, &cont_type__e, flea_read_nonblocking)); // WAS: READ_FULL
+    FLEA_CCALL(THR_flea_recprot_t__get_current_record_type(rec_prot__pt, &cont_type__e, flea_read_nonblocking)); // WAS: READ_FULL, TODO: consider implementing full read with tmo (busy sleeping in between is not an option)
     // FLEA_DBG_PRINTF("rd_dtls_rec_from_wire: cont_type__e = %u\n", cont_type__e);
     millisecs__u32 = flea_timer_t__get_elapsed_millisecs(
       &dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t.timer__t
@@ -572,8 +571,10 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
     {
       if(millisecs__u32 > 1000 * dtls_hs_ctx__pt->current_timeout_secs__u8)
       {
-        FLEA_DBG_PRINTF("ran into DTLS receive timeout for handshake msg\n");
-        /* TODO: resend the flight buffer */
+        FLEA_DBG_PRINTF(
+          "[rtrsm] ran into DTLS receive timeout for handshake msg (tmo = %u)  \n",
+          dtls_hs_ctx__pt->current_timeout_secs__u8
+        );
         FLEA_CCALL(
           THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
             &tls_ctx__pt->dtls_retransm_state__t,

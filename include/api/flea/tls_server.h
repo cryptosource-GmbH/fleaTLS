@@ -83,7 +83,11 @@ flea_err_e THR_flea_tls_srv_ctx_t__ctor(
   const flea_tls_sigalg_e*          allowed_sig_algs,
   flea_al_u16_t                     allowed_sig_algs_len,
   flea_tls_flag_e                   flags,
-  flea_tls_session_mngr_t*          session_mngr_mbn
+  flea_tls_session_mngr_t* session_mngr_mbn
+#  ifdef                            FLEA_HAVE_DTLS
+  ,
+  const flea_dtls_cfg_t*            dtls_cfg_mbn__pt
+#  endif
 ) FLEA_ATTRIB_UNUSED_RESULT;
 
 /**

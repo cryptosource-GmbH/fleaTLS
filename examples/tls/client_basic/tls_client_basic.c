@@ -145,7 +145,8 @@ int main()
       FLEA_NB_ARRAY_ENTRIES(sig_algs),
       flea_tls_flag__reneg_mode__allow_secure_reneg | flea_tls_flag__sha1_cert_sigalg__allow
       | flea_tls_flag__rev_chk_mode__check_none,
-      NULL   /* session resumption is not supported */
+      NULL,   /* session resumption is not supported */
+      NULL /* dtls cfg */
   )))
   {
     goto cleanup;

@@ -1718,7 +1718,11 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor_psk(
   flea_host_id_type_e               host_name_id__e,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites__pe,
   flea_al_u16_t                     nb_allowed_cipher_suites__alu16,
-  flea_tls_flag_e                   flags__e
+  flea_tls_flag_e flags__e
+#  ifdef                            FLEA_HAVE_DTLS
+  ,
+  const flea_dtls_cfg_t*            dtls_cfg_mbn__pt
+#  endif
 )
 {
   FLEA_THR_BEG_FUNC();
@@ -1750,6 +1754,11 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor_psk(
       0,// flea_al_u16_t                     nb_allowed_sig_algs__alu16,
       flags__e,
       NULL // flea_tls_clt_session_t*        session_mbn__pt
+
+      FLEA_DO_IF_HAVE_DTLS(
+        FLEA_COMMA
+        dtls_cfg_mbn__pt
+      )
     )
   );
 
@@ -1776,7 +1785,11 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor(
   const flea_tls_sigalg_e*          allowed_sig_algs__pe,
   flea_al_u16_t                     nb_allowed_sig_algs__alu16,
   flea_tls_flag_e                   flags__e,
-  flea_tls_clt_session_t*           session_mbn__pt
+  flea_tls_clt_session_t* session_mbn__pt
+# ifdef                             FLEA_HAVE_DTLS
+  ,
+  const flea_dtls_cfg_t*            dtls_cfg_mbn__pt
+# endif
 )
 {
   flea_err_e err__t;
@@ -1805,6 +1818,7 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor(
   tls_ctx__pt->nb_allowed_sig_algs__alu16     = nb_allowed_sig_algs__alu16;
   tls_ctx__pt->extension_ctrl__u8             = 0;
   tls_ctx__pt->private_key_for_client_mbn__pt = private_key_mbn__pt;
+  tls_ctx__pt->dtls_cfg_mbn__pt = dtls_cfg_mbn__pt;
   if(((cert_chain_mbn__pt != NULL) && (private_key_mbn__pt == NULL)) ||
     ((cert_chain_mbn__pt == NULL) && (private_key_mbn__pt != NULL)))
   {
@@ -1834,7 +1848,14 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor(
     )
   );
 
-  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, tls_ctx__pt, FLEA_FALSE));
+  FLEA_CCALL(
+    THR_flea_tls_handshake_ctx_t__ctor(
+      &hs_ctx__t,
+      tls_ctx__pt,
+      FLEA_FALSE,
+      FLEA_DO_IF_HAVE_DTLS(dtls_cfg_mbn__pt->initial_recv_tmo_secs__u8)
+    )
+  );
   if(tls_ctx__pt->client_use_psk__b)
   {
     tls_ctx__pt->allow_reneg__u8 = FLEA_FALSE;
@@ -1873,7 +1894,14 @@ flea_err_e THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
 
   FLEA_THR_BEG_FUNC();
   flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
-  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, tls_ctx__pt, FLEA_TRUE));
+  FLEA_CCALL(
+    THR_flea_tls_handshake_ctx_t__ctor(
+      &hs_ctx__t,
+      tls_ctx__pt,
+      FLEA_TRUE,
+      tls_ctx__pt->dtls_cfg_mbn__pt->initial_recv_tmo_secs__u8
+    )
+  );
 
   FLEA_CCALL(
     THR_flea_tls_handsh_reader_t__ctor(

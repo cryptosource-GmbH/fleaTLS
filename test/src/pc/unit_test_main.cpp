@@ -215,6 +215,11 @@ static properties_spec_t create_properties_spec()
     "boolean",
     "true"
     ).set_group(dtls);
+  result["dtls_inital_recv_tmo_secs"] = properties_spec_entry_t(
+    "The initial receive timeout in seconds for DTLS. After expiration of this time span and an unsatisfied read request, the fleaTLS peer will perform the first retransmission of the previous flight and increase the recv timeout to the double",
+    "timeout in seconds",
+    "1"
+    ).set_group(dtls);
 #endif // ifdef FLEA_HAVE_TLS
 
 

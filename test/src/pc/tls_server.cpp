@@ -205,6 +205,10 @@ static flea_err_e THR_flea_tls_server_thread_inner(server_params_t* serv_par__pt
       serv_par__pt->nb_allowed_sig_algs__alu16,
       (flea_tls_flag_e) (serv_par__pt->flags__u32 | ((flea_u32_t) flea_tls_flag__sha1_cert_sigalg__allow)),
       serv_par__pt->sess_mngr__pt
+      FLEA_DO_IF_HAVE_DTLS(
+        FLEA_COMMA
+        serv_par__pt->dtls_cfg_mbn__pt
+      )
     )
   );
 #  ifdef FLEA_HAVE_TLS_CS_PSK
@@ -234,6 +238,10 @@ else
       serv_par__pt->psk_lookup_ctx_mbn__vp,
       (flea_tls_flag_e) (serv_par__pt->flags__u32 | ((flea_u32_t) flea_tls_flag__sha1_cert_sigalg__allow)),
       serv_par__pt->sess_mngr__pt
+      FLEA_DO_IF_HAVE_DTLS(
+        FLEA_COMMA
+        serv_par__pt->dtls_cfg_mbn__pt
+      )
     )
   );
 }
@@ -444,6 +452,7 @@ static flea_err_e THR_server_cycle(
   }
   FLEA_CCALL(THR_flea_cert_store_t__ctor(&trust_store__t));
 
+  flea_dtls_cfg_t dtls_cfg__t;
   FLEA_CCALL(
     THR_flea_tls_tool_set_tls_cfg(
       &trust_store__t,
@@ -451,7 +460,8 @@ static flea_err_e THR_server_cycle(
       &cert_chain_len,
       &server_key__t,
       cmdl_args,
-      tls_cfg
+      tls_cfg,
+      dtls_cfg__t
     )
   );
   FLEA_CCALL(THR_flea_privkey_t__ctor_pkcs8(&server_key_obj__t, server_key__t.data__pcu8, server_key__t.len__dtl));
@@ -502,6 +512,9 @@ static flea_err_e THR_server_cycle(
       serv_par__t.finished__b     = FLEA_FALSE;
       serv_par__t.is_https_server = is_https_server;
       serv_par__t.is_tcp = get_socket_type(cmdl_args) == socket_type_t::tcp;
+      serv_par__t.dtls_cfg_mbn__pt = cmdl_args.get_property_as_string("protocol_variant") ==
+        "dtls" ? &dtls_cfg__t : NULL;
+
 
 #  ifdef FLEA_HAVE_TLS_CS_PSK
       serv_par__t.get_psk_mbn_cb__f = NULL;

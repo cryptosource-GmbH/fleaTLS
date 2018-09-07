@@ -131,6 +131,7 @@ struct struct_flea_tls_ctx_t
 #  endif
 #  ifdef FLEA_HAVE_DTLS
   flea_dtls_retransm_state_t  dtls_retransm_state__t;
+  const flea_dtls_cfg_t*      dtls_cfg_mbn__pt;
 #  endif // ifdef FLEA_HAVE_DTLS
 };
 

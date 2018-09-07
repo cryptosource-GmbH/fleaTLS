@@ -1290,7 +1290,14 @@ flea_err_e THR_flea_tls_ctx_t__renegotiate(
   FLEA_THR_BEG_FUNC();
   flea_tls_handshake_ctx_t__INIT(&hs_ctx__t);
   tls_ctx__pt = server_ctx_mbn__pt ? &server_ctx_mbn__pt->tls_ctx__t : &client_ctx_mbn__pt->tls_ctx__t;
-  FLEA_CCALL(THR_flea_tls_handshake_ctx_t__ctor(&hs_ctx__t, tls_ctx__pt, FLEA_TRUE));
+  FLEA_CCALL(
+    THR_flea_tls_handshake_ctx_t__ctor(
+      &hs_ctx__t,
+      tls_ctx__pt,
+      FLEA_TRUE,
+      tls_ctx__pt->dtls_cfg_mbn__pt->initial_recv_tmo_secs__u8
+    )
+  );
 
 
   if(!tls_ctx__pt->allow_reneg__u8)

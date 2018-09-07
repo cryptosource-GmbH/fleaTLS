@@ -115,7 +115,11 @@ flea_err_e THR_flea_tls_srv_ctx_t__ctor_psk(
   flea_get_psk_cb_f                 get_psk_mbn_cb,
   const void*                       psk_lookup_ctx_mbn,
   flea_tls_flag_e                   flags,
-  flea_tls_session_mngr_t*          session_mngr_mbn
+  flea_tls_session_mngr_t* session_mngr_mbn
+#  ifdef                            FLEA_HAVE_DTLS
+  ,
+  const flea_dtls_cfg_t*            dtls_cfg_mbn__pt
+#  endif
 ) FLEA_ATTRIB_UNUSED_RESULT;
 
 
@@ -188,7 +192,11 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor_psk(
   flea_host_id_type_e               host_name_id,
   const flea_tls_cipher_suite_id_t* allowed_cipher_suites,
   flea_al_u16_t                     nb_allowed_cipher_suites,
-  flea_tls_flag_e                   flags
+  flea_tls_flag_e flags
+#   ifdef                           FLEA_HAVE_DTLS
+  ,
+  const flea_dtls_cfg_t*            dtls_cfg_mbn__pt
+#   endif
 ) FLEA_ATTRIB_UNUSED_RESULT;
 
 #  endif // ifdef FLEA_HAVE_TLS_CS_PSK

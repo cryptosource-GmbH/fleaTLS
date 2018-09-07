@@ -57,6 +57,7 @@ struct server_params_t
   flea_get_psk_cb_f                 get_psk_mbn_cb__f;
   void*                             psk_lookup_ctx_mbn__vp;
   flea_bool_t                       is_tcp;
+  const flea_dtls_cfg_t*            dtls_cfg_mbn__pt;
 # endif // ifdef FLEA_HAVE_TLS_CS_PSK
   void write_output_string(std::string const& s)
   {
@@ -98,7 +99,8 @@ flea_err_e THR_flea_tls_tool_set_tls_cfg(
   flea_al_u16_t*      cert_chain_len,
   flea_ref_cu8_t*     server_key,
   property_set_t const& cmdl_args,
-  tls_test_cfg_t      & cfg
+  tls_test_cfg_t      & cfg,
+  flea_dtls_cfg_t     & dtls_cfg__pt
 );
 
 void flea_tls_test_tool_print_peer_cert_info(
@@ -118,6 +120,7 @@ template <typename T>
 std::string get_comma_seperated_list_of_allowed_values(std::map<std::string, T> const& map)
 {
   std::string result;
+
   typename std::map<std::string, T>::const_iterator it;
   for(it = map.begin(); it != map.end(); it++)
   {

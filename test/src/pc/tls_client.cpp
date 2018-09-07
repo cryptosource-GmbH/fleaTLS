@@ -61,6 +61,7 @@ static flea_err_e THR_flea_start_tls_client(
   file_based_rw_stream_ctx_t fb_rws_ctx;
 
   std::string hostname_s;
+
   FLEA_THR_BEG_FUNC();
   flea_privkey_t__INIT(&privkey__t);
   flea_rw_stream_t__INIT(&rw_stream__t);
@@ -146,6 +147,7 @@ static flea_err_e THR_flea_start_tls_client(
     );
   }
 
+  flea_dtls_cfg_t dtls_cfg__t;
 
   FLEA_CCALL(
     THR_flea_tls_tool_set_tls_cfg(
@@ -154,7 +156,8 @@ static flea_err_e THR_flea_start_tls_client(
       &cert_chain_len,
       &client_key__t,
       cmdl_args,
-      tls_cfg
+      tls_cfg,
+      dtls_cfg__t
     )
   );
 
@@ -198,6 +201,10 @@ static flea_err_e THR_flea_start_tls_client(
         nb_allowed_sig_algs__alu16,
         (flea_tls_flag_e) (tls_cfg.flags | flea_tls_flag__sha1_cert_sigalg__allow),
         client_session__pt
+        FLEA_DO_IF_HAVE_DTLS(
+          FLEA_COMMA
+          cmdl_args.get_property_as_string("protocol_variant") == "dtls" ? &dtls_cfg__t : NULL
+        )
       )
     );
   }
@@ -236,6 +243,10 @@ static flea_err_e THR_flea_start_tls_client(
         &tls_cfg.cipher_suites[0],
         tls_cfg.cipher_suites.size(),
         (flea_tls_flag_e) (tls_cfg.flags)
+        FLEA_DO_IF_HAVE_DTLS(
+          FLEA_COMMA
+          cmdl_args.get_property_as_string("protocol_variant") == "dtls" ? &dtls_cfg__t : NULL
+        )
       )
     );
 #  else // ifdef FLEA_HAVE_TLS_CS_PSK
