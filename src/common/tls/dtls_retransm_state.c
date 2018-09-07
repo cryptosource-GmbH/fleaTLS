@@ -464,10 +464,13 @@ flea_err_e THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
 
 void flea_dtls_rtrsm_st_t__dtor(flea_dtls_retransm_state_t* dtls_rtrsm_st__pt)
 {
-  qheap_qh_free_queue(
-    dtls_rtrsm_st__pt->qheap__pt,
-    dtls_rtrsm_st__pt->current_flight_buf__qhh
-  );
+  if(dtls_rtrsm_st__pt->qheap__pt)
+  {
+    qheap_qh_free_queue(
+      dtls_rtrsm_st__pt->qheap__pt,
+      dtls_rtrsm_st__pt->current_flight_buf__qhh
+    );
+  }
   flea_timer_t__dtor(&dtls_rtrsm_st__pt->timer__t);
   flea_timer_t__dtor(&dtls_rtrsm_st__pt->rtrsm_suppr_wndw_tmr__t);
   flea_byte_vec_t__dtor(&dtls_rtrsm_st__pt->previous_conn_st__t.write_key_block__t);

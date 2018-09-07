@@ -777,7 +777,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
     curr_hdr_info__pt->msg_seq__u16 = seq__alu16;
   }
   /* scan through the incoming queue handles and look if the subsequent handshake msg number is available */
-  while(1) // TODO: RESENDING / BREAKING OFF WHEN TIMEOUT EXCEEDED
+  while(1)
   {
     for(i = 0; i < flea_byte_vec_t__GET_DATA_LEN(incom_hndls__pt); i += sizeof(qh_hndl_t))
     {

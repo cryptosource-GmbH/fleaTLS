@@ -2427,6 +2427,7 @@ void flea_tls_ctx_t__dtor(flea_tls_ctx_t* tls_ctx__pt)
   FLEA_FREE_MEM_CHK_NULL(tls_ctx__pt->own_vfy_data__bu8);
 # endif
 # ifdef FLEA_HAVE_DTLS
+  FLEA_DBG_PRINTF("qheap-ptr = %lu\n", (long unsigned) tls_ctx__pt->dtls_retransm_state__t.qheap__pt);
   flea_dtls_rtrsm_st_t__dtor(&tls_ctx__pt->dtls_retransm_state__t);
 # endif
 }
