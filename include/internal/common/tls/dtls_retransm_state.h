@@ -14,7 +14,6 @@
 extern "C" {
 # endif
 
-
 /**
  * type to hold a connection state for later activation.
  */
@@ -32,17 +31,18 @@ struct struct_flea_dtls_conn_state_data_t
 
 typedef struct
 {
-  // DONE in HS_CTX_CTOR: WHEN A HANDSHAKE IS STARTET, THIS MUST BE SET TO ZERO:
-  // flea_u8_t is_in_sending_state__u8;
+  /* timer to determine recv tmo */
   flea_timer_t                timer__t;
   flea_dtls_conn_state_data_t previous_conn_st__t;
   flea_dtls_conn_state_data_t current_conn_st__t;
   flea_u8_t                   flight_buf_contains_ccs__u8;
   qh_hndl_t                   current_flight_buf__qhh;
   flea_u32_t                  flight_buf_read_pos__u32;
+  flea_u8_t                   rtrsm_state__u8;
+  flea_u8_t                   rtrsm_suppr_wndw_secs__u8;
   qheap_queue_heap_t*         qheap__pt;
   flea_al_u16_t               pmtu_estimate__alu16;
-
+  flea_timer_t                rtrsm_suppr_wndw_tmr__t;
   // TODO: EITHER GLOBALLY PROVIDED OR FLEA/TLS-WIDE
   qheap_queue_heap_t          qheap__t;
   // TODO: PONDER VARIANTS OF HOW TO PLACE THIS BUFFER (STACK/HEAP?)
@@ -50,7 +50,8 @@ typedef struct
 } flea_dtls_retransm_state_t;
 
 flea_err_e THR_flea_dtls_rtrsm_t__ctor(
-  flea_dtls_retransm_state_t* dtls_rtrsm_st__pt
+  flea_dtls_retransm_state_t* dtls_rtrsm_st__pt,
+  flea_al_u8_t                rtrsm_supr_wndw_secs__alu8
 ) FLEA_ATTRIB_UNUSED_RESULT;
 
 void flea_dtls_rtrsm_st_t__dtor(flea_dtls_retransm_state_t* dtls_rtrsm_st__pt);
@@ -85,6 +86,12 @@ flea_err_e THR_flea_dtls_rtrsm_st_t__append_ccs_to_flight_buffer_and_try_to_send
 
 void flea_dtls_rtrsm_st_t__empty_flight_buf(flea_dtls_retransm_state_t* dtls_retransm_state__pt);
 
+flea_err_e THR_flea_dtls_rtrsm_st_t__request_flight_buf_retransm(
+  flea_dtls_retransm_state_t* dtls_rtrsm_st__pt,
+  flea_al_u8_t                hs_seq_of_triggering_msg__alu8,
+  flea_recprot_t*             rec_prot__pt,
+  flea_tls__connection_end_t  conn_end__e
+) FLEA_ATTRIB_UNUSED_RESULT;
 
 flea_err_e THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
   flea_dtls_retransm_state_t* dtls_rtrsm_st__pt,

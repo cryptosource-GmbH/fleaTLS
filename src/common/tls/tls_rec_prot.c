@@ -1571,9 +1571,9 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
     FLEA_THROW("read request to encrypted record", FLEA_ERR_INT_ERR);
   }
 
-  FLEA_DBG_PRINTF("\nread_data_inner starting\n");
+  /*FLEA_DBG_PRINTF("\nread_data_inner starting\n");
   FLEA_DBG_PRINTF("current_or_next_record_for_content_type__b  = %u\n", current_or_next_record_for_content_type__b);
-  FLEA_DBG_PRINTF("data_read for length = %u\n", data_len__dtl);
+  FLEA_DBG_PRINTF("data_read for length = %u\n", data_len__dtl);*/
   rec_prot__pt->payload_buf__pu8 = rec_prot__pt->send_rec_buf_raw__bu8 + rec_prot__pt->record_hdr_len__u8;
   /* output data from a possibly held record witz nonzero payload data left */
 
@@ -1593,7 +1593,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
   data__pu8             += to_cp__alu16;
   read_bytes_count__dtl += to_cp__alu16;
 
-  FLEA_DBG_PRINTF("read_bytes before loop = %u\n", read_bytes_count__dtl);
+  // FLEA_DBG_PRINTF("read_bytes before loop = %u\n", read_bytes_count__dtl);
   // enter only if
   // - called with current_or_next_record_for_content_type__b
   //   OR
@@ -2057,6 +2057,10 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
               "received tls handshake message when app data was expected",
               FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA
             );
+
+            /* it is OK to drop any other records silently in this case. The first flight of a renegotiation request
+             * from the peer contains only one of the two handshake msg types checked for in this conditional.
+             */
           }
         }
         FLEA_DBG_PRINTF("dropping non-initial handshake msg during read_app_data\n");

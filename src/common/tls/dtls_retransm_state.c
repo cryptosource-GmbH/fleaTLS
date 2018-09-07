@@ -4,16 +4,26 @@
 
 #include "internal/common/tls/tls_int.h"
 
-#define FLEA_DTLS_FLIGHT_BUF_CCS_CODE 0xFF
+#define FLEA_DTLS_FLIGHT_BUF_CCS_CODE         0xFF
+
+#define FLEA_DTLS_RTRSM_STATE__NOT_ACTIVE     0
+#define FLEA_DTLS_RTRSM_STATE__ACTIVE_INITIAL 1
+
+
+#define FLEA_DTLS_RTRSM_ST_IS_ACTIVE(dtls_rtrsm_st__pt) \
+  ((dtls_rtrsm_st__pt)->rtrsm_state__u8 != \
+  FLEA_DTLS_RTRSM_STATE__NOT_ACTIVE)
 
 flea_err_e THR_flea_dtls_rtrsm_t__ctor(
-  flea_dtls_retransm_state_t* dtls_rtrsm_st__pt
+  flea_dtls_retransm_state_t* dtls_rtrsm_st__pt,
+  flea_al_u8_t                rtrsm_supr_wndw_secs__alu8
 )
 {
   FLEA_THR_BEG_FUNC();
   dtls_rtrsm_st__pt->flight_buf_read_pos__u32    = 0;
   dtls_rtrsm_st__pt->flight_buf_contains_ccs__u8 = 0;
-
+  dtls_rtrsm_st__pt->rtrsm_suppr_wndw_secs__u8   = rtrsm_supr_wndw_secs__alu8;
+  FLEA_CCALL(THR_flea_timer_t__ctor(&dtls_rtrsm_st__pt->rtrsm_suppr_wndw_tmr__t));
   // TODO: QHEAP MUST BECOME "DYNAMIC"
   qheap_qh_ctor(
     &dtls_rtrsm_st__pt->qheap__t,
@@ -58,8 +68,8 @@ void flea_dtls_rtrsm_st_t__reset(
   dtls_rtrsm_st__pt->flight_buf_read_pos__u32    = 0;
   dtls_rtrsm_st__pt->flight_buf_contains_ccs__u8 = 0;
 
-  /*flea_byte_vec_t__reset(&dtls_rtrsm_st__pt->previous_conn_st__t.write_key_block__t);
-  flea_byte_vec_t__reset(&dtls_rtrsm_st__pt->current_conn_st__t.write_key_block__t);*/
+  FLEA_DBG_PRINTF("[rtrsm] reset() => rtrsm state set to NOT_ACTIVE\n");
+  dtls_rtrsm_st__pt->rtrsm_state__u8 = FLEA_DTLS_RTRSM_STATE__NOT_ACTIVE;
   qheap_qh_skip(
     dtls_rtrsm_st__pt->qheap__pt,
     dtls_rtrsm_st__pt->current_flight_buf__qhh,
@@ -301,6 +311,8 @@ flea_err_e THR_flea_dtls_rtrsm_st_t__try_send_out_from_flight_buf(
 
 void flea_dtls_rtrsm_st_t__empty_flight_buf(flea_dtls_retransm_state_t* dtls_retransm_state__pt)
 {
+  FLEA_DBG_PRINTF("[rtrsm] empty_flight_buf() => rtrsm state set to NOT_ACTIVE\n");
+  dtls_retransm_state__pt->rtrsm_state__u8 = FLEA_DTLS_RTRSM_STATE__NOT_ACTIVE;
   dtls_retransm_state__pt->flight_buf_read_pos__u32    = 0;
   dtls_retransm_state__pt->flight_buf_contains_ccs__u8 = 0;
   qheap_qh_skip(
@@ -382,6 +394,30 @@ flea_err_e THR_flea_dtls_rtrsm_st_t__append_to_flight_buffer_and_try_to_send_rec
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_dtls_hndsh__append_to_flight_buffer_and_try_to_send_record */
 
+static flea_bool_t flea_dtls_rtrsm_st_t__decide_to_actually_retransm(
+  flea_dtls_retransm_state_t* dtls_rtrsm_st__pt
+)
+{
+  // TODO: MAKE THE SUPPR-WINDOW DEPENDEND ON THE CURRENT RECV-TMO, E.G. 1/4 OF IT BUT AT LEAST ONE SECOND
+  if(FLEA_DTLS_RTRSM_ST_IS_ACTIVE(dtls_rtrsm_st__pt) &&
+    (flea_timer_t__get_elapsed_millisecs(&dtls_rtrsm_st__pt->rtrsm_suppr_wndw_tmr__t) >=
+    1000 * dtls_rtrsm_st__pt->rtrsm_suppr_wndw_secs__u8))
+  {
+    FLEA_DBG_PRINTF("[rtrsm] suppr-wndw-tmr elapsed, going into NOT_ACTIVE again\n");
+    dtls_rtrsm_st__pt->rtrsm_state__u8 = FLEA_DTLS_RTRSM_STATE__NOT_ACTIVE;
+  }
+
+
+  if(!FLEA_DTLS_RTRSM_ST_IS_ACTIVE(dtls_rtrsm_st__pt))
+  {
+    dtls_rtrsm_st__pt->rtrsm_state__u8 = FLEA_DTLS_RTRSM_STATE__ACTIVE_INITIAL;
+    FLEA_DBG_PRINTF("[rtrsm] entering ACTIVE rtrsm state, sending flight buf\n");
+    flea_timer_t__start(&dtls_rtrsm_st__pt->rtrsm_suppr_wndw_tmr__t);
+    return FLEA_TRUE;
+  }
+  return FLEA_FALSE;
+}
+
 flea_err_e THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
   flea_dtls_retransm_state_t* dtls_rtrsm_st__pt,
   flea_recprot_t*             rec_prot__pt,
@@ -389,6 +425,10 @@ flea_err_e THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
 )
 {
   FLEA_THR_BEG_FUNC();
+  if(!flea_dtls_rtrsm_st_t__decide_to_actually_retransm(dtls_rtrsm_st__pt))
+  {
+    FLEA_THR_RETURN();
+  }
   dtls_rtrsm_st__pt->flight_buf_read_pos__u32 = 0;
 
   FLEA_DBG_PRINTF(
@@ -429,7 +469,7 @@ void flea_dtls_rtrsm_st_t__dtor(flea_dtls_retransm_state_t* dtls_rtrsm_st__pt)
     dtls_rtrsm_st__pt->current_flight_buf__qhh
   );
   flea_timer_t__dtor(&dtls_rtrsm_st__pt->timer__t);
-
+  flea_timer_t__dtor(&dtls_rtrsm_st__pt->rtrsm_suppr_wndw_tmr__t);
   flea_byte_vec_t__dtor(&dtls_rtrsm_st__pt->previous_conn_st__t.write_key_block__t);
   flea_byte_vec_t__dtor(&dtls_rtrsm_st__pt->current_conn_st__t.write_key_block__t);
 }

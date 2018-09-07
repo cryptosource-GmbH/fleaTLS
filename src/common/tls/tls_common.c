@@ -849,8 +849,8 @@ flea_err_e THR_flea_tls_ctx_t__construction_helper(
   FLEA_THR_BEG_FUNC();
 
 # ifdef FLEA_HAVE_DTLS
-
-  FLEA_CCALL(THR_flea_dtls_rtrsm_t__ctor(&tls_ctx__pt->dtls_retransm_state__t));
+// TODO: MAKE SUPPR WINDOW SIZE PART OF THE DTLS CONFIGURATION OR USE DYNAMICALLY COMPUTED WNDW
+  FLEA_CCALL(THR_flea_dtls_rtrsm_t__ctor(&tls_ctx__pt->dtls_retransm_state__t, 2 /* 2 secs rtrsm suppr wndw */));
 # endif /* ifdef FLEA_HAVE_DTLS */
 
 # ifdef FLEA_TLS_HAVE_PEER_EE_CERT_REF
@@ -1136,9 +1136,6 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
 
   tls_ctx__pt = server_ctx_mbn__pt ? &server_ctx_mbn__pt->tls_ctx__t : &client_ctx_mbn__pt->tls_ctx__t;
 
-  /*do
-  {*/
-  FLEA_DBG_PRINTF("rd_app_data: calling read_data\n");
   err__t = THR_flea_recprot_t__read_data(
     &tls_ctx__pt->rec_prot__t,
     CONTENT_TYPE_APPLICATION_DATA,
@@ -1146,7 +1143,6 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
     data_len__pdtl,
     rd_mode__e
   );
-  FLEA_DBG_PRINTF("rd_app_data: read_data returned, read %u bytes, err = %u\n", *data_len__pdtl, err__t);
 # ifdef FLEA_HAVE_DTLS
   if(err__t == FLEA_EXC_TLS_HS_MSG_FR_PREV_EPOCH)
   {

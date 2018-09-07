@@ -911,8 +911,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
 
         if(is_first_msg_of_new_flight__b)
         {
-          // TODO: THIS IS NOT CORRECT: PEER MAY HAVE STARTED TO PROCESS HANDSHAKE MSGS BASED ON WHAT HE RECEIVED FROM OUR PREVIOUS FLIGHT, BUT
-          // THE WHOLE FLIGHT MAY BE INCOMPLETELY RECEIVED
+          /* according to the DTLS standard, the peer must buffer all records of his flight until it is completed. thus it is OK to delete the previous flight buffer once we receive the first record of a new flight */
           flea_dtls_rtrsm_st_t__empty_flight_buf(&tls_ctx__pt->dtls_retransm_state__t);
         }
 
