@@ -1128,7 +1128,7 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
   flea_hostn_validation_params_t* hostn_valid_params_mbn__pt
 )
 {
-  flea_err_e err__t;
+  flea_err_e err__e;
 
   flea_tls_ctx_t* tls_ctx__pt;
 
@@ -1136,7 +1136,7 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
 
   tls_ctx__pt = server_ctx_mbn__pt ? &server_ctx_mbn__pt->tls_ctx__t : &client_ctx_mbn__pt->tls_ctx__t;
 
-  err__t = THR_flea_recprot_t__read_data(
+  err__e = THR_flea_recprot_t__read_data(
     &tls_ctx__pt->rec_prot__t,
     CONTENT_TYPE_APPLICATION_DATA,
     data__pu8,
@@ -1144,7 +1144,7 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
     rd_mode__e
   );
 # ifdef FLEA_HAVE_DTLS
-  if(err__t == FLEA_EXC_TLS_HS_MSG_FR_PREV_EPOCH)
+  if(err__e == FLEA_EXC_TLS_HS_MSG_FR_PREV_EPOCH)
   {
     FLEA_DBG_PRINTF("[rtrsm] rd_appdata_inner: FLEA_EXC_TLS_HS_MSG_FR_PREV_EPOCH\n");
     FLEA_CCALL(
@@ -1157,7 +1157,7 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
   }
   else
 # endif /* ifdef FLEA_HAVE_DTLS */
-  if(err__t == FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA)
+  if(err__e == FLEA_EXC_TLS_HS_MSG_DURING_APP_DATA)
   {
     /* assume it's the appropriate ClientHello or HelloRequest in order to
      * initiate a new handshake. a wrong handshake message type will result in
@@ -1214,9 +1214,9 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
 # endif /* ifdef FLEA_HAVE_TLS_CLIENT */
     }
   }
-  else if(err__t)
+  else if(err__e)
   {
-    FLEA_THROW("rethrowing during read app data", err__t);
+    FLEA_THROW("rethrowing during read app data", err__e);
   }
 
   FLEA_THR_FIN_SEC_empty();

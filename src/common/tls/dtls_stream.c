@@ -549,8 +549,7 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   flea_al_u8_t i;
   flea_al_u16_t curr_rec_cont_len__alu16;
   qheap_queue_heap_t* heap__pt = tls_ctx__pt->dtls_retransm_state__t.qheap__pt;
-// TODO: MAKE DYNAMIC: + enc_hs, (plain_alert,) enc_alert, plain_ccs
-  flea_u8_t rec_type__u8; // = (flea_u8_t) rec_type_hndsh_plain;
+  flea_u8_t rec_type__u8;
   flea_dtls_hs_assmb_state_t* assmbl_state__pt = &dtls_hs_ctx__pt->incom_assmbl_state__t;
   flea_byte_vec_t* incom_hndls__pt = &assmbl_state__pt->qheap_handles_incoming__t;
   qh_al_hndl_t hndl_alqhh;
@@ -570,7 +569,6 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   while(cont_type__e == CONTENT_TYPE_ANY)
   {
     flea_u32_t millisecs__u32;
-    // TODO: MAKE READ NON-BLOCKING WORK
     FLEA_CCALL(THR_flea_recprot_t__get_current_record_type(rec_prot__pt, &cont_type__e, flea_read_nonblocking)); // WAS: READ_FULL, TODO: consider implementing full read with tmo (busy sleeping in between is not an option)
     // FLEA_DBG_PRINTF("rd_dtls_rec_from_wire: cont_type__e = %u\n", cont_type__e);
     millisecs__u32 = flea_timer_t__get_elapsed_millisecs(
@@ -649,6 +647,7 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   {
     while(curr_rec_cont_len__alu16)
     {
+      flea_err_e err__e;
       flea_u8_t small_buf[8];
       flea_dtl_t to_go__dtl = FLEA_MIN(curr_rec_cont_len__alu16, sizeof(small_buf));
 
@@ -660,8 +659,25 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
         }
       }
       /* read full, this cannot timeout any more because in DTLS, record must be within one packet */
-      FLEA_CCALL(THR_flea_recprot_t__read_data(rec_prot__pt, cont_type__e, small_buf, &to_go__dtl, flea_read_full));
+      err__e = THR_flea_recprot_t__read_data(rec_prot__pt, cont_type__e, small_buf, &to_go__dtl, flea_read_full);
 
+      if(err__e == FLEA_EXC_TLS_HS_MSG_FR_PREV_EPOCH)
+      {
+        FLEA_DBG_PRINTF(
+          "[rtrsm] THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire: FLEA_EXC_TLS_HS_MSG_FR_PREV_EPOCH, requesting retransmission\n"
+        );
+        FLEA_CCALL(
+          THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
+            &tls_ctx__pt->dtls_retransm_state__t,
+            &tls_ctx__pt->rec_prot__t,
+            tls_ctx__pt->connection_end
+          )
+        );
+      }
+      else if(err__e != FLEA_ERR_FINE)
+      {
+        FLEA_THROW("rethrowing error from read_data()", err__e);
+      }
 
       // TODO: SHORT WRITES TO THE QUEUE ARE NOT OPTIMAL
       qheap_qh_append_to_queue(heap__pt, hndl_alqhh, small_buf, to_go__dtl);
