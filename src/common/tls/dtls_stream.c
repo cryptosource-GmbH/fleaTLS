@@ -279,10 +279,19 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
 
       if(src_hdr_info__t.msg_seq__u16 < curr_msg_state_info__pt->msg_hdr_info__t.msg_seq__u16)
       {
+        flea_tls_ctx_t* tls_ctx__pt = dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt;
+
         /* the source message fragment is a retransmission or an otherwise
          * superfluous fragment, delete it */
         qheap_qh_free_queue(heap__pt, src_hndl);
         flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i] = 0;
+        FLEA_CCALL(
+          THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
+            &tls_ctx__pt->dtls_retransm_state__t,
+            &tls_ctx__pt->rec_prot__t,
+            tls_ctx__pt->connection_end
+          )
+        );
         /* break out from the loop over the targets, i.e. go the next source (i-iteration) */
         continue;
       }
@@ -757,6 +766,8 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
     );
     /* the message with curr_msg_seq has already been processed (read) */
     seq__alu16 = curr_hdr_info__pt->msg_seq__u16;
+
+    /* consider retransmission detection on handshake layer: the sequence is incremented here, thus, if we read in flight two and receive again a message from flight 1, then we will see that the hs-sqn is lower than curr_hdr_info__pt->msg_seq__u16 when merging that new hs-fragment. */
     if(req_msg_type__e == rec_type_hndsh_plain)
     {
       FLEA_DBG_PRINTF("THR_flea_dtls_rd_strm__start_new_msg: incrementing rec. seq.\n");
@@ -764,16 +775,6 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
     }
     memset(curr_msg_state__pt, 0, sizeof(*curr_msg_state__pt));
     curr_hdr_info__pt->msg_seq__u16 = seq__alu16;
-    // assmbl_state__pt->curr_msg_seq__u16++;
-
-    /*assmbl_state__pt->curr_fragm_len__u32  = 0;
-    assmbl_state__pt->curr_fragm_offs__u32 = 0;
-    assmbl_state__pt->curr_msg_len__u32    = 0;*/
-
-    // curr_msg_state__pt->curr_hndl_qhh = 0;
-    // assmbl_state__pt->curr_hndl_qhh        = 0;
-
-    // curr_msg_state__pt->rd_offs_incl_hdr__u32    = 0;
   }
   /* scan through the incoming queue handles and look if the subsequent handshake msg number is available */
   while(1) // TODO: RESENDING / BREAKING OFF WHEN TIMEOUT EXCEEDED
