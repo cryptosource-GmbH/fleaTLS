@@ -12,7 +12,7 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
   flea_bool_t is_reneg__b
 #ifdef                      FLEA_HAVE_DTLS
   ,
-  flea_al_u8_t              initial_recv_tmo_secs__alu8
+  const flea_dtls_cfg_t*    dtls_cfg_mbn__pt
 #endif
 )
 {
@@ -22,9 +22,16 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
   hs_ctx__pt->is_reneg__b = is_reneg__b;
   hs_ctx__pt->tls_ctx__pt = tls_ctx__pt;
 #if defined FLEA_HAVE_DTLS
-  hs_ctx__pt->dtls_ctx__t.hs_ctx__pt = hs_ctx__pt;
-  hs_ctx__pt->dtls_ctx__t.current_timeout_secs__u8 = initial_recv_tmo_secs__alu8;
-  hs_ctx__pt->dtls_ctx__t.send_msg_seq__s16        = -1;
+  if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
+  {
+    if(!dtls_cfg_mbn__pt)
+    {
+      FLEA_THROW("must provide dtls_cfg_t for DTLS", FLEA_ERR_INV_ARG);
+    }
+    hs_ctx__pt->dtls_ctx__t.current_timeout_secs__u8 = dtls_cfg_mbn__pt->initial_recv_tmo_secs__u8;
+    hs_ctx__pt->dtls_ctx__t.hs_ctx__pt        = hs_ctx__pt;
+    hs_ctx__pt->dtls_ctx__t.send_msg_seq__s16 = -1;
+  }
   // FLEA_CCALL(THR_flea_dtls_rtrsm_t__ctor(&hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t));
 # if defined FLEA_HEAP_MODE
   // TODO: ONLY FOR DTLS:

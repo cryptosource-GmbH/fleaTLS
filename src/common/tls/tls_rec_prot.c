@@ -2090,7 +2090,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           rec_prot__pt->curr_pt_content_len__u16 - rec_prot__pt->curr_rec_content_offs__u16,
           data_len__dtl
         );
-#  ifdef FLEA_DO_DBG_PRINT
+#  if 0
+#   ifdef FLEA_DO_DBG_PRINT
         FLEA_DBG_PRINTF("before trailing read: previously read %u bytes\n", read_bytes_count__dtl);
         FLEA_DBG_PRINTF("trailing read: reading %u bytes = ", to_cp__alu16);
         unsigned i;
@@ -2099,7 +2100,8 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
           FLEA_DBG_PRINTF("%02x ", rec_prot__pt->payload_buf__pu8[i]);
         }
         FLEA_DBG_PRINTF("\n");
-#  endif /* ifdef FLEA_DO_DBG_PRINT */
+#   endif /* ifdef FLEA_DO_DBG_PRINT */
+#  endif /* if 0 */
 
 
         memcpy(data__pu8, rec_prot__pt->payload_buf__pu8, to_cp__alu16);

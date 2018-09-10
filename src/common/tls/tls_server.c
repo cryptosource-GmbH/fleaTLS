@@ -1382,15 +1382,13 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
     THR_flea_tls_handshake_ctx_t__ctor(
       &hs_ctx__t,
       tls_ctx,
-      is_reneg__b,
-      tls_ctx->dtls_cfg_mbn__pt->initial_recv_tmo_secs__u8
+      is_reneg__b
+      FLEA_DO_IF_HAVE_DTLS(FLEA_COMMA tls_ctx->dtls_cfg_mbn__pt)
     )
   );
 
   // TODO: why necessary for server but not for client? (assigning random)
   hs_ctx__t.client_and_server_random__pt = &client_and_server_random__t;
-  // hs_ctx__t.tls_ctx__pt = tls_ctx;
-  // hs_ctx__t.is_reneg__b = is_reneg__b;
 
 # ifdef FLEA_HEAP_MODE
   FLEA_ALLOC_MEM(hello_cookie__bu8, FLEA_DTLS_SRV_HELLO_COOKIE_SIZE);
@@ -1603,10 +1601,13 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
           }
 
 # ifdef FLEA_HAVE_DTLS
-          // FLEA_CCALL(THR_flea_recprot_t__increment_read_epoch(&tls_ctx->rec_prot__t));
-          FLEA_CCALL(THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(hs_ctx__pt));
 
-# endif
+          if(FLEA_TLS_CTX_IS_DTLS(tls_ctx))
+          {
+            FLEA_CCALL(THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(hs_ctx__pt));
+          }
+
+# endif /* ifdef FLEA_HAVE_DTLS */
 
           handshake_state.expected_messages = FLEA_TLS_HANDSHAKE_EXPECT_FINISHED;
 

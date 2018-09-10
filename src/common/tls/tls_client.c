@@ -1542,9 +1542,11 @@ flea_err_e THR_flea_tls__client_handshake(
            * thus we can switch to the new epoch
            * */
 # ifdef FLEA_HAVE_DTLS
-          // FLEA_CCALL(THR_flea_recprot_t__increment_read_epoch(&tls_ctx__pt->rec_prot__t));
-          FLEA_CCALL(THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(hs_ctx__pt));
-# endif
+          if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
+          {
+            FLEA_CCALL(THR_flea_tls_handshake_ctx_t__switch_to_new_dtls_epoch(hs_ctx__pt));
+          }
+# endif /* ifdef FLEA_HAVE_DTLS */
 
 /*if(rec_prot__pt->send_rec_buf_raw__bu8[0] == CONTENT_TYPE_CHANGE_CIPHER_SPEC)
           {
@@ -1852,8 +1854,8 @@ flea_err_e THR_flea_tls_clt_ctx_t__ctor(
     THR_flea_tls_handshake_ctx_t__ctor(
       &hs_ctx__t,
       tls_ctx__pt,
-      FLEA_FALSE,
-      FLEA_DO_IF_HAVE_DTLS(dtls_cfg_mbn__pt->initial_recv_tmo_secs__u8)
+      FLEA_FALSE
+      FLEA_DO_IF_HAVE_DTLS(FLEA_COMMA dtls_cfg_mbn__pt)
     )
   );
   if(tls_ctx__pt->client_use_psk__b)
@@ -1898,8 +1900,8 @@ flea_err_e THR_flea_tls_ctx_t__client_handle_server_initiated_reneg(
     THR_flea_tls_handshake_ctx_t__ctor(
       &hs_ctx__t,
       tls_ctx__pt,
-      FLEA_TRUE,
-      tls_ctx__pt->dtls_cfg_mbn__pt->initial_recv_tmo_secs__u8
+      FLEA_TRUE
+      FLEA_DO_IF_HAVE_DTLS(FLEA_COMMA tls_ctx__pt->dtls_cfg_mbn__pt)
     )
   );
 

@@ -122,7 +122,7 @@ flea_err_e THR_flea_tls_handshake_ctx_t__ctor(
   flea_bool_t is_reneg__b
 # ifdef                     FLEA_HAVE_DTLS
   ,
-  flea_al_u8_t              dtls_initial_recv_tmo_secs__alu8
+  const flea_dtls_cfg_t*    dtls_cfg_mbn__pt
 # endif
 ) FLEA_ATTRIB_UNUSED_RESULT;
 
