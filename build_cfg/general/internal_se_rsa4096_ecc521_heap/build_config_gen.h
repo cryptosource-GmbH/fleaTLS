@@ -737,7 +737,6 @@
  */
 # define FLEA_STKMD_DTLS_DTLS_MAX_NB_INCM_FRGMS 30
 
-
 /**
  * Maximal size of public key parameters object in an X.509 certificate. Mainly
  * relevant for certificates featuring EC public keys. Relevant only in stack
