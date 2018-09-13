@@ -1777,6 +1777,22 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
         if(!hs_ctx__t.is_sess_res__b)
         {
           handshake_state.finished = FLEA_TRUE;
+
+# ifdef FLEA_HAVE_DTLS
+
+/* in case of DTLS we have to trigger the transmission of the buffered outgoing messages, which is otherwise triggered
+ * by going into the receiving state */
+          if(FLEA_TLS_CTX_IS_DTLS(tls_ctx))
+          {
+            FLEA_CCALL(
+              THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
+                &tls_ctx->dtls_retransm_state__t,
+                &tls_ctx->rec_prot__t,
+                tls_ctx->connection_end
+              )
+            );
+          }
+# endif /* ifdef FLEA_HAVE_DTLS */
           break;
         }
         else
@@ -1788,6 +1804,7 @@ static flea_err_e THR_flea_tls__server_handshake_inner(
       continue;
     }
   }
+
   if(server_ctx__pt->session_mngr_mbn__pt)
   {
     FLEA_CCALL(

@@ -967,11 +967,13 @@ static flea_err_e THR_flea_recprot_t__encr_rcrd_cbc_hmac(
   flea__encode_U32_BE(seq_lo__u32, enc_seq_nbr__au8 + 4);
 
   FLEA_DBG_PRINTF("cbc compute HMAC: encoded epoch | seq = ");
-  for(unsigned i = 0; i < 8; i++)
+  FLEA_DBG_PRINT_BYTE_ARRAY(enc_seq_nbr__au8, 8);
+
+  /*for(unsigned i = 0; i < 8; i++)
   {
     FLEA_DBG_PRINTF("%02x ", enc_seq_nbr__au8[i]);
-  }
-  FLEA_DBG_PRINTF("\n");
+  }*/
+  // FLEA_DBG_PRINTF("\n");
 
   FLEA_CCALL(
     THR_flea_recprot_t__compute_mac_cbc_hmac(
@@ -1613,12 +1615,13 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
     }
 
 #  ifdef FLEA_DO_DBG_PRINT
-    unsigned dbg_loop_cnt = 0;
+    // unsigned dbg_loop_cnt = 0;
 #  endif
     do
     {
       flea_al_u16_t curr_rec_full_len__alu16 = 0;
 #  ifdef FLEA_DO_DBG_PRINT
+#   if 0
       if(rec_prot__pt->curr_rec_content_len__u16)
       {
         FLEA_DBG_PRINTF("dbg_loop_cnt = %u\n", dbg_loop_cnt++);
@@ -1645,6 +1648,7 @@ static flea_err_e THR_flea_recprot_t__read_data_inner_dtls(
         }
         FLEA_DBG_PRINTF("\n");
       }
+#   endif /* if 0 */
 #  endif /* ifdef FLEA_DO_DBG_PRINT */
 
       /* if we arrive here, there is the need to read a further record, either for the content type or for content data */

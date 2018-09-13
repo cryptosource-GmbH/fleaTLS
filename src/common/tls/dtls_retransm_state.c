@@ -332,7 +332,7 @@ flea_err_e THR_flea_dtls_rtrsm_st_t__append_ccs_to_flight_buffer_and_try_to_send
   const flea_u8_t css_code__cu8 = FLEA_DTLS_FLIGHT_BUF_CCS_CODE;
 
   dtls_rtrsm_st__pt->flight_buf_contains_ccs__u8 = 1;
-  return THR_flea_dtls_rtrsm_st_t__append_to_flight_buffer_and_try_to_send_record(
+  return THR_flea_dtls_rtrsm_st_t__append_to_flight_buffer(
     dtls_rtrsm_st__pt,
     conn_end__e,
     rec_prot__pt,
@@ -342,7 +342,7 @@ flea_err_e THR_flea_dtls_rtrsm_st_t__append_ccs_to_flight_buffer_and_try_to_send
   );
 }
 
-flea_err_e THR_flea_dtls_rtrsm_st_t__append_to_flight_buffer_and_try_to_send_record(
+flea_err_e THR_flea_dtls_rtrsm_st_t__append_to_flight_buffer/*_and_try_to_send_record*/ (
   flea_dtls_retransm_state_t* dtls_rtrsm_st__pt,
   flea_tls__connection_end_t  conn_end__e,
   flea_recprot_t*             rec_prot__pt,
@@ -382,14 +382,6 @@ flea_err_e THR_flea_dtls_rtrsm_st_t__append_to_flight_buffer_and_try_to_send_rec
 
     data_len__u32 -= to_go__u32;
     data__pcu8    += to_go__u32;
-    FLEA_CCALL(
-      THR_flea_dtls_rtrsm_st_t__try_send_out_from_flight_buf(
-        dtls_rtrsm_st__pt,
-        conn_end__e,
-        rec_prot__pt,
-        NULL
-      )
-    );
   }
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_dtls_hndsh__append_to_flight_buffer_and_try_to_send_record */

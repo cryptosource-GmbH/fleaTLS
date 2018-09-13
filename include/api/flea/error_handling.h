@@ -77,7 +77,7 @@
 # define FLEA_PRINTF_1_SWITCHED(__format)                 printf(__format)
 # define FLEA_PRINTF_2_SWITCHED(__format, __arg1)         printf(__format, __arg1)
 # define FLEA_PRINTF_3_SWITCHED(__format, __arg1, __arg2) printf(__format, __arg1, __arg2)
-# define __FLEA_EVTL_PRINT_ERR(__func, __str)             printf("%s: %s\n", __func, __str)
+# define __FLEA_EVTL_PRINT_ERR(__func, __str)             printf("[flea] %s: %s\n", __func, __str)
 #else // ifdef FLEA_DO_DBG_PRINT
 # define FLEA_PRINTF_1_SWITCHED(__format)
 # define FLEA_PRINTF_2_SWITCHED(__format, __arg1)

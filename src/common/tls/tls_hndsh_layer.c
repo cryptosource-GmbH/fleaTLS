@@ -45,7 +45,7 @@ flea_err_e THR_flea_tls__snd_hands_msg_content(
   if(FLEA_TLS_CTX_IS_DTLS(hs_ctx__pt->tls_ctx__pt))
   {
     FLEA_CCALL(
-      THR_flea_dtls_rtrsm_st_t__append_to_flight_buffer_and_try_to_send_record(
+      THR_flea_dtls_rtrsm_st_t__append_to_flight_buffer(
         &tls_ctx__pt->dtls_retransm_state__t,
         tls_ctx__pt->connection_end,
         &tls_ctx__pt->rec_prot__t,

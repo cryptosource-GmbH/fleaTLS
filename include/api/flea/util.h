@@ -45,17 +45,19 @@ extern "C" {
   } while(0)
 
 # ifdef FLEA_DO_DBG_PRINT
-#  define FLEA_DBG_PRINTF(...) printf(__VA_ARGS__)
+#  define __FLEA_RAW_DBG_PRINTF(...) printf(__VA_ARGS__)
 # else
-#  define FLEA_DBG_PRINTF(...)
+#  define __FLEA_RAW_DBG_PRINTF(...)
 # endif
 
+# define FLEA_DBG_PRINTF(...) __FLEA_RAW_DBG_PRINTF("[flea] " __VA_ARGS__)
+
 # define FLEA_DBG_PRINT_BYTE_ARRAY(ptr, len) \
-  do {size_t __i; for(__i = 0; __i < (len); __i++) {FLEA_DBG_PRINTF( \
+  do {size_t __i; for(__i = 0; __i < (len); __i++) {__FLEA_RAW_DBG_PRINTF( \
                                                       "%02x ", \
                                                       (ptr) [__i] \
                                                     ); \
-      } FLEA_DBG_PRINTF("\n");} while(0)
+      } __FLEA_RAW_DBG_PRINTF("\n");} while(0)
 
 /**
  * Type which represents a reference to strings of const u8 in memory.

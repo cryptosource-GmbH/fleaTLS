@@ -780,6 +780,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
       tls_ctx__pt->dtls_retransm_state__t.qheap__pt,
       dtls_hs_ctx__pt->incom_assmbl_state__t.curr_msg_state_info__t.hndl_qhh
     );
+    FLEA_DBG_PRINTF("THR_flea_dtls_rd_strm__start_new_msg(): freed current msg queue\n");
     /* the message with curr_msg_seq has already been processed (read) */
     seq__alu16 = curr_hdr_info__pt->msg_seq__u16;
 
@@ -795,6 +796,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
   /* scan through the incoming queue handles and look if the subsequent handshake msg number is available */
   while(1)
   {
+    flea_dtls_hndsh_msg_state_info_t* curr_msg_state_info__pt = &assmbl_state__pt->curr_msg_state_info__t;
     for(i = 0; i < flea_byte_vec_t__GET_DATA_LEN(incom_hndls__pt); i += sizeof(qh_hndl_t))
     {
       qh_hndl_t hndl = flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i];
@@ -826,9 +828,8 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
         flea_u32_t fragm_offs__u32;
         flea_u16_t msg_seq__u16;
         // flea_u8_t frag_len_enc__au8[3];
-        flea_dtls_hndsh_msg_state_info_t* curr_msg_state_info__pt = &assmbl_state__pt->curr_msg_state_info__t;
-        flea_dtls_hndsh_hdr_info_t* curr_msg_hdr_info__pt         = &curr_msg_state_info__pt->msg_hdr_info__t;
-
+        flea_dtls_hndsh_hdr_info_t* curr_msg_hdr_info__pt = &curr_msg_state_info__pt->msg_hdr_info__t;
+        FLEA_DBG_PRINTF("start_new_msg(): processing new msg candidate (plain hs msg)\n");
         /* scan the header of this queue */
         // TODO: USE LINEARIZE FROM QH
         qheap_qh_peek(heap__pt, hndl, 0, hs_hdr_buf__bu8, FLEA_DTLS_HANDSH_HDR_LEN + 1);
@@ -836,12 +837,14 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
         msg_seq__u16 = flea__decode_U16_BE(&hdr_ptr__pu8[FLEA_DTLS_HS_HDR_OFFS__MSG_SEQ]);
         if(curr_msg_hdr_info__pt->msg_seq__u16 != msg_seq__u16)
         {
+          FLEA_DBG_PRINTF("start_new_msg(): curr_msg_hdr_info__pt->msg_seq__u16 != msg_seq__u16, skipping candidate\n");
           continue;
         }
         /* it is the correct next msg. check if is the the first fragment. */
         fragm_offs__u32 = flea__decode_U24_BE(&hdr_ptr__pu8[6]);
         if(fragm_offs__u32 != 0)
         {
+          FLEA_DBG_PRINTF("start_new_msg(): fragm_offs__u32 != 0, skipping candidate\n");
           continue;
         }
         /* this is the very first fragment and thus we can start outputting it */
@@ -852,10 +855,11 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
           + FLEA_DTLS_HANDSH_HDR_LEN;
         curr_msg_hdr_info__pt->fragm_offs__u32 = fragm_offs__u32;
         curr_msg_state_info__pt->hndl_qhh      = hndl;
+        FLEA_DBG_PRINTF("start_new_msg(): assigned new current msg handle (HS)\n");
         /* now read away the type-byte */
         qheap_qh_skip(heap__pt, hndl, 1);
 
-
+#if 0
         // DBG ========>
         {
           flea_u8_t reread_fragm_len_2_au8[3];
@@ -881,6 +885,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
         }
 
         // <======== DBG
+#endif /* if 0 */
 
         /* rewrite the fragm len to be equal to the msg len */
         if(FLEA_DTLS_HS_HDR_LEN__FRAGM_LEN !=
@@ -927,11 +932,6 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
         }*/
         // <======== DBG
 
-        if(is_first_msg_of_new_flight__b)
-        {
-          /* according to the DTLS standard, the peer must buffer all records of his flight until it is completed. thus it is OK to delete the previous flight buffer once we receive the first record of a new flight */
-          flea_dtls_rtrsm_st_t__empty_flight_buf(&tls_ctx__pt->dtls_retransm_state__t);
-        }
 
         // DBG ========>
         peaked_cnt = qheap_qh_peek(heap__pt, hndl, 0 /*offset*/, reread_fragm_len_au8, sizeof(reread_fragm_len_au8));
@@ -958,20 +958,30 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
           handsh_rdr__pt->hlp__t.fragm_length__u32*/
 
         /* invalidate the handle */
-        flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i] = 0;
-        FLEA_THR_RETURN();
       }
       else if((req_msg_type__e == rec_type_ccs) && (hs_hdr_buf__bu8[0] == rec_type_ccs))
       {
-        flea_dtls_hndsh_msg_state_info_t* curr_msg_state_info__pt = &assmbl_state__pt->curr_msg_state_info__t;
         /* skip over the type byte */
 
+        FLEA_DBG_PRINTF("start_new_msg(): processing new msg candidate (plain CCS msg)\n");
         qheap_qh_skip(heap__pt, hndl, 1);
         curr_msg_state_info__pt->hndl_qhh = hndl;
-        curr_msg_state__pt->fragm_len_incl_hs_hdr__u32    = qheap_qh_get_queue_len(heap__pt, hndl);
-        flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i] = 0;
+        FLEA_DBG_PRINTF("start_new_msg(): assigned new current msg handle (CCS)\n");
+        curr_msg_state__pt->fragm_len_incl_hs_hdr__u32 = qheap_qh_get_queue_len(heap__pt, hndl);
+        // flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i] = 0;
         /* automatically expect again a handshake message */
         dtls_hs_ctx__pt->incom_assmbl_state__t.req_next_rec_cont_type__e = CONTENT_TYPE_HANDSHAKE;
+        // FLEA_THR_RETURN();
+      }
+      if(curr_msg_state_info__pt->hndl_qhh)
+      {
+        /* a new msg was actually started. This means we can delete the flight buffer that was still held for retransmission. */
+        if(is_first_msg_of_new_flight__b)
+        {
+          /* according to the DTLS standard, the peer must buffer all records of his flight until it is completed. thus it is OK to delete the previous flight buffer once we receive the first record of a new flight */
+          flea_dtls_rtrsm_st_t__empty_flight_buf(&tls_ctx__pt->dtls_retransm_state__t);
+        }
+        flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i] = 0;
         FLEA_THR_RETURN();
       }
       // }
@@ -1041,6 +1051,19 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
   // flea_dtls_hndsh_hdr_info_t* curr_msg_hs_hdr_info__pt      = &curr_msg_state_info__pt->msg_hdr_info__t;
 
   FLEA_THR_BEG_FUNC();
+  if(dtls_hs_ctx__pt->is_in_sending_state__u8)
+  {
+    /* we come from sending, and not we want to read => send out the buffered outgoing messages first */
+
+    FLEA_CCALL(
+      THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
+        &tls_ctx__pt->dtls_retransm_state__t,
+        &tls_ctx__pt->rec_prot__t,
+        tls_ctx__pt->connection_end
+      )
+    );
+    FLEA_DBG_PRINTF("THR_dtls_rd_strm_rd_func(): did call retransmit_flight_buf() to trigger initial sending\n");
+  }
   // READ MODE IS IGNORED SINCE THIS FUNCTION IS ONLY USED DURING THE HANDSH
   while(rem_read_len__dtl) // TODO: MUST BE U32 ?
   {
@@ -1050,6 +1073,7 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
     // curr_msg_state_info__pt->fragm_len_incl_hs_hdr__u32
     if(!curr_msg_state_info__pt->msg_hdr_info__t.msg_len__u32 || !rem_in_curr_msg__u32)
     {
+      FLEA_DBG_PRINTF("THR_dtls_rd_strm_rd_func(): calling start_new_msg()\n");
       /* a new handshake msg is implicitly requested */
       FLEA_CCALL(
         THR_flea_dtls_rd_strm__start_new_msg(

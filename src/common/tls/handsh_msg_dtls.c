@@ -48,7 +48,7 @@ flea_err_e THR_flea_dtls_hdsh__snd_hands_msg_hdr(
   flea__encode_U24_BE(content_len__u32, &hdr__au8[9]);
 
   FLEA_CCALL(
-    THR_flea_dtls_rtrsm_st_t__append_to_flight_buffer_and_try_to_send_record(
+    THR_flea_dtls_rtrsm_st_t__append_to_flight_buffer(
       &tls_ctx__pt->dtls_retransm_state__t,
       tls_ctx__pt->connection_end,
       &tls_ctx__pt->rec_prot__t,
