@@ -93,7 +93,7 @@ static flea_err_e THR_flea_test_pkcs1_v1_5_signature_reference()
 #endif // #if defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE >= 2048 && defined FLEA_HAVE_SHA384_512
 
 
-#if defined FLEA_HAVE_ECDSA || defined FLEA_HAVE_RSA
+#if defined FLEA_HAVE_ECDSA || (defined FLEA_HAVE_RSA && FLEA_RSA_MAX_KEY_BIT_SIZE < 2048)
 static flea_err_e THR_flea_test_pk_signer_sign_verify_inner(
   flea_pk_scheme_id_e          scheme_id__t,
   flea_hash_id_e hash_id__t
@@ -216,7 +216,7 @@ static flea_err_e THR_flea_test_pk_signer_sign_verify_inner(
         &pubkey__t,
         sig_vec__t.data__pu8,
         sig_vec__t.len__dtl
-      ))
+    ))
     {
       FLEA_THROW("error with invalid signature", FLEA_ERR_FAILED_TEST);
     }
@@ -242,7 +242,7 @@ static flea_err_e THR_flea_test_pk_signer_sign_verify_inner(
         &pubkey__t,
         sig_vec__t.data__pu8,
         sig_vec__t.len__dtl
-      ))
+    ))
     {
       FLEA_THROW("error with invalid signature", FLEA_ERR_FAILED_TEST);
     }
@@ -290,7 +290,7 @@ flea_err_e THR_flea_test_pk_signer_sign_verify()
   flea_err_e err_code = THR_flea_test_pk_signer_sign_verify_inner(
     flea_rsa_pkcs1_v1_5_sign,
     flea_sha256 FLEA_DO_IF_HAVE_ECC(FLEA_COMMA NULL)
-    );
+  );
   if(err_code != FLEA_ERR_INV_KEY_SIZE && err_code != FLEA_ERR_BUFF_TOO_SMALL && err_code != FLEA_ERR_INV_KEY_COMP_SIZE)
   {
     FLEA_THROW("wrong return value for invalid key size", FLEA_ERR_FAILED_TEST);
