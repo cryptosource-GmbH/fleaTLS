@@ -165,12 +165,12 @@
 /**
  * Control whether support for ECDSA shall be compiled.
  */
-# define FLEA_HAVE_ECDSA          // FBFLAGS_PKALGS_ON_OFF
+// # define FLEA_HAVE_ECDSA          // FBFLAGS_PKALGS_ON_OFF
 
 /**
  * Control whether support for ECKA (=ECDH) shall be compiled.
  */
-# define FLEA_HAVE_ECKA           // FBFLAGS_PKALGS_ON_OFF
+// # define FLEA_HAVE_ECKA           // FBFLAGS_PKALGS_ON_OFF
 
 /* end algo_support_cfg */
 /**@}*/
