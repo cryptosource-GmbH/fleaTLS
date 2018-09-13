@@ -317,6 +317,17 @@ flea_err_e THR_flea_test_mpi_div()
     0x78, 0x9A, 0xBC, 0xDE, 0xF0, 0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDF
   };
 
+  const flea_u8_t divident_7 [] = {
+    0
+  };
+  const flea_u8_t divisor_7 [] = {
+    2
+  };
+  const flea_u8_t exp_q_7 [] = {0};
+  const flea_u8_t exp_r_7 [] = {
+    0
+  };
+
   FLEA_THR_BEG_FUNC();
 
   FLEA_CCALL(
@@ -401,6 +412,18 @@ flea_err_e THR_flea_test_mpi_div()
       sizeof(exp_q_6),
       exp_r_6,
       sizeof(exp_r_6)
+    )
+  );
+  FLEA_CCALL(
+    THR_flea_test_mpi_div_inner(
+      divident_7,
+      sizeof(divident_7),
+      divisor_7,
+      sizeof(divisor_7),
+      exp_q_7,
+      sizeof(exp_q_7),
+      exp_r_7,
+      sizeof(exp_r_7)
     )
   );
 
