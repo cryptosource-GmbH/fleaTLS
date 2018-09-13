@@ -249,6 +249,7 @@
  * Control the window size for the ECC exponentiation. Choose 4 or 5 for greatest speed and 1 for smallest RAM footprint.
  */
 # define FLEA_ECC_SINGLE_MUL_MAX_WINDOW_SIZE 2
+
 /* end perfomance_cfg */
 /**@}*/
 
@@ -707,6 +708,7 @@
  * 150 bytes. A small size reduces performance. May not be greater than 16384.
  */
 # define FLEA_TLS_ALT_SEND_BUF_SIZE 15000
+
 
 /**
  * Maximal size of public key parameters object in an X.509 certificate. Mainly
