@@ -171,12 +171,12 @@
 /**
  * Control whether support for ECDSA shall be compiled.
  */
-# define FLEA_HAVE_ECDSA          // FBFLAGS_PKALGS_ON_OFF
+// # define FLEA_HAVE_ECDSA          // FBFLAGS_PKALGS_ON_OFF
 
 /**
  * Control whether support for ECKA (=ECDH) shall be compiled.
  */
-# define FLEA_HAVE_ECKA           // FBFLAGS_PKALGS_ON_OFF
+// # define FLEA_HAVE_ECKA           // FBFLAGS_PKALGS_ON_OFF
 
 /* end algo_support_cfg */
 /**@}*/
@@ -736,6 +736,7 @@
  * one byte per fragment is allocated as management data.
  */
 # define FLEA_STKMD_DTLS_DTLS_MAX_NB_INCM_FRGMS 30
+
 
 /**
  * Maximal size of public key parameters object in an X.509 certificate. Mainly
