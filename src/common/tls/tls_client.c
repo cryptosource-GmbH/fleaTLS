@@ -1696,10 +1696,11 @@ flea_err_e THR_flea_tls__client_handshake(
         if(FLEA_TLS_CTX_IS_DTLS(tls_ctx__pt))
         {
           FLEA_CCALL(
-            THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
+            THR_flea_dtls_rtrsm_st_t__transmit_flight_buf(
               &tls_ctx__pt->dtls_retransm_state__t,
               &tls_ctx__pt->rec_prot__t,
-              tls_ctx__pt->connection_end
+              tls_ctx__pt->connection_end,
+              FLEA_FALSE
             )
           );
         }

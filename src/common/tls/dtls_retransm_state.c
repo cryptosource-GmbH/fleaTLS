@@ -410,21 +410,32 @@ static flea_bool_t flea_dtls_rtrsm_st_t__decide_to_actually_retransm(
   return FLEA_FALSE;
 }
 
-flea_err_e THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
+flea_err_e THR_flea_dtls_rtrsm_st_t__transmit_flight_buf(
   flea_dtls_retransm_state_t* dtls_rtrsm_st__pt,
   flea_recprot_t*             rec_prot__pt,
-  flea_tls__connection_end_t  conn_end__e
+  flea_tls__connection_end_t  conn_end__e,
+  flea_bool_t                 is_retransmission__b
 )
 {
   FLEA_THR_BEG_FUNC();
-  if(!flea_dtls_rtrsm_st_t__decide_to_actually_retransm(dtls_rtrsm_st__pt))
+  FLEA_DBG_PRINTF("[rtrsm] THR_flea_dtls_rtrsm_st_t__transmit_flight_buf called\n");
+  if(is_retransmission__b)
   {
-    FLEA_THR_RETURN();
+    if(!flea_dtls_rtrsm_st_t__decide_to_actually_retransm(dtls_rtrsm_st__pt))
+    {
+      FLEA_DBG_PRINTF("  [rtrsm] suppressing retransmission\n");
+      FLEA_THR_RETURN();
+    }
   }
+  else
+  {
+    dtls_rtrsm_st__pt->rtrsm_state__u8 = FLEA_DTLS_RTRSM_STATE__NOT_ACTIVE;
+  }
+  FLEA_DBG_PRINTF("  [rtrsm] carrying out (re)transmission\n");
   dtls_rtrsm_st__pt->flight_buf_read_pos__u32 = 0;
 
   FLEA_DBG_PRINTF(
-    "[rtrsm] retransmit_flight_buf(): rtrsm-buf-size = %u\n",
+    "[rtrsm] transmit_flight_buf(): trsm-buf-size = %u\n",
     (unsigned) qheap_qh_get_queue_len(dtls_rtrsm_st__pt->qheap__pt, dtls_rtrsm_st__pt->current_flight_buf__qhh)
   );
   // TODO: IF CURRENTLY HELD FLIGHT CONTAINS CCS, THEN REVERT THE OLD WRITE CONNECTION STATE NOW

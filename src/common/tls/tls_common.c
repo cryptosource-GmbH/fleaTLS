@@ -1148,10 +1148,11 @@ static flea_err_e THR_flea_tls_ctx_t__rd_appdat_inner(
   {
     FLEA_DBG_PRINTF("[rtrsm] rd_appdata_inner: FLEA_EXC_TLS_HS_MSG_FR_PREV_EPOCH\n");
     FLEA_CCALL(
-      THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
+      THR_flea_dtls_rtrsm_st_t__transmit_flight_buf(
         &tls_ctx__pt->dtls_retransm_state__t,
         &tls_ctx__pt->rec_prot__t,
-        tls_ctx__pt->connection_end
+        tls_ctx__pt->connection_end,
+        FLEA_TRUE
       )
     );
   }

@@ -286,10 +286,11 @@ static flea_err_e THR_flea_dtls_rd_strm__merge_fragments(
         qheap_qh_free_queue(heap__pt, src_hndl);
         flea_byte_vec_t__GET_DATA_PTR(incom_hndls__pt)[i] = 0;
         FLEA_CCALL(
-          THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
+          THR_flea_dtls_rtrsm_st_t__transmit_flight_buf(
             &tls_ctx__pt->dtls_retransm_state__t,
             &tls_ctx__pt->rec_prot__t,
-            tls_ctx__pt->connection_end
+            tls_ctx__pt->connection_end,
+            FLEA_TRUE
           )
         );
         /* break out from the loop over the targets, i.e. go the next source (i-iteration) */
@@ -583,10 +584,11 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
           dtls_hs_ctx__pt->current_timeout_secs__u8
         );
         FLEA_CCALL(
-          THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
+          THR_flea_dtls_rtrsm_st_t__transmit_flight_buf(
             &tls_ctx__pt->dtls_retransm_state__t,
             &tls_ctx__pt->rec_prot__t,
-            tls_ctx__pt->connection_end
+            tls_ctx__pt->connection_end,
+            FLEA_TRUE
           )
         );
         flea_timer_t__start(&dtls_hs_ctx__pt->hs_ctx__pt->tls_ctx__pt->dtls_retransm_state__t.timer__t);
@@ -667,10 +669,11 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
           "[rtrsm] THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire: FLEA_EXC_TLS_HS_MSG_FR_PREV_EPOCH, requesting retransmission\n"
         );
         FLEA_CCALL(
-          THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
+          THR_flea_dtls_rtrsm_st_t__transmit_flight_buf(
             &tls_ctx__pt->dtls_retransm_state__t,
             &tls_ctx__pt->rec_prot__t,
-            tls_ctx__pt->connection_end
+            tls_ctx__pt->connection_end,
+            FLEA_TRUE
           )
         );
       }
@@ -978,6 +981,9 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
         /* a new msg was actually started. This means we can delete the flight buffer that was still held for retransmission. */
         if(is_first_msg_of_new_flight__b)
         {
+          FLEA_DBG_PRINTF(
+            "[rtrsm] THR_flea_dtls_rd_strm__start_new_msg: received first msg of new flight, emptying flight buffer\n"
+          );
           /* according to the DTLS standard, the peer must buffer all records of his flight until it is completed. thus it is OK to delete the previous flight buffer once we receive the first record of a new flight */
           flea_dtls_rtrsm_st_t__empty_flight_buf(&tls_ctx__pt->dtls_retransm_state__t);
         }
@@ -1056,10 +1062,11 @@ static flea_err_e THR_dtls_rd_strm_rd_func(
     /* we come from sending, and not we want to read => send out the buffered outgoing messages first */
 
     FLEA_CCALL(
-      THR_flea_dtls_rtrsm_st_t__retransmit_flight_buf(
+      THR_flea_dtls_rtrsm_st_t__transmit_flight_buf(
         &tls_ctx__pt->dtls_retransm_state__t,
         &tls_ctx__pt->rec_prot__t,
-        tls_ctx__pt->connection_end
+        tls_ctx__pt->connection_end,
+        FLEA_FALSE
       )
     );
     FLEA_DBG_PRINTF("THR_dtls_rd_strm_rd_func(): did call retransmit_flight_buf() to trigger initial sending\n");
