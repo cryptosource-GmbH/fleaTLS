@@ -600,9 +600,6 @@ static void flea_recprot_t__set_record_header(
 # ifdef FLEA_HAVE_DTLS
   if(FLEA_RP__IS_DTLS(rec_prot__pt))
   {
-    // flea_al_s8_t i;
-    // flea_u32_t low__u32 = rec_prot__pt->write_state__t.seqno_lo_hi__au32[1];
-
     // TODO: CONSIDER WRITING THE EPOCH INTO THE SEQ EVERYTIME IT CHANGES, THIS
     // WOULD SIMPLIFY THE CODE HERE
     rec_prot__pt->send_buf_raw__pu8[3] = rec_prot__pt->write_state__t.epoch__u16 >> 8;
@@ -610,21 +607,8 @@ static void flea_recprot_t__set_record_header(
     rec_prot__pt->send_buf_raw__pu8[5] = rec_prot__pt->write_state__t.seqno_lo_hi__au32[1] >> 8;
     rec_prot__pt->send_buf_raw__pu8[6] = rec_prot__pt->write_state__t.seqno_lo_hi__au32[1];
     flea__encode_U32_BE(rec_prot__pt->write_state__t.seqno_lo_hi__au32[0], &rec_prot__pt->send_buf_raw__pu8[7]);
-
-    /*for(i = 3; i >= 0; i--)
-    {
-     rec_prot__pt->send_buf_raw__pu8[7+i] = low__u32;
-     low__u32 >>= 8;
-    }*/
-// uint16 epoch;                                    // New field
-//          uint48 sequence_number;                          // New field
-//           uint16 length;
-
-    // after setting the header, increment the record sequ.
   }
 # endif /* ifdef FLEA_HAVE_DTLS */
-  rec_prot__pt->send_curr_rec_content_len__u16  = 0;
-  rec_prot__pt->send_curr_rec_content_offs__u16 = 0;
 }
 
 static flea_bool_t flea_recprot_t__have_pending_read_data_in_current_record(const flea_recprot_t* rec_prot__pt)
@@ -656,7 +640,9 @@ flea_err_e THR_flea_recprot_t__wrt_data(
     if(rec_prot__pt->send_buf_raw__pu8[0] != content_type__e)
     {
       FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
-      flea_recprot_t__set_record_header(rec_prot__pt, content_type__e);
+      // flea_recprot_t__set_record_header(rec_prot__pt, content_type__e);
+      rec_prot__pt->send_curr_rec_content_len__u16  = 0;
+      rec_prot__pt->send_curr_rec_content_offs__u16 = 0;
     }
     rec_prot__pt->send_buf_raw__pu8 = rec_prot__pt->alt_send_buf__raw__bu8;
     // rec_prot__pt->send_payload_max_len__u16 = rec_prot__pt->alt_payload_max_len__u16;
@@ -666,7 +652,9 @@ flea_err_e THR_flea_recprot_t__wrt_data(
     rec_prot__pt->send_buf_raw__pu8 = rec_prot__pt->alt_send_buf__raw__bu8;
     // rec_prot__pt->send_payload_max_len__u16 = rec_prot__pt->alt_payload_max_len__u16;
 
-    flea_recprot_t__set_record_header(rec_prot__pt, content_type__e);
+    // flea_recprot_t__set_record_header(rec_prot__pt, content_type__e);
+    rec_prot__pt->send_curr_rec_content_len__u16  = 0;
+    rec_prot__pt->send_curr_rec_content_offs__u16 = 0;
   }
   rec_prot__pt->send_payload_buf__pu8 = rec_prot__pt->send_buf_raw__pu8 + rec_prot__pt->record_hdr_len__u8
     + rec_prot__pt->write_state__t.reserved_iv_len__u8;
@@ -675,6 +663,7 @@ flea_err_e THR_flea_recprot_t__wrt_data(
     - rec_prot__pt->send_curr_rec_content_len__u16;
   while(data_len__dtl)
   {
+    flea_recprot_t__set_record_header(rec_prot__pt, content_type__e);
     // rec_prot__pt->write_ongoing__u8 = 1;
     FLEA_RP__SET_WRITE_ONGOING(rec_prot__pt);
     flea_al_u16_t to_go__alu16 = FLEA_MIN(data_len__dtl, buf_free_len__alu16);
