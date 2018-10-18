@@ -141,7 +141,8 @@ SET(TEST_LIB_STRING_ASAN ${TEST_LIB_NAME_STRING}${VERSION_STRING}${ASAN_STR})
 SET(TEST_LIB_STRING_STATIC ${TEST_LIB_NAME_STRING}_static${VERSION_STRING})
 SET(TEST_LIB_STRING_STATIC_ASAN ${TEST_LIB_NAME_STRING}_static${VERSION_STRING}${ASAN_STR})
 
-SET(BUILD_CFG_SUFFIXES "rpt400" "rpt600" "rpt512" "rpt1024" "rpt2048" "rpt4096")
+# TODO: can set this dynamically: Let the python script give a list of suffixes to use; use file command to read
+SET(BUILD_CFG_SUFFIXES "rpt400" "rpt600" "rpt512" "rpt1024" "rpt2048" "rpt4096" "rpt16384")
 SET(BUILD_CFG_TARGETS_FULL_STR) # contains all executables
 SET(BUILD_CFG_TARGETS_FULL_STR_LIBRARIES) # contains all libraries
 
