@@ -4,6 +4,7 @@ import re
 import os
 import os.path
 import filecmp
+from pathlib import Path
 
 class instruction:
     bc_name = ""
@@ -124,7 +125,8 @@ def write_file(filename, cont_list_of_lines):
 def update_file_if_changed(filename, new_contents):
     curr_out_tmp_file_name = filename + "_tmp"
     write_file(curr_out_tmp_file_name, new_contents)
-    if(not filecmp.cmp(curr_out_tmp_file_name, filename)):
+    curr_file = Path(filename)
+    if((not curr_file.is_file()) or (not filecmp.cmp(curr_out_tmp_file_name, filename))):
         write_file(filename, new_contents)
     os.remove(curr_out_tmp_file_name)
 
