@@ -121,6 +121,13 @@ def write_file(filename, cont_list_of_lines):
         for line in cont_list_of_lines:
             the_file.write(line)
 
+def update_file_if_changed(filename, new_contents):
+    curr_out_tmp_file_name = filename + "_tmp"
+    write_file(curr_out_tmp_file_name, new_contents)
+    if(not filecmp.cmp(curr_out_tmp_file_name, filename)):
+        write_file(filename, new_contents)
+    os.remove(curr_out_tmp_file_name)
+
 
 def create_build_configs(instructions):
     current_bc_name = ""
@@ -132,17 +139,19 @@ def create_build_configs(instructions):
             # entering a new build_cfg file
             if(current_output_file_name != ""):
                 # finish file
-                write_file(current_output_file_name, current_file_contents) 
+                #write_file(current_output_file_name, current_file_contents) 
+                update_file_if_changed(current_output_file_name, current_file_contents)
             current_bc_name = instr.bc_name
             current_output_file_name = "build_cfg/general/" + current_bc_name + "/build_config_gen.h"
             current_file_contents = default_bc_file_as_list()
         exec_instruction(instr, current_file_contents)
     if(current_output_file_name != ""):
-        curr_out_tmp_file_name = current_output_file_name + "_tmp"
-        write_file(curr_out_tmp_file_name, current_file_contents)
-        if(not filecmp.cmp(curr_out_tmp_file_name, current_output_file_name)):
-            write_file(current_output_file_name, current_file_contents)
-        os.remove(curr_out_tmp_file_name)
+        update_file_if_changed(current_output_file_name, current_file_contents)
+        #curr_out_tmp_file_name = current_output_file_name + "_tmp"
+        #write_file(curr_out_tmp_file_name, current_file_contents)
+        #if(not filecmp.cmp(curr_out_tmp_file_name, current_output_file_name)):
+        #    write_file(current_output_file_name, current_file_contents)
+        #os.remove(curr_out_tmp_file_name)
         
         
         
