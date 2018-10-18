@@ -228,7 +228,7 @@ target_include_directories(flea-test PRIVATE ${INCLUDE_DIR})
 IF(INT_DEV_CMDS)
   add_custom_command(TARGET flea-test 
     PRE_BUILD
-    COMMAND python misc/tools/gen_build_cfgs.py)
+    COMMAND python3 misc/tools/gen_build_cfgs.py)
   add_custom_command(TARGET flea-test 
     PRE_BUILD
     COMMAND ./misc/tools/ensure_unused_result_attrib.sh)
