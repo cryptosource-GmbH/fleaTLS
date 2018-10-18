@@ -62,6 +62,12 @@
  * heap allocations and instead only uses the stack memory. This means that fleaTLS' functions and objects reserve stack space according to the configured algorithms and maximal key size definitions made in the build configuration.
  */
 # define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
+
+/**
+ * Size of the qheap area used within the DTLS implementation for efficient record / handshake message buffering.
+ */
+# define FLEA_QHEAP_MEMORY_SIZE 18000
+
 /* end mem_cfg */
 /**@}*/
 
@@ -681,15 +687,22 @@
  */
 # define FLEA_TLS_HAVE_PEER_ROOT_CERT_REF
 
+/**
+ * This variable controls whether support for DTLS 1.2 is available.
+ */
+# define FLEA_HAVE_DTLS
 
 /**
- * Based on this value the buffer size for received records will be calculated.
- * The TLS standard mandates a size of 2^14 = 16384. If a smaller size is chosen, an
+ * The maximal plaintext size of TLS record that can received. Based on this
+ * value the buffer size for received records will be calculated.  The TLS
+ * standard mandates a size of 2^14 = 16384. If a smaller size is chosen, an
  * attempt will be made to negotiate smaller records using the maximum fragment
- * length negotiation extension (RFC 6066). The record plaintext sizes supported by this extension are 512, 1024, 2048, and 4096. One of these value may be configured for this variable.
- * If negotiation fails, fleaTLS will abort the handshake with a fatal alert.
- * The receive buffer will be at most 325 bytes larger than
- * FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE, depending on compiled cipher suites.
+ * length negotiation extension (RFC 6066). The record plaintext sizes supported
+ * by this extension are 512, 1024, 2048, and 4096. One of these value may be
+ * configured for this variable.  If negotiation fails, fleaTLS will abort the
+ * handshake with a fatal alert.  The receive buffer will be at most 325 bytes
+ * larger than FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE, depending on compiled
+ * cipher suites.
  */
 # define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 16384
 
@@ -703,12 +716,26 @@
 // # define FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
 
 /**
- * TLS send buffer size. This buffer used for sending data and determines the
+ * TLS send plaintext size. This buffer used for sending data and determines the
  * maximal record size of records sent by fleaTLS. Should not be smaller than
  * 150 bytes. A small size reduces performance. May not be greater than 16384.
  */
-# define FLEA_TLS_ALT_SEND_BUF_SIZE 16384
+# define FLEA_TLS_RECORD_MAX_SEND_PLAINTEXT_SIZE 150
 
+/**
+ * The size of the flight buffer used within DTLS to store outgoing handshake messages for
+ * being able to resend them if required and to assemble incoming handshake message
+ * fragments. This buffer is part of the tls-handshake-context object and will
+ * thus only be allocated during a TLS handshake.
+ */
+# define FLEA_DTLS_FLIGHT_BUF_SIZE 7000
+
+/**
+ * The maximal number of incoming fragments that can be chached by the DTLS
+ * assembly buffer. Only relevant in stack mode. In the default configuration
+ * one byte per fragment is allocated as management data.
+ */
+# define FLEA_STKMD_DTLS_DTLS_MAX_NB_INCM_FRGMS 30
 
 /**
  * Maximal size of public key parameters object in an X.509 certificate. Mainly
@@ -723,8 +750,30 @@
  * Relevant only in stack mode.
  */
 # define FLEA_TLS_MAX_CIPH_SUITES_BUF_SIZE 40
-
 /* end tls_cfg*/
+/**@}*/
+
+/**
+ * \defgroup dtls_cfg TLS configuration
+ */
+/**@{*/
+
+/**
+ * This is the maximal cookie size supported by the flea DTLS client in stack mode.
+ */
+# define FLEA_STKMD_DTLS_CLT_MAX_HELLO_COOKIE_SIZE 256
+
+/**
+ * The lenght of the server cookie sent by the flea DTLS server in bytes. May have any value between 1 and 255. It is recommended to use at least a length of 8 bytes.
+ */
+# define FLEA_DTLS_SRV_HELLO_COOKIE_SIZE 10
+
+/**
+ * If the server is configured to request a hello cookie in the client's ClientHello, then the server aborts the handshake if receives n invalid ClientHellos that do not contain the requested cookie, where n is the number configured in this property. This value must be at least 1 and should not be set too large.
+ */
+# define FLEA_DTLS_MAX_TRIES_FOR_HELLO_COOKIE 3
+
+/* end dtls_cfg*/
 /**@}*/
 
 /**
@@ -783,6 +832,19 @@
 /* end mt_cfg */
 /**@}*/
 
+/**
+ * \defgroup timer_cfg Timer support
+ *
+ */
+
+# define FLEA_HAVE_TIMER
+
+# define FLEA_USE_WALL_CLOCK_BASED_TIMER
+
+/**@{*/
+
+/* end timer_cfg */
+/**@}*/
 /* include must remain at the very end: */
 # include "internal/common/build_config_util.h"
 
