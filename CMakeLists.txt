@@ -162,6 +162,14 @@ SET(INCLUDE_DIR ${INCLUDE_DIR_NO_BUILD_CFG} ${BUILD_CFG_PATH}${build_cfg})
 SET(SRC_DIR src )
 
 add_custom_target(default ALL COMMAND rm -rf ${PROJECT_BINARY_DIR} && mkdir ${PROJECT_BINARY_DIR})
+IF(INT_DEV_CMDS)
+  add_custom_command(TARGET default 
+    PRE_BUILD
+    COMMAND python3 misc/tools/gen_build_cfgs.py)
+  add_custom_command(TARGET default
+    PRE_BUILD
+    COMMAND ./misc/tools/ensure_unused_result_attrib.sh)
+ENDIF()
 
 # List of source files
 FILE(GLOB FLEA_SRCS ${SRC_DIR}/x86/*.c ${SRC_DIR}/common/*.c ${SRC_DIR}/user/*.c
@@ -225,14 +233,6 @@ TARGET_LINK_LIBRARIES(flea-test ${FULL_LIB_STRING} ${TEST_LIB_STRING})
 target_include_directories(flea-test PRIVATE ${INCLUDE_DIR})
 #add_dependencies(flea-test default)
 
-IF(INT_DEV_CMDS)
-  add_custom_command(TARGET flea-test 
-    PRE_BUILD
-    COMMAND python3 misc/tools/gen_build_cfgs.py)
-  add_custom_command(TARGET flea-test 
-    PRE_BUILD
-    COMMAND ./misc/tools/ensure_unused_result_attrib.sh)
-ENDIF()
 
 
 # add executables for BUILD_CFG_SUFFIXES 
