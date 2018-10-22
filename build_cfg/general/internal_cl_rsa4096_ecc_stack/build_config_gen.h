@@ -720,7 +720,7 @@
  * maximal record size of records sent by fleaTLS. Should not be smaller than
  * 150 bytes. A small size reduces performance. May not be greater than 16384.
  */
-# define FLEA_TLS_RECORD_MAX_SEND_PLAINTEXT_SIZE 150
+# define FLEA_TLS_RECORD_MAX_SEND_PLAINTEXT_SIZE 16384
 
 /**
  * The size of the flight buffer used within DTLS to store outgoing handshake messages for

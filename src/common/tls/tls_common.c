@@ -1755,9 +1755,9 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
   FLEA_THR_BEG_FUNC();
 
   /*
-   * > If a server receives a maximum fragment length negotiation request
-   * > for a value other than the allowed values, it MUST abort the
-   * > handshake with an "illegal_parameter" alert.
+   *  If a server receives a maximum fragment length negotiation request
+   *  for a value other than the allowed values, it MUST abort the
+   *  handshake with an "illegal_parameter" alert.
    */
   if(ext_len__alu16 != 1)
   {
@@ -1775,7 +1775,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
     FLEA_THROW("invalid value of max_fragment_length extension", FLEA_ERR_TLS_ILLEGAL_PARAMETER);
   }
 
-  // handle sess res case
+  /* handle sess res case */
   if(hs_ctx__pt->is_sess_res__b)
   {
     flea_tls_srv_ctx_t* server_ctx__pt = (flea_tls_srv_ctx_t*) tls_ctx__pt->client_or_server_ctx__pv;
@@ -1805,7 +1805,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
    * resumption request. */
   tls_ctx__pt->extension_ctrl__u8 |= FLEA_TLS_EXT_CTRL_MASK__MAX_FRAGMENT_LENGTH;
 
-
+#  ifdef FLEA_HAVE_TLS_CLIENT
   if(tls_ctx__pt->connection_end == FLEA_TLS_CLIENT)
   {
     if(flea_tls__get_max_fragment_length_byte_for_buf_size(FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE) !=
@@ -1817,6 +1817,7 @@ flea_err_e THR_flea_tls_ctx_t__parse_max_fragment_length_ext(
       );
     }
   }
+#  endif /* ifdef FLEA_HAVE_TLS_CLIENT */
 
   FLEA_THR_FIN_SEC_empty();
 } /* THR_flea_tls_ctx_t__parse_max_fragment_length_ext */
@@ -2149,8 +2150,8 @@ flea_err_e THR_flea_tls_ctx_t__parse_hello_extensions(
     {
       if(hs_ctx__pt->is_sess_res__b)
       {
-        // RFC 6066: extension only relevant for initial handshake - no need to
-        // parse in sess. res. case!
+        /* RFC 6066: extension only relevant for initial handshake - no need to
+         parse in sess. res. case */
         do_skip_ext = FLEA_TRUE;
       }
       else

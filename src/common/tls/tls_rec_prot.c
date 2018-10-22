@@ -640,19 +640,15 @@ flea_err_e THR_flea_recprot_t__wrt_data(
     if(rec_prot__pt->send_buf_raw__pu8[0] != content_type__e)
     {
       FLEA_CCALL(THR_flea_recprot_t__write_flush(rec_prot__pt));
-      // flea_recprot_t__set_record_header(rec_prot__pt, content_type__e);
       rec_prot__pt->send_curr_rec_content_len__u16  = 0;
       rec_prot__pt->send_curr_rec_content_offs__u16 = 0;
     }
     rec_prot__pt->send_buf_raw__pu8 = rec_prot__pt->alt_send_buf__raw__bu8;
-    // rec_prot__pt->send_payload_max_len__u16 = rec_prot__pt->alt_payload_max_len__u16;
   }
   else
   {
     rec_prot__pt->send_buf_raw__pu8 = rec_prot__pt->alt_send_buf__raw__bu8;
-    // rec_prot__pt->send_payload_max_len__u16 = rec_prot__pt->alt_payload_max_len__u16;
 
-    // flea_recprot_t__set_record_header(rec_prot__pt, content_type__e);
     rec_prot__pt->send_curr_rec_content_len__u16  = 0;
     rec_prot__pt->send_curr_rec_content_offs__u16 = 0;
   }
@@ -664,7 +660,6 @@ flea_err_e THR_flea_recprot_t__wrt_data(
   while(data_len__dtl)
   {
     flea_recprot_t__set_record_header(rec_prot__pt, content_type__e);
-    // rec_prot__pt->write_ongoing__u8 = 1;
     FLEA_RP__SET_WRITE_ONGOING(rec_prot__pt);
     flea_al_u16_t to_go__alu16 = FLEA_MIN(data_len__dtl, buf_free_len__alu16);
     memcpy(
@@ -2634,7 +2629,6 @@ void flea_recprot_t__set_max_pt_len(
   flea_u16_t      pt_len__u16
 )
 {
-  // rec_prot__pt->alt_payload_max_len__u16 = pt_len__u16;
   if(pt_len__u16 < rec_prot__pt->record_plaintext_send_max_value__u16)
   {
     rec_prot__pt->record_plaintext_send_max_value__u16 = pt_len__u16;

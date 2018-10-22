@@ -179,10 +179,8 @@ flea_err_e THR_flea_dtls_rtrsm_st_t__try_send_out_from_flight_buf(
       max_pt_expansion__alu16 = flea_recprot_t__get_current_max_pt_expansion(rec_prot__pt);
 
       /* must have at least one byte of content: */
-      if(msg_len__u32 + FLEA_DTLS_HANDSH_HDR_LEN /*+ dtls_ctx__pt->flight_buf_read_pos__u32*/ >
-        avail_len__u32
-        // dtls_ctx__pt->flight_buf_write_pos__u32
-      )
+      if(msg_len__u32 + FLEA_DTLS_HANDSH_HDR_LEN >
+        avail_len__u32)
       {
         /* hndsh msg is not yet completed */
         FLEA_THR_RETURN();
@@ -202,8 +200,6 @@ flea_err_e THR_flea_dtls_rtrsm_st_t__try_send_out_from_flight_buf(
 
       flea_u32_t data_pos__u32 = dtls_rtrsm_st__pt->flight_buf_read_pos__u32 + FLEA_DTLS_HANDSH_HDR_LEN;
 
-      /*flea_u8_t* data_ptr__pu8 = dtls_ctx__pt->flight_buf__bu8 + dtls_ctx__pt->flight_buf_read_pos__u32
-        + FLEA_DTLS_HANDSH_HDR_LEN;*/
       flea_u32_t fragm_off__u32 = 0;
       flea_u8_t frag_offs_and_len__alu8[6];
 
