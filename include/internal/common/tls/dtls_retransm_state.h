@@ -47,6 +47,7 @@ typedef struct
   qheap_queue_heap_t          qheap__t;
   // TODO: PONDER VARIANTS OF HOW TO PLACE THIS BUFFER (STACK/HEAP?)
   flea_u32_t                  qh_mem_area__au32[(FLEA_QHEAP_MEMORY_SIZE + 3) / 4];
+  flea_u8_t                   flight_nr__u8;
 } flea_dtls_retransm_state_t;
 
 flea_err_e THR_flea_dtls_rtrsm_t__ctor(

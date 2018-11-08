@@ -637,6 +637,11 @@ static flea_err_e THR_flea_dtls_rd_strm__rd_dtls_rec_from_wire(
   if(rec_type__u8 == rec_type_encr_rec)
   {
     FLEA_DBG_PRINTF("writing encrypted record to queue\n");
+    /* the first flight of an initial handshake received by the server never contains an encrypted record from a future epoch */
+    if(tls_ctx__pt->connection_end == FLEA_TLS_SERVER && !tls_ctx__pt->dtls_retransm_state__t.flight_nr__u8)
+    {
+      FLEA_THROW("unexpected encrypted record in first flight", FLEA_ERR_TLS_HANDSHK_FAILURE);
+    }
     FLEA_CCALL(
       THR_flea_recprot_t__write_encr_rec_to_queue(
         rec_prot__pt,
@@ -942,23 +947,6 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
         FLEA_DBG_PRINT_BYTE_ARRAY(reread_fragm_len_au8, peaked_cnt);
         FLEA_DBG_PRINTF("\n");
 
-        /*if(memcmp(reread_fragm_len_au8, hdr_ptr__pu8 + FLEA_DTLS_HS_HDR_OFFS__MSG_LEN, 3))
-        {
-          FLEA_THROW("error with rewritten fragm len 2", FLEA_ERR_INT_ERR);
-        }*/
-        // <======== DBG
-
-        /*if(handsh_hdr_mbn__pu8)
-        {
-          memcpy(handsh_hdr_mbn__pu8, hdr_ptr__pu8, FLEA_DTLS_HANDSH_HDR_LEN);
-        }*/
-
-        // *handsh_type__pu8 = hdr_ptr__pu8[0];
-        // *msg_len__pu32    = curr_msg_hdr_info__pt->msg_len__u32;
-
-        /*handsh_rdr__pt->hlp__t.msg_seq__u16 =
-          handsh_rdr__pt->hlp__t.fragm_offset__u32
-          handsh_rdr__pt->hlp__t.fragm_length__u32*/
 
         /* invalidate the handle */
       }
@@ -984,6 +972,7 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
           FLEA_DBG_PRINTF(
             "[rtrsm] THR_flea_dtls_rd_strm__start_new_msg: received first msg of new flight, emptying flight buffer\n"
           );
+          tls_ctx__pt->dtls_retransm_state__t.flight_nr__u8++;
           /* according to the DTLS standard, the peer must buffer all records of his flight until it is completed. thus it is OK to delete the previous flight buffer once we receive the first record of a new flight */
           flea_dtls_rtrsm_st_t__empty_flight_buf(&tls_ctx__pt->dtls_retransm_state__t);
         }
@@ -998,24 +987,6 @@ static flea_err_e THR_flea_dtls_rd_strm__start_new_msg(
     FLEA_CCALL(THR_flea_dtls_rd_strm__merge_fragments(dtls_hs_ctx__pt));
   } /* end loop until next msg is available */
 
-  //
-  // FLEA_CCALL(THR_flea_rw_stream_t__read_full(stream__pt, hdr__au8, hdr_size__alu8));
-
-  // first, check sequence
-  //   if older than current: resend
-  //   if newer or equal than current: insert into flight buffer
-  //                                  (this means the flight buffer has to be
-  //                                  kept)
-
-  /* (((flea_u32_t) hdr__au8[1]) << 16) | (((flea_u32_t) hdr__au8[2]) << 8)
-   | (((flea_u32_t) hdr__au8[3]));*/
-
-
-  /* these fields are all irrelevant on this layer. fragmentation information was already corrected by the underlying assembly layer. */
-
-  /*handsh_rdr__pt->hlp__t.msg_seq__u16      = flea__decode_U16_BE(&hdr__au8[4]);
-  handsh_rdr__pt->hlp__t.fragm_offset__u32 = flea__decode_U24_BE(&hdr__au8[6]);
-  handsh_rdr__pt->hlp__t.fragm_length__u32 = flea__decode_U24_BE(&hdr__au8[9]);*/
 
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL(hs_hdr_buf__bu8);

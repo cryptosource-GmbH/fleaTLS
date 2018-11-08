@@ -300,6 +300,7 @@ flea_err_e THR_flea_dtls_rtrsm_st_t__try_send_out_from_flight_buf(
       break;
     }
   }
+  FLEA_DBG_PRINTF("THR_flea_dtls_rtrsm_st_t__try_send_out_from_flight_buf ending\n");
   FLEA_THR_FIN_SEC(
     FLEA_FREE_BUF_FINAL_SECRET_ARR(send_portion__bu8, 64);
   );

@@ -531,17 +531,6 @@ static flea_err_e THR_server_cycle(
           struct sockaddr_in from;
           socklen_t from_len = sizeof(sockaddr_in);
 
-
-          /*struct timeval tv;
-          tv.tv_sec  = 300; // TODO: SET TIMEOUT ACCORDING TO COMMANDLINE ARGS
-          tv.tv_usec = 0;
-          setsockopt(
-            server_fd,
-            SOL_SOCKET,
-            SO_RCVTIMEO,
-            (struct timeval*) &tv,
-            sizeof(struct timeval)
-          );*/
           if(::recvfrom(
               server_fd,
               nullptr,
