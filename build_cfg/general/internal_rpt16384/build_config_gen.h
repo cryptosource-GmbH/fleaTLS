@@ -47,14 +47,15 @@ limitations under the License. */
 # define FLEA_NO_DEV_ASSERTIONS // FBFLAGS_CORE_ON_OFF
 
 
-# if 0
+# if FLEA_SWITCH_ON_DBG_PRINT
 
 /**
  * When set, print messages from thrown exception with printf (for debugging purposes). This causes output during tests which purposely trigger exceptions.
+ *  Furthermore, if activated, the arguments to the macro #FLEA_DBG_PRINTF will be passed to printf.
  */
-#  define FLEA_DO_PRINTF_ERRS
+#  define FLEA_DO_DBG_PRINT
 
-# endif  // if 0
+# endif // if FLEA_SWITCH_ON_DBG_PRINT
 /* end dgb_cfg */
 /**@}*/
 
@@ -73,7 +74,7 @@ limitations under the License. */
  * (referred to as "stack mode"). In stack mode, fleaTLS does not perform any
  * heap allocations and instead only uses the stack memory. This means that fleaTLS' functions and objects reserve stack space according to the configured algorithms and maximal key size definitions made in the build configuration.
  */
-// # define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
+# define FLEA_HEAP_MODE // FBFLAGS_CORE_ON_OFF
 /* end mem_cfg */
 /**@}*/
 
@@ -471,7 +472,7 @@ limitations under the License. */
 /**
  * Control whether support for CBC-based cipher suites shall be compiled.
  */
-// #  define FLEA_HAVE_TLS_CS_CBC
+#  define FLEA_HAVE_TLS_CS_CBC
 // #  endif
 
 #  ifdef FLEA_HAVE_GCM
@@ -703,7 +704,7 @@ limitations under the License. */
  * The receive buffer will be at most 325 bytes larger than
  * FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE, depending on compiled cipher suites.
  */
-# define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 4096
+# define FLEA_TLS_RECORD_MAX_RECEIVE_PLAINTEXT_SIZE 16384
 
 /**
  * If enabled, the maximum fragment length negotiation extension (RFC 6066) can
@@ -712,7 +713,7 @@ limitations under the License. */
  *
  * For further details see the API documentation.
  */
-# define FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
+// # define FLEA_TLS_HAVE_MAX_FRAG_LEN_EXT
 
 /**
  * TLS send buffer size. This buffer used for sending data and determines the
