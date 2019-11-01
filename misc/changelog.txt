@@ -75,7 +75,7 @@ failures when compression is offered by the client. Reported by Andreas Walz (Ho
 - TLS PSK cipher suites
 
 ### Changed
-- removed version number from built library file
+- removed version number from built library file name
 
 ## [1.2.1] 2018-03-27 cryptosource GmbH  info@fleatls.com
 
