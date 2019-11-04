@@ -1,11 +1,11 @@
 /* fleaTLS cryptographic library
-Copyright (C) 2015-2019 cryptosource GmbH
+   Copyright (C) 2015-2019 cryptosource GmbH
 
-Licensed under the Apache License, Version 2.0 (the "License");
-you may not use this file except in compliance with the License.
-You may obtain a copy of the License at
+   Licensed under the Apache License, Version 2.0 (the "License");
+   you may not use this file except in compliance with the License.
+   You may obtain a copy of the License at
 
-    http://www.apache.org/licenses/LICENSE-2.0
+http://www.apache.org/licenses/LICENSE-2.0
 
 Unless required by applicable law or agreed to in writing, software
 distributed under the License is distributed on an "AS IS" BASIS,
@@ -36,17 +36,17 @@ limitations under the License. */
 #ifdef FLEA_HAVE_ECKA
 
 flea_err_e THR_flea_ecka__compute_ecka_with_kdf_ansi_x9_63(
-  flea_hash_id_e               hash_id__t,
-  const flea_u8_t*             public_point_enc__pcu8,
-  flea_al_u8_t                 public_point_enc_len__alu8,
-  const flea_u8_t*             secret_key__pcu8,
-  flea_al_u8_t                 secret_key_len__alu8,
-  const flea_u8_t*             shared_info__pcu8,
-  flea_al_u16_t                shared_info_len__alu16,
-  flea_u8_t*                   result__pu8,
-  flea_al_u16_t                result_len__alu16,
-  const flea_ec_dom_par_ref_t* dom_par__pt
-)
+    flea_hash_id_e               hash_id__t,
+    const flea_u8_t*             public_point_enc__pcu8,
+    flea_al_u8_t                 public_point_enc_len__alu8,
+    const flea_u8_t*             secret_key__pcu8,
+    flea_al_u8_t                 secret_key_len__alu8,
+    const flea_u8_t*             shared_info__pcu8,
+    flea_al_u16_t                shared_info_len__alu16,
+    flea_u8_t*                   result__pu8,
+    flea_al_u16_t                result_len__alu16,
+    const flea_ec_dom_par_ref_t* dom_par__pt
+    )
 {
   FLEA_DECL_BUF(shared_x__bu8, flea_u8_t, FLEA_ECC_MAX_MOD_BYTE_SIZE);
   flea_al_u8_t shared_x_len__alu8 = 0;
@@ -64,44 +64,44 @@ flea_err_e THR_flea_ecka__compute_ecka_with_kdf_ansi_x9_63(
 # endif /* ifdef FLEA_STACK_MODE */
   FLEA_ALLOC_BUF(shared_x__bu8, shared_x_len__alu8);
   FLEA_CCALL(
-    THR_flea_ecka__compute_raw(
-      public_point_enc__pcu8,
-      public_point_enc_len__alu8,
-      secret_key__pcu8,
-      secret_key_len__alu8,
-      shared_x__bu8,
-      &shared_x_len__alu8,
-      dom_par__pt
-    )
-  );
+      THR_flea_ecka__compute_raw(
+        public_point_enc__pcu8,
+        public_point_enc_len__alu8,
+        secret_key__pcu8,
+        secret_key_len__alu8,
+        shared_x__bu8,
+        &shared_x_len__alu8,
+        dom_par__pt
+        )
+      );
   FLEA_CCALL(
-    THR_flea_kdf_X9_63(
-      hash_id__t,
-      shared_x__bu8,
-      shared_x_len__alu8,
-      shared_info__pcu8,
-      shared_info_len__alu16,
-      result__pu8,
-      result_len__alu16
-    )
-  );
+      THR_flea_kdf_X9_63(
+        hash_id__t,
+        shared_x__bu8,
+        shared_x_len__alu8,
+        shared_info__pcu8,
+        shared_info_len__alu16,
+        result__pu8,
+        result_len__alu16
+        )
+      );
   FLEA_THR_FIN_SEC(
-    FLEA_FREE_BUF_SECRET_ARR(
-      shared_x__bu8,
-      FLEA_HEAP_OR_STACK_CODE(shared_x_len__alu8, FLEA_NB_ARRAY_ENTRIES(shared_x__bu8))
-    );
-  );
+      FLEA_FREE_BUF_SECRET_ARR(
+        shared_x__bu8,
+        FLEA_HEAP_OR_STACK_CODE(shared_x_len__alu8, FLEA_NB_ARRAY_ENTRIES(shared_x__bu8))
+        );
+      );
 } /* THR_flea_ecka__compute_ecka_with_kdf_ansi_x9_63 */
 
 flea_err_e THR_flea_ecka__compute_raw(
-  const flea_u8_t*             public_point_enc__pcu8,
-  flea_al_u8_t                 public_point_enc_len__alu8,
-  const flea_u8_t*             secret_key__pcu8,
-  flea_al_u8_t                 secret_key_len__alu8,
-  flea_u8_t*                   result__pu8,
-  flea_al_u8_t*                result_len__palu8,
-  const flea_ec_dom_par_ref_t* dom_par__pt
-)
+    const flea_u8_t*             public_point_enc__pcu8,
+    flea_al_u8_t                 public_point_enc_len__alu8,
+    const flea_u8_t*             secret_key__pcu8,
+    flea_al_u8_t                 secret_key_len__alu8,
+    flea_u8_t*                   result__pu8,
+    flea_al_u8_t*                result_len__palu8,
+    const flea_ec_dom_par_ref_t* dom_par__pt
+    )
 {
   flea_mpi_t d, l, n;
   const flea_al_u8_t sign_mpi_ws_count = 4;
@@ -127,26 +127,34 @@ flea_err_e THR_flea_ecka__compute_raw(
   flea_uword_t* ecc_ws_mpi_arrs [sign_mpi_ws_count];
 # endif
   FLEA_DECL_BUF(
-    vn,
-    flea_hlf_uword_t,
-    FLEA_MPI_DIV_VN_HLFW_LEN_FROM_DIVISOR_W_LEN(FLEA_ECC_MAX_ORDER_WORD_SIZE + 32 / sizeof(flea_uword_t))
-  );
+      vn,
+      flea_hlf_uword_t,
+      FLEA_MPI_DIV_VN_HLFW_LEN_FROM_DIVISOR_W_LEN(FLEA_ECC_MAX_ORDER_WORD_SIZE + 32 / sizeof(flea_uword_t))
+      );
   FLEA_DECL_BUF(
-    un,
-    flea_hlf_uword_t,
-    FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(2 * (FLEA_ECC_MAX_MOD_WORD_SIZE + 1))
-  );
+      un,
+      flea_hlf_uword_t,
+      FLEA_MPI_DIV_UN_HLFW_LEN_FROM_DIVIDENT_W_LEN(2 * (FLEA_ECC_MAX_MOD_WORD_SIZE + 1))
+      );
 
   FLEA_DECL_BUF(n_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE + 32 / sizeof(flea_uword_t));
   FLEA_DECL_BUF(d_arr, flea_uword_t, FLEA_ECC_MAX_ORDER_WORD_SIZE + 32 / sizeof(flea_uword_t));
   FLEA_DECL_BUF(l_arr, flea_uword_t, 2 * (FLEA_ECC_MAX_ORDER_WORD_SIZE + 32 / sizeof(flea_uword_t))); /* must be able to hold intermediate result multiplication result */
   FLEA_DECL_BUF(Q_arr, flea_uword_t, (2 * FLEA_ECC_MAX_MOD_WORD_SIZE) + 32 / sizeof(flea_uword_t));
   FLEA_DECL_BUF(curve_word_arr, flea_uword_t, (3 * FLEA_ECC_MAX_MOD_WORD_SIZE) + 32 / sizeof(flea_uword_t));
+#ifdef FLEA_HEAP_MODE
+  flea_mpi_ulen_t curve_word_arr_word_len;
+  flea_mpi_ulen_t Q_arr_word_len;
+  flea_mpi_ulen_t vn_len;
+  flea_mpi_ulen_t un_len;
+  flea_mpi_ulen_t order_word_len;
+#else
   flea_mpi_ulen_t curve_word_arr_word_len = FLEA_NB_STACK_BUF_ENTRIES(curve_word_arr);
   flea_mpi_ulen_t Q_arr_word_len = FLEA_NB_STACK_BUF_ENTRIES(Q_arr);
   flea_mpi_ulen_t vn_len         = FLEA_NB_STACK_BUF_ENTRIES(vn); /* overridden for heap-version */
   flea_mpi_ulen_t un_len         = FLEA_NB_STACK_BUF_ENTRIES(un); /* overridden for heap-version */
   flea_mpi_ulen_t order_word_len = FLEA_ECC_MAX_ORDER_WORD_SIZE + 32 / sizeof(flea_uword_t);
+#endif
 
   flea_mpi_div_ctx_t div_ctx;
   flea_al_u8_t i;
@@ -185,22 +193,22 @@ flea_err_e THR_flea_ecka__compute_raw(
   FLEA_CCALL(THR_flea_ctr_mode_prng_t__reseed(&delay_prng__t, secret_key__pcu8, secret_key_len__alu8));
 # endif
   FLEA_CCALL(
-    THR_flea_curve_gfp_t__init_dp_array(
-      &curve,
-      dom_par__pt,
-      curve_word_arr,
-      curve_word_arr_word_len
-    )
-  );
+      THR_flea_curve_gfp_t__init_dp_array(
+        &curve,
+        dom_par__pt,
+        curve_word_arr,
+        curve_word_arr_word_len
+        )
+      );
   FLEA_CCALL(
-    THR_flea_point_gfp_t__init_decode(
-      &Q,
-      public_point_enc__pcu8,
-      public_point_enc_len__alu8,
-      Q_arr,
-      Q_arr_word_len
-    )
-  );
+      THR_flea_point_gfp_t__init_decode(
+        &Q,
+        public_point_enc__pcu8,
+        public_point_enc_len__alu8,
+        Q_arr,
+        Q_arr_word_len
+        )
+      );
   flea_mpi_t__init(&n, n_arr, order_word_len);
   flea_mpi_t__init(&d, d_arr, order_word_len);
 
@@ -270,23 +278,23 @@ flea_err_e THR_flea_ecka__compute_raw(
   *result_len__palu8 = tmp_result_len__alu8;
   FLEA_CCALL(THR_flea_mpi_t__encode(result__pu8, *result_len__palu8, &Q.m_x));
   FLEA_THR_FIN_SEC(
-    FLEA_DO_IF_USE_HEAP_BUF(
-      for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs); i++)
-  {
-    FLEA_FREE_MEM_CHK_NULL(ecc_ws_mpi_arrs[i]);
-  }
-    );
-    FLEA_FREE_BUF_FINAL(n_arr);
-    FLEA_FREE_BUF_FINAL(curve_word_arr);
-    FLEA_FREE_BUF_SECRET_ARR(Q_arr, Q_arr_word_len);
-    FLEA_FREE_BUF_SECRET_ARR(l_arr, 2 * order_word_len);
-    FLEA_FREE_BUF_SECRET_ARR(d_arr, order_word_len);
-    FLEA_FREE_BUF_SECRET_ARR(vn, vn_len);
-    FLEA_FREE_BUF_SECRET_ARR(un, un_len);
-    FLEA_DO_IF_USE_PUBKEY_INPUT_BASED_DELAY(
-      flea_ctr_mode_prng_t__dtor(&delay_prng__t);
-    )
-  );
+      FLEA_DO_IF_USE_HEAP_BUF(
+        for(i = 0; i < FLEA_NB_ARRAY_ENTRIES(ecc_ws_mpi_arrs); i++)
+        {
+        FLEA_FREE_MEM_CHK_NULL(ecc_ws_mpi_arrs[i]);
+        }
+        );
+      FLEA_FREE_BUF_FINAL(n_arr);
+      FLEA_FREE_BUF_FINAL(curve_word_arr);
+      FLEA_FREE_BUF_SECRET_ARR(Q_arr, Q_arr_word_len);
+      FLEA_FREE_BUF_SECRET_ARR(l_arr, 2 * order_word_len);
+      FLEA_FREE_BUF_SECRET_ARR(d_arr, order_word_len);
+      FLEA_FREE_BUF_SECRET_ARR(vn, vn_len);
+      FLEA_FREE_BUF_SECRET_ARR(un, un_len);
+      FLEA_DO_IF_USE_PUBKEY_INPUT_BASED_DELAY(
+        flea_ctr_mode_prng_t__dtor(&delay_prng__t);
+        )
+      );
 } /* THR_flea_ecka__compute_raw */
 
 #endif // #ifdef FLEA_HAVE_ECKA
