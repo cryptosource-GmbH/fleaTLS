@@ -27,7 +27,12 @@ limitations under the License. */
 #ifdef FLEA_HAVE_DAVIES_MEYER_HASH
 void flea_hash_davies_meyer_aes128_init(flea_hash_ctx_t* ctx__pt)
 {
+#ifdef FLEA_HEAP_MODE
   memset(ctx__pt->hash_state, 0, sizeof(ctx__pt->hash_state[0]) * 4);
+#else
+  /* avoid a GCC warning */
+  memset(ctx__pt->hash_state, 0, sizeof(ctx__pt->hash_state));
+#endif
 }
 
 flea_err_e THR_flea_hash_davies_meyer_aes128_compression(
