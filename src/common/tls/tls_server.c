@@ -41,6 +41,7 @@ limitations under the License. */
 
 #ifdef FLEA_HAVE_TLS_SERVER
 
+# ifdef FLEA_HAVE_DTLS
 static flea_err_e THR_flea_tls__send_hello_verify_request(
   flea_tls_handshake_ctx_t* hs_ctx__pt
 )
@@ -73,6 +74,7 @@ static flea_err_e THR_flea_tls__send_hello_verify_request(
 
   FLEA_THR_FIN_SEC_empty();
 }
+#endif
 
 static flea_err_e THR_flea_tls__read_client_hello(
   flea_tls_srv_ctx_t*       server_ctx__pt,
@@ -1159,9 +1161,9 @@ static flea_err_e THR_flea_tls_server_handle_handsh_msg(
 
   {
     /*
-     * for read_finished use a copy of hash_ctx where the finished message is not included yet
+     * for read_finished use a copy of hash_ctx where the finished message is not included yet.
      * same for certificate verify message but use the appropriate hash function
-     * instead of PRF hash
+     * instead of PRF hash.
      */
     if(flea_tls_handsh_reader_t__get_handsh_msg_type(&handsh_rdr__t) == HANDSHAKE_TYPE_CERTIFICATE_VERIFY)
     {
